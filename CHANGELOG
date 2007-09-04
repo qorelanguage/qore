@@ -1,5 +1,6 @@
 2007.09.04: David Nichols
 	* qt: implemented support for dynamic signals and slots for QShortcut
+	* qt: added qt examples directory, added analogclock.q example
 
 2007.09.03: David Nichols
 	* qt: major qt-code-gen.q improvements, added new classes

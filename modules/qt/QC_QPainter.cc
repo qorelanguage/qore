@@ -1733,24 +1733,23 @@ static QoreNode *QPAINTER_setBrush(Object *self, QoreQPainter *qp, QoreNode *par
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQBrush *brush = (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink);
-      if (!brush)
-      {
-	 if (!xsink->isException())
-	    xsink->raiseException("QPAINTER-SETBRUSH-PARAM-ERROR", "QPainter::setBrush() cannot handle arguments of class '%s' (expecting QBruch or int)", p->val.object->getClass()->getName());
-	 return 0;
+      QoreQColor *color = (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink);
+      if (!color) {
+         QoreQBrush *brush = (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink);
+         if (!brush) {
+            if (!xsink->isException())
+               xsink->raiseException("QPAINTER-SETBRUSH-PARAM-ERROR", "QPainter::setBrush() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            return 0;
+         }
+         ReferenceHolder<QoreQBrush> brushHolder(brush, xsink);
+         qp->setBrush(*(static_cast<QBrush *>(brush)));
+         return 0;
       }
-      ReferenceHolder<QoreQBrush> holder(brush, xsink);
-      qp->setBrush(*((QBrush *)brush));
+      ReferenceHolder<QoreQColor> colorHolder(color, xsink);
+      qp->setBrush(*(static_cast<QColor *>(color)));
       return 0;
    }
-   if (!p || p->type != NT_BRUSHSTYLE) {
-      Qt::GlobalColor color = (Qt::GlobalColor)(p ? p->getAsInt() : 0);
-      qp->setBrush(color);
-      return 0;
-   }
-
-   Qt::BrushStyle style = (Qt::BrushStyle)p->val.intval;
+   Qt::BrushStyle style = (Qt::BrushStyle)(p ? p->getAsInt() : 0);
    qp->setBrush(style);
    return 0;
 }

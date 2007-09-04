@@ -335,7 +335,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQBrushClass());
    qt->addSystemClass(initQColorClass());
    qt->addSystemClass(initQPaletteClass());
-   qt->addSystemClass(initQPainterClass());
    qt->addSystemClass(initQRegionClass());
    qt->addSystemClass(initQPointClass());
    qt->addSystemClass(initQSizeClass());
@@ -365,6 +364,44 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQPolygonFClass());
    qt->addSystemClass(initQLineClass());
    qt->addSystemClass(initQLineFClass());
+
+   Namespace *qpainter_ns = new Namespace("QPainter");
+   
+   // RenderHint enum
+   qpainter_ns->addConstant("Antialiasing",             new QoreNode((int64)QPainter::Antialiasing));
+   qpainter_ns->addConstant("TextAntialiasing",         new QoreNode((int64)QPainter::TextAntialiasing));
+   qpainter_ns->addConstant("SmoothPixmapTransform",    new QoreNode((int64)QPainter::SmoothPixmapTransform));
+   qpainter_ns->addConstant("HighQualityAntialiasing",  new QoreNode((int64)QPainter::HighQualityAntialiasing));
+   
+   // CompositionMode enum
+   qpainter_ns->addConstant("CompositionMode_SourceOver",      new QoreNode((int64)QPainter::CompositionMode_SourceOver));
+   qpainter_ns->addConstant("CompositionMode_DestinationOver", new QoreNode((int64)QPainter::CompositionMode_DestinationOver));
+   qpainter_ns->addConstant("CompositionMode_Clear",           new QoreNode((int64)QPainter::CompositionMode_Clear));
+   qpainter_ns->addConstant("CompositionMode_Source",          new QoreNode((int64)QPainter::CompositionMode_Source));
+   qpainter_ns->addConstant("CompositionMode_Destination",     new QoreNode((int64)QPainter::CompositionMode_Destination));
+   qpainter_ns->addConstant("CompositionMode_SourceIn",        new QoreNode((int64)QPainter::CompositionMode_SourceIn));
+   qpainter_ns->addConstant("CompositionMode_DestinationIn",   new QoreNode((int64)QPainter::CompositionMode_DestinationIn));
+   qpainter_ns->addConstant("CompositionMode_SourceOut",       new QoreNode((int64)QPainter::CompositionMode_SourceOut));
+   qpainter_ns->addConstant("CompositionMode_DestinationOut",  new QoreNode((int64)QPainter::CompositionMode_DestinationOut));
+   qpainter_ns->addConstant("CompositionMode_SourceAtop",      new QoreNode((int64)QPainter::CompositionMode_SourceAtop));
+   qpainter_ns->addConstant("CompositionMode_DestinationAtop", new QoreNode((int64)QPainter::CompositionMode_DestinationAtop));
+   qpainter_ns->addConstant("CompositionMode_Xor",             new QoreNode((int64)QPainter::CompositionMode_Xor));
+   qpainter_ns->addConstant("CompositionMode_Plus",            new QoreNode((int64)QPainter::CompositionMode_Plus));
+   qpainter_ns->addConstant("CompositionMode_Multiply",        new QoreNode((int64)QPainter::CompositionMode_Multiply));
+   qpainter_ns->addConstant("CompositionMode_Screen",          new QoreNode((int64)QPainter::CompositionMode_Screen));
+   qpainter_ns->addConstant("CompositionMode_Overlay",         new QoreNode((int64)QPainter::CompositionMode_Overlay));
+   qpainter_ns->addConstant("CompositionMode_Darken",          new QoreNode((int64)QPainter::CompositionMode_Darken));
+   qpainter_ns->addConstant("CompositionMode_Lighten",         new QoreNode((int64)QPainter::CompositionMode_Lighten));
+   qpainter_ns->addConstant("CompositionMode_ColorDodge",      new QoreNode((int64)QPainter::CompositionMode_ColorDodge));
+   qpainter_ns->addConstant("CompositionMode_ColorBurn",       new QoreNode((int64)QPainter::CompositionMode_ColorBurn));
+   qpainter_ns->addConstant("CompositionMode_HardLight",       new QoreNode((int64)QPainter::CompositionMode_HardLight));
+   qpainter_ns->addConstant("CompositionMode_SoftLight",       new QoreNode((int64)QPainter::CompositionMode_SoftLight));
+   qpainter_ns->addConstant("CompositionMode_Difference",      new QoreNode((int64)QPainter::CompositionMode_Difference));
+   qpainter_ns->addConstant("CompositionMode_Exclusion",       new QoreNode((int64)QPainter::CompositionMode_Exclusion));
+
+   qpainter_ns->addSystemClass(initQPainterClass());
+
+   qt->addInitialNamespace(qpainter_ns);
 
    // ColorRole enum
    qt->addConstant("WindowText",      new QoreNode((int64)QPalette::WindowText));
