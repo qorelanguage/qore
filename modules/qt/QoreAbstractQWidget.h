@@ -27,6 +27,36 @@
 #include "QoreAbstractQObject.h"
 #include "QoreAbstractQPaintDevice.h"
 
+class QoreQWidgetExtension {
+   protected:
+      // event methods
+      Method *e_changeEvent, *e_enterEvent, *e_event, *e_leaveEvent,
+         *e_paintEvent, 
+         *e_mouseMoveEvent, *e_mousePressEvent, 
+         *e_mouseReleaseEvent, *e_mouseDoubleClickEvent,
+         *e_keyPressEvent, *e_keyReleaseEvent,
+         *e_resizeEvent,
+         *e_moveEvent;
+
+   public:
+      DLLLOCAL QoreQWidgetExtension(QoreClass *qc)
+      {
+         e_paintEvent             = qc->findMethod("paintEvent");
+         e_mouseMoveEvent         = qc->findMethod("mouseMoveEvent");
+         e_mousePressEvent        = qc->findMethod("mousePressEvent");
+         e_mouseReleaseEvent      = qc->findMethod("mouseReleaseEvent");
+         e_mouseDoubleClickEvent  = qc->findMethod("mouseDoubleClickEvent");
+         e_keyPressEvent          = qc->findMethod("keyPressEvent");
+         e_keyReleaseEvent        = qc->findMethod("keyReleaseEvent");
+         e_changeEvent            = qc->findMethod("changeEvent");
+         e_enterEvent             = qc->findMethod("enterEvent");
+         e_event                  = qc->findMethod("event");
+         e_leaveEvent             = qc->findMethod("leaveEvent");
+         e_resizeEvent            = qc->findMethod("resizeEvent");
+         e_moveEvent              = qc->findMethod("moveEvent");
+      }
+};
+
 class QoreAbstractQWidget : public QoreAbstractQObject, public QoreAbstractQPaintDevice
 {
    public:

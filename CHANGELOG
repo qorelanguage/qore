@@ -1,3 +1,8 @@
+2007.09.05: David Nichols
+	* qt: map QObject to Qore Object using QObject properties
+	* qt: new classes, methods, constants, etc
+	* qt: added calculator example
+
 2007.09.04: David Nichols
 	* qt: implemented support for dynamic signals and slots for QShortcut
 	* qt: added qt examples directory, added analogclock.q example

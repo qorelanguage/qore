@@ -1,5 +1,5 @@
 /*
- QC_QLCDNumber.h
+ QC_QMenu.h
  
  Qore Programming Language
  
@@ -20,70 +20,63 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QLCDNUMBER_H
+#ifndef _QORE_QT_QC_QMENU_H
 
-#define _QORE_QC_QLCDNUMBER_H
+#define _QORE_QT_QC_QMENU_H
 
+#include <QMenu>
 #include "QoreAbstractQWidget.h"
-
-#include <QLCDNumber>
-
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QLCDNUMBER;
+DLLLOCAL extern int CID_QMENU;
+DLLLOCAL extern class QoreClass *QC_QMenu;
 
-DLLLOCAL class QoreClass *initQLCDNumberClass(class QoreClass *qframe);
+DLLLOCAL class QoreClass *initQMenuClass(QoreClass *);
 
-class myQLCDNumber : public QLCDNumber, public QoreQWidgetExtension
+class myQMenu : public QMenu, public QoreQWidgetExtension
 {
-#define QOREQTYPE QLCDNumber
+#define QOREQTYPE QMenu
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQLCDNumber(Object *obj, QWidget *parent = 0) : QLCDNumber(parent), QoreQWidgetExtension(obj->getClass())
+   DLLLOCAL myQMenu(Object *obj, QWidget* parent = 0) : QMenu(parent), QoreQWidgetExtension(obj->getClass())
       {
-	 init(obj);
-	 //init_widget_events();
+         init(obj);
+         //init_widget_events();
       }
-      DLLLOCAL myQLCDNumber(Object *obj, int num_digits, QWidget *parent = 0) : QLCDNumber(num_digits, parent), QoreQWidgetExtension(obj->getClass())
+   DLLLOCAL myQMenu(Object *obj, const QString& title, QWidget* parent = 0) : QMenu(title, parent), QoreQWidgetExtension(obj->getClass())
       {
-	 init(obj);
-	 //init_widget_events();
+         init(obj);
+         //init_widget_events();
       }
 };
 
-class QoreQLCDNumber : public QoreAbstractQFrame
+class QoreQMenu : public QoreAbstractQWidget
 {
    public:
-      QPointer<myQLCDNumber>qobj;
+      QPointer<myQMenu> qobj;
 
-      DLLLOCAL QoreQLCDNumber(Object *obj, int num_digits, QWidget *parent = 0) : qobj(new myQLCDNumber(obj, num_digits, parent))
+      DLLLOCAL QoreQMenu(Object *obj, QWidget* parent = 0) : qobj(new myQMenu(obj, parent))
       {
       }
-      DLLLOCAL QoreQLCDNumber(Object *obj, QWidget *parent = 0) : qobj(new myQLCDNumber(obj, parent))
+      DLLLOCAL QoreQMenu(Object *obj, const QString& title, QWidget* parent = 0) : qobj(new myQMenu(obj, title, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
       {
-	 return static_cast<QObject *>(&(*qobj));
+         return static_cast<QObject *>(&(*qobj));
       }
-      DLLLOCAL virtual QWidget *getQWidget() const
+      DLLLOCAL virtual class QWidget *getQWidget() const
       {
-	 return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QFrame *getQFrame() const
-      {
-	 return static_cast<QFrame *>(&(*qobj));
+         return static_cast<QWidget *>(&(*qobj));
       }
       DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
-
       QORE_VIRTUAL_QOBJECT_METHODS
-
 };
 
-#endif
+#endif // _QORE_QT_QC_QMENU_H

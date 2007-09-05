@@ -377,7 +377,6 @@ static QoreNode *QOBJECT_startTimer(Object *self, QoreAbstractQObject *qo, QoreN
 //   ??? return qo->getQObject()->thread();
 //}
 
-
 // custom methods
 static QoreNode *QOBJECT_createSignal(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
@@ -401,6 +400,20 @@ static QoreNode *QOBJECT_emit(Object *self, QoreAbstractQObject *qo, QoreNode *p
 
    qo->emit_signal(p->val.String->getBuffer(), params->val.list);
    return 0;
+}
+
+static QoreNode *QOBJECT_sender(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+{
+   QObject *sender = qo->sender();
+   if (!sender)
+      return 0;
+
+   QVariant qv_ptr = sender->property("qobject");
+   Object *obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   //printd(0, "sender=%08p class=%s\n", obj, obj->getClass()->getName());
+   assert(obj);
+   obj->ref();
+   return new QoreNode(obj);
 }
 
 
@@ -446,6 +459,8 @@ class QoreClass *initQObjectClass()
    QC_QObject->addMethod("createSignal",                (q_method_t)QOBJECT_createSignal);
    QC_QObject->addMethod("emit",                        (q_method_t)QOBJECT_emit);
 
+   // private methods
+   QC_QObject->addMethod("sender",                      (q_method_t)QOBJECT_sender, true);
 
    traceout("initQObjectClass()");
    return QC_QObject;

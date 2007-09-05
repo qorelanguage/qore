@@ -56,3 +56,8 @@
 #include "QC_QPolygonF.cc"
 #include "QC_QLine.cc"
 #include "QC_QLineF.cc"
+#include "QC_QAbstractButton.cc"
+#include "QC_QMenu.cc"
+#include "QC_QToolButton.cc"
+#include "QC_QDialog.cc"
+#include "QC_QLineEdit.cc"

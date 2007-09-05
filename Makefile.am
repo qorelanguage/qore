@@ -253,6 +253,7 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQAbstractSlider.h \
 	modules/qt/QoreAbstractQPixmap.h \
 	modules/qt/QoreAbstractQPaintDevice.h \
+	modules/qt/QoreAbstractQAbstractButton.h \
 	modules/qt/qore-qt-events.h \
 	modules/qt/qore-qt-widget-events.h \
 	modules/qt/qore-qt-metacode.h \
@@ -296,6 +297,11 @@ noinst_HEADERS = \
 	modules/qt/QC_QPolygonF.h \
 	modules/qt/QC_QLine.h \
 	modules/qt/QC_QLineF.h \
+	modules/qt/QC_QAbstractButton.h \
+	modules/qt/QC_QMenu.h \
+	modules/qt/QC_QToolButton.h \
+	modules/qt/QC_QDialog.h \
+	modules/qt/QC_QLineEdit.h \
 	command-line.h \
 	include/qore/Qore.h
 

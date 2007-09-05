@@ -6,4 +6,10 @@ else
     ns=qt
 fi
 
-sed "s/ //g" t| cut -f1 -d=| cut -f1 -d,| while read a; do printf "   $ns->addConstant(%-27s new QoreNode((int64)Qt::%s));\n" \"$a\", $a; done
+if [ -n "$2" ]; then
+    cns=$2
+else
+    cns=Qt
+fi
+
+sed "s/ //g" t| cut -f1 -d=| cut -f1 -d,| while read a; do printf "   $ns->addConstant(%-27s new QoreNode((int64)$cns::%s));\n" \"$a\", $a; done

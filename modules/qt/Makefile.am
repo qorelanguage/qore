@@ -19,7 +19,12 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QPolygon.cc \
 	QC_QPolygonF.cc \
 	QC_QLine.cc \
-	QC_QLineF.cc
+	QC_QLineF.cc \
+	QC_QAbstractButton.cc \
+	QC_QMenu.cc \
+	QC_QToolButton.cc \
+	QC_QDialog.cc \
+	QC_QLineEdit.cc
 endif
 
 if COND_MONOLITHIC

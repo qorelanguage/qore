@@ -588,13 +588,13 @@ Method::Method(UserFunction *u, int p)
    userInit(u, p);
 }
 
-Method::Method(class QoreClass *p_class, BuiltinMethod *b)
+Method::Method(class QoreClass *p_class, BuiltinMethod *b, bool n_priv)
 {
    parent_class = p_class;
    name = (char *)b->getName();
    type = OTF_BUILTIN;
    func.builtin = b;
-   priv = 0;
+   priv = n_priv;
 }
 
 Method::~Method()
@@ -1590,7 +1590,7 @@ int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal)
 }
 
 // adds a builtin method to the class - no duplicate checking is made
-void QoreClass::addMethod(const char *nme, q_method_t m)
+void QoreClass::addMethod(const char *nme, q_method_t m, bool priv)
 {
    assert(strcmp(nme, "constructor"));
    assert(strcmp(nme, "destructor"));
@@ -1598,7 +1598,7 @@ void QoreClass::addMethod(const char *nme, q_method_t m)
 
    sys = true;
    BuiltinMethod *b = new BuiltinMethod(this, nme, m);
-   Method *o = new Method(this, b);
+   Method *o = new Method(this, b, priv);
    insertMethod(o);
    // check for special methods (except constructor and destructor)
    checkSpecialIntern(o);

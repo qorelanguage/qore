@@ -11,6 +11,9 @@ class T {
 
       DLLLOCAL void init(Object *obj)
       {
+	 // set pointer to object owner as a property
+	 setProperty("qobject", reinterpret_cast<qulonglong>(obj));
+	 
 	 qore_obj = obj;
 	 // reference container object for the lifetime of this object
 	 qore_obj->ref();
@@ -22,7 +25,7 @@ class T {
 	 //printd(5, "sigid=%d %s\n", signalId, theSignal.data());
 	 assert(signalId >= 0);
 	 QMetaObject::connect(this, signalId, this, metaObject()->methodCount());
-      }
+     }
 
    public:
       DLLLOCAL virtual int qt_metacall(QMetaObject::Call call, int id, void **arguments)
@@ -65,7 +68,7 @@ class T {
 	 return -1;
       }
 
-      DLLLOCAL virtual bool connectDynamic(QoreAbstractQObject *sender, const char *signal, const char *slot, class ExceptionSink *xsink)
+      DLLLOCAL bool connectDynamic(QoreAbstractQObject *sender, const char *signal, const char *slot, class ExceptionSink *xsink)
       {
 	 if (!signal || signal[0] != '2' || !slot || (slot[0] != '1' && slot[0] != '2'))
 	    return false;
@@ -104,7 +107,7 @@ class T {
       }
 
       // returns 0: OK, -1: error
-      DLLLOCAL virtual int createDynamicSignal(const char *signal, class ExceptionSink *xsink)
+      DLLLOCAL int createDynamicSignal(const char *signal, class ExceptionSink *xsink)
       {
 	 QByteArray theSignal = QMetaObject::normalizedSignature(signal);
 	 int signalId = signalIndices.value(theSignal, -1);
@@ -132,7 +135,7 @@ class T {
 	 return dynamic_cast<QoreQtDynamicSlot *>(methodMap[index]);	 
       }
 
-      DLLLOCAL virtual int getSlotIndex(const QByteArray &theSlot, class ExceptionSink *xsink)
+      DLLLOCAL int getSlotIndex(const QByteArray &theSlot, class ExceptionSink *xsink)
       {
 	 int slotId = metaObject()->indexOfSlot(theSlot);
 	 // see if it's a static slot
@@ -163,7 +166,7 @@ class T {
 	 return slotId + metaObject()->methodCount();
       }
 
-      DLLLOCAL virtual int getSignalIndex(const QByteArray &theSignal) const
+      DLLLOCAL int getSignalIndex(const QByteArray &theSignal) const
       {
 	 int signalId = metaObject()->indexOfSignal(theSignal);
 	 
@@ -181,7 +184,7 @@ class T {
       }
 
       // emits a signal; args are offset from 1
-      DLLLOCAL virtual void emit_signal(const char *sig, List *args)
+      DLLLOCAL void emit_signal(const char *sig, List *args)
       {
 	 QByteArray theSignal = QMetaObject::normalizedSignature(sig);	 
 	 int id = metaObject()->indexOfSignal(theSignal);
@@ -199,6 +202,16 @@ class T {
 	 }
       }
 
+      DLLLOCAL virtual Object *getQoreObject() const
+      {
+	 return qore_obj;
+      }
+
+      DLLLOCAL QObject *getSender() const
+      {
+	 return sender();
+      }
+      
 #if 0
 }
 #endif

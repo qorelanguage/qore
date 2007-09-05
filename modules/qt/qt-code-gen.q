@@ -4,11 +4,13 @@
 %enable-all-warnings
 
 const opts = (
-    "abstract" : "a,abstract",
-    "indep"    : "i,independent",
-    "file"     : "f,file",
-    "parent"   : "p,parent=s",
-    "help"     : "h.help"
+    "abstract"        : "a,abstract",
+    "abstract_class"  : "n,name=s",
+    "indep"           : "i,independent",
+    "file"            : "f,file",
+    "parent"          : "p,parent=s",
+    "widget"          : "w,widget",
+    "help"            : "h,help"
     );
 
 const ordinal = ( "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth" );
@@ -22,6 +24,7 @@ const class_list = ( "QFont",
 		     "QPolygonF",
 		     "QMatrix",
 		     "QSize",
+		     "QPalette",
 		     "QRectF",
 		     "QRect",
 		     "QRegion",
@@ -31,17 +34,18 @@ const class_list = ( "QFont",
 		     "QBitmap",
 		     "QImage",
 		     "QMovie",
+		     "QMenu",
 		     "QPicture",
 		     "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon",
 		     "QAction", "QActionGroup", "QActionGroup*",
 		     "QKeySequence"
  );
 
-const qobject_list = ( "QWidget", "QMovie", "QAction", "QActionGroup" );
+const qobject_list = ( "QWidget", "QMovie", "QAction", "QActionGroup", "QMenu" );
 
-const const_class_list = ("QMovie", "QPixmap", "QPicture" ,"QImage", "QPoint", "QPointF", "QPolygon", "QPolygonF", "QLine", "QLineF", "QMatrix", "QSize", "QColor", "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon", "QFont" );
+const const_class_list = ("QPalette", "QMovie", "QPixmap", "QPicture" ,"QImage", "QPoint", "QPointF", "QPolygon", "QPolygonF", "QLine", "QLineF", "QMatrix", "QSize", "QColor", "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon", "QFont", "QBrush" );
 
-const abstract_class_list = ( "QObject", "QWidget", "QLayout" );
+const abstract_class_list = ( "QObject", "QWidget", "QLayout", "QAbstractButton" );
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
     );
@@ -54,9 +58,12 @@ sub usage()
 {
     printf(
 "usage: %s input_file class_name
-  -i,--independent  emit code for independent class
-  -a,--abstract     emit abstract class name
-  -h,--help         this help text
+  -i,--independent         emit code for independent class
+  -a,--abstract            emit abstract class name
+  -n,--abstract_class=ARG  abstract class name
+  -w,--widget              is a QWidget
+  -p,--parent=ARG          parent class name
+  -h,--help                this help text
 ", basename($ENV."_"));
     exit(1);
 }
@@ -78,6 +85,17 @@ sub command_line()
 
     if (!exists $cn)
 	usage();
+
+    if (!$o.indep && !exists $o.abstract_class)
+	$o.abstract_class = $o.widget ? "QWidget" : "QObject";
+
+    if ($o.indep && $o.widget) {
+	stderr.printf("cannot be independent and a QWidget at the same time\n");
+	exit(1);
+    }
+
+    if (!$o.indep && !exists $o.parent)
+	$o.parent = "parent";
 }
 
 sub dl($l)
@@ -151,8 +169,8 @@ sub do_class($arg, $name, $cn, $i, $d, $const)
     $arg.get = 
 	$d 
 	? ($ref
-	   ? sprintf("*(static_cast<%s *>(%s))", $type, $arg.name) 
-	   : sprintf("static_cast<%s *>(%s)", $type, $arg.name)) 
+	   ? sprintf("*(static_cast<%s *>(%s))", $type, get_class($arg.name, $type))
+	   : sprintf("static_cast<%s *>(%s)", $type, get_class($arg.name, $type)))
 	: ($ref
 	   ? sprintf("*(%s->get%s())", $arg.name, $type)
 	   : sprintf("%s->get%s()", $arg.name, $type));
@@ -423,9 +441,11 @@ sub main()
 	my $callstr;
 	if (exists $proto.$p.rt)
 	    $callstr = $o.indep ? sprintf("%s->%s(", $cl, $p) : sprintf("%s->%s->%s(", $cl, $get_obj, $p);
-	else # for constructor calls
+	else { # for constructor calls
 	    $callstr = sprintf("new Qore%s(", $p);
-
+	    if (!$o.indep)
+		$callstr += "self, ";
+	}
 	if (elements $proto.$p.inst == 1)
 	    $lo += do_single_function($p, \$proto.$p, $proto.$p.inst[0], $callstr);
 	else
@@ -471,13 +491,20 @@ sub main()
 #define _QORE_QT_QC_%s_H
 
 #include <%s>
+", $cn, $func_prefix, $func_prefix, $cn);
 
+	if (exists $o.abstract_class) {
+	    $of.printf("#include \"QoreAbstract%s.h\"\n", $o.abstract_class);
+	    $of.printf("#include \"qore-qt-events.h\"\n");
+	}
+
+	$of.printf("
 DLLLOCAL extern int CID_%s;
 DLLLOCAL extern class QoreClass *QC_%s;
 
-DLLLOCAL class QoreClass *init%sClass();
+DLLLOCAL class QoreClass *init%sClass(%s);
 
-", $cn, $func_prefix, $func_prefix, $cn, $func_prefix, $cn, $cn);
+", $func_prefix, $cn, $cn, exists $o.parent ? "QoreClass *" : "");
 
 	if ($o.indep) {
 	    $of.printf("class Qore%s : public AbstractPrivateData, public %s\n", $cn, $cn);
@@ -497,8 +524,81 @@ DLLLOCAL class QoreClass *init%sClass();
 	    }
 	    $of.printf("};\n");
 	}
-	else {
-	    $of.printf();
+	else # abstract class
+	{
+	    $of.printf("class my%s : public %s\n", $cn, $cn);
+	    $of.printf("{
+#define QOREQTYPE %s
+#include \"qore-qt-metacode.h\"
+#include \"qore-qt-widget-events.h\"
+#undef QOREQTYPE
+
+   public:
+", $cn, $cn, $cn);
+	    
+	    if (exists $proto.$cn) {
+		foreach my $i in ($proto.$cn.inst) {
+		    my $arg_names;
+		    foreach my $a in ($i.args)
+			$arg_names += $a.name + ", ";
+		    if (exists $arg_names)
+			splice $arg_names, -2;
+		    my $str = "Object *obj";
+		    if (exists $i.orig_args)
+			$str += ", " + $i.orig_args;
+		    $of.printf("      DLLLOCAL my%s(%s) : %s(%s)\n      {\n", $cn, $str, $cn, $arg_names);
+		    $of.printf("         init(obj);\n");
+		    if ($o.widget)
+			$of.printf("         init_widget_events();\n");
+		    $of.printf("      }\n"); 
+		}
+	    }
+	    $of.printf("};\n\n");
+
+	    $of.printf("class Qore%s : public QoreAbstract%s\n", $cn, $o.abstract_class);
+	    $of.printf("{
+   public:
+      QPointer<my%s> qobj;
+
+", $cn, $cn, $cn);
+	    
+	    if (exists $proto.$cn) {
+		foreach my $i in ($proto.$cn.inst) {
+		    my $arg_names;
+		    foreach my $a in ($i.args)
+			$arg_names += $a.name + ", ";
+		    if (exists $arg_names)
+			splice $arg_names, -2;
+		    my $str = "Object *obj";
+		    if (exists $i.orig_args)
+			$str += ", " + $i.orig_args;
+		    $of.printf("      DLLLOCAL Qore%s(%s) : qobj(new my%s(obj, %s))\n      {\n      }\n", $cn, $str, $cn, $arg_names);
+		}
+	    }
+	    $of.printf("      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+");
+	    if ($o.widget)
+		$of.printf("      DLLLOCAL virtual class QWidget *getQWidget() const
+      {
+         return static_cast<QWidget *>(&(*qobj));
+      }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+         return static_cast<QPaintDevice *>(&(*qobj));
+      }
+");
+	    if ($o.abstract_class != "QObject" && $o.abstract_class != "QWidget")
+		$of.printf("      DLLLOCAL virtual class %s *get%s() const
+      {
+         return static_cast<%s *>(&(*qobj));
+      }
+", $o.abstract_class, $o.abstract_class, $o.abstract_class);
+
+	    $of.printf("      QORE_VIRTUAL_QOBJECT_METHODS
+};\n");
 	}
 
 	$of.printf("\n#endif // _QORE_QT_QC_%s_H\n", $func_prefix);
@@ -581,6 +681,13 @@ class QoreClass *QC_%s = 0;
     }
 }
 
+sub get_class($name, $type)
+{
+    if (inlist($type, qobject_list))
+	return $name + "->qobj";
+    return $name;
+}
+
 sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
 {
     my $lo = ();
@@ -597,8 +704,8 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
     $arg.get = 
 	$arg.is_class 
 	? ($arg.ref 
-	   ? sprintf("*(static_cast<%s *>(%s))", $type, $arg.name) 
-	   : sprintf("static_cast<%s *>(%s)", $type, $arg.name)) 
+	   ? sprintf("*(static_cast<%s *>(%s))", $type, get_class($arg.name, $type)) 
+	   : sprintf("static_cast<%s *>(%s)", $type, get_class($arg.name, $type))) 
 	: sprintf("%s->get%s()", $arg.name, $type);
 
     if (!$last)
@@ -758,7 +865,7 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 	append_call(\$rcallstr, $opt.args[$param]);
 
 	if ($param == elements $opt.args - 1) {
-	    if (elements $opt.args)
+	    if (elements $opt.args || !$o.indep)
 		splice $rcallstr, -2, 2, ")";
 	    else
 		$rcallstr += ")";
@@ -993,9 +1100,12 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 		break;
 	}
 	#case "QWidget*":
+	case /^QPalette/:
 	case /^QPoint/:
 	case /^QPointF/:
+	case /^QMenu/:
 	case /^QSize/:
+	case /^QBrush/:
 	case /^QLine/:
 	case /^QLineF/:
 	case /^QPolygon/:

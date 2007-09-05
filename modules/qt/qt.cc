@@ -66,6 +66,11 @@
 #include "QC_QPolygonF.h"
 #include "QC_QLine.h"
 #include "QC_QLineF.h"
+#include "QC_QAbstractButton.h"
+#include "QC_QMenu.h"
+#include "QC_QToolButton.h"
+#include "QC_QDialog.h"
+#include "QC_QLineEdit.h"
 
 #include "qore-qt-events.h"
 
@@ -273,18 +278,18 @@ static class QoreNode *f_qrand(class QoreNode *params, class ExceptionSink *xsin
 
 static class QoreString *qt_module_init()
 {
-   builtinFunctions.add("QObject_connect", f_QObject_connect);
-   builtinFunctions.add("SLOT",            f_SLOT);
-   builtinFunctions.add("SIGNAL",          f_SIGNAL);
-   builtinFunctions.add("TR",              f_TR);
-   builtinFunctions.add("QAPP",            f_QAPP);
-   builtinFunctions.add("qDebug",          f_qDebug);
-   builtinFunctions.add("qWarning",        f_qWarning);
-   builtinFunctions.add("qCritical",       f_qCritical);
-   builtinFunctions.add("qFatal",          f_qFatal);
-   builtinFunctions.add("qRound",          f_qRound);
-   builtinFunctions.add("qsrand",          f_qsrand);
-   builtinFunctions.add("qrand",           f_qrand);
+   builtinFunctions.add("QObject_connect",                        f_QObject_connect);
+   builtinFunctions.add("SLOT",                                   f_SLOT);
+   builtinFunctions.add("SIGNAL",                                 f_SIGNAL);
+   builtinFunctions.add("TR",                                     f_TR);
+   builtinFunctions.add("QAPP",                                   f_QAPP);
+   builtinFunctions.add("qDebug",                                 f_qDebug);
+   builtinFunctions.add("qWarning",                               f_qWarning);
+   builtinFunctions.add("qCritical",                              f_qCritical);
+   builtinFunctions.add("qFatal",                                 f_qFatal);
+   builtinFunctions.add("qRound",                                 f_qRound);
+   builtinFunctions.add("qsrand",                                 f_qsrand);
+   builtinFunctions.add("qrand",                                  f_qrand);
  
    addBrushStyleType();
    addPenStyleType();
@@ -322,13 +327,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQLCDNumberClass(qframe));
    qt->addSystemClass(initQLabelClass(qframe));
 
-   qt->addSystemClass((qlayout = initQLayoutClass(qobject)));
-   qt->addSystemClass(initQGridLayoutClass(qlayout));
-
-   qt->addSystemClass((qboxlayout = initQBoxLayoutClass(qlayout)));
-   qt->addSystemClass(initQVBoxLayoutClass(qboxlayout));
-   qt->addSystemClass(initQHBoxLayoutClass(qboxlayout));
-
    qt->addSystemClass(initQTimerClass(qobject));
 
    qt->addSystemClass(initQRectClass());
@@ -358,12 +356,94 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQKeyEventClass(qinputevent));
    qt->addSystemClass(initQMouseEventClass(qinputevent));
 
-   // automatically added classes
-   qt->addSystemClass(initQPointFClass());
-   qt->addSystemClass(initQPolygonClass());
-   qt->addSystemClass(initQPolygonFClass());
-   qt->addSystemClass(initQLineClass());
-   qt->addSystemClass(initQLineFClass());
+   Namespace *qlayout_ns = new Namespace("QLayout");
+
+   qlayout_ns->addSystemClass((qlayout = initQLayoutClass(qobject)));
+   qlayout_ns->addSystemClass(initQGridLayoutClass(qlayout));
+
+   qlayout_ns->addSystemClass((qboxlayout = initQBoxLayoutClass(qlayout)));
+   qlayout_ns->addSystemClass(initQVBoxLayoutClass(qboxlayout));
+   qlayout_ns->addSystemClass(initQHBoxLayoutClass(qboxlayout));
+
+   qlayout_ns->addConstant("SetNoConstraint",          new QoreNode((int64)QLayout::SetNoConstraint));
+   qlayout_ns->addConstant("SetMinimumSize",           new QoreNode((int64)QLayout::SetMinimumSize));
+   qlayout_ns->addConstant("SetFixedSize",             new QoreNode((int64)QLayout::SetFixedSize));
+   qlayout_ns->addConstant("SetMaximumSize",           new QoreNode((int64)QLayout::SetMaximumSize));
+   qlayout_ns->addConstant("SetMinAndMaxSize",         new QoreNode((int64)QLayout::SetMinAndMaxSize));
+
+   qt->addInitialNamespace(qlayout_ns);
+
+   Namespace *qsizepolicy = new Namespace("QSizePolicy");
+
+   // PolicyFlag enum
+   qsizepolicy->addConstant("GrowFlag",                 new QoreNode((int64)QSizePolicy::GrowFlag));
+   qsizepolicy->addConstant("ExpandFlag",               new QoreNode((int64)QSizePolicy::ExpandFlag));
+   qsizepolicy->addConstant("ShrinkFlag",               new QoreNode((int64)QSizePolicy::ShrinkFlag));
+   qsizepolicy->addConstant("IgnoreFlag",               new QoreNode((int64)QSizePolicy::IgnoreFlag));
+
+   // Policy enum
+   qsizepolicy->addConstant("Fixed",                    new QoreNode((int64)QSizePolicy::Fixed));
+   qsizepolicy->addConstant("Minimum",                  new QoreNode((int64)QSizePolicy::Minimum));
+   qsizepolicy->addConstant("Maximum",                  new QoreNode((int64)QSizePolicy::Maximum));
+   qsizepolicy->addConstant("Preferred",                new QoreNode((int64)QSizePolicy::Preferred));
+   qsizepolicy->addConstant("MinimumExpanding",         new QoreNode((int64)QSizePolicy::MinimumExpanding));
+   qsizepolicy->addConstant("Expanding",                new QoreNode((int64)QSizePolicy::Expanding));
+   qsizepolicy->addConstant("Ignored",                  new QoreNode((int64)QSizePolicy::Ignored));
+
+   // ControlType enum
+   qsizepolicy->addConstant("DefaultType",              new QoreNode((int64)QSizePolicy::DefaultType));
+   qsizepolicy->addConstant("ButtonBox",                new QoreNode((int64)QSizePolicy::ButtonBox));
+   qsizepolicy->addConstant("CheckBox",                 new QoreNode((int64)QSizePolicy::CheckBox));
+   qsizepolicy->addConstant("ComboBox",                 new QoreNode((int64)QSizePolicy::ComboBox));
+   qsizepolicy->addConstant("Frame",                    new QoreNode((int64)QSizePolicy::Frame));
+   qsizepolicy->addConstant("GroupBox",                 new QoreNode((int64)QSizePolicy::GroupBox));
+   qsizepolicy->addConstant("Label",                    new QoreNode((int64)QSizePolicy::Label));
+   qsizepolicy->addConstant("Line",                     new QoreNode((int64)QSizePolicy::Line));
+   qsizepolicy->addConstant("LineEdit",                 new QoreNode((int64)QSizePolicy::LineEdit));
+   qsizepolicy->addConstant("PushButton",               new QoreNode((int64)QSizePolicy::PushButton));
+   qsizepolicy->addConstant("RadioButton",              new QoreNode((int64)QSizePolicy::RadioButton));
+   qsizepolicy->addConstant("Slider",                   new QoreNode((int64)QSizePolicy::Slider));
+   qsizepolicy->addConstant("SpinBox",                  new QoreNode((int64)QSizePolicy::SpinBox));
+   qsizepolicy->addConstant("TabWidget",                new QoreNode((int64)QSizePolicy::TabWidget));
+   qsizepolicy->addConstant("ToolButton",               new QoreNode((int64)QSizePolicy::ToolButton));
+
+   qt->addInitialNamespace(qsizepolicy);
+
+   Namespace *qpalette = new Namespace("QPalette");
+
+   // ColorGroup enum
+   qpalette->addConstant("Active",                   new QoreNode((int64)QPalette::Active));
+   qpalette->addConstant("Disabled",                 new QoreNode((int64)QPalette::Disabled));
+   qpalette->addConstant("Inactive",                 new QoreNode((int64)QPalette::Inactive));
+   qpalette->addConstant("NColorGroups",             new QoreNode((int64)QPalette::NColorGroups));
+   qpalette->addConstant("Current",                  new QoreNode((int64)QPalette::Current));
+   qpalette->addConstant("All",                      new QoreNode((int64)QPalette::All));
+   qpalette->addConstant("Normal",                   new QoreNode((int64)QPalette::Normal));
+
+   // ColorRole
+   qpalette->addConstant("WindowText",               new QoreNode((int64)QPalette::WindowText));
+   qpalette->addConstant("Button",                   new QoreNode((int64)QPalette::Button));
+   qpalette->addConstant("Light",                    new QoreNode((int64)QPalette::Light));
+   qpalette->addConstant("Midlight",                 new QoreNode((int64)QPalette::Midlight));
+   qpalette->addConstant("Dark",                     new QoreNode((int64)QPalette::Dark));
+   qpalette->addConstant("Mid",                      new QoreNode((int64)QPalette::Mid));
+   qpalette->addConstant("Text",                     new QoreNode((int64)QPalette::Text));
+   qpalette->addConstant("BrightText",               new QoreNode((int64)QPalette::BrightText));
+   qpalette->addConstant("ButtonText",               new QoreNode((int64)QPalette::ButtonText));
+   qpalette->addConstant("Base",                     new QoreNode((int64)QPalette::Base));
+   qpalette->addConstant("Window",                   new QoreNode((int64)QPalette::Window));
+   qpalette->addConstant("Shadow",                   new QoreNode((int64)QPalette::Shadow));
+   qpalette->addConstant("Highlight",                new QoreNode((int64)QPalette::Highlight));
+   qpalette->addConstant("HighlightedText",          new QoreNode((int64)QPalette::HighlightedText));
+   qpalette->addConstant("Link",                     new QoreNode((int64)QPalette::Link));
+   qpalette->addConstant("LinkVisited",              new QoreNode((int64)QPalette::LinkVisited));
+   qpalette->addConstant("AlternateBase",            new QoreNode((int64)QPalette::AlternateBase));
+   qpalette->addConstant("NoRole",                   new QoreNode((int64)QPalette::NoRole));
+   qpalette->addConstant("NColorRoles",              new QoreNode((int64)QPalette::NColorRoles));
+   qpalette->addConstant("Foreground",               new QoreNode((int64)QPalette::Foreground));
+   qpalette->addConstant("Background",               new QoreNode((int64)QPalette::Background));
+
+   qt->addInitialNamespace(qpalette);
 
    Namespace *qpainter_ns = new Namespace("QPainter");
    
@@ -403,36 +483,20 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qpainter_ns);
 
-   // ColorRole enum
-   qt->addConstant("WindowText",      new QoreNode((int64)QPalette::WindowText));
-   qt->addConstant("Button",          new QoreNode((int64)QPalette::Button));
-   qt->addConstant("Light",           new QoreNode((int64)QPalette::Light));
-   qt->addConstant("Midlight",        new QoreNode((int64)QPalette::Midlight));
-   qt->addConstant("Dark",            new QoreNode((int64)QPalette::Dark));
-   qt->addConstant("Mid",             new QoreNode((int64)QPalette::Mid));
-   qt->addConstant("Text",            new QoreNode((int64)QPalette::Text));
-   qt->addConstant("BrightText",      new QoreNode((int64)QPalette::BrightText));
-   qt->addConstant("ButtonText",      new QoreNode((int64)QPalette::ButtonText));
-   qt->addConstant("Base",            new QoreNode((int64)QPalette::Base));
-   qt->addConstant("Window",          new QoreNode((int64)QPalette::Window));
-   qt->addConstant("Shadow",          new QoreNode((int64)QPalette::Shadow));
-   qt->addConstant("Highlight",       new QoreNode((int64)QPalette::Highlight));
-   qt->addConstant("HighlightedText", new QoreNode((int64)QPalette::HighlightedText));
-   qt->addConstant("Link",            new QoreNode((int64)QPalette::Link));
-   qt->addConstant("LinkVisited",     new QoreNode((int64)QPalette::LinkVisited));
-   qt->addConstant("NoRole",          new QoreNode((int64)QPalette::NoRole));
-   qt->addConstant("NColorRoles",     new QoreNode((int64)QPalette::NColorRoles));
-   qt->addConstant("Foreground",      new QoreNode((int64)QPalette::Foreground));
-   qt->addConstant("Background",      new QoreNode((int64)QPalette::Background));
-   
-   // ColorGroup enum
-   qt->addConstant("Active",          new QoreNode((int64)QPalette::Active));
-   qt->addConstant("Disabled",        new QoreNode((int64)QPalette::Disabled));
-   qt->addConstant("Inactive",        new QoreNode((int64)QPalette::Inactive));
-   qt->addConstant("NColorGroups",    new QoreNode((int64)QPalette::NColorGroups));
-   qt->addConstant("Current",         new QoreNode((int64)QPalette::Current));
-   qt->addConstant("All",             new QoreNode((int64)QPalette::All));
-   qt->addConstant("Normal",          new QoreNode((int64)QPalette::Normal));
+   // automatically added classes
+   QoreClass *qabstractbutton;
+
+   qt->addSystemClass(initQPointFClass());
+   qt->addSystemClass(initQPolygonClass());
+   qt->addSystemClass(initQPolygonFClass());
+   qt->addSystemClass(initQLineClass());
+   qt->addSystemClass(initQLineFClass());
+   qt->addSystemClass((qabstractbutton = initQAbstractButtonClass(qwidget)));
+   qt->addSystemClass(initQMenuClass(qwidget));
+   qt->addSystemClass(initQToolButtonClass(qabstractbutton));
+   qt->addSystemClass(initQDialogClass(qwidget));
+   qt->addSystemClass(initQLineEditClass(qwidget));
+
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");

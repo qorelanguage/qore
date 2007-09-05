@@ -4,6 +4,7 @@ class T {
 #endif
 
   private:
+/*
       // event methods
       Method *e_changeEvent, *e_enterEvent, *e_event, *e_leaveEvent,
 	 *e_paintEvent, 
@@ -30,7 +31,7 @@ class T {
 	 e_resizeEvent            = qc->findMethod("resizeEvent");
 	 e_moveEvent              = qc->findMethod("moveEvent");
       }
-
+*/
       DLLLOCAL class QoreNode *dispatch_event_intern(class Method *m, QoreClass *qclass, class AbstractPrivateData *data, class ExceptionSink *xsink)
       {
 	 // create argument list

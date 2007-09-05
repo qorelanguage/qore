@@ -34,7 +34,7 @@ DLLEXPORT extern int CID_QABSTRACTSLIDER;
 
 DLLLOCAL class QoreClass *initQAbstractSliderClass(class QoreClass *qframe);
 
-class myQAbstractSlider : public QAbstractSlider
+class myQAbstractSlider : public QAbstractSlider, public QoreQWidgetExtension
 {
 #define QOREQTYPE QAbstractSlider
 #include "qore-qt-metacode.h"
@@ -42,7 +42,7 @@ class myQAbstractSlider : public QAbstractSlider
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQAbstractSlider(Object *obj, QWidget *parent = 0) : QAbstractSlider(parent)
+      DLLLOCAL myQAbstractSlider(Object *obj, QWidget *parent = 0) : QAbstractSlider(parent), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
       }

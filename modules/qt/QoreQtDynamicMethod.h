@@ -40,7 +40,9 @@
    DLLLOCAL virtual int connectDynamic(QoreAbstractQObject *sender, const char *signal, const char *slot, class ExceptionSink *xsink) { \
       return qobj->connectDynamic(sender, signal, slot, xsink);		\
    } \
-   DLLLOCAL virtual void emit_signal(const char *sig, List *args) { return qobj->emit_signal(sig, args); }
+   DLLLOCAL virtual void emit_signal(const char *sig, List *args) { return qobj->emit_signal(sig, args); } \
+   DLLLOCAL virtual QObject *sender() const { return qobj->getSender(); } \
+   DLLLOCAL virtual Object *getQoreObject() const { return qobj->getQoreObject(); }
 
 #include <vector>
 

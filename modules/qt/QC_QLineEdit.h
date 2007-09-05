@@ -1,5 +1,5 @@
 /*
- QC_QLCDNumber.h
+ QC_QLineEdit.h
  
  Qore Programming Language
  
@@ -20,70 +20,63 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QLCDNUMBER_H
+#ifndef _QORE_QT_QC_QLINEEDIT_H
 
-#define _QORE_QC_QLCDNUMBER_H
+#define _QORE_QT_QC_QLINEEDIT_H
 
+#include <QLineEdit>
 #include "QoreAbstractQWidget.h"
-
-#include <QLCDNumber>
-
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QLCDNUMBER;
+DLLLOCAL extern int CID_QLINEEDIT;
+DLLLOCAL extern class QoreClass *QC_QLineEdit;
 
-DLLLOCAL class QoreClass *initQLCDNumberClass(class QoreClass *qframe);
+DLLLOCAL class QoreClass *initQLineEditClass(QoreClass *);
 
-class myQLCDNumber : public QLCDNumber, public QoreQWidgetExtension
+class myQLineEdit : public QLineEdit, public QoreQWidgetExtension
 {
-#define QOREQTYPE QLCDNumber
+#define QOREQTYPE QLineEdit
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQLCDNumber(Object *obj, QWidget *parent = 0) : QLCDNumber(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLineEdit(Object *obj, QWidget* parent = 0) : QLineEdit(parent), QoreQWidgetExtension(obj->getClass())
       {
-	 init(obj);
-	 //init_widget_events();
+         init(obj);
+         //init_widget_events();
       }
-      DLLLOCAL myQLCDNumber(Object *obj, int num_digits, QWidget *parent = 0) : QLCDNumber(num_digits, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLineEdit(Object *obj, const QString& contents, QWidget* parent = 0) : QLineEdit(contents, parent), QoreQWidgetExtension(obj->getClass())
       {
-	 init(obj);
-	 //init_widget_events();
+         init(obj);
+         //init_widget_events();
       }
 };
 
-class QoreQLCDNumber : public QoreAbstractQFrame
+class QoreQLineEdit : public QoreAbstractQWidget
 {
    public:
-      QPointer<myQLCDNumber>qobj;
+      QPointer<myQLineEdit> qobj;
 
-      DLLLOCAL QoreQLCDNumber(Object *obj, int num_digits, QWidget *parent = 0) : qobj(new myQLCDNumber(obj, num_digits, parent))
+      DLLLOCAL QoreQLineEdit(Object *obj, QWidget* parent = 0) : qobj(new myQLineEdit(obj, parent))
       {
       }
-      DLLLOCAL QoreQLCDNumber(Object *obj, QWidget *parent = 0) : qobj(new myQLCDNumber(obj, parent))
+      DLLLOCAL QoreQLineEdit(Object *obj, const QString& contents, QWidget* parent = 0) : qobj(new myQLineEdit(obj, contents, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
       {
-	 return static_cast<QObject *>(&(*qobj));
+         return static_cast<QObject *>(&(*qobj));
       }
-      DLLLOCAL virtual QWidget *getQWidget() const
+      DLLLOCAL virtual class QWidget *getQWidget() const
       {
-	 return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QFrame *getQFrame() const
-      {
-	 return static_cast<QFrame *>(&(*qobj));
+         return static_cast<QWidget *>(&(*qobj));
       }
       DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
-
       QORE_VIRTUAL_QOBJECT_METHODS
-
 };
 
-#endif
+#endif // _QORE_QT_QC_QLINEEDIT_H

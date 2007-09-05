@@ -252,14 +252,6 @@ static QoreNode *QCOLOR_isValid(Object *self, QoreQColor *qc, QoreNode *params, 
    return new QoreNode(qc->isValid());
 }
 
-//QColor lighter ( int factor = 150 ) const
-//static QoreNode *QCOLOR_lighter(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int factor = !is_nothing(p) ? p->getAsInt() : 150;
-//   ??? return new QoreNode((int64)qc->lighter(factor));
-//}
-
 //int magenta () const
 static QoreNode *QCOLOR_magenta(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
@@ -556,6 +548,49 @@ static QoreNode *QCOLOR_yellowF(Object *self, QoreQColor *qc, QoreNode *params, 
    return new QoreNode(qc->yellowF());
 }
 
+//QColor light (int f = 150) const
+static QoreNode *QCOLOR_light(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int f = !is_nothing(p) ? p->getAsInt() : 150;
+   Object *o_qc = new Object(self->getClass(CID_QCOLOR), getProgram());
+   QoreQColor *q_qc = new QoreQColor(qc->light(f));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
+
+//QColor lighter (int f = 150) const
+static QoreNode *QCOLOR_lighter(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int f = !is_nothing(p) ? p->getAsInt() : 150;
+   Object *o_qc = new Object(self->getClass(CID_QCOLOR), getProgram());
+   QoreQColor *q_qc = new QoreQColor(qc->lighter(f));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
+
+//QColor dark (int f = 200) const
+static QoreNode *QCOLOR_dark(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int f = !is_nothing(p) ? p->getAsInt() : 200;
+   Object *o_qc = new Object(self->getClass(CID_QCOLOR), getProgram());
+   QoreQColor *q_qc = new QoreQColor(qc->dark(f));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
+
+//QColor darker (int f = 200) const
+static QoreNode *QCOLOR_darker(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int f = !is_nothing(p) ? p->getAsInt() : 200;
+   Object *o_qc = new Object(self->getClass(CID_QCOLOR), getProgram());
+   QoreQColor *q_qc = new QoreQColor(qc->darker(f));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
 
 class QoreClass *initQColorClass()
 {
@@ -587,7 +622,6 @@ class QoreClass *initQColorClass()
    QC_QColor->addMethod("hue",                         (q_method_t)QCOLOR_hue);
    QC_QColor->addMethod("hueF",                        (q_method_t)QCOLOR_hueF);
    QC_QColor->addMethod("isValid",                     (q_method_t)QCOLOR_isValid);
-   //QC_QColor->addMethod("lighter",                     (q_method_t)QCOLOR_lighter);
    QC_QColor->addMethod("magenta",                     (q_method_t)QCOLOR_magenta);
    QC_QColor->addMethod("magentaF",                    (q_method_t)QCOLOR_magentaF);
    QC_QColor->addMethod("name",                        (q_method_t)QCOLOR_name);
@@ -622,6 +656,11 @@ class QoreClass *initQColorClass()
    QC_QColor->addMethod("valueF",                      (q_method_t)QCOLOR_valueF);
    QC_QColor->addMethod("yellow",                      (q_method_t)QCOLOR_yellow);
    QC_QColor->addMethod("yellowF",                     (q_method_t)QCOLOR_yellowF);
+
+   QC_QColor->addMethod("light",                       (q_method_t)QCOLOR_light);
+   QC_QColor->addMethod("lighter",                     (q_method_t)QCOLOR_lighter);
+   QC_QColor->addMethod("dark",                        (q_method_t)QCOLOR_dark);
+   QC_QColor->addMethod("darker",                      (q_method_t)QCOLOR_darker);
 
    traceout("initQColorClass()");
    return QC_QColor;

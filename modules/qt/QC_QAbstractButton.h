@@ -1,5 +1,5 @@
 /*
- QC_QPushButton.h
+ QC_QAbstractButton.h
  
  Qore Programming Language
  
@@ -20,57 +20,55 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPUSHBUTTON_H
+#ifndef _QORE_QT_QC_QABSTRACTBUTTON_H
 
-#define _QORE_QC_QPUSHBUTTON_H
+#define _QORE_QT_QC_QABSTRACTBUTTON_H
 
+#include <QAbstractButton>
 #include "QoreAbstractQAbstractButton.h"
+#include "qore-qt-events.h"
 
-#include <QPushButton>
+DLLLOCAL extern int CID_QABSTRACTBUTTON;
+DLLLOCAL extern class QoreClass *QC_QAbstractButton;
 
-DLLEXPORT extern int CID_QPUSHBUTTON;
+DLLLOCAL class QoreClass *initQAbstractButtonClass(QoreClass *);
 
-DLLLOCAL class QoreClass *initQPushButtonClass(class QoreClass *parent);
-
-class myQPushButton : public QPushButton
+class myQAbstractButton : public QAbstractButton, public QoreQWidgetExtension
 {
-#define QOREQTYPE QPushButton
+#define QOREQTYPE QAbstractButton
 #include "qore-qt-metacode.h"
+#include "qore-qt-widget-events.h"
 #undef QOREQTYPE
-      myQPushButton(Object *obj, const char *str, QWidget *parent = 0) : QPushButton(str, parent)
+
+   public:
+   DLLLOCAL myQAbstractButton(Object *obj, QWidget* parent = 0) : QAbstractButton(parent), QoreQWidgetExtension(obj->getClass())
       {
-	 init(obj);
-      }
-      myQPushButton(Object *obj, QWidget *parent = 0) : QPushButton(parent)
-      {
-	 init(obj);
+         init(obj);
+         //init_widget_events();
       }
 };
 
-class QoreQPushButton : public QoreAbstractQAbstractButton
+class QoreQAbstractButton : public QoreAbstractQAbstractButton
 {
    public:
-      QPointer<myQPushButton> qobj;
-   
-      DLLLOCAL QoreQPushButton(Object *obj, const char *str, QWidget *parent = 0) : qobj(new myQPushButton(obj, str, parent))
-      {
-      }
-      DLLLOCAL QoreQPushButton(Object *obj, QWidget *parent = 0) : qobj(new myQPushButton(obj, parent))
+      QPointer<myQAbstractButton> qobj;
+
+      DLLLOCAL QoreQAbstractButton(Object *obj, QWidget* parent = 0) : qobj(new myQAbstractButton(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
       {
-	 return static_cast<QObject *>(&(*qobj));
+         return static_cast<QObject *>(&(*qobj));
       }
       DLLLOCAL virtual class QWidget *getQWidget() const
       {
-	 return static_cast<QWidget *>(&(*qobj));
+         return static_cast<QWidget *>(&(*qobj));
       }
       DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
-      DLLLOCAL virtual QAbstractButton *getQAbstractButton() const
+      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
       {
          return static_cast<QAbstractButton *>(&(*qobj));
       }
@@ -78,5 +76,4 @@ class QoreQPushButton : public QoreAbstractQAbstractButton
       QORE_VIRTUAL_QOBJECT_METHODS
 };
 
-
-#endif
+#endif // _QORE_QT_QC_QABSTRACTBUTTON_H

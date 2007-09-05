@@ -34,7 +34,7 @@ DLLEXPORT extern int CID_QLABEL;
 
 DLLLOCAL class QoreClass *initQLabelClass(class QoreClass *qframe);
 
-class myQLabel : public QLabel
+class myQLabel : public QLabel, public QoreQWidgetExtension
 {
 #define QOREQTYPE QLabel
 #include "qore-qt-metacode.h"
@@ -42,15 +42,15 @@ class myQLabel : public QLabel
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQLabel(Object *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(parent, f)
+   DLLLOCAL myQLabel(Object *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(parent, f), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
-	 init_widget_events();
+	 //init_widget_events();
       }
-      DLLLOCAL myQLabel(Object *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(text, parent, f)
+   DLLLOCAL myQLabel(Object *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(text, parent, f), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
-	 init_widget_events();
+	 //init_widget_events();
       }
 };
 

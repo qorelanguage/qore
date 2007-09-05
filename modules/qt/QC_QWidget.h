@@ -37,7 +37,7 @@ DLLEXPORT extern int CID_QWIDGET;
 
 DLLLOCAL class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpaintdevice);
 
-class myQWidget : public QWidget
+class myQWidget : public QWidget, public QoreQWidgetExtension
 {
 #define QOREQTYPE QWidget
 #include "qore-qt-metacode.h"
@@ -45,10 +45,10 @@ class myQWidget : public QWidget
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQWidget(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QWidget(parent, window_flags)
+      DLLLOCAL myQWidget(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QWidget(parent, window_flags), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
-	 init_widget_events();
+	 //init_widget_events();
       }
 };
 

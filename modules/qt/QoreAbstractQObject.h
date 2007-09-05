@@ -40,14 +40,20 @@ class QoreAbstractQObject : public AbstractPrivateData
 
       DLLLOCAL virtual class QObject *getQObject() const = 0;
 
+      DLLLOCAL virtual Object *getQoreObject() const = 0;
+
       // for dynamic signals and slots
       DLLLOCAL virtual int getSlotIndex(const QByteArray &theSlot, class ExceptionSink *xsink) = 0;
       DLLLOCAL virtual int getSignalIndex(const QByteArray &theSignal) const = 0;
       DLLLOCAL virtual int createSignal(const char *signal, class ExceptionSink *xsink) = 0;
       DLLLOCAL virtual int connectDynamic(QoreAbstractQObject *sender, const char *signal, const char *slot, class ExceptionSink *xsink) = 0;
+
       // emits a signal; args are offset from 1
       DLLLOCAL virtual void emit_signal(const char *sig, List *args) = 0;
       DLLLOCAL virtual QoreQtDynamicSlot *getSlot(const char *sig, class ExceptionSink *xsink) = 0;
+
+      // protected QObject methods
+      DLLLOCAL virtual QObject *sender() const = 0;
 };
 
 #endif

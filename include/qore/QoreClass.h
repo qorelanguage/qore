@@ -54,7 +54,7 @@ class Method {
       DLLEXPORT class QoreNode *eval(class Object *self, class QoreNode *args, class ExceptionSink *xsink);
 
       DLLLOCAL Method(class UserFunction *u, int p);
-      DLLLOCAL Method(class QoreClass *p_class, class BuiltinMethod *b);
+      DLLLOCAL Method(class QoreClass *p_class, class BuiltinMethod *b, bool n_priv = false);
       DLLLOCAL ~Method();
       DLLLOCAL bool inMethod(class Object *self) const;
       DLLLOCAL void evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink);
@@ -250,7 +250,7 @@ class QoreClass{
       DLLEXPORT QoreClass(const char *nme, int dom = 0);
       DLLEXPORT ~QoreClass();
       
-      DLLEXPORT void addMethod(const char *nme, q_method_t m);
+      DLLEXPORT void addMethod(const char *nme, q_method_t m, bool priv = false);
       DLLEXPORT void setDestructor(q_destructor_t m);
       DLLEXPORT void setConstructor(q_constructor_t m);
       DLLEXPORT void setSystemConstructor(q_constructor_t m);
