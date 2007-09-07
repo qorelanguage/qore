@@ -1,0 +1,577 @@
+/*
+ QC_QUrl.cc
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+
+#include "QC_QUrl.h"
+
+int CID_QURL;
+class QoreClass *QC_QUrl = 0;
+
+//QUrl ()
+//QUrl ( const QString & url )
+//QUrl ( const QUrl & other )
+//QUrl ( const QString & url, ParsingMode parsingMode )
+static void QURL_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      self->setPrivate(CID_QURL, new QoreQUrl());
+      return;
+   }
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-QURL-PARAM-ERROR", "expecting a string as first argument to QUrl::QUrl()");
+      return;
+   }
+   const char *url = p->val.String->getBuffer();
+   p = get_param(params, 1);
+   QUrl::ParsingMode parsingMode = (QUrl::ParsingMode)(p ? p->getAsInt() : 0);
+   self->setPrivate(CID_QURL, new QoreQUrl(url, parsingMode));
+   return;
+}
+
+static void QURL_copy(class Object *self, class Object *old, class QoreQUrl *qu, ExceptionSink *xsink)
+{
+   xsink->raiseException("QURL-COPY-ERROR", "objects of this class cannot be copied");
+}
+
+//void addQueryItem ( const QString & key, const QString & value )
+static QoreNode *QURL_addQueryItem(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-ADDQUERYITEM-PARAM-ERROR", "expecting a string as first argument to QUrl::addQueryItem()");
+      return 0;
+   }
+   const char *key = p->val.String->getBuffer();
+   p = get_param(params, 1);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-ADDQUERYITEM-PARAM-ERROR", "expecting a string as second argument to QUrl::addQueryItem()");
+      return 0;
+   }
+   const char *value = p->val.String->getBuffer();
+   qu->addQueryItem(key, value);
+   return 0;
+}
+
+////QStringList allQueryItemValues ( const QString & key ) const
+//static QoreNode *QURL_allQueryItemValues(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+//{
+//   QoreNode *p = get_param(params, 0);
+//   if (!p || p->type != NT_STRING) {
+//      xsink->raiseException("QURL-ALLQUERYITEMVALUES-PARAM-ERROR", "expecting a string as first argument to QUrl::allQueryItemValues()");
+//      return 0;
+//   }
+//   const char *key = p->val.String->getBuffer();
+//   ??? return new QoreNode((int64)qu->allQueryItemValues(key));
+//}
+
+//QString authority () const
+static QoreNode *QURL_authority(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qu->authority().toUtf8().data(), QCS_UTF8));
+}
+
+//void clear ()
+static QoreNode *QURL_clear(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   qu->clear();
+   return 0;
+}
+
+////DataPtr & data_ptr ()
+//static QoreNode *QURL_data_ptr(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+//{
+//   ??? return new QoreNode((int64)qu->data_ptr());
+//}
+
+//QByteArray encodedQuery () const
+static QoreNode *QURL_encodedQuery(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qba = new Object(QC_QByteArray, getProgram());
+   QoreQByteArray *q_qba = new QoreQByteArray(qu->encodedQuery());
+   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
+   return new QoreNode(o_qba);
+}
+
+//QString errorString () const
+static QoreNode *QURL_errorString(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qu->errorString().toUtf8().data(), QCS_UTF8));
+}
+
+//QString fragment () const
+static QoreNode *QURL_fragment(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qu->fragment().toUtf8().data(), QCS_UTF8));
+}
+
+//bool hasFragment () const
+static QoreNode *QURL_hasFragment(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qu->hasFragment());
+}
+
+//bool hasQuery () const
+static QoreNode *QURL_hasQuery(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qu->hasQuery());
+}
+
+//bool hasQueryItem ( const QString & key ) const
+static QoreNode *QURL_hasQueryItem(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-HASQUERYITEM-PARAM-ERROR", "expecting a string as first argument to QUrl::hasQueryItem()");
+      return 0;
+   }
+   const char *key = p->val.String->getBuffer();
+   return new QoreNode(qu->hasQueryItem(key));
+}
+
+//QString host () const
+static QoreNode *QURL_host(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qu->host().toUtf8().data(), QCS_UTF8));
+}
+
+//bool isEmpty () const
+static QoreNode *QURL_isEmpty(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qu->isEmpty());
+}
+
+//bool isParentOf ( const QUrl & childUrl ) const
+static QoreNode *QURL_isParentOf(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQUrl *childUrl = (p && p->type == NT_OBJECT) ? (QoreQUrl *)p->val.object->getReferencedPrivateData(CID_QURL, xsink) : 0;
+   if (!childUrl) {
+      if (!xsink->isException())
+         xsink->raiseException("QURL-ISPARENTOF-PARAM-ERROR", "expecting a QUrl object as first argument to QUrl::isParentOf()");
+      return 0;
+   }
+   ReferenceHolder<QoreQUrl> childUrlHolder(childUrl, xsink);
+   return new QoreNode(qu->isParentOf(*(static_cast<QUrl *>(childUrl))));
+}
+
+//bool isRelative () const
+static QoreNode *QURL_isRelative(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qu->isRelative());
+}
+
+//bool isValid () const
+static QoreNode *QURL_isValid(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qu->isValid());
+}
+
+//QString password () const
+static QoreNode *QURL_password(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qu->password().toUtf8().data(), QCS_UTF8));
+}
+
+//QString path () const
+static QoreNode *QURL_path(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qu->path().toUtf8().data(), QCS_UTF8));
+}
+
+//int port () const
+//int port ( int defaultPort ) const
+static QoreNode *QURL_port(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (is_nothing(p)) {
+      return new QoreNode((int64)qu->port());
+   }
+   int defaultPort = p ? p->getAsInt() : 0;
+   return new QoreNode((int64)qu->port(defaultPort));
+}
+
+//QString queryItemValue ( const QString & key ) const
+static QoreNode *QURL_queryItemValue(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-QUERYITEMVALUE-PARAM-ERROR", "expecting a string as first argument to QUrl::queryItemValue()");
+      return 0;
+   }
+   const char *key = p->val.String->getBuffer();
+   return new QoreNode(new QoreString(qu->queryItemValue(key).toUtf8().data(), QCS_UTF8));
+}
+
+////QList<QPair<QString, QString> > queryItems () const
+//static QoreNode *QURL_queryItems(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+//{
+//   ??? return new QoreNode((int64)qu->queryItems());
+//}
+
+//char queryPairDelimiter () const
+static QoreNode *QURL_queryPairDelimiter(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   const char c_rv = qu->queryPairDelimiter();
+   QoreString *rv_str = new QoreString();
+   rv_str->concat(c_rv);
+   return new QoreNode(rv_str);
+}
+
+//char queryValueDelimiter () const
+static QoreNode *QURL_queryValueDelimiter(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   const char c_rv = qu->queryValueDelimiter();
+   QoreString *rv_str = new QoreString();
+   rv_str->concat(c_rv);
+   return new QoreNode(rv_str);
+}
+
+//void removeAllQueryItems ( const QString & key )
+static QoreNode *QURL_removeAllQueryItems(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-REMOVEALLQUERYITEMS-PARAM-ERROR", "expecting a string as first argument to QUrl::removeAllQueryItems()");
+      return 0;
+   }
+   const char *key = p->val.String->getBuffer();
+   qu->removeAllQueryItems(key);
+   return 0;
+}
+
+//void removeQueryItem ( const QString & key )
+static QoreNode *QURL_removeQueryItem(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-REMOVEQUERYITEM-PARAM-ERROR", "expecting a string as first argument to QUrl::removeQueryItem()");
+      return 0;
+   }
+   const char *key = p->val.String->getBuffer();
+   qu->removeQueryItem(key);
+   return 0;
+}
+
+//QUrl resolved ( const QUrl & relative ) const
+static QoreNode *QURL_resolved(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQUrl *relative = (p && p->type == NT_OBJECT) ? (QoreQUrl *)p->val.object->getReferencedPrivateData(CID_QURL, xsink) : 0;
+   if (!relative) {
+      if (!xsink->isException())
+         xsink->raiseException("QURL-RESOLVED-PARAM-ERROR", "expecting a QUrl object as first argument to QUrl::resolved()");
+      return 0;
+   }
+   ReferenceHolder<QoreQUrl> relativeHolder(relative, xsink);
+   Object *o_qu = new Object(self->getClass(CID_QURL), getProgram());
+   QoreQUrl *q_qu = new QoreQUrl(qu->resolved(*(static_cast<QUrl *>(relative))));
+   o_qu->setPrivate(CID_QURL, q_qu);
+   return new QoreNode(o_qu);
+}
+
+//QString scheme () const
+static QoreNode *QURL_scheme(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qu->scheme().toUtf8().data(), QCS_UTF8));
+}
+
+//void setAuthority ( const QString & authority )
+static QoreNode *QURL_setAuthority(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-SETAUTHORITY-PARAM-ERROR", "expecting a string as first argument to QUrl::setAuthority()");
+      return 0;
+   }
+   const char *authority = p->val.String->getBuffer();
+   qu->setAuthority(authority);
+   return 0;
+}
+
+//void setEncodedQuery ( const QByteArray & query )
+static QoreNode *QURL_setEncodedQuery(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QByteArray query;
+   if (get_qbytearray(p, query, xsink))
+      return 0;
+   qu->setEncodedQuery(query);
+   return 0;
+}
+
+//void setEncodedUrl ( const QByteArray & encodedUrl )
+//void setEncodedUrl ( const QByteArray & encodedUrl, ParsingMode parsingMode )
+static QoreNode *QURL_setEncodedUrl(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QByteArray encodedUrl;
+   if (get_qbytearray(p, encodedUrl, xsink))
+      return 0;
+   p = get_param(params, 1);
+   QUrl::ParsingMode parsingMode = (QUrl::ParsingMode)(p ? p->getAsInt() : 0);
+   qu->setEncodedUrl(encodedUrl, parsingMode);
+   return 0;
+}
+
+//void setFragment ( const QString & fragment )
+static QoreNode *QURL_setFragment(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-SETFRAGMENT-PARAM-ERROR", "expecting a string as first argument to QUrl::setFragment()");
+      return 0;
+   }
+   const char *fragment = p->val.String->getBuffer();
+   qu->setFragment(fragment);
+   return 0;
+}
+
+//void setHost ( const QString & host )
+static QoreNode *QURL_setHost(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-SETHOST-PARAM-ERROR", "expecting a string as first argument to QUrl::setHost()");
+      return 0;
+   }
+   const char *host = p->val.String->getBuffer();
+   qu->setHost(host);
+   return 0;
+}
+
+//void setPassword ( const QString & password )
+static QoreNode *QURL_setPassword(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-SETPASSWORD-PARAM-ERROR", "expecting a string as first argument to QUrl::setPassword()");
+      return 0;
+   }
+   const char *password = p->val.String->getBuffer();
+   qu->setPassword(password);
+   return 0;
+}
+
+//void setPath ( const QString & path )
+static QoreNode *QURL_setPath(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-SETPATH-PARAM-ERROR", "expecting a string as first argument to QUrl::setPath()");
+      return 0;
+   }
+   const char *path = p->val.String->getBuffer();
+   qu->setPath(path);
+   return 0;
+}
+
+//void setPort ( int port )
+static QoreNode *QURL_setPort(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int port = p ? p->getAsInt() : 0;
+   qu->setPort(port);
+   return 0;
+}
+
+//void setQueryDelimiters ( char valueDelimiter, char pairDelimiter )
+static QoreNode *QURL_setQueryDelimiters(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_STRING, 0);
+   if (!p) {
+      xsink->raiseException("QURL-SETQUERYDELIMITERS-ERROR", "expecting a string as first argument, got type '%s'", p ? p->type->getName() : "NOTHING");
+      return 0;
+   }
+   char valueDelimiter = p->val.String->getBuffer()[0];
+   p = get_param(params, 1);
+   if (!p) {
+      xsink->raiseException("QURL-SETQUERYDELIMITERS-ERROR", "expecting a string as second argument, got type '%s'", p ? p->type->getName() : "NOTHING");
+      return 0;
+   }
+
+   char pairDelimiter = p->val.String->getBuffer()[0];
+   qu->setQueryDelimiters(valueDelimiter, pairDelimiter);
+   return 0;
+}
+
+////void setQueryItems ( const QList<QPair<QString, QString> > & query )
+//static QoreNode *QURL_setQueryItems(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+//{
+//   QoreNode *p = get_param(params, 0);
+//   QUrl::const^QList<QPair<QString const^qlist<qpair<qstring = (QUrl::const^QList<QPair<QString)(p ? p->getAsInt() : 0);
+//   p = get_param(params, 1);
+//   ??? > query = p;
+//   qu->setQueryItems(const^qlist<qpair<qstring, query);
+//   return 0;
+//}
+
+//void setScheme ( const QString & scheme )
+static QoreNode *QURL_setScheme(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-SETSCHEME-PARAM-ERROR", "expecting a string as first argument to QUrl::setScheme()");
+      return 0;
+   }
+   const char *scheme = p->val.String->getBuffer();
+   qu->setScheme(scheme);
+   return 0;
+}
+
+//void setUrl ( const QString & url )
+//void setUrl ( const QString & url, ParsingMode parsingMode )
+static QoreNode *QURL_setUrl(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-SETURL-PARAM-ERROR", "expecting a string as first argument to QUrl::setUrl()");
+      return 0;
+   }
+   const char *url = p->val.String->getBuffer();
+   p = get_param(params, 1);
+   QUrl::ParsingMode parsingMode = (QUrl::ParsingMode)(p ? p->getAsInt() : 0);
+   qu->setUrl(url, parsingMode);
+   return 0;
+}
+
+//void setUserInfo ( const QString & userInfo )
+static QoreNode *QURL_setUserInfo(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-SETUSERINFO-PARAM-ERROR", "expecting a string as first argument to QUrl::setUserInfo()");
+      return 0;
+   }
+   const char *userInfo = p->val.String->getBuffer();
+   qu->setUserInfo(userInfo);
+   return 0;
+}
+
+//void setUserName ( const QString & userName )
+static QoreNode *QURL_setUserName(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QURL-SETUSERNAME-PARAM-ERROR", "expecting a string as first argument to QUrl::setUserName()");
+      return 0;
+   }
+   const char *userName = p->val.String->getBuffer();
+   qu->setUserName(userName);
+   return 0;
+}
+
+//QByteArray toEncoded ( FormattingOptions options = None ) const
+static QoreNode *QURL_toEncoded(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QUrl::FormattingOptions options = (QUrl::FormattingOptions)(p ? p->getAsInt() : 0);
+   Object *o_qba = new Object(QC_QByteArray, getProgram());
+   QoreQByteArray *q_qba = new QoreQByteArray(qu->toEncoded(options));
+   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
+   return new QoreNode(o_qba);
+}
+
+//QString toLocalFile () const
+static QoreNode *QURL_toLocalFile(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qu->toLocalFile().toUtf8().data(), QCS_UTF8));
+}
+
+//QString toString ( FormattingOptions options = None ) const
+static QoreNode *QURL_toString(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QUrl::FormattingOptions options = (QUrl::FormattingOptions)(p ? p->getAsInt() : 0);
+   return new QoreNode(new QoreString(qu->toString(options).toUtf8().data(), QCS_UTF8));
+}
+
+//QString userInfo () const
+static QoreNode *QURL_userInfo(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qu->userInfo().toUtf8().data(), QCS_UTF8));
+}
+
+//QString userName () const
+static QoreNode *QURL_userName(Object *self, QoreQUrl *qu, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qu->userName().toUtf8().data(), QCS_UTF8));
+}
+
+QoreClass *initQUrlClass()
+{
+   QC_QUrl = new QoreClass("QUrl", QDOM_GUI);
+   CID_QURL = QC_QUrl->getID();
+
+   QC_QUrl->setConstructor(QURL_constructor);
+   QC_QUrl->setCopy((q_copy_t)QURL_copy);
+
+   QC_QUrl->addMethod("addQueryItem",                (q_method_t)QURL_addQueryItem);
+   //QC_QUrl->addMethod("allQueryItemValues",          (q_method_t)QURL_allQueryItemValues);
+   QC_QUrl->addMethod("authority",                   (q_method_t)QURL_authority);
+   QC_QUrl->addMethod("clear",                       (q_method_t)QURL_clear);
+   //QC_QUrl->addMethod("data_ptr",                    (q_method_t)QURL_data_ptr);
+   QC_QUrl->addMethod("encodedQuery",                (q_method_t)QURL_encodedQuery);
+   QC_QUrl->addMethod("errorString",                 (q_method_t)QURL_errorString);
+   QC_QUrl->addMethod("fragment",                    (q_method_t)QURL_fragment);
+   QC_QUrl->addMethod("hasFragment",                 (q_method_t)QURL_hasFragment);
+   QC_QUrl->addMethod("hasQuery",                    (q_method_t)QURL_hasQuery);
+   QC_QUrl->addMethod("hasQueryItem",                (q_method_t)QURL_hasQueryItem);
+   QC_QUrl->addMethod("host",                        (q_method_t)QURL_host);
+   QC_QUrl->addMethod("isEmpty",                     (q_method_t)QURL_isEmpty);
+   QC_QUrl->addMethod("isParentOf",                  (q_method_t)QURL_isParentOf);
+   QC_QUrl->addMethod("isRelative",                  (q_method_t)QURL_isRelative);
+   QC_QUrl->addMethod("isValid",                     (q_method_t)QURL_isValid);
+   QC_QUrl->addMethod("password",                    (q_method_t)QURL_password);
+   QC_QUrl->addMethod("path",                        (q_method_t)QURL_path);
+   QC_QUrl->addMethod("port",                        (q_method_t)QURL_port);
+   QC_QUrl->addMethod("queryItemValue",              (q_method_t)QURL_queryItemValue);
+   //QC_QUrl->addMethod("queryItems",                  (q_method_t)QURL_queryItems);
+   QC_QUrl->addMethod("queryPairDelimiter",          (q_method_t)QURL_queryPairDelimiter);
+   QC_QUrl->addMethod("queryValueDelimiter",         (q_method_t)QURL_queryValueDelimiter);
+   QC_QUrl->addMethod("removeAllQueryItems",         (q_method_t)QURL_removeAllQueryItems);
+   QC_QUrl->addMethod("removeQueryItem",             (q_method_t)QURL_removeQueryItem);
+   QC_QUrl->addMethod("resolved",                    (q_method_t)QURL_resolved);
+   QC_QUrl->addMethod("scheme",                      (q_method_t)QURL_scheme);
+   QC_QUrl->addMethod("setAuthority",                (q_method_t)QURL_setAuthority);
+   QC_QUrl->addMethod("setEncodedQuery",             (q_method_t)QURL_setEncodedQuery);
+   QC_QUrl->addMethod("setEncodedUrl",               (q_method_t)QURL_setEncodedUrl);
+   QC_QUrl->addMethod("setFragment",                 (q_method_t)QURL_setFragment);
+   QC_QUrl->addMethod("setHost",                     (q_method_t)QURL_setHost);
+   QC_QUrl->addMethod("setPassword",                 (q_method_t)QURL_setPassword);
+   QC_QUrl->addMethod("setPath",                     (q_method_t)QURL_setPath);
+   QC_QUrl->addMethod("setPort",                     (q_method_t)QURL_setPort);
+   QC_QUrl->addMethod("setQueryDelimiters",          (q_method_t)QURL_setQueryDelimiters);
+   //QC_QUrl->addMethod("setQueryItems",               (q_method_t)QURL_setQueryItems);
+   QC_QUrl->addMethod("setScheme",                   (q_method_t)QURL_setScheme);
+   QC_QUrl->addMethod("setUrl",                      (q_method_t)QURL_setUrl);
+   QC_QUrl->addMethod("setUserInfo",                 (q_method_t)QURL_setUserInfo);
+   QC_QUrl->addMethod("setUserName",                 (q_method_t)QURL_setUserName);
+   QC_QUrl->addMethod("toEncoded",                   (q_method_t)QURL_toEncoded);
+   QC_QUrl->addMethod("toLocalFile",                 (q_method_t)QURL_toLocalFile);
+   QC_QUrl->addMethod("toString",                    (q_method_t)QURL_toString);
+   QC_QUrl->addMethod("userInfo",                    (q_method_t)QURL_userInfo);
+   QC_QUrl->addMethod("userName",                    (q_method_t)QURL_userName);
+
+   return QC_QUrl;
+}

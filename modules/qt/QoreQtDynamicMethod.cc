@@ -56,6 +56,10 @@ int QoreQtDynamicMethod::get_type(const char *&p)
       rt = QQT_TYPE_P_CHAR;	
       p += 11;
    }
+   else if (!strncmp("QDate", p, 5)) {
+      rt = QQT_TYPE_QDATE;
+      p += 5;
+   }
    else {
       //printd(5, "QoreQtDynamicMethod::get_type(%s) unknown type error!\n", p);
       return QQT_TYPE_UNKNOWN;
@@ -183,6 +187,10 @@ void QoreQtDynamicSlot::call(void **arguments)
       else if (type_list[i] == QQT_TYPE_P_CHAR) {
 	 char **ptr = reinterpret_cast<char **>(arguments[i + 1]);
 	 args->push(new QoreNode(*ptr));
+      }
+      else if (type_list[i] == QQT_TYPE_QDATE) {
+	 QDate *qdate = reinterpret_cast<QDate *>(arguments[i + 1]);
+	 args->push(new QoreNode(new DateTime(qdate->year(), qdate->month(), qdate->day())));
       }
       else {
 	 printd(0, "QoreQtDynamicSlot::call() ignoring argument %d type %d\n", i, type_list[i]);

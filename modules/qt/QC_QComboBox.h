@@ -1,5 +1,5 @@
 /*
- QC_QFrame.h
+ QC_QComboBox.h
  
  Qore Programming Language
  
@@ -20,59 +20,54 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QFRAME_H
+#ifndef _QORE_QT_QC_QCOMBOBOX_H
 
-#define _QORE_QC_QFRAME_H
+#define _QORE_QT_QC_QCOMBOBOX_H
 
-#include "QoreAbstractQFrame.h"
-
-#include <QFrame>
-
+#include <QComboBox>
+#include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QFRAME;
+DLLLOCAL extern int CID_QCOMBOBOX;
+DLLLOCAL extern class QoreClass *QC_QComboBox;
 
-DLLLOCAL class QoreClass *initQFrameClass(class QoreClass *parent);
+DLLLOCAL class QoreClass *initQComboBoxClass(QoreClass *);
 
-class myQFrame : public QFrame, public QoreQWidgetExtension
+class myQComboBox : public QComboBox, public QoreQWidgetExtension
 {
-#define QOREQTYPE QFrame
+#define QOREQTYPE QComboBox
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
 #undef QOREQTYPE
 
-   DLLLOCAL myQFrame(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QFrame(parent, window_flags), QoreQWidgetExtension(obj->getClass())
+   public:
+      DLLLOCAL myQComboBox(Object *obj, QWidget* parent = 0) : QComboBox(parent), QoreQWidgetExtension(obj->getClass())
       {
-	 init(obj);
+         init(obj);
       }
 };
 
-class QoreQFrame : public QoreAbstractQFrame
+class QoreQComboBox : public QoreAbstractQWidget
 {
    public:
-      QPointer<myQFrame>qobj;
+      QPointer<myQComboBox> qobj;
 
-      DLLLOCAL QoreQFrame(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new myQFrame(obj, parent, window_flags))
+      DLLLOCAL QoreQComboBox(Object *obj, QWidget* parent = 0) : qobj(new myQComboBox(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
       {
-	 return static_cast<QObject *>(&(*qobj));
+         return static_cast<QObject *>(&(*qobj));
       }
-      DLLLOCAL virtual QWidget *getQWidget() const
+      DLLLOCAL virtual class QWidget *getQWidget() const
       {
-	 return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QFrame *getQFrame() const
-      {
-	 return static_cast<QFrame *>(&(*qobj));
+         return static_cast<QWidget *>(&(*qobj));
       }
       DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
-
       QORE_VIRTUAL_QOBJECT_METHODS
 };
 
-#endif
+#endif // _QORE_QT_QC_QCOMBOBOX_H

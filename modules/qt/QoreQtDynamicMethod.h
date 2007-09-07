@@ -54,6 +54,7 @@
 #define QQT_TYPE_FLOAT     4
 #define QQT_TYPE_DOUBLE    5
 #define QQT_TYPE_P_CHAR    6
+#define QQT_TYPE_QDATE     7
 
 union qt_arg_u {
       int t_int;

@@ -226,6 +226,54 @@ static QoreNode *QABSTRACTBUTTON_text(Object *self, QoreAbstractQAbstractButton 
    return new QoreNode(new QoreString(qab->getQAbstractButton()->text().toUtf8().data(), QCS_UTF8));
 }
 
+// slots
+//void animateClick ( int msec = 100 )
+static QoreNode *QABSTRACTBUTTON_animateClick(Object *self, QoreAbstractQAbstractButton *qab, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int msec = !is_nothing(p) ? p->getAsInt() : 100;
+   qab->getQAbstractButton()->animateClick(msec);
+   return 0;
+}
+
+//void click ()
+static QoreNode *QABSTRACTBUTTON_click(Object *self, QoreAbstractQAbstractButton *qab, QoreNode *params, ExceptionSink *xsink)
+{
+   qab->getQAbstractButton()->click();
+   return 0;
+}
+
+//void setChecked ( bool )
+static QoreNode *QABSTRACTBUTTON_setChecked(Object *self, QoreAbstractQAbstractButton *qab, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool b = p ? p->getAsBool() : false;
+   qab->getQAbstractButton()->setChecked(b);
+   return 0;
+}
+
+//void setIconSize ( const QSize & size )
+static QoreNode *QABSTRACTBUTTON_setIconSize(Object *self, QoreAbstractQAbstractButton *qab, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   if (!size) {
+      if (!xsink->isException())
+         xsink->raiseException("QABSTRACTBUTTON-SETICONSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QAbstractButton::setIconSize()");
+      return 0;
+   }
+   ReferenceHolder<QoreQSize> sizeHolder(size, xsink);
+   qab->getQAbstractButton()->setIconSize(*(static_cast<QSize *>(size)));
+   return 0;
+}
+
+//void toggle ()
+static QoreNode *QABSTRACTBUTTON_toggle(Object *self, QoreAbstractQAbstractButton *qab, QoreNode *params, ExceptionSink *xsink)
+{
+   qab->getQAbstractButton()->toggle();
+   return 0;
+}
+
 QoreClass *initQAbstractButtonClass(QoreClass *qwidget)
 {
    QC_QAbstractButton = new QoreClass("QAbstractButton", QDOM_GUI);
@@ -257,6 +305,13 @@ QoreClass *initQAbstractButtonClass(QoreClass *qwidget)
    QC_QAbstractButton->addMethod("setText",                     (q_method_t)QABSTRACTBUTTON_setText);
    QC_QAbstractButton->addMethod("shortcut",                    (q_method_t)QABSTRACTBUTTON_shortcut);
    QC_QAbstractButton->addMethod("text",                        (q_method_t)QABSTRACTBUTTON_text);
+
+   // slots
+   QC_QAbstractButton->addMethod("animateClick",                (q_method_t)QABSTRACTBUTTON_animateClick);
+   QC_QAbstractButton->addMethod("click",                       (q_method_t)QABSTRACTBUTTON_click);
+   QC_QAbstractButton->addMethod("setChecked",                  (q_method_t)QABSTRACTBUTTON_setChecked);
+   QC_QAbstractButton->addMethod("setIconSize",                 (q_method_t)QABSTRACTBUTTON_setIconSize);
+   QC_QAbstractButton->addMethod("toggle",                      (q_method_t)QABSTRACTBUTTON_toggle);
 
    return QC_QAbstractButton;
 }

@@ -1,5 +1,5 @@
 /*
- qore-qt.h
+ QC_QStyleOptionViewItem.h
  
  Qore Programming Language
  
@@ -20,27 +20,26 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QORE_QT_H
+#ifndef _QORE_QT_QC_QSTYLEOPTIONVIEWITEM_H
 
-#define _QORE_QORE_QT_H
+#define _QORE_QT_QC_QSTYLEOPTIONVIEWITEM_H
 
-DLLLOCAL QoreType *NT_BRUSHSTYLE, *NT_PENSTYLE;
+#include <QStyleOptionViewItem>
 
-#include <map>
+DLLLOCAL extern int CID_QSTYLEOPTIONVIEWITEM;
+DLLLOCAL extern class QoreClass *QC_QStyleOptionViewItem;
 
-typedef std::map<int, const char *> qt_enum_map_t;
+DLLLOCAL class QoreClass *initQStyleOptionViewItemClass(QoreClass *);
 
-static inline class QoreNode *make_enum(class QoreType *enum_type, int code)
+class QoreQStyleOptionViewItem : public AbstractPrivateData, public QStyleOptionViewItem
 {
-   QoreNode *n = new QoreNode(enum_type);
-   n->val.intval = code;
-   return n;
-}
+   public:
+      DLLLOCAL QoreQStyleOptionViewItem() : QStyleOptionViewItem()
+      {
+      }
+      DLLLOCAL QoreQStyleOptionViewItem(const QStyleOptionViewItem &sovi) : QStyleOptionViewItem(sovi)
+      {
+      }
+};
 
-DLLLOCAL int get_qdate(class QoreNode *n, QDate &date, class ExceptionSink *xsink);
-DLLLOCAL int get_qtime(class QoreNode *n, QTime &time, class ExceptionSink *xsink);
-DLLLOCAL int get_qdatetime(class QoreNode *n, QDateTime &dt, class ExceptionSink *xsink);
-DLLLOCAL int get_qvariant(class QoreNode *n, QVariant &qv, class ExceptionSink *xsink, bool suppress_exception = false);
-DLLLOCAL int get_qbytearray(class QoreNode *n, QByteArray &qba, class ExceptionSink *xsink);
-
-#endif
+#endif // _QORE_QT_QC_QSTYLEOPTIONVIEWITEM_H

@@ -528,9 +528,13 @@ static QoreNode *QWIDGET_layoutDirection(Object *self, QoreAbstractQWidget *qw, 
 }
 
 //QLocale locale () const
-//static QoreNode *QWIDGET_locale(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_locale(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_ql = new Object(QC_QLocale, getProgram());
+   QoreQLocale *q_ql = new QoreQLocale(qw->getQWidget()->locale());
+   o_ql->setPrivate(CID_QLOCALE, q_ql);
+   return new QoreNode(o_ql);
+}
 
 //Qt::HANDLE macCGHandle () const
 //static QoreNode *QWIDGET_macCGHandle(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1244,9 +1248,19 @@ static QoreNode *QWIDGET_setLayoutDirection(Object *self, QoreAbstractQWidget *q
 }
 
 //void setLocale ( const QLocale & locale )
-//static QoreNode *QWIDGET_setLocale(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_setLocale(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)p->val.object->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
+   if (!locale) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-SETLOCALE-PARAM-ERROR", "expecting a QLocale object as first argument to QWidget::setLocale()");
+      return 0;
+   }
+   ReferenceHolder<QoreQLocale> localeHolder(locale, xsink);
+   qw->getQWidget()->setLocale(*(static_cast<QLocale *>(locale)));
+   return 0;
+}
 
 //void setMask ( const QBitmap & bitmap )
 //void setMask ( const QRegion & region )
@@ -2092,7 +2106,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("isWindowModified",             (q_method_t)QWIDGET_isWindowModified);
    //QC_QWidget->addMethod("layout",                       (q_method_t)QWIDGET_layout);
    QC_QWidget->addMethod("layoutDirection",              (q_method_t)QWIDGET_layoutDirection);
-   //QC_QWidget->addMethod("locale",                       (q_method_t)QWIDGET_locale);
+   QC_QWidget->addMethod("locale",                       (q_method_t)QWIDGET_locale);
    //QC_QWidget->addMethod("macCGHandle",                  (q_method_t)QWIDGET_macCGHandle);
    //QC_QWidget->addMethod("macQDHandle",                  (q_method_t)QWIDGET_macQDHandle);
    QC_QWidget->addMethod("mapFrom",                      (q_method_t)QWIDGET_mapFrom);
@@ -2153,7 +2167,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    //QC_QWidget->addMethod("setInputContext",              (q_method_t)QWIDGET_setInputContext);
    QC_QWidget->addMethod("setLayout",                    (q_method_t)QWIDGET_setLayout);
    QC_QWidget->addMethod("setLayoutDirection",           (q_method_t)QWIDGET_setLayoutDirection);
-   //QC_QWidget->addMethod("setLocale",                    (q_method_t)QWIDGET_setLocale);
+   QC_QWidget->addMethod("setLocale",                    (q_method_t)QWIDGET_setLocale);
    QC_QWidget->addMethod("setMask",                      (q_method_t)QWIDGET_setMask);
    QC_QWidget->addMethod("setMaximumHeight",             (q_method_t)QWIDGET_setMaximumHeight);
    QC_QWidget->addMethod("setMaximumSize",               (q_method_t)QWIDGET_setMaximumSize);

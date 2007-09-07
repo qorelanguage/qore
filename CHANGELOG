@@ -1,3 +1,6 @@
+2007.09.07: David Nichols
+	* qt: added calendarwidget example, new classes, etc
+
 2007.09.05: David Nichols
 	* qt: map QObject to Qore Object using QObject properties
 	* qt: new classes, methods, constants, etc

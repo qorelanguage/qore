@@ -785,6 +785,7 @@ static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNod
    tracein("op_object_method_call()");
 
    bool ld;
+   // FIXME: implement a class to hold conditional dereferenced QoreNodes
    QoreNode *op = left->eval(ld, xsink);
 
    if (xsink->isEvent())
@@ -795,8 +796,19 @@ static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNod
       return NULL;
    }
 
+   // FIXME: this is an ugly hack!
+   if (op && op->type == NT_HASH) {
+      // see if the hash member is a call reference
+      QoreNode *c = op->val.hash->getKeyValue(func->val.fcall->f.c_str);
+      if (c && c->type == NT_FUNCREF) {
+	 QoreNode *rv = c->val.funcref->exec(func->val.fcall->args, xsink);
+	 if (ld) op->deref(xsink);
+	 return rv;
+      }
+   }
    if (!op || op->type != NT_OBJECT)
    {
+      //printd(5, "op=%08p (%s) func=%08p (%s)\n", op, op ? op->type->getName() : "n/a", func, func ? func->type->getName() : "n/a");
       xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
 			    func->val.fcall->f.c_str, op ? op->type->getName() : "NOTHING" );
       if (op && ld) op->deref(xsink);

@@ -1,5 +1,5 @@
 /*
- QC_QFrame.h
+ QC_QCalendarWidget.h
  
  Qore Programming Language
  
@@ -20,59 +20,54 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QFRAME_H
+#ifndef _QORE_QT_QC_QCALENDARWIDGET_H
 
-#define _QORE_QC_QFRAME_H
+#define _QORE_QT_QC_QCALENDARWIDGET_H
 
-#include "QoreAbstractQFrame.h"
-
-#include <QFrame>
-
+#include <QCalendarWidget>
+#include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QFRAME;
+DLLLOCAL extern int CID_QCALENDARWIDGET;
+DLLLOCAL extern class QoreClass *QC_QCalendarWidget;
 
-DLLLOCAL class QoreClass *initQFrameClass(class QoreClass *parent);
+DLLLOCAL class QoreClass *initQCalendarWidgetClass(QoreClass *);
 
-class myQFrame : public QFrame, public QoreQWidgetExtension
+class myQCalendarWidget : public QCalendarWidget, public QoreQWidgetExtension
 {
-#define QOREQTYPE QFrame
+#define QOREQTYPE QCalendarWidget
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
 #undef QOREQTYPE
 
-   DLLLOCAL myQFrame(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QFrame(parent, window_flags), QoreQWidgetExtension(obj->getClass())
+   public:
+   DLLLOCAL myQCalendarWidget(Object *obj, QWidget* parent = 0) : QCalendarWidget(parent), QoreQWidgetExtension(obj->getClass())
       {
-	 init(obj);
+         init(obj);
       }
 };
 
-class QoreQFrame : public QoreAbstractQFrame
+class QoreQCalendarWidget : public QoreAbstractQWidget
 {
    public:
-      QPointer<myQFrame>qobj;
+      QPointer<myQCalendarWidget> qobj;
 
-      DLLLOCAL QoreQFrame(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new myQFrame(obj, parent, window_flags))
+      DLLLOCAL QoreQCalendarWidget(Object *obj, QWidget* parent = 0) : qobj(new myQCalendarWidget(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
       {
-	 return static_cast<QObject *>(&(*qobj));
+         return static_cast<QObject *>(&(*qobj));
       }
-      DLLLOCAL virtual QWidget *getQWidget() const
+      DLLLOCAL virtual class QWidget *getQWidget() const
       {
-	 return static_cast<QWidget *>(&(*qobj));
-      }
-      DLLLOCAL virtual QFrame *getQFrame() const
-      {
-	 return static_cast<QFrame *>(&(*qobj));
+         return static_cast<QWidget *>(&(*qobj));
       }
       DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
-
       QORE_VIRTUAL_QOBJECT_METHODS
 };
 
-#endif
+#endif // _QORE_QT_QC_QCALENDARWIDGET_H

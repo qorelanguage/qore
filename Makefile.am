@@ -254,6 +254,12 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQPixmap.h \
 	modules/qt/QoreAbstractQPaintDevice.h \
 	modules/qt/QoreAbstractQAbstractButton.h \
+	modules/qt/QoreAbstractQAbstractItemModel.h \
+	modules/qt/QoreAbstractQAbstractItemDelegate.h \
+	modules/qt/QoreAbstractQItemDelegate.h \
+	modules/qt/QoreAbstractQAbstractSpinBox.h \
+	modules/qt/QoreAbstractQDateTimeEdit.h \
+	modules/qt/QoreAbstractQGroupBox.h \
 	modules/qt/qore-qt-events.h \
 	modules/qt/qore-qt-widget-events.h \
 	modules/qt/qore-qt-metacode.h \
@@ -302,6 +308,33 @@ noinst_HEADERS = \
 	modules/qt/QC_QToolButton.h \
 	modules/qt/QC_QDialog.h \
 	modules/qt/QC_QLineEdit.h \
+	modules/qt/QC_QTextLength.h \
+	modules/qt/QC_QTextFormat.h \
+	modules/qt/QC_QTextBlockFormat.h \
+	modules/qt/QC_QTextCharFormat.h \
+	modules/qt/QC_QPen.h \
+	modules/qt/QC_QTextFrameFormat.h \
+	modules/qt/QC_QTextTableFormat.h \
+	modules/qt/QC_QTextListFormat.h \
+	modules/qt/QC_QTextImageFormat.h \
+	modules/qt/QC_QCalendarWidget.h \
+	modules/qt/QC_QStyleOption.h \
+	modules/qt/QC_QModelIndex.h \
+	modules/qt/QC_QStyleOptionViewItem.h \
+	modules/qt/QC_QStyleOptionViewItemV2.h \
+	modules/qt/QC_QAbstractItemModel.h \
+	modules/qt/QC_QAbstractItemDelegate.h \
+	modules/qt/QC_QItemDelegate.h \
+	modules/qt/QC_QComboBox.h \
+	modules/qt/QC_QCheckBox.h \
+	modules/qt/QC_QAbstractSpinBox.h \
+	modules/qt/QC_QDateTimeEdit.h \
+	modules/qt/QC_QLocale.h \
+	modules/qt/QC_QByteArray.h \
+	modules/qt/QC_QUrl.h \
+	modules/qt/QC_QVariant.h \
+	modules/qt/QC_QGroupBox.h \
+	modules/qt/QC_QDateEdit.h \
 	command-line.h \
 	include/qore/Qore.h
 

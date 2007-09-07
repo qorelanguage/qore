@@ -24,7 +24,34 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QMenu.cc \
 	QC_QToolButton.cc \
 	QC_QDialog.cc \
-	QC_QLineEdit.cc
+	QC_QLineEdit.cc \
+	QC_QTextLength.cc \
+	QC_QTextFormat.cc \
+	QC_QTextBlockFormat.cc \
+	QC_QTextCharFormat.cc \
+	QC_QPen.cc \
+	QC_QTextFrameFormat.cc \
+	QC_QTextTableFormat.cc \
+	QC_QTextListFormat.cc \
+	QC_QTextImageFormat.cc \
+	QC_QCalendarWidget.cc \
+	QC_QStyleOption.cc \
+	QC_QModelIndex.cc \
+	QC_QStyleOptionViewItem.cc \
+	QC_QStyleOptionViewItemV2.cc \
+	QC_QAbstractItemModel.cc \
+	QC_QAbstractItemDelegate.cc \
+	QC_QItemDelegate.cc \
+	QC_QComboBox.cc \
+	QC_QCheckBox.cc \
+	QC_QAbstractSpinBox.cc \
+	QC_QDateTimeEdit.cc \
+	QC_QLocale.cc \
+	QC_QByteArray.cc \
+	QC_QUrl.cc \
+	QC_QVariant.cc \
+	QC_QGroupBox.cc \
+	QC_QDateEdit.cc
 endif
 
 if COND_MONOLITHIC

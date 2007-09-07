@@ -1,5 +1,5 @@
 /*
- qore-qt.h
+ QC_QByteArray.h
  
  Qore Programming Language
  
@@ -20,27 +20,35 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QORE_QT_H
+#ifndef _QORE_QT_QC_QBYTEARRAY_H
 
-#define _QORE_QORE_QT_H
+#define _QORE_QT_QC_QBYTEARRAY_H
 
-DLLLOCAL QoreType *NT_BRUSHSTYLE, *NT_PENSTYLE;
+#include <QByteArray>
 
-#include <map>
+DLLLOCAL extern int CID_QBYTEARRAY;
+DLLLOCAL extern class QoreClass *QC_QByteArray;
 
-typedef std::map<int, const char *> qt_enum_map_t;
+DLLLOCAL class QoreClass *initQByteArrayClass();
 
-static inline class QoreNode *make_enum(class QoreType *enum_type, int code)
+class QoreQByteArray : public AbstractPrivateData, public QByteArray
 {
-   QoreNode *n = new QoreNode(enum_type);
-   n->val.intval = code;
-   return n;
-}
+   public:
+      DLLLOCAL QoreQByteArray() : QByteArray()
+      {
+      }
+      DLLLOCAL QoreQByteArray(const char* str) : QByteArray(str)
+      {
+      }
+      DLLLOCAL QoreQByteArray(const char* data, int size) : QByteArray(data, size)
+      {
+      }
+      DLLLOCAL QoreQByteArray(int size, char ch) : QByteArray(size, ch)
+      {
+      }
+      DLLLOCAL QoreQByteArray(const QByteArray& other) : QByteArray(other)
+      {
+      }
+};
 
-DLLLOCAL int get_qdate(class QoreNode *n, QDate &date, class ExceptionSink *xsink);
-DLLLOCAL int get_qtime(class QoreNode *n, QTime &time, class ExceptionSink *xsink);
-DLLLOCAL int get_qdatetime(class QoreNode *n, QDateTime &dt, class ExceptionSink *xsink);
-DLLLOCAL int get_qvariant(class QoreNode *n, QVariant &qv, class ExceptionSink *xsink, bool suppress_exception = false);
-DLLLOCAL int get_qbytearray(class QoreNode *n, QByteArray &qba, class ExceptionSink *xsink);
-
-#endif
+#endif // _QORE_QT_QC_QBYTEARRAY_H
