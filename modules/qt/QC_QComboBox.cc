@@ -236,10 +236,7 @@ static QoreNode *QCOMBOBOX_itemData(Object *self, QoreQComboBox *qcb, QoreNode *
    int index = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int role = !is_nothing(p) ? p->getAsInt() : Qt::UserRole;
-   Object *o_qv = new Object(QC_QVariant, getProgram());
-   QoreQVariant *q_qv = new QoreQVariant(qcb->qobj->itemData(index, role));
-   o_qv->setPrivate(CID_QVARIANT, q_qv);
-   return new QoreNode(o_qv);
+   return return_qvariant(qcb->qobj->itemData(index, role));
 }
 
 //QAbstractItemDelegate * itemDelegate () const

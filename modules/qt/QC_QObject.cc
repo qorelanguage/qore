@@ -281,22 +281,32 @@ static QoreNode *QOBJECT_objectName(Object *self, QoreAbstractQObject *qo, QoreN
 }
 
 //QObject * parent () const
-//static QoreNode *QOBJECT_parent(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return qo->getQObject()->parent();
-//}
+static QoreNode *QOBJECT_parent(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+{
+   QObject *parent = qo->getQObject()->parent();
+
+   if (!parent)
+      return 0;
+
+   QVariant qv_ptr = parent->property("qobject");
+   Object *obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   //printd(0, "sender=%08p class=%s\n", obj, obj->getClass()->getName());
+   assert(obj);
+   obj->ref();
+   return new QoreNode(obj);
+}
 
 //QVariant property ( const char * name ) const
-//static QoreNode *QOBJECT_property(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QOBJECT-PROPERTY-PARAM-ERROR", "expecting a string as first argument to QObject::property()");
-//      return 0;
-//   }
-//   const char *name = p->val.String->getBuffer();
-//   ??? return new QoreNode((int64)qo->getQObject()->property(name));
-//}
+static QoreNode *QOBJECT_property(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QOBJECT-PROPERTY-PARAM-ERROR", "expecting a string as first argument to QObject::property()");
+      return 0;
+   }
+   const char *name = p->val.String->getBuffer();
+   return return_qvariant(qo->getQObject()->property(name));
+}
 
 //void removeEventFilter ( QObject * obj )
 static QoreNode *QOBJECT_removeEventFilter(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
@@ -344,18 +354,21 @@ static QoreNode *QOBJECT_setParent(Object *self, QoreAbstractQObject *qo, QoreNo
 }
 
 //bool setProperty ( const char * name, const QVariant & value )
-//static QoreNode *QOBJECT_setProperty(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QOBJECT-SETPROPERTY-PARAM-ERROR", "expecting a string as first argument to QObject::setProperty()");
-//      return 0;
-//   }
-//   const char *name = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   ??? QVariant& value = p;
-//   return new QoreNode(qo->getQObject()->setProperty(name, value));
-//}
+static QoreNode *QOBJECT_setProperty(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QOBJECT-SETPROPERTY-PARAM-ERROR", "expecting a string as first argument to QObject::setProperty()");
+      return 0;
+   }
+   const char *name = p->val.String->getBuffer();
+   p = get_param(params, 1);
+   QVariant value;
+   if (get_qvariant(p, value, xsink))
+      return 0;
+
+   return new QoreNode(qo->getQObject()->setProperty(name, value));
+}
 
 //bool signalsBlocked () const
 static QoreNode *QOBJECT_signalsBlocked(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
@@ -445,12 +458,12 @@ class QoreClass *initQObjectClass()
    //QC_QObject->addMethod("metaObject",                  (q_method_t)QOBJECT_metaObject);
    //QC_QObject->addMethod("moveToThread",                (q_method_t)QOBJECT_moveToThread);
    QC_QObject->addMethod("objectName",                  (q_method_t)QOBJECT_objectName);
-   //QC_QObject->addMethod("parent",                      (q_method_t)QOBJECT_parent);
-   //QC_QObject->addMethod("property",                    (q_method_t)QOBJECT_property);
+   QC_QObject->addMethod("parent",                      (q_method_t)QOBJECT_parent);
+   QC_QObject->addMethod("property",                    (q_method_t)QOBJECT_property);
    QC_QObject->addMethod("removeEventFilter",           (q_method_t)QOBJECT_removeEventFilter);
    QC_QObject->addMethod("setObjectName",               (q_method_t)QOBJECT_setObjectName);
    QC_QObject->addMethod("setParent",                   (q_method_t)QOBJECT_setParent);
-   //QC_QObject->addMethod("setProperty",                 (q_method_t)QOBJECT_setProperty);
+   QC_QObject->addMethod("setProperty",                 (q_method_t)QOBJECT_setProperty);
    QC_QObject->addMethod("signalsBlocked",              (q_method_t)QOBJECT_signalsBlocked);
    QC_QObject->addMethod("startTimer",                  (q_method_t)QOBJECT_startTimer);
    //QC_QObject->addMethod("thread",                      (q_method_t)QOBJECT_thread);

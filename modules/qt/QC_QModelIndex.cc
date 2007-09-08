@@ -59,13 +59,13 @@ static QoreNode *QMODELINDEX_column(Object *self, QoreQModelIndex *qmi, QoreNode
    return new QoreNode((int64)qmi->column());
 }
 
-////QVariant data ( int role = Qt::DisplayRole ) const
-//static QoreNode *QMODELINDEX_data(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int role = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)qmi->data(role));
-//}
+//QVariant data ( int role = Qt::DisplayRole ) const
+static QoreNode *QMODELINDEX_data(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int role = !is_nothing(p) ? p->getAsInt() : Qt::DisplayRole;
+   return return_qvariant(qmi->data(role));
+}
 
 //Qt::ItemFlags flags () const
 static QoreNode *QMODELINDEX_flags(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
@@ -129,7 +129,7 @@ QoreClass *initQModelIndexClass()
 
    //QC_QModelIndex->addMethod("child",                       (q_method_t)QMODELINDEX_child);
    QC_QModelIndex->addMethod("column",                      (q_method_t)QMODELINDEX_column);
-   //QC_QModelIndex->addMethod("data",                        (q_method_t)QMODELINDEX_data);
+   QC_QModelIndex->addMethod("data",                        (q_method_t)QMODELINDEX_data);
    QC_QModelIndex->addMethod("flags",                       (q_method_t)QMODELINDEX_flags);
    QC_QModelIndex->addMethod("internalId",                  (q_method_t)QMODELINDEX_internalId);
    //QC_QModelIndex->addMethod("internalPointer",             (q_method_t)QMODELINDEX_internalPointer);

@@ -41,7 +41,7 @@ class Window inherits QWidget
 
     localeChanged($index)
     {
-	$.calendar.setLocale($.localeCombo.itemData($index).toLocale());
+	$.calendar.setLocale($.localeCombo.itemData($index));
     }
 
     firstDayChanged($index)
@@ -56,12 +56,12 @@ class Window inherits QWidget
 
     horizontalHeaderChanged($index)
     {
-	$.calendar.setHorizontalHeaderFormat($.horizontalHeaderCombo.itemData($index).toInt());
+	$.calendar.setHorizontalHeaderFormat($.horizontalHeaderCombo.itemData($index));
     }
 
     verticalHeaderChanged($index)
     {
-	$.calendar.setVerticalHeaderFormat($.verticalHeaderCombo.itemData($index).toInt());
+	$.calendar.setVerticalHeaderFormat($.verticalHeaderCombo.itemData($index));
     }
 
     selectedDateChanged()
@@ -85,7 +85,7 @@ class Window inherits QWidget
     {
 	my $format = new QTextCharFormat();
 	
-	$format.setForeground(new QBrush($.weekdayColorCombo.itemData($.weekdayColorCombo.currentIndex()).toString()));
+	$format.setForeground(new QBrush($.weekdayColorCombo.itemData($.weekdayColorCombo.currentIndex())));
 	$.calendar.setWeekdayTextFormat(Qt::Monday, $format);
 	$.calendar.setWeekdayTextFormat(Qt::Tuesday, $format);
 	$.calendar.setWeekdayTextFormat(Qt::Wednesday, $format);
@@ -97,7 +97,7 @@ class Window inherits QWidget
     {
 	my $format = new QTextCharFormat();
 	
-	$format.setForeground(new QBrush($.weekendColorCombo.itemData($.weekendColorCombo.currentIndex()).toString()));
+	$format.setForeground(new QBrush($.weekendColorCombo.itemData($.weekendColorCombo.currentIndex())));
 	$.calendar.setWeekdayTextFormat(Qt::Saturday, $format);
 	$.calendar.setWeekdayTextFormat(Qt::Sunday, $format);
     }

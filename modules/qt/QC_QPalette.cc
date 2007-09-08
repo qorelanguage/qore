@@ -27,6 +27,7 @@
 #include "QC_QBrush.h"
 
 DLLLOCAL int CID_QPALETTE;
+DLLLOCAL QoreClass *QC_QPalette = 0;
 
 static void QPALETTE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -554,7 +555,7 @@ class QoreClass *initQPaletteClass()
 {
    tracein("initQPaletteClass()");
    
-   class QoreClass *QC_QPalette = new QoreClass("QPalette", QDOM_GUI);
+   QC_QPalette = new QoreClass("QPalette", QDOM_GUI);
    CID_QPALETTE = QC_QPalette->getID();
    QC_QPalette->setConstructor(QPALETTE_constructor);
    QC_QPalette->setCopy((q_copy_t)QPALETTE_copy);

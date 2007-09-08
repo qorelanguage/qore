@@ -43,4 +43,6 @@ DLLLOCAL int get_qdatetime(class QoreNode *n, QDateTime &dt, class ExceptionSink
 DLLLOCAL int get_qvariant(class QoreNode *n, QVariant &qv, class ExceptionSink *xsink, bool suppress_exception = false);
 DLLLOCAL int get_qbytearray(class QoreNode *n, QByteArray &qba, class ExceptionSink *xsink);
 
+DLLLOCAL class QoreNode *return_qvariant(QVariant &qv);
+
 #endif

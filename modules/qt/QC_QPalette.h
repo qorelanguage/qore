@@ -27,6 +27,7 @@
 #include <QPalette>
 
 extern int CID_QPALETTE;
+extern QoreClass *QC_QPalette;
 
 DLLLOCAL class QoreClass *initQPaletteClass();
 

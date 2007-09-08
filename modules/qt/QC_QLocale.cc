@@ -122,7 +122,7 @@ static QoreNode *QLOCALE_monthName(Object *self, QoreQLocale *ql, QoreNode *para
    QoreNode *p = get_param(params, 0);
    int month = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   QLocale::FormatType type = (QLocale::FormatType)(p ? p->getAsInt() : 0);
+   QLocale::FormatType type = (QLocale::FormatType)(!is_nothing(p) ? p->getAsInt() : QLocale::LongFormat);
    return new QoreNode(new QoreString(ql->monthName(month, type).toUtf8().data(), QCS_UTF8));
 }
 

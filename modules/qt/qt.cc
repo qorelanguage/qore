@@ -38,6 +38,7 @@
 #include "QC_QBrush.h"
 #include "QC_QColor.h"
 #include "QC_QRect.h"
+#include "QC_QRectF.h"
 #include "QC_QPalette.h"
 #include "QC_QPaintDevice.h"
 #include "QC_QPainter.h"
@@ -263,15 +264,23 @@ int get_qvariant(class QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
       if (n->type == NT_OBJECT) {
 	 class QoreQVariant *qv = (QoreQVariant *)n->val.object->getReferencedPrivateData(CID_QVARIANT, xsink);
 	 if (*xsink)
-	    return 0;
-	 if (!qv) {
-	    if (!suppress_exception)
-	       xsink->raiseException("QVARIANT-ERROR", "class '%s' is not derived from QVariant", n->val.object->getClass()->getName());
 	    return -1;
+	 if (qv) {
+	    ReferenceHolder<QoreQVariant> qvHolder(qv, xsink);
+	    qva = *qv;
+	    return 0;
 	 }
-	 ReferenceHolder<QoreQVariant> qvHolder(qv, xsink);
-	 qva = *qv;
-	 return 0;
+	 class QoreQLocale *qlocale = (QoreQLocale *)n->val.object->getReferencedPrivateData(CID_QLOCALE, xsink);
+	 if (*xsink)
+	    return -1;
+	 if (qlocale) {
+	    ReferenceHolder<QoreQLocale> qlocaleHolder(qlocale, xsink);
+	    qva = *qlocale;
+	    return 0;
+	 }
+	 if (!suppress_exception)
+	    xsink->raiseException("QVARIANT-ERROR", "cannot convert class '%s' to QVariant", n->val.object->getClass()->getName());
+	 return -1;
       }
       if (n->type == NT_STRING) {
 	 QVariant n_qv(n->val.String->getBuffer());
@@ -279,14 +288,128 @@ int get_qvariant(class QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
 	 return 0;
       }
       if (n->type == NT_INT) {
-	 qva.setValue((int)n->val.intval);
+	 if (n->val.intval <= 0x7fffffff)
+	    qva.setValue((int)n->val.intval);
+	 else
+	    qva.setValue(n->val.intval);
 	 //printd(0, "qvariant integer %d (%d)\n", (int)n->val.intval, qva.toInt());
+	 return 0;
+      }
+      if (n->type == NT_FLOAT) {
+	 qva.setValue(n->val.floatval);
 	 return 0;
       }
    }
    if (!suppress_exception)
       xsink->raiseException("QVARIANT-ERROR", "cannot convert type '%s' to QVariant", n ? n->type->getName() : "NOTHING");
    return -1;
+}
+
+class QoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data)
+{
+   Object *qore_object = new Object(qclass, getProgram());
+   qore_object->setPrivate(qclass->getID(), data);
+   return new QoreNode(qore_object);
+}
+
+class QoreNode *return_qvariant(const QVariant &qv)
+{
+   QVariant::Type type = qv.type();
+   switch (type) {
+      case QVariant::Bitmap:
+	 return return_object(QC_QBitmap, new QoreQBitmap(qv.value<QBitmap>()));
+      case QVariant::Bool:
+	 return new QoreNode(qv.toBool());
+      case QVariant::Brush:
+	 return return_object(QC_QBrush, new QoreQBrush(qv.value<QBrush>()));
+      case QVariant::Color:
+	 return return_object(QC_QColor, new QoreQColor(qv.value<QColor>()));
+      case QVariant::Date: 
+	 return new QoreNode(new DateTime(qv.toDate().year(), qv.toDate().month(), qv.toDate().day()));
+      case QVariant::DateTime: {
+	 QDate rv_d = qv.toDateTime().date();
+	 QTime rv_t = qv.toDateTime().time();
+	 return new QoreNode(new DateTime(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), 
+					  rv_t.minute(), rv_t.second(), rv_t.msec()));
+      }
+      case QVariant::Double:
+	 return new QoreNode(qv.toDouble());
+      case QVariant::Font:
+	 return return_object(QC_QFont, new QoreQFont(qv.value<QFont>()));
+      case QVariant::Icon:
+	 return return_object(QC_QIcon, new QoreQIcon(qv.value<QIcon>()));
+      case QVariant::Image:
+	 return return_object(QC_QImage, new QoreQImage(qv.value<QImage>()));
+      case QVariant::Int:
+	 return new QoreNode((int64)qv.toInt());
+      case QVariant::KeySequence:
+         return return_object(QC_QKeySequence, new QoreQKeySequence(qv.value<QKeySequence>()));
+      case QVariant::Line:
+         return return_object(QC_QLine, new QoreQLine(qv.value<QLine>()));
+      case QVariant::LineF:
+         return return_object(QC_QLineF, new QoreQLineF(qv.value<QLineF>()));
+      //case QVariant::List:
+      case QVariant::Locale:
+	 return return_object(QC_QLocale, new QoreQLocale(qv.value<QLocale>()));
+      case QVariant::LongLong:
+	 return new QoreNode((int64)qv.toLongLong());
+      //case QVariant::Map:
+      case QVariant::Matrix:
+	 return return_object(QC_QMatrix, new QoreQMatrix(qv.value<QMatrix>()));
+      case QVariant::Palette:
+         return return_object(QC_QPalette, new QoreQPalette(qv.value<QPalette>()));
+      case QVariant::Pen:
+         return return_object(QC_QPen, new QoreQPen(qv.value<QPen>()));
+      case QVariant::Pixmap:
+         return return_object(QC_QPixmap, new QoreQPixmap(qv.value<QPixmap>()));
+      case QVariant::Point:
+         return return_object(QC_QPoint, new QoreQPoint(qv.value<QPoint>()));
+      //case QVariant::PointArray:
+         //return return_object(QC_QPointArray, new QoreQPointArray(qv.value<QPointArray>()));
+      case QVariant::PointF:
+         return return_object(QC_QPointF, new QoreQPointF(qv.value<QPointF>()));
+      case QVariant::Polygon:
+         return return_object(QC_QPolygon, new QoreQPolygon(qv.value<QPolygon>()));
+      case QVariant::Rect:
+         return return_object(QC_QRect, new QoreQRect(qv.value<QRect>()));
+      case QVariant::RectF:
+         return return_object(QC_QRectF, new QoreQRectF(qv.value<QRectF>()));
+      //case QVariant::RegExp:
+         //return return_object(QC_QRegExp, new QoreQRegExp(qv.value<QRegExp>()));
+      case QVariant::Region:
+         return return_object(QC_QRegion, new QoreQRegion(qv.value<QRegion>()));
+      case QVariant::Size:
+         return return_object(QC_QSize, new QoreQSize(qv.value<QSize>()));
+      //case QVariant::SizeF:
+         //return return_object(QC_QSizeF, new QoreQSizeF(qv.value<QSizeF>()));
+      //case QVariant::SizePolicy:
+         //return return_object(QC_QSizePolicy, new QoreQSizePolicy(qv.value<QSizePolicy>()));
+      case QVariant::String:
+	 return new QoreNode(new QoreString(qv.toString().toUtf8().data(), QCS_UTF8));
+      //case QVariant::StringList:
+         //return return_object(QC_QStringList, new QoreQStringList(qv.value<QStringList>()));
+      case QVariant::TextFormat:
+         return return_object(QC_QTextFormat, new QoreQTextFormat(qv.value<QTextFormat>()));
+      case QVariant::TextLength:
+         return return_object(QC_QTextLength, new QoreQTextLength(qv.value<QTextLength>()));
+      case QVariant::Time:
+	 return new QoreNode(new DateTime(1970, 1, 1, qv.toTime().hour(), qv.toTime().minute(), 
+					  qv.toTime().second(), qv.toTime().msec()));
+      //case QVariant::Transform:
+         //return return_object(QC_QVariant::Transform, new QTransform(qv.value<QVariant::Transform>()));
+      case QVariant::UInt:
+	 return new QoreNode((int64)qv.toUInt());
+      case QVariant::ULongLong:
+	 return new QoreNode((int64)qv.toULongLong());
+      case QVariant::Url:
+         return return_object(QC_QUrl, new QoreQUrl(qv.value<QUrl>()));
+      //case QVariant::UserType:
+
+      default:
+	 return return_object(QC_QVariant, new QoreQVariant(qv));
+   }
+   // to suppress warning
+   return 0;
 }
 
 static class QoreNode *f_QObject_connect(class QoreNode *params, class ExceptionSink *xsink)
@@ -517,6 +640,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQTimerClass(qobject));
 
    qt->addSystemClass(initQRectClass());
+   qt->addSystemClass(initQRectFClass());
    qt->addSystemClass(initQBrushClass());
    qt->addSystemClass(initQColorClass());
    qt->addSystemClass(initQPaletteClass());

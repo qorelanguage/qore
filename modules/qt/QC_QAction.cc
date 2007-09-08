@@ -111,10 +111,10 @@ static QoreNode *QACTION_autoRepeat(Object *self, QoreQAction *qa, QoreNode *par
 }
 
 //QVariant data () const
-//static QoreNode *QACTION_data(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qa->qobj->data());
-//}
+static QoreNode *QACTION_data(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
+{
+   return return_qvariant(qa->qobj->data());
+}
 
 //QFont font () const
 static QoreNode *QACTION_font(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
@@ -520,7 +520,7 @@ class QoreClass *initQActionClass(class QoreClass *qobject)
    QC_QAction->addMethod("activate",                    (q_method_t)QACTION_activate);
    //QC_QAction->addMethod("associatedWidgets",           (q_method_t)QACTION_associatedWidgets);
    QC_QAction->addMethod("autoRepeat",                  (q_method_t)QACTION_autoRepeat);
-   //QC_QAction->addMethod("data",                        (q_method_t)QACTION_data);
+   QC_QAction->addMethod("data",                        (q_method_t)QACTION_data);
    QC_QAction->addMethod("font",                        (q_method_t)QACTION_font);
    QC_QAction->addMethod("icon",                        (q_method_t)QACTION_icon);
    QC_QAction->addMethod("iconText",                    (q_method_t)QACTION_iconText);
