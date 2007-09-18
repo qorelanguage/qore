@@ -31,17 +31,17 @@ class QoreClass *QC_QGroupBox = 0;
 //QGroupBox ( const QString & title, QWidget * parent = 0 )
 static void QGROUPBOX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
-   const char *title = 0;
+   QString title;
 
    QoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_STRING) {
-      title = p->val.String->getBuffer();
+
+   bool got_title = !get_qstring(p, title, xsink, true);
+   if (got_title)
       p = get_param(params, 1);
-   }
 
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
-   if (title)
+   if (got_title)
       self->setPrivate(CID_QGROUPBOX, new QoreQGroupBox(self, title, parent ? parent->getQWidget() : 0));
    else
       self->setPrivate(CID_QGROUPBOX, new QoreQGroupBox(self, parent ? parent->getQWidget() : 0));

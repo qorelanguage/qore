@@ -29,14 +29,20 @@
 int CID_QACTION;
 QoreClass *QC_QAction = 0;
 
+//QAction ( QObject * parent ) 
+//QAction ( const QString & text, QObject * parent ) 
+//QAction ( const QIcon & icon, const QString & text, QObject * parent )QAction ( QObject * parent ) 
 static void QACTION_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQIcon *icon = 0;
-   const char *text = 0;
+   QString text;
    int offset = 0;
+
    if (p && p->type == NT_OBJECT) {
       icon = p ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+      if (*xsink)
+	 return;
 
       if (icon)
 	 p = get_param(params, ++offset);
@@ -44,9 +50,10 @@ static void QACTION_constructor(class Object *self, class QoreNode *params, Exce
    ReferenceHolder<QoreQIcon> holder(icon, xsink);
 
    QoreQAction *qa;
-   
-   if (p && p->type == NT_STRING) {
-      text = p->val.String->getBuffer();
+
+   bool got_text = !get_qstring(p, text, xsink, true);
+
+   if (got_text) {
       p = get_param(params, ++offset);
    } else if (icon) {
       xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "expecting a string as second argument to QAction::constructor() when the first argument is an object derived from QIcon");
@@ -56,14 +63,15 @@ static void QACTION_constructor(class Object *self, class QoreNode *params, Exce
    QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent)
    {
-      if (!xsink->isException())
-         xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "expecting an object derived from QObject as first argument to QAction::constructor()");
+      if (!*xsink)
+         xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "expecting an object derived from QObject as final argument in all variations of QAction::constructor()");
       return;
    }
+   ReferenceHolder<QoreAbstractQObject> parentHolder(parent, xsink);
 
    if (icon)
       qa = new QoreQAction(self, *icon, text, parent->getQObject());
-   else if (text)
+   else if (got_text)
       qa = new QoreQAction(self, text, parent->getQObject());
    else 
       qa = new QoreQAction(self, parent->getQObject());
@@ -171,22 +179,36 @@ static QoreNode *QACTION_isVisible(Object *self, QoreQAction *qa, QoreNode *para
 }
 
 //QMenu * menu () const
-//static QoreNode *QACTION_menu(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return qa->qobj->menu();
-//}
+static QoreNode *QACTION_menu(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
+{
+   QMenu *qt_qobj = qa->qobj->menu();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   assert(rv_obj);
+   rv_obj->ref();
+   return new QoreNode(rv_obj);
+}
 
 //MenuRole menuRole () const
-//static QoreNode *QACTION_menuRole(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qa->qobj->menuRole());
-//}
+static QoreNode *QACTION_menuRole(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qa->qobj->menuRole());
+}
 
 //QWidget * parentWidget () const
-//static QoreNode *QACTION_parentWidget(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return qa->qobj->parentWidget();
-//}
+static QoreNode *QACTION_parentWidget(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
+{
+   QWidget *qt_qobj = qa->qobj->parentWidget();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   assert(rv_obj);
+   rv_obj->ref();
+   return new QoreNode(rv_obj);
+}
 
 //void setActionGroup ( QActionGroup * group )
 static QoreNode *QACTION_setActionGroup(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
@@ -222,13 +244,15 @@ static QoreNode *QACTION_setCheckable(Object *self, QoreQAction *qa, QoreNode *p
 }
 
 //void setData ( const QVariant & userData )
-//static QoreNode *QACTION_setData(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QVariant userData = p;
-//   qa->qobj->setData(userData);
-//   return 0;
-//}
+static QoreNode *QACTION_setData(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QVariant userData;
+   if (get_qvariant(p, userData, xsink))
+      return 0;
+   qa->qobj->setData(userData);
+   return 0;
+}
 
 //void setFont ( const QFont & font )
 static QoreNode *QACTION_setFont(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
@@ -264,23 +288,28 @@ static QoreNode *QACTION_setIcon(Object *self, QoreQAction *qa, QoreNode *params
 static QoreNode *QACTION_setIconText(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QACTION-SETICONTEXT-PARAM-ERROR", "expecting a string as first argument to QAction::setIconText()");
+   QString text;
+   if (get_qstring(p, text, xsink))
       return 0;
-   }
-   const char *text = p->val.String->getBuffer();
+
    qa->qobj->setIconText(text);
    return 0;
 }
 
 //void setMenu ( QMenu * menu )
-//static QoreNode *QACTION_setMenu(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QMenu* menu = p;
-//   qa->qobj->setMenu(menu);
-//   return 0;
-//}
+static QoreNode *QACTION_setMenu(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreQMenu *)p->val.object->getReferencedPrivateData(CID_QMENU, xsink) : 0;
+   if (!menu) {
+      if (!xsink->isException())
+         xsink->raiseException("QACTION-SETMENU-PARAM-ERROR", "expecting a QMenu object as first argument to QAction::setMenu()");
+      return 0;
+   }
+   ReferenceHolder<QoreQMenu> menuHolder(menu, xsink);
+   qa->qobj->setMenu(static_cast<QMenu *>(menu->qobj));
+   return 0;
+}
 
 //void setMenuRole ( MenuRole menuRole )
 static QoreNode *QACTION_setMenuRole(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
@@ -343,11 +372,11 @@ static QoreNode *QACTION_setShortcutContext(Object *self, QoreQAction *qa, QoreN
 static QoreNode *QACTION_setStatusTip(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QACTION-SETSTATUSTIP-PARAM-ERROR", "expecting a string as first argument to QAction::setStatusTip()");
+   QString statusTip;
+
+   if (get_qstring(p, statusTip, xsink))
       return 0;
-   }
-   const char *statusTip = p->val.String->getBuffer();
+
    qa->qobj->setStatusTip(statusTip);
    return 0;
 }
@@ -356,11 +385,11 @@ static QoreNode *QACTION_setStatusTip(Object *self, QoreQAction *qa, QoreNode *p
 static QoreNode *QACTION_setText(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QACTION-SETTEXT-PARAM-ERROR", "expecting a string as first argument to QAction::setText()");
+   QString text;
+
+   if (get_qstring(p, text, xsink))
       return 0;
-   }
-   const char *text = p->val.String->getBuffer();
+
    qa->qobj->setText(text);
    return 0;
 }
@@ -369,11 +398,11 @@ static QoreNode *QACTION_setText(Object *self, QoreQAction *qa, QoreNode *params
 static QoreNode *QACTION_setToolTip(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QACTION-SETTOOLTIP-PARAM-ERROR", "expecting a string as first argument to QAction::setToolTip()");
+   QString tip;
+
+   if (get_qstring(p, tip, xsink))
       return 0;
-   }
-   const char *tip = p->val.String->getBuffer();
+
    qa->qobj->setToolTip(tip);
    return 0;
 }
@@ -382,20 +411,23 @@ static QoreNode *QACTION_setToolTip(Object *self, QoreQAction *qa, QoreNode *par
 static QoreNode *QACTION_setWhatsThis(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QACTION-SETWHATSTHIS-PARAM-ERROR", "expecting a string as first argument to QAction::setWhatsThis()");
+   QString what;
+
+   if (get_qstring(p, what, xsink))
       return 0;
-   }
-   const char *what = p->val.String->getBuffer();
+
    qa->qobj->setWhatsThis(what);
    return 0;
 }
 
 //QKeySequence shortcut () const
-//static QoreNode *QACTION_shortcut(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qa->qobj->shortcut());
-//}
+static QoreNode *QACTION_shortcut(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qks = new Object(QC_QKeySequence, getProgram());
+   QoreQKeySequence *q_qks = new QoreQKeySequence(qa->qobj->shortcut());
+   o_qks->setPrivate(CID_QKEYSEQUENCE, q_qks);
+   return new QoreNode(o_qks);
+}
 
 //Qt::ShortcutContext shortcutContext () const
 static QoreNode *QACTION_shortcutContext(Object *self, QoreQAction *qa, QoreNode *params, ExceptionSink *xsink)
@@ -529,17 +561,17 @@ class QoreClass *initQActionClass(class QoreClass *qobject)
    QC_QAction->addMethod("isEnabled",                   (q_method_t)QACTION_isEnabled);
    QC_QAction->addMethod("isSeparator",                 (q_method_t)QACTION_isSeparator);
    QC_QAction->addMethod("isVisible",                   (q_method_t)QACTION_isVisible);
-   //QC_QAction->addMethod("menu",                        (q_method_t)QACTION_menu);
-   //QC_QAction->addMethod("menuRole",                    (q_method_t)QACTION_menuRole);
-   //QC_QAction->addMethod("parentWidget",                (q_method_t)QACTION_parentWidget);
+   QC_QAction->addMethod("menu",                        (q_method_t)QACTION_menu);
+   QC_QAction->addMethod("menuRole",                    (q_method_t)QACTION_menuRole);
+   QC_QAction->addMethod("parentWidget",                (q_method_t)QACTION_parentWidget);
    QC_QAction->addMethod("setActionGroup",              (q_method_t)QACTION_setActionGroup);
    QC_QAction->addMethod("setAutoRepeat",               (q_method_t)QACTION_setAutoRepeat);
    QC_QAction->addMethod("setCheckable",                (q_method_t)QACTION_setCheckable);
-   //QC_QAction->addMethod("setData",                     (q_method_t)QACTION_setData);
+   QC_QAction->addMethod("setData",                     (q_method_t)QACTION_setData);
    QC_QAction->addMethod("setFont",                     (q_method_t)QACTION_setFont);
    QC_QAction->addMethod("setIcon",                     (q_method_t)QACTION_setIcon);
    QC_QAction->addMethod("setIconText",                 (q_method_t)QACTION_setIconText);
-   //QC_QAction->addMethod("setMenu",                     (q_method_t)QACTION_setMenu);
+   QC_QAction->addMethod("setMenu",                     (q_method_t)QACTION_setMenu);
    QC_QAction->addMethod("setMenuRole",                 (q_method_t)QACTION_setMenuRole);
    QC_QAction->addMethod("setSeparator",                (q_method_t)QACTION_setSeparator);
    QC_QAction->addMethod("setShortcut",                 (q_method_t)QACTION_setShortcut);
@@ -549,7 +581,7 @@ class QoreClass *initQActionClass(class QoreClass *qobject)
    QC_QAction->addMethod("setText",                     (q_method_t)QACTION_setText);
    QC_QAction->addMethod("setToolTip",                  (q_method_t)QACTION_setToolTip);
    QC_QAction->addMethod("setWhatsThis",                (q_method_t)QACTION_setWhatsThis);
-   //QC_QAction->addMethod("shortcut",                    (q_method_t)QACTION_shortcut);
+   QC_QAction->addMethod("shortcut",                    (q_method_t)QACTION_shortcut);
    QC_QAction->addMethod("shortcutContext",             (q_method_t)QACTION_shortcutContext);
    //QC_QAction->addMethod("shortcuts",                   (q_method_t)QACTION_shortcuts);
    QC_QAction->addMethod("showStatusText",              (q_method_t)QACTION_showStatusText);

@@ -67,6 +67,9 @@ class QoreQVariant : public AbstractPrivateData, public QVariant
       DLLLOCAL QoreQVariant(const QString& qstring) : QVariant(qstring)
       {
       }
+      DLLLOCAL QoreQVariant(const QChar& qchar) : QVariant(qchar)
+      {
+      }
       DLLLOCAL QoreQVariant(const QLatin1String& qlatin1string) : QVariant(qlatin1string)
       {
       }

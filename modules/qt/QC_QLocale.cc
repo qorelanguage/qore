@@ -39,11 +39,9 @@ static void QLOCALE_constructor(Object *self, QoreNode *params, ExceptionSink *x
       return;
    }
    if (p && p->type == NT_STRING) {
-      if (!p || p->type != NT_STRING) {
-         xsink->raiseException("QLOCALE-QLOCALE-PARAM-ERROR", "expecting a string as first argument to QLocale::QLocale()");
-         return;
-      }
-      const char *name = p->val.String->getBuffer();
+      QString name;
+      if (get_qstring(p, name, xsink))
+	 return;
       self->setPrivate(CID_QLOCALE, new QoreQLocale(name));
       return;
    }
@@ -173,81 +171,42 @@ static QoreNode *QLOCALE_timeFormat(Object *self, QoreQLocale *ql, QoreNode *par
    return new QoreNode(new QoreString(ql->timeFormat(format).toUtf8().data(), QCS_UTF8));
 }
 
-////double toDouble ( const QString & s, bool * ok = 0 ) const
-//static QoreNode *QLOCALE_toDouble(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QLOCALE-TODOUBLE-PARAM-ERROR", "expecting a string as first argument to QLocale::toDouble()");
-//      return 0;
-//   }
-//   const char *s = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   ??? bool* ok = p;
-//   return new QoreNode((double)ql->toDouble(s, ok));
-//}
+//double toDouble ( const QString & s, bool * ok = 0 ) const
+static QoreNode *QLOCALE_toDouble(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString s;
+   if (get_qstring(p, s, xsink))
+      return 0;
+   bool ok;
+   double rv = ql->toDouble(s, &ok);
+   if (!ok) {
+      xsink->raiseException("QLOCALE-TODOUBLE-ERROR", "error encountered in QLocale::toDouble()");
+      return 0;
+   }
+      
+   return new QoreNode(rv);
+}
 
-////float toFloat ( const QString & s, bool * ok = 0 ) const
-//static QoreNode *QLOCALE_toFloat(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QLOCALE-TOFLOAT-PARAM-ERROR", "expecting a string as first argument to QLocale::toFloat()");
-//      return 0;
-//   }
-//   const char *s = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   ??? bool* ok = p;
-//   return new QoreNode((double)ql->toFloat(s, ok));
-//}
+//qlonglong toLongLong ( const QString & s, bool * ok = 0, int base = 0 ) const
+static QoreNode *QLOCALE_toLongLong(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString s;
+   if (get_qstring(p, s, xsink))
+      return 0;
 
-////int toInt ( const QString & s, bool * ok = 0, int base = 0 ) const
-//static QoreNode *QLOCALE_toInt(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QLOCALE-TOINT-PARAM-ERROR", "expecting a string as first argument to QLocale::toInt()");
-//      return 0;
-//   }
-//   const char *s = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   ??? bool* ok = p;
-//   p = get_param(params, 2);
-//   int base = p ? p->getAsInt() : 0;
-//   return new QoreNode((int64)ql->toInt(s, ok, base));
-//}
+   p = get_param(params, 1);
+   int base = p ? p->getAsInt() : 0;
 
-////qlonglong toLongLong ( const QString & s, bool * ok = 0, int base = 0 ) const
-//static QoreNode *QLOCALE_toLongLong(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QLOCALE-TOLONGLONG-PARAM-ERROR", "expecting a string as first argument to QLocale::toLongLong()");
-//      return 0;
-//   }
-//   const char *s = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   ??? bool* ok = p;
-//   p = get_param(params, 2);
-//   int base = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)ql->toLongLong(s, ok, base));
-//}
-
-////short toShort ( const QString & s, bool * ok = 0, int base = 0 ) const
-//static QoreNode *QLOCALE_toShort(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QLOCALE-TOSHORT-PARAM-ERROR", "expecting a string as first argument to QLocale::toShort()");
-//      return 0;
-//   }
-//   const char *s = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   ??? bool* ok = p;
-//   p = get_param(params, 2);
-//   int base = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)ql->toShort(s, ok, base));
-//}
+   bool ok;
+   int64 rv = ql->toLongLong(s, &ok, base);
+   if (!ok) {
+      xsink->raiseException("QLOCALE-TOLONGLONG-ERROR", "error encountered in QLocale::toLongLong()");
+      return 0;
+   }
+   return new QoreNode(rv);
+}
 
 ////QString toString ( qlonglong i ) const
 ////QString toString ( const QDate & date, const QString & format ) const
@@ -336,54 +295,6 @@ static QoreNode *QLOCALE_timeFormat(Object *self, QoreQLocale *ql, QoreNode *par
 //   return new QoreNode(new QoreString(ql->toString(i, f, prec).toUtf8().data(), QCS_UTF8));
 //}
 
-////uint toUInt ( const QString & s, bool * ok = 0, int base = 0 ) const
-//static QoreNode *QLOCALE_toUInt(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QLOCALE-TOUINT-PARAM-ERROR", "expecting a string as first argument to QLocale::toUInt()");
-//      return 0;
-//   }
-//   const char *s = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   ??? bool* ok = p;
-//   p = get_param(params, 2);
-//   int base = p ? p->getAsInt() : 0;
-//   return new QoreNode((int64)ql->toUInt(s, ok, base));
-//}
-
-////qlonglong toULongLong ( const QString & s, bool * ok = 0, int base = 0 ) const
-//static QoreNode *QLOCALE_toULongLong(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QLOCALE-TOULONGLONG-PARAM-ERROR", "expecting a string as first argument to QLocale::toULongLong()");
-//      return 0;
-//   }
-//   const char *s = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   ??? bool* ok = p;
-//   p = get_param(params, 2);
-//   int base = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)ql->toULongLong(s, ok, base));
-//}
-
-////ushort toUShort ( const QString & s, bool * ok = 0, int base = 0 ) const
-//static QoreNode *QLOCALE_toUShort(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QLOCALE-TOUSHORT-PARAM-ERROR", "expecting a string as first argument to QLocale::toUShort()");
-//      return 0;
-//   }
-//   const char *s = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   ??? bool* ok = p;
-//   p = get_param(params, 2);
-//   int base = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)ql->toUShort(s, ok, base));
-//}
-
 //QChar zeroDigit () const
 static QoreNode *QLOCALE_zeroDigit(Object *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
 {
@@ -443,15 +354,15 @@ QoreClass *initQLocaleClass()
    QC_QLocale->addMethod("percent",                     (q_method_t)QLOCALE_percent);
    QC_QLocale->addMethod("setNumberOptions",            (q_method_t)QLOCALE_setNumberOptions);
    QC_QLocale->addMethod("timeFormat",                  (q_method_t)QLOCALE_timeFormat);
-   //QC_QLocale->addMethod("toDouble",                    (q_method_t)QLOCALE_toDouble);
-   //QC_QLocale->addMethod("toFloat",                     (q_method_t)QLOCALE_toFloat);
-   //QC_QLocale->addMethod("toInt",                       (q_method_t)QLOCALE_toInt);
-   //QC_QLocale->addMethod("toLongLong",                  (q_method_t)QLOCALE_toLongLong);
-   //QC_QLocale->addMethod("toShort",                     (q_method_t)QLOCALE_toShort);
+   QC_QLocale->addMethod("toDouble",                    (q_method_t)QLOCALE_toDouble);
+   QC_QLocale->addMethod("toFloat",                     (q_method_t)QLOCALE_toDouble);
+   QC_QLocale->addMethod("toInt",                       (q_method_t)QLOCALE_toLongLong);
+   QC_QLocale->addMethod("toLongLong",                  (q_method_t)QLOCALE_toLongLong);
+   QC_QLocale->addMethod("toShort",                     (q_method_t)QLOCALE_toLongLong);
    //QC_QLocale->addMethod("toString",                    (q_method_t)QLOCALE_toString);
-   //QC_QLocale->addMethod("toUInt",                      (q_method_t)QLOCALE_toUInt);
-   //QC_QLocale->addMethod("toULongLong",                 (q_method_t)QLOCALE_toULongLong);
-   //QC_QLocale->addMethod("toUShort",                    (q_method_t)QLOCALE_toUShort);
+   QC_QLocale->addMethod("toUInt",                      (q_method_t)QLOCALE_toLongLong);
+   QC_QLocale->addMethod("toULongLong",                 (q_method_t)QLOCALE_toLongLong);
+   QC_QLocale->addMethod("toUShort",                    (q_method_t)QLOCALE_toLongLong);
    QC_QLocale->addMethod("zeroDigit",                   (q_method_t)QLOCALE_zeroDigit);
 
    return QC_QLocale;

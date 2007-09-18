@@ -59,11 +59,10 @@ static QoreNode *QMIMEDATA_colorData(Object *self, QoreQMimeData *qmd, QoreNode 
 static QoreNode *QMIMEDATA_data(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QMIMEDATA-DATA-PARAM-ERROR", "expecting a string as first argument to QMimeData::data()");
+   QString mimeType;
+   if (get_qstring(p, mimeType, xsink))
       return 0;
-   }
-   const char *mimeType = p->val.String->getBuffer();
+
    Object *o_qba = new Object(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qmd->qobj->data(mimeType));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -90,11 +89,10 @@ static QoreNode *QMIMEDATA_hasColor(Object *self, QoreQMimeData *qmd, QoreNode *
 static QoreNode *QMIMEDATA_hasFormat(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QMIMEDATA-HASFORMAT-PARAM-ERROR", "expecting a string as first argument to QMimeData::hasFormat()");
+   QString mimeType;
+   if (get_qstring(p, mimeType, xsink))
       return 0;
-   }
-   const char *mimeType = p->val.String->getBuffer();
+
    return new QoreNode(qmd->qobj->hasFormat(mimeType));
 }
 
@@ -152,11 +150,10 @@ static QoreNode *QMIMEDATA_setColorData(Object *self, QoreQMimeData *qmd, QoreNo
 static QoreNode *QMIMEDATA_setData(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QMIMEDATA-SETDATA-PARAM-ERROR", "expecting a string as first argument to QMimeData::setData()");
+   QString mimeType;
+   if (get_qstring(p, mimeType, xsink))
       return 0;
-   }
-   const char *mimeType = p->val.String->getBuffer();
+
    p = get_param(params, 1);
    QByteArray data;
    if (get_qbytearray(p, data, xsink))
@@ -169,11 +166,10 @@ static QoreNode *QMIMEDATA_setData(Object *self, QoreQMimeData *qmd, QoreNode *p
 static QoreNode *QMIMEDATA_setHtml(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QMIMEDATA-SETHTML-PARAM-ERROR", "expecting a string as first argument to QMimeData::setHtml()");
+   QString html;
+   if (get_qstring(p, html, xsink))
       return 0;
-   }
-   const char *html = p->val.String->getBuffer();
+
    qmd->qobj->setHtml(html);
    return 0;
 }
@@ -193,11 +189,10 @@ static QoreNode *QMIMEDATA_setImageData(Object *self, QoreQMimeData *qmd, QoreNo
 static QoreNode *QMIMEDATA_setText(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QMIMEDATA-SETTEXT-PARAM-ERROR", "expecting a string as first argument to QMimeData::setText()");
+   QString text;
+   if (get_qstring(p, text, xsink))
       return 0;
-   }
-   const char *text = p->val.String->getBuffer();
+
    qmd->qobj->setText(text);
    return 0;
 }

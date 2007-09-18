@@ -70,11 +70,9 @@ static QoreNode *QTEXTIMAGEFORMAT_setHeight(Object *self, QoreQTextImageFormat *
 static QoreNode *QTEXTIMAGEFORMAT_setName(Object *self, QoreQTextImageFormat *qtif, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QTEXTIMAGEFORMAT-SETNAME-PARAM-ERROR", "expecting a string as first argument to QTextImageFormat::setName()");
+   QString name;
+   if (get_qstring(p, name, xsink))
       return 0;
-   }
-   const char *name = p->val.String->getBuffer();
    qtif->setName(name);
    return 0;
 }

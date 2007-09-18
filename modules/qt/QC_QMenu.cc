@@ -33,7 +33,11 @@ static void QMENU_constructor(Object *self, QoreNode *params, ExceptionSink *xsi
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_STRING) {
-      const char *title = p->val.String->getBuffer();
+      QString title;
+
+      if (get_qstring(p, title, xsink))
+	 return;
+
       p = get_param(params, 1);
       QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
@@ -130,7 +134,11 @@ static QoreNode *QMENU_addAction(Object *self, QoreQMenu *qm, QoreNode *params, 
       xsink->raiseException("QMENU-ADDACTION-PARAM-ERROR", "expecting a string as first or second argument to QMenu::addAction()");
       return 0;
    }
-   const char *text = p->val.String->getBuffer();
+   QString text;
+   
+   if (get_qstring(p, text, xsink))
+      return 0;
+
    p = test_param(params, NT_OBJECT, 1 + offset);
    QoreAbstractQObject *receiver = p ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!receiver) {
@@ -195,21 +203,18 @@ static QoreNode *QMENU_addMenu(Object *self, QoreQMenu *qm, QoreNode *params, Ex
       }
       ReferenceHolder<QoreQIcon> iconHolder(icon, xsink);
       p = get_param(params, 1);
-      if (!p || p->type != NT_STRING) {
-         xsink->raiseException("QMENU-ADDMENU-PARAM-ERROR", "expecting a string as second argument to QMenu::addMenu()");
-         return 0;
-      }
-      const char *title = p->val.String->getBuffer();
+      QString title;
+      if (get_qstring(p, title, xsink))
+	 return 0;
+
       Object *o_qa = new Object(QC_QMenu, getProgram());
       QoreQMenu *q_qa = new QoreQMenu(o_qa, qm->qobj->addMenu(*(static_cast<QIcon *>(icon)), title));
       o_qa->setPrivate(CID_QMENU, q_qa);
       return new QoreNode(o_qa);
    }
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QMENU-ADDMENU-PARAM-ERROR", "expecting a string, QMenu, or QIcon as first argument to QMenu::addMenu()");
+   QString title;
+   if (get_qstring(p, title, xsink))
       return 0;
-   }
-   const char *title = p->val.String->getBuffer();
    Object *o_qa = new Object(QC_QMenu, getProgram());
    QoreQMenu *q_qa = new QoreQMenu(o_qa, qm->qobj->addMenu(title));
    o_qa->setPrivate(CID_QMENU, q_qa);
@@ -451,11 +456,9 @@ static QoreNode *QMENU_setTearOffEnabled(Object *self, QoreQMenu *qm, QoreNode *
 static QoreNode *QMENU_setTitle(Object *self, QoreQMenu *qm, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QMENU-SETTITLE-PARAM-ERROR", "expecting a string as first argument to QMenu::setTitle()");
+   QString title;
+   if (get_qstring(p, title, xsink))
       return 0;
-   }
-   const char *title = p->val.String->getBuffer();
    qm->qobj->setTitle(title);
    return 0;
 }

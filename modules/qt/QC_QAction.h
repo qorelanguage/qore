@@ -43,11 +43,11 @@ class myQAction : public QAction
       {
 	 init(obj);
       }
-      DLLLOCAL myQAction(Object *obj, const char *text, QObject *parent) : QAction(text, parent)
+      DLLLOCAL myQAction(Object *obj, const QString &text, QObject *parent) : QAction(text, parent)
       {
 	 init(obj);
       }
-      DLLLOCAL myQAction(Object *obj, const QIcon &icon, const char *text, QObject *parent) : QAction(icon, text, parent)
+      DLLLOCAL myQAction(Object *obj, const QIcon &icon, const QString &text, QObject *parent) : QAction(icon, text, parent)
       {
 	 init(obj);
       }
@@ -62,11 +62,11 @@ class QoreQAction : public QoreAbstractQObject
       {
       }
 
-      DLLLOCAL QoreQAction(Object *obj, const char *text, QObject *parent) : qobj(new myQAction(obj, text, parent))
+      DLLLOCAL QoreQAction(Object *obj, const QString &text, QObject *parent) : qobj(new myQAction(obj, text, parent))
       {
       }
 
-      DLLLOCAL QoreQAction(Object *obj, const QIcon &icon, const char *text, QObject *parent) : qobj(new myQAction(obj, icon, text, parent))
+      DLLLOCAL QoreQAction(Object *obj, const QIcon &icon, const QString &text, QObject *parent) : qobj(new myQAction(obj, icon, text, parent))
       {
       }
 

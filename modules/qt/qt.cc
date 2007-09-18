@@ -123,6 +123,7 @@
 #include "QC_QClipboard.h"
 #include "QC_QFontComboBox.h"
 #include "QC_QMainWindow.h"
+#include "QC_QRadioButton.h"
 
 #include "qore-qt-events.h"
 
@@ -157,7 +158,7 @@ DLLEXPORT qore_module_ns_init_t qore_module_ns_init = qt_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = qt_module_delete;
 #endif
 
-int get_qdate(class QoreNode *n, QDate &date, class ExceptionSink *xsink)
+int get_qdate(const QoreNode *n, QDate &date, class ExceptionSink *xsink)
 {
    if (n && n->type == NT_DATE) {
       date.setDate(n->val.date_time->getYear(), n->val.date_time->getMonth(), n->val.date_time->getDay());
@@ -189,7 +190,7 @@ int get_qdate(class QoreNode *n, QDate &date, class ExceptionSink *xsink)
    return 0;
 }
 
-int get_qdatetime(class QoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
+int get_qdatetime(const QoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
 {
    if (n && n->type == NT_DATE) {
       DateTime *qdt = n->val.date_time;
@@ -223,7 +224,7 @@ int get_qdatetime(class QoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
    return 0;
 }
 
-int get_qtime(class QoreNode *n, QTime &time, class ExceptionSink *xsink)
+int get_qtime(const QoreNode *n, QTime &time, class ExceptionSink *xsink)
 {
    if (n && n->type == NT_DATE) {
       DateTime *qdt = n->val.date_time;
@@ -256,14 +257,15 @@ int get_qtime(class QoreNode *n, QTime &time, class ExceptionSink *xsink)
    return 0;
 }
 
-int get_qbytearray(class QoreNode *n, QByteArray &ba, class ExceptionSink *xsink)
+int get_qbytearray(const QoreNode *n, QByteArray &ba, class ExceptionSink *xsink, bool suppress_exception)
 {
    if (n && n->type == NT_OBJECT) {
       class QoreQByteArray *qba = (QoreQByteArray *)n->val.object->getReferencedPrivateData(CID_QBYTEARRAY, xsink);
       if (*xsink)
 	 return 0;
       if (!qba) {
-	 xsink->raiseException("QBYTEARRAY-ERROR", "class '%s' is not derived from QByteArray", n->val.object->getClass()->getName());
+	 if (!suppress_exception)
+	    xsink->raiseException("QBYTEARRAY-ERROR", "class '%s' is not derived from QByteArray", n->val.object->getClass()->getName());
 	 return -1;
       }
       ReferenceHolder<QoreQByteArray> qbaHolder(qba, xsink);
@@ -280,11 +282,12 @@ int get_qbytearray(class QoreNode *n, QByteArray &ba, class ExceptionSink *xsink
       ba.append(n->val.String->getBuffer());
       return 0;
    }
-   xsink->raiseException("QBYTEARRAY-ERROR", "cannot convert type '%s' to QByteArray", n ? n->type->getName() : "NOTHING");
+   if (!suppress_exception)
+      xsink->raiseException("QBYTEARRAY-ERROR", "cannot convert type '%s' to QByteArray", n ? n->type->getName() : "NOTHING");
    return -1;
 }
 
-int get_qvariant(class QoreNode *n, QVariant &qva, class ExceptionSink *xsink, bool suppress_exception)
+int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, bool suppress_exception)
 {
    //printd(0, "get_variant() n=%08p %s\n", n, n ? n->type->getName() : "n/a");
    if (n) {
@@ -332,7 +335,7 @@ int get_qvariant(class QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
    return -1;
 }
 
-int get_qchar(class QoreNode *n, QChar &c, class ExceptionSink *xsink)
+int get_qchar(const QoreNode *n, QChar &c, class ExceptionSink *xsink, bool suppress_exception)
 {
    if (n && n->type == NT_STRING) {
       unsigned int unicode = n->val.String->getUnicodePoint(0, xsink);
@@ -347,10 +350,12 @@ int get_qchar(class QoreNode *n, QChar &c, class ExceptionSink *xsink)
    if (*xsink)
       return -1;
    if (!qc) {
-      if (n && n->type == NT_OBJECT) 
-	 xsink->raiseException("QCHAR-ERROR", "class '%s' is not derived from QChar", n->val.object->getClass()->getName());
-      else
-	 xsink->raiseException("QCHAR-ERROR", "cannot convert type '%s' to QChar", n ? n->type->getName() : "NOTHING");
+      if (!suppress_exception) {
+	 if (n && n->type == NT_OBJECT) 
+	    xsink->raiseException("QCHAR-ERROR", "class '%s' is not derived from QChar", n->val.object->getClass()->getName());
+	 else
+	    xsink->raiseException("QCHAR-ERROR", "cannot convert type '%s' to QChar", n ? n->type->getName() : "NOTHING");
+      }
       return -1;
    }
 
@@ -359,10 +364,22 @@ int get_qchar(class QoreNode *n, QChar &c, class ExceptionSink *xsink)
    return 0;
 }
 
-int get_qstring(class QoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception)
+int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception)
 {
    if (n && n->type == NT_STRING) {
-      str = n->val.String->getBuffer();
+      if (n->val.String->getEncoding() == QCS_ISO_8859_1) {
+	 str = QString::fromLatin1(n->val.String->getBuffer());
+      }
+      else if (n->val.String->getEncoding() == QCS_USASCII) {
+	 str = QString::fromAscii(n->val.String->getBuffer());
+      }
+      else {
+	 TempEncodingHelper estr(n->val.String, QCS_UTF8, xsink);
+	 if (*xsink)
+	    return -1;
+
+	 str = QString::fromUtf8(estr->getBuffer());
+      }
       return 0;
    }
 
@@ -823,7 +840,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQBitmapClass(qpixmap));
 
    qt->addSystemClass((qwidget = initQWidgetClass(qobject, qpaintdevice)));
-   qt->addSystemClass(initQPushButtonClass(qwidget));
 
    qt->addSystemClass((qabstractslider = initQAbstractSliderClass(qwidget)));
    qt->addSystemClass(initQSliderClass(qabstractslider));
@@ -1001,6 +1017,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQLineClass());
    qt->addSystemClass(initQLineFClass());
    qt->addSystemClass((qabstractbutton = initQAbstractButtonClass(qwidget)));
+   qt->addSystemClass(initQPushButtonClass(qabstractbutton));
    qt->addSystemClass(initQMenuClass(qwidget));
    qt->addSystemClass(initQToolButtonClass(qabstractbutton));
    qt->addSystemClass(initQDialogClass(qwidget));
@@ -1052,6 +1069,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQWheelEventClass(qinputevent));
    qt->addSystemClass(initQFontComboBoxClass(qcombobox));
    qt->addSystemClass(initQMainWindowClass(qwidget));
+   qt->addSystemClass(initQRadioButtonClass(qabstractbutton));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");

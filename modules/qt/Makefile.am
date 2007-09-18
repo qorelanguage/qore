@@ -75,7 +75,8 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QWheelEvent.cc \
 	QC_QClipboard.cc \
 	QC_QFontComboBox.cc \
-	QC_QMainWindow.cc
+	QC_QMainWindow.cc \
+	QC_QRadioButton.cc
 endif
 
 if COND_MONOLITHIC

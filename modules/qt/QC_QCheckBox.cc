@@ -32,21 +32,16 @@ class QoreClass *QC_QCheckBox = 0;
 static void QCHECKBOX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (is_nothing(p)) {
-      self->setPrivate(CID_QCHECKBOX, new QoreQCheckBox(self));
-      return;
-   }
 
-   const char *text = 0; 
-   if (p && p->type == NT_STRING) {
-      text = p->val.String->getBuffer();
-      p = test_param(params, NT_OBJECT, 1);
-   }
+   QString text;
+   bool got_text = !get_qstring(p, text, xsink, true);
+   if (got_text)
+      p = get_param(params, 1);
 
-   QoreQWidget *parent = p ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
 
-   if (text)
+   if (got_text)
       self->setPrivate(CID_QCHECKBOX, new QoreQCheckBox(self, text, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));
    else
       self->setPrivate(CID_QCHECKBOX, new QoreQCheckBox(self, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));

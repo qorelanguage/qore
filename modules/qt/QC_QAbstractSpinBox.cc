@@ -61,11 +61,10 @@ static QoreNode *QABSTRACTSPINBOX_correctionMode(Object *self, QoreAbstractQAbst
 //static QoreNode *QABSTRACTSPINBOX_fixup(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QABSTRACTSPINBOX-FIXUP-PARAM-ERROR", "expecting a string as first argument to QAbstractSpinBox::fixup()");
+//   QString input;
+//   if (get_qstring(p, input, xsink))
 //      return 0;
-//   }
-//   const char *input = p->val.String->getBuffer();
+//
 //   qasb->getQAbstractSpinBox()->fixup(input);
 //   return 0;
 //}
@@ -174,11 +173,11 @@ static QoreNode *QABSTRACTSPINBOX_setReadOnly(Object *self, QoreAbstractQAbstrac
 static QoreNode *QABSTRACTSPINBOX_setSpecialValueText(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QABSTRACTSPINBOX-SETSPECIALVALUETEXT-PARAM-ERROR", "expecting a string as first argument to QAbstractSpinBox::setSpecialValueText()");
+   QString txt;
+
+   if (get_qstring(p, txt, xsink))
       return 0;
-   }
-   const char *txt = p->val.String->getBuffer();
+
    qasb->getQAbstractSpinBox()->setSpecialValueText(txt);
    return 0;
 }

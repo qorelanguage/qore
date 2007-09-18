@@ -39,13 +39,13 @@ static inline class QoreNode *make_enum(class QoreType *enum_type, int code)
    return n;
 }
 
-DLLLOCAL int get_qdate(class QoreNode *n, QDate &date, class ExceptionSink *xsink);
-DLLLOCAL int get_qtime(class QoreNode *n, QTime &time, class ExceptionSink *xsink);
-DLLLOCAL int get_qdatetime(class QoreNode *n, QDateTime &dt, class ExceptionSink *xsink);
-DLLLOCAL int get_qvariant(class QoreNode *n, QVariant &qv, class ExceptionSink *xsink, bool suppress_exception = false);
-DLLLOCAL int get_qbytearray(class QoreNode *n, QByteArray &qba, class ExceptionSink *xsink);
-DLLLOCAL int get_qchar(class QoreNode *n, QChar &c, class ExceptionSink *xsink);
-DLLLOCAL int get_qstring(class QoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception = false);
+DLLLOCAL int get_qdate(const QoreNode *n, QDate &date, class ExceptionSink *xsink);
+DLLLOCAL int get_qtime(const QoreNode *n, QTime &time, class ExceptionSink *xsink);
+DLLLOCAL int get_qdatetime(const QoreNode *n, QDateTime &dt, class ExceptionSink *xsink);
+DLLLOCAL int get_qvariant(const QoreNode *n, QVariant &qv, class ExceptionSink *xsink, bool suppress_exception = false);
+DLLLOCAL int get_qbytearray(const QoreNode *n, QByteArray &qba, class ExceptionSink *xsink, bool suppress_exception = false);
+DLLLOCAL int get_qchar(const QoreNode *n, QChar &c, class ExceptionSink *xsink, bool suppress_exception = false);
+DLLLOCAL int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception = false);
 
 DLLLOCAL class QoreNode *return_qvariant(QVariant &qv);
 

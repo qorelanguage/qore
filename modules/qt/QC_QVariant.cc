@@ -91,8 +91,14 @@ static void QVARIANT_constructor(Object *self, QoreNode *params, ExceptionSink *
 				       if (!qd) {
 					  QoreQTime *qt = (QoreQTime *)p->val.object->getReferencedPrivateData(CID_QTIME, xsink);
 					  if (!qt) {
-					     if (!xsink->isException())
-						xsink->raiseException("QVARIANT-CONSTRUCTOR-PARAM-ERROR", "QVariant::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+					     QoreQChar *qchar = (QoreQChar *)p->val.object->getReferencedPrivateData(CID_QCHAR, xsink);
+					     if (!qchar) {
+						if (!xsink->isException())
+						   xsink->raiseException("QVARIANT-CONSTRUCTOR-PARAM-ERROR", "QVariant::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+						return;
+					     }
+					     ReferenceHolder<QoreQChar> qcharHolder(qchar, xsink);
+					     self->setPrivate(CID_QVARIANT, new QoreQVariant(*(static_cast<QChar *>(qchar))));
 					     return;
 					  }
 					  ReferenceHolder<QoreQTime> qtHolder(qt, xsink);
@@ -153,7 +159,9 @@ static void QVARIANT_constructor(Object *self, QoreNode *params, ExceptionSink *
 //      return;
 //   }
    if (p && p->type == NT_STRING) {
-      const char *qstring = p->val.String->getBuffer();
+      QString qstring;
+      
+      get_qstring(p, qstring, xsink);
       self->setPrivate(CID_QVARIANT, new QoreQVariant(qstring));
       return;
    }

@@ -64,21 +64,19 @@ static void QBYTEARRAY_copy(class Object *self, class Object *old, class QoreQBy
 static QoreNode *QBYTEARRAY_append(Object *self, QoreQByteArray *qba, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
-      QoreQByteArray *qba_a = (QoreQByteArray *)p->val.object->getReferencedPrivateData(CID_QBYTEARRAY, xsink);
-      if (!qba_a) {
-	 xsink->raiseException("QBYTEARRAY-APPEND-PARAM-ERROR", "QByteArray::append() cannot handle arguments of class '%s'", p->val.object->getClass()->getName());
+
+   QString str;
+   if (!get_qstring(p, str, xsink, true))
+      qba->append(str);
+   else {
+      QByteArray qba_a;
+
+      if (get_qbytearray(p, qba_a, xsink, true)) {
+	 xsink->raiseException("QBYTEARRAY-APPEND-PARAM-ERROR", "QByteArray::append() was expecting either a string or a binary object to append");
 	 return 0;
       }
-      ReferenceHolder<QoreQByteArray> holder(qba_a, xsink);
-      qba->append(*qba_a);
+      qba->append(qba_a);
    }
-   else if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QBYTEARRAY-APPEND-PARAM-ERROR", "QByteArray::append() was expecting a QByteArray or string as sole argument");
-      return 0;
-   }
-   else
-      qba->append(p->val.String->getBuffer());
 
    // returns itself
    self->ref();

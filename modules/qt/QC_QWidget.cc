@@ -1957,11 +1957,11 @@ static QoreNode *QWIDGET_setHidden(Object *self, QoreAbstractQWidget *qw, QoreNo
 static QoreNode *QWIDGET_setStyleSheet(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QWIDGET-SETSTYLESHEET-PARAM-ERROR", "expecting a string as first argument to QWidget::setStyleSheet()");
+   QString styleSheet;
+
+   if (get_qstring(p, styleSheet, xsink))
       return 0;
-   }
-   const char *styleSheet = p->val.String->getBuffer();
+
    qw->getQWidget()->setStyleSheet(styleSheet);
    return 0;
 }
@@ -1988,11 +1988,11 @@ static QoreNode *QWIDGET_setWindowModified(Object *self, QoreAbstractQWidget *qw
 static QoreNode *QWIDGET_setWindowTitle(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QWIDGET-SETWINDOWTITLE-PARAM-ERROR", "expecting a string as first argument to QWidget::setWindowTitle()");
+   QString qstring;
+
+   if (get_qstring(p, qstring, xsink))
       return 0;
-   }
-   const char *qstring = p->val.String->getBuffer();
+
    qw->getQWidget()->setWindowTitle(qstring);
    return 0;
 }

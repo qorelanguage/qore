@@ -134,11 +134,11 @@ static QoreNode *QTEXTCHARFORMAT_setAnchor(Object *self, QoreQTextCharFormat *qt
 static QoreNode *QTEXTCHARFORMAT_setAnchorHref(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QTEXTCHARFORMAT-SETANCHORHREF-PARAM-ERROR", "expecting a string as first argument to QTextCharFormat::setAnchorHref()");
+   QString value;
+
+   if (get_qstring(p, value, xsink))
       return 0;
-   }
-   const char *value = p->val.String->getBuffer();
+
    qtcf->setAnchorHref(value);
    return 0;
 }
@@ -171,11 +171,11 @@ static QoreNode *QTEXTCHARFORMAT_setFont(Object *self, QoreQTextCharFormat *qtcf
 static QoreNode *QTEXTCHARFORMAT_setFontFamily(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QTEXTCHARFORMAT-SETFONTFAMILY-PARAM-ERROR", "expecting a string as first argument to QTextCharFormat::setFontFamily()");
+   QString family;
+
+   if (get_qstring(p, family, xsink))
       return 0;
-   }
-   const char *family = p->val.String->getBuffer();
+
    qtcf->setFontFamily(family);
    return 0;
 }
@@ -262,11 +262,10 @@ static QoreNode *QTEXTCHARFORMAT_setTextOutline(Object *self, QoreQTextCharForma
 static QoreNode *QTEXTCHARFORMAT_setToolTip(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QTEXTCHARFORMAT-SETTOOLTIP-PARAM-ERROR", "expecting a string as first argument to QTextCharFormat::setToolTip()");
+   QString text;
+   if (get_qstring(p, text, xsink))
       return 0;
-   }
-   const char *text = p->val.String->getBuffer();
+
    qtcf->setToolTip(text);
    return 0;
 }

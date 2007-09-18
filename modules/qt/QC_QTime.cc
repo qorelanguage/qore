@@ -181,16 +181,12 @@ static QoreNode *QTIME_start(Object *self, QoreQTime *qt, QoreNode *params, Exce
 static QoreNode *QTIME_toString(Object *self, QoreQTime *qt, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_STRING) {
-      if (!p || p->type != NT_STRING) {
-         xsink->raiseException("QTIME-TOSTRING-PARAM-ERROR", "expecting a string as first argument to QTime::toString()");
-         return 0;
-      }
-      const char *format = p->val.String->getBuffer();
-      return new QoreNode(new QoreString(qt->toString(format).toUtf8().data(), QCS_UTF8));
+   QString format;
+   if (get_qstring(p, format, xsink)) {
+      Qt::DateFormat f = (Qt::DateFormat)(p ? p->getAsInt() : 0);
+      return new QoreNode(new QoreString(qt->toString(f).toUtf8().data(), QCS_UTF8));
    }
-   Qt::DateFormat f = (Qt::DateFormat)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(qt->toString(f).toUtf8().data(), QCS_UTF8));
+   return new QoreNode(new QoreString(qt->toString(format).toUtf8().data(), QCS_UTF8));
 }
 
 class QoreClass *initQTimeClass()

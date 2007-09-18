@@ -328,11 +328,9 @@ static QoreNode *QOBJECT_removeEventFilter(Object *self, QoreAbstractQObject *qo
 static QoreNode *QOBJECT_setObjectName(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QOBJECT-SETOBJECTNAME-PARAM-ERROR", "expecting a string as first argument to QObject::setObjectName()");
+   QString name;
+   if (get_qstring(p, name, xsink))
       return 0;
-   }
-   const char *name = p->val.String->getBuffer();
    qo->getQObject()->setObjectName(name);
    return 0;
 }

@@ -112,3 +112,4 @@
 #include "QC_QClipboard.cc"
 #include "QC_QFontComboBox.cc"
 #include "QC_QMainWindow.cc"
+#include "QC_QRadioButton.cc"

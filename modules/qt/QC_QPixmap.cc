@@ -28,24 +28,40 @@
 int CID_QPIXMAP;
 QoreClass *QC_QPixmap = 0;
 
+//QPixmap () 
+//QPixmap ( int width, int height ) 
+//QPixmap ( const QString & fileName, const char * format = 0, Qt::ImageConversionFlags flags = Qt::AutoColor ) 
+//QPixmap ( const char * const[] xpm ) 
+//QPixmap ( const QPixmap & pixmap ) 
+//QPixmap ( const QSize & size )
 static void QPIXMAP_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQPixmap *qp;
    QoreNode *p = get_param(params, 0);
 
-/*
-   if (p && p->type == NT_BINARY)
-      qp = new QoreQPixmap(p->val.bin);
-*/
-   if (p && p->type == NT_STRING) {
-      const char *filename = p->val.String->getBuffer();
-
+   QString fileName;
+   if (get_qstring(p, fileName, xsink, true)) {
       p = get_param(params, 1);
       const char *format = p ? p->val.String->getBuffer() : 0;
       p = get_param(params, 2);
       Qt::ImageConversionFlags flags = !is_nothing(p) ? (Qt::ImageConversionFlags)p->getAsInt() : Qt::AutoColor;
 
-      qp = new QoreQPixmap(filename, format, flags);
+      qp = new QoreQPixmap(fileName, format, flags);
+   }
+
+/*
+   if (p && p->type == NT_BINARY)
+      qp = new QoreQPixmap(p->val.bin);
+*/
+   else if (p && p->type == NT_OBJECT) {
+      QoreQSize *size = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+      if (!size) {
+         if (!xsink->isException())
+            xsink->raiseException("QPIXMAP-CONSTRUCTOR-PARAM-ERROR", "QPixmap::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+         return;
+      }
+      ReferenceHolder<QoreQSize> sizeHolder(size, xsink);
+      qp = new QoreQPixmap(*(static_cast<QSize *>(size)));
    }
    else {
       int w = p ? p->getAsInt() : 0;
@@ -256,15 +272,13 @@ static QoreNode *QPIXMAP_isQBitmap(Object *self, QoreQPixmap *qp, QoreNode *para
 static QoreNode *QPIXMAP_load(Object *self, QoreQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QPIXMAP-LOAD-PARAM-ERROR", "expecting a string as first argument to QPixmap::load()");
+   QString fileName;
+   if (get_qstring(p, fileName, xsink))
       return 0;
-   }
-   const char *fileName = p->val.String->getBuffer();
    p = get_param(params, 1);
    const char *format = p ? p->val.String->getBuffer() : 0;
    p = get_param(params, 2);
-   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
+   Qt::ImageConversionFlags flags = !is_nothing(p) ? (Qt::ImageConversionFlags)p->getAsInt() :  Qt::AutoColor;
    return new QoreNode(qp->load(fileName, format, flags));
 }
 
@@ -328,34 +342,38 @@ static QoreNode *QPIXMAP_save(Object *self, QoreQPixmap *qp, QoreNode *params, E
 
 //QPixmap scaled ( const QSize & size, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio, Qt::TransformationMode transformMode = Qt::FastTransformation ) const
 //QPixmap scaled ( int width, int height, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio, Qt::TransformationMode transformMode = Qt::FastTransformation ) const
-//static QoreNode *QPIXMAP_scaled(Object *self, QoreQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
-//      ??? QSize size = p;
-//   p = get_param(params, 1);
-//   int height = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   Qt::AspectRatioMode aspectRatioMode = (Qt::AspectRatioMode)(p ? p->getAsInt() : 0);
-//   p = get_param(params, 3);
-//   Qt::TransformationMode transformMode = (Qt::TransformationMode)(p ? p->getAsInt() : 0);
-//   Object *o_qp = new Object(self->getClass(CID_QPIXMAP), getProgram());
-//   QoreQPixmap *q_qp = new QoreQPixmap(*(qp->scaled(size, height, aspectRatioMode, transformMode)));
-//   o_qp->setPrivate(CID_QPIXMAP, q_qp);
-//   return new QoreNode(o_qp);
-//   }
-//   int width = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int height = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   Qt::AspectRatioMode aspectRatioMode = (Qt::AspectRatioMode)(p ? p->getAsInt() : 0);
-//   p = get_param(params, 3);
-//   Qt::TransformationMode transformMode = (Qt::TransformationMode)(p ? p->getAsInt() : 0);
-//   Object *o_qp = new Object(self->getClass(CID_QPIXMAP), getProgram());
-//   QoreQPixmap *q_qp = new QoreQPixmap(*(qp->scaled(width, height, aspectRatioMode, transformMode)));
-//   o_qp->setPrivate(CID_QPIXMAP, q_qp);
-//   return new QoreNode(o_qp);
-//}
+static QoreNode *QPIXMAP_scaled(Object *self, QoreQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQSize *size = 0;
+   if (p && p->type == NT_OBJECT) {
+      size = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+      if (!size) {
+         if (!xsink->isException())
+            xsink->raiseException("QPIXMAP-SCALED-PARAM-ERROR", "QPixmap::scaled() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+         return 0;
+      }
+   }
+   ReferenceHolder<QoreQSize> sizeHolder(size, xsink);
+   int offset = 0, width = 0, height = 0;
+   if (!size) {
+      width = p ? p->getAsInt() : 0;
+      p = get_param(params, ++offset);
+      height = p ? p->getAsInt() : 0;
+   }
+   p = get_param(params, ++offset);
+   Qt::AspectRatioMode aspectRatioMode = !is_nothing(p) ? (Qt::AspectRatioMode)p->getAsInt() :  Qt::IgnoreAspectRatio;
+   p = get_param(params, ++offset);
+   Qt::TransformationMode transformMode = !is_nothing(p) ? (Qt::TransformationMode)p->getAsInt() :  Qt::FastTransformation;
+   Object *o_qp = new Object(self->getClass(CID_QPIXMAP), getProgram());
+   QoreQPixmap *q_qp;
+   if (size)
+      q_qp = new QoreQPixmap(qp->scaled(*size, aspectRatioMode, transformMode));
+   else
+      q_qp = new QoreQPixmap(qp->scaled(width, height, aspectRatioMode, transformMode));
+   o_qp->setPrivate(CID_QPIXMAP, q_qp);
+   return new QoreNode(o_qp);
+}
 
 //QPixmap scaledToHeight ( int height, Qt::TransformationMode mode = Qt::FastTransformation ) const
 static QoreNode *QPIXMAP_scaledToHeight(Object *self, QoreQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
@@ -508,7 +526,7 @@ class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice)
    QC_QPixmap->addMethod("mask",                        (q_method_t)QPIXMAP_mask);
    QC_QPixmap->addMethod("rect",                        (q_method_t)QPIXMAP_rect);
    QC_QPixmap->addMethod("save",                        (q_method_t)QPIXMAP_save);
-   //QC_QPixmap->addMethod("scaled",                      (q_method_t)QPIXMAP_scaled);
+   QC_QPixmap->addMethod("scaled",                      (q_method_t)QPIXMAP_scaled);
    QC_QPixmap->addMethod("scaledToHeight",              (q_method_t)QPIXMAP_scaledToHeight);
    QC_QPixmap->addMethod("scaledToWidth",               (q_method_t)QPIXMAP_scaledToWidth);
    QC_QPixmap->addMethod("setAlphaChannel",             (q_method_t)QPIXMAP_setAlphaChannel);

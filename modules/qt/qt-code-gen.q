@@ -22,10 +22,10 @@ our $special_hash =
     ( "QDate"      : \do_qdate(),
       "QDateTime"  : \do_qdatetime(),
       "QTime"      : \do_qtime(),
-      "QVariant"   : \do_qvariant(),
-      "QByteArray" : \do_qbytearray(),
-      "QChar"      : \do_qchar()
     );
+
+const special_arg_list =
+    ( "QVariant", "QTime", "QDate", "QDateTime", "QString", "QByteArray" );
 
 const qobject_list = 
     ( "QWidget", "QMovie", "QAction", "QActionGroup", "QMenu", 
@@ -418,8 +418,12 @@ sub main()
 	    $arg =~ s/const //;
 
 	    my ($ra, $def) = $arg =~ x/(.*)=(.*)/;
-	    if (exists $def)
+	    if (exists $def) {
 		$arg = trim($ra);
+		trim $def;
+		if ($def =~ /\|/)
+		    delete $def;
+	    }
 	    my ($type, $pname) = $arg =~ x/([a-zA-Z0-9\*<>:&]+) (\w+)/;
 	    if (!exists $type) {
 		$type = $arg;
@@ -449,6 +453,10 @@ sub main()
 	    else if (inlist($typename, class_list)) {
 		$arg.is_class = True;
 		$arg.classname = $typename;
+		if (inlist($typename, special_arg_list)) {
+		    $arg.special_arg = True;
+		    #printf("special: %n\n", $typename);
+		}
 	    }
 	    else if (inlist($typename, abstract_class_list)) {
 		$arg.is_abstract_class = True;
@@ -793,7 +801,7 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
 	$lo += sprintf("%s%s *%s = (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink);", 
 		       $os, $tcn, $arg.name, $tcn, $utn);
     else
-	$lo += sprintf("%s%s *%s = p ? (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink) : 0;", 
+	$lo += sprintf("%s%s *%s = (p && p->type == NT_OBJECT) ? (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink) : 0;", 
 		       $os, $tcn, $arg.name, $tcn, $utn);
     $lo += sprintf("%sif (!%s) {", $os, $arg.name);
     if ($final) {
@@ -867,36 +875,6 @@ sub do_qdatetime($arg, $const)
     return $lo;
 }
 
-sub do_qvariant($arg, $const)
-{
-    my $lo = ();
-    
-    $lo += sprintf("QVariant %s;", $arg.name);
-    $lo += sprintf("if (get_qvariant(p, %s, xsink))", $arg.name);
-    $lo += sprintf("   return%s;", $const ? "" : " 0");
-    return $lo;
-}
-
-sub do_qbytearray($arg, $const)
-{
-    my $lo = ();
-    
-    $lo += sprintf("QByteArray %s;", $arg.name);
-    $lo += sprintf("if (get_qbytearray(p, %s, xsink))", $arg.name);
-    $lo += sprintf("   return%s;", $const ? "" : " 0");
-    return $lo;
-}
-
-sub do_qchar($arg, $const)
-{
-    my $lo = ();
-    
-    $lo += sprintf("QChar %s;", $arg.name);
-    $lo += sprintf("if (get_qchar(p, %s, xsink))", $arg.name);
-    $lo += sprintf("   return%s;", $const ? "" : " 0");
-    return $lo;
-}
-
 sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 {
     my $lo = ();
@@ -937,7 +915,8 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 	    $none = $i;
 	else if (elements $i.args <= $param)
 	    continue;
-	else if ($i.args[$param].is_class || $i.args[$param].is_abstract_class || $i.args[$param].is_dynamic_class)
+	else if (($i.args[$param].is_class || $i.args[$param].is_abstract_class || $i.args[$param].is_dynamic_class) 
+		 && !$i.args[$param].special_arg)
 	    $cl += $i;	
 	else if ($i.args[$param].is_int)
 	    $il += $i;
@@ -1096,24 +1075,26 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 	switch ($arg.type) {
 	    case "QRgb":
 		case "quint64":
-		case "qint64":
-		if ($arg.def)
-		$lo += sprintf("int64 %s = !is_nothing(p) ? p->getAsBigInt() : %d;", $arg.name, $arg.def);
-	    else
-		$lo += sprintf("int64 %s = p ? p->getAsBigInt() : 0;", $arg.name);
+		case "qint64": {
+		    if (exists $arg.def)
+			$lo += sprintf("int64 %s = !is_nothing(p) ? p->getAsBigInt() : %s;", $arg.name, $arg.def);
+		    else
+			$lo += sprintf("int64 %s = p ? p->getAsBigInt() : 0;", $arg.name);
+	    }
 	    break;
 	    
 	    case "quint32":
-		case "uint":
-		if ($arg.def)
-		$lo += sprintf("unsigned %s = !is_nothing(p) ? p->getAsBigInt() : %d;", $arg.name, $arg.def);
-	    else
-		$lo += sprintf("unsigned %s = p ? p->getAsBigInt() : 0;", $arg.name);
+		case "uint": {
+		    if (exists $arg.def)
+			$lo += sprintf("unsigned %s = !is_nothing(p) ? p->getAsBigInt() : %s;", $arg.name, $arg.def);
+		    else
+			$lo += sprintf("unsigned %s = p ? p->getAsBigInt() : 0;", $arg.name);
+	    }
 	    break;
 	    
 	    case "int": {
-		if ($arg.def)
-		    $lo += sprintf("int %s = !is_nothing(p) ? p->getAsInt() : %d;", $arg.name, $arg.def);
+		if (exists $arg.def)
+		    $lo += sprintf("int %s = !is_nothing(p) ? p->getAsInt() : %s;", $arg.name, $arg.def);
 		else
 		    $lo += sprintf("int %s = p ? p->getAsInt() : 0;", $arg.name);
 		break;
@@ -1139,23 +1120,88 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 		$lo += sprintf("float %s = p ? p->getAsFloat() : 0.0;", $arg.name);
 		break;
 	    }
-	    case "QString":
-		case "char*": {
-		    if (exists $arg.def)
-			$lo = sprintf("const char *%s = p ? p->val.String->getBuffer() : %s;", $arg.name, trim($arg.def));
-		    else {
-			$lo += "if (!p || p->type != NT_STRING) {";
-			$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a string as %s argument to %s::%s()\");", 
-				       toupper($cn), toupper($name), ordinal[$i], $cn, $name);
-			
-			$lo += $const ? "   return;" : "   return 0;";
-			$lo += "}";
-			$lo += sprintf("const char *%s = p->val.String->getBuffer();", $arg.name);
-		    }
-		    break;
+	    case "char*": {
+		if (exists $arg.def)
+		    $lo = sprintf("const char *%s = p ? p->val.String->getBuffer() : %s;", $arg.name, trim($arg.def));
+		else {
+		    $lo += "if (!p || p->type != NT_STRING) {";
+		    $lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a string as %s argument to %s::%s()\");", 
+				   toupper($cn), toupper($name), ordinal[$i], $cn, $name);
+		    
+		    $lo += $const ? "   return;" : "   return 0;";
+		    $lo += "}";
+		    $lo += sprintf("const char *%s = p->val.String->getBuffer();", $arg.name);
+		}
+		break;
 	    }
-	    case "char":
+	    case "QString": {
+		$lo += sprintf("QString %s;", $arg.name);
+		if (exists $arg.def) {
+		    $lo += sprintf("if (get_qstring(p, %s, xsink, true))", $arg.name);
+		    $lo += sprintf("   %s = %s;", $arg.name, trim($arg.def));
+		}
+		else {
+		    $lo += sprintf("if (get_qstring(p, %s, xsink))", $arg.name);
+		    $lo += $const ? "   return;" : "   return 0;";
+		}
+	    }
+	    break;
+	    case "QStringList" : {
+		$lo += "if (!p || p->type != NT_LIST) {";
+		$lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a list as %s argument to %s::%s()\");", 
+			       toupper($cn), toupper($name), ordinal[$i], $cn, $name);
+		$lo += $const ? "   return;" : "   return 0;";
+		$lo += "}";
+		$lo += sprintf("QStringList %s;", $arg.name);
+		$lo += sprintf("ListIterator li_%s(p->val.list);", $arg.name);
+		$lo += sprintf("while (li_%s.next())", $arg.name);
+		$lo += "{";
+		$lo += sprintf("   QoreNodeTypeHelper str(li_%s.getValue(), NT_STRING, xsink);", $arg.name);
+		$lo += "   if (*xsink)";
+		$lo += $const ? "      return;" : "      return 0;";
+		$lo += "   QString tmp;";
+		$lo += "   if (get_qstring(*str, tmp, xsink))";
+		$lo += $const ? "      return;" : "      return 0;";
+		$lo += sprintf("   %s.push_back(tmp);", $arg.name);
+		$lo += "}";
+	    }
+	    break;
+	    case "QVariant": {
+		$lo += sprintf("QVariant %s;", $arg.name);
+		if (exists $arg.def) {
+		    $lo += sprintf("if (get_qvariant(p, %s, xsink, true))", $arg.name);
+		    $lo += sprintf("   %s = %s;", $arg.name, trim($arg.def));
+		}
+		else {
+		    $lo += sprintf("if (get_qvariant(p, %s, xsink))", $arg.name);
+		    $lo += $const ? "   return;" : "   return 0;";
+		}
+	    }
+	    break;
+	    case "QByteArray": {
+		$lo += sprintf("QByteArray %s;", $arg.name);
+		if (exists $arg.def) {
+		    $lo += sprintf("if (get_qbytearray(p, %s, xsink, true))", $arg.name);
+		    $lo += sprintf("   %s = %s;", $arg.name, trim($arg.def));
+		}
+		else {
+		    $lo += sprintf("if (get_qbytearray(p, %s, xsink))", $arg.name);
+		    $lo += $const ? "   return;" : "   return 0;";
+		}
+	    }
+	    break;
 	    case "QChar": {
+		$lo += sprintf("QChar %s;", $arg.name);
+		if (exists $arg.def) {
+		    $lo += sprintf("if (get_qchar(p, %s, xsink, true))", $arg.name);
+		    $lo += sprintf("   %s = %s;", $arg.name, trim($arg.def));
+		}
+		else {
+		    $lo += sprintf("if (get_qchar(p, %s, xsink))", $arg.name);
+		    $lo += $const ? "   return;" : "   return 0;";
+		}
+	    }
+	    case "char": {
 		if (exists $arg.def)
 		    $lo = sprintf("const char %s = p ? p->val.String->getBuffer()[0] : %s;", $arg.name, trim($arg.def));
 		else {
@@ -1172,8 +1218,8 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 	    
 	  default: {
 	      if ($arg.is_int) {
-		  if ($arg.def) {
-		      $lo += sprintf("%s %s = (%s)(!is_nothing(p) ? p->getAsInt() : %d);", $arg.type, $arg.name, $arg.type, $arg.def);
+		  if (exists $arg.def) {
+		      $lo += sprintf("%s %s = !is_nothing(p) ? (%s)p->getAsInt() : %s;", $arg.type, $arg.name, $arg.type, $arg.def);
 		  }
 		  else
 		  {
@@ -1215,7 +1261,7 @@ sub do_single_function($name, $func, $inst, $callstr)
     for (my $i = 0; $i < elements $inst.args; ++$i) {
 	$lo += sprintf("   %sp = get_param(params, %d);", $i ? "" : "QoreNode *", $i);
 	
-	if ($inst.args[$i].is_class)
+	if ($inst.args[$i].is_class && !$inst.args[$i].special_arg)
 	    $lo += do_class(\$inst.args[$i], $name, $cn, $i, True, !exists $func.rt);
 	else if ($inst.args[$i].is_abstract_class)
 	    $lo += do_class(\$inst.args[$i], $name, $cn, $i, False, !exists $func.rt);

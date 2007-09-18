@@ -361,6 +361,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QClipboard.h \
 	modules/qt/QC_QFontComboBox.h \
 	modules/qt/QC_QMainWindow.h \
+	modules/qt/QC_QRadioButton.h \
 	command-line.h \
 	include/qore/Qore.h
 

@@ -32,18 +32,30 @@ class QoreClass *QC_QLineEdit = 0;
 static void QLINEEDIT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_STRING) {
-      const char *contents = p->val.String->getBuffer();
-      p = get_param(params, 1);
-      QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
-      ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
-      self->setPrivate(CID_QLINEEDIT, new QoreQLineEdit(self, contents, parent ? parent->getQWidget() : 0));
+
+   if (is_nothing(p)) {
+      self->setPrivate(CID_QLINEEDIT, new QoreQLineEdit(self));
       return;
    }
 
-   QoreAbstractQWidget *parent = (p && p->type == NT_STRING) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QString contents;
+   bool got_string = !get_qstring(p, contents, xsink, true);
+   if (got_string)
+      p = get_param(params, 1);
+
+   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (!parent && !is_nothing(p)) {
+      xsink->raiseException("QLINEEDIT-CONSTRUCTOR-ERROR", "expecting [widget] or string, [parent widget] as arguments to QLineEdit::constructor(), got type '%s'", p->type->getName());
+      return;
+   }
+
    ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
-   self->setPrivate(CID_QLINEEDIT, new QoreQLineEdit(self, parent ? parent->getQWidget() : 0));
+
+   if (got_string)
+      self->setPrivate(CID_QLINEEDIT, new QoreQLineEdit(self, contents, parent ? parent->getQWidget() : 0));
+   else
+      self->setPrivate(CID_QLINEEDIT, new QoreQLineEdit(self, parent ? parent->getQWidget() : 0));
+
    return;
 }
 
@@ -218,11 +230,11 @@ static QoreNode *QLINEEDIT_inputMask(Object *self, QoreQLineEdit *qle, QoreNode 
 static QoreNode *QLINEEDIT_insert(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QLINEEDIT-INSERT-PARAM-ERROR", "expecting a string as first argument to QLineEdit::insert()");
+
+   QString newText;
+   if (get_qstring(p, newText, xsink))
       return 0;
-   }
-   const char *newText = p->val.String->getBuffer();
+
    qle->qobj->insert(newText);
    return 0;
 }
@@ -336,11 +348,11 @@ static QoreNode *QLINEEDIT_setFrame(Object *self, QoreQLineEdit *qle, QoreNode *
 static QoreNode *QLINEEDIT_setInputMask(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QLINEEDIT-SETINPUTMASK-PARAM-ERROR", "expecting a string as first argument to QLineEdit::setInputMask()");
+   QString inputMask;
+
+   if (get_qstring(p, inputMask, xsink))
       return 0;
-   }
-   const char *inputMask = p->val.String->getBuffer();
+
    qle->qobj->setInputMask(inputMask);
    return 0;
 }
@@ -458,14 +470,11 @@ static QoreNode *QLINEEDIT_selectAll(Object *self, QoreQLineEdit *qle, QoreNode 
 static QoreNode *QLINEEDIT_setText(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (is_nothing(p))
+   
+   QString text;
+   if (get_qstring(p, text, xsink))
       return 0;
 
-   QoreNodeTypeHelper str(p, NT_STRING, xsink);
-   if (*xsink)
-      return 0;
-   
-   const char *text = str->val.String->getBuffer();
    qle->qobj->setText(text);
    return 0;
 }

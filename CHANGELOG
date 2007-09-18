@@ -3,6 +3,7 @@
 	  improved qore <-> qt type handling, charactermap example partially
 	  implemented
 	* qt: improved widget event handling, fixed some bugs
+	* qt: added groupbox example, bug fixes
 
 2007.09.08: David Nichols
 	* qt: better QVariant handling, QVariants are now mapped to and from 

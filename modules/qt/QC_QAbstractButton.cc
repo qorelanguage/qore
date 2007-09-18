@@ -202,11 +202,10 @@ static QoreNode *QABSTRACTBUTTON_setText(Object *self, QoreAbstractQAbstractButt
    if (is_nothing(p))
       return 0;
 
-   QoreNodeTypeHelper str(p, NT_STRING, xsink);
-   if (*xsink)
+   QString text;
+   if (get_qstring(p, text, xsink))
       return 0;
-   
-   const char *text = str->val.String->getBuffer();
+
    qab->getQAbstractButton()->setText(text);
    return 0;
 }

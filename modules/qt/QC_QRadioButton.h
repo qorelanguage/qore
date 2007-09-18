@@ -1,5 +1,5 @@
 /*
- QC_QPushButton.h
+ QC_QRadioButton.h
  
  Qore Programming Language
  
@@ -20,63 +20,55 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPUSHBUTTON_H
+#ifndef _QORE_QT_QC_QRADIOBUTTON_H
 
-#define _QORE_QC_QPUSHBUTTON_H
+#define _QORE_QT_QC_QRADIOBUTTON_H
 
+#include <QRadioButton>
 #include "QoreAbstractQAbstractButton.h"
-
-#include <QPushButton>
-
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QPUSHBUTTON;
+DLLLOCAL extern int CID_QRADIOBUTTON;
+DLLLOCAL extern class QoreClass *QC_QRadioButton;
 
-DLLLOCAL class QoreClass *initQPushButtonClass(class QoreClass *parent);
+DLLLOCAL class QoreClass *initQRadioButtonClass(QoreClass *);
 
-class myQPushButton : public QPushButton, public QoreQWidgetExtension
+class myQRadioButton : public QRadioButton, public QoreQWidgetExtension
 {
-#define QOREQTYPE QPushButton
+#define QOREQTYPE QRadioButton
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
 #undef QOREQTYPE
 
-  public:
-      myQPushButton(Object *obj, const QIcon &icon, const QString &str, QWidget *parent = 0) : QPushButton(icon, str, parent), QoreQWidgetExtension(obj->getClass())
+   public:
+      DLLLOCAL myQRadioButton(Object *obj, QWidget* parent = 0) : QRadioButton(parent), QoreQWidgetExtension(obj->getClass())
       {
-	 init(obj);
+         init(obj);
       }
-      myQPushButton(Object *obj, const QString &str, QWidget *parent = 0) : QPushButton(str, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQRadioButton(Object *obj, const QString& text, QWidget* parent = 0) : QRadioButton(text, parent), QoreQWidgetExtension(obj->getClass())
       {
-	 init(obj);
-      }
-      myQPushButton(Object *obj, QWidget *parent = 0) : QPushButton(parent), QoreQWidgetExtension(obj->getClass())
-      {
-	 init(obj);
+         init(obj);
       }
 };
 
-class QoreQPushButton : public QoreAbstractQAbstractButton
+class QoreQRadioButton : public QoreAbstractQAbstractButton
 {
    public:
-      QPointer<myQPushButton> qobj;
-   
-      DLLLOCAL QoreQPushButton(Object *obj, const QIcon &icon, const QString &str, QWidget *parent = 0) : qobj(new myQPushButton(obj, icon, str, parent))
+      QPointer<myQRadioButton> qobj;
+
+      DLLLOCAL QoreQRadioButton(Object *obj, QWidget* parent = 0) : qobj(new myQRadioButton(obj, parent))
       {
       }
-      DLLLOCAL QoreQPushButton(Object *obj, const QString &str, QWidget *parent = 0) : qobj(new myQPushButton(obj, str, parent))
-      {
-      }
-      DLLLOCAL QoreQPushButton(Object *obj, QWidget *parent = 0) : qobj(new myQPushButton(obj, parent))
+      DLLLOCAL QoreQRadioButton(Object *obj, const QString& text, QWidget* parent = 0) : qobj(new myQRadioButton(obj, text, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
       {
-	 return static_cast<QObject *>(&(*qobj));
+         return static_cast<QObject *>(&(*qobj));
       }
       DLLLOCAL virtual class QWidget *getQWidget() const
       {
-	 return static_cast<QWidget *>(&(*qobj));
+         return static_cast<QWidget *>(&(*qobj));
       }
       DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
@@ -86,9 +78,7 @@ class QoreQPushButton : public QoreAbstractQAbstractButton
       {
          return static_cast<QAbstractButton *>(&(*qobj));
       }
-
       QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-
-#endif
+#endif // _QORE_QT_QC_QRADIOBUTTON_H

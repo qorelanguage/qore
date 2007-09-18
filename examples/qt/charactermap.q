@@ -23,15 +23,13 @@ class CharacterWidget inherits QWidget
 	$.displayFont = new QFont();
 
 	$.squareSize = 24;
-	$.columns = 16;
+	$.columns = 32;
 	$.lastKey = -1;
 	$.setMouseTracking(True);
     }
 
     updateFont($font)
     {
-	#printf("updateFont() %n: %s\n", $font, $font.toString());
-
 	$.displayFont.setFamily($font.family());
 	$.squareSize = max(24, (new QFontMetrics($.displayFont)).xHeight() * 3);
 	$.adjustSize();
@@ -40,8 +38,6 @@ class CharacterWidget inherits QWidget
 
     updateSize($fontSize)
     {
-	#printf("updateSize() %n\n", $fontSize);
-
 	$.displayFont.setPointSize($fontSize);
 	$.squareSize = max(24, (new QFontMetrics($.displayFont)).xHeight() * 3);
 	$.adjustSize();
@@ -50,8 +46,6 @@ class CharacterWidget inherits QWidget
 
     updateStyle($fontStyle)
     {
-	#printf("updateStyle() %n\n", $fontStyle);
-
 	my $fontDatabase = new QFontDatabase();
 	my $oldStrategy = $.displayFont.styleStrategy();
 	$.displayFont = $fontDatabase.font($.displayFont.family(), $fontStyle, $.displayFont.pointSize());
@@ -78,7 +72,6 @@ class CharacterWidget inherits QWidget
 
     mouseMoveEvent($event)
     {
-	#printf("mouseMoveEvent(%n)\n", $event);
 	my $widgetPosition = $.mapFromGlobal($event.globalPos());
 	my $key = ($widgetPosition.y
 		   ()/$.squareSize)*$.columns + $widgetPosition.x()/$.squareSize;
@@ -90,7 +83,6 @@ class CharacterWidget inherits QWidget
 
     mousePressEvent($event)
     {
-	#printf("mousePressEvent(%n)\n", $event);
 	if ($event.button() == Qt::LeftButton) {
 	    $.lastKey = ($event.y
 			 ()/$.squareSize)*$.columns + $event.x()/$.squareSize;
@@ -105,7 +97,6 @@ class CharacterWidget inherits QWidget
 
     paintEvent($event)
     {
-	#printf("paintEvent() %n\n", $event);
 	my $painter = new QPainter($self);
 	$painter.fillRect($event.rect(), new QBrush(Qt::white));
 	$painter.setFont($.displayFont);

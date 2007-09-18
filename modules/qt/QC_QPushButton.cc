@@ -30,6 +30,9 @@
 
 int CID_QPUSHBUTTON;
 
+//QPushButton ( QWidget * parent = 0 ) 
+//QPushButton ( const QString & text, QWidget * parent = 0 ) 
+//QPushButton ( const QIcon & icon, const QString & text, QWidget * parent = 0 )
 static void QPUSHBUTTON_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQPushButton *pb = 0;
@@ -39,49 +42,48 @@ static void QPUSHBUTTON_constructor(class Object *self, class QoreNode *params, 
    else if (np == 1)
    {
       QoreNode *p = get_param(params, 0);
-      if (p && p->type == NT_OBJECT)
-      {
-	 QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      QString text;
+      if (get_qstring(p, text, xsink, true)) {
+	 QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 	 if (!parent)
 	 {
 	    if (!xsink->isException())
-	       xsink->raiseException("QPUSHBUTTON-CONSTRUCTOR-ERROR", "expecting an object derived from QWidget as parameter to QPushButton::constructor(), object class passed: '%s' is not derived from QWidget", p->val.object->getClass()->getName());
+	       xsink->raiseException("QPUSHBUTTON-CONSTRUCTOR-ERROR", "expecting an object derived from QWidget or a string as first parameter to QPushButton::constructor() when only one argument is passed");
 	    return;
 	 }
 	 ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
 	 pb = new QoreQPushButton(self, parent->getQWidget());
       }
-      else if (p && p->type == NT_STRING)
-	 pb = new QoreQPushButton(self, p->val.String->getBuffer());
+      pb = new QoreQPushButton(self, text);
    }
-   else if (np == 2 || np == 3)
+
+   QoreNode *p = get_param(params, 0);
+
+   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   ReferenceHolder<QoreQIcon> iconHolder(icon, xsink);
+
+   if (icon)
+      p = get_param(params, 1);
+   
+   QString text;
+   if (get_qstring(p, text, xsink))
+      return;
+   
+   p = get_param(params, icon ? 2 : 1);
+   
+   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;      
+   if (*xsink)
+      return;
+   if (!parent && !is_nothing(p))
    {
-      QoreNode *p = get_param(params, 0);
-      if (p && p->type == NT_STRING)
-      {
-	 const char *name = p->val.String->getBuffer();
-	 QoreNode *p = test_param(params, NT_OBJECT, 1);
-	 QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
-	 if (!parent)
-	 {
-	    if (!xsink->isException())
-	       xsink->raiseException("QPUSHBUTTON-CONSTRUCTOR-ERROR", "expecting an object derived from QWidget as parameter to QPushButton::constructor() in second argument when first argument is a string and second argument is passed");
-	    return;
-	 }
-	 ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-	 pb = new QoreQPushButton(self, name, parent->getQWidget());
-      }
-      else // FIXME: implement constructor version with icon
-      {
-	 xsink->raiseException("QPUSHBUTTON-CONSTRUCTOR-ERROR", "unexpected value type %s for QPushButton::constructor() with %d arguments", p ? p->type->getName() : "NOTHING", np);
-	 return;
-      }
-   }
-   else
-   {
-      xsink->raiseException("QPUSHBUTTON-CONSTRUCTOR-ERROR", "expecting 0-3 arguments to QPushButton::constructor(), got %d", np);
+      xsink->raiseException("QPUSHBUTTON-CONSTRUCTOR-ERROR", "expecting either NOTHING or an object derived from QWidget as final argument to QPushButton::constructor(), got type '%s'", p->type->getName());
       return;
    }
+   ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
+   if (icon)
+      pb = new QoreQPushButton(self, *icon, text, parent ? parent->getQWidget() : 0);
+   else
+      pb = new QoreQPushButton(self, text, parent ? parent->getQWidget() : 0);
 
    self->setPrivate(CID_QPUSHBUTTON, pb);
 }
@@ -110,10 +112,17 @@ static QoreNode *QPUSHBUTTON_isFlat(Object *self, QoreQPushButton *qpb, QoreNode
 }
 
 //QMenu * menu () const
-//static QoreNode *QPUSHBUTTON_menu(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return qpb->qobj->menu();
-//}
+static QoreNode *QPUSHBUTTON_menu(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QMenu *qt_qobj = qpb->qobj->menu();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   assert(rv_obj);
+   rv_obj->ref();
+   return new QoreNode(rv_obj);
+}
 
 //void setAutoDefault ( bool )
 static QoreNode *QPUSHBUTTON_setAutoDefault(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
@@ -143,13 +152,19 @@ static QoreNode *QPUSHBUTTON_setFlat(Object *self, QoreQPushButton *qpb, QoreNod
 }
 
 //void setMenu ( QMenu * menu )
-//static QoreNode *QPUSHBUTTON_setMenu(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QMenu* menu = p;
-//   qpb->qobj->setMenu(menu);
-//   return 0;
-//}
+static QoreNode *QPUSHBUTTON_setMenu(Object *self, QoreQPushButton *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreQMenu *)p->val.object->getReferencedPrivateData(CID_QMENU, xsink) : 0;
+   if (!menu) {
+      if (!xsink->isException())
+         xsink->raiseException("QPUSHBUTTON-SETMENU-PARAM-ERROR", "expecting a QMenu object as first argument to QPushButton::setMenu()");
+      return 0;
+   }
+   ReferenceHolder<QoreQMenu> menuHolder(menu, xsink);
+   qpb->qobj->setMenu(static_cast<QMenu *>(menu->qobj));
+   return 0;
+}
 
 // slots
 //void showMenu()
@@ -175,11 +190,11 @@ class QoreClass *initQPushButtonClass(class QoreClass *qwidget)
    QC_QPushButton->addMethod("autoDefault",                 (q_method_t)QPUSHBUTTON_autoDefault);
    QC_QPushButton->addMethod("isDefault",                   (q_method_t)QPUSHBUTTON_isDefault);
    QC_QPushButton->addMethod("isFlat",                      (q_method_t)QPUSHBUTTON_isFlat);
-   //QC_QPushButton->addMethod("menu",                        (q_method_t)QPUSHBUTTON_menu);
+   QC_QPushButton->addMethod("menu",                        (q_method_t)QPUSHBUTTON_menu);
    QC_QPushButton->addMethod("setAutoDefault",              (q_method_t)QPUSHBUTTON_setAutoDefault);
    QC_QPushButton->addMethod("setDefault",                  (q_method_t)QPUSHBUTTON_setDefault);
    QC_QPushButton->addMethod("setFlat",                     (q_method_t)QPUSHBUTTON_setFlat);
-   //QC_QPushButton->addMethod("setMenu",                     (q_method_t)QPUSHBUTTON_setMenu);
+   QC_QPushButton->addMethod("setMenu",                     (q_method_t)QPUSHBUTTON_setMenu);
    QC_QPushButton->addMethod("showMenu",                    (q_method_t)QPUSHBUTTON_showMenu);
 
    traceout("initQPushButtonClass()");

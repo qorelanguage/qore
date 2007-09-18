@@ -157,11 +157,10 @@ static QoreNode *QCLIPBOARD_setPixmap(Object *self, QoreQClipboard *qc, QoreNode
 static QoreNode *QCLIPBOARD_setText(Object *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QCLIPBOARD-SETTEXT-PARAM-ERROR", "expecting a string as first argument to QClipboard::setText()");
+   QString text;
+   if (get_qstring(p, text, xsink))
       return 0;
-   }
-   const char *text = p->val.String->getBuffer();
+
    p = get_param(params, 1);
    QClipboard::Mode mode = (QClipboard::Mode)(p ? p->getAsInt() : 0);
    qc->qobj->setText(text, mode);
@@ -185,6 +184,7 @@ static QoreNode *QCLIPBOARD_supportsSelection(Object *self, QoreQClipboard *qc, 
 static QoreNode *QCLIPBOARD_text(Object *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
+
    const char *subtype = 0;
    if (p && p->type == NT_STRING) {
       subtype = p->val.String->getBuffer();

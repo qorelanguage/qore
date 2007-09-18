@@ -66,11 +66,10 @@ static QoreNode *QACTIONGROUP_addAction(Object *self, QoreQActionGroup *qag, Qor
          }
          ReferenceHolder<QoreQIcon> iconHolder(icon, xsink);
          p = get_param(params, 1);
-         if (!p || p->type != NT_STRING) {
-            xsink->raiseException("QACTIONGROUP-ADDACTION-PARAM-ERROR", "expecting a string as second argument to QActionGroup::addAction()");
-            return 0;
-         }
-         const char *text = p->val.String->getBuffer();
+	 QString text;
+	 if (get_qstring(p, text, xsink))
+	    return 0;
+
          Object *o_qa = new Object(QC_QAction, getProgram());
          QoreQAction *q_qa = new QoreQAction(o_qa, qag->qobj->addAction(*(static_cast<QIcon *>(icon)), text));
          o_qa->setPrivate(CID_QACTION, q_qa);
@@ -82,11 +81,10 @@ static QoreNode *QACTIONGROUP_addAction(Object *self, QoreQActionGroup *qag, Qor
       o_qa->setPrivate(CID_QACTION, q_qa);
       return new QoreNode(o_qa);
    }
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QACTIONGROUP-ADDACTION-PARAM-ERROR", "expecting a string, QAction, or QIcon object as first argument to QActionGroup::addAction()");
+   QString text;
+   if (get_qstring(p, text, xsink))
       return 0;
-   }
-   const char *text = p->val.String->getBuffer();
+
    Object *o_qa = new Object(QC_QAction, getProgram());
    QoreQAction *q_qa = new QoreQAction(o_qa, qag->qobj->addAction(text));
    o_qa->setPrivate(CID_QACTION, q_qa);

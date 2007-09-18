@@ -39,7 +39,7 @@ class QoreQPixmap : public AbstractPrivateData, public QoreAbstractQPixmap, publ
       DLLLOCAL QoreQPixmap(int w, int h) : QPixmap(w, h)
       {
       }
-      DLLLOCAL QoreQPixmap(const char *filename, const char *format = 0, Qt::ImageConversionFlags flags = Qt::AutoColor) : QPixmap(filename, format, flags)
+      DLLLOCAL QoreQPixmap(const QString &filename, const char *format = 0, Qt::ImageConversionFlags flags = Qt::AutoColor) : QPixmap(filename, format, flags)
       {
       }
       DLLLOCAL QoreQPixmap(const QPixmap &pix) : QPixmap(pix)

@@ -178,11 +178,10 @@ static QoreNode *QSHORTCUT_setKey(Object *self, QoreQShortcut *qs, QoreNode *par
 static QoreNode *QSHORTCUT_setWhatsThis(Object *self, QoreQShortcut *qs, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QSHORTCUT-SETWHATSTHIS-PARAM-ERROR", "expecting a string as first argument to QShortcut::setWhatsThis()");
+   QString text;
+
+   if (get_qstring(p, text, xsink))
       return 0;
-   }
-   const char *text = p->val.String->getBuffer();
    qs->qobj->setWhatsThis(text);
    return 0;
 }

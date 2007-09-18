@@ -428,11 +428,9 @@ static QoreNode *QCOLOR_setHsvF(Object *self, QoreQColor *qc, QoreNode *params, 
 static QoreNode *QCOLOR_setNamedColor(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QCOLOR-SETNAMEDCOLOR-PARAM-ERROR", "expecting a string as first argument to QColor::setNamedColor()");
+   QString name;
+   if (get_qstring(p, name, xsink))
       return 0;
-   }
-   const char *name = p->val.String->getBuffer();
    qc->setNamedColor(name);
    return 0;
 }
