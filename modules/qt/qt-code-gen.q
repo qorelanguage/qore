@@ -6,10 +6,12 @@
 const opts = (
     "abstract"        : "a,abstract",
     "abstract_class"  : "n,name=s",
+    "abstract_list"   : "A,abstract-list=s@",
     "indep"           : "i,independent",
     "file"            : "f,file",
     "parent"          : "p,parent=s",
     "widget"          : "w,widget",
+    "test"            : "t,test",
     "help"            : "h,help"
     );
 
@@ -21,12 +23,14 @@ our $special_hash =
       "QDateTime"  : \do_qdatetime(),
       "QTime"      : \do_qtime(),
       "QVariant"   : \do_qvariant(),
-      "QByteArray" : \do_qbytearray() );
+      "QByteArray" : \do_qbytearray(),
+      "QChar"      : \do_qchar()
+    );
 
 const qobject_list = 
     ( "QWidget", "QMovie", "QAction", "QActionGroup", "QMenu", 
       "QAbstractItemDelegate", "QItemDelegate", "QItemModel", "QLayout", 
-      "QAbstractButton", "QLineEdit" );
+      "QAbstractButton", "QLineEdit", "QScrollBar", "QMimeData" );
 
 const abstract_class_list = 
     ( "QObject", "QWidget", "QAbstractItemDelegate", "QItemDelegate", 
@@ -40,7 +44,7 @@ const const_class_list =
       "QTextImageFormat", "QTextListFormat", "QTextTableFormat", "QTextLength", 
       "QPen", "QStyleOption", "QModelIndex", "QStyleOptionViewItem", 
       "QStyleOptionViewItemV2", "QLocale", "QUrl", "QByteArray", "QVariant", 
-      "QRect", "QRectF"
+      "QRect", "QRectF", "QFontInfo", "QFontMetrics"
     );
 
 const class_list = ( "QRegion",
@@ -49,6 +53,27 @@ const class_list = ( "QRegion",
 		     "QMenu",
 		     "QAction", 
 		     "QActionGroup",
+		     "QEvent",
+		     "QActionEvent",
+		     "QCloseEvent",
+		     "QContextMenuEvent",
+		     "QDropEvent",
+		     "QDragMoveEvent",
+		     "QDragEnterEvent",
+		     "QDragLeaveEvent",
+		     "QFocusEvent",
+		     "QHideEvent",
+		     "QInputMethodEvent",
+		     "QShowEvent",
+		     "QTabletEvent",
+		     "QWheelEvent",
+		     "QInputEvent",
+		     "QKeyEvent",
+		     "QMouseEvent",
+		     "QMoveEvent",
+		     "QPaintEvent",
+		     "QResizeEvent",
+
  ) + const_class_list + qobject_list;
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
@@ -62,11 +87,14 @@ sub usage()
 {
     printf(
 "usage: %s input_file class_name
+  -f,--file                create cc and header file(s)
   -i,--independent         emit code for independent class
   -a,--abstract            emit abstract class name
-  -n,--abstract_class=ARG  abstract class name
+  -n,--name=ARG            abstract parent's class name
+  -A,--abstract-list=ARG   list of abstract classes
   -w,--widget              is a QWidget
   -p,--parent=ARG          parent class name
+  -t,--test                do not create files (use with -f)
   -h,--help                this help text
 ", basename($ENV."_"));
     exit(1);
@@ -241,6 +269,8 @@ sub do_dynamic_class($arg, $name, $cn, $i, $const)
 sub get_file($fn)
 {
     #return stdout;
+    if ($o.test)
+	return stdout;
 
     if (is_file($fn)) {
 	my $nfn = $fn + ".orig";
@@ -270,7 +300,7 @@ sub add_new_build_files($fp)
 	system("printf '#include \\\"" + $cc + "\\\"\\n'>> single-compilation-unit.cc");
 
     # add to qt/Makefile.am
-    if (!strlen(trim(backquote("grep " + $cc + " Makefile.am")))) {
+    if (!$o.test && !strlen(trim(backquote("grep " + $cc + " Makefile.am")))) {
 	my $lines = split("\n", `cat Makefile.am`);
 	my $of = get_file("Makefile.am");
 	my $done;
@@ -288,7 +318,7 @@ sub add_new_build_files($fp)
     }    
 
     # add to root Makefile.am
-    if (!strlen(trim(backquote("grep " + $hh + " ../../Makefile.am")))) {
+    if (!$o.test && !strlen(trim(backquote("grep " + $hh + " ../../Makefile.am")))) {
 	my $lines = split("\n", `cat ../../Makefile.am`);
 	my $of = get_file("../../Makefile.am");
 	my ($found, $done);
@@ -307,7 +337,7 @@ sub add_new_build_files($fp)
     }
 
     # add to qt.cc
-    if (!strlen(trim(backquote("grep " + $hh + " qt.cc")))) {
+    if (!$o.test && !strlen(trim(backquote("grep " + $hh + " qt.cc")))) {
 	my $lines = split("\n", `cat qt.cc`);
 	my $of = get_file("qt.cc");
 	my ($found, $done);
@@ -587,8 +617,15 @@ DLLLOCAL class QoreClass *init%sClass(%s);
       }
 ", $o.abstract_class, $o.abstract_class, $o.abstract_class);
 
-	    $of.printf("      QORE_VIRTUAL_QOBJECT_METHODS
-};\n");
+	    foreach my $ac in ($o.abstract_list)
+		$of.printf("      DLLLOCAL virtual class %s *get%s() const
+      {
+         return static_cast<%s *>(&(*qobj));
+      }
+", $ac, $ac, $ac);
+
+	    $of.printf("      QORE_VIRTUAL_Q%s_METHODS\n", $o.widget ? "WIDGET" : "OBJECT");
+	    $of.printf("};\n");
 	}
 
 	$of.printf("\n#endif // _QORE_QT_QC_%s_H\n", $func_prefix);
@@ -605,12 +642,17 @@ DLLLOCAL class QoreClass *init%sClass(%s);
 	my $lo = ();
 
 	my $hdr = ();
-	foreach my $i in (\$proto.$p.inst) {
-	    $hdr += sprintf("//%s", $i.orig);
 
-	    if ($p == $cn && elements $i.args == 1 && $i.args[0].type == $cn) {
-		delete $i;
-		continue;
+	my $name = $p == $cn ? "constructor" : $p;
+
+	for (my $i; $i < elements $proto.$p.inst; ++$i) {
+	    my $inst = $proto.$p.inst[$i];
+	    $hdr += sprintf("//%s", $inst.orig);
+
+	    if ($p == $cn && elements $inst.args == 1 && $inst.args[0].type == $cn) {
+		# remove this element from the list if it's a constant constructor
+		splice $proto.$p.inst, $i, 1;
+		--$i;
 	    }
         }
 	if ($p == $cn)
@@ -633,9 +675,9 @@ DLLLOCAL class QoreClass *init%sClass(%s);
 		$callstr += "self, ";
 	}
 	if (elements $proto.$p.inst == 1)
-	    $lo += do_single_function($p, \$proto.$p, $proto.$p.inst[0], $callstr);
+	    $lo += do_single_function($name, \$proto.$p, $proto.$p.inst[0], $callstr);
 	else
-	    $lo += do_multi_function($p, \$proto.$p, $proto.$p.inst, $callstr);
+	    $lo += do_multi_function($name, \$proto.$p, $proto.$p.inst, $callstr);
 
 	$lo += "}";
 
@@ -845,6 +887,16 @@ sub do_qbytearray($arg, $const)
     return $lo;
 }
 
+sub do_qchar($arg, $const)
+{
+    my $lo = ();
+    
+    $lo += sprintf("QChar %s;", $arg.name);
+    $lo += sprintf("if (get_qchar(p, %s, xsink))", $arg.name);
+    $lo += sprintf("   return%s;", $const ? "" : " 0");
+    return $lo;
+}
+
 sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 {
     my $lo = ();
@@ -958,6 +1010,7 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 	else
 	    switch ($opt.args[$param].type) {
 		case "QString":
+		case "QChar":
 		case /char/:
 		    $qt = "STRING";
 		    break;
@@ -1100,6 +1153,21 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 			$lo += sprintf("const char *%s = p->val.String->getBuffer();", $arg.name);
 		    }
 		    break;
+	    }
+	    case "char":
+	    case "QChar": {
+		if (exists $arg.def)
+		    $lo = sprintf("const char %s = p ? p->val.String->getBuffer()[0] : %s;", $arg.name, trim($arg.def));
+		else {
+		    $lo += "if (!p || p->type != NT_STRING) {";
+		    $lo += sprintf("   xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a string as %s argument to %s::%s()\");", 
+				   toupper($cn), toupper($name), ordinal[$i], $cn, $name);
+		    
+		    $lo += $const ? "   return;" : "   return 0;";
+		    $lo += "}";
+		    $lo += sprintf("const char %s = p->val.String->getBuffer()[0];", $arg.name);
+		}
+		break;
 	    }
 	    
 	  default: {
@@ -1255,6 +1323,24 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	    $lo += "QoreString *rv_str = new QoreString();";
 	    $lo += "rv_str->concat(c_rv);";
 	    $lo += "return new QoreNode(rv_str);";
+	    break;
+	}
+
+	case "QList<int>": {
+	    $lo += sprintf("QList<int> ilist_rv = %s;", $callstr);
+	    $lo += "List *l = new List();";
+	    $lo += "for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)";
+	    $lo += "   l->push(new QoreNode((int64)(*i)));";
+	    $lo += "return new QoreNode(l);";
+	    break;
+	}
+
+	case "QStringList": {
+	    $lo += sprintf("QStringList strlist_rv = %s;", $callstr);
+	    $lo += "List *l = new List();";
+	    $lo += "for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)";
+	    $lo += "   l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));";
+	    $lo += "return new QoreNode(l);";
 	    break;
 	}
 

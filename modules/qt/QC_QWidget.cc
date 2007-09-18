@@ -1385,9 +1385,13 @@ static QoreNode *QWIDGET_setMinimumWidth(class Object *self, QoreAbstractQWidget
 }
 
 //void setMouseTracking ( bool enable )
-//static QoreNode *QWIDGET_setMouseTracking(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_setMouseTracking(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool enable = p ? p->getAsBool() : false;
+   qw->getQWidget()->setMouseTracking(enable);
+   return 0;
+}
 
 //void setPalette ( const QPalette & )
 static QoreNode *QWIDGET_setPalette(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -2028,6 +2032,448 @@ static QoreNode *QWIDGET_showNormal(Object *self, QoreAbstractQWidget *qw, QoreN
    return 0;
 }
 
+// events
+//virtual void actionEvent ( QActionEvent * event )
+static QoreNode *QWIDGET_actionEvent(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQActionEvent *event = (p && p->type == NT_OBJECT) ? (QoreQActionEvent *)p->val.object->getReferencedPrivateData(CID_QACTIONEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-ACTIONEVENT-PARAM-ERROR", "expecting a QActionEvent object as first argument to QWidget::actionEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQActionEvent> eventHolder(event, xsink);
+   qw->actionEvent(static_cast<QActionEvent *>(event));
+   return 0;
+}
+
+//virtual void changeEvent ( QEvent * event )
+static QoreNode *QWIDGET_changeEvent(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)p->val.object->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-CHANGEEVENT-PARAM-ERROR", "expecting a QEvent object as first argument to QWidget::changeEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQEvent> eventHolder(event, xsink);
+   qw->changeEvent(static_cast<QEvent *>(event));
+   return 0;
+}
+
+//virtual void closeEvent ( QCloseEvent * event )
+static QoreNode *QWIDGET_closeEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQCloseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQCloseEvent *)p->val.object->getReferencedPrivateData(CID_QCLOSEEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-CLOSEEVENT-PARAM-ERROR", "expecting a QCloseEvent object as first argument to QWidget::closeEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQCloseEvent> eventHolder(event, xsink);
+   qw->qobj->closeEvent(static_cast<QCloseEvent *>(event));
+   return 0;
+}
+
+//virtual void contextMenuEvent ( QContextMenuEvent * event )
+static QoreNode *QWIDGET_contextMenuEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQContextMenuEvent *event = (p && p->type == NT_OBJECT) ? (QoreQContextMenuEvent *)p->val.object->getReferencedPrivateData(CID_QCONTEXTMENUEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-CONTEXTMENUEVENT-PARAM-ERROR", "expecting a QContextMenuEvent object as first argument to QWidget::contextMenuEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQContextMenuEvent> eventHolder(event, xsink);
+   qw->qobj->contextMenuEvent(static_cast<QContextMenuEvent *>(event));
+   return 0;
+}
+
+//virtual void dragEnterEvent ( QDragEnterEvent * event )
+static QoreNode *QWIDGET_dragEnterEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQDragEnterEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDragEnterEvent *)p->val.object->getReferencedPrivateData(CID_QDRAGENTEREVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-DRAGENTEREVENT-PARAM-ERROR", "expecting a QDragEnterEvent object as first argument to QWidget::dragEnterEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQDragEnterEvent> eventHolder(event, xsink);
+   qw->qobj->dragEnterEvent(static_cast<QDragEnterEvent *>(event));
+   return 0;
+}
+
+//virtual void dragLeaveEvent ( QDragLeaveEvent * event )
+static QoreNode *QWIDGET_dragLeaveEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQDragLeaveEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDragLeaveEvent *)p->val.object->getReferencedPrivateData(CID_QDRAGLEAVEEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-DRAGLEAVEEVENT-PARAM-ERROR", "expecting a QDragLeaveEvent object as first argument to QWidget::dragLeaveEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQDragLeaveEvent> eventHolder(event, xsink);
+   qw->qobj->dragLeaveEvent(static_cast<QDragLeaveEvent *>(event));
+   return 0;
+}
+
+//virtual void dragMoveEvent ( QDragMoveEvent * event )
+static QoreNode *QWIDGET_dragMoveEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQDragMoveEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDragMoveEvent *)p->val.object->getReferencedPrivateData(CID_QDRAGMOVEEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-DRAGMOVEEVENT-PARAM-ERROR", "expecting a QDragMoveEvent object as first argument to QWidget::dragMoveEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQDragMoveEvent> eventHolder(event, xsink);
+   qw->qobj->dragMoveEvent(static_cast<QDragMoveEvent *>(event));
+   return 0;
+}
+
+//virtual void dropEvent ( QDropEvent * event )
+static QoreNode *QWIDGET_dropEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQDropEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDropEvent *)p->val.object->getReferencedPrivateData(CID_QDROPEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-DROPEVENT-PARAM-ERROR", "expecting a QDropEvent object as first argument to QWidget::dropEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQDropEvent> eventHolder(event, xsink);
+   qw->qobj->dropEvent(static_cast<QDropEvent *>(event));
+   return 0;
+}
+
+//virtual void enterEvent ( QEvent * event )
+static QoreNode *QWIDGET_enterEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)p->val.object->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-ENTEREVENT-PARAM-ERROR", "expecting a QEvent object as first argument to QWidget::enterEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQEvent> eventHolder(event, xsink);
+   qw->qobj->enterEvent(static_cast<QEvent *>(event));
+   return 0;
+}
+
+//virtual bool event ( QEvent * event )
+static QoreNode *QWIDGET_event(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)p->val.object->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-EVENT-PARAM-ERROR", "expecting a QEvent object as first argument to QWidget::event()");
+      return 0;
+   }
+   ReferenceHolder<QoreQEvent> eventHolder(event, xsink);
+   return new QoreNode(qw->qobj->event(static_cast<QEvent *>(event)));
+}
+
+//virtual void focusInEvent ( QFocusEvent * event )
+static QoreNode *QWIDGET_focusInEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQFocusEvent *event = (p && p->type == NT_OBJECT) ? (QoreQFocusEvent *)p->val.object->getReferencedPrivateData(CID_QFOCUSEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-FOCUSINEVENT-PARAM-ERROR", "expecting a QFocusEvent object as first argument to QWidget::focusInEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQFocusEvent> eventHolder(event, xsink);
+   qw->qobj->focusInEvent(static_cast<QFocusEvent *>(event));
+   return 0;
+}
+
+//virtual void focusOutEvent ( QFocusEvent * event )
+static QoreNode *QWIDGET_focusOutEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQFocusEvent *event = (p && p->type == NT_OBJECT) ? (QoreQFocusEvent *)p->val.object->getReferencedPrivateData(CID_QFOCUSEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-FOCUSOUTEVENT-PARAM-ERROR", "expecting a QFocusEvent object as first argument to QWidget::focusOutEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQFocusEvent> eventHolder(event, xsink);
+   qw->qobj->focusOutEvent(static_cast<QFocusEvent *>(event));
+   return 0;
+}
+
+//virtual void hideEvent ( QHideEvent * event )
+static QoreNode *QWIDGET_hideEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQHideEvent *event = (p && p->type == NT_OBJECT) ? (QoreQHideEvent *)p->val.object->getReferencedPrivateData(CID_QHIDEEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-HIDEEVENT-PARAM-ERROR", "expecting a QHideEvent object as first argument to QWidget::hideEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQHideEvent> eventHolder(event, xsink);
+   qw->qobj->hideEvent(static_cast<QHideEvent *>(event));
+   return 0;
+}
+
+//virtual void inputMethodEvent ( QInputMethodEvent * event )
+static QoreNode *QWIDGET_inputMethodEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQInputMethodEvent *event = (p && p->type == NT_OBJECT) ? (QoreQInputMethodEvent *)p->val.object->getReferencedPrivateData(CID_QINPUTMETHODEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-INPUTMETHODEVENT-PARAM-ERROR", "expecting a QInputMethodEvent object as first argument to QWidget::inputMethodEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQInputMethodEvent> eventHolder(event, xsink);
+   qw->qobj->inputMethodEvent(static_cast<QInputMethodEvent *>(event));
+   return 0;
+}
+
+//virtual void keyPressEvent ( QKeyEvent * event )
+static QoreNode *QWIDGET_keyPressEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQKeyEvent *event = (p && p->type == NT_OBJECT) ? (QoreQKeyEvent *)p->val.object->getReferencedPrivateData(CID_QKEYEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-KEYPRESSEVENT-PARAM-ERROR", "expecting a QKeyEvent object as first argument to QWidget::keyPressEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQKeyEvent> eventHolder(event, xsink);
+   qw->qobj->keyPressEvent(static_cast<QKeyEvent *>(event));
+   return 0;
+}
+
+//virtual void keyReleaseEvent ( QKeyEvent * event )
+static QoreNode *QWIDGET_keyReleaseEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQKeyEvent *event = (p && p->type == NT_OBJECT) ? (QoreQKeyEvent *)p->val.object->getReferencedPrivateData(CID_QKEYEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-KEYRELEASEEVENT-PARAM-ERROR", "expecting a QKeyEvent object as first argument to QWidget::keyReleaseEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQKeyEvent> eventHolder(event, xsink);
+   qw->qobj->keyReleaseEvent(static_cast<QKeyEvent *>(event));
+   return 0;
+}
+
+//virtual void leaveEvent ( QEvent * event )
+static QoreNode *QWIDGET_leaveEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)p->val.object->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-LEAVEEVENT-PARAM-ERROR", "expecting a QEvent object as first argument to QWidget::leaveEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQEvent> eventHolder(event, xsink);
+   qw->qobj->leaveEvent(static_cast<QEvent *>(event));
+   return 0;
+}
+
+////virtual bool macEvent ( EventHandlerCallRef caller, EventRef event )
+//static QoreNode *QWIDGET_macEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+//{
+//   QoreNode *p = get_param(params, 0);
+//   QWidget::EventHandlerCallRef caller = (QWidget::EventHandlerCallRef)(p ? p->getAsInt() : 0);
+//   p = get_param(params, 1);
+//   QWidget::EventRef event = (QWidget::EventRef)(p ? p->getAsInt() : 0);
+//   return new QoreNode(qw->qobj->macEvent(caller, event));
+//}
+
+//virtual void mouseDoubleClickEvent ( QMouseEvent * event )
+static QoreNode *QWIDGET_mouseDoubleClickEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)p->val.object->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-MOUSEDOUBLECLICKEVENT-PARAM-ERROR", "expecting a QMouseEvent object as first argument to QWidget::mouseDoubleClickEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQMouseEvent> eventHolder(event, xsink);
+   qw->qobj->mouseDoubleClickEvent(static_cast<QMouseEvent *>(event));
+   return 0;
+}
+
+//virtual void mouseMoveEvent ( QMouseEvent * event )
+static QoreNode *QWIDGET_mouseMoveEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)p->val.object->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-MOUSEMOVEEVENT-PARAM-ERROR", "expecting a QMouseEvent object as first argument to QWidget::mouseMoveEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQMouseEvent> eventHolder(event, xsink);
+   qw->qobj->mouseMoveEvent(static_cast<QMouseEvent *>(event));
+   return 0;
+}
+
+//virtual void mousePressEvent ( QMouseEvent * event )
+static QoreNode *QWIDGET_mousePressEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)p->val.object->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-MOUSEPRESSEVENT-PARAM-ERROR", "expecting a QMouseEvent object as first argument to QWidget::mousePressEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQMouseEvent> eventHolder(event, xsink);
+   qw->qobj->mousePressEvent(static_cast<QMouseEvent *>(event));
+   return 0;
+}
+
+//virtual void mouseReleaseEvent ( QMouseEvent * event )
+static QoreNode *QWIDGET_mouseReleaseEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)p->val.object->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-MOUSERELEASEEVENT-PARAM-ERROR", "expecting a QMouseEvent object as first argument to QWidget::mouseReleaseEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQMouseEvent> eventHolder(event, xsink);
+   qw->qobj->mouseReleaseEvent(static_cast<QMouseEvent *>(event));
+   return 0;
+}
+
+//virtual void moveEvent ( QMoveEvent * event )
+static QoreNode *QWIDGET_moveEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQMoveEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMoveEvent *)p->val.object->getReferencedPrivateData(CID_QMOVEEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-MOVEEVENT-PARAM-ERROR", "expecting a QMoveEvent object as first argument to QWidget::moveEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQMoveEvent> eventHolder(event, xsink);
+   qw->qobj->moveEvent(static_cast<QMoveEvent *>(event));
+   return 0;
+}
+
+//virtual void paintEvent ( QPaintEvent * event )
+static QoreNode *QWIDGET_paintEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQPaintEvent *event = (p && p->type == NT_OBJECT) ? (QoreQPaintEvent *)p->val.object->getReferencedPrivateData(CID_QPAINTEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-PAINTEVENT-PARAM-ERROR", "expecting a QPaintEvent object as first argument to QWidget::paintEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQPaintEvent> eventHolder(event, xsink);
+   qw->qobj->paintEvent(static_cast<QPaintEvent *>(event));
+   return 0;
+}
+
+////virtual bool qwsEvent ( QWSEvent * event )
+//static QoreNode *QWIDGET_qwsEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+//{
+//   QoreNode *p = get_param(params, 0);
+//   ??? QWSEvent* event = p;
+//   return new QoreNode(qw->qobj->qwsEvent(event));
+//}
+
+//virtual void resizeEvent ( QResizeEvent * event )
+static QoreNode *QWIDGET_resizeEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQResizeEvent *event = (p && p->type == NT_OBJECT) ? (QoreQResizeEvent *)p->val.object->getReferencedPrivateData(CID_QRESIZEEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-RESIZEEVENT-PARAM-ERROR", "expecting a QResizeEvent object as first argument to QWidget::resizeEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQResizeEvent> eventHolder(event, xsink);
+   qw->qobj->resizeEvent(static_cast<QResizeEvent *>(event));
+   return 0;
+}
+
+//virtual void showEvent ( QShowEvent * event )
+static QoreNode *QWIDGET_showEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQShowEvent *event = (p && p->type == NT_OBJECT) ? (QoreQShowEvent *)p->val.object->getReferencedPrivateData(CID_QSHOWEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-SHOWEVENT-PARAM-ERROR", "expecting a QShowEvent object as first argument to QWidget::showEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQShowEvent> eventHolder(event, xsink);
+   qw->qobj->showEvent(static_cast<QShowEvent *>(event));
+   return 0;
+}
+
+//virtual void tabletEvent ( QTabletEvent * event )
+static QoreNode *QWIDGET_tabletEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQTabletEvent *event = (p && p->type == NT_OBJECT) ? (QoreQTabletEvent *)p->val.object->getReferencedPrivateData(CID_QTABLETEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-TABLETEVENT-PARAM-ERROR", "expecting a QTabletEvent object as first argument to QWidget::tabletEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQTabletEvent> eventHolder(event, xsink);
+   qw->qobj->tabletEvent(static_cast<QTabletEvent *>(event));
+   return 0;
+}
+
+//virtual void wheelEvent ( QWheelEvent * event )
+static QoreNode *QWIDGET_wheelEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQWheelEvent *event = (p && p->type == NT_OBJECT) ? (QoreQWheelEvent *)p->val.object->getReferencedPrivateData(CID_QWHEELEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-WHEELEVENT-PARAM-ERROR", "expecting a QWheelEvent object as first argument to QWidget::wheelEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQWheelEvent> eventHolder(event, xsink);
+   qw->qobj->wheelEvent(static_cast<QWheelEvent *>(event));
+   return 0;
+}
+
+////virtual bool winEvent ( MSG * message, long * result )
+//static QoreNode *QWIDGET_winEvent(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+//{
+//   QoreNode *p = get_param(params, 0);
+//   ??? MSG* message = p;
+//   p = get_param(params, 1);
+//   ??? long* result = p;
+//   return new QoreNode(qw->qobj->winEvent(message, result));
+//}
+
+////virtual bool x11Event ( XEvent * event )
+//static QoreNode *QWIDGET_x11Event(Object *self, QoreQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+//{
+//   QoreNode *p = get_param(params, 0);
+//   ??? XEvent* event = p;
+//   return new QoreNode(qw->qobj->x11Event(event));
+//}
+
+
 class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpaintdevice)
 {
    tracein("initQWidgetClass()");
@@ -2175,7 +2621,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("setMinimumHeight",             (q_method_t)QWIDGET_setMinimumHeight);
    QC_QWidget->addMethod("setMinimumSize",               (q_method_t)QWIDGET_setMinimumSize);
    QC_QWidget->addMethod("setMinimumWidth",              (q_method_t)QWIDGET_setMinimumWidth);
-   //QC_QWidget->addMethod("setMouseTracking",             (q_method_t)QWIDGET_setMouseTracking);
+   QC_QWidget->addMethod("setMouseTracking",             (q_method_t)QWIDGET_setMouseTracking);
    QC_QWidget->addMethod("setPalette",                   (q_method_t)QWIDGET_setPalette);
    QC_QWidget->addMethod("setParent",                    (q_method_t)QWIDGET_setParent);
    QC_QWidget->addMethod("setShortcutAutoRepeat",        (q_method_t)QWIDGET_setShortcutAutoRepeat);
@@ -2250,6 +2696,35 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("showMaximized",               (q_method_t)QWIDGET_showMaximized);
    QC_QWidget->addMethod("showMinimized",               (q_method_t)QWIDGET_showMinimized);
    QC_QWidget->addMethod("showNormal",                  (q_method_t)QWIDGET_showNormal);
+
+   // events (private members)
+   QC_QWidget->addMethod("event",                   (q_method_t)QWIDGET_event, true);
+   QC_QWidget->addMethod("paintEvent",              (q_method_t)QWIDGET_paintEvent, true);
+   QC_QWidget->addMethod("mouseMoveEvent",          (q_method_t)QWIDGET_mouseMoveEvent, true);
+   QC_QWidget->addMethod("mousePressEvent",         (q_method_t)QWIDGET_mousePressEvent, true);
+   QC_QWidget->addMethod("mouseReleaseEvent",       (q_method_t)QWIDGET_mouseReleaseEvent, true);
+   QC_QWidget->addMethod("mouseDoubleClickEvent",   (q_method_t)QWIDGET_mouseDoubleClickEvent, true);
+   QC_QWidget->addMethod("keyPressEvent",           (q_method_t)QWIDGET_keyPressEvent, true);
+   QC_QWidget->addMethod("keyReleaseEvent",         (q_method_t)QWIDGET_keyReleaseEvent, true);
+   QC_QWidget->addMethod("changeEvent",             (q_method_t)QWIDGET_changeEvent, true);
+   QC_QWidget->addMethod("enterEvent",              (q_method_t)QWIDGET_enterEvent, true);
+   QC_QWidget->addMethod("leaveEvent",              (q_method_t)QWIDGET_leaveEvent, true);
+   QC_QWidget->addMethod("resizeEvent",             (q_method_t)QWIDGET_resizeEvent, true);
+   QC_QWidget->addMethod("moveEvent",               (q_method_t)QWIDGET_moveEvent, true);
+   QC_QWidget->addMethod("actionEvent",             (q_method_t)QWIDGET_actionEvent, true);
+   QC_QWidget->addMethod("closeEvent",              (q_method_t)QWIDGET_closeEvent, true);
+   QC_QWidget->addMethod("contextMenuEvent",        (q_method_t)QWIDGET_contextMenuEvent, true);
+   QC_QWidget->addMethod("dragEnterEvent",          (q_method_t)QWIDGET_dragEnterEvent, true);
+   QC_QWidget->addMethod("dragMoveEvent",           (q_method_t)QWIDGET_dragMoveEvent, true);
+   QC_QWidget->addMethod("dragLeaveEvent",          (q_method_t)QWIDGET_dragLeaveEvent, true);
+   QC_QWidget->addMethod("dropEvent",               (q_method_t)QWIDGET_dropEvent, true);
+   QC_QWidget->addMethod("focusInEvent",            (q_method_t)QWIDGET_focusInEvent, true);
+   QC_QWidget->addMethod("focusOutEvent",           (q_method_t)QWIDGET_focusOutEvent, true);
+   QC_QWidget->addMethod("hideEvent",               (q_method_t)QWIDGET_hideEvent, true);
+   QC_QWidget->addMethod("inputMethodEvent",        (q_method_t)QWIDGET_inputMethodEvent, true);
+   QC_QWidget->addMethod("showEvent",               (q_method_t)QWIDGET_showEvent, true);
+   QC_QWidget->addMethod("tabletEvent",             (q_method_t)QWIDGET_tabletEvent, true);
+   QC_QWidget->addMethod("wheelEvent",              (q_method_t)QWIDGET_wheelEvent, true);
 
    traceout("initQWidgetClass()");
    return QC_QWidget;

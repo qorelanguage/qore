@@ -1491,18 +1491,18 @@ class QoreString *checkEncoding(const class QoreString *str, const class QoreEnc
 
 void QoreString::addch(char c, unsigned times)
 {
-  if (allocated) {
-    check_char(len + times + STR_CLASS_BLOCK); // more data will follow the padding
-    memset(buf + len, c, times);
-    buf[len + times] = 0;
-    len += times;
-  } else {
-    allocated = times + STR_CLASS_BLOCK;
-    allocated = (allocated / 16 + 1) * 16; // use complete cache line
-    buf = (char*)malloc(sizeof(char) * allocated);
-    memset(buf, c, times);
-    buf[times] = 0;
-  }
+   if (allocated) {
+      check_char(len + times + STR_CLASS_BLOCK); // more data will follow the padding
+      memset(buf + len, c, times);
+      buf[len + times] = 0;
+      len += times;
+   } else {
+      allocated = times + STR_CLASS_BLOCK;
+      allocated = (allocated / 16 + 1) * 16; // use complete cache line
+      buf = (char*)malloc(sizeof(char) * allocated);
+      memset(buf, c, times);
+      buf[times] = 0;
+   }
 }
 
 int QoreString::concatUnicode(unsigned code, class ExceptionSink *xsink)
@@ -1584,6 +1584,48 @@ void QoreString::concatUTF8FromUnicode(unsigned code)
    }
    else
       concat((char)code);
+}
+
+unsigned int QoreString::getUnicodePointFromUTF8(int offset)
+{
+   // get length in chars
+   int clen = charset->getLength(buf);
+   //printd(0, "splice_complex(offset=%d) clen=%d\n", offset, clen);
+   if (offset >= clen)
+      return 0;
+   if (offset < 0)
+   {
+      offset = clen + offset;
+      if (offset < 0)
+	 offset = 0;
+   }
+   // calculate byte offset
+   if (offset)
+      offset = charset->getByteLen(buf, offset);
+
+   int bl = charset->getByteLen(buf + offset, 1);
+   if (bl == 1)
+      return buf[offset];
+
+   if (bl == 2)
+      return ((buf[offset] & 0x1f) << 6) | (buf[offset + 1] & 0x3f);
+
+   if (bl == 3)
+      return ((buf[offset] & 0x0f) << 12) | ((buf[offset + 1] & 0x3f) << 6) | (buf[offset + 2] & 0x3f);
+
+   return (((unsigned)(buf[offset] & 0x07)) << 18) 
+      | (((unsigned)(buf[offset + 1] & 0x3f)) << 12) 
+      | ((((unsigned)buf[offset + 2] & 0x3f)) << 6) 
+      | (((unsigned)buf[offset + 3] & 0x3f));
+}
+
+unsigned int QoreString::getUnicodePoint(int offset, class ExceptionSink *xsink)
+{
+   TempEncodingHelper tmp(this, QCS_UTF8, xsink);
+   if (*xsink)
+      return 0;
+
+   return tmp->getUnicodePointFromUTF8(offset);
 }
 
 class QoreString *QoreString::reverse() const

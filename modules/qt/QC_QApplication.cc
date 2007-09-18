@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include "QC_QApplication.h"
 #include "QC_QObject.h"
+#include "QC_QClipboard.h"
 
 DLLLOCAL int CID_QAPPLICATION;
 
@@ -72,6 +73,21 @@ static class QoreNode *QA_exec(class Object *self, class QoreQApplication *qa, c
    return 0;
 }
 
+static QoreNode *f_QApplication_clipboard(class QoreNode *params, class ExceptionSink *xsink)
+{
+   static LockedObject lClipboard;
+
+   AutoLocker al(&lClipboard);
+
+   if (!C_Clipboard) {
+      Object *o = new Object(QC_QClipboard, getProgram());
+      QoreQClipboard *qcb = new QoreQClipboard(o, QApplication::clipboard());
+      o->setPrivate(CID_QCLIPBOARD, qcb);
+      C_Clipboard = new QoreNode(o);
+   }
+   return C_Clipboard->RefSelf();
+}
+
 class QoreClass *initQApplicationClass(class QoreClass *qobject)
 {
    tracein("initQApplicationClass()");
@@ -89,3 +105,10 @@ class QoreClass *initQApplicationClass(class QoreClass *qobject)
    traceout("initQApplicationClass()");
    return QC_QApplication;
 }
+
+void initQApplicationStaticFunctions()
+{
+   // add builtin functions (static member functions in C++)
+   builtinFunctions.add("QApplication_clipboard",       f_QApplication_clipboard);
+}
+

@@ -25,7 +25,7 @@
 #define _QORE_QT_QC_QCOMBOBOX_H
 
 #include <QComboBox>
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQComboBox.h"
 #include "qore-qt-events.h"
 
 DLLLOCAL extern int CID_QCOMBOBOX;
@@ -47,7 +47,7 @@ class myQComboBox : public QComboBox, public QoreQWidgetExtension
       }
 };
 
-class QoreQComboBox : public QoreAbstractQWidget
+class QoreQComboBox : public QoreAbstractQComboBox
 {
    public:
       QPointer<myQComboBox> qobj;
@@ -58,16 +58,20 @@ class QoreQComboBox : public QoreAbstractQWidget
       DLLLOCAL virtual class QObject *getQObject() const
       {
          return static_cast<QObject *>(&(*qobj));
-      }
+      } 
       DLLLOCAL virtual class QWidget *getQWidget() const
       {
          return static_cast<QWidget *>(&(*qobj));
       }
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+     DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
-      QORE_VIRTUAL_QOBJECT_METHODS
+      DLLLOCAL virtual class QComboBox *getQComboBox() const
+      {
+         return static_cast<QComboBox *>(&(*qobj));
+      }
+      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QCOMBOBOX_H

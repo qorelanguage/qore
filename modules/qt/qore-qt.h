@@ -24,7 +24,9 @@
 
 #define _QORE_QORE_QT_H
 
-DLLLOCAL QoreType *NT_BRUSHSTYLE, *NT_PENSTYLE;
+DLLLOCAL extern QoreType *NT_BRUSHSTYLE, *NT_PENSTYLE;
+
+DLLLOCAL extern Object *C_ClipBoard;
 
 #include <map>
 
@@ -42,6 +44,8 @@ DLLLOCAL int get_qtime(class QoreNode *n, QTime &time, class ExceptionSink *xsin
 DLLLOCAL int get_qdatetime(class QoreNode *n, QDateTime &dt, class ExceptionSink *xsink);
 DLLLOCAL int get_qvariant(class QoreNode *n, QVariant &qv, class ExceptionSink *xsink, bool suppress_exception = false);
 DLLLOCAL int get_qbytearray(class QoreNode *n, QByteArray &qba, class ExceptionSink *xsink);
+DLLLOCAL int get_qchar(class QoreNode *n, QChar &c, class ExceptionSink *xsink);
+DLLLOCAL int get_qstring(class QoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception = false);
 
 DLLLOCAL class QoreNode *return_qvariant(QVariant &qv);
 

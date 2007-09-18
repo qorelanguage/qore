@@ -1,0 +1,235 @@
+/*
+ QC_QTabletEvent.cc
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+
+#include "QC_QTabletEvent.h"
+
+int CID_QTABLETEVENT;
+class QoreClass *QC_QTabletEvent = 0;
+
+//QTabletEvent ( Type type, const QPoint & pos, const QPoint & globalPos, const QPointF & hiResGlobalPos, int device, int pointerType, qreal pressure, int xTilt, int yTilt, qreal tangentialPressure, qreal rotation, int z, Qt::KeyboardModifiers keyState, qint64 uniqueID )
+static void QTABLETEVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QTabletEvent::Type type = (QTabletEvent::Type)(p ? p->getAsInt() : 0);
+   p = get_param(params, 1);
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   if (!pos) {
+      if (!xsink->isException())
+         xsink->raiseException("QTABLETEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as second argument to QTabletEvent::constructor()");
+      return;
+   }
+   ReferenceHolder<QoreQPoint> posHolder(pos, xsink);
+   p = get_param(params, 2);
+   QoreQPoint *globalPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   if (!globalPos) {
+      if (!xsink->isException())
+         xsink->raiseException("QTABLETEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as third argument to QTabletEvent::constructor()");
+      return;
+   }
+   ReferenceHolder<QoreQPoint> globalPosHolder(globalPos, xsink);
+   p = get_param(params, 3);
+   QoreQPointF *hiResGlobalPos = (p && p->type == NT_OBJECT) ? (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+   if (!hiResGlobalPos) {
+      if (!xsink->isException())
+         xsink->raiseException("QTABLETEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPointF object as fourth argument to QTabletEvent::constructor()");
+      return;
+   }
+   ReferenceHolder<QoreQPointF> hiResGlobalPosHolder(hiResGlobalPos, xsink);
+   p = get_param(params, 4);
+   int device = p ? p->getAsInt() : 0;
+   p = get_param(params, 5);
+   int pointerType = p ? p->getAsInt() : 0;
+   p = get_param(params, 6);
+   qreal pressure = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 7);
+   int xTilt = p ? p->getAsInt() : 0;
+   p = get_param(params, 8);
+   int yTilt = p ? p->getAsInt() : 0;
+   p = get_param(params, 9);
+   qreal tangentialPressure = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 10);
+   qreal rotation = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 11);
+   int z = p ? p->getAsInt() : 0;
+   p = get_param(params, 12);
+   Qt::KeyboardModifiers keyState = (Qt::KeyboardModifiers)(p ? p->getAsInt() : 0);
+   p = get_param(params, 13);
+   int64 uniqueID = p ? p->getAsBigInt() : 0;
+   self->setPrivate(CID_QTABLETEVENT, new QoreQTabletEvent(type, *(static_cast<QPoint *>(pos)), *(static_cast<QPoint *>(globalPos)), *(static_cast<QPointF *>(hiResGlobalPos)), device, pointerType, pressure, xTilt, yTilt, tangentialPressure, rotation, z, keyState, uniqueID));
+   return;
+}
+
+static void QTABLETEVENT_copy(class Object *self, class Object *old, class QoreQTabletEvent *qte, ExceptionSink *xsink)
+{
+   xsink->raiseException("QTABLETEVENT-COPY-ERROR", "objects of this class cannot be copied");
+}
+
+//TabletDevice device () const
+static QoreNode *QTABLETEVENT_device(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qte->device());
+}
+
+//const QPoint & globalPos () const
+static QoreNode *QTABLETEVENT_globalPos(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreQPoint *q_qp = new QoreQPoint(qte->globalPos());
+   o_qp->setPrivate(CID_QPOINT, q_qp);
+   return new QoreNode(o_qp);
+}
+
+//int globalX () const
+static QoreNode *QTABLETEVENT_globalX(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qte->globalX());
+}
+
+//int globalY () const
+static QoreNode *QTABLETEVENT_globalY(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qte->globalY());
+}
+
+//const QPointF & hiResGlobalPos () const
+static QoreNode *QTABLETEVENT_hiResGlobalPos(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qpf = new Object(QC_QPointF, getProgram());
+   QoreQPointF *q_qpf = new QoreQPointF(qte->hiResGlobalPos());
+   o_qpf->setPrivate(CID_QPOINTF, q_qpf);
+   return new QoreNode(o_qpf);
+}
+
+//qreal hiResGlobalX () const
+static QoreNode *QTABLETEVENT_hiResGlobalX(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((double)qte->hiResGlobalX());
+}
+
+//qreal hiResGlobalY () const
+static QoreNode *QTABLETEVENT_hiResGlobalY(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((double)qte->hiResGlobalY());
+}
+
+//PointerType pointerType () const
+static QoreNode *QTABLETEVENT_pointerType(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qte->pointerType());
+}
+
+//const QPoint & pos () const
+static QoreNode *QTABLETEVENT_pos(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreQPoint *q_qp = new QoreQPoint(qte->pos());
+   o_qp->setPrivate(CID_QPOINT, q_qp);
+   return new QoreNode(o_qp);
+}
+
+//qreal pressure () const
+static QoreNode *QTABLETEVENT_pressure(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((double)qte->pressure());
+}
+
+//qreal rotation () const
+static QoreNode *QTABLETEVENT_rotation(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((double)qte->rotation());
+}
+
+//qreal tangentialPressure () const
+static QoreNode *QTABLETEVENT_tangentialPressure(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((double)qte->tangentialPressure());
+}
+
+//qint64 uniqueId () const
+static QoreNode *QTABLETEVENT_uniqueId(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qte->uniqueId());
+}
+
+//int x () const
+static QoreNode *QTABLETEVENT_x(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qte->x());
+}
+
+//int xTilt () const
+static QoreNode *QTABLETEVENT_xTilt(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qte->xTilt());
+}
+
+//int y () const
+static QoreNode *QTABLETEVENT_y(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qte->y());
+}
+
+//int yTilt () const
+static QoreNode *QTABLETEVENT_yTilt(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qte->yTilt());
+}
+
+//int z () const
+static QoreNode *QTABLETEVENT_z(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qte->z());
+}
+
+QoreClass *initQTabletEventClass(QoreClass *qinputevent)
+{
+   QC_QTabletEvent = new QoreClass("QTabletEvent", QDOM_GUI);
+   CID_QTABLETEVENT = QC_QTabletEvent->getID();
+
+   QC_QTabletEvent->addBuiltinVirtualBaseClass(qinputevent);
+
+   QC_QTabletEvent->setConstructor(QTABLETEVENT_constructor);
+   QC_QTabletEvent->setCopy((q_copy_t)QTABLETEVENT_copy);
+
+   QC_QTabletEvent->addMethod("device",                      (q_method_t)QTABLETEVENT_device);
+   QC_QTabletEvent->addMethod("globalPos",                   (q_method_t)QTABLETEVENT_globalPos);
+   QC_QTabletEvent->addMethod("globalX",                     (q_method_t)QTABLETEVENT_globalX);
+   QC_QTabletEvent->addMethod("globalY",                     (q_method_t)QTABLETEVENT_globalY);
+   QC_QTabletEvent->addMethod("hiResGlobalPos",              (q_method_t)QTABLETEVENT_hiResGlobalPos);
+   QC_QTabletEvent->addMethod("hiResGlobalX",                (q_method_t)QTABLETEVENT_hiResGlobalX);
+   QC_QTabletEvent->addMethod("hiResGlobalY",                (q_method_t)QTABLETEVENT_hiResGlobalY);
+   QC_QTabletEvent->addMethod("pointerType",                 (q_method_t)QTABLETEVENT_pointerType);
+   QC_QTabletEvent->addMethod("pos",                         (q_method_t)QTABLETEVENT_pos);
+   QC_QTabletEvent->addMethod("pressure",                    (q_method_t)QTABLETEVENT_pressure);
+   QC_QTabletEvent->addMethod("rotation",                    (q_method_t)QTABLETEVENT_rotation);
+   QC_QTabletEvent->addMethod("tangentialPressure",          (q_method_t)QTABLETEVENT_tangentialPressure);
+   QC_QTabletEvent->addMethod("uniqueId",                    (q_method_t)QTABLETEVENT_uniqueId);
+   QC_QTabletEvent->addMethod("x",                           (q_method_t)QTABLETEVENT_x);
+   QC_QTabletEvent->addMethod("xTilt",                       (q_method_t)QTABLETEVENT_xTilt);
+   QC_QTabletEvent->addMethod("y",                           (q_method_t)QTABLETEVENT_y);
+   QC_QTabletEvent->addMethod("yTilt",                       (q_method_t)QTABLETEVENT_yTilt);
+   QC_QTabletEvent->addMethod("z",                           (q_method_t)QTABLETEVENT_z);
+
+   return QC_QTabletEvent;
+}

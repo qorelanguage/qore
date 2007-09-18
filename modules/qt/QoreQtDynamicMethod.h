@@ -55,18 +55,26 @@
 #define QQT_TYPE_DOUBLE    5
 #define QQT_TYPE_P_CHAR    6
 #define QQT_TYPE_QDATE     7
+#define QQT_TYPE_QFONT     8
+#define QQT_TYPE_QSTRING   9
 
 union qt_arg_u {
       int t_int;
       float t_float;
       double t_double;
       bool t_bool;
+      QString *t_QString;
 
       DLLLOCAL qt_arg_u()         {}
+
       DLLLOCAL void set(int i)    { t_int = i; }
       DLLLOCAL void set(float f)  { t_float = f; }
       DLLLOCAL void set(double f) { t_double = f; }
       DLLLOCAL void set(bool b)   { t_bool = b; }
+      DLLLOCAL void set(const QString &str) 
+      { 
+	 t_QString = new QString(str); 
+      }
 };
 
 typedef std::vector<int> type_list_t;

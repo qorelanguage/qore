@@ -41,6 +41,9 @@ class QoreQFont : public AbstractPrivateData, public QFont
       DLLLOCAL QoreQFont(const QFont &font) : QFont(font)
       {
       }
+      DLLLOCAL QoreQFont() : QFont()
+      {
+      }
 };
 
 

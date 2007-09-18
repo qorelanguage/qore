@@ -1,3 +1,8 @@
+2007.09.18: David Nichols
+	* qt: all widget events implemented, new classes, constants, etc,
+	  improved qore <-> qt type handling, charactermap example partially
+	  implemented
+
 2007.09.08: David Nichols
 	* qt: better QVariant handling, QVariants are now mapped to and from 
 	  Qore types automatically

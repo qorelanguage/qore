@@ -51,7 +51,31 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QUrl.cc \
 	QC_QVariant.cc \
 	QC_QGroupBox.cc \
-	QC_QDateEdit.cc
+	QC_QDateEdit.cc \
+	QC_QFontMetrics.cc \
+	QC_QFontDatabase.cc \
+	QC_QFontInfo.cc \
+	QC_QScrollBar.cc \
+	QC_QAbstractScrollArea.cc \
+	QC_QScrollArea.cc \
+	QC_QChar.cc \
+	QC_QActionEvent.cc \
+	QC_QCloseEvent.cc \
+	QC_QContextMenuEvent.cc \
+	QC_QDropEvent.cc \
+	QC_QMimeData.cc \
+	QC_QDragMoveEvent.cc \
+	QC_QDragEnterEvent.cc \
+	QC_QDragLeaveEvent.cc \
+	QC_QFocusEvent.cc \
+	QC_QHideEvent.cc \
+	QC_QInputMethodEvent.cc \
+	QC_QShowEvent.cc \
+	QC_QTabletEvent.cc \
+	QC_QWheelEvent.cc \
+	QC_QClipboard.cc \
+	QC_QFontComboBox.cc \
+	QC_QMainWindow.cc
 endif
 
 if COND_MONOLITHIC

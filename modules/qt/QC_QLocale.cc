@@ -454,10 +454,13 @@ QoreClass *initQLocaleClass()
    //QC_QLocale->addMethod("toUShort",                    (q_method_t)QLOCALE_toUShort);
    QC_QLocale->addMethod("zeroDigit",                   (q_method_t)QLOCALE_zeroDigit);
 
+   return QC_QLocale;
+}
+
+void initQLocaleStaticFunctions()
+{
    // add builtin functions
    builtinFunctions.add("QLocale_countriesForLanguage",       f_QLocale_countriesForLanguage);
    builtinFunctions.add("QLocale_languageToString",           f_QLocale_languageToString);
    builtinFunctions.add("QLocale_countryToString",            f_QLocale_countryToString);
-
-   return QC_QLocale;
 }

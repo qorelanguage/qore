@@ -84,7 +84,7 @@ class QoreQSlider : public QoreAbstractQAbstractSlider
          return static_cast<QAbstractSlider *>(&(*qobj));
       }
 
-      QORE_VIRTUAL_QOBJECT_METHODS
+      QORE_VIRTUAL_QWIDGET_METHODS
 
 };
 

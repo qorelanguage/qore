@@ -67,7 +67,7 @@ static void QPAINTEVENT_copy(class Object *self, class Object *old, class QoreQP
 static QoreNode *QPAINTEVENT_rect(Object *self, QoreQPaintEvent *qpe, QoreNode *params, ExceptionSink *xsink)
 {
    QoreQRect *q_qr = new QoreQRect(qpe->rect());
-   Object *o_qr = new Object(self->getClass(CID_QRECT), getProgram());
+   Object *o_qr = new Object(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -76,7 +76,7 @@ static QoreNode *QPAINTEVENT_rect(Object *self, QoreQPaintEvent *qpe, QoreNode *
 static QoreNode *QPAINTEVENT_region(Object *self, QoreQPaintEvent *qpe, QoreNode *params, ExceptionSink *xsink)
 {
    QoreQRegion *q_qr = new QoreQRegion(qpe->region());
-   Object *o_qr = new Object(self->getClass(CID_QREGION), getProgram());
+   Object *o_qr = new Object(QC_QRegion, getProgram());
    o_qr->setPrivate(CID_QREGION, q_qr);
    return new QoreNode(o_qr);
 }

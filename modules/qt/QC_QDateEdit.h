@@ -82,7 +82,7 @@ class QoreQDateEdit : public QoreAbstractQDateTimeEdit
       {
          return static_cast<QDateTimeEdit *>(&(*qobj));
       }
-      QORE_VIRTUAL_QOBJECT_METHODS
+      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QDATEEDIT_H

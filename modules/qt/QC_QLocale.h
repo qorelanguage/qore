@@ -30,6 +30,7 @@ DLLLOCAL extern int CID_QLOCALE;
 DLLLOCAL extern class QoreClass *QC_QLocale;
 
 DLLLOCAL class QoreClass *initQLocaleClass();
+DLLLOCAL void initQLocaleStaticFunctions();
 
 class QoreQLocale : public AbstractPrivateData, public QLocale
 {

@@ -28,20 +28,23 @@
 
 #include <QPushButton>
 
+#include "qore-qt-events.h"
+
 DLLEXPORT extern int CID_QPUSHBUTTON;
 
 DLLLOCAL class QoreClass *initQPushButtonClass(class QoreClass *parent);
 
-class myQPushButton : public QPushButton
+class myQPushButton : public QPushButton, public QoreQWidgetExtension
 {
 #define QOREQTYPE QPushButton
 #include "qore-qt-metacode.h"
+#include "qore-qt-widget-events.h"
 #undef QOREQTYPE
-      myQPushButton(Object *obj, const char *str, QWidget *parent = 0) : QPushButton(str, parent)
+      myQPushButton(Object *obj, const char *str, QWidget *parent = 0) : QPushButton(str, parent), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
       }
-      myQPushButton(Object *obj, QWidget *parent = 0) : QPushButton(parent)
+      myQPushButton(Object *obj, QWidget *parent = 0) : QPushButton(parent), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
       }
@@ -75,7 +78,7 @@ class QoreQPushButton : public QoreAbstractQAbstractButton
          return static_cast<QAbstractButton *>(&(*qobj));
       }
 
-      QORE_VIRTUAL_QOBJECT_METHODS
+      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 

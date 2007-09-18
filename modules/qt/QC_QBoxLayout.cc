@@ -112,6 +112,7 @@ static QoreNode *QBOXLAYOUT_addWidget(Object *self, QoreAbstractQBoxLayout *qbl,
    int stretch = p ? p->getAsInt() : 0;
    p = get_param(params, 2);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
+   //printd(5, "QBoxLayout::addWidget(%08x, %d, %d)\n", widget->getQWidget(), stretch, (int)alignment);
    qbl->getQBoxLayout()->addWidget(widget->getQWidget(), stretch, alignment);
    return 0;
 }

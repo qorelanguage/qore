@@ -29,8 +29,8 @@ QoreClass *QC_QFont = 0;
 static void QFONT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p) {
-      xsink->raiseException("QFONT-CONSTRUCTOR-ERROR", "missing font name as first parameter");
+   if (is_nothing(p)) {
+      self->setPrivate(CID_QFONT, new QoreQFont());
       return;
    }
    const char *fname = p->val.String->getBuffer();

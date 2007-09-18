@@ -68,7 +68,7 @@ class QoreQDialog : public QoreAbstractQWidget
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
-      QORE_VIRTUAL_QOBJECT_METHODS
+      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QDIALOG_H

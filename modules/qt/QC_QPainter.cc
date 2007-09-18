@@ -1355,8 +1355,9 @@ static QoreNode *QPAINTER_drawText(Object *self, QoreQPainter *qp, QoreNode *par
    p = get_param(params, 1);
    int y = p ? p->getAsInt() : 0;
    p = get_param(params, 2);
-   if (p && p->type == NT_STRING) {
-      const char *text = p->val.String->getBuffer();
+
+   QString text;
+   if (!get_qstring(p, text, xsink, true)) {
       qp->drawText(x, y, text);
       return 0;
    }
@@ -1367,11 +1368,10 @@ static QoreNode *QPAINTER_drawText(Object *self, QoreQPainter *qp, QoreNode *par
    p = get_param(params, 4);
    int flags = p ? p->getAsInt() : 0;
    p = get_param(params, 5);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QPAINTER-DRAWTEXT-PARAM-ERROR", "expecting a string as sixth argument to QPainter::drawText()");
+
+   if (get_qstring(p, text, xsink))
       return 0;
-   }
-   const char *text = p->val.String->getBuffer();
+
    p = get_param(params, 6);
    QoreQRect *boundingRect = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    ReferenceHolder<QoreQRect> holder(boundingRect, xsink);
@@ -1924,8 +1924,14 @@ static QoreNode *QPAINTER_setPen(Object *self, QoreQPainter *qp, QoreNode *param
       QoreQColor *color = (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink);
       if (!color)
       {
-	 if (!xsink->isException())
-	    xsink->raiseException("QPAINTER-SETPEN-PARAM-ERROR", "expecting a QColor object as first argument to QPainter::setPen()");
+	 QoreQPen *pen = (QoreQPen *)p->val.object->getReferencedPrivateData(CID_QPEN, xsink);
+	 if (!pen) {
+	    if (!xsink->isException())
+	       xsink->raiseException("QPAINTER-SETPEN-PARAM-ERROR", "expecting a QColor object as first argument to QPainter::setPen()");
+	    return 0;
+	 }
+	 ReferenceHolder<QoreQPen> penHolder(pen, xsink);
+	 qp->setPen(*pen);
 	 return 0;
       }
       ReferenceHolder<QoreQColor> holder(color, xsink);

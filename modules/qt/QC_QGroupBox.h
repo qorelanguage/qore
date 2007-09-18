@@ -78,7 +78,7 @@ class QoreQGroupBox : public QoreAbstractQGroupBox
       {
          return static_cast<QGroupBox *>(&(*qobj));
       }
-      QORE_VIRTUAL_QOBJECT_METHODS
+      QORE_VIRTUAL_QWIDGET_METHODS
 };
 
 #endif // _QORE_QT_QC_QGROUPBOX_H

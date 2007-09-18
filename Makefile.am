@@ -260,6 +260,8 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQAbstractSpinBox.h \
 	modules/qt/QoreAbstractQDateTimeEdit.h \
 	modules/qt/QoreAbstractQGroupBox.h \
+	modules/qt/QoreAbstractQAbstractScrollArea.h \
+	modules/qt/QoreAbstractQComboBox.h \
 	modules/qt/qore-qt-events.h \
 	modules/qt/qore-qt-widget-events.h \
 	modules/qt/qore-qt-metacode.h \
@@ -335,6 +337,30 @@ noinst_HEADERS = \
 	modules/qt/QC_QVariant.h \
 	modules/qt/QC_QGroupBox.h \
 	modules/qt/QC_QDateEdit.h \
+	modules/qt/QC_QFontMetrics.h \
+	modules/qt/QC_QFontDatabase.h \
+	modules/qt/QC_QFontInfo.h \
+	modules/qt/QC_QScrollBar.h \
+	modules/qt/QC_QAbstractScrollArea.h \
+	modules/qt/QC_QScrollArea.h \
+	modules/qt/QC_QChar.h \
+	modules/qt/QC_QActionEvent.h \
+	modules/qt/QC_QCloseEvent.h \
+	modules/qt/QC_QContextMenuEvent.h \
+	modules/qt/QC_QDropEvent.h \
+	modules/qt/QC_QMimeData.h \
+	modules/qt/QC_QDragMoveEvent.h \
+	modules/qt/QC_QDragEnterEvent.h \
+	modules/qt/QC_QDragLeaveEvent.h \
+	modules/qt/QC_QFocusEvent.h \
+	modules/qt/QC_QHideEvent.h \
+	modules/qt/QC_QInputMethodEvent.h \
+	modules/qt/QC_QShowEvent.h \
+	modules/qt/QC_QTabletEvent.h \
+	modules/qt/QC_QWheelEvent.h \
+	modules/qt/QC_QClipboard.h \
+	modules/qt/QC_QFontComboBox.h \
+	modules/qt/QC_QMainWindow.h \
 	command-line.h \
 	include/qore/Qore.h
 

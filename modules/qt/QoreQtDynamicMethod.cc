@@ -24,10 +24,11 @@
 
 #include "QoreQtDynamicMethod.h"
 
+#include "QC_QFont.h"
+
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-
 
 int QoreQtDynamicMethod::get_type(const char *&p)
 {
@@ -58,6 +59,14 @@ int QoreQtDynamicMethod::get_type(const char *&p)
    }
    else if (!strncmp("QDate", p, 5)) {
       rt = QQT_TYPE_QDATE;
+      p += 5;
+   }
+   else if (!strncmp("QFont", p, 5)) {
+      rt = QQT_TYPE_QFONT;
+      p += 5;
+   }
+   else if (!strncmp("QString", p, 7)) {
+      rt = QQT_TYPE_QSTRING;
       p += 5;
    }
    else {
@@ -188,9 +197,24 @@ void QoreQtDynamicSlot::call(void **arguments)
 	 char **ptr = reinterpret_cast<char **>(arguments[i + 1]);
 	 args->push(new QoreNode(*ptr));
       }
+      else if (type_list[i] == QQT_TYPE_QSTRING) {
+	 QString *qstr = reinterpret_cast<QString *>(arguments[i + 1]);
+	 printd(0, "slot argument string: %08p: '%s'\n", qstr, qstr->length());
+	 printd(0, "slot argument string: '%s'\n", qstr->toUtf8().data());
+	 args->push(new QoreNode(new QoreString(qstr->toUtf8().data(), QCS_UTF8)));
+      }
       else if (type_list[i] == QQT_TYPE_QDATE) {
 	 QDate *qdate = reinterpret_cast<QDate *>(arguments[i + 1]);
 	 args->push(new QoreNode(new DateTime(qdate->year(), qdate->month(), qdate->day())));
+      }
+      else if (type_list[i] == QQT_TYPE_QFONT) {
+	 QFont *qfont = reinterpret_cast<QFont *>(arguments[i + 1]);
+
+	 Object *o_qf = new Object(QC_QFont, getProgram());
+	 QoreQFont *q_qf = new QoreQFont(*qfont);
+	 o_qf->setPrivate(CID_QFONT, q_qf);
+
+	 args->push(new QoreNode(o_qf));
       }
       else {
 	 printd(0, "QoreQtDynamicSlot::call() ignoring argument %d type %d\n", i, type_list[i]);
@@ -265,6 +289,8 @@ void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, List *args)
    // return return value to 0
    sig_args[0] = 0;
 
+   bool need_destructor = false;
+
    // iterate through signal parameters to build argument list
    for (int i = 0; i < num_args; ++i)
    {
@@ -289,9 +315,35 @@ void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, List *args)
 	    arg_list[i].set(n ? n->getAsBool() : false);
 	    sig_args[i + 1] = reinterpret_cast<void *>(&arg_list[i].t_bool);
 	    break;
+	 case QQT_TYPE_QSTRING: {
+	    ExceptionSink xsink;
+
+	    QString str;
+	    get_qstring(n, str, &xsink);
+	    arg_list[i].set(str);
+
+	    need_destructor = true;
+
+	    sig_args[i + 1] = reinterpret_cast<void *>(arg_list[i].t_QString);
+
+	    printd(0, "creating QString argument: %08p, %s\n", n, n->type->getName());
+	    printd(0, "QString: '%s'\n", arg_list[i].t_QString->toUtf8().data());
+
+	    break;
+	 }
 	 default:
 	    assert(false);
       }
    }
    QMetaObject::activate(obj, id, id, sig_args);
+
+   if (need_destructor)
+      // run destructors as necessary
+      for (int i = 0; i < num_args; ++i)
+	 switch (type_list[i])
+	 {
+	    case QQT_TYPE_QSTRING:
+	       delete arg_list[i].t_QString;
+	       break;
+	 }
 }

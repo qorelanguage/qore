@@ -177,7 +177,11 @@ class QoreString {
       DLLEXPORT void trim_leading(char c);
       // remove leading and trailing single char
       DLLEXPORT void trim(char c);
-      
+      // return Unicode code point for character offset, string must be UTF-8
+      DLLEXPORT unsigned int getUnicodePointFromUTF8(int offset = 0);
+      // return Unicode code point for character offset
+      DLLEXPORT unsigned int getUnicodePoint(int offset, class ExceptionSink *xsink);
+
       // concatenates a qorestring without converting encodings - internal only
       DLLLOCAL void concat(const QoreString *);
 };

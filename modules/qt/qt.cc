@@ -99,6 +99,30 @@
 #include "QC_QVariant.h"
 #include "QC_QGroupBox.h"
 #include "QC_QDateEdit.h"
+#include "QC_QFontMetrics.h"
+#include "QC_QFontDatabase.h"
+#include "QC_QFontInfo.h"
+#include "QC_QScrollBar.h"
+#include "QC_QAbstractScrollArea.h"
+#include "QC_QScrollArea.h"
+#include "QC_QChar.h"
+#include "QC_QActionEvent.h"
+#include "QC_QCloseEvent.h"
+#include "QC_QContextMenuEvent.h"
+#include "QC_QDropEvent.h"
+#include "QC_QMimeData.h"
+#include "QC_QDragMoveEvent.h"
+#include "QC_QDragEnterEvent.h"
+#include "QC_QDragLeaveEvent.h"
+#include "QC_QFocusEvent.h"
+#include "QC_QHideEvent.h"
+#include "QC_QInputMethodEvent.h"
+#include "QC_QShowEvent.h"
+#include "QC_QTabletEvent.h"
+#include "QC_QWheelEvent.h"
+#include "QC_QClipboard.h"
+#include "QC_QFontComboBox.h"
+#include "QC_QMainWindow.h"
 
 #include "qore-qt-events.h"
 
@@ -108,10 +132,13 @@
 #include "qore-qt.h"
 
 #include <QPalette>
+#include <QToolTip>
 
 #include <assert.h>
 
-QoreType *QT_BRUSHSTYLE = 0;
+QoreType *NT_BRUSHSTYLE = 0, *NT_PENSTYLE = 0;
+
+QoreNode *C_Clipboard = 0;
 
 static class QoreString *qt_module_init();
 static void qt_module_ns_init(class Namespace *rns, class Namespace *qns);
@@ -303,6 +330,58 @@ int get_qvariant(class QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
    if (!suppress_exception)
       xsink->raiseException("QVARIANT-ERROR", "cannot convert type '%s' to QVariant", n ? n->type->getName() : "NOTHING");
    return -1;
+}
+
+int get_qchar(class QoreNode *n, QChar &c, class ExceptionSink *xsink)
+{
+   if (n && n->type == NT_STRING) {
+      unsigned int unicode = n->val.String->getUnicodePoint(0, xsink);
+      if (*xsink)
+	 return -1;
+      QChar tmp(unicode);
+      c = tmp;
+      return 0;
+   }
+
+   class QoreQChar *qc = (n && n->type == NT_OBJECT) ? (QoreQChar *)n->val.object->getReferencedPrivateData(CID_QCHAR, xsink) : 0;
+   if (*xsink)
+      return -1;
+   if (!qc) {
+      if (n && n->type == NT_OBJECT) 
+	 xsink->raiseException("QCHAR-ERROR", "class '%s' is not derived from QChar", n->val.object->getClass()->getName());
+      else
+	 xsink->raiseException("QCHAR-ERROR", "cannot convert type '%s' to QChar", n ? n->type->getName() : "NOTHING");
+      return -1;
+   }
+
+   ReferenceHolder<QoreQChar> cHolder(qc, xsink);
+   c = *qc;
+   return 0;
+}
+
+int get_qstring(class QoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception)
+{
+   if (n && n->type == NT_STRING) {
+      str = n->val.String->getBuffer();
+      return 0;
+   }
+
+   class QoreQChar *qc = (n && n->type == NT_OBJECT) ? (QoreQChar *)n->val.object->getReferencedPrivateData(CID_QCHAR, xsink) : 0;
+   if (*xsink)
+      return -1;
+   if (!qc) {
+      if (!suppress_exception) {
+	 if (n && n->type == NT_OBJECT) 
+	    xsink->raiseException("QSTRING-ERROR", "class '%s' is not derived from QChar", n->val.object->getClass()->getName());
+	 else
+	    xsink->raiseException("QCHAR-ERROR", "cannot convert type '%s' to QChar", n ? n->type->getName() : "NOTHING");
+      }
+      return -1;
+   }
+
+   ReferenceHolder<QoreQChar> cHolder(qc, xsink);
+   str = *qc;
+   return 0;
 }
 
 class QoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data)
@@ -586,6 +665,109 @@ static class QoreNode *f_qrand(class QoreNode *params, class ExceptionSink *xsin
    return new QoreNode((int64)qrand());
 }
 
+static QoreNode *f_QToolTip_font(QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qf = new Object(QC_QFont, getProgram());
+   QoreQFont *q_qf = new QoreQFont(QToolTip::font());
+   o_qf->setPrivate(CID_QFONT, q_qf);
+   return new QoreNode(o_qf);
+}
+
+//void hideText ()
+static QoreNode *f_QToolTip_hideText(QoreNode *params, ExceptionSink *xsink)
+{
+   QToolTip::hideText();
+   return 0;
+}
+
+//QPalette palette ()
+static QoreNode *f_QToolTip_palette(QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qp = new Object(QC_QPalette, getProgram());
+   QoreQPalette *q_qp = new QoreQPalette(QToolTip::palette());
+   o_qp->setPrivate(CID_QPALETTE, q_qp);
+   return new QoreNode(o_qp);
+}
+
+//void setFont ( const QFont & font )
+static QoreNode *f_QToolTip_setFont(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   if (!font) {
+      if (!xsink->isException())
+         xsink->raiseException("QTOOLTIP-SETFONT-PARAM-ERROR", "expecting a QFont object as first argument to QToolTip_setFont()");
+      return 0;
+   }
+   ReferenceHolder<QoreQFont> fontHolder(font, xsink);
+   QToolTip::setFont(*(static_cast<QFont *>(font)));
+   return 0;
+}
+
+//void setPalette ( const QPalette & palette )
+static QoreNode *f_QToolTip_setPalette(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)p->val.object->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   if (!palette) {
+      if (!xsink->isException())
+         xsink->raiseException("QTOOLTIP-SETPALETTE-PARAM-ERROR", "expecting a QPalette object as first argument to QToolTip_setPalette()");
+      return 0;
+   }
+   ReferenceHolder<QoreQPalette> paletteHolder(palette, xsink);
+   QToolTip::setPalette(*(static_cast<QPalette *>(palette)));
+   return 0;
+}
+
+
+//void showText ( const QPoint & pos, const QString & text, QWidget * w, const QRect & rect ) 
+//void showText ( const QPoint & pos, const QString & text, QWidget * w = 0 )
+static class QoreNode *f_QToolTip_showText(class QoreNode *params, class ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_OBJECT, 0);
+   QoreQPoint *pos = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   if (!pos) {
+      if (!xsink->isException())
+	 xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "QToolTip_showText() was expecting a QPoint as the first argument");
+      return 0;
+   }
+   ReferenceHolder<QoreQPoint> posHolder(pos, xsink);
+   p = test_param(params, NT_STRING, 1);
+   if (!p) {
+      xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "expecting a string as second argument to QToolTip_showText()");
+      return 0;
+   }
+   const char *text = p->val.String->getBuffer();
+
+   p = test_param(params, NT_OBJECT, 2);
+   QoreQWidget *w = p ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (p && !w) {
+      if (!xsink->isException())
+	 xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "QToolTip_showText() does not know how to handle arguments of class '%s' as passed as the third argument", p->val.object->getClass()->getName());
+      return 0;
+   }
+   ReferenceHolder<QoreQWidget> wHolder(w, xsink);
+
+   QoreQRect *rect = 0;
+   if (w) {
+      p = test_param(params, NT_OBJECT, 3);
+      rect = p ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+      if (!rect && p) {
+	 if (!xsink->isException())
+	    xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "this version of QToolTip_showText() does not know how to handle arguments of class '%s' as passed as the fourth argument", p->val.object->getClass()->getName());
+	 return 0;
+      }
+   }
+   ReferenceHolder<QoreQRect> rectHolder(rect, xsink);
+
+   if (rect)
+      QToolTip::showText(*(static_cast<QPoint *>(pos)), text, w ? w->getQWidget() : 0, *(static_cast<QRect *>(rect)));
+   else
+      QToolTip::showText(*(static_cast<QPoint *>(pos)), text, w ? w->getQWidget() : 0);
+
+   return 0;
+}
+
 static class QoreString *qt_module_init()
 {
    builtinFunctions.add("QObject_connect",                        f_QObject_connect);
@@ -600,10 +782,23 @@ static class QoreString *qt_module_init()
    builtinFunctions.add("qRound",                                 f_qRound);
    builtinFunctions.add("qsrand",                                 f_qsrand);
    builtinFunctions.add("qrand",                                  f_qrand);
- 
+
+   // QToolTip static functions
+   builtinFunctions.add("QToolTip_font",                          f_QToolTip_font);
+   builtinFunctions.add("QToolTip_hideText",                      f_QToolTip_hideText);
+   builtinFunctions.add("QToolTip_palette",                       f_QToolTip_palette);
+   builtinFunctions.add("QToolTip_setFont",                       f_QToolTip_setFont);
+   builtinFunctions.add("QToolTip_setPalette",                    f_QToolTip_setPalette);
+   builtinFunctions.add("QToolTip_showText",                      f_QToolTip_showText);
+
+   // add static class functions as builtin functions
+   initQApplicationStaticFunctions();
+   initQLocaleStaticFunctions();
+   initQFontDatabaseStaticFunctions();
+
    addBrushStyleType();
    addPenStyleType();
-  
+
    return 0;
 }
 
@@ -797,7 +992,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    // automatically added classes
    QoreClass *qabstractbutton, *qtextformat, *qtextframeformat, *qtextcharformat,
       *qstyleoption, *qstyleoptionviewitem, *qabstractitemdelegate,
-      *qabstractspinbox, *qdatetimeedit;
+      *qabstractspinbox, *qdatetimeedit, *qabstractscrollarea, *qdropevent, 
+      *qdragmoveevent, *qcombobox;
 
    qt->addSystemClass(initQPointFClass());
    qt->addSystemClass(initQPolygonClass());
@@ -825,7 +1021,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQAbstractItemModelClass(qobject));
    qt->addSystemClass((qabstractitemdelegate = initQAbstractItemDelegateClass(qobject)));
    qt->addSystemClass(initQItemDelegateClass(qabstractitemdelegate));
-   qt->addSystemClass(initQComboBoxClass(qwidget));
+   qt->addSystemClass((qcombobox = initQComboBoxClass(qwidget)));
    qt->addSystemClass(initQCheckBoxClass(qabstractbutton));
    qt->addSystemClass((qabstractspinbox = initQAbstractSpinBoxClass(qwidget)));
    qt->addSystemClass((qdatetimeedit = initQDateTimeEditClass(qabstractspinbox)));
@@ -834,6 +1030,28 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQVariantClass());
    qt->addSystemClass(initQGroupBoxClass(qwidget));
    qt->addSystemClass(initQDateEditClass(qdatetimeedit));
+   qt->addSystemClass(initQFontMetricsClass());
+   qt->addSystemClass(initQFontDatabaseClass());
+   qt->addSystemClass(initQFontInfoClass());
+   qt->addSystemClass(initQScrollBarClass(qabstractslider));
+   qt->addSystemClass((qabstractscrollarea = initQAbstractScrollAreaClass(qframe)));
+   qt->addSystemClass(initQScrollAreaClass(qabstractscrollarea));
+   qt->addSystemClass(initQActionEventClass(qevent));
+   qt->addSystemClass(initQCloseEventClass(qevent));
+   qt->addSystemClass(initQContextMenuEventClass(qinputevent));
+   qt->addSystemClass((qdropevent = initQDropEventClass(qevent)));
+   qt->addSystemClass(initQMimeDataClass(qobject));
+   qt->addSystemClass((qdragmoveevent = initQDragMoveEventClass(qdropevent)));
+   qt->addSystemClass(initQDragEnterEventClass(qdragmoveevent));
+   qt->addSystemClass(initQDragLeaveEventClass(qevent));
+   qt->addSystemClass(initQFocusEventClass(qevent));
+   qt->addSystemClass(initQHideEventClass(qevent));
+   qt->addSystemClass(initQInputMethodEventClass(qevent));
+   qt->addSystemClass(initQShowEventClass(qevent));
+   qt->addSystemClass(initQTabletEventClass(qinputevent));
+   qt->addSystemClass(initQWheelEventClass(qinputevent));
+   qt->addSystemClass(initQFontComboBoxClass(qcombobox));
+   qt->addSystemClass(initQMainWindowClass(qwidget));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -844,6 +1062,147 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qbl->addConstant("BottomToTop",    new QoreNode((int64)QBoxLayout::BottomToTop));
 
    qt->addInitialNamespace(qbl);
+
+   Namespace *qclipboard = new Namespace("QClipboard");
+   
+   // Mode enum
+   qclipboard->addConstant("Clipboard",                new QoreNode((int64)QClipboard::Clipboard));
+   qclipboard->addConstant("Selection",                new QoreNode((int64)QClipboard::Selection));
+   qclipboard->addConstant("FindBuffer",               new QoreNode((int64)QClipboard::FindBuffer));
+   qclipboard->addConstant("LastMode",                 new QoreNode((int64)QClipboard::LastMode));
+
+   qclipboard->addSystemClass(initQClipboardClass(qobject));
+
+   qt->addInitialNamespace(qclipboard);
+
+   Namespace *qchar = new Namespace("QChar");
+   qchar->addSystemClass(initQCharClass());
+
+   // SpecialCharacter enum
+   qchar->addConstant("Null",                     new QoreNode((int64)QChar::Null));
+   qchar->addConstant("Nbsp",                     new QoreNode((int64)QChar::Nbsp));
+   qchar->addConstant("ReplacementCharacter",     new QoreNode((int64)QChar::ReplacementCharacter));
+   qchar->addConstant("ObjectReplacementCharacter", new QoreNode((int64)QChar::ObjectReplacementCharacter));
+   qchar->addConstant("ByteOrderMark",            new QoreNode((int64)QChar::ByteOrderMark));
+   qchar->addConstant("ByteOrderSwapped",         new QoreNode((int64)QChar::ByteOrderSwapped));
+   qchar->addConstant("ParagraphSeparator",       new QoreNode((int64)QChar::ParagraphSeparator));
+   qchar->addConstant("LineSeparator",            new QoreNode((int64)QChar::LineSeparator));
+
+   // Category enum
+   qchar->addConstant("NoCategory",               new QoreNode((int64)QChar::NoCategory));
+   qchar->addConstant("Mark_NonSpacing",          new QoreNode((int64)QChar::Mark_NonSpacing));
+   qchar->addConstant("Mark_SpacingCombining",    new QoreNode((int64)QChar::Mark_SpacingCombining));
+   qchar->addConstant("Mark_Enclosing",           new QoreNode((int64)QChar::Mark_Enclosing));
+   qchar->addConstant("Number_DecimalDigit",      new QoreNode((int64)QChar::Number_DecimalDigit));
+   qchar->addConstant("Number_Letter",            new QoreNode((int64)QChar::Number_Letter));
+   qchar->addConstant("Number_Other",             new QoreNode((int64)QChar::Number_Other));
+   qchar->addConstant("Separator_Space",          new QoreNode((int64)QChar::Separator_Space));
+   qchar->addConstant("Separator_Line",           new QoreNode((int64)QChar::Separator_Line));
+   qchar->addConstant("Separator_Paragraph",      new QoreNode((int64)QChar::Separator_Paragraph));
+   qchar->addConstant("Other_Control",            new QoreNode((int64)QChar::Other_Control));
+   qchar->addConstant("Other_Format",             new QoreNode((int64)QChar::Other_Format));
+   qchar->addConstant("Other_Surrogate",          new QoreNode((int64)QChar::Other_Surrogate));
+   qchar->addConstant("Other_PrivateUse",         new QoreNode((int64)QChar::Other_PrivateUse));
+   qchar->addConstant("Other_NotAssigned",        new QoreNode((int64)QChar::Other_NotAssigned));
+   qchar->addConstant("Letter_Uppercase",         new QoreNode((int64)QChar::Letter_Uppercase));
+   qchar->addConstant("Letter_Lowercase",         new QoreNode((int64)QChar::Letter_Lowercase));
+   qchar->addConstant("Letter_Titlecase",         new QoreNode((int64)QChar::Letter_Titlecase));
+   qchar->addConstant("Letter_Modifier",          new QoreNode((int64)QChar::Letter_Modifier));
+   qchar->addConstant("Letter_Other",             new QoreNode((int64)QChar::Letter_Other));
+   qchar->addConstant("Punctuation_Connector",    new QoreNode((int64)QChar::Punctuation_Connector));
+   qchar->addConstant("Punctuation_Dash",         new QoreNode((int64)QChar::Punctuation_Dash));
+   qchar->addConstant("Punctuation_Open",         new QoreNode((int64)QChar::Punctuation_Open));
+   qchar->addConstant("Punctuation_Close",        new QoreNode((int64)QChar::Punctuation_Close));
+   qchar->addConstant("Punctuation_InitialQuote", new QoreNode((int64)QChar::Punctuation_InitialQuote));
+   qchar->addConstant("Punctuation_FinalQuote",   new QoreNode((int64)QChar::Punctuation_FinalQuote));
+   qchar->addConstant("Punctuation_Other",        new QoreNode((int64)QChar::Punctuation_Other));
+   qchar->addConstant("Symbol_Math",              new QoreNode((int64)QChar::Symbol_Math));
+   qchar->addConstant("Symbol_Currency",          new QoreNode((int64)QChar::Symbol_Currency));
+   qchar->addConstant("Symbol_Modifier",          new QoreNode((int64)QChar::Symbol_Modifier));
+   qchar->addConstant("Symbol_Other",             new QoreNode((int64)QChar::Symbol_Other));
+   qchar->addConstant("Punctuation_Dask",         new QoreNode((int64)QChar::Punctuation_Dask));
+
+   // Direction enum
+   qchar->addConstant("DirL",                     new QoreNode((int64)QChar::DirL));
+   qchar->addConstant("DirR",                     new QoreNode((int64)QChar::DirR));
+   qchar->addConstant("DirEN",                    new QoreNode((int64)QChar::DirEN));
+   qchar->addConstant("DirES",                    new QoreNode((int64)QChar::DirES));
+   qchar->addConstant("DirET",                    new QoreNode((int64)QChar::DirET));
+   qchar->addConstant("DirAN",                    new QoreNode((int64)QChar::DirAN));
+   qchar->addConstant("DirCS",                    new QoreNode((int64)QChar::DirCS));
+   qchar->addConstant("DirB",                     new QoreNode((int64)QChar::DirB));
+   qchar->addConstant("DirS",                     new QoreNode((int64)QChar::DirS));
+   qchar->addConstant("DirWS",                    new QoreNode((int64)QChar::DirWS));
+   qchar->addConstant("DirON",                    new QoreNode((int64)QChar::DirON));
+   qchar->addConstant("DirLRE",                   new QoreNode((int64)QChar::DirLRE));
+   qchar->addConstant("DirLRO",                   new QoreNode((int64)QChar::DirLRO));
+   qchar->addConstant("DirAL",                    new QoreNode((int64)QChar::DirAL));
+   qchar->addConstant("DirRLE",                   new QoreNode((int64)QChar::DirRLE));
+   qchar->addConstant("DirRLO",                   new QoreNode((int64)QChar::DirRLO));
+   qchar->addConstant("DirPDF",                   new QoreNode((int64)QChar::DirPDF));
+   qchar->addConstant("DirNSM",                   new QoreNode((int64)QChar::DirNSM));
+   qchar->addConstant("DirBN",                    new QoreNode((int64)QChar::DirBN));
+
+   // Decomposition enum
+   qchar->addConstant("NoDecomposition",          new QoreNode((int64)QChar::NoDecomposition));
+   qchar->addConstant("Canonical",                new QoreNode((int64)QChar::Canonical));
+   qchar->addConstant("Font",                     new QoreNode((int64)QChar::Font));
+   qchar->addConstant("NoBreak",                  new QoreNode((int64)QChar::NoBreak));
+   qchar->addConstant("Initial",                  new QoreNode((int64)QChar::Initial));
+   qchar->addConstant("Medial",                   new QoreNode((int64)QChar::Medial));
+   qchar->addConstant("Final",                    new QoreNode((int64)QChar::Final));
+   qchar->addConstant("Isolated",                 new QoreNode((int64)QChar::Isolated));
+   qchar->addConstant("Circle",                   new QoreNode((int64)QChar::Circle));
+   qchar->addConstant("Super",                    new QoreNode((int64)QChar::Super));
+   qchar->addConstant("Sub",                      new QoreNode((int64)QChar::Sub));
+   qchar->addConstant("Vertical",                 new QoreNode((int64)QChar::Vertical));
+   qchar->addConstant("Wide",                     new QoreNode((int64)QChar::Wide));
+   qchar->addConstant("Narrow",                   new QoreNode((int64)QChar::Narrow));
+   qchar->addConstant("Small",                    new QoreNode((int64)QChar::Small));
+   qchar->addConstant("Square",                   new QoreNode((int64)QChar::Square));
+   qchar->addConstant("Compat",                   new QoreNode((int64)QChar::Compat));
+   qchar->addConstant("Fraction",                 new QoreNode((int64)QChar::Fraction));
+
+   // Joining enum
+   qchar->addConstant("OtherJoining",             new QoreNode((int64)QChar::OtherJoining));
+   qchar->addConstant("Dual",                     new QoreNode((int64)QChar::Dual));
+   qchar->addConstant("Right",                    new QoreNode((int64)QChar::Right));
+   qchar->addConstant("Center",                   new QoreNode((int64)QChar::Center));
+
+   // Combining class
+   qchar->addConstant("Combining_BelowLeftAttached", new QoreNode((int64)QChar::Combining_BelowLeftAttached));
+   qchar->addConstant("Combining_BelowAttached",  new QoreNode((int64)QChar::Combining_BelowAttached));
+   qchar->addConstant("Combining_BelowRightAttached", new QoreNode((int64)QChar::Combining_BelowRightAttached));
+   qchar->addConstant("Combining_LeftAttached",   new QoreNode((int64)QChar::Combining_LeftAttached));
+   qchar->addConstant("Combining_RightAttached",  new QoreNode((int64)QChar::Combining_RightAttached));
+   qchar->addConstant("Combining_AboveLeftAttached", new QoreNode((int64)QChar::Combining_AboveLeftAttached));
+   qchar->addConstant("Combining_AboveAttached",  new QoreNode((int64)QChar::Combining_AboveAttached));
+   qchar->addConstant("Combining_AboveRightAttached", new QoreNode((int64)QChar::Combining_AboveRightAttached));
+   qchar->addConstant("Combining_BelowLeft",      new QoreNode((int64)QChar::Combining_BelowLeft));
+   qchar->addConstant("Combining_Below",          new QoreNode((int64)QChar::Combining_Below));
+   qchar->addConstant("Combining_BelowRight",     new QoreNode((int64)QChar::Combining_BelowRight));
+   qchar->addConstant("Combining_Left",           new QoreNode((int64)QChar::Combining_Left));
+   qchar->addConstant("Combining_Right",          new QoreNode((int64)QChar::Combining_Right));
+   qchar->addConstant("Combining_AboveLeft",      new QoreNode((int64)QChar::Combining_AboveLeft));
+   qchar->addConstant("Combining_Above",          new QoreNode((int64)QChar::Combining_Above));
+   qchar->addConstant("Combining_AboveRight",     new QoreNode((int64)QChar::Combining_AboveRight));
+   qchar->addConstant("Combining_DoubleBelow",    new QoreNode((int64)QChar::Combining_DoubleBelow));
+   qchar->addConstant("Combining_DoubleAbove",    new QoreNode((int64)QChar::Combining_DoubleAbove));
+   qchar->addConstant("Combining_IotaSubscript",  new QoreNode((int64)QChar::Combining_IotaSubscript));
+
+   // UnicodeVersion
+   qchar->addConstant("Unicode_Unassigned",       new QoreNode((int64)QChar::Unicode_Unassigned));
+   qchar->addConstant("Unicode_1_1",              new QoreNode((int64)QChar::Unicode_1_1));
+   qchar->addConstant("Unicode_2_0",              new QoreNode((int64)QChar::Unicode_2_0));
+   qchar->addConstant("Unicode_2_1_2",            new QoreNode((int64)QChar::Unicode_2_1_2));
+   qchar->addConstant("Unicode_3_0",              new QoreNode((int64)QChar::Unicode_3_0));
+   qchar->addConstant("Unicode_3_1",              new QoreNode((int64)QChar::Unicode_3_1));
+   qchar->addConstant("Unicode_3_2",              new QoreNode((int64)QChar::Unicode_3_2));
+   qchar->addConstant("Unicode_4_0",              new QoreNode((int64)QChar::Unicode_4_0));
+   qchar->addConstant("Unicode_4_1",              new QoreNode((int64)QChar::Unicode_4_1));
+   qchar->addConstant("Unicode_5_0",              new QoreNode((int64)QChar::Unicode_5_0));
+
+   qt->addInitialNamespace(qchar);
 
    Namespace *qcalendarwidget = new Namespace("QCalendarWidget");
 
@@ -1815,5 +2174,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
 static void qt_module_delete()
 {
-   // nothing to do
+   if (C_Clipboard) {
+      ExceptionSink xsink;
+      C_Clipboard->deref(&xsink);
+   }
 }

@@ -65,12 +65,14 @@ static void QPEN_constructor(Object *self, QoreNode *params, ExceptionSink *xsin
       return;
    }
 
-   Qt::PenStyle style;
-   if (p && p->type == NT_PENSTYLE)
-      style = (Qt::PenStyle)p->val.intval;
-   else
-      style = (Qt::PenStyle)(p ? p->getAsInt() : 0);
-   self->setPrivate(CID_QPEN, new QoreQPen(style));
+   if (p && p->type == NT_PENSTYLE) {
+      Qt::PenStyle style = (Qt::PenStyle)p->val.intval;
+      self->setPrivate(CID_QPEN, new QoreQPen(style));
+   }
+   else {
+      Qt::GlobalColor color = (Qt::GlobalColor)(p ? p->getAsInt() : 0);
+      self->setPrivate(CID_QPEN, new QoreQPen(QColor(color)));
+   }
    return;
 }
 
