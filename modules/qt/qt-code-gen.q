@@ -11,6 +11,7 @@ const opts = (
     "file"            : "f,file",
     "parent"          : "p,parent=s",
     "widget"          : "w,widget",
+    "style"           : "s,style",
     "test"            : "t,test",
     "help"            : "h,help"
     );
@@ -30,7 +31,8 @@ const special_arg_list =
 const qobject_list = 
     ( "QWidget", "QMovie", "QAction", "QActionGroup", "QMenu", 
       "QAbstractItemDelegate", "QItemDelegate", "QItemModel", "QLayout", 
-      "QAbstractButton", "QLineEdit", "QScrollBar", "QMimeData" );
+      "QAbstractButton", "QLineEdit", "QScrollBar", "QMimeData",
+      "QApplication", "QStyle" );
 
 const abstract_class_list = 
     ( "QObject", "QWidget", "QAbstractItemDelegate", "QItemDelegate", 
@@ -42,7 +44,7 @@ const const_class_list =
       "QDateTime", "QDate", "QTime", "QKeySequence", "QIcon", "QFont", "QBrush", 
       "QTextFormat", "QTextBlockFormat", "QTextCharFormat", "QTextFrameFormat", 
       "QTextImageFormat", "QTextListFormat", "QTextTableFormat", "QTextLength", 
-      "QPen", "QStyleOption", "QModelIndex", "QStyleOptionViewItem", 
+      "QPen", "QModelIndex", "QStyleOptionViewItem", 
       "QStyleOptionViewItemV2", "QLocale", "QUrl", "QByteArray", "QVariant", 
       "QRect", "QRectF", "QFontInfo", "QFontMetrics"
     );
@@ -73,6 +75,9 @@ const class_list = ( "QRegion",
 		     "QMoveEvent",
 		     "QPaintEvent",
 		     "QResizeEvent",
+		     "QStyleOption",
+		     "QStyleOptionComplex",
+		     "QTableWidgetItem"
 
  ) + const_class_list + qobject_list;
 
@@ -93,6 +98,7 @@ sub usage()
   -n,--name=ARG            abstract parent's class name
   -A,--abstract-list=ARG   list of abstract classes
   -w,--widget              is a QWidget
+  -s,--style               is a QStyle
   -p,--parent=ARG          parent class name
   -t,--test                do not create files (use with -f)
   -h,--help                this help text
@@ -128,8 +134,13 @@ sub command_line()
 	exit(1);
     }
 
+    if ($o.indep && $o.style) {
+	stderr.printf("cannot be independent and a QStyle at the same time\n");
+	exit(1);
+    }
+
     if (!$o.indep && !exists $o.parent)
-	$o.parent = $o.widget ? "qwidget" : "qobject";
+	$o.parent = $o.widget ? "QWidget" : "QObject";
 }
 
 sub dl($l)
@@ -207,7 +218,8 @@ sub do_class($arg, $name, $cn, $i, $d, $const)
     $type =~ s/\&//;
     my $utn = toupper($type);
 
-    my $ref = inlist($type, const_class_list); # && ($arg.type =~ /\*/);
+    #my $ref = inlist($type, const_class_list); # && ($arg.type =~ /\*/);
+    my $ref = $arg.is_const;
 
     my $tcn = sprintf("Qore%s%s", $d ? "" : "Abstract", $type);
 
@@ -222,13 +234,19 @@ sub do_class($arg, $name, $cn, $i, $d, $const)
 
     $lo += sprintf("   %s *%s = (p && p->type == NT_OBJECT) ? (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink) : 0;", 
 		   $tcn, $arg.name, $tcn, $utn);
-    $lo += sprintf("   if (!%s) {", $arg.name);
-    $lo += "      if (!xsink->isException())";
-    $lo += sprintf("         xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a %s object as %s argument to %s::%s()\");", 
-		   toupper($cn), toupper($name), $type, ordinal[$i], $cn, $name);
-    $lo += $const ? "      return;" : "      return 0;";
-    $lo += "   }";
-    $lo += sprintf("   ReferenceHolder<%s> %sHolder(%s, xsink);", $tcn, $arg.name, $arg.name);
+    if (!exists $arg.def) {
+	$lo += sprintf("   if (!%s) {", $arg.name);
+	$lo += "      if (!xsink->isException())";
+	$lo += sprintf("         xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"expecting a %s object as %s argument to %s::%s()\");", 
+		       toupper($cn), toupper($name), $type, ordinal[$i], $cn, $name);
+	$lo += $const ? "      return;" : "      return 0;";
+	$lo += "   }";
+    }
+    else {
+	$lo += "   if (*xsink)";
+	$lo += $const ? "      return;" : "      return 0;";
+    }
+    $lo += sprintf("   ReferenceHolder<AbstractPrivateData> %sHolder(static_cast<AbstractPrivateData *>(%s), xsink);", $arg.name, $arg.name);
 
     return $lo;
 }
@@ -244,7 +262,8 @@ sub do_dynamic_class($arg, $name, $cn, $i, $const)
 
     my $tcn = sprintf("QoreAbstract%s", $type);
 
-    my $ref = inlist($type, const_class_list); # && ($arg.type =~ /\*/);
+    #my $ref = inlist($type, const_class_list); # && ($arg.type =~ /\*/);
+    my $ref = $arg.is_const;
 
     $arg.get = 
 	($ref
@@ -306,7 +325,7 @@ sub add_new_build_files($fp)
 	my $done;
 	for (my $i = 0; $i < elements $lines; ++$i) {
 	    
-	    if (!$done && $lines[$i + 1] =~ /endif/) {
+	    if (!$done && ($lines[$i + 1] =~ /endif/ || $lines[$i + 1] =~ /if COND_MACOSX/)) {
 	        trim $lines[$i];
 		$of.printf("\t%s \\\n", $lines[$i]);
 		$of.printf("\t%s\n", $cc);
@@ -329,6 +348,8 @@ sub add_new_build_files($fp)
 		}
 		else if ($found && $lines[$i] !~ /modules\/qt/) {
 		    $of.printf("\tmodules/qt/%s \\\n", $hh);
+		    if ($o.abstract_class == $cn) 
+			$of.printf("\tmodules/qt/QoreAbstract%s.h \\\n", $cn);
 		    $done = True;
 		}
 	    }
@@ -485,6 +506,53 @@ sub main()
     if (exists $o.file) {
 	add_new_build_files("QC_" + $cn);
 
+	# add new abstract header
+	if ($o.abstract_class == $cn) {
+	    $of = get_file("QoreAbstract" + $cn + ".h");
+	    $of.printf(
+"/*
+ QoreAbstract%s.h
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#ifndef _QORE_QT_QOREABSTRACT%s_H
+
+#define _QORE_QT_QOREABSTRACT%s_H
+
+", $cn, $func_prefix, $func_prefix);
+
+	    if (exists $o.parent)
+		$of.printf("#include \"QoreAbstract%s.h\"\n\n", $o.parent); 
+
+
+	    $of.printf(
+"class QoreAbstract%s%s
+{
+   public:
+      DLLLOCAL virtual class %s *get%s() const = 0;
+};
+
+#endif  // _QORE_QT_QOREABSTRACT%s_H
+", $cn, exists $o.parent ? " : public QoreAbstract" + $o.parent : "", $cn, $cn, $func_prefix);
+	}
+
 	$of = get_file("QC_" + $cn + ".h");
 	$of.printf(
 "/*
@@ -557,8 +625,10 @@ DLLLOCAL class QoreClass *init%sClass(%s);
 	else # abstract/dependent class
 	{
 	    $of.printf("class my%s : public %s%s\n", $cn, $cn, $o.widget ? ", public QoreQWidgetExtension" : "");
-	    $of.printf("{
-#define QOREQTYPE %s
+            $of.printf("{\n");
+            if ($o.style)
+                $of.printf("      friend class Qore%s;\n\n", $cn);
+	    $of.printf("#define QOREQTYPE %s
 #include \"qore-qt-metacode.h\"
 %s#undef QOREQTYPE
 
@@ -573,7 +643,7 @@ DLLLOCAL class QoreClass *init%sClass(%s);
 		    if (exists $arg_names)
 			splice $arg_names, -2;
 		    my $str = "Object *obj";
-		    if (exists $i.orig_args)
+		    if (strlen($i.orig_args))
 			$str += ", " + $i.orig_args;
 		    $of.printf("      DLLLOCAL my%s(%s) : %s(%s)%s\n      {\n", $cn, $str, $cn, $arg_names,
 			$o.widget ? ", QoreQWidgetExtension(obj->getClass())" : "");
@@ -595,12 +665,14 @@ DLLLOCAL class QoreClass *init%sClass(%s);
 		    my $arg_names;
 		    foreach my $a in ($i.args)
 			$arg_names += $a.name + ", ";
-		    if (exists $arg_names)
+		    if (exists $arg_names) {
 			splice $arg_names, -2;
+			$arg_names = ", " + $arg_names;
+		    }
 		    my $str = "Object *obj";
-		    if (exists $i.orig_args)
+		    if (strlen($i.orig_args))
 			$str += ", " + $i.orig_args;
-		    $of.printf("      DLLLOCAL Qore%s(%s) : qobj(new my%s(obj, %s))\n      {\n      }\n", $cn, $str, $cn, $arg_names);
+		    $of.printf("      DLLLOCAL Qore%s(%s) : qobj(new my%s(obj%s))\n      {\n      }\n", $cn, $str, $cn,  $arg_names);
 		}
 	    }
 	    $of.printf("      DLLLOCAL virtual class QObject *getQObject() const
@@ -632,7 +704,7 @@ DLLLOCAL class QoreClass *init%sClass(%s);
       }
 ", $ac, $ac, $ac);
 
-	    $of.printf("      QORE_VIRTUAL_Q%s_METHODS\n", $o.widget ? "WIDGET" : "OBJECT");
+	    $of.printf("      QORE_VIRTUAL_Q%s_METHODS\n", $o.widget ? "WIDGET" : ($o.style ? "STYLE" : "OBJECT"));
 	    $of.printf("};\n");
 	}
 
@@ -803,21 +875,27 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
     else
 	$lo += sprintf("%s%s *%s = (p && p->type == NT_OBJECT) ? (%s *)p->val.object->getReferencedPrivateData(CID_%s, xsink) : 0;", 
 		       $os, $tcn, $arg.name, $tcn, $utn);
-    $lo += sprintf("%sif (!%s) {", $os, $arg.name);
-    if ($final) {
-	$lo += sprintf("%s   if (!xsink->isException())", $os);
-	my $str;
-	if (!$last) 
-	    $str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"%s::%s() does not know how to handle arguments of class '%s' as passed as the ", 
-			  		       $os, toupper($cn), toupper($name), $cn, $name);
-	else
-	    $str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the ", 
-			  		       $os, toupper($cn), toupper($name), $cn, $name, $type);
-
-	$str += sprintf("%s argument\", p->val.object->getClass()->getName());", ordinal[$i]);
-	$lo += $str;
-	$lo += sprintf("%s   return%s;", $os, $const ? "" : " 0");
+    if (!exists $arg.def) {
+	$lo += sprintf("%sif (!%s) {", $os, $arg.name);
+	if ($final) {
+	    $lo += sprintf("%s   if (!xsink->isException())", $os);
+	    my $str;
+	    if (!$last) 
+		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"%s::%s() does not know how to handle arguments of class '%s' as passed as the ", 
+			       $os, toupper($cn), toupper($name), $cn, $name);
+	    else
+		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the ", 
+			       $os, toupper($cn), toupper($name), $cn, $name, $type);
+	    
+	    $str += sprintf("%s argument\", p->val.object->getClass()->getName());", ordinal[$i]);
+	    $lo += $str;
+	    $lo += sprintf("%s   return%s;", $os, $const ? "" : " 0");
+	}
     }
+    else {
+	$lo += sprintf("%sif (*xsink)", $os);
+	$lo += sprintf("%s   return%s;", $os, $const ? "" : " 0");
+    }    
 
     #$lo += sprintf("%sReferenceHolder<%s> holder(%s, xsink);", $os, $tcn, $arg.name);
 
@@ -834,8 +912,9 @@ sub do_multi_class_trailer($offset, $arg)
     $type =~ s/\*//;
     my $tcn = sprintf("Qore%s%s", $arg.is_class ? "" : "Abstract", $type);
 
-    $lo += sprintf("%s}", $os);
-    $lo += sprintf("%sReferenceHolder<%s> %sHolder(%s, xsink);", $os, $tcn, $arg.name, $arg.name);
+    if (!exists $arg.def)
+	$lo += sprintf("%s}", $os);
+    $lo += sprintf("%sReferenceHolder<AbstractPrivateData> %sHolder(static_cast<AbstractPrivateData *>(%s), xsink);", $os, $arg.name, $arg.name);
 
     return $lo;
 }
@@ -1247,8 +1326,11 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 
 sub append_call($cs, $arg)
 {
-    if (exists $arg.classname && $arg.type =~ /\*/ && inlist($arg.classname, const_class_list))
-	$cs += sprintf("*(%s), ", exists $arg.get ? $arg.get : $arg.name);
+    #if (exists $arg.classname && $arg.type =~ /\*/ && inlist($arg.classname, const_class_list))
+	#$cs += sprintf("*(%s), ", exists $arg.get ? $arg.get : $arg.name);
+    #else 
+    if ($arg.is_class && !$arg.special_arg && $arg.def == "0")
+	$cs += sprintf("%s ? %s : 0, ", $arg.name, exists $arg.get ? $arg.get : $arg.name);
     else
 	$cs += sprintf("%s, ", exists $arg.get ? $arg.get : $arg.name);
 }
@@ -1397,7 +1479,7 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 	      if (elements $lo > 2) $lo += "";
 	      $lo += do_return_qobject($rt, $callstr);	      
 	  }
-	  else if (inlist($rt, const_class_list)) {
+	  else if (inlist($rt, class_list)) {
 	      # add blank line if not the first line
 	      if (elements $lo > 2) $lo += "";
 	      $lo += do_return_class($rt, $callstr);

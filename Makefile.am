@@ -362,6 +362,31 @@ noinst_HEADERS = \
 	modules/qt/QC_QFontComboBox.h \
 	modules/qt/QC_QMainWindow.h \
 	modules/qt/QC_QRadioButton.h \
+	modules/qt/QC_QStyle.h \
+	modules/qt/QoreAbstractQStyle.h \
+	modules/qt/QC_QStyleOptionComplex.h \
+	modules/qt/QC_QStyleOptionComboBox.h \
+	modules/qt/QC_QStyleOptionGroupBox.h \
+	modules/qt/QC_QStyleOptionSizeGrip.h \
+	modules/qt/QC_QStyleOptionSlider.h \
+	modules/qt/QC_QStyleOptionSpinBox.h \
+	modules/qt/QC_QStyleOptionTitleBar.h \
+	modules/qt/QC_QStyleOptionToolButton.h \
+	modules/qt/QC_QMotifStyle.h \
+	modules/qt/QC_QCDEStyle.h \
+	modules/qt/QC_QWindowsStyle.h \
+	modules/qt/QC_QCleanlooksStyle.h \
+	modules/qt/QC_QMacStyle.h \
+	modules/qt/QC_QPlastiqueStyle.h \
+	modules/qt/QC_QWindowsXPStyle.h \
+	modules/qt/QC_QSpinBox.h \
+	modules/qt/QC_QAbstractItemView.h \
+	modules/qt/QoreAbstractQAbstractItemView.h \
+	modules/qt/QC_QTableView.h \
+	modules/qt/QoreAbstractQTableView.h \
+	modules/qt/QC_QTableWidget.h \
+	modules/qt/QoreAbstractQTableWidget.h \
+	modules/qt/QC_QTableWidgetItem.h \
 	command-line.h \
 	include/qore/Qore.h
 

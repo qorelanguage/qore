@@ -124,11 +124,38 @@
 #include "QC_QFontComboBox.h"
 #include "QC_QMainWindow.h"
 #include "QC_QRadioButton.h"
+#include "QC_QStyle.h"
+#include "QC_QStyleOptionComplex.h"
+#include "QC_QStyleOptionComboBox.h"
+#include "QC_QStyleOptionGroupBox.h"
+#include "QC_QStyleOptionSizeGrip.h"
+#include "QC_QStyleOptionSlider.h"
+#include "QC_QStyleOptionSpinBox.h"
+#include "QC_QStyleOptionTitleBar.h"
+#include "QC_QStyleOptionToolButton.h"
+#include "QC_QMotifStyle.h"
+#include "QC_QCDEStyle.h"
+#include "QC_QWindowsStyle.h"
+#include "QC_QCleanlooksStyle.h"
+#include "QC_QPlastiqueStyle.h"
+#include "QC_QSpinBox.h"
+#include "QC_QAbstractItemView.h"
+#include "QC_QTableView.h"
+#include "QC_QTableWidget.h"
+#include "QC_QTableWidgetItem.h"
 
 #include "qore-qt-events.h"
 
 #include "QT_BrushStyle.h"
 #include "QT_PenStyle.h"
+
+#ifdef DARWIN
+#include "QC_QMacStyle.h"
+#endif
+
+#ifdef WINDOWS
+#include "QC_QWindowsXPStyle.h"
+#endif
 
 #include "qore-qt.h"
 
@@ -1009,7 +1036,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    QoreClass *qabstractbutton, *qtextformat, *qtextframeformat, *qtextcharformat,
       *qstyleoption, *qstyleoptionviewitem, *qabstractitemdelegate,
       *qabstractspinbox, *qdatetimeedit, *qabstractscrollarea, *qdropevent, 
-      *qdragmoveevent, *qcombobox;
+      *qdragmoveevent, *qcombobox, *qstyleoptioncomplex, *qstyle, *qmotifstyle,
+      *qwindowsstyle, *qabstractitemview, *qtableview;
 
    qt->addSystemClass(initQPointFClass());
    qt->addSystemClass(initQPolygonClass());
@@ -1070,9 +1098,35 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQFontComboBoxClass(qcombobox));
    qt->addSystemClass(initQMainWindowClass(qwidget));
    qt->addSystemClass(initQRadioButtonClass(qabstractbutton));
+   qt->addSystemClass((qstyle = initQStyleClass(qobject)));
+   qt->addSystemClass((qstyleoptioncomplex = initQStyleOptionComplexClass(qstyleoption)));
+   qt->addSystemClass(initQStyleOptionComboBoxClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionGroupBoxClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionSizeGripClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionSliderClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionSpinBoxClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionTitleBarClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionToolButtonClass(qstyleoptioncomplex));
+   qt->addSystemClass((qmotifstyle = initQMotifStyleClass(qstyle)));
+   qt->addSystemClass(initQCDEStyleClass(qmotifstyle));
+   qt->addSystemClass((qwindowsstyle = initQWindowsStyleClass(qstyle)));
+   qt->addSystemClass(initQCleanlooksStyleClass(qwindowsstyle));
+#ifdef DARWIN
+   qt->addSystemClass(initQMacStyleClass(qwindowsstyle));
+#endif
+   qt->addSystemClass(initQPlastiqueStyleClass(qobject));
+#ifdef WINDOWS
+   qt->addSystemClass(initQWindowsXPStyleClass(qobject));
+#endif
+   qt->addSystemClass(initQSpinBoxClass(qwidget));
+   qt->addSystemClass((qabstractitemview = initQAbstractItemViewClass(qabstractscrollarea)));
+   qt->addSystemClass((qtableview = initQTableViewClass(qabstractitemview)));
+   qt->addSystemClass(initQTableWidgetClass(qtableview));
+   qt->addSystemClass(initQTableWidgetItemClass());
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
+
    // Direction enum
    qbl->addConstant("LeftToRight",    new QoreNode((int64)QBoxLayout::LeftToRight));
    qbl->addConstant("RightToLeft",    new QoreNode((int64)QBoxLayout::RightToLeft));

@@ -107,7 +107,7 @@ static QoreNode *QSCROLLAREA_setWidget(Object *self, QoreQScrollArea *qsa, QoreN
       return 0;
    }
    ReferenceHolder<QoreQWidget> widgetHolder(widget, xsink);
-   printd(0, "QScrollArea::setWidget(%08p) this=%08p\n", qsa, widget->getQWidget());
+   //printd(5, "QScrollArea::setWidget(%08p) this=%08p\n", qsa, widget->getQWidget());
    qsa->qobj->setWidget(static_cast<QWidget *>(widget->getQWidget()));
    return 0;
 }

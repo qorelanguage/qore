@@ -76,7 +76,31 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QClipboard.cc \
 	QC_QFontComboBox.cc \
 	QC_QMainWindow.cc \
-	QC_QRadioButton.cc
+	QC_QRadioButton.cc \
+	QC_QStyle.cc \
+	QC_QStyleOptionComplex.cc \
+	QC_QStyleOptionComboBox.cc \
+	QC_QStyleOptionGroupBox.cc \
+	QC_QStyleOptionSizeGrip.cc \
+	QC_QStyleOptionSlider.cc \
+	QC_QStyleOptionSpinBox.cc \
+	QC_QStyleOptionTitleBar.cc \
+	QC_QStyleOptionToolButton.cc \
+	QC_QMotifStyle.cc \
+	QC_QCDEStyle.cc \
+	QC_QWindowsStyle.cc \
+	QC_QCleanlooksStyle.cc \
+	QC_QPlastiqueStyle.cc \
+	QC_QSpinBox.cc \
+	QC_QAbstractItemView.cc \
+	QC_QTableView.cc \
+	QC_QTableWidget.cc \
+	QC_QTableWidgetItem.cc
+
+if COND_MACOSX
+QT_SOURCES += QC_QMacStyle.cc
+endif
+
 endif
 
 if COND_MONOLITHIC

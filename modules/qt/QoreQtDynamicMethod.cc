@@ -199,8 +199,8 @@ void QoreQtDynamicSlot::call(void **arguments)
       }
       else if (type_list[i] == QQT_TYPE_QSTRING) {
 	 QString *qstr = reinterpret_cast<QString *>(arguments[i + 1]);
-	 printd(0, "slot argument string: %08p: '%s'\n", qstr, qstr->length());
-	 printd(0, "slot argument string: '%s'\n", qstr->toUtf8().data());
+	 //printd(5, "slot argument string: %08p: %d\n", qstr, qstr->length());
+	 //printd(5, "slot argument string: '%s'\n", qstr->toUtf8().data());
 	 args->push(new QoreNode(new QoreString(qstr->toUtf8().data(), QCS_UTF8)));
       }
       else if (type_list[i] == QQT_TYPE_QDATE) {
@@ -326,8 +326,8 @@ void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, List *args)
 
 	    sig_args[i + 1] = reinterpret_cast<void *>(arg_list[i].t_QString);
 
-	    printd(0, "creating QString argument: %08p, %s\n", n, n->type->getName());
-	    printd(0, "QString: '%s'\n", arg_list[i].t_QString->toUtf8().data());
+	    //printd(5, "creating QString argument: %08p, %s\n", n, n->type->getName());
+	    //printd(5, "QString: '%s'\n", arg_list[i].t_QString->toUtf8().data());
 
 	    break;
 	 }

@@ -2177,6 +2177,7 @@ AM_CONDITIONAL([COND_TUXEDO],     [test "$with_tuxedo" = yes])
 AM_CONDITIONAL([COND_QT],         [test "$with_qt" = yes])
 AM_CONDITIONAL([COND_MONOLITHIC], [test "$enable_shared" = no -o "$enable_builtin_modules" = "yes"])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
+AM_CONDITIONAL([COND_MACOSX],     [test "$darwin" = true])
 
 AC_CONFIG_FILES([Makefile lib/Makefile modules/Makefile modules/ncurses/Makefile modules/tibrv/Makefile modules/tibae/Makefile modules/mysql/Makefile modules/oracle/Makefile modules/Tuxedo/Makefile modules/sybase/Makefile modules/pgsql/Makefile modules/qt/Makefile])
 AC_OUTPUT

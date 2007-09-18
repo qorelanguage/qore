@@ -113,3 +113,28 @@
 #include "QC_QFontComboBox.cc"
 #include "QC_QMainWindow.cc"
 #include "QC_QRadioButton.cc"
+#include "QC_QStyle.cc"
+#include "QC_QStyleOptionComplex.cc"
+#include "QC_QStyleOptionComboBox.cc"
+#include "QC_QStyleOptionGroupBox.cc"
+#include "QC_QStyleOptionSizeGrip.cc"
+#include "QC_QStyleOptionSlider.cc"
+#include "QC_QStyleOptionSpinBox.cc"
+#include "QC_QStyleOptionTitleBar.cc"
+#include "QC_QStyleOptionToolButton.cc"
+#include "QC_QMotifStyle.cc"
+#include "QC_QCDEStyle.cc"
+#include "QC_QWindowsStyle.cc"
+#include "QC_QCleanlooksStyle.cc"
+#ifdef DARWIN
+#include "QC_QMacStyle.cc"
+#endif
+#include "QC_QPlastiqueStyle.cc"
+#ifdef WINDOWS
+#include "QC_QWindowsXPStyle.cc"
+#endif
+#include "QC_QSpinBox.cc"
+#include "QC_QAbstractItemView.cc"
+#include "QC_QTableView.cc"
+#include "QC_QTableWidget.cc"
+#include "QC_QTableWidgetItem.cc"
