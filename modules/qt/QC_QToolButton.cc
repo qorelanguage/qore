@@ -130,7 +130,7 @@ static QoreNode *QTOOLBUTTON_toolButtonStyle(Object *self, QoreQToolButton *qtb,
 static QoreNode *QTOOLBUTTON_sizeHint(Object *self, QoreQToolButton *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    Object *o_qs = new Object(QC_QSize, getProgram());
-   QoreQSize *q_qs = new QoreQSize(qtb->qobj->sizeHint());
+   QoreQSize *q_qs = new QoreQSize(qtb->sizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
 }

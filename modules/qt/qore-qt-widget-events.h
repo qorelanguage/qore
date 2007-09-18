@@ -6,42 +6,7 @@
 class T {
 #endif
 
-  private:
-      DLLLOCAL class QoreNode *dispatch_event_intern(class Method *m, QoreClass *qclass, class AbstractPrivateData *data, class ExceptionSink *xsink)
-      {
-	 // create argument list
-	 Object *peo = new Object(qclass, getProgram());
-	 peo->setPrivate(qclass->getID(), data);
-	 QoreNode *a = new QoreNode(peo);
-	 List *args = new List();
-	 args->push(a);
-	 QoreNode *na = new QoreNode(args);
-	 
-	 // call event method
-	 QoreNode *rv = m->eval(qore_obj, na, xsink);
-	 
-	 // delete arguments
-	 na->deref(xsink);
-
-	 return rv;
-      }
-
-      DLLLOCAL void dispatch_event(class Method *m, QoreClass *qclass, class AbstractPrivateData *data)
-      {
-	 class ExceptionSink xsink;
-
-	 discard(dispatch_event_intern(m, qclass, data, &xsink), &xsink);
-      }
-
-      DLLLOCAL bool dispatch_event_bool(class Method *m, QoreClass *qclass, class AbstractPrivateData *data)
-      {
-	 class ExceptionSink xsink;
-
-	 QoreNode *rv = dispatch_event_intern(m, qclass, data, &xsink);
-	 return rv ? rv->getAsBool() : false;
-      }
-
-   public:
+   protected:
       DLLLOCAL virtual void paintEvent(QPaintEvent *event) 
       {
 	 //printd(5, "paintEvent this=%08p class=" QLSTR(QOREQTYPE) " func=%08p\n", this, e_paintEvent);
@@ -52,7 +17,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_paintEvent, QC_QPaintEvent, new QoreQPaintEvent(*event));
+	 dispatch_event(qore_obj, e_paintEvent, QC_QPaintEvent, new QoreQPaintEvent(*event));
       }
       DLLLOCAL virtual void mouseMoveEvent(QMouseEvent *event) 
       {
@@ -61,7 +26,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_mouseMoveEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
+	 dispatch_event(qore_obj, e_mouseMoveEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
       }
       DLLLOCAL virtual void mousePressEvent(QMouseEvent *event) 
       {
@@ -70,7 +35,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_mousePressEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
+	 dispatch_event(qore_obj, e_mousePressEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
       }
       DLLLOCAL virtual void mouseReleaseEvent(QMouseEvent *event) 
       {
@@ -79,7 +44,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_mouseReleaseEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
+	 dispatch_event(qore_obj, e_mouseReleaseEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
       }
       DLLLOCAL virtual void mouseDoubleClickEvent(QMouseEvent *event) 
       {
@@ -88,7 +53,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_mouseDoubleClickEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
+	 dispatch_event(qore_obj, e_mouseDoubleClickEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
       }
       DLLLOCAL virtual void keyPressEvent(QKeyEvent *event) 
       {
@@ -97,7 +62,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_keyPressEvent, QC_QKeyEvent, new QoreQKeyEvent(*event));
+	 dispatch_event(qore_obj, e_keyPressEvent, QC_QKeyEvent, new QoreQKeyEvent(*event));
       }
       DLLLOCAL virtual void keyReleaseEvent(QKeyEvent *event) 
       {
@@ -106,7 +71,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_keyReleaseEvent, QC_QKeyEvent, new QoreQKeyEvent(*event));
+	 dispatch_event(qore_obj, e_keyReleaseEvent, QC_QKeyEvent, new QoreQKeyEvent(*event));
       }
 
       DLLLOCAL virtual void changeEvent(QEvent *event)
@@ -116,7 +81,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_changeEvent, QC_QEvent, new QoreQEvent(*event));
+	 dispatch_event(qore_obj, e_changeEvent, QC_QEvent, new QoreQEvent(*event));
       }
 
       DLLLOCAL virtual void enterEvent(QEvent *event)
@@ -126,14 +91,14 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_enterEvent, QC_QEvent, new QoreQEvent(*event));
+	 dispatch_event(qore_obj, e_enterEvent, QC_QEvent, new QoreQEvent(*event));
       }
       DLLLOCAL virtual bool event(QEvent *event)
       {
 	 if (!e_event)
 	    return QOREQTYPE::event(event);
 
-	 return dispatch_event_bool(e_event, QC_QEvent, new QoreQEvent(*event));
+	 return dispatch_event_bool(qore_obj, e_event, QC_QEvent, new QoreQEvent(*event));
       }
 
       DLLLOCAL virtual void leaveEvent(QEvent *event)
@@ -143,7 +108,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_leaveEvent, QC_QEvent, new QoreQEvent(*event));
+	 dispatch_event(qore_obj, e_leaveEvent, QC_QEvent, new QoreQEvent(*event));
       }
 
       DLLLOCAL virtual void resizeEvent(QResizeEvent *event)
@@ -153,7 +118,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_resizeEvent, QC_QResizeEvent, new QoreQResizeEvent(*event));
+	 dispatch_event(qore_obj, e_resizeEvent, QC_QResizeEvent, new QoreQResizeEvent(*event));
       }
 
       DLLLOCAL virtual void moveEvent(QMoveEvent *event)
@@ -163,7 +128,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_moveEvent, QC_QMoveEvent, new QoreQMoveEvent(*event));
+	 dispatch_event(qore_obj, e_moveEvent, QC_QMoveEvent, new QoreQMoveEvent(*event));
       }
 
       DLLLOCAL virtual void actionEvent(QActionEvent *event)
@@ -173,7 +138,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_actionEvent, QC_QActionEvent, new QoreQActionEvent(*event));
+	 dispatch_event(qore_obj, e_actionEvent, QC_QActionEvent, new QoreQActionEvent(*event));
       }
 
       DLLLOCAL virtual void closeEvent(QCloseEvent *event)
@@ -183,7 +148,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_closeEvent, QC_QCloseEvent, new QoreQCloseEvent(*event));
+	 dispatch_event(qore_obj, e_closeEvent, QC_QCloseEvent, new QoreQCloseEvent(*event));
       }
 
       DLLLOCAL virtual void contextMenuEvent(QContextMenuEvent *event)
@@ -193,7 +158,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_contextMenuEvent, QC_QContextMenuEvent, new QoreQContextMenuEvent(*event));
+	 dispatch_event(qore_obj, e_contextMenuEvent, QC_QContextMenuEvent, new QoreQContextMenuEvent(*event));
       }
 
       DLLLOCAL virtual void dragEnterEvent(QDragEnterEvent *event)
@@ -203,7 +168,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_dragEnterEvent, QC_QDragEnterEvent, new QoreQDragEnterEvent(*event));
+	 dispatch_event(qore_obj, e_dragEnterEvent, QC_QDragEnterEvent, new QoreQDragEnterEvent(*event));
       }
 
       DLLLOCAL virtual void dragMoveEvent(QDragMoveEvent *event)
@@ -213,7 +178,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_dragMoveEvent, QC_QDragMoveEvent, new QoreQDragMoveEvent(*event));
+	 dispatch_event(qore_obj, e_dragMoveEvent, QC_QDragMoveEvent, new QoreQDragMoveEvent(*event));
       }
 
       DLLLOCAL virtual void dragLeaveEvent(QDragLeaveEvent *event)
@@ -223,7 +188,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_dragLeaveEvent, QC_QDragLeaveEvent, new QoreQDragLeaveEvent(*event));
+	 dispatch_event(qore_obj, e_dragLeaveEvent, QC_QDragLeaveEvent, new QoreQDragLeaveEvent(*event));
       }
 
       DLLLOCAL virtual void dropEvent(QDropEvent *event)
@@ -233,7 +198,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_dropEvent, QC_QDropEvent, new QoreQDropEvent(*event));
+	 dispatch_event(qore_obj, e_dropEvent, QC_QDropEvent, new QoreQDropEvent(*event));
       }
 
       DLLLOCAL virtual void focusInEvent(QFocusEvent *event)
@@ -243,7 +208,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_focusInEvent, QC_QFocusEvent, new QoreQFocusEvent(*event));
+	 dispatch_event(qore_obj, e_focusInEvent, QC_QFocusEvent, new QoreQFocusEvent(*event));
       }
 
       DLLLOCAL virtual void focusOutEvent(QFocusEvent *event)
@@ -253,7 +218,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_focusOutEvent, QC_QFocusEvent, new QoreQFocusEvent(*event));
+	 dispatch_event(qore_obj, e_focusOutEvent, QC_QFocusEvent, new QoreQFocusEvent(*event));
       }
 
       DLLLOCAL virtual void hideEvent(QHideEvent *event)
@@ -263,7 +228,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_hideEvent, QC_QHideEvent, new QoreQHideEvent(*event));
+	 dispatch_event(qore_obj, e_hideEvent, QC_QHideEvent, new QoreQHideEvent(*event));
       }
 
       DLLLOCAL virtual void inputMethodEvent(QInputMethodEvent *event)
@@ -273,7 +238,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_inputMethodEvent, QC_QInputMethodEvent, new QoreQInputMethodEvent(*event));
+	 dispatch_event(qore_obj, e_inputMethodEvent, QC_QInputMethodEvent, new QoreQInputMethodEvent(*event));
       }
 
       DLLLOCAL virtual void showEvent(QShowEvent *event)
@@ -283,7 +248,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_showEvent, QC_QShowEvent, new QoreQShowEvent(*event));
+	 dispatch_event(qore_obj, e_showEvent, QC_QShowEvent, new QoreQShowEvent(*event));
       }
 
       DLLLOCAL virtual void tabletEvent(QTabletEvent *event)
@@ -293,7 +258,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_tabletEvent, QC_QTabletEvent, new QoreQTabletEvent(*event));
+	 dispatch_event(qore_obj, e_tabletEvent, QC_QTabletEvent, new QoreQTabletEvent(*event));
       }
 
       DLLLOCAL virtual void wheelEvent(QWheelEvent *event)
@@ -303,7 +268,7 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(e_wheelEvent, QC_QWheelEvent, new QoreQWheelEvent(*event));
+	 dispatch_event(qore_obj, e_wheelEvent, QC_QWheelEvent, new QoreQWheelEvent(*event));
       }
 
       DLLLOCAL virtual QSize sizeHint() const
@@ -315,10 +280,13 @@ class T {
 
 	 // call sizeHint method
 	 QoreNode *rv = p_sizeHint->eval(qore_obj, 0, &xsink);
-	 if (xsink)
+	 if (xsink) {
+	    discard(rv, &xsink);
 	    return QOREQTYPE::sizeHint();
-
+	 }
 	 QoreQSize *qs = (rv && rv->type == NT_OBJECT) ? (QoreQSize *)rv->val.object->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
+	 discard(rv, &xsink);
+
 	 if (!qs) {
 	    xsink.raiseException("SIZEHINT-ERROR", "the sizeHint() method did not return a QSize object");
 	    return QOREQTYPE::sizeHint();
@@ -326,6 +294,147 @@ class T {
 	 ReferenceHolder<QoreQSize> sizeHolder(qs, &xsink);
 	 QSize rv_qs = *(static_cast<QSize *>(qs));
 	 return rv_qs;
+      }
+
+   public:
+      DLLLOCAL virtual void parent_paintEvent(QPaintEvent *event) 
+      {
+	 QOREQTYPE::paintEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_mouseMoveEvent(QMouseEvent *event) 
+      {
+	 QOREQTYPE::mouseMoveEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_mousePressEvent(QMouseEvent *event) 
+      {
+	 QOREQTYPE::mousePressEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_mouseReleaseEvent(QMouseEvent *event) 
+      {
+	 QOREQTYPE::mouseReleaseEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_mouseDoubleClickEvent(QMouseEvent *event) 
+      {
+	 QOREQTYPE::mouseDoubleClickEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_keyPressEvent(QKeyEvent *event) 
+      {
+	 QOREQTYPE::keyPressEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_keyReleaseEvent(QKeyEvent *event) 
+      {
+	 QOREQTYPE::keyReleaseEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_changeEvent(QEvent *event)
+      {
+	 QOREQTYPE::changeEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_enterEvent(QEvent *event)
+      {
+	 QOREQTYPE::enterEvent(event);
+      }
+
+      DLLLOCAL virtual bool parent_event(QEvent *event)
+      {
+	 return QOREQTYPE::event(event);
+      }
+
+      DLLLOCAL virtual void parent_leaveEvent(QEvent *event)
+      {
+	 QOREQTYPE::leaveEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_resizeEvent(QResizeEvent *event)
+      {
+	 QOREQTYPE::resizeEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_moveEvent(QMoveEvent *event)
+      {
+	 QOREQTYPE::moveEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_actionEvent(QActionEvent *event)
+      {
+	 QOREQTYPE::actionEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_closeEvent(QCloseEvent *event)
+      {
+	 QOREQTYPE::closeEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_contextMenuEvent(QContextMenuEvent *event)
+      {
+	 QOREQTYPE::contextMenuEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_dragEnterEvent(QDragEnterEvent *event)
+      {
+	 QOREQTYPE::dragEnterEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_dragMoveEvent(QDragMoveEvent *event)
+      {
+	 QOREQTYPE::dragMoveEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_dragLeaveEvent(QDragLeaveEvent *event)
+      {
+	 QOREQTYPE::dragLeaveEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_dropEvent(QDropEvent *event)
+      {
+	 QOREQTYPE::dropEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_focusInEvent(QFocusEvent *event)
+      {
+	 QOREQTYPE::focusInEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_focusOutEvent(QFocusEvent *event)
+      {
+	 QOREQTYPE::focusOutEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_hideEvent(QHideEvent *event)
+      {
+	 QOREQTYPE::hideEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_inputMethodEvent(QInputMethodEvent *event)
+      {
+	 QOREQTYPE::inputMethodEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_showEvent(QShowEvent *event)
+      {
+	 QOREQTYPE::showEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_tabletEvent(QTabletEvent *event)
+      {
+	 QOREQTYPE::tabletEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_wheelEvent(QWheelEvent *event)
+      {
+	 QOREQTYPE::wheelEvent(event);
+      }
+
+      DLLLOCAL virtual QSize parent_sizeHint() const
+      {
+	 return QOREQTYPE::sizeHint();
       }
 
 

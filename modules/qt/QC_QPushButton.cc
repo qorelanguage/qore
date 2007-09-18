@@ -32,7 +32,7 @@ int CID_QPUSHBUTTON;
 
 static void QPUSHBUTTON_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
-   QoreQPushButton *pb;
+   QoreQPushButton *pb = 0;
    int np = num_params(params);
    if (!np)
       pb = new QoreQPushButton(self);

@@ -60,12 +60,46 @@ class QoreQWidgetExtension {
 
 	 ;
 
+      DLLLOCAL static void dispatch_event(Object *qore_obj, Method *m, QoreClass *qclass, class AbstractPrivateData *data)
+      {
+	 class ExceptionSink xsink;
+
+	 discard(dispatch_event_intern(qore_obj, m, qclass, data, &xsink), &xsink);
+      }
+
+      DLLLOCAL static bool dispatch_event_bool(Object *qore_obj, Method *m, QoreClass *qclass, class AbstractPrivateData *data)
+      {
+	 class ExceptionSink xsink;
+
+	 QoreNode *rv = dispatch_event_intern(qore_obj, m, qclass, data, &xsink);
+	 return rv ? rv->getAsBool() : false;
+      }
+
    private:
       DLLLOCAL Method *findMethod(QoreClass *qc, const char *n)
       {
 	 Method *m = qc->findMethod(n);
 	 //printd(5, "findMethod() %s::%s: %s\n", qc->getName(), n, (m && m->getType() == CT_USER) ? "ok" : "x");
 	 return (m && m->getType() == CT_USER) ? m : 0;
+      }
+
+      DLLLOCAL static QoreNode *dispatch_event_intern(Object *qore_obj, Method *m, QoreClass *qclass, class AbstractPrivateData *data, class ExceptionSink *xsink)
+      {
+	 // create argument list
+	 Object *peo = new Object(qclass, getProgram());
+	 peo->setPrivate(qclass->getID(), data);
+	 QoreNode *a = new QoreNode(peo);
+	 List *args = new List();
+	 args->push(a);
+	 QoreNode *na = new QoreNode(args);
+	 
+	 // call event method
+	 QoreNode *rv = m->eval(qore_obj, na, xsink);
+	 
+	 // delete arguments
+	 na->deref(xsink);
+
+	 return rv;
       }
 
    public:
@@ -103,110 +137,144 @@ class QoreQWidgetExtension {
       }
 };
 
-#define QORE_VIRTUAL_QWIDGET_METHODS QORE_VIRTUAL_QOBJECT_METHODS \
-   DLLLOCAL virtual void actionEvent(QActionEvent * event) {\
-      qobj->actionEvent(event); \
-   }\
-   DLLLOCAL virtual void changeEvent(QEvent * event) {	\
-      qobj->changeEvent(event); \
-   }\
-   DLLLOCAL virtual void closeEvent(QCloseEvent * event) {\
-      qobj->closeEvent(event); \
-   }\
-   DLLLOCAL virtual void contextMenuEvent ( QContextMenuEvent * event ) {\
-      qobj->contextMenuEvent(event); \
-   } \
-   DLLLOCAL virtual void dragEnterEvent ( QDragEnterEvent * event ) {\
-      qobj->dragEnterEvent(event); \
-   }\
-   DLLLOCAL virtual void dragLeaveEvent ( QDragLeaveEvent * event ) {\
-      qobj->dragLeaveEvent(event); \
-   }\
-   DLLLOCAL virtual void dragMoveEvent ( QDragMoveEvent * event )  {\
-      qobj->dragMoveEvent(event); \
-   }\
-   DLLLOCAL virtual void dropEvent ( QDropEvent * event ) {	\
-      qobj->dropEvent(event); \
-   }\
-   DLLLOCAL virtual void enterEvent ( QEvent * event ) {	\
-      qobj->enterEvent(event); \
-   }\
-   DLLLOCAL virtual bool event ( QEvent * event ) {	\
-      return qobj->event(event); \
-   }\
-   DLLLOCAL virtual void focusInEvent ( QFocusEvent * event ) {	\
-      qobj->focusInEvent(event); \
-   }\
-   DLLLOCAL virtual void focusOutEvent ( QFocusEvent * event ) {	\
-      qobj->focusOutEvent(event); \
-   }\
-   DLLLOCAL virtual void hideEvent ( QHideEvent * event ) {	\
-      qobj->hideEvent(event); \
-   }\
-   DLLLOCAL virtual void inputMethodEvent ( QInputMethodEvent * event ) { \
-      qobj->inputMethodEvent(event); \
-   }\
-   DLLLOCAL virtual void keyPressEvent ( QKeyEvent * event ) {	\
-      qobj->keyPressEvent(event); \
-   }\
-   DLLLOCAL virtual void keyReleaseEvent ( QKeyEvent * event ) {	\
-      qobj->keyReleaseEvent(event); \
-   }\
-   DLLLOCAL virtual void leaveEvent ( QEvent * event ) {	\
-      qobj->leaveEvent(event); \
-   }\
-   /*DLLLOCAL virtual bool macEvent ( EventHandlerCallRef caller, EventRef event ) { \
-      qobj->macEvent(event);						\
-   }*/								\
-   DLLLOCAL virtual void mouseDoubleClickEvent ( QMouseEvent * event ) { \
-      qobj->mouseDoubleClickEvent(event); \
-   }\
-   DLLLOCAL virtual void mouseMoveEvent ( QMouseEvent * event ) {	\
-      qobj->mouseMoveEvent(event);					\
-   }\
-   DLLLOCAL virtual void mousePressEvent ( QMouseEvent * event ) {	\
-      qobj->mousePressEvent(event); \
-   }\
-   DLLLOCAL virtual void mouseReleaseEvent ( QMouseEvent * event ) {	\
-      qobj->mouseReleaseEvent(event); \
-   }\
-   DLLLOCAL virtual void moveEvent ( QMoveEvent * event ) {	\
-      qobj->moveEvent(event); \
-   }\
-   DLLLOCAL virtual void paintEvent ( QPaintEvent * event ) {	\
-      qobj->paintEvent(event); \
-   }\
-   /*DLLLOCAL virtual bool qwsEvent ( QWSEvent * event ) {	\
-      qobj->qwsEvent(event);					\
-   }*/							\
-   DLLLOCAL virtual void resizeEvent ( QResizeEvent * event ) {\
-      qobj->resizeEvent(event); \
-   }\
-   DLLLOCAL virtual void showEvent ( QShowEvent * event ) {	\
-      qobj->showEvent(event); \
-   }\
-   DLLLOCAL virtual void tabletEvent ( QTabletEvent * event ) {	\
-      qobj->tabletEvent(event); \
-   }\
-   DLLLOCAL virtual void wheelEvent ( QWheelEvent * event ) {	\
-      qobj->wheelEvent(event); \
-   }\
-   /*DLLLOCAL virtual bool winEvent ( MSG * message, long * result ) {	\
-      qobj->winEvent(event);						\
-   }									\
-   DLLLOCAL virtual bool x11Event ( XEvent * event ) {		\
-      qobj->x11Event(event);						\
-   }*/ \
-   DLLLOCAL virtual QSize sizeHint() const { \
-      return qobj->sizeHint();\
-   }
-
 class QoreAbstractQWidget : public QoreAbstractQObject, public QoreAbstractQPaintDevice
 {
    public:
       DLLLOCAL virtual QWidget *getQWidget() const = 0;
+
+      // event methods
       DLLLOCAL virtual void actionEvent(QActionEvent * event) = 0;
       DLLLOCAL virtual void changeEvent(QEvent * event) = 0;
+      DLLLOCAL virtual void closeEvent(QCloseEvent * event) = 0;
+      DLLLOCAL virtual void contextMenuEvent(QContextMenuEvent * event) = 0;
+      DLLLOCAL virtual void dragEnterEvent(QDragEnterEvent * event) = 0;
+      DLLLOCAL virtual void dragLeaveEvent(QDragLeaveEvent * event) = 0;
+      DLLLOCAL virtual void dragMoveEvent(QDragMoveEvent * event) = 0;
+      DLLLOCAL virtual void dropEvent(QDropEvent * event) = 0;
+      DLLLOCAL virtual void enterEvent(QEvent * event) = 0;
+      DLLLOCAL virtual bool event(QEvent * event) = 0;
+      DLLLOCAL virtual void focusInEvent(QFocusEvent * event) = 0;
+      DLLLOCAL virtual void focusOutEvent(QFocusEvent * event) = 0;
+      DLLLOCAL virtual void hideEvent(QHideEvent * event) = 0;
+      DLLLOCAL virtual void inputMethodEvent(QInputMethodEvent * event) = 0;
+      DLLLOCAL virtual void keyPressEvent(QKeyEvent * event) = 0;
+      DLLLOCAL virtual void keyReleaseEvent(QKeyEvent * event) = 0;
+      DLLLOCAL virtual void leaveEvent(QEvent * event) = 0;
+      //DLLLOCAL virtual bool macEvent(EventHandlerCallRef caller, EventRef event) = 0;
+      DLLLOCAL virtual void mouseDoubleClickEvent(QMouseEvent * event) = 0;
+      DLLLOCAL virtual void mouseMoveEvent(QMouseEvent * event) = 0;
+      DLLLOCAL virtual void mousePressEvent(QMouseEvent * event) = 0;
+      DLLLOCAL virtual void mouseReleaseEvent(QMouseEvent * event) = 0;
+      DLLLOCAL virtual void moveEvent(QMoveEvent * event) = 0;
+      DLLLOCAL virtual void paintEvent(QPaintEvent * event) = 0;
+      //DLLLOCAL virtual bool qwsEvent(QWSEvent * event) = 0;
+      DLLLOCAL virtual void resizeEvent(QResizeEvent * event) = 0;
+      DLLLOCAL virtual void showEvent(QShowEvent * event) = 0;
+      DLLLOCAL virtual void tabletEvent(QTabletEvent * event) = 0;
+      DLLLOCAL virtual void wheelEvent(QWheelEvent * event) = 0;
+      //DLLLOCAL virtual bool winEvent(MSG * message, long * result) = 0;
+      //DLLLOCAL virtual bool x11Event(XEvent * event) = 0;
+
+      // other virtual methods
+      DLLLOCAL virtual QSize sizeHint() const = 0;
 };
+
+#define QORE_VIRTUAL_QWIDGET_METHODS QORE_VIRTUAL_QOBJECT_METHODS \
+   DLLLOCAL virtual void actionEvent(QActionEvent * event) {\
+      qobj->parent_actionEvent(event);		    \
+   }\
+   DLLLOCAL virtual void changeEvent(QEvent * event) {	\
+      qobj->parent_changeEvent(event); \
+   }\
+   DLLLOCAL virtual void closeEvent(QCloseEvent * event) {\
+      qobj->parent_closeEvent(event); \
+   }\
+   DLLLOCAL virtual void contextMenuEvent ( QContextMenuEvent * event ) {\
+      qobj->parent_contextMenuEvent(event); \
+   } \
+   DLLLOCAL virtual void dragEnterEvent ( QDragEnterEvent * event ) {\
+      qobj->parent_dragEnterEvent(event); \
+   }\
+   DLLLOCAL virtual void dragLeaveEvent ( QDragLeaveEvent * event ) {\
+      qobj->parent_dragLeaveEvent(event); \
+   }\
+   DLLLOCAL virtual void dragMoveEvent ( QDragMoveEvent * event )  {\
+      qobj->parent_dragMoveEvent(event); \
+   }\
+   DLLLOCAL virtual void dropEvent ( QDropEvent * event ) {	\
+      qobj->parent_dropEvent(event); \
+   }\
+   DLLLOCAL virtual void enterEvent ( QEvent * event ) {	\
+      qobj->parent_enterEvent(event); \
+   }\
+   DLLLOCAL virtual bool event ( QEvent * event ) {	\
+      return qobj->parent_event(event); \
+   }\
+   DLLLOCAL virtual void focusInEvent ( QFocusEvent * event ) {	\
+      qobj->parent_focusInEvent(event); \
+   }\
+   DLLLOCAL virtual void focusOutEvent ( QFocusEvent * event ) {	\
+      qobj->parent_focusOutEvent(event); \
+   }\
+   DLLLOCAL virtual void hideEvent ( QHideEvent * event ) {	\
+      qobj->parent_hideEvent(event); \
+   }\
+   DLLLOCAL virtual void inputMethodEvent ( QInputMethodEvent * event ) { \
+      qobj->parent_inputMethodEvent(event); \
+   }\
+   DLLLOCAL virtual void keyPressEvent ( QKeyEvent * event ) {	\
+      qobj->parent_keyPressEvent(event); \
+   }\
+   DLLLOCAL virtual void keyReleaseEvent ( QKeyEvent * event ) {	\
+      qobj->parent_keyReleaseEvent(event); \
+   }\
+   DLLLOCAL virtual void leaveEvent ( QEvent * event ) {	\
+      qobj->parent_leaveEvent(event); \
+   }\
+   /*DLLLOCAL virtual bool macEvent ( EventHandlerCallRef caller, EventRef event ) { \
+      qobj->parent_macEvent(event);						\
+   }*/								\
+   DLLLOCAL virtual void mouseDoubleClickEvent ( QMouseEvent * event ) { \
+      qobj->parent_mouseDoubleClickEvent(event); \
+   }\
+   DLLLOCAL virtual void mouseMoveEvent ( QMouseEvent * event ) {	\
+      qobj->parent_mouseMoveEvent(event);					\
+   }\
+   DLLLOCAL virtual void mousePressEvent ( QMouseEvent * event ) {	\
+      qobj->parent_mousePressEvent(event); \
+   }\
+   DLLLOCAL virtual void mouseReleaseEvent ( QMouseEvent * event ) {	\
+      qobj->parent_mouseReleaseEvent(event); \
+   }\
+   DLLLOCAL virtual void moveEvent ( QMoveEvent * event ) {	\
+      qobj->parent_moveEvent(event); \
+   }\
+   DLLLOCAL virtual void paintEvent ( QPaintEvent * event ) {	\
+      qobj->parent_paintEvent(event); \
+   }\
+   /*DLLLOCAL virtual bool qwsEvent ( QWSEvent * event ) {	\
+      qobj->parent_qwsEvent(event);					\
+   }*/							\
+   DLLLOCAL virtual void resizeEvent ( QResizeEvent * event ) {\
+      qobj->parent_resizeEvent(event); \
+   }\
+   DLLLOCAL virtual void showEvent ( QShowEvent * event ) {	\
+      qobj->parent_showEvent(event); \
+   }\
+   DLLLOCAL virtual void tabletEvent ( QTabletEvent * event ) {	\
+      qobj->parent_tabletEvent(event); \
+   }\
+   DLLLOCAL virtual void wheelEvent ( QWheelEvent * event ) {	\
+      qobj->parent_wheelEvent(event); \
+   }\
+   /*DLLLOCAL virtual bool winEvent ( MSG * message, long * result ) {	\
+      qobj->parent_winEvent(event);						\
+   }									\
+   DLLLOCAL virtual bool x11Event ( XEvent * event ) {		\
+      qobj->parent_x11Event(event);						\
+   }*/ \
+   DLLLOCAL virtual QSize sizeHint() const { \
+      return qobj->parent_sizeHint();\
+   }
 
 #endif

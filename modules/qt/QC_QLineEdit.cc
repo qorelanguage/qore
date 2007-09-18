@@ -396,7 +396,7 @@ static QoreNode *QLINEEDIT_setSelection(Object *self, QoreQLineEdit *qle, QoreNo
 static QoreNode *QLINEEDIT_sizeHint(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
 {
    Object *o_qs = new Object(QC_QSize, getProgram());
-   QoreQSize *q_qs = new QoreQSize(qle->qobj->sizeHint());
+   QoreQSize *q_qs = new QoreQSize(qle->sizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
 }

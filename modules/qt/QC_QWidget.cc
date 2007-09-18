@@ -1610,7 +1610,7 @@ static QoreNode *QWIDGET_size(Object *self, QoreAbstractQWidget *qw, QoreNode *p
 static QoreNode *QWIDGET_sizeHint(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
    Object *o_qs = new Object(QC_QSize, getProgram());
-   QoreQSize *q_qs = new QoreQSize(qw->getQWidget()->sizeHint());
+   QoreQSize *q_qs = new QoreQSize(qw->sizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
 }
@@ -2074,7 +2074,7 @@ static QoreNode *QWIDGET_closeEvent(Object *self, QoreQWidget *qw, QoreNode *par
       return 0;
    }
    ReferenceHolder<QoreQCloseEvent> eventHolder(event, xsink);
-   qw->qobj->closeEvent(static_cast<QCloseEvent *>(event));
+   qw->closeEvent(static_cast<QCloseEvent *>(event));
    return 0;
 }
 
@@ -2089,7 +2089,7 @@ static QoreNode *QWIDGET_contextMenuEvent(Object *self, QoreQWidget *qw, QoreNod
       return 0;
    }
    ReferenceHolder<QoreQContextMenuEvent> eventHolder(event, xsink);
-   qw->qobj->contextMenuEvent(static_cast<QContextMenuEvent *>(event));
+   qw->contextMenuEvent(static_cast<QContextMenuEvent *>(event));
    return 0;
 }
 
@@ -2104,7 +2104,7 @@ static QoreNode *QWIDGET_dragEnterEvent(Object *self, QoreQWidget *qw, QoreNode 
       return 0;
    }
    ReferenceHolder<QoreQDragEnterEvent> eventHolder(event, xsink);
-   qw->qobj->dragEnterEvent(static_cast<QDragEnterEvent *>(event));
+   qw->dragEnterEvent(static_cast<QDragEnterEvent *>(event));
    return 0;
 }
 
@@ -2119,7 +2119,7 @@ static QoreNode *QWIDGET_dragLeaveEvent(Object *self, QoreQWidget *qw, QoreNode 
       return 0;
    }
    ReferenceHolder<QoreQDragLeaveEvent> eventHolder(event, xsink);
-   qw->qobj->dragLeaveEvent(static_cast<QDragLeaveEvent *>(event));
+   qw->dragLeaveEvent(static_cast<QDragLeaveEvent *>(event));
    return 0;
 }
 
@@ -2134,7 +2134,7 @@ static QoreNode *QWIDGET_dragMoveEvent(Object *self, QoreQWidget *qw, QoreNode *
       return 0;
    }
    ReferenceHolder<QoreQDragMoveEvent> eventHolder(event, xsink);
-   qw->qobj->dragMoveEvent(static_cast<QDragMoveEvent *>(event));
+   qw->dragMoveEvent(static_cast<QDragMoveEvent *>(event));
    return 0;
 }
 
@@ -2149,7 +2149,7 @@ static QoreNode *QWIDGET_dropEvent(Object *self, QoreQWidget *qw, QoreNode *para
       return 0;
    }
    ReferenceHolder<QoreQDropEvent> eventHolder(event, xsink);
-   qw->qobj->dropEvent(static_cast<QDropEvent *>(event));
+   qw->dropEvent(static_cast<QDropEvent *>(event));
    return 0;
 }
 
@@ -2164,7 +2164,7 @@ static QoreNode *QWIDGET_enterEvent(Object *self, QoreQWidget *qw, QoreNode *par
       return 0;
    }
    ReferenceHolder<QoreQEvent> eventHolder(event, xsink);
-   qw->qobj->enterEvent(static_cast<QEvent *>(event));
+   qw->enterEvent(static_cast<QEvent *>(event));
    return 0;
 }
 
@@ -2179,7 +2179,7 @@ static QoreNode *QWIDGET_event(Object *self, QoreQWidget *qw, QoreNode *params, 
       return 0;
    }
    ReferenceHolder<QoreQEvent> eventHolder(event, xsink);
-   return new QoreNode(qw->qobj->event(static_cast<QEvent *>(event)));
+   return new QoreNode(qw->event(static_cast<QEvent *>(event)));
 }
 
 //virtual void focusInEvent ( QFocusEvent * event )
@@ -2193,7 +2193,7 @@ static QoreNode *QWIDGET_focusInEvent(Object *self, QoreQWidget *qw, QoreNode *p
       return 0;
    }
    ReferenceHolder<QoreQFocusEvent> eventHolder(event, xsink);
-   qw->qobj->focusInEvent(static_cast<QFocusEvent *>(event));
+   qw->focusInEvent(static_cast<QFocusEvent *>(event));
    return 0;
 }
 
@@ -2208,7 +2208,7 @@ static QoreNode *QWIDGET_focusOutEvent(Object *self, QoreQWidget *qw, QoreNode *
       return 0;
    }
    ReferenceHolder<QoreQFocusEvent> eventHolder(event, xsink);
-   qw->qobj->focusOutEvent(static_cast<QFocusEvent *>(event));
+   qw->focusOutEvent(static_cast<QFocusEvent *>(event));
    return 0;
 }
 
@@ -2223,7 +2223,7 @@ static QoreNode *QWIDGET_hideEvent(Object *self, QoreQWidget *qw, QoreNode *para
       return 0;
    }
    ReferenceHolder<QoreQHideEvent> eventHolder(event, xsink);
-   qw->qobj->hideEvent(static_cast<QHideEvent *>(event));
+   qw->hideEvent(static_cast<QHideEvent *>(event));
    return 0;
 }
 
@@ -2238,7 +2238,7 @@ static QoreNode *QWIDGET_inputMethodEvent(Object *self, QoreQWidget *qw, QoreNod
       return 0;
    }
    ReferenceHolder<QoreQInputMethodEvent> eventHolder(event, xsink);
-   qw->qobj->inputMethodEvent(static_cast<QInputMethodEvent *>(event));
+   qw->inputMethodEvent(static_cast<QInputMethodEvent *>(event));
    return 0;
 }
 
@@ -2253,7 +2253,7 @@ static QoreNode *QWIDGET_keyPressEvent(Object *self, QoreQWidget *qw, QoreNode *
       return 0;
    }
    ReferenceHolder<QoreQKeyEvent> eventHolder(event, xsink);
-   qw->qobj->keyPressEvent(static_cast<QKeyEvent *>(event));
+   qw->keyPressEvent(static_cast<QKeyEvent *>(event));
    return 0;
 }
 
@@ -2268,7 +2268,7 @@ static QoreNode *QWIDGET_keyReleaseEvent(Object *self, QoreQWidget *qw, QoreNode
       return 0;
    }
    ReferenceHolder<QoreQKeyEvent> eventHolder(event, xsink);
-   qw->qobj->keyReleaseEvent(static_cast<QKeyEvent *>(event));
+   qw->keyReleaseEvent(static_cast<QKeyEvent *>(event));
    return 0;
 }
 
@@ -2283,7 +2283,7 @@ static QoreNode *QWIDGET_leaveEvent(Object *self, QoreQWidget *qw, QoreNode *par
       return 0;
    }
    ReferenceHolder<QoreQEvent> eventHolder(event, xsink);
-   qw->qobj->leaveEvent(static_cast<QEvent *>(event));
+   qw->leaveEvent(static_cast<QEvent *>(event));
    return 0;
 }
 
@@ -2294,7 +2294,7 @@ static QoreNode *QWIDGET_leaveEvent(Object *self, QoreQWidget *qw, QoreNode *par
 //   QWidget::EventHandlerCallRef caller = (QWidget::EventHandlerCallRef)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 1);
 //   QWidget::EventRef event = (QWidget::EventRef)(p ? p->getAsInt() : 0);
-//   return new QoreNode(qw->qobj->macEvent(caller, event));
+//   return new QoreNode(qw->macEvent(caller, event));
 //}
 
 //virtual void mouseDoubleClickEvent ( QMouseEvent * event )
@@ -2308,7 +2308,7 @@ static QoreNode *QWIDGET_mouseDoubleClickEvent(Object *self, QoreQWidget *qw, Qo
       return 0;
    }
    ReferenceHolder<QoreQMouseEvent> eventHolder(event, xsink);
-   qw->qobj->mouseDoubleClickEvent(static_cast<QMouseEvent *>(event));
+   qw->mouseDoubleClickEvent(static_cast<QMouseEvent *>(event));
    return 0;
 }
 
@@ -2323,7 +2323,7 @@ static QoreNode *QWIDGET_mouseMoveEvent(Object *self, QoreQWidget *qw, QoreNode 
       return 0;
    }
    ReferenceHolder<QoreQMouseEvent> eventHolder(event, xsink);
-   qw->qobj->mouseMoveEvent(static_cast<QMouseEvent *>(event));
+   qw->mouseMoveEvent(static_cast<QMouseEvent *>(event));
    return 0;
 }
 
@@ -2338,7 +2338,7 @@ static QoreNode *QWIDGET_mousePressEvent(Object *self, QoreQWidget *qw, QoreNode
       return 0;
    }
    ReferenceHolder<QoreQMouseEvent> eventHolder(event, xsink);
-   qw->qobj->mousePressEvent(static_cast<QMouseEvent *>(event));
+   qw->mousePressEvent(static_cast<QMouseEvent *>(event));
    return 0;
 }
 
@@ -2353,7 +2353,7 @@ static QoreNode *QWIDGET_mouseReleaseEvent(Object *self, QoreQWidget *qw, QoreNo
       return 0;
    }
    ReferenceHolder<QoreQMouseEvent> eventHolder(event, xsink);
-   qw->qobj->mouseReleaseEvent(static_cast<QMouseEvent *>(event));
+   qw->mouseReleaseEvent(static_cast<QMouseEvent *>(event));
    return 0;
 }
 
@@ -2368,7 +2368,7 @@ static QoreNode *QWIDGET_moveEvent(Object *self, QoreQWidget *qw, QoreNode *para
       return 0;
    }
    ReferenceHolder<QoreQMoveEvent> eventHolder(event, xsink);
-   qw->qobj->moveEvent(static_cast<QMoveEvent *>(event));
+   qw->moveEvent(static_cast<QMoveEvent *>(event));
    return 0;
 }
 
@@ -2383,7 +2383,7 @@ static QoreNode *QWIDGET_paintEvent(Object *self, QoreQWidget *qw, QoreNode *par
       return 0;
    }
    ReferenceHolder<QoreQPaintEvent> eventHolder(event, xsink);
-   qw->qobj->paintEvent(static_cast<QPaintEvent *>(event));
+   qw->paintEvent(static_cast<QPaintEvent *>(event));
    return 0;
 }
 
@@ -2392,7 +2392,7 @@ static QoreNode *QWIDGET_paintEvent(Object *self, QoreQWidget *qw, QoreNode *par
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QWSEvent* event = p;
-//   return new QoreNode(qw->qobj->qwsEvent(event));
+//   return new QoreNode(qw->qwsEvent(event));
 //}
 
 //virtual void resizeEvent ( QResizeEvent * event )
@@ -2406,7 +2406,7 @@ static QoreNode *QWIDGET_resizeEvent(Object *self, QoreQWidget *qw, QoreNode *pa
       return 0;
    }
    ReferenceHolder<QoreQResizeEvent> eventHolder(event, xsink);
-   qw->qobj->resizeEvent(static_cast<QResizeEvent *>(event));
+   qw->resizeEvent(static_cast<QResizeEvent *>(event));
    return 0;
 }
 
@@ -2421,7 +2421,7 @@ static QoreNode *QWIDGET_showEvent(Object *self, QoreQWidget *qw, QoreNode *para
       return 0;
    }
    ReferenceHolder<QoreQShowEvent> eventHolder(event, xsink);
-   qw->qobj->showEvent(static_cast<QShowEvent *>(event));
+   qw->showEvent(static_cast<QShowEvent *>(event));
    return 0;
 }
 
@@ -2436,7 +2436,7 @@ static QoreNode *QWIDGET_tabletEvent(Object *self, QoreQWidget *qw, QoreNode *pa
       return 0;
    }
    ReferenceHolder<QoreQTabletEvent> eventHolder(event, xsink);
-   qw->qobj->tabletEvent(static_cast<QTabletEvent *>(event));
+   qw->tabletEvent(static_cast<QTabletEvent *>(event));
    return 0;
 }
 
@@ -2451,7 +2451,7 @@ static QoreNode *QWIDGET_wheelEvent(Object *self, QoreQWidget *qw, QoreNode *par
       return 0;
    }
    ReferenceHolder<QoreQWheelEvent> eventHolder(event, xsink);
-   qw->qobj->wheelEvent(static_cast<QWheelEvent *>(event));
+   qw->wheelEvent(static_cast<QWheelEvent *>(event));
    return 0;
 }
 
@@ -2462,7 +2462,7 @@ static QoreNode *QWIDGET_wheelEvent(Object *self, QoreQWidget *qw, QoreNode *par
 //   ??? MSG* message = p;
 //   p = get_param(params, 1);
 //   ??? long* result = p;
-//   return new QoreNode(qw->qobj->winEvent(message, result));
+//   return new QoreNode(qw->winEvent(message, result));
 //}
 
 ////virtual bool x11Event ( XEvent * event )
@@ -2470,7 +2470,7 @@ static QoreNode *QWIDGET_wheelEvent(Object *self, QoreQWidget *qw, QoreNode *par
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? XEvent* event = p;
-//   return new QoreNode(qw->qobj->x11Event(event));
+//   return new QoreNode(qw->x11Event(event));
 //}
 
 
