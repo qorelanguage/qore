@@ -24,7 +24,7 @@
 
 #define _QORE_QOREABSTRACTQPIXMAP_H
 
-class QoreAbstractQPixmap : public QoreAbstractQPaintDevice
+class QoreAbstractQPixmap : public AbstractPrivateData, public QoreAbstractQPaintDevice
 {
    public:
       DLLLOCAL virtual QPixmap *getQPixmap() const = 0;

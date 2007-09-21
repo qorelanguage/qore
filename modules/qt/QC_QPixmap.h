@@ -34,7 +34,7 @@ DLLLOCAL extern QoreClass *QC_QPixmap;
 DLLLOCAL class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice);
 DLLLOCAL void initQPixmapStaticFunctions();
 
-class QoreQPixmap : public AbstractPrivateData, public QoreAbstractQPixmap, public QPixmap
+class QoreQPixmap : public QoreAbstractQPixmap, public QPixmap
 {
    public:
       DLLLOCAL QoreQPixmap(int w, int h) : QPixmap(w, h)
