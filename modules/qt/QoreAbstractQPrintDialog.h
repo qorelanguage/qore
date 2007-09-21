@@ -1,5 +1,5 @@
 /*
- QC_QDir.h
+ QoreAbstractQPrintDialog.h
  
  Qore Programming Language
  
@@ -20,30 +20,16 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QT_QC_QDIR_H
+#ifndef _QORE_QT_QOREABSTRACTQPRINTDIALOG_H
 
-#define _QORE_QT_QC_QDIR_H
+#define _QORE_QT_QOREABSTRACTQPRINTDIALOG_H
 
-#include <QDir>
+#include "QoreAbstractQWidget.h"
 
-DLLLOCAL extern int CID_QDIR;
-DLLLOCAL extern class QoreClass *QC_QDir;
-
-DLLLOCAL class QoreClass *initQDirClass();
-DLLLOCAL void initQDirStaticFunctions();
-
-class QoreQDir : public AbstractPrivateData, public QDir
+class QoreAbstractQPrintDialog : public QoreAbstractQWidget
 {
    public:
-      DLLLOCAL QoreQDir(const QDir& dir) : QDir(dir)
-      {
-      }
-      DLLLOCAL QoreQDir(const QString& path = QString()) : QDir(path)
-      {
-      }
-      DLLLOCAL QoreQDir(const QString& path, const QString& nameFilter, SortFlags sort = SortFlags( Name | IgnoreCase ), Filters filters = AllEntries) : QDir(path, nameFilter, sort, filters)
-      {
-      }
+      DLLLOCAL virtual class QPrintDialog *getQPrintDialog() const = 0;
 };
 
-#endif // _QORE_QT_QC_QDIR_H
+#endif  // _QORE_QT_QOREABSTRACTQPRINTDIALOG_H

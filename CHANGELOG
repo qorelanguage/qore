@@ -1,6 +1,8 @@
 2007.09.21: David Nichols
 	* qt: bug fixes, new classes, partially-complete icons.q example support
 	* qt: changes/fixes to allow the icons.q example to run
+	* qt: changes/fixes, added imageviewer.q example (at this point it will
+	  crash when you try to scale the image, printing doesn't work)
 
 2007.09.19: David Nichols
 	* qt: fixed QMenu::addAction() to work with dynamic methods

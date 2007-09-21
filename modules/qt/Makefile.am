@@ -104,7 +104,9 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QDir.cc \
 	QC_QHeaderView.cc \
 	QC_QMetaObject.cc \
-	QC_QMenuBar.cc
+	QC_QMenuBar.cc \
+	QC_QPrinter.cc \
+	QC_QPrintDialog.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

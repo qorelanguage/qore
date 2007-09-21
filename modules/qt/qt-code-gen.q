@@ -35,7 +35,9 @@ const qobject_list =
       "QAbstractItemDelegate", "QItemDelegate", "QItemModel", "QLayout", 
       "QAbstractButton", "QLineEdit", "QScrollBar", "QMimeData",
       "QApplication", "QStyle", "QAbstractItemModel", "ToolButton", "QMessageBox",
-      "QCheckBox", "QRadioButton", "QPushButton", "QMenuBar" );
+      "QCheckBox", "QRadioButton", "QPushButton", "QMenuBar",
+      "QPrintDialog",
+ );
 
 const abstract_class_list = 
     ( "QObject", "QWidget", "QAbstractItemDelegate", "QItemDelegate", 
@@ -93,6 +95,7 @@ const class_list = ( "QRegion",
 		     "QTableWidgetItem",
 		     "QHeaderView",
 		     "QMetaObject",
+		     "QPrinter",
 
  ) + const_class_list + qobject_list;
 
@@ -904,7 +907,7 @@ class QoreClass *QC_%s = 0;
     foreach my $p in (keys $proto) {	
 	if ($p != $cn)
             if ($o.static)
-	        $of.printf("   %sbuiltinFunctions.add(\"f_%s_%-30s %s);\n", $proto.$p.ok ? "" : "//", $cn, $p+"\",", $proto.$p.funcname);
+	        $of.printf("   %sbuiltinFunctions.add(\"%s_%-30s %s);\n", $proto.$p.ok ? "" : "//", $cn, $p+"\",", $proto.$p.funcname);
             else
 	        $of.printf("   %sQC_%s->addMethod(%-30s (q_method_t)%s);\n", $proto.$p.ok ? "" : "//", $cn, "\""+$p+"\",", $proto.$p.funcname);
     }

@@ -1,5 +1,5 @@
 /*
- QC_QDir.h
+ QC_QPrinter.h
  
  Qore Programming Language
  
@@ -20,30 +20,29 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QT_QC_QDIR_H
+#ifndef _QORE_QT_QC_QPRINTER_H
 
-#define _QORE_QT_QC_QDIR_H
+#define _QORE_QT_QC_QPRINTER_H
 
-#include <QDir>
+#include <QPrinter>
+#include "QoreAbstractQPaintDevice.h"
 
-DLLLOCAL extern int CID_QDIR;
-DLLLOCAL extern class QoreClass *QC_QDir;
+DLLLOCAL extern int CID_QPRINTER;
+DLLLOCAL extern class QoreClass *QC_QPrinter;
 
-DLLLOCAL class QoreClass *initQDirClass();
-DLLLOCAL void initQDirStaticFunctions();
+DLLLOCAL class QoreClass *initQPrinterClass(QoreClass *);
 
-class QoreQDir : public AbstractPrivateData, public QDir
+class QoreQPrinter : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QPrinter
 {
    public:
-      DLLLOCAL QoreQDir(const QDir& dir) : QDir(dir)
+      DLLLOCAL QoreQPrinter(PrinterMode mode = ScreenResolution) : QPrinter(mode)
       {
       }
-      DLLLOCAL QoreQDir(const QString& path = QString()) : QDir(path)
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
+         return const_cast<QPaintDevice *>(static_cast<const QPaintDevice *>(this));
       }
-      DLLLOCAL QoreQDir(const QString& path, const QString& nameFilter, SortFlags sort = SortFlags( Name | IgnoreCase ), Filters filters = AllEntries) : QDir(path, nameFilter, sort, filters)
-      {
-      }
+
 };
 
-#endif // _QORE_QT_QC_QDIR_H
+#endif // _QORE_QT_QC_QPRINTER_H

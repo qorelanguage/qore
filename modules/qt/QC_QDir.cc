@@ -448,3 +448,233 @@ QoreClass *initQDirClass()
 
    return QC_QDir;
 }
+
+//void addSearchPath ( const QString & prefix, const QString & path )
+static QoreNode *f_QDir_addSearchPath(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString prefix;
+   if (get_qstring(p, prefix, xsink))
+      return 0;
+   p = get_param(params, 1);
+   QString path;
+   if (get_qstring(p, path, xsink))
+      return 0;
+   QDir::addSearchPath(prefix, path);
+   return 0;
+}
+
+//QString cleanPath ( const QString & path )
+static QoreNode *f_QDir_cleanPath(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString path;
+   if (get_qstring(p, path, xsink))
+      return 0;
+   return new QoreNode(new QoreString(QDir::cleanPath(path).toUtf8().data(), QCS_UTF8));
+}
+
+//QDir current ()
+static QoreNode *f_QDir_current(QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qd = new Object(QC_QDir, getProgram());
+   QoreQDir *q_qd = new QoreQDir(QDir::current());
+   o_qd->setPrivate(CID_QDIR, q_qd);
+   return new QoreNode(o_qd);
+}
+
+//QString currentPath ()
+static QoreNode *f_QDir_currentPath(QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(QDir::currentPath().toUtf8().data(), QCS_UTF8));
+}
+
+////QFileInfoList drives ()
+//static QoreNode *f_QDir_drives(QoreNode *params, ExceptionSink *xsink)
+//{
+//   ??? return new QoreNode((int64)QDir::drives());
+//}
+
+//QString fromNativeSeparators ( const QString & pathName )
+static QoreNode *f_QDir_fromNativeSeparators(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString pathName;
+   if (get_qstring(p, pathName, xsink))
+      return 0;
+   return new QoreNode(new QoreString(QDir::fromNativeSeparators(pathName).toUtf8().data(), QCS_UTF8));
+}
+
+//QDir home ()
+static QoreNode *f_QDir_home(QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qd = new Object(QC_QDir, getProgram());
+   QoreQDir *q_qd = new QoreQDir(QDir::home());
+   o_qd->setPrivate(CID_QDIR, q_qd);
+   return new QoreNode(o_qd);
+}
+
+//QString homePath ()
+static QoreNode *f_QDir_homePath(QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(QDir::homePath().toUtf8().data(), QCS_UTF8));
+}
+
+//bool isAbsolutePath ( const QString & path )
+static QoreNode *f_QDir_isAbsolutePath(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString path;
+   if (get_qstring(p, path, xsink))
+      return 0;
+   return new QoreNode(QDir::isAbsolutePath(path));
+}
+
+//bool isRelativePath ( const QString & path )
+static QoreNode *f_QDir_isRelativePath(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString path;
+   if (get_qstring(p, path, xsink))
+      return 0;
+   return new QoreNode(QDir::isRelativePath(path));
+}
+
+//bool match ( const QString & filter, const QString & fileName )
+//bool match ( const QStringList & filters, const QString & fileName )
+static QoreNode *f_QDir_match(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString filter;
+   if (get_qstring(p, filter, xsink))
+      return 0;
+   p = get_param(params, 1);
+   QString fileName;
+   if (get_qstring(p, fileName, xsink))
+      return 0;
+   return new QoreNode(QDir::match(filter, fileName));
+}
+
+//QDir root ()
+static QoreNode *f_QDir_root(QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qd = new Object(QC_QDir, getProgram());
+   QoreQDir *q_qd = new QoreQDir(QDir::root());
+   o_qd->setPrivate(CID_QDIR, q_qd);
+   return new QoreNode(o_qd);
+}
+
+//QString rootPath ()
+static QoreNode *f_QDir_rootPath(QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(QDir::rootPath().toUtf8().data(), QCS_UTF8));
+}
+
+//QStringList searchPaths ( const QString & prefix )
+static QoreNode *f_QDir_searchPaths(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString prefix;
+   if (get_qstring(p, prefix, xsink))
+      return 0;
+   QStringList strlist_rv = QDir::searchPaths(prefix);
+   List *l = new List();
+   for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
+      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+   return new QoreNode(l);
+}
+
+//QChar separator ()
+static QoreNode *f_QDir_separator(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QChar rv_qc = QDir::separator();
+   rv_str->concatUTF8FromUnicode(rv_qc.unicode());
+   return new QoreNode(rv_str);
+}
+
+//bool setCurrent ( const QString & path )
+static QoreNode *f_QDir_setCurrent(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString path;
+   if (get_qstring(p, path, xsink))
+      return 0;
+   return new QoreNode(QDir::setCurrent(path));
+}
+
+//void setSearchPaths ( const QString & prefix, const QStringList & searchPaths )
+static QoreNode *f_QDir_setSearchPaths(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString prefix;
+   if (get_qstring(p, prefix, xsink))
+      return 0;
+   p = get_param(params, 1);
+   if (!p || p->type != NT_LIST) {
+      xsink->raiseException("QDIR-SETSEARCHPATHS-PARAM-ERROR", "expecting a list as second argument to QDir::setSearchPaths()");
+      return 0;
+   }
+   QStringList searchPaths;
+   ListIterator li_searchPaths(p->val.list);
+   while (li_searchPaths.next())
+   {
+      QoreNodeTypeHelper str(li_searchPaths.getValue(), NT_STRING, xsink);
+      if (*xsink)
+         return 0;
+      QString tmp;
+      if (get_qstring(*str, tmp, xsink))
+         return 0;
+      searchPaths.push_back(tmp);
+   }
+   QDir::setSearchPaths(prefix, searchPaths);
+   return 0;
+}
+//QDir temp ()
+static QoreNode *f_QDir_temp(QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qd = new Object(QC_QDir, getProgram());
+   QoreQDir *q_qd = new QoreQDir(QDir::temp());
+   o_qd->setPrivate(CID_QDIR, q_qd);
+   return new QoreNode(o_qd);
+}
+
+//QString tempPath ()
+static QoreNode *f_QDir_tempPath(QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(QDir::tempPath().toUtf8().data(), QCS_UTF8));
+}
+
+//QString toNativeSeparators ( const QString & pathName )
+static QoreNode *f_QDir_toNativeSeparators(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString pathName;
+   if (get_qstring(p, pathName, xsink))
+      return 0;
+   return new QoreNode(new QoreString(QDir::toNativeSeparators(pathName).toUtf8().data(), QCS_UTF8));
+}
+
+void initQDirStaticFunctions()
+{
+   builtinFunctions.add("QDir_addSearchPath",                f_QDir_addSearchPath);
+   builtinFunctions.add("QDir_cleanPath",                    f_QDir_cleanPath);
+   builtinFunctions.add("QDir_current",                      f_QDir_current);
+   builtinFunctions.add("QDir_currentPath",                  f_QDir_currentPath);
+   //builtinFunctions.add("QDir_drives",                       f_QDir_drives);
+   builtinFunctions.add("QDir_fromNativeSeparators",         f_QDir_fromNativeSeparators);
+   builtinFunctions.add("QDir_home",                         f_QDir_home);
+   builtinFunctions.add("QDir_homePath",                     f_QDir_homePath);
+   builtinFunctions.add("QDir_isAbsolutePath",               f_QDir_isAbsolutePath);
+   builtinFunctions.add("QDir_isRelativePath",               f_QDir_isRelativePath);
+   builtinFunctions.add("QDir_match",                        f_QDir_match);
+   builtinFunctions.add("QDir_root",                         f_QDir_root);
+   builtinFunctions.add("QDir_rootPath",                     f_QDir_rootPath);
+   builtinFunctions.add("QDir_searchPaths",                  f_QDir_searchPaths);
+   builtinFunctions.add("QDir_separator",                    f_QDir_separator);
+   builtinFunctions.add("QDir_setCurrent",                   f_QDir_setCurrent);
+   builtinFunctions.add("QDir_setSearchPaths",               f_QDir_setSearchPaths);
+   builtinFunctions.add("QDir_temp",                         f_QDir_temp);
+   builtinFunctions.add("QDir_tempPath",                     f_QDir_tempPath);
+   builtinFunctions.add("QDir_toNativeSeparators",           f_QDir_toNativeSeparators);
+}

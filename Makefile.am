@@ -404,6 +404,9 @@ noinst_HEADERS = \
 	modules/qt/QC_QMetaObject.h \
 	modules/qt/QC_QMenuBar.h \
 	modules/qt/QoreAbstractQMenuBar.h \
+	modules/qt/QC_QPrinter.h \
+	modules/qt/QC_QPrintDialog.h \
+	modules/qt/QoreAbstractQPrintDialog.h \
 	command-line.h \
 	include/qore/Qore.h
 

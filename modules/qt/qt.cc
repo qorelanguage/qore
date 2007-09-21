@@ -151,6 +151,8 @@
 #include "QC_QHeaderView.h"
 #include "QC_QMetaObject.h"
 #include "QC_QMenuBar.h"
+#include "QC_QPrinter.h"
+#include "QC_QPrintDialog.h"
 
 #include "qore-qt-events.h"
 
@@ -1026,6 +1028,7 @@ static class QoreString *qt_module_init()
    initQMessageBoxStaticFunctions();
    initQPixmapStaticFunctions();
    initQFileDialogStaticFunctions();
+   initQDirStaticFunctions();
 
    addBrushStyleType();
    addPenStyleType();
@@ -1422,6 +1425,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQDirClass());
    qt->addSystemClass(initQMetaObjectClass());
    qt->addSystemClass(initQMenuBarClass(qwidget));
+   qt->addSystemClass(initQPrinterClass(qpaintdevice));
+   qt->addSystemClass(initQPrintDialogClass(qwidget));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -2639,7 +2644,70 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("ItemIsUserCheckable",      new QoreNode((int64)Qt::ItemIsUserCheckable));
    qt->addConstant("ItemIsEnabled",            new QoreNode((int64)Qt::ItemIsEnabled));
    qt->addConstant("ItemIsTristate",           new QoreNode((int64)Qt::ItemIsTristate));
-						    
+	
+   // AspectRatioMode enum
+   qt->addConstant("IgnoreAspectRatio",        new QoreNode((int64)Qt::IgnoreAspectRatio));
+   qt->addConstant("KeepAspectRatio",          new QoreNode((int64)Qt::KeepAspectRatio));
+   qt->addConstant("KeepAspectRatioByExpanding", new QoreNode((int64)Qt::KeepAspectRatioByExpanding));
+
+   // TextFormat enum
+   qt->addConstant("PlainText",                new QoreNode((int64)Qt::PlainText));
+   qt->addConstant("RichText",                 new QoreNode((int64)Qt::RichText));
+   qt->addConstant("AutoText",                 new QoreNode((int64)Qt::AutoText));
+   qt->addConstant("LogText",                  new QoreNode((int64)Qt::LogText));
+
+   // CursorShape enum
+   qt->addConstant("ArrowCursor",              new QoreNode((int64)Qt::ArrowCursor));
+   qt->addConstant("UpArrowCursor",            new QoreNode((int64)Qt::UpArrowCursor));
+   qt->addConstant("CrossCursor",              new QoreNode((int64)Qt::CrossCursor));
+   qt->addConstant("WaitCursor",               new QoreNode((int64)Qt::WaitCursor));
+   qt->addConstant("IBeamCursor",              new QoreNode((int64)Qt::IBeamCursor));
+   qt->addConstant("SizeVerCursor",            new QoreNode((int64)Qt::SizeVerCursor));
+   qt->addConstant("SizeHorCursor",            new QoreNode((int64)Qt::SizeHorCursor));
+   qt->addConstant("SizeBDiagCursor",          new QoreNode((int64)Qt::SizeBDiagCursor));
+   qt->addConstant("SizeFDiagCursor",          new QoreNode((int64)Qt::SizeFDiagCursor));
+   qt->addConstant("SizeAllCursor",            new QoreNode((int64)Qt::SizeAllCursor));
+   qt->addConstant("BlankCursor",              new QoreNode((int64)Qt::BlankCursor));
+   qt->addConstant("SplitVCursor",             new QoreNode((int64)Qt::SplitVCursor));
+   qt->addConstant("SplitHCursor",             new QoreNode((int64)Qt::SplitHCursor));
+   qt->addConstant("PointingHandCursor",       new QoreNode((int64)Qt::PointingHandCursor));
+   qt->addConstant("ForbiddenCursor",          new QoreNode((int64)Qt::ForbiddenCursor));
+   qt->addConstant("WhatsThisCursor",          new QoreNode((int64)Qt::WhatsThisCursor));
+   qt->addConstant("BusyCursor",               new QoreNode((int64)Qt::BusyCursor));
+   qt->addConstant("OpenHandCursor",           new QoreNode((int64)Qt::OpenHandCursor));
+   qt->addConstant("ClosedHandCursor",         new QoreNode((int64)Qt::ClosedHandCursor));
+   qt->addConstant("LastCursor",               new QoreNode((int64)Qt::LastCursor));
+   qt->addConstant("BitmapCursor",             new QoreNode((int64)Qt::BitmapCursor));
+   qt->addConstant("CustomCursor",             new QoreNode((int64)Qt::CustomCursor));
+
+   // AnchorAttribute enum
+   qt->addConstant("AnchorName",               new QoreNode((int64)Qt::AnchorName));
+   qt->addConstant("AnchorHref",               new QoreNode((int64)Qt::AnchorHref));
+
+   // DockWidgetArea enum
+   qt->addConstant("LeftDockWidgetArea",       new QoreNode((int64)Qt::LeftDockWidgetArea));
+   qt->addConstant("RightDockWidgetArea",      new QoreNode((int64)Qt::RightDockWidgetArea));
+   qt->addConstant("TopDockWidgetArea",        new QoreNode((int64)Qt::TopDockWidgetArea));
+   qt->addConstant("BottomDockWidgetArea",     new QoreNode((int64)Qt::BottomDockWidgetArea));
+   qt->addConstant("DockWidgetArea_Mask",      new QoreNode((int64)Qt::DockWidgetArea_Mask));
+   qt->addConstant("AllDockWidgetAreas",       new QoreNode((int64)Qt::AllDockWidgetAreas));
+   qt->addConstant("NoDockWidgetArea",         new QoreNode((int64)Qt::NoDockWidgetArea));
+
+   // DockWidgetAreaSizes enum
+   qt->addConstant("NDockWidgetAreas",         new QoreNode((int64)Qt::NDockWidgetAreas));
+
+   // ToolBarArea enum
+   qt->addConstant("LeftToolBarArea",          new QoreNode((int64)Qt::LeftToolBarArea));
+   qt->addConstant("RightToolBarArea",         new QoreNode((int64)Qt::RightToolBarArea));
+   qt->addConstant("TopToolBarArea",           new QoreNode((int64)Qt::TopToolBarArea));
+   qt->addConstant("BottomToolBarArea",        new QoreNode((int64)Qt::BottomToolBarArea));
+   qt->addConstant("ToolBarArea_Mask",         new QoreNode((int64)Qt::ToolBarArea_Mask));
+   qt->addConstant("AllToolBarAreas",          new QoreNode((int64)Qt::AllToolBarAreas));
+   qt->addConstant("NoToolBarArea",            new QoreNode((int64)Qt::NoToolBarArea));
+
+   // ToolBarSizes enum
+   qt->addConstant("NToolBarAreas",            new QoreNode((int64)Qt::NToolBarAreas));
+
    qns->addInitialNamespace(qt);
 }
 

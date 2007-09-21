@@ -1,0 +1,521 @@
+/*
+ QC_QPrinter.cc
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+
+#include "QC_QPrinter.h"
+
+int CID_QPRINTER;
+class QoreClass *QC_QPrinter = 0;
+
+//QPrinter ( PrinterMode mode = ScreenResolution )
+static void QPRINTER_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QPrinter::PrinterMode mode = !is_nothing(p) ? (QPrinter::PrinterMode)p->getAsInt() : QPrinter::ScreenResolution;
+   self->setPrivate(CID_QPRINTER, new QoreQPrinter(mode));
+   return;
+}
+
+static void QPRINTER_copy(class Object *self, class Object *old, class QoreQPrinter *qp, ExceptionSink *xsink)
+{
+   xsink->raiseException("QPRINTER-COPY-ERROR", "objects of this class cannot be copied");
+}
+
+//bool abort ()
+static QoreNode *QPRINTER_abort(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qp->abort());
+}
+
+//bool collateCopies () const
+static QoreNode *QPRINTER_collateCopies(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qp->collateCopies());
+}
+
+//ColorMode colorMode () const
+static QoreNode *QPRINTER_colorMode(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->colorMode());
+}
+
+//QString creator () const
+static QoreNode *QPRINTER_creator(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qp->creator().toUtf8().data(), QCS_UTF8));
+}
+
+//QString docName () const
+static QoreNode *QPRINTER_docName(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qp->docName().toUtf8().data(), QCS_UTF8));
+}
+
+//bool doubleSidedPrinting () const
+static QoreNode *QPRINTER_doubleSidedPrinting(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qp->doubleSidedPrinting());
+}
+
+//bool fontEmbeddingEnabled () const
+static QoreNode *QPRINTER_fontEmbeddingEnabled(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qp->fontEmbeddingEnabled());
+}
+
+//int fromPage () const
+static QoreNode *QPRINTER_fromPage(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->fromPage());
+}
+
+//bool fullPage () const
+static QoreNode *QPRINTER_fullPage(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qp->fullPage());
+}
+
+//bool newPage ()
+static QoreNode *QPRINTER_newPage(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qp->newPage());
+}
+
+//int numCopies () const
+static QoreNode *QPRINTER_numCopies(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->numCopies());
+}
+
+//Orientation orientation () const
+static QoreNode *QPRINTER_orientation(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->orientation());
+}
+
+//QString outputFileName () const
+static QoreNode *QPRINTER_outputFileName(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qp->outputFileName().toUtf8().data(), QCS_UTF8));
+}
+
+//OutputFormat outputFormat () const
+static QoreNode *QPRINTER_outputFormat(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->outputFormat());
+}
+
+//PageOrder pageOrder () const
+static QoreNode *QPRINTER_pageOrder(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->pageOrder());
+}
+
+//QRect pageRect () const
+static QoreNode *QPRINTER_pageRect(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qr = new Object(QC_QRect, getProgram());
+   QoreQRect *q_qr = new QoreQRect(qp->pageRect());
+   o_qr->setPrivate(CID_QRECT, q_qr);
+   return new QoreNode(o_qr);
+}
+
+//PageSize pageSize () const
+static QoreNode *QPRINTER_pageSize(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->pageSize());
+}
+
+////virtual QPaintEngine * paintEngine () const
+//static QoreNode *QPRINTER_paintEngine(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+//{
+//   ??? return new QoreNode((int64)qp->paintEngine());
+//}
+
+//QRect paperRect () const
+static QoreNode *QPRINTER_paperRect(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qr = new Object(QC_QRect, getProgram());
+   QoreQRect *q_qr = new QoreQRect(qp->paperRect());
+   o_qr->setPrivate(CID_QRECT, q_qr);
+   return new QoreNode(o_qr);
+}
+
+//PaperSource paperSource () const
+static QoreNode *QPRINTER_paperSource(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->paperSource());
+}
+
+////QPrintEngine * printEngine () const
+//static QoreNode *QPRINTER_printEngine(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+//{
+//   ??? return new QoreNode((int64)qp->printEngine());
+//}
+
+//QString printProgram () const
+static QoreNode *QPRINTER_printProgram(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qp->printProgram().toUtf8().data(), QCS_UTF8));
+}
+
+//PrintRange printRange () const
+static QoreNode *QPRINTER_printRange(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->printRange());
+}
+
+//QString printerName () const
+static QoreNode *QPRINTER_printerName(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qp->printerName().toUtf8().data(), QCS_UTF8));
+}
+
+//QString printerSelectionOption () const
+static QoreNode *QPRINTER_printerSelectionOption(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qp->printerSelectionOption().toUtf8().data(), QCS_UTF8));
+}
+
+//PrinterState printerState () const
+static QoreNode *QPRINTER_printerState(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->printerState());
+}
+
+//int resolution () const
+static QoreNode *QPRINTER_resolution(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->resolution());
+}
+
+//void setCollateCopies ( bool collate )
+static QoreNode *QPRINTER_setCollateCopies(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool collate = p ? p->getAsBool() : false;
+   qp->setCollateCopies(collate);
+   return 0;
+}
+
+//void setColorMode ( ColorMode newColorMode )
+static QoreNode *QPRINTER_setColorMode(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QPrinter::ColorMode newColorMode = (QPrinter::ColorMode)(p ? p->getAsInt() : 0);
+   qp->setColorMode(newColorMode);
+   return 0;
+}
+
+//void setCreator ( const QString & creator )
+static QoreNode *QPRINTER_setCreator(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString creator;
+   if (get_qstring(p, creator, xsink))
+      return 0;
+   qp->setCreator(creator);
+   return 0;
+}
+
+//void setDocName ( const QString & name )
+static QoreNode *QPRINTER_setDocName(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString name;
+   if (get_qstring(p, name, xsink))
+      return 0;
+   qp->setDocName(name);
+   return 0;
+}
+
+//void setDoubleSidedPrinting ( bool doubleSided )
+static QoreNode *QPRINTER_setDoubleSidedPrinting(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool doubleSided = p ? p->getAsBool() : false;
+   qp->setDoubleSidedPrinting(doubleSided);
+   return 0;
+}
+
+//void setFontEmbeddingEnabled ( bool enable )
+static QoreNode *QPRINTER_setFontEmbeddingEnabled(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool enable = p ? p->getAsBool() : false;
+   qp->setFontEmbeddingEnabled(enable);
+   return 0;
+}
+
+//void setFromTo ( int from, int to )
+static QoreNode *QPRINTER_setFromTo(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int from = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int to = p ? p->getAsInt() : 0;
+   qp->setFromTo(from, to);
+   return 0;
+}
+
+//void setFullPage ( bool fp )
+static QoreNode *QPRINTER_setFullPage(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool fp = p ? p->getAsBool() : false;
+   qp->setFullPage(fp);
+   return 0;
+}
+
+//void setNumCopies ( int numCopies )
+static QoreNode *QPRINTER_setNumCopies(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int numCopies = p ? p->getAsInt() : 0;
+   qp->setNumCopies(numCopies);
+   return 0;
+}
+
+//void setOrientation ( Orientation orientation )
+static QoreNode *QPRINTER_setOrientation(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QPrinter::Orientation orientation = (QPrinter::Orientation)(p ? p->getAsInt() : 0);
+   qp->setOrientation(orientation);
+   return 0;
+}
+
+//void setOutputFileName ( const QString & fileName )
+static QoreNode *QPRINTER_setOutputFileName(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString fileName;
+   if (get_qstring(p, fileName, xsink))
+      return 0;
+   qp->setOutputFileName(fileName);
+   return 0;
+}
+
+//void setOutputFormat ( OutputFormat format )
+static QoreNode *QPRINTER_setOutputFormat(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QPrinter::OutputFormat format = (QPrinter::OutputFormat)(p ? p->getAsInt() : 0);
+   qp->setOutputFormat(format);
+   return 0;
+}
+
+//void setPageOrder ( PageOrder pageOrder )
+static QoreNode *QPRINTER_setPageOrder(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QPrinter::PageOrder pageOrder = (QPrinter::PageOrder)(p ? p->getAsInt() : 0);
+   qp->setPageOrder(pageOrder);
+   return 0;
+}
+
+//void setPageSize ( PageSize newPageSize )
+static QoreNode *QPRINTER_setPageSize(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QPrinter::PageSize newPageSize = (QPrinter::PageSize)(p ? p->getAsInt() : 0);
+   qp->setPageSize(newPageSize);
+   return 0;
+}
+
+//void setPaperSource ( PaperSource source )
+static QoreNode *QPRINTER_setPaperSource(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QPrinter::PaperSource source = (QPrinter::PaperSource)(p ? p->getAsInt() : 0);
+   qp->setPaperSource(source);
+   return 0;
+}
+
+//void setPrintProgram ( const QString & printProg )
+static QoreNode *QPRINTER_setPrintProgram(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString printProg;
+   if (get_qstring(p, printProg, xsink))
+      return 0;
+   qp->setPrintProgram(printProg);
+   return 0;
+}
+
+//void setPrintRange ( PrintRange range )
+static QoreNode *QPRINTER_setPrintRange(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QPrinter::PrintRange range = (QPrinter::PrintRange)(p ? p->getAsInt() : 0);
+   qp->setPrintRange(range);
+   return 0;
+}
+
+//void setPrinterName ( const QString & name )
+static QoreNode *QPRINTER_setPrinterName(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString name;
+   if (get_qstring(p, name, xsink))
+      return 0;
+   qp->setPrinterName(name);
+   return 0;
+}
+
+//void setPrinterSelectionOption ( const QString & option )
+static QoreNode *QPRINTER_setPrinterSelectionOption(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString option;
+   if (get_qstring(p, option, xsink))
+      return 0;
+   qp->setPrinterSelectionOption(option);
+   return 0;
+}
+
+//void setResolution ( int dpi )
+static QoreNode *QPRINTER_setResolution(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int dpi = p ? p->getAsInt() : 0;
+   qp->setResolution(dpi);
+   return 0;
+}
+
+#ifdef WINDOWS
+//void setWinPageSize ( int pageSize )
+static QoreNode *QPRINTER_setWinPageSize(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int pageSize = p ? p->getAsInt() : 0;
+   qp->setWinPageSize(pageSize);
+   return 0;
+}
+
+//QList<PaperSource> supportedPaperSources () const
+static QoreNode *QPRINTER_supportedPaperSources(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QList<QPrinter::PaperSource> qlist = qp->supportedPaperSources();
+
+   List *l = new List();
+   for (QList<QPrinter::PaperSource>::iterator i = qlist.begin(), e = qlist.end(); i != e; ++i)
+      l->push(new QoreNode((int64)*i));
+
+   return new QoreNode(l);
+}
+#endif
+
+//QList<int> supportedResolutions () const
+static QoreNode *QPRINTER_supportedResolutions(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QList<int> ilist_rv = qp->supportedResolutions();
+   List *l = new List();
+   for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)
+      l->push(new QoreNode((int64)(*i)));
+   return new QoreNode(l);
+}
+
+//int toPage () const
+static QoreNode *QPRINTER_toPage(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->toPage());
+}
+
+#ifdef WINDOWS
+//int winPageSize () const
+static QoreNode *QPRINTER_winPageSize(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->winPageSize());
+}
+#endif
+
+QoreClass *initQPrinterClass(QoreClass *qpaintdevice)
+{
+   QC_QPrinter = new QoreClass("QPrinter", QDOM_GUI);
+   CID_QPRINTER = QC_QPrinter->getID();
+
+   QC_QPrinter->addBuiltinVirtualBaseClass(qpaintdevice);
+
+   QC_QPrinter->setConstructor(QPRINTER_constructor);
+   QC_QPrinter->setCopy((q_copy_t)QPRINTER_copy);
+
+   QC_QPrinter->addMethod("abort",                       (q_method_t)QPRINTER_abort);
+   QC_QPrinter->addMethod("collateCopies",               (q_method_t)QPRINTER_collateCopies);
+   QC_QPrinter->addMethod("colorMode",                   (q_method_t)QPRINTER_colorMode);
+   QC_QPrinter->addMethod("creator",                     (q_method_t)QPRINTER_creator);
+   QC_QPrinter->addMethod("docName",                     (q_method_t)QPRINTER_docName);
+   QC_QPrinter->addMethod("doubleSidedPrinting",         (q_method_t)QPRINTER_doubleSidedPrinting);
+   QC_QPrinter->addMethod("fontEmbeddingEnabled",        (q_method_t)QPRINTER_fontEmbeddingEnabled);
+   QC_QPrinter->addMethod("fromPage",                    (q_method_t)QPRINTER_fromPage);
+   QC_QPrinter->addMethod("fullPage",                    (q_method_t)QPRINTER_fullPage);
+   QC_QPrinter->addMethod("newPage",                     (q_method_t)QPRINTER_newPage);
+   QC_QPrinter->addMethod("numCopies",                   (q_method_t)QPRINTER_numCopies);
+   QC_QPrinter->addMethod("orientation",                 (q_method_t)QPRINTER_orientation);
+   QC_QPrinter->addMethod("outputFileName",              (q_method_t)QPRINTER_outputFileName);
+   QC_QPrinter->addMethod("outputFormat",                (q_method_t)QPRINTER_outputFormat);
+   QC_QPrinter->addMethod("pageOrder",                   (q_method_t)QPRINTER_pageOrder);
+   QC_QPrinter->addMethod("pageRect",                    (q_method_t)QPRINTER_pageRect);
+   QC_QPrinter->addMethod("pageSize",                    (q_method_t)QPRINTER_pageSize);
+   //QC_QPrinter->addMethod("paintEngine",                 (q_method_t)QPRINTER_paintEngine);
+   QC_QPrinter->addMethod("paperRect",                   (q_method_t)QPRINTER_paperRect);
+   QC_QPrinter->addMethod("paperSource",                 (q_method_t)QPRINTER_paperSource);
+   //QC_QPrinter->addMethod("printEngine",                 (q_method_t)QPRINTER_printEngine);
+   QC_QPrinter->addMethod("printProgram",                (q_method_t)QPRINTER_printProgram);
+   QC_QPrinter->addMethod("printRange",                  (q_method_t)QPRINTER_printRange);
+   QC_QPrinter->addMethod("printerName",                 (q_method_t)QPRINTER_printerName);
+   QC_QPrinter->addMethod("printerSelectionOption",      (q_method_t)QPRINTER_printerSelectionOption);
+   QC_QPrinter->addMethod("printerState",                (q_method_t)QPRINTER_printerState);
+   QC_QPrinter->addMethod("resolution",                  (q_method_t)QPRINTER_resolution);
+   QC_QPrinter->addMethod("setCollateCopies",            (q_method_t)QPRINTER_setCollateCopies);
+   QC_QPrinter->addMethod("setColorMode",                (q_method_t)QPRINTER_setColorMode);
+   QC_QPrinter->addMethod("setCreator",                  (q_method_t)QPRINTER_setCreator);
+   QC_QPrinter->addMethod("setDocName",                  (q_method_t)QPRINTER_setDocName);
+   QC_QPrinter->addMethod("setDoubleSidedPrinting",      (q_method_t)QPRINTER_setDoubleSidedPrinting);
+   QC_QPrinter->addMethod("setFontEmbeddingEnabled",     (q_method_t)QPRINTER_setFontEmbeddingEnabled);
+   QC_QPrinter->addMethod("setFromTo",                   (q_method_t)QPRINTER_setFromTo);
+   QC_QPrinter->addMethod("setFullPage",                 (q_method_t)QPRINTER_setFullPage);
+   QC_QPrinter->addMethod("setNumCopies",                (q_method_t)QPRINTER_setNumCopies);
+   QC_QPrinter->addMethod("setOrientation",              (q_method_t)QPRINTER_setOrientation);
+   QC_QPrinter->addMethod("setOutputFileName",           (q_method_t)QPRINTER_setOutputFileName);
+   QC_QPrinter->addMethod("setOutputFormat",             (q_method_t)QPRINTER_setOutputFormat);
+   QC_QPrinter->addMethod("setPageOrder",                (q_method_t)QPRINTER_setPageOrder);
+   QC_QPrinter->addMethod("setPageSize",                 (q_method_t)QPRINTER_setPageSize);
+   QC_QPrinter->addMethod("setPaperSource",              (q_method_t)QPRINTER_setPaperSource);
+   QC_QPrinter->addMethod("setPrintProgram",             (q_method_t)QPRINTER_setPrintProgram);
+   QC_QPrinter->addMethod("setPrintRange",               (q_method_t)QPRINTER_setPrintRange);
+   QC_QPrinter->addMethod("setPrinterName",              (q_method_t)QPRINTER_setPrinterName);
+   QC_QPrinter->addMethod("setPrinterSelectionOption",   (q_method_t)QPRINTER_setPrinterSelectionOption);
+   QC_QPrinter->addMethod("setResolution",               (q_method_t)QPRINTER_setResolution);
+#ifdef WINDOWS
+   QC_QPrinter->addMethod("setWinPageSize",              (q_method_t)QPRINTER_setWinPageSize);
+   QC_QPrinter->addMethod("supportedPaperSources",       (q_method_t)QPRINTER_supportedPaperSources);
+#endif
+   QC_QPrinter->addMethod("supportedResolutions",        (q_method_t)QPRINTER_supportedResolutions);
+   QC_QPrinter->addMethod("toPage",                      (q_method_t)QPRINTER_toPage);
+#ifdef WINDOWS
+   QC_QPrinter->addMethod("winPageSize",                 (q_method_t)QPRINTER_winPageSize);
+#endif
+
+   return QC_QPrinter;
+}

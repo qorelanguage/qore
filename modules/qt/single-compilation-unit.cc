@@ -146,3 +146,5 @@
 #include "QC_QHeaderView.cc"
 #include "QC_QMetaObject.cc"
 #include "QC_QMenuBar.cc"
+#include "QC_QPrinter.cc"
+#include "QC_QPrintDialog.cc"
