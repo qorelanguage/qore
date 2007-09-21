@@ -544,3 +544,83 @@ class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice)
    traceout("initQPixmapClass()");
    return QC_QPixmap;
 }
+
+//int defaultDepth ()
+static QoreNode *f_QPixmap_defaultDepth(QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)QPixmap::defaultDepth());
+}
+
+//QPixmap fromImage ( const QImage & image, Qt::ImageConversionFlags flags = Qt::AutoColor )
+static QoreNode *f_QPixmap_fromImage(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)p->val.object->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
+   if (!image) {
+      if (!xsink->isException())
+         xsink->raiseException("QPIXMAP-FROMIMAGE-PARAM-ERROR", "expecting a QImage object as first argument to QPixmap::fromImage()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> imageHolder(static_cast<AbstractPrivateData *>(image), xsink);
+   p = get_param(params, 1);
+   Qt::ImageConversionFlags flags = !is_nothing(p) ? (Qt::ImageConversionFlags)p->getAsInt() : Qt::AutoColor;
+   Object *o_qp = new Object(QC_QPixmap, getProgram());
+   QoreQPixmap *q_qp = new QoreQPixmap(QPixmap::fromImage(*(static_cast<QImage *>(image)), flags));
+   o_qp->setPrivate(CID_QPIXMAP, q_qp);
+   return new QoreNode(o_qp);
+}
+
+//QPixmap grabWidget ( QWidget * widget, const QRect & rectangle )
+//QPixmap grabWidget ( QWidget * widget, int x = 0, int y = 0, int width = -1, int height = -1 )
+static QoreNode *f_QPixmap_grabWidget(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (!widget) {
+      if (!xsink->isException())
+	 xsink->raiseException("QPIXMAP-GRABWIDGET-PARAM-ERROR", "QPixmap::grabWidget() requires a QWidget as the first argument");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
+   p = get_param(params, 1);
+   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   if (*xsink)
+      return 0;
+   if (!rectangle) {
+
+      if (p && p->type == NT_OBJECT) {
+	 xsink->raiseException("QPIXMAP-GRABWIDGET-PARAM-ERROR", "this version of QPixmap::grabWidget() expects an object derived from QRect as the second argument", p->val.object->getClass()->getName());
+	 return 0;
+      }
+
+      int x = !is_nothing(p) ? p->getAsInt() : 0;
+      p = get_param(params, 2);
+      int y = !is_nothing(p) ? p->getAsInt() : 0;
+      p = get_param(params, 3);
+      int width = !is_nothing(p) ? p->getAsInt() : -1;
+      p = get_param(params, 4);
+      int height = !is_nothing(p) ? p->getAsInt() : -1;
+
+      Object *o_qp = new Object(QC_QPixmap, getProgram());
+      QoreQPixmap *q_qp = new QoreQPixmap(QPixmap::grabWidget(static_cast<QWidget *>(widget->getQWidget()), x, y, width, height));
+      o_qp->setPrivate(CID_QPIXMAP, q_qp);
+      return new QoreNode(o_qp);
+   }
+
+   ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
+   Object *o_qp = new Object(QC_QPixmap, getProgram());
+   QoreQPixmap *q_qp = new QoreQPixmap(QPixmap::grabWidget(static_cast<QWidget *>(widget->getQWidget()), *(static_cast<QRect *>(rectangle))));
+   o_qp->setPrivate(CID_QPIXMAP, q_qp);
+   return new QoreNode(o_qp);
+}
+
+void initQPixmapStaticFunctions()
+{
+   builtinFunctions.add("QPixmap_defaultDepth",                 f_QPixmap_defaultDepth);
+   builtinFunctions.add("QPixmap_fromImage",                    f_QPixmap_fromImage);
+   //builtinFunctions.add("QPixmap_fromMacCGImageRef",            f_QPixmap_fromMacCGImageRef);
+   //builtinFunctions.add("QPixmap_fromWinHBITMAP",               f_QPixmap_fromWinHBITMAP);
+   builtinFunctions.add("QPixmap_grabWidget",                   f_QPixmap_grabWidget);
+   //builtinFunctions.add("QPixmap_grabWindow",                   f_QPixmap_grabWindow);
+   //builtinFunctions.add("QPixmap_trueMatrix",                   f_QPixmap_trueMatrix);
+}

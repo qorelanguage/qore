@@ -33,4 +33,25 @@ DLLLOCAL extern class QoreClass *QC_QStyle;
 
 DLLLOCAL class QoreClass *initQStyleClass(QoreClass *);
 
+// for non-qore-generated QStyle object
+class QoreQtQStyle : public QoreAbstractQStyle
+{
+   public:
+      Object *qore_obj;
+      QPointer<QStyle> qobj;
+
+      DLLLOCAL QoreQtQStyle(Object *obj, QStyle *qs) : qore_obj(obj), qobj(qs)
+      {
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+	 return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QStyle *getQStyle() const
+      {
+	 return static_cast<QStyle *>(&(*qobj));
+      }
+#include "qore-qt-static-qstyle-methods.h"
+};
+
 #endif // _QORE_QT_QC_QSTYLE_H

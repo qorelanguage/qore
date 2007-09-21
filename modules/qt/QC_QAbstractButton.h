@@ -76,4 +76,34 @@ class QoreQAbstractButton : public QoreAbstractQAbstractButton
       QORE_VIRTUAL_QWIDGET_METHODS
 };
 
+class QoreQtQAbstractButton : public QoreAbstractQAbstractButton
+{
+   public:
+      Object *qore_obj;
+      QPointer<QAbstractButton> qobj;
+
+      DLLLOCAL QoreQtQAbstractButton(Object *obj, QAbstractButton *b) : qore_obj(obj), qobj(b)
+      {
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QWidget *getQWidget() const
+      {
+         return static_cast<QWidget *>(&(*qobj));
+      }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+         return static_cast<QPaintDevice *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
+      {
+         return static_cast<QAbstractButton *>(&(*qobj));
+      }
+
+#include "qore-qt-static-qwidget-methods.h"
+
+};
+
 #endif // _QORE_QT_QC_QABSTRACTBUTTON_H

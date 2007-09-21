@@ -40,11 +40,10 @@ static void QSHORTCUT_constructor(class Object *self, class QoreNode *params, Ex
 
    QoreAbstractQWidget *parent = (QoreAbstractQWidget *)((p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
    if (!parent) {
-      QoreQKeySequence *key = (QoreQKeySequence *)((p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0);
-      ReferenceHolder<QoreQKeySequence> keyHolder(key, xsink);
-      int nkey = 0;
-      if (!key)
-	 nkey = p ? p->getAsInt() : 0;
+      QKeySequence key;
+
+      if (get_qkeysequence(p, key, xsink))
+	 return;
 
       p = test_param(params, NT_OBJECT, 1);
       parent = (QoreAbstractQWidget *)(p ? p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
@@ -62,10 +61,7 @@ static void QSHORTCUT_constructor(class Object *self, class QoreNode *params, Ex
       Qt::ShortcutContext context = !is_nothing(p) ? (Qt::ShortcutContext)p->getAsInt() : Qt::WindowShortcut;
 
       //printd(5, "QShortcut::constructor() key=%08p nkey=%d context=%d\n", key, nkey, context);
-      if (key)
-	 qs = new QoreQShortcut(self, *(static_cast<QKeySequence *>(key)), parent, context);
-      else
-	 qs = new QoreQShortcut(self, nkey, parent, context);
+      qs = new QoreQShortcut(self, key, parent, context);
 
       ReferenceHolder<QoreQShortcut> qsHolder(qs, xsink);
 

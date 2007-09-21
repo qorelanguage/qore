@@ -25,7 +25,7 @@
 #define _QORE_QT_QC_QDIALOG_H
 
 #include <QDialog>
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
 DLLLOCAL extern int CID_QDIALOG;
@@ -41,14 +41,13 @@ class myQDialog : public QDialog, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-   DLLLOCAL myQDialog(Object *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog(parent, f), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDialog(Object *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog(parent, f), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
-         //init_widget_events();
       }
 };
 
-class QoreQDialog : public QoreAbstractQWidget
+class QoreQDialog : public QoreAbstractQDialog
 {
    public:
       QPointer<myQDialog> qobj;
@@ -67,6 +66,10 @@ class QoreQDialog : public QoreAbstractQWidget
       DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
       {
          return static_cast<QPaintDevice *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QDialog *getQDialog() const
+      {
+         return static_cast<QDialog *>(&(*qobj));
       }
       QORE_VIRTUAL_QWIDGET_METHODS
 };

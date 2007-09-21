@@ -90,14 +90,14 @@ static QoreNode *QWIDGET_activateWindow(class Object *self, QoreAbstractQWidget 
 static QoreNode *QWIDGET_addAction(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-ADDACTION-PARAM-ERROR", "expecting a QAction object as first argument to QWidget::addAction()");
       return 0;
    }
-   ReferenceHolder<QoreQAction> actionHolder(action, xsink);
-   qw->getQWidget()->addAction(static_cast<QAction *>(action->qobj));
+   ReferenceHolder<QoreAbstractQAction> actionHolder(action, xsink);
+   qw->getQWidget()->addAction(action->getQAction());
    return 0;
 }
 
@@ -321,16 +321,13 @@ static QoreNode *QWIDGET_grabMouse(class Object *self, QoreAbstractQWidget *qw, 
 static QoreNode *QWIDGET_grabShortcut(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQKeySequence *key = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)p->val.object->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
-   if (!key) {
-      if (!xsink->isException())
-         xsink->raiseException("QWIDGET-GRABSHORTCUT-PARAM-ERROR", "expecting a QKeySequence object as first argument to QWidget::grabShortcut()");
+   QKeySequence key;
+   if (get_qkeysequence(p, key, xsink))
       return 0;
-   }
-   ReferenceHolder<QoreQKeySequence> keyHolder(key, xsink);
+
    p = get_param(params, 1);
    Qt::ShortcutContext context = (Qt::ShortcutContext)(p ? p->getAsInt() : 0);
-   return new QoreNode((int64)qw->getQWidget()->grabShortcut(*(static_cast<QKeySequence *>(key)), context));
+   return new QoreNode((int64)qw->getQWidget()->grabShortcut(key, context));
 }
 
 #ifdef QT_KEYPAD_NAVIGATION
@@ -384,22 +381,22 @@ static QoreNode *QWIDGET_heightForWidth(class Object *self, QoreAbstractQWidget 
 static QoreNode *QWIDGET_insertAction(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQAction *before = (p && p->type == NT_OBJECT) ? (QoreQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreAbstractQAction *before = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!before) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-INSERTACTION-PARAM-ERROR", "expecting a QAction object as first argument to QWidget::insertAction()");
       return 0;
    }
-   ReferenceHolder<QoreQAction> beforeHolder(before, xsink);
+   ReferenceHolder<QoreAbstractQAction> beforeHolder(before, xsink);
    p = get_param(params, 1);
-   QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-INSERTACTION-PARAM-ERROR", "expecting a QAction object as second argument to QWidget::insertAction()");
       return 0;
    }
-   ReferenceHolder<QoreQAction> actionHolder(action, xsink);
-   qw->getQWidget()->insertAction(static_cast<QAction *>(before->qobj), static_cast<QAction *>(action->qobj));
+   ReferenceHolder<QoreAbstractQAction> actionHolder(action, xsink);
+   qw->getQWidget()->insertAction(before->getQAction(), action->getQAction());
    return 0;
 }
 
@@ -845,14 +842,14 @@ static QoreNode *QWIDGET_releaseShortcut(Object *self, QoreAbstractQWidget *qw, 
 static QoreNode *QWIDGET_removeAction(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-REMOVEACTION-PARAM-ERROR", "expecting a QAction object as first argument to QWidget::removeAction()");
       return 0;
    }
-   ReferenceHolder<QoreQAction> actionHolder(action, xsink);
-   qw->getQWidget()->removeAction(static_cast<QAction *>(action->qobj));
+   ReferenceHolder<QoreAbstractQAction> actionHolder(action, xsink);
+   qw->getQWidget()->removeAction(action->getQAction());
    return 0;
 }
 
@@ -901,37 +898,47 @@ static QoreNode *QWIDGET_repaint(Object *self, QoreAbstractQWidget *qw, QoreNode
    return 0;
 }
 
-//void resize ( const QSize & )
+//void resize ( const QSize & size)
 //void resize ( int w, int h )
-static QoreNode *QWIDGET_resize(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIDGET_resize(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (is_nothing(p)) {
-      xsink->raiseException("QWIDGET-RESIZE-ERROR", "missing first argument: x size");
+   if (p && p->type == NT_OBJECT) {
+      QoreQSize *size = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+      if (!size) {
+         if (!xsink->isException())
+            xsink->raiseException("QWIDGET-RESIZE-PARAM-ERROR", "QWidget::resize() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+         return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
+      qw->getQWidget()->resize(*(static_cast<QSize *>(size)));
       return 0;
    }
-   int x = p->getAsInt();
-   
+   int w = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   if (is_nothing(p)) {
-      xsink->raiseException("QWIDGET-RESIZE-ERROR", "missing second argument: y size");
-      return 0;
-   }
-   int y = p->getAsInt();
-
-   qw->getQWidget()->resize(x, y);
+   int h = p ? p->getAsInt() : 0;
+   qw->getQWidget()->resize(w, h);
    return 0;
 }
 
 //bool restoreGeometry ( const QByteArray & geometry )
-//static QoreNode *QWIDGET_restoreGeometry(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_restoreGeometry(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QByteArray geometry;
+   if (get_qbytearray(p, geometry, xsink))
+      return 0;
+   return new QoreNode(qw->getQWidget()->restoreGeometry(geometry));
+}
 
 //QByteArray saveGeometry () const
-//static QoreNode *QWIDGET_saveGeometry(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_saveGeometry(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qba = new Object(QC_QByteArray, getProgram());
+   QoreQByteArray *q_qba = new QoreQByteArray(qw->getQWidget()->saveGeometry());
+   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
+   return new QoreNode(o_qba);
+}
 
 //void scroll ( int dx, int dy )
 //void scroll ( int dx, int dy, const QRect & r )
@@ -2586,8 +2593,8 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    //QC_QWidget->addMethod("render",                       (q_method_t)QWIDGET_render);
    QC_QWidget->addMethod("repaint",                      (q_method_t)QWIDGET_repaint);
    QC_QWidget->addMethod("resize",                       (q_method_t)QWIDGET_resize);
-   //QC_QWidget->addMethod("restoreGeometry",              (q_method_t)QWIDGET_restoreGeometry);
-   //QC_QWidget->addMethod("saveGeometry",                 (q_method_t)QWIDGET_saveGeometry);
+   QC_QWidget->addMethod("restoreGeometry",              (q_method_t)QWIDGET_restoreGeometry);
+   QC_QWidget->addMethod("saveGeometry",                 (q_method_t)QWIDGET_saveGeometry);
    QC_QWidget->addMethod("scroll",                       (q_method_t)QWIDGET_scroll);
    //QC_QWidget->addMethod("setAcceptDrops",               (q_method_t)QWIDGET_setAcceptDrops);
    QC_QWidget->addMethod("setAccessibleDescription",     (q_method_t)QWIDGET_setAccessibleDescription);

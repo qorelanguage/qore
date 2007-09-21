@@ -143,6 +143,14 @@
 #include "QC_QTableView.h"
 #include "QC_QTableWidget.h"
 #include "QC_QTableWidgetItem.h"
+#include "QC_QStyleOptionMenuItem.h"
+#include "QC_QMessageBox.h"
+#include "QC_QStyleOptionButton.h"
+#include "QC_QFileDialog.h"
+#include "QC_QDir.h"
+#include "QC_QHeaderView.h"
+#include "QC_QMetaObject.h"
+#include "QC_QMenuBar.h"
 
 #include "qore-qt-events.h"
 
@@ -161,6 +169,7 @@
 
 #include <QPalette>
 #include <QToolTip>
+#include <QStyleFactory>
 
 #include <assert.h>
 
@@ -414,13 +423,26 @@ int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, boo
    if (*xsink)
       return -1;
    if (!qc) {
-      if (!suppress_exception) {
-	 if (n && n->type == NT_OBJECT) 
-	    xsink->raiseException("QSTRING-ERROR", "class '%s' is not derived from QChar", n->val.object->getClass()->getName());
-	 else
-	    xsink->raiseException("QCHAR-ERROR", "cannot convert type '%s' to QChar", n ? n->type->getName() : "NOTHING");
+      class QoreQVariant *qv = (n && n->type == NT_OBJECT) ? (QoreQVariant *)n->val.object->getReferencedPrivateData(CID_QVARIANT, xsink) : 0;
+      if (*xsink)
+	 return -1;
+      if (!qv) {
+	 if (!suppress_exception) {
+	    if (n && n->type == NT_OBJECT) 
+	       xsink->raiseException("QSTRING-ERROR", "class '%s' is not derived from QChar or QVariant", n->val.object->getClass()->getName());
+	    else
+	       xsink->raiseException("QSTRING-ERROR", "cannot convert type '%s' to QString", n ? n->type->getName() : "NOTHING");
+	 }
+	 return -1;
       }
-      return -1;
+      if (qv->type() != QVariant::String) {
+	 if (!suppress_exception)
+	    xsink->raiseException("QSTRING-ERROR", "QVariant passed as QString argument holds type '%s'", qv->typeName());
+	 return -1;
+      }
+      str = qv->toString();
+
+      return 0;
    }
 
    ReferenceHolder<QoreQChar> cHolder(qc, xsink);
@@ -428,11 +450,122 @@ int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, boo
    return 0;
 }
 
+int get_qkeysequence(const QoreNode *n, QKeySequence &ks, class ExceptionSink *xsink, bool suppress_exception)
+{
+   if (n && n->type == NT_OBJECT) {
+      class QoreQKeySequence *qks = (QoreQKeySequence *)n->val.object->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink);
+      if (*xsink)
+	 return 0;
+      if (!qks) {
+	 if (!suppress_exception)
+	    xsink->raiseException("QKEYSEQUENCE-ERROR", "class '%s' is not derived from QKeySequence", n->val.object->getClass()->getName());
+	 return -1;
+      }
+      ReferenceHolder<QoreQKeySequence> qksHolder(qks, xsink);
+      ks = *qks;
+      return 0;
+   }
+   if (n && n->type == NT_STRING) {
+      QString str;
+      get_qstring(n, str, xsink);
+      if (*xsink)
+	 return -1;
+
+      ks = str;
+      return 0;
+   }
+   if (n && n->type == NT_INT) {
+      QKeySequence::StandardKey key = (QKeySequence::StandardKey)(const_cast<QoreNode *>(n))->getAsInt();
+      ks = key;
+      return 0;
+   }
+   if (!suppress_exception)
+      xsink->raiseException("QKEYSEQUENCE-ERROR", "cannot convert type '%s' to QKeySequence", n ? n->type->getName() : "NOTHING");
+   return -1;
+}
+
 class QoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data)
 {
    Object *qore_object = new Object(qclass, getProgram());
    qore_object->setPrivate(qclass->getID(), data);
    return new QoreNode(qore_object);
+}
+
+class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink)
+{
+   if (!qs) {
+      xsink->raiseException("QSTYLEFACTORY-CREATE-ERROR", "unable to create style", style.toUtf8().data());
+      return 0;
+   }
+
+   QoreClass *qc;
+   Object *obj;
+
+   // try to determine what subclass the QStyle is if possible
+   QCleanlooksStyle *qcls = dynamic_cast<QCleanlooksStyle *>(qs);
+   if (qcls) {
+      qc = QC_QCleanlooksStyle;
+      obj = new Object(qc, getProgram());
+      obj->setPrivate(qc->getID(), new QoreQtQCleanlooksStyle(obj, qcls));
+      return new QoreNode(obj);
+   }
+
+   QPlastiqueStyle *qps = dynamic_cast<QPlastiqueStyle *>(qs);
+   if (qps) {
+      qc = QC_QPlastiqueStyle;
+      obj = new Object(qc, getProgram());
+      obj->setPrivate(qc->getID(), new QoreQtQPlastiqueStyle(obj, qps));
+      return new QoreNode(obj);
+   }
+
+#ifdef WINDOWS
+   QWindowsXPStyle *qxps = dynamic_cast<QWindowsXPStyle *>(qs);
+   if (qxps) {
+      qc = QC_QWindowsXPStyle;
+      obj = new Object(qc, getProgram());
+      obj->setPrivate(qc->getID(), new QoreQtQWindowsXPStyle(obj, qxps));
+      return new QoreNode(obj);
+   }
+#endif
+
+#ifdef DARWIN
+   QMacStyle *qms = dyamic_cast<QMacStyle *>(qs);
+   if (qms) {
+      qc = QC_QMacStyle;
+      obj = new Object(qc, getProgram());
+      obj->setPrivate(qc->getID(), new QoreQtQMacStyle(obj, qms));
+      return new QoreNode(obj);
+   }
+#endif
+
+   QWindowsStyle *qws = dynamic_cast<QWindowsStyle *>(qs);
+   if (qws) {
+      qc = QC_QWindowsStyle;
+      obj = new Object(qc, getProgram());
+      obj->setPrivate(qc->getID(), new QoreQtQWindowsStyle(obj, qws));
+      return new QoreNode(obj);
+   }
+
+   QCDEStyle *qcs = dynamic_cast<QCDEStyle *>(qs);
+   if (qcs) {
+      qc = QC_QCDEStyle;
+      obj = new Object(qc, getProgram());
+      obj->setPrivate(qc->getID(), new QoreQtQCDEStyle(obj, qcs));
+      return new QoreNode(obj);
+   }
+
+   QMotifStyle *qmts = dynamic_cast<QMotifStyle *>(qs);
+   if (qmts) {
+      qc = QC_QMotifStyle;
+      obj = new Object(qc, getProgram());
+      obj->setPrivate(qc->getID(), new QoreQtQMotifStyle(obj, qmts));
+      return new QoreNode(obj);
+   }
+
+   // otherwise return a QStyle object
+   obj = new Object(QC_QStyle, getProgram());
+   obj->setPrivate(CID_QSTYLE, new QoreQtQStyle(obj, qs));
+   return new QoreNode(obj);
 }
 
 class QoreNode *return_qvariant(const QVariant &qv)
@@ -812,33 +945,62 @@ static class QoreNode *f_QToolTip_showText(class QoreNode *params, class Excepti
    return 0;
 }
 
+//QStyle * create ( const QString & key )
+static QoreNode *f_QStyleFactory_create(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString key;
+   if (get_qstring(p, key, xsink))
+      return 0;
+
+   return return_qstyle(key, QStyleFactory::create(key), xsink);
+}
+
+//QStringList keys ()
+static QoreNode *f_QStyleFactory_keys(QoreNode *params, ExceptionSink *xsink)
+{
+   QStringList strlist_rv = QStyleFactory::keys();
+   List *l = new List();
+   for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
+      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+   return new QoreNode(l);
+}
+
+
 static class QoreString *qt_module_init()
 {
-   builtinFunctions.add("QObject_connect",                        f_QObject_connect);
-   builtinFunctions.add("SLOT",                                   f_SLOT);
-   builtinFunctions.add("SIGNAL",                                 f_SIGNAL);
-   builtinFunctions.add("TR",                                     f_TR);
-   builtinFunctions.add("QAPP",                                   f_QAPP);
-   builtinFunctions.add("qDebug",                                 f_qDebug);
-   builtinFunctions.add("qWarning",                               f_qWarning);
-   builtinFunctions.add("qCritical",                              f_qCritical);
-   builtinFunctions.add("qFatal",                                 f_qFatal);
-   builtinFunctions.add("qRound",                                 f_qRound);
-   builtinFunctions.add("qsrand",                                 f_qsrand);
-   builtinFunctions.add("qrand",                                  f_qrand);
+   builtinFunctions.add("QObject_connect",            f_QObject_connect);
+   builtinFunctions.add("SLOT",                       f_SLOT);
+   builtinFunctions.add("SIGNAL",                     f_SIGNAL);
+   builtinFunctions.add("TR",                         f_TR);
+   builtinFunctions.add("QAPP",                       f_QAPP);
+   builtinFunctions.add("qDebug",                     f_qDebug);
+   builtinFunctions.add("qWarning",                   f_qWarning);
+   builtinFunctions.add("qCritical",                  f_qCritical);
+   builtinFunctions.add("qFatal",                     f_qFatal);
+   builtinFunctions.add("qRound",                     f_qRound);
+   builtinFunctions.add("qsrand",                     f_qsrand);
+   builtinFunctions.add("qrand",                      f_qrand);
 
    // QToolTip static functions
-   builtinFunctions.add("QToolTip_font",                          f_QToolTip_font);
-   builtinFunctions.add("QToolTip_hideText",                      f_QToolTip_hideText);
-   builtinFunctions.add("QToolTip_palette",                       f_QToolTip_palette);
-   builtinFunctions.add("QToolTip_setFont",                       f_QToolTip_setFont);
-   builtinFunctions.add("QToolTip_setPalette",                    f_QToolTip_setPalette);
-   builtinFunctions.add("QToolTip_showText",                      f_QToolTip_showText);
+   builtinFunctions.add("QToolTip_font",              f_QToolTip_font);
+   builtinFunctions.add("QToolTip_hideText",          f_QToolTip_hideText);
+   builtinFunctions.add("QToolTip_palette",           f_QToolTip_palette);
+   builtinFunctions.add("QToolTip_setFont",           f_QToolTip_setFont);
+   builtinFunctions.add("QToolTip_setPalette",        f_QToolTip_setPalette);
+   builtinFunctions.add("QToolTip_showText",          f_QToolTip_showText);
+
+   // QStyleFactory static functions
+   builtinFunctions.add("QStyleFactory_create",       f_QStyleFactory_create);
+   builtinFunctions.add("QStyleFactory_keys",         f_QStyleFactory_keys);
 
    // add static class functions as builtin functions
    initQApplicationStaticFunctions();
    initQLocaleStaticFunctions();
    initQFontDatabaseStaticFunctions();
+   initQMessageBoxStaticFunctions();
+   initQPixmapStaticFunctions();
+   initQFileDialogStaticFunctions();
 
    addBrushStyleType();
    addPenStyleType();
@@ -891,7 +1053,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQTimeClass());
 
    qt->addSystemClass(initQKeySequenceClass());
-   qt->addSystemClass(initQIconClass());
    qt->addSystemClass(initQFontClass());
    qt->addSystemClass(initQMatrixClass());
 
@@ -957,6 +1118,21 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qsizepolicy->addConstant("ToolButton",               new QoreNode((int64)QSizePolicy::ToolButton));
 
    qt->addInitialNamespace(qsizepolicy);
+
+   Namespace *qicon = new Namespace("QIcon");
+
+   // Mode enum
+   qicon->addConstant("Normal",                   new QoreNode((int64)QIcon::Normal));
+   qicon->addConstant("Disabled",                 new QoreNode((int64)QIcon::Disabled));
+   qicon->addConstant("Active",                   new QoreNode((int64)QIcon::Active));
+   qicon->addConstant("Selected",                 new QoreNode((int64)QIcon::Selected));
+
+   // State enum
+   qicon->addConstant("On",                       new QoreNode((int64)QIcon::On));
+   qicon->addConstant("Off",                      new QoreNode((int64)QIcon::Off));
+
+   qicon->addSystemClass(initQIconClass());
+   qt->addInitialNamespace(qicon);
 
    Namespace *qpalette = new Namespace("QPalette");
 
@@ -1032,13 +1208,119 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qpainter_ns);
 
-   // automatically added classes
    QoreClass *qabstractbutton, *qtextformat, *qtextframeformat, *qtextcharformat,
       *qstyleoption, *qstyleoptionviewitem, *qabstractitemdelegate,
       *qabstractspinbox, *qdatetimeedit, *qabstractscrollarea, *qdropevent, 
       *qdragmoveevent, *qcombobox, *qstyleoptioncomplex, *qstyle, *qmotifstyle,
-      *qwindowsstyle, *qabstractitemview, *qtableview;
+      *qwindowsstyle, *qabstractitemview, *qtableview, *qdialog;
 
+   Namespace *qstyle_ns = new Namespace("QStyle");
+
+   qstyle_ns->addSystemClass((qstyle = initQStyleClass(qobject)));
+   qstyle_ns->addSystemClass((qmotifstyle = initQMotifStyleClass(qstyle)));
+   qstyle_ns->addSystemClass(initQCDEStyleClass(qmotifstyle));
+   qstyle_ns->addSystemClass((qwindowsstyle = initQWindowsStyleClass(qstyle)));
+   qstyle_ns->addSystemClass(initQCleanlooksStyleClass(qwindowsstyle));
+   qstyle_ns->addSystemClass(initQPlastiqueStyleClass(qwindowsstyle));
+#ifdef DARWIN
+   qstyle_ns->addSystemClass(initQMacStyleClass(qwindowsstyle));
+#endif
+#ifdef WINDOWS
+   qstyle_ns->addSystemClass(initQWindowsXPStyleClass(qwindowsstyle));
+#endif
+   qstyle_ns->addConstant("PM_ButtonMargin",          new QoreNode((int64)QStyle::PM_ButtonMargin));
+   qstyle_ns->addConstant("PM_ButtonDefaultIndicator", new QoreNode((int64)QStyle::PM_ButtonDefaultIndicator));
+   qstyle_ns->addConstant("PM_MenuButtonIndicator",   new QoreNode((int64)QStyle::PM_MenuButtonIndicator));
+   qstyle_ns->addConstant("PM_ButtonShiftHorizontal", new QoreNode((int64)QStyle::PM_ButtonShiftHorizontal));
+   qstyle_ns->addConstant("PM_ButtonShiftVertical",   new QoreNode((int64)QStyle::PM_ButtonShiftVertical));
+   qstyle_ns->addConstant("PM_DefaultFrameWidth",     new QoreNode((int64)QStyle::PM_DefaultFrameWidth));
+   qstyle_ns->addConstant("PM_SpinBoxFrameWidth",     new QoreNode((int64)QStyle::PM_SpinBoxFrameWidth));
+   qstyle_ns->addConstant("PM_ComboBoxFrameWidth",    new QoreNode((int64)QStyle::PM_ComboBoxFrameWidth));
+   qstyle_ns->addConstant("PM_MaximumDragDistance",   new QoreNode((int64)QStyle::PM_MaximumDragDistance));
+   qstyle_ns->addConstant("PM_ScrollBarExtent",       new QoreNode((int64)QStyle::PM_ScrollBarExtent));
+   qstyle_ns->addConstant("PM_ScrollBarSliderMin",    new QoreNode((int64)QStyle::PM_ScrollBarSliderMin));
+   qstyle_ns->addConstant("PM_SliderThickness",       new QoreNode((int64)QStyle::PM_SliderThickness));
+   qstyle_ns->addConstant("PM_SliderControlThickness", new QoreNode((int64)QStyle::PM_SliderControlThickness));
+   qstyle_ns->addConstant("PM_SliderLength",          new QoreNode((int64)QStyle::PM_SliderLength));
+   qstyle_ns->addConstant("PM_SliderTickmarkOffset",  new QoreNode((int64)QStyle::PM_SliderTickmarkOffset));
+   qstyle_ns->addConstant("PM_SliderSpaceAvailable",  new QoreNode((int64)QStyle::PM_SliderSpaceAvailable));
+   qstyle_ns->addConstant("PM_DockWidgetSeparatorExtent", new QoreNode((int64)QStyle::PM_DockWidgetSeparatorExtent));
+   qstyle_ns->addConstant("PM_DockWidgetHandleExtent", new QoreNode((int64)QStyle::PM_DockWidgetHandleExtent));
+   qstyle_ns->addConstant("PM_DockWidgetFrameWidth",  new QoreNode((int64)QStyle::PM_DockWidgetFrameWidth));
+   qstyle_ns->addConstant("PM_TabBarTabOverlap",      new QoreNode((int64)QStyle::PM_TabBarTabOverlap));
+   qstyle_ns->addConstant("PM_TabBarTabHSpace",       new QoreNode((int64)QStyle::PM_TabBarTabHSpace));
+   qstyle_ns->addConstant("PM_TabBarTabVSpace",       new QoreNode((int64)QStyle::PM_TabBarTabVSpace));
+   qstyle_ns->addConstant("PM_TabBarBaseHeight",      new QoreNode((int64)QStyle::PM_TabBarBaseHeight));
+   qstyle_ns->addConstant("PM_TabBarBaseOverlap",     new QoreNode((int64)QStyle::PM_TabBarBaseOverlap));
+   qstyle_ns->addConstant("PM_ProgressBarChunkWidth", new QoreNode((int64)QStyle::PM_ProgressBarChunkWidth));
+   qstyle_ns->addConstant("PM_SplitterWidth",         new QoreNode((int64)QStyle::PM_SplitterWidth));
+   qstyle_ns->addConstant("PM_TitleBarHeight",        new QoreNode((int64)QStyle::PM_TitleBarHeight));
+   qstyle_ns->addConstant("PM_MenuScrollerHeight",    new QoreNode((int64)QStyle::PM_MenuScrollerHeight));
+   qstyle_ns->addConstant("PM_MenuHMargin",           new QoreNode((int64)QStyle::PM_MenuHMargin));
+   qstyle_ns->addConstant("PM_MenuVMargin",           new QoreNode((int64)QStyle::PM_MenuVMargin));
+   qstyle_ns->addConstant("PM_MenuPanelWidth",        new QoreNode((int64)QStyle::PM_MenuPanelWidth));
+   qstyle_ns->addConstant("PM_MenuTearoffHeight",     new QoreNode((int64)QStyle::PM_MenuTearoffHeight));
+   qstyle_ns->addConstant("PM_MenuDesktopFrameWidth", new QoreNode((int64)QStyle::PM_MenuDesktopFrameWidth));
+   qstyle_ns->addConstant("PM_MenuBarPanelWidth",     new QoreNode((int64)QStyle::PM_MenuBarPanelWidth));
+   qstyle_ns->addConstant("PM_MenuBarItemSpacing",    new QoreNode((int64)QStyle::PM_MenuBarItemSpacing));
+   qstyle_ns->addConstant("PM_MenuBarVMargin",        new QoreNode((int64)QStyle::PM_MenuBarVMargin));
+   qstyle_ns->addConstant("PM_MenuBarHMargin",        new QoreNode((int64)QStyle::PM_MenuBarHMargin));
+   qstyle_ns->addConstant("PM_IndicatorWidth",        new QoreNode((int64)QStyle::PM_IndicatorWidth));
+   qstyle_ns->addConstant("PM_IndicatorHeight",       new QoreNode((int64)QStyle::PM_IndicatorHeight));
+   qstyle_ns->addConstant("PM_ExclusiveIndicatorWidth", new QoreNode((int64)QStyle::PM_ExclusiveIndicatorWidth));
+   qstyle_ns->addConstant("PM_ExclusiveIndicatorHeight", new QoreNode((int64)QStyle::PM_ExclusiveIndicatorHeight));
+   qstyle_ns->addConstant("PM_CheckListButtonSize",   new QoreNode((int64)QStyle::PM_CheckListButtonSize));
+   qstyle_ns->addConstant("PM_CheckListControllerSize", new QoreNode((int64)QStyle::PM_CheckListControllerSize));
+   qstyle_ns->addConstant("PM_DialogButtonsSeparator", new QoreNode((int64)QStyle::PM_DialogButtonsSeparator));
+   qstyle_ns->addConstant("PM_DialogButtonsButtonWidth", new QoreNode((int64)QStyle::PM_DialogButtonsButtonWidth));
+   qstyle_ns->addConstant("PM_DialogButtonsButtonHeight", new QoreNode((int64)QStyle::PM_DialogButtonsButtonHeight));
+   qstyle_ns->addConstant("PM_MdiSubWindowFrameWidth", new QoreNode((int64)QStyle::PM_MdiSubWindowFrameWidth));
+   qstyle_ns->addConstant("PM_MDIFrameWidth",         new QoreNode((int64)QStyle::PM_MDIFrameWidth));
+   qstyle_ns->addConstant("PM_MdiSubWindowMinimizedWidth", new QoreNode((int64)QStyle::PM_MdiSubWindowMinimizedWidth));
+   qstyle_ns->addConstant("PM_MDIMinimizedWidth",     new QoreNode((int64)QStyle::PM_MDIMinimizedWidth));
+   qstyle_ns->addConstant("PM_HeaderMargin",          new QoreNode((int64)QStyle::PM_HeaderMargin));
+   qstyle_ns->addConstant("PM_HeaderMarkSize",        new QoreNode((int64)QStyle::PM_HeaderMarkSize));
+   qstyle_ns->addConstant("PM_HeaderGripMargin",      new QoreNode((int64)QStyle::PM_HeaderGripMargin));
+   qstyle_ns->addConstant("PM_TabBarTabShiftHorizontal", new QoreNode((int64)QStyle::PM_TabBarTabShiftHorizontal));
+   qstyle_ns->addConstant("PM_TabBarTabShiftVertical", new QoreNode((int64)QStyle::PM_TabBarTabShiftVertical));
+   qstyle_ns->addConstant("PM_TabBarScrollButtonWidth", new QoreNode((int64)QStyle::PM_TabBarScrollButtonWidth));
+   qstyle_ns->addConstant("PM_ToolBarFrameWidth",     new QoreNode((int64)QStyle::PM_ToolBarFrameWidth));
+   qstyle_ns->addConstant("PM_ToolBarHandleExtent",   new QoreNode((int64)QStyle::PM_ToolBarHandleExtent));
+   qstyle_ns->addConstant("PM_ToolBarItemSpacing",    new QoreNode((int64)QStyle::PM_ToolBarItemSpacing));
+   qstyle_ns->addConstant("PM_ToolBarItemMargin",     new QoreNode((int64)QStyle::PM_ToolBarItemMargin));
+   qstyle_ns->addConstant("PM_ToolBarSeparatorExtent", new QoreNode((int64)QStyle::PM_ToolBarSeparatorExtent));
+   qstyle_ns->addConstant("PM_ToolBarExtensionExtent", new QoreNode((int64)QStyle::PM_ToolBarExtensionExtent));
+   qstyle_ns->addConstant("PM_SpinBoxSliderHeight",   new QoreNode((int64)QStyle::PM_SpinBoxSliderHeight));
+   qstyle_ns->addConstant("PM_DefaultTopLevelMargin", new QoreNode((int64)QStyle::PM_DefaultTopLevelMargin));
+   qstyle_ns->addConstant("PM_DefaultChildMargin",    new QoreNode((int64)QStyle::PM_DefaultChildMargin));
+   qstyle_ns->addConstant("PM_DefaultLayoutSpacing",  new QoreNode((int64)QStyle::PM_DefaultLayoutSpacing));
+   qstyle_ns->addConstant("PM_ToolBarIconSize",       new QoreNode((int64)QStyle::PM_ToolBarIconSize));
+   qstyle_ns->addConstant("PM_ListViewIconSize",      new QoreNode((int64)QStyle::PM_ListViewIconSize));
+   qstyle_ns->addConstant("PM_IconViewIconSize",      new QoreNode((int64)QStyle::PM_IconViewIconSize));
+   qstyle_ns->addConstant("PM_SmallIconSize",         new QoreNode((int64)QStyle::PM_SmallIconSize));
+   qstyle_ns->addConstant("PM_LargeIconSize",         new QoreNode((int64)QStyle::PM_LargeIconSize));
+   qstyle_ns->addConstant("PM_FocusFrameVMargin",     new QoreNode((int64)QStyle::PM_FocusFrameVMargin));
+   qstyle_ns->addConstant("PM_FocusFrameHMargin",     new QoreNode((int64)QStyle::PM_FocusFrameHMargin));
+   qstyle_ns->addConstant("PM_ToolTipLabelFrameWidth", new QoreNode((int64)QStyle::PM_ToolTipLabelFrameWidth));
+   qstyle_ns->addConstant("PM_CheckBoxLabelSpacing",  new QoreNode((int64)QStyle::PM_CheckBoxLabelSpacing));
+   qstyle_ns->addConstant("PM_TabBarIconSize",        new QoreNode((int64)QStyle::PM_TabBarIconSize));
+   qstyle_ns->addConstant("PM_SizeGripSize",          new QoreNode((int64)QStyle::PM_SizeGripSize));
+   qstyle_ns->addConstant("PM_DockWidgetTitleMargin", new QoreNode((int64)QStyle::PM_DockWidgetTitleMargin));
+   qstyle_ns->addConstant("PM_MessageBoxIconSize",    new QoreNode((int64)QStyle::PM_MessageBoxIconSize));
+   qstyle_ns->addConstant("PM_ButtonIconSize",        new QoreNode((int64)QStyle::PM_ButtonIconSize));
+   qstyle_ns->addConstant("PM_DockWidgetTitleBarButtonMargin", new QoreNode((int64)QStyle::PM_DockWidgetTitleBarButtonMargin));
+   qstyle_ns->addConstant("PM_RadioButtonLabelSpacing", new QoreNode((int64)QStyle::PM_RadioButtonLabelSpacing));
+   qstyle_ns->addConstant("PM_LayoutLeftMargin",      new QoreNode((int64)QStyle::PM_LayoutLeftMargin));
+   qstyle_ns->addConstant("PM_LayoutTopMargin",       new QoreNode((int64)QStyle::PM_LayoutTopMargin));
+   qstyle_ns->addConstant("PM_LayoutRightMargin",     new QoreNode((int64)QStyle::PM_LayoutRightMargin));
+   qstyle_ns->addConstant("PM_LayoutBottomMargin",    new QoreNode((int64)QStyle::PM_LayoutBottomMargin));
+   qstyle_ns->addConstant("PM_LayoutHorizontalSpacing", new QoreNode((int64)QStyle::PM_LayoutHorizontalSpacing));
+   qstyle_ns->addConstant("PM_LayoutVerticalSpacing", new QoreNode((int64)QStyle::PM_LayoutVerticalSpacing));
+   qstyle_ns->addConstant("PM_CustomBase",            new QoreNode((int64)QStyle::PM_CustomBase));
+
+   qt->addInitialNamespace(qstyle_ns);
+
+   // automatically added classes
    qt->addSystemClass(initQPointFClass());
    qt->addSystemClass(initQPolygonClass());
    qt->addSystemClass(initQPolygonFClass());
@@ -1048,7 +1330,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQPushButtonClass(qabstractbutton));
    qt->addSystemClass(initQMenuClass(qwidget));
    qt->addSystemClass(initQToolButtonClass(qabstractbutton));
-   qt->addSystemClass(initQDialogClass(qwidget));
+   qt->addSystemClass((qdialog = initQDialogClass(qwidget)));
    qt->addSystemClass(initQLineEditClass(qwidget));
    qt->addSystemClass(initQTextLengthClass());
    qt->addSystemClass((qtextformat = initQTextFormatClass()));
@@ -1098,7 +1380,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQFontComboBoxClass(qcombobox));
    qt->addSystemClass(initQMainWindowClass(qwidget));
    qt->addSystemClass(initQRadioButtonClass(qabstractbutton));
-   qt->addSystemClass((qstyle = initQStyleClass(qobject)));
    qt->addSystemClass((qstyleoptioncomplex = initQStyleOptionComplexClass(qstyleoption)));
    qt->addSystemClass(initQStyleOptionComboBoxClass(qstyleoptioncomplex));
    qt->addSystemClass(initQStyleOptionGroupBoxClass(qstyleoptioncomplex));
@@ -1107,22 +1388,15 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQStyleOptionSpinBoxClass(qstyleoptioncomplex));
    qt->addSystemClass(initQStyleOptionTitleBarClass(qstyleoptioncomplex));
    qt->addSystemClass(initQStyleOptionToolButtonClass(qstyleoptioncomplex));
-   qt->addSystemClass((qmotifstyle = initQMotifStyleClass(qstyle)));
-   qt->addSystemClass(initQCDEStyleClass(qmotifstyle));
-   qt->addSystemClass((qwindowsstyle = initQWindowsStyleClass(qstyle)));
-   qt->addSystemClass(initQCleanlooksStyleClass(qwindowsstyle));
-#ifdef DARWIN
-   qt->addSystemClass(initQMacStyleClass(qwindowsstyle));
-#endif
-   qt->addSystemClass(initQPlastiqueStyleClass(qobject));
-#ifdef WINDOWS
-   qt->addSystemClass(initQWindowsXPStyleClass(qobject));
-#endif
    qt->addSystemClass(initQSpinBoxClass(qwidget));
-   qt->addSystemClass((qabstractitemview = initQAbstractItemViewClass(qabstractscrollarea)));
-   qt->addSystemClass((qtableview = initQTableViewClass(qabstractitemview)));
-   qt->addSystemClass(initQTableWidgetClass(qtableview));
    qt->addSystemClass(initQTableWidgetItemClass());
+   qt->addSystemClass(initQStyleOptionMenuItemClass(qstyleoption));
+   qt->addSystemClass(initQMessageBoxClass(qdialog));
+   qt->addSystemClass(initQStyleOptionButtonClass(qstyleoption));
+   qt->addSystemClass(initQFileDialogClass(qdialog));
+   qt->addSystemClass(initQDirClass());
+   qt->addSystemClass(initQMetaObjectClass());
+   qt->addSystemClass(initQMenuBarClass(qwidget));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -1134,6 +1408,59 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qbl->addConstant("BottomToTop",    new QoreNode((int64)QBoxLayout::BottomToTop));
 
    qt->addInitialNamespace(qbl);
+
+   Namespace *qabstractitemview_ns = new Namespace("QAbstractItemView");
+   
+   // SelectionMode enum
+   qabstractitemview_ns->addConstant("NoSelection",              new QoreNode((int64)QAbstractItemView::NoSelection));
+   qabstractitemview_ns->addConstant("SingleSelection",          new QoreNode((int64)QAbstractItemView::SingleSelection));
+   qabstractitemview_ns->addConstant("MultiSelection",           new QoreNode((int64)QAbstractItemView::MultiSelection));
+   qabstractitemview_ns->addConstant("ExtendedSelection",        new QoreNode((int64)QAbstractItemView::ExtendedSelection));
+   qabstractitemview_ns->addConstant("ContiguousSelection",      new QoreNode((int64)QAbstractItemView::ContiguousSelection));
+
+   // SelectionBehavior enum
+   qabstractitemview_ns->addConstant("SelectItems",              new QoreNode((int64)QAbstractItemView::SelectItems));
+   qabstractitemview_ns->addConstant("SelectRows",               new QoreNode((int64)QAbstractItemView::SelectRows));
+   qabstractitemview_ns->addConstant("SelectColumns",            new QoreNode((int64)QAbstractItemView::SelectColumns));
+
+   // ScrollHint enum
+   qabstractitemview_ns->addConstant("EnsureVisible",            new QoreNode((int64)QAbstractItemView::EnsureVisible));
+   qabstractitemview_ns->addConstant("PositionAtTop",            new QoreNode((int64)QAbstractItemView::PositionAtTop));
+   qabstractitemview_ns->addConstant("PositionAtBottom",         new QoreNode((int64)QAbstractItemView::PositionAtBottom));
+   qabstractitemview_ns->addConstant("PositionAtCenter",         new QoreNode((int64)QAbstractItemView::PositionAtCenter));
+
+   // EditTrigger enum
+   qabstractitemview_ns->addConstant("NoEditTriggers",           new QoreNode((int64)QAbstractItemView::NoEditTriggers));
+   qabstractitemview_ns->addConstant("CurrentChanged",           new QoreNode((int64)QAbstractItemView::CurrentChanged));
+   qabstractitemview_ns->addConstant("DoubleClicked",            new QoreNode((int64)QAbstractItemView::DoubleClicked));
+   qabstractitemview_ns->addConstant("SelectedClicked",          new QoreNode((int64)QAbstractItemView::SelectedClicked));
+   qabstractitemview_ns->addConstant("EditKeyPressed",           new QoreNode((int64)QAbstractItemView::EditKeyPressed));
+   qabstractitemview_ns->addConstant("AnyKeyPressed",            new QoreNode((int64)QAbstractItemView::AnyKeyPressed));
+   qabstractitemview_ns->addConstant("AllEditTriggers",          new QoreNode((int64)QAbstractItemView::AllEditTriggers));
+
+   // ScrollMode enum
+   qabstractitemview_ns->addConstant("ScrollPerItem",            new QoreNode((int64)QAbstractItemView::ScrollPerItem));
+   qabstractitemview_ns->addConstant("ScrollPerPixel",           new QoreNode((int64)QAbstractItemView::ScrollPerPixel));
+
+   qabstractitemview_ns->addSystemClass((qabstractitemview = initQAbstractItemViewClass(qabstractscrollarea)));
+   qabstractitemview_ns->addSystemClass((qtableview = initQTableViewClass(qabstractitemview)));
+   qabstractitemview_ns->addSystemClass(initQTableWidgetClass(qtableview));
+   
+   qt->addInitialNamespace(qabstractitemview_ns);
+
+   Namespace *qheaderview = new Namespace("QHeaderView");
+
+   // ResizeMode enum
+   qheaderview->addConstant("Interactive",              new QoreNode((int64)QHeaderView::Interactive));
+   qheaderview->addConstant("Stretch",                  new QoreNode((int64)QHeaderView::Stretch));
+   qheaderview->addConstant("Fixed",                    new QoreNode((int64)QHeaderView::Fixed));
+   qheaderview->addConstant("ResizeToContents",         new QoreNode((int64)QHeaderView::ResizeToContents));
+   qheaderview->addConstant("Custom",                   new QoreNode((int64)QHeaderView::Custom));
+
+   qheaderview->addSystemClass(initQHeaderViewClass(qabstractitemview));
+
+   qt->addInitialNamespace(qheaderview);
+
 
    Namespace *qclipboard = new Namespace("QClipboard");
    
@@ -1922,6 +2249,13 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("Saturday",                 new QoreNode((int64)Qt::Saturday));
    qt->addConstant("Sunday",                   new QoreNode((int64)Qt::Sunday));
 
+   // ContextMenuPolicy enum
+   qt->addConstant("NoContextMenu",            new QoreNode((int64)Qt::NoContextMenu));
+   qt->addConstant("DefaultContextMenu",       new QoreNode((int64)Qt::DefaultContextMenu));
+   qt->addConstant("ActionsContextMenu",       new QoreNode((int64)Qt::ActionsContextMenu));
+   qt->addConstant("CustomContextMenu",        new QoreNode((int64)Qt::CustomContextMenu));
+   qt->addConstant("PreventContextMenu",       new QoreNode((int64)Qt::PreventContextMenu));
+
    // Key enum
    qt->addConstant("Key_Escape",               new QoreNode((int64)Qt::Key_Escape));
    qt->addConstant("Key_Tab",                  new QoreNode((int64)Qt::Key_Tab));
@@ -2241,6 +2575,46 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("Key_Flip",                 new QoreNode((int64)Qt::Key_Flip));
    qt->addConstant("Key_unknown",              new QoreNode((int64)Qt::Key_unknown));
 
+   // MatchFlag enum
+   qt->addConstant("MatchExactly",             new QoreNode((int64)Qt::MatchExactly));
+   qt->addConstant("MatchContains",            new QoreNode((int64)Qt::MatchContains));
+   qt->addConstant("MatchStartsWith",          new QoreNode((int64)Qt::MatchStartsWith));
+   qt->addConstant("MatchEndsWith",            new QoreNode((int64)Qt::MatchEndsWith));
+   qt->addConstant("MatchRegExp",              new QoreNode((int64)Qt::MatchRegExp));
+   qt->addConstant("MatchWildcard",            new QoreNode((int64)Qt::MatchWildcard));
+   qt->addConstant("MatchFixedString",         new QoreNode((int64)Qt::MatchFixedString));
+   qt->addConstant("MatchCaseSensitive",       new QoreNode((int64)Qt::MatchCaseSensitive));
+   qt->addConstant("MatchWrap",                new QoreNode((int64)Qt::MatchWrap));
+   qt->addConstant("MatchRecursive",           new QoreNode((int64)Qt::MatchRecursive));
+
+   // ItemDataRole enum
+   qt->addConstant("DisplayRole",              new QoreNode((int64)Qt::DisplayRole));
+   qt->addConstant("DecorationRole",           new QoreNode((int64)Qt::DecorationRole));
+   qt->addConstant("EditRole",                 new QoreNode((int64)Qt::EditRole));
+   qt->addConstant("ToolTipRole",              new QoreNode((int64)Qt::ToolTipRole));
+   qt->addConstant("StatusTipRole",            new QoreNode((int64)Qt::StatusTipRole));
+   qt->addConstant("WhatsThisRole",            new QoreNode((int64)Qt::WhatsThisRole));
+   qt->addConstant("FontRole",                 new QoreNode((int64)Qt::FontRole));
+   qt->addConstant("TextAlignmentRole",        new QoreNode((int64)Qt::TextAlignmentRole));
+   qt->addConstant("BackgroundColorRole",      new QoreNode((int64)Qt::BackgroundColorRole));
+   qt->addConstant("BackgroundRole",           new QoreNode((int64)Qt::BackgroundRole));
+   qt->addConstant("TextColorRole",            new QoreNode((int64)Qt::TextColorRole));
+   qt->addConstant("ForegroundRole",           new QoreNode((int64)Qt::ForegroundRole));
+   qt->addConstant("CheckStateRole",           new QoreNode((int64)Qt::CheckStateRole));
+   qt->addConstant("AccessibleTextRole",       new QoreNode((int64)Qt::AccessibleTextRole));
+   qt->addConstant("AccessibleDescriptionRole", new QoreNode((int64)Qt::AccessibleDescriptionRole));
+   qt->addConstant("SizeHintRole",             new QoreNode((int64)Qt::SizeHintRole));
+   qt->addConstant("UserRole",                 new QoreNode((int64)Qt::UserRole));
+
+   // ItemFlag enum
+   qt->addConstant("ItemIsSelectable",         new QoreNode((int64)Qt::ItemIsSelectable));
+   qt->addConstant("ItemIsEditable",           new QoreNode((int64)Qt::ItemIsEditable));
+   qt->addConstant("ItemIsDragEnabled",        new QoreNode((int64)Qt::ItemIsDragEnabled));
+   qt->addConstant("ItemIsDropEnabled",        new QoreNode((int64)Qt::ItemIsDropEnabled));
+   qt->addConstant("ItemIsUserCheckable",      new QoreNode((int64)Qt::ItemIsUserCheckable));
+   qt->addConstant("ItemIsEnabled",            new QoreNode((int64)Qt::ItemIsEnabled));
+   qt->addConstant("ItemIsTristate",           new QoreNode((int64)Qt::ItemIsTristate));
+						    
    qns->addInitialNamespace(qt);
 }
 

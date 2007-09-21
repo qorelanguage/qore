@@ -26,21 +26,25 @@
 
 #include <QPainter>
 
-extern int CID_QPAINTER;
+DLLLOCAL extern int CID_QPAINTER;
+DLLLOCAL extern QoreClass *QC_QPainter;
 
 DLLLOCAL class QoreClass *initQPainterClass();
 
-class QoreQPainter : public AbstractPrivateData, public QPainter
+class QoreQPainter : public AbstractPrivateData
 {
    public:
-      DLLLOCAL QoreQPainter() : QPainter()
+      QPainter *qpainter;
+
+      DLLLOCAL QoreQPainter() : qpainter(new QPainter())
       {
       }
-      DLLLOCAL QoreQPainter(QPaintDevice *device) : QPainter(device)
+      DLLLOCAL QoreQPainter(QPaintDevice *device) : qpainter(new QPainter(device))
       {
       }
-   
-   
+      DLLLOCAL QoreQPainter(QPainter *qp) : qpainter(qp)
+      {
+      }
 };
 
 

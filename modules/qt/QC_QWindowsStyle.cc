@@ -65,7 +65,7 @@ static QoreNode *QWINDOWSSTYLE_drawComplexControl(Object *self, QoreAbstractQWin
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qws->getQWindowsStyle()->drawComplexControl(control, static_cast<QStyleOptionComplex *>(option), static_cast<QPainter *>(painter), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qws->getQWindowsStyle()->drawComplexControl(control, static_cast<QStyleOptionComplex *>(option), painter->qpainter, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 
@@ -95,7 +95,7 @@ static QoreNode *QWINDOWSSTYLE_drawControl(Object *self, QoreAbstractQWindowsSty
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qws->getQWindowsStyle()->drawControl(element, static_cast<QStyleOption *>(option), static_cast<QPainter *>(painter), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qws->getQWindowsStyle()->drawControl(element, static_cast<QStyleOption *>(option), painter->qpainter, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 
@@ -125,7 +125,7 @@ static QoreNode *QWINDOWSSTYLE_drawPrimitive(Object *self, QoreAbstractQWindowsS
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qws->getQWindowsStyle()->drawPrimitive(element, static_cast<QStyleOption *>(option), static_cast<QPainter *>(painter), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qws->getQWindowsStyle()->drawPrimitive(element, static_cast<QStyleOption *>(option), painter->qpainter, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 

@@ -34,29 +34,25 @@ static void QRADIOBUTTON_constructor(Object *self, QoreNode *params, ExceptionSi
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QRADIOBUTTON, new QoreQRadioButton(self));
-      return;      
-   }
-
-   QString text;
-
-   bool got_text = !get_qstring(p, text, xsink, true);
-
-   if (got_text)
-      p = get_param(params, 1);
-
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
-   if (!parent && !is_nothing(p)) {
-      if (!xsink->isException())
-         xsink->raiseException("QRADIOBUTTON-CONSTRUCTOR-PARAM-ERROR", "this version of QRadioButton::constructor() expects an object derived from QWidget as the final argument", p->val.object->getClass()->getName());
       return;
    }
-
-   ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
-   if (got_text)
-      self->setPrivate(CID_QRADIOBUTTON, new QoreQRadioButton(self, text, parent ? parent->getQWidget() : 0));
-   else
-      self->setPrivate(CID_QRADIOBUTTON, new QoreQRadioButton(self, parent ? parent->getQWidget() : 0));
-
+   if (p && p->type == NT_OBJECT) {
+      QoreQWidget *parent = (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink);
+      if (*xsink)
+	 return;
+      ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
+      self->setPrivate(CID_QRADIOBUTTON, new QoreQRadioButton(self, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));
+      return;
+   }
+   QString text;
+   if (get_qstring(p, text, xsink))
+      return;
+   p = get_param(params, 1);
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (*xsink)
+      return;
+   ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
+   self->setPrivate(CID_QRADIOBUTTON, new QoreQRadioButton(self, text, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));
    return;
 }
 
@@ -65,16 +61,35 @@ static void QRADIOBUTTON_copy(class Object *self, class Object *old, class QoreQ
    xsink->raiseException("QRADIOBUTTON-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-QoreClass *initQRadioButtonClass(QoreClass *qabstractbutton)
+//void initStyleOption ( QStyleOptionButton * option ) const
+/*
+static QoreNode *QRADIOBUTTON_initStyleOption(Object *self, QoreAbstractQRadioButton *qrb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQStyleOptionButton *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionButton *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONBUTTON, xsink) : 0;
+   if (!option) {
+      if (!xsink->isException())
+         xsink->raiseException("QRADIOBUTTON-INITSTYLEOPTION-PARAM-ERROR", "expecting a QStyleOptionButton object as first argument to QRadioButton::initStyleOption()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
+   qrb->getQRadioButton()->initStyleOption(static_cast<QStyleOptionButton *>(option));
+   return 0;
+}
+*/
+
+QoreClass *initQRadioButtonClass(QoreClass *qwidget)
 {
    QC_QRadioButton = new QoreClass("QRadioButton", QDOM_GUI);
    CID_QRADIOBUTTON = QC_QRadioButton->getID();
 
-   QC_QRadioButton->addBuiltinVirtualBaseClass(qabstractbutton);
+   QC_QRadioButton->addBuiltinVirtualBaseClass(qwidget);
 
    QC_QRadioButton->setConstructor(QRADIOBUTTON_constructor);
    QC_QRadioButton->setCopy((q_copy_t)QRADIOBUTTON_copy);
 
+   // private methods
+   //QC_QRadioButton->addMethod("initStyleOption",             (q_method_t)QRADIOBUTTON_initStyleOption, true);
 
    return QC_QRadioButton;
 }

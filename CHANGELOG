@@ -1,3 +1,9 @@
+2007.09.21: David Nichols
+	* qt: bug fixes, new classes, partially-complete icons.q example support
+
+2007.09.19: David Nichols
+	* qt: fixed QMenu::addAction() to work with dynamic methods
+
 2007.09.18: David Nichols
 	* qt: all widget events implemented, new classes, constants, etc,
 	  improved qore <-> qt type handling, charactermap example partially

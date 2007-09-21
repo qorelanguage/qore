@@ -31,11 +31,8 @@ class QoreClass *QC_QModelIndex = 0;
 //QModelIndex ( const QModelIndex & other )
 static void QMODELINDEX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (is_nothing(p)) {
-      self->setPrivate(CID_QMODELINDEX, new QoreQModelIndex());
-      return;
-   }
+   self->setPrivate(CID_QMODELINDEX, new QoreQModelIndex());
+   return;
 }
 
 static void QMODELINDEX_copy(class Object *self, class Object *old, class QoreQModelIndex *qmi, ExceptionSink *xsink)
@@ -43,15 +40,18 @@ static void QMODELINDEX_copy(class Object *self, class Object *old, class QoreQM
    xsink->raiseException("QMODELINDEX-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-////QModelIndex child ( int row, int column ) const
-//static QoreNode *QMODELINDEX_child(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int row = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int column = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)qmi->child(row, column));
-//}
+//QModelIndex child ( int row, int column ) const
+static QoreNode *QMODELINDEX_child(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int row = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int column = p ? p->getAsInt() : 0;
+   Object *o_qmi = new Object(self->getClass(CID_QMODELINDEX), getProgram());
+   QoreQModelIndex *q_qmi = new QoreQModelIndex(qmi->child(row, column));
+   o_qmi->setPrivate(CID_QMODELINDEX, q_qmi);
+   return new QoreNode(o_qmi);
+}
 
 //int column () const
 static QoreNode *QMODELINDEX_column(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
@@ -79,10 +79,11 @@ static QoreNode *QMODELINDEX_internalId(Object *self, QoreQModelIndex *qmi, Qore
    return new QoreNode((int64)qmi->internalId());
 }
 
-////void * internalPointer () const
+//void * internalPointer () const
 //static QoreNode *QMODELINDEX_internalPointer(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
 //{
-//   ??? return qmi->internalPointer();
+//   qmi->internalPointer();
+//   return 0;
 //}
 
 //bool isValid () const
@@ -91,17 +92,32 @@ static QoreNode *QMODELINDEX_isValid(Object *self, QoreQModelIndex *qmi, QoreNod
    return new QoreNode(qmi->isValid());
 }
 
-////const QAbstractItemModel * model () const
-//static QoreNode *QMODELINDEX_model(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return qmi->model();
-//}
+//const QAbstractItemModel * model () const
+static QoreNode *QMODELINDEX_model(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+{
+   const QAbstractItemModel *qt_qobj = qmi->model();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QAbstractItemModel, getProgram());
+      QoreQtQAbstractItemModel *aim = new QoreQtQAbstractItemModel(rv_obj, const_cast<QAbstractItemModel *>(qt_qobj));
+      rv_obj->setPrivate(CID_QABSTRACTITEMMODEL, aim);
+   }
+   return new QoreNode(rv_obj);
+}
 
-////QModelIndex parent () const
-//static QoreNode *QMODELINDEX_parent(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qmi->parent());
-//}
+//QModelIndex parent () const
+static QoreNode *QMODELINDEX_parent(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qmi = new Object(self->getClass(CID_QMODELINDEX), getProgram());
+   QoreQModelIndex *q_qmi = new QoreQModelIndex(qmi->parent());
+   o_qmi->setPrivate(CID_QMODELINDEX, q_qmi);
+   return new QoreNode(o_qmi);
+}
 
 //int row () const
 static QoreNode *QMODELINDEX_row(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
@@ -109,15 +125,18 @@ static QoreNode *QMODELINDEX_row(Object *self, QoreQModelIndex *qmi, QoreNode *p
    return new QoreNode((int64)qmi->row());
 }
 
-////QModelIndex sibling ( int row, int column ) const
-//static QoreNode *QMODELINDEX_sibling(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int row = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int column = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)qmi->sibling(row, column));
-//}
+//QModelIndex sibling ( int row, int column ) const
+static QoreNode *QMODELINDEX_sibling(Object *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int row = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int column = p ? p->getAsInt() : 0;
+   Object *o_qmi = new Object(self->getClass(CID_QMODELINDEX), getProgram());
+   QoreQModelIndex *q_qmi = new QoreQModelIndex(qmi->sibling(row, column));
+   o_qmi->setPrivate(CID_QMODELINDEX, q_qmi);
+   return new QoreNode(o_qmi);
+}
 
 QoreClass *initQModelIndexClass()
 {
@@ -127,17 +146,17 @@ QoreClass *initQModelIndexClass()
    QC_QModelIndex->setConstructor(QMODELINDEX_constructor);
    QC_QModelIndex->setCopy((q_copy_t)QMODELINDEX_copy);
 
-   //QC_QModelIndex->addMethod("child",                       (q_method_t)QMODELINDEX_child);
+   QC_QModelIndex->addMethod("child",                       (q_method_t)QMODELINDEX_child);
    QC_QModelIndex->addMethod("column",                      (q_method_t)QMODELINDEX_column);
    QC_QModelIndex->addMethod("data",                        (q_method_t)QMODELINDEX_data);
    QC_QModelIndex->addMethod("flags",                       (q_method_t)QMODELINDEX_flags);
    QC_QModelIndex->addMethod("internalId",                  (q_method_t)QMODELINDEX_internalId);
    //QC_QModelIndex->addMethod("internalPointer",             (q_method_t)QMODELINDEX_internalPointer);
    QC_QModelIndex->addMethod("isValid",                     (q_method_t)QMODELINDEX_isValid);
-   //QC_QModelIndex->addMethod("model",                       (q_method_t)QMODELINDEX_model);
-   //QC_QModelIndex->addMethod("parent",                      (q_method_t)QMODELINDEX_parent);
+   QC_QModelIndex->addMethod("model",                       (q_method_t)QMODELINDEX_model);
+   QC_QModelIndex->addMethod("parent",                      (q_method_t)QMODELINDEX_parent);
    QC_QModelIndex->addMethod("row",                         (q_method_t)QMODELINDEX_row);
-   //QC_QModelIndex->addMethod("sibling",                     (q_method_t)QMODELINDEX_sibling);
+   QC_QModelIndex->addMethod("sibling",                     (q_method_t)QMODELINDEX_sibling);
 
    return QC_QModelIndex;
 }

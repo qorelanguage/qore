@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include "QC_QTableView.h"
+#include "QC_QHeaderView.h"
 
 int CID_QTABLEVIEW;
 class QoreClass *QC_QTableView = 0;
@@ -84,11 +85,16 @@ static QoreNode *QTABLEVIEW_gridStyle(Object *self, QoreAbstractQTableView *qtv,
    return new QoreNode((int64)qtv->getQTableView()->gridStyle());
 }
 
-////QHeaderView * horizontalHeader () const
-//static QoreNode *QTABLEVIEW_horizontalHeader(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qtv->getQTableView()->horizontalHeader());
-//}
+//QHeaderView * horizontalHeader () const
+static QoreNode *QTABLEVIEW_horizontalHeader(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qhv = new Object(QC_QHeaderView, getProgram());
+   QHeaderView *hv = qtv->getQTableView()->horizontalHeader();
+   QoreQtQHeaderView *q_qhv = new QoreQtQHeaderView(o_qhv, hv);
+   o_qhv->setPrivate(CID_QHEADERVIEW, q_qhv);
+   //printd(5, "QTABLEVIEW_horizontalHeader() obj=%08p, QoreQtQHeaderView=%08p, QHeaderView=%08p\n", o_qhv, q_qhv, hv);
+   return new QoreNode(o_qhv);
+}
 
 //virtual QModelIndex indexAt ( const QPoint & pos ) const
 static QoreNode *QTABLEVIEW_indexAt(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
@@ -209,14 +215,20 @@ static QoreNode *QTABLEVIEW_setGridStyle(Object *self, QoreAbstractQTableView *q
    return 0;
 }
 
-////void setHorizontalHeader ( QHeaderView * header )
-//static QoreNode *QTABLEVIEW_setHorizontalHeader(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QHeaderView* header = p;
-//   qtv->getQTableView()->setHorizontalHeader(header);
-//   return 0;
-//}
+//void setHorizontalHeader ( QHeaderView * header )
+static QoreNode *QTABLEVIEW_setHorizontalHeader(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreAbstractQHeaderView *header = (p && p->type == NT_OBJECT) ? (QoreAbstractQHeaderView *)p->val.object->getReferencedPrivateData(CID_QHEADERVIEW, xsink) : 0;
+   if (!header) {
+      if (!xsink->isException())
+         xsink->raiseException("QTABLEVIEW-SETHORIZONTALHEADER-PARAM-ERROR", "expecting a QHeaderView object as first argument to QTableView::setHorizontalHeader()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> headerHolder(static_cast<AbstractPrivateData *>(header), xsink);
+   qtv->getQTableView()->setHorizontalHeader(header->getQHeaderView());
+   return 0;
+}
 
 //void setRowHeight ( int row, int height )
 static QoreNode *QTABLEVIEW_setRowHeight(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
@@ -264,14 +276,20 @@ static QoreNode *QTABLEVIEW_setSpan(Object *self, QoreAbstractQTableView *qtv, Q
    return 0;
 }
 
-////void setVerticalHeader ( QHeaderView * header )
-//static QoreNode *QTABLEVIEW_setVerticalHeader(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QHeaderView* header = p;
-//   qtv->getQTableView()->setVerticalHeader(header);
-//   return 0;
-//}
+//void setVerticalHeader ( QHeaderView * header )
+static QoreNode *QTABLEVIEW_setVerticalHeader(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreAbstractQHeaderView *header = (p && p->type == NT_OBJECT) ? (QoreAbstractQHeaderView *)p->val.object->getReferencedPrivateData(CID_QHEADERVIEW, xsink) : 0;
+   if (!header) {
+      if (!xsink->isException())
+         xsink->raiseException("QTABLEVIEW-SETVERTICALHEADER-PARAM-ERROR", "expecting a QHeaderView object as first argument to QTableView::setVerticalHeader()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> headerHolder(static_cast<AbstractPrivateData *>(header), xsink);
+   qtv->getQTableView()->setVerticalHeader(header->getQHeaderView());
+   return 0;
+}
 
 //void setWordWrap ( bool on )
 static QoreNode *QTABLEVIEW_setWordWrap(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
@@ -299,11 +317,14 @@ static QoreNode *QTABLEVIEW_sortByColumn(Object *self, QoreAbstractQTableView *q
    return 0;
 }
 
-////QHeaderView * verticalHeader () const
-//static QoreNode *QTABLEVIEW_verticalHeader(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qtv->getQTableView()->verticalHeader());
-//}
+//QHeaderView * verticalHeader () const
+static QoreNode *QTABLEVIEW_verticalHeader(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qhv = new Object(QC_QHeaderView, getProgram());
+   QoreQtQHeaderView *q_qhv = new QoreQtQHeaderView(o_qhv, qtv->getQTableView()->verticalHeader());
+   o_qhv->setPrivate(CID_QHEADERVIEW, q_qhv);
+   return new QoreNode(o_qhv);
+}
 
 //bool wordWrap () const
 static QoreNode *QTABLEVIEW_wordWrap(Object *self, QoreAbstractQTableView *qtv, QoreNode *params, ExceptionSink *xsink)
@@ -421,7 +442,7 @@ QoreClass *initQTableViewClass(QoreClass *qabstractitemview)
    QC_QTableView->addMethod("columnViewportPosition",      (q_method_t)QTABLEVIEW_columnViewportPosition);
    QC_QTableView->addMethod("columnWidth",                 (q_method_t)QTABLEVIEW_columnWidth);
    QC_QTableView->addMethod("gridStyle",                   (q_method_t)QTABLEVIEW_gridStyle);
-   //QC_QTableView->addMethod("horizontalHeader",            (q_method_t)QTABLEVIEW_horizontalHeader);
+   QC_QTableView->addMethod("horizontalHeader",            (q_method_t)QTABLEVIEW_horizontalHeader);
    QC_QTableView->addMethod("indexAt",                     (q_method_t)QTABLEVIEW_indexAt);
    QC_QTableView->addMethod("isColumnHidden",              (q_method_t)QTABLEVIEW_isColumnHidden);
    QC_QTableView->addMethod("isCornerButtonEnabled",       (q_method_t)QTABLEVIEW_isCornerButtonEnabled);
@@ -435,16 +456,16 @@ QoreClass *initQTableViewClass(QoreClass *qabstractitemview)
    QC_QTableView->addMethod("setColumnWidth",              (q_method_t)QTABLEVIEW_setColumnWidth);
    QC_QTableView->addMethod("setCornerButtonEnabled",      (q_method_t)QTABLEVIEW_setCornerButtonEnabled);
    QC_QTableView->addMethod("setGridStyle",                (q_method_t)QTABLEVIEW_setGridStyle);
-   //QC_QTableView->addMethod("setHorizontalHeader",         (q_method_t)QTABLEVIEW_setHorizontalHeader);
+   QC_QTableView->addMethod("setHorizontalHeader",         (q_method_t)QTABLEVIEW_setHorizontalHeader);
    QC_QTableView->addMethod("setRowHeight",                (q_method_t)QTABLEVIEW_setRowHeight);
    QC_QTableView->addMethod("setRowHidden",                (q_method_t)QTABLEVIEW_setRowHidden);
    QC_QTableView->addMethod("setSortingEnabled",           (q_method_t)QTABLEVIEW_setSortingEnabled);
    QC_QTableView->addMethod("setSpan",                     (q_method_t)QTABLEVIEW_setSpan);
-   //QC_QTableView->addMethod("setVerticalHeader",           (q_method_t)QTABLEVIEW_setVerticalHeader);
+   QC_QTableView->addMethod("setVerticalHeader",           (q_method_t)QTABLEVIEW_setVerticalHeader);
    QC_QTableView->addMethod("setWordWrap",                 (q_method_t)QTABLEVIEW_setWordWrap);
    QC_QTableView->addMethod("showGrid",                    (q_method_t)QTABLEVIEW_showGrid);
    QC_QTableView->addMethod("sortByColumn",                (q_method_t)QTABLEVIEW_sortByColumn);
-   //QC_QTableView->addMethod("verticalHeader",              (q_method_t)QTABLEVIEW_verticalHeader);
+   QC_QTableView->addMethod("verticalHeader",              (q_method_t)QTABLEVIEW_verticalHeader);
    QC_QTableView->addMethod("wordWrap",                    (q_method_t)QTABLEVIEW_wordWrap);
    QC_QTableView->addMethod("hideColumn",                  (q_method_t)QTABLEVIEW_hideColumn);
    QC_QTableView->addMethod("hideRow",                     (q_method_t)QTABLEVIEW_hideRow);

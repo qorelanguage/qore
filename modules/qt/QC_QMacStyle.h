@@ -67,4 +67,25 @@ class QoreQMacStyle : public QoreAbstractQWindowsStyle
       QORE_VIRTUAL_QSTYLE_METHODS
 };
 
+class QoreQtQMacStyle : public QoreAbstractQWindowsStyle
+{
+   public:
+      Object *qore_obj;
+      QPointer<QMacStyle> qobj;
+
+      DLLLOCAL QoreQtQMacStyle(Object *obj, QMacStyle *qms) : qore_obj(obj), qobj(qms)
+      {
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QWindowsStyle *getQWindowsStyle() const
+      {
+         return static_cast<QWindowsStyle *>(&(*qobj));
+      }
+
+#include "qore-qt-static-qstyle-methods.h"
+};
+
 #endif // _QORE_QT_QC_QMACSTYLE_H

@@ -25,7 +25,7 @@
 #define _QORE_QT_QC_QMENU_H
 
 #include <QMenu>
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQMenu.h"
 #include "qore-qt-events.h"
 
 DLLLOCAL extern int CID_QMENU;
@@ -35,6 +35,8 @@ DLLLOCAL class QoreClass *initQMenuClass(QoreClass *);
 
 class myQMenu : public QMenu, public QoreQWidgetExtension
 {
+      friend class QoreQMenu;
+
 #define QOREQTYPE QMenu
 #include "qore-qt-metacode.h"
 #include "qore-qt-widget-events.h"
@@ -53,7 +55,7 @@ class myQMenu : public QMenu, public QoreQWidgetExtension
       }
 };
 
-class QoreQMenu : public QoreAbstractQWidget
+class QoreQMenu : public QoreAbstractQMenu
 {
    public:
       QPointer<myQMenu> qobj;
@@ -62,6 +64,42 @@ class QoreQMenu : public QoreAbstractQWidget
       {
       }
       DLLLOCAL QoreQMenu(Object *obj, const QString& title, QWidget* parent = 0) : qobj(new myQMenu(obj, title, parent))
+      {
+      }
+      DLLLOCAL int columnCount () const
+      {
+	 return qobj->columnCount();
+      }
+      DLLLOCAL void initStyleOption ( QStyleOptionMenuItem * option, const QAction * action ) const
+      {
+	 qobj->initStyleOption(option, action);
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QWidget *getQWidget() const
+      {
+         return static_cast<QWidget *>(&(*qobj));
+      }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+         return static_cast<QPaintDevice *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QMenu *getQMenu() const
+      {
+         return static_cast<QMenu *>(&(*qobj));
+      }
+      QORE_VIRTUAL_QWIDGET_METHODS
+};
+
+class QoreQtQMenu : public QoreAbstractQMenu
+{
+   public:
+      Object *qore_obj;
+      QPointer<QMenu> qobj;
+
+      DLLLOCAL QoreQtQMenu(Object *obj, QMenu *qm) : qore_obj(obj), qobj(qm)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -76,7 +114,19 @@ class QoreQMenu : public QoreAbstractQWidget
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
-      QORE_VIRTUAL_QWIDGET_METHODS
+      DLLLOCAL virtual class QMenu *getQMenu() const
+      {
+         return static_cast<QMenu *>(&(*qobj));
+      }
+      // the following two functions will never be called
+      DLLLOCAL int columnCount () const
+      {
+	 return 0;
+      }
+      DLLLOCAL void initStyleOption ( QStyleOptionMenuItem * option, const QAction * action ) const
+      {
+      }
+#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif // _QORE_QT_QC_QMENU_H

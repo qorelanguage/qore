@@ -25,7 +25,7 @@
 #define _QORE_QT_QC_QRADIOBUTTON_H
 
 #include <QRadioButton>
-#include "QoreAbstractQAbstractButton.h"
+#include "QoreAbstractQRadioButton.h"
 #include "qore-qt-events.h"
 
 DLLLOCAL extern int CID_QRADIOBUTTON;
@@ -51,7 +51,7 @@ class myQRadioButton : public QRadioButton, public QoreQWidgetExtension
       }
 };
 
-class QoreQRadioButton : public QoreAbstractQAbstractButton
+class QoreQRadioButton : public QoreAbstractQRadioButton
 {
    public:
       QPointer<myQRadioButton> qobj;
@@ -74,11 +74,49 @@ class QoreQRadioButton : public QoreAbstractQAbstractButton
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
-      DLLLOCAL virtual QAbstractButton *getQAbstractButton() const
+      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
       {
          return static_cast<QAbstractButton *>(&(*qobj));
       }
+      DLLLOCAL virtual class QRadioButton *getQRadioButton() const
+      {
+         return static_cast<QRadioButton *>(&(*qobj));
+      }
       QORE_VIRTUAL_QWIDGET_METHODS
+};
+
+class QoreQtQRadioButton : public QoreAbstractQAbstractButton
+{
+   public:
+      Object *qore_obj;
+      QPointer<QRadioButton> qobj;
+
+      DLLLOCAL QoreQtQRadioButton(Object *obj, QRadioButton *qb) : qore_obj(obj), qobj(qb)
+      {
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QWidget *getQWidget() const
+      {
+         return static_cast<QWidget *>(&(*qobj));
+      }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+         return static_cast<QPaintDevice *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
+      {
+         return static_cast<QAbstractButton *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QRadioButton *getQRadioButton() const
+      {
+         return static_cast<QRadioButton *>(&(*qobj));
+      }
+
+#include "qore-qt-static-qwidget-methods.h"
+
 };
 
 #endif // _QORE_QT_QC_QRADIOBUTTON_H

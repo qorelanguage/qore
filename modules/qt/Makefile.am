@@ -95,8 +95,16 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QAbstractItemView.cc \
 	QC_QTableView.cc \
 	QC_QTableWidget.cc \
-	QC_QTableWidgetItem.cc
-
+	QC_QTableWidgetItem.cc \
+	QC_QStyleOptionMenuItem.cc \
+	QC_QMessageBox.cc \
+	QC_QStyleOptionButton.cc
+	 \
+	QC_QFileDialog.cc \
+	QC_QDir.cc \
+	QC_QHeaderView.cc \
+	QC_QMetaObject.cc \
+	QC_QMenuBar.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

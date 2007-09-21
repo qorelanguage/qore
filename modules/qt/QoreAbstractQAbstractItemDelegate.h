@@ -26,12 +26,59 @@
 
 #include "QoreAbstractQObject.h"
 
+#include "QoreQtEventDispatcher.h"
+
+#include "QC_QPainter.h"
+
 extern int CID_QWIDGET;
 
 class QoreAbstractQAbstractItemDelegate : public QoreAbstractQObject
 {
    public:
       DLLLOCAL virtual QAbstractItemDelegate *getQAbstractItemDelegate() const = 0;
+
+      // other virtual methods
+      virtual QWidget * createEditor ( QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index ) const = 0;
+      virtual bool editorEvent ( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem & option, const QModelIndex & index ) = 0;
+      virtual void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const = 0;
+      virtual void setEditorData ( QWidget * editor, const QModelIndex & index ) const = 0;
+      virtual void setModelData ( QWidget * editor, QAbstractItemModel * model, const QModelIndex & index ) const = 0;
+      virtual QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const = 0;
+      virtual void updateEditorGeometry ( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const = 0;
 };
+
+class QoreQAbstractItemDelegateExtension : public QoreQtEventDispatcher
+{
+   protected:
+      Method *m_createEditor, *m_editorEvent, *m_paint, *m_setEditorData, 
+	 *m_setModelData, *m_sizeHint, *m_updateEditorGeometry;
+
+      DLLLOCAL QoreQAbstractItemDelegateExtension(QoreClass *qc)
+      {
+         m_createEditor           = findMethod(qc, "createEditor");
+         m_editorEvent            = findMethod(qc, "editorEvent");
+         m_paint                  = findMethod(qc, "paint");
+         m_setEditorData          = findMethod(qc, "setEditorData");
+         m_setModelData           = findMethod(qc, "setModelData");
+         m_sizeHint               = findMethod(qc, "sizeHint");
+         m_updateEditorGeometry   = findMethod(qc, "updateEditorGeometry");
+      }
+};
+
+#define QORE_VIRTUAL_QABSTRACTITEMDELEGATE_METHODS QORE_VIRTUAL_QOBJECT_METHODS \
+   DLLLOCAL virtual QWidget * createEditor ( QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index ) const {\
+      return qobj->parent_createEditor(parent, option, index); }\
+   DLLLOCAL virtual bool editorEvent ( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem & option, const QModelIndex & index ) {\
+      return qobj->parent_editorEvent(event, model, option, index); }\
+   DLLLOCAL virtual void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const {\
+      qobj->parent_paint(painter, option, index); }\
+   DLLLOCAL virtual void setEditorData ( QWidget * editor, const QModelIndex & index ) const {\
+      qobj->parent_setEditorData(editor, index); }\
+   DLLLOCAL virtual void setModelData ( QWidget * editor, QAbstractItemModel * model, const QModelIndex & index ) const { \
+      qobj->parent_setModelData(editor, model, index); }\
+   DLLLOCAL virtual QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const { \
+      return qobj->parent_sizeHint(option, index); }\
+   DLLLOCAL virtual void updateEditorGeometry ( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const {\
+      qobj->parent_updateEditorGeometry(editor, option, index); }
 
 #endif

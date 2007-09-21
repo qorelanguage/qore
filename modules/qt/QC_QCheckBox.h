@@ -25,7 +25,7 @@
 #define _QORE_QT_QC_QCHECKBOX_H
 
 #include <QCheckBox>
-#include "QoreAbstractQAbstractButton.h"
+#include "QoreAbstractQCheckBox.h"
 #include "qore-qt-events.h"
 
 DLLLOCAL extern int CID_QCHECKBOX;
@@ -51,7 +51,7 @@ class myQCheckBox : public QCheckBox, public QoreQWidgetExtension
       }
 };
 
-class QoreQCheckBox : public QoreAbstractQAbstractButton
+class QoreQCheckBox : public QoreAbstractQCheckBox
 {
    public:
       QPointer<myQCheckBox> qobj;
@@ -78,7 +78,44 @@ class QoreQCheckBox : public QoreAbstractQAbstractButton
       {
          return static_cast<QAbstractButton *>(&(*qobj));
       }
+      DLLLOCAL virtual class QCheckBox *getQCheckBox() const
+      {
+         return static_cast<QCheckBox *>(&(*qobj));
+      }
       QORE_VIRTUAL_QWIDGET_METHODS
+};
+
+class QoreQtQCheckBox : public QoreAbstractQAbstractButton
+{
+   public:
+      Object *qore_obj;
+      QPointer<QCheckBox> qobj;
+
+      DLLLOCAL QoreQtQCheckBox(Object *obj, QCheckBox *cb) : qore_obj(obj), qobj(cb)
+      {
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QWidget *getQWidget() const
+      {
+         return static_cast<QWidget *>(&(*qobj));
+      }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+         return static_cast<QPaintDevice *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
+      {
+         return static_cast<QAbstractButton *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QCheckBox *getQCheckBox() const
+      {
+         return static_cast<QCheckBox *>(&(*qobj));
+      }
+
+#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif // _QORE_QT_QC_QCHECKBOX_H

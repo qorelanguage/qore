@@ -46,7 +46,9 @@ DLLLOCAL int get_qvariant(const QoreNode *n, QVariant &qv, class ExceptionSink *
 DLLLOCAL int get_qbytearray(const QoreNode *n, QByteArray &qba, class ExceptionSink *xsink, bool suppress_exception = false);
 DLLLOCAL int get_qchar(const QoreNode *n, QChar &c, class ExceptionSink *xsink, bool suppress_exception = false);
 DLLLOCAL int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception = false);
+DLLLOCAL int get_qkeysequence(const QoreNode *n, QKeySequence &qks, class ExceptionSink *xsink, bool suppress_exception = false);
 
 DLLLOCAL class QoreNode *return_qvariant(QVariant &qv);
+DLLLOCAL class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink);
 
 #endif

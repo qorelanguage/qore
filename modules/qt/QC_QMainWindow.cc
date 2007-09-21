@@ -186,11 +186,24 @@ static QoreNode *QMAINWINDOW_isDockNestingEnabled(Object *self, QoreQMainWindow 
    return new QoreNode(qmw->qobj->isDockNestingEnabled());
 }
 
-////QMenuBar * menuBar () const
-//static QoreNode *QMAINWINDOW_menuBar(Object *self, QoreQMainWindow *qmw, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qmw->qobj->menuBar());
-//}
+//QMenuBar * menuBar () const
+static QoreNode *QMAINWINDOW_menuBar(Object *self, QoreQMainWindow *qmw, QoreNode *params, ExceptionSink *xsink)
+{
+   QMenuBar *qt_qobj = qmw->qobj->menuBar();
+   if (!qt_qobj)
+      return 0;
+
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QMenuBar, getProgram());
+      QoreQtQMenuBar *qmb = new QoreQtQMenuBar(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QMENUBAR, qmb);
+   }
+   return new QoreNode(rv_obj);
+}
 
 //QWidget * menuWidget () const
 static QoreNode *QMAINWINDOW_menuWidget(Object *self, QoreQMainWindow *qmw, QoreNode *params, ExceptionSink *xsink)
@@ -305,14 +318,20 @@ static QoreNode *QMAINWINDOW_setIconSize(Object *self, QoreQMainWindow *qmw, Qor
    return 0;
 }
 
-////void setMenuBar ( QMenuBar * menuBar )
-//static QoreNode *QMAINWINDOW_setMenuBar(Object *self, QoreQMainWindow *qmw, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QMenuBar* menuBar = p;
-//   qmw->qobj->setMenuBar(menuBar);
-//   return 0;
-//}
+//void setMenuBar ( QMenuBar * menuBar )
+static QoreNode *QMAINWINDOW_setMenuBar(Object *self, QoreQMainWindow *qmw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQMenuBar *menuBar = (p && p->type == NT_OBJECT) ? (QoreQMenuBar *)p->val.object->getReferencedPrivateData(CID_QMENUBAR, xsink) : 0;
+   if (!menuBar) {
+      if (!xsink->isException())
+         xsink->raiseException("QMAINWINDOW-SETMENUBAR-PARAM-ERROR", "expecting a QMenuBar object as first argument to QMainWindow::setMenuBar()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> menuBarHolder(static_cast<AbstractPrivateData *>(menuBar), xsink);
+   qmw->qobj->setMenuBar(static_cast<QMenuBar *>(menuBar->getQMenuBar()));
+   return 0;
+}
 
 //void setMenuWidget ( QWidget * menuBar )
 static QoreNode *QMAINWINDOW_setMenuWidget(Object *self, QoreQMainWindow *qmw, QoreNode *params, ExceptionSink *xsink)
@@ -455,7 +474,7 @@ QoreClass *initQMainWindowClass(QoreClass *qwidget)
    //QC_QMainWindow->addMethod("insertToolBarBreak",          (q_method_t)QMAINWINDOW_insertToolBarBreak);
    QC_QMainWindow->addMethod("isAnimated",                  (q_method_t)QMAINWINDOW_isAnimated);
    QC_QMainWindow->addMethod("isDockNestingEnabled",        (q_method_t)QMAINWINDOW_isDockNestingEnabled);
-   //QC_QMainWindow->addMethod("menuBar",                     (q_method_t)QMAINWINDOW_menuBar);
+   QC_QMainWindow->addMethod("menuBar",                     (q_method_t)QMAINWINDOW_menuBar);
    QC_QMainWindow->addMethod("menuWidget",                  (q_method_t)QMAINWINDOW_menuWidget);
    //QC_QMainWindow->addMethod("removeDockWidget",            (q_method_t)QMAINWINDOW_removeDockWidget);
    //QC_QMainWindow->addMethod("removeToolBar",               (q_method_t)QMAINWINDOW_removeToolBar);
@@ -466,7 +485,7 @@ QoreClass *initQMainWindowClass(QoreClass *qwidget)
    QC_QMainWindow->addMethod("setCorner",                   (q_method_t)QMAINWINDOW_setCorner);
    QC_QMainWindow->addMethod("setDockOptions",              (q_method_t)QMAINWINDOW_setDockOptions);
    QC_QMainWindow->addMethod("setIconSize",                 (q_method_t)QMAINWINDOW_setIconSize);
-   //QC_QMainWindow->addMethod("setMenuBar",                  (q_method_t)QMAINWINDOW_setMenuBar);
+   QC_QMainWindow->addMethod("setMenuBar",                  (q_method_t)QMAINWINDOW_setMenuBar);
    QC_QMainWindow->addMethod("setMenuWidget",               (q_method_t)QMAINWINDOW_setMenuWidget);
    //QC_QMainWindow->addMethod("setStatusBar",                (q_method_t)QMAINWINDOW_setStatusBar);
    QC_QMainWindow->addMethod("setToolButtonStyle",          (q_method_t)QMAINWINDOW_setToolButtonStyle);

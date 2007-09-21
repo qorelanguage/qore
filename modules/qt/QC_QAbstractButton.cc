@@ -184,14 +184,12 @@ static QoreNode *QABSTRACTBUTTON_setIcon(Object *self, QoreAbstractQAbstractButt
 static QoreNode *QABSTRACTBUTTON_setShortcut(Object *self, QoreAbstractQAbstractButton *qab, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQKeySequence *key = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)p->val.object->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
-   if (!key) {
-      if (!xsink->isException())
-         xsink->raiseException("QABSTRACTBUTTON-SETSHORTCUT-PARAM-ERROR", "expecting a QKeySequence object as first argument to QAbstractButton::setShortcut()");
+   
+   QKeySequence key;
+   if (get_qkeysequence(p, key, xsink))
       return 0;
-   }
-   ReferenceHolder<QoreQKeySequence> keyHolder(key, xsink);
-   qab->getQAbstractButton()->setShortcut(*(static_cast<QKeySequence *>(key)));
+
+   qab->getQAbstractButton()->setShortcut(key);
    return 0;
 }
 

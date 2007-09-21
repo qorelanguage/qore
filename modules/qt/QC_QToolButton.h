@@ -25,7 +25,7 @@
 #define _QORE_QT_QC_QTOOLBUTTON_H
 
 #include <QToolButton>
-#include "QoreAbstractQAbstractButton.h"
+#include "QoreAbstractQToolButton.h"
 #include "qore-qt-events.h"
 
 DLLLOCAL extern int CID_QTOOLBUTTON;
@@ -44,11 +44,10 @@ class myQToolButton : public QToolButton, public QoreQWidgetExtension
       DLLLOCAL myQToolButton(Object *obj, QWidget* parent = 0) : QToolButton(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
-         //init_widget_events();
       }
 };
 
-class QoreQToolButton : public QoreAbstractQAbstractButton
+class QoreQToolButton : public QoreAbstractQToolButton
 {
    public:
       QPointer<myQToolButton> qobj;
@@ -68,11 +67,48 @@ class QoreQToolButton : public QoreAbstractQAbstractButton
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
+      DLLLOCAL virtual class QToolButton *getQToolButton() const
+      {
+         return static_cast<QToolButton *>(&(*qobj));
+      }
       DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
       {
          return static_cast<QAbstractButton *>(&(*qobj));
       }
       QORE_VIRTUAL_QWIDGET_METHODS
+};
+
+class QoreQtQToolButton : public QoreAbstractQToolButton
+{
+   public:
+      Object *qore_obj;
+      QPointer<QToolButton> qobj;
+
+      DLLLOCAL QoreQtQToolButton(Object *obj, QToolButton *qtoolbutton) : qore_obj(obj), qobj(qtoolbutton)
+      {
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QWidget *getQWidget() const
+      {
+         return static_cast<QWidget *>(&(*qobj));
+      }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+         return static_cast<QPaintDevice *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QToolButton *getQToolButton() const
+      {
+         return static_cast<QToolButton *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QAbstractButton *getQAbstractButton() const
+      {
+         return static_cast<QAbstractButton *>(&(*qobj));
+      }
+
+#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif // _QORE_QT_QC_QTOOLBUTTON_H

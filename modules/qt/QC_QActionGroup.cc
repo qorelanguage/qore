@@ -49,6 +49,24 @@ static void QACTIONGROUP_copy(class Object *self, class Object *old, class QoreQ
    xsink->raiseException("QACTIONGROUP-COPY-ERROR", "objects of this class cannot be copied");
 }
 
+//QList<QAction *> actions () const
+static QoreNode *QACTIONGROUP_actions(Object *self, QoreQActionGroup *qag, QoreNode *params, ExceptionSink *xsink)
+{
+   QList<QAction *> al = qag->qobj->actions();
+
+   List *l = new List();
+   for (QList<QAction *>::iterator i = al.begin(), e = al.end(); i != e; ++i)
+   {
+      Object *o_qa = new Object(QC_QAction, getProgram());
+      QoreQtQAction *q_qa = new QoreQtQAction(o_qa, *i);
+      o_qa->setPrivate(CID_QACTION, q_qa);
+      
+      l->push(new QoreNode(o_qa));
+   }
+
+   return new QoreNode(l);
+}
+
 //QAction * addAction ( QAction * action )
 //QAction * addAction ( const QString & text )
 //QAction * addAction ( const QIcon & icon, const QString & text )
@@ -71,13 +89,13 @@ static QoreNode *QACTIONGROUP_addAction(Object *self, QoreQActionGroup *qag, Qor
 	    return 0;
 
          Object *o_qa = new Object(QC_QAction, getProgram());
-         QoreQAction *q_qa = new QoreQAction(o_qa, qag->qobj->addAction(*(static_cast<QIcon *>(icon)), text));
+         QoreQtQAction *q_qa = new QoreQtQAction(o_qa, qag->qobj->addAction(*(static_cast<QIcon *>(icon)), text));
          o_qa->setPrivate(CID_QACTION, q_qa);
          return new QoreNode(o_qa);
       }
       ReferenceHolder<QoreQAction> actionHolder(action, xsink);
       Object *o_qa = new Object(QC_QAction, getProgram());
-      QoreQAction *q_qa = new QoreQAction(o_qa, qag->qobj->addAction(static_cast<QAction *>(action->qobj)));
+      QoreQtQAction *q_qa = new QoreQtQAction(o_qa, qag->qobj->addAction(static_cast<QAction *>(action->qobj)));
       o_qa->setPrivate(CID_QACTION, q_qa);
       return new QoreNode(o_qa);
    }
@@ -86,7 +104,7 @@ static QoreNode *QACTIONGROUP_addAction(Object *self, QoreQActionGroup *qag, Qor
       return 0;
 
    Object *o_qa = new Object(QC_QAction, getProgram());
-   QoreQAction *q_qa = new QoreQAction(o_qa, qag->qobj->addAction(text));
+   QoreQtQAction *q_qa = new QoreQtQAction(o_qa, qag->qobj->addAction(text));
    o_qa->setPrivate(CID_QACTION, q_qa);
    return new QoreNode(o_qa);
 }
@@ -99,7 +117,7 @@ static QoreNode *QACTIONGROUP_checkedAction(Object *self, QoreQActionGroup *qag,
       return 0;
 
    Object *o_qa = new Object(QC_QAction, getProgram());
-   QoreQAction *q_qa = new QoreQAction(o_qa, qa);
+   QoreQtQAction *q_qa = new QoreQtQAction(o_qa, qa);
    o_qa->setPrivate(CID_QACTION, q_qa);
    return new QoreNode(o_qa);
 }
@@ -186,6 +204,7 @@ class QoreClass *initQActionGroupClass(class QoreClass *qobject)
    QC_QActionGroup->setConstructor(QACTIONGROUP_constructor);
    QC_QActionGroup->setCopy((q_copy_t)QACTIONGROUP_copy);
 
+   QC_QActionGroup->addMethod("actions",                     (q_method_t)QACTIONGROUP_actions);
    QC_QActionGroup->addMethod("addAction",                   (q_method_t)QACTIONGROUP_addAction);
    QC_QActionGroup->addMethod("checkedAction",               (q_method_t)QACTIONGROUP_checkedAction);
    QC_QActionGroup->addMethod("isEnabled",                   (q_method_t)QACTIONGROUP_isEnabled);

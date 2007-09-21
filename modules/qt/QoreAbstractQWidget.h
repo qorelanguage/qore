@@ -27,11 +27,14 @@
 #include "QoreAbstractQObject.h"
 #include "QoreAbstractQPaintDevice.h"
 
+#include "QoreQtEventDispatcher.h"
+
 #include "QC_QSize.h"
 
 #include <QActionEvent>
 
-class QoreQWidgetExtension {
+class QoreQWidgetExtension : public QoreQtEventDispatcher
+{
    protected:
       // event methods
       Method *e_changeEvent, *e_enterEvent, *e_event, *e_leaveEvent,
@@ -59,48 +62,6 @@ class QoreQWidgetExtension {
 	 *p_sizeHint,
 
 	 ;
-
-      DLLLOCAL static void dispatch_event(Object *qore_obj, Method *m, QoreClass *qclass, class AbstractPrivateData *data)
-      {
-	 class ExceptionSink xsink;
-
-	 discard(dispatch_event_intern(qore_obj, m, qclass, data, &xsink), &xsink);
-      }
-
-      DLLLOCAL static bool dispatch_event_bool(Object *qore_obj, Method *m, QoreClass *qclass, class AbstractPrivateData *data)
-      {
-	 class ExceptionSink xsink;
-
-	 QoreNode *rv = dispatch_event_intern(qore_obj, m, qclass, data, &xsink);
-	 return rv ? rv->getAsBool() : false;
-      }
-
-   private:
-      DLLLOCAL Method *findMethod(QoreClass *qc, const char *n)
-      {
-	 Method *m = qc->findMethod(n);
-	 //printd(5, "findMethod() %s::%s: %s\n", qc->getName(), n, (m && m->getType() == CT_USER) ? "ok" : "x");
-	 return (m && m->getType() == CT_USER) ? m : 0;
-      }
-
-      DLLLOCAL static QoreNode *dispatch_event_intern(Object *qore_obj, Method *m, QoreClass *qclass, class AbstractPrivateData *data, class ExceptionSink *xsink)
-      {
-	 // create argument list
-	 Object *peo = new Object(qclass, getProgram());
-	 peo->setPrivate(qclass->getID(), data);
-	 QoreNode *a = new QoreNode(peo);
-	 List *args = new List();
-	 args->push(a);
-	 QoreNode *na = new QoreNode(args);
-	 
-	 // call event method
-	 QoreNode *rv = m->eval(qore_obj, na, xsink);
-	 
-	 // delete arguments
-	 na->deref(xsink);
-
-	 return rv;
-      }
 
    public:
       DLLLOCAL QoreQWidgetExtension(QoreClass *qc)
@@ -180,7 +141,7 @@ class QoreAbstractQWidget : public QoreAbstractQObject, public QoreAbstractQPain
 };
 
 #define QORE_VIRTUAL_QWIDGET_METHODS QORE_VIRTUAL_QOBJECT_METHODS \
-   DLLLOCAL virtual void actionEvent(QActionEvent * event) {\
+   DLLLOCAL virtual void actionEvent(QActionEvent * event) { \
       qobj->parent_actionEvent(event);		    \
    }\
    DLLLOCAL virtual void changeEvent(QEvent * event) {	\

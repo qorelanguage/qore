@@ -262,9 +262,15 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQGroupBox.h \
 	modules/qt/QoreAbstractQAbstractScrollArea.h \
 	modules/qt/QoreAbstractQComboBox.h \
+	modules/qt/QoreAbstractQMenu.h \
 	modules/qt/qore-qt-events.h \
 	modules/qt/qore-qt-widget-events.h \
 	modules/qt/qore-qt-metacode.h \
+	modules/qt/qore-qt-qabstractitemdelegate-methods.h \
+	modules/qt/qore-qt-static-qobject-methods.h \
+	modules/qt/qore-qt-static-qwidget-methods.h \
+	modules/qt/qore-qt-static-qstyle-methods.h \
+	modules/qt/qore-qt-static-qabstractitemmodel-methods.h \
 	modules/qt/QC_QBrush.h \
 	modules/qt/QC_QColor.h \
 	modules/qt/QC_QPaintDevice.h \
@@ -283,6 +289,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QMoveEvent.h \
 	modules/qt/QC_QResizeEvent.h \
 	modules/qt/QoreQtDynamicMethod.h \
+	modules/qt/QoreQtEventDispatcher.h \
 	modules/qt/QC_QTimer.h \
 	modules/qt/QC_QLabel.h \
 	modules/qt/QC_QPicture.h \
@@ -387,6 +394,16 @@ noinst_HEADERS = \
 	modules/qt/QC_QTableWidget.h \
 	modules/qt/QoreAbstractQTableWidget.h \
 	modules/qt/QC_QTableWidgetItem.h \
+	modules/qt/QC_QStyleOptionMenuItem.h \
+	modules/qt/QC_QMessageBox.h \
+	modules/qt/QC_QStyleOptionButton.h \
+	modules/qt/QC_QFileDialog.h \
+	modules/qt/QC_QDir.h \
+	modules/qt/QC_QHeaderView.h \
+	modules/qt/QoreAbstractQHeaderView.h \
+	modules/qt/QC_QMetaObject.h \
+	modules/qt/QC_QMenuBar.h \
+	modules/qt/QoreAbstractQMenuBar.h \
 	command-line.h \
 	include/qore/Qore.h
 

@@ -121,7 +121,7 @@ static QoreNode *QITEMDELEGATE_paint(Object *self, QoreAbstractQItemDelegate *qi
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> indexHolder(index, xsink);
-   qid->getQItemDelegate()->paint(static_cast<QPainter *>(painter), *(static_cast<QStyleOptionViewItem *>(option)), *(static_cast<QModelIndex *>(index)));
+   qid->getQItemDelegate()->paint(painter->qpainter, *(static_cast<QStyleOptionViewItem *>(option)), *(static_cast<QModelIndex *>(index)));
    return 0;
 }
 

@@ -40,7 +40,7 @@ static void QCLEANLOOKSSTYLE_copy(class Object *self, class Object *old, class Q
 }
 
 //virtual void drawItemText ( QPainter * painter, const QRect & rectangle, int alignment, const QPalette & palette, bool enabled, const QString & text, QPalette::ColorRole textRole = QPalette::NoRole ) const
-static QoreNode *QCLEANLOOKSSTYLE_drawItemText(Object *self, QoreQCleanlooksStyle *qcs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLEANLOOKSSTYLE_drawItemText(Object *self, QoreAbstractQCleanlooksStyle *qcs, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)p->val.object->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
@@ -76,7 +76,7 @@ static QoreNode *QCLEANLOOKSSTYLE_drawItemText(Object *self, QoreQCleanlooksStyl
       return 0;
    p = get_param(params, 6);
    QPalette::ColorRole textRole = !is_nothing(p) ? (QPalette::ColorRole)p->getAsInt() : QPalette::NoRole;
-   qcs->qobj->drawItemText(static_cast<QPainter *>(painter), *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPalette *>(palette)), enabled, text, textRole);
+   qcs->getQCleanlooksStyle()->drawItemText(painter->qpainter, *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPalette *>(palette)), enabled, text, textRole);
    return 0;
 }
 

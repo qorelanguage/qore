@@ -66,4 +66,29 @@ class QoreQMotifStyle : public QoreAbstractQMotifStyle
       QORE_VIRTUAL_QSTYLE_METHODS
 };
 
+class QoreQtQMotifStyle : public QoreAbstractQMotifStyle
+{
+   public:
+      Object *qore_obj;
+      QPointer<QMotifStyle> qobj;
+
+      DLLLOCAL QoreQtQMotifStyle(Object *obj, QMotifStyle *qms) : qore_obj(obj), qobj(qms)
+      {
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QMotifStyle *getQMotifStyle() const
+      {
+         return static_cast<QMotifStyle *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QStyle *getQStyle() const
+      {
+         return static_cast<QStyle *>(&(*qobj));
+      }
+
+#include "qore-qt-static-qstyle-methods.h"
+};
+
 #endif // _QORE_QT_QC_QMOTIFSTYLE_H

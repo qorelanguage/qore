@@ -37,7 +37,7 @@ class QoreQModelIndex : public AbstractPrivateData, public QModelIndex
       DLLLOCAL QoreQModelIndex() : QModelIndex()
       {
       }
-      DLLLOCAL QoreQModelIndex(const QModelIndex &qmi) : QModelIndex(qmi)
+      DLLLOCAL QoreQModelIndex(const QModelIndex& other) : QModelIndex(other)
       {
       }
 };

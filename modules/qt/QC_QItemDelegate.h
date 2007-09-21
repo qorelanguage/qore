@@ -33,14 +33,15 @@ DLLLOCAL extern class QoreClass *QC_QItemDelegate;
 
 DLLLOCAL class QoreClass *initQItemDelegateClass(QoreClass *);
 
-class myQItemDelegate : public QItemDelegate
+class myQItemDelegate : public QItemDelegate, public QoreQAbstractItemDelegateExtension
 {
 #define QOREQTYPE QItemDelegate
 #include "qore-qt-metacode.h"
+#include "qore-qt-qabstractitemdelegate-methods.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQItemDelegate(Object *obj, QObject* parent = 0) : QItemDelegate(parent)
+   DLLLOCAL myQItemDelegate(Object *obj, QObject* parent = 0) : QItemDelegate(parent), QoreQAbstractItemDelegateExtension(obj->getClass())
       {
          init(obj);
       }
@@ -66,7 +67,7 @@ class QoreQItemDelegate : public QoreAbstractQItemDelegate
       {
          return static_cast<QItemDelegate *>(&(*qobj));
       }
-      QORE_VIRTUAL_QOBJECT_METHODS
+      QORE_VIRTUAL_QABSTRACTITEMDELEGATE_METHODS
 };
 
 #endif // _QORE_QT_QC_QITEMDELEGATE_H

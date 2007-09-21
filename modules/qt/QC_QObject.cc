@@ -260,10 +260,13 @@ static QoreNode *QOBJECT_killTimer(Object *self, QoreAbstractQObject *qo, QoreNo
 }
 
 //virtual const QMetaObject * metaObject () const
-//static QoreNode *QOBJECT_metaObject(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return qo->getQObject()->metaObject();
-//}
+static QoreNode *QOBJECT_metaObject(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qmo = new Object(QC_QMetaObject, getProgram());
+   QoreQMetaObject *q_qmo = new QoreQMetaObject(const_cast<QMetaObject *>(qo->getQObject()->metaObject()));
+   o_qmo->setPrivate(CID_QMETAOBJECT, q_qmo);
+   return new QoreNode(o_qmo);
+}
 
 //void moveToThread ( QThread * targetThread )
 //static QoreNode *QOBJECT_moveToThread(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
@@ -453,7 +456,7 @@ class QoreClass *initQObjectClass()
    QC_QObject->addMethod("installEventFilter",          (q_method_t)QOBJECT_installEventFilter);
    QC_QObject->addMethod("isWidgetType",                (q_method_t)QOBJECT_isWidgetType);
    QC_QObject->addMethod("killTimer",                   (q_method_t)QOBJECT_killTimer);
-   //QC_QObject->addMethod("metaObject",                  (q_method_t)QOBJECT_metaObject);
+   QC_QObject->addMethod("metaObject",                  (q_method_t)QOBJECT_metaObject);
    //QC_QObject->addMethod("moveToThread",                (q_method_t)QOBJECT_moveToThread);
    QC_QObject->addMethod("objectName",                  (q_method_t)QOBJECT_objectName);
    QC_QObject->addMethod("parent",                      (q_method_t)QOBJECT_parent);
