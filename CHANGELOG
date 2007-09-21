@@ -1,5 +1,6 @@
 2007.09.21: David Nichols
 	* qt: bug fixes, new classes, partially-complete icons.q example support
+	* qt: changes/fixes to allow the icons.q example to run
 
 2007.09.19: David Nichols
 	* qt: fixed QMenu::addAction() to work with dynamic methods

@@ -26,6 +26,7 @@
 #include "QC_QFont.h"
 
 int CID_QOBJECT;
+QoreClass *QC_QObject = 0;
 
 static void QOBJECT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -435,7 +436,7 @@ class QoreClass *initQObjectClass()
 {
    tracein("initQObjectClass()");
    
-   class QoreClass *QC_QObject = new QoreClass("QObject", QDOM_GUI);
+   QC_QObject = new QoreClass("QObject", QDOM_GUI);
    CID_QOBJECT = QC_QObject->getID();
 
    QC_QObject->setConstructor(QOBJECT_constructor);

@@ -191,15 +191,23 @@ sub inlist($val, $list)
 
 sub do_return_qobject($type, $callstr)
 {
+    if ($type == "QObject")
+	return sprintf("return return_qobject(%s);", $callstr);
+    
     my $lo = ();
-
+    
     $lo += sprintf("%s *qt_qobj = %s;", $type, $callstr);
     $lo += "if (!qt_qobj)";
     $lo += "   return 0;";
     $lo += "QVariant qv_ptr = qt_qobj->property(\"qobject\");";
     $lo += "Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());";
-    $lo += "assert(rv_obj);";
-    $lo += "rv_obj->ref();";
+    $lo += "if (rv_obj)";
+    $lo += "   rv_obj->ref();";
+    $lo += "else {";
+    $lo += sprintf("   rv_obj = new Object(QC_%s, getProgram());", $type);
+    $lo += sprintf("   QoreQt%s *t_qobj = new QoreQt%s(rv_obj, qt_qobj);", $type, $type);
+    $lo += sprintf("   rv_obj->setPrivate(CID_%s, t_qobj);", toupper($type));
+    $lo += "}";
     $lo += "return new QoreNode(rv_obj);";
     return $lo;
 }

@@ -11,16 +11,9 @@ class T {
 
 	 List *args = new List();
 
-	 Object *qw = 0;
-	 if (parent) {
-	    QVariant qv_ptr = parent->property("qobject");
-	    qw = reinterpret_cast<Object *>(qv_ptr.toULongLong());
-	    if (qw) 
-	       qw->ref();
-	 }
-	 args->push(qw ? new QoreNode(qw) : nothing());
+	 args->push(return_qobject(parent));
 
-	 qw = new Object(QC_QStyleOptionViewItem, getProgram());
+	 Object *qw = new Object(QC_QStyleOptionViewItem, getProgram());
 	 qw->setPrivate(CID_QSTYLEOPTIONVIEWITEM, new QoreQStyleOptionViewItem(option));
 	 args->push(new QoreNode(qw));
 	 
@@ -104,16 +97,9 @@ class T {
 
 	 List *args = new List();
 
-	 Object *qw = 0;
-	 if (editor) {
-	    QVariant qv_ptr = editor->property("qobject");
-	    qw = reinterpret_cast<Object *>(qv_ptr.toULongLong());
-	    if (qw) 
-	       qw->ref();
-	 }
-	 args->push(qw ? new QoreNode(qw) : nothing());
+	 args->push(return_qobject(editor));
 
-	 qw = new Object(QC_QModelIndex, getProgram());
+	 Object *qw = new Object(QC_QModelIndex, getProgram());
 	 qw->setPrivate(CID_QMODELINDEX, new QoreQModelIndex(index));
 	 args->push(new QoreNode(qw));
 

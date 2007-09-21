@@ -28,7 +28,8 @@
 
 #include <QObject>
 
-DLLEXPORT extern int CID_QOBJECT;
+DLLLOCAL extern int CID_QOBJECT;
+DLLLOCAL extern QoreClass *QC_QObject;
 
 DLLLOCAL class QoreClass *initQObjectClass();
 
@@ -59,6 +60,24 @@ class QoreQObject : public QoreAbstractQObject
       }
 
       QORE_VIRTUAL_QOBJECT_METHODS
+};
+
+class QoreQtQObject : public QoreAbstractQObject
+{
+   public:
+      Object *qore_obj;
+      QPointer<QObject> qobj;
+
+      DLLLOCAL QoreQtQObject(Object *obj, QObject *qo) : qore_obj(obj), qobj(qo)
+      {
+      }
+
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+	 return &*qobj;
+      }
+
+#include "qore-qt-static-qobject-methods.h"
 };
 
 #endif

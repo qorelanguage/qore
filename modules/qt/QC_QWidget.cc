@@ -31,6 +31,7 @@
 #include "QC_QRegion.h"
 
 int CID_QWIDGET;
+QoreClass *QC_QWidget = 0;
 
 static void QWIDGET_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -2485,7 +2486,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
 {
    tracein("initQWidgetClass()");
    
-   class QoreClass *QC_QWidget = new QoreClass("QWidget", QDOM_GUI);
+   QC_QWidget = new QoreClass("QWidget", QDOM_GUI);
    CID_QWIDGET = QC_QWidget->getID();
 
    QC_QWidget->addBuiltinVirtualBaseClass(qobject);

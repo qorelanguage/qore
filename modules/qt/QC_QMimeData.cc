@@ -49,10 +49,7 @@ static QoreNode *QMIMEDATA_clear(Object *self, QoreQMimeData *qmd, QoreNode *par
 //QVariant colorData () const
 static QoreNode *QMIMEDATA_colorData(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qv = new Object(QC_QVariant, getProgram());
-   QoreQVariant *q_qv = new QoreQVariant(qmd->qobj->colorData());
-   o_qv->setPrivate(CID_QVARIANT, q_qv);
-   return new QoreNode(o_qv);
+   return return_qvariant(qmd->qobj->colorData());
 }
 
 //QByteArray data ( const QString & mimeType ) const
@@ -129,10 +126,7 @@ static QoreNode *QMIMEDATA_html(Object *self, QoreQMimeData *qmd, QoreNode *para
 //QVariant imageData () const
 static QoreNode *QMIMEDATA_imageData(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qv = new Object(QC_QVariant, getProgram());
-   QoreQVariant *q_qv = new QoreQVariant(qmd->qobj->imageData());
-   o_qv->setPrivate(CID_QVARIANT, q_qv);
-   return new QoreNode(o_qv);
+   return return_qvariant(qmd->qobj->imageData());
 }
 
 //void setColorData ( const QVariant & color )

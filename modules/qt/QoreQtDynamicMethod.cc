@@ -284,12 +284,10 @@ void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, List *args)
 {
    int num_args = type_list.size();
    void *sig_args[num_args + 1];
-   qt_arg_u arg_list[num_args];
+   qt_arg arg_list[num_args];
 
    // return return value to 0
    sig_args[0] = 0;
-
-   bool need_destructor = false;
 
    // iterate through signal parameters to build argument list
    for (int i = 0; i < num_args; ++i)
@@ -300,50 +298,79 @@ void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, List *args)
       switch (type_list[i])
       {
 	 case QQT_TYPE_INT:
-	    arg_list[i].set(n ? n->getAsInt() : 0);
-	    sig_args[i + 1] = reinterpret_cast<void *>(&arg_list[i].t_int);
+	    sig_args[i + 1] = arg_list[i].set(n ? n->getAsInt() : 0);
 	    break;
 	 case QQT_TYPE_FLOAT:
-	    arg_list[i].set((float)(n ? n->getAsFloat() : 0.0));
-	    sig_args[i + 1] = reinterpret_cast<void *>(&arg_list[i].t_float);
+	    sig_args[i + 1] = arg_list[i].set((float)(n ? n->getAsFloat() : 0.0));
 	    break;
 	 case QQT_TYPE_DOUBLE:
-	    arg_list[i].set((double)(n ? n->getAsFloat() : 0.0));
-	    sig_args[i + 1] = reinterpret_cast<void *>(&arg_list[i].t_double);
+	    sig_args[i + 1] = arg_list[i].set((double)(n ? n->getAsFloat() : 0.0));
 	    break;
 	 case QQT_TYPE_BOOL:
-	    arg_list[i].set(n ? n->getAsBool() : false);
-	    sig_args[i + 1] = reinterpret_cast<void *>(&arg_list[i].t_bool);
+	    sig_args[i + 1] = arg_list[i].set(n ? n->getAsBool() : false);
 	    break;
 	 case QQT_TYPE_QSTRING: {
 	    ExceptionSink xsink;
 
 	    QString str;
 	    get_qstring(n, str, &xsink);
-	    arg_list[i].set(str);
-
-	    need_destructor = true;
-
-	    sig_args[i + 1] = reinterpret_cast<void *>(arg_list[i].t_QString);
-
-	    //printd(5, "creating QString argument: %08p, %s\n", n, n->type->getName());
-	    //printd(5, "QString: '%s'\n", arg_list[i].t_QString->toUtf8().data());
+	    sig_args[i + 1] = arg_list[i].set(str);
 
 	    break;
 	 }
 	 default:
+	    printd(0, "QoreQtDynamicSignal::emit_signal() unsupported type=%d\n", type_list[i]);
 	    assert(false);
       }
    }
    QMetaObject::activate(obj, id, id, sig_args);
-
-   if (need_destructor)
-      // run destructors as necessary
-      for (int i = 0; i < num_args; ++i)
-	 switch (type_list[i])
-	 {
-	    case QQT_TYPE_QSTRING:
-	       delete arg_list[i].t_QString;
-	       break;
-	 }
 }
+
+void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, List *args)
+{
+   QList<QByteArray> params = qmm.parameterTypes();
+
+   int num_args = params.size();
+   void *sig_args[num_args + 1];
+   qt_arg arg_list[num_args];
+
+   // return return value to 0
+   sig_args[0] = 0;
+
+   ExceptionSink xsink;
+
+   // iterate through signal parameters to build argument list
+   for (int i = 0; i < num_args; ++i)
+   {
+      // get argument QoreNode
+      QoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
+      const char *str = params[i].data();
+      
+      if (!strcmp(str, "int"))
+	 sig_args[i + 1] = arg_list[i].set(n ? n->getAsInt() : 0);
+      else if (!strcmp(str, "float"))
+	 sig_args[i + 1] = arg_list[i].set((float)(n ? n->getAsFloat() : 0.0));
+      else if (!strcmp(str, "double"))
+	 sig_args[i + 1] = arg_list[i].set((double)(n ? n->getAsFloat() : 0.0));
+      else if (!strcmp(str, "bool"))
+	 sig_args[i + 1] = arg_list[i].set(n ? n->getAsBool() : false);
+      else if (!strcmp(str, "QString") || !strcmp(str, "const QString&"))
+      {
+	 QString str;
+	 get_qstring(n, str, &xsink);
+	 sig_args[i + 1] = arg_list[i].set(str);
+      }
+      else if (!strcmp(str, "QWidget*"))
+      {
+	 QoreQWidget *widget = (n && n->type == NT_OBJECT) ? (QoreQWidget *)n->val.object->getReferencedPrivateData(CID_QWIDGET, &xsink) : 0;
+	 sig_args[i + 1] = arg_list[i].set(widget);
+      }
+      else {
+	 printd(0, "emit_static_signal() i=%d, unsupported C++ type=%s\n", i, str);
+	 assert(false);
+      }
+   }
+	 
+   QMetaObject::activate(sender, signalId, signalId, sig_args);
+}
+

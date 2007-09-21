@@ -31,19 +31,21 @@ DLLLOCAL extern class QoreClass *QC_QTableWidgetItem;
 
 DLLLOCAL class QoreClass *initQTableWidgetItemClass();
 
-class QoreQTableWidgetItem : public AbstractPrivateData, public QTableWidgetItem
+class QoreQTableWidgetItem : public AbstractPrivateData
 {
    public:
-      DLLLOCAL QoreQTableWidgetItem(int type = QTableWidgetItem::Type) : QTableWidgetItem(type)
+      QTableWidgetItem *qore_obj;
+
+      DLLLOCAL QoreQTableWidgetItem(int type = QTableWidgetItem::Type)  :qore_obj(new QTableWidgetItem(type))
       {
       }
-      DLLLOCAL QoreQTableWidgetItem(const QString& text, int type = QTableWidgetItem::Type) : QTableWidgetItem(text, type)
+      DLLLOCAL QoreQTableWidgetItem(const QString& text, int type = QTableWidgetItem::Type) : qore_obj(new QTableWidgetItem(text, type))
       {
       }
-      DLLLOCAL QoreQTableWidgetItem(const QIcon& icon, const QString& text, int type = QTableWidgetItem::Type) : QTableWidgetItem(icon, text, type)
+      DLLLOCAL QoreQTableWidgetItem(const QIcon& icon, const QString& text, int type = QTableWidgetItem::Type) : qore_obj(new QTableWidgetItem(icon, text, type))
       {
       }
-      DLLLOCAL QoreQTableWidgetItem(const QTableWidgetItem& other) : QTableWidgetItem(other)
+      DLLLOCAL QoreQTableWidgetItem(QTableWidgetItem *twi) : qore_obj(twi)
       {
       }
 };

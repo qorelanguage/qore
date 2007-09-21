@@ -191,7 +191,9 @@ class T {
 
 	 if (id >= 0) {
 	    QMetaMethod qmm = metaObject()->method(id);
-	    printd(0, "%s::emit_signal(%s, %08p) static signal %d\n", metaObject()->className(), sig, args, id);
+	    //printd(5, "%s::emit_signal(%s, %08p) static signal %d\n", metaObject()->className(), sig, args, id);
+	    
+	    emit_static_signal(this, id, qmm, args);
 	 }
 	 else { // emit dynamic signal
 	    int signalId = signalIndices.value(theSignal, -1);

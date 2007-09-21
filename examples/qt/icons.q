@@ -53,7 +53,6 @@ class IconPreviewArea inherits QWidget
 
     setIcon($icon)
     {
-	printf("setIcon() %N\n", $icon);
 	$.icon = $icon;
 	$.updatePixmapLabels();
     }
@@ -68,7 +67,7 @@ class IconPreviewArea inherits QWidget
 
     createHeaderLabel($text)
     {
-	my $label = new QLabel(sprintf(TR("<b>%s</b>"), $text));
+	my $label = new QLabel(TR(sprintf("<b>%s</b>", $text)));
 	$label.setAlignment(Qt::AlignCenter);
 	return $label;
     }
@@ -103,7 +102,6 @@ class IconPreviewArea inherits QWidget
 	    for (my $j = 0; $j < NumStates; ++$j) {
 		my $state = ($j == 0) ? QIcon::Off : QIcon::On;
 		my $pixmap = $.icon.pixmap($.size, $mode, $state);
-		#printf("updastePixmapLabels() i=%n, j=%n, pixmap=%N (%n)\n", $i, $j, $pixmap, $pixmap.isNull());
 		$.pixmapLabels[$i][$j].setPixmap($pixmap);
 		$.pixmapLabels[$i][$j].setEnabled(!$pixmap.isNull());
 	    }
@@ -156,13 +154,18 @@ class ImageDelegate inherits QItemDelegate
     
     setEditorData($comboBox, $index)
     {
-	printf("setEditorData()\n* comboBox: %N\n* index: %N\n* index.model(): %N\n* index.model().data(%n): %N\n", $comboBox, $index, $index.model(), $index, $index.model().data($index));
-	my $pos = $comboBox.findText($index.model().data($index), Qt::MatchExactly);
+	if (getClassName($comboBox) != "QComboBox")
+	    return;
+
+	my $pos = $comboBox.findText(string($index.model().data($index)), Qt::MatchExactly);
 	$comboBox.setCurrentIndex($pos);
     }
 
     setModelData($comboBox, $model, $index)
     {
+	if (getClassName($comboBox) != "QComboBox")
+	    return;
+
 	$model.setData($index, $comboBox.currentText());
     }
     
@@ -308,7 +311,6 @@ class MainWindow inherits QMainWindow
     addImages()
     {
 	my $fileNames = QFileDialog_getOpenFileNames($self, TR("Open Images"), "", TR("Images (*.png *.xpm *.jpg);;All Files (*)"));
-	printf("fileNames=%N\n", $fileNames);
 	foreach my $fileName in ($fileNames) {
 	    my $row = $.imagesTable.rowCount();
 	    $.imagesTable.setRowCount($row + 1);
@@ -316,6 +318,7 @@ class MainWindow inherits QMainWindow
 	    my $imageName = basename($fileName);
 	    my $item0 = new QTableWidgetItem($imageName);
 	    $item0.setData(Qt::UserRole, $fileName);
+	    #printf("flags=%d new flags=%d\n", $item0.flags(), $item0.flags() & ~Qt::ItemIsEditable);
 	    $item0.setFlags($item0.flags() & ~Qt::ItemIsEditable);
 	    
 	    my $item1 = new QTableWidgetItem(TR("Normal"));

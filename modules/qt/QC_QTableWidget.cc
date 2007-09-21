@@ -89,7 +89,7 @@ static QoreNode *QTABLEWIDGET_closePersistentEditor(Object *self, QoreQTableWidg
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   qtw->qobj->closePersistentEditor(static_cast<QTableWidgetItem *>(item));
+   qtw->qobj->closePersistentEditor(item->qore_obj);
    return 0;
 }
 
@@ -104,7 +104,7 @@ static QoreNode *QTABLEWIDGET_column(Object *self, QoreQTableWidget *qtw, QoreNo
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   return new QoreNode((int64)qtw->qobj->column(static_cast<QTableWidgetItem *>(item)));
+   return new QoreNode((int64)qtw->qobj->column(item->qore_obj));
 }
 
 //int columnCount () const
@@ -123,7 +123,7 @@ static QoreNode *QTABLEWIDGET_currentColumn(Object *self, QoreQTableWidget *qtw,
 static QoreNode *QTABLEWIDGET_currentItem(Object *self, QoreQTableWidget *qtw, QoreNode *params, ExceptionSink *xsink)
 {
    Object *o_qtwi = new Object(QC_QTableWidgetItem, getProgram());
-   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(*(qtw->qobj->currentItem()));
+   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(qtw->qobj->currentItem());
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
    return new QoreNode(o_qtwi);
 }
@@ -145,7 +145,7 @@ static QoreNode *QTABLEWIDGET_editItem(Object *self, QoreQTableWidget *qtw, Qore
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   qtw->qobj->editItem(static_cast<QTableWidgetItem *>(item));
+   qtw->qobj->editItem(item->qore_obj);
    return 0;
 }
 
@@ -172,7 +172,7 @@ static QoreNode *QTABLEWIDGET_horizontalHeaderItem(Object *self, QoreQTableWidge
       return 0;
 
    Object *o_qtwi = new Object(QC_QTableWidgetItem, getProgram());
-   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(*twi);
+   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
    return new QoreNode(o_qtwi);
 }
@@ -190,7 +190,7 @@ static QoreNode *QTABLEWIDGET_item(Object *self, QoreQTableWidget *qtw, QoreNode
       return 0;
 
    Object *o_qtwi = new Object(QC_QTableWidgetItem, getProgram());
-   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(*twi);
+   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
    return new QoreNode(o_qtwi);
 }
@@ -214,7 +214,7 @@ static QoreNode *QTABLEWIDGET_itemAt(Object *self, QoreQTableWidget *qtw, QoreNo
 	 return 0;
 
       Object *o_qtwi = new Object(QC_QTableWidgetItem, getProgram());
-      QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(*twi);
+      QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
       o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
       return new QoreNode(o_qtwi);
    }
@@ -227,7 +227,7 @@ static QoreNode *QTABLEWIDGET_itemAt(Object *self, QoreQTableWidget *qtw, QoreNo
       return 0;
 
    Object *o_qtwi = new Object(QC_QTableWidgetItem, getProgram());
-   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(*twi);
+   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
    return new QoreNode(o_qtwi);
 }
@@ -240,7 +240,7 @@ static QoreNode *QTABLEWIDGET_itemPrototype(Object *self, QoreQTableWidget *qtw,
       return 0;
 
    Object *o_qtwi = new Object(QC_QTableWidgetItem, getProgram());
-   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(*twi);
+   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(const_cast<QTableWidgetItem *>(twi));
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
    return new QoreNode(o_qtwi);
 }
@@ -256,7 +256,7 @@ static QoreNode *QTABLEWIDGET_openPersistentEditor(Object *self, QoreQTableWidge
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   qtw->qobj->openPersistentEditor(static_cast<QTableWidgetItem *>(item));
+   qtw->qobj->openPersistentEditor(item->qore_obj);
    return 0;
 }
 
@@ -282,7 +282,7 @@ static QoreNode *QTABLEWIDGET_row(Object *self, QoreQTableWidget *qtw, QoreNode 
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   return new QoreNode((int64)qtw->qobj->row(static_cast<QTableWidgetItem *>(item)));
+   return new QoreNode((int64)qtw->qobj->row(item->qore_obj));
 }
 
 //int rowCount () const
@@ -353,7 +353,7 @@ static QoreNode *QTABLEWIDGET_setCurrentItem(Object *self, QoreQTableWidget *qtw
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   qtw->qobj->setCurrentItem(static_cast<QTableWidgetItem *>(item));
+   qtw->qobj->setCurrentItem(item->qore_obj);
    return 0;
 }
 
@@ -370,7 +370,7 @@ static QoreNode *QTABLEWIDGET_setHorizontalHeaderItem(Object *self, QoreQTableWi
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   qtw->qobj->setHorizontalHeaderItem(column, static_cast<QTableWidgetItem *>(item));
+   qtw->qobj->setHorizontalHeaderItem(column, item->qore_obj);
    return 0;
 }
 
@@ -413,7 +413,8 @@ static QoreNode *QTABLEWIDGET_setItem(Object *self, QoreQTableWidget *qtw, QoreN
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   qtw->qobj->setItem(row, column, static_cast<QTableWidgetItem *>(item));
+   qtw->qobj->setItem(row, column, item->qore_obj);
+   //printd(5, "QTableWidget::setItem() %08p flags=%d\n", item, (int)item->qore_obj->flags());
    return 0;
 }
 
@@ -428,7 +429,7 @@ static QoreNode *QTABLEWIDGET_setItemPrototype(Object *self, QoreQTableWidget *q
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   qtw->qobj->setItemPrototype(static_cast<QTableWidgetItem *>(item));
+   qtw->qobj->setItemPrototype(item->qore_obj);
    return 0;
 }
 
@@ -465,7 +466,7 @@ static QoreNode *QTABLEWIDGET_setVerticalHeaderItem(Object *self, QoreQTableWidg
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   qtw->qobj->setVerticalHeaderItem(row, static_cast<QTableWidgetItem *>(item));
+   qtw->qobj->setVerticalHeaderItem(row, item->qore_obj);
    return 0;
 }
 
@@ -515,7 +516,7 @@ static QoreNode *QTABLEWIDGET_takeHorizontalHeaderItem(Object *self, QoreQTableW
       return 0;
 
    Object *o_qtwi = new Object(QC_QTableWidgetItem, getProgram());
-   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(*twi);
+   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
    return new QoreNode(o_qtwi);
 }
@@ -533,7 +534,7 @@ static QoreNode *QTABLEWIDGET_takeItem(Object *self, QoreQTableWidget *qtw, Qore
       return 0;
 
    Object *o_qtwi = new Object(QC_QTableWidgetItem, getProgram());
-   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(*twi);
+   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
    return new QoreNode(o_qtwi);
 }
@@ -549,7 +550,7 @@ static QoreNode *QTABLEWIDGET_takeVerticalHeaderItem(Object *self, QoreQTableWid
       return 0;
 
    Object *o_qtwi = new Object(QC_QTableWidgetItem, getProgram());
-   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(*twi);
+   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
    return new QoreNode(o_qtwi);
 }
@@ -565,7 +566,7 @@ static QoreNode *QTABLEWIDGET_verticalHeaderItem(Object *self, QoreQTableWidget 
       return 0;
 
    Object *o_qtwi = new Object(QC_QTableWidgetItem, getProgram());
-   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(*twi);
+   QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
    return new QoreNode(o_qtwi);
 }
@@ -590,7 +591,7 @@ static QoreNode *QTABLEWIDGET_visualItemRect(Object *self, QoreQTableWidget *qtw
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
    Object *o_qr = new Object(QC_QRect, getProgram());
-   QoreQRect *q_qr = new QoreQRect(qtw->qobj->visualItemRect(static_cast<QTableWidgetItem *>(item)));
+   QoreQRect *q_qr = new QoreQRect(qtw->qobj->visualItemRect(item->qore_obj));
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -666,7 +667,7 @@ static QoreNode *QTABLEWIDGET_scrollToItem(Object *self, QoreQTableWidget *qtw, 
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
    p = get_param(params, 1);
    QAbstractItemView::ScrollHint hint = !is_nothing(p) ? (QAbstractItemView::ScrollHint)p->getAsInt() : QAbstractItemView::EnsureVisible;
-   qtw->qobj->scrollToItem(static_cast<QTableWidgetItem *>(item), hint);
+   qtw->qobj->scrollToItem(item->qore_obj, hint);
    return 0;
 }
 

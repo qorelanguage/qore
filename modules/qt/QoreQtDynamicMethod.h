@@ -46,17 +46,18 @@
 
 #include <vector>
 
-#define QQT_TYPE_UNKNOWN  -1
-#define QQT_TYPE_VOID      0
-#define QQT_TYPE_INT       1
-#define QQT_TYPE_LONG      2
-#define QQT_TYPE_BOOL      3
-#define QQT_TYPE_FLOAT     4
-#define QQT_TYPE_DOUBLE    5
-#define QQT_TYPE_P_CHAR    6
-#define QQT_TYPE_QDATE     7
-#define QQT_TYPE_QFONT     8
-#define QQT_TYPE_QSTRING   9
+#define QQT_TYPE_UNKNOWN     -1
+#define QQT_TYPE_VOID         0
+#define QQT_TYPE_INT          1
+#define QQT_TYPE_LONG         2
+#define QQT_TYPE_BOOL         3
+#define QQT_TYPE_FLOAT        4
+#define QQT_TYPE_DOUBLE       5
+#define QQT_TYPE_P_CHAR       6
+#define QQT_TYPE_QDATE        7
+#define QQT_TYPE_QFONT        8
+#define QQT_TYPE_QSTRING      9
+#define QQT_TYPE_P_QWIDGET   10
 
 union qt_arg_u {
       int t_int;
@@ -64,16 +65,50 @@ union qt_arg_u {
       double t_double;
       bool t_bool;
       QString *t_QString;
+      QWidget *t_QWidget;
+};
 
-      DLLLOCAL qt_arg_u()         {}
+struct qt_arg {
+      int type;
+      union qt_arg_u data;
 
-      DLLLOCAL void set(int i)    { t_int = i; }
-      DLLLOCAL void set(float f)  { t_float = f; }
-      DLLLOCAL void set(double f) { t_double = f; }
-      DLLLOCAL void set(bool b)   { t_bool = b; }
-      DLLLOCAL void set(const QString &str) 
+      DLLLOCAL qt_arg() : type(QQT_TYPE_VOID)
+      {
+      }
+      DLLLOCAL ~qt_arg()
+      {
+	 if (type == QQT_TYPE_QSTRING)
+	    delete data.t_QString;
+      }
+      DLLLOCAL void *set(int i)
+      {
+	 data.t_int = i; 
+	 return reinterpret_cast<void *>(&data.t_int); 
+     }
+      DLLLOCAL void *set(float f)  
       { 
-	 t_QString = new QString(str); 
+	 data.t_float = f; 
+	 return reinterpret_cast<void *>(&data.t_float);
+      }
+      DLLLOCAL void *set(double f)
+      { 
+	 data.t_double = f; 
+	 return reinterpret_cast<void *>(&data.t_double);
+      }
+      DLLLOCAL void *set(bool b)
+      { 
+	 data.t_bool = b; 
+	 return reinterpret_cast<void *>(&data.t_bool);
+      }
+      DLLLOCAL void *set(const QString &str) 
+      { 
+	 data.t_QString = new QString(str); 
+	 return reinterpret_cast<void *>(&data.t_QString);
+      }
+      DLLLOCAL void *set(QWidget *qw) 
+      { 
+	 data.t_QWidget = qw; 
+	 return reinterpret_cast<void *>(&data.t_QWidget);
       }
 };
 
@@ -149,5 +184,6 @@ class DynamicMethodMap : public qore_qt_method_list_t
       }
 };
 
+DLLLOCAL void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, List *args);
 
 #endif

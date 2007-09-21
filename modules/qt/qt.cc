@@ -572,6 +572,8 @@ class QoreNode *return_qvariant(const QVariant &qv)
 {
    QVariant::Type type = qv.type();
    switch (type) {
+      case QVariant::Invalid:
+	 return nothing();
       case QVariant::Bitmap:
 	 return return_object(QC_QBitmap, new QoreQBitmap(qv.value<QBitmap>()));
       case QVariant::Bool:
@@ -666,6 +668,29 @@ class QoreNode *return_qvariant(const QVariant &qv)
    }
    // to suppress warning
    return 0;
+}
+
+// returns a QoreNode tagged as the appropriate QObject subclass
+class QoreNode *return_qobject(QObject *o)
+{
+   if (!o)
+      return 0;
+
+   // see if it's an object created in Qore
+   QVariant qv_ptr = o->property("qobject");
+   Object *qo = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (qo) {
+      qo->ref();
+      return new QoreNode(qo);
+   }
+
+   // see what subclass it is
+   QWidget *qw = dynamic_cast<QWidget *>(o);
+   if (qw) 
+      return return_object(QC_QWidget, new QoreQtQWidget(qo, qw));
+
+   // assign as QObject
+   return return_object(QC_QObject, new QoreQtQObject(qo, o));
 }
 
 static class QoreNode *f_QObject_connect(class QoreNode *params, class ExceptionSink *xsink)

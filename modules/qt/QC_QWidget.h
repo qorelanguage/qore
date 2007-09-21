@@ -33,7 +33,8 @@
 
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QWIDGET;
+DLLLOCAL extern int CID_QWIDGET;
+DLLLOCAL extern QoreClass *QC_QWidget;
 
 DLLLOCAL class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpaintdevice);
 
@@ -75,6 +76,32 @@ class QoreQWidget : public QoreAbstractQWidget
       }
 
       QORE_VIRTUAL_QWIDGET_METHODS
+};
+
+class QoreQtQWidget : public QoreAbstractQWidget
+{
+   public:
+      Object *qore_obj;
+      QPointer<QWidget>qobj;
+
+      DLLLOCAL QoreQtQWidget(Object *obj, QWidget *qw) : qore_obj(obj), qobj(qw)
+      {
+      }
+      DLLLOCAL virtual QObject *getQObject() const
+      {
+	 return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual QWidget *getQWidget() const
+      {
+	 //return static_cast<QWidget *>(&(*qobj));
+	 return &(*qobj);
+      }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+	 return static_cast<QPaintDevice *>(&(*qobj));
+      }
+
+#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif
