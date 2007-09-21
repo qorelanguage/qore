@@ -68,35 +68,45 @@ static void QICON_copy(class Object *self, class Object *old, class QoreQIcon *q
 }
 
 //QSize actualSize ( const QSize & size, Mode mode = Normal, State state = Off ) const
-//static QoreNode *QICON_actualSize(Object *self, QoreQIcon *qi, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QSize size = p;
-//   p = get_param(params, 1);
-//   QIcon::Mode mode = (QIcon::Mode)(p ? p->getAsInt() : 0);
-//   p = get_param(params, 2);
-//   QIcon::State state = (QIcon::State)(p ? p->getAsInt() : 0);
-//   ??? return new QoreNode((int64)qi->actualSize(size, mode, state));
-//}
+static QoreNode *QICON_actualSize(Object *self, QoreQIcon *qi, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   if (!size) {
+      if (!xsink->isException())
+         xsink->raiseException("QICON-ACTUALSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QIcon::actualSize()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
+   p = get_param(params, 1);
+   QIcon::Mode mode = !is_nothing(p) ? (QIcon::Mode)p->getAsInt() : QIcon::Normal;
+   p = get_param(params, 2);
+   QIcon::State state = !is_nothing(p) ? (QIcon::State)p->getAsInt() : QIcon::Off;
+   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreQSize *q_qs = new QoreQSize(qi->actualSize(*(static_cast<QSize *>(size)), mode, state));
+   o_qs->setPrivate(CID_QSIZE, q_qs);
+   return new QoreNode(o_qs);
+}
 
 //void addFile ( const QString & fileName, const QSize & size = QSize(), Mode mode = Normal, State state = Off )
-//static QoreNode *QICON_addFile(Object *self, QoreQIcon *qi, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
-//      xsink->raiseException("QICON-ADDFILE-PARAM-ERROR", "expecting a string as first argument to QIcon::addFile()");
-//      return 0;
-//   }
-//   const char *fileName = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   ??? QSize size = p;
-//   p = get_param(params, 2);
-//   QIcon::Mode mode = (QIcon::Mode)(p ? p->getAsInt() : 0);
-//   p = get_param(params, 3);
-//   QIcon::State state = (QIcon::State)(p ? p->getAsInt() : 0);
-//   qi->addFile(fileName, size, mode, state);
-//   return 0;
-//}
+static QoreNode *QICON_addFile(Object *self, QoreQIcon *qi, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString fileName;
+   if (get_qstring(p, fileName, xsink))
+      return 0;
+   p = get_param(params, 1);
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   if (*xsink)
+      return 0;
+   ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
+   p = get_param(params, 2);
+   QIcon::Mode mode = !is_nothing(p) ? (QIcon::Mode)p->getAsInt() : QIcon::Normal;
+   p = get_param(params, 3);
+   QIcon::State state = !is_nothing(p) ? (QIcon::State)p->getAsInt() : QIcon::Off;
+   qi->addFile(fileName, size ? *(static_cast<QSize *>(size)) : QSize(), mode, state);
+   return 0;
+}
 
 //void addPixmap ( const QPixmap & pixmap, Mode mode = Normal, State state = Off )
 static QoreNode *QICON_addPixmap(Object *self, QoreQIcon *qi, QoreNode *params, ExceptionSink *xsink)
@@ -193,16 +203,49 @@ static QoreNode *QICON_paint(Object *self, QoreQIcon *qi, QoreNode *params, Exce
 static QoreNode *QICON_pixmap(Object *self, QoreQIcon *qi, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   int w = p ? p->getAsInt() : 0;
-   p = get_param(params, 1);
-   int h = p ? p->getAsInt() : 0;
-   p = get_param(params, 2);
-   QIcon::Mode mode = (QIcon::Mode)(p ? p->getAsInt() : 0);
-   p = get_param(params, 3);
-   QIcon::State state = (QIcon::State)(p ? p->getAsInt() : 0);
-   Object *o_qp = new Object(QC_QPixmap, getProgram());
-   QoreQPixmap *q_qp = new QoreQPixmap(qi->pixmap(w, h, mode, state));
-   o_qp->setPrivate(CID_QPIXMAP, q_qp);
+   if (p && p->type == NT_OBJECT) {
+      QoreQSize *size = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+      if (!size) {
+         if (!xsink->isException())
+            xsink->raiseException("QICON-PIXMAP-PARAM-ERROR", "QIcon::pixmap() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+         return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
+      p = get_param(params, 1);
+      QIcon::Mode mode = !is_nothing(p) ? (QIcon::Mode)p->getAsInt() : QIcon::Normal;
+      p = get_param(params, 2);
+      QIcon::State state = !is_nothing(p) ? (QIcon::State)p->getAsInt() : QIcon::Off;
+      Object *o_qp = new Object(QC_QPixmap, getProgram());
+      QoreQPixmap *q_qp = new QoreQPixmap(qi->pixmap(*(static_cast<QSize *>(size)), mode, state));
+      o_qp->setPrivate(CID_QPIXMAP, q_qp);
+      return new QoreNode(o_qp);
+   }
+
+   Object *o_qp;
+
+   if (num_params(params) == 3) {
+      // treat as extent, Mode, and State
+      int extent = p ? p->getAsInt() : 0;
+      p = get_param(params, 1);
+      QIcon::Mode mode = !is_nothing(p) ? (QIcon::Mode)p->getAsInt() : QIcon::Normal;
+      p = get_param(params, 2);
+      QIcon::State state = !is_nothing(p) ? (QIcon::State)p->getAsInt() : QIcon::Off;
+      o_qp = new Object(QC_QPixmap, getProgram());
+      QoreQPixmap *q_qp = new QoreQPixmap(qi->pixmap(extent, mode, state));
+      o_qp->setPrivate(CID_QPIXMAP, q_qp);
+   }
+   else {
+      int w = p ? p->getAsInt() : 0;
+      p = get_param(params, 1);
+      int h = p ? p->getAsInt() : 0;
+      p = get_param(params, 2);
+      QIcon::Mode mode = !is_nothing(p) ? (QIcon::Mode)p->getAsInt() : QIcon::Normal;
+      p = get_param(params, 3);
+      QIcon::State state = !is_nothing(p) ? (QIcon::State)p->getAsInt() : QIcon::Off;
+      o_qp = new Object(QC_QPixmap, getProgram());
+      QoreQPixmap *q_qp = new QoreQPixmap(qi->pixmap(w, h, mode, state));
+      o_qp->setPrivate(CID_QPIXMAP, q_qp);
+   }
    return new QoreNode(o_qp);
 }
 
@@ -215,8 +258,8 @@ class QoreClass *initQIconClass()
    QC_QIcon->setConstructor(QICON_constructor);
    QC_QIcon->setCopy((q_copy_t)QICON_copy);
 
-   //QC_QIcon->addMethod("actualSize",                  (q_method_t)QICON_actualSize);
-   //QC_QIcon->addMethod("addFile",                     (q_method_t)QICON_addFile);
+   QC_QIcon->addMethod("actualSize",                  (q_method_t)QICON_actualSize);
+   QC_QIcon->addMethod("addFile",                     (q_method_t)QICON_addFile);
    QC_QIcon->addMethod("addPixmap",                   (q_method_t)QICON_addPixmap);
    QC_QIcon->addMethod("cacheKey",                    (q_method_t)QICON_cacheKey);
    //QC_QIcon->addMethod("data_ptr",                    (q_method_t)QICON_data_ptr);

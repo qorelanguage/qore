@@ -155,6 +155,24 @@ static QoreNode *QSPINBOX_setValue(Object *self, QoreQSpinBox *qsb, QoreNode *pa
    return 0;
 }
 
+//virtual QString textFromValue ( int value ) const
+static QoreNode *QSPINBOX_textFromValue(Object *self, QoreQSpinBox *qsb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int value = p ? p->getAsInt() : 0;
+   return new QoreNode(new QoreString(qsb->qobj->parent_textFromValue(value).toUtf8().data(), QCS_UTF8));
+}
+
+//virtual int valueFromText ( const QString & text ) const
+static QoreNode *QSPINBOX_valueFromText(Object *self, QoreQSpinBox *qsb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString text;
+   if (get_qstring(p, text, xsink))
+      return 0;
+   return new QoreNode((int64)qsb->qobj->parent_valueFromText(text));
+}
+
 QoreClass *initQSpinBoxClass(QoreClass *qwidget)
 {
    QC_QSpinBox = new QoreClass("QSpinBox", QDOM_GUI);
@@ -179,6 +197,10 @@ QoreClass *initQSpinBoxClass(QoreClass *qwidget)
    QC_QSpinBox->addMethod("suffix",                      (q_method_t)QSPINBOX_suffix);
    QC_QSpinBox->addMethod("value",                       (q_method_t)QSPINBOX_value);
    QC_QSpinBox->addMethod("setValue",                    (q_method_t)QSPINBOX_setValue);
+
+   // private methods
+   QC_QSpinBox->addMethod("textFromValue",               (q_method_t)QSPINBOX_textFromValue);
+   QC_QSpinBox->addMethod("valueFromText",               (q_method_t)QSPINBOX_valueFromText);
 
    return QC_QSpinBox;
 }

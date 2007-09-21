@@ -53,6 +53,7 @@ class IconPreviewArea inherits QWidget
 
     setIcon($icon)
     {
+	printf("setIcon() %N\n", $icon);
 	$.icon = $icon;
 	$.updatePixmapLabels();
     }
@@ -102,6 +103,7 @@ class IconPreviewArea inherits QWidget
 	    for (my $j = 0; $j < NumStates; ++$j) {
 		my $state = ($j == 0) ? QIcon::Off : QIcon::On;
 		my $pixmap = $.icon.pixmap($.size, $mode, $state);
+		#printf("updastePixmapLabels() i=%n, j=%n, pixmap=%N (%n)\n", $i, $j, $pixmap, $pixmap.isNull());
 		$.pixmapLabels[$i][$j].setPixmap($pixmap);
 		$.pixmapLabels[$i][$j].setEnabled(!$pixmap.isNull());
 	    }
@@ -113,7 +115,6 @@ class IconSizeSpinBox inherits QSpinBox
 {
     constructor($parent) : QSpinBox($parent)
     {
-	
     }
 
     valueFromText($text)
@@ -155,6 +156,7 @@ class ImageDelegate inherits QItemDelegate
     
     setEditorData($comboBox, $index)
     {
+	printf("setEditorData()\n* comboBox: %N\n* index: %N\n* index.model(): %N\n* index.model().data(%n): %N\n", $comboBox, $index, $index.model(), $index, $index.model().data($index));
 	my $pos = $comboBox.findText($index.model().data($index), Qt::MatchExactly);
 	$comboBox.setCurrentIndex($pos);
     }
@@ -267,7 +269,7 @@ class MainWindow inherits QMainWindow
 
     changeIcon()
     {
-	my $icon;
+	my $icon = new QIcon();
 
 	for (my $row = 0; $row < $.imagesTable.rowCount(); ++$row) {
 	    my $item0 = $.imagesTable.item($row, 0);
@@ -306,40 +308,39 @@ class MainWindow inherits QMainWindow
     addImages()
     {
 	my $fileNames = QFileDialog_getOpenFileNames($self, TR("Open Images"), "", TR("Images (*.png *.xpm *.jpg);;All Files (*)"));
-	if (elements $fileNames) {
-	    foreach my $fileName in ($fileNames) {
-		my $row = $.imagesTable.rowCount();
-		$.imagesTable.setRowCount($row + 1);
-
-		my $imageName = basename($fileName);
-		my $item0 = new QTableWidgetItem($imageName);
-		$item0.setData(Qt::UserRole, $fileName);
-		$item0.setFlags($item0.flags() & ~Qt::ItemIsEditable);
-
-		my $item1 = new QTableWidgetItem(TR("Normal"));
-		my $item2 = new QTableWidgetItem(TR("Off"));
-
-		if ($.guessModeStateAct.isChecked()) {
-		    if ($fileName =~ /_act/) {
-			$item1.setText(TR("Active"));
-		    } else if ($fileName =~ /_dis/) {
-			$item1.setText(TR("Disabled"));
-		    } else if ($fileName =~ /_sel/) {
-			$item1.setText(TR("Selected"));
-		    }
-
-		    if ($fileName =~ /_on/)
-			$item2.setText(TR("On"));
+	printf("fileNames=%N\n", $fileNames);
+	foreach my $fileName in ($fileNames) {
+	    my $row = $.imagesTable.rowCount();
+	    $.imagesTable.setRowCount($row + 1);
+	    
+	    my $imageName = basename($fileName);
+	    my $item0 = new QTableWidgetItem($imageName);
+	    $item0.setData(Qt::UserRole, $fileName);
+	    $item0.setFlags($item0.flags() & ~Qt::ItemIsEditable);
+	    
+	    my $item1 = new QTableWidgetItem(TR("Normal"));
+	    my $item2 = new QTableWidgetItem(TR("Off"));
+	    
+	    if ($.guessModeStateAct.isChecked()) {
+		if ($fileName =~ /_act/) {
+		    $item1.setText(TR("Active"));
+		} else if ($fileName =~ /_dis/) {
+		    $item1.setText(TR("Disabled"));
+		} else if ($fileName =~ /_sel/) {
+		    $item1.setText(TR("Selected"));
 		}
-
-		$.imagesTable.setItem($row, 0, $item0);
-		$.imagesTable.setItem($row, 1, $item1);
-		$.imagesTable.setItem($row, 2, $item2);
-		$.imagesTable.openPersistentEditor($item1);
-		$.imagesTable.openPersistentEditor($item2);
-
-		$item0.setCheckState(Qt::Checked);
+		
+		if ($fileName =~ /_on/)
+		    $item2.setText(TR("On"));
 	    }
+	    
+	    $.imagesTable.setItem($row, 0, $item0);
+	    $.imagesTable.setItem($row, 1, $item1);
+	    $.imagesTable.setItem($row, 2, $item2);
+	    $.imagesTable.openPersistentEditor($item1);
+	    $.imagesTable.openPersistentEditor($item2);
+	    
+	    $item0.setCheckState(Qt::Checked);
 	}
     }
 
@@ -373,11 +374,7 @@ class MainWindow inherits QMainWindow
 	$labels += TR("Mode");
 	$labels += TR("State");
 
-	my $x = $.imagesTable.horizontalHeader();
-	
-	$x.setDefaultSectionSize(90);
-
-	#$.imagesTable.horizontalHeader().setDefaultSectionSize(90);
+	$.imagesTable.horizontalHeader().setDefaultSectionSize(90);
 	$.imagesTable.setColumnCount(3);
 	$.imagesTable.setHorizontalHeaderLabels($labels);
 	$.imagesTable.horizontalHeader().setResizeMode(0, QHeaderView::Stretch);

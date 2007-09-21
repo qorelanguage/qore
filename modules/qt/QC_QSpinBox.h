@@ -40,10 +40,53 @@ class myQSpinBox : public QSpinBox, public QoreQWidgetExtension
 #include "qore-qt-widget-events.h"
 #undef QOREQTYPE
 
+   private:
+      Method *m_textFromValue, *m_valueFromText;
+
+      void qspinbox_init(QoreClass *qc) 
+      {
+	 m_textFromValue = findMethod(qc, "textFromValue");
+	 m_valueFromText = findMethod(qc, "valueFromText");
+      }
+
+   protected:
+
+      virtual QString textFromValue ( int value ) const 
+      {
+	 if (!m_textFromValue)
+	    return QSpinBox::textFromValue(value);
+
+	 List *args = new List();
+	 args->push(new QoreNode((int64)value));
+
+	 return dispatch_event_qstring(qore_obj, m_textFromValue, args);
+      }
+      virtual int valueFromText ( const QString & text ) const
+      {
+	 if (!m_valueFromText)
+	    return QSpinBox::valueFromText(text);
+
+	 List *args = new List();
+	 args->push(new QoreNode(new QoreString(text.toUtf8().data(), QCS_UTF8)));
+
+	 return dispatch_event_int(qore_obj, m_valueFromText, args);
+      }
+
    public:
       DLLLOCAL myQSpinBox(Object *obj, QWidget* parent = 0) : QSpinBox(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
+	 qspinbox_init(obj->getClass());
+      }
+
+      QString parent_textFromValue ( int value ) const 
+      {
+	 return QSpinBox::textFromValue(value);
+      }
+
+      int parent_valueFromText ( const QString & text ) const
+      {
+	 return QSpinBox::valueFromText(text);
       }
 };
 

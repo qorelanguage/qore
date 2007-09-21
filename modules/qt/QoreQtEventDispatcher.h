@@ -24,6 +24,8 @@
 
 #define _QORE_QOREQTEVENTDISPATCHER_H
 
+#include "qore-qt.h"
+
 class QoreQtEventDispatcher {
    protected:
       DLLLOCAL static void dispatch_event(Object *qore_obj, Method *m, QoreClass *qclass, class AbstractPrivateData *data)
@@ -46,6 +48,27 @@ class QoreQtEventDispatcher {
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, qclass, data, &xsink), &xsink);
 	 return *rv ? rv->getAsBool() : false;
+      }
+
+      DLLLOCAL static int dispatch_event_int(Object *qore_obj, Method *m, List *args)
+      {
+	 class ExceptionSink xsink;
+
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, args, &xsink), &xsink);
+	 return *rv ? rv->getAsInt() : false;
+      }
+
+      DLLLOCAL static QString dispatch_event_qstring(Object *qore_obj, Method *m, List *args)
+      {
+	 class ExceptionSink xsink;
+
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, args, &xsink), &xsink);
+	 if (xsink)
+	    return QString();
+
+	 QString str;
+	 get_qstring(*rv, str, &xsink);
+	 return str;
       }
 
       DLLLOCAL static bool dispatch_event_bool(Object *qore_obj, Method *m, List *args)
