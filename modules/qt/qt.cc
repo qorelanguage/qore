@@ -420,6 +420,16 @@ int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, boo
       }
       return 0;
    }
+   if (!suppress_exception) {
+      if (n && n->type == NT_INT) {
+	 str.setNum(n->val.intval);
+	 return 0;
+      }
+      if (n && n->type == NT_FLOAT) {
+	 str.setNum(n->val.floatval);
+	 return 0;
+      }
+   }
 
    class QoreQChar *qc = (n && n->type == NT_OBJECT) ? (QoreQChar *)n->val.object->getReferencedPrivateData(CID_QCHAR, xsink) : 0;
    if (*xsink)

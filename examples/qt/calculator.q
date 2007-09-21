@@ -67,7 +67,7 @@ class Calculator inherits QDialog
 	}
 
 	my $pointButton = $.createButton(TR("."), $digitColor, SLOT("pointClicked()"));
-	my $changeSignButton = $.createButton("\261", $digitColor, SLOT("changeSignClicked()"));
+	my $changeSignButton = $.createButton("±", $digitColor, SLOT("changeSignClicked()"));
 
 	my $backspaceButton = $.createButton(TR("Backspace"), $backspaceColor, SLOT("backspaceClicked()"));
 	my $clearButton = $.createButton(TR("Clear"), $backspaceColor, SLOT("clear()"));
@@ -84,7 +84,7 @@ class Calculator inherits QDialog
 	my $plusButton = $.createButton(TR("+"), $operatorColor, SLOT("additiveOperatorClicked()"));
 
 	my $squareRootButton = $.createButton(TR("Sqrt"), $operatorColor, SLOT("unaryOperatorClicked()"));
-	my $powerButton = $.createButton("x\262", $operatorColor, SLOT("unaryOperatorClicked()"));
+	my $powerButton = $.createButton("x²", $operatorColor, SLOT("unaryOperatorClicked()"));
 	my $reciprocalButton = $.createButton(TR("1/x"), $operatorColor, SLOT("unaryOperatorClicked()"));
 	my $equalButton = $.createButton(TR("="), $operatorColor.light(120), SLOT("equalClicked()"));
 
@@ -357,8 +357,8 @@ class calculator_example inherits QApplication
 {
     constructor() 
     {
-	our $mult = convert_encoding("×", "iso-8859-1");
-	our $div  = convert_encoding("÷", "iso-8859-1");
+	our $mult = "×";
+	our $div  = "÷";
 
 	my $calc = new Calculator();
 	$calc.show();
