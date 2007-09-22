@@ -25,7 +25,7 @@
 #define _QORE_QT_QC_QSCROLLBAR_H
 
 #include <QScrollBar>
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQScrollBar.h"
 #include "qore-qt-events.h"
 
 DLLLOCAL extern int CID_QSCROLLBAR;
@@ -51,7 +51,7 @@ class myQScrollBar : public QScrollBar, public QoreQWidgetExtension
       }
 };
 
-class QoreQScrollBar : public QoreAbstractQWidget
+class QoreQScrollBar : public QoreAbstractQScrollBar
 {
    public:
       QPointer<myQScrollBar> qobj;
@@ -74,7 +74,47 @@ class QoreQScrollBar : public QoreAbstractQWidget
       {
          return static_cast<QPaintDevice *>(&(*qobj));
       }
+      DLLLOCAL virtual class QAbstractSlider *getQAbstractSlider() const
+      {
+         return static_cast<QAbstractSlider *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QScrollBar *getQScrollBar() const
+      {
+         return static_cast<QScrollBar *>(&(*qobj));
+      }
       QORE_VIRTUAL_QWIDGET_METHODS
+};
+
+class QoreQtQScrollBar : public QoreAbstractQScrollBar
+{
+   public:
+      Object *qore_obj;
+      QPointer<QScrollBar> qobj;
+
+      DLLLOCAL QoreQtQScrollBar(Object *obj, QScrollBar *qscrollbar) : qore_obj(obj), qobj(qscrollbar)
+      {
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QWidget *getQWidget() const
+      {
+         return static_cast<QWidget *>(&(*qobj));
+      }
+      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      {
+         return static_cast<QPaintDevice *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QAbstractSlider *getQAbstractSlider() const
+      {
+         return static_cast<QAbstractSlider *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QScrollBar *getQScrollBar() const
+      {
+         return static_cast<QScrollBar *>(&(*qobj));
+      }
+#include "qore-qt-static-qwidget-methods.h"
 };
 
 #endif // _QORE_QT_QC_QSCROLLBAR_H

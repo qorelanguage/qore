@@ -67,8 +67,12 @@ static QoreNode *QABSTRACTSCROLLAREA_cornerWidget(Object *self, QoreAbstractQAbs
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
    Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
-   assert(rv_obj);
-   rv_obj->ref();
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QWidget, getProgram());
+      rv_obj->setPrivate(CID_QWIDGET, new QoreQtQWidget(rv_obj, qt_qobj));
+   }
    return new QoreNode(rv_obj);
 }
 
@@ -80,8 +84,12 @@ static QoreNode *QABSTRACTSCROLLAREA_horizontalScrollBar(Object *self, QoreAbstr
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
    Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
-   assert(rv_obj);
-   rv_obj->ref();
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QScrollBar, getProgram());
+      rv_obj->setPrivate(CID_QSCROLLBAR, new QoreQtQScrollBar(rv_obj, qt_qobj));
+   }
    return new QoreNode(rv_obj);
 }
 
@@ -194,8 +202,12 @@ static QoreNode *QABSTRACTSCROLLAREA_verticalScrollBar(Object *self, QoreAbstrac
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
    Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
-   assert(rv_obj);
-   rv_obj->ref();
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QScrollBar, getProgram());
+      rv_obj->setPrivate(CID_QSCROLLBAR, new QoreQtQScrollBar(rv_obj, qt_qobj));
+   }
    return new QoreNode(rv_obj);
 }
 
@@ -213,8 +225,12 @@ static QoreNode *QABSTRACTSCROLLAREA_viewport(Object *self, QoreAbstractQAbstrac
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
    Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
-   assert(rv_obj);
-   rv_obj->ref();
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QWidget, getProgram());
+      rv_obj->setPrivate(CID_QWIDGET, new QoreQtQWidget(rv_obj, qt_qobj));
+   }
    return new QoreNode(rv_obj);
 }
 
