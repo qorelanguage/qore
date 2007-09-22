@@ -103,12 +103,12 @@ struct qt_arg {
       DLLLOCAL void *set(const QString &str) 
       { 
 	 data.t_QString = new QString(str); 
-	 return reinterpret_cast<void *>(&data.t_QString);
+	 return reinterpret_cast<void *>(data.t_QString);
       }
       DLLLOCAL void *set(QWidget *qw) 
       { 
 	 data.t_QWidget = qw; 
-	 return reinterpret_cast<void *>(&data.t_QWidget);
+	 return reinterpret_cast<void *>(data.t_QWidget);
       }
 };
 
