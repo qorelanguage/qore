@@ -62,7 +62,9 @@ class ImageViewer inherits QMainWindow
     print()
     {
 	#Q_ASSERT($.imageLabel.pixmap());
+	#printf("printer: %N\n", $.printer);
 	my $dialog = new QPrintDialog($.printer, $self);
+	#printf("dialog: %N\n", $dialog);
 	if ($dialog.exec()) {
 	    my $painter = new QPainter($.printer);
 	    my $rect = $painter.viewport();
@@ -185,7 +187,9 @@ class ImageViewer inherits QMainWindow
     {
 	#Q_ASSERT($.imageLabel.pixmap());
 	$.scaleFactor *= $factor;
-	$.imageLabel.resize($.scaleFactor * $.imageLabel.pixmap().size());
+	# note that you can't multiply a QSize object in Qore... :-(
+	#$.imagelabel.resize($.scaleFactor * $.imageLabel.pixmap().size());
+	$.imageLabel.resize($.scaleFactor * $.imageLabel.pixmap().size().width(), $.scaleFactor * $.imageLabel.pixmap().size().height());
 
 	$.adjustScrollBar($.scrollArea.horizontalScrollBar(), $factor);
 	$.adjustScrollBar($.scrollArea.verticalScrollBar(), $factor);
@@ -196,8 +200,8 @@ class ImageViewer inherits QMainWindow
 
     adjustScrollBar($scrollBar, $factor)
     {
-	$.scrollBar.setValue(int($factor * $.scrollBar.value()
-			       + (($factor - 1) * $.scrollBar.pageStep()/2)));
+	$scrollBar.setValue(int($factor * $scrollBar.value()
+			       + (($factor - 1) * $scrollBar.pageStep()/2)));
     }
 }
 

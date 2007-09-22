@@ -52,12 +52,12 @@ static void QPRINTDIALOG_copy(class Object *self, class Object *old, class QoreQ
    xsink->raiseException("QPRINTDIALOG-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-QoreClass *initQPrintDialogClass(QoreClass *qwidget)
+QoreClass *initQPrintDialogClass(QoreClass *qdialog)
 {
    QC_QPrintDialog = new QoreClass("QPrintDialog", QDOM_GUI);
    CID_QPRINTDIALOG = QC_QPrintDialog->getID();
 
-   QC_QPrintDialog->addBuiltinVirtualBaseClass(qwidget);
+   QC_QPrintDialog->addBuiltinVirtualBaseClass(qdialog);
 
    QC_QPrintDialog->setConstructor(QPRINTDIALOG_constructor);
    QC_QPrintDialog->setCopy((q_copy_t)QPRINTDIALOG_copy);

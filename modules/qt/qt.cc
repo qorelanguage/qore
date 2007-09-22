@@ -1436,7 +1436,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQMetaObjectClass());
    qt->addSystemClass(initQMenuBarClass(qwidget));
    qt->addSystemClass(initQPrinterClass(qpaintdevice));
-   qt->addSystemClass(initQPrintDialogClass(qwidget));
+   qt->addSystemClass(initQPrintDialogClass(qdialog));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
