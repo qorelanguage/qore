@@ -87,7 +87,7 @@ static QoreNode *QSTYLE_drawComplexControl(Object *self, QoreAbstractQStyle *qs,
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qs->getQStyle()->drawComplexControl(control, static_cast<QStyleOptionComplex *>(option), painter->qpainter, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qs->getQStyle()->drawComplexControl(control, static_cast<QStyleOptionComplex *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 
@@ -117,7 +117,7 @@ static QoreNode *QSTYLE_drawControl(Object *self, QoreAbstractQStyle *qs, QoreNo
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qs->getQStyle()->drawControl(element, static_cast<QStyleOption *>(option), painter->qpainter, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qs->getQStyle()->drawControl(element, static_cast<QStyleOption *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 
@@ -150,7 +150,7 @@ static QoreNode *QSTYLE_drawItemPixmap(Object *self, QoreAbstractQStyle *qs, Qor
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
-   qs->getQStyle()->drawItemPixmap(painter->qpainter, *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPixmap *>(pixmap)));
+   qs->getQStyle()->drawItemPixmap(painter->getQPainter(), *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPixmap *>(pixmap)));
    return 0;
 }
 
@@ -191,7 +191,7 @@ static QoreNode *QSTYLE_drawItemText(Object *self, QoreAbstractQStyle *qs, QoreN
       return 0;
    p = get_param(params, 6);
    QPalette::ColorRole textRole = !is_nothing(p) ? (QPalette::ColorRole)p->getAsInt() : QPalette::NoRole;
-   qs->getQStyle()->drawItemText(painter->qpainter, *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPalette *>(palette)), enabled, text, textRole);
+   qs->getQStyle()->drawItemText(painter->getQPainter(), *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPalette *>(palette)), enabled, text, textRole);
    return 0;
 }
 
@@ -221,7 +221,7 @@ static QoreNode *QSTYLE_drawPrimitive(Object *self, QoreAbstractQStyle *qs, Qore
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qs->getQStyle()->drawPrimitive(element, static_cast<QStyleOption *>(option), painter->qpainter, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qs->getQStyle()->drawPrimitive(element, static_cast<QStyleOption *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 

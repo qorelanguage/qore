@@ -33,18 +33,35 @@ DLLLOCAL class QoreClass *initQPainterClass();
 
 class QoreQPainter : public AbstractPrivateData
 {
-   public:
+   private:
       QPainter *qpainter;
+      bool managed;
 
-      DLLLOCAL QoreQPainter() : qpainter(new QPainter())
+   public:
+      DLLLOCAL QoreQPainter() : qpainter(new QPainter()), managed(true)
       {
       }
-      DLLLOCAL QoreQPainter(QPaintDevice *device) : qpainter(new QPainter(device))
+      DLLLOCAL ~QoreQPainter()
+      {
+	 if (managed)
+	    delete qpainter;
+      }
+      DLLLOCAL QoreQPainter(QPaintDevice *device) : qpainter(new QPainter(device)), managed(true)
       {
       }
-      DLLLOCAL QoreQPainter(QPainter *qp) : qpainter(qp)
+      DLLLOCAL QoreQPainter(QPainter *qp) : qpainter(qp), managed(false)
       {
       }
+      DLLLOCAL QPainter *getQPainter() const
+      {
+	 return qpainter;
+      }
+/*
+      DLLLOCAL Object *getQoreObject() const
+      {
+	 return qore_obj;
+      }
+*/
 };
 
 

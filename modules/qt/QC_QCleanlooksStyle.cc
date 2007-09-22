@@ -76,7 +76,7 @@ static QoreNode *QCLEANLOOKSSTYLE_drawItemText(Object *self, QoreAbstractQCleanl
       return 0;
    p = get_param(params, 6);
    QPalette::ColorRole textRole = !is_nothing(p) ? (QPalette::ColorRole)p->getAsInt() : QPalette::NoRole;
-   qcs->getQCleanlooksStyle()->drawItemText(painter->qpainter, *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPalette *>(palette)), enabled, text, textRole);
+   qcs->getQCleanlooksStyle()->drawItemText(painter->getQPainter(), *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPalette *>(palette)), enabled, text, textRole);
    return 0;
 }
 

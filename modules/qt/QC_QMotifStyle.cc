@@ -82,7 +82,7 @@ static QoreNode *QMOTIFSTYLE_drawComplexControl(Object *self, QoreAbstractQMotif
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qms->getQMotifStyle()->drawComplexControl(control, static_cast<QStyleOptionComplex *>(option), painter->qpainter, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qms->getQMotifStyle()->drawComplexControl(control, static_cast<QStyleOptionComplex *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 
@@ -112,7 +112,7 @@ static QoreNode *QMOTIFSTYLE_drawControl(Object *self, QoreAbstractQMotifStyle *
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qms->getQMotifStyle()->drawControl(element, static_cast<QStyleOption *>(option), painter->qpainter, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qms->getQMotifStyle()->drawControl(element, static_cast<QStyleOption *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 
@@ -142,7 +142,7 @@ static QoreNode *QMOTIFSTYLE_drawPrimitive(Object *self, QoreAbstractQMotifStyle
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qms->getQMotifStyle()->drawPrimitive(element, static_cast<QStyleOption *>(option), painter->qpainter, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qms->getQMotifStyle()->drawPrimitive(element, static_cast<QStyleOption *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 

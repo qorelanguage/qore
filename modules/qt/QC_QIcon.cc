@@ -177,7 +177,7 @@ static QoreNode *QICON_paint(Object *self, QoreQIcon *qi, QoreNode *params, Exce
       QIcon::Mode mode = (QIcon::Mode)(p ? p->getAsInt() : 0);
       p = get_param(params, 4);
       QIcon::State state = (QIcon::State)(p ? p->getAsInt() : 0);
-      qi->paint(painter->qpainter, *rect, alignment, mode, state);
+      qi->paint(painter->getQPainter(), *rect, alignment, mode, state);
       return 0;
    }
    int x = p ? p->getAsInt() : 0;
@@ -193,7 +193,7 @@ static QoreNode *QICON_paint(Object *self, QoreQIcon *qi, QoreNode *params, Exce
    QIcon::Mode mode = (QIcon::Mode)(p ? p->getAsInt() : 0);
    p = get_param(params, 7);
    QIcon::State state = (QIcon::State)(p ? p->getAsInt() : 0);
-   qi->paint(painter->qpainter, x, y, w, h, alignment, mode, state);
+   qi->paint(painter->getQPainter(), x, y, w, h, alignment, mode, state);
    return 0;
 }
 
