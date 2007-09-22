@@ -84,6 +84,10 @@ class QoreQtQMacStyle : public QoreAbstractQWindowsStyle
       {
          return static_cast<QWindowsStyle *>(&(*qobj));
       }
+      DLLLOCAL virtual class QStyle *getQStyle() const
+      {
+         return static_cast<QStyle *>(&(*qobj));
+      }
 
 #include "qore-qt-static-qstyle-methods.h"
 };

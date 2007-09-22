@@ -541,7 +541,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
 #endif
 
 #ifdef DARWIN
-   QMacStyle *qms = dyamic_cast<QMacStyle *>(qs);
+   QMacStyle *qms = dynamic_cast<QMacStyle *>(qs);
    if (qms) {
       qc = QC_QMacStyle;
       obj = new Object(qc, getProgram());
