@@ -153,6 +153,8 @@
 #include "QC_QMenuBar.h"
 #include "QC_QPrinter.h"
 #include "QC_QPrintDialog.h"
+#include "QC_QRegExp.h"
+#include "QC_QValidator.h"
 
 #include "qore-qt-events.h"
 
@@ -644,8 +646,8 @@ class QoreNode *return_qvariant(const QVariant &qv)
          return return_object(QC_QRect, new QoreQRect(qv.value<QRect>()));
       case QVariant::RectF:
          return return_object(QC_QRectF, new QoreQRectF(qv.value<QRectF>()));
-      //case QVariant::RegExp:
-         //return return_object(QC_QRegExp, new QoreQRegExp(qv.value<QRegExp>()));
+      case QVariant::RegExp:
+         return return_object(QC_QRegExp, new QoreQRegExp(qv.value<QRegExp>()));
       case QVariant::Region:
          return return_object(QC_QRegion, new QoreQRegion(qv.value<QRegion>()));
       case QVariant::Size:
@@ -1437,6 +1439,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQMenuBarClass(qwidget));
    qt->addSystemClass(initQPrinterClass(qpaintdevice));
    qt->addSystemClass(initQPrintDialogClass(qdialog));
+   qt->addSystemClass(initQRegExpClass());
+   qt->addSystemClass(initQValidatorClass());
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");

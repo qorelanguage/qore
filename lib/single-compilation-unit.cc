@@ -88,6 +88,7 @@
 #include "ParseOptionMap.cc"
 #include "Environment.cc"
 #include "QoreCounter.cc"
+#include "LVarInstantiatorHelper.cc"
 #include "QT_NOTHING.cc"
 #include "QT_bigint.cc"
 #include "QT_float.cc"

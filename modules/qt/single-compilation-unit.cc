@@ -148,3 +148,5 @@
 #include "QC_QMenuBar.cc"
 #include "QC_QPrinter.cc"
 #include "QC_QPrintDialog.cc"
+#include "QC_QRegExp.cc"
+#include "QC_QValidator.cc"

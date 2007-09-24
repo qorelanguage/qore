@@ -76,6 +76,7 @@ libqore_la_SOURCES = \
 	DatasourcePool.cc \
 	ManagedDatasource.cc \
 	StringList.cc \
+	LVarInstantiatorHelper.cc \
 	ConstantList.cc \
 	QoreClassList.cc \
 	ThreadResourceList.cc \

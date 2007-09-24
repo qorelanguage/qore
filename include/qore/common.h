@@ -139,7 +139,7 @@ typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 typedef std::set<char *, ltstr> strset_t;
 
 typedef long long int64;
-typedef char *lvh_t;
+typedef const char *lvh_t;
 
 typedef class QoreNode *(*q_func_t)(class QoreNode *, class ExceptionSink *);
 typedef class QoreNode *(*q_method_t)(class Object *, void *, class QoreNode *, class ExceptionSink *);

@@ -52,7 +52,7 @@ const const_class_list =
       "QTextImageFormat", "QTextListFormat", "QTextTableFormat", "QTextLength", 
       "QPen", "QModelIndex", "QStyleOptionViewItem", 
       "QStyleOptionViewItemV2", "QLocale", "QUrl", "QByteArray", "QVariant", 
-      "QRect", "QRectF", "QFontInfo", "QFontMetrics", "QDir"
+      "QRect", "QRectF", "QFontInfo", "QFontMetrics", "QDir", "QRegEx"
     );
 
 const class_list = ( "QRegion",
@@ -1399,17 +1399,17 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 	    
 	  default: {
 	      if ($arg.is_int) {
-		  if (exists $arg.def) {
-		      $lo += sprintf("%s %s = !is_nothing(p) ? (%s)p->getAsInt() : %s;", $arg.type, $arg.name, $arg.type, $arg.def);
+		  # add class prefix to enum if not already present
+		  my $tn = $arg.type;
+		  my $def = $arg.def;
+		  if ($tn !~ /::/)  {
+		      $tn = $cn + "::" + $tn;
+		      $def = $cn + "::" + $def;
 		  }
+		  if (exists $arg.def)
+		      $lo += sprintf("%s %s = !is_nothing(p) ? (%s)p->getAsInt() : %s;", $tn, $arg.name, $tn, $def);
 		  else
-		  {
-		      # add class prefix to enum if not already present
-		      my $tn = $arg.type;
-		      if ($tn !~ /::/) 
-			  $tn = $cn + "::" + $tn;
 		      $lo += sprintf("%s %s = (%s)(p ? p->getAsInt() : 0);", $tn, $arg.name, $tn);
-		  }
 	      }
 	      else {
 		  #printf("DEBUG err arg type=%n (%n)\n", $inst.args[$i].type, $inst.args[$i]);

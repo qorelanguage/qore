@@ -12,6 +12,7 @@ INCLUDES = -I$(top_srcdir)/include
 noinst_HEADERS = \
 	include/qore/ObjectMethodReference.h \
 	include/qore/FunctionReference.h \
+	include/qore/LVarInstantiatorHelper.h \
 	include/qore/AutoNamespaceList.h \
 	include/qore/types/Number.h \
 	include/qore/Context.h \
@@ -407,6 +408,9 @@ noinst_HEADERS = \
 	modules/qt/QC_QPrinter.h \
 	modules/qt/QC_QPrintDialog.h \
 	modules/qt/QoreAbstractQPrintDialog.h \
+	modules/qt/QC_QRegExp.h \
+	modules/qt/QC_QValidator.h \
+	modules/qt/QoreQValidatorExtension.h \
 	command-line.h \
 	include/qore/Qore.h
 
