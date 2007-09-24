@@ -1,3 +1,7 @@
+2007.09.24: David Nichols
+        * fixed a stupid memory bug in QoreString when instantiating from a
+          boolean argument
+
 2007.08.28: David Nichols
         * implemented decode_url() to decode URL escape encodings (backported
 	  from trunk/0.7.0 branch)
