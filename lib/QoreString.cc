@@ -216,6 +216,7 @@ QoreString::QoreString(bool b)
    buf = (char *)malloc(sizeof(char) * allocated);
    buf[0] = b ? '1' : '0';
    buf[1] = 0;
+   len = 1;
    charset = QCS_DEFAULT;
 }
 
