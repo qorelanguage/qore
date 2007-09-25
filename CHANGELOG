@@ -1,3 +1,6 @@
+2007.09.25: David Nichols
+	* fixed a memory bug in QoreString::parseBase64ToString()
+
 2007.09.24: David Nichols
 	* fixed a stupid memory bug in QoreString when instantiating from a
 	  boolean argument
