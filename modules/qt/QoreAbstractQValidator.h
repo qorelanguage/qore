@@ -1,5 +1,5 @@
 /*
- QoreQValidatorExtension.h
+ QoreAbstractQValidator.h
  
  Qore Programming Language
  
@@ -20,34 +20,39 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QOREQVALIDATOREXTENSION_H
+#ifndef _QORE_QT_QOREABSTRACTQVALIDATOR_H
 
-#define _QORE_QOREQVALIDATOREXTENSION_H
+#define _QORE_QT_QOREABSTRACTQVALIDATOR_H
+
+#include "QoreAbstractQObject.h"
+#include "QoreQtEventDispatcher.h"
 
 #include <qore/LVarInstantiatorHelper.h>
 
-#include "QoreQtEventDispatcher.h"
-
-#define FIXUP_STR "fixup"
-#define VALIDATE_STR "validate"
+class QoreAbstractQValidator : public QoreAbstractQObject
+{
+   public:
+      DLLLOCAL virtual class QValidator *getQValidator() const = 0;
+      DLLLOCAL virtual void fixup(QString &input) const = 0;
+      DLLLOCAL virtual QValidator::State validate(QString &intput, int &pos) const = 0;
+};
 
 class QoreQValidatorExtension : public QoreQtEventDispatcher
 {
    protected:
-      static char fixup_str[];
-      static char validate_str[];
-
       // event methods
       Method *m_fixup, *m_validate;
-      Object *qore_obj;
 
    public:
-      DLLLOCAL QoreQValidatorExtension(Object *qobj) : qore_obj(qobj)
+      DLLLOCAL QoreQValidatorExtension(QoreClass *qc)
       {
-	 QoreClass *qc = qobj->getClass();
          m_fixup        = findMethod(qc, "fixup");
          m_validate     = findMethod(qc, "validate");
       }
 };
 
-#endif
+#define QORE_VIRTUAL_QVALIDATOR_METHODS QORE_VIRTUAL_QOBJECT_METHODS \
+   DLLLOCAL virtual void fixup(QString & input) const { qobj->fixup_parent(input); } \
+   DLLLOCAL virtual QValidator::State validate(QString & input, int & pos) const {return qobj->validate_parent(input, pos); }
+
+#endif  // _QORE_QT_QOREABSTRACTQVALIDATOR_H

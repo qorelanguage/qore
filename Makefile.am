@@ -272,6 +272,7 @@ noinst_HEADERS = \
 	modules/qt/qore-qt-static-qwidget-methods.h \
 	modules/qt/qore-qt-static-qstyle-methods.h \
 	modules/qt/qore-qt-static-qabstractitemmodel-methods.h \
+	modules/qt/qore-qt-static-qvalidator-methods.h \
 	modules/qt/QC_QBrush.h \
 	modules/qt/QC_QColor.h \
 	modules/qt/QC_QPaintDevice.h \
@@ -410,7 +411,9 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQPrintDialog.h \
 	modules/qt/QC_QRegExp.h \
 	modules/qt/QC_QValidator.h \
-	modules/qt/QoreQValidatorExtension.h \
+	modules/qt/QC_QDoubleValidator.h \
+	modules/qt/QC_QIntValidator.h \
+	modules/qt/QC_QRegExpValidator.h \
 	command-line.h \
 	include/qore/Qore.h
 

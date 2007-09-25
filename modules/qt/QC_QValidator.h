@@ -24,26 +24,67 @@
 
 #define _QORE_QT_QC_QVALIDATOR_H
 
-#include "QoreQValidatorExtension.h"
-
 #include <QValidator>
+#include "QoreAbstractQValidator.h"
+#include "qore-qt-events.h"
 
 DLLLOCAL extern int CID_QVALIDATOR;
 DLLLOCAL extern class QoreClass *QC_QValidator;
 
-DLLLOCAL class QoreClass *initQValidatorClass();
+DLLLOCAL class QoreClass *initQValidatorClass(QoreClass *);
 
-class QoreQValidator : public AbstractPrivateData, public QoreQValidatorExtension, public QValidator
+class myQValidator : public QValidator, public QoreQValidatorExtension
 {
-   public:
-      DLLLOCAL QoreQValidator(Object *obj, QObject* parent) : QoreQValidatorExtension(obj), QValidator(parent)
-      {
-      }
-
 #define QOREQTYPE QValidator
+#include "qore-qt-metacode.h"
 #include "qore-qt-qvalidator-methods.h"
 #undef QOREQTYPE
 
+   public:
+      DLLLOCAL myQValidator(Object *obj, QObject* parent) : QValidator(parent), QoreQValidatorExtension(obj->getClass())
+      {
+         init(obj);
+      }
+};
+
+class QoreQValidator : public QoreAbstractQValidator
+{
+   public:
+      QPointer<myQValidator> qobj;
+
+      DLLLOCAL QoreQValidator(Object *obj, QObject* parent) : qobj(new myQValidator(obj, parent))
+      {
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QValidator *getQValidator() const 
+      { 
+	 return static_cast<QValidator *>(&(*qobj)); 
+      }
+
+      QORE_VIRTUAL_QVALIDATOR_METHODS
+};
+
+class QoreQtQValidator : public QoreAbstractQValidator
+{
+   public:
+      Object *qore_obj;
+      QPointer<QValidator> qobj;
+
+      DLLLOCAL QoreQtQValidator(Object *obj, QValidator *qv) : qore_obj(obj), qobj(qv)
+      {
+      }
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return static_cast<QObject *>(&(*qobj));
+      }
+      DLLLOCAL virtual class QValidator *getQValidator() const 
+      { 
+	 return static_cast<QValidator *>(&(*qobj)); 
+      }
+#include "qore-qt-static-qvalidator-methods.h"
 };
 
 #endif // _QORE_QT_QC_QVALIDATOR_H

@@ -12,6 +12,7 @@ const opts = (
     "parent"          : "p,parent=s",
     "widget"          : "w,widget",
     "style"           : "s,style",
+    "validator"       : "v,validator",
     "qt"              : "q,qt-class",
     "static"          : "S,static",
     "test"            : "t,test",
@@ -36,13 +37,13 @@ const qobject_list =
       "QAbstractButton", "QLineEdit", "QScrollBar", "QMimeData",
       "QApplication", "QStyle", "QAbstractItemModel", "ToolButton", "QMessageBox",
       "QCheckBox", "QRadioButton", "QPushButton", "QMenuBar",
-      "QPrintDialog",
+      "QPrintDialog", "QValidator"
  );
 
 const abstract_class_list = 
     ( "QObject", "QWidget", "QAbstractItemDelegate", "QItemDelegate", 
       "QItemModel", "QLayout", "QStyle", "QHeaderView", "QMenuBar",
-      "QAction");
+      "QAction", "QValidator");
 
 const const_class_list = 
     ( "QPalette", "QMovie", "QPixmap", "QPicture", "QImage", "QPoint", "QPointF", 
@@ -52,7 +53,7 @@ const const_class_list =
       "QTextImageFormat", "QTextListFormat", "QTextTableFormat", "QTextLength", 
       "QPen", "QModelIndex", "QStyleOptionViewItem", 
       "QStyleOptionViewItemV2", "QLocale", "QUrl", "QByteArray", "QVariant", 
-      "QRect", "QRectF", "QFontInfo", "QFontMetrics", "QDir", "QRegEx"
+      "QRect", "QRectF", "QFontInfo", "QFontMetrics", "QDir", "QRegExp"
     );
 
 const class_list = ( "QRegion",
@@ -156,6 +157,11 @@ sub command_line()
 
     if ($o.indep && $o.style) {
 	stderr.printf("cannot be independent and a QStyle at the same time\n");
+	exit(1);
+    }
+
+    if ($o.indep && $o.validator) {
+	stderr.printf("cannot be independent and a QValidator at the same time\n");
 	exit(1);
     }
 
@@ -453,7 +459,7 @@ sub do_abstract($of, $proto, $qt)
       }
 ");
     if ($o.widget)
-	$of.printf("      DLLLOCAL virtual class QWidget *getQWidget() const
+      $of.printf("      DLLLOCAL virtual class QWidget *getQWidget() const
       {
          return static_cast<QWidget *>(&(*qobj));
       }
@@ -484,7 +490,7 @@ sub do_abstract($of, $proto, $qt)
 ", $ac, $ac, $ac);
 
     if (!$qt)
-	$of.printf("      QORE_VIRTUAL_Q%s_METHODS\n", $o.widget ? "WIDGET" : ($o.style ? "STYLE" : "OBJECT"));
+	$of.printf("      QORE_VIRTUAL_Q%s_METHODS\n", $o.widget ? "WIDGET" : ($o.style ? "STYLE" : ($o.validator ? "VALIDATOR" : "OBJECT")));
     else
 	$of.printf("#include \"qore-qt-static-q%s-methods.h\"\n", $o.widget ? "widget" : ($o.style ? "style" : "object"));
     $of.printf("};\n");
@@ -545,9 +551,8 @@ sub main()
 	trim $args;
 	foreach my $arg in (\$args)
 	{
-	    #printf("arg=%n\n", $arg);
-	    my $is_const = $arg =~ /const /;
-	    $arg =~ s/const //;
+	    my $is_const = ($arg =~ /const[ ^]/ && $arg !~ /\*/);
+	    $arg =~ s/const[ ^]//;
 
 	    my ($ra, $def) = $arg =~ x/(.*)=(.*)/;
 	    if (exists $def) {
@@ -576,7 +581,8 @@ sub main()
 		$type =~ s/&//;
 		$ref = True;
 	    }
-	    $arg = ( "type" : $type, "name" : $pname, "def" : $def, "ref" : $ref, "const" : $is_const );
+	    $arg = ( "type" : $type, "name" : $pname, "def" : $def, "ref" : $ref, "is_const" : $is_const );
+
 	    my $typename = $type;
 	    $typename =~ s/\*//g;
 	    $typename =~ s/&//g;
@@ -740,7 +746,8 @@ DLLLOCAL class QoreClass *init%sClass(%s);
 	}
 	else # abstract/dependent class
 	{
-	    $of.printf("class my%s : public %s%s\n", $cn, $cn, $o.widget ? ", public QoreQWidgetExtension" : "");
+	    $of.printf("class my%s : public %s%s\n", $cn, $cn, $o.widget ? ", public QoreQWidgetExtension" 
+		       : ($o.validator ? ", public QoreQValidatorExtension" : ""));
             $of.printf("{\n");
             if ($o.style)
                 $of.printf("      friend class Qore%s;\n\n", $cn);
@@ -749,7 +756,8 @@ DLLLOCAL class QoreClass *init%sClass(%s);
 %s#undef QOREQTYPE
 
    public:
-", $cn, $o.widget ? "#include \"qore-qt-widget-events.h\"\n" : "");
+", $cn, $o.widget ? "#include \"qore-qt-widget-events.h\"\n" : 
+		       $o.validator ? "#include \"qore-qt-qvalidator-methods.h\"\n" : "");
 	    
 	    if (exists $proto.$cn) {
 		foreach my $i in ($proto.$cn.inst) {
@@ -762,7 +770,8 @@ DLLLOCAL class QoreClass *init%sClass(%s);
 		    if (strlen($i.orig_args))
 			$str += ", " + $i.orig_args;
 		    $of.printf("      DLLLOCAL my%s(%s) : %s(%s)%s\n      {\n", $cn, $str, $cn, $arg_names,
-			$o.widget ? ", QoreQWidgetExtension(obj->getClass())" : "");
+			$o.widget ? ", QoreQWidgetExtension(obj->getClass())" 
+			       : $o.validator ? ", QoreQValidatorExtension(obj->getClass())" : "");
 		    $of.printf("         init(obj);\n");
 		    $of.printf("      }\n"); 
 		}
@@ -876,9 +885,12 @@ class QoreClass *QC_%s = 0;
     }
 
     foreach my $p in (keys $proto) {
+	if (!$proto.$p.ok)
+            $of.printf("/*\n");
 	foreach my $line in ($proto.$p.code)
-	    $of.printf("%s%s\n", $proto.$p.ok ? "" : "//", $line);
-	
+	    $of.printf("%s\n", $line);
+	if (!$proto.$p.ok)
+            $of.printf("*/\n");
 	$of.printf("\n");
 
 	if ($p == $cn) {

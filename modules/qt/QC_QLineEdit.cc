@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include "QC_QLineEdit.h"
+#include "QC_QValidator.h"
 
 int CID_QLINEEDIT;
 class QoreClass *QC_QLineEdit = 0;
@@ -395,14 +396,20 @@ static QoreNode *QLINEEDIT_setSelection(Object *self, QoreQLineEdit *qle, QoreNo
    return 0;
 }
 
-////void setValidator ( const QValidator * v )
-//static QoreNode *QLINEEDIT_setValidator(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QValidator* v = p;
-//   qle->qobj->setValidator(v);
-//   return 0;
-//}
+//void setValidator ( const QValidator * v )
+static QoreNode *QLINEEDIT_setValidator(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQValidator *v = (p && p->type == NT_OBJECT) ? (QoreQValidator *)p->val.object->getReferencedPrivateData(CID_QVALIDATOR, xsink) : 0;
+   if (!v) {
+      if (!xsink->isException())
+         xsink->raiseException("QLINEEDIT-SETVALIDATOR-PARAM-ERROR", "expecting a QValidator object as first argument to QLineEdit::setValidator()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> vHolder(static_cast<AbstractPrivateData *>(v), xsink);
+   qle->qobj->setValidator(static_cast<QValidator *>(v->getQValidator()));
+   return 0;
+}
 
 //virtual QSize sizeHint () const
 static QoreNode *QLINEEDIT_sizeHint(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
@@ -419,11 +426,23 @@ static QoreNode *QLINEEDIT_text(Object *self, QoreQLineEdit *qle, QoreNode *para
    return new QoreNode(new QoreString(qle->qobj->text().toUtf8().data(), QCS_UTF8));
 }
 
-////const QValidator * validator () const
-//static QoreNode *QLINEEDIT_validator(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return qle->qobj->validator();
-//}
+//const QValidator * validator () const
+static QoreNode *QLINEEDIT_validator(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+{
+   const QValidator *qt_qobj = qle->qobj->validator();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QValidator, getProgram());
+      QoreQtQValidator *t_qobj = new QoreQtQValidator(rv_obj, const_cast<QValidator *>(qt_qobj));
+      rv_obj->setPrivate(CID_QVALIDATOR, t_qobj);
+   }
+   return new QoreNode(rv_obj);
+}
 
 static QoreNode *QLINEEDIT_clear(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
 {
@@ -537,10 +556,10 @@ QoreClass *initQLineEditClass(QoreClass *qwidget)
    QC_QLineEdit->addMethod("setModified",                 (q_method_t)QLINEEDIT_setModified);
    QC_QLineEdit->addMethod("setReadOnly",                 (q_method_t)QLINEEDIT_setReadOnly);
    QC_QLineEdit->addMethod("setSelection",                (q_method_t)QLINEEDIT_setSelection);
-   //QC_QLineEdit->addMethod("setValidator",                (q_method_t)QLINEEDIT_setValidator);
+   QC_QLineEdit->addMethod("setValidator",                (q_method_t)QLINEEDIT_setValidator);
    QC_QLineEdit->addMethod("sizeHint",                    (q_method_t)QLINEEDIT_sizeHint);
    QC_QLineEdit->addMethod("text",                        (q_method_t)QLINEEDIT_text);
-   //QC_QLineEdit->addMethod("validator",                   (q_method_t)QLINEEDIT_validator);
+   QC_QLineEdit->addMethod("validator",                   (q_method_t)QLINEEDIT_validator);
 
    QC_QLineEdit->addMethod("clear",                       (q_method_t)QLINEEDIT_clear);
    QC_QLineEdit->addMethod("qt_copy",                     (q_method_t)QLINEEDIT_copy);

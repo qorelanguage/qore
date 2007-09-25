@@ -150,3 +150,6 @@
 #include "QC_QPrintDialog.cc"
 #include "QC_QRegExp.cc"
 #include "QC_QValidator.cc"
+#include "QC_QDoubleValidator.cc"
+#include "QC_QIntValidator.cc"
+#include "QC_QRegExpValidator.cc"

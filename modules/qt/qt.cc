@@ -155,6 +155,9 @@
 #include "QC_QPrintDialog.h"
 #include "QC_QRegExp.h"
 #include "QC_QValidator.h"
+#include "QC_QDoubleValidator.h"
+#include "QC_QIntValidator.h"
+#include "QC_QRegExpValidator.h"
 
 #include "qore-qt-events.h"
 
@@ -1252,7 +1255,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
       *qstyleoption, *qstyleoptionviewitem, *qabstractitemdelegate,
       *qabstractspinbox, *qdatetimeedit, *qabstractscrollarea, *qdropevent, 
       *qdragmoveevent, *qcombobox, *qstyleoptioncomplex, *qstyle, *qmotifstyle,
-      *qwindowsstyle, *qabstractitemview, *qtableview, *qdialog;
+      *qwindowsstyle, *qabstractitemview, *qtableview, *qdialog, *qvalidator;
 
    Namespace *qstyle_ns = new Namespace("QStyle");
 
@@ -1371,7 +1374,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQMenuClass(qwidget));
    qt->addSystemClass(initQToolButtonClass(qabstractbutton));
    qt->addSystemClass((qdialog = initQDialogClass(qwidget)));
-   qt->addSystemClass(initQLineEditClass(qwidget));
    qt->addSystemClass(initQTextLengthClass());
    qt->addSystemClass((qtextformat = initQTextFormatClass()));
    qt->addSystemClass(initQTextBlockFormatClass(qtextformat));
@@ -1440,7 +1442,10 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQPrinterClass(qpaintdevice));
    qt->addSystemClass(initQPrintDialogClass(qdialog));
    qt->addSystemClass(initQRegExpClass());
-   qt->addSystemClass(initQValidatorClass());
+   qt->addSystemClass((qvalidator = initQValidatorClass(qobject)));
+   qt->addSystemClass(initQDoubleValidatorClass(qvalidator));
+   qt->addSystemClass(initQIntValidatorClass(qvalidator));
+   qt->addSystemClass(initQRegExpValidatorClass(qvalidator));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -1452,6 +1457,18 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qbl->addConstant("BottomToTop",    new QoreNode((int64)QBoxLayout::BottomToTop));
 
    qt->addInitialNamespace(qbl);
+
+   Namespace *qlineedit = new Namespace("QLineEdit");
+
+   // EchoMode enum
+   qlineedit->addConstant("Normal",                   new QoreNode((int64)QLineEdit::Normal));
+   qlineedit->addConstant("NoEcho",                   new QoreNode((int64)QLineEdit::NoEcho));
+   qlineedit->addConstant("Password",                 new QoreNode((int64)QLineEdit::Password));
+   qlineedit->addConstant("PasswordEchoOnEdit",       new QoreNode((int64)QLineEdit::PasswordEchoOnEdit));
+
+   qlineedit->addSystemClass(initQLineEditClass(qwidget));
+
+   qt->addInitialNamespace(qlineedit);
 
    Namespace *qabstractitemview_ns = new Namespace("QAbstractItemView");
    

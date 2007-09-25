@@ -4,7 +4,7 @@ class T {
 #endif
 
    public:
-      virtual void fixup ( QString & input ) const
+      DLLLOCAL virtual void fixup ( QString & input ) const
       {
 	 if (!m_fixup) {
 	    QOREQTYPE::fixup(input);
@@ -27,11 +27,11 @@ class T {
 
 	 discard(na, &xsink);
       }
-      virtual void fixup_parent ( QString & input ) const
+      DLLLOCAL virtual void fixup_parent ( QString & input ) const
       {
 	 QOREQTYPE::fixup(input);
       }
-      virtual State validate ( QString & input, int & pos ) const
+      DLLLOCAL virtual State validate ( QString & input, int & pos ) const
       {
 	 if (!m_validate)
 	    return validate_parent(input, pos);
@@ -60,12 +60,12 @@ class T {
 	 return state;
       }
 #if QOREQTYPE == QValidator
-      virtual State validate_parent ( QString & input, int & pos ) const
+      DLLLOCAL virtual State validate_parent ( QString & input, int & pos ) const
       {
 	 return QValidator::Invalid;
       }
 #else
-      virtual State validate_parent ( QString & input, int & pos ) const
+      DLLLOCAL virtual State validate_parent ( QString & input, int & pos ) const
       {
 	 return QOREQTYPE::validate(input, pos);
       }

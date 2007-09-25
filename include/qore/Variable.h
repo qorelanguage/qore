@@ -137,7 +137,6 @@ class VarRef {
       DLLLOCAL class QoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
 };
 
-DLLLOCAL class QoreNode **get_var_value_ptr(class QoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *getNoEvalVarValue(class QoreNode *n, class AutoVLock *vl, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *getExistingVarValue(class QoreNode *n, class ExceptionSink *xsink, class AutoVLock *vl, class QoreNode **pt);
 DLLLOCAL void delete_var_node(class QoreNode *node, class ExceptionSink *xsink);
@@ -148,5 +147,7 @@ DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
 DLLLOCAL class LVar *find_lvar(lvh_t id);
 
 DLLLOCAL extern class Hash *ENV;
+
+DLLEXPORT class QoreNode **get_var_value_ptr(class QoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
 
 #endif // _QORE_VARIABLE_H
