@@ -1412,7 +1412,7 @@ class QoreString *QoreString::parseBase64ToString(class ExceptionSink *xsink) co
    str->buf = (char *)b->giveBuffer();
    delete b;
    // check for null termination
-   if (str->buf[len])
+   if (str->buf[str->len])
    {
       ++str->len;
       str->buf = (char *)realloc(str->buf, str->len + 1);

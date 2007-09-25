@@ -44,22 +44,22 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
    s->sprintf("node=%08p refs=%d type=%s ", n, n->reference_count(), n->type->getName());
    
    if (n->type == NT_BOOLEAN)
-      s->sprintf("val=%s\n", n->val.boolval ? "True" : "False");
+      s->sprintf("val=%s", n->val.boolval ? "True" : "False");
    
    else if (n->type == NT_INT)
-      s->sprintf("val=%lld\n", n->val.intval);
+      s->sprintf("val=%lld", n->val.intval);
    
    else if (n->type == NT_NOTHING)
-      s->sprintf("val=NOTHING\n");
+      s->sprintf("val=NOTHING");
    
    else if (n->type == NT_NULL)
-      s->sprintf("val=SQL NULL\n");
+      s->sprintf("val=SQL NULL");
    
    else if (n->type == NT_FLOAT)
-      s->sprintf("val=%f\n", n->val.floatval);
+      s->sprintf("val=%f", n->val.floatval);
    
    else if (n->type == NT_STRING)
-      s->sprintf("val=(enc=%s, %d:%d) \"%s\"\n", 
+      s->sprintf("val=(enc=%s, %d:%d) \"%s\"", 
                  n->val.String->getEncoding()->getCode(),
                  n->val.String->length(),
                  n->val.String->strlen(),
@@ -68,11 +68,14 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
    else if (n->type ==  NT_LIST)
    {
       s->sprintf("elements=%d\n", n->val.list->size());
-      for (int i = 0; i < n->val.list->size(); i++)
-      {
+      ListIterator li(n->val.list);
+      int i = 0;
+      while (li.next()) {
          strindent(s, indent);
-         s->sprintf("list element %d/%d: ", i, n->val.list->size());
-         dni(s, n->val.list->retrieve_entry(i), indent + 3, xsink);
+         s->sprintf("list element %d/%d: ", i++, n->val.list->size());
+         dni(s, li.getValue(), indent + 3, xsink);
+	 if (!li.last())
+	    s->concat('\n');
       }
    }
    
@@ -92,6 +95,8 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
                QoreNode *nn;
                dni(s, nn = n->val.object->evalMemberNoMethod(l->retrieve_entry(i)->val.String->getBuffer(), xsink), indent + 3, xsink);
                discard(nn, xsink);
+	       if (i != (l->size() - 1))
+		  s->concat('\n');
             }
             l->derefAndDelete(xsink);
          }
@@ -109,12 +114,14 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
             strindent(s, indent);
             s->sprintf("key %d/%d \"%s\" = ", i++, n->val.hash->size(), hi.getKey());
             dni(s, hi.getValue(), indent + 3, xsink);
+	    if (!hi.last())
+	       s->concat('\n');
          }
       }
    }
    
    else if (n->type == NT_DATE)
-      s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%03d (rel=%s)\n", 
+      s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%03d (rel=%s)", 
                  n->val.date_time->getYear(),
                  n->val.date_time->getMonth(),
                  n->val.date_time->getDay(),
@@ -124,9 +131,9 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
                  n->val.date_time->getMillisecond(),
                  n->val.date_time->isRelative() ? "True" : "False");
    else if (n->type == NT_BINARY)
-      s->sprintf("ptr=%08p len=%d\n", n->val.bin->getPtr(), n->val.bin->size());
+      s->sprintf("ptr=%08p len=%d", n->val.bin->getPtr(), n->val.bin->size());
    else
-      s->sprintf("don't know how to print value :-(\n");
+      s->sprintf("don't know how to print type '%s' :-(", n->type->getName());
    
    //printd(5, "D\n");
    traceout("dni()");
