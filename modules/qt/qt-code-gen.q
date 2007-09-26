@@ -53,7 +53,8 @@ const const_class_list =
       "QTextImageFormat", "QTextListFormat", "QTextTableFormat", "QTextLength", 
       "QPen", "QModelIndex", "QStyleOptionViewItem", 
       "QStyleOptionViewItemV2", "QLocale", "QUrl", "QByteArray", "QVariant", 
-      "QRect", "QRectF", "QFontInfo", "QFontMetrics", "QDir", "QRegExp"
+      "QRect", "QRectF", "QFontInfo", "QFontMetrics", "QDir", "QRegExp",
+      "QFileInfo"
     );
 
 const class_list = ( "QRegion",

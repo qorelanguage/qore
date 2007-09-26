@@ -42,12 +42,12 @@ class myQLabel : public QLabel, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-   DLLLOCAL myQLabel(Object *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(parent, f), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLabel(Object *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(parent, f), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
 	 //init_widget_events();
       }
-   DLLLOCAL myQLabel(Object *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(text, parent, f), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLabel(Object *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(text, parent, f), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
 	 //init_widget_events();

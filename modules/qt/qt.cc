@@ -158,6 +158,7 @@
 #include "QC_QDoubleValidator.h"
 #include "QC_QIntValidator.h"
 #include "QC_QRegExpValidator.h"
+#include "QC_QFileInfo.h"
 
 #include "qore-qt-events.h"
 
@@ -1044,6 +1045,7 @@ static class QoreString *qt_module_init()
    initQPixmapStaticFunctions();
    initQFileDialogStaticFunctions();
    initQDirStaticFunctions();
+   initQMovieStaticFunctions();
 
    addBrushStyleType();
    addPenStyleType();
@@ -1059,7 +1061,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    class QoreClass *qobject, *qwidget, *qlayout, *qframe, *qboxlayout, *qpaintdevice, *qpixmap, *qabstractslider;
    qt->addSystemClass((qobject = initQObjectClass()));
    qt->addSystemClass(initQApplicationClass(qobject));
-   qt->addSystemClass(initQMovieClass(qobject));
    qt->addSystemClass(initQActionClass(qobject));
    qt->addSystemClass(initQActionGroupClass(qobject));
    qt->addSystemClass(initQShortcutClass(qobject));
@@ -1074,7 +1075,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass((qwidget = initQWidgetClass(qobject, qpaintdevice)));
 
    qt->addSystemClass((qabstractslider = initQAbstractSliderClass(qwidget)));
-   qt->addSystemClass(initQSliderClass(qabstractslider));
 
    qt->addSystemClass((qframe = initQFrameClass(qwidget)));
    qt->addSystemClass(initQLCDNumberClass(qframe));
@@ -1125,6 +1125,35 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qlayout_ns->addConstant("SetMinAndMaxSize",         new QoreNode((int64)QLayout::SetMinAndMaxSize));
 
    qt->addInitialNamespace(qlayout_ns);
+
+   Namespace *qmovie = new Namespace("QMovie");
+
+   // MovieState enum
+   qmovie->addConstant("NotRunning",               new QoreNode((int64)QMovie::NotRunning));
+   qmovie->addConstant("Paused",                   new QoreNode((int64)QMovie::Paused));
+   qmovie->addConstant("Running",                  new QoreNode((int64)QMovie::Running));
+
+   // CacheMode enum
+   qmovie->addConstant("CacheNone",                new QoreNode((int64)QMovie::CacheNone));
+   qmovie->addConstant("CacheAll",                 new QoreNode((int64)QMovie::CacheAll));
+
+   qmovie->addSystemClass(initQMovieClass(qobject));
+
+   qt->addInitialNamespace(qmovie);
+
+   Namespace *qslider = new Namespace("QSlider");
+
+   // TickPosition enum
+   qslider->addConstant("NoTicks",                  new QoreNode((int64)QSlider::NoTicks));
+   qslider->addConstant("TicksAbove",               new QoreNode((int64)QSlider::TicksAbove));
+   qslider->addConstant("TicksLeft",                new QoreNode((int64)QSlider::TicksLeft));
+   qslider->addConstant("TicksBelow",               new QoreNode((int64)QSlider::TicksBelow));
+   qslider->addConstant("TicksRight",               new QoreNode((int64)QSlider::TicksRight));
+   qslider->addConstant("TicksBothSides",           new QoreNode((int64)QSlider::TicksBothSides));
+
+   qslider->addSystemClass(initQSliderClass(qabstractslider));
+
+   qt->addInitialNamespace(qslider);
 
    Namespace *qsizepolicy = new Namespace("QSizePolicy");
 
@@ -1446,6 +1475,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQDoubleValidatorClass(qvalidator));
    qt->addSystemClass(initQIntValidatorClass(qvalidator));
    qt->addSystemClass(initQRegExpValidatorClass(qvalidator));
+   qt->addSystemClass(initQFileInfoClass());
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");

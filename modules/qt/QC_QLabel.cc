@@ -267,7 +267,7 @@ static QoreNode *QLABEL_setMovie(Object *self, QoreQLabel *ql, QoreNode *params,
       return 0;
    }
    ReferenceHolder<QoreQMovie> holder(movie, xsink);
-   ql->qobj->setMovie((QMovie *)movie);
+   ql->qobj->setMovie(movie->qobj);
    return 0;
 }
 

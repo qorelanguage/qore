@@ -110,7 +110,8 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QValidator.cc \
 	QC_QDoubleValidator.cc \
 	QC_QIntValidator.cc \
-	QC_QRegExpValidator.cc
+	QC_QRegExpValidator.cc \
+	QC_QFileInfo.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

@@ -153,3 +153,4 @@
 #include "QC_QDoubleValidator.cc"
 #include "QC_QIntValidator.cc"
 #include "QC_QRegExpValidator.cc"
+#include "QC_QFileInfo.cc"

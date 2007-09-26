@@ -1,9 +1,11 @@
 2007.09.26: David Nichols
 	* qt: fixed QValidator, lineedits.q example working
+	* qt: fixes, new qt example: movieplayer.q (run from example directory
+	  so icons can be loaded)
 
 2007.09.25: David Nichols
 	* fixed a memory bug in QoreString::parseBase64ToString()
-	* qt: new classes, mostly-implemented linedits.q example
+	* qt: new classes, mostly-implemented lineedits.q example
 
 2007.09.24: David Nichols
 	* fixed a stupid memory bug in QoreString when instantiating from a

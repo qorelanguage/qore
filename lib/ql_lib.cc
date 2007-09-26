@@ -520,6 +520,21 @@ static class QoreNode *f_chdir(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode((int64)chdir(p0->val.String->getBuffer()));
 }
 
+static class QoreNode *f_getcwd(class QoreNode *params, ExceptionSink *xsink)
+{
+   int bs = 512;
+   char *buf = (char *)malloc(sizeof(char) * bs);
+ 
+   do {
+      bs *= 2;
+      buf = (char *)realloc(buf, sizeof(char) * bs);
+   } while (getcwd(buf, bs));
+
+   QoreString *rv = new QoreString();
+   rv->take(buf);
+
+   return new QoreNode(rv);
+}
 
 /*
 // need an easier to use function here
@@ -758,6 +773,8 @@ void init_lib_functions()
    builtinFunctions.add("gethostbyaddr",       f_gethostbyaddr);
    builtinFunctions.add("gethostbyname_long",  f_gethostbyname_long);
    builtinFunctions.add("gethostbyaddr_long",  f_gethostbyaddr_long);
+
+   builtinFunctions.add("getcwd",      f_getcwd);
 
 #ifdef DEBUG
    builtinFunctions.add("runQoreTests", runQoreTests);

@@ -414,6 +414,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QDoubleValidator.h \
 	modules/qt/QC_QIntValidator.h \
 	modules/qt/QC_QRegExpValidator.h \
+	modules/qt/QC_QFileInfo.h \
 	command-line.h \
 	include/qore/Qore.h
 

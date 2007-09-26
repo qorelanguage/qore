@@ -20,18 +20,19 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QMOVIE_H
+#ifndef _QORE_QT_QC_QMOVIE_H
 
-#define _QORE_QC_QMOVIE_H
-
-#include "QoreAbstractQObject.h"
+#define _QORE_QT_QC_QMOVIE_H
 
 #include <QMovie>
+#include "QoreAbstractQObject.h"
+#include "qore-qt-events.h"
 
 DLLLOCAL extern int CID_QMOVIE;
-DLLLOCAL extern QoreClass *QC_QMovie;
+DLLLOCAL extern class QoreClass *QC_QMovie;
 
-DLLLOCAL class QoreClass *initQMovieClass(class QoreClass *parent);
+DLLLOCAL class QoreClass *initQMovieClass(QoreClass *);
+DLLLOCAL void initQMovieStaticFunctions();
 
 class myQMovie : public QMovie
 {
@@ -40,56 +41,39 @@ class myQMovie : public QMovie
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMovie(Object *obj, QObject *parent = 0) : QMovie(parent)
+      DLLLOCAL myQMovie(Object *obj, QObject* parent = 0) : QMovie(parent)
+      {
+         init(obj);
+      }
+      DLLLOCAL myQMovie (Object *obj, QIODevice * device, const QByteArray & format = QByteArray(), QObject * parent = 0) : QMovie(device, format, parent)
       {
 	 init(obj);
       }
-      DLLLOCAL myQMovie(Object *obj, const char *filename, const QByteArray &format, QObject *parent = 0) 
-	 : QMovie(filename, format, parent)
+      DLLLOCAL myQMovie(Object *obj, const QString& fileName, const QByteArray& format = QByteArray(), QObject* parent = 0) : QMovie(fileName, format, parent)
       {
-	 init(obj);
-      }
-      DLLLOCAL myQMovie(Object *obj, QIODevice *device, const QByteArray &format) : QMovie(device, format)
-      {
-	 init(obj);
-      }
-      DLLLOCAL myQMovie(Object *obj, const QString &filename, const QByteArray &format) : QMovie(filename, format)
-      {
-	 init(obj);
+         init(obj);
       }
 };
 
 class QoreQMovie : public QoreAbstractQObject
 {
    public:
-      myQMovie *qobj;
+      QPointer<myQMovie> qobj;
 
-      DLLLOCAL QoreQMovie(Object *obj, QObject *parent = 0) : qobj(new myQMovie(obj, parent))
+      DLLLOCAL QoreQMovie(Object *obj, QObject* parent = 0) : qobj(new myQMovie(obj, parent))
       {
       }
-
-      DLLLOCAL QoreQMovie(Object *obj, const char *filename, const QByteArray &format, QObject *parent = 0) : qobj(new myQMovie(obj, filename, format, parent))
+      DLLLOCAL QoreQMovie (Object *obj, QIODevice * device, const QByteArray & format = QByteArray(), QObject * parent = 0) : qobj(new myQMovie(obj, device, format, parent))
       {
       }
-
-      DLLLOCAL QoreQMovie(Object *obj, QIODevice *device, const QByteArray &format) : qobj(new myQMovie(obj, device, format))
+      DLLLOCAL QoreQMovie(Object *obj, const QString& fileName, const QByteArray& format = QByteArray(), QObject* parent = 0) : qobj(new myQMovie(obj, fileName, format, parent))
       {
       }
-
-      DLLLOCAL QoreQMovie(Object *obj, const QString &filename, const QByteArray &format) : qobj(new myQMovie(obj, filename, format))
-      {
-      }
-
-      DLLLOCAL virtual ~QoreQMovie()
-      {
-      }
-
       DLLLOCAL virtual class QObject *getQObject() const
       {
-	 return static_cast<QObject *>(qobj);
+         return static_cast<QObject *>(&(*qobj));
       }
       QORE_VIRTUAL_QOBJECT_METHODS
 };
 
-
-#endif
+#endif // _QORE_QT_QC_QMOVIE_H
