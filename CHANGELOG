@@ -1,3 +1,6 @@
+2007.09.26: David Nichols
+	* qt: fixed QValidator, lineedits.q example working
+
 2007.09.25: David Nichols
 	* fixed a memory bug in QoreString::parseBase64ToString()
 	* qt: new classes, mostly-implemented linedits.q example

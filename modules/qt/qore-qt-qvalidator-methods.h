@@ -59,7 +59,7 @@ class T {
 	 discard(na, &xsink);
 	 return state;
       }
-#if QOREQTYPE == QValidator
+#ifdef _IS_QORE_QVALIDATOR
       DLLLOCAL virtual State validate_parent ( QString & input, int & pos ) const
       {
 	 return QValidator::Invalid;

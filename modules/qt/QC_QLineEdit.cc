@@ -401,13 +401,10 @@ static QoreNode *QLINEEDIT_setValidator(Object *self, QoreQLineEdit *qle, QoreNo
 {
    QoreNode *p = get_param(params, 0);
    QoreQValidator *v = (p && p->type == NT_OBJECT) ? (QoreQValidator *)p->val.object->getReferencedPrivateData(CID_QVALIDATOR, xsink) : 0;
-   if (!v) {
-      if (!xsink->isException())
-         xsink->raiseException("QLINEEDIT-SETVALIDATOR-PARAM-ERROR", "expecting a QValidator object as first argument to QLineEdit::setValidator()");
+   if (*xsink)
       return 0;
-   }
    ReferenceHolder<AbstractPrivateData> vHolder(static_cast<AbstractPrivateData *>(v), xsink);
-   qle->qobj->setValidator(static_cast<QValidator *>(v->getQValidator()));
+   qle->qobj->setValidator(v ? static_cast<QValidator *>(v->getQValidator()) : 0);
    return 0;
 }
 

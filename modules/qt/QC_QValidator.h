@@ -24,6 +24,8 @@
 
 #define _QORE_QT_QC_QVALIDATOR_H
 
+#define _IS_QORE_QVALIDATOR 1
+
 #include <QValidator>
 #include "QoreAbstractQValidator.h"
 #include "qore-qt-events.h"
@@ -86,5 +88,7 @@ class QoreQtQValidator : public QoreAbstractQValidator
       }
 #include "qore-qt-static-qvalidator-methods.h"
 };
+
+#undef _IS_QORE_QVALIDATOR
 
 #endif // _QORE_QT_QC_QVALIDATOR_H

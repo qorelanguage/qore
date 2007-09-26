@@ -13,7 +13,7 @@ class T {
    }
    DLLLOCAL virtual QValidator::State validate(QString & input, int & pos) const 
    {
-#ifdef _QORE_QT_QC_QVALIDATOR_H
+#ifdef _IS_QORE_QVALIDATOR
       return QValidator::Invalid;
 #else
       return qobj->validate(input, pos); 
