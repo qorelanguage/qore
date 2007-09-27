@@ -1,3 +1,6 @@
+2007.09.27: David Nichols
+	* qt: fixes, new constants, new scribble.q example 
+
 2007.09.26: David Nichols
 	* qt: fixed QValidator, lineedits.q example working
 	* qt: fixes, new qt example: movieplayer.q (run from example directory

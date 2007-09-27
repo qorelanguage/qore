@@ -36,6 +36,10 @@ DLLLOCAL class QoreClass *initQImageClass(class QoreClass *qpaintdevice);
 class QoreQImage : public AbstractPrivateData, public QoreAbstractQPaintDevice, public QImage
 {
    public:
+
+      DLLLOCAL QoreQImage(const QSize & size, Format format) : QImage(size, format)
+      {
+      }
       DLLLOCAL QoreQImage(const uchar *data, int w, int h, QImage::Format format) : QImage(data, w, h, format)
       {
       }

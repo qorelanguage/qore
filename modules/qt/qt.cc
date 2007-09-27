@@ -159,6 +159,10 @@
 #include "QC_QIntValidator.h"
 #include "QC_QRegExpValidator.h"
 #include "QC_QFileInfo.h"
+#include "QC_QColorDialog.h"
+#include "QC_QInputDialog.h"
+#include "QC_QIODevice.h"
+#include "QC_QImageWriter.h"
 
 #include "qore-qt-events.h"
 
@@ -499,6 +503,59 @@ int get_qkeysequence(const QoreNode *n, QKeySequence &ks, class ExceptionSink *x
    }
    if (!suppress_exception)
       xsink->raiseException("QKEYSEQUENCE-ERROR", "cannot convert type '%s' to QKeySequence", n ? n->type->getName() : "NOTHING");
+   return -1;
+}
+
+int get_qbrush(const QoreNode *n, QBrush &brush, class ExceptionSink *xsink)
+{
+   if (n) {
+      if (n->type == NT_OBJECT) {
+	 class QoreQBrush *qb = (QoreQBrush *)n->val.object->getReferencedPrivateData(CID_QBRUSH, xsink);
+	 if (*xsink)
+	    return -1;
+	 if (!qb) {
+	    class QoreQPixmap *pixmap = (QoreQPixmap *)n->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink);
+	    if (*xsink)
+	       return -1;
+	    if (!pixmap) {
+	       class QoreQImage *image = (QoreQImage *)n->val.object->getReferencedPrivateData(CID_QIMAGE, xsink);
+	       if (*xsink)
+		  return -1;
+	       if (!image) {
+		  class QoreQColor *color = (QoreQColor *)n->val.object->getReferencedPrivateData(CID_QCOLOR, xsink);
+		  if (*xsink)
+		     return -1;
+		  if (!color) {
+		     xsink->raiseException("QBRUSH-ERROR", "class '%s' cannot produce a QBrush object", n->val.object->getClass()->getName());
+		     return -1;
+		  }
+		  ReferenceHolder<QoreQColor> colorHolder(color, xsink);
+		  brush = QBrush(*color);
+		  return 0;
+	       }
+	       ReferenceHolder<QoreQImage> imageHolder(image, xsink);
+	       brush = QBrush(*image);
+	       return 0;
+	    }
+	    ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
+	    brush = QBrush(*pixmap);
+	    return 0;
+	 }
+	 ReferenceHolder<QoreQBrush> qbHolder(qb, xsink);
+	 brush = *qb;
+	 return 0;
+      }
+      if (n->type == NT_BRUSHSTYLE) {
+	 brush = QBrush((Qt::BrushStyle)n->val.intval);
+	 return 0;
+      }
+      // assume Qt::GlobalColor enum
+      if (n->type == NT_INT) {
+	 brush = QBrush((Qt::GlobalColor)n->val.intval);
+	 return 0;
+      }
+   }
+   xsink->raiseException("QBRUSH-ERROR", "cannot derive QBrush object from type %s", n ? n->type->getName() : "NOTHING");
    return -1;
 }
 
@@ -1046,6 +1103,9 @@ static class QoreString *qt_module_init()
    initQFileDialogStaticFunctions();
    initQDirStaticFunctions();
    initQMovieStaticFunctions();
+   initQColorDialogStaticFunctions();
+   initQInputDialogStaticFunctions();
+   initQImageWriterStaticFunctions();
 
    addBrushStyleType();
    addPenStyleType();
@@ -1067,7 +1127,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addSystemClass((qpaintdevice = initQPaintDeviceClass()));
    qt->addSystemClass(initQPictureClass(qpaintdevice));
-   qt->addSystemClass(initQImageClass(qpaintdevice));
 
    qt->addSystemClass((qpixmap = initQPixmapClass(qpaintdevice)));
    qt->addSystemClass(initQBitmapClass(qpixmap));
@@ -1108,6 +1167,26 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass((qinputevent = initQInputEventClass(qevent)));
    qt->addSystemClass(initQKeyEventClass(qinputevent));
    qt->addSystemClass(initQMouseEventClass(qinputevent));
+
+   Namespace *qimage = new Namespace("QImage");
+
+   // InvertMode enum
+   qimage->addConstant("InvertRgb",                new QoreNode((int64)QImage::InvertRgb));
+   qimage->addConstant("InvertRgba",               new QoreNode((int64)QImage::InvertRgba));
+
+   // Format enum
+   qimage->addConstant("Format_Invalid",           new QoreNode((int64)QImage::Format_Invalid));
+   qimage->addConstant("Format_Mono",              new QoreNode((int64)QImage::Format_Mono));
+   qimage->addConstant("Format_MonoLSB",           new QoreNode((int64)QImage::Format_MonoLSB));
+   qimage->addConstant("Format_Indexed8",          new QoreNode((int64)QImage::Format_Indexed8));
+   qimage->addConstant("Format_RGB32",             new QoreNode((int64)QImage::Format_RGB32));
+   qimage->addConstant("Format_ARGB32",            new QoreNode((int64)QImage::Format_ARGB32));
+   qimage->addConstant("Format_ARGB32_Premultiplied", new QoreNode((int64)QImage::Format_ARGB32_Premultiplied));
+   qimage->addConstant("Format_RGB16",             new QoreNode((int64)QImage::Format_RGB16));
+
+   qimage->addSystemClass(initQImageClass(qpaintdevice));
+
+   qt->addInitialNamespace(qimage);
 
    Namespace *qlayout_ns = new Namespace("QLayout");
 
@@ -1402,7 +1481,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQPushButtonClass(qabstractbutton));
    qt->addSystemClass(initQMenuClass(qwidget));
    qt->addSystemClass(initQToolButtonClass(qabstractbutton));
-   qt->addSystemClass((qdialog = initQDialogClass(qwidget)));
    qt->addSystemClass(initQTextLengthClass());
    qt->addSystemClass((qtextformat = initQTextFormatClass()));
    qt->addSystemClass(initQTextBlockFormatClass(qtextformat));
@@ -1462,20 +1540,18 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQSpinBoxClass(qwidget));
    qt->addSystemClass(initQTableWidgetItemClass());
    qt->addSystemClass(initQStyleOptionMenuItemClass(qstyleoption));
-   qt->addSystemClass(initQMessageBoxClass(qdialog));
    qt->addSystemClass(initQStyleOptionButtonClass(qstyleoption));
-   qt->addSystemClass(initQFileDialogClass(qdialog));
    qt->addSystemClass(initQDirClass());
    qt->addSystemClass(initQMetaObjectClass());
    qt->addSystemClass(initQMenuBarClass(qwidget));
-   qt->addSystemClass(initQPrinterClass(qpaintdevice));
-   qt->addSystemClass(initQPrintDialogClass(qdialog));
    qt->addSystemClass(initQRegExpClass());
    qt->addSystemClass((qvalidator = initQValidatorClass(qobject)));
    qt->addSystemClass(initQDoubleValidatorClass(qvalidator));
    qt->addSystemClass(initQIntValidatorClass(qvalidator));
    qt->addSystemClass(initQRegExpValidatorClass(qvalidator));
    qt->addSystemClass(initQFileInfoClass());
+   qt->addSystemClass(initQIODeviceClass(qobject));
+   qt->addSystemClass(initQImageWriterClass());
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -1487,6 +1563,158 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qbl->addConstant("BottomToTop",    new QoreNode((int64)QBoxLayout::BottomToTop));
 
    qt->addInitialNamespace(qbl);
+
+   Namespace *qdialog_ns = new Namespace("QDialog");
+
+   qdialog_ns->addSystemClass((qdialog = initQDialogClass(qwidget)));
+   qdialog_ns->addSystemClass(initQFileDialogClass(qdialog));
+   qdialog_ns->addSystemClass(initQPrintDialogClass(qdialog));
+
+   qdialog_ns->addConstant("Rejected",   new QoreNode((int64)QDialog::Rejected));
+   qdialog_ns->addConstant("Accepted",   new QoreNode((int64)QDialog::Accepted));
+
+   Namespace *qmessagebox = new Namespace("QMessageBox");
+   qmessagebox->addSystemClass(initQMessageBoxClass(qdialog));
+
+   // Icon enum
+   qmessagebox->addConstant("NoIcon",                   new QoreNode((int64)QMessageBox::NoIcon));
+   qmessagebox->addConstant("Information",              new QoreNode((int64)QMessageBox::Information));
+   qmessagebox->addConstant("Warning",                  new QoreNode((int64)QMessageBox::Warning));
+   qmessagebox->addConstant("Critical",                 new QoreNode((int64)QMessageBox::Critical));
+   qmessagebox->addConstant("Question",                 new QoreNode((int64)QMessageBox::Question));
+
+   // ButtonRole enum
+   qmessagebox->addConstant("InvalidRole",              new QoreNode((int64)QMessageBox::InvalidRole));
+   qmessagebox->addConstant("AcceptRole",               new QoreNode((int64)QMessageBox::AcceptRole));
+   qmessagebox->addConstant("RejectRole",               new QoreNode((int64)QMessageBox::RejectRole));
+   qmessagebox->addConstant("DestructiveRole",          new QoreNode((int64)QMessageBox::DestructiveRole));
+   qmessagebox->addConstant("ActionRole",               new QoreNode((int64)QMessageBox::ActionRole));
+   qmessagebox->addConstant("HelpRole",                 new QoreNode((int64)QMessageBox::HelpRole));
+   qmessagebox->addConstant("YesRole",                  new QoreNode((int64)QMessageBox::YesRole));
+   qmessagebox->addConstant("NoRole",                   new QoreNode((int64)QMessageBox::NoRole));
+   qmessagebox->addConstant("ResetRole",                new QoreNode((int64)QMessageBox::ResetRole));
+   qmessagebox->addConstant("ApplyRole",                new QoreNode((int64)QMessageBox::ApplyRole));
+
+   // StandardButton enum
+   qmessagebox->addConstant("NoButton",                 new QoreNode((int64)QMessageBox::NoButton));
+   qmessagebox->addConstant("Ok",                       new QoreNode((int64)QMessageBox::Ok));
+   qmessagebox->addConstant("Save",                     new QoreNode((int64)QMessageBox::Save));
+   qmessagebox->addConstant("SaveAll",                  new QoreNode((int64)QMessageBox::SaveAll));
+   qmessagebox->addConstant("Open",                     new QoreNode((int64)QMessageBox::Open));
+   qmessagebox->addConstant("Yes",                      new QoreNode((int64)QMessageBox::Yes));
+   qmessagebox->addConstant("YesToAll",                 new QoreNode((int64)QMessageBox::YesToAll));
+   qmessagebox->addConstant("No",                       new QoreNode((int64)QMessageBox::No));
+   qmessagebox->addConstant("NoToAll",                  new QoreNode((int64)QMessageBox::NoToAll));
+   qmessagebox->addConstant("Abort",                    new QoreNode((int64)QMessageBox::Abort));
+   qmessagebox->addConstant("Retry",                    new QoreNode((int64)QMessageBox::Retry));
+   qmessagebox->addConstant("Ignore",                   new QoreNode((int64)QMessageBox::Ignore));
+   qmessagebox->addConstant("Close",                    new QoreNode((int64)QMessageBox::Close));
+   qmessagebox->addConstant("Cancel",                   new QoreNode((int64)QMessageBox::Cancel));
+   qmessagebox->addConstant("Discard",                  new QoreNode((int64)QMessageBox::Discard));
+   qmessagebox->addConstant("Help",                     new QoreNode((int64)QMessageBox::Help));
+   qmessagebox->addConstant("Apply",                    new QoreNode((int64)QMessageBox::Apply));
+   qmessagebox->addConstant("Reset",                    new QoreNode((int64)QMessageBox::Reset));
+   qmessagebox->addConstant("RestoreDefaults",          new QoreNode((int64)QMessageBox::RestoreDefaults));
+   qmessagebox->addConstant("FirstButton",              new QoreNode((int64)QMessageBox::FirstButton));
+   qmessagebox->addConstant("LastButton",               new QoreNode((int64)QMessageBox::LastButton));
+   qmessagebox->addConstant("YesAll",                   new QoreNode((int64)QMessageBox::YesAll));
+   qmessagebox->addConstant("NoAll",                    new QoreNode((int64)QMessageBox::NoAll));
+   qmessagebox->addConstant("Default",                  new QoreNode((int64)QMessageBox::Default));
+   qmessagebox->addConstant("Escape",                   new QoreNode((int64)QMessageBox::Escape));
+   qmessagebox->addConstant("FlagMask",                 new QoreNode((int64)QMessageBox::FlagMask));
+   qmessagebox->addConstant("ButtonMask",               new QoreNode((int64)QMessageBox::ButtonMask));
+
+   qdialog_ns->addInitialNamespace(qmessagebox);
+
+   qt->addInitialNamespace(qdialog_ns);
+
+   Namespace *qprinter = new Namespace("QPrinter");
+
+   qprinter->addSystemClass(initQPrinterClass(qpaintdevice));
+
+   // PrinterMode enum
+   qprinter->addConstant("ScreenResolution",         new QoreNode((int64)QPrinter::ScreenResolution));
+   qprinter->addConstant("PrinterResolution",        new QoreNode((int64)QPrinter::PrinterResolution));
+   qprinter->addConstant("HighResolution",           new QoreNode((int64)QPrinter::HighResolution));
+
+   // Orientation enum
+   qprinter->addConstant("Portrait",                 new QoreNode((int64)QPrinter::Portrait));
+   qprinter->addConstant("Landscape",                new QoreNode((int64)QPrinter::Landscape));
+
+   // PageSize enum
+   qprinter->addConstant("A4",                       new QoreNode((int64)QPrinter::A4));
+   qprinter->addConstant("B5",                       new QoreNode((int64)QPrinter::B5));
+   qprinter->addConstant("Letter",                   new QoreNode((int64)QPrinter::Letter));
+   qprinter->addConstant("Legal",                    new QoreNode((int64)QPrinter::Legal));
+   qprinter->addConstant("Executive",                new QoreNode((int64)QPrinter::Executive));
+   qprinter->addConstant("A0",                       new QoreNode((int64)QPrinter::A0));
+   qprinter->addConstant("A1",                       new QoreNode((int64)QPrinter::A1));
+   qprinter->addConstant("A2",                       new QoreNode((int64)QPrinter::A2));
+   qprinter->addConstant("A3",                       new QoreNode((int64)QPrinter::A3));
+   qprinter->addConstant("A5",                       new QoreNode((int64)QPrinter::A5));
+   qprinter->addConstant("A6",                       new QoreNode((int64)QPrinter::A6));
+   qprinter->addConstant("A7",                       new QoreNode((int64)QPrinter::A7));
+   qprinter->addConstant("A8",                       new QoreNode((int64)QPrinter::A8));
+   qprinter->addConstant("A9",                       new QoreNode((int64)QPrinter::A9));
+   qprinter->addConstant("B0",                       new QoreNode((int64)QPrinter::B0));
+   qprinter->addConstant("B1",                       new QoreNode((int64)QPrinter::B1));
+   qprinter->addConstant("B10",                      new QoreNode((int64)QPrinter::B10));
+   qprinter->addConstant("B2",                       new QoreNode((int64)QPrinter::B2));
+   qprinter->addConstant("B3",                       new QoreNode((int64)QPrinter::B3));
+   qprinter->addConstant("B4",                       new QoreNode((int64)QPrinter::B4));
+   qprinter->addConstant("B6",                       new QoreNode((int64)QPrinter::B6));
+   qprinter->addConstant("B7",                       new QoreNode((int64)QPrinter::B7));
+   qprinter->addConstant("B8",                       new QoreNode((int64)QPrinter::B8));
+   qprinter->addConstant("B9",                       new QoreNode((int64)QPrinter::B9));
+   qprinter->addConstant("C5E",                      new QoreNode((int64)QPrinter::C5E));
+   qprinter->addConstant("Comm10E",                  new QoreNode((int64)QPrinter::Comm10E));
+   qprinter->addConstant("DLE",                      new QoreNode((int64)QPrinter::DLE));
+   qprinter->addConstant("Folio",                    new QoreNode((int64)QPrinter::Folio));
+   qprinter->addConstant("Ledger",                   new QoreNode((int64)QPrinter::Ledger));
+   qprinter->addConstant("Tabloid",                  new QoreNode((int64)QPrinter::Tabloid));
+   qprinter->addConstant("Custom",                   new QoreNode((int64)QPrinter::Custom));
+
+   // PageOrder enum
+   qprinter->addConstant("FirstPageFirst",           new QoreNode((int64)QPrinter::FirstPageFirst));
+   qprinter->addConstant("LastPageFirst",            new QoreNode((int64)QPrinter::LastPageFirst));
+   
+   // ColorMode enum
+   qprinter->addConstant("GrayScale",                new QoreNode((int64)QPrinter::GrayScale));
+   qprinter->addConstant("Color",                    new QoreNode((int64)QPrinter::Color));
+
+   // PaperSource enum
+   qprinter->addConstant("OnlyOne",                  new QoreNode((int64)QPrinter::OnlyOne));
+   qprinter->addConstant("Lower",                    new QoreNode((int64)QPrinter::Lower));
+   qprinter->addConstant("Middle",                   new QoreNode((int64)QPrinter::Middle));
+   qprinter->addConstant("Manual",                   new QoreNode((int64)QPrinter::Manual));
+   qprinter->addConstant("Envelope",                 new QoreNode((int64)QPrinter::Envelope));
+   qprinter->addConstant("EnvelopeManual",           new QoreNode((int64)QPrinter::EnvelopeManual));
+   qprinter->addConstant("Auto",                     new QoreNode((int64)QPrinter::Auto));
+   qprinter->addConstant("Tractor",                  new QoreNode((int64)QPrinter::Tractor));
+   qprinter->addConstant("SmallFormat",              new QoreNode((int64)QPrinter::SmallFormat));
+   qprinter->addConstant("LargeFormat",              new QoreNode((int64)QPrinter::LargeFormat));
+   qprinter->addConstant("LargeCapacity",            new QoreNode((int64)QPrinter::LargeCapacity));
+   qprinter->addConstant("Cassette",                 new QoreNode((int64)QPrinter::Cassette));
+   qprinter->addConstant("FormSource",               new QoreNode((int64)QPrinter::FormSource));
+   qprinter->addConstant("MaxPageSource",            new QoreNode((int64)QPrinter::MaxPageSource));
+
+   // PrinterState enum
+   qprinter->addConstant("Idle",                     new QoreNode((int64)QPrinter::Idle));
+   qprinter->addConstant("Active",                   new QoreNode((int64)QPrinter::Active));
+   qprinter->addConstant("Aborted",                  new QoreNode((int64)QPrinter::Aborted));
+   qprinter->addConstant("Error",                    new QoreNode((int64)QPrinter::Error));
+
+   // OutputFormat enum
+   qprinter->addConstant("NativeFormat",             new QoreNode((int64)QPrinter::NativeFormat));
+   qprinter->addConstant("PdfFormat",                new QoreNode((int64)QPrinter::PdfFormat));
+   qprinter->addConstant("PostScriptFormat",         new QoreNode((int64)QPrinter::PostScriptFormat));
+
+   // PrintRange enum
+   qprinter->addConstant("AllPages",                 new QoreNode((int64)QPrinter::AllPages));
+   qprinter->addConstant("Selection",                new QoreNode((int64)QPrinter::Selection));
+   qprinter->addConstant("PageRange",                new QoreNode((int64)QPrinter::PageRange));
+
+   qt->addInitialNamespace(qprinter);
 
    Namespace *qlineedit = new Namespace("QLineEdit");
 
@@ -2768,6 +2996,106 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    // ToolBarSizes enum
    qt->addConstant("NToolBarAreas",            new QoreNode((int64)Qt::NToolBarAreas));
+
+   // PenCapStyle enum
+   qt->addConstant("FlatCap",                  new QoreNode((int64)Qt::FlatCap));
+   qt->addConstant("SquareCap",                new QoreNode((int64)Qt::SquareCap));
+   qt->addConstant("RoundCap",                 new QoreNode((int64)Qt::RoundCap));
+   qt->addConstant("MPenCapStyle",             new QoreNode((int64)Qt::MPenCapStyle));
+
+   // PenJoinStyle enum
+   qt->addConstant("MiterJoin",                new QoreNode((int64)Qt::MiterJoin));
+   qt->addConstant("BevelJoin",                new QoreNode((int64)Qt::BevelJoin));
+   qt->addConstant("RoundJoin",                new QoreNode((int64)Qt::RoundJoin));
+   qt->addConstant("SvgMiterJoin",             new QoreNode((int64)Qt::SvgMiterJoin));
+   qt->addConstant("MPenJoinStyle",            new QoreNode((int64)Qt::MPenJoinStyle));
+
+   // WidgetAttribute enum
+   qt->addConstant("WA_Disabled",              new QoreNode((int64)Qt::WA_Disabled));
+   qt->addConstant("WA_UnderMouse",            new QoreNode((int64)Qt::WA_UnderMouse));
+   qt->addConstant("WA_MouseTracking",         new QoreNode((int64)Qt::WA_MouseTracking));
+   qt->addConstant("WA_ContentsPropagated",    new QoreNode((int64)Qt::WA_ContentsPropagated));
+   qt->addConstant("WA_OpaquePaintEvent",      new QoreNode((int64)Qt::WA_OpaquePaintEvent));
+   qt->addConstant("WA_NoBackground",          new QoreNode((int64)Qt::WA_NoBackground));
+   qt->addConstant("WA_StaticContents",        new QoreNode((int64)Qt::WA_StaticContents));
+   qt->addConstant("WA_LaidOut",               new QoreNode((int64)Qt::WA_LaidOut));
+   qt->addConstant("WA_PaintOnScreen",         new QoreNode((int64)Qt::WA_PaintOnScreen));
+   qt->addConstant("WA_NoSystemBackground",    new QoreNode((int64)Qt::WA_NoSystemBackground));
+   qt->addConstant("WA_UpdatesDisabled",       new QoreNode((int64)Qt::WA_UpdatesDisabled));
+   qt->addConstant("WA_Mapped",                new QoreNode((int64)Qt::WA_Mapped));
+   qt->addConstant("WA_MacNoClickThrough",     new QoreNode((int64)Qt::WA_MacNoClickThrough));
+   qt->addConstant("WA_PaintOutsidePaintEvent", new QoreNode((int64)Qt::WA_PaintOutsidePaintEvent));
+   qt->addConstant("WA_InputMethodEnabled",    new QoreNode((int64)Qt::WA_InputMethodEnabled));
+   qt->addConstant("WA_WState_Visible",        new QoreNode((int64)Qt::WA_WState_Visible));
+   qt->addConstant("WA_WState_Hidden",         new QoreNode((int64)Qt::WA_WState_Hidden));
+   qt->addConstant("WA_ForceDisabled",         new QoreNode((int64)Qt::WA_ForceDisabled));
+   qt->addConstant("WA_KeyCompression",        new QoreNode((int64)Qt::WA_KeyCompression));
+   qt->addConstant("WA_PendingMoveEvent",      new QoreNode((int64)Qt::WA_PendingMoveEvent));
+   qt->addConstant("WA_PendingResizeEvent",    new QoreNode((int64)Qt::WA_PendingResizeEvent));
+   qt->addConstant("WA_SetPalette",            new QoreNode((int64)Qt::WA_SetPalette));
+   qt->addConstant("WA_SetFont",               new QoreNode((int64)Qt::WA_SetFont));
+   qt->addConstant("WA_SetCursor",             new QoreNode((int64)Qt::WA_SetCursor));
+   qt->addConstant("WA_NoChildEventsFromChildren", new QoreNode((int64)Qt::WA_NoChildEventsFromChildren));
+   qt->addConstant("WA_WindowModified",        new QoreNode((int64)Qt::WA_WindowModified));
+   qt->addConstant("WA_Resized",               new QoreNode((int64)Qt::WA_Resized));
+   qt->addConstant("WA_Moved",                 new QoreNode((int64)Qt::WA_Moved));
+   qt->addConstant("WA_PendingUpdate",         new QoreNode((int64)Qt::WA_PendingUpdate));
+   qt->addConstant("WA_InvalidSize",           new QoreNode((int64)Qt::WA_InvalidSize));
+   qt->addConstant("WA_MacBrushedMetal",       new QoreNode((int64)Qt::WA_MacBrushedMetal));
+   qt->addConstant("WA_MacMetalStyle",         new QoreNode((int64)Qt::WA_MacMetalStyle));
+   qt->addConstant("WA_CustomWhatsThis",       new QoreNode((int64)Qt::WA_CustomWhatsThis));
+   qt->addConstant("WA_LayoutOnEntireRect",    new QoreNode((int64)Qt::WA_LayoutOnEntireRect));
+   qt->addConstant("WA_OutsideWSRange",        new QoreNode((int64)Qt::WA_OutsideWSRange));
+   qt->addConstant("WA_GrabbedShortcut",       new QoreNode((int64)Qt::WA_GrabbedShortcut));
+   qt->addConstant("WA_TransparentForMouseEvents", new QoreNode((int64)Qt::WA_TransparentForMouseEvents));
+   qt->addConstant("WA_PaintUnclipped",        new QoreNode((int64)Qt::WA_PaintUnclipped));
+   qt->addConstant("WA_SetWindowIcon",         new QoreNode((int64)Qt::WA_SetWindowIcon));
+   qt->addConstant("WA_NoMouseReplay",         new QoreNode((int64)Qt::WA_NoMouseReplay));
+   qt->addConstant("WA_DeleteOnClose",         new QoreNode((int64)Qt::WA_DeleteOnClose));
+   qt->addConstant("WA_RightToLeft",           new QoreNode((int64)Qt::WA_RightToLeft));
+   qt->addConstant("WA_SetLayoutDirection",    new QoreNode((int64)Qt::WA_SetLayoutDirection));
+   qt->addConstant("WA_NoChildEventsForParent", new QoreNode((int64)Qt::WA_NoChildEventsForParent));
+   qt->addConstant("WA_ForceUpdatesDisabled",  new QoreNode((int64)Qt::WA_ForceUpdatesDisabled));
+   qt->addConstant("WA_WState_Created",        new QoreNode((int64)Qt::WA_WState_Created));
+   qt->addConstant("WA_WState_CompressKeys",   new QoreNode((int64)Qt::WA_WState_CompressKeys));
+   qt->addConstant("WA_WState_InPaintEvent",   new QoreNode((int64)Qt::WA_WState_InPaintEvent));
+   qt->addConstant("WA_WState_Reparented",     new QoreNode((int64)Qt::WA_WState_Reparented));
+   qt->addConstant("WA_WState_ConfigPending",  new QoreNode((int64)Qt::WA_WState_ConfigPending));
+   qt->addConstant("WA_WState_Polished",       new QoreNode((int64)Qt::WA_WState_Polished));
+   qt->addConstant("WA_WState_DND",            new QoreNode((int64)Qt::WA_WState_DND));
+   qt->addConstant("WA_WState_OwnSizePolicy",  new QoreNode((int64)Qt::WA_WState_OwnSizePolicy));
+   qt->addConstant("WA_WState_ExplicitShowHide", new QoreNode((int64)Qt::WA_WState_ExplicitShowHide));
+   qt->addConstant("WA_ShowModal",             new QoreNode((int64)Qt::WA_ShowModal));
+   qt->addConstant("WA_MouseNoMask",           new QoreNode((int64)Qt::WA_MouseNoMask));
+   qt->addConstant("WA_GroupLeader",           new QoreNode((int64)Qt::WA_GroupLeader));
+   qt->addConstant("WA_NoMousePropagation",    new QoreNode((int64)Qt::WA_NoMousePropagation));
+   qt->addConstant("WA_Hover",                 new QoreNode((int64)Qt::WA_Hover));
+   qt->addConstant("WA_InputMethodTransparent", new QoreNode((int64)Qt::WA_InputMethodTransparent));
+   qt->addConstant("WA_QuitOnClose",           new QoreNode((int64)Qt::WA_QuitOnClose));
+   qt->addConstant("WA_KeyboardFocusChange",   new QoreNode((int64)Qt::WA_KeyboardFocusChange));
+   qt->addConstant("WA_AcceptDrops",           new QoreNode((int64)Qt::WA_AcceptDrops));
+   qt->addConstant("WA_DropSiteRegistered",    new QoreNode((int64)Qt::WA_DropSiteRegistered));
+   qt->addConstant("WA_ForceAcceptDrops",      new QoreNode((int64)Qt::WA_ForceAcceptDrops));
+   qt->addConstant("WA_WindowPropagation",     new QoreNode((int64)Qt::WA_WindowPropagation));
+   qt->addConstant("WA_NoX11EventCompression", new QoreNode((int64)Qt::WA_NoX11EventCompression));
+   qt->addConstant("WA_TintedBackground",      new QoreNode((int64)Qt::WA_TintedBackground));
+   qt->addConstant("WA_X11OpenGLOverlay",      new QoreNode((int64)Qt::WA_X11OpenGLOverlay));
+   qt->addConstant("WA_AlwaysShowToolTips",    new QoreNode((int64)Qt::WA_AlwaysShowToolTips));
+   qt->addConstant("WA_MacOpaqueSizeGrip",     new QoreNode((int64)Qt::WA_MacOpaqueSizeGrip));
+   qt->addConstant("WA_SetStyle",              new QoreNode((int64)Qt::WA_SetStyle));
+   qt->addConstant("WA_SetLocale",             new QoreNode((int64)Qt::WA_SetLocale));
+   qt->addConstant("WA_MacShowFocusRect",      new QoreNode((int64)Qt::WA_MacShowFocusRect));
+   qt->addConstant("WA_MacNormalSize",         new QoreNode((int64)Qt::WA_MacNormalSize));
+   qt->addConstant("WA_MacSmallSize",          new QoreNode((int64)Qt::WA_MacSmallSize));
+   qt->addConstant("WA_MacMiniSize",           new QoreNode((int64)Qt::WA_MacMiniSize));
+   qt->addConstant("WA_LayoutUsesWidgetRect",  new QoreNode((int64)Qt::WA_LayoutUsesWidgetRect));
+   qt->addConstant("WA_StyledBackground",      new QoreNode((int64)Qt::WA_StyledBackground));
+   qt->addConstant("WA_MSWindowsUseDirect3D",  new QoreNode((int64)Qt::WA_MSWindowsUseDirect3D));
+   qt->addConstant("WA_CanHostQMdiSubWindowTitleBar", new QoreNode((int64)Qt::WA_CanHostQMdiSubWindowTitleBar));
+   qt->addConstant("WA_MacAlwaysShowToolWindow", new QoreNode((int64)Qt::WA_MacAlwaysShowToolWindow));
+   qt->addConstant("WA_StyleSheet",            new QoreNode((int64)Qt::WA_StyleSheet));
+   qt->addConstant("WA_AttributeCount",        new QoreNode((int64)Qt::WA_AttributeCount));
+
 
    qns->addInitialNamespace(qt);
 }

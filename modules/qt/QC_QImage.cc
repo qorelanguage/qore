@@ -27,10 +27,29 @@
 int CID_QIMAGE;
 QoreClass *QC_QImage = 0;
 
+//QImage ( const QSize & size, Format format )
+//QImage ( const QString & fileName, const char * format = 0 )
+//QImage ( const char * fileName, const char * format = 0 )
+//QImage ( int width, int height, Format format )
 static void QIMAGE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQImage *qp;
    QoreNode *p = get_param(params, 0);
+
+   if (p && p->type == NT_OBJECT) {
+      QoreQSize *size = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+      if (!size) {
+         if (!xsink->isException())
+            xsink->raiseException("QIMAGE-CONSTRUCTOR-PARAM-ERROR", "QImage::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->
+val.object->getClass()->getName());
+         return;
+      }
+      ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
+      p = get_param(params, 1);
+      QImage::Format format = (QImage::Format)(p ? p->getAsInt() : 0);
+      self->setPrivate(CID_QIMAGE, new QoreQImage(*(static_cast<QSize *>(size)), format));
+      return;
+   }
 
 /*
    if (p && p->type == NT_BINARY)
@@ -588,10 +607,13 @@ static QoreNode *QIMAGE_setText(Object *self, QoreQImage *qi, QoreNode *params, 
 }
 
 //QSize size () const
-//static QoreNode *QIMAGE_size(Object *self, QoreQImage *qi, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qi->size());
-//}
+static QoreNode *QIMAGE_size(Object *self, QoreQImage *qi, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreQSize *q_qs = new QoreQSize(qi->size());
+   o_qs->setPrivate(CID_QSIZE, q_qs);
+   return new QoreNode(o_qs);
+}
 
 //QString text ( const QString & key = QString() ) const
 static QoreNode *QIMAGE_text(Object *self, QoreQImage *qi, QoreNode *params, ExceptionSink *xsink)
@@ -602,10 +624,14 @@ static QoreNode *QIMAGE_text(Object *self, QoreQImage *qi, QoreNode *params, Exc
 }
 
 //QStringList textKeys () const
-//static QoreNode *QIMAGE_textKeys(Object *self, QoreQImage *qi, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qi->textKeys());
-//}
+static QoreNode *QIMAGE_textKeys(Object *self, QoreQImage *qi, QoreNode *params, ExceptionSink *xsink)
+{
+   QStringList strlist_rv = qi->textKeys();
+   List *l = new List();
+   for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
+      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+   return new QoreNode(l);
+}
 
 //QImage transformed ( const QMatrix & matrix, Qt::TransformationMode mode = Qt::FastTransformation ) const
 //QImage transformed ( const QTransform & matrix, Qt::TransformationMode mode = Qt::FastTransformation ) const
@@ -707,9 +733,9 @@ class QoreClass *initQImageClass(class QoreClass *qpaintdevice)
    QC_QImage->addMethod("setOffset",                   (q_method_t)QIMAGE_setOffset);
    QC_QImage->addMethod("setPixel",                    (q_method_t)QIMAGE_setPixel);
    QC_QImage->addMethod("setText",                     (q_method_t)QIMAGE_setText);
-   //QC_QImage->addMethod("size",                        (q_method_t)QIMAGE_size);
+   QC_QImage->addMethod("size",                        (q_method_t)QIMAGE_size);
    QC_QImage->addMethod("text",                        (q_method_t)QIMAGE_text);
-   //QC_QImage->addMethod("textKeys",                    (q_method_t)QIMAGE_textKeys);
+   QC_QImage->addMethod("textKeys",                    (q_method_t)QIMAGE_textKeys);
    //QC_QImage->addMethod("transformed",                 (q_method_t)QIMAGE_transformed);
    QC_QImage->addMethod("valid",                       (q_method_t)QIMAGE_valid);
    QC_QImage->addMethod("width",                       (q_method_t)QIMAGE_width);

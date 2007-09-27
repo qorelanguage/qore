@@ -1,5 +1,5 @@
 /*
- QC_QRect.h
+ QC_QIODevice.h
  
  Qore Programming Language
  
@@ -20,41 +20,37 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QRECT_H
+#ifndef _QORE_QT_QC_QIODEVICE_H
 
-#define _QORE_QC_QRECT_H
+#define _QORE_QT_QC_QIODEVICE_H
 
-#include <QRect>
+#include <QIODevice>
+#include "QoreAbstractQIODevice.h"
+#include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QRECT;
-DLLLOCAL extern class QoreClass *QC_QRect;
+DLLLOCAL extern int CID_QIODEVICE;
+DLLLOCAL extern class QoreClass *QC_QIODevice;
 
-DLLLOCAL class QoreClass *initQRectClass();
+DLLLOCAL class QoreClass *initQIODeviceClass(QoreClass *);
 
-class QoreQRect : public AbstractPrivateData, public QRect
+class QoreQtQIODevice : public QoreAbstractQIODevice
 {
    public:
-      DLLLOCAL QoreQRect() : QRect()
+      Object *qore_obj;
+      QPointer<QIODevice> qobj;
+
+      DLLLOCAL QoreQtQIODevice(Object *obj, QIODevice* qiod) : qore_obj(obj), qobj(qiod)
       {
       }
-      DLLLOCAL QoreQRect(int x, int y, int width, int height) : QRect(x, y, width, height)
+      DLLLOCAL virtual class QObject *getQObject() const
       {
+         return static_cast<QObject *>(&(*qobj));
       }
-      DLLLOCAL QoreQRect(const QPoint &p1, const QPoint &p2) : QRect(p1, p2)
+      DLLLOCAL virtual class QIODevice *getQIODevice() const
       {
+         return static_cast<QIODevice *>(&(*qobj));
       }
-      DLLLOCAL QoreQRect(const QPoint &p, const QSize &size) : QRect(p, size)
-      {
-      }
-      DLLLOCAL QoreQRect(const QRect &qr) : QRect(qr)
-      {
-      }
-/*
-      DLLLOCAL QoreQRect(const QRect &qr) : QRect(qr.x(), qr.y(), qr.width(), qr.height())
-      {
-      }
-*/   
+#include "qore-qt-static-qobject-methods.h"
 };
 
-
-#endif
+#endif // _QORE_QT_QC_QIODEVICE_H

@@ -1,5 +1,5 @@
 /*
- QC_QRect.h
+ QC_QImageWriter.h
  
  Qore Programming Language
  
@@ -20,41 +20,30 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QRECT_H
+#ifndef _QORE_QT_QC_QIMAGEWRITER_H
 
-#define _QORE_QC_QRECT_H
+#define _QORE_QT_QC_QIMAGEWRITER_H
 
-#include <QRect>
+#include <QImageWriter>
 
-DLLLOCAL extern int CID_QRECT;
-DLLLOCAL extern class QoreClass *QC_QRect;
+DLLLOCAL extern int CID_QIMAGEWRITER;
+DLLLOCAL extern class QoreClass *QC_QImageWriter;
 
-DLLLOCAL class QoreClass *initQRectClass();
+DLLLOCAL class QoreClass *initQImageWriterClass();
+DLLLOCAL void initQImageWriterStaticFunctions();
 
-class QoreQRect : public AbstractPrivateData, public QRect
+class QoreQImageWriter : public AbstractPrivateData, public QImageWriter
 {
    public:
-      DLLLOCAL QoreQRect() : QRect()
+      DLLLOCAL QoreQImageWriter() : QImageWriter()
       {
       }
-      DLLLOCAL QoreQRect(int x, int y, int width, int height) : QRect(x, y, width, height)
+      DLLLOCAL QoreQImageWriter(QIODevice* device, const QByteArray& format) : QImageWriter(device, format)
       {
       }
-      DLLLOCAL QoreQRect(const QPoint &p1, const QPoint &p2) : QRect(p1, p2)
+      DLLLOCAL QoreQImageWriter(const QString& fileName, const QByteArray& format = QByteArray()) : QImageWriter(fileName, format)
       {
       }
-      DLLLOCAL QoreQRect(const QPoint &p, const QSize &size) : QRect(p, size)
-      {
-      }
-      DLLLOCAL QoreQRect(const QRect &qr) : QRect(qr)
-      {
-      }
-/*
-      DLLLOCAL QoreQRect(const QRect &qr) : QRect(qr.x(), qr.y(), qr.width(), qr.height())
-      {
-      }
-*/   
 };
 
-
-#endif
+#endif // _QORE_QT_QC_QIMAGEWRITER_H

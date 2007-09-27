@@ -1,5 +1,5 @@
 /*
- QC_QRect.h
+ QC_QInputDialog.h
  
  Qore Programming Language
  
@@ -20,41 +20,12 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QRECT_H
+#ifndef _QORE_QT_QC_QINPUTDIALOG_H
 
-#define _QORE_QC_QRECT_H
+#define _QORE_QT_QC_QINPUTDIALOG_H
 
-#include <QRect>
+#include <QInputDialog>
 
-DLLLOCAL extern int CID_QRECT;
-DLLLOCAL extern class QoreClass *QC_QRect;
+DLLLOCAL void initQInputDialogStaticFunctions();
 
-DLLLOCAL class QoreClass *initQRectClass();
-
-class QoreQRect : public AbstractPrivateData, public QRect
-{
-   public:
-      DLLLOCAL QoreQRect() : QRect()
-      {
-      }
-      DLLLOCAL QoreQRect(int x, int y, int width, int height) : QRect(x, y, width, height)
-      {
-      }
-      DLLLOCAL QoreQRect(const QPoint &p1, const QPoint &p2) : QRect(p1, p2)
-      {
-      }
-      DLLLOCAL QoreQRect(const QPoint &p, const QSize &size) : QRect(p, size)
-      {
-      }
-      DLLLOCAL QoreQRect(const QRect &qr) : QRect(qr)
-      {
-      }
-/*
-      DLLLOCAL QoreQRect(const QRect &qr) : QRect(qr.x(), qr.y(), qr.width(), qr.height())
-      {
-      }
-*/   
-};
-
-
-#endif
+#endif // _QORE_QT_QC_QINPUTDIALOG_H

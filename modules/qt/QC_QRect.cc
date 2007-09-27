@@ -29,26 +29,54 @@
 int CID_QRECT;
 class QoreClass *QC_QRect = 0;
 
-static void QRECT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+//QRect ()
+//QRect ( const QPoint & topLeft, const QPoint & bottomRight )
+//QRect ( const QPoint & topLeft, const QSize & size )
+//QRect ( int x, int y, int width, int height )
+static void QRECT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreQRect *qr;
-
    QoreNode *p = get_param(params, 0);
-   if (is_nothing(p))
-      qr = new QoreQRect();
-   else {
-      int x = p->getAsInt();
-      p = get_param(params, 1);
-      int y = p ? p->getAsInt() : 0;
-      p = get_param(params, 2);
-      int w = p ? p->getAsInt() : 0;
-      p = get_param(params, 3);
-      int h = p ? p->getAsInt() : 0;
-
-      qr = new QoreQRect(x, y, w, h);
+   if (is_nothing(p)) {
+      self->setPrivate(CID_QRECT, new QoreQRect());
+      return;
    }
-
-   self->setPrivate(CID_QRECT, qr);
+   if (p && p->type == NT_OBJECT) {
+      QoreQPoint *topLeft = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      if (!topLeft) {
+	 if (!xsink->isException())
+	    xsink->raiseException("QRECT-CONSTRUCTOR-PARAM-ERROR", "QRect::constructor() does not know how to handle arguments of class '%s' as passed as the first argument (expecting QPoint or int)", p->val.object->getClass()->getName());
+	 return;
+      }
+      ReferenceHolder<AbstractPrivateData> topLeftHolder(static_cast<AbstractPrivateData *>(topLeft), xsink);
+      p = test_param(params, NT_OBJECT, 1);
+      QoreQSize *size = p ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+      if (*xsink)
+	 return;
+      if (!size) {
+	 QoreQPoint *bottomRight = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+	 if (*xsink)
+	    return;
+	 if (!bottomRight) {
+	    xsink->raiseException("QRECT-CONSTRUCTOR-PARAM-ERROR", "QRect::constructor() does not know how to handle arguments of class '%s' as passed as the second argument", p->val.object->getClass()->getName());
+	    return;
+	 }
+	 ReferenceHolder<AbstractPrivateData> bottomRightHolder(static_cast<AbstractPrivateData *>(bottomRight), xsink);
+	 self->setPrivate(CID_QRECT, new QoreQRect(*(static_cast<QPoint *>(topLeft)), *(static_cast<QPoint *>(bottomRight))));
+	 return;
+      }
+      ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
+      self->setPrivate(CID_QRECT, new QoreQRect(*(static_cast<QPoint *>(topLeft)), *(static_cast<QSize *>(size))));
+      return;
+   }
+   int x = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int y = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int width = p ? p->getAsInt() : 0;
+   p = get_param(params, 3);
+   int height = p ? p->getAsInt() : 0;
+   self->setPrivate(CID_QRECT, new QoreQRect(x, y, width, height));
+   return;
 }
 
 static void QRECT_copy(class Object *self, class Object *old, class QoreQRect *qr, ExceptionSink *xsink)
@@ -127,37 +155,38 @@ static QoreNode *QRECT_center(Object *self, QoreQRect *qr, QoreNode *params, Exc
 
 //bool contains ( const QPoint & point, bool proper = false ) const
 //bool contains ( int x, int y, bool proper ) const
+//bool contains ( int x, int y ) const
+//bool contains ( const QRect & rectangle, bool proper = false ) const
 static QoreNode *QRECT_contains(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
-      if (!point)
-      {
-	 QoreQRect *rectangle = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
-	 if (!rectangle)
-	 {
-	    if (!xsink->isException())
-	       xsink->raiseException("QRECT-CONTAINS-PARAM-ERROR", "QRect::contains() cannot handle arguments of class '%s'", p->val.object->getClass()->getName());
-	    return 0;
-	 }
-
-	 ReferenceHolder<QoreQRect> holder(rectangle, xsink);
-	 p = get_param(params, 1);
-	 bool proper = p ? p->getAsBool() : 0;
-	 return new QoreNode(qr->contains(*((QRect *)rectangle), proper));	 
+      QoreQRect *rectangle = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
+      if (!rectangle) {
+         QoreQPoint *point = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+         if (!point) {
+            if (!xsink->isException())
+               xsink->raiseException("QRECT-CONTAINS-PARAM-ERROR", "QRect::contains() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            return 0;
+         }
+         ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(point), xsink);
+         p = get_param(params, 1);
+         bool proper = p ? p->getAsBool() : false;
+         return new QoreNode(qr->contains(*(static_cast<QPoint *>(point)), proper));
       }
-      ReferenceHolder<QoreQPoint> holder(point, xsink);
+      ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
       p = get_param(params, 1);
-      bool proper = p ? p->getAsBool() : 0;
-      return new QoreNode(qr->contains(*((QPoint *)point), proper));
+      bool proper = p ? p->getAsBool() : false;
+      return new QoreNode(qr->contains(*(static_cast<QRect *>(rectangle)), proper));
    }
-
    int x = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int y = p ? p->getAsInt() : 0;
+   if (num_params(params) == 2)
+      return new QoreNode(qr->contains(x, y));
+
    p = get_param(params, 2);
-   bool proper = p ? p->getAsBool() : 0;
+   bool proper = p ? p->getAsBool() : false;
    return new QoreNode(qr->contains(x, y, proper));
 }
 
@@ -511,13 +540,19 @@ static QoreNode *QRECT_setRight(Object *self, QoreQRect *qr, QoreNode *params, E
 }
 
 //void setSize ( const QSize & size )
-//static QoreNode *QRECT_setSize(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QSize size = p;
-//   qr->setSize(size);
-//   return 0;
-//}
+static QoreNode *QRECT_setSize(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   if (!size) {
+      if (!xsink->isException())
+         xsink->raiseException("QRECT-SETSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QRect::setSize()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
+   qr->setSize(*(static_cast<QSize *>(size)));
+   return 0;
+}
 
 //void setTop ( int y )
 static QoreNode *QRECT_setTop(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
@@ -588,10 +623,13 @@ static QoreNode *QRECT_setY(Object *self, QoreQRect *qr, QoreNode *params, Excep
 }
 
 //QSize size () const
-//static QoreNode *QRECT_size(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qr->size());
-//}
+static QoreNode *QRECT_size(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreQSize *q_qs = new QoreQSize(qr->size());
+   o_qs->setPrivate(CID_QSIZE, q_qs);
+   return new QoreNode(o_qs);
+}
 
 //int top () const
 static QoreNode *QRECT_top(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
@@ -753,14 +791,14 @@ class QoreClass *initQRectClass()
    QC_QRect->addMethod("setLeft",                     (q_method_t)QRECT_setLeft);
    QC_QRect->addMethod("setRect",                     (q_method_t)QRECT_setRect);
    QC_QRect->addMethod("setRight",                    (q_method_t)QRECT_setRight);
-   //QC_QRect->addMethod("setSize",                     (q_method_t)QRECT_setSize);
+   QC_QRect->addMethod("setSize",                     (q_method_t)QRECT_setSize);
    QC_QRect->addMethod("setTop",                      (q_method_t)QRECT_setTop);
    QC_QRect->addMethod("setTopLeft",                  (q_method_t)QRECT_setTopLeft);
    QC_QRect->addMethod("setTopRight",                 (q_method_t)QRECT_setTopRight);
    QC_QRect->addMethod("setWidth",                    (q_method_t)QRECT_setWidth);
    QC_QRect->addMethod("setX",                        (q_method_t)QRECT_setX);
    QC_QRect->addMethod("setY",                        (q_method_t)QRECT_setY);
-   //QC_QRect->addMethod("size",                        (q_method_t)QRECT_size);
+   QC_QRect->addMethod("size",                        (q_method_t)QRECT_size);
    QC_QRect->addMethod("top",                         (q_method_t)QRECT_top);
    QC_QRect->addMethod("topLeft",                     (q_method_t)QRECT_topLeft);
    QC_QRect->addMethod("topRight",                    (q_method_t)QRECT_topRight);

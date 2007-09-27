@@ -154,3 +154,7 @@
 #include "QC_QIntValidator.cc"
 #include "QC_QRegExpValidator.cc"
 #include "QC_QFileInfo.cc"
+#include "QC_QColorDialog.cc"
+#include "QC_QInputDialog.cc"
+#include "QC_QIODevice.cc"
+#include "QC_QImageWriter.cc"

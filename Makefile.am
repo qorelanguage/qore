@@ -415,6 +415,11 @@ noinst_HEADERS = \
 	modules/qt/QC_QIntValidator.h \
 	modules/qt/QC_QRegExpValidator.h \
 	modules/qt/QC_QFileInfo.h \
+	modules/qt/QC_QColorDialog.h \
+	modules/qt/QC_QInputDialog.h \
+	modules/qt/QC_QIODevice.h \
+	modules/qt/QoreAbstractQIODevice.h \
+	modules/qt/QC_QImageWriter.h \
 	command-line.h \
 	include/qore/Qore.h
 

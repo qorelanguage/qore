@@ -39,29 +39,24 @@ static void QPEN_constructor(Object *self, QoreNode *params, ExceptionSink *xsin
       self->setPrivate(CID_QPEN, new QoreQPen());
       return;
    }
-   if (p && p->type == NT_OBJECT) {
-      QoreQBrush *brush = (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink);
-      if (!brush) {
-         QoreQColor *color = (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink);
-         if (!color) {
-            if (!xsink->isException())
-               xsink->raiseException("QPEN-QPEN-PARAM-ERROR", "QPen::QPen() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
-            return;
-         }
-         ReferenceHolder<QoreQColor> colorHolder(color, xsink);
-         self->setPrivate(CID_QPEN, new QoreQPen(*(static_cast<QColor *>(color))));
-         return;
-      }
-      ReferenceHolder<QoreQBrush> brushHolder(brush, xsink);
+   if (num_params(params) >= 2) {
+      QBrush brush;
+      if (get_qbrush(p, brush, xsink))
+	 return;
       p = get_param(params, 1);
       qreal width = p ? p->getAsFloat() : 0.0;
       p = get_param(params, 2);
-      Qt::PenStyle style = (Qt::PenStyle)(p ? p->getAsInt() : 0);
+      if (!p || p->type != NT_PENSTYLE) {
+	 xsink->raiseException("QPEN-CONSTRUCTOR-ERROR", "this version of QPen::constructor() expected a PenStyle constant as the third argument, got type '%s' instead", p ? p->type->getName() : "NOTHING");
+	 return;
+      }
+      Qt::PenStyle style = (Qt::PenStyle)p->val.intval;
       p = get_param(params, 3);
-      Qt::PenCapStyle cap = (Qt::PenCapStyle)(p ? p->getAsInt() : 0);
+      Qt::PenCapStyle cap = (Qt::PenCapStyle)(!is_nothing(p) ? p->getAsInt() : Qt::SquareCap);
       p = get_param(params, 4);
-      Qt::PenJoinStyle join = (Qt::PenJoinStyle)(p ? p->getAsInt() : 0);
-      self->setPrivate(CID_QPEN, new QoreQPen(*(static_cast<QBrush *>(brush)), width, style, cap, join));
+      Qt::PenJoinStyle join = (Qt::PenJoinStyle)(!is_nothing(p) ? p->getAsInt() : Qt::BevelJoin);
+      //printd(5, "QPen::QPen(brush=%d, %g, %d, %d, %d)\n", brush.color().value(), width, style, cap, join);
+      self->setPrivate(CID_QPEN, new QoreQPen(brush, width, style, cap, join));
       return;
    }
 
@@ -235,7 +230,12 @@ static QoreNode *QPEN_setMiterLimit(Object *self, QoreQPen *qp, QoreNode *params
 static QoreNode *QPEN_setStyle(Object *self, QoreQPen *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   Qt::PenStyle style = (Qt::PenStyle)(p ? p->getAsInt() : 0);
+   if (!p || p->type != NT_PENSTYLE) {
+      xsink->raiseException("QPEN-SETSTYLE-ERROR", "QPen::setStyle() expects a PenStyle constant as the sole argument, got type '%s' instead", p ? p->type->getName() : "NOTHING");
+      return 0;
+   }
+
+   Qt::PenStyle style = (Qt::PenStyle)p->val.intval;
    qp->setStyle(style);
    return 0;
 }
@@ -261,7 +261,9 @@ static QoreNode *QPEN_setWidthF(Object *self, QoreQPen *qp, QoreNode *params, Ex
 //Qt::PenStyle style () const
 static QoreNode *QPEN_style(Object *self, QoreQPen *qp, QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qp->style());
+   QoreNode *rv = new QoreNode(NT_PENSTYLE);
+   rv->val.intval = (int64)qp->style();
+   return rv;
 }
 
 //int width () const
