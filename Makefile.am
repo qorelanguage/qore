@@ -420,6 +420,8 @@ noinst_HEADERS = \
 	modules/qt/QC_QIODevice.h \
 	modules/qt/QoreAbstractQIODevice.h \
 	modules/qt/QC_QImageWriter.h \
+	modules/qt/QC_QDial.h \
+	modules/qt/QC_QStackedWidget.h \
 	command-line.h \
 	include/qore/Qore.h
 

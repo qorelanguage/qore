@@ -163,6 +163,8 @@
 #include "QC_QInputDialog.h"
 #include "QC_QIODevice.h"
 #include "QC_QImageWriter.h"
+#include "QC_QDial.h"
+#include "QC_QStackedWidget.h"
 
 #include "qore-qt-events.h"
 
@@ -1146,7 +1148,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQBrushClass());
    qt->addSystemClass(initQColorClass());
    qt->addSystemClass(initQPaletteClass());
-   qt->addSystemClass(initQRegionClass());
    qt->addSystemClass(initQPointClass());
    qt->addSystemClass(initQSizeClass());
 
@@ -1187,6 +1188,16 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qimage->addSystemClass(initQImageClass(qpaintdevice));
 
    qt->addInitialNamespace(qimage);
+
+   Namespace *qregion = new Namespace("QRegion");
+   
+   // RegionType enum
+   qregion->addConstant("Rectangle",                new QoreNode((int64)QRegion::Rectangle));
+   qregion->addConstant("Ellipse",                  new QoreNode((int64)QRegion::Ellipse));
+
+   qregion->addSystemClass(initQRegionClass());
+
+   qt->addInitialNamespace(qregion);
 
    Namespace *qlayout_ns = new Namespace("QLayout");
 
@@ -1552,6 +1563,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQFileInfoClass());
    qt->addSystemClass(initQIODeviceClass(qobject));
    qt->addSystemClass(initQImageWriterClass());
+   qt->addSystemClass(initQDialClass(qabstractslider));
+   qt->addSystemClass(initQStackedWidgetClass(qframe));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -3095,7 +3108,33 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("WA_MacAlwaysShowToolWindow", new QoreNode((int64)Qt::WA_MacAlwaysShowToolWindow));
    qt->addConstant("WA_StyleSheet",            new QoreNode((int64)Qt::WA_StyleSheet));
    qt->addConstant("WA_AttributeCount",        new QoreNode((int64)Qt::WA_AttributeCount));
-
+   
+   // WindowType enum
+   qt->addConstant("Widget",                   new QoreNode((int64)Qt::Widget));
+   qt->addConstant("Window",                   new QoreNode((int64)Qt::Window));
+   qt->addConstant("Dialog",                   new QoreNode((int64)Qt::Dialog));
+   qt->addConstant("Sheet",                    new QoreNode((int64)Qt::Sheet));
+   qt->addConstant("Drawer",                   new QoreNode((int64)Qt::Drawer));
+   qt->addConstant("Popup",                    new QoreNode((int64)Qt::Popup));
+   qt->addConstant("Tool",                     new QoreNode((int64)Qt::Tool));
+   qt->addConstant("ToolTip",                  new QoreNode((int64)Qt::ToolTip));
+   qt->addConstant("SplashScreen",             new QoreNode((int64)Qt::SplashScreen));
+   qt->addConstant("Desktop",                  new QoreNode((int64)Qt::Desktop));
+   qt->addConstant("SubWindow",                new QoreNode((int64)Qt::SubWindow));
+   qt->addConstant("WindowType_Mask",          new QoreNode((int64)Qt::WindowType_Mask));
+   qt->addConstant("MSWindowsFixedSizeDialogHint", new QoreNode((int64)Qt::MSWindowsFixedSizeDialogHint));
+   qt->addConstant("MSWindowsOwnDC",           new QoreNode((int64)Qt::MSWindowsOwnDC));
+   qt->addConstant("X11BypassWindowManagerHint", new QoreNode((int64)Qt::X11BypassWindowManagerHint));
+   qt->addConstant("FramelessWindowHint",      new QoreNode((int64)Qt::FramelessWindowHint));
+   qt->addConstant("WindowTitleHint",          new QoreNode((int64)Qt::WindowTitleHint));
+   qt->addConstant("WindowSystemMenuHint",     new QoreNode((int64)Qt::WindowSystemMenuHint));
+   qt->addConstant("WindowMinimizeButtonHint", new QoreNode((int64)Qt::WindowMinimizeButtonHint));
+   qt->addConstant("WindowMaximizeButtonHint", new QoreNode((int64)Qt::WindowMaximizeButtonHint));
+   qt->addConstant("WindowMinMaxButtonsHint",  new QoreNode((int64)Qt::WindowMinMaxButtonsHint));
+   qt->addConstant("WindowContextHelpButtonHint", new QoreNode((int64)Qt::WindowContextHelpButtonHint));
+   qt->addConstant("WindowShadeButtonHint",    new QoreNode((int64)Qt::WindowShadeButtonHint));
+   qt->addConstant("WindowStaysOnTopHint",     new QoreNode((int64)Qt::WindowStaysOnTopHint));
+   qt->addConstant("CustomizeWindowHint",      new QoreNode((int64)Qt::CustomizeWindowHint));
 
    qns->addInitialNamespace(qt);
 }

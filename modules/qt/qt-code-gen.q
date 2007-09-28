@@ -1130,9 +1130,10 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 
 	my $last = $param ? elements $cl == 1 : elements $cl == 1 && !elements $rl && !elements $fl;
 
-	if (!$last)
+	if (!$last) {
 	    $lo += sprintf("if (p && p->type == NT_OBJECT) {");
-	#$lo += sprintf("++ param=%n, elements $cl=%n", $param, elements $cl);
+	    #$lo += sprintf("++ param=%n, elements $cl=%n", $param, elements $cl);
+	}
 	
 	for (my $cc = 0; $cc < elements $cl; ++$cc) {
 	    my $off = $last ? 0 : ($cc + 1) * 3;
@@ -1153,7 +1154,7 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 		$lo += do_return_value($off, $func.rt, $cl[$cc].callstr, \$func.ok);
 	    }
 	    else
-		$lo += do_multi_function($name, \$func, $cl, $cl[$cc].callstr, $param + 1, $cc * 3);
+		$lo += do_multi_function($name, \$func, $cl[$cc], $cl[$cc].callstr, $param + 1, $cc * 3);
 	}
 	if (!$last)
 	    $lo += sprintf("}");

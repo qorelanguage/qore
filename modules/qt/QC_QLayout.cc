@@ -25,6 +25,7 @@
 #include "QC_QLayout.h"
 
 int CID_QLAYOUT;
+QoreClass *QC_QLayout = 0;
 
 static void QLAYOUT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -291,7 +292,7 @@ class QoreClass *initQLayoutClass(class QoreClass *qobject)
 {
    tracein("initQLayoutClass()");
    
-   class QoreClass *QC_QLayout = new QoreClass("QLayout", QDOM_GUI);
+   QC_QLayout = new QoreClass("QLayout", QDOM_GUI);
    CID_QLAYOUT = QC_QLayout->getID();
 
    QC_QLayout->addBuiltinVirtualBaseClass(qobject);

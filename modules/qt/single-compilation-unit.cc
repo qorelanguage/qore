@@ -158,3 +158,5 @@
 #include "QC_QInputDialog.cc"
 #include "QC_QIODevice.cc"
 #include "QC_QImageWriter.cc"
+#include "QC_QDial.cc"
+#include "QC_QStackedWidget.cc"

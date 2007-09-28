@@ -95,6 +95,9 @@ static QoreNode *QPAINTER_begin(Object *self, QoreQPainter *qp, QoreNode *params
 }
 
 //QRectF boundingRect ( const QRectF & rectangle, int flags, const QString & text )
+////QRectF boundingRect ( const QRectF & rectangle, const QString & text, const QTextOption & option = QTextOption() )
+//QRect boundingRect ( const QRect & rectangle, int flags, const QString & text )
+//QRect boundingRect ( int x, int y, int w, int h, int flags, const QString & text )
 static QoreNode *QPAINTER_boundingRect(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
@@ -161,29 +164,6 @@ static QoreNode *QPAINTER_boundingRect(Object *self, QoreQPainter *qp, QoreNode 
    return new QoreNode(o_qr);
 }
 
-//QRectF boundingRect ( const QRectF & rectangle, const QString & text, const QTextOption & option = QTextOption() )
-//static QoreNode *QPAINTER_boundingRect(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
-//   if (!p || !rectangle)
-//   {
-//      if (!xsink->isException())
-//         xsink->raiseException("QPAINTER-BOUNDINGRECT-PARAM-ERROR", "expecting a QRectF object as first argument to QPainter::boundingRect()");
-//      return 0;
-//   }
-//   ReferenceHolder<QoreQRectF> holder(rectangle, xsink);
-//   p = get_param(params, 1);
-//   ???  text = p;
-//   p = get_param(params, 2);
-//   ???  option = p;
-//
-//   QoreQRectF *q_qrf = new QoreQRectF(qp->getQPainter()->boundingRect(*((QRectF *)rectangle), text, option));
-//   Object *o_qrf = new Object(self->getClass(CID_QRECTF), getProgram());
-//   o_qrf->setPrivate(CID_QRECTF, q_qrf);
-//   return new QoreNode(o_qrf);
-//}
-
 //const QBrush & brush () const
 static QoreNode *QPAINTER_brush(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 {
@@ -194,10 +174,13 @@ static QoreNode *QPAINTER_brush(Object *self, QoreQPainter *qp, QoreNode *params
 }
 
 //QPoint brushOrigin () const
-//static QoreNode *QPAINTER_brushOrigin(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->brushOrigin());
-//}
+static QoreNode *QPAINTER_brushOrigin(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreQPoint *q_qp = new QoreQPoint(qp->getQPainter()->brushOrigin());
+   o_qp->setPrivate(CID_QPOINT, q_qp);
+   return new QoreNode(o_qp);
+}
 
 //QPainterPath clipPath () const
 //static QoreNode *QPAINTER_clipPath(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -206,16 +189,22 @@ static QoreNode *QPAINTER_brush(Object *self, QoreQPainter *qp, QoreNode *params
 //}
 
 //QRegion clipRegion () const
-//static QoreNode *QPAINTER_clipRegion(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->clipRegion());
-//}
+static QoreNode *QPAINTER_clipRegion(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qr = new Object(QC_QRegion, getProgram());
+   QoreQRegion *q_qr = new QoreQRegion(qp->getQPainter()->clipRegion());
+   o_qr->setPrivate(CID_QREGION, q_qr);
+   return new QoreNode(o_qr);
+}
 
 //QMatrix combinedMatrix () const
-//static QoreNode *QPAINTER_combinedMatrix(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->combinedMatrix());
-//}
+static QoreNode *QPAINTER_combinedMatrix(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qm = new Object(QC_QMatrix, getProgram());
+   QoreQMatrix *q_qm = new QoreQMatrix(qp->getQPainter()->combinedMatrix());
+   o_qm->setPrivate(CID_QMATRIX, q_qm);
+   return new QoreNode(o_qm);
+}
 
 //QTransform combinedTransform () const
 //static QoreNode *QPAINTER_combinedTransform(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -224,10 +213,10 @@ static QoreNode *QPAINTER_brush(Object *self, QoreQPainter *qp, QoreNode *params
 //}
 
 //CompositionMode compositionMode () const
-//static QoreNode *QPAINTER_compositionMode(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->compositionMode());
-//}
+static QoreNode *QPAINTER_compositionMode(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->getQPainter()->compositionMode());
+}
 
 //QPaintDevice * device () const
 //static QoreNode *QPAINTER_device(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -236,10 +225,13 @@ static QoreNode *QPAINTER_brush(Object *self, QoreQPainter *qp, QoreNode *params
 //}
 
 //const QMatrix & deviceMatrix () const
-//static QoreNode *QPAINTER_deviceMatrix(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->deviceMatrix());
-//}
+static QoreNode *QPAINTER_deviceMatrix(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qm = new Object(QC_QMatrix, getProgram());
+   QoreQMatrix *q_qm = new QoreQMatrix(qp->getQPainter()->deviceMatrix());
+   o_qm->setPrivate(CID_QMATRIX, q_qm);
+   return new QoreNode(o_qm);
+}
 
 //const QTransform & deviceTransform () const
 //static QoreNode *QPAINTER_deviceTransform(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -492,139 +484,6 @@ static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *pa
    return 0;
 }
 
-//void drawImage ( const QRect & target, const QImage & image, const QRect & source, Qt::ImageConversionFlags flags = Qt::AutoColor )
-//static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   QoreQRect *target = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
-//   if (!p || !target)
-//   {
-//      if (!xsink->isException())
-//         xsink->raiseException("QPAINTER-DRAWIMAGE-PARAM-ERROR", "expecting a QRect object as first argument to QPainter::drawImage()");
-//      return 0;
-//   }
-//   ReferenceHolder<QoreQRect> holder(target, xsink);
-//   p = get_param(params, 1);
-//   ???  image = p;
-//   p = get_param(params, 2);
-//   ???  source = p;
-//   p = get_param(params, 3);
-//   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
-//   qp->getQPainter()->drawImage(*((QRect *)target), image, source, flags);
-//   return 0;
-//}
-
-//void drawImage ( const QPointF & point, const QImage & image )
-//static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF point = p;
-//   p = get_param(params, 1);
-//   ???  image = p;
-//   qp->getQPainter()->drawImage(point, image);
-//   return 0;
-//}
-
-//void drawImage ( const QPoint & point, const QImage & image )
-//static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint point = p;
-//   p = get_param(params, 1);
-//   ???  image = p;
-//   qp->getQPainter()->drawImage(point, image);
-//   return 0;
-//}
-
-//void drawImage ( const QPointF & point, const QImage & image, const QRectF & source, Qt::ImageConversionFlags flags = Qt::AutoColor )
-//static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF point = p;
-//   p = get_param(params, 1);
-//   ???  image = p;
-//   p = get_param(params, 2);
-//   ???  source = p;
-//   p = get_param(params, 3);
-//   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
-//   qp->getQPainter()->drawImage(point, image, source, flags);
-//   return 0;
-//}
-
-//void drawImage ( const QPoint & point, const QImage & image, const QRect & source, Qt::ImageConversionFlags flags = Qt::AutoColor )
-//static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint point = p;
-//   p = get_param(params, 1);
-//   ???  image = p;
-//   p = get_param(params, 2);
-//   ???  source = p;
-//   p = get_param(params, 3);
-//   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
-//   qp->getQPainter()->drawImage(point, image, source, flags);
-//   return 0;
-//}
-
-//void drawImage ( const QRectF & rectangle, const QImage & image )
-//static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
-//   if (!p || !rectangle)
-//   {
-//      if (!xsink->isException())
-//         xsink->raiseException("QPAINTER-DRAWIMAGE-PARAM-ERROR", "expecting a QRectF object as first argument to QPainter::drawImage()");
-//      return 0;
-//   }
-//   ReferenceHolder<QoreQRectF> holder(rectangle, xsink);
-//   p = get_param(params, 1);
-//   ???  image = p;
-//   qp->getQPainter()->drawImage(*((QRectF *)rectangle), image);
-//   return 0;
-//}
-
-//void drawImage ( const QRect & rectangle, const QImage & image )
-//static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
-//   if (!p || !rectangle)
-//   {
-//      if (!xsink->isException())
-//         xsink->raiseException("QPAINTER-DRAWIMAGE-PARAM-ERROR", "expecting a QRect object as first argument to QPainter::drawImage()");
-//      return 0;
-//   }
-//   ReferenceHolder<QoreQRect> holder(rectangle, xsink);
-//   p = get_param(params, 1);
-//   ???  image = p;
-//   qp->getQPainter()->drawImage(*((QRect *)rectangle), image);
-//   return 0;
-//}
-
-//void drawImage ( int x, int y, const QImage & image, int sx = 0, int sy = 0, int sw = -1, int sh = -1, Qt::ImageConversionFlags flags = Qt::AutoColor )
-//static QoreNode *QPAINTER_drawImage(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int x = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int y = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   ??? QImage image = p;
-//   p = get_param(params, 3);
-//   int sx = p ? p->getAsInt() : 0;
-//   p = get_param(params, 4);
-//   int sy = p ? p->getAsInt() : 0;
-//   p = get_param(params, 5);
-//   int sw = !is_nothing(p) ? p->getAsInt() : -1;
-//   p = get_param(params, 6);
-//   int sh = !is_nothing(p) ? p->getAsInt() : -1;
-//   p = get_param(params, 7);
-//   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
-//   qp->getQPainter()->drawImage(x, y, image, sx, sy, sw, sh, flags);
-//   return 0;
-//}
-
 //void drawLine ( const QLineF & line )
 //void drawLine ( const QLine & line )
 //void drawLine ( const QPoint & p1, const QPoint & p2 )
@@ -690,76 +549,12 @@ static QoreNode *QPAINTER_drawLine(Object *self, QoreQPainter *qp, QoreNode *par
 }
 
 //void drawLines ( const QLineF * lines, int lineCount )
-//static QoreNode *QPAINTER_drawLines(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QLineF* lines = p;
-//   p = get_param(params, 1);
-//   int lineCount = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawLines(lines, lineCount);
-//   return 0;
-//}
-
 //void drawLines ( const QLine * lines, int lineCount )
-//static QoreNode *QPAINTER_drawLines(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QLine* lines = p;
-//   p = get_param(params, 1);
-//   int lineCount = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawLines(lines, lineCount);
-//   return 0;
-//}
-
 //void drawLines ( const QPointF * pointPairs, int lineCount )
-//static QoreNode *QPAINTER_drawLines(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF* pointPairs = p;
-//   p = get_param(params, 1);
-//   int lineCount = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawLines(pointPairs, lineCount);
-//   return 0;
-//}
-
 //void drawLines ( const QPoint * pointPairs, int lineCount )
-//static QoreNode *QPAINTER_drawLines(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint* pointPairs = p;
-//   p = get_param(params, 1);
-//   int lineCount = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawLines(pointPairs, lineCount);
-//   return 0;
-//}
-
 //void drawLines ( const QVector<QPointF> & pointPairs )
-//static QoreNode *QPAINTER_drawLines(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QVector<QPointF> pointPairs = p;
-//   qp->getQPainter()->drawLines(pointPairs);
-//   return 0;
-//}
-
 //void drawLines ( const QVector<QPoint> & pointPairs )
-//static QoreNode *QPAINTER_drawLines(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QVector<QPoint> pointPairs = p;
-//   qp->getQPainter()->drawLines(pointPairs);
-//   return 0;
-//}
-
 //void drawLines ( const QVector<QLineF> & lines )
-//static QoreNode *QPAINTER_drawLines(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QVector<QLineF> lines = p;
-//   qp->getQPainter()->drawLines(lines);
-//   return 0;
-//}
-
 //void drawLines ( const QVector<QLine> & lines )
 //static QoreNode *QPAINTER_drawLines(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 //{
@@ -779,39 +574,58 @@ static QoreNode *QPAINTER_drawLine(Object *self, QoreQPainter *qp, QoreNode *par
 //}
 
 //void drawPicture ( const QPointF & point, const QPicture & picture )
-//static QoreNode *QPAINTER_drawPicture(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF point = p;
-//   p = get_param(params, 1);
-//   ???  picture = p;
-//   qp->getQPainter()->drawPicture(point, picture);
-//   return 0;
-//}
-
 //void drawPicture ( const QPoint & point, const QPicture & picture )
-//static QoreNode *QPAINTER_drawPicture(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint point = p;
-//   p = get_param(params, 1);
-//   ???  picture = p;
-//   qp->getQPainter()->drawPicture(point, picture);
-//   return 0;
-//}
-
 //void drawPicture ( int x, int y, const QPicture & picture )
-//static QoreNode *QPAINTER_drawPicture(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int x = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int y = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   ??? QPicture picture = p;
-//   qp->getQPainter()->drawPicture(x, y, picture);
-//   return 0;
-//}
+static QoreNode *QPAINTER_drawPicture(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (p && p->type == NT_OBJECT) {
+      QoreQPoint *point = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      if (!point) {
+         QoreQPointF *pointf = (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink);
+         if (!pointf) {
+            if (!xsink->isException())
+               xsink->raiseException("QPAINTER-DRAWPICTURE-PARAM-ERROR", "QPainter::drawPicture() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            return 0;
+         }
+         ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(pointf), xsink);
+         p = get_param(params, 1);
+         QoreQPicture *picture = (p && p->type == NT_OBJECT) ? (QoreQPicture *)p->val.object->getReferencedPrivateData(CID_QPICTURE, xsink) : 0;
+         if (!picture) {
+            if (!xsink->isException())
+               xsink->raiseException("QPAINTER-DRAWPICTURE-PARAM-ERROR", "this version of QPainter::drawPicture() expects an object derived from QPicture as the second argument", p->val.object->getClass()->getName());
+            return 0;
+         }
+         ReferenceHolder<AbstractPrivateData> pictureHolder(static_cast<AbstractPrivateData *>(picture), xsink);
+         qp->getQPainter()->drawPicture(*(static_cast<QPointF *>(pointf)), *(static_cast<QPicture *>(picture)));
+         return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(point), xsink);
+      p = get_param(params, 1);
+      QoreQPicture *picture = (p && p->type == NT_OBJECT) ? (QoreQPicture *)p->val.object->getReferencedPrivateData(CID_QPICTURE, xsink) : 0;
+      if (!picture) {
+         if (!xsink->isException())
+            xsink->raiseException("QPAINTER-DRAWPICTURE-PARAM-ERROR", "this version of QPainter::drawPicture() expects an object derived from QPicture as the second argument", p->val.object->getClass()->getName());
+         return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> pictureHolder(static_cast<AbstractPrivateData *>(picture), xsink);
+      qp->getQPainter()->drawPicture(*(static_cast<QPoint *>(point)), *(static_cast<QPicture *>(picture)));
+      return 0;
+   }
+   int x = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int y = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   QoreQPicture *picture = (p && p->type == NT_OBJECT) ? (QoreQPicture *)p->val.object->getReferencedPrivateData(CID_QPICTURE, xsink) : 0;
+   if (!picture) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-DRAWPICTURE-PARAM-ERROR", "this version of QPainter::drawPicture() expects an object derived from QPicture as the third argument", p->val.object->getClass()->getName());
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> pictureHolder(static_cast<AbstractPrivateData *>(picture), xsink);
+   qp->getQPainter()->drawPicture(x, y, *(static_cast<QPicture *>(picture)));
+   return 0;
+}
 
 //void drawPie ( const QRectF & rectangle, int startAngle, int spanAngle )
 //void drawPie ( const QRect & rectangle, int startAngle, int spanAngle )
@@ -862,210 +676,30 @@ static QoreNode *QPAINTER_drawPie(Object *self, QoreQPainter *qp, QoreNode *para
    return 0;
 }
 
-//void drawPixmap ( const QRectF & target, const QPixmap & pixmap, const QRectF & source )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   QoreQRectF *target = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
-//   if (!p || !target)
-//   {
-//      if (!xsink->isException())
-//         xsink->raiseException("QPAINTER-DRAWPIXMAP-PARAM-ERROR", "expecting a QRectF object as first argument to QPainter::drawPixmap()");
-//      return 0;
-//   }
-//   ReferenceHolder<QoreQRectF> holder(target, xsink);
-//   p = get_param(params, 1);
-//   ???  pixmap = p;
-//   p = get_param(params, 2);
-//   ???  source = p;
-//   qp->getQPainter()->drawPixmap(*((QRectF *)target), pixmap, source);
-//   return 0;
-//}
-
-//void drawPixmap ( const QRect & target, const QPixmap & pixmap, const QRect & source )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   QoreQRect *target = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
-//   if (!p || !target)
-//   {
-//      if (!xsink->isException())
-//         xsink->raiseException("QPAINTER-DRAWPIXMAP-PARAM-ERROR", "expecting a QRect object as first argument to QPainter::drawPixmap()");
-//      return 0;
-//   }
-//   ReferenceHolder<QoreQRect> holder(target, xsink);
-//   p = get_param(params, 1);
-//   ???  pixmap = p;
-//   p = get_param(params, 2);
-//   ???  source = p;
-//   qp->getQPainter()->drawPixmap(*((QRect *)target), pixmap, source);
-//   return 0;
-//}
-
-//void drawPixmap ( const QPointF & point, const QPixmap & pixmap, const QRectF & source )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF point = p;
-//   p = get_param(params, 1);
-//   ???  pixmap = p;
-//   p = get_param(params, 2);
-//   ???  source = p;
-//   qp->getQPainter()->drawPixmap(point, pixmap, source);
-//   return 0;
-//}
-
-//void drawPixmap ( const QPoint & point, const QPixmap & pixmap, const QRect & source )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint point = p;
-//   p = get_param(params, 1);
-//   ???  pixmap = p;
-//   p = get_param(params, 2);
-//   ???  source = p;
-//   qp->getQPainter()->drawPixmap(point, pixmap, source);
-//   return 0;
-//}
-
-//void drawPixmap ( const QPointF & point, const QPixmap & pixmap )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF point = p;
-//   p = get_param(params, 1);
-//   ???  pixmap = p;
-//   qp->getQPainter()->drawPixmap(point, pixmap);
-//   return 0;
-//}
-
-//void drawPixmap ( const QPoint & point, const QPixmap & pixmap )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint point = p;
-//   p = get_param(params, 1);
-//   ???  pixmap = p;
-//   qp->getQPainter()->drawPixmap(point, pixmap);
-//   return 0;
-//}
-
-//void drawPixmap ( int x, int y, const QPixmap & pixmap )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int x = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int y = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   ??? QPixmap pixmap = p;
-//   qp->getQPainter()->drawPixmap(x, y, pixmap);
-//   return 0;
-//}
-
-//void drawPixmap ( const QRect & rectangle, const QPixmap & pixmap )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
-//   if (!p || !rectangle)
-//   {
-//      if (!xsink->isException())
-//         xsink->raiseException("QPAINTER-DRAWPIXMAP-PARAM-ERROR", "expecting a QRect object as first argument to QPainter::drawPixmap()");
-//      return 0;
-//   }
-//   ReferenceHolder<QoreQRect> holder(rectangle, xsink);
-//   p = get_param(params, 1);
-//   ???  pixmap = p;
-//   qp->getQPainter()->drawPixmap(*((QRect *)rectangle), pixmap);
-//   return 0;
-//}
-
-//void drawPixmap ( int x, int y, int width, int height, const QPixmap & pixmap )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int x = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int y = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   int width = p ? p->getAsInt() : 0;
-//   p = get_param(params, 3);
-//   int height = p ? p->getAsInt() : 0;
-//   p = get_param(params, 4);
-//   ??? QPixmap pixmap = p;
-//   qp->getQPainter()->drawPixmap(x, y, width, height, pixmap);
-//   return 0;
-//}
-
-//void drawPixmap ( int x, int y, int w, int h, const QPixmap & pixmap, int sx, int sy, int sw, int sh )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int x = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int y = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   int w = p ? p->getAsInt() : 0;
-//   p = get_param(params, 3);
-//   int h = p ? p->getAsInt() : 0;
-//   p = get_param(params, 4);
-//   ??? QPixmap pixmap = p;
-//   p = get_param(params, 5);
-//   int sx = p ? p->getAsInt() : 0;
-//   p = get_param(params, 6);
-//   int sy = p ? p->getAsInt() : 0;
-//   p = get_param(params, 7);
-//   int sw = p ? p->getAsInt() : 0;
-//   p = get_param(params, 8);
-//   int sh = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawPixmap(x, y, w, h, pixmap, sx, sy, sw, sh);
-//   return 0;
-//}
-
-//void drawPixmap ( int x, int y, const QPixmap & pixmap, int sx, int sy, int sw, int sh )
-//static QoreNode *QPAINTER_drawPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int x = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int y = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   ??? QPixmap pixmap = p;
-//   p = get_param(params, 3);
-//   int sx = p ? p->getAsInt() : 0;
-//   p = get_param(params, 4);
-//   int sy = p ? p->getAsInt() : 0;
-//   p = get_param(params, 5);
-//   int sw = p ? p->getAsInt() : 0;
-//   p = get_param(params, 6);
-//   int sh = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawPixmap(x, y, pixmap, sx, sy, sw, sh);
-//   return 0;
-//}
-
 //void drawPoint ( const QPointF & position )
-//static QoreNode *QPAINTER_drawPoint(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF position = p;
-//   qp->getQPainter()->drawPoint(position);
-//   return 0;
-//}
-
 //void drawPoint ( const QPoint & position )
-//static QoreNode *QPAINTER_drawPoint(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint position = p;
-//   qp->getQPainter()->drawPoint(position);
-//   return 0;
-//}
-
 //void drawPoint ( int x, int y )
 static QoreNode *QPAINTER_drawPoint(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
+   if (p && p->type == NT_OBJECT) {
+      QoreQPoint *position = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      if (!position) {
+         QoreQPointF *position = (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink);
+         if (!position) {
+            if (!xsink->isException())
+               xsink->raiseException("QPAINTER-DRAWPOINT-PARAM-ERROR", "QPainter::drawPoint() does not know how to handle arguments of class '%s' as passed as the first argument", 
+p->val.object->getClass()->getName());
+            return 0;
+         }
+         ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(position), xsink);
+         qp->getQPainter()->drawPoint(*(static_cast<QPointF *>(position)));
+         return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(position), xsink);
+      qp->getQPainter()->drawPoint(*(static_cast<QPoint *>(position)));
+      return 0;
+   }
    int x = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int y = p ? p->getAsInt() : 0;
@@ -1074,36 +708,8 @@ static QoreNode *QPAINTER_drawPoint(Object *self, QoreQPainter *qp, QoreNode *pa
 }
 
 //void drawPoints ( const QPointF * points, int pointCount )
-//static QoreNode *QPAINTER_drawPoints(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF* points = p;
-//   p = get_param(params, 1);
-//   int pointCount = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawPoints(points, pointCount);
-//   return 0;
-//}
-
 //void drawPoints ( const QPoint * points, int pointCount )
-//static QoreNode *QPAINTER_drawPoints(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint* points = p;
-//   p = get_param(params, 1);
-//   int pointCount = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawPoints(points, pointCount);
-//   return 0;
-//}
-
 //void drawPoints ( const QPolygonF & points )
-//static QoreNode *QPAINTER_drawPoints(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPolygonF points = p;
-//   qp->getQPainter()->drawPoints(points);
-//   return 0;
-//}
-
 //void drawPoints ( const QPolygon & points )
 //static QoreNode *QPAINTER_drawPoints(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 //{
@@ -1114,92 +720,56 @@ static QoreNode *QPAINTER_drawPoint(Object *self, QoreQPainter *qp, QoreNode *pa
 //}
 
 //void drawPolygon ( const QPointF * points, int pointCount, Qt::FillRule fillRule = Qt::OddEvenFill )
-//static QoreNode *QPAINTER_drawPolygon(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF* points = p;
-//   p = get_param(params, 1);
-//   int pointCount = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   Qt::FillRule fillRule = (Qt::FillRule)(p ? p->getAsInt() : 0);
-//   qp->getQPainter()->drawPolygon(points, pointCount, fillRule);
-//   return 0;
-//}
-
 //void drawPolygon ( const QPoint * points, int pointCount, Qt::FillRule fillRule = Qt::OddEvenFill )
-//static QoreNode *QPAINTER_drawPolygon(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint* points = p;
-//   p = get_param(params, 1);
-//   int pointCount = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   Qt::FillRule fillRule = (Qt::FillRule)(p ? p->getAsInt() : 0);
-//   qp->getQPainter()->drawPolygon(points, pointCount, fillRule);
-//   return 0;
-//}
-
 //void drawPolygon ( const QPolygonF & points, Qt::FillRule fillRule = Qt::OddEvenFill )
-//static QoreNode *QPAINTER_drawPolygon(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPolygonF points = p;
-//   p = get_param(params, 1);
-//   Qt::FillRule fillRule = (Qt::FillRule)(p ? p->getAsInt() : 0);
-//   qp->getQPainter()->drawPolygon(points, fillRule);
-//   return 0;
-//}
-
 //void drawPolygon ( const QPolygon & points, Qt::FillRule fillRule = Qt::OddEvenFill )
-//static QoreNode *QPAINTER_drawPolygon(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPolygon points = p;
-//   p = get_param(params, 1);
-//   Qt::FillRule fillRule = (Qt::FillRule)(p ? p->getAsInt() : 0);
-//   qp->getQPainter()->drawPolygon(points, fillRule);
-//   return 0;
-//}
+static QoreNode *QPAINTER_drawPolygon(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_OBJECT, 0);
+   QoreQPolygonF *pointsf = p ? (QoreQPolygonF *)p->val.object->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
+   if (!pointsf) {
+      QoreQPolygon *points = p ? (QoreQPolygon *)p->val.object->getReferencedPrivateData(CID_QPOLYGON, xsink) : 0;
+      if (!points) {
+	 if (!xsink->isException())
+	    xsink->raiseException("QPAINTER-DRAWPOLYGON-PARAM-ERROR", "QPainter::drawPolygon() was expecting a QPolygon or QPolygonF object as first argument");
+	 return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> pointsHolder(static_cast<AbstractPrivateData *>(points), xsink);
+      p = get_param(params, 1);
+      Qt::FillRule fillRule = !is_nothing(p) ? (Qt::FillRule)p->getAsInt() : Qt::OddEvenFill;
+      qp->getQPainter()->drawPolygon(*(static_cast<QPolygon *>(points)), fillRule);
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> pointsHolder(static_cast<AbstractPrivateData *>(pointsf), xsink);
+   p = get_param(params, 1);
+   Qt::FillRule fillRule = !is_nothing(p) ? (Qt::FillRule)p->getAsInt() : Qt::OddEvenFill;
+   qp->getQPainter()->drawPolygon(*(static_cast<QPolygonF *>(pointsf)), fillRule);
+   return 0;
+}
 
 //void drawPolyline ( const QPointF * points, int pointCount )
-//static QoreNode *QPAINTER_drawPolyline(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF* points = p;
-//   p = get_param(params, 1);
-//   int pointCount = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawPolyline(points, pointCount);
-//   return 0;
-//}
-
 //void drawPolyline ( const QPoint * points, int pointCount )
-//static QoreNode *QPAINTER_drawPolyline(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint* points = p;
-//   p = get_param(params, 1);
-//   int pointCount = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawPolyline(points, pointCount);
-//   return 0;
-//}
-
 //void drawPolyline ( const QPolygonF & points )
-//static QoreNode *QPAINTER_drawPolyline(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPolygonF points = p;
-//   qp->getQPainter()->drawPolyline(points);
-//   return 0;
-//}
-
 //void drawPolyline ( const QPolygon & points )
-//static QoreNode *QPAINTER_drawPolyline(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPolygon points = p;
-//   qp->getQPainter()->drawPolyline(points);
-//   return 0;
-//}
+static QoreNode *QPAINTER_drawPolyline(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = test_param(params, NT_OBJECT, 0);
+   QoreQPolygonF *pointsf = p ? (QoreQPolygonF *)p->val.object->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
+   if (!pointsf) {
+      QoreQPolygon *points = (QoreQPolygon *)p->val.object->getReferencedPrivateData(CID_QPOLYGON, xsink);
+      if (!points) {
+	 if (!xsink->isException())
+	    xsink->raiseException("QPAINTER-DRAWPOLYLINE-PARAM-ERROR", "QPainter::drawPolyline() was expecting a QPolygon or QPolygonF object as first argument");
+	 return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> pointsHolder(static_cast<AbstractPrivateData *>(points), xsink);
+      qp->getQPainter()->drawPolyline(*(static_cast<QPolygon *>(points)));
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> pointsHolder(static_cast<AbstractPrivateData *>(pointsf), xsink);
+   qp->getQPainter()->drawPolyline(*(static_cast<QPolygonF *>(pointsf)));
+   return 0;
+}
 
 //void drawRect ( const QRectF & rectangle )
 //void drawRect ( const QRect & rectangle )
@@ -1238,49 +808,15 @@ static QoreNode *QPAINTER_drawRect(Object *self, QoreQPainter *qp, QoreNode *par
    return 0;
 }
 
+/*
 //void drawRects ( const QRectF * rectangles, int rectCount )
 //void drawRects ( const QRect * rectangles, int rectCount )
+//void drawRects ( const QVector<QRectF> & rectangles )
+//void drawRects ( const QVector<QRect> & rectangles )
 static QoreNode *QPAINTER_drawRects(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   QoreQRectF *rectanglef = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
-   if (!rectanglef)
-   {
-      QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
-      if (!rectangle)
-      {
-	 if (!xsink->isException())
-	    xsink->raiseException("QPAINTER-DRAWARC-PARAM-ERROR", "expecting QRect or QRectF object as first argument to QPainter::drawRect()");
-	 return 0;
-      }
-      ReferenceHolder<QoreQRect> holder(rectangle, xsink);
-      p = get_param(params, 1);
-      qp->getQPainter()->drawRects(rectangle, p ? p->getAsInt() : 0);
-      return 0;
-   }
-   ReferenceHolder<QoreQRectF> holder(rectanglef, xsink);
-   p = get_param(params, 1);
-   qp->getQPainter()->drawRects(rectanglef, p ? p->getAsInt() : 0);
-   return 0;
 }
-
-//void drawRects ( const QVector<QRectF> & rectangles )
-//static QoreNode *QPAINTER_drawRects(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QVector<QRectF> rectangles = p;
-//   qp->getQPainter()->drawRects(rectangles);
-//   return 0;
-//}
-
-//void drawRects ( const QVector<QRect> & rectangles )
-//static QoreNode *QPAINTER_drawRects(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QVector<QRect> rectangles = p;
-//   qp->getQPainter()->drawRects(rectangles);
-//   return 0;
-//}
+*/
 
 //void drawRoundRect ( const QRectF & r, int xRnd = 25, int yRnd = 25 )
 //void drawRoundRect ( const QRect & r, int xRnd = 25, int yRnd = 25 )
@@ -1332,27 +868,7 @@ static QoreNode *QPAINTER_drawRoundRect(Object *self, QoreQPainter *qp, QoreNode
 }
 
 //void drawText ( const QPointF & position, const QString & text )
-//static QoreNode *QPAINTER_drawText(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF position = p;
-//   p = get_param(params, 1);
-//   ???  text = p;
-//   qp->getQPainter()->drawText(position, text);
-//   return 0;
-//}
-
 //void drawText ( const QPoint & position, const QString & text )
-//static QoreNode *QPAINTER_drawText(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint position = p;
-//   p = get_param(params, 1);
-//   ???  text = p;
-//   qp->getQPainter()->drawText(position, text);
-//   return 0;
-//}
-
 //void drawText ( const QRectF & rectangle, int flags, const QString & text, QRectF * boundingRect = 0 )
 //void drawText ( const QRect & rectangle, int flags, const QString & text, QRect * boundingRect = 0 )
 //void drawText ( int x, int y, const QString & text )
@@ -1362,24 +878,40 @@ static QoreNode *QPAINTER_drawText(Object *self, QoreQPainter *qp, QoreNode *par
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
       QoreQRectF *rectanglef = (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink);
-      if (!rectanglef)
-      {
+      if (!rectanglef) {
 	 QoreQRect *rectangle = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
-	 if (!rectangle)
-	 {
-	    if (!xsink->isException())
-	       xsink->raiseException("QPAINTER-DRAWTEXT-PARAM-ERROR", "QPainter::drawText() cannot handle arguments of class '%s'", p->val.object->getClass()->getName());
+	 if (!rectangle) {
+	    QoreQPoint *position = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+	    if (!position) {
+	       QoreQPointF *positionf = (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink);
+	       if (!positionf) {
+		  if (!xsink->isException())
+		     xsink->raiseException("QPAINTER-DRAWTEXT-PARAM-ERROR", "QPainter::drawText() cannot handle arguments of class '%s'", p->val.object->getClass()->getName());
+		  return 0;
+	       }
+	       ReferenceHolder<AbstractPrivateData> positionfHolder(static_cast<AbstractPrivateData *>(positionf), xsink);
+	       p = get_param(params, 1);
+	       QString text;
+	       if (get_qstring(p, text, xsink))
+		  return 0;
+	       qp->getQPainter()->drawText(*(static_cast<QPointF *>(positionf)), text);
+	       return 0;
+	    }
+	    ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(position), xsink);
+	    p = get_param(params, 1);
+	    QString text;
+	    if (get_qstring(p, text, xsink))
+	       return 0;
+	    qp->getQPainter()->drawText(*(static_cast<QPoint *>(position)), text);
 	    return 0;
 	 }
 	 ReferenceHolder<QoreQRect> holder(rectangle, xsink);
 	 p = get_param(params, 1);
 	 int flags = p ? p->getAsInt() : 0;
 	 p = get_param(params, 2);
-	 if (!p || p->type != NT_STRING) {
-	    xsink->raiseException("QPAINTER-DRAWTEXT-PARAM-ERROR", "expecting a string as third argument to QPainter::drawText()");
+	 QString text;
+	 if (get_qstring(p, text, xsink))
 	    return 0;
-	 }
-	 const char *text = p->val.String->getBuffer();
 	 p = get_param(params, 3);
 	 QoreQRect *boundingRect = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
 	 ReferenceHolder<QoreQRect> holder1(boundingRect, xsink);
@@ -1390,11 +922,9 @@ static QoreNode *QPAINTER_drawText(Object *self, QoreQPainter *qp, QoreNode *par
       p = get_param(params, 1);
       int flags = p ? p->getAsInt() : 0;
       p = get_param(params, 2);
-      if (!p || p->type != NT_STRING) {
-	 xsink->raiseException("QPAINTER-DRAWTEXT-PARAM-ERROR", "expecting a string as third argument to QPainter::drawText()");
+      QString text;
+      if (get_qstring(p, text, xsink))
 	 return 0;
-      }
-      const char *text = p->val.String->getBuffer();
       p = get_param(params, 3);
       QoreQRectF *boundingRectf = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
       ReferenceHolder<QoreQRectF> holder1(boundingRectf, xsink);
@@ -1451,65 +981,76 @@ static QoreNode *QPAINTER_drawText(Object *self, QoreQPainter *qp, QoreNode *par
 //}
 
 //void drawTiledPixmap ( const QRectF & rectangle, const QPixmap & pixmap, const QPointF & position = QPointF() )
-//static QoreNode *QPAINTER_drawTiledPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
-//   if (!p || !rectangle)
-//   {
-//      if (!xsink->isException())
-//         xsink->raiseException("QPAINTER-DRAWTILEDPIXMAP-PARAM-ERROR", "expecting a QRectF object as first argument to QPainter::drawTiledPixmap()");
-//      return 0;
-//   }
-//   ReferenceHolder<QoreQRectF> holder(rectangle, xsink);
-//   p = get_param(params, 1);
-//   ???  pixmap = p;
-//   p = get_param(params, 2);
-//   ???  position = p;
-//   qp->getQPainter()->drawTiledPixmap(*((QRectF *)rectangle), pixmap, position);
-//   return 0;
-//}
-
 //void drawTiledPixmap ( const QRect & rectangle, const QPixmap & pixmap, const QPoint & position = QPoint() )
-//static QoreNode *QPAINTER_drawTiledPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
-//   if (!p || !rectangle)
-//   {
-//      if (!xsink->isException())
-//         xsink->raiseException("QPAINTER-DRAWTILEDPIXMAP-PARAM-ERROR", "expecting a QRect object as first argument to QPainter::drawTiledPixmap()");
-//      return 0;
-//   }
-//   ReferenceHolder<QoreQRect> holder(rectangle, xsink);
-//   p = get_param(params, 1);
-//   ???  pixmap = p;
-//   p = get_param(params, 2);
-//   ???  position = p;
-//   qp->getQPainter()->drawTiledPixmap(*((QRect *)rectangle), pixmap, position);
-//   return 0;
-//}
-
 //void drawTiledPixmap ( int x, int y, int width, int height, const QPixmap & pixmap, int sx = 0, int sy = 0 )
-//static QoreNode *QPAINTER_drawTiledPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   int x = p ? p->getAsInt() : 0;
-//   p = get_param(params, 1);
-//   int y = p ? p->getAsInt() : 0;
-//   p = get_param(params, 2);
-//   int width = p ? p->getAsInt() : 0;
-//   p = get_param(params, 3);
-//   int height = p ? p->getAsInt() : 0;
-//   p = get_param(params, 4);
-//   ??? QPixmap pixmap = p;
-//   p = get_param(params, 5);
-//   int sx = p ? p->getAsInt() : 0;
-//   p = get_param(params, 6);
-//   int sy = p ? p->getAsInt() : 0;
-//   qp->getQPainter()->drawTiledPixmap(x, y, width, height, pixmap, sx, sy);
-//   return 0;
-//}
+static QoreNode *QPAINTER_drawTiledPixmap(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   if (p && p->type == NT_OBJECT) {
+      QoreQRect *rectangle = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
+      if (!rectangle) {
+         QoreQRectF *rectanglef = (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink);
+         if (!rectanglef) {
+            if (!xsink->isException())
+               xsink->raiseException("QPAINTER-DRAWTILEDPIXMAP-PARAM-ERROR", "QPainter::drawTiledPixmap() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            return 0;
+         }
+         ReferenceHolder<AbstractPrivateData> rectanglefHolder(static_cast<AbstractPrivateData *>(rectanglef), xsink);
+         p = get_param(params, 1);
+         QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+         if (!pixmap) {
+            if (!xsink->isException())
+               xsink->raiseException("QPAINTER-DRAWTILEDPIXMAP-PARAM-ERROR", "this version of QPainter::drawTiledPixmap() expects an object derived from QPixmap as the second argument", p->val.object->getClass()->getName());
+            return 0;
+         }
+         ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
+	 p = get_param(params, 2);
+	 QoreQPointF *position = (p && p->type == NT_OBJECT) ? (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+	 if (*xsink)
+	    return 0;
+	 ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(position), xsink);
+	 qp->getQPainter()->drawTiledPixmap(*(static_cast<QRectF *>(rectanglef)), *(static_cast<QPixmap *>(pixmap)), *(static_cast<QPointF *>(position)));
+	 return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
+      p = get_param(params, 1);
+      QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+      if (!pixmap) {
+         if (!xsink->isException())
+            xsink->raiseException("QPAINTER-DRAWTILEDPIXMAP-PARAM-ERROR", "this version of QPainter::drawTiledPixmap() expects an object derived from QPixmap as the second argument", p->val.object->getClass()->getName());
+         return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
+      p = get_param(params, 2);
+      QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+      if (*xsink)
+	 return 0;
+      ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(position), xsink);
+      qp->getQPainter()->drawTiledPixmap(*(static_cast<QRect *>(rectangle)), *(static_cast<QPixmap *>(pixmap)), *(static_cast<QPoint *>(position)));
+      return 0;
+   }
+   int x = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int y = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int width = p ? p->getAsInt() : 0;
+   p = get_param(params, 3);
+   int height = p ? p->getAsInt() : 0;
+   p = get_param(params, 4);
+   QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+   if (!pixmap) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-DRAWTILEDPIXMAP-PARAM-ERROR", "this version of QPainter::drawTiledPixmap() expects an object derived from QPixmap as the fifth argument", p->val.object->getClass()->getName());
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
+   p = get_param(params, 5);
+   int sx = !is_nothing(p) ? p->getAsInt() : 0;
+   p = get_param(params, 6);
+   int sy = !is_nothing(p) ? p->getAsInt() : 0;
+   qp->getQPainter()->drawTiledPixmap(x, y, width, height, *(static_cast<QPixmap *>(pixmap)), sx, sy);
+   return 0;
+}
 
 //bool end ()
 static QoreNode *QPAINTER_end(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -1630,22 +1171,31 @@ static QoreNode *QPAINTER_fillRect(Object *self, QoreQPainter *qp, QoreNode *par
 }
 
 //const QFont & font () const
-//static QoreNode *QPAINTER_font(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->font());
-//}
+static QoreNode *QPAINTER_font(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qf = new Object(QC_QFont, getProgram());
+   QoreQFont *q_qf = new QoreQFont(qp->getQPainter()->font());
+   o_qf->setPrivate(CID_QFONT, q_qf);
+   return new QoreNode(o_qf);
+}
 
 //QFontInfo fontInfo () const
-//static QoreNode *QPAINTER_fontInfo(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->fontInfo());
-//}
+static QoreNode *QPAINTER_fontInfo(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qfi = new Object(QC_QFontInfo, getProgram());
+   QoreQFontInfo *q_qfi = new QoreQFontInfo(qp->getQPainter()->fontInfo());
+   o_qfi->setPrivate(CID_QFONTINFO, q_qfi);
+   return new QoreNode(o_qfi);
+}
 
 //QFontMetrics fontMetrics () const
-//static QoreNode *QPAINTER_fontMetrics(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->fontMetrics());
-//}
+static QoreNode *QPAINTER_fontMetrics(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qfm = new Object(QC_QFontMetrics, getProgram());
+   QoreQFontMetrics *q_qfm = new QoreQFontMetrics(qp->getQPainter()->fontMetrics());
+   o_qfm->setPrivate(CID_QFONTMETRICS, q_qfm);
+   return new QoreNode(o_qfm);
+}
 
 //bool hasClipping () const
 static QoreNode *QPAINTER_hasClipping(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -1694,16 +1244,19 @@ static QoreNode *QPAINTER_opacity(Object *self, QoreQPainter *qp, QoreNode *para
 //}
 
 //const QPen & pen () const
-//static QoreNode *QPAINTER_pen(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->pen());
-//}
+static QoreNode *QPAINTER_pen(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qp = new Object(QC_QPen, getProgram());
+   QoreQPen *q_qp = new QoreQPen(qp->getQPainter()->pen());
+   o_qp->setPrivate(CID_QPEN, q_qp);
+   return new QoreNode(o_qp);
+}
 
 //RenderHints renderHints () const
-//static QoreNode *QPAINTER_renderHints(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->renderHints());
-//}
+static QoreNode *QPAINTER_renderHints(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qp->getQPainter()->renderHints());
+}
 
 //void resetMatrix ()
 static QoreNode *QPAINTER_resetMatrix(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -1812,27 +1365,28 @@ static QoreNode *QPAINTER_setBrush(Object *self, QoreQPainter *qp, QoreNode *par
 }
 
 //void setBrushOrigin ( const QPointF & position )
-//static QoreNode *QPAINTER_setBrushOrigin(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF position = p;
-//   qp->getQPainter()->setBrushOrigin(position);
-//   return 0;
-//}
-
 //void setBrushOrigin ( const QPoint & position )
-//static QoreNode *QPAINTER_setBrushOrigin(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint position = p;
-//   qp->getQPainter()->setBrushOrigin(position);
-//   return 0;
-//}
-
 //void setBrushOrigin ( int x, int y )
 static QoreNode *QPAINTER_setBrushOrigin(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
+   if (p && p->type == NT_OBJECT) {
+      QoreQPoint *position = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      if (!position) {
+         QoreQPointF *positionf = (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink);
+         if (!positionf) {
+            if (!xsink->isException())
+               xsink->raiseException("QPAINTER-SETBRUSHORIGIN-PARAM-ERROR", "QPainter::setBrushOrigin() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            return 0;
+         }
+         ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(positionf), xsink);
+         qp->getQPainter()->setBrushOrigin(*(static_cast<QPointF *>(positionf)));
+         return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(position), xsink);
+      qp->getQPainter()->setBrushOrigin(*(static_cast<QPoint *>(position)));
+      return 0;
+   }
    int x = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int y = p ? p->getAsInt() : 0;
@@ -1895,15 +1449,21 @@ static QoreNode *QPAINTER_setClipRect(Object *self, QoreQPainter *qp, QoreNode *
 }
 
 //void setClipRegion ( const QRegion & region, Qt::ClipOperation operation = Qt::ReplaceClip )
-//static QoreNode *QPAINTER_setClipRegion(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QRegion region = p;
-//   p = get_param(params, 1);
-//   Qt::ClipOperation operation = (Qt::ClipOperation)(p ? p->getAsInt() : 0);
-//   qp->getQPainter()->setClipRegion(region, operation);
-//   return 0;
-//}
+static QoreNode *QPAINTER_setClipRegion(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQRegion *region = (p && p->type == NT_OBJECT) ? (QoreQRegion *)p->val.object->getReferencedPrivateData(CID_QREGION, xsink) : 0;
+   if (!region) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-SETCLIPREGION-PARAM-ERROR", "expecting a QRegion object as first argument to QPainter::setClipRegion()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> regionHolder(static_cast<AbstractPrivateData *>(region), xsink);
+   p = get_param(params, 1);
+   Qt::ClipOperation operation = !is_nothing(p) ? (Qt::ClipOperation)p->getAsInt() : Qt::ReplaceClip;
+   qp->getQPainter()->setClipRegion(*(static_cast<QRegion *>(region)), operation);
+   return 0;
+}
 
 //void setClipping ( bool enable )
 static QoreNode *QPAINTER_setClipping(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -2099,15 +1659,21 @@ static QoreNode *QPAINTER_setWindow(Object *self, QoreQPainter *qp, QoreNode *pa
 }
 
 //void setWorldMatrix ( const QMatrix & matrix, bool combine = false )
-//static QoreNode *QPAINTER_setWorldMatrix(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QMatrix matrix = p;
-//   p = get_param(params, 1);
-//   bool combine = p ? p->getAsBool() : 0;
-//   qp->getQPainter()->setWorldMatrix(matrix, combine);
-//   return 0;
-//}
+static QoreNode *QPAINTER_setWorldMatrix(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQMatrix *matrix = (p && p->type == NT_OBJECT) ? (QoreQMatrix *)p->val.object->getReferencedPrivateData(CID_QMATRIX, xsink) : 0;
+   if (!matrix) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-SETWORLDMATRIX-PARAM-ERROR", "expecting a QMatrix object as first argument to QPainter::setWorldMatrix()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> matrixHolder(static_cast<AbstractPrivateData *>(matrix), xsink);
+   p = get_param(params, 1);
+   bool combine = p ? p->getAsBool() : false;
+   qp->getQPainter()->setWorldMatrix(*(static_cast<QMatrix *>(matrix)), combine);
+   return 0;
+}
 
 //void setWorldMatrixEnabled ( bool enable )
 static QoreNode *QPAINTER_setWorldMatrixEnabled(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -2166,30 +1732,32 @@ static QoreNode *QPAINTER_testRenderHint(Object *self, QoreQPainter *qp, QoreNod
 //}
 
 //void translate ( const QPointF & offset )
-//static QoreNode *QPAINTER_translate(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPointF offset = p;
-//   qp->getQPainter()->translate(offset);
-//   return 0;
-//}
-
 //void translate ( const QPoint & offset )
-//static QoreNode *QPAINTER_translate(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPoint offset = p;
-//   qp->getQPainter()->translate(offset);
-//   return 0;
-//}
-
 //void translate ( qreal dx, qreal dy )
 static QoreNode *QPAINTER_translate(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   float dx = p ? p->getAsFloat() : 0;
+   if (p && p->type == NT_OBJECT) {
+      QoreQPoint *offset = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      if (!offset) {
+         QoreQPointF *offsetf = (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink);
+         if (!offsetf) {
+            if (!xsink->isException())
+               xsink->raiseException("QPAINTER-TRANSLATE-PARAM-ERROR", "QPainter::translate() does not know how to handle arguments of class '%s' as passed as the first argument", 
+p->val.object->getClass()->getName());
+            return 0;
+         }
+         ReferenceHolder<AbstractPrivateData> offsetHolder(static_cast<AbstractPrivateData *>(offsetf), xsink);
+         qp->getQPainter()->translate(*(static_cast<QPointF *>(offsetf)));
+         return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> offsetHolder(static_cast<AbstractPrivateData *>(offset), xsink);
+      qp->getQPainter()->translate(*(static_cast<QPoint *>(offset)));
+      return 0;
+   }
+   qreal dx = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
-   float dy = p ? p->getAsFloat() : 0;
+   qreal dy = p ? p->getAsFloat() : 0.0;
    qp->getQPainter()->translate(dx, dy);
    return 0;
 }
@@ -2221,10 +1789,13 @@ static QoreNode *QPAINTER_window(Object *self, QoreQPainter *qp, QoreNode *param
 }
 
 //const QMatrix & worldMatrix () const
-//static QoreNode *QPAINTER_worldMatrix(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qp->getQPainter()->worldMatrix());
-//}
+static QoreNode *QPAINTER_worldMatrix(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qm = new Object(QC_QMatrix, getProgram());
+   QoreQMatrix *q_qm = new QoreQMatrix(qp->getQPainter()->worldMatrix());
+   o_qm->setPrivate(CID_QMATRIX, q_qm);
+   return new QoreNode(o_qm);
+}
 
 //bool worldMatrixEnabled () const
 static QoreNode *QPAINTER_worldMatrixEnabled(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -2252,14 +1823,14 @@ class QoreClass *initQPainterClass()
    QC_QPainter->addMethod("begin",                       (q_method_t)QPAINTER_begin);
    QC_QPainter->addMethod("boundingRect",                (q_method_t)QPAINTER_boundingRect);
    QC_QPainter->addMethod("brush",                       (q_method_t)QPAINTER_brush);
-   //QC_QPainter->addMethod("brushOrigin",                 (q_method_t)QPAINTER_brushOrigin);
+   QC_QPainter->addMethod("brushOrigin",                 (q_method_t)QPAINTER_brushOrigin);
    //QC_QPainter->addMethod("clipPath",                    (q_method_t)QPAINTER_clipPath);
-   //QC_QPainter->addMethod("clipRegion",                  (q_method_t)QPAINTER_clipRegion);
-   //QC_QPainter->addMethod("combinedMatrix",              (q_method_t)QPAINTER_combinedMatrix);
+   QC_QPainter->addMethod("clipRegion",                  (q_method_t)QPAINTER_clipRegion);
+   QC_QPainter->addMethod("combinedMatrix",              (q_method_t)QPAINTER_combinedMatrix);
    //QC_QPainter->addMethod("combinedTransform",           (q_method_t)QPAINTER_combinedTransform);
-   //QC_QPainter->addMethod("compositionMode",             (q_method_t)QPAINTER_compositionMode);
+   QC_QPainter->addMethod("compositionMode",             (q_method_t)QPAINTER_compositionMode);
    //QC_QPainter->addMethod("device",                      (q_method_t)QPAINTER_device);
-   //QC_QPainter->addMethod("deviceMatrix",                (q_method_t)QPAINTER_deviceMatrix);
+   QC_QPainter->addMethod("deviceMatrix",                (q_method_t)QPAINTER_deviceMatrix);
    //QC_QPainter->addMethod("deviceTransform",             (q_method_t)QPAINTER_deviceTransform);
    QC_QPainter->addMethod("drawArc",                     (q_method_t)QPAINTER_drawArc);
    QC_QPainter->addMethod("drawChord",                   (q_method_t)QPAINTER_drawChord);
@@ -2269,34 +1840,34 @@ class QoreClass *initQPainterClass()
    QC_QPainter->addMethod("drawLine",                    (q_method_t)QPAINTER_drawLine);
    //QC_QPainter->addMethod("drawLines",                   (q_method_t)QPAINTER_drawLines);
    //QC_QPainter->addMethod("drawPath",                    (q_method_t)QPAINTER_drawPath);
-   //QC_QPainter->addMethod("drawPicture",                 (q_method_t)QPAINTER_drawPicture);
+   QC_QPainter->addMethod("drawPicture",                 (q_method_t)QPAINTER_drawPicture);
    QC_QPainter->addMethod("drawPie",                     (q_method_t)QPAINTER_drawPie);
    //QC_QPainter->addMethod("drawPixmap",                  (q_method_t)QPAINTER_drawPixmap);
    //QC_QPainter->addMethod("drawPoint",                   (q_method_t)QPAINTER_drawPoint);
    QC_QPainter->addMethod("drawPoint",                   (q_method_t)QPAINTER_drawPoint);
    //QC_QPainter->addMethod("drawPoints",                  (q_method_t)QPAINTER_drawPoints);
-   //QC_QPainter->addMethod("drawPolygon",                 (q_method_t)QPAINTER_drawPolygon);
-   //QC_QPainter->addMethod("drawPolyline",                (q_method_t)QPAINTER_drawPolyline);
+   QC_QPainter->addMethod("drawPolygon",                 (q_method_t)QPAINTER_drawPolygon);
+   QC_QPainter->addMethod("drawPolyline",                (q_method_t)QPAINTER_drawPolyline);
    QC_QPainter->addMethod("drawRect",                    (q_method_t)QPAINTER_drawRect);
-   QC_QPainter->addMethod("drawRects",                   (q_method_t)QPAINTER_drawRects);
+   //QC_QPainter->addMethod("drawRects",                   (q_method_t)QPAINTER_drawRects);
    QC_QPainter->addMethod("drawRoundRect",               (q_method_t)QPAINTER_drawRoundRect);
    QC_QPainter->addMethod("drawText",                    (q_method_t)QPAINTER_drawText);
-   //QC_QPainter->addMethod("drawTiledPixmap",             (q_method_t)QPAINTER_drawTiledPixmap);
+   QC_QPainter->addMethod("drawTiledPixmap",             (q_method_t)QPAINTER_drawTiledPixmap);
    QC_QPainter->addMethod("end",                         (q_method_t)QPAINTER_end);
    QC_QPainter->addMethod("eraseRect",                   (q_method_t)QPAINTER_eraseRect);
    //QC_QPainter->addMethod("fillPath",                    (q_method_t)QPAINTER_fillPath);
    QC_QPainter->addMethod("fillRect",                    (q_method_t)QPAINTER_fillRect);
-   //QC_QPainter->addMethod("font",                        (q_method_t)QPAINTER_font);
-   //QC_QPainter->addMethod("fontInfo",                    (q_method_t)QPAINTER_fontInfo);
-   //QC_QPainter->addMethod("fontMetrics",                 (q_method_t)QPAINTER_fontMetrics);
+   QC_QPainter->addMethod("font",                        (q_method_t)QPAINTER_font);
+   QC_QPainter->addMethod("fontInfo",                    (q_method_t)QPAINTER_fontInfo);
+   QC_QPainter->addMethod("fontMetrics",                 (q_method_t)QPAINTER_fontMetrics);
    QC_QPainter->addMethod("hasClipping",                 (q_method_t)QPAINTER_hasClipping);
    QC_QPainter->addMethod("initFrom",                    (q_method_t)QPAINTER_initFrom);
    QC_QPainter->addMethod("isActive",                    (q_method_t)QPAINTER_isActive);
    QC_QPainter->addMethod("layoutDirection",             (q_method_t)QPAINTER_layoutDirection);
    QC_QPainter->addMethod("opacity",                     (q_method_t)QPAINTER_opacity);
    //QC_QPainter->addMethod("paintEngine",                 (q_method_t)QPAINTER_paintEngine);
-   //QC_QPainter->addMethod("pen",                         (q_method_t)QPAINTER_pen);
-   //QC_QPainter->addMethod("renderHints",                 (q_method_t)QPAINTER_renderHints);
+   QC_QPainter->addMethod("pen",                         (q_method_t)QPAINTER_pen);
+   QC_QPainter->addMethod("renderHints",                 (q_method_t)QPAINTER_renderHints);
    QC_QPainter->addMethod("resetMatrix",                 (q_method_t)QPAINTER_resetMatrix);
    QC_QPainter->addMethod("resetTransform",              (q_method_t)QPAINTER_resetTransform);
    QC_QPainter->addMethod("restore",                     (q_method_t)QPAINTER_restore);
@@ -2306,11 +1877,10 @@ class QoreClass *initQPainterClass()
    QC_QPainter->addMethod("setBackground",               (q_method_t)QPAINTER_setBackground);
    QC_QPainter->addMethod("setBackgroundMode",           (q_method_t)QPAINTER_setBackgroundMode);
    QC_QPainter->addMethod("setBrush",                    (q_method_t)QPAINTER_setBrush);
-   //QC_QPainter->addMethod("setBrushOrigin",              (q_method_t)QPAINTER_setBrushOrigin);
    QC_QPainter->addMethod("setBrushOrigin",              (q_method_t)QPAINTER_setBrushOrigin);
    //QC_QPainter->addMethod("setClipPath",                 (q_method_t)QPAINTER_setClipPath);
    QC_QPainter->addMethod("setClipRect",                 (q_method_t)QPAINTER_setClipRect);
-   //QC_QPainter->addMethod("setClipRegion",               (q_method_t)QPAINTER_setClipRegion);
+   QC_QPainter->addMethod("setClipRegion",               (q_method_t)QPAINTER_setClipRegion);
    QC_QPainter->addMethod("setClipping",                 (q_method_t)QPAINTER_setClipping);
    QC_QPainter->addMethod("setCompositionMode",          (q_method_t)QPAINTER_setCompositionMode);
    QC_QPainter->addMethod("setFont",                     (q_method_t)QPAINTER_setFont);
@@ -2323,7 +1893,7 @@ class QoreClass *initQPainterClass()
    QC_QPainter->addMethod("setViewTransformEnabled",     (q_method_t)QPAINTER_setViewTransformEnabled);
    QC_QPainter->addMethod("setViewport",                 (q_method_t)QPAINTER_setViewport);
    QC_QPainter->addMethod("setWindow",                   (q_method_t)QPAINTER_setWindow);
-   //QC_QPainter->addMethod("setWorldMatrix",              (q_method_t)QPAINTER_setWorldMatrix);
+   QC_QPainter->addMethod("setWorldMatrix",              (q_method_t)QPAINTER_setWorldMatrix);
    QC_QPainter->addMethod("setWorldMatrixEnabled",       (q_method_t)QPAINTER_setWorldMatrixEnabled);
    //QC_QPainter->addMethod("setWorldTransform",           (q_method_t)QPAINTER_setWorldTransform);
    QC_QPainter->addMethod("shear",                       (q_method_t)QPAINTER_shear);
@@ -2334,7 +1904,7 @@ class QoreClass *initQPainterClass()
    QC_QPainter->addMethod("viewTransformEnabled",        (q_method_t)QPAINTER_viewTransformEnabled);
    QC_QPainter->addMethod("viewport",                    (q_method_t)QPAINTER_viewport);
    QC_QPainter->addMethod("window",                      (q_method_t)QPAINTER_window);
-   //QC_QPainter->addMethod("worldMatrix",                 (q_method_t)QPAINTER_worldMatrix);
+   QC_QPainter->addMethod("worldMatrix",                 (q_method_t)QPAINTER_worldMatrix);
    QC_QPainter->addMethod("worldMatrixEnabled",          (q_method_t)QPAINTER_worldMatrixEnabled);
    //QC_QPainter->addMethod("worldTransform",              (q_method_t)QPAINTER_worldTransform);
 

@@ -115,7 +115,9 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QColorDialog.cc \
 	QC_QInputDialog.cc \
 	QC_QIODevice.cc \
-	QC_QImageWriter.cc
+	QC_QImageWriter.cc \
+	QC_QDial.cc \
+	QC_QStackedWidget.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

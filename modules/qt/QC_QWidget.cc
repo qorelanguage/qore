@@ -29,6 +29,8 @@
 #include "QC_QPaintEvent.h"
 #include "QC_QRect.h"
 #include "QC_QRegion.h"
+#include "QC_QLayout.h"
+#include "QC_QStyle.h"
 
 int CID_QWIDGET;
 QoreClass *QC_QWidget = 0;
@@ -127,26 +129,49 @@ static QoreNode *QWIDGET_backgroundRole(class Object *self, QoreAbstractQWidget 
 }
 
 //QSize baseSize () const
-//static QoreNode *QWIDGET_baseSize(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_baseSize(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreQSize *q_qs = new QoreQSize(qw->getQWidget()->baseSize());
+   o_qs->setPrivate(CID_QSIZE, q_qs);
+   return new QoreNode(o_qs);
+}
 
 //QWidget * childAt ( int x, int y ) const
 //QWidget * childAt ( const QPoint & p ) const
-/*
 static QoreNode *QWIDGET_childAt(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
+   QWidget *qt_qobj;
    QoreNode *p = get_param(params, 0);
-   int x = p ? p->getAsInt() : 0;
-   p = get_param(params, 1);
-   int y = p ? p->getAsInt() : 0;
-
-   QoreQWidget *q_qw = new QoreQWidget(qw->getQWidget()->childAt(x, y));
-   Object *o_qw = new Object(self->getClass(CID_QWIDGET*), getProgram());
-   o_qw*->setPrivate(CID_QWIDGET*, q_qw*);
-   return new QoreNode(o_qw*);
+   if (p && p->type == NT_OBJECT) {
+      QoreQPoint *point = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      if (!point) {
+         if (!xsink->isException())
+            xsink->raiseException("QWIDGET-CHILDAT-PARAM-ERROR", "QWidget::childAt() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+         return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(point), xsink);
+      qt_qobj = qw->getQWidget()->childAt(*(static_cast<QPoint *>(point)));
+   }
+   else {
+      int x = p ? p->getAsInt() : 0;
+      p = get_param(params, 1);
+      int y = p ? p->getAsInt() : 0;
+      qt_qobj = qw->getQWidget()->childAt(x, y);
+   }
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QWidget, getProgram());
+      QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QWIDGET, t_qobj);
+   }
+   return new QoreNode(rv_obj);
 }
-*/
 
 //QRect childrenRect () const
 static QoreNode *QWIDGET_childrenRect(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
@@ -217,28 +242,40 @@ static QoreNode *QWIDGET_focusPolicy(Object *self, QoreAbstractQWidget *qw, Qore
 }
 
 //QWidget * focusProxy () const
-/*
 static QoreNode *QWIDGET_focusProxy(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
-
-   QoreQWidget *q_qw = new QoreQWidget(qw->getQWidget()->focusProxy());
-   Object *o_qw = new Object(self->getClass(CID_QWIDGET*), getProgram());
-   o_qw*->setPrivate(CID_QWIDGET*, q_qw*);
-   return new QoreNode(o_qw*);
+   QWidget *qt_qobj = qw->getQWidget()->focusProxy();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QWidget, getProgram());
+      QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QWIDGET, t_qobj);
+   }
+   return new QoreNode(rv_obj);
 }
-*/
 
 //QWidget * focusWidget () const
-/*
 static QoreNode *QWIDGET_focusWidget(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
-
-   QoreQWidget *q_qw = new QoreQWidget(qw->getQWidget()->focusWidget());
-   Object *o_qw = new Object(self->getClass(CID_QWIDGET*), getProgram());
-   o_qw*->setPrivate(CID_QWIDGET*, q_qw*);
-   return new QoreNode(o_qw*);
+   QWidget *qt_qobj = qw->getQWidget()->focusWidget();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QWidget, getProgram());
+      QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QWIDGET, t_qobj);
+   }
+   return new QoreNode(rv_obj);
 }
-*/
 
 //const QFont & font () const
 static QoreNode *QWIDGET_font(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
@@ -250,14 +287,22 @@ static QoreNode *QWIDGET_font(Object *self, QoreAbstractQWidget *qw, QoreNode *p
 }
 
 //QFontInfo fontInfo () const
-//static QoreNode *QWIDGET_fontInfo(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_fontInfo(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qfi = new Object(QC_QFontInfo, getProgram());
+   QoreQFontInfo *q_qfi = new QoreQFontInfo(qw->getQWidget()->fontInfo());
+   o_qfi->setPrivate(CID_QFONTINFO, q_qfi);
+   return new QoreNode(o_qfi);
+}
 
 //QFontMetrics fontMetrics () const
-//static QoreNode *QWIDGET_fontMetrics(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_fontMetrics(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qfm = new Object(QC_QFontMetrics, getProgram());
+   QoreQFontMetrics *q_qfm = new QoreQFontMetrics(qw->getQWidget()->fontMetrics());
+   o_qfm->setPrivate(CID_QFONTMETRICS, q_qfm);
+   return new QoreNode(o_qfm);
+}
 
 //QPalette::ColorRole foregroundRole () const
 static QoreNode *QWIDGET_foregroundRole(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -374,9 +419,12 @@ static QoreNode *QWIDGET_heightForWidth(class Object *self, QoreAbstractQWidget 
 //}
 
 //virtual QVariant inputMethodQuery ( Qt::InputMethodQuery query ) const
-//static QoreNode *QWIDGET_inputMethodQuery(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_inputMethodQuery(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   Qt::InputMethodQuery query = (Qt::InputMethodQuery)(p ? p->getAsInt() : 0);
+   return return_qvariant(qw->getQWidget()->inputMethodQuery(query));
+}
 
 //void insertAction ( QAction * before, QAction * action )
 static QoreNode *QWIDGET_insertAction(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
@@ -515,9 +563,22 @@ static QoreNode *QWIDGET_isWindowModified(class Object *self, QoreAbstractQWidge
 }
 
 //QLayout * layout () const
-//static QoreNode *QWIDGET_layout(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_layout(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QLayout *qt_qobj = qw->getQWidget()->layout();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QLayout, getProgram());
+      QoreQtQLayout *t_qobj = new QoreQtQLayout(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QLAYOUT, t_qobj);
+   }
+   return new QoreNode(rv_obj);
+}
 
 //Qt::LayoutDirection layoutDirection () const
 static QoreNode *QWIDGET_layoutDirection(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
@@ -724,14 +785,21 @@ static QoreNode *QWIDGET_minimumWidth(class Object *self, QoreAbstractQWidget *q
 }
 
 //void move ( const QPoint & )
-//static QoreNode *QWIDGET_move(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
-
 //void move ( int x, int y )
 static QoreNode *QWIDGET_move(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
+   if (p && p->type == NT_OBJECT) {
+      QoreQPoint *qpoint = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      if (!qpoint) {
+         if (!xsink->isException())
+            xsink->raiseException("QWIDGET-MOVE-PARAM-ERROR", "QWidget::move() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+         return 0;
+      }
+      ReferenceHolder<AbstractPrivateData> qpointHolder(static_cast<AbstractPrivateData *>(qpoint), xsink);
+      qw->getQWidget()->move(*(static_cast<QPoint *>(qpoint)));
+      return 0;
+   }
    int x = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int y = p ? p->getAsInt() : 0;
@@ -740,16 +808,22 @@ static QoreNode *QWIDGET_move(Object *self, QoreAbstractQWidget *qw, QoreNode *p
 }
 
 //QWidget * nextInFocusChain () const
-/*
 static QoreNode *QWIDGET_nextInFocusChain(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
-
-   QoreQWidget *q_qw = new QoreQWidget(qw->getQWidget()->nextInFocusChain());
-   Object *o_qw = new Object(self->getClass(CID_QWIDGET*), getProgram());
-   o_qw*->setPrivate(CID_QWIDGET*, q_qw*);
-   return new QoreNode(o_qw*);
+   QWidget *qt_qobj = qw->getQWidget()->nextInFocusChain();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QWidget, getProgram());
+      QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QWIDGET, t_qobj);
+   }
+   return new QoreNode(rv_obj);
 }
-*/
 
 //QRect normalGeometry () const
 static QoreNode *QWIDGET_normalGeometry(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
@@ -776,21 +850,32 @@ static QoreNode *QWIDGET_overrideWindowFlags(Object *self, QoreAbstractQWidget *
 //}
 
 //const QPalette & palette () const
-//static QoreNode *QWIDGET_palette(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_palette(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   Object *o_qp = new Object(QC_QPalette, getProgram());
+   QoreQPalette *q_qp = new QoreQPalette(qw->getQWidget()->palette());
+   o_qp->setPrivate(CID_QPALETTE, q_qp);
+   return new QoreNode(o_qp);
+}
+
 
 //QWidget * parentWidget () const
-/*
 static QoreNode *QWIDGET_parentWidget(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
-
-   QoreQWidget *q_qw = new QoreQWidget(qw->getQWidget()->parentWidget());
-   Object *o_qw = new Object(self->getClass(CID_QWIDGET*), getProgram());
-   o_qw*->setPrivate(CID_QWIDGET*, q_qw*);
-   return new QoreNode(o_qw*);
+   QWidget *qt_qobj = qw->getQWidget()->parentWidget();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QWidget, getProgram());
+      QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QWIDGET, t_qobj);
+   }
+   return new QoreNode(rv_obj);
 }
-*/
 
 //QPoint pos () const
 static QoreNode *QWIDGET_pos(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
@@ -962,9 +1047,13 @@ static QoreNode *QWIDGET_scroll(Object *self, QoreAbstractQWidget *qw, QoreNode 
 }
 
 //void setAcceptDrops ( bool on )
-//static QoreNode *QWIDGET_setAcceptDrops(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_setAcceptDrops(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool on = p ? p->getAsBool() : false;
+   qw->getQWidget()->setAcceptDrops(on);
+   return 0;
+}
 
 //void setAccessibleDescription ( const QString & description )
 static QoreNode *QWIDGET_setAccessibleDescription(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1501,9 +1590,19 @@ static QoreNode *QWIDGET_setStatusTip(class Object *self, QoreAbstractQWidget *q
 }
 
 //void setStyle ( QStyle * style )
-//static QoreNode *QWIDGET_setStyle(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_setStyle(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreAbstractQStyle *style = (p && p->type == NT_OBJECT) ? (QoreAbstractQStyle *)p->val.object->getReferencedPrivateData(CID_QSTYLE, xsink) : 0;
+   if (!style) {
+      if (!xsink->isException())
+         xsink->raiseException("QWIDGET-SETSTYLE-PARAM-ERROR", "expecting a QStyle object as first argument to QWidget::setStyle()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> styleHolder(static_cast<AbstractPrivateData *>(style), xsink);
+   qw->getQWidget()->setStyle(static_cast<QStyle *>(style->getQStyle()));
+   return 0;
+}
 
 //void setToolTip ( const QString & )
 static QoreNode *QWIDGET_setToolTip(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1663,9 +1762,22 @@ static QoreNode *QWIDGET_statusTip(class Object *self, QoreAbstractQWidget *qw, 
 }
 
 //QStyle * style () const
-//static QoreNode *QWIDGET_style(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_style(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
+{
+   QStyle *qt_qobj = qw->getQWidget()->style();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QStyle, getProgram());
+      QoreQtQStyle *t_qobj = new QoreQtQStyle(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QSTYLE, t_qobj);
+   }
+   return new QoreNode(rv_obj);
+}
 
 //QString styleSheet () const
 static QoreNode *QWIDGET_styleSheet(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
@@ -1794,16 +1906,22 @@ static QoreNode *QWIDGET_width(class Object *self, QoreAbstractQWidget *qw, clas
 //}
 
 //QWidget * window () const
-/*
 static QoreNode *QWIDGET_window(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
-
-   QoreQWidget *q_qw = new QoreQWidget(qw->getQWidget()->window());
-   Object *o_qw = new Object(self->getClass(CID_QWIDGET*), getProgram());
-   o_qw*->setPrivate(CID_QWIDGET*, q_qw*);
-   return new QoreNode(o_qw*);
+   QWidget *qt_qobj = qw->getQWidget()->window();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QWidget, getProgram());
+      QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QWIDGET, t_qobj);
+   }
+   return new QoreNode(rv_obj);
 }
-*/
 
 //Qt::WindowFlags windowFlags () const
 static QoreNode *QWIDGET_windowFlags(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
@@ -2508,9 +2626,8 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("adjustSize",                   (q_method_t)QWIDGET_adjustSize);
    QC_QWidget->addMethod("autoFillBackground",           (q_method_t)QWIDGET_autoFillBackground);
    QC_QWidget->addMethod("backgroundRole",               (q_method_t)QWIDGET_backgroundRole);
-   //QC_QWidget->addMethod("baseSize",                     (q_method_t)QWIDGET_baseSize);
-   //QC_QWidget->addMethod("childAt",                      (q_method_t)QWIDGET_childAt);
-   //QC_QWidget->addMethod("childAt",                      (q_method_t)QWIDGET_childAt);
+   QC_QWidget->addMethod("baseSize",                     (q_method_t)QWIDGET_baseSize);
+   QC_QWidget->addMethod("childAt",                      (q_method_t)QWIDGET_childAt);
    QC_QWidget->addMethod("childrenRect",                 (q_method_t)QWIDGET_childrenRect);
    QC_QWidget->addMethod("childrenRegion",               (q_method_t)QWIDGET_childrenRegion);
    QC_QWidget->addMethod("clearFocus",                   (q_method_t)QWIDGET_clearFocus);
@@ -2520,11 +2637,11 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    //QC_QWidget->addMethod("cursor",                       (q_method_t)QWIDGET_cursor);
    QC_QWidget->addMethod("ensurePolished",               (q_method_t)QWIDGET_ensurePolished);
    QC_QWidget->addMethod("focusPolicy",                  (q_method_t)QWIDGET_focusPolicy);
-   //QC_QWidget->addMethod("focusProxy",                   (q_method_t)QWIDGET_focusProxy);
-   //QC_QWidget->addMethod("focusWidget",                  (q_method_t)QWIDGET_focusWidget);
+   QC_QWidget->addMethod("focusProxy",                   (q_method_t)QWIDGET_focusProxy);
+   QC_QWidget->addMethod("focusWidget",                  (q_method_t)QWIDGET_focusWidget);
    QC_QWidget->addMethod("font",                         (q_method_t)QWIDGET_font);
-   //QC_QWidget->addMethod("fontInfo",                     (q_method_t)QWIDGET_fontInfo);
-   //QC_QWidget->addMethod("fontMetrics",                  (q_method_t)QWIDGET_fontMetrics);
+   QC_QWidget->addMethod("fontInfo",                     (q_method_t)QWIDGET_fontInfo);
+   QC_QWidget->addMethod("fontMetrics",                  (q_method_t)QWIDGET_fontMetrics);
    QC_QWidget->addMethod("foregroundRole",               (q_method_t)QWIDGET_foregroundRole);
    QC_QWidget->addMethod("frameGeometry",                (q_method_t)QWIDGET_frameGeometry);
    QC_QWidget->addMethod("frameSize",                    (q_method_t)QWIDGET_frameSize);
@@ -2542,7 +2659,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("height",                       (q_method_t)QWIDGET_height);
    QC_QWidget->addMethod("heightForWidth",               (q_method_t)QWIDGET_heightForWidth);
    //QC_QWidget->addMethod("inputContext",                 (q_method_t)QWIDGET_inputContext);
-   //QC_QWidget->addMethod("inputMethodQuery",             (q_method_t)QWIDGET_inputMethodQuery);
+   QC_QWidget->addMethod("inputMethodQuery",             (q_method_t)QWIDGET_inputMethodQuery);
    QC_QWidget->addMethod("insertAction",                 (q_method_t)QWIDGET_insertAction);
    //QC_QWidget->addMethod("insertActions",                (q_method_t)QWIDGET_insertActions);
    QC_QWidget->addMethod("isActiveWindow",               (q_method_t)QWIDGET_isActiveWindow);
@@ -2558,7 +2675,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("isVisibleTo",                  (q_method_t)QWIDGET_isVisibleTo);
    QC_QWidget->addMethod("isWindow",                     (q_method_t)QWIDGET_isWindow);
    QC_QWidget->addMethod("isWindowModified",             (q_method_t)QWIDGET_isWindowModified);
-   //QC_QWidget->addMethod("layout",                       (q_method_t)QWIDGET_layout);
+   QC_QWidget->addMethod("layout",                       (q_method_t)QWIDGET_layout);
    QC_QWidget->addMethod("layoutDirection",              (q_method_t)QWIDGET_layoutDirection);
    QC_QWidget->addMethod("locale",                       (q_method_t)QWIDGET_locale);
    //QC_QWidget->addMethod("macCGHandle",                  (q_method_t)QWIDGET_macCGHandle);
@@ -2578,12 +2695,12 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("minimumSizeHint",              (q_method_t)QWIDGET_minimumSizeHint);
    QC_QWidget->addMethod("minimumWidth",                 (q_method_t)QWIDGET_minimumWidth);
    QC_QWidget->addMethod("move",                         (q_method_t)QWIDGET_move);
-   //QC_QWidget->addMethod("nextInFocusChain",             (q_method_t)QWIDGET_nextInFocusChain);
+   QC_QWidget->addMethod("nextInFocusChain",             (q_method_t)QWIDGET_nextInFocusChain);
    QC_QWidget->addMethod("normalGeometry",               (q_method_t)QWIDGET_normalGeometry);
    QC_QWidget->addMethod("overrideWindowFlags",          (q_method_t)QWIDGET_overrideWindowFlags);
    //QC_QWidget->addMethod("paintEngine",                  (q_method_t)QWIDGET_paintEngine);
-   //QC_QWidget->addMethod("palette",                      (q_method_t)QWIDGET_palette);
-   //QC_QWidget->addMethod("parentWidget",                 (q_method_t)QWIDGET_parentWidget);
+   QC_QWidget->addMethod("palette",                      (q_method_t)QWIDGET_palette);
+   QC_QWidget->addMethod("parentWidget",                 (q_method_t)QWIDGET_parentWidget);
    QC_QWidget->addMethod("pos",                          (q_method_t)QWIDGET_pos);
    QC_QWidget->addMethod("rect",                         (q_method_t)QWIDGET_rect);
    //QC_QWidget->addMethod("releaseDC",                    (q_method_t)QWIDGET_releaseDC);
@@ -2597,7 +2714,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("restoreGeometry",              (q_method_t)QWIDGET_restoreGeometry);
    QC_QWidget->addMethod("saveGeometry",                 (q_method_t)QWIDGET_saveGeometry);
    QC_QWidget->addMethod("scroll",                       (q_method_t)QWIDGET_scroll);
-   //QC_QWidget->addMethod("setAcceptDrops",               (q_method_t)QWIDGET_setAcceptDrops);
+   QC_QWidget->addMethod("setAcceptDrops",               (q_method_t)QWIDGET_setAcceptDrops);
    QC_QWidget->addMethod("setAccessibleDescription",     (q_method_t)QWIDGET_setAccessibleDescription);
    QC_QWidget->addMethod("setAccessibleName",            (q_method_t)QWIDGET_setAccessibleName);
    QC_QWidget->addMethod("setAttribute",                 (q_method_t)QWIDGET_setAttribute);
@@ -2637,7 +2754,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("setSizeIncrement",             (q_method_t)QWIDGET_setSizeIncrement);
    QC_QWidget->addMethod("setSizePolicy",                (q_method_t)QWIDGET_setSizePolicy);
    QC_QWidget->addMethod("setStatusTip",                 (q_method_t)QWIDGET_setStatusTip);
-   //QC_QWidget->addMethod("setStyle",                     (q_method_t)QWIDGET_setStyle);
+   QC_QWidget->addMethod("setStyle",                     (q_method_t)QWIDGET_setStyle);
    QC_QWidget->addMethod("setToolTip",                   (q_method_t)QWIDGET_setToolTip);
    QC_QWidget->addMethod("setUpdatesEnabled",            (q_method_t)QWIDGET_setUpdatesEnabled);
    QC_QWidget->addMethod("setWhatsThis",                 (q_method_t)QWIDGET_setWhatsThis);
@@ -2655,7 +2772,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    //QC_QWidget->addMethod("sizePolicy",                   (q_method_t)QWIDGET_sizePolicy);
    QC_QWidget->addMethod("stackUnder",                   (q_method_t)QWIDGET_stackUnder);
    QC_QWidget->addMethod("statusTip",                    (q_method_t)QWIDGET_statusTip);
-   //QC_QWidget->addMethod("style",                        (q_method_t)QWIDGET_style);
+   QC_QWidget->addMethod("style",                        (q_method_t)QWIDGET_style);
    QC_QWidget->addMethod("styleSheet",                   (q_method_t)QWIDGET_styleSheet);
    QC_QWidget->addMethod("testAttribute",                (q_method_t)QWIDGET_testAttribute);
    QC_QWidget->addMethod("toolTip",                      (q_method_t)QWIDGET_toolTip);
@@ -2670,7 +2787,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("whatsThis",                    (q_method_t)QWIDGET_whatsThis);
    QC_QWidget->addMethod("width",                        (q_method_t)QWIDGET_width);
    //QC_QWidget->addMethod("winId",                        (q_method_t)QWIDGET_winId);
-   //QC_QWidget->addMethod("window",                       (q_method_t)QWIDGET_window);
+   QC_QWidget->addMethod("window",                       (q_method_t)QWIDGET_window);
    QC_QWidget->addMethod("windowFlags",                  (q_method_t)QWIDGET_windowFlags);
    QC_QWidget->addMethod("windowIcon",                   (q_method_t)QWIDGET_windowIcon);
    QC_QWidget->addMethod("windowIconText",               (q_method_t)QWIDGET_windowIconText);
