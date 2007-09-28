@@ -119,7 +119,12 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QDial.cc \
 	QC_QStackedWidget.cc \
 	QC_QDoubleSpinBox.cc \
-	QC_QTimeEdit.cc
+	QC_QTimeEdit.cc \
+	QC_QProgressBar.cc \
+	QC_QPainterPath.cc \
+	QC_QPaintEngine.cc \
+	QC_QBasicTimer.cc \
+	QC_QTextEdit.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

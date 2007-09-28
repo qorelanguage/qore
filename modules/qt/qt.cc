@@ -167,6 +167,11 @@
 #include "QC_QStackedWidget.h"
 #include "QC_QDoubleSpinBox.h"
 #include "QC_QTimeEdit.h"
+#include "QC_QProgressBar.h"
+#include "QC_QPainterPath.h"
+#include "QC_QPaintEngine.h"
+#include "QC_QBasicTimer.h"
+#include "QC_QTextEdit.h"
 
 #include "qore-qt-events.h"
 
@@ -1576,6 +1581,11 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQDialClass(qabstractslider));
    qt->addSystemClass(initQStackedWidgetClass(qframe));
    qt->addSystemClass(initQDoubleSpinBoxClass(qabstractspinbox));
+   qt->addSystemClass(initQProgressBarClass(qwidget));
+   qt->addSystemClass(initQPainterPathClass());
+   qt->addSystemClass(initQPaintEngineClass());
+   qt->addSystemClass(initQBasicTimerClass());
+   qt->addSystemClass(initQTextEditClass(qabstractscrollarea));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");

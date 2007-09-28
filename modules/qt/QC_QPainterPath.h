@@ -1,5 +1,5 @@
 /*
- QC_QPaintDevice.h
+ QC_QPainterPath.h
  
  Qore Programming Language
  
@@ -20,34 +20,29 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPAINTDEVICE_H
+#ifndef _QORE_QT_QC_QPAINTERPATH_H
 
-#define _QORE_QC_QPAINTDEVICE_H
+#define _QORE_QT_QC_QPAINTERPATH_H
 
-#include "QoreAbstractQPaintDevice.h"
+#include <QPainterPath>
 
-#include <QPaintDevice>
+DLLLOCAL extern int CID_QPAINTERPATH;
+DLLLOCAL extern class QoreClass *QC_QPainterPath;
 
-DLLLOCAL extern int CID_QPAINTDEVICE;
-DLLLOCAL extern QoreClass *QC_QPaintDevice;
+DLLLOCAL class QoreClass *initQPainterPathClass();
 
-DLLLOCAL class QoreClass *initQPaintDeviceClass();
-
-class QoreQtQPaintDevice : public AbstractPrivateData, public QoreAbstractQPaintDevice
+class QoreQPainterPath : public AbstractPrivateData, public QPainterPath
 {
-   private:
-      QPaintDevice *qpd;
-
    public:
-      DLLLOCAL QoreQtQPaintDevice(QPaintDevice *n_qpd) : qpd(n_qpd)
+      DLLLOCAL QoreQPainterPath() : QPainterPath()
       {
       }
-
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
+      DLLLOCAL QoreQPainterPath(const QPointF& startPoint) : QPainterPath(startPoint)
       {
-	 return qpd;
+      }
+      DLLLOCAL QoreQPainterPath(const QPainterPath& path) : QPainterPath(path)
+      {
       }
 };
 
-
-#endif
+#endif // _QORE_QT_QC_QPAINTERPATH_H

@@ -1,5 +1,5 @@
 /*
- QC_QPaintDevice.h
+ QoreAbstractQPaintEngine.h
  
  Qore Programming Language
  
@@ -20,34 +20,14 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QPAINTDEVICE_H
+#ifndef _QORE_QT_QOREABSTRACTQPAINTENGINE_H
 
-#define _QORE_QC_QPAINTDEVICE_H
+#define _QORE_QT_QOREABSTRACTQPAINTENGINE_H
 
-#include "QoreAbstractQPaintDevice.h"
-
-#include <QPaintDevice>
-
-DLLLOCAL extern int CID_QPAINTDEVICE;
-DLLLOCAL extern QoreClass *QC_QPaintDevice;
-
-DLLLOCAL class QoreClass *initQPaintDeviceClass();
-
-class QoreQtQPaintDevice : public AbstractPrivateData, public QoreAbstractQPaintDevice
+class QoreAbstractQPaintEngine : public AbstractPrivateData
 {
-   private:
-      QPaintDevice *qpd;
-
    public:
-      DLLLOCAL QoreQtQPaintDevice(QPaintDevice *n_qpd) : qpd(n_qpd)
-      {
-      }
-
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const
-      {
-	 return qpd;
-      }
+      DLLLOCAL virtual class QPaintEngine *getQPaintEngine() const = 0;
 };
 
-
-#endif
+#endif  // _QORE_QT_QOREABSTRACTQPAINTENGINE_H

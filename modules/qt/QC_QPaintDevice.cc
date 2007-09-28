@@ -24,6 +24,7 @@
 #include "QC_QPaintDevice.h"
 
 DLLLOCAL int CID_QPAINTDEVICE;
+DLLLOCAL QoreClass *QC_QPaintDevice = 0;
 
 static void QPAINTDEVICE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
@@ -111,7 +112,7 @@ class QoreClass *initQPaintDeviceClass()
 {
    tracein("initQPaintDeviceClass()");
    
-   class QoreClass *QC_QPaintDevice = new QoreClass("QPaintDevice", QDOM_GUI);
+   QC_QPaintDevice = new QoreClass("QPaintDevice", QDOM_GUI);
    CID_QPAINTDEVICE = QC_QPaintDevice->getID();
    QC_QPaintDevice->setConstructor(QPAINTDEVICE_constructor);
    QC_QPaintDevice->setCopy((q_copy_t)QPAINTDEVICE_copy);

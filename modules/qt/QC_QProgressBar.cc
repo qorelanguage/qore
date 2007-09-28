@@ -1,0 +1,241 @@
+/*
+ QC_QProgressBar.cc
+ 
+ Qore Programming Language
+ 
+ Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+
+#include "QC_QProgressBar.h"
+
+int CID_QPROGRESSBAR;
+class QoreClass *QC_QProgressBar = 0;
+
+//QProgressBar ( QWidget * parent = 0 )
+static void QPROGRESSBAR_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (*xsink)
+      return;
+   ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
+   self->setPrivate(CID_QPROGRESSBAR, new QoreQProgressBar(self, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));
+   return;
+}
+
+static void QPROGRESSBAR_copy(class Object *self, class Object *old, class QoreQProgressBar *qpb, ExceptionSink *xsink)
+{
+   xsink->raiseException("QPROGRESSBAR-COPY-ERROR", "objects of this class cannot be copied");
+}
+
+//Qt::Alignment alignment () const
+static QoreNode *QPROGRESSBAR_alignment(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qpb->qobj->alignment());
+}
+
+//QString format () const
+static QoreNode *QPROGRESSBAR_format(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qpb->qobj->format().toUtf8().data(), QCS_UTF8));
+}
+
+//bool invertedAppearance ()
+static QoreNode *QPROGRESSBAR_invertedAppearance(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qpb->qobj->invertedAppearance());
+}
+
+//bool isTextVisible () const
+static QoreNode *QPROGRESSBAR_isTextVisible(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(qpb->qobj->isTextVisible());
+}
+
+//int maximum () const
+static QoreNode *QPROGRESSBAR_maximum(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qpb->qobj->maximum());
+}
+
+//int minimum () const
+static QoreNode *QPROGRESSBAR_minimum(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qpb->qobj->minimum());
+}
+
+//Qt::Orientation orientation () const
+static QoreNode *QPROGRESSBAR_orientation(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qpb->qobj->orientation());
+}
+
+//void setAlignment ( Qt::Alignment alignment )
+static QoreNode *QPROGRESSBAR_setAlignment(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
+   qpb->qobj->setAlignment(alignment);
+   return 0;
+}
+
+//void setFormat ( const QString & format )
+static QoreNode *QPROGRESSBAR_setFormat(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QString format;
+   if (get_qstring(p, format, xsink))
+      return 0;
+   qpb->qobj->setFormat(format);
+   return 0;
+}
+
+//void setInvertedAppearance ( bool invert )
+static QoreNode *QPROGRESSBAR_setInvertedAppearance(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool invert = p ? p->getAsBool() : false;
+   qpb->qobj->setInvertedAppearance(invert);
+   return 0;
+}
+
+//void setTextDirection ( QProgressBar::Direction textDirection )
+static QoreNode *QPROGRESSBAR_setTextDirection(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QProgressBar::Direction textDirection = (QProgressBar::Direction)(p ? p->getAsInt() : 0);
+   qpb->qobj->setTextDirection(textDirection);
+   return 0;
+}
+
+//void setTextVisible ( bool visible )
+static QoreNode *QPROGRESSBAR_setTextVisible(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool visible = p ? p->getAsBool() : false;
+   qpb->qobj->setTextVisible(visible);
+   return 0;
+}
+
+//virtual QString text () const
+static QoreNode *QPROGRESSBAR_text(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(new QoreString(qpb->qobj->text().toUtf8().data(), QCS_UTF8));
+}
+
+//QProgressBar::Direction textDirection ()
+static QoreNode *QPROGRESSBAR_textDirection(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qpb->qobj->textDirection());
+}
+
+//int value () const
+static QoreNode *QPROGRESSBAR_value(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qpb->qobj->value());
+}
+
+//void reset ()
+static QoreNode *QPROGRESSBAR_reset(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   qpb->qobj->reset();
+   return 0;
+}
+
+//void setMaximum ( int maximum )
+static QoreNode *QPROGRESSBAR_setMaximum(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int maximum = p ? p->getAsInt() : 0;
+   qpb->qobj->setMaximum(maximum);
+   return 0;
+}
+
+//void setMinimum ( int minimum )
+static QoreNode *QPROGRESSBAR_setMinimum(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int minimum = p ? p->getAsInt() : 0;
+   qpb->qobj->setMinimum(minimum);
+   return 0;
+}
+
+//void setOrientation ( Qt::Orientation )
+static QoreNode *QPROGRESSBAR_setOrientation(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
+   qpb->qobj->setOrientation(orientation);
+   return 0;
+}
+
+//void setRange ( int minimum, int maximum )
+static QoreNode *QPROGRESSBAR_setRange(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int minimum = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int maximum = p ? p->getAsInt() : 0;
+   qpb->qobj->setRange(minimum, maximum);
+   return 0;
+}
+
+//void setValue ( int value )
+static QoreNode *QPROGRESSBAR_setValue(Object *self, QoreQProgressBar *qpb, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int value = p ? p->getAsInt() : 0;
+   qpb->qobj->setValue(value);
+   return 0;
+}
+
+QoreClass *initQProgressBarClass(QoreClass *qwidget)
+{
+   QC_QProgressBar = new QoreClass("QProgressBar", QDOM_GUI);
+   CID_QPROGRESSBAR = QC_QProgressBar->getID();
+
+   QC_QProgressBar->addBuiltinVirtualBaseClass(qwidget);
+
+   QC_QProgressBar->setConstructor(QPROGRESSBAR_constructor);
+   QC_QProgressBar->setCopy((q_copy_t)QPROGRESSBAR_copy);
+
+   QC_QProgressBar->addMethod("alignment",                   (q_method_t)QPROGRESSBAR_alignment);
+   QC_QProgressBar->addMethod("format",                      (q_method_t)QPROGRESSBAR_format);
+   QC_QProgressBar->addMethod("invertedAppearance",          (q_method_t)QPROGRESSBAR_invertedAppearance);
+   QC_QProgressBar->addMethod("isTextVisible",               (q_method_t)QPROGRESSBAR_isTextVisible);
+   QC_QProgressBar->addMethod("maximum",                     (q_method_t)QPROGRESSBAR_maximum);
+   QC_QProgressBar->addMethod("minimum",                     (q_method_t)QPROGRESSBAR_minimum);
+   QC_QProgressBar->addMethod("orientation",                 (q_method_t)QPROGRESSBAR_orientation);
+   QC_QProgressBar->addMethod("setAlignment",                (q_method_t)QPROGRESSBAR_setAlignment);
+   QC_QProgressBar->addMethod("setFormat",                   (q_method_t)QPROGRESSBAR_setFormat);
+   QC_QProgressBar->addMethod("setInvertedAppearance",       (q_method_t)QPROGRESSBAR_setInvertedAppearance);
+   QC_QProgressBar->addMethod("setTextDirection",            (q_method_t)QPROGRESSBAR_setTextDirection);
+   QC_QProgressBar->addMethod("setTextVisible",              (q_method_t)QPROGRESSBAR_setTextVisible);
+   QC_QProgressBar->addMethod("text",                        (q_method_t)QPROGRESSBAR_text);
+   QC_QProgressBar->addMethod("textDirection",               (q_method_t)QPROGRESSBAR_textDirection);
+   QC_QProgressBar->addMethod("value",                       (q_method_t)QPROGRESSBAR_value);
+   QC_QProgressBar->addMethod("reset",                       (q_method_t)QPROGRESSBAR_reset);
+   QC_QProgressBar->addMethod("setMaximum",                  (q_method_t)QPROGRESSBAR_setMaximum);
+   QC_QProgressBar->addMethod("setMinimum",                  (q_method_t)QPROGRESSBAR_setMinimum);
+   QC_QProgressBar->addMethod("setOrientation",              (q_method_t)QPROGRESSBAR_setOrientation);
+   QC_QProgressBar->addMethod("setRange",                    (q_method_t)QPROGRESSBAR_setRange);
+   QC_QProgressBar->addMethod("setValue",                    (q_method_t)QPROGRESSBAR_setValue);
+
+   return QC_QProgressBar;
+}

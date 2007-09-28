@@ -54,7 +54,7 @@ const const_class_list =
       "QPen", "QModelIndex", "QStyleOptionViewItem", 
       "QStyleOptionViewItemV2", "QLocale", "QUrl", "QByteArray", "QVariant", 
       "QRect", "QRectF", "QFontInfo", "QFontMetrics", "QDir", "QRegExp",
-      "QFileInfo"
+      "QFileInfo", "QPainterPath"
     );
 
 const class_list = ( "QRegion",
@@ -98,6 +98,8 @@ const class_list = ( "QRegion",
 		     "QHeaderView",
 		     "QMetaObject",
 		     "QPrinter",
+		     "QPaintDevice",
+		     "QPaintEngine",
 
  ) + const_class_list + qobject_list;
 
@@ -1120,8 +1122,12 @@ sub do_multi_function($name, $func, $inst, $callstr, $param, $offset)
 
     $lo += sprintf("%sp = get_param(params, %d);", $param ? "" : "QoreNode *", $param);
     if (exists $none) {
+	my $cs = $callstr;
+	# truncate callstr if necessary
+	if ($cs =~ /, $/)
+	    splice $cs, -2;
 	$lo += sprintf("if (is_nothing(p)) {");
-	$lo += do_return_value(3, $func.rt, $callstr + ")", \$func.ok);
+	$lo += do_return_value(3, $func.rt, $cs + ")", \$func.ok);
 	$lo += "}";
     }
     if (elements $cl) {
@@ -1591,6 +1597,16 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 
 	case "QVariant" : {
 	    $lo += sprintf("return return_qvariant(%s);", $callstr);
+	    break;
+	}
+
+	case "QPaintDevice" : {
+	    $lo += sprintf("QPaintDevice *qpd_rv = %s;", $callstr);
+	    $lo += "if (!qpd_rv)";
+	    $lo += "   return 0;";
+	    $lo += "Object *o = new Object(QC_QPaintDevice, getProgram());";
+	    $lo += "o->setPrivate(CID_QPAINTDEVICE, new QoreQtQPaintDevice(qpd));";
+	    $lo += "return new QoreNode(o);";
 	    break;
 	}
 

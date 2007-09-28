@@ -162,3 +162,8 @@
 #include "QC_QStackedWidget.cc"
 #include "QC_QDoubleSpinBox.cc"
 #include "QC_QTimeEdit.cc"
+#include "QC_QProgressBar.cc"
+#include "QC_QPainterPath.cc"
+#include "QC_QPaintEngine.cc"
+#include "QC_QBasicTimer.cc"
+#include "QC_QTextEdit.cc"

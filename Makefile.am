@@ -424,6 +424,12 @@ noinst_HEADERS = \
 	modules/qt/QC_QStackedWidget.h \
 	modules/qt/QC_QDoubleSpinBox.h \
 	modules/qt/QC_QTimeEdit.h \
+	modules/qt/QC_QProgressBar.h \
+	modules/qt/QC_QPainterPath.h \
+	modules/qt/QC_QPaintEngine.h \
+	modules/qt/QC_QBasicTimer.h \
+	modules/qt/QC_QTextEdit.h \
+	modules/qt/QoreAbstractQTextEdit.h \
 	command-line.h \
 	include/qore/Qore.h
 
