@@ -173,12 +173,12 @@ static QoreNode *QSPINBOX_valueFromText(Object *self, QoreQSpinBox *qsb, QoreNod
    return new QoreNode((int64)qsb->qobj->parent_valueFromText(text));
 }
 
-QoreClass *initQSpinBoxClass(QoreClass *qwidget)
+QoreClass *initQSpinBoxClass(QoreClass *qabstractspinbox)
 {
    QC_QSpinBox = new QoreClass("QSpinBox", QDOM_GUI);
    CID_QSPINBOX = QC_QSpinBox->getID();
 
-   QC_QSpinBox->addBuiltinVirtualBaseClass(qwidget);
+   QC_QSpinBox->addBuiltinVirtualBaseClass(qabstractspinbox);
 
    QC_QSpinBox->setConstructor(QSPINBOX_constructor);
    QC_QSpinBox->setCopy((q_copy_t)QSPINBOX_copy);

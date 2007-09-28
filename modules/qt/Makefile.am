@@ -117,7 +117,9 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QIODevice.cc \
 	QC_QImageWriter.cc \
 	QC_QDial.cc \
-	QC_QStackedWidget.cc
+	QC_QStackedWidget.cc \
+	QC_QDoubleSpinBox.cc \
+	QC_QTimeEdit.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

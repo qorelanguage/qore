@@ -165,6 +165,8 @@
 #include "QC_QImageWriter.h"
 #include "QC_QDial.h"
 #include "QC_QStackedWidget.h"
+#include "QC_QDoubleSpinBox.h"
+#include "QC_QTimeEdit.h"
 
 #include "qore-qt-events.h"
 
@@ -242,36 +244,46 @@ int get_qdate(const QoreNode *n, QDate &date, class ExceptionSink *xsink)
 
 int get_qdatetime(const QoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
 {
-   if (n && n->type == NT_DATE) {
-      DateTime *qdt = n->val.date_time;
-      dt.setDate(QDate(qdt->getYear(), qdt->getMonth(), qdt->getDay()));
-      dt.setTime(QTime(qdt->getHour(), qdt->getMinute(), qdt->getSecond(), qdt->getMillisecond()));
-      return 0;
-   }
-   
-   class QoreQDate *qd = (n && n->type == NT_OBJECT) ? (QoreQDate *)n->val.object->getReferencedPrivateData(CID_QDATE, xsink) : 0;
-   if (*xsink)
-      return -1;
-   if (!qd) {
-      class QoreQDateTime *qdt = (n && n->type == NT_OBJECT) ? (QoreQDateTime *)n->val.object->getReferencedPrivateData(CID_QDATETIME, xsink) : 0;
-      if (!qdt) {
-	 if (!*xsink) {
-	    if (n && n->type == NT_OBJECT) 
-	       xsink->raiseException("DATETIME-ERROR", "class '%s' is not derived from QDate or QDateTime", n->val.object->getClass()->getName());
-	    else
-	       xsink->raiseException("DATETIME-ERROR", "cannot convert type '%s' to QDateTime", n ? n->type->getName() : "NOTHING");
-	 }
-	 return -1;
+   if (n) {
+      if (n->type == NT_DATE) {
+	 DateTime *qdt = n->val.date_time;
+	 dt.setDate(QDate(qdt->getYear(), qdt->getMonth(), qdt->getDay()));
+	 dt.setTime(QTime(qdt->getHour(), qdt->getMinute(), qdt->getSecond(), qdt->getMillisecond()));
+	 return 0;
       }
-
-      ReferenceHolder<QoreQDateTime> dtHolder(qdt, xsink);
-      dt = *(static_cast<QDateTime *>(qdt));
-      return 0;
+   
+      if (n->type == NT_OBJECT) {
+	 class QoreQDate *qd = (QoreQDate *)n->val.object->getReferencedPrivateData(CID_QDATE, xsink);
+	 if (*xsink)
+	    return -1;
+	 if (!qd) {
+	    class QoreQDateTime *qdt = (QoreQDateTime *)n->val.object->getReferencedPrivateData(CID_QDATETIME, xsink);
+	    if (*xsink)
+	       return -1;
+	    if (!qdt) {
+	       class QoreQTime *qt = (QoreQTime *)n->val.object->getReferencedPrivateData(CID_QTIME, xsink);
+	       if (*xsink)
+		  return -1;
+	       if (!qt)
+		  xsink->raiseException("DATETIME-ERROR", "class '%s' is not derived from QDate, QTime, or QDateTime", n->val.object->getClass()->getName());
+	       ReferenceHolder<QoreQTime> tHolder(qt, xsink);
+	       dt.setDate(QDate());
+	       dt.setTime(*(static_cast<QTime *>(qt)));
+	       return 0;	       
+	    }
+	    ReferenceHolder<QoreQDateTime> dtHolder(qdt, xsink);
+	    dt = *(static_cast<QDateTime *>(qdt));
+	    return 0;
+	 }
+	 ReferenceHolder<QoreQDate> dHolder(qd, xsink);
+	 dt.setTime(QTime());
+	 dt.setDate(*(static_cast<QDate *>(qd)));
+	 return 0;
+      }
    }
 
-   ReferenceHolder<QoreQDate> dtHolder(qd, xsink);
-   dt.setDate(*(static_cast<QDate *>(qd)));
-   return 0;
+   xsink->raiseException("QDATETIME-ERROR", "cannot derive QDateTime value from type '%s'", n ? n->type->getName() : "NOTHING");
+   return -1;
 }
 
 int get_qtime(const QoreNode *n, QTime &time, class ExceptionSink *xsink)
@@ -1511,12 +1523,10 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass((qcombobox = initQComboBoxClass(qwidget)));
    qt->addSystemClass(initQCheckBoxClass(qabstractbutton));
    qt->addSystemClass((qabstractspinbox = initQAbstractSpinBoxClass(qwidget)));
-   qt->addSystemClass((qdatetimeedit = initQDateTimeEditClass(qabstractspinbox)));
    qt->addSystemClass(initQByteArrayClass());
    qt->addSystemClass(initQUrlClass());
    qt->addSystemClass(initQVariantClass());
    qt->addSystemClass(initQGroupBoxClass(qwidget));
-   qt->addSystemClass(initQDateEditClass(qdatetimeedit));
    qt->addSystemClass(initQFontMetricsClass());
    qt->addSystemClass(initQFontDatabaseClass());
    qt->addSystemClass(initQFontInfoClass());
@@ -1548,7 +1558,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQStyleOptionSpinBoxClass(qstyleoptioncomplex));
    qt->addSystemClass(initQStyleOptionTitleBarClass(qstyleoptioncomplex));
    qt->addSystemClass(initQStyleOptionToolButtonClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQSpinBoxClass(qwidget));
+   qt->addSystemClass(initQSpinBoxClass(qabstractspinbox));
    qt->addSystemClass(initQTableWidgetItemClass());
    qt->addSystemClass(initQStyleOptionMenuItemClass(qstyleoption));
    qt->addSystemClass(initQStyleOptionButtonClass(qstyleoption));
@@ -1565,6 +1575,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQImageWriterClass());
    qt->addSystemClass(initQDialClass(qabstractslider));
    qt->addSystemClass(initQStackedWidgetClass(qframe));
+   qt->addSystemClass(initQDoubleSpinBoxClass(qabstractspinbox));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -1576,6 +1587,27 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qbl->addConstant("BottomToTop",    new QoreNode((int64)QBoxLayout::BottomToTop));
 
    qt->addInitialNamespace(qbl);
+
+   Namespace *qdatetimeedit_ns = new Namespace("QDateTimeEdit");
+   
+   // Section enum
+   qdatetimeedit_ns->addConstant("NoSection",                new QoreNode((int64)QDateTimeEdit::NoSection));
+   qdatetimeedit_ns->addConstant("AmPmSection",              new QoreNode((int64)QDateTimeEdit::AmPmSection));
+   qdatetimeedit_ns->addConstant("MSecSection",              new QoreNode((int64)QDateTimeEdit::MSecSection));
+   qdatetimeedit_ns->addConstant("SecondSection",            new QoreNode((int64)QDateTimeEdit::SecondSection));
+   qdatetimeedit_ns->addConstant("MinuteSection",            new QoreNode((int64)QDateTimeEdit::MinuteSection));
+   qdatetimeedit_ns->addConstant("HourSection",              new QoreNode((int64)QDateTimeEdit::HourSection));
+   qdatetimeedit_ns->addConstant("DaySection",               new QoreNode((int64)QDateTimeEdit::DaySection));
+   qdatetimeedit_ns->addConstant("MonthSection",             new QoreNode((int64)QDateTimeEdit::MonthSection));
+   qdatetimeedit_ns->addConstant("YearSection",              new QoreNode((int64)QDateTimeEdit::YearSection));
+   qdatetimeedit_ns->addConstant("TimeSections_Mask",        new QoreNode((int64)QDateTimeEdit::TimeSections_Mask));
+   qdatetimeedit_ns->addConstant("DateSections_Mask",        new QoreNode((int64)QDateTimeEdit::DateSections_Mask));
+
+   qdatetimeedit_ns->addSystemClass((qdatetimeedit = initQDateTimeEditClass(qabstractspinbox)));
+   qdatetimeedit_ns->addSystemClass(initQDateEditClass(qdatetimeedit));
+   qdatetimeedit_ns->addSystemClass(initQTimeEditClass(qdatetimeedit));
+
+   qt->addInitialNamespace(qdatetimeedit_ns);
 
    Namespace *qdialog_ns = new Namespace("QDialog");
 
@@ -3135,6 +3167,13 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("WindowShadeButtonHint",    new QoreNode((int64)Qt::WindowShadeButtonHint));
    qt->addConstant("WindowStaysOnTopHint",     new QoreNode((int64)Qt::WindowStaysOnTopHint));
    qt->addConstant("CustomizeWindowHint",      new QoreNode((int64)Qt::CustomizeWindowHint));
+
+   // FocusPolicy enum
+   qt->addConstant("NoFocus",                  new QoreNode((int64)Qt::NoFocus));
+   qt->addConstant("TabFocus",                 new QoreNode((int64)Qt::TabFocus));
+   qt->addConstant("ClickFocus",               new QoreNode((int64)Qt::ClickFocus));
+   qt->addConstant("StrongFocus",              new QoreNode((int64)Qt::StrongFocus));
+   qt->addConstant("WheelFocus",               new QoreNode((int64)Qt::WheelFocus));
 
    qns->addInitialNamespace(qt);
 }

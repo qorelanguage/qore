@@ -160,3 +160,5 @@
 #include "QC_QImageWriter.cc"
 #include "QC_QDial.cc"
 #include "QC_QStackedWidget.cc"
+#include "QC_QDoubleSpinBox.cc"
+#include "QC_QTimeEdit.cc"

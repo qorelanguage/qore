@@ -422,6 +422,8 @@ noinst_HEADERS = \
 	modules/qt/QC_QImageWriter.h \
 	modules/qt/QC_QDial.h \
 	modules/qt/QC_QStackedWidget.h \
+	modules/qt/QC_QDoubleSpinBox.h \
+	modules/qt/QC_QTimeEdit.h \
 	command-line.h \
 	include/qore/Qore.h
 

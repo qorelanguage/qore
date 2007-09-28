@@ -42,41 +42,25 @@ static void QDATETIMEEDIT_constructor(Object *self, QoreNode *params, ExceptionS
    QoreQWidget *parent = 0;
    if (p->type == NT_OBJECT) {
       parent = (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink);
+      if (*xsink)
+	 return;
       ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
       self->setPrivate(CID_QDATETIMEEDIT, new QoreQDateTimeEdit(self, parent->getQWidget()));
       return;
    }
 
+   QDateTime datetime;
+   if (get_qdatetime(p, datetime, xsink))
+      return;
+
    // get parent widget as second argument if possible
-   QoreNode *p1 = get_param(params, 1);
-   parent = (QoreQWidget *)p1->val.object->getReferencedPrivateData(CID_QWIDGET, xsink);
+   p = test_param(params, NT_OBJECT, 1);
+   parent = p ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (*xsink)
+      return;
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
 
-   if (p->type == NT_DATE) {
-      QDateTime datetime;
-      if (get_qdatetime(p, datetime, xsink))
-	 return;
-      self->setPrivate(CID_QDATETIMEEDIT, new QoreQDateTimeEdit(self, datetime, parent ? parent->getQWidget() : 0));
-      return;
-   }
-
-   QoreQDateTime *qdt = (p->type == NT_OBJECT) ? (QoreQDateTime *)p->val.object->getReferencedPrivateData(CID_QDATETIME, xsink) : 0;
-   if (qdt) {
-      ReferenceHolder<QoreQDateTime> dtHolder(qdt, xsink);
-      self->setPrivate(CID_QDATETIMEEDIT, new QoreQDateTimeEdit(self, *qdt, parent ? parent->getQWidget() : 0));
-   }
-   QoreQDate *qd = (p->type == NT_OBJECT) ? (QoreQDate *)p->val.object->getReferencedPrivateData(CID_QDATE, xsink) : 0;
-   if (qd) {
-      ReferenceHolder<QoreQDate> dtHolder(qd, xsink);
-      self->setPrivate(CID_QDATETIMEEDIT, new QoreQDateTimeEdit(self, *qd, parent ? parent->getQWidget() : 0));
-   }
-   QoreQTime *qt = (p->type == NT_OBJECT) ? (QoreQTime *)p->val.object->getReferencedPrivateData(CID_QTIME, xsink) : 0;
-   if (!qt) {
-      xsink->raiseException("QDATETIMEEDIT-CONSTRUCTOR-ERROR", "expecting a date/time value or an object derived from QWidget, QDate, QDateTime, or QTime as the first argument to QDateTimeEdit::constructor(); got type '%s'", p->type->getName());
-      return;
-   }
-   ReferenceHolder<QoreQTime> timeHolder(qt, xsink);
-   self->setPrivate(CID_QDATETIMEEDIT, new QoreQDateTimeEdit(self, *qt, parent ? parent->getQWidget() : 0));
+   self->setPrivate(CID_QDATETIMEEDIT, new QoreQDateTimeEdit(self, datetime, parent ? parent->getQWidget() : 0));
 }
 
 static void QDATETIMEEDIT_copy(class Object *self, class Object *old, class QoreQDateTimeEdit *qdte, ExceptionSink *xsink)

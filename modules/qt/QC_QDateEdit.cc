@@ -43,23 +43,16 @@ static void QDATEEDIT_constructor(Object *self, QoreNode *params, ExceptionSink 
       self->setPrivate(CID_QDATEEDIT, new QoreQDateEdit(self, parent->getQWidget()));
       return;
    }
+
+   QDate date;
+   if (get_qdate(p, date, xsink))
+      return;
    
-   // first try and get parent widget as second argument
    QoreNode *p1 = test_param(params, NT_OBJECT, 1);
    parent = (p1 && p1->type == NT_OBJECT) ? (QoreQWidget *)p1->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
    
-   // now try and interpret first argument as a date
-   if (p->type == NT_DATE || p->type == NT_OBJECT) {
-      QDate date;
-      if (get_qdate(p, date, xsink))
-	 return;
-      
-      self->setPrivate(CID_QDATEEDIT, new QoreQDateEdit(self, date, parent ? parent->getQWidget() : 0));      
-   }
-
-   xsink->raiseException("QDATEEDIT-CONSTRUCTOR-ERROR", "don't know how to handle type '%s' as first argument", p->type->getName());
-   return;
+   self->setPrivate(CID_QDATEEDIT, new QoreQDateEdit(self, date, parent ? parent->getQWidget() : 0));      
 }
 
 static void QDATEEDIT_copy(class Object *self, class Object *old, class QoreQDateEdit *qde, ExceptionSink *xsink)

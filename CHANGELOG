@@ -1,3 +1,7 @@
+2007.09.28: David Nichols
+	* qt: new sliders.q and spinboxes.q examples, new classes, constants, 
+	  fixes
+
 2007.09.27: David Nichols
 	* qt: fixes, new constants, new scribble.q example 
 
