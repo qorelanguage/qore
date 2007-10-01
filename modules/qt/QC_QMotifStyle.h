@@ -33,15 +33,16 @@ DLLLOCAL extern class QoreClass *QC_QMotifStyle;
 
 DLLLOCAL class QoreClass *initQMotifStyleClass(QoreClass *);
 
-class myQMotifStyle : public QMotifStyle
+class myQMotifStyle : public QMotifStyle, public QoreQStyleExtension
 {
    friend class QoreQMotifStyle;
 #define QOREQTYPE QMotifStyle
+#include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMotifStyle(Object *obj, bool useHighlightCols = false) : QMotifStyle(useHighlightCols)
+      DLLLOCAL myQMotifStyle(Object *obj, bool useHighlightCols = false) : QMotifStyle(useHighlightCols), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }

@@ -30,7 +30,7 @@ class QoreClass *QC_QStyle = 0;
 //QStyle ()
 static void QSTYLE_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLE-CONSTRUCTOR-ERROR", "QStyle is an abstract class");
+   self->setPrivate(CID_QSTYLE, new QoreQStyle(self));
    return;
 }
 
@@ -87,7 +87,7 @@ static QoreNode *QSTYLE_drawComplexControl(Object *self, QoreAbstractQStyle *qs,
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qs->getQStyle()->drawComplexControl(control, static_cast<QStyleOptionComplex *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qs->drawComplexControl(control, static_cast<QStyleOptionComplex *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 
@@ -117,7 +117,7 @@ static QoreNode *QSTYLE_drawControl(Object *self, QoreAbstractQStyle *qs, QoreNo
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qs->getQStyle()->drawControl(element, static_cast<QStyleOption *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qs->drawControl(element, static_cast<QStyleOption *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 
@@ -150,7 +150,7 @@ static QoreNode *QSTYLE_drawItemPixmap(Object *self, QoreAbstractQStyle *qs, Qor
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
-   qs->getQStyle()->drawItemPixmap(painter->getQPainter(), *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPixmap *>(pixmap)));
+   qs->drawItemPixmap(painter->getQPainter(), *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPixmap *>(pixmap)));
    return 0;
 }
 
@@ -191,7 +191,7 @@ static QoreNode *QSTYLE_drawItemText(Object *self, QoreAbstractQStyle *qs, QoreN
       return 0;
    p = get_param(params, 6);
    QPalette::ColorRole textRole = !is_nothing(p) ? (QPalette::ColorRole)p->getAsInt() : QPalette::NoRole;
-   qs->getQStyle()->drawItemText(painter->getQPainter(), *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPalette *>(palette)), enabled, text, textRole);
+   qs->drawItemText(painter->getQPainter(), *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPalette *>(palette)), enabled, text, textRole);
    return 0;
 }
 
@@ -221,7 +221,7 @@ static QoreNode *QSTYLE_drawPrimitive(Object *self, QoreAbstractQStyle *qs, Qore
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   qs->getQStyle()->drawPrimitive(element, static_cast<QStyleOption *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
+   qs->drawPrimitive(element, static_cast<QStyleOption *>(option), painter->getQPainter(), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0);
    return 0;
 }
 
@@ -247,7 +247,7 @@ static QoreNode *QSTYLE_generatedIconPixmap(Object *self, QoreAbstractQStyle *qs
    }
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
    Object *o_qp = new Object(QC_QPixmap, getProgram());
-   QoreQPixmap *q_qp = new QoreQPixmap(qs->getQStyle()->generatedIconPixmap(iconMode, *(static_cast<QPixmap *>(pixmap)), static_cast<QStyleOption *>(option)));
+   QoreQPixmap *q_qp = new QoreQPixmap(qs->generatedIconPixmap(iconMode, *(static_cast<QPixmap *>(pixmap)), static_cast<QStyleOption *>(option)));
    o_qp->setPrivate(CID_QPIXMAP, q_qp);
    return new QoreNode(o_qp);
 }
@@ -278,7 +278,7 @@ static QoreNode *QSTYLE_hitTestComplexControl(Object *self, QoreAbstractQStyle *
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   return new QoreNode((int64)qs->getQStyle()->hitTestComplexControl(control, static_cast<QStyleOptionComplex *>(option), *(static_cast<QPoint *>(position)), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
+   return new QoreNode((int64)qs->hitTestComplexControl(control, static_cast<QStyleOptionComplex *>(option), *(static_cast<QPoint *>(position)), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
 }
 
 //virtual QRect itemPixmapRect ( const QRect & rectangle, int alignment, const QPixmap & pixmap ) const
@@ -303,7 +303,7 @@ static QoreNode *QSTYLE_itemPixmapRect(Object *self, QoreAbstractQStyle *qs, Qor
    }
    ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
    Object *o_qr = new Object(QC_QRect, getProgram());
-   QoreQRect *q_qr = new QoreQRect(qs->getQStyle()->itemPixmapRect(*(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPixmap *>(pixmap))));
+   QoreQRect *q_qr = new QoreQRect(qs->itemPixmapRect(*(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPixmap *>(pixmap))));
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -336,7 +336,7 @@ static QoreNode *QSTYLE_itemTextRect(Object *self, QoreAbstractQStyle *qs, QoreN
    if (get_qstring(p, text, xsink))
       return 0;
    Object *o_qr = new Object(QC_QRect, getProgram());
-   QoreQRect *q_qr = new QoreQRect(qs->getQStyle()->itemTextRect(*(static_cast<QFontMetrics *>(metrics)), *(static_cast<QRect *>(rectangle)), alignment, enabled, text));
+   QoreQRect *q_qr = new QoreQRect(qs->itemTextRect(*(static_cast<QFontMetrics *>(metrics)), *(static_cast<QRect *>(rectangle)), alignment, enabled, text));
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -378,7 +378,7 @@ static QoreNode *QSTYLE_pixelMetric(Object *self, QoreAbstractQStyle *qs, QoreNo
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   return new QoreNode((int64)qs->getQStyle()->pixelMetric(metric, option ? static_cast<QStyleOption *>(option) : 0, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
+   return new QoreNode((int64)qs->pixelMetric(metric, option ? static_cast<QStyleOption *>(option) : 0, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
 }
 
 //virtual void polish ( QWidget * widget )
@@ -403,15 +403,15 @@ static QoreNode *QSTYLE_polish(Object *self, QoreAbstractQStyle *qs, QoreNode *p
 	    return 0;
 	 }
 	 ReferenceHolder<QoreQWidget> widgetHolder(widget, xsink);
-	 qs->getQStyle()->polish(static_cast<QWidget *>(widget->getQWidget()));
+	 qs->polish(static_cast<QWidget *>(widget->getQWidget()));
 	 return 0;
       }
       ReferenceHolder<QoreQPalette> paletteHolder(palette, xsink);
-      qs->getQStyle()->polish(*(static_cast<QPalette *>(palette)));
+      qs->polish(*(static_cast<QPalette *>(palette)));
       return 0;
    }
    ReferenceHolder<QoreQApplication> applicationHolder(application, xsink);
-   qs->getQStyle()->polish(static_cast<QApplication *>(application->qobj));
+   qs->polish(static_cast<QApplication *>(application->qobj));
    return 0;
 }
 
@@ -442,7 +442,7 @@ static QoreNode *QSTYLE_sizeFromContents(Object *self, QoreAbstractQStyle *qs, Q
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
    Object *o_qs = new Object(QC_QSize, getProgram());
-   QoreQSize *q_qs = new QoreQSize(qs->getQStyle()->sizeFromContents(type, static_cast<QStyleOption *>(option), *(static_cast<QSize *>(contentsSize)), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
+   QoreQSize *q_qs = new QoreQSize(qs->sizeFromContents(type, static_cast<QStyleOption *>(option), *(static_cast<QSize *>(contentsSize)), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
 }
@@ -472,7 +472,7 @@ static QoreNode *QSTYLE_standardIcon(Object *self, QoreAbstractQStyle *qs, QoreN
 static QoreNode *QSTYLE_standardPalette(Object *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
 {
    Object *o_qp = new Object(QC_QPalette, getProgram());
-   QoreQPalette *q_qp = new QoreQPalette(qs->getQStyle()->standardPalette());
+   QoreQPalette *q_qp = new QoreQPalette(qs->standardPalette());
    o_qp->setPrivate(CID_QPALETTE, q_qp);
    return new QoreNode(o_qp);
 }
@@ -494,7 +494,7 @@ static QoreNode *QSTYLE_styleHint(Object *self, QoreAbstractQStyle *qs, QoreNode
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
 //   p = get_param(params, 3);
 //   ??? QStyleHintReturn* returnData = p;
-   return new QoreNode((int64)qs->getQStyle()->styleHint(hint, option ? static_cast<QStyleOption *>(option) : 0, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
+   return new QoreNode((int64)qs->styleHint(hint, option ? static_cast<QStyleOption *>(option) : 0, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
 }
 
 //virtual QRect subControlRect ( ComplexControl control, const QStyleOptionComplex * option, SubControl subControl, const QWidget * widget = 0 ) const = 0
@@ -518,7 +518,7 @@ static QoreNode *QSTYLE_subControlRect(Object *self, QoreAbstractQStyle *qs, Qor
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
    Object *o_qr = new Object(QC_QRect, getProgram());
-   QoreQRect *q_qr = new QoreQRect(qs->getQStyle()->subControlRect(control, static_cast<QStyleOptionComplex *>(option), subControl, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
+   QoreQRect *q_qr = new QoreQRect(qs->subControlRect(control, static_cast<QStyleOptionComplex *>(option), subControl, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -542,7 +542,7 @@ static QoreNode *QSTYLE_subElementRect(Object *self, QoreAbstractQStyle *qs, Qor
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
    Object *o_qr = new Object(QC_QRect, getProgram());
-   QoreQRect *q_qr = new QoreQRect(qs->getQStyle()->subElementRect(element, static_cast<QStyleOption *>(option), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
+   QoreQRect *q_qr = new QoreQRect(qs->subElementRect(element, static_cast<QStyleOption *>(option), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -566,11 +566,11 @@ static QoreNode *QSTYLE_unpolish(Object *self, QoreAbstractQStyle *qs, QoreNode 
 	 return 0;
       }
       ReferenceHolder<QoreQWidget> widgetHolder(widget, xsink);
-      qs->getQStyle()->unpolish(static_cast<QWidget *>(widget->getQWidget()));
+      qs->unpolish(static_cast<QWidget *>(widget->getQWidget()));
       return 0;
    }
    ReferenceHolder<QoreQApplication> applicationHolder(application, xsink);
-   qs->getQStyle()->unpolish(static_cast<QApplication *>(application->qobj));
+   qs->unpolish(static_cast<QApplication *>(application->qobj));
    return 0;
 }
 

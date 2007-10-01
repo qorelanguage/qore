@@ -1,3 +1,6 @@
+2007.10.01: David Nichols
+	* qt: enabled QStyle to be subclassed and extended in Qore
+
 2007.09.28: David Nichols
 	* qt: new sliders.q and spinboxes.q examples, new classes, constants, 
 	  fixes

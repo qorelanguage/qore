@@ -33,16 +33,17 @@ DLLLOCAL extern class QoreClass *QC_QMacStyle;
 
 DLLLOCAL class QoreClass *initQMacStyleClass(QoreClass *);
 
-class myQMacStyle : public QMacStyle
+class myQMacStyle : public QMacStyle, public QoreQStyleExtension
 {
       friend class QoreQMacStyle;
 
 #define QOREQTYPE QMacStyle
+#include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMacStyle(Object *obj) : QMacStyle()
+      DLLLOCAL myQMacStyle(Object *obj) : QMacStyle(), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }

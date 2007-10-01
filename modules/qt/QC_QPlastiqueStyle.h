@@ -33,16 +33,17 @@ DLLLOCAL extern class QoreClass *QC_QPlastiqueStyle;
 
 DLLLOCAL class QoreClass *initQPlastiqueStyleClass(QoreClass *);
 
-class myQPlastiqueStyle : public QPlastiqueStyle
+class myQPlastiqueStyle : public QPlastiqueStyle, public QoreQStyleExtension
 {
       friend class QoreQPlastiqueStyle;
 
 #define QOREQTYPE QPlastiqueStyle
+#include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQPlastiqueStyle(Object *obj) : QPlastiqueStyle()
+      DLLLOCAL myQPlastiqueStyle(Object *obj) : QPlastiqueStyle(), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }

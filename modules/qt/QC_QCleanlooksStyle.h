@@ -33,16 +33,17 @@ DLLLOCAL extern class QoreClass *QC_QCleanlooksStyle;
 
 DLLLOCAL class QoreClass *initQCleanlooksStyleClass(QoreClass *);
 
-class myQCleanlooksStyle : public QCleanlooksStyle
+class myQCleanlooksStyle : public QCleanlooksStyle, public QoreQStyleExtension
 {
       friend class QoreQCleanlooksStyle;
 
 #define QOREQTYPE QCleanlooksStyle
+#include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQCleanlooksStyle(Object *obj) : QCleanlooksStyle()
+      DLLLOCAL myQCleanlooksStyle(Object *obj) : QCleanlooksStyle(), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }

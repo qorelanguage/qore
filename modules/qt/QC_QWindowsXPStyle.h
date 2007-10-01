@@ -33,16 +33,17 @@ DLLLOCAL extern class QoreClass *QC_QWindowsXPStyle;
 
 DLLLOCAL class QoreClass *initQWindowsXPStyleClass(QoreClass *);
 
-class myQWindowsXPStyle : public QWindowsXPStyle
+class myQWindowsXPStyle : public QWindowsXPStyle, public QoreQStyleExtension
 {
       friend class QoreQWindowsXPStyle;
 
 #define QOREQTYPE QWindowsXPStyle
+#include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQWindowsXPStyle(Object *obj) : QWindowsXPStyle()
+      DLLLOCAL myQWindowsXPStyle(Object *obj) : QWindowsXPStyle(), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }

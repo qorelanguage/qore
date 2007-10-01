@@ -33,16 +33,17 @@ DLLLOCAL extern class QoreClass *QC_QCDEStyle;
 
 DLLLOCAL class QoreClass *initQCDEStyleClass(QoreClass *);
 
-class myQCDEStyle : public QCDEStyle
+class myQCDEStyle : public QCDEStyle, public QoreQStyleExtension
 {
       friend class QoreQCDEStyle;
 
 #define QOREQTYPE QCDEStyle
+#include "qore-qt-qstyle-methods.h"
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQCDEStyle(Object *obj, bool useHighlightCols = false) : QCDEStyle(useHighlightCols)
+      DLLLOCAL myQCDEStyle(Object *obj, bool useHighlightCols = false) : QCDEStyle(useHighlightCols), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }
