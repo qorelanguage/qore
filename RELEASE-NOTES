@@ -1,4 +1,15 @@
-RELEASE NOTES for qore v0.6.2
+RELEASE NOTES for qore v0.6.2.1
+
+0.6.2.1 is a bug-fix release from 0.6.2.  The following bugs were fixed in 0.6.2.1:
+	* fixed a bug where null values could be inserted into the parse tree with certain invalid expressions (causing a subsequent segfault)
+	* fixed a bug in HTTPClient::head() where the message body was erroneously attempted to be read
+	* fixed a thread resource tracking bug in the DatasourcePool class that could cause a crash
+	* fixed a bug with implicit conversions from Qore type boolean to Qore type string (caused memory corruption)
+	* fixed a bug in QoreString::parseBase64ToString() that set an invalid internal string length marker
+	* added a "decode_url()" function to replace percent encodings in URL strings with the characters encoded
+	* updated HTTPClient to automatically encode space characters in the path as %20
+
+The rest of thie document describes the release notes as of release 0.6.2
 
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
