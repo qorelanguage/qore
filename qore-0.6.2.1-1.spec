@@ -1,12 +1,12 @@
+%define with_ncurses 1
 %define with_mysql   1
 %define with_pgsql   1
 %define with_mssql   1
-%define with_oracle  1
-%define with_sybase  1
+%define with_oracle  0
+%define with_sybase  0
 %define with_tibae   0
-%define with_tibrv   1
-%define with_mssql   1
-%define with_tuxedo  1
+%define with_tibrv   0
+%define with_tuxedo  0
 
 Summary: Qore Programming Language
 Name: qore
@@ -23,7 +23,9 @@ BuildRequires: flex >= 2.5.31
 BuildRequires: openssl-devel
 BuildRequires: pcre-devel
 BuildRequires: libxml2-devel
+%if 0%{?with_ncurses}
 BuildRequires: ncurses-devel
+%endif
 %if 0%{?with_mysql}
 BuildRequires: mysql-devel
 %endif
@@ -55,6 +57,33 @@ ldconfig %{_libdir}
 
 %postun
 ldconfig %{_libdir}
+
+%if 0%{?with_ncurses}
+%package ncurses-module
+Summary: ncurses module for Qore
+Group: Development/Languages
+Requires: %{name} = %{version}-%{release}
+
+%description ncurses-module
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON 
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and 
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+ncurses module for the Qore Programming Language.  The ncurses module allows 
+Qore programs to implement complex character-based applications.  Note that the
+use of the ncurses module with Qore threading is still experimental.
+
+
+%files ncurses-module
+%defattr(-,root,root,-)
+%{_libdir}/qore-%{version}/ncurses.qmod
+%endif
 
 %if 0%{?with_oracle}
 %package oracle-module
@@ -308,10 +337,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libqore.so.3
 %{_libdir}/libqore.so
 %{_libdir}/libqore.la
-%{_libdir}/qore-%{version}/ncurses.qmod
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Sat Oct 13 2007 David Nichols <david_nichols@users.sourceforge.net>
+- made ncurses a separate module as per the original opensuse rpm
+
 * Tue Jul 17 2007 David Nichols <david_nichols@users.sourceforge.net>
 - updated version to 0.6.2.1
 - updated library version to 3.0.1
