@@ -191,34 +191,32 @@ static QoreNode *QRECT_contains(Object *self, QoreQRect *qr, QoreNode *params, E
 }
 
 //void getCoords ( int * x1, int * y1, int * x2, int * y2 ) const
-//static QoreNode *QRECT_getCoords(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? int* x1 = p;
-//   p = get_param(params, 1);
-//   ??? int* y1 = p;
-//   p = get_param(params, 2);
-//   ??? int* x2 = p;
-//   p = get_param(params, 3);
-//   ??? int* y2 = p;
-//   qr->getCoords(x1, y1, x2, y2);
-//   return 0;
-//}
+static QoreNode *QRECT_getCoords(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
+{
+   int x1, y1, x2, y2;
+   qr->getCoords(&x1, &y1, &x2, &y2);
+
+   List *l = new List();
+   l->push(new QoreNode((int64)x1));
+   l->push(new QoreNode((int64)y1));
+   l->push(new QoreNode((int64)x2));
+   l->push(new QoreNode((int64)y2));
+   return new QoreNode(l);
+}
 
 //void getRect ( int * x, int * y, int * width, int * height ) const
-//static QoreNode *QRECT_getRect(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? int* x = p;
-//   p = get_param(params, 1);
-//   ??? int* y = p;
-//   p = get_param(params, 2);
-//   ??? int* width = p;
-//   p = get_param(params, 3);
-//   ??? int* height = p;
-//   qr->getRect(x, y, width, height);
-//   return 0;
-//}
+static QoreNode *QRECT_getRect(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
+{
+   int x, y, width, height;
+   qr->getCoords(&x, &y, &width, &height);
+
+   List *l = new List();
+   l->push(new QoreNode((int64)x));
+   l->push(new QoreNode((int64)y));
+   l->push(new QoreNode((int64)width));
+   l->push(new QoreNode((int64)height));
+   return new QoreNode(l);
+}
 
 //int height () const
 static QoreNode *QRECT_height(Object *self, QoreQRect *qr, QoreNode *params, ExceptionSink *xsink)
@@ -762,8 +760,8 @@ class QoreClass *initQRectClass()
    QC_QRect->addMethod("bottomRight",                 (q_method_t)QRECT_bottomRight);
    QC_QRect->addMethod("center",                      (q_method_t)QRECT_center);
    QC_QRect->addMethod("contains",                    (q_method_t)QRECT_contains);
-   //QC_QRect->addMethod("getCoords",                   (q_method_t)QRECT_getCoords);
-   //QC_QRect->addMethod("getRect",                     (q_method_t)QRECT_getRect);
+   QC_QRect->addMethod("getCoords",                   (q_method_t)QRECT_getCoords);
+   QC_QRect->addMethod("getRect",                     (q_method_t)QRECT_getRect);
    QC_QRect->addMethod("height",                      (q_method_t)QRECT_height);
    QC_QRect->addMethod("intersected",                 (q_method_t)QRECT_intersected);
    QC_QRect->addMethod("intersects",                  (q_method_t)QRECT_intersects);

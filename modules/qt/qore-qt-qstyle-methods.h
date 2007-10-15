@@ -29,7 +29,7 @@ class T {
 
 	 List *args = new List();
 	 args->push(new QoreNode((int64)element));
-	 args->push(return_object(QC_QStyleOption, new QoreQStyleOption(*option)));
+	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
@@ -100,7 +100,7 @@ class T {
 
 	 List *args = new List();
 	 args->push(new QoreNode((int64)element));
-	 args->push(return_object(QC_QStyleOption, new QoreQStyleOption(*option)));
+	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
@@ -132,7 +132,7 @@ class T {
 
 	 List *args = new List();	 
 	 args->push(new QoreNode((int64)standardPixmap));
-	 args->push(option ? return_object(QC_QStyleOption, new QoreQStyleOption(*option)) : 0);
+	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
@@ -156,7 +156,7 @@ class T {
 	 List *args = new List();
 	 args->push(new QoreNode((int64)mode));
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
-	 args->push(return_object(QC_QStyleOption, new QoreQStyleOption(*option)));
+	 args->push(return_qstyleoption(option));
 
 	 ExceptionSink xsink;
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_generatedIconPixmap, args, &xsink), &xsink);
@@ -200,7 +200,7 @@ class T {
 
 	 List *args = new List();	 
 	 args->push(new QoreNode((int64)metric));
-	 args->push(option ? return_object(QC_QStyleOption, new QoreQStyleOption(*option)) : 0);
+	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
@@ -237,9 +237,25 @@ class T {
 	    return;
 	 }
 
+	 ExceptionSink xsink;
+         LVarInstantiatorHelper lvh("arg0", return_object(QC_QPalette, new QoreQPalette(palette)), &xsink);
+	 
 	 List *args = new List();
-	 args->push(return_object(QC_QPalette, new QoreQPalette(palette)));
-	 dispatch_event(qore_obj, m_polish, args);
+	 args->push(lvh.getArg());
+
+	 ReferenceHolder<QoreNode> na(new QoreNode(args), &xsink);
+
+	 // execute method and discard any return value
+         discard(m_polish->eval(qore_obj, *na, &xsink), &xsink);
+
+	 QoreNode *out = lvh.getOutputValue();
+	 QoreQPalette *qp = (out && out->type == NT_OBJECT) ? (QoreQPalette *)out->val.object->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
+	 if (!qp) {
+	    xsink.raiseException("QSTYLE-POLISH-ERROR", "palette argument was returned as type '%s'", out ? out->type->getName() : 0);
+	    return;
+	 }
+	 ReferenceHolder<QoreQPalette> pHolder(qp, &xsink);
+	 palette = *(static_cast<QPalette *>(qp));
       }
       DLLLOCAL virtual QSize sizeFromContents ( QStyle::ContentsType type, const QStyleOption * option, const QSize & contentsSize, const QWidget * widget = 0 ) const 
       {
@@ -248,7 +264,7 @@ class T {
 
 	 List *args = new List();
 	 args->push(new QoreNode((int64)type));
-	 args->push(return_object(QC_QStyleOption, new QoreQStyleOption(*option)));
+	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QSize, new QoreQSize(contentsSize)));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
@@ -287,7 +303,7 @@ class T {
 
 	 List *args = new List();
 	 args->push(new QoreNode((int64)hint));
-	 args->push(return_object(QC_QStyleOption, new QoreQStyleOption(*option)));
+	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 	 // returnData not currently implemented
@@ -303,7 +319,7 @@ class T {
 
 	 List *args = new List();
 	 args->push(new QoreNode((int64)control));
-	 args->push(return_object(QC_QStyleOptionComplex, new QoreQStyleOptionComplex(*option)));
+	 args->push(return_qstyleoption(option));
 	 args->push(new QoreNode((int64)subControl));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
@@ -326,7 +342,7 @@ class T {
 
 	 List *args = new List();
 	 args->push(new QoreNode((int64)element));
-	 args->push(return_object(QC_QStyleOption, new QoreQStyleOption(*option)));
+	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 

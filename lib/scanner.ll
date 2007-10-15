@@ -621,6 +621,7 @@ pop\(                                   yylval->string = strdup("pop"); return K
 splice\(                                yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
 shift\(                                 yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
 unshift\(                               yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
+background\(	   			yylval->string = strdup("background"); return KW_IDENTIFIER_OPENPAREN;
 {YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{MS})?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;

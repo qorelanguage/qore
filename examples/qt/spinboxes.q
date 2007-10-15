@@ -1,6 +1,6 @@
 #!/usr/bin/env qore
 
-# $Self is bascially a direct port of the QT widget example
+# this is bascially a direct port of the QT widget example
 # "spinboxes" to Qore using Qore's "qt" module.  
 
 # Note that Qore's "qt" module requires QT 4.3 or above 
@@ -8,7 +8,7 @@
 # use the "qt" module
 %requires qt
 
-# $self is an object-oriented program; the application class is "spinboxes_example"
+# this is an object-oriented program; the application class is "spinboxes_example"
 %exec-class spinboxes_example
 # require all variables to be explicitly declared
 %require-our

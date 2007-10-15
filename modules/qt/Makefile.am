@@ -124,7 +124,11 @@ QT_SOURCES = qt.cc QC_Qobject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QPainterPath.cc \
 	QC_QPaintEngine.cc \
 	QC_QBasicTimer.cc \
-	QC_QTextEdit.cc
+	QC_QTextEdit.cc \
+	QC_QTabBar.cc \
+	QC_QStyleOptionTab.cc \
+	QC_QStyleOptionTabWidgetFrame.cc \
+	QC_QTabWidget.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

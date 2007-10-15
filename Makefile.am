@@ -430,6 +430,10 @@ noinst_HEADERS = \
 	modules/qt/QC_QBasicTimer.h \
 	modules/qt/QC_QTextEdit.h \
 	modules/qt/QoreAbstractQTextEdit.h \
+	modules/qt/QC_QTabBar.h \
+	modules/qt/QC_QStyleOptionTab.h \
+	modules/qt/QC_QStyleOptionTabWidgetFrame.h \
+	modules/qt/QC_QTabWidget.h \
 	command-line.h \
 	include/qore/Qore.h
 

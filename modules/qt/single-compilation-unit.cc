@@ -167,3 +167,7 @@
 #include "QC_QPaintEngine.cc"
 #include "QC_QBasicTimer.cc"
 #include "QC_QTextEdit.cc"
+#include "QC_QTabBar.cc"
+#include "QC_QStyleOptionTab.cc"
+#include "QC_QStyleOptionTabWidgetFrame.cc"
+#include "QC_QTabWidget.cc"

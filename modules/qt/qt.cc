@@ -172,6 +172,10 @@
 #include "QC_QPaintEngine.h"
 #include "QC_QBasicTimer.h"
 #include "QC_QTextEdit.h"
+#include "QC_QTabBar.h"
+#include "QC_QStyleOptionTab.h"
+#include "QC_QStyleOptionTabWidgetFrame.h"
+#include "QC_QTabWidget.h"
 
 #include "qore-qt-events.h"
 
@@ -660,6 +664,70 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
    obj = new Object(QC_QStyle, getProgram());
    obj->setPrivate(CID_QSTYLE, new QoreQtQStyle(obj, qs));
    return new QoreNode(obj);
+}
+
+class QoreNode *return_qstyleoption(const QStyleOption *qso)
+{
+   if (!qso)
+      return 0;
+
+   const QStyleOptionButton *qsob = qstyleoption_cast<const QStyleOptionButton *>(qso);
+   if (qsob)
+      return return_object(QC_QStyleOptionButton, new QoreQStyleOptionButton(*qsob));
+
+   const QStyleOptionComboBox *qsocb = qstyleoption_cast<const QStyleOptionComboBox *>(qso);
+   if (qsocb)
+      return return_object(QC_QStyleOptionComboBox, new QoreQStyleOptionComboBox(*qsocb));
+
+   const QStyleOptionComplex *qsocx = qstyleoption_cast<const QStyleOptionComplex *>(qso);
+   if (qsocx)
+      return return_object(QC_QStyleOptionComplex, new QoreQStyleOptionComplex(*qsocx));
+
+   const QStyleOptionGroupBox *qsogb = qstyleoption_cast<const QStyleOptionGroupBox *>(qso);
+   if (qsogb)
+      return return_object(QC_QStyleOptionGroupBox, new QoreQStyleOptionGroupBox(*qsogb));
+
+   const QStyleOptionMenuItem *qsomi = qstyleoption_cast<const QStyleOptionMenuItem *>(qso);
+   if (qsomi)
+      return return_object(QC_QStyleOptionMenuItem, new QoreQStyleOptionMenuItem(*qsomi));
+
+   const QStyleOptionSizeGrip *qsosg = qstyleoption_cast<const QStyleOptionSizeGrip *>(qso);
+   if (qsosg)
+      return return_object(QC_QStyleOptionSizeGrip, new QoreQStyleOptionSizeGrip(*qsosg));
+
+   const QStyleOptionSlider *qsoslider = qstyleoption_cast<const QStyleOptionSlider *>(qso);
+   if (qsoslider)
+      return return_object(QC_QStyleOptionSlider, new QoreQStyleOptionSlider(*qsoslider));
+
+   const QStyleOptionSpinBox *qsospinbox = qstyleoption_cast<const QStyleOptionSpinBox *>(qso);
+   if (qsospinbox)
+      return return_object(QC_QStyleOptionSpinBox, new QoreQStyleOptionSpinBox(*qsospinbox));
+
+   const QStyleOptionTab *qsotab = qstyleoption_cast<const QStyleOptionTab *>(qso);
+   if (qsotab)
+      return return_object(QC_QStyleOptionTab, new QoreQStyleOptionTab(*qsotab));
+
+   const QStyleOptionTabWidgetFrame *qsotwf = qstyleoption_cast<const QStyleOptionTabWidgetFrame *>(qso);
+   if (qsotwf)
+      return return_object(QC_QStyleOptionTabWidgetFrame, new QoreQStyleOptionTabWidgetFrame(*qsotwf));
+
+   const QStyleOptionTitleBar *qsotitlebar = qstyleoption_cast<const QStyleOptionTitleBar *>(qso);
+   if (qsotitlebar)
+      return return_object(QC_QStyleOptionTitleBar, new QoreQStyleOptionTitleBar(*qsotitlebar));
+
+   const QStyleOptionToolButton *qsotoolbutton = qstyleoption_cast<const QStyleOptionToolButton *>(qso);
+   if (qsotoolbutton)
+      return return_object(QC_QStyleOptionToolButton, new QoreQStyleOptionToolButton(*qsotoolbutton));
+
+   const QStyleOptionViewItem *qsoviewitem = qstyleoption_cast<const QStyleOptionViewItem *>(qso);
+   if (qsoviewitem)
+      return return_object(QC_QStyleOptionViewItem, new QoreQStyleOptionViewItem(*qsoviewitem));
+
+   const QStyleOptionViewItemV2 *qsoviewitemv2 = qstyleoption_cast<const QStyleOptionViewItemV2 *>(qso);
+   if (qsoviewitemv2)
+      return return_object(QC_QStyleOptionViewItemV2, new QoreQStyleOptionViewItemV2(*qsoviewitemv2));
+
+   return return_object(QC_QStyleOption, new QoreQStyleOption(*qso));
 }
 
 class QoreNode *return_qvariant(const QVariant &qv)
@@ -1586,6 +1654,10 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQPaintEngineClass());
    qt->addSystemClass(initQBasicTimerClass());
    qt->addSystemClass(initQTextEditClass(qabstractscrollarea));
+   qt->addSystemClass(initQTabBarClass(qwidget));
+   qt->addSystemClass(initQStyleOptionTabClass(qstyleoption));
+   qt->addSystemClass(initQStyleOptionTabWidgetFrameClass(qstyleoption));
+   qt->addSystemClass(initQTabWidgetClass(qwidget));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");

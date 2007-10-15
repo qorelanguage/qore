@@ -671,6 +671,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %type <node>        scalar
 %type <node>        hash
 %type <node>        list
+%type <String>      string
 %type <hashelement> hash_element
 %type <cmods>       context_mods
 %type <cmod>        context_mod
@@ -698,7 +699,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { if ($$) delete $$; } BINARY DATETIME QUOTED_WORD REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
+%destructor { if ($$) delete $$; } BINARY DATETIME QUOTED_WORD REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes string
 %destructor { if ($$) $$->deref(); } superclass_list inheritance_list
 %destructor { if ($$) $$->deref(NULL); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
@@ -2038,10 +2039,22 @@ exp:    scalar
         | '(' ')' { $$ = new QoreNode(NT_FLIST); $$->val.list = new List(); }
 	;
 
+string:
+	QUOTED_WORD 
+	{
+	   $$ = new QoreString($1);
+	}
+	| QUOTED_WORD string
+	{
+	   $2->concat($1);
+	   free($1);
+	   $$ = $2;	
+	}
+
 scalar:
-	QFLOAT         { $$ = new QoreNode(NT_FLOAT); $$->val.floatval = $1; }
+	QFLOAT        { $$ = new QoreNode(NT_FLOAT); $$->val.floatval = $1; }
 	| INTEGER     { $$ = new QoreNode(NT_INT); $$->val.intval = $1; }
-        | QUOTED_WORD { $$ = new QoreNode($1); }
+        | string      { $$ = new QoreNode($1); }
         | DATETIME    { $$ = new QoreNode($1); }
         | TOK_NULL    { $$ = new QoreNode(NT_NULL); }
         | TOK_NOTHING { $$ = new QoreNode(NT_NOTHING); }

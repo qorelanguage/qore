@@ -37,7 +37,7 @@ const qobject_list =
       "QAbstractButton", "QLineEdit", "QScrollBar", "QMimeData",
       "QApplication", "QStyle", "QAbstractItemModel", "ToolButton", "QMessageBox",
       "QCheckBox", "QRadioButton", "QPushButton", "QMenuBar",
-      "QPrintDialog", "QValidator", "QIODevice"
+      "QPrintDialog", "QValidator", "QIODevice", "QTabBar", "QTabWidget",
  );
 
 const abstract_class_list = 
@@ -94,6 +94,8 @@ const class_list = ( "QRegion",
 		     "QStyleOptionTitleBar",
 		     "QStyleOptionToolButton",
 		     "QStyleOptionButton",
+		     "QStyleOptionTab",
+		     "QStyleOptionTabWidgetFrame",
 		     "QTableWidgetItem",
 		     "QHeaderView",
 		     "QMetaObject",

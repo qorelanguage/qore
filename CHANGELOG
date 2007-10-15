@@ -1,3 +1,8 @@
+2007.10.14: David Nichols
+	* qt: new classes, fixes
+	* updated parser to accept consecutive quoted strings and automatically
+	  concatenate them together instead of throwing a parse exception
+
 2007.10.01: David Nichols
 	* qt: enabled QStyle to be subclassed and extended in Qore
 
