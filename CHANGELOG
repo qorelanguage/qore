@@ -1,3 +1,6 @@
+2007.10.16: David Nichols
+        * fixed a memory bug in XML parsing with multiple out-of-order keys
+
 2007.10.14: David Nichols
 	* qt: new classes, fixes
 	* updated parser to accept consecutive quoted strings and automatically
