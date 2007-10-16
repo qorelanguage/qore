@@ -1,3 +1,7 @@
+2007.10.16: David Nichols
+	* fixed a memory bug in XML parsing with multiple out-of-order keys
+	  (backported from 0.7.0)
+
 2007.09.25: David Nichols
 	* fixed a memory bug in QoreString::parseBase64ToString()
 

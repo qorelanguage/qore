@@ -952,6 +952,26 @@ static inline class QoreString *getXmlString(xmlTextReader *reader, class QoreEn
    return rv;
 }
 
+static bool keys_are_equal(const char *k1, const char *k2, bool &get_value)
+{
+   while (true) {
+      if (!(*k1)) {
+	 if (!(*k2))
+	    return true;
+	 if ((*k2) == '^') {
+	    get_value = true;
+	    return true;
+	 }
+	 return false;
+      }
+      if ((*k1) != (*k2))
+	 break;
+      k1++;
+      k2++;
+   }
+   return false;
+}
+
 static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncoding *data_ccsid, ExceptionSink *xsink)
 {
    tracein("getXMLData()");
@@ -1001,8 +1021,13 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	       {
 		  // see if last key was the same, if so make a list if it's not
 		  const char *lk = n->val.hash->getLastKey();
-		  if (!strncmp(lk, name, strlen(name)))
+		  bool get_value = false;
+		  if (keys_are_equal(name, lk, get_value))
 		  {
+		     // get actual key value if there was a suffix 
+		     if (get_value)
+			v = n->val.hash->getKeyValue(lk);
+
 		     // if it's not a list, then make into a list with current value as first entry
 		     if (v->type != NT_LIST)
 		     {
