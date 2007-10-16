@@ -210,27 +210,29 @@ QoreNode::QoreNode(class QoreString *str)
    type = NT_STRING;
    val.String = str;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+   printd(5, "QoreNode::ref() %08p type=%s (0->1) '%s'\n", this, type->getName(), str->getBuffer());
 #endif
 }
 
+/*
 QoreNode::QoreNode(char *str)
 {
    //fprintf(stderr,"QoreNode::QoreNode(char *= %s)\n", str);
    type = NT_STRING;
    val.String = new QoreString(str);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+   printd(5, "QoreNode::ref() %08p type=%s (0->1) '%s'\n", this, type->getName(), str);
 #endif
 }
+*/
 
 QoreNode::QoreNode(const char *str)
 {
    //fprintf(stderr,"QoreNode::QoreNode(char *= %s)\n", str);
    type = NT_STRING;
-   val.String = new QoreString((char *)str);
+   val.String = new QoreString(str);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+   printd(5, "QoreNode::ref() %08p type=%s (0->1) '%s'\n", this, type->getName(), str);
 #endif
 }
 
@@ -457,16 +459,23 @@ class QoreNode *QoreNode::RefSelf()
    return this;
 }
 
+static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class ExceptionSink *xsink);
+
 void QoreNode::deref(ExceptionSink *xsink)
 {
    //tracein("QoreNode::deref()");
-   assert(references > 0);
 #ifdef DEBUG
 #if TRACK_REFS
    printd(5, "QoreNode::deref() %08p type=%s (%d->%d)\n", this, type->getName(), references, references - 1);
    if (type == NT_STRING) printd(5, "QoreNode::deref() %08p string='%s'\n", this, val.String ? val.String->getBuffer() : "(null)");
+   else if (type == NT_HASH && references <= 51200 && references > 0) { 
+      QoreString tmp; 
+      dni(&tmp, this, 0, xsink);
+      printd(5, "QoreNode::deref() %08p hash=%s\n", this, tmp.getBuffer());
+   }
+
 #endif
-   if (references > 51200)
+   if (references > 51200 || references < 0)
    {
       if (type == NT_INT)
 	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s) (val=%d)\n",
@@ -480,6 +489,7 @@ void QoreNode::deref(ExceptionSink *xsink)
       assert(false);
    }
 #endif
+   assert(references > 0);
 
    if (ROdereference())
    {

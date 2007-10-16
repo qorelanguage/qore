@@ -107,7 +107,7 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(long v);
       DLLEXPORT QoreNode(int64 v);
       DLLEXPORT QoreNode(bool v);
-      DLLEXPORT QoreNode(char *str);
+      //DLLEXPORT QoreNode(char *str);
       DLLEXPORT QoreNode(const char *str);
       DLLEXPORT QoreNode(const std::string &str);
       DLLEXPORT QoreNode(double d);
