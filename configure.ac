@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.6.2.1],
+AC_INIT([qore], [0.6.2.2],
         [David Nichols <nicholsman@gmail.com>],
         [qore])
 AM_INIT_AUTOMAKE

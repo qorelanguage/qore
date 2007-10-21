@@ -2,15 +2,15 @@
 %define with_mysql   1
 %define with_pgsql   1
 %define with_mssql   1
-%define with_oracle  1
-%define with_sybase  1
+%define with_oracle  0
+%define with_sybase  0
 %define with_tibae   0
-%define with_tibrv   1
-%define with_tuxedo  1
+%define with_tibrv   0
+%define with_tuxedo  0
 
 Summary: Qore Programming Language
 Name: qore
-Version: 0.6.2.1
+Version: 0.6.2.2
 Release: 1%{dist}
 License: LGPL
 Group: Development/Languages
