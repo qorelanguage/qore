@@ -1,4 +1,7 @@
-RELEASE NOTES for qore v0.6.2.1
+RELEASE NOTES for qore v0.6.2.2 and 0.6.2.1
+
+0.6.2.2 contains one additional bugfix from 0.6.2.1:
+	* fixed an XML parsing bug with multiple out-of-order keys that could cause a crash
 
 0.6.2.1 is a bug-fix release from 0.6.2.  The following bugs were fixed in 0.6.2.1:
 	* fixed a bug where null values could be inserted into the parse tree with certain invalid expressions (causing a subsequent segfault)
