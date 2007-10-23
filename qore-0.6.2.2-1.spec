@@ -19,6 +19,7 @@ Source: http://prdownloads.sourceforge.net/qore/qore-%{version}-src.tar.gz
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: /usr/bin/env
+BuildRequires: gcc-c++
 BuildRequires: flex >= 2.5.31
 BuildRequires: openssl-devel
 BuildRequires: pcre-devel
@@ -117,6 +118,7 @@ prodedure and function execution, etc.
 Summary: MySQL DBI module for Qore
 Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
+Requires: mysql-libs
 
 %description mysql-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -144,6 +146,7 @@ stored procedure execution.
 Summary: PostgreSQL DBI module for Qore
 Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
+Requires: postgresql-libs
 
 %description pgsql-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -198,6 +201,7 @@ prodedure and function execution, etc.
 Summary: FreeTDS-based MS-SQL and Sybase DBI module for Qore
 Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
+Requires: freetds
 
 %description mssql-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
