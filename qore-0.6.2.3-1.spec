@@ -10,7 +10,7 @@
 
 Summary: Qore Programming Language
 Name: qore
-Version: 0.6.2.2
+Version: 0.6.2.3
 Release: 1%{dist}
 License: LGPL
 Group: Development/Languages
@@ -337,13 +337,16 @@ rm -rf $RPM_BUILD_ROOT
 %doc COPYING README RELEASE-NOTES CHANGELOG AUTHORS WHATISQORE docs/roadmap.html docs/qore-style.css docs/img docs/qore.html examples/ test/
 
 /usr/bin/qore
-%{_libdir}/libqore.so.3.0.2
+%{_libdir}/libqore.so.3.0.3
 %{_libdir}/libqore.so.3
 %{_libdir}/libqore.so
 %{_libdir}/libqore.la
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Sun Oct 28 2007 David Nichols <david_nichols@users.sourceforge.net>
+- updated version to 0.6.2.3 and library version to 3.0.3
+
 * Sun Oct 21 2007 David Nichols <david_nichols@users.sourceforge.net>
 - updated version to 0.6.2.2 and library version to 3.0.2
 

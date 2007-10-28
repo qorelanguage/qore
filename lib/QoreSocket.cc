@@ -1283,13 +1283,15 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
       hdr.sprintf("Content-Length: %d\r\n", size);
 
    hdr.concat("\r\n");
+   //printf("hdr len: %d data: %s\n", hdr.strlen(), hdr.getBuffer());
    int rc;
    if ((rc = send(hdr.getBuffer(), hdr.strlen())))
       return rc;
 
-   if (size && data)
+   if (size && data) {
+      //printf("data len: %d data: %s\n", size, data);
       return send((char *)data, size);
-
+   }
    return 0;
 }
 
