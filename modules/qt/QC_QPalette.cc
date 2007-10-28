@@ -551,7 +551,7 @@ static QoreNode *QPALETTE_windowText(Object *self, QoreQPalette *qp, QoreNode *p
    return new QoreNode(o_qb);
 }
 
-class QoreClass *initQPaletteClass()
+static class QoreClass *initQPaletteClass()
 {
    tracein("initQPaletteClass()");
    
@@ -592,4 +592,45 @@ class QoreClass *initQPaletteClass()
 
    traceout("initQPaletteClass()");
    return QC_QPalette;
+}
+
+Namespace *initQPaletteNS()
+{   
+   Namespace *qpalette = new Namespace("QPalette");
+
+   qpalette->addSystemClass(initQPaletteClass());
+
+   // ColorGroup enum
+   qpalette->addConstant("Active",                   new QoreNode((int64)QPalette::Active));
+   qpalette->addConstant("Disabled",                 new QoreNode((int64)QPalette::Disabled));
+   qpalette->addConstant("Inactive",                 new QoreNode((int64)QPalette::Inactive));
+   qpalette->addConstant("NColorGroups",             new QoreNode((int64)QPalette::NColorGroups));
+   qpalette->addConstant("Current",                  new QoreNode((int64)QPalette::Current));
+   qpalette->addConstant("All",                      new QoreNode((int64)QPalette::All));
+   qpalette->addConstant("Normal",                   new QoreNode((int64)QPalette::Normal));
+
+   // ColorRole enum
+   qpalette->addConstant("WindowText",               new QoreNode((int64)QPalette::WindowText));
+   qpalette->addConstant("Button",                   new QoreNode((int64)QPalette::Button));
+   qpalette->addConstant("Light",                    new QoreNode((int64)QPalette::Light));
+   qpalette->addConstant("Midlight",                 new QoreNode((int64)QPalette::Midlight));
+   qpalette->addConstant("Dark",                     new QoreNode((int64)QPalette::Dark));
+   qpalette->addConstant("Mid",                      new QoreNode((int64)QPalette::Mid));
+   qpalette->addConstant("Text",                     new QoreNode((int64)QPalette::Text));
+   qpalette->addConstant("BrightText",               new QoreNode((int64)QPalette::BrightText));
+   qpalette->addConstant("ButtonText",               new QoreNode((int64)QPalette::ButtonText));
+   qpalette->addConstant("Base",                     new QoreNode((int64)QPalette::Base));
+   qpalette->addConstant("Window",                   new QoreNode((int64)QPalette::Window));
+   qpalette->addConstant("Shadow",                   new QoreNode((int64)QPalette::Shadow));
+   qpalette->addConstant("Highlight",                new QoreNode((int64)QPalette::Highlight));
+   qpalette->addConstant("HighlightedText",          new QoreNode((int64)QPalette::HighlightedText));
+   qpalette->addConstant("Link",                     new QoreNode((int64)QPalette::Link));
+   qpalette->addConstant("LinkVisited",              new QoreNode((int64)QPalette::LinkVisited));
+   qpalette->addConstant("AlternateBase",            new QoreNode((int64)QPalette::AlternateBase));
+   qpalette->addConstant("NoRole",                   new QoreNode((int64)QPalette::NoRole));
+   qpalette->addConstant("NColorRoles",              new QoreNode((int64)QPalette::NColorRoles));
+   qpalette->addConstant("Foreground",               new QoreNode((int64)QPalette::Foreground));
+   qpalette->addConstant("Background",               new QoreNode((int64)QPalette::Background));
+
+   return qpalette;
 }

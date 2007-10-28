@@ -55,13 +55,26 @@ The "oracle" DBI driver has been well tested and is in heavy production use.
 *) all NUMBER fields are loaded as strings in selects in order to not lose any data.  Qore would need an arbitrary-precision Number type in order handle this case better.
 *) it's possible to bind and retrieve *LOB values
 
-MYSQL
------
-The "mysql" DBI driver has not been as extensively tested as the Oracle driver, but now supports all features of the Oracle driver except stored procedure execution.
+MYSQL, PGSQL
+------------
+The "mysql" and "pgsql" DBI drivers have been extensively tested, and support all DBI features including stored procedure execution
 *) transaction management is supported
 *) automatic transparent character set conversion is supported when necessary
 *) threading support
 *) stored procedure support with direct binding and retrieving values
+
+SYBASE, MSSQL
+-------------
+The "sybase" and "mssql" DBI drivers are built from the same source code.  They supports all DBI features including stored procedure execution
+*) transaction management is supported
+*) automatic transparent character set conversion is supported when necessary
+*) threading support
+*) stored procedure support with direct binding and retrieving values
+*) these drivers also support executing multiple queries within a single command and returning all results in a special format, see the Qore Programmer's Reference Manual for more information
+
+QT
+--
+The QT module enables Qore prorams to implement graphical user interfaces.  It requires QT 4.3 or better to build and run.
 
 NCURSES
 -------
@@ -109,6 +122,23 @@ However not all code paths are as well tested as others; there are certainly unk
 ---------------------
 RELEASE NOTES HISTORY
 ---------------------
+
+**********************************************
+RELEASE SUMMARY for qore v0.6.2.1 and v0.6.2.2
+**********************************************
+
+0.6.2.2 contains one additional bugfix from 0.6.2.1:
+        * fixed an XML parsing bug with multiple out-of-order keys that could cause a crash
+
+0.6.2.1 is a bug-fix release from 0.6.2.  The following bugs were fixed in 0.6.2.1:
+        * fixed a bug where null values could be inserted into the parse tree with certain invalid expressions (causing a subsequent segfault)
+        * fixed a bug in HTTPClient::head() where the message body was erroneously attempted to be read
+        * fixed a thread resource tracking bug in the DatasourcePool class that could cause a crash
+        * fixed a bug with implicit conversions from Qore type boolean to Qore type string (caused memory corruption)
+        * fixed a bug in QoreString::parseBase64ToString() that set an invalid internal string length marker
+        * added a "decode_url()" function to replace percent encodings in URL strings with the characters encoded
+        * updated HTTPClient to automatically encode space characters in the path as %20
+
 
 *******************************
 RELEASE SUMMARY for qore v0.6.2

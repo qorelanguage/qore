@@ -288,6 +288,16 @@ static QoreNode *QLAYOUT_update(Object *self, QoreAbstractQLayout *ql, QoreNode 
    return 0;
 }
 
+//void setMargin (int);
+static QoreNode *QLAYOUT_setMargin(Object *self, QoreAbstractQLayout *ql, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int margin = p ? p->getAsInt() : 0;
+   ql->getQLayout()->setMargin(margin);
+
+   return 0;
+}
+
 class QoreClass *initQLayoutClass(class QoreClass *qobject)
 {
    tracein("initQLayoutClass()");
@@ -317,6 +327,7 @@ class QoreClass *initQLayoutClass(class QoreClass *qobject)
    QC_QLayout->addMethod("setAlignment",                (q_method_t)QLAYOUT_setAlignment);
    QC_QLayout->addMethod("setContentsMargins",          (q_method_t)QLAYOUT_setContentsMargins);
    QC_QLayout->addMethod("setEnabled",                  (q_method_t)QLAYOUT_setEnabled);
+   QC_QLayout->addMethod("setMargin",                   (q_method_t)QLAYOUT_setMargin);
    QC_QLayout->addMethod("setMenuBar",                  (q_method_t)QLAYOUT_setMenuBar);
    QC_QLayout->addMethod("setSizeConstraint",           (q_method_t)QLAYOUT_setSizeConstraint);
    QC_QLayout->addMethod("setSpacing",                  (q_method_t)QLAYOUT_setSpacing);

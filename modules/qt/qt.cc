@@ -133,11 +133,6 @@
 #include "QC_QStyleOptionSpinBox.h"
 #include "QC_QStyleOptionTitleBar.h"
 #include "QC_QStyleOptionToolButton.h"
-#include "QC_QMotifStyle.h"
-#include "QC_QCDEStyle.h"
-#include "QC_QWindowsStyle.h"
-#include "QC_QCleanlooksStyle.h"
-#include "QC_QPlastiqueStyle.h"
 #include "QC_QSpinBox.h"
 #include "QC_QAbstractItemView.h"
 #include "QC_QTableView.h"
@@ -181,14 +176,6 @@
 
 #include "QT_BrushStyle.h"
 #include "QT_PenStyle.h"
-
-#ifdef DARWIN
-#include "QC_QMacStyle.h"
-#endif
-
-#ifdef WINDOWS
-#include "QC_QWindowsXPStyle.h"
-#endif
 
 #include "qore-qt.h"
 
@@ -1232,7 +1219,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQRectFClass());
    qt->addSystemClass(initQBrushClass());
    qt->addSystemClass(initQColorClass());
-   qt->addSystemClass(initQPaletteClass());
    qt->addSystemClass(initQPointClass());
    qt->addSystemClass(initQSizeClass());
 
@@ -1381,41 +1367,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qicon->addSystemClass(initQIconClass());
    qt->addInitialNamespace(qicon);
 
-   Namespace *qpalette = new Namespace("QPalette");
-
-   // ColorGroup enum
-   qpalette->addConstant("Active",                   new QoreNode((int64)QPalette::Active));
-   qpalette->addConstant("Disabled",                 new QoreNode((int64)QPalette::Disabled));
-   qpalette->addConstant("Inactive",                 new QoreNode((int64)QPalette::Inactive));
-   qpalette->addConstant("NColorGroups",             new QoreNode((int64)QPalette::NColorGroups));
-   qpalette->addConstant("Current",                  new QoreNode((int64)QPalette::Current));
-   qpalette->addConstant("All",                      new QoreNode((int64)QPalette::All));
-   qpalette->addConstant("Normal",                   new QoreNode((int64)QPalette::Normal));
-
-   // ColorRole enum
-   qpalette->addConstant("WindowText",               new QoreNode((int64)QPalette::WindowText));
-   qpalette->addConstant("Button",                   new QoreNode((int64)QPalette::Button));
-   qpalette->addConstant("Light",                    new QoreNode((int64)QPalette::Light));
-   qpalette->addConstant("Midlight",                 new QoreNode((int64)QPalette::Midlight));
-   qpalette->addConstant("Dark",                     new QoreNode((int64)QPalette::Dark));
-   qpalette->addConstant("Mid",                      new QoreNode((int64)QPalette::Mid));
-   qpalette->addConstant("Text",                     new QoreNode((int64)QPalette::Text));
-   qpalette->addConstant("BrightText",               new QoreNode((int64)QPalette::BrightText));
-   qpalette->addConstant("ButtonText",               new QoreNode((int64)QPalette::ButtonText));
-   qpalette->addConstant("Base",                     new QoreNode((int64)QPalette::Base));
-   qpalette->addConstant("Window",                   new QoreNode((int64)QPalette::Window));
-   qpalette->addConstant("Shadow",                   new QoreNode((int64)QPalette::Shadow));
-   qpalette->addConstant("Highlight",                new QoreNode((int64)QPalette::Highlight));
-   qpalette->addConstant("HighlightedText",          new QoreNode((int64)QPalette::HighlightedText));
-   qpalette->addConstant("Link",                     new QoreNode((int64)QPalette::Link));
-   qpalette->addConstant("LinkVisited",              new QoreNode((int64)QPalette::LinkVisited));
-   qpalette->addConstant("AlternateBase",            new QoreNode((int64)QPalette::AlternateBase));
-   qpalette->addConstant("NoRole",                   new QoreNode((int64)QPalette::NoRole));
-   qpalette->addConstant("NColorRoles",              new QoreNode((int64)QPalette::NColorRoles));
-   qpalette->addConstant("Foreground",               new QoreNode((int64)QPalette::Foreground));
-   qpalette->addConstant("Background",               new QoreNode((int64)QPalette::Background));
-
-   qt->addInitialNamespace(qpalette);
+   qt->addInitialNamespace(initQPaletteNS());
 
    Namespace *qpainter_ns = new Namespace("QPainter");
    
@@ -1458,114 +1410,21 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    QoreClass *qabstractbutton, *qtextformat, *qtextframeformat, *qtextcharformat,
       *qstyleoption, *qstyleoptionviewitem, *qabstractitemdelegate,
       *qabstractspinbox, *qdatetimeedit, *qabstractscrollarea, *qdropevent, 
-      *qdragmoveevent, *qcombobox, *qstyleoptioncomplex, *qstyle, *qmotifstyle,
-      *qwindowsstyle, *qabstractitemview, *qtableview, *qdialog, *qvalidator;
+      *qdragmoveevent, *qcombobox, *qstyleoptioncomplex, *qabstractitemview, 
+      *qtableview, *qdialog, *qvalidator;
+ 
+   qt->addInitialNamespace(initQStyleNS(qobject));
 
-   Namespace *qstyle_ns = new Namespace("QStyle");
+   qt->addSystemClass((qstyleoptioncomplex = initQStyleOptionComplexClass(qstyleoption)));
+   qt->addSystemClass(initQStyleOptionComboBoxClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionGroupBoxClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionSizeGripClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionSliderClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionSpinBoxClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionTitleBarClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionToolButtonClass(qstyleoptioncomplex));
 
-   qstyle_ns->addSystemClass((qstyle = initQStyleClass(qobject)));
-   qstyle_ns->addSystemClass((qmotifstyle = initQMotifStyleClass(qstyle)));
-   qstyle_ns->addSystemClass(initQCDEStyleClass(qmotifstyle));
-   qstyle_ns->addSystemClass((qwindowsstyle = initQWindowsStyleClass(qstyle)));
-   qstyle_ns->addSystemClass(initQCleanlooksStyleClass(qwindowsstyle));
-   qstyle_ns->addSystemClass(initQPlastiqueStyleClass(qwindowsstyle));
-#ifdef DARWIN
-   qstyle_ns->addSystemClass(initQMacStyleClass(qwindowsstyle));
-#endif
-#ifdef WINDOWS
-   qstyle_ns->addSystemClass(initQWindowsXPStyleClass(qwindowsstyle));
-#endif
-   qstyle_ns->addConstant("PM_ButtonMargin",          new QoreNode((int64)QStyle::PM_ButtonMargin));
-   qstyle_ns->addConstant("PM_ButtonDefaultIndicator", new QoreNode((int64)QStyle::PM_ButtonDefaultIndicator));
-   qstyle_ns->addConstant("PM_MenuButtonIndicator",   new QoreNode((int64)QStyle::PM_MenuButtonIndicator));
-   qstyle_ns->addConstant("PM_ButtonShiftHorizontal", new QoreNode((int64)QStyle::PM_ButtonShiftHorizontal));
-   qstyle_ns->addConstant("PM_ButtonShiftVertical",   new QoreNode((int64)QStyle::PM_ButtonShiftVertical));
-   qstyle_ns->addConstant("PM_DefaultFrameWidth",     new QoreNode((int64)QStyle::PM_DefaultFrameWidth));
-   qstyle_ns->addConstant("PM_SpinBoxFrameWidth",     new QoreNode((int64)QStyle::PM_SpinBoxFrameWidth));
-   qstyle_ns->addConstant("PM_ComboBoxFrameWidth",    new QoreNode((int64)QStyle::PM_ComboBoxFrameWidth));
-   qstyle_ns->addConstant("PM_MaximumDragDistance",   new QoreNode((int64)QStyle::PM_MaximumDragDistance));
-   qstyle_ns->addConstant("PM_ScrollBarExtent",       new QoreNode((int64)QStyle::PM_ScrollBarExtent));
-   qstyle_ns->addConstant("PM_ScrollBarSliderMin",    new QoreNode((int64)QStyle::PM_ScrollBarSliderMin));
-   qstyle_ns->addConstant("PM_SliderThickness",       new QoreNode((int64)QStyle::PM_SliderThickness));
-   qstyle_ns->addConstant("PM_SliderControlThickness", new QoreNode((int64)QStyle::PM_SliderControlThickness));
-   qstyle_ns->addConstant("PM_SliderLength",          new QoreNode((int64)QStyle::PM_SliderLength));
-   qstyle_ns->addConstant("PM_SliderTickmarkOffset",  new QoreNode((int64)QStyle::PM_SliderTickmarkOffset));
-   qstyle_ns->addConstant("PM_SliderSpaceAvailable",  new QoreNode((int64)QStyle::PM_SliderSpaceAvailable));
-   qstyle_ns->addConstant("PM_DockWidgetSeparatorExtent", new QoreNode((int64)QStyle::PM_DockWidgetSeparatorExtent));
-   qstyle_ns->addConstant("PM_DockWidgetHandleExtent", new QoreNode((int64)QStyle::PM_DockWidgetHandleExtent));
-   qstyle_ns->addConstant("PM_DockWidgetFrameWidth",  new QoreNode((int64)QStyle::PM_DockWidgetFrameWidth));
-   qstyle_ns->addConstant("PM_TabBarTabOverlap",      new QoreNode((int64)QStyle::PM_TabBarTabOverlap));
-   qstyle_ns->addConstant("PM_TabBarTabHSpace",       new QoreNode((int64)QStyle::PM_TabBarTabHSpace));
-   qstyle_ns->addConstant("PM_TabBarTabVSpace",       new QoreNode((int64)QStyle::PM_TabBarTabVSpace));
-   qstyle_ns->addConstant("PM_TabBarBaseHeight",      new QoreNode((int64)QStyle::PM_TabBarBaseHeight));
-   qstyle_ns->addConstant("PM_TabBarBaseOverlap",     new QoreNode((int64)QStyle::PM_TabBarBaseOverlap));
-   qstyle_ns->addConstant("PM_ProgressBarChunkWidth", new QoreNode((int64)QStyle::PM_ProgressBarChunkWidth));
-   qstyle_ns->addConstant("PM_SplitterWidth",         new QoreNode((int64)QStyle::PM_SplitterWidth));
-   qstyle_ns->addConstant("PM_TitleBarHeight",        new QoreNode((int64)QStyle::PM_TitleBarHeight));
-   qstyle_ns->addConstant("PM_MenuScrollerHeight",    new QoreNode((int64)QStyle::PM_MenuScrollerHeight));
-   qstyle_ns->addConstant("PM_MenuHMargin",           new QoreNode((int64)QStyle::PM_MenuHMargin));
-   qstyle_ns->addConstant("PM_MenuVMargin",           new QoreNode((int64)QStyle::PM_MenuVMargin));
-   qstyle_ns->addConstant("PM_MenuPanelWidth",        new QoreNode((int64)QStyle::PM_MenuPanelWidth));
-   qstyle_ns->addConstant("PM_MenuTearoffHeight",     new QoreNode((int64)QStyle::PM_MenuTearoffHeight));
-   qstyle_ns->addConstant("PM_MenuDesktopFrameWidth", new QoreNode((int64)QStyle::PM_MenuDesktopFrameWidth));
-   qstyle_ns->addConstant("PM_MenuBarPanelWidth",     new QoreNode((int64)QStyle::PM_MenuBarPanelWidth));
-   qstyle_ns->addConstant("PM_MenuBarItemSpacing",    new QoreNode((int64)QStyle::PM_MenuBarItemSpacing));
-   qstyle_ns->addConstant("PM_MenuBarVMargin",        new QoreNode((int64)QStyle::PM_MenuBarVMargin));
-   qstyle_ns->addConstant("PM_MenuBarHMargin",        new QoreNode((int64)QStyle::PM_MenuBarHMargin));
-   qstyle_ns->addConstant("PM_IndicatorWidth",        new QoreNode((int64)QStyle::PM_IndicatorWidth));
-   qstyle_ns->addConstant("PM_IndicatorHeight",       new QoreNode((int64)QStyle::PM_IndicatorHeight));
-   qstyle_ns->addConstant("PM_ExclusiveIndicatorWidth", new QoreNode((int64)QStyle::PM_ExclusiveIndicatorWidth));
-   qstyle_ns->addConstant("PM_ExclusiveIndicatorHeight", new QoreNode((int64)QStyle::PM_ExclusiveIndicatorHeight));
-   qstyle_ns->addConstant("PM_CheckListButtonSize",   new QoreNode((int64)QStyle::PM_CheckListButtonSize));
-   qstyle_ns->addConstant("PM_CheckListControllerSize", new QoreNode((int64)QStyle::PM_CheckListControllerSize));
-   qstyle_ns->addConstant("PM_DialogButtonsSeparator", new QoreNode((int64)QStyle::PM_DialogButtonsSeparator));
-   qstyle_ns->addConstant("PM_DialogButtonsButtonWidth", new QoreNode((int64)QStyle::PM_DialogButtonsButtonWidth));
-   qstyle_ns->addConstant("PM_DialogButtonsButtonHeight", new QoreNode((int64)QStyle::PM_DialogButtonsButtonHeight));
-   qstyle_ns->addConstant("PM_MdiSubWindowFrameWidth", new QoreNode((int64)QStyle::PM_MdiSubWindowFrameWidth));
-   qstyle_ns->addConstant("PM_MDIFrameWidth",         new QoreNode((int64)QStyle::PM_MDIFrameWidth));
-   qstyle_ns->addConstant("PM_MdiSubWindowMinimizedWidth", new QoreNode((int64)QStyle::PM_MdiSubWindowMinimizedWidth));
-   qstyle_ns->addConstant("PM_MDIMinimizedWidth",     new QoreNode((int64)QStyle::PM_MDIMinimizedWidth));
-   qstyle_ns->addConstant("PM_HeaderMargin",          new QoreNode((int64)QStyle::PM_HeaderMargin));
-   qstyle_ns->addConstant("PM_HeaderMarkSize",        new QoreNode((int64)QStyle::PM_HeaderMarkSize));
-   qstyle_ns->addConstant("PM_HeaderGripMargin",      new QoreNode((int64)QStyle::PM_HeaderGripMargin));
-   qstyle_ns->addConstant("PM_TabBarTabShiftHorizontal", new QoreNode((int64)QStyle::PM_TabBarTabShiftHorizontal));
-   qstyle_ns->addConstant("PM_TabBarTabShiftVertical", new QoreNode((int64)QStyle::PM_TabBarTabShiftVertical));
-   qstyle_ns->addConstant("PM_TabBarScrollButtonWidth", new QoreNode((int64)QStyle::PM_TabBarScrollButtonWidth));
-   qstyle_ns->addConstant("PM_ToolBarFrameWidth",     new QoreNode((int64)QStyle::PM_ToolBarFrameWidth));
-   qstyle_ns->addConstant("PM_ToolBarHandleExtent",   new QoreNode((int64)QStyle::PM_ToolBarHandleExtent));
-   qstyle_ns->addConstant("PM_ToolBarItemSpacing",    new QoreNode((int64)QStyle::PM_ToolBarItemSpacing));
-   qstyle_ns->addConstant("PM_ToolBarItemMargin",     new QoreNode((int64)QStyle::PM_ToolBarItemMargin));
-   qstyle_ns->addConstant("PM_ToolBarSeparatorExtent", new QoreNode((int64)QStyle::PM_ToolBarSeparatorExtent));
-   qstyle_ns->addConstant("PM_ToolBarExtensionExtent", new QoreNode((int64)QStyle::PM_ToolBarExtensionExtent));
-   qstyle_ns->addConstant("PM_SpinBoxSliderHeight",   new QoreNode((int64)QStyle::PM_SpinBoxSliderHeight));
-   qstyle_ns->addConstant("PM_DefaultTopLevelMargin", new QoreNode((int64)QStyle::PM_DefaultTopLevelMargin));
-   qstyle_ns->addConstant("PM_DefaultChildMargin",    new QoreNode((int64)QStyle::PM_DefaultChildMargin));
-   qstyle_ns->addConstant("PM_DefaultLayoutSpacing",  new QoreNode((int64)QStyle::PM_DefaultLayoutSpacing));
-   qstyle_ns->addConstant("PM_ToolBarIconSize",       new QoreNode((int64)QStyle::PM_ToolBarIconSize));
-   qstyle_ns->addConstant("PM_ListViewIconSize",      new QoreNode((int64)QStyle::PM_ListViewIconSize));
-   qstyle_ns->addConstant("PM_IconViewIconSize",      new QoreNode((int64)QStyle::PM_IconViewIconSize));
-   qstyle_ns->addConstant("PM_SmallIconSize",         new QoreNode((int64)QStyle::PM_SmallIconSize));
-   qstyle_ns->addConstant("PM_LargeIconSize",         new QoreNode((int64)QStyle::PM_LargeIconSize));
-   qstyle_ns->addConstant("PM_FocusFrameVMargin",     new QoreNode((int64)QStyle::PM_FocusFrameVMargin));
-   qstyle_ns->addConstant("PM_FocusFrameHMargin",     new QoreNode((int64)QStyle::PM_FocusFrameHMargin));
-   qstyle_ns->addConstant("PM_ToolTipLabelFrameWidth", new QoreNode((int64)QStyle::PM_ToolTipLabelFrameWidth));
-   qstyle_ns->addConstant("PM_CheckBoxLabelSpacing",  new QoreNode((int64)QStyle::PM_CheckBoxLabelSpacing));
-   qstyle_ns->addConstant("PM_TabBarIconSize",        new QoreNode((int64)QStyle::PM_TabBarIconSize));
-   qstyle_ns->addConstant("PM_SizeGripSize",          new QoreNode((int64)QStyle::PM_SizeGripSize));
-   qstyle_ns->addConstant("PM_DockWidgetTitleMargin", new QoreNode((int64)QStyle::PM_DockWidgetTitleMargin));
-   qstyle_ns->addConstant("PM_MessageBoxIconSize",    new QoreNode((int64)QStyle::PM_MessageBoxIconSize));
-   qstyle_ns->addConstant("PM_ButtonIconSize",        new QoreNode((int64)QStyle::PM_ButtonIconSize));
-   qstyle_ns->addConstant("PM_DockWidgetTitleBarButtonMargin", new QoreNode((int64)QStyle::PM_DockWidgetTitleBarButtonMargin));
-   qstyle_ns->addConstant("PM_RadioButtonLabelSpacing", new QoreNode((int64)QStyle::PM_RadioButtonLabelSpacing));
-   qstyle_ns->addConstant("PM_LayoutLeftMargin",      new QoreNode((int64)QStyle::PM_LayoutLeftMargin));
-   qstyle_ns->addConstant("PM_LayoutTopMargin",       new QoreNode((int64)QStyle::PM_LayoutTopMargin));
-   qstyle_ns->addConstant("PM_LayoutRightMargin",     new QoreNode((int64)QStyle::PM_LayoutRightMargin));
-   qstyle_ns->addConstant("PM_LayoutBottomMargin",    new QoreNode((int64)QStyle::PM_LayoutBottomMargin));
-   qstyle_ns->addConstant("PM_LayoutHorizontalSpacing", new QoreNode((int64)QStyle::PM_LayoutHorizontalSpacing));
-   qstyle_ns->addConstant("PM_LayoutVerticalSpacing", new QoreNode((int64)QStyle::PM_LayoutVerticalSpacing));
-   qstyle_ns->addConstant("PM_CustomBase",            new QoreNode((int64)QStyle::PM_CustomBase));
-
-   qt->addInitialNamespace(qstyle_ns);
+   qt->addInitialNamespace(initQStyleOptionButtonNS(qstyleoption));
 
    // automatically added classes
    qt->addSystemClass(initQPointFClass());
@@ -1623,18 +1482,9 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQFontComboBoxClass(qcombobox));
    qt->addSystemClass(initQMainWindowClass(qwidget));
    qt->addSystemClass(initQRadioButtonClass(qabstractbutton));
-   qt->addSystemClass((qstyleoptioncomplex = initQStyleOptionComplexClass(qstyleoption)));
-   qt->addSystemClass(initQStyleOptionComboBoxClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionGroupBoxClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionSizeGripClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionSliderClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionSpinBoxClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionTitleBarClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionToolButtonClass(qstyleoptioncomplex));
    qt->addSystemClass(initQSpinBoxClass(qabstractspinbox));
    qt->addSystemClass(initQTableWidgetItemClass());
    qt->addSystemClass(initQStyleOptionMenuItemClass(qstyleoption));
-   qt->addSystemClass(initQStyleOptionButtonClass(qstyleoption));
    qt->addSystemClass(initQDirClass());
    qt->addSystemClass(initQMetaObjectClass());
    qt->addSystemClass(initQMenuBarClass(qwidget));
@@ -3256,6 +3106,16 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("ClickFocus",               new QoreNode((int64)Qt::ClickFocus));
    qt->addConstant("StrongFocus",              new QoreNode((int64)Qt::StrongFocus));
    qt->addConstant("WheelFocus",               new QoreNode((int64)Qt::WheelFocus));
+   
+   // ClipOperation enum
+   qt->addConstant("NoClip",                   new QoreNode((int64)Qt::NoClip));
+   qt->addConstant("ReplaceClip",              new QoreNode((int64)Qt::ReplaceClip));
+   qt->addConstant("IntersectClip",            new QoreNode((int64)Qt::IntersectClip));
+   qt->addConstant("UniteClip",                new QoreNode((int64)Qt::UniteClip));
+
+   // LayoutDirection enum
+   qt->addConstant("LeftToRight",              new QoreNode((int64)Qt::LeftToRight));
+   qt->addConstant("RightToLeft",              new QoreNode((int64)Qt::RightToLeft));
 
    qns->addInitialNamespace(qt);
 }

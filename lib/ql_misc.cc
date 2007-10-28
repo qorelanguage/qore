@@ -746,7 +746,7 @@ static class QoreNode *f_compress(class QoreNode *params, ExceptionSink *xsink)
    if (p0->type == NT_STRING)
    {
       ptr = p0->val.String->getBuffer();
-      len = p0->val.String->strlen() + 1;
+      len = p0->val.String->strlen();
    }
    else if (p0->type == NT_BINARY)
    {
@@ -812,7 +812,7 @@ static class QoreNode *f_gzip(class QoreNode *params, ExceptionSink *xsink)
    if (p0->type == NT_STRING)
    {
       ptr = p0->val.String->getBuffer();
-      len = p0->val.String->strlen() + 1;
+      len = p0->val.String->strlen();
    }
    else if (p0->type == NT_BINARY)
    {

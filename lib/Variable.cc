@@ -54,13 +54,13 @@ void Var::del(class ExceptionSink *xsink)
 {
    if (type == GV_IMPORT)
    {
-      printd(5, "Var::~Var() refptr=%08p\n", v.ivar.refptr);
+      printd(4, "Var::~Var() refptr=%08p\n", v.ivar.refptr);
       v.ivar.refptr->deref(xsink);
       // clear type so no further deleting will be done
    }
    else
    {
-      printd(5, "Var::~Var() name=%s value=%08p type=%s refs=%d\n", v.val.name,
+      printd(4, "Var::~Var() name=%s value=%08p type=%s refs=%d\n", v.val.name,
 	     v.val.value, v.val.value ? v.val.value->type->getName() : "null", 
 	     v.val.value ? v.val.value->reference_count() : 0);
  

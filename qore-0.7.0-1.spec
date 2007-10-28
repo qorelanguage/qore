@@ -1,3 +1,4 @@
+%define with_ncurses 1
 %define with_mysql   1
 %define with_pgsql   1
 %define with_mssql   1
@@ -19,11 +20,11 @@ Source: http://prdownloads.sourceforge.net/qore/qore-%{version}-src.tar.gz
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: /usr/bin/env
+BuildRequires: gcc-c++
 BuildRequires: flex >= 2.5.31
 BuildRequires: openssl-devel
 BuildRequires: pcre-devel
 BuildRequires: libxml2-devel
-BuildRequires: ncurses-devel
 %if 0%{?with_mysql}
 BuildRequires: mysql-devel
 %endif
@@ -55,6 +56,33 @@ ldconfig %{_libdir}
 
 %postun
 ldconfig %{_libdir}
+
+%if 0%{?with_ncurses}
+%package ncurses-module
+Summary: ncurses module for Qore
+Group: Development/Languages
+Requires: %{name} = %{version}-%{release}
+
+%description ncurses-module
+Qore is a modular, multithreaded, weakly-typed, object-oriented programming
+language suitable for embedding application logic, application scripting,
+interface development, and even complex multi-threaded, network-aware object-
+oriented application development. Qore features integrated XML and JSON
+support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
+integration, database-independent programming support, exception-handling and
+exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
+in date arithmetic, character encoding (including proper UTF-8) support, and
+much more.
+
+ncurses module for the Qore Programming Language.  The ncurses module allows
+Qore programs to implement complex character-based applications.  Note that the
+use of the ncurses module with Qore threading is still experimental.
+
+
+%files ncurses-module
+%defattr(-,root,root,-)
+%{_libdir}/qore-%{version}/ncurses.qmod
+%endif
 
 %if 0%{?with_oracle}
 %package oracle-module
@@ -88,6 +116,7 @@ prodedure and function execution, etc.
 Summary: MySQL DBI module for Qore
 Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
+Requires: mysql-libs
 
 %description mysql-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -115,6 +144,7 @@ stored procedure execution.
 Summary: PostgreSQL DBI module for Qore
 Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
+Requires: postgresql-libs
 
 %description pgsql-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -169,6 +199,7 @@ prodedure and function execution, etc.
 Summary: FreeTDS-based MS-SQL and Sybase DBI module for Qore
 Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
+Requires: freetds
 
 %description mssql-module
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -308,10 +339,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libqore.so.3
 %{_libdir}/libqore.so
 %{_libdir}/libqore.la
-%{_libdir}/qore-%{version}/ncurses.qmod
 /usr/share/man/man1/qore.1.gz
 
 %changelog
+* Tue Oct 22 2007 David Nichols <david_nichols@users.sourceforge.net>
+- updated spec file with corrections from suse open build service
+
 * Tue Jul 17 2007 David Nichols <david_nichols@users.sourceforge.net>
 - updated library version to 3.1.0
 

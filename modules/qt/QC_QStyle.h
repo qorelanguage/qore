@@ -28,11 +28,24 @@
 #include "QoreAbstractQStyle.h"
 #include "qore-qt-events.h"
 
+#include "QC_QMotifStyle.h"
+#include "QC_QCDEStyle.h"
+#include "QC_QWindowsStyle.h"
+#include "QC_QCleanlooksStyle.h"
+#include "QC_QPlastiqueStyle.h"
+
+#ifdef DARWIN
+#include "QC_QMacStyle.h"
+#endif
+
+#ifdef WINDOWS
+#include "QC_QWindowsXPStyle.h"
+#endif
+
 DLLLOCAL extern int CID_QSTYLE;
 DLLLOCAL extern class QoreClass *QC_QStyle;
 
-DLLLOCAL class QoreClass *initQStyleClass(QoreClass *);
-
+DLLLOCAL class Namespace *initQStyleNS(QoreClass *);
 
 class myQStyle : public QStyle, public QoreQStyleExtension 
 {
@@ -46,7 +59,7 @@ class myQStyle : public QStyle, public QoreQStyleExtension
 #undef QORE_IS_QSTYLE
 
    public:
-   DLLLOCAL myQStyle(Object *obj) : QStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQStyle(Object *obj) : QStyle(), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }

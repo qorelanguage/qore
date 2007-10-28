@@ -40,7 +40,7 @@ static void QSTYLEOPTIONBUTTON_copy(class Object *self, class Object *old, class
    xsink->raiseException("QSTYLEOPTIONBUTTON-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-QoreClass *initQStyleOptionButtonClass(QoreClass *qstyleoption)
+static QoreClass *initQStyleOptionButtonClass(QoreClass *qstyleoption)
 {
    QC_QStyleOptionButton = new QoreClass("QStyleOptionButton", QDOM_GUI);
    CID_QSTYLEOPTIONBUTTON = QC_QStyleOptionButton->getID();
@@ -52,4 +52,27 @@ QoreClass *initQStyleOptionButtonClass(QoreClass *qstyleoption)
 
 
    return QC_QStyleOptionButton;
+}
+
+Namespace *initQStyleOptionButtonNS(QoreClass *qstyleoption)
+{
+   Namespace *ns = new Namespace("QStyleOptionButton");
+
+   ns->addSystemClass(initQStyleOptionButtonClass(qstyleoption));
+
+   // StyleOptionType enum
+   ns->addConstant("Type",                     new QoreNode((int64)QStyleOptionButton::Type));
+
+   // StyleOptionVersion enum
+   ns->addConstant("Version",                  new QoreNode((int64)QStyleOptionButton::Version));
+
+   // ButtonFeature enum
+   ns->addConstant("None",                     new QoreNode((int64)QStyleOptionButton::None));
+   ns->addConstant("Flat",                     new QoreNode((int64)QStyleOptionButton::Flat));
+   ns->addConstant("HasMenu",                  new QoreNode((int64)QStyleOptionButton::HasMenu));
+   ns->addConstant("DefaultButton",            new QoreNode((int64)QStyleOptionButton::DefaultButton));
+   ns->addConstant("AutoDefaultButton",        new QoreNode((int64)QStyleOptionButton::AutoDefaultButton));
+   ns->addConstant("CommandLinkButton",        new QoreNode((int64)QStyleOptionButton::CommandLinkButton));
+
+   return ns;
 }
