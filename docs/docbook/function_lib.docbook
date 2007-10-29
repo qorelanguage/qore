@@ -16477,7 +16477,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs zlib-based &quot;deflate&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1951">RFC 1951</ulink>) and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).</para>
+	<para>Performs zlib-based &quot;deflate&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1951">RFC 1951</ulink>) and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).  Note that strings are compressed without the trailing null character.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17262,7 +17262,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Performs zlib-based &quot;gzip&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).</para>
+	    <para>Performs zlib-based &quot;gzip&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) and returns a binary object of the compressed data.  The optional second argument specifies the compression level; if no second argument is given, then a tradeoff between speed and compression size is taken (default: 6).  Note that strings are compressed without the trailing null character.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
