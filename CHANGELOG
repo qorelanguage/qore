@@ -1,3 +1,7 @@
+2007.11.14: David Nichols
+	* do not throw an exception with sort*() when first argument is not a
+	  list; instead just return the first argument
+
 2007.10.28: David Nichols
 	* do not include the trailing null when compressing strings with gzip or
 	  deflate methods, in particular this causes problems with browsers and

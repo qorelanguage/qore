@@ -25,15 +25,14 @@
 
 static class QoreNode *f_sort(class QoreNode *params, ExceptionSink *xsink)
 {
-   // check for a function name in second argument and throw exception if not present
-   // before checking for a list in the first argument
-   QoreNode *lst = test_param(params, NT_LIST, 0);
+   // get list as first argument
+   QoreNode *lst = get_param(params, 0);
    if (!lst)
-   {
-      xsink->raiseException("SORT-PARAMETER-ERROR", "first argument is not a list");
-      return NULL;
-   }
+      return 0;
+   if (lst->type != NT_LIST)
+      return lst->RefSelf();
    
+   // check for a function name or call reference in second argument
    QoreNode *fn = get_param(params, 1);
    if (is_nothing(fn))
       return lst->val.list->sort();
@@ -58,15 +57,14 @@ static class QoreNode *f_sort(class QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_sortDescending(class QoreNode *params, ExceptionSink *xsink)
 {
-   // check for a function name in second argument and throw exception if not present
-   // before checking for a list in the first argument
-   QoreNode *lst = test_param(params, NT_LIST, 0);
+   // get list as first argument
+   QoreNode *lst = get_param(params, 0);
    if (!lst)
-   {
-      xsink->raiseException("SORT-PARAMETER-ERROR", "first argument is not a list");
-      return NULL;
-   }
+      return 0;
+   if (lst->type != NT_LIST)
+      return lst->RefSelf();
    
+   // check for a function name or call reference in second argument
    QoreNode *fn = get_param(params, 1);
    if (is_nothing(fn))
       return lst->val.list->sortDescending();
@@ -91,15 +89,14 @@ static class QoreNode *f_sortDescending(class QoreNode *params, ExceptionSink *x
 
 static class QoreNode *f_sortStable(class QoreNode *params, ExceptionSink *xsink)
 {
-   // check for a function name in second argument and throw exception if not present
-   // before checking for a list in the first argument
-   QoreNode *lst = test_param(params, NT_LIST, 0);
+   // get list as first argument
+   QoreNode *lst = get_param(params, 0);
    if (!lst)
-   {
-      xsink->raiseException("SORTSTABLE-PARAMETER-ERROR", "first argument is not a list");
-      return NULL;
-   }
+      return 0;
+   if (lst->type != NT_LIST)
+      return lst->RefSelf();
    
+   // check for a function name or call reference in second argument
    QoreNode *fn = get_param(params, 1);
    if (is_nothing(fn))
       return lst->val.list->sortStable();
@@ -124,15 +121,14 @@ static class QoreNode *f_sortStable(class QoreNode *params, ExceptionSink *xsink
 
 static class QoreNode *f_sortDescendingStable(class QoreNode *params, ExceptionSink *xsink)
 {
-   // check for a function name in second argument and throw exception if not present
-   // before checking for a list in the first argument
-   QoreNode *lst = test_param(params, NT_LIST, 0);
+   // get list as first argument
+   QoreNode *lst = get_param(params, 0);
    if (!lst)
-   {
-      xsink->raiseException("SORT-PARAMETER-ERROR", "first argument is not a list");
-      return NULL;
-   }
+      return 0;
+   if (lst->type != NT_LIST)
+      return lst->RefSelf();
    
+   // check for a function name or call reference in second argument
    QoreNode *fn = get_param(params, 1);
    if (is_nothing(fn))
       return lst->val.list->sortDescendingStable();
