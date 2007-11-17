@@ -739,7 +739,10 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 	 if (skip)
 	    continue;
       }
-      nh.setKeyValue((char *)i->first.c_str(), new QoreNode(i->second.c_str()), xsink);
+      // if there is no message body then do not send the "content-type" header
+      if (!data && !strcmp(i->first.c_str(), "Content-Type"))
+	 continue;
+      nh.setKeyValue(i->first.c_str(), new QoreNode(i->second.c_str()), xsink);
    }
    if (!username.empty())
    {
