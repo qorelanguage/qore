@@ -31,32 +31,47 @@ extern QoreClass *QC_QPalette;
 
 DLLLOCAL Namespace *initQPaletteNS();
 
-class QoreQPalette : public AbstractPrivateData, public QPalette
+class QoreQPalette : public AbstractPrivateData
 {
+      QPalette *qp;
+      bool managed;
+      
    public:
-      DLLLOCAL QoreQPalette() : QPalette()
+      DLLLOCAL QoreQPalette() : qp(new QPalette()), managed(true)
       {
       }
-      DLLLOCAL QoreQPalette(Qt::GlobalColor color) : QPalette(color)
+      DLLLOCAL QoreQPalette(QPalette *qpalette) : qp(qpalette), managed(false)
       {
       }
-      DLLLOCAL QoreQPalette(const QPalette &palette) : QPalette(palette)
+      DLLLOCAL ~QoreQPalette()
+      {
+	 if (managed)
+	    delete qp;
+      }
+      
+      DLLLOCAL QoreQPalette(Qt::GlobalColor color) : qp(new QPalette(color)), managed(true)
       {
       }
-      DLLLOCAL QoreQPalette(const QColor &button) : QPalette(button)
+      DLLLOCAL QoreQPalette(const QPalette &palette) : qp(new QPalette(palette)), managed(true)
       {
       }
-      DLLLOCAL QoreQPalette(const QColor &button, const QColor &window) : QPalette(button, window)
+      DLLLOCAL QoreQPalette(const QColor &button) : qp(new QPalette(button)), managed(true)
+      {
+      }
+      DLLLOCAL QoreQPalette(const QColor &button, const QColor &window) : qp(new QPalette(button, window)), managed(true)
       {
       }
       DLLLOCAL QoreQPalette(const QBrush &windowText, const QBrush &button, const QBrush &light, 
 			    const QBrush &dark, const QBrush &mid, const QBrush &text, 
 			    const QBrush &bright_text, const QBrush &base, const QBrush &window) : 
-	 QPalette(windowText, button, light, dark, mid, text, bright_text, base, window)
+	 qp(new QPalette(windowText, button, light, dark, mid, text, bright_text, base, window)), managed(true)
       {
       }
-   
-   
+
+      DLLLOCAL class QPalette *getQPalette() const
+      {
+	 return qp;
+      }
 };
 
 

@@ -195,7 +195,7 @@ public:
 	 assert(w);
       }
       // to avoid a warning
-      return NULL;      
+      return 0;
    }      
 };
 

@@ -46,15 +46,11 @@ static void QPEN_constructor(Object *self, QoreNode *params, ExceptionSink *xsin
       p = get_param(params, 1);
       qreal width = p ? p->getAsFloat() : 0.0;
       p = get_param(params, 2);
-      if (!p || p->type != NT_PENSTYLE) {
-	 xsink->raiseException("QPEN-CONSTRUCTOR-ERROR", "this version of QPen::constructor() expected a PenStyle constant as the third argument, got type '%s' instead", p ? p->type->getName() : "NOTHING");
-	 return;
-      }
-      Qt::PenStyle style = (Qt::PenStyle)p->val.intval;
+      Qt::PenStyle style = !is_nothing(p) ? (Qt::PenStyle)p->getAsInt() : Qt::SolidLine;
       p = get_param(params, 3);
-      Qt::PenCapStyle cap = (Qt::PenCapStyle)(!is_nothing(p) ? p->getAsInt() : Qt::SquareCap);
+      Qt::PenCapStyle cap = !is_nothing(p) ? (Qt::PenCapStyle)p->getAsInt() : Qt::SquareCap;
       p = get_param(params, 4);
-      Qt::PenJoinStyle join = (Qt::PenJoinStyle)(!is_nothing(p) ? p->getAsInt() : Qt::BevelJoin);
+      Qt::PenJoinStyle join = !is_nothing(p) ? (Qt::PenJoinStyle)p->getAsInt() : Qt::BevelJoin;
       //printd(5, "QPen::QPen(brush=%d, %g, %d, %d, %d)\n", brush.color().value(), width, style, cap, join);
       self->setPrivate(CID_QPEN, new QoreQPen(brush, width, style, cap, join));
       return;

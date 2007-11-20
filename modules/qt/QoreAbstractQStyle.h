@@ -76,24 +76,24 @@ class QoreQStyleExtension : public QoreQtEventDispatcher
    public:
       DLLLOCAL QoreQStyleExtension(QoreClass *qc)
       {
-	 m_drawComplexControl      = findMethod(qc, "m_drawComplexControl");
-         m_drawControl             = findMethod(qc, "m_drawControl");
-         m_drawItemPixmap          = findMethod(qc, "m_drawItemPixmap");
-         m_drawItemText            = findMethod(qc, "m_drawItemText");
-         m_drawPrimitive           = findMethod(qc, "m_drawPrimitive");
-         m_generatedIconPixmap     = findMethod(qc, "m_generatedIconPixmap");
-         m_hitTestComplexControl   = findMethod(qc, "m_hitTestComplexControl");
-         m_itemPixmapRect          = findMethod(qc, "m_itemPixmapRect");
-         m_itemTextRect            = findMethod(qc, "m_itemTextRect");
-         m_pixelMetric             = findMethod(qc, "m_pixelMetric");
-         m_polish                  = findMethod(qc, "m_polish");
-         m_sizeFromContents        = findMethod(qc, "m_sizeFromContents");
-         m_standardPalette         = findMethod(qc, "m_standardPalette");
-         m_standardPixmap          = findMethod(qc, "m_standardPixmap");
-         m_styleHint               = findMethod(qc, "m_styleHint");
-         m_subControlRect          = findMethod(qc, "m_subControlRect");
-         m_subElementRect          = findMethod(qc, "m_subElementRect");
-         m_unpolish                = findMethod(qc, "m_unpolish");
+	 m_drawComplexControl      = findMethod(qc, "drawComplexControl");
+         m_drawControl             = findMethod(qc, "drawControl");
+         m_drawItemPixmap          = findMethod(qc, "drawItemPixmap");
+         m_drawItemText            = findMethod(qc, "drawItemText");
+         m_drawPrimitive           = findMethod(qc, "drawPrimitive");
+         m_generatedIconPixmap     = findMethod(qc, "generatedIconPixmap");
+         m_hitTestComplexControl   = findMethod(qc, "hitTestComplexControl");
+         m_itemPixmapRect          = findMethod(qc, "itemPixmapRect");
+         m_itemTextRect            = findMethod(qc, "itemTextRect");
+         m_pixelMetric             = findMethod(qc, "pixelMetric");
+         m_polish                  = findMethod(qc, "polish");
+         m_sizeFromContents        = findMethod(qc, "sizeFromContents");
+         m_standardPalette         = findMethod(qc, "standardPalette");
+         m_standardPixmap          = findMethod(qc, "standardPixmap");
+         m_styleHint               = findMethod(qc, "styleHint");
+         m_subControlRect          = findMethod(qc, "subControlRect");
+         m_subElementRect          = findMethod(qc, "subElementRect");
+         m_unpolish                = findMethod(qc, "unpolish");
       }
 };
 

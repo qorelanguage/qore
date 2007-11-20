@@ -1066,7 +1066,7 @@ static QoreNode *f_QToolTip_setPalette(QoreNode *params, ExceptionSink *xsink)
       return 0;
    }
    ReferenceHolder<QoreQPalette> paletteHolder(palette, xsink);
-   QToolTip::setPalette(*(static_cast<QPalette *>(palette)));
+   QToolTip::setPalette(*(palette->getQPalette()));
    return 0;
 }
 

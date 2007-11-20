@@ -565,13 +565,19 @@ static QoreNode *QPAINTER_drawLine(Object *self, QoreQPainter *qp, QoreNode *par
 //}
 
 //void drawPath ( const QPainterPath & path )
-//static QoreNode *QPAINTER_drawPath(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPainterPath path = p;
-//   qp->getQPainter()->drawPath(path);
-//   return 0;
-//}
+static QoreNode *QPAINTER_drawPath(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   if (!path) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-DRAWPATH-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPainter::drawPath()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> pathHolder(static_cast<AbstractPrivateData *>(path), xsink);
+   qp->getQPainter()->drawPath(*(static_cast<QPainterPath *>(path)));
+   return 0;
+}
 
 //void drawPicture ( const QPointF & point, const QPicture & picture )
 //void drawPicture ( const QPoint & point, const QPicture & picture )
@@ -1096,17 +1102,24 @@ static QoreNode *QPAINTER_eraseRect(Object *self, QoreQPainter *qp, QoreNode *pa
 }
 
 //void fillPath ( const QPainterPath & path, const QBrush & brush )
-//static QoreNode *QPAINTER_fillPath(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPainterPath path = p;
-//   p = get_param(params, 1);
-//   ???  brush = p;
-//   qp->getQPainter()->fillPath(path, brush);
-//   return 0;
-//}
+static QoreNode *QPAINTER_fillPath(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   if (!path) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-FILLPATH-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPainter::fillPath()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> pathHolder(static_cast<AbstractPrivateData *>(path), xsink);
+   p = get_param(params, 1);
+   QBrush brush;
+   if (get_qbrush(p, brush, xsink))
+      return 0;
+   qp->getQPainter()->fillPath(*(static_cast<QPainterPath *>(path)), brush);
+   return 0;
+}
 
-//void fillRect ( const QRectF & rectangle, const QBrush & brush )
 //void fillRect ( const QRect & rectangle, const QBrush & brush )
 //void fillRect ( int x, int y, int width, int height, const QBrush & brush )
 static QoreNode *QPAINTER_fillRect(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -1124,29 +1137,19 @@ static QoreNode *QPAINTER_fillRect(Object *self, QoreQPainter *qp, QoreNode *par
 	    return 0;
 	 }
 	 ReferenceHolder<QoreQRect> holder(rectangle, xsink);
+	 QBrush brush;
 	 p = get_param(params, 1);
-	 QoreQBrush *brush = (p && p->type == NT_OBJECT) ? (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink) : 0;
-	 if (!p || !brush)
-	 {
-	    if (!xsink->isException())
-	       xsink->raiseException("QPAINTER-FILLRECT-PARAM-ERROR", "expecting a QBrush object as second argument to QPainter::fillRect()");
+	 if (get_qbrush(p, brush, xsink))
 	    return 0;
-	 }
-	 ReferenceHolder<QoreQBrush> holder1(brush, xsink);
-	 qp->getQPainter()->fillRect(*((QRect *)rectangle), *((QBrush *)brush));
+	 qp->getQPainter()->fillRect(*((QRect *)rectangle), brush);
 	 return 0;
       }
       ReferenceHolder<QoreQRectF> holder(rectanglef, xsink);
+      QBrush brush;
       p = get_param(params, 1);
-      QoreQBrush *brush = (p && p->type == NT_OBJECT) ? (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink) : 0;
-      if (!p || !brush)
-      {
-	 if (!xsink->isException())
-	    xsink->raiseException("QPAINTER-FILLRECT-PARAM-ERROR", "expecting a QBrush object as second argument to QPainter::fillRect()");
+      if (get_qbrush(p, brush, xsink))
 	 return 0;
-      }
-      ReferenceHolder<QoreQBrush> holder1(brush, xsink);
-      qp->getQPainter()->fillRect(*((QRectF *)rectanglef), *((QBrush *)brush));
+      qp->getQPainter()->fillRect(*((QRectF *)rectanglef), brush);
       return 0;
    }
 
@@ -1395,15 +1398,21 @@ static QoreNode *QPAINTER_setBrushOrigin(Object *self, QoreQPainter *qp, QoreNod
 }
 
 //void setClipPath ( const QPainterPath & path, Qt::ClipOperation operation = Qt::ReplaceClip )
-//static QoreNode *QPAINTER_setClipPath(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPainterPath path = p;
-//   p = get_param(params, 1);
-//   Qt::ClipOperation operation = (Qt::ClipOperation)(p ? p->getAsInt() : 0);
-//   qp->getQPainter()->setClipPath(path, operation);
-//   return 0;
-//}
+static QoreNode *QPAINTER_setClipPath(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   if (!path) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-SETCLIPPATH-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPainter::setClipPath()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> pathHolder(static_cast<AbstractPrivateData *>(path), xsink);
+   p = get_param(params, 1);
+   Qt::ClipOperation operation = !is_nothing(p) ? (Qt::ClipOperation)p->getAsInt() : Qt::ReplaceClip;
+   qp->getQPainter()->setClipPath(*(static_cast<QPainterPath *>(path)), operation);
+   return 0;
+}
 
 //void setClipRect ( const QRectF & rectangle, Qt::ClipOperation operation = Qt::ReplaceClip )
 //void setClipRect ( int x, int y, int width, int height, Qt::ClipOperation operation = Qt::ReplaceClip )
@@ -1707,15 +1716,27 @@ static QoreNode *QPAINTER_shear(Object *self, QoreQPainter *qp, QoreNode *params
 }
 
 //void strokePath ( const QPainterPath & path, const QPen & pen )
-//static QoreNode *QPAINTER_strokePath(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
-//{
-//   QoreNode *p = get_param(params, 0);
-//   ??? QPainterPath path = p;
-//   p = get_param(params, 1);
-//   ???  pen = p;
-//   qp->getQPainter()->strokePath(path, pen);
-//   return 0;
-//}
+static QoreNode *QPAINTER_strokePath(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   if (!path) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-STROKEPATH-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPainter::strokePath()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> pathHolder(static_cast<AbstractPrivateData *>(path), xsink);
+   p = get_param(params, 1);
+   QoreQPen *pen = (p && p->type == NT_OBJECT) ? (QoreQPen *)p->val.object->getReferencedPrivateData(CID_QPEN, xsink) : 0;
+   if (!pen) {
+      if (!xsink->isException())
+         xsink->raiseException("QPAINTER-STROKEPATH-PARAM-ERROR", "expecting a QPen object as second argument to QPainter::strokePath()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> penHolder(static_cast<AbstractPrivateData *>(pen), xsink);
+   qp->getQPainter()->strokePath(*(static_cast<QPainterPath *>(path)), *(static_cast<QPen *>(pen)));
+   return 0;
+}
 
 //bool testRenderHint ( RenderHint hint ) const
 static QoreNode *QPAINTER_testRenderHint(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
@@ -1839,7 +1860,7 @@ class QoreClass *initQPainterClass()
    QC_QPainter->addMethod("drawImage",                   (q_method_t)QPAINTER_drawImage);
    QC_QPainter->addMethod("drawLine",                    (q_method_t)QPAINTER_drawLine);
    //QC_QPainter->addMethod("drawLines",                   (q_method_t)QPAINTER_drawLines);
-   //QC_QPainter->addMethod("drawPath",                    (q_method_t)QPAINTER_drawPath);
+   QC_QPainter->addMethod("drawPath",                    (q_method_t)QPAINTER_drawPath);
    QC_QPainter->addMethod("drawPicture",                 (q_method_t)QPAINTER_drawPicture);
    QC_QPainter->addMethod("drawPie",                     (q_method_t)QPAINTER_drawPie);
    //QC_QPainter->addMethod("drawPixmap",                  (q_method_t)QPAINTER_drawPixmap);
@@ -1855,7 +1876,7 @@ class QoreClass *initQPainterClass()
    QC_QPainter->addMethod("drawTiledPixmap",             (q_method_t)QPAINTER_drawTiledPixmap);
    QC_QPainter->addMethod("end",                         (q_method_t)QPAINTER_end);
    QC_QPainter->addMethod("eraseRect",                   (q_method_t)QPAINTER_eraseRect);
-   //QC_QPainter->addMethod("fillPath",                    (q_method_t)QPAINTER_fillPath);
+   QC_QPainter->addMethod("fillPath",                    (q_method_t)QPAINTER_fillPath);
    QC_QPainter->addMethod("fillRect",                    (q_method_t)QPAINTER_fillRect);
    QC_QPainter->addMethod("font",                        (q_method_t)QPAINTER_font);
    QC_QPainter->addMethod("fontInfo",                    (q_method_t)QPAINTER_fontInfo);
@@ -1878,7 +1899,7 @@ class QoreClass *initQPainterClass()
    QC_QPainter->addMethod("setBackgroundMode",           (q_method_t)QPAINTER_setBackgroundMode);
    QC_QPainter->addMethod("setBrush",                    (q_method_t)QPAINTER_setBrush);
    QC_QPainter->addMethod("setBrushOrigin",              (q_method_t)QPAINTER_setBrushOrigin);
-   //QC_QPainter->addMethod("setClipPath",                 (q_method_t)QPAINTER_setClipPath);
+   QC_QPainter->addMethod("setClipPath",                 (q_method_t)QPAINTER_setClipPath);
    QC_QPainter->addMethod("setClipRect",                 (q_method_t)QPAINTER_setClipRect);
    QC_QPainter->addMethod("setClipRegion",               (q_method_t)QPAINTER_setClipRegion);
    QC_QPainter->addMethod("setClipping",                 (q_method_t)QPAINTER_setClipping);
@@ -1897,7 +1918,7 @@ class QoreClass *initQPainterClass()
    QC_QPainter->addMethod("setWorldMatrixEnabled",       (q_method_t)QPAINTER_setWorldMatrixEnabled);
    //QC_QPainter->addMethod("setWorldTransform",           (q_method_t)QPAINTER_setWorldTransform);
    QC_QPainter->addMethod("shear",                       (q_method_t)QPAINTER_shear);
-   //QC_QPainter->addMethod("strokePath",                  (q_method_t)QPAINTER_strokePath);
+   QC_QPainter->addMethod("strokePath",                  (q_method_t)QPAINTER_strokePath);
    QC_QPainter->addMethod("testRenderHint",              (q_method_t)QPAINTER_testRenderHint);
    //QC_QPainter->addMethod("transform",                   (q_method_t)QPAINTER_transform);
    QC_QPainter->addMethod("translate",                   (q_method_t)QPAINTER_translate);

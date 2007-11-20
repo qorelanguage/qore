@@ -1,3 +1,6 @@
+2007.11.20: David Nichols
+	* qt: bugfixes and updates to make new style.q example file mostly work
+
 2007.11.19: David Nichols
         * qt: fix initialization order in qt.cc regarding qstyleoptions
 

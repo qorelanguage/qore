@@ -565,7 +565,7 @@ static QoreNode *f_QApplication_setPalette(QoreNode *params, ExceptionSink *xsin
    ReferenceHolder<AbstractPrivateData> paletteHolder(static_cast<AbstractPrivateData *>(palette), xsink);
    p = get_param(params, 1);
    const char *className = (p && p->type == NT_STRING) ? p->val.String->getBuffer() : 0;
-   QApplication::setPalette(*(static_cast<QPalette *>(palette)), className);
+   QApplication::setPalette(*(palette->getQPalette()), className);
    return 0;
 }
 

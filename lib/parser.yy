@@ -1792,7 +1792,7 @@ exp:    scalar
 	      char *str = $1->val.c_str;
 	      $1->val.c_str = 0;
 	      $1->deref(0);
-	      printd(5, "parsing call %s()\n", str);
+	      printd(5, "parsing call %s() args=%08p %s\n", str, $3, $3 ? $3->type->getName() : "n/a");
 	      $$ = new QoreNode(str, makeArgs($3));
 	   }
 	   else if ($1->type == NT_CONSTANT)
@@ -1817,8 +1817,6 @@ exp:    scalar
 		    && $1->val.tree->right && $1->val.tree->right->type == NT_STRING)
 	   {
 	      // create an object method call node
-	      //printd(5, "tree=%s, right=%s\n", $1->val.tree->left->type->getName(), $1->val.tree->right->type->getName());
-
 	      // take the string
 	      class QoreNode *r = $1->val.tree->right;
 	      class QoreString *str = r->val.String;
@@ -1826,6 +1824,8 @@ exp:    scalar
 	      r->deref(0);
 	      char *cstr = str->giveBuffer();
 	      delete str;
+
+	      //printd(5, "method call to %s: tree=%s, args=%08p %s\n", cstr, $1->val.tree->left->type->getName(), $3, $3 ? $3->type->getName() : "n/a");
 
 	      FunctionCall *fc = new FunctionCall(cstr);
 	      fc->args = makeArgs($3);

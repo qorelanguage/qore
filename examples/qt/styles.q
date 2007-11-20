@@ -19,7 +19,8 @@ class NorwegianWoodStyle inherits QMotifStyle
 {
     polish($palette)
     {
-	if ($palette instanceof QWidget) {
+	#throw "HI";
+	if (!($palette instanceof QPalette)) {
 	    if ($palette instanceof QPushButton || $palette instanceof QComboBox)
 		$palette.setAttribute(Qt::WA_Hover, True);
 	    return;
@@ -28,8 +29,8 @@ class NorwegianWoodStyle inherits QMotifStyle
 	my $beige = new QColor(236, 182, 120);
 	my $slightlyOpaqueBlack = new QColor(0, 0, 0, 63);
 
-	my $backgroundImage = new QPixmap(":/images/woodbackground.png");
-	my $buttonImage = new QPixmap(":/images/woodbutton.png");
+	my $backgroundImage = new QPixmap("images/woodbackground.png");
+	my $buttonImage = new QPixmap("images/woodbutton.png");
 	my $midImage = $buttonImage;
 
 	my $painter = new QPainter();
@@ -38,7 +39,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 	$painter.fillRect($midImage.rect(), $slightlyOpaqueBlack);
 	$painter.end();
 
-	$palette = new QPalette($brown);
+	$palette.set(new QPalette($brown));
 
 	$palette.setBrush(QPalette::BrightText, Qt::white);
 	$palette.setBrush(QPalette::Base, $beige);
@@ -169,7 +170,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 					    new QPoint($x1, $y + $height)));
 		
 		$painter.setClipPath($roundRect);
-		$painter.setClipRegion($topHalf, Qt::IntersectClip);
+		$painter.setClipRegion(new QRegion($topHalf), Qt::IntersectClip);
 		$painter.setPen($topPen);
 		$painter.drawPath($roundRect);
 		
@@ -177,7 +178,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 		$bottomHalf.setPoint(0, new QPoint($x4, $y + $height));
 		
 		$painter.setClipPath($roundRect);
-		$painter.setClipRegion($bottomHalf, Qt::IntersectClip);
+		$painter.setClipRegion(new QRegion($bottomHalf), Qt::IntersectClip);
 		$painter.setPen($bottomPen);
 		$painter.drawPath($roundRect);
 		
@@ -222,7 +223,9 @@ class NorwegianWoodStyle inherits QMotifStyle
     {
 	for (my $i = 0; $i < QPalette::NColorGroups; ++$i) {
 	    my $color = $palette.brush($i, $role).color();
-	    $palette.setBrush($i, $role, new QBrush($color, $pixmap));
+	    my $brush = new QBrush($color);
+	    $brush.setTexture($pixmap);
+	    $palette.setBrush($i, $role, $brush);
 	}
     }
     
@@ -232,16 +235,17 @@ class NorwegianWoodStyle inherits QMotifStyle
 	my $diam = 2 * $radius;
 	
 	my ($x1, $y1, $x2, $y2) = $rect.getCoords();
+	#printf("radius = %n: %n %n %n %n\n", $radius, $x1, $y1, $x2, $y2);
 	
 	my $path = new QPainterPath();
 	$path.moveTo($x2, $y1 + $radius);
-	$path.arcTo(new QRect($x2 - $diam, $y1, $diam, $diam), 0.0, +90.0);
+	$path.arcTo(new QRectF($x2 - $diam, $y1, $diam, $diam), 0.0, 90.0);
 	$path.lineTo($x1 + $radius, $y1);
-	$path.arcTo(new QRect($x1, $y1, $diam, $diam), 90.0, +90.0);
+	$path.arcTo(new QRectF($x1, $y1, $diam, $diam), 90.0, 90.0);
 	$path.lineTo($x1, $y2 - $radius);
-	$path.arcTo(new QRect($x1, $y2 - $diam, $diam, $diam), 180.0, +90.0);
+	$path.arcTo(new QRectF($x1, $y2 - $diam, $diam, $diam), 180.0, 90.0);
 	$path.lineTo($x1 + $radius, $y2);
-	$path.arcTo(new QRect($x2 - $diam, $y2 - $diam, $diam, $diam), 270.0, +90.0);
+	$path.arcTo(new QRectF($x2 - $diam, $y2 - $diam, $diam, $diam), 270.0, 90.0);
 	$path.closeSubpath();
 	return $path;
     }

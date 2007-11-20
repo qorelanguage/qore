@@ -238,7 +238,7 @@ class T {
 	 }
 
 	 ExceptionSink xsink;
-         LVarInstantiatorHelper lvh("arg0", return_object(QC_QPalette, new QoreQPalette(palette)), &xsink);
+         LVarInstantiatorHelper lvh("arg0", return_object(QC_QPalette, new QoreQPalette(&palette)), &xsink);
 	 
 	 List *args = new List();
 	 args->push(lvh.getArg());
@@ -247,7 +247,7 @@ class T {
 
 	 // execute method and discard any return value
          discard(m_polish->eval(qore_obj, *na, &xsink), &xsink);
-
+/*
 	 QoreNode *out = lvh.getOutputValue();
 	 QoreQPalette *qp = (out && out->type == NT_OBJECT) ? (QoreQPalette *)out->val.object->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
 	 if (!qp) {
@@ -255,7 +255,7 @@ class T {
 	    return;
 	 }
 	 ReferenceHolder<QoreQPalette> pHolder(qp, &xsink);
-	 palette = *(static_cast<QPalette *>(qp));
+*/
       }
       DLLLOCAL virtual QSize sizeFromContents ( QStyle::ContentsType type, const QStyleOption * option, const QSize & contentsSize, const QWidget * widget = 0 ) const 
       {
@@ -294,10 +294,11 @@ class T {
 	    return QPalette();
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(static_cast<AbstractPrivateData *>(qpalette), &xsink);
-	 return *qpalette;
+	 return *(qpalette->getQPalette());
       }
       DLLLOCAL virtual int styleHint ( QStyle::StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0, QStyleHintReturn * returnData = 0 ) const 
       {
+	 //printd(5, "x::styleHint(%d, %08p, %08p, %08p) called, m_styleHint=%08p\n", hint, option, widget, returnData, m_styleHint);
          if (!m_styleHint)
 	    return parent_styleHint(hint, option, widget, returnData); 
 
@@ -410,7 +411,8 @@ class T {
       {
 	 return QPixmap();
       }
-      DLLLOCAL virtual int parent_styleHint ( QStyle::StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0, QStyleHintReturn * returnData = 0 ) const {
+      DLLLOCAL virtual int parent_styleHint ( QStyle::StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0, QStyleHintReturn * returnData = 0 ) const 
+      {
 	 return 0;
       }									
       DLLLOCAL virtual QRect parent_subControlRect ( QStyle::ComplexControl control, const QStyleOptionComplex * option, QStyle::SubControl subControl, const QWidget * widget = 0 ) const 
@@ -456,7 +458,10 @@ class T {
       }
       DLLLOCAL virtual int parent_styleHint ( QStyle::StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0, QStyleHintReturn * returnData = 0 ) const
       {
-	 return QOREQTYPE::styleHint(hint, option, widget, returnData); 
+	 //printd(5, "parent_styleHint(%d, %08p, %08p, %08p) called this=%08p\n", hint, option, widget, returnData, this);
+	 int rc = QOREQTYPE::styleHint(hint, option, widget, returnData); 
+	 //printd(5, "parent_styleHint() rc=%d\n", rc);
+	 return rc;
       }									
       DLLLOCAL virtual QRect parent_subControlRect ( QStyle::ComplexControl control, const QStyleOptionComplex * option, QStyle::SubControl subControl, const QWidget * widget = 0 ) const 
       {

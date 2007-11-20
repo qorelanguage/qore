@@ -41,16 +41,13 @@ static void QPIXMAP_constructor(class Object *self, class QoreNode *params, Exce
 
    QString fileName;
    if (!get_qstring(p, fileName, xsink, true)) {
-      p = get_param(params, 1);
-      if (!p || p->type != NT_STRING) {
-	 xsink->raiseException("QPIXMAP-CONSTRUCTOR-ERROR", "this version of QPixmap::constructor() expects a string as the second argument (got type '%s')", p ? p->type->getName() : "NOTHING");
-	 return;
-      }
+      p = test_param(params, NT_STRING, 1);
       const char *format = p ? p->val.String->getBuffer() : 0;
       p = get_param(params, 2);
       Qt::ImageConversionFlags flags = !is_nothing(p) ? (Qt::ImageConversionFlags)p->getAsInt() : Qt::AutoColor;
 
       qp = new QoreQPixmap(fileName, format, flags);
+      //printd(5, "QPixmap::constructor('%s', %08p, %d) valid=%s\n", fileName.toUtf8().data(), format, (int)flags, !qp->isNull() ? "true" : "false");
    }
 
 /*

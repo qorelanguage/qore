@@ -46,6 +46,9 @@ class QoreQRegion : public AbstractPrivateData, public QRegion
       DLLLOCAL QoreQRegion(const QRect &qr, QRegion::RegionType t = QRegion::Rectangle) : QRegion(qr, t)
       {
       }
+      DLLLOCAL QoreQRegion(const QPolygon &pa, Qt::FillRule fillRule = Qt::OddEvenFill) : QRegion(pa, fillRule)
+      {
+      }
 };
 
 

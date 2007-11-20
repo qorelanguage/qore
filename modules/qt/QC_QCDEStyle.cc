@@ -51,6 +51,5 @@ QoreClass *initQCDEStyleClass(QoreClass *qmotifstyle)
    QC_QCDEStyle->setConstructor(QCDESTYLE_constructor);
    QC_QCDEStyle->setCopy((q_copy_t)QCDESTYLE_copy);
 
-
    return QC_QCDEStyle;
 }

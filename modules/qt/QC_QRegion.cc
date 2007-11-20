@@ -28,42 +28,57 @@
 DLLLOCAL int CID_QREGION;
 DLLLOCAL class QoreClass *QC_QRegion = 0;
 
-static void QREGION_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+//QRegion ()
+//QRegion ( int x, int y, int w, int h, RegionType t = Rectangle )
+//QRegion ( const QPolygon & a, Qt::FillRule fillRule = Qt::OddEvenFill )
+//QRegion ( const QRegion & r )
+//QRegion ( const QBitmap & bm )
+//QRegion ( const QRect & r, RegionType t = Rectangle )
+static void QREGION_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreQRegion *qr;
-
    QoreNode *p = get_param(params, 0);
-   if (is_nothing(p))
-      qr = new QoreQRegion();
-   else if (p->type == NT_OBJECT) {
-      QoreQRect *rectangle = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
-      if (!rectangle)
-      {
-	 if (!xsink->isException())
-	    xsink->raiseException("QREGION-CONSTRUCTOR-ERROR", "QRegion::constructor() cannot handle arguments of class '%s'", p->val.object->getClass()->getName());
-	 return;
+   if (is_nothing(p)) {
+      self->setPrivate(CID_QREGION, new QoreQRegion());
+      return;
+   }
+   if (p && p->type == NT_OBJECT) {
+      QoreQBitmap *bm = (QoreQBitmap *)p->val.object->getReferencedPrivateData(CID_QBITMAP, xsink);
+      if (!bm) {
+         QoreQRect *r = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
+         if (!r) {
+            QoreQPolygon *a = (QoreQPolygon *)p->val.object->getReferencedPrivateData(CID_QPOLYGON, xsink);
+            if (!a) {
+               if (!xsink->isException())
+                  xsink->raiseException("QREGION-CONSTRUCTOR-PARAM-ERROR", "QRegion::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+               return;
+            }
+            ReferenceHolder<AbstractPrivateData> aHolder(static_cast<AbstractPrivateData *>(a), xsink);
+            p = get_param(params, 1);
+	    Qt::FillRule fillRule = !is_nothing(p) ? (Qt::FillRule)p->getAsInt() : Qt::OddEvenFill;
+            self->setPrivate(CID_QREGION, new QoreQRegion(*(static_cast<QPolygon *>(a)), fillRule));
+            return;
+         }
+         ReferenceHolder<AbstractPrivateData> rHolder(static_cast<AbstractPrivateData *>(r), xsink);
+         p = get_param(params, 1);
+	 QRegion::RegionType t = !is_nothing(p) ? (QRegion::RegionType)p->getAsInt() : QRegion::Rectangle;
+         self->setPrivate(CID_QREGION, new QoreQRegion(*(static_cast<QRect *>(r)), t));
+         return;
       }
-      ReferenceHolder<QoreQRect> holder(rectangle, xsink);
-      p = get_param(params, 1);
-      QRegion::RegionType t = !is_nothing(p) ? (QRegion::RegionType)p->getAsInt() : QRegion::Rectangle;
-
-      qr = new QoreQRegion(*rectangle, t);
+      ReferenceHolder<AbstractPrivateData> bmHolder(static_cast<AbstractPrivateData *>(bm), xsink);
+      self->setPrivate(CID_QREGION, new QoreQRegion(*(static_cast<QBitmap *>(bm))));
+      return;
    }
-   else {
-      int x = p->getAsInt();
-      p = get_param(params, 1);
-      int y = p ? p->getAsInt() : 0;
-      p = get_param(params, 2);
-      int w = p ? p->getAsInt() : 0;
-      p = get_param(params, 3);
-      int h = p ? p->getAsInt() : 0;
-      p = get_param(params, 4);
-      QRegion::RegionType t = !is_nothing(p) ? (QRegion::RegionType)p->getAsInt() : QRegion::Rectangle;
-
-      qr = new QoreQRegion(x, y, w, h, t);
-   }
-
-   self->setPrivate(CID_QREGION, qr);
+   int x = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int y = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int w = p ? p->getAsInt() : 0;
+   p = get_param(params, 3);
+   int h = p ? p->getAsInt() : 0;
+   p = get_param(params, 4);
+   QRegion::RegionType t = !is_nothing(p) ? (QRegion::RegionType)p->getAsInt() : QRegion::Rectangle;
+   self->setPrivate(CID_QREGION, new QoreQRegion(x, y, w, h, t));
+   return;
 }
 
 static void QREGION_copy(class Object *self, class Object *old, class QoreQRegion *qr, ExceptionSink *xsink)

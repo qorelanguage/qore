@@ -1503,7 +1503,7 @@ static QoreNode *QWIDGET_setPalette(class Object *self, QoreAbstractQWidget *qw,
    }
    ReferenceHolder<QoreQPalette> holder(qp, xsink);
 
-   qw->getQWidget()->setPalette(*qp);
+   qw->getQWidget()->setPalette(*(qp->getQPalette()));
    return 0;
 }
 

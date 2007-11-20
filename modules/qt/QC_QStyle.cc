@@ -191,7 +191,7 @@ static QoreNode *QSTYLE_drawItemText(Object *self, QoreAbstractQStyle *qs, QoreN
       return 0;
    p = get_param(params, 6);
    QPalette::ColorRole textRole = !is_nothing(p) ? (QPalette::ColorRole)p->getAsInt() : QPalette::NoRole;
-   qs->drawItemText(painter->getQPainter(), *(static_cast<QRect *>(rectangle)), alignment, *(static_cast<QPalette *>(palette)), enabled, text, textRole);
+   qs->drawItemText(painter->getQPainter(), *(static_cast<QRect *>(rectangle)), alignment, *(palette->getQPalette()), enabled, text, textRole);
    return 0;
 }
 
@@ -407,7 +407,7 @@ static QoreNode *QSTYLE_polish(Object *self, QoreAbstractQStyle *qs, QoreNode *p
 	 return 0;
       }
       ReferenceHolder<QoreQPalette> paletteHolder(palette, xsink);
-      qs->polish(*(static_cast<QPalette *>(palette)));
+      qs->polish(*(palette->getQPalette()));
       return 0;
    }
    ReferenceHolder<QoreQApplication> applicationHolder(application, xsink);

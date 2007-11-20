@@ -26,6 +26,7 @@ our $special_hash =
     ( "QDate"      : \do_qdate(),
       "QDateTime"  : \do_qdatetime(),
       "QTime"      : \do_qtime(),
+      "QBrush"     : \do_qbrush(),
     );
 
 const special_arg_list =
@@ -1048,6 +1049,16 @@ sub do_qdatetime($arg, $const)
     return $lo;
 }
 
+sub do_qbrush($arg, $const)
+{
+    my $lo = ();
+    
+    $lo += sprintf("QBrush %s;", $arg.name);
+    $lo += sprintf("if (get_qbrush(p, %s, xsink))", $arg.name);
+    $lo += sprintf("   return%s;", $const ? "" : " 0");
+    return $lo;
+}
+
 sub all_default($l)
 {
     foreach my $arg in ($l)
@@ -1333,6 +1344,18 @@ sub do_single_arg($offset, $name, $arg, $i, $ok, $const)
 		}
 		else {
 		    $lo += sprintf("if (get_qstring(p, %s, xsink))", $arg.name);
+		    $lo += $const ? "   return;" : "   return 0;";
+		}
+	    }
+	    break;
+	    case "QBrush": {
+		$lo += sprintf("QBrush %s;", $arg.name);
+		if (exists $arg.def) {
+		    $lo += sprintf("if (get_qbrush(p, %s, xsink, true))", $arg.name);
+		    $lo += sprintf("   %s = %s;", $arg.name, trim($arg.def));
+		}
+		else {
+		    $lo += sprintf("if (get_qbrush(p, %s, xsink))", $arg.name);
 		    $lo += $const ? "   return;" : "   return 0;";
 		}
 	    }

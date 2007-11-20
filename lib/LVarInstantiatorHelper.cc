@@ -31,11 +31,12 @@ struct lvih_intern {
 
       DLLLOCAL lvih_intern(const char *name, QoreNode *val, ExceptionSink *xs) : xsink(xs)
       {
-	 lv = instantiateLVar(name, val);
-
+	 char *new_name = strdup(name);
+	 printd(5, "LVarInstantiatorHelper::LVarInstantiatorHelper() instantiating '%s' %08p (val=%08p type='%s') \n", new_name, new_name, val, val ? val->type->getName() : "n/a");
+	 lv = instantiateLVar(new_name, val);
 	 ref = new QoreNode(NT_REFERENCE);
-	 VarRef *vr = new VarRef(strdup(name), VT_LOCAL);
-	 vr->ref.id = name;
+	 VarRef *vr = new VarRef(new_name, VT_LOCAL);
+	 vr->ref.id = new_name;
 	 ref->val.lvexp = new QoreNode(vr);
       }
 
@@ -49,10 +50,12 @@ struct lvih_intern {
       {
 	 // there will be no locking here, because it's our temporary local "variable"
 	 class AutoVLock vl;
-	 class QoreNode **vp = get_var_value_ptr(ref->val.lvexp, &vl, xsink);
+	 ExceptionSink xsink2;
+	 class QoreNode **vp = get_var_value_ptr(ref->val.lvexp, &vl, &xsink2);
 
 	 // no exception should be possible here
-	 if (*xsink)
+	 assert(!xsink2);
+	 if (xsink2)
 	    return 0;
 
 	 // take output value from our temporary "variable" 
@@ -61,6 +64,11 @@ struct lvih_intern {
 	 // and return it
 	 
 	 return rv;
+      }
+      
+      DLLLOCAL class QoreNode *getArg()
+      {
+	 return ref->RefSelf();
       }
 };
 
@@ -75,7 +83,7 @@ LVarInstantiatorHelper::~LVarInstantiatorHelper()
 
 QoreNode *LVarInstantiatorHelper::getArg() const
 {
-   return priv->ref;
+   return priv->getArg();
 }
 
 QoreNode *LVarInstantiatorHelper::getOutputValue()

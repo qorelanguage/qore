@@ -98,7 +98,7 @@ static QoreNode *QSTYLEOPTION_setPalette(Object *self, QoreQStyleOption *qso, Qo
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> paletteHolder(static_cast<AbstractPrivateData *>(palette), xsink);
-   qso->palette = *(static_cast<QPalette *>(palette));
+   qso->palette = *(palette->getQPalette());
    return 0;
 }
 
