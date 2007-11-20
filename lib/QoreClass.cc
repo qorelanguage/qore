@@ -551,6 +551,8 @@ void QoreClass::addDefaultBuiltinBaseClass(class QoreClass *qc, class QoreNode *
 
 void QoreClass::addBuiltinVirtualBaseClass(class QoreClass *qc)
 {
+   assert(qc);
+
    //printd(5, "adding %s as virtual base class to %s\n", qc->name, name);
    if (!scl)
       scl = new BCList();

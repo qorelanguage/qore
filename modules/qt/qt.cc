@@ -1415,17 +1415,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
  
    qt->addInitialNamespace(initQStyleNS(qobject));
 
-   qt->addSystemClass((qstyleoptioncomplex = initQStyleOptionComplexClass(qstyleoption)));
-   qt->addSystemClass(initQStyleOptionComboBoxClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionGroupBoxClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionSizeGripClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionSliderClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionSpinBoxClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionTitleBarClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionToolButtonClass(qstyleoptioncomplex));
-
-   qt->addInitialNamespace(initQStyleOptionButtonNS(qstyleoption));
-
    // automatically added classes
    qt->addSystemClass(initQPointFClass());
    qt->addSystemClass(initQPolygonClass());
@@ -1446,6 +1435,15 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQTextListFormatClass(qtextformat));
    qt->addSystemClass(initQTextImageFormatClass(qtextcharformat));
    qt->addSystemClass((qstyleoption = initQStyleOptionClass()));
+   qt->addSystemClass((qstyleoptioncomplex = initQStyleOptionComplexClass(qstyleoption)));
+   qt->addSystemClass(initQStyleOptionComboBoxClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionGroupBoxClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionSizeGripClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionSliderClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionSpinBoxClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionTitleBarClass(qstyleoptioncomplex));
+   qt->addSystemClass(initQStyleOptionToolButtonClass(qstyleoptioncomplex));
+   qt->addInitialNamespace(initQStyleOptionButtonNS(qstyleoption));
    qt->addSystemClass(initQModelIndexClass());
    qt->addSystemClass((qstyleoptionviewitem = initQStyleOptionViewItemClass(qstyleoption)));
    qt->addSystemClass(initQStyleOptionViewItemV2Class(qstyleoptionviewitem));

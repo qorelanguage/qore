@@ -1,3 +1,6 @@
+2007.11.19: David Nichols
+        * qt: fix initialization order in qt.cc regarding qstyleoptions
+
 2007.11.17: David Nichols
 	* do not send the default "Content-Type" header when there is no data
 
