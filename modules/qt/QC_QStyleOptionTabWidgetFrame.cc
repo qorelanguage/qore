@@ -32,12 +32,11 @@ class QoreClass *QC_QStyleOptionTabWidgetFrame = 0;
 static void QSTYLEOPTIONTABWIDGETFRAME_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTABWIDGETFRAME, new QoreQStyleOptionTabWidgetFrame());
-   return;
 }
 
 static void QSTYLEOPTIONTABWIDGETFRAME_copy(class Object *self, class Object *old, class QoreQStyleOptionTabWidgetFrame *qsotwf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONTABWIDGETFRAME-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONTABWIDGETFRAME, new QoreQStyleOptionTabWidgetFrame(*qsotwf));
 }
 
 QoreClass *initQStyleOptionTabWidgetFrameClass(QoreClass *qstyleoption)

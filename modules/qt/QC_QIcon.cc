@@ -64,7 +64,7 @@ static void QICON_constructor(class Object *self, class QoreNode *params, Except
 
 static void QICON_copy(class Object *self, class Object *old, class QoreQIcon *qf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QICON-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QICON, new QoreQIcon(*qf));
 }
 
 //QSize actualSize ( const QSize & size, Mode mode = Normal, State state = Off ) const

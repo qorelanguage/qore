@@ -191,7 +191,7 @@ std::string QException::getAllDetails() const
   return result;
 }
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/QException_tests.cc"
 #endif
 

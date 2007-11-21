@@ -58,7 +58,7 @@
 #include <assert.h>
 #include <sys/socket.h> // for AF_INET and AF_INET6
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 // the #include "test/Namespace_tests.cc" is on the bottom
 #  include "tests/builtin_inheritance_tests.cc"
 #endif
@@ -1586,7 +1586,7 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    // add signal constants
    QoreSignalManager::addSignalConstants(qns);
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 { // tests
    QoreClass* base = initBuiltinInheritanceTestBaseClass();
    qns->addSystemClass(base);
@@ -1669,7 +1669,6 @@ RootNamespace::RootNamespace(class Namespace **QoreNS) : Namespace()
    // add parse option constants to Qore namespace
    addProgramConstants(qns);
 
-
    addQoreNamespace(qns);
 
    // add all changes in loaded modules
@@ -1699,7 +1698,7 @@ class RootNamespace *RootNamespace::copy(int po) const
    return new RootNamespace(classList->copy(po), constant->copy(), nsl->copy(po));
 }
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 // moved down to allow to test internal classes
 #  include "tests/Namespace_tests.cc"
 #endif

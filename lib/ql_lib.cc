@@ -37,7 +37,7 @@
 #include <time.h>
 #include <glob.h>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 // Unsorted unit tests are put here
 #  include "tests/ReferenceHolder_tests.cc"
 #endif

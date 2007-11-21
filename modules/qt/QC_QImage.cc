@@ -78,7 +78,8 @@ val.object->getClass()->getName());
 
 static void QIMAGE_copy(class Object *self, class Object *old, class QoreQImage *qlcdn, ExceptionSink *xsink)
 {
-   xsink->raiseException("QIMAGE-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QIMAGE, new QoreQImage(*qlcdn));
+   //xsink->raiseException("QIMAGE-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //bool allGray () const

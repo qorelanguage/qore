@@ -41,7 +41,7 @@ static void QSTYLEOPTIONCOMPLEX_constructor(Object *self, QoreNode *params, Exce
 
 static void QSTYLEOPTIONCOMPLEX_copy(class Object *self, class Object *old, class QoreQStyleOptionComplex *qsoc, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONCOMPLEX-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONCOMPLEX, new QoreQStyleOptionComplex(*qsoc));
 }
 
 QoreClass *initQStyleOptionComplexClass(QoreClass *qstyleoption)

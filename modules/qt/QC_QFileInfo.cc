@@ -63,7 +63,7 @@ static void QFILEINFO_constructor(Object *self, QoreNode *params, ExceptionSink 
 
 static void QFILEINFO_copy(class Object *self, class Object *old, class QoreQFileInfo *qfi, ExceptionSink *xsink)
 {
-   xsink->raiseException("QFILEINFO-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QFILEINFO, new QoreQFileInfo(*qfi));
 }
 
 //QDir absoluteDir () const

@@ -32,12 +32,11 @@ class QoreClass *QC_QStyleOptionToolButton = 0;
 static void QSTYLEOPTIONTOOLBUTTON_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTOOLBUTTON, new QoreQStyleOptionToolButton());
-   return;
 }
 
 static void QSTYLEOPTIONTOOLBUTTON_copy(class Object *self, class Object *old, class QoreQStyleOptionToolButton *qsotb, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONTOOLBUTTON-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONTOOLBUTTON, new QoreQStyleOptionToolButton(*qsotb));
 }
 
 QoreClass *initQStyleOptionToolButtonClass(QoreClass *qstyleoptioncomplex)

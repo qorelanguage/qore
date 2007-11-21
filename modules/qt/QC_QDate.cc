@@ -52,7 +52,8 @@ static void QDATE_constructor(class Object *self, class QoreNode *params, Except
 
 static void QDATE_copy(class Object *self, class Object *old, class QoreQDate *qf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QDATE-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QDATE, new QoreQDate(*qf));
+   //xsink->raiseException("QDATE-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QDate addDays ( int ndays ) const

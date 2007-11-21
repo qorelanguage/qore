@@ -40,12 +40,11 @@ static void QTEXTLENGTH_constructor(Object *self, QoreNode *params, ExceptionSin
    p = get_param(params, 1);
    qreal value = p ? p->getAsFloat() : 0.0;
    self->setPrivate(CID_QTEXTLENGTH, new QoreQTextLength(type, value));
-   return;
 }
 
 static void QTEXTLENGTH_copy(class Object *self, class Object *old, class QoreQTextLength *qtl, ExceptionSink *xsink)
 {
-   xsink->raiseException("QTEXTLENGTH-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QTEXTLENGTH, new QoreQTextLength(*qtl));
 }
 
 //qreal rawValue () const

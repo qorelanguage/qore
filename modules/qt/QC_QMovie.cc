@@ -63,7 +63,8 @@ static void QMOVIE_constructor(Object *self, QoreNode *params, ExceptionSink *xs
 
 static void QMOVIE_copy(class Object *self, class Object *old, class QoreQMovie *qm, ExceptionSink *xsink)
 {
-   xsink->raiseException("QMOVIE-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QMOVIE, new QoreQMovie(*qm));
+   //xsink->raiseException("QMOVIE-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QColor backgroundColor () const

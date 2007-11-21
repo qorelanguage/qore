@@ -32,12 +32,11 @@ class QoreClass *QC_QStyleOptionGroupBox = 0;
 static void QSTYLEOPTIONGROUPBOX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONGROUPBOX, new QoreQStyleOptionGroupBox());
-   return;
 }
 
 static void QSTYLEOPTIONGROUPBOX_copy(class Object *self, class Object *old, class QoreQStyleOptionGroupBox *qsogb, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONGROUPBOX-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONGROUPBOX, new QoreQStyleOptionGroupBox(*qsogb));
 }
 
 QoreClass *initQStyleOptionGroupBoxClass(QoreClass *qstyleoptioncomplex)

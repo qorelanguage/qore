@@ -32,12 +32,11 @@ class QoreClass *QC_QStyleOptionSizeGrip = 0;
 static void QSTYLEOPTIONSIZEGRIP_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONSIZEGRIP, new QoreQStyleOptionSizeGrip());
-   return;
 }
 
 static void QSTYLEOPTIONSIZEGRIP_copy(class Object *self, class Object *old, class QoreQStyleOptionSizeGrip *qsosg, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONSIZEGRIP-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONSIZEGRIP, new QoreQStyleOptionSizeGrip(*qsosg));
 }
 
 QoreClass *initQStyleOptionSizeGripClass(QoreClass *qstyleoptioncomplex)

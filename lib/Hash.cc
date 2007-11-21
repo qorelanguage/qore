@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/Hash_tests.cc"
 #endif
 

@@ -26,7 +26,7 @@
 
 #include <assert.h>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/QoreClassList_tests.cc"
 #endif
 

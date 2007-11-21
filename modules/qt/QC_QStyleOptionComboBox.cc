@@ -32,12 +32,11 @@ class QoreClass *QC_QStyleOptionComboBox = 0;
 static void QSTYLEOPTIONCOMBOBOX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONCOMBOBOX, new QoreQStyleOptionComboBox());
-   return;
 }
 
 static void QSTYLEOPTIONCOMBOBOX_copy(class Object *self, class Object *old, class QoreQStyleOptionComboBox *qsocb, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONCOMBOBOX-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONCOMBOBOX, new QoreQStyleOptionComboBox(*qsocb));
 }
 
 QoreClass *initQStyleOptionComboBoxClass(QoreClass *qstyleoptioncomplex)

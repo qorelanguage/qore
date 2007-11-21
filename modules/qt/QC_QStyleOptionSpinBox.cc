@@ -32,12 +32,11 @@ class QoreClass *QC_QStyleOptionSpinBox = 0;
 static void QSTYLEOPTIONSPINBOX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONSPINBOX, new QoreQStyleOptionSpinBox());
-   return;
 }
 
 static void QSTYLEOPTIONSPINBOX_copy(class Object *self, class Object *old, class QoreQStyleOptionSpinBox *qsosb, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONSPINBOX-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONSPINBOX, new QoreQStyleOptionSpinBox(*qsosb));
 }
 
 QoreClass *initQStyleOptionSpinBoxClass(QoreClass *qstyleoptioncomplex)

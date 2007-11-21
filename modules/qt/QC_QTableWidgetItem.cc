@@ -164,14 +164,10 @@ static QoreNode *QTABLEWIDGETITEM_row(Object *self, QoreQTableWidgetItem *qtwi, 
 static QoreNode *QTABLEWIDGETITEM_setBackground(Object *self, QoreQTableWidgetItem *qtwi, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQBrush *brush = (p && p->type == NT_OBJECT) ? (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink) : 0;
-   if (!brush) {
-      if (!xsink->isException())
-         xsink->raiseException("QTABLEWIDGETITEM-SETBACKGROUND-PARAM-ERROR", "expecting a QBrush object as first argument to QTableWidgetItem::setBackground()");
+   QBrush brush;
+   if (get_qbrush(p, brush, xsink))
       return 0;
-   }
-   ReferenceHolder<AbstractPrivateData> brushHolder(static_cast<AbstractPrivateData *>(brush), xsink);
-   qtwi->qore_obj->setBackground(*(static_cast<QBrush *>(brush)));
+   qtwi->qore_obj->setBackground(brush);
    return 0;
 }
 
@@ -225,14 +221,10 @@ static QoreNode *QTABLEWIDGETITEM_setFont(Object *self, QoreQTableWidgetItem *qt
 static QoreNode *QTABLEWIDGETITEM_setForeground(Object *self, QoreQTableWidgetItem *qtwi, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQBrush *brush = (p && p->type == NT_OBJECT) ? (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink) : 0;
-   if (!brush) {
-      if (!xsink->isException())
-         xsink->raiseException("QTABLEWIDGETITEM-SETFOREGROUND-PARAM-ERROR", "expecting a QBrush object as first argument to QTableWidgetItem::setForeground()");
+   QBrush brush;
+   if (get_qbrush(p, brush, xsink))
       return 0;
-   }
-   ReferenceHolder<AbstractPrivateData> brushHolder(static_cast<AbstractPrivateData *>(brush), xsink);
-   qtwi->qore_obj->setForeground(*(static_cast<QBrush *>(brush)));
+   qtwi->qore_obj->setForeground(brush);
    return 0;
 }
 

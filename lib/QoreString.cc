@@ -31,7 +31,7 @@
 #include <iconv.h>
 #include <ctype.h>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/QoreString_tests.cc"
 #endif
 

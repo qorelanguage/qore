@@ -100,7 +100,8 @@ static void QPOLYGONF_constructor(Object *self, QoreNode *params, ExceptionSink 
 
 static void QPOLYGONF_copy(class Object *self, class Object *old, class QoreQPolygonF *qpf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QPOLYGONF-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QPOLYGONF, new QoreQPolygonF(*qpf));
+   //xsink->raiseException("QPOLYGONF-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QRectF boundingRect () const

@@ -50,7 +50,7 @@ static void QSTYLEOPTIONVIEWITEMV2_constructor(Object *self, QoreNode *params, E
 
 static void QSTYLEOPTIONVIEWITEMV2_copy(class Object *self, class Object *old, class QoreQStyleOptionViewItemV2 *qsoviv2, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONVIEWITEMV2-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONVIEWITEMV2, new QoreQStyleOptionViewItemV2(*qsoviv2));
 }
 
 QoreClass *initQStyleOptionViewItemV2Class(QoreClass *qstyleoptionviewitem)

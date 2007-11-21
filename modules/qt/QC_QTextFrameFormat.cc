@@ -36,7 +36,7 @@ static void QTEXTFRAMEFORMAT_constructor(Object *self, QoreNode *params, Excepti
 
 static void QTEXTFRAMEFORMAT_copy(class Object *self, class Object *old, class QoreQTextFrameFormat *qtff, ExceptionSink *xsink)
 {
-   xsink->raiseException("QTEXTFRAMEFORMAT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QTEXTFRAMEFORMAT, new QoreQTextFrameFormat(*qtff));
 }
 
 //qreal border () const
@@ -130,14 +130,10 @@ static QoreNode *QTEXTFRAMEFORMAT_setBorder(Object *self, QoreQTextFrameFormat *
 static QoreNode *QTEXTFRAMEFORMAT_setBorderBrush(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQBrush *brush = (p && p->type == NT_OBJECT) ? (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink) : 0;
-   if (!brush) {
-      if (!xsink->isException())
-         xsink->raiseException("QTEXTFRAMEFORMAT-SETBORDERBRUSH-PARAM-ERROR", "expecting a QBrush object as first argument to QTextFrameFormat::setBorderBrush()");
+   QBrush brush;
+   if (get_qbrush(p, brush, xsink))
       return 0;
-   }
-   ReferenceHolder<QoreQBrush> brushHolder(brush, xsink);
-   qtff->setBorderBrush(*(static_cast<QBrush *>(brush)));
+   qtff->setBorderBrush(brush);
    return 0;
 }
 

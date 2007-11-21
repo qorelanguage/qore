@@ -15,14 +15,21 @@
 # enable all parse warnings
 %enable-all-warnings
 
+sub qSwap($a, $b)
+{
+    my $t = $a;
+    $a = $b;
+    $b = $t;
+}
+
 class NorwegianWoodStyle inherits QMotifStyle
 {
     polish($palette)
     {
-	#throw "HI";
 	if (!($palette instanceof QPalette)) {
 	    if ($palette instanceof QPushButton || $palette instanceof QComboBox)
 		$palette.setAttribute(Qt::WA_Hover, True);
+	    #printf("palette=%N\n", $palette);
 	    return;
 	}
 	my $brown = new QColor(212, 140, 95);
@@ -31,7 +38,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 
 	my $backgroundImage = new QPixmap("images/woodbackground.png");
 	my $buttonImage = new QPixmap("images/woodbutton.png");
-	my $midImage = $buttonImage;
+	my $midImage = $buttonImage.copy();
 
 	my $painter = new QPainter();
 	$painter.begin($midImage);
@@ -57,7 +64,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 	$palette.setBrush(QPalette::Disabled, QPalette::Base, $brush);
 	$palette.setBrush(QPalette::Disabled, QPalette::Button, $brush);
 	$palette.setBrush(QPalette::Disabled, QPalette::Mid, $brush);
-    }
+   }
 
     unpolish($widget)
     {
@@ -94,7 +101,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 	switch ($element) {
 	    case PE_PanelButtonCommand:
 	    {
-		my $delta = ($option.state & State_MouseOver) ? 64 : 0;
+		my $delta = ($option.state() & State_MouseOver) ? 64 : 0;
 		my $slightlyOpaqueBlack = new QColor(0, 0, 0, 63);
 		my $semiTransparentWhite = new QColor(255, 255, 255, 127 + $delta);
 		my $semiTransparentBlack = new QColor(0, 0, 0, 127 - $delta);
@@ -108,8 +115,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 		my $brush;
 		my $darker;
 	    
-		my $buttonOption = $option;
-		if ($buttonOption && ($buttonOption.features() & QStyleOptionButton::Flat)) {
+		if ($option instanceof QStyleOptionButton && ($option.features() & QStyleOptionButton::Flat)) {
 		    $brush = $option.palette().background();
 		    $darker = ($option.state() & (State_Sunken | State_On));
 		} else {
@@ -140,10 +146,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 		my $bottomPen = new QPen($semiTransparentBlack, $penWidth);
 		
 		if ($option.state() & (State_Sunken | State_On)) {
-		    my $save = $topPen;
-		    $topPen = $bottomPen;
-		    $bottomPen = $save; 
-		    #qSwap(topPen, bottomPen);
+		    qSwap(\$topPen, \$bottomPen);
 		}
 		
 		my $x1 = $x;
@@ -152,15 +155,8 @@ class NorwegianWoodStyle inherits QMotifStyle
 		my $x4 = $x + $width;
 		
 		if ($option.direction() == Qt::RightToLeft) {
-		    my $save = $x1;
-		    $x1 = $x4;
-		    $x4 = $save;
-		    #qSwap(x1, x4);
-
-		    $save = $x2;
-		    $x2 = $x3;
-		    $x3 = $save;
-		    #qSwap(x2, x3);
+		    qSwap(\$x1, \$x4);
+		    qSwap(\$x2, \$x3);
 		}
 		
 		my $topHalf = new QPolygon((new QPoint($x1, $y), 
@@ -174,7 +170,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 		$painter.setPen($topPen);
 		$painter.drawPath($roundRect);
 		
-		my $bottomHalf = $topHalf;
+		my $bottomHalf = $topHalf.copy();
 		$bottomHalf.setPoint(0, new QPoint($x4, $y + $height));
 		
 		$painter.setClipPath($roundRect);
@@ -202,14 +198,14 @@ class NorwegianWoodStyle inherits QMotifStyle
 		my $myButtonOption;
 		
 		if ($option instanceof QStyleOptionButton) {
-		    $myButtonOption = $option;
+		    $myButtonOption = $option.copy();
 		    if ($myButtonOption.palette().currentColorGroup() != QPalette::Disabled) {
 			if ($myButtonOption.state() & (State_Sunken | State_On)) {
 			    $myButtonOption.palette().setBrush(QPalette::ButtonText, $myButtonOption.palette().brightText());
 			}
 		    }
 		}
-		else 
+		else
 		    $myButtonOption = new QStyleOptionButton();
 		QMotifStyle::$.drawControl($element, $myButtonOption, $painter, $widget);
 	    }
@@ -466,6 +462,12 @@ class styles_example inherits QApplication
 {
     constructor()
     {
+	# check for texture resources
+	if (!is_file("images/woodbackground.png") || !is_file("images/woodbutton.png")) {
+	    QMessageBox_information(0, TR("Style Example"), TR("Cannot load bitmap resources required for style; try running in the same directory as the script"));
+	    exit(1);
+	}
+
 	my $gallery = new WidgetGallery();
 	$gallery.show();
 	$.exec();

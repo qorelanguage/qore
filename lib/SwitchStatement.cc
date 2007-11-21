@@ -25,7 +25,7 @@
 #include <qore/CaseNodeRegex.h>
 #include <qore/minitest.hpp>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/SwitchStatementWithOperators_tests.cc"
 #endif
 

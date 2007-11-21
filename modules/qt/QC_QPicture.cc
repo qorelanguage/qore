@@ -55,7 +55,8 @@ static void QPICTURE_constructor(class Object *self, class QoreNode *params, Exc
 
 static void QPICTURE_copy(class Object *self, class Object *old, class QoreQPicture *qlcdn, ExceptionSink *xsink)
 {
-   xsink->raiseException("QPICTURE-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QPICTURE, new QoreQPicture(*qlcdn));
+   //xsink->raiseException("QPICTURE-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 

@@ -57,7 +57,7 @@ static void QFONTMETRICS_constructor(Object *self, QoreNode *params, ExceptionSi
 
 static void QFONTMETRICS_copy(class Object *self, class Object *old, class QoreQFontMetrics *qfm, ExceptionSink *xsink)
 {
-   xsink->raiseException("QFONTMETRICS-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QFONTMETRICS, new QoreQFontMetrics(*qfm));
 }
 
 //int ascent () const

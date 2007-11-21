@@ -45,7 +45,7 @@ static void QSTYLEOPTION_constructor(Object *self, QoreNode *params, ExceptionSi
 
 static void QSTYLEOPTION_copy(class Object *self, class Object *old, class QoreQStyleOption *qso, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTION-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTION, new QoreQStyleOption(*qso));
 }
 
 //void initFrom ( const QWidget * widget )
@@ -106,7 +106,7 @@ static QoreNode *QSTYLEOPTION_setPalette(Object *self, QoreQStyleOption *qso, Qo
 static QoreNode *QSTYLEOPTION_palette(Object *self, QoreQStyleOption *qso, QoreNode *params, ExceptionSink *xsink)
 {
    Object *o_qp = new Object(QC_QPalette, getProgram());
-   QoreQPalette *q_qp = new QoreQPalette(qso->palette);
+   QoreQPalette *q_qp = new QoreQPalette(&qso->palette);
    o_qp->setPrivate(CID_QPALETTE, q_qp);
    return new QoreNode(o_qp);
 }

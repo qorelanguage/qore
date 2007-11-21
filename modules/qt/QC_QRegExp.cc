@@ -50,7 +50,7 @@ static void QREGEXP_constructor(Object *self, QoreNode *params, ExceptionSink *x
 
 static void QREGEXP_copy(class Object *self, class Object *old, class QoreQRegExp *qre, ExceptionSink *xsink)
 {
-   xsink->raiseException("QREGEXP-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QREGEXP, new QoreQRegExp(*qre));
 }
 
 //QString cap ( int nth = 0 )

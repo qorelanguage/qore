@@ -51,7 +51,7 @@ static void QMATRIX_constructor(class Object *self, class QoreNode *params, Exce
 
 static void QMATRIX_copy(class Object *self, class Object *old, class QoreQMatrix *qf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QMATRIX-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QMATRIX, new QoreQMatrix(*qf));
 }
 
 //qreal m11 () const

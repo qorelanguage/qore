@@ -81,7 +81,7 @@ static void QRECT_constructor(Object *self, QoreNode *params, ExceptionSink *xsi
 
 static void QRECT_copy(class Object *self, class Object *old, class QoreQRect *qr, ExceptionSink *xsink)
 {
-   xsink->raiseException("QRECT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QRECT, new QoreQRect(*qr));
 }
 
 //void adjust ( int dx1, int dy1, int dx2, int dy2 )

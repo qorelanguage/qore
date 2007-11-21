@@ -66,7 +66,8 @@ static void QBITMAP_constructor(class Object *self, class QoreNode *params, Exce
 
 static void QBITMAP_copy(class Object *self, class Object *old, class QoreQBitmap *qlcdn, ExceptionSink *xsink)
 {
-   xsink->raiseException("QBITMAP-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QBITMAP, new QoreQBitmap(*qlcdn));
+   //xsink->raiseException("QBITMAP-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //void clear ()

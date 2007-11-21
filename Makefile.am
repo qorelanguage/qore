@@ -264,10 +264,25 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQAbstractScrollArea.h \
 	modules/qt/QoreAbstractQComboBox.h \
 	modules/qt/QoreAbstractQMenu.h \
+	modules/qt/QoreAbstractQPushButton.h \
+	modules/qt/QoreAbstractQAction.h \
+	modules/qt/QoreAbstractQToolButton.h \
+	modules/qt/QoreAbstractQDialog.h \
+	modules/qt/QoreAbstractQCheckBox.h \
+	modules/qt/QoreAbstractQScrollBar.h \
+	modules/qt/QoreAbstractQRadioButton.h \
+	modules/qt/QoreAbstractQMotifStyle.h \
+	modules/qt/QoreAbstractQWindowsStyle.h \
+	modules/qt/QoreAbstractQCleanlooksStyle.h \
+	modules/qt/QoreAbstractQValidator.h \
+	modules/qt/QoreAbstractQPaintEngine.h \
+	modules/qt/QoreAbstractQTabBar.h \
+	modules/qt/qore-qt-qvalidator-methods.h \
 	modules/qt/qore-qt-events.h \
 	modules/qt/qore-qt-widget-events.h \
 	modules/qt/qore-qt-metacode.h \
 	modules/qt/qore-qt-qabstractitemdelegate-methods.h \
+	modules/qt/qore-qt-qstyle-methods.h \
 	modules/qt/qore-qt-static-qobject-methods.h \
 	modules/qt/qore-qt-static-qwidget-methods.h \
 	modules/qt/qore-qt-static-qstyle-methods.h \
@@ -420,6 +435,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QIODevice.h \
 	modules/qt/QoreAbstractQIODevice.h \
 	modules/qt/QC_QImageWriter.h \
+	modules/qt/QC_QImage.h \
 	modules/qt/QC_QDial.h \
 	modules/qt/QC_QStackedWidget.h \
 	modules/qt/QC_QDoubleSpinBox.h \
@@ -475,7 +491,29 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/inherit2.q \
 	examples/getopt.q \
 	examples/worm.q \
-	examples/qt.q \
+	examples/qt/analogclock.q \ 
+	examples/qt/calculator.q \ 
+	examples/qt/calendarwidget.q \ 
+	examples/qt/charactermap.q \ 
+	examples/qt/digitalclock.q \ 
+	examples/qt/groupbox.q \ 
+	examples/qt/icons.q \ 
+	examples/qt/imageviewer.q \ 
+	examples/qt/lineedits.q \ 
+	examples/qt/movieplayer.q \ 
+	examples/qt/scribble.q \ 
+	examples/qt/shapedclock.q \ 
+	examples/qt/sliders.q \ 
+	examples/qt/spinboxes.q \ 
+	examples/qt/styles.q \ 
+	examples/qt/tutorial.q \ 
+	examples/qt/images/open.png \
+	examples/qt/images/pause.png \
+	examples/qt/images/play.png \
+	examples/qt/images/quit.png \
+	examples/qt/images/stop.png \
+	examples/qt/images/woodbackground.png \
+	examples/qt/images/woodbutton.png \
 	docs/qore.html \
 	docs/qore-style.css \
 	docs/img/acrobat_a.gif \

@@ -56,7 +56,7 @@ static void QKEYSEQUENCE_constructor(class Object *self, class QoreNode *params,
 
 static void QKEYSEQUENCE_copy(class Object *self, class Object *old, class QoreQKeySequence *qf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QKEYSEQUENCE-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QKEYSEQUENCE, new QoreQKeySequence(*qf));
 }
 
 //uint count () const

@@ -552,7 +552,7 @@ int get_qbrush(const QoreNode *n, QBrush &brush, class ExceptionSink *xsink)
 	    return 0;
 	 }
 	 ReferenceHolder<QoreQBrush> qbHolder(qb, xsink);
-	 brush = *qb;
+	 brush = *(qb->getQBrush());
 	 return 0;
       }
       if (n->type == NT_BRUSHSTYLE) {

@@ -29,7 +29,7 @@
 #include <assert.h>
 
 #include <qore/minitest.hpp>
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/List_tests.cc"
 #endif
 

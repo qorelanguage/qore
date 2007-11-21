@@ -31,29 +31,48 @@ DLLLOCAL extern QoreClass *QC_QBrush;
 
 DLLLOCAL class QoreClass *initQBrushClass();
 
-class QoreQBrush : public AbstractPrivateData, public QBrush
+class QoreQBrush : public AbstractPrivateData
 {
+   private:
+      QBrush *brush;
+      bool managed;
+
    public:
-      DLLLOCAL QoreQBrush() : QBrush()
+      DLLLOCAL QoreQBrush() : brush(new QBrush()), managed(true)
       {
       }
-      DLLLOCAL QoreQBrush(const QColor &color, Qt::BrushStyle style = Qt::SolidPattern) : QBrush(color, style)
+      DLLLOCAL QoreQBrush(QBrush *br) : brush(br), managed(false)
       {
       }
-      DLLLOCAL QoreQBrush(Qt::BrushStyle style) : QBrush(style)
+      DLLLOCAL QoreQBrush(const QBrush *br) : brush(const_cast<QBrush *>(br)), managed(false)
       {
       }
-      DLLLOCAL QoreQBrush(Qt::GlobalColor color, Qt::BrushStyle style = Qt::SolidPattern) : QBrush(color, style)
+      DLLLOCAL ~QoreQBrush()
+      {
+	 if (managed)
+	    delete brush;
+      }
+      DLLLOCAL QoreQBrush(const QColor &color, Qt::BrushStyle style = Qt::SolidPattern) : brush(new QBrush(color, style)), managed(true)
       {
       }
-      DLLLOCAL QoreQBrush(const QColor &color, const QPixmap &pixmap) : QBrush(color, pixmap)
+      DLLLOCAL QoreQBrush(Qt::BrushStyle style) : brush(new QBrush(style)), managed(true)
       {
       }
-      DLLLOCAL QoreQBrush(Qt::GlobalColor color, const QPixmap &pixmap) : QBrush(color, pixmap)
+      DLLLOCAL QoreQBrush(Qt::GlobalColor color, Qt::BrushStyle style = Qt::SolidPattern) : brush(new QBrush(color, style)), managed(true)
+      {
+      }
+      DLLLOCAL QoreQBrush(const QColor &color, const QPixmap &pixmap) : brush(new QBrush(color, pixmap)), managed(true)
+      {
+      }
+      DLLLOCAL QoreQBrush(Qt::GlobalColor color, const QPixmap &pixmap) : brush(new QBrush(color, pixmap)), managed(true)
       {
       }   
-      DLLLOCAL QoreQBrush(const QBrush &brush) : QBrush(brush)
+      DLLLOCAL QoreQBrush(const QBrush &brush) : brush(new QBrush(brush)), managed(true)
       {
+      }
+      DLLLOCAL QBrush *getQBrush() const
+      {
+	 return brush;
       }
 };
 

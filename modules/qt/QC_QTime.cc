@@ -54,7 +54,8 @@ static void QTIME_constructor(class Object *self, class QoreNode *params, Except
 
 static void QTIME_copy(class Object *self, class Object *old, class QoreQTime *qf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QTIME-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QTIME, new QoreQTime(*qf));
+   //xsink->raiseException("QTIME-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QTime addMSecs ( int ms ) const

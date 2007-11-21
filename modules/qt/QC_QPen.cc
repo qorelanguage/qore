@@ -69,7 +69,7 @@ static void QPEN_constructor(Object *self, QoreNode *params, ExceptionSink *xsin
 
 static void QPEN_copy(class Object *self, class Object *old, class QoreQPen *qp, ExceptionSink *xsink)
 {
-   xsink->raiseException("QPEN-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QPEN, new QoreQPen(*qp));
 }
 
 //QBrush brush () const
@@ -142,14 +142,10 @@ static QoreNode *QPEN_miterLimit(Object *self, QoreQPen *qp, QoreNode *params, E
 static QoreNode *QPEN_setBrush(Object *self, QoreQPen *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQBrush *brush = (p && p->type == NT_OBJECT) ? (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink) : 0;
-   if (!brush) {
-      if (!xsink->isException())
-         xsink->raiseException("QPEN-SETBRUSH-PARAM-ERROR", "expecting a QBrush object as first argument to QPen::setBrush()");
+   QBrush brush;
+   if (get_qbrush(p, brush, xsink))
       return 0;
-   }
-   ReferenceHolder<QoreQBrush> brushHolder(brush, xsink);
-   qp->setBrush(*(static_cast<QBrush *>(brush)));
+   qp->setBrush(brush);
    return 0;
 }
 

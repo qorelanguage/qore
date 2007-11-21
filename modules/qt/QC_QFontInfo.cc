@@ -45,7 +45,7 @@ static void QFONTINFO_constructor(Object *self, QoreNode *params, ExceptionSink 
 
 static void QFONTINFO_copy(class Object *self, class Object *old, class QoreQFontInfo *qfi, ExceptionSink *xsink)
 {
-   xsink->raiseException("QFONTINFO-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QFONTINFO, new QoreQFontInfo(*qfi));
 }
 
 //bool bold () const

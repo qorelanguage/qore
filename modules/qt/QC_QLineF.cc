@@ -76,7 +76,8 @@ static void QLINEF_constructor(Object *self, QoreNode *params, ExceptionSink *xs
 
 static void QLINEF_copy(class Object *self, class Object *old, class QoreQLineF *qlf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QLINEF-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QLINEF, new QoreQLineF(*qlf));
+   //xsink->raiseException("QLINEF-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QPointF p1 () const

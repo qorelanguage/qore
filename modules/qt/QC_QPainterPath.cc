@@ -50,7 +50,7 @@ static void QPAINTERPATH_constructor(Object *self, QoreNode *params, ExceptionSi
 
 static void QPAINTERPATH_copy(class Object *self, class Object *old, class QoreQPainterPath *qpp, ExceptionSink *xsink)
 {
-   xsink->raiseException("QPAINTERPATH-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QPAINTERPATH, new QoreQPainterPath(*qpp));
 }
 
 //void addEllipse ( const QRectF & boundingRectangle )

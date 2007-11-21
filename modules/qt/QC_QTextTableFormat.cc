@@ -31,12 +31,11 @@ class QoreClass *QC_QTextTableFormat = 0;
 static void QTEXTTABLEFORMAT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTTABLEFORMAT, new QoreQTextTableFormat());
-   return;
 }
 
 static void QTEXTTABLEFORMAT_copy(class Object *self, class Object *old, class QoreQTextTableFormat *qttf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QTEXTTABLEFORMAT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QTEXTTABLEFORMAT, new QoreQTextTableFormat(*qttf));
 }
 
 //Qt::Alignment alignment () const

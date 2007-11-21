@@ -37,7 +37,7 @@ static void QTEXTCHARFORMAT_constructor(Object *self, QoreNode *params, Exceptio
 
 static void QTEXTCHARFORMAT_copy(class Object *self, class Object *old, class QoreQTextCharFormat *qtcf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QTEXTCHARFORMAT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QTEXTCHARFORMAT, new QoreQTextCharFormat(*qtcf));
 }
 
 //QString anchorHref () const

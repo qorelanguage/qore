@@ -49,7 +49,7 @@ static void QSIZE_constructor(class Object *self, class QoreNode *params, Except
 
 static void QSIZE_copy(class Object *self, class Object *old, class QoreQSize *qr, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSIZE-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSIZE, new QoreQSize(*qr));
 }
 
 //QSize boundedTo ( const QSize & otherSize ) const

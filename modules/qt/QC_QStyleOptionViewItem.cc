@@ -31,16 +31,12 @@ class QoreClass *QC_QStyleOptionViewItem = 0;
 //QStyleOptionViewItem ( const QStyleOptionViewItem & other )
 static void QSTYLEOPTIONVIEWITEM_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (is_nothing(p)) {
-      self->setPrivate(CID_QSTYLEOPTIONVIEWITEM, new QoreQStyleOptionViewItem());
-      return;
-   }
+   self->setPrivate(CID_QSTYLEOPTIONVIEWITEM, new QoreQStyleOptionViewItem());
 }
 
 static void QSTYLEOPTIONVIEWITEM_copy(class Object *self, class Object *old, class QoreQStyleOptionViewItem *qsovi, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONVIEWITEM-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONVIEWITEM, new QoreQStyleOptionViewItem(*qsovi));
 }
 
 QoreClass *initQStyleOptionViewItemClass(QoreClass *qstyleoption)

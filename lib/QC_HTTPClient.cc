@@ -26,7 +26,7 @@
 #include <qore/ssl_constants.h>
 #include <qore/minitest.hpp>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/QC_HTTPClient_tests.cc"
 #endif
 

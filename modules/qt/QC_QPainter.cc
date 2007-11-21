@@ -1161,15 +1161,10 @@ static QoreNode *QPAINTER_fillRect(Object *self, QoreQPainter *qp, QoreNode *par
    p = get_param(params, 3);
    int height = p ? p->getAsInt() : 0;
    p = get_param(params, 4);
-   QoreQBrush *brush = (p && p->type == NT_OBJECT) ? (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink) : 0;
-   if (!p || !brush)
-   {
-      if (!xsink->isException())
-         xsink->raiseException("QPAINTER-FILLRECT-PARAM-ERROR", "expecting a QBrush object as fifth argument to QPainter::fillRect()");
+   QBrush brush;
+   if (get_qbrush(p, brush, xsink))
       return 0;
-   }
-   ReferenceHolder<QoreQBrush> holder(brush, xsink);
-   qp->getQPainter()->fillRect(x, y, width, height, *((QBrush *)brush));
+   qp->getQPainter()->fillRect(x, y, width, height, brush);
    return 0;
 }
 
@@ -1313,15 +1308,10 @@ static QoreNode *QPAINTER_scale(Object *self, QoreQPainter *qp, QoreNode *params
 static QoreNode *QPAINTER_setBackground(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQBrush *brush = (p && p->type == NT_OBJECT) ? (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink) : 0;
-   if (!p || !brush)
-   {
-      if (!xsink->isException())
-         xsink->raiseException("QPAINTER-SETBACKGROUND-PARAM-ERROR", "expecting a QBrush object as first argument to QPainter::setBackground()");
+   QBrush brush;
+   if (get_qbrush(p, brush, xsink))
       return 0;
-   }
-   ReferenceHolder<QoreQBrush> holder(brush, xsink);
-   qp->getQPainter()->setBackground(*((QBrush *)brush));
+   qp->getQPainter()->setBackground(brush);
    return 0;
 }
 
@@ -1339,31 +1329,15 @@ static QoreNode *QPAINTER_setBackgroundMode(Object *self, QoreQPainter *qp, Qore
 static QoreNode *QPAINTER_setBrush(Object *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
-      QoreQColor *color = (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink);
-      if (!color) {
-         QoreQBrush *brush = (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink);
-         if (!brush) {
-            if (!xsink->isException())
-               xsink->raiseException("QPAINTER-SETBRUSH-PARAM-ERROR", "QPainter::setBrush() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
-            return 0;
-         }
-         ReferenceHolder<QoreQBrush> brushHolder(brush, xsink);
-         qp->getQPainter()->setBrush(*(static_cast<QBrush *>(brush)));
-         return 0;
-      }
-      ReferenceHolder<QoreQColor> colorHolder(color, xsink);
-      qp->getQPainter()->setBrush(*(static_cast<QColor *>(color)));
-      return 0;
+   if (p && p->type == NT_BRUSHSTYLE) {
+      Qt::BrushStyle style = (Qt::BrushStyle)(p ? p->getAsInt() : 0);
+      qp->getQPainter()->setBrush(style);
    }
-   if (!p || p->type != NT_BRUSHSTYLE) {
-      Qt::GlobalColor color = (Qt::GlobalColor)(p ? p->getAsInt() : 0);
-      qp->getQPainter()->setBrush(color);
-      return 0;
+   else {
+      QBrush brush;
+      if (!get_qbrush(p, brush, xsink))
+	 qp->getQPainter()->setBrush(brush);
    }
-
-   Qt::BrushStyle style = (Qt::BrushStyle)(p ? p->getAsInt() : 0);
-   qp->getQPainter()->setBrush(style);
    return 0;
 }
 

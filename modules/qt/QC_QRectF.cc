@@ -52,7 +52,7 @@ static void QRECTF_constructor(class Object *self, class QoreNode *params, Excep
 
 static void QRECTF_copy(class Object *self, class Object *old, class QoreQRectF *qr, ExceptionSink *xsink)
 {
-   xsink->raiseException("QRECTF-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QRECTF, new QoreQRectF(*qr));
 }
 
 //void adjust ( qreal dx1, qreal dy1, qreal dx2, qreal dy2 )

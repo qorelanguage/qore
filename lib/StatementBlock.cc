@@ -40,7 +40,7 @@
 #include <string.h>
 #include <assert.h>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/Statement_tests.cc"
 #endif
 

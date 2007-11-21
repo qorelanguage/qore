@@ -44,7 +44,7 @@ static void QTEXTFORMAT_constructor(Object *self, QoreNode *params, ExceptionSin
 
 static void QTEXTFORMAT_copy(class Object *self, class Object *old, class QoreQTextFormat *qtf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QTEXTFORMAT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QTEXTFORMAT, new QoreQTextFormat(*qtf));
 }
 
 //QBrush background () const
@@ -271,19 +271,10 @@ static QoreNode *QTEXTFORMAT_propertyCount(Object *self, QoreQTextFormat *qtf, Q
 static QoreNode *QTEXTFORMAT_setBackground(Object *self, QoreQTextFormat *qtf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (p && p->type != NT_OBJECT) {
-      qtf->setBackground((Qt::GlobalColor)p->getAsInt());
+   QBrush brush;
+   if (get_qbrush(p, brush, xsink))
       return 0;
-   }
-
-   QoreQBrush *brush = (p && p->type == NT_OBJECT) ? (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink) : 0;
-   if (!brush) {
-      if (!xsink->isException())
-         xsink->raiseException("QTEXTFORMAT-SETBACKGROUND-PARAM-ERROR", "expecting a QBrush object as first argument to QTextFormat::setBackground()");
-      return 0;
-   }
-   ReferenceHolder<QoreQBrush> brushHolder(brush, xsink);
-   qtf->setBackground(*(static_cast<QBrush *>(brush)));
+   qtf->setBackground(brush);
    return 0;
 }
 
@@ -291,19 +282,10 @@ static QoreNode *QTEXTFORMAT_setBackground(Object *self, QoreQTextFormat *qtf, Q
 static QoreNode *QTEXTFORMAT_setForeground(Object *self, QoreQTextFormat *qtf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (p && p->type != NT_OBJECT) {
-      qtf->setForeground((Qt::GlobalColor)p->getAsInt());
+   QBrush brush;
+   if (get_qbrush(p, brush, xsink))
       return 0;
-   }
-
-   QoreQBrush *brush = (p && p->type == NT_OBJECT) ? (QoreQBrush *)p->val.object->getReferencedPrivateData(CID_QBRUSH, xsink) : 0;
-   if (!brush) {
-      if (!xsink->isException())
-         xsink->raiseException("QTEXTFORMAT-SETFOREGROUND-PARAM-ERROR", "expecting a QBrush object as first argument to QTextFormat::setForeground()");
-      return 0;
-   }
-   ReferenceHolder<QoreQBrush> brushHolder(brush, xsink);
-   qtf->setForeground(*(static_cast<QBrush *>(brush)));
+   qtf->setForeground(brush);
    return 0;
 }
 

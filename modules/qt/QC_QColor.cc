@@ -56,7 +56,8 @@ static void QCOLOR_constructor(class Object *self, class QoreNode *params, Excep
 
 static void QCOLOR_copy(class Object *self, class Object *old, class QoreQColor *qf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QCOLOR-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QCOLOR, new QoreQColor(*qf));
+   //xsink->raiseException("QCOLOR-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //int alpha () const

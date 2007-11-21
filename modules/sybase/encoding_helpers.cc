@@ -84,7 +84,7 @@ const char* QoreEncoding_to_SybaseName(QoreEncoding *enc)
 }
 
 #ifdef DEBUG
-#  include "tests/encoding_helpers_tests.cc"
+//#  include "tests/encoding_helpers_tests.cc"
 #endif
 
 // EOF

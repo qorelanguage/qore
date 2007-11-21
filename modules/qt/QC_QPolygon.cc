@@ -95,7 +95,8 @@ static void QPOLYGON_constructor(Object *self, QoreNode *params, ExceptionSink *
 
 static void QPOLYGON_copy(class Object *self, class Object *old, class QoreQPolygon *qp, ExceptionSink *xsink)
 {
-   xsink->raiseException("QPOLYGON-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QPOLYGON, new QoreQPolygon(*qp));
+   //xsink->raiseException("QPOLYGON-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QRect boundingRect () const

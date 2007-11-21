@@ -32,12 +32,11 @@ class QoreClass *QC_QStyleOptionTab = 0;
 static void QSTYLEOPTIONTAB_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTAB, new QoreQStyleOptionTab());
-   return;
 }
 
 static void QSTYLEOPTIONTAB_copy(class Object *self, class Object *old, class QoreQStyleOptionTab *qsot, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONTAB-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONTAB, new QoreQStyleOptionTab(*qsot));
 }
 
 QoreClass *initQStyleOptionTabClass(QoreClass *qstyleoption)

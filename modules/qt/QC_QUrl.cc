@@ -54,7 +54,7 @@ static void QURL_constructor(Object *self, QoreNode *params, ExceptionSink *xsin
 
 static void QURL_copy(class Object *self, class Object *old, class QoreQUrl *qu, ExceptionSink *xsink)
 {
-   xsink->raiseException("QURL-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QURL, new QoreQUrl(*qu));
 }
 
 //void addQueryItem ( const QString & key, const QString & value )

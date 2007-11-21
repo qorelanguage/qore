@@ -31,12 +31,11 @@ class QoreClass *QC_QTextListFormat = 0;
 static void QTEXTLISTFORMAT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTLISTFORMAT, new QoreQTextListFormat());
-   return;
 }
 
 static void QTEXTLISTFORMAT_copy(class Object *self, class Object *old, class QoreQTextListFormat *qtlf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QTEXTLISTFORMAT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QTEXTLISTFORMAT, new QoreQTextListFormat(*qtlf));
 }
 
 //int indent () const

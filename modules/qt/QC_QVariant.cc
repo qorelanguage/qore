@@ -212,7 +212,7 @@ static void QVARIANT_constructor(Object *self, QoreNode *params, ExceptionSink *
 
 static void QVARIANT_copy(class Object *self, class Object *old, class QoreQVariant *qv, ExceptionSink *xsink)
 {
-   xsink->raiseException("QVARIANT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QVARIANT, new QoreQVariant(*qv));
 }
 
 //bool canConvert ( Type t ) const

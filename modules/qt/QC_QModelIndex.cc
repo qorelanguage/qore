@@ -37,7 +37,7 @@ static void QMODELINDEX_constructor(Object *self, QoreNode *params, ExceptionSin
 
 static void QMODELINDEX_copy(class Object *self, class Object *old, class QoreQModelIndex *qmi, ExceptionSink *xsink)
 {
-   xsink->raiseException("QMODELINDEX-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QMODELINDEX, new QoreQModelIndex(*qmi));
 }
 
 //QModelIndex child ( int row, int column ) const

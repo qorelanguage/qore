@@ -34,7 +34,7 @@
 
 #include <ctype.h>
 
-#ifdef DEBUG
+#ifdef DEBUG_TESTS
 #  include "tests/QoreHTTPClient_tests.cc"
 #endif
 

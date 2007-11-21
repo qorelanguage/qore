@@ -54,7 +54,7 @@ static void QBYTEARRAY_constructor(Object *self, QoreNode *params, ExceptionSink
 
 static void QBYTEARRAY_copy(class Object *self, class Object *old, class QoreQByteArray *qba, ExceptionSink *xsink)
 {
-   xsink->raiseException("QBYTEARRAY-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QBYTEARRAY, new QoreQByteArray(*qba));
 }
 
 //QByteArray & append ( const QByteArray & ba )

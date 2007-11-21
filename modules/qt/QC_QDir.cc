@@ -54,7 +54,7 @@ static void QDIR_constructor(Object *self, QoreNode *params, ExceptionSink *xsin
 
 static void QDIR_copy(class Object *self, class Object *old, class QoreQDir *qd, ExceptionSink *xsink)
 {
-   xsink->raiseException("QDIR-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QDIR, new QoreQDir(*qd));
 }
 
 //QString absoluteFilePath ( const QString & fileName ) const

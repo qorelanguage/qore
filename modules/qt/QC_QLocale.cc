@@ -54,7 +54,7 @@ static void QLOCALE_constructor(Object *self, QoreNode *params, ExceptionSink *x
 
 static void QLOCALE_copy(class Object *self, class Object *old, class QoreQLocale *ql, ExceptionSink *xsink)
 {
-   xsink->raiseException("QLOCALE-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QLOCALE, new QoreQLocale(*ql));
 }
 
 //Country country () const

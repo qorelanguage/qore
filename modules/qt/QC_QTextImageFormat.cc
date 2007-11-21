@@ -36,7 +36,7 @@ static void QTEXTIMAGEFORMAT_constructor(Object *self, QoreNode *params, Excepti
 
 static void QTEXTIMAGEFORMAT_copy(class Object *self, class Object *old, class QoreQTextImageFormat *qtif, ExceptionSink *xsink)
 {
-   xsink->raiseException("QTEXTIMAGEFORMAT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QTEXTIMAGEFORMAT, new QoreQTextImageFormat(*qtif));
 }
 
 //qreal height () const

@@ -53,7 +53,7 @@ static void QFONT_constructor(class Object *self, class QoreNode *params, Except
 
 static void QFONT_copy(class Object *self, class Object *old, class QoreQFont *qf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QFONT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QFONT, new QoreQFont(*qf));
 }
 
 //bool bold () const

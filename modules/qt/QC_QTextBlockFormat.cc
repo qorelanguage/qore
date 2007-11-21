@@ -36,7 +36,7 @@ static void QTEXTBLOCKFORMAT_constructor(Object *self, QoreNode *params, Excepti
 
 static void QTEXTBLOCKFORMAT_copy(class Object *self, class Object *old, class QoreQTextBlockFormat *qtbf, ExceptionSink *xsink)
 {
-   xsink->raiseException("QTEXTBLOCKFORMAT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QTEXTBLOCKFORMAT, new QoreQTextBlockFormat(*qtbf));
 }
 
 //Qt::Alignment alignment () const

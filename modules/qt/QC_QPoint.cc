@@ -49,7 +49,8 @@ static void QPOINT_constructor(class Object *self, class QoreNode *params, Excep
 
 static void QPOINT_copy(class Object *self, class Object *old, class QoreQPoint *qr, ExceptionSink *xsink)
 {
-   xsink->raiseException("QPOINT-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QPOINT, new QoreQPoint(*qr));
+   //xsink->raiseException("QPOINT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //bool isNull () const

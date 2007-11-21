@@ -32,12 +32,11 @@ class QoreClass *QC_QStyleOptionMenuItem = 0;
 static void QSTYLEOPTIONMENUITEM_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONMENUITEM, new QoreQStyleOptionMenuItem());
-   return;
 }
 
 static void QSTYLEOPTIONMENUITEM_copy(class Object *self, class Object *old, class QoreQStyleOptionMenuItem *qsomi, ExceptionSink *xsink)
 {
-   xsink->raiseException("QSTYLEOPTIONMENUITEM-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QSTYLEOPTIONMENUITEM, new QoreQStyleOptionMenuItem(*qsomi));
 }
 
 QoreClass *initQStyleOptionMenuItemClass(QoreClass *qstyleoption)

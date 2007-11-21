@@ -505,10 +505,10 @@ class QoreNode *connection::get_server_version(class ExceptionSink *xsink)
 }
 
 #ifdef DEBUG
-#  include "tests/connection_tests.cc"
-#  include "tests/direct_execute_tests.cc"
-#  include "tests/executor_tests.cc" 
-#  include "tests/executor_rpc_tests.cc"
+//#  include "tests/connection_tests.cc"
+//#  include "tests/direct_execute_tests.cc"
+//#  include "tests/executor_tests.cc" 
+//#  include "tests/executor_rpc_tests.cc"
 #endif
 
 // EOF

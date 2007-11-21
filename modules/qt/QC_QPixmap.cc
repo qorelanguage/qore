@@ -76,7 +76,8 @@ static void QPIXMAP_constructor(class Object *self, class QoreNode *params, Exce
 
 static void QPIXMAP_copy(class Object *self, class Object *old, class QoreQPixmap *qlcdn, ExceptionSink *xsink)
 {
-   xsink->raiseException("QPIXMAP-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QPIXMAP, new QoreQPixmap(*qlcdn));
+   //xsink->raiseException("QPIXMAP-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QPixmap alphaChannel () const

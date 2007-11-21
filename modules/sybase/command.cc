@@ -759,9 +759,9 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
 
 
 #ifdef DEBUG
-#  include "tests/send_command_tests.cc"
-#  include "tests/command_tests.cc"
-//#  include "tests/initiate_rpc_command_tests.cc"
+//#  include "tests/send_command_tests.cc"
+//#  include "tests/command_tests.cc"
+////#  include "tests/initiate_rpc_command_tests.cc"
 #endif
 
 // EOF

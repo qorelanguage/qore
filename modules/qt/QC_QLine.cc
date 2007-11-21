@@ -69,7 +69,8 @@ static void QLINE_constructor(Object *self, QoreNode *params, ExceptionSink *xsi
 
 static void QLINE_copy(class Object *self, class Object *old, class QoreQLine *ql, ExceptionSink *xsink)
 {
-   xsink->raiseException("QLINE-COPY-ERROR", "objects of this class cannot be copied");
+   self->setPrivate(CID_QLINE, new QoreQLine(*ql));
+   //xsink->raiseException("QLINE-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QPoint p1 () const
