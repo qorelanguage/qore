@@ -36,7 +36,7 @@ ThrowStatement::ThrowStatement(int start_line, int end_line, class QoreNode *v) 
       args = v;
       return;
    }
-   class List *l = new List(1);
+   class QoreList *l = new QoreList(1);
    l->push(v);
    args = new QoreNode(l);
 }

@@ -171,3 +171,5 @@
 #include "QC_QStyleOptionTab.cc"
 #include "QC_QStyleOptionTabWidgetFrame.cc"
 #include "QC_QTabWidget.cc"
+#include "QC_QChildEvent.cc"
+#include "QC_QTimerEvent.cc"

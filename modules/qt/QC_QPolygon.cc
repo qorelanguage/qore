@@ -29,7 +29,7 @@ int CID_QPOLYGON;
 class QoreClass *QC_QPolygon = 0;
 
 // returns 0 for OK, -1 for error
-static int qpolygon_add_points(QoreQPolygon *qp, List *l, class ExceptionSink *xsink)
+static int qpolygon_add_points(QoreQPolygon *qp, QoreList *l, class ExceptionSink *xsink)
 {
    ListIterator li(l);
    while (li.next())

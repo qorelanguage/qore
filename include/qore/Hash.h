@@ -107,7 +107,7 @@ class Hash
       DLLEXPORT class QoreNode *takeKeyValue(class QoreString *key, class ExceptionSink *xsink);
       // "takes" the value of the key from the hash and removes the key from the hash and returns the value
       DLLEXPORT class QoreNode *takeKeyValue(const char *key);
-      DLLEXPORT class List *getKeys() const;
+      DLLEXPORT class QoreList *getKeys() const;
       DLLEXPORT bool compareSoft(class Hash *h, class ExceptionSink *xsink) const;
       DLLEXPORT bool compareHard(class Hash *h, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink) const;

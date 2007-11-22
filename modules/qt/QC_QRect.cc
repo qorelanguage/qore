@@ -196,7 +196,7 @@ static QoreNode *QRECT_getCoords(Object *self, QoreQRect *qr, QoreNode *params, 
    int x1, y1, x2, y2;
    qr->getCoords(&x1, &y1, &x2, &y2);
 
-   List *l = new List();
+   QoreList *l = new QoreList();
    l->push(new QoreNode((int64)x1));
    l->push(new QoreNode((int64)y1));
    l->push(new QoreNode((int64)x2));
@@ -210,7 +210,7 @@ static QoreNode *QRECT_getRect(Object *self, QoreQRect *qr, QoreNode *params, Ex
    int x, y, width, height;
    qr->getCoords(&x, &y, &width, &height);
 
-   List *l = new List();
+   QoreList *l = new QoreList();
    l->push(new QoreNode((int64)x));
    l->push(new QoreNode((int64)y));
    l->push(new QoreNode((int64)width));

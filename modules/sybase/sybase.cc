@@ -160,20 +160,20 @@ static int sybase_close(Datasource *ds)
 }
 
 //------------------------------------------------------------------------------
-static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
+static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, QoreList *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    return conn->exec(qstr, args, xsink);
 }
 
-static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
+static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, QoreList *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    //printd(5, "sybase_select_rows(ds=%08p, qstr='%s', args=%08p)\n", ds, qstr->getBuffer(), args);
    return conn->exec_rows(qstr, args, xsink);
 }
 
-static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, List *args, ExceptionSink *xsink)
+static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, QoreList *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    return conn->exec(qstr, args, xsink);

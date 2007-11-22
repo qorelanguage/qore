@@ -437,7 +437,7 @@ static QoreNode *QACTION_shortcutContext(Object *self, QoreAbstractQAction *qa, 
 static QoreNode *QACTION_shortcuts(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QList<QKeySequence> qsl = qa->getQAction()->shortcuts();
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QList<QKeySequence>::iterator i = qsl.begin(), e = qsl.end(); i != e; ++i) {
       Object *o_qks = new Object(QC_QKeySequence, getProgram());
       QoreQKeySequence *q_qks = new QoreQKeySequence(*i);

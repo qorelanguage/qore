@@ -312,7 +312,7 @@ static QoreNode *f_QLocale_countriesForLanguage(class QoreNode *params, class Ex
    if (ql.empty())
       return 0;
 
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (int i = 0; i < ql.count(); ++i)
       l->push(new QoreNode((int64)ql.at(i)));
    return new QoreNode(l);

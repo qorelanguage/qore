@@ -33,13 +33,13 @@ DLLLOCAL extern QoreClass *QC_QActionGroup;
 
 DLLLOCAL class QoreClass *initQActionGroupClass(class QoreClass *parent);
 
-class myQActionGroup : public QActionGroup
+class myQActionGroup : public QActionGroup, public QoreQObjectExtension
 {
 #define QOREQTYPE QActionGroup
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
-      DLLLOCAL myQActionGroup(Object *obj, QObject *parent) : QActionGroup(parent)
+      DLLLOCAL myQActionGroup(Object *obj, QObject *parent) : QActionGroup(parent), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }

@@ -51,7 +51,7 @@ DLLLOCAL int get_qkeysequence(const QoreNode *n, QKeySequence &qks, class Except
 
 DLLLOCAL class QoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data);
 DLLLOCAL class QoreNode *return_qvariant(QVariant &qv);
-DLLLOCAL class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink);
+DLLLOCAL class QoreNode *return_qstyle(const QString &style, class QStyle *qs, ExceptionSink *xsink);
 DLLLOCAL class QoreNode *return_qobject(QObject *o);
 DLLLOCAL class QoreNode *return_qstyleoption(const class QStyleOption *qso);
 

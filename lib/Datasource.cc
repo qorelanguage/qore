@@ -48,7 +48,7 @@ Datasource::~Datasource()
 #endif
 }
 
-List *Datasource::getCapabilityList() const
+QoreList *Datasource::getCapabilityList() const
 {
    return dsl->getCapList();
 }
@@ -100,7 +100,7 @@ void Datasource::setAutoCommit(bool ac)
    autocommit = ac;
 }
 
-QoreNode *Datasource::select(class QoreString *query_str, class List *args, ExceptionSink *xsink)
+QoreNode *Datasource::select(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
 {
    QoreNode *rv = dsl->select(this, query_str, args, xsink);
    if (autocommit)
@@ -108,7 +108,7 @@ QoreNode *Datasource::select(class QoreString *query_str, class List *args, Exce
    return rv;
 }
 
-QoreNode *Datasource::selectRows(class QoreString *query_str, class List *args, ExceptionSink *xsink)
+QoreNode *Datasource::selectRows(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
 {
    QoreNode *rv = dsl->selectRows(this, query_str, args, xsink);
    if (autocommit)
@@ -116,7 +116,7 @@ QoreNode *Datasource::selectRows(class QoreString *query_str, class List *args, 
    return rv;
 }
 
-QoreNode *Datasource::exec(class QoreString *query_str, class List *args, ExceptionSink *xsink)
+QoreNode *Datasource::exec(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
 {
    if (!autocommit && !in_transaction && beginTransaction(xsink))
       return NULL;

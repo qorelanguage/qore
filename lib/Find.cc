@@ -66,7 +66,7 @@ class QoreNode *Find::eval(ExceptionSink *xsink)
 	 {
 	    if (!multi)
 	    {
-	       List *l = new List();
+	       QoreList *l = new QoreList();
 	       l->push(rv);
 	       l->push(result);
 	       rv = new QoreNode(l);

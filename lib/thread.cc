@@ -717,7 +717,7 @@ void popCall(class ExceptionSink *xsink)
    thread_list[gettid()].callStack->pop(xsink);
 }
 
-class List *getCallStackList()
+class QoreList *getCallStackList()
 {
    return thread_list[gettid()].callStack->getCallStack();
 }
@@ -1122,9 +1122,9 @@ void delete_qore_threads()
    traceout("delete_qore_threads()");
 }
 
-List *get_thread_list()
+QoreList *get_thread_list()
 {
-   List *l = new List();
+   QoreList *l = new QoreList();
    lThreadList.lock();
    tid_node *w = tid_head;
    while (w)
@@ -1148,7 +1148,7 @@ Hash *getAllCallStacks()
       // get call stack
       if (thread_list[w->tid].callStack)
       {
-	 List *l = thread_list[w->tid].callStack->getCallStack();
+	 QoreList *l = thread_list[w->tid].callStack->getCallStack();
 	 if (l->size())
 	 {
 	    // make hash entry

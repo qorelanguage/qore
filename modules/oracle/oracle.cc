@@ -494,7 +494,7 @@ static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Except
       while (w)
       {
 	 printd(5, "ora_fetch() allocating list for '%s' column\n", w->name);
-	 h->setKeyValue(w->name, new QoreNode(new List()), xsink);
+	 h->setKeyValue(w->name, new QoreNode(new QoreList()), xsink);
 	 w = w->next;
       }
       
@@ -550,9 +550,9 @@ static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Except
 }
 
 // returns a list of hashes for a "horizontal" fetch
-static class List *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *ds, class ExceptionSink *xsink)
+static class QoreList *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *ds, class ExceptionSink *xsink)
 {
-   class List *l = NULL;
+   class QoreList *l = NULL;
    // retrieve results from statement and return hash
    
    // setup column structure for output columns
@@ -561,7 +561,7 @@ static class List *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *ds, c
    if (!xsink->isEvent())
    {
       // allocate result hash for result value
-      l = new List();
+      l = new QoreList();
 
       // setup temporary row to accept values
       columns.define(stmthp, ds, "ora_fetch_horizontal()", xsink);
@@ -607,7 +607,7 @@ static class List *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *ds, c
    return l;
 }
 
-OraBindGroup::OraBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, ExceptionSink *xsink)
+OraBindGroup::OraBindGroup(class Datasource *ods, class QoreString *ostr, class QoreList *args, ExceptionSink *xsink)
 {
    stmthp = NULL;
    hasOutput = false;
@@ -659,7 +659,7 @@ OraBindGroup::OraBindGroup(class Datasource *ods, class QoreString *ostr, class 
    }
 }
 
-void OraBindGroup::parseQuery(class List *args, class ExceptionSink *xsink)
+void OraBindGroup::parseQuery(class QoreList *args, class ExceptionSink *xsink)
 {
    printd(5, "parseQuery() args=%08p str=%s\n", args, str->getBuffer());
 
@@ -1114,7 +1114,7 @@ class QoreNode *OraBindGroup::selectRows(class ExceptionSink *xsink)
    if (status)
       ora_checkerr(d_ora->errhp, status, "OraBindGroup::select()", ds, xsink);
 
-   class List *l = NULL;
+   class QoreList *l = NULL;
    if (!xsink->isEvent())
       l = ora_fetch_horizontal(stmthp, ds, xsink);
 
@@ -1128,7 +1128,7 @@ class QoreNode *OraBindGroup::selectRows(class ExceptionSink *xsink)
    return new QoreNode(l);
 }
 
-static class QoreNode *oracle_exec(class Datasource *ds, QoreString *qstr, List *args, class ExceptionSink *xsink)
+static class QoreNode *oracle_exec(class Datasource *ds, QoreString *qstr, QoreList *args, class ExceptionSink *xsink)
 {
    class OraBindGroup bg(ds, qstr, args, xsink);
 
@@ -1138,7 +1138,7 @@ static class QoreNode *oracle_exec(class Datasource *ds, QoreString *qstr, List 
    return bg.exec(xsink);
 }
 
-static class QoreNode *oracle_select(class Datasource *ds, QoreString *qstr, List *args, class ExceptionSink *xsink)
+static class QoreNode *oracle_select(class Datasource *ds, QoreString *qstr, QoreList *args, class ExceptionSink *xsink)
 {
    class OraBindGroup bg(ds, qstr, args, xsink);
 
@@ -1148,7 +1148,7 @@ static class QoreNode *oracle_select(class Datasource *ds, QoreString *qstr, Lis
    return bg.select(xsink);
 }
 
-static class QoreNode *oracle_select_rows(class Datasource *ds, QoreString *qstr, List *args, class ExceptionSink *xsink)
+static class QoreNode *oracle_select_rows(class Datasource *ds, QoreString *qstr, QoreList *args, class ExceptionSink *xsink)
 {
    class OraBindGroup bg(ds, qstr, args, xsink);
 

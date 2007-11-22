@@ -83,7 +83,7 @@ static class Hash *he_to_hash(struct hostent &he)
       h->setKeyValue("name", new QoreNode(he.h_name), 0); // official host name
    if (he.h_aliases)
    {
-      class List *l = new List();
+      class QoreList *l = new QoreList();
       char **a = he.h_aliases;
       while (*a)
 	 l->push(new QoreNode(*(a++)));
@@ -110,7 +110,7 @@ static class Hash *he_to_hash(struct hostent &he)
    {
       char buf[QORE_NET_ADDR_BUF_LEN];
 
-      class List *l = new List();
+      class QoreList *l = new QoreList();
       char **a = he.h_addr_list;
       while (*a)
       {

@@ -122,7 +122,7 @@ static QoreNode *QPAINTER_boundingRect(Object *self, QoreQPainter *qp, QoreNode 
 	  const char *text = p->val.String->getBuffer();
 	  
 	  QoreQRect *q_qr = new QoreQRect(qp->getQPainter()->boundingRect(*((QRect *)rectangle), flags, text));
-	  Object *o_qr = new Object(self->getClass(CID_QRECT), getProgram());
+	  Object *o_qr = new Object(QC_QRect, getProgram());
 	  o_qr->setPrivate(CID_QRECT, q_qr);
 	  return new QoreNode(o_qr);
       }
@@ -137,7 +137,7 @@ static QoreNode *QPAINTER_boundingRect(Object *self, QoreQPainter *qp, QoreNode 
       const char *text = p->val.String->getBuffer();
 
       QoreQRectF *q_qrf = new QoreQRectF(qp->getQPainter()->boundingRect(*((QRectF *)rectanglef), flags, text));
-      Object *o_qrf = new Object(self->getClass(CID_QRECTF), getProgram());
+      Object *o_qrf = new Object(QC_QRectF, getProgram());
       o_qrf->setPrivate(CID_QRECTF, q_qrf);
       return new QoreNode(o_qrf);
    }
@@ -159,7 +159,7 @@ static QoreNode *QPAINTER_boundingRect(Object *self, QoreQPainter *qp, QoreNode 
    const char *text = p->val.String->getBuffer();
 
    QoreQRect *q_qr = new QoreQRect(qp->getQPainter()->boundingRect(x, y, w, h, flags, text));
-   Object *o_qr = new Object(self->getClass(CID_QRECT), getProgram());
+   Object *o_qr = new Object(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -1768,7 +1768,7 @@ static QoreNode *QPAINTER_viewport(Object *self, QoreQPainter *qp, QoreNode *par
 {
 
    QoreQRect *q_qr = new QoreQRect(qp->getQPainter()->viewport());
-   Object *o_qr = new Object(self->getClass(CID_QRECT), getProgram());
+   Object *o_qr = new Object(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -1778,7 +1778,7 @@ static QoreNode *QPAINTER_window(Object *self, QoreQPainter *qp, QoreNode *param
 {
 
    QoreQRect *q_qr = new QoreQRect(qp->getQPainter()->window());
-   Object *o_qr = new Object(self->getClass(CID_QRECT), getProgram());
+   Object *o_qr = new Object(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }

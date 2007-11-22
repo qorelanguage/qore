@@ -64,7 +64,7 @@ class T {
          return 0;
       }
 
-      DLLLOCAL virtual void emit_signal(const char *sig, List *args)
+      DLLLOCAL virtual void emit_signal(const char *sig, QoreList *args)
       {
          QByteArray theSignal = QMetaObject::normalizedSignature(sig);   
          int id = qobj->metaObject()->indexOfSignal(theSignal);
@@ -85,6 +85,10 @@ class T {
       {
          return 0;
       }
+
+      // these are protected functions that therefore will never be called
+      DLLLOCAL virtual void timerEvent(QTimerEvent * event) {}
+      DLLLOCAL virtual void childEvent(QChildEvent * event) {}
 
 #if 0
 };

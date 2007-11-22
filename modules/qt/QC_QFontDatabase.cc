@@ -63,7 +63,7 @@ static QoreNode *QFONTDATABASE_families(Object *self, QoreQFontDatabase *qfd, Qo
    QoreNode *p = get_param(params, 0);
    QFontDatabase::WritingSystem writingSystem = (QFontDatabase::WritingSystem)(p ? p->getAsInt() : 0);
    QStringList strlist_rv = qfd->families(writingSystem);
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);
@@ -186,7 +186,7 @@ static QoreNode *QFONTDATABASE_pointSizes(Object *self, QoreQFontDatabase *qfd, 
    p = get_param(params, 1);
    const char *style = p ? p->val.String->getBuffer() : "";
    QList<int> ilist_rv = qfd->pointSizes(family, style);
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)
       l->push(new QoreNode((int64)(*i)));
    return new QoreNode(l);
@@ -208,7 +208,7 @@ static QoreNode *QFONTDATABASE_smoothSizes(Object *self, QoreQFontDatabase *qfd,
    }
    const char *style = p->val.String->getBuffer();
    QList<int> ilist_rv = qfd->smoothSizes(family, style);
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)
       l->push(new QoreNode((int64)(*i)));
    return new QoreNode(l);
@@ -245,7 +245,7 @@ static QoreNode *QFONTDATABASE_styles(Object *self, QoreQFontDatabase *qfd, Qore
    }
    const char *family = p->val.String->getBuffer();
    QStringList styles = qfd->styles(family);
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = styles.begin(), e = styles.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);
@@ -286,7 +286,7 @@ static QoreNode *QFONTDATABASE_writingSystems(Object *self, QoreQFontDatabase *q
    else
       ilist_rv = qfd->writingSystems(p->val.String->getBuffer());
 
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QList<QFontDatabase::WritingSystem>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)
       l->push(new QoreNode((int64)(*i)));
    return new QoreNode(l);
@@ -295,7 +295,7 @@ static QoreNode *QFONTDATABASE_writingSystems(Object *self, QoreQFontDatabase *q
 static QoreNode *f_QFontDatabase_standardSizes(QoreNode *params, ExceptionSink *xsink)
 {
    QList<int> list = QFontDatabase::standardSizes();
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QList<int>::iterator i = list.begin(), e = list.end(); i != e; ++i)
       l->push(new QoreNode((int64)(*i)));
    return new QoreNode(l);

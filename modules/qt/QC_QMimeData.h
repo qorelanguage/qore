@@ -33,14 +33,14 @@ DLLLOCAL extern class QoreClass *QC_QMimeData;
 
 DLLLOCAL class QoreClass *initQMimeDataClass(QoreClass *);
 
-class myQMimeData : public QMimeData
+class myQMimeData : public QMimeData, public QoreQObjectExtension
 {
 #define QOREQTYPE QMimeData
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMimeData(Object *obj) : QMimeData()
+      DLLLOCAL myQMimeData(Object *obj) : QMimeData(), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }

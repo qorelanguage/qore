@@ -909,7 +909,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       p = strchr(str, ';');
       if (p)
       {
-	 class List *l = new List();
+	 class QoreList *l = new QoreList();
 	 do {
 	    l->push(new QoreNode(new QoreString(str, p - str, m_socket.getEncoding())));
 	    str = p + 1;

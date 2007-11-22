@@ -54,7 +54,7 @@ static QoreNode *QACTIONGROUP_actions(Object *self, QoreQActionGroup *qag, QoreN
 {
    QList<QAction *> al = qag->qobj->actions();
 
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QList<QAction *>::iterator i = al.begin(), e = al.end(); i != e; ++i)
    {
       Object *o_qa = new Object(QC_QAction, getProgram());

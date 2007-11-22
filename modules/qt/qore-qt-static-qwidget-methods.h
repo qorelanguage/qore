@@ -37,6 +37,13 @@ class T {
       DLLLOCAL virtual void wheelEvent ( QWheelEvent * event ) {}		
       //DLLLOCAL virtual bool winEvent ( MSG * message, long * result ) { return false;}
       //DLLLOCAL virtual bool x11Event ( XEvent * event ) { return false; }
+      //DLLLOCAL virtual HDC getDC () const {}
+      DLLLOCAL virtual int heightForWidth ( int w ) const { return 0; }
+      DLLLOCAL virtual QVariant inputMethodQuery ( Qt::InputMethodQuery query ) const { return QVariant(); }
+      DLLLOCAL virtual QSize minimumSizeHint () const { return QSize(); }
+      //DLLLOCAL virtual QPaintEngine * paintEngine () const { return 0; }
+      //DLLLOCAL virtual void releaseDC ( HDC hdc ) const {}
+      DLLLOCAL virtual void setVisible ( bool visible ) {}
       DLLLOCAL virtual QSize sizeHint() const { return QSize(); }
 
 #if 0

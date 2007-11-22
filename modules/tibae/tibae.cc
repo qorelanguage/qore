@@ -50,7 +50,7 @@ static inline class QoreNode *map_minstance_to_node(const MInstance *min, Except
 static inline class QoreNode *map_msequence_to_node(const MSequence *ms, ExceptionSink *xsink)
 {
    class QoreNode *rv = new QoreNode(NT_LIST);
-   rv->val.list = new List();
+   rv->val.list = new QoreList();
 
    for (unsigned i = 0; i < ms->size() && !xsink->isEvent(); i++)
       rv->val.list->push(map_mdata_to_node((MData *)(*ms)[i], xsink));

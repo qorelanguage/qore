@@ -65,10 +65,14 @@ public:
 
 LVList::LVList(int num)
 {
-   if (num)
+   if (num) {
       ids = new lvh_t[num];
+      // pop variables off stack and save in reverse order
+      for (int i = num - 1; i >= 0; --i)
+	 ids[i] = pop_local_var();
+   }
    else
-      ids = NULL;
+      ids = 0;
    num_lvars = num;
 }
 
@@ -474,7 +478,7 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
 
    if ((*node)->type == NT_HASH)
    {
-      List *keys = (*node)->val.hash->getKeys();
+      QoreList *keys = (*node)->val.hash->getKeys();
       for (i = 0; i < keys->size(); i++)
       {
 	 const char *k = keys->retrieve_entry(i)->val.String->getBuffer();
@@ -575,8 +579,6 @@ int StatementBlock::parseInitImpl(lvh_t oflag, int pflag)
    }
 
    lvars = new LVList(lvids);
-   for (int i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
 
    printd(4, "StatementBlock::parseInit(): done (lvars = %d, vstack = %08p)\n", lvids, getVStack());
    traceout("StatementBlock::parseInit()");
@@ -652,7 +654,7 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
       {
 	 if ((*i)->args)
 	 {
-	    class List *l = (*i)->args->val.list;
+	    class QoreList *l = (*i)->args->val.list;
 	    for (int j = 0; j < l->size(); j++)
 	    {
 	       class QoreNode **n = l->get_entry_ptr(j);

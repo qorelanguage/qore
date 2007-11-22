@@ -308,7 +308,7 @@ static bool op_log_or(class QoreNode *left, class QoreNode *right, ExceptionSink
 
 // "soft" comparison
 // 0 = equal, 1 = not equal
-static inline bool compare_lists(class List *l, class List *r, ExceptionSink *xsink)
+static inline bool compare_lists(class QoreList *l, class QoreList *r, ExceptionSink *xsink)
 {
    if (l->size() != r->size())
       return 1;
@@ -633,7 +633,7 @@ static class QoreNode *op_keys(class QoreNode *left, class QoreNode *null, bool 
       return NULL;
    }
    
-   class List *l;
+   class QoreList *l;
    if (np->type == NT_OBJECT)
       l = np->val.object->getMemberList(xsink);
    else
@@ -1976,7 +1976,7 @@ static QoreNode *op_shift(class QoreNode *left, class QoreNode *x, bool ref_rv, 
    ensure_unique(val, xsink);
 
    printd(5, "op_shift() *val=%08p (%s)\n", *val, *val ? (*val)->type->getName() : "(none)");
-   printd(5, "op_shift() about to call List::shift() on list node %08p (%d)\n", (*val), (*val)->val.list->size());
+   printd(5, "op_shift() about to call QoreList::shift() on list node %08p (%d)\n", (*val), (*val)->val.list->size());
 
    QoreNode *rv = (*val)->val.list->shift();
 
@@ -2001,7 +2001,7 @@ static QoreNode *op_pop(class QoreNode *left, class QoreNode *x, bool ref_rv, Ex
    ensure_unique(val, xsink);
 
    printd(5, "op_pop() *val=%08p (%s)\n", *val, *val ? (*val)->type->getName() : "(none)");
-   printd(5, "op_pop() about to call List::pop() on list node %08p (%d)\n", (*val), (*val)->val.list->size());
+   printd(5, "op_pop() about to call QoreList::pop() on list node %08p (%d)\n", (*val), (*val)->val.list->size());
 
    QoreNode *rv = (*val)->val.list->pop();
 
@@ -2239,7 +2239,7 @@ static QoreNode *op_minus_hash_string(class QoreNode *h, class QoreNode *s, bool
 
 static class QoreNode *op_regex_extract(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class List *l = right->val.regex->extractSubstrings(left->val.String, xsink);
+   class QoreList *l = right->val.regex->extractSubstrings(left->val.String, xsink);
    if (!l)
       return NULL;
    return new QoreNode(l);

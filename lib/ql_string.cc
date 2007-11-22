@@ -436,11 +436,11 @@ static class QoreNode *f_split(class QoreNode *params, ExceptionSink *xsink)
 
    if (!(p0 = test_param(params, NT_STRING, 0)) ||
        !(p1 = test_param(params, NT_STRING, 1)))
-      return new QoreNode(new List());
+      return new QoreNode(new QoreList());
    pattern = p0->val.String->getBuffer();
    str = p1->val.String->getBuffer();
    printd(5, "in f_split(\"%s\", \"%s\")\n", pattern, str);
-   class List *l = new List();
+   class QoreList *l = new QoreList();
    while (const char *p = strstr(str, pattern))
    {
       //printd(5, "str=%08p p=%08p \"%s\" \"%s\"\n", str, p, str, pattern);
@@ -610,7 +610,7 @@ static class QoreNode *f_join(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
 
    class QoreNode *p1 = test_param(params, NT_LIST, 1);
-   class List *l;
+   class QoreList *l;
    if (n == 2 && p1)
    {
       n = 0;

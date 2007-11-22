@@ -83,7 +83,7 @@ static QoreNode *QURL_allQueryItemValues(Object *self, QoreQUrl *qu, QoreNode *p
    if (get_qstring(p, key, xsink))
       return 0;
    QStringList strlist_rv = qu->allQueryItemValues(key);
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);

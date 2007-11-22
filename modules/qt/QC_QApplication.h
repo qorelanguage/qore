@@ -39,13 +39,13 @@ extern char **static_argv;
 DLLLOCAL extern void qapp_dec();
 DLLLOCAL extern QoreNode *get_qore_qapp();
 
-class myQApplication : public QApplication
+class myQApplication : public QApplication, public QoreQObjectExtension
 {
 #define QOREQTYPE QApplication
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
-      DLLLOCAL myQApplication(Object *obj, int &argc, char **argv) : QApplication(argc, argv)
+      DLLLOCAL myQApplication(Object *obj, int &argc, char **argv) : QApplication(argc, argv), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }

@@ -278,9 +278,9 @@ class QoreNode *Hash::getKeyValue(QoreString *key, class ExceptionSink *xsink) c
 }
 
 // retrieve keys in order they were inserted
-class List *Hash::getKeys() const
+class QoreList *Hash::getKeys() const
 {
-   class List *list = new List();
+   class QoreList *list = new QoreList();
    class HashMember *where = member_list;
    
    while (where)

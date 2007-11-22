@@ -109,7 +109,7 @@ static QoreNode *DS_exec(class Object *self, class ManagedDatasource *ds, class 
    if (!(p0 = test_param(params, NT_STRING, 0)))
       return NULL;
 
-   List *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
+   QoreList *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
    class QoreNode *rv = ds->exec(p0->val.String, args, xsink);
    if (args)
       args->derefAndDelete(xsink);
@@ -123,7 +123,7 @@ static QoreNode *DS_vexec(class Object *self, class ManagedDatasource *ds, class
       return NULL;
 
    QoreNode *p1 = test_param(params, NT_LIST, 1);
-   List *args = p1 ? p1->val.list : NULL;
+   QoreList *args = p1 ? p1->val.list : NULL;
    return ds->exec(p0->val.String, args, xsink);
 }
 
@@ -133,7 +133,7 @@ static QoreNode *DS_select(class Object *self, class ManagedDatasource *ds, clas
    if (!p)
       return NULL;
 
-   List *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
+   QoreList *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
    class QoreNode *rv = ds->select(p->val.String, args, xsink);
    if (args)
       args->derefAndDelete(xsink);
@@ -146,7 +146,7 @@ static QoreNode *DS_selectRow(class Object *self, class ManagedDatasource *ds, c
    if (!p)
       return NULL;
    
-   List *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
+   QoreList *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
    class QoreNode *rv = ds->selectRow(p->val.String, args, xsink);
    if (args)
       args->derefAndDelete(xsink);
@@ -159,7 +159,7 @@ static QoreNode *DS_selectRows(class Object *self, class ManagedDatasource *ds, 
    if (!p)
       return NULL;
 
-   List *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
+   QoreList *args = params->val.list->size() > 1 ? params->val.list->copyListFrom(1) : NULL;
    class QoreNode *rv = ds->selectRows(p->val.String, args, xsink);
    if (args)
       args->derefAndDelete(xsink);
@@ -173,7 +173,7 @@ static QoreNode *DS_vselect(class Object *self, class ManagedDatasource *ds, cla
       return NULL;
 
    QoreNode *p1 = test_param(params, NT_LIST, 1);
-   List *args = p1 ? p1->val.list : NULL;
+   QoreList *args = p1 ? p1->val.list : NULL;
    return ds->select(p0->val.String, args, xsink);
 }
 
@@ -184,7 +184,7 @@ static QoreNode *DS_vselectRow(class Object *self, class ManagedDatasource *ds, 
       return NULL;
    
    QoreNode *p1 = test_param(params, NT_LIST, 1);
-   List *args = p1 ? p1->val.list : NULL;
+   QoreList *args = p1 ? p1->val.list : NULL;
    return ds->selectRow(p0->val.String, args, xsink);
 }
 
@@ -195,7 +195,7 @@ static QoreNode *DS_vselectRows(class Object *self, class ManagedDatasource *ds,
       return NULL;
 
    QoreNode *p1 = test_param(params, NT_LIST, 1);
-   List *args = p1 ? p1->val.list : NULL;
+   QoreList *args = p1 ? p1->val.list : NULL;
    return ds->selectRows(p0->val.String, args, xsink);
 }
 

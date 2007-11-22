@@ -11,7 +11,7 @@ class T {
 	    return;
 	 }
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)control));
 	 args->push(return_object(QC_QStyleOptionComplex, new QoreQStyleOptionComplex(*option)));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
@@ -27,7 +27,7 @@ class T {
 	    return;
 	 }
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)element));
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
@@ -43,7 +43,7 @@ class T {
 	    return;
 	 }
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreNode((int64)alignment));
@@ -58,7 +58,7 @@ class T {
 	    return;
 	 }
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreNode((int64)alignment));
@@ -74,7 +74,7 @@ class T {
 	 if (!m_itemPixmapRect)
 	    return parent_itemPixmapRect(rectangle, alignment, pixmap); 
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreNode((int64)alignment));
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
@@ -98,7 +98,7 @@ class T {
 	    return;
 	 }
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)element));
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
@@ -113,7 +113,7 @@ class T {
 	 if (!m_hitTestComplexControl)
 	    return parent_hitTestComplexControl(control, option, point, widget);
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)control));
 	 args->push(return_object(QC_QStyleOptionComplex, new QoreQStyleOptionComplex(*option)));
 	 args->push(return_object(QC_QPoint, new QoreQPoint(point)));
@@ -130,7 +130,7 @@ class T {
 	 if (!m_standardPixmap)
 	    return parent_standardPixmap(standardPixmap, option, widget); 
 
-	 List *args = new List();	 
+	 QoreList *args = new QoreList();	 
 	 args->push(new QoreNode((int64)standardPixmap));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
@@ -153,7 +153,7 @@ class T {
 	 if (!m_generatedIconPixmap)
 	    return parent_generatedIconPixmap(mode, pixmap, option); 
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)mode));
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
 	 args->push(return_qstyleoption(option));
@@ -175,7 +175,7 @@ class T {
 	 if (!m_itemTextRect)
 	    return parent_itemTextRect(metrics, rectangle, alignment, enabled, text); 
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(return_object(QC_QFontMetrics, new QoreQFontMetrics(metrics)));
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreNode((int64)alignment));
@@ -198,7 +198,7 @@ class T {
 	 if (!m_pixelMetric)
 	    return parent_pixelMetric(metric, option, widget); 
 
-	 List *args = new List();	 
+	 QoreList *args = new QoreList();	 
 	 args->push(new QoreNode((int64)metric));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
@@ -215,7 +215,7 @@ class T {
 	    return;
 	 }
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(return_qobject(widget));
 	 dispatch_event(qore_obj, m_polish, args);
       }
@@ -226,7 +226,7 @@ class T {
 	    return;
 	 }
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(return_qobject(application));
 	 dispatch_event(qore_obj, m_polish, args);
       }
@@ -240,13 +240,14 @@ class T {
 	 ExceptionSink xsink;
          LVarInstantiatorHelper lvh("arg0", return_object(QC_QPalette, new QoreQPalette(&palette)), &xsink);
 	 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(lvh.getArg());
 
 	 ReferenceHolder<QoreNode> na(new QoreNode(args), &xsink);
 
 	 // execute method and discard any return value
          discard(m_polish->eval(qore_obj, *na, &xsink), &xsink);
+
 /*
 	 QoreNode *out = lvh.getOutputValue();
 	 QoreQPalette *qp = (out && out->type == NT_OBJECT) ? (QoreQPalette *)out->val.object->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
@@ -262,7 +263,7 @@ class T {
          if (!m_sizeFromContents)
 	    return parent_sizeFromContents(type, option, contentsSize, widget); 
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)type));
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QSize, new QoreQSize(contentsSize)));
@@ -302,7 +303,7 @@ class T {
          if (!m_styleHint)
 	    return parent_styleHint(hint, option, widget, returnData); 
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)hint));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
@@ -318,7 +319,7 @@ class T {
          if (!m_subControlRect)
 	    return parent_subControlRect(control, option, subControl, widget); 
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)control));
 	 args->push(return_qstyleoption(option));
 	 args->push(new QoreNode((int64)subControl));
@@ -341,7 +342,7 @@ class T {
          if (!m_subElementRect)
 	    return parent_subElementRect(element, option, widget); 
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)element));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
@@ -365,7 +366,7 @@ class T {
             return;
          }
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(return_qobject(widget));
 	 dispatch_event(qore_obj, m_unpolish, args);
       }
@@ -375,7 +376,7 @@ class T {
 	    parent_unpolish(application); 
 	    return;
 	 }
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(return_qobject(application));
 	 dispatch_event(qore_obj, m_unpolish, args);
       }

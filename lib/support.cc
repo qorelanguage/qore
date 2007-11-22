@@ -102,7 +102,7 @@ char *remove_trailing_blanks(char *str)
 #ifdef DEBUG
 void showCallStack()
 {
-   List *callStack = getCallStackList();
+   QoreList *callStack = getCallStackList();
    int sl, el;
    get_pgm_counter(sl, el);
    if (sl == el)

@@ -27,13 +27,11 @@
 #include "QoreAbstractQObject.h"
 #include "QoreAbstractQPaintDevice.h"
 
-#include "QoreQtEventDispatcher.h"
-
 #include "QC_QSize.h"
 
 #include <QActionEvent>
 
-class QoreQWidgetExtension : public QoreQtEventDispatcher
+class QoreQWidgetExtension : public QoreQObjectExtension
 {
    protected:
       // event methods
@@ -59,12 +57,18 @@ class QoreQWidgetExtension : public QoreQtEventDispatcher
 	 *e_wheelEvent,
 
 	 // other methods
+	 //*p_getDC,
+	 *p_heightForWidth,
+	 *p_inputMethodQuery,
+	 *p_minimumSizeHint,
+	 //*p_paintEngine,
+	 //*p_releaseDC,
+	 *p_setVisible,
 	 *p_sizeHint,
-
 	 ;
 
    public:
-      DLLLOCAL QoreQWidgetExtension(QoreClass *qc)
+      DLLLOCAL QoreQWidgetExtension(QoreClass *qc) : QoreQObjectExtension(qc)
       {
          e_paintEvent             = findMethod(qc, "paintEvent");
          e_mouseMoveEvent         = findMethod(qc, "mouseMoveEvent");
@@ -94,6 +98,13 @@ class QoreQWidgetExtension : public QoreQtEventDispatcher
 	 e_tabletEvent            = findMethod(qc, "tabletEvent");
 	 e_wheelEvent             = findMethod(qc, "wheelEvent");
 
+	 //p_getDC                  = findMethod(qc, "getDC");
+	 p_heightForWidth         = findMethod(qc, "heightForWidth");
+	 p_inputMethodQuery       = findMethod(qc, "inputMethodQuery");
+	 p_minimumSizeHint        = findMethod(qc, "minimumSizeHint");
+	 //p_paintEngine            = findMethod(qc, "paintEngine");
+	 //p_releaseDC              = findMethod(qc, "releaseDC");
+	 p_setVisible             = findMethod(qc, "setVisible");
 	 p_sizeHint               = findMethod(qc, "sizeHint");
       }
 };
@@ -137,6 +148,13 @@ class QoreAbstractQWidget : public QoreAbstractQObject, public QoreAbstractQPain
       //DLLLOCAL virtual bool x11Event(XEvent * event) = 0;
 
       // other virtual methods
+      //DLLLOCAL virtual HDC getDC () const = 0;
+      DLLLOCAL virtual int heightForWidth ( int w ) const = 0;
+      DLLLOCAL virtual QVariant inputMethodQuery ( Qt::InputMethodQuery query ) const = 0;
+      DLLLOCAL virtual QSize minimumSizeHint () const = 0;
+      //DLLLOCAL virtual QPaintEngine * paintEngine () const = 0;
+      //DLLLOCAL virtual void releaseDC ( HDC hdc ) const = 0;
+      DLLLOCAL virtual void setVisible ( bool visible ) = 0;
       DLLLOCAL virtual QSize sizeHint() const = 0;
 };
 
@@ -234,8 +252,26 @@ class QoreAbstractQWidget : public QoreAbstractQObject, public QoreAbstractQPain
    DLLLOCAL virtual bool x11Event ( XEvent * event ) {		\
       qobj->parent_x11Event(event);						\
    }*/ \
+   DLLLOCAL virtual int heightForWidth ( int w ) const { \
+      return qobj->parent_heightForWidth(w); \
+   } \
+   DLLLOCAL virtual QVariant inputMethodQuery ( Qt::InputMethodQuery query ) const { \
+      return qobj->parent_inputMethodQuery(query); \
+   } \
+   DLLLOCAL virtual QSize minimumSizeHint () const { \
+      return qobj->parent_minimumSizeHint(); \
+   } \
+   /*DLLLOCAL virtual QPaintEngine * paintEngine () const {	\
+      return qobj->parent_paintEngine();				\
+   }								\
+   DLLLOCAL virtual void releaseDC ( HDC hdc ) const {	\
+      qobj->parent_releaseDC(hdc);				\
+   }*/							\
+   DLLLOCAL virtual void setVisible ( bool visible ) { \
+      qobj->parent_setVisible(visible); \
+   } \
    DLLLOCAL virtual QSize sizeHint() const { \
-      return qobj->parent_sizeHint();\
+      return qobj->parent_sizeHint(); \
    }
 
 #endif

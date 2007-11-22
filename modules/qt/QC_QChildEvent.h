@@ -1,5 +1,5 @@
 /*
- UserFunctionList.h
+ QC_QChildEvent.h
  
  Qore Programming Language
  
@@ -20,28 +20,26 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_USERFUNCTIONLIST_H
+#ifndef _QORE_QT_QC_QCHILDEVENT_H
 
-#define _QORE_USERFUNCTIONLIST_H
+#define _QORE_QT_QC_QCHILDEVENT_H
 
-#include <qore/hash_map.h>
+#include <QChildEvent>
 
-// all read and write access to this list is done within the program object's parse lock
-class UserFunctionList
+DLLLOCAL extern int CID_QCHILDEVENT;
+DLLLOCAL extern class QoreClass *QC_QChildEvent;
+
+DLLLOCAL class QoreClass *initQChildEventClass(QoreClass *);
+
+class QoreQChildEvent : public AbstractPrivateData, public QChildEvent
 {
-private:
-   hm_uf_t fmap, pmap;   // maps of functions for quick lookups
-   
-public:
-   DLLLOCAL UserFunctionList() {}
-   DLLLOCAL ~UserFunctionList();
-   DLLLOCAL void del();
-   DLLLOCAL class UserFunction *find(const char *name);
-   DLLLOCAL void add(class UserFunction *func);
-   DLLLOCAL void parseInit();
-   DLLLOCAL void parseRollback();
-   DLLLOCAL void parseCommit();
-   DLLLOCAL class QoreList *getQoreList();
+   public:
+      DLLLOCAL QoreQChildEvent(Type type, QObject* child) : QChildEvent(type, child)
+      {
+      }
+      DLLLOCAL QoreQChildEvent(const QChildEvent &qce) : QChildEvent(qce)
+      {
+      }
 };
 
-#endif
+#endif // _QORE_QT_QC_QCHILDEVENT_H

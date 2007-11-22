@@ -579,9 +579,9 @@ void Object::deleteMemberValue(const char *key, ExceptionSink *xsink)
    g.exit();
 }
 
-class List *Object::getMemberList(class ExceptionSink *xsink)
+class QoreList *Object::getMemberList(class ExceptionSink *xsink)
 {
-   class List *lst;
+   class QoreList *lst;
    if (g.enter(xsink) < 0)
       return NULL;
    if (status == OS_DELETED)

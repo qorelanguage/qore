@@ -91,7 +91,7 @@ static class QoreNode *f_date(class QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_list(class QoreNode *params, ExceptionSink *xsink)
 {
-   class List *l = new List();
+   class QoreList *l = new QoreList();
    if (num_params(params) > 1)
       l->push(params->eval(xsink));
    else

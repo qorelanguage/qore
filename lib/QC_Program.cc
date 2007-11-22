@@ -179,7 +179,7 @@ static QoreNode *PROGRAM_callFunctionArgs(class Object *self, class QoreProgram 
       args = p1;
    else
    {
-      args = new QoreNode(new List());
+      args = new QoreNode(new QoreList());
       args->val.list->push(p1);      
    }
 

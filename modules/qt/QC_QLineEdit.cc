@@ -270,6 +270,7 @@ static QoreNode *QLINEEDIT_maxLength(Object *self, QoreQLineEdit *qle, QoreNode 
    return new QoreNode((int64)qle->qobj->maxLength());
 }
 
+/*
 //virtual QSize minimumSizeHint () const
 static QoreNode *QLINEEDIT_minimumSizeHint(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
 {
@@ -278,6 +279,7 @@ static QoreNode *QLINEEDIT_minimumSizeHint(Object *self, QoreQLineEdit *qle, Qor
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
 }
+*/
 
 //QString selectedText () const
 static QoreNode *QLINEEDIT_selectedText(Object *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
@@ -539,7 +541,7 @@ QoreClass *initQLineEditClass(QoreClass *qwidget)
    QC_QLineEdit->addMethod("isRedoAvailable",             (q_method_t)QLINEEDIT_isRedoAvailable);
    QC_QLineEdit->addMethod("isUndoAvailable",             (q_method_t)QLINEEDIT_isUndoAvailable);
    QC_QLineEdit->addMethod("maxLength",                   (q_method_t)QLINEEDIT_maxLength);
-   QC_QLineEdit->addMethod("minimumSizeHint",             (q_method_t)QLINEEDIT_minimumSizeHint);
+   //QC_QLineEdit->addMethod("minimumSizeHint",             (q_method_t)QLINEEDIT_minimumSizeHint);
    QC_QLineEdit->addMethod("selectedText",                (q_method_t)QLINEEDIT_selectedText);
    QC_QLineEdit->addMethod("selectionStart",              (q_method_t)QLINEEDIT_selectionStart);
    QC_QLineEdit->addMethod("setAlignment",                (q_method_t)QLINEEDIT_setAlignment);

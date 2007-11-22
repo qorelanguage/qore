@@ -204,7 +204,7 @@ TEST()
   }
 
   QoreString cmd("exec my_sample_rpc2 (%d)");
-  List* args = new List;
+  QoreList* args = new List;
   args->push(new QoreNode((int64)100));
   args->push(new QoreNode((int64)CS_INT_TYPE));
 
@@ -232,7 +232,7 @@ TEST()
   }
 
   QoreString cmd("exec my_sample_rpc3 (%d, :sintparam)");
-  List* args = new List;
+  QoreList* args = new List;
   args->push(new QoreNode((int64)100));
   args->push(new QoreNode((int64)CS_INT_TYPE));
   args->push(new QoreNode((int64)CS_INT_TYPE));

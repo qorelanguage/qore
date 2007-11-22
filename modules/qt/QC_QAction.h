@@ -33,22 +33,22 @@ DLLLOCAL extern class QoreClass *QC_QAction;
 
 DLLLOCAL class QoreClass *initQActionClass(QoreClass *);
 
-class myQAction : public QAction
+class myQAction : public QAction, public QoreQObjectExtension
 {
 #define QOREQTYPE QAction
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQAction(Object *obj, QObject* parent) : QAction(parent)
+      DLLLOCAL myQAction(Object *obj, QObject* parent) : QAction(parent), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQAction(Object *obj, const QString& text, QObject* parent) : QAction(text, parent)
+      DLLLOCAL myQAction(Object *obj, const QString& text, QObject* parent) : QAction(text, parent), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQAction(Object *obj, const QIcon& icon, const QString& text, QObject* parent) : QAction(icon, text, parent)
+      DLLLOCAL myQAction(Object *obj, const QIcon& icon, const QString& text, QObject* parent) : QAction(icon, text, parent), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }

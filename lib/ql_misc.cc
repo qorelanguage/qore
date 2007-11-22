@@ -98,7 +98,7 @@ static class QoreNode *f_call_function_args(class QoreNode *params, ExceptionSin
       args = p1;
    else if (p1)
    {
-      args = new QoreNode(new List());
+      args = new QoreNode(new QoreList());
       // we borrow the reference for the new list
       args->val.list->push(p1);
    }
@@ -275,7 +275,7 @@ static class QoreNode *f_parseBase64StringToString(class QoreNode *params, Excep
 
 static class QoreNode *f_getModuleList(class QoreNode *params, ExceptionSink *xsink)
 {
-   List *l = MM.getModuleList();
+   QoreList *l = MM.getModuleList();
    if (l)
       return new QoreNode(l);
    return NULL;
@@ -292,7 +292,7 @@ static class QoreNode *f_hash_values(class QoreNode *params, ExceptionSink *xsin
    if (!p0)
       return NULL;
 
-   class List *l = new List();
+   class QoreList *l = new QoreList();
    class HashIterator hi(p0->val.hash);
    while (hi.next() && !xsink->isEvent())
       l->push(hi.eval(xsink));
@@ -898,7 +898,7 @@ static class QoreNode *f_splice(class QoreNode *params, ExceptionSink *xsink)
    int start = p1->getAsInt();
    if (p0->type == NT_LIST)
    {
-      List *l = p0->val.list->copyList();
+      QoreList *l = p0->val.list->copyList();
 
       if (is_nothing(p3))
 	 if (is_nothing(p2))

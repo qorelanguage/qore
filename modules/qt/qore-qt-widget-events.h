@@ -260,7 +260,7 @@ class T {
 
 	 dispatch_event(qore_obj, e_tabletEvent, QC_QTabletEvent, new QoreQTabletEvent(*event));
       }
-
+      
       DLLLOCAL virtual void wheelEvent(QWheelEvent *event)
       {
 	 if (!e_wheelEvent) {
@@ -269,6 +269,78 @@ class T {
 	 }
 
 	 dispatch_event(qore_obj, e_wheelEvent, QC_QWheelEvent, new QoreQWheelEvent(*event));
+      }
+
+      /*
+      DLLLOCAL virtual HDC getDC () const
+      {
+         if (!p_getDC)
+	    return QOREQTYPE::getDC();
+      }
+      */
+      
+      DLLLOCAL virtual int heightForWidth ( int w ) const
+      {
+	 if (!p_heightForWidth)
+	    return QOREQTYPE::heightForWidth(w);
+/*
+	 QoreList *args; 
+	 args = new QoreList();
+	 args->push(new QoreNode((int64)w));
+*/
+	 
+	 return dispatch_event_int(qore_obj, p_heightForWidth, 0); //args);
+      }
+
+      DLLLOCAL virtual QVariant inputMethodQuery ( Qt::InputMethodQuery query ) const
+      {
+	 if (!p_inputMethodQuery)
+	    return QOREQTYPE::inputMethodQuery(query);
+/*
+	 QoreList *args = new QoreList();
+	 args->push(new QoreNode((int64)query));
+
+	 ExceptionSink xsink;
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, p_inputMethodQuery, args, &xsink), &xsink);
+	 if (xsink)
+	    return QOREQTYPE::inputMethodQuery(query);
+
+	 QVariant qrv;
+	 if (get_qvariant(*rv, qrv, &xsink))
+	    return QOREQTYPE::inputMethodQuery(query);
+
+	 return qrv;
+*/
+	 return QVariant();
+      }
+
+      /*
+      DLLLOCAL virtual QPaintEngine * paintEngine () const
+      {
+	 if (!p_paintEngine)
+	    return QOREQTYPE::paintEngine();
+      }
+
+      DLLLOCAL virtual void releaseDC ( HDC hdc ) const
+      {
+         if (!p_releaseDC) {
+	    QOREQTYPE::releaseDC(hdc);
+	    return;
+	 }
+      }
+      */
+
+      DLLLOCAL virtual void setVisible ( bool visible )
+      {
+	 if (!p_setVisible) {
+	    QOREQTYPE::setVisible(visible);
+	    return;
+	 }
+	 
+	 class QoreList *args = new QoreList();
+	 args->push(new QoreNode(visible));
+
+	 dispatch_event(qore_obj, p_setVisible, args);
       }
 
       DLLLOCAL virtual QSize sizeHint() const
@@ -297,6 +369,31 @@ class T {
       }
 
    public:
+      DLLLOCAL virtual QSize minimumSizeHint () const
+      {
+	 if (!p_minimumSizeHint)
+	    return QOREQTYPE::minimumSizeHint();
+
+	 ExceptionSink xsink;
+
+	 // call minimumSizeHint method
+	 QoreNode *rv = p_minimumSizeHint->eval(qore_obj, 0, &xsink);
+	 if (xsink) {
+	    discard(rv, &xsink);
+	    return QOREQTYPE::minimumSizeHint();
+	 }
+	 QoreQSize *qs = (rv && rv->type == NT_OBJECT) ? (QoreQSize *)rv->val.object->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
+	 discard(rv, &xsink);
+
+	 if (!qs) {
+	    xsink.raiseException("MINIMUMSIZEHINT-ERROR", "the minimumSizeHint() method did not return a QSize object");
+	    return QOREQTYPE::minimumSizeHint();
+	 }
+	 ReferenceHolder<QoreQSize> sizeHolder(qs, &xsink);
+	 QSize rv_qs = *(static_cast<QSize *>(qs));
+	 return rv_qs;
+      }
+
       DLLLOCAL virtual void parent_paintEvent(QPaintEvent *event) 
       {
 	 QOREQTYPE::paintEvent(event);
@@ -430,6 +527,45 @@ class T {
       DLLLOCAL virtual void parent_wheelEvent(QWheelEvent *event)
       {
 	 QOREQTYPE::wheelEvent(event);
+      }
+      
+      /*
+      DLLLOCAL virtual HDC parent_getDC () const
+      {
+	 return QOREQTYPE::getDC();
+      }
+      */
+      
+      DLLLOCAL virtual int parent_heightForWidth ( int w ) const
+      {
+	 return QOREQTYPE::heightForWidth(w);
+      }
+
+      DLLLOCAL virtual QVariant parent_inputMethodQuery ( Qt::InputMethodQuery query ) const
+      {
+	 return QOREQTYPE::inputMethodQuery(query);
+      }
+
+      DLLLOCAL virtual QSize parent_minimumSizeHint () const
+      {
+	 return QOREQTYPE::minimumSizeHint();
+      }
+
+      /*
+      DLLLOCAL virtual QPaintEngine * parent_paintEngine () const
+      {
+	 return QOREQTYPE::paintEngine();
+      }
+
+      DLLLOCAL virtual void parent_releaseDC ( HDC hdc ) const
+      {
+	 QOREQTYPE::releaseDC(hdc);
+      }
+      */
+
+      DLLLOCAL virtual void parent_setVisible ( bool visible )
+      {
+	 QOREQTYPE::setVisible(visible);
       }
 
       DLLLOCAL virtual QSize parent_sizeHint() const

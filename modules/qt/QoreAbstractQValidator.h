@@ -37,14 +37,14 @@ class QoreAbstractQValidator : public QoreAbstractQObject
       DLLLOCAL virtual QValidator::State validate(QString &intput, int &pos) const = 0;
 };
 
-class QoreQValidatorExtension : public QoreQtEventDispatcher
+class QoreQValidatorExtension : public QoreQObjectExtension
 {
    protected:
       // event methods
       Method *m_fixup, *m_validate;
 
    public:
-      DLLLOCAL QoreQValidatorExtension(QoreClass *qc)
+      DLLLOCAL QoreQValidatorExtension(QoreClass *qc) : QoreQObjectExtension(qc)
       {
          m_fixup        = findMethod(qc, "fixup");
          m_validate     = findMethod(qc, "validate");

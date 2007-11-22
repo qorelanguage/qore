@@ -36,7 +36,7 @@ DLLLOCAL class QoreClass *initQShortcutClass(class QoreClass *parent);
 DLLLOCAL extern void *static_void_args[];
 DLLLOCAL extern QByteArray static_void_sig;
 
-class myQShortcut : public QShortcut
+class myQShortcut : public QShortcut, public QoreQObjectExtension
 {
 #define QORE_QT_METACALL if (id == 1) { activated(); return -1; } else if (id == 2) { activatedAmbiguously(); return -1; }
 
@@ -87,12 +87,12 @@ class myQShortcut : public QShortcut
       }
       
    public:
-      DLLLOCAL myQShortcut(Object *obj, QoreAbstractQWidget *parent = 0) : QShortcut(parent->getQWidget())
+      DLLLOCAL myQShortcut(Object *obj, QoreAbstractQWidget *parent = 0) : QShortcut(parent->getQWidget()), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
 	 init_shortcut(parent);
       }
-      DLLLOCAL myQShortcut(Object *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : QShortcut(key, parent->getQWidget(), 0, 0, context)
+      DLLLOCAL myQShortcut(Object *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : QShortcut(key, parent->getQWidget(), 0, 0, context), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
 	 init_shortcut(parent);

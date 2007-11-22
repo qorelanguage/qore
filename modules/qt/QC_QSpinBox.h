@@ -56,7 +56,7 @@ class myQSpinBox : public QSpinBox, public QoreQWidgetExtension
 	 if (!m_textFromValue)
 	    return QSpinBox::textFromValue(value);
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)value));
 
 	 return dispatch_event_qstring(qore_obj, m_textFromValue, args);
@@ -66,7 +66,7 @@ class myQSpinBox : public QSpinBox, public QoreQWidgetExtension
 	 if (!m_valueFromText)
 	    return QSpinBox::valueFromText(text);
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(new QoreNode(new QoreString(text.toUtf8().data(), QCS_UTF8)));
 
 	 return dispatch_event_int(qore_obj, m_valueFromText, args);

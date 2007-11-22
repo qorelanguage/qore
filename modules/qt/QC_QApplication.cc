@@ -148,7 +148,7 @@ static QoreNode *f_QApplication_alert(QoreNode *params, ExceptionSink *xsink)
    return 0;
 }
 
-////QWidgetList allWidgets ()
+////QWidgetQoreList allWidgets ()
 //static QoreNode *f_QApplication_allWidgets(QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)QApplication::allWidgets());
@@ -715,7 +715,7 @@ static QoreNode *f_QApplication_topLevelAt(QoreNode *params, ExceptionSink *xsin
    return new QoreNode(rv_obj);
 }
 
-////QWidgetList topLevelWidgets ()
+////QWidgetQoreList topLevelWidgets ()
 //static QoreNode *f_QApplication_topLevelWidgets(QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)QApplication::topLevelWidgets());

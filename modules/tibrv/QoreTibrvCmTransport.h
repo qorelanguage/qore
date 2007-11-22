@@ -196,7 +196,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
 class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 {
    private:
-      class List *l;
+      class QoreList *l;
       class ExceptionSink xsink;
 
       virtual void *onLedgerMsg(TibrvCmTransport *cmTransport, const char *subject, TibrvMsg &msg, void *closure)
@@ -204,7 +204,7 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 	 class QoreTibrvCmTransport *cmt = (class QoreTibrvCmTransport *)closure;
 
 	 if (!l)
-	    l = new List();
+	    l = new QoreList();
 
 	 class Hash *h = cmt->msgToHash(&msg, &xsink);
 	 if (xsink.isException())

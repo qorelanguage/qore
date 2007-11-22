@@ -491,13 +491,13 @@ static inline class QoreNode **do_list_val_ptr(Tree *tree, class AutoVLock *vlp,
    if (!(*val))
    {
       (*val) = new QoreNode(NT_LIST);
-      (*val)->val.list = new List();
+      (*val)->val.list = new QoreList();
    }
    else if ((*val)->type != NT_LIST)
    {
       (*val)->deref(xsink);
       (*val) = new QoreNode(NT_LIST);
-      (*val)->val.list = new List();
+      (*val)->val.list = new QoreList();
    }
    else if ((*val)->reference_count() > 1) // otherwise if it's a list and the reference_count > 1, then duplicate it
    {

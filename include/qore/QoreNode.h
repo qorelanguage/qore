@@ -51,7 +51,7 @@ union node_u {
       // for binary objects
       class BinaryObject *bin;
       // for Lists
-      class List *list;
+      class QoreList *list;
       // for Hashes (Associative Arrays)
       class Hash *hash;
       // for Objects
@@ -116,7 +116,7 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(class QoreString *str);
       DLLEXPORT QoreNode(class Object *o);
       DLLEXPORT QoreNode(class Hash *h);
-      DLLEXPORT QoreNode(class List *l);
+      DLLEXPORT QoreNode(class QoreList *l);
 
       DLLEXPORT class QoreNode *convert(class QoreType *new_type);
       DLLEXPORT class QoreNode *convert(class QoreType *new_type, class ExceptionSink *xsink);

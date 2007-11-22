@@ -1034,7 +1034,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 		     {
 			QoreNode **vp = n->val.hash->getKeyValuePtr(lk);
 			(*vp) = new QoreNode(NT_LIST);
-			(*vp)->val.list = new List();
+			(*vp)->val.list = new QoreList();
 			(*vp)->val.list->push(v);
 			xstack->push((*vp)->val.list->get_entry_ptr((*vp)->val.list->size()), depth);
 		     }
@@ -1399,7 +1399,7 @@ static void getXMLRPCArray(xmlTextReader *reader, class XmlRpcValue *v, class Qo
    int nt;
    int index = 0;
 
-   class List *l = new List();
+   class QoreList *l = new QoreList();
    v->set(new QoreNode(l));
 
    int array_depth = xmlTextReaderDepth(reader);
@@ -1500,7 +1500,7 @@ static void getXMLRPCParams(xmlTextReader *reader, class XmlRpcValue *v, class Q
    int nt;
    int index = 0;
 
-   class List *l = new List();
+   class QoreList *l = new QoreList();
    v->set(new QoreNode(l));
 
    int array_depth = xmlTextReaderDepth(reader);
@@ -1821,7 +1821,7 @@ static void doEmptyValue(class XmlRpcValue *v, char *name, int depth, class Exce
    else if (!strcmp(name, "struct"))
       v->set(new QoreNode(new Hash()));
    else if (!strcmp(name, "array"))
-      v->set(new QoreNode(new List()));
+      v->set(new QoreNode(new QoreList()));
    else if (!strcmp(name, "double"))
       v->set(zero_float());
    else if (!strcmp(name, "dateTime.iso8601"))

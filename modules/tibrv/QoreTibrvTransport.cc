@@ -194,7 +194,7 @@ class Hash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xs
 	 if (ev->type != NT_LIST)
 	 {
 	    //printd(5, "QoreTibrvTransport::msgToHash() making list\n");
-	    class List *l = new List();
+	    class QoreList *l = new QoreList();
 	    l->push(ev);
 	    ev = new QoreNode(l);
 	 }
@@ -327,7 +327,7 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
 
 class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class ExceptionSink *xsink)
 {
-   class List *l = new List();
+   class QoreList *l = new QoreList();
    tibrvLocalData data = field->getData();
 
    switch (field->getType())

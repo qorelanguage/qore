@@ -70,7 +70,7 @@ class myQIntValidator : public QIntValidator, public QoreQValidatorExtension
             QIntValidator::setRange(bottom, top);
             return;
          }
-         List *args = new List();
+         QoreList *args = new QoreList();
          args->push(new QoreNode((int64)bottom));
          args->push(new QoreNode((int64)top));
 

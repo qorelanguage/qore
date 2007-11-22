@@ -578,7 +578,7 @@ bool QorePGResult::hasResultData()
 class QoreNode *QorePGResult::getArray(int type, qore_pg_data_func_t func, char *&array_data, int current, int ndim, int dim[])
 {
    //printd(5, "getArray(type=%d, array_data=%08p, current=%d, ndim=%d, dim[%d]=%d)\n", type, array_data, current, ndim, current, dim[current]);
-   class List *l = new List();
+   class QoreList *l = new QoreList();
    
    if (current != (ndim - 1))
    {
@@ -655,7 +655,7 @@ class Hash *QorePGResult::getHash(class ExceptionSink *xsink)
    int num_columns = PQnfields(res);
 
    for (int i = 0; i < num_columns; ++i)
-      h->setKeyValue(PQfname(res, i), new QoreNode(new List()), NULL);
+      h->setKeyValue(PQfname(res, i), new QoreNode(new QoreList()), NULL);
 
    //printd(5, "num_columns=%d num_rows=%d\n", num_columns, PQntuples(res));
 
@@ -675,9 +675,9 @@ class Hash *QorePGResult::getHash(class ExceptionSink *xsink)
    return h;
 }
 
-class List *QorePGResult::getList(class ExceptionSink *xsink)
+class QoreList *QorePGResult::getQoreList(class ExceptionSink *xsink)
 {
-   class List *l = new List();
+   class QoreList *l = new QoreList();
 
    int num_columns = PQnfields(res);
 
@@ -1073,7 +1073,7 @@ int QorePGBindArray::check_oid(class Hash *h, class ExceptionSink *xsink)
    return 0;
 }
 
-int QorePGBindArray::new_dimension(List *l, int current, class ExceptionSink *xsink)
+int QorePGBindArray::new_dimension(QoreList *l, int current, class ExceptionSink *xsink)
 {
    if (current >= MAXDIM)
    {
@@ -1090,7 +1090,7 @@ int QorePGBindArray::new_dimension(List *l, int current, class ExceptionSink *xs
    return 0;
 }
 
-int QorePGBindArray::create_data(List *l, int current, class QoreEncoding *enc, class ExceptionSink *xsink)
+int QorePGBindArray::create_data(QoreList *l, int current, class QoreEncoding *enc, class ExceptionSink *xsink)
 {
    if (new_dimension(l, current, xsink))
       return -1;
@@ -1235,7 +1235,7 @@ int QorePGBindArray::bind(class QoreNode *n, class QoreEncoding *enc, class Exce
    return 0;
 }
 
-int QorePGBindArray::process_list(List *l, int current, class QoreEncoding *enc, class ExceptionSink *xsink)
+int QorePGBindArray::process_list(QoreList *l, int current, class QoreEncoding *enc, class ExceptionSink *xsink)
 {
    ListIterator li(l);
    while (li.next())
@@ -1270,7 +1270,7 @@ int QorePGBindArray::process_list(List *l, int current, class QoreEncoding *enc,
    return 0;
 }
 
-int QorePGResult::parse(class QoreString *str, class List *args, class ExceptionSink *xsink)
+int QorePGResult::parse(class QoreString *str, class QoreList *args, class ExceptionSink *xsink)
 {
    char quote = 0;
    const char *p = str->getBuffer();
@@ -1387,7 +1387,7 @@ bool QorePGResult::checkIntegerDateTimes(PGconn *pc, class ExceptionSink *xsink)
 }
 
 // Note that we can write to the str argument; it is always a copy
-int QorePGResult::exec(PGconn *pc, class QoreString *str, class List *args, class ExceptionSink *xsink)
+int QorePGResult::exec(PGconn *pc, class QoreString *str, class QoreList *args, class ExceptionSink *xsink)
 {
    // convert string to required character encoding or copy
    std::auto_ptr<QoreString> qstr(str->convertEncoding(enc, xsink));
@@ -1479,7 +1479,7 @@ int QorePGConnection::begin_transaction(class Datasource *ds, ExceptionSink *xsi
    return res.exec(pc, "begin", xsink);
 }
 
-class QoreNode *QorePGConnection::select(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
+class QoreNode *QorePGConnection::select(class Datasource *ds, QoreString *qstr, class QoreList *args, class ExceptionSink *xsink)
 {
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))
@@ -1489,17 +1489,17 @@ class QoreNode *QorePGConnection::select(class Datasource *ds, QoreString *qstr,
    return h ? new QoreNode(h) : NULL;
 }
 
-class QoreNode *QorePGConnection::select_rows(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
+class QoreNode *QorePGConnection::select_rows(class Datasource *ds, QoreString *qstr, class QoreList *args, class ExceptionSink *xsink)
 {
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))
       return NULL;
 
-   class List *l = res.getList(xsink);
+   class QoreList *l = res.getQoreList(xsink);
    return l ? new QoreNode(l) : NULL;
 }
 
-class QoreNode *QorePGConnection::exec(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
+class QoreNode *QorePGConnection::exec(class Datasource *ds, QoreString *qstr, class QoreList *args, class ExceptionSink *xsink)
 {
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))

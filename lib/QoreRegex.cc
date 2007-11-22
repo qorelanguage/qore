@@ -125,7 +125,7 @@ bool QoreRegex::exec(class QoreString *target, class ExceptionSink *xsink)
 }
 
 #define OVEC_LATELEM 20
-class List *QoreRegex::extractSubstrings(class QoreString *target, class ExceptionSink *xsink)
+class QoreList *QoreRegex::extractSubstrings(class QoreString *target, class ExceptionSink *xsink)
 {
    class QoreString *t;
    
@@ -151,7 +151,7 @@ class List *QoreRegex::extractSubstrings(class QoreString *target, class Excepti
    if (rc < 1)
       return NULL;
    
-   class List *l = new List();
+   class QoreList *l = new QoreList();
    
    if (rc > 1)
    {

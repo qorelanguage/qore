@@ -679,7 +679,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
    
    if (num_params < num_args)
    {
-      List *l = new List();
+      QoreList *l = new QoreList();
       
       for (i = 0; i < (num_args - num_params); i++)
          if (args->val.list->retrieve_entry(i + num_params))
@@ -786,7 +786,7 @@ void UserFunction::evalCopy(Object *oold, Object *self, const char *class_name, 
 
    if (!params->num_params)
    {
-      List *l = new List();
+      QoreList *l = new QoreList();
       l->push(old);
       argv = new QoreNode(l);
    }
@@ -898,7 +898,7 @@ class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, clas
    
    if (num_params < num_args)
    {
-      List *l = new List();
+      QoreList *l = new QoreList();
       
       for (i = 0; i < (num_args - num_params); i++)
          if (args->val.list->retrieve_entry(i + num_params))

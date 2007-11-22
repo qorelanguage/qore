@@ -450,6 +450,8 @@ noinst_HEADERS = \
 	modules/qt/QC_QStyleOptionTab.h \
 	modules/qt/QC_QStyleOptionTabWidgetFrame.h \
 	modules/qt/QC_QTabWidget.h \
+	modules/qt/QC_QChildEvent.h \
+	modules/qt/QC_QTimerEvent.h \
 	command-line.h \
 	include/qore/Qore.h
 
@@ -491,22 +493,22 @@ EXTRA_DIST = .build next_build.sh WHATISQORE RELEASE-NOTES \
 	examples/inherit2.q \
 	examples/getopt.q \
 	examples/worm.q \
-	examples/qt/analogclock.q \ 
-	examples/qt/calculator.q \ 
-	examples/qt/calendarwidget.q \ 
-	examples/qt/charactermap.q \ 
-	examples/qt/digitalclock.q \ 
-	examples/qt/groupbox.q \ 
-	examples/qt/icons.q \ 
-	examples/qt/imageviewer.q \ 
-	examples/qt/lineedits.q \ 
-	examples/qt/movieplayer.q \ 
-	examples/qt/scribble.q \ 
-	examples/qt/shapedclock.q \ 
-	examples/qt/sliders.q \ 
-	examples/qt/spinboxes.q \ 
-	examples/qt/styles.q \ 
-	examples/qt/tutorial.q \ 
+	examples/qt/analogclock.q \
+	examples/qt/calculator.q \
+	examples/qt/calendarwidget.q \
+	examples/qt/charactermap.q \
+	examples/qt/digitalclock.q \
+	examples/qt/groupbox.q \
+	examples/qt/icons.q \
+	examples/qt/imageviewer.q \
+	examples/qt/lineedits.q \
+	examples/qt/movieplayer.q \
+	examples/qt/scribble.q \
+	examples/qt/shapedclock.q \
+	examples/qt/sliders.q \
+	examples/qt/spinboxes.q \
+	examples/qt/styles.q \
+	examples/qt/tutorial.q \
 	examples/qt/images/open.png \
 	examples/qt/images/pause.png \
 	examples/qt/images/play.png \

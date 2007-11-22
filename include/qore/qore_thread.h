@@ -95,7 +95,7 @@ DLLLOCAL class LVar *thread_find_lvar(lvh_t id);
 DLLLOCAL void pushCall(const char *f, int type, class Object *o = NULL);
 DLLLOCAL void popCall(class ExceptionSink *xsink);
 DLLLOCAL class CallStack *getCallStack();
-DLLLOCAL class List *getCallStackList();
+DLLLOCAL class QoreList *getCallStackList();
 #else
 #ifdef __GNUC__
 #define pushCall(args...)
@@ -183,7 +183,7 @@ class ArgvContextHelper {
 DLLLOCAL void init_qore_threads();
 DLLLOCAL class Namespace *get_thread_ns();
 DLLLOCAL void delete_qore_threads();
-DLLLOCAL class List *get_thread_list();
+DLLLOCAL class QoreList *get_thread_list();
 DLLLOCAL class Hash *getAllCallStacks();
 
 #endif  // ifndef _QORE_THREAD_H

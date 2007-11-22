@@ -47,13 +47,13 @@ class QoreAbstractQAbstractItemDelegate : public QoreAbstractQObject
       virtual void updateEditorGeometry ( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const = 0;
 };
 
-class QoreQAbstractItemDelegateExtension : public QoreQtEventDispatcher
+class QoreQAbstractItemDelegateExtension : public QoreQObjectExtension
 {
    protected:
       Method *m_createEditor, *m_editorEvent, *m_paint, *m_setEditorData, 
 	 *m_setModelData, *m_sizeHint, *m_updateEditorGeometry;
 
-      DLLLOCAL QoreQAbstractItemDelegateExtension(QoreClass *qc)
+      DLLLOCAL QoreQAbstractItemDelegateExtension(QoreClass *qc) : QoreQObjectExtension(qc)
       {
          m_createEditor           = findMethod(qc, "createEditor");
          m_editorEvent            = findMethod(qc, "editorEvent");

@@ -27,7 +27,39 @@ class T {
 	 QMetaObject::connect(this, signalId, this, metaObject()->methodCount());
      }
 
+   protected:
+      DLLLOCAL virtual void timerEvent(QTimerEvent * event)
+      {
+	 if (!e_timerEvent) {
+	    QOREQTYPE::timerEvent(event);
+	    return;
+	 }
+
+	 dispatch_event(qore_obj, e_timerEvent, QC_QTimerEvent, new QoreQTimerEvent(*event));
+      }
+
+      DLLLOCAL virtual void childEvent(QChildEvent * event)
+      {
+	 if (!e_childEvent) {
+	    QOREQTYPE::childEvent(event);
+	    return;
+	 }
+
+	 dispatch_event(qore_obj, e_childEvent, QC_QChildEvent, new QoreQChildEvent(*event));
+      }
+
    public:
+
+      DLLLOCAL virtual void parent_timerEvent(QTimerEvent * event)
+      {
+	 QOREQTYPE::timerEvent(event);
+      }
+
+      DLLLOCAL virtual void parent_childEvent(QChildEvent * event)
+      {
+	 QOREQTYPE::childEvent(event);
+      }
+      
       DLLLOCAL virtual int qt_metacall(QMetaObject::Call call, int id, void **arguments)
       {
 	 int nid = QOREQTYPE::qt_metacall(call, id, arguments);
@@ -184,7 +216,7 @@ class T {
       }
 
       // emits a signal; args are offset from 1
-      DLLLOCAL void emit_signal(const char *sig, class List *args)
+      DLLLOCAL void emit_signal(const char *sig, class QoreList *args)
       {
 	 QByteArray theSignal = QMetaObject::normalizedSignature(sig);	 
 	 int id = metaObject()->indexOfSignal(theSignal);

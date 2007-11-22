@@ -90,7 +90,7 @@ class QoreString *hash_MakeString(class QoreNode *n, int foff, class ExceptionSi
 	 rv->concat('(');
 
       class HashIterator hi(n->val.hash);
-      //class List *l = n->val.hash->getKeys();                                                                                                                       
+      //class QoreList *l = n->val.hash->getKeys();                                                                                                                       
       bool first = false;
       while (hi.next())
       {

@@ -149,7 +149,7 @@ static QoreNode *QDIR_dirName(Object *self, QoreQDir *qd, QoreNode *params, Exce
 //   QoreNode *p = get_param(params, 0);
 //   if (is_nothing(p)) {
 //      QStringList strlist_rv = qd->entryList();
-//      List *l = new List();
+//      QoreList *l = new QoreList();
 //      for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
 //         l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
 //      return new QoreNode(l);
@@ -174,7 +174,7 @@ static QoreNode *QDIR_dirName(Object *self, QoreQDir *qd, QoreNode *params, Exce
 //   p = get_param(params, 1);
 //   SortFlags sort = !is_nothing(p) ? (SortFlags)p->getAsInt() : NoSort;
 //   QStringList strlist_rv = qd->entryList(nameFilters, sort);
-//   List *l = new List();
+//   QoreList *l = new QoreList();
 //   for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
 //      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
 //   return new QoreNode(l);
@@ -183,7 +183,7 @@ static QoreNode *QDIR_dirName(Object *self, QoreQDir *qd, QoreNode *params, Exce
 //   p = get_param(params, 1);
 //   SortFlags sort = !is_nothing(p) ? (SortFlags)p->getAsInt() : NoSort;
 //   QStringList strlist_rv = qd->entryList(filters, sort);
-//   List *l = new List();
+//   QoreList *l = new QoreList();
 //   for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
 //      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
 //   return new QoreNode(l);
@@ -273,7 +273,7 @@ static QoreNode *QDIR_mkpath(Object *self, QoreQDir *qd, QoreNode *params, Excep
 static QoreNode *QDIR_nameFilters(Object *self, QoreQDir *qd, QoreNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qd->nameFilters();
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);
@@ -578,7 +578,7 @@ static QoreNode *f_QDir_searchPaths(QoreNode *params, ExceptionSink *xsink)
    if (get_qstring(p, prefix, xsink))
       return 0;
    QStringList strlist_rv = QDir::searchPaths(prefix);
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);

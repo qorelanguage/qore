@@ -32,13 +32,13 @@ DLLEXPORT extern int CID_QTIMER;
 
 DLLLOCAL class QoreClass *initQTimerClass(class QoreClass *qobject);
 
-class myQTimer : public QTimer
+class myQTimer : public QTimer, public QoreQObjectExtension
 {
 #define QOREQTYPE QTimer
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
-      DLLLOCAL myQTimer(Object *obj, QObject *parent) : QTimer(parent)
+      DLLLOCAL myQTimer(Object *obj, QObject *parent) : QTimer(parent), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }      

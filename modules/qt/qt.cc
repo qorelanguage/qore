@@ -171,6 +171,8 @@
 #include "QC_QStyleOptionTab.h"
 #include "QC_QStyleOptionTabWidgetFrame.h"
 #include "QC_QTabWidget.h"
+#include "QC_QChildEvent.h"
+#include "QC_QTimerEvent.h"
 
 #include "qore-qt-events.h"
 
@@ -1134,7 +1136,7 @@ static QoreNode *f_QStyleFactory_create(QoreNode *params, ExceptionSink *xsink)
 static QoreNode *f_QStyleFactory_keys(QoreNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = QStyleFactory::keys();
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);
@@ -1506,6 +1508,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQStyleOptionTabClass(qstyleoption));
    qt->addSystemClass(initQStyleOptionTabWidgetFrameClass(qstyleoption));
    qt->addSystemClass(initQTabWidgetClass(qwidget));
+   qt->addSystemClass(initQChildEventClass(qevent));
+   qt->addSystemClass(initQTimerEventClass(qevent));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");

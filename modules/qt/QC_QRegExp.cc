@@ -65,7 +65,7 @@ static QoreNode *QREGEXP_cap(Object *self, QoreQRegExp *qre, QoreNode *params, E
 static QoreNode *QREGEXP_capturedTexts(Object *self, QoreQRegExp *qre, QoreNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qre->capturedTexts();
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);

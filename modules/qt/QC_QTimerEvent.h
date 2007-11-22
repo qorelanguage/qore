@@ -1,5 +1,5 @@
 /*
- UserFunctionList.h
+ QC_QTimerEvent.h
  
  Qore Programming Language
  
@@ -20,28 +20,26 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_USERFUNCTIONLIST_H
+#ifndef _QORE_QT_QC_QTIMEREVENT_H
 
-#define _QORE_USERFUNCTIONLIST_H
+#define _QORE_QT_QC_QTIMEREVENT_H
 
-#include <qore/hash_map.h>
+#include <QTimerEvent>
 
-// all read and write access to this list is done within the program object's parse lock
-class UserFunctionList
+DLLLOCAL extern int CID_QTIMEREVENT;
+DLLLOCAL extern class QoreClass *QC_QTimerEvent;
+
+DLLLOCAL class QoreClass *initQTimerEventClass(QoreClass *);
+
+class QoreQTimerEvent : public AbstractPrivateData, public QTimerEvent
 {
-private:
-   hm_uf_t fmap, pmap;   // maps of functions for quick lookups
-   
-public:
-   DLLLOCAL UserFunctionList() {}
-   DLLLOCAL ~UserFunctionList();
-   DLLLOCAL void del();
-   DLLLOCAL class UserFunction *find(const char *name);
-   DLLLOCAL void add(class UserFunction *func);
-   DLLLOCAL void parseInit();
-   DLLLOCAL void parseRollback();
-   DLLLOCAL void parseCommit();
-   DLLLOCAL class QoreList *getQoreList();
+   public:
+      DLLLOCAL QoreQTimerEvent(int timerId) : QTimerEvent(timerId)
+      {
+      }
+      DLLLOCAL QoreQTimerEvent(const QTimerEvent &qte) : QTimerEvent(qte)
+      {
+      }
 };
 
-#endif
+#endif // _QORE_QT_QC_QTIMEREVENT_H

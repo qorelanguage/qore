@@ -28,7 +28,7 @@
 #include <errno.h>
 #include <typeinfo>
 
-extern class List *ARGV, *QORE_ARGV;
+extern class QoreList *ARGV, *QORE_ARGV;
 extern class Hash *ENV;
 
 // note the number and order of the warnings has to correspond to those in QoreProgram.h
@@ -492,10 +492,10 @@ int QoreProgram::getParseOptions() const
    return parse_options; 
 }
 
-class List *QoreProgram::getUserFunctionList()
+class QoreList *QoreProgram::getUserFunctionList()
 {
    AutoLocker al(&plock);
-   return user_func_list.getList(); 
+   return user_func_list.getQoreList(); 
 }
 
 void QoreProgram::waitForTermination()
@@ -1283,9 +1283,9 @@ void QoreProgram::addFile(char *f)
    fileList.push_front(f);
 }
 
-class List *QoreProgram::getFeatureList() const
+class QoreList *QoreProgram::getFeatureList() const
 {
-   class List *l = new List();
+   class QoreList *l = new QoreList();
 
    for (charPtrList::const_iterator i = featureList.begin(); i != featureList.end(); i++)
       l->push(new QoreNode(*i));
@@ -1293,10 +1293,10 @@ class List *QoreProgram::getFeatureList() const
    return l;
 }
 
-class List *QoreProgram::getVarList()
+class QoreList *QoreProgram::getVarList()
 {
    plock.lock();
-   class List *l = global_var_list.getVarList();
+   class QoreList *l = global_var_list.getVarList();
    plock.unlock();
    return l;
 }

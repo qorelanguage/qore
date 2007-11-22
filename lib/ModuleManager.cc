@@ -580,13 +580,13 @@ void ModuleManager::cleanup()
    traceout("ModuleManager::cleanup()");
 }
 
-class List *ModuleManager::getModuleList()
+class QoreList *ModuleManager::getModuleList()
 {
-   class List *l = NULL;
+   class QoreList *l = NULL;
    AutoLocker al(&mutex);
    if (!map.empty())
    {
-      l = new List();
+      l = new QoreList();
       for (module_map_t::iterator i = map.begin(); i != map.end(); i++)
 	 if (!i->second->isBuiltin())
 	    l->push(new QoreNode(i->second->getHash()));

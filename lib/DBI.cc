@@ -138,9 +138,9 @@ int DBIDriver::getCaps() const
    return caps;
 }
 
-List *DBIDriver::getCapList() const
+QoreList *DBIDriver::getCapList() const
 {
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (int i = 0; i < NUM_DBI_CAPS; i++)
       if (caps & dbi_cap_list[i].cap)
 	 l->push(new QoreNode(dbi_cap_list[i].desc));
@@ -157,17 +157,17 @@ int DBIDriver::close(class Datasource *ds)
    return f.close(ds);
 }
 
-class QoreNode *DBIDriver::select(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::select(class Datasource *ds, class QoreString *sql, class QoreList *args, class ExceptionSink *xsink)
 {
    return f.select(ds, sql, args, xsink);
 }
 
-class QoreNode *DBIDriver::selectRows(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::selectRows(class Datasource *ds, class QoreString *sql, class QoreList *args, class ExceptionSink *xsink)
 {
    return f.selectRows(ds, sql, args, xsink);
 }
 
-class QoreNode *DBIDriver::execSQL(class Datasource *ds, class QoreString *sql, class List *args, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::execSQL(class Datasource *ds, class QoreString *sql, class QoreList *args, class ExceptionSink *xsink)
 {
    return f.execSQL(ds, sql, args, xsink);
 }
@@ -261,12 +261,12 @@ class DBIDriver *DBIDriverList::registerDriver(const char *name, dbi_method_list
    return dd;
 }
 
-class List *DBIDriverList::getDriverList() const
+class QoreList *DBIDriverList::getDriverList() const
 {
    if (empty())
       return NULL;
 
-   class List *l = new List();
+   class QoreList *l = new QoreList();
    
    for (dbi_list_t::const_iterator i = begin(); i != end(); i++)
       l->push(new QoreNode((*i)->getName()));
@@ -410,7 +410,7 @@ class QoreNode *f_parseDatasource(class QoreNode *params, ExceptionSink *xsink)
 
 class QoreNode *f_getDBIDriverList(class QoreNode *params, ExceptionSink *xsink)
 {
-   class List *l = DBI.getDriverList();
+   class QoreList *l = DBI.getDriverList();
    if (l)
       return new QoreNode(l);
    
@@ -428,7 +428,7 @@ class QoreNode *f_getDBIDriverCapabilityList(class QoreNode *params, ExceptionSi
    if (!dd)
       return NULL;
 
-   List *l = dd->getCapList();
+   QoreList *l = dd->getCapList();
 
    if (l)
       return new QoreNode(l);

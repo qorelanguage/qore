@@ -222,7 +222,7 @@ static class QoreNode *getJSONArray(const char *&buf, int &line_number, class Qo
 {
    // increment buffer to first character of array description
    buf++;
-   class List *l = new List();
+   class QoreList *l = new QoreList();
 
    skip_whitespace(buf, line_number);
    if (*buf == ']')

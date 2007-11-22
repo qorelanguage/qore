@@ -80,7 +80,7 @@ class Object : public ReferenceObject
       DLLEXPORT class QoreNode **getExistingValuePtr(const char *mem, class AutoVLock *vl, class ExceptionSink *xsink);
       DLLEXPORT bool validInstanceOf(int cid) const;
       DLLEXPORT void setValue(const char *key, class QoreNode *val, class ExceptionSink *xsink);
-      DLLEXPORT class List *getMemberList(class ExceptionSink *xsink);
+      DLLEXPORT class QoreList *getMemberList(class ExceptionSink *xsink);
       DLLEXPORT void deleteMemberValue(class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT void deleteMemberValue(const char *key, class ExceptionSink *xsink);
       DLLEXPORT int size(class ExceptionSink *xsink);

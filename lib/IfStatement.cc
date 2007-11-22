@@ -70,17 +70,16 @@ int IfStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xs
 
 int IfStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
-   int i, lvids = 0;
+   int lvids = 0;
    
    lvids += process_node(&cond, oflag, pflag);
    if (if_code)
       if_code->parseInitImpl(oflag, pflag);
    if (else_code)
       else_code->parseInitImpl(oflag, pflag);
+
    // save local variables
    lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
 
    return 0;
 }

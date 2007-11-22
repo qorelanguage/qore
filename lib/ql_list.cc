@@ -154,7 +154,7 @@ static class QoreNode *f_sortDescendingStable(class QoreNode *params, ExceptionS
 static class QoreNode *f_min(class QoreNode *params, ExceptionSink *xsink)
 {   
    QoreNode *p = test_param(params, NT_LIST, 0);
-   class List *lst;
+   class QoreList *lst;
    if (p)
    {
       lst = p->val.list;
@@ -187,7 +187,7 @@ static class QoreNode *f_min(class QoreNode *params, ExceptionSink *xsink)
 static class QoreNode *f_max(class QoreNode *params, ExceptionSink *xsink)
 {   
    QoreNode *p = test_param(params, NT_LIST, 0);
-   class List *lst;
+   class QoreList *lst;
    if (p)
    {
       lst = p->val.list;

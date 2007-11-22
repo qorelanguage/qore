@@ -112,7 +112,7 @@ static QoreNode *QFILEDIALOG_fileMode(Object *self, QoreQFileDialog *qfd, QoreNo
 static QoreNode *QFILEDIALOG_filters(Object *self, QoreQFileDialog *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qfd->qobj->filters();
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);
@@ -122,7 +122,7 @@ static QoreNode *QFILEDIALOG_filters(Object *self, QoreQFileDialog *qfd, QoreNod
 static QoreNode *QFILEDIALOG_history(Object *self, QoreQFileDialog *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qfd->qobj->history();
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);
@@ -218,7 +218,7 @@ static QoreNode *QFILEDIALOG_selectFilter(Object *self, QoreQFileDialog *qfd, Qo
 static QoreNode *QFILEDIALOG_selectedFiles(Object *self, QoreQFileDialog *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qfd->qobj->selectedFiles();
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);
@@ -575,7 +575,7 @@ static QoreNode *f_QFileDialog_getOpenFileNames(QoreNode *params, ExceptionSink 
    p = get_param(params, 5);
    QFileDialog::Options options = (QFileDialog::Options)(!is_nothing(p) ? p->getAsInt() : 0);
    QStringList strlist_rv = QFileDialog::getOpenFileNames(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, &selectedFilter, options);
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
    return new QoreNode(l);

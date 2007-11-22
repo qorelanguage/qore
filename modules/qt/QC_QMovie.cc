@@ -346,7 +346,7 @@ QoreClass *initQMovieClass(QoreClass *qobject)
 
 static QoreNode *f_QMovie_supportedFormats(QoreNode *params, ExceptionSink *xsink)
 {
-   List *ql = new List();
+   QoreList *ql = new QoreList();
 
    QList<QByteArray> l = QMovie::supportedFormats();
    for (QList<QByteArray>::iterator i = l.begin(), e=l.end(); i != e; ++i)

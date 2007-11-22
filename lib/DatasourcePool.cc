@@ -220,7 +220,7 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, class ExceptionSink *xsink
    return ds;
 }
 
-class QoreNode *DatasourcePool::select(class QoreString *sql, List *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::select(class QoreString *sql, QoreList *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class QoreNode *rv = NULL;
@@ -243,7 +243,7 @@ class QoreNode *DatasourcePool::select(class QoreString *sql, List *args, class 
 }
 
 // FIXME: should be a native DBI driver method
-class QoreNode *DatasourcePool::selectRow(class QoreString *sql, List *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::selectRow(class QoreString *sql, QoreList *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class QoreNode *rv;
@@ -275,7 +275,7 @@ class QoreNode *DatasourcePool::selectRow(class QoreString *sql, List *args, cla
    return rv;
 }
 
-class QoreNode *DatasourcePool::selectRows(class QoreString *sql, List *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::selectRows(class QoreString *sql, QoreList *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class QoreNode *rv;
@@ -314,7 +314,7 @@ int DatasourcePool::beginTransaction(class ExceptionSink *xsink)
    return rc;
 }
 
-class QoreNode *DatasourcePool::exec(class QoreString *sql, List *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::exec(class QoreString *sql, QoreList *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class Datasource *ds = getDS(new_ds, xsink);

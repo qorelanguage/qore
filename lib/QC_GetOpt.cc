@@ -233,7 +233,7 @@ static class QoreNode *GETOPT_parse(class Object *self, class GetOpt *g, class Q
    if (!p0)
       return NULL;
 
-   class List *l;
+   class QoreList *l;
    class AutoVLock vl;
    bool modify = false;
    if (p0->type == NT_REFERENCE)

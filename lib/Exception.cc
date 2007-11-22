@@ -326,7 +326,7 @@ Exception::Exception(const char *e, class QoreString *d)
    get_pgm_counter(start_line, end_line);
    const char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(new List()); //getCallStackList());
+   callStack = new QoreNode(new QoreList()); //getCallStackList());
 
    err = new QoreNode(e);
    desc = new QoreNode(d);
@@ -344,7 +344,7 @@ ParseException::ParseException(const char *e, class QoreString *d)
    get_parse_location(start_line, end_line);
    const char *f = get_parse_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(new List()); //getCallStackList());
+   callStack = new QoreNode(new QoreList()); //getCallStackList());
 
    err = new QoreNode(e);
    desc = new QoreNode(d);
@@ -361,7 +361,7 @@ ParseException::ParseException(int s_line, int e_line, const char *e, class Qore
    end_line = e_line;
    const char *f = get_parse_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(new List()); //getCallStackList());
+   callStack = new QoreNode(new QoreList()); //getCallStackList());
 
    err = new QoreNode(e);
    desc = new QoreNode(d);
@@ -400,13 +400,13 @@ Exception::Exception(class QoreNode *n)
    get_pgm_counter(start_line, end_line);   
    const char *f = get_pgm_file();
    file = f ? strdup(f) : NULL;
-   callStack = new QoreNode(new List()); //getCallStackList());
+   callStack = new QoreNode(new QoreList()); //getCallStackList());
    next = NULL;
 
    // must be a list
    if (n)
    {
-      class List *l = n->val.list;
+      class QoreList *l = n->val.list;
       err = l->retrieve_entry(0);
       if (err)
 	 err->ref();
@@ -434,7 +434,7 @@ Exception::Exception(class Exception *old, class ExceptionSink *xsink)
    file       = old->file ? strdup(old->file) : NULL;
    callStack  = old->callStack->realCopy(xsink);
    // insert current position as a rethrow entry in the new callstack
-   class List *l = callStack->val.list;
+   class QoreList *l = callStack->val.list;
    const char *fn = NULL;
    class QoreNode *n = l->retrieve_entry(0);
    // get function name
@@ -505,7 +505,7 @@ void ExceptionSink::defaultExceptionHandler(Exception *e)
    {
       printe("unhandled QORE %s exception thrown", e->type == ET_USER ? "User" : "System");
 
-      class List *cs = e->callStack->val.list;
+      class QoreList *cs = e->callStack->val.list;
       bool found = false;
       if (cs->size())
       {

@@ -273,7 +273,7 @@ QoreClass *initQImageWriterClass()
 //QList<QByteArray> supportedImageFormats ()
 static QoreNode *f_QImageWriter_supportedImageFormats(QoreNode *params, ExceptionSink *xsink)
 {
-   List *ql = new List();
+   QoreList *ql = new QoreList();
 
    QList<QByteArray> l = QImageWriter::supportedImageFormats();
    for (QList<QByteArray>::iterator i = l.begin(), e=l.end(); i != e; ++i)

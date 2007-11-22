@@ -441,7 +441,7 @@ class QoreNode *MyResult::getBoundColumnValue(class QoreEncoding *csid, int i)
    return n;
 }
 
-MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class List *args, class ExceptionSink *xsink)
+MyBindGroup::MyBindGroup(class Datasource *ods, class QoreString *ostr, class QoreList *args, class ExceptionSink *xsink)
 {
    head = tail = NULL;
    stmt = NULL;
@@ -522,7 +522,7 @@ MyBindGroup::~MyBindGroup()
    }
 }
 
-inline int MyBindGroup::parse(class List *args, class ExceptionSink *xsink)
+inline int MyBindGroup::parse(class QoreList *args, class ExceptionSink *xsink)
 {
    char quote = 0;
 
@@ -661,7 +661,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 
 	    if (rows > 1)
 	    {
-	       List *l = new List();
+	       QoreList *l = new QoreList();
 	       while (!mysql_stmt_fetch(stmt))
 		  l->push(myres.getBoundColumnValue(ds->getQoreEncoding(), 0));
 	       v = new QoreNode(l);
@@ -701,7 +701,7 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
       for (int i = 0; i < myres.getNumFields(); i++)
       {
 	 getLowerCaseName(&tstr, enc, myres.getFieldName(i));
-	 h->setKeyValue(&tstr, new QoreNode(new List()), NULL);
+	 h->setKeyValue(&tstr, new QoreNode(new QoreList()), NULL);
       }
 	 
       if (mysql_stmt_affected_rows(stmt))
@@ -760,7 +760,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 	 return NULL;
       }
 
-      List *l = new List();
+      QoreList *l = new QoreList();
 
       if (mysql_stmt_affected_rows(stmt))
       {
@@ -889,7 +889,7 @@ static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
    for (int i = 0; i < num_fields; i++)
    {
       getLowerCaseName(&tstr, ds->getQoreEncoding(), field[i].name);
-      h->setKeyValue(&tstr, new QoreNode(new List()), NULL);
+      h->setKeyValue(&tstr, new QoreNode(new QoreList()), NULL);
    }
    
    int rn = 0;
@@ -963,7 +963,7 @@ static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
    return h;
 }
 
-static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr, class List *args, ExceptionSink *xsink)
+static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr, class QoreList *args, ExceptionSink *xsink)
 {
    tracein("qore_mysql_do_sql()");
 
@@ -1007,7 +1007,7 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
    return rv;
 }
 
-static class QoreNode *qore_mysql_do_sql_horizontal(class Datasource *ds, QoreString *qstr, class List *args, ExceptionSink *xsink)
+static class QoreNode *qore_mysql_do_sql_horizontal(class Datasource *ds, QoreString *qstr, class QoreList *args, ExceptionSink *xsink)
 {
    xsink->raiseException("MYSQL-UNSUPPORTED", "row retrieval not yet implemented for old versions of MySQL without a prepared statement interface");
    return NULL;
@@ -1027,7 +1027,7 @@ static class Hash *qore_mysql_describe(class Datasource *ds, char *table_name, E
 }
 */
 
-static class QoreNode *qore_mysql_select_rows(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
+static class QoreNode *qore_mysql_select_rows(class Datasource *ds, QoreString *qstr, class QoreList *args, class ExceptionSink *xsink)
 {
    checkInit();
 #ifdef HAVE_MYSQL_STMT
@@ -1042,7 +1042,7 @@ static class QoreNode *qore_mysql_select_rows(class Datasource *ds, QoreString *
 #endif
 }
 
-static class QoreNode *qore_mysql_select(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
+static class QoreNode *qore_mysql_select(class Datasource *ds, QoreString *qstr, class QoreList *args, class ExceptionSink *xsink)
 {
    checkInit();
 #ifdef HAVE_MYSQL_STMT
@@ -1057,7 +1057,7 @@ static class QoreNode *qore_mysql_select(class Datasource *ds, QoreString *qstr,
 #endif
 }
 
-static class QoreNode *qore_mysql_exec(class Datasource *ds, QoreString *qstr, class List *args, class ExceptionSink *xsink)
+static class QoreNode *qore_mysql_exec(class Datasource *ds, QoreString *qstr, class QoreList *args, class ExceptionSink *xsink)
 {
    checkInit();
 #ifdef HAVE_MYSQL_STMT

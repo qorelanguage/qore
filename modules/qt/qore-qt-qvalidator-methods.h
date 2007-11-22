@@ -15,7 +15,7 @@ class T {
 	 ExceptionSink xsink;
 	 LVarInstantiatorHelper lvh("arg0", val, &xsink);
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(lvh.getArg());
 	 QoreNode *na = new QoreNode(args);
 
@@ -40,7 +40,7 @@ class T {
 	 LVarInstantiatorHelper arg0("arg0", new QoreNode(new QoreString(input.toUtf8().data(), QCS_UTF8)), &xsink);
 	 LVarInstantiatorHelper arg1("arg1", new QoreNode((int64)pos), &xsink);
 
-	 List *args = new List();
+	 QoreList *args = new QoreList();
 	 args->push(arg0.getArg());
 	 args->push(arg1.getArg());
 	 QoreNode *na = new QoreNode(args);

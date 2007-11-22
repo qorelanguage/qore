@@ -108,7 +108,7 @@ static QoreNode *QABSTRACTSCROLLAREA_maximumViewportSize(Object *self, QoreAbstr
    return new QoreNode(o_qs);
 }
 
-////QWidgetList scrollBarWidgets ( Qt::Alignment alignment )
+////QWidgetQoreList scrollBarWidgets ( Qt::Alignment alignment )
 //static QoreNode *QABSTRACTSCROLLAREA_scrollBarWidgets(Object *self, QoreAbstractQAbstractScrollArea *qasa, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);

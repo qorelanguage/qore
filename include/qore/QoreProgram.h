@@ -126,11 +126,11 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT int getParseOptions() const;
       DLLEXPORT void setParseOptions(int po, class ExceptionSink *xsink);
       DLLEXPORT void disableParseOptions(int po, class ExceptionSink *xsink);
-      DLLEXPORT class List *getUserFunctionList();
+      DLLEXPORT class QoreList *getUserFunctionList();
       DLLEXPORT bool checkWarning(int code) const;
       DLLEXPORT int getWarningMask() const;
       DLLEXPORT bool checkFeature(const char *f) const;
-      DLLEXPORT class List *getFeatureList() const;
+      DLLEXPORT class QoreList *getFeatureList() const;
       DLLEXPORT class UserFunction *findUserFunction(const char *name);
       
       DLLLOCAL QoreProgram(class QoreProgram *pgm, int po, bool ec = false, const char *ecn = NULL);
@@ -158,7 +158,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void depDeref(class ExceptionSink *xsink);
       DLLLOCAL void addFeature(const char *f);
       DLLLOCAL void addFile(char *f);
-      DLLLOCAL class List *getVarList();
+      DLLLOCAL class QoreList *getVarList();
       // increment atomic thread counter
       DLLLOCAL void tc_inc();
       // decrement atomic thread counter

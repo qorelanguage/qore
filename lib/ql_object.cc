@@ -51,7 +51,7 @@ static QoreNode *f_callObjectMethod(QoreNode *params, ExceptionSink *xsink)
    if (get_param(params, 2))
    {
       // create argument list by copying current list
-      List *l = params->val.list->copyListFrom(2);
+      QoreList *l = params->val.list->copyListFrom(2);
       if (xsink->isEvent())
       {
          if (l)
@@ -96,7 +96,7 @@ static QoreNode *f_callObjectMethodArgs(QoreNode *params, ExceptionSink *xsink)
 	 args = p2;
       else
       {
-	 args = new QoreNode(new List());
+	 args = new QoreNode(new QoreList());
 	 args->val.list->push(p2);
       }
    }

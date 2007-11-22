@@ -48,7 +48,7 @@ class connection
       bool connected;
       class QoreEncoding *enc;
 
-      class QoreNode *exec_intern(class QoreString *cmd_text, class List *qore_args, bool need_list, class ExceptionSink* xsink);
+      class QoreNode *exec_intern(class QoreString *cmd_text, class QoreList *qore_args, bool need_list, class ExceptionSink* xsink);
 
 public:
       DLLLOCAL connection();
@@ -68,8 +68,8 @@ public:
       // returns 0=OK, -1=error (exception raised)
       DLLLOCAL int rollback(class ExceptionSink *xsink);
       
-      DLLLOCAL class QoreNode *exec(QoreString *cmd, List *parameters, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *exec_rows(QoreString *cmd, List *parameters, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *exec(QoreString *cmd, QoreList *parameters, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *exec_rows(QoreString *cmd, QoreList *parameters, class ExceptionSink *xsink);
 
       DLLLOCAL CS_CONNECTION* getConnection() const { return m_connection; }
       DLLLOCAL CS_CONTEXT* getContext() const { return m_context; }

@@ -1182,7 +1182,7 @@ class QoreNode *QoreClass::evalMethodGate(Object *self, const char *nme, QoreNod
    }
    else
    {
-      args = new QoreNode(new List());
+      args = new QoreNode(new QoreList());
       args->val.list->push(new QoreNode(nme));
    }
    QoreNode *rv = methodGate->eval(self, args, xsink);
@@ -1213,7 +1213,7 @@ class QoreNode *QoreClass::evalMemberGate(class Object *self, class QoreNode *nm
       traceout("QoreClass::evalMemberGate()");
       return NULL;
    }
-   class QoreNode *args = new QoreNode(new List());
+   class QoreNode *args = new QoreNode(new QoreList());
    args->val.list->push(nme->RefSelf());
    class QoreNode *rv = memberGate->eval(self, args, xsink);
    args->deref(xsink);
@@ -1574,7 +1574,7 @@ void QoreClass::addMethod(Method *m)
    }
 }
 
-int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal)
+int QoreClass::parseAddBaseClassArgumentQoreList(class BCAList *new_bcal)
 {
    // if the constructor is being defined after the class has already been initialized, then throw a parse exception
    if (numMethods())
@@ -1633,9 +1633,9 @@ void QoreClass::setCopy(q_copy_t m)
    copyMethod = o;
 }
 
-List *QoreClass::getMethodList() const
+QoreList *QoreClass::getMethodList() const
 {
-   List *l = new List();
+   QoreList *l = new QoreList();
 
    for (hm_method_t::const_iterator i = hm.begin(); i != hm.end(); i++)
       l->push(new QoreNode(i->first));

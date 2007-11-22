@@ -38,8 +38,8 @@ DLLEXPORT int qore_target_bits       = TARGET_BITS;
 DLLEXPORT char qore_target_os[]      = TARGET_OS;
 DLLEXPORT char qore_target_arch[]    = TARGET_ARCH;
 
-DLLLOCAL class List *ARGV = NULL;
-DLLLOCAL class List *QORE_ARGV = NULL;
+DLLLOCAL class QoreList *ARGV = NULL;
+DLLLOCAL class QoreList *QORE_ARGV = NULL;
 
 #ifndef HAVE_LOCALTIME_R
 DLLLOCAL class LockedObject lck_localtime;
@@ -580,8 +580,8 @@ void print_node(FILE *fp, class QoreNode *node)
 
 void qore_setup_argv(int pos, int argc, char *argv[])
 {
-   ARGV = new List();
-   QORE_ARGV = new List();
+   ARGV = new QoreList();
+   QORE_ARGV = new QoreList();
    int end = argc - pos;
    for (int i = 0; i < argc; i++)
    {

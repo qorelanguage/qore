@@ -64,7 +64,7 @@ static QoreNode *QOBJECT_blockSignals(Object *self, QoreAbstractQObject *qo, Qor
    return new QoreNode(qo->getQObject()->blockSignals(block));
 }
 
-//const QObjectList & children () const
+//const QObjectQoreList & children () const
 //static QoreNode *QOBJECT_children(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qo->getQObject()->children());
@@ -431,6 +431,35 @@ static QoreNode *QOBJECT_sender(Object *self, QoreAbstractQObject *qo, QoreNode 
    return new QoreNode(obj);
 }
 
+//virtual void childEvent ( QChildEvent * event )
+static QoreNode *QOBJECT_childEvent(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQChildEvent *event = (p && p->type == NT_OBJECT) ? (QoreQChildEvent *)p->val.object->getReferencedPrivateData(CID_QCHILDEVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QOBJECT-CHILDEVENT-PARAM-ERROR", "expecting a QChildEvent object as first argument to QObject::childEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQChildEvent> eventHolder(event, xsink);
+   qo->childEvent(static_cast<QChildEvent *>(event));
+   return 0;
+}
+
+//virtual void timerEvent ( QTimerEvent * event )
+static QoreNode *QOBJECT_timerEvent(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   QoreQTimerEvent *event = (p && p->type == NT_OBJECT) ? (QoreQTimerEvent *)p->val.object->getReferencedPrivateData(CID_QTIMEREVENT, xsink) : 0;
+   if (!event) {
+      if (!xsink->isException())
+         xsink->raiseException("QOBJECT-TIMEREVENT-PARAM-ERROR", "expecting a QTimerEvent object as first argument to QObject::timerEvent()");
+      return 0;
+   }
+   ReferenceHolder<QoreQTimerEvent> eventHolder(event, xsink);
+   qo->timerEvent(static_cast<QTimerEvent *>(event));
+   return 0;
+}
 
 class QoreClass *initQObjectClass()
 {
@@ -476,6 +505,8 @@ class QoreClass *initQObjectClass()
 
    // private methods
    QC_QObject->addMethod("sender",                      (q_method_t)QOBJECT_sender, true);
+   QC_QObject->addMethod("childEvent",                  (q_method_t)QOBJECT_childEvent, true);
+   QC_QObject->addMethod("timerEvent",                  (q_method_t)QOBJECT_timerEvent, true);
 
    traceout("initQObjectClass()");
    return QC_QObject;

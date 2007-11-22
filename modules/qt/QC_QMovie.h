@@ -34,22 +34,22 @@ DLLLOCAL extern class QoreClass *QC_QMovie;
 DLLLOCAL class QoreClass *initQMovieClass(QoreClass *);
 DLLLOCAL void initQMovieStaticFunctions();
 
-class myQMovie : public QMovie
+class myQMovie : public QMovie, public QoreQObjectExtension
 {
 #define QOREQTYPE QMovie
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMovie(Object *obj, QObject* parent = 0) : QMovie(parent)
+      DLLLOCAL myQMovie(Object *obj, QObject* parent = 0) : QMovie(parent), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQMovie (Object *obj, QIODevice * device, const QByteArray & format = QByteArray(), QObject * parent = 0) : QMovie(device, format, parent)
+      DLLLOCAL myQMovie (Object *obj, QIODevice * device, const QByteArray & format = QByteArray(), QObject * parent = 0) : QMovie(device, format, parent), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
-      DLLLOCAL myQMovie(Object *obj, const QString& fileName, const QByteArray& format = QByteArray(), QObject* parent = 0) : QMovie(fileName, format, parent)
+      DLLLOCAL myQMovie(Object *obj, const QString& fileName, const QByteArray& format = QByteArray(), QObject* parent = 0) : QMovie(fileName, format, parent), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }

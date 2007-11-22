@@ -85,7 +85,7 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
                  n->val.object->getClass() ? n->val.object->getClass()->getName() : "<none>",
 		 n->val.object->isValid() ? "yes" : "no");
       {
-         List *l = n->val.object->getMemberList(xsink);
+         QoreList *l = n->val.object->getMemberList(xsink);
          if (l)
          {
             for (int i = 0; i < l->size(); i++)

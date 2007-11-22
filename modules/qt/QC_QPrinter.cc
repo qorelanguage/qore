@@ -418,7 +418,7 @@ static QoreNode *QPRINTER_supportedPaperSources(Object *self, QoreQPrinter *qp, 
 {
    QList<QPrinter::PaperSource> qlist = qp->supportedPaperSources();
 
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QList<QPrinter::PaperSource>::iterator i = qlist.begin(), e = qlist.end(); i != e; ++i)
       l->push(new QoreNode((int64)*i));
 
@@ -430,7 +430,7 @@ static QoreNode *QPRINTER_supportedPaperSources(Object *self, QoreQPrinter *qp, 
 static QoreNode *QPRINTER_supportedResolutions(Object *self, QoreQPrinter *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QList<int> ilist_rv = qp->supportedResolutions();
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)
       l->push(new QoreNode((int64)(*i)));
    return new QoreNode(l);

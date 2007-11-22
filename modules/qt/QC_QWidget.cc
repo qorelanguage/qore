@@ -178,7 +178,7 @@ static QoreNode *QWIDGET_childrenRect(Object *self, QoreAbstractQWidget *qw, Qor
 {
 
    QoreQRect *q_qr = new QoreQRect(qw->getQWidget()->childrenRect());
-   Object *o_qr = new Object(self->getClass(CID_QRECT), getProgram());
+   Object *o_qr = new Object(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -188,7 +188,7 @@ static QoreNode *QWIDGET_childrenRegion(Object *self, QoreAbstractQWidget *qw, Q
 {
 
    QoreQRegion *q_qr = new QoreQRegion(qw->getQWidget()->childrenRegion());
-   Object *o_qr = new Object(self->getClass(CID_QREGION), getProgram());
+   Object *o_qr = new Object(QC_QRegion, getProgram());
    o_qr->setPrivate(CID_QREGION, q_qr);
    return new QoreNode(o_qr);
 }
@@ -212,7 +212,7 @@ static QoreNode *QWIDGET_contentsRect(Object *self, QoreAbstractQWidget *qw, Qor
 {
 
    QoreQRect *q_qr = new QoreQRect(qw->getQWidget()->contentsRect());
-   Object *o_qr = new Object(self->getClass(CID_QRECT), getProgram());
+   Object *o_qr = new Object(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -333,7 +333,7 @@ static QoreNode *QWIDGET_geometry(Object *self, QoreAbstractQWidget *qw, QoreNod
 {
 
    QoreQRect *q_qr = new QoreQRect(qw->getQWidget()->geometry());
-   Object *o_qr = new Object(self->getClass(CID_QRECT), getProgram());
+   Object *o_qr = new Object(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -410,7 +410,7 @@ static QoreNode *QWIDGET_heightForWidth(class Object *self, QoreAbstractQWidget 
       xsink->raiseException("QWIDGET-HEIGHTFORWIDTH-ERROR", "missing width argument in QWidget::heightForWidth()");
       return 0;
    }
-   return new QoreNode((int64)qw->getQWidget()->heightForWidth(p->getAsInt()));
+   return new QoreNode((int64)qw->heightForWidth(p->getAsInt()));
 }
 
 //QInputContext * inputContext ()
@@ -423,7 +423,7 @@ static QoreNode *QWIDGET_inputMethodQuery(Object *self, QoreAbstractQWidget *qw,
 {
    QoreNode *p = get_param(params, 0);
    Qt::InputMethodQuery query = (Qt::InputMethodQuery)(p ? p->getAsInt() : 0);
-   return return_qvariant(qw->getQWidget()->inputMethodQuery(query));
+   return return_qvariant(qw->inputMethodQuery(query));
 }
 
 //void insertAction ( QAction * before, QAction * action )
@@ -728,7 +728,7 @@ static QoreNode *QWIDGET_mask(Object *self, QoreAbstractQWidget *qw, QoreNode *p
 {
 
    QoreQRegion *q_qr = new QoreQRegion(qw->getQWidget()->mask());
-   Object *o_qr = new Object(self->getClass(CID_QREGION), getProgram());
+   Object *o_qr = new Object(QC_QRegion, getProgram());
    o_qr->setPrivate(CID_QREGION, q_qr);
    return new QoreNode(o_qr);
 }
@@ -773,7 +773,7 @@ static QoreNode *QWIDGET_minimumSize(Object *self, QoreAbstractQWidget *qw, Qore
 static QoreNode *QWIDGET_minimumSizeHint(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
 {
    Object *o_qs = new Object(QC_QSize, getProgram());
-   QoreQSize *q_qs = new QoreQSize(qw->getQWidget()->minimumSizeHint());
+   QoreQSize *q_qs = new QoreQSize(qw->minimumSizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
 }
@@ -830,7 +830,7 @@ static QoreNode *QWIDGET_normalGeometry(Object *self, QoreAbstractQWidget *qw, Q
 {
 
    QoreQRect *q_qr = new QoreQRect(qw->getQWidget()->normalGeometry());
-   Object *o_qr = new Object(self->getClass(CID_QRECT), getProgram());
+   Object *o_qr = new Object(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
@@ -2097,7 +2097,7 @@ static QoreNode *QWIDGET_setVisible(Object *self, QoreAbstractQWidget *qw, QoreN
 {
    QoreNode *p = get_param(params, 0);
    bool visible = p ? p->getAsBool() : 0;
-   qw->getQWidget()->setVisible(visible);
+   qw->setVisible(visible);
    return 0;
 }
 

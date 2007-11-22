@@ -121,9 +121,9 @@ void CallStack::pop(class ExceptionSink *xsink)
    traceout("CallStack::pop()");
 }
 
-class List *CallStack::getCallStack() const
+class QoreList *CallStack::getCallStack() const
 {
-   class List *l = new List();
+   class QoreList *l = new QoreList();
    CallNode *c = tail;
    while (c)
    {

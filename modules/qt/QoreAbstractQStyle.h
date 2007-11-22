@@ -65,7 +65,7 @@ class QoreAbstractQStyle : public QoreAbstractQObject
       DLLLOCAL virtual void unpolish ( QApplication * application ) = 0;
 };
 
-class QoreQStyleExtension : public QoreQtEventDispatcher
+class QoreQStyleExtension : public QoreQObjectExtension
 {
    protected:
       Method *m_drawComplexControl, *m_drawControl, *m_drawItemPixmap, *m_drawItemText, *m_drawPrimitive, 
@@ -74,7 +74,7 @@ class QoreQStyleExtension : public QoreQtEventDispatcher
 	 *m_subControlRect, *m_subElementRect, *m_unpolish;
 
    public:
-      DLLLOCAL QoreQStyleExtension(QoreClass *qc)
+      DLLLOCAL QoreQStyleExtension(QoreClass *qc) : QoreQObjectExtension(qc)
       {
 	 m_drawComplexControl      = findMethod(qc, "drawComplexControl");
          m_drawControl             = findMethod(qc, "drawControl");

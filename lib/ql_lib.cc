@@ -214,9 +214,9 @@ static class QoreNode *f_waitpid(class QoreNode *params, ExceptionSink *xsink)
 }
 */
 
-static List *map_sbuf_to_list(struct stat *sbuf)
+static QoreList *map_sbuf_to_list(struct stat *sbuf)
 {
-   List *l = new List();
+   QoreList *l = new QoreList();
 
    l->push(new QoreNode((int64)sbuf->st_dev));
    l->push(new QoreNode((int64)sbuf->st_ino));
@@ -374,7 +374,7 @@ static class QoreNode *f_glob(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
    }
 
-   List *l = new List();
+   QoreList *l = new QoreList();
    for (int i = 0; i < (int)globbuf.gl_pathc; i++)
       l->push(new QoreNode(globbuf.gl_pathv[i]));
    

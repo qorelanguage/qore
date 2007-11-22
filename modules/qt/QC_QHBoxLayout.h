@@ -32,19 +32,20 @@ DLLEXPORT extern int CID_QHBOXLAYOUT;
 
 DLLLOCAL class QoreClass *initQHBoxLayoutClass(class QoreClass *qboxlayout);
 
-class myQHBoxLayout : public QHBoxLayout
+class myQHBoxLayout : public QHBoxLayout, public QoreQObjectExtension
 {
 #define QOREQTYPE QHBoxLayout
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
-   DLLLOCAL myQHBoxLayout(Object *obj) : QHBoxLayout()
-   {
-      init(obj);
-   }
-   DLLLOCAL myQHBoxLayout(Object *obj, QWidget *parent) : QHBoxLayout(parent)
-   {
-      init(obj);
-   }
+   public:
+      DLLLOCAL myQHBoxLayout(Object *obj) : QHBoxLayout(), QoreQObjectExtension(obj->getClass())
+      {
+	 init(obj);
+      }
+      DLLLOCAL myQHBoxLayout(Object *obj, QWidget *parent) : QHBoxLayout(parent), QoreQObjectExtension(obj->getClass())
+      {
+	 init(obj);
+      }
 };
 
 class QoreQHBoxLayout : public QoreAbstractQBoxLayout

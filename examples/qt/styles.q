@@ -29,7 +29,6 @@ class NorwegianWoodStyle inherits QMotifStyle
 	if (!($palette instanceof QPalette)) {
 	    if ($palette instanceof QPushButton || $palette instanceof QComboBox)
 		$palette.setAttribute(Qt::WA_Hover, True);
-	    #printf("palette=%N\n", $palette);
 	    return;
 	}
 	my $brown = new QColor(212, 140, 95);
@@ -246,7 +245,6 @@ class NorwegianWoodStyle inherits QMotifStyle
 	return $path;
     }
 }
-
 
 class WidgetGallery inherits QDialog
 {

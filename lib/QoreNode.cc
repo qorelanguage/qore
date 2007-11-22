@@ -169,7 +169,7 @@ QoreNode::QoreNode(Object *o)
 #endif
 }
 
-QoreNode::QoreNode(List *l)
+QoreNode::QoreNode(QoreList *l)
 {
    type = NT_LIST;
    val.list = l;
@@ -742,7 +742,7 @@ static inline QoreNode *crlr_list_copy(QoreNode *n, ExceptionSink *xsink)
       return n->RefSelf();
 
    // otherwise process each list element
-   List *l = new List(1);
+   QoreList *l = new QoreList(1);
    for (int i = 0; i < n->val.list->size(); i++)
       l->push(copy_and_resolve_lvar_refs(n->val.list->retrieve_entry(i), xsink));
    return new QoreNode(l);   

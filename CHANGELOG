@@ -1,3 +1,10 @@
+2007.11.22: David Nichols
+	* renamed class "List" to "QoreList" to avoid name clashes
+	* fixed destruction order for local variables
+	* fixed destruction order for global variables
+	* qt: many bugfixes, some QObject event handling
+	* qt: new "tetrix.q" example
+
 2007.11.21: David Nichols
 	* qt: more various bugfixes
 

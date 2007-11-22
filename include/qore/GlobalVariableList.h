@@ -33,7 +33,7 @@
 class GlobalVariableList
 {
 private:
-   hm_var_t vmap; // iterators are not invalidated on inserts
+   map_var_t vmap; // iterators are not invalidated on inserts
    
 public:
    DLLLOCAL GlobalVariableList();
@@ -45,7 +45,7 @@ public:
    DLLLOCAL class Var *newVar(class Var *v, bool readonly);
    DLLLOCAL class Var *findVar(const char *name);
    DLLLOCAL class Var *checkVar(const char *name, int *new_vars);
-   DLLLOCAL class List *getVarList() const;
+   DLLLOCAL class QoreList *getVarList() const;
 };
 
 #endif

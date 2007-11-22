@@ -1631,7 +1631,7 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is
       type = Fldtype(id);
     }
 
-    List* list = new List();
+    QoreList* list = new QoreList();
     list->push(new QoreNode((int64)id));
     list->push(new QoreNode((int64)type));
     result->setKeyValue(name, new QoreNode(list), xsink);
@@ -1737,7 +1737,7 @@ static void do_test(bool is_fml32)
     QoreNode* val = it.getValue();
 
     assert(val->type == NT_LIST);
-    List* l = val->val.list;
+    QoreList* l = val->val.list;
     assert(l->size() == 2);
     QoreNode* id = l->retrieve_entry(0);
     assert(id->type == NT_INT);
@@ -1831,7 +1831,7 @@ static pair<FLDID32, int>  fml_name2id(const char* name, Hash* description_info,
   }
   // already known to be list with (int, int)
   assert(n->type == NT_LIST);
-  List* l = n->val.list;
+  QoreList* l = n->val.list;
   assert(l->size() == 2);
   n = l->retrieve_entry(0);
   result.first = (FLDID32)n->val.intval;
@@ -1848,7 +1848,7 @@ static pair<string, int> fml_id2name(FLDID32 id, Hash* description_info, Excepti
   while (it.next()) {
     QoreNode* n = it.getValue();
     assert(n->type == NT_LIST);
-    List* l = n->val.list;
+    QoreList* l = n->val.list;
     assert(l->size() == 2);
     n = l->retrieve_entry(0);
     assert(n->type == NT_INT);

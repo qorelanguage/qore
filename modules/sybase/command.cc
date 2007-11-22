@@ -105,7 +105,7 @@ unsigned command::get_column_count(ExceptionSink* xsink)
 }
 
 // FIXME: use ct_setparam to avoid copying data
-int command::set_params(sybase_query &query, class List *args, ExceptionSink *xsink)
+int command::set_params(sybase_query &query, class QoreList *args, ExceptionSink *xsink)
 {
    unsigned nparams = query.param_list.size();
    //printd(5, "query=%s\n", query.m_cmd.getBuffer());
@@ -416,7 +416,7 @@ class QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list,
 	    }
 	 }
 
-	 h->setKeyValue(col_name, new QoreNode(new List()), 0);
+	 h->setKeyValue(col_name, new QoreNode(new QoreList()), 0);
       }
       rv = new QoreNode(h);
    }
@@ -444,7 +444,7 @@ class QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list,
 	    if (rv->type == NT_HASH)
 	    {
 	       // convert to hash - several rows
-	       class List *l = new List();
+	       class QoreList *l = new QoreList();
 	       l->push(rv);
 	       rv = new QoreNode(l);
 	    }

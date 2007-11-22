@@ -31,7 +31,7 @@ class QoreNode *list_DefaultValue()
 
 class QoreNode *list_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
 {
-   List *l = new List();
+   QoreList *l = new QoreList();
    l->push(n ? n->eval(xsink) : NULL);
    return new QoreNode(l);
 }
