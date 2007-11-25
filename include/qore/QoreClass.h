@@ -302,7 +302,7 @@ class QoreClass{
       DLLLOCAL class QoreClass *copyAndDeref();
       DLLLOCAL void addBaseClassesToSubclass(class QoreClass *sc, bool is_virtual);
       // returns 0 for success, -1 for error
-      DLLLOCAL int parseAddBaseClassArgumentQoreList(class BCAList *bcal);
+      DLLLOCAL int parseAddBaseClassArgumentList(class BCAList *bcal);
       // only called when parsing, sets the name of the class
       DLLLOCAL void setName(const char *n);
       // returns true if reference count is 1

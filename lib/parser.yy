@@ -118,7 +118,8 @@ static inline QoreNode *makeArgs(QoreNode *arg)
 {
    if (!arg || arg->type == NT_LIST)
       return arg;
-   List *l = new List(1);
+      
+   QoreList *l = new QoreList(1);
    l->push(arg);
    return new QoreNode(l);
 }
@@ -221,7 +222,7 @@ static inline class QoreNode *splice_expressions(class QoreNode *a1, class QoreN
    }
    //printd(5, "NODE x\n");
    class QoreNode *nl = new QoreNode(NT_LIST);
-   nl->val.list = new List(1);
+   nl->val.list = new QoreList(1);
    nl->val.list->push(a1);
    nl->val.list->push(a2);
    //traceout("splice_expressions()");
@@ -2036,7 +2037,7 @@ exp:    scalar
 	   if ($2->type == NT_LIST) 
 	      $2->type = NT_FLIST; 
 	}
-        | '(' ')' { $$ = new QoreNode(NT_FLIST); $$->val.list = new List(); }
+        | '(' ')' { $$ = new QoreNode(NT_FLIST); $$->val.list = new QoreList(); }
 	;
 
 string:

@@ -1574,7 +1574,7 @@ void QoreClass::addMethod(Method *m)
    }
 }
 
-int QoreClass::parseAddBaseClassArgumentQoreList(class BCAList *new_bcal)
+int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal)
 {
    // if the constructor is being defined after the class has already been initialized, then throw a parse exception
    if (numMethods())

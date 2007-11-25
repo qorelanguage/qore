@@ -893,9 +893,9 @@ int RootNamespace::addMethodToClass(class NamedScope *scname, class Method *qcme
 
    oc->addMethod(qcmethod);
    // after the addMethod call, we can no longer return an error code if 
-   // oc->parseAddBaseClassArgumentQoreList() fails (because the caller will 
+   // oc->parseAddBaseClassArgumentList() fails (because the caller will 
    // delete it if we return an error code), so we delete it here
-   if (bcal && oc->parseAddBaseClassArgumentQoreList(bcal))
+   if (bcal && oc->parseAddBaseClassArgumentList(bcal))
       delete bcal;
 
    return 0;
