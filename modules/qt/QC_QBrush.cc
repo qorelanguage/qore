@@ -65,7 +65,7 @@ static void QBRUSH_constructor(class Object *self, class QoreNode *params, Excep
 	    ReferenceHolder<AbstractPrivateData> holder(apd_qpixmap, xsink);
 	    QoreAbstractQPixmap *qpixmap = dynamic_cast<QoreAbstractQPixmap *>(apd_qpixmap);
 	    assert(qpixmap);
-	    printd(0, "QBrush::constructor(color=%08p, pixmap=%08p)\n", color, qpixmap->getQPixmap());
+	    //printd(5, "QBrush::constructor(color=%08p, pixmap=%08p)\n", color, qpixmap->getQPixmap());
 	    qb = new QoreQBrush(*color, *(qpixmap->getQPixmap()));
 	 }
 

@@ -1,3 +1,7 @@
+2007.11.25: David Nichols
+	* qt: event handling fixes
+	* qt: new example: "tooltips.q"
+
 2007.11.22: David Nichols
 	* renamed class "List" to "QoreList" to avoid name clashes
 	* fixed destruction order for local variables

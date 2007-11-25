@@ -82,11 +82,11 @@ static QoreNode *QTOOLBUTTON_menu(Object *self, QoreAbstractQToolButton *qtb, Qo
    return new QoreNode(rv_obj);
 }
 
-////ToolButtonPopupMode popupMode () const
-//static QoreNode *QTOOLBUTTON_popupMode(Object *self, QoreAbstractQToolButton *qtb, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qtb->getQToolButton()->popupMode());
-//}
+//ToolButtonPopupMode popupMode () const
+static QoreNode *QTOOLBUTTON_popupMode(Object *self, QoreAbstractQToolButton *qtb, QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qtb->getQToolButton()->popupMode());
+}
 
 //void setArrowType ( Qt::ArrowType type )
 static QoreNode *QTOOLBUTTON_setArrowType(Object *self, QoreAbstractQToolButton *qtb, QoreNode *params, ExceptionSink *xsink)
@@ -183,6 +183,7 @@ static QoreNode *QTOOLBUTTON_initStyleOption(Object *self, QoreAbstractQToolButt
    return 0;
 }
 */
+
 QoreClass *initQToolButtonClass(QoreClass *qabstractbutton)
 {
    QC_QToolButton = new QoreClass("QToolButton", QDOM_GUI);
@@ -197,7 +198,7 @@ QoreClass *initQToolButtonClass(QoreClass *qabstractbutton)
    QC_QToolButton->addMethod("autoRaise",                   (q_method_t)QTOOLBUTTON_autoRaise);
    QC_QToolButton->addMethod("defaultAction",               (q_method_t)QTOOLBUTTON_defaultAction);
    QC_QToolButton->addMethod("menu",                        (q_method_t)QTOOLBUTTON_menu);
-   //QC_QToolButton->addMethod("popupMode",                   (q_method_t)QTOOLBUTTON_popupMode);
+   QC_QToolButton->addMethod("popupMode",                   (q_method_t)QTOOLBUTTON_popupMode);
    QC_QToolButton->addMethod("setArrowType",                (q_method_t)QTOOLBUTTON_setArrowType);
    QC_QToolButton->addMethod("setAutoRaise",                (q_method_t)QTOOLBUTTON_setAutoRaise);
    QC_QToolButton->addMethod("setMenu",                     (q_method_t)QTOOLBUTTON_setMenu);

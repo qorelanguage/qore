@@ -54,5 +54,6 @@ DLLLOCAL class QoreNode *return_qvariant(QVariant &qv);
 DLLLOCAL class QoreNode *return_qstyle(const QString &style, class QStyle *qs, ExceptionSink *xsink);
 DLLLOCAL class QoreNode *return_qobject(QObject *o);
 DLLLOCAL class QoreNode *return_qstyleoption(const class QStyleOption *qso);
+DLLLOCAL class QoreNode *return_qevent(class QEvent *event);
 
 #endif

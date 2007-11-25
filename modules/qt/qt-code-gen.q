@@ -1604,7 +1604,7 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 
 	case "QList<int>": {
 	    $lo += sprintf("QList<int> ilist_rv = %s;", $callstr);
-	    $lo += "List *l = new List();";
+	    $lo += "QoreList *l = new QoreList();";
 	    $lo += "for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)";
 	    $lo += "   l->push(new QoreNode((int64)(*i)));";
 	    $lo += "return new QoreNode(l);";
@@ -1613,7 +1613,7 @@ sub do_return_value($offset, $rt, $callstr, $ok)
 
 	case "QStringList": {
 	    $lo += sprintf("QStringList strlist_rv = %s;", $callstr);
-	    $lo += "List *l = new List();";
+	    $lo += "QoreList *l = new QoreList();";
 	    $lo += "for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)";
 	    $lo += "   l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));";
 	    $lo += "return new QoreNode(l);";

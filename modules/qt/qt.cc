@@ -106,20 +106,7 @@
 #include "QC_QAbstractScrollArea.h"
 #include "QC_QScrollArea.h"
 #include "QC_QChar.h"
-#include "QC_QActionEvent.h"
-#include "QC_QCloseEvent.h"
-#include "QC_QContextMenuEvent.h"
-#include "QC_QDropEvent.h"
 #include "QC_QMimeData.h"
-#include "QC_QDragMoveEvent.h"
-#include "QC_QDragEnterEvent.h"
-#include "QC_QDragLeaveEvent.h"
-#include "QC_QFocusEvent.h"
-#include "QC_QHideEvent.h"
-#include "QC_QInputMethodEvent.h"
-#include "QC_QShowEvent.h"
-#include "QC_QTabletEvent.h"
-#include "QC_QWheelEvent.h"
 #include "QC_QClipboard.h"
 #include "QC_QFontComboBox.h"
 #include "QC_QMainWindow.h"
@@ -171,10 +158,7 @@
 #include "QC_QStyleOptionTab.h"
 #include "QC_QStyleOptionTabWidgetFrame.h"
 #include "QC_QTabWidget.h"
-#include "QC_QChildEvent.h"
-#include "QC_QTimerEvent.h"
-
-#include "qore-qt-events.h"
+#include "QC_QEvent.h"
 
 #include "QT_BrushStyle.h"
 #include "QT_PenStyle.h"
@@ -844,6 +828,126 @@ class QoreNode *return_qobject(QObject *o)
    return return_object(QC_QObject, new QoreQtQObject(qo, o));
 }
 
+class QoreNode *return_qevent(QEvent *event)
+{
+   if (!event)
+      return 0;
+
+   // the order is important here so the most specific subclass is checked before any base classes
+   {
+      QActionEvent *qae = dynamic_cast<QActionEvent *>(event);
+      if (qae)
+         return return_object(QC_QActionEvent, new QoreQActionEvent(*qae));
+   }
+   {
+      QChildEvent *qce = dynamic_cast<QChildEvent *>(event);
+      if (qce)
+         return return_object(QC_QChildEvent, new QoreQChildEvent(*qce));
+   }
+   {
+      QCloseEvent *qce = dynamic_cast<QCloseEvent *>(event);
+      if (qce)
+         return return_object(QC_QCloseEvent, new QoreQCloseEvent(*qce));
+   }
+   {
+      QContextMenuEvent *qcme = dynamic_cast<QContextMenuEvent *>(event);
+      if (qcme)
+         return return_object(QC_QContextMenuEvent, new QoreQContextMenuEvent(*qcme));
+   }
+   {
+      QDragEnterEvent *qdee = dynamic_cast<QDragEnterEvent *>(event);
+      if (qdee)
+         return return_object(QC_QDragEnterEvent, new QoreQDragEnterEvent(*qdee));
+   }
+   {
+      QDragLeaveEvent *qdle = dynamic_cast<QDragLeaveEvent *>(event);
+      if (qdle)
+         return return_object(QC_QDragLeaveEvent, new QoreQDragLeaveEvent(*qdle));
+   }
+   {
+      QDragMoveEvent *qdme = dynamic_cast<QDragMoveEvent *>(event);
+      if (qdme)
+         return return_object(QC_QDragMoveEvent, new QoreQDragMoveEvent(*qdme));
+   }
+   {
+      QFocusEvent *qfe = dynamic_cast<QFocusEvent *>(event);
+      if (qfe)
+         return return_object(QC_QFocusEvent, new QoreQFocusEvent(*qfe));
+   }
+   {
+      QHelpEvent *qhe = dynamic_cast<QHelpEvent *>(event);
+      if (qhe)
+         return return_object(QC_QHelpEvent, new QoreQHelpEvent(*qhe));
+   }
+   {
+      QHideEvent *qhe = dynamic_cast<QHideEvent *>(event);
+      if (qhe)
+         return return_object(QC_QHideEvent, new QoreQHideEvent(*qhe));
+   }
+   {
+      QInputMethodEvent *qime = dynamic_cast<QInputMethodEvent *>(event);
+      if (qime)
+         return return_object(QC_QInputMethodEvent, new QoreQInputMethodEvent(*qime));
+   }
+   {
+      QKeyEvent *qke = dynamic_cast<QKeyEvent *>(event);
+      if (qke)
+         return return_object(QC_QKeyEvent, new QoreQKeyEvent(*qke));
+   }
+   {
+      QMouseEvent *qme = dynamic_cast<QMouseEvent *>(event);
+      if (qme)
+         return return_object(QC_QMouseEvent, new QoreQMouseEvent(*qme));
+   }
+   {
+      QMoveEvent *qme = dynamic_cast<QMoveEvent *>(event);
+      if (qme)
+         return return_object(QC_QMoveEvent, new QoreQMoveEvent(*qme));
+   }
+   {
+      QPaintEvent *qpe = dynamic_cast<QPaintEvent *>(event);
+      if (qpe)
+         return return_object(QC_QPaintEvent, new QoreQPaintEvent(*qpe));
+   }
+   {
+      QResizeEvent *qre = dynamic_cast<QResizeEvent *>(event);
+      if (qre)
+         return return_object(QC_QResizeEvent, new QoreQResizeEvent(*qre));
+   }
+   {
+      QShowEvent *qse = dynamic_cast<QShowEvent *>(event);
+      if (qse)
+         return return_object(QC_QShowEvent, new QoreQShowEvent(*qse));
+   }
+   {
+      QTabletEvent *qte = dynamic_cast<QTabletEvent *>(event);
+      if (qte)
+         return return_object(QC_QTabletEvent, new QoreQTabletEvent(*qte));
+   }
+   {
+      QTimerEvent *qte = dynamic_cast<QTimerEvent *>(event);
+      if (qte)
+         return return_object(QC_QTimerEvent, new QoreQTimerEvent(*qte));
+   }
+   {
+      QWheelEvent *qwe = dynamic_cast<QWheelEvent *>(event);
+      if (qwe)
+         return return_object(QC_QWheelEvent, new QoreQWheelEvent(*qwe));
+   }   
+   {
+      QInputEvent *qie = dynamic_cast<QInputEvent *>(event);
+      if (qie)
+         return return_object(QC_QInputEvent, new QoreQInputEvent(*qie));
+   }
+   {
+      QDropEvent *qde = dynamic_cast<QDropEvent *>(event);
+      if (qde)
+         return return_object(QC_QDropEvent, new QoreQDropEvent(*qde));
+   }
+
+   return return_object(QC_QEvent, new QoreQEvent(*event));
+}
+
 static class QoreNode *f_QObject_connect(class QoreNode *params, class ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
@@ -1182,6 +1286,7 @@ static class QoreString *qt_module_init()
    initQColorDialogStaticFunctions();
    initQInputDialogStaticFunctions();
    initQImageWriterStaticFunctions();
+   initQColorStaticFunctions();
 
    addBrushStyleType();
    addPenStyleType();
@@ -1232,15 +1337,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQFontClass());
    qt->addSystemClass(initQMatrixClass());
 
-   class QoreClass *qevent, *qinputevent;
-   qt->addSystemClass((qevent = initQEventClass()));
-   qt->addSystemClass(initQPaintEventClass(qevent));
-   qt->addSystemClass(initQMoveEventClass(qevent));
-   qt->addSystemClass(initQResizeEventClass(qevent));
-
-   qt->addSystemClass((qinputevent = initQInputEventClass(qevent)));
-   qt->addSystemClass(initQKeyEventClass(qinputevent));
-   qt->addSystemClass(initQMouseEventClass(qinputevent));
+   qt->addInitialNamespace(initQEventNS());
 
    Namespace *qimage = new Namespace("QImage");
 
@@ -1411,8 +1508,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    QoreClass *qabstractbutton, *qtextformat, *qtextframeformat, *qtextcharformat,
       *qstyleoption, *qstyleoptionviewitem, *qabstractitemdelegate,
-      *qabstractspinbox, *qdatetimeedit, *qabstractscrollarea, *qdropevent, 
-      *qdragmoveevent, *qcombobox, *qstyleoptioncomplex, *qabstractitemview, 
+      *qabstractspinbox, *qdatetimeedit, *qabstractscrollarea, 
+      *qcombobox, *qstyleoptioncomplex, *qabstractitemview, 
       *qtableview, *qdialog, *qvalidator;
  
    qt->addInitialNamespace(initQStyleNS(qobject));
@@ -1465,20 +1562,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQScrollBarClass(qabstractslider));
    qt->addSystemClass((qabstractscrollarea = initQAbstractScrollAreaClass(qframe)));
    qt->addSystemClass(initQScrollAreaClass(qabstractscrollarea));
-   qt->addSystemClass(initQActionEventClass(qevent));
-   qt->addSystemClass(initQCloseEventClass(qevent));
-   qt->addSystemClass(initQContextMenuEventClass(qinputevent));
-   qt->addSystemClass((qdropevent = initQDropEventClass(qevent)));
    qt->addSystemClass(initQMimeDataClass(qobject));
-   qt->addSystemClass((qdragmoveevent = initQDragMoveEventClass(qdropevent)));
-   qt->addSystemClass(initQDragEnterEventClass(qdragmoveevent));
-   qt->addSystemClass(initQDragLeaveEventClass(qevent));
-   qt->addSystemClass(initQFocusEventClass(qevent));
-   qt->addSystemClass(initQHideEventClass(qevent));
-   qt->addSystemClass(initQInputMethodEventClass(qevent));
-   qt->addSystemClass(initQShowEventClass(qevent));
-   qt->addSystemClass(initQTabletEventClass(qinputevent));
-   qt->addSystemClass(initQWheelEventClass(qinputevent));
    qt->addSystemClass(initQFontComboBoxClass(qcombobox));
    qt->addSystemClass(initQMainWindowClass(qwidget));
    qt->addSystemClass(initQRadioButtonClass(qabstractbutton));
@@ -1508,8 +1592,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQStyleOptionTabClass(qstyleoption));
    qt->addSystemClass(initQStyleOptionTabWidgetFrameClass(qstyleoption));
    qt->addSystemClass(initQTabWidgetClass(qwidget));
-   qt->addSystemClass(initQChildEventClass(qevent));
-   qt->addSystemClass(initQTimerEventClass(qevent));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");

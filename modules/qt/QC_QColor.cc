@@ -665,3 +665,167 @@ class QoreClass *initQColorClass()
    return QC_QColor;
 }
 
+#ifdef Q_WS_X11
+//bool allowX11ColorNames ()
+static QoreNode *f_QColor_allowX11ColorNames(QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(QColor::allowX11ColorNames());
+}
+#endif
+
+//QStringList colorNames ()
+static QoreNode *f_QColor_colorNames(QoreNode *params, ExceptionSink *xsink)
+{
+   QStringList strlist_rv = QColor::colorNames();
+   QoreList *l = new QoreList();
+   for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
+      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+   return new QoreNode(l);
+}
+
+//QColor fromCmyk ( int c, int m, int y, int k, int a = 255 )
+static QoreNode *f_QColor_fromCmyk(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int c = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int m = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int y = p ? p->getAsInt() : 0;
+   p = get_param(params, 3);
+   int k = p ? p->getAsInt() : 0;
+   p = get_param(params, 4);
+   int a = !is_nothing(p) ? p->getAsInt() : 255;
+   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreQColor *q_qc = new QoreQColor(QColor::fromCmyk(c, m, y, k, a));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
+
+//QColor fromCmykF ( qreal c, qreal m, qreal y, qreal k, qreal a = 1.0 )
+static QoreNode *f_QColor_fromCmykF(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   qreal c = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 1);
+   qreal m = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 2);
+   qreal y = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 3);
+   qreal k = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 4);
+   qreal a = p ? p->getAsFloat() : 0.0;
+   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreQColor *q_qc = new QoreQColor(QColor::fromCmykF(c, m, y, k, a));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
+
+//QColor fromHsv ( int h, int s, int v, int a = 255 )
+static QoreNode *f_QColor_fromHsv(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int h = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int s = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int v = p ? p->getAsInt() : 0;
+   p = get_param(params, 3);
+   int a = !is_nothing(p) ? p->getAsInt() : 255;
+   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreQColor *q_qc = new QoreQColor(QColor::fromHsv(h, s, v, a));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
+
+//QColor fromHsvF ( qreal h, qreal s, qreal v, qreal a = 1.0 )
+static QoreNode *f_QColor_fromHsvF(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   qreal h = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 1);
+   qreal s = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 2);
+   qreal v = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 3);
+   qreal a = p ? p->getAsFloat() : 0.0;
+   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreQColor *q_qc = new QoreQColor(QColor::fromHsvF(h, s, v, a));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
+
+//QColor fromRgb ( QRgb rgb )
+//QColor fromRgb ( int r, int g, int b, int a = 255 )
+static QoreNode *f_QColor_fromRgb(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int r = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   int g = p ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int b = p ? p->getAsInt() : 0;
+   p = get_param(params, 3);
+   int a = !is_nothing(p) ? p->getAsInt() : 255;
+   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreQColor *q_qc = new QoreQColor(QColor::fromRgb(r, g, b, a));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
+
+//QColor fromRgbF ( qreal r, qreal g, qreal b, qreal a = 1.0 )
+static QoreNode *f_QColor_fromRgbF(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   qreal r = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 1);
+   qreal g = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 2);
+   qreal b = p ? p->getAsFloat() : 0.0;
+   p = get_param(params, 3);
+   qreal a = p ? p->getAsFloat() : 0.0;
+   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreQColor *q_qc = new QoreQColor(QColor::fromRgbF(r, g, b, a));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
+
+//QColor fromRgba ( QRgb rgba )
+static QoreNode *f_QColor_fromRgba(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int64 rgba = p ? p->getAsBigInt() : 0;
+   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreQColor *q_qc = new QoreQColor(QColor::fromRgba(rgba));
+   o_qc->setPrivate(CID_QCOLOR, q_qc);
+   return new QoreNode(o_qc);
+}
+
+#ifdef Q_WS_X11
+//void setAllowX11ColorNames ( bool enabled )
+static QoreNode *f_QColor_setAllowX11ColorNames(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   bool enabled = p ? p->getAsBool() : false;
+   QColor::setAllowX11ColorNames(enabled);
+   return 0;
+}
+#endif
+
+void initQColorStaticFunctions()
+{
+#ifdef Q_WS_X11
+   builtinFunctions.add("QColor_allowX11ColorNames",           f_QColor_allowX11ColorNames);
+#endif
+   builtinFunctions.add("QColor_colorNames",                   f_QColor_colorNames);
+   builtinFunctions.add("QColor_fromCmyk",                     f_QColor_fromCmyk);
+   builtinFunctions.add("QColor_fromCmykF",                    f_QColor_fromCmykF);
+   builtinFunctions.add("QColor_fromHsv",                      f_QColor_fromHsv);
+   builtinFunctions.add("QColor_fromHsvF",                     f_QColor_fromHsvF);
+   builtinFunctions.add("QColor_fromRgb",                      f_QColor_fromRgb);
+   builtinFunctions.add("QColor_fromRgbF",                     f_QColor_fromRgbF);
+   builtinFunctions.add("QColor_fromRgba",                     f_QColor_fromRgba);
+#ifdef Q_WS_X11
+   builtinFunctions.add("QColor_setAllowX11ColorNames",        f_QColor_setAllowX11ColorNames);
+#endif
+}

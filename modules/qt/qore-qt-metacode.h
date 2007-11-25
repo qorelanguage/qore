@@ -11,12 +11,15 @@ class T {
 
       DLLLOCAL void init(Object *obj)
       {
+	 qore_obj = 0;
+
 	 // set pointer to object owner as a property
 	 setProperty("qobject", reinterpret_cast<qulonglong>(obj));
-	 
+
 	 qore_obj = obj;
 	 // reference container object for the lifetime of this object
 	 qore_obj->ref();
+	 
 	 // create dummy slot entry for "destroyed" signal
 	 methodMap.addMethod(new QoreQtDynamicSlot(qore_obj, 0, 0));
 	 // catch destroyed signal

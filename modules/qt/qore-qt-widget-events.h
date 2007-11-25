@@ -9,14 +9,12 @@ class T {
    protected:
       DLLLOCAL virtual void paintEvent(QPaintEvent *event) 
       {
-	 //printd(5, "paintEvent this=%08p class=" QLSTR(QOREQTYPE) " func=%08p\n", this, e_paintEvent);
-	 //printd(0, QLSTR(QOREQTYPE), this, e_paintEvent);
+	 //printd(0, QLSTR(QOREQTYPE) "::paintEvent(%08p) this=%08p func=%08p\n", event, this, e_paintEvent);
 
 	 if (!e_paintEvent) {
 	    QOREQTYPE::paintEvent(event);
 	    return;
 	 }
-
 	 dispatch_event(qore_obj, e_paintEvent, QC_QPaintEvent, new QoreQPaintEvent(*event));
       }
       DLLLOCAL virtual void mouseMoveEvent(QMouseEvent *event) 
@@ -95,10 +93,14 @@ class T {
       }
       DLLLOCAL virtual bool event(QEvent *event)
       {
-	 if (!e_event)
+	 //printd(5, QLSTR(QOREQTYPE) "::event(%08p) this=%08p func=%08p type=%d qore_obj=%08p\n", event, this, e_paintEvent, (int)event->type(), qore_obj);
+	 if (!e_event || !qore_obj)
 	    return QOREQTYPE::event(event);
 
-	 return dispatch_event_bool(qore_obj, e_event, QC_QEvent, new QoreQEvent(*event));
+	 QoreList *args = new QoreList();
+	 args->push(return_qevent(event));
+
+	 return dispatch_event_bool(qore_obj, e_event, args);
       }
 
       DLLLOCAL virtual void leaveEvent(QEvent *event)
@@ -283,20 +285,19 @@ class T {
       {
 	 if (!p_heightForWidth)
 	    return QOREQTYPE::heightForWidth(w);
-/*
+
 	 QoreList *args; 
 	 args = new QoreList();
 	 args->push(new QoreNode((int64)w));
-*/
 	 
-	 return dispatch_event_int(qore_obj, p_heightForWidth, 0); //args);
+	 return dispatch_event_int(qore_obj, p_heightForWidth, args);
       }
 
       DLLLOCAL virtual QVariant inputMethodQuery ( Qt::InputMethodQuery query ) const
       {
 	 if (!p_inputMethodQuery)
 	    return QOREQTYPE::inputMethodQuery(query);
-/*
+
 	 QoreList *args = new QoreList();
 	 args->push(new QoreNode((int64)query));
 
@@ -310,8 +311,6 @@ class T {
 	    return QOREQTYPE::inputMethodQuery(query);
 
 	 return qrv;
-*/
-	 return QVariant();
       }
 
       /*

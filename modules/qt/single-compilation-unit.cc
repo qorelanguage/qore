@@ -173,3 +173,4 @@
 #include "QC_QTabWidget.cc"
 #include "QC_QChildEvent.cc"
 #include "QC_QTimerEvent.cc"
+#include "QC_QHelpEvent.cc"

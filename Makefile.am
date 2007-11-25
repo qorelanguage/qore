@@ -452,6 +452,7 @@ noinst_HEADERS = \
 	modules/qt/QC_QTabWidget.h \
 	modules/qt/QC_QChildEvent.h \
 	modules/qt/QC_QTimerEvent.h \
+	modules/qt/QC_QHelpEvent.h \
 	command-line.h \
 	include/qore/Qore.h
 

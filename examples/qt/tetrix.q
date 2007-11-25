@@ -332,7 +332,6 @@ class TetrixBoard::TetrixBoard inherits QFrame
 	    $.drawSquare($painter, $x * $.squareWidth(), $y * $.squareHeight(), $.nextPiece.shape());
 	}
 	$.nextPieceLabel.setPixmap($pixmap);
-	#delete $painter;
     }
 
     tryMove($newPiece, $newX, $newY)

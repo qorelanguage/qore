@@ -107,6 +107,12 @@ static QoreNode *QPOINT_y(Object *self, QoreQPoint *qp, QoreNode *params, Except
    return new QoreNode((int64)qp->y());
 }
 
+//QPoint unaryMinus () const
+static QoreNode *QPOINT_unaryMinus(Object *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
+{
+   return return_object(QC_QPoint, new QoreQPoint(-(*qp)));
+}
+
 class QoreClass *initQPointClass()
 {
    tracein("initQPointClass()");
@@ -124,6 +130,9 @@ class QoreClass *initQPointClass()
    QC_QPoint->addMethod("setY",                        (q_method_t)QPOINT_setY);
    QC_QPoint->addMethod("x",                           (q_method_t)QPOINT_x);
    QC_QPoint->addMethod("y",                           (q_method_t)QPOINT_y);
+
+   // in place of operators
+   QC_QPoint->addMethod("unaryMinus",                  (q_method_t)QPOINT_unaryMinus);
 
    traceout("initQPointClass()");
    return QC_QPoint;

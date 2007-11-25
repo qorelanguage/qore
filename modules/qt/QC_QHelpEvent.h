@@ -1,5 +1,5 @@
-#/*
- QC_QColor.h
+/*
+ QC_QHelpEvent.h
  
  Qore Programming Language
  
@@ -20,40 +20,26 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_QC_QCOLOR_H
+#ifndef _QORE_QT_QC_QHELPEVENT_H
 
-#define _QORE_QC_QCOLOR_H
+#define _QORE_QT_QC_QHELPEVENT_H
 
-#include <QColor>
+#include <QHelpEvent>
 
-DLLLOCAL extern int CID_QCOLOR;
-DLLLOCAL extern QoreClass *QC_QColor;
+DLLLOCAL extern int CID_QHELPEVENT;
+DLLLOCAL extern class QoreClass *QC_QHelpEvent;
 
-DLLLOCAL class QoreClass *initQColorClass();
-DLLLOCAL void initQColorStaticFunctions();
+DLLLOCAL class QoreClass *initQHelpEventClass(QoreClass *);
 
-class QoreQColor : public AbstractPrivateData, public QColor
+class QoreQHelpEvent : public AbstractPrivateData, public QHelpEvent
 {
    public:
-      DLLLOCAL QoreQColor()
+      DLLLOCAL QoreQHelpEvent(Type type, const QPoint& pos, const QPoint& globalPos) : QHelpEvent(type, pos, globalPos)
       {
       }
-      DLLLOCAL QoreQColor(int r, int g, int b, int a = 255) : QColor(r, g, b, a)
-      {
-      }
-      DLLLOCAL QoreQColor(const char *name) : QColor(name)
-      {
-      }
-      DLLLOCAL QoreQColor(Qt::GlobalColor globalcolor) : QColor(globalcolor)
-      {
-      }
-      DLLLOCAL QoreQColor(QRgb rgb) : QColor(rgb)
-      {
-      }
-      DLLLOCAL QoreQColor(const QColor &color) : QColor(color)
+      DLLLOCAL QoreQHelpEvent(const QHelpEvent &qhe) : QHelpEvent(qhe)
       {
       }
 };
 
-
-#endif
+#endif // _QORE_QT_QC_QHELPEVENT_H

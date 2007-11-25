@@ -131,7 +131,8 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QTabWidget.cc \
 	QC_QAbstractSlider.cc \
 	QC_QChildEvent.cc \
-	QC_QTimerEvent.cc
+	QC_QTimerEvent.cc \
+	QC_QHelpEvent.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif
