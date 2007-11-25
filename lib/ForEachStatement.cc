@@ -303,7 +303,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
 
 int ForEachStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
-   int i, lvids = 0;
+   int lvids = 0;
    
    lvids += process_node(&var, oflag, pflag);
    lvids += process_node(&list, oflag, pflag | PF_REFERENCE_OK);
@@ -312,8 +312,6 @@ int ForEachStatement::parseInitImpl(lvh_t oflag, int pflag)
    
    // save local variables 
    lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
 
    return 0;
 }

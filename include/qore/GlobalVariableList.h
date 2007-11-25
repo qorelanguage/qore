@@ -32,20 +32,20 @@
 // all reading and writing is done withing the parse lock on the contining program object
 class GlobalVariableList
 {
-private:
-   hm_var_t vmap; // iterators are not invalidated on inserts
-   
-public:
-   DLLLOCAL GlobalVariableList();
-   DLLLOCAL ~GlobalVariableList();
-   DLLLOCAL void delete_all(class ExceptionSink *xsink);
-   DLLLOCAL void clear_all(class ExceptionSink *xsink);
-   DLLLOCAL void import(class Var *var, class ExceptionSink *xsink, bool readonly = false);
-   DLLLOCAL class Var *newVar(const char *name);
-   DLLLOCAL class Var *newVar(class Var *v, bool readonly);
-   DLLLOCAL class Var *findVar(const char *name);
-   DLLLOCAL class Var *checkVar(const char *name, int *new_vars);
-   DLLLOCAL class List *getVarList() const;
+   private:
+      map_var_t vmap; // iterators are not invalidated on inserts
+      
+   public:
+      DLLLOCAL GlobalVariableList();
+      DLLLOCAL ~GlobalVariableList();
+      DLLLOCAL void delete_all(class ExceptionSink *xsink);
+      DLLLOCAL void clear_all(class ExceptionSink *xsink);
+      DLLLOCAL void import(class Var *var, class ExceptionSink *xsink, bool readonly = false);
+      DLLLOCAL class Var *newVar(const char *name);
+      DLLLOCAL class Var *newVar(class Var *v, bool readonly);
+      DLLLOCAL class Var *findVar(const char *name);
+      DLLLOCAL class Var *checkVar(const char *name, int *new_vars);
+      DLLLOCAL class List *getVarList() const;
 };
 
 #endif

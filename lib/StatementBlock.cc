@@ -65,10 +65,15 @@ public:
 
 LVList::LVList(int num)
 {
-   if (num)
+   if (num) {
       ids = new lvh_t[num];
+      // assign local variables in reverse order so that they are 
+      // created and destroyed in the correct order
+      for (int i = num - 1; i >= 0; --i)
+	 ids[i] = pop_local_var();
+   }
    else
-      ids = NULL;
+      ids = 0;
    num_lvars = num;
 }
 
@@ -575,8 +580,6 @@ int StatementBlock::parseInitImpl(lvh_t oflag, int pflag)
    }
 
    lvars = new LVList(lvids);
-   for (int i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
 
    printd(4, "StatementBlock::parseInit(): done (lvars = %d, vstack = %08p)\n", lvids, getVStack());
    traceout("StatementBlock::parseInit()");

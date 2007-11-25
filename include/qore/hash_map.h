@@ -28,6 +28,10 @@
 
 #include <qore/common.h>
 
+#include <map>
+
+typedef std::map<const char*, class Var *, class ltstr> map_var_t;
+
 #ifdef HAVE_QORE_HASH_MAP
 
 #include <qore/hash_map_include.h>
@@ -52,10 +56,8 @@ typedef hash_map<const char*, class Method *, hash<const char *>, class eqstr> h
 typedef hash_map<const char*, class BuiltinFunction *, hash<const char *>, class eqstr> hm_bf_t;
 typedef hash_map<const char*, class QoreClass *, hash<const char *>, class eqstr> hm_qc_t;
 typedef hash_map<const char*, class UserFunction *, hash<const char *>, class eqstr> hm_uf_t;
-typedef hash_map<const char*, class Var *, hash<const char *>, class eqstr> hm_var_t;
 
 #else // HAVE_QORE_HASH_MAP
-#include <map>
 
 typedef std::map<const char*, class QoreNode *, class ltstr> hm_qn_t;
 typedef std::map<const char*, class HashMember *, class ltstr> hm_hm_t;
@@ -63,7 +65,6 @@ typedef std::map<const char*, class Method *, class ltstr> hm_method_t;
 typedef std::map<const char*, class BuiltinFunction *, class ltstr> hm_bf_t;
 typedef std::map<const char*, class QoreClass *, class ltstr> hm_qc_t;
 typedef std::map<const char*, class UserFunction *, class ltstr> hm_uf_t;
-typedef std::map<const char*, class Var *, class ltstr> hm_var_t;
 
 #endif // HAVE_QORE_HASH_MAP
 

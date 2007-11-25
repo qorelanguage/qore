@@ -1,3 +1,7 @@
+2007.11.25: David Nichols
+        * fixed local and global variable destruction order (backported from 
+	  0.7.0)
+
 2007.11.14: David Nichols
 	* do not throw an exception with sort*() when first argument is not a
 	  list; instead just return the first argument

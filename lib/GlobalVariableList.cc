@@ -39,7 +39,7 @@ GlobalVariableList::~GlobalVariableList()
 
 void GlobalVariableList::import(class Var *var, class ExceptionSink *xsink, bool readonly)
 {
-   hm_var_t::iterator i = vmap.find(var->getName());
+   map_var_t::iterator i = vmap.find(var->getName());
    if (i == vmap.end())
       newVar(var, readonly);
    else
@@ -55,9 +55,9 @@ void GlobalVariableList::import(class Var *var, class ExceptionSink *xsink, bool
 void GlobalVariableList::clear_all(class ExceptionSink *xsink)
 {
    //printd(5, "GlobalVariableList::clear_all() this=%08p (size=%d)\n", this, vmap.size());
-   hm_var_t::iterator i = vmap.begin();
+   map_var_t::reverse_iterator i = vmap.rbegin();
    
-   while (i != vmap.end())
+   while (i != vmap.rend())
    {
       if (!i->second->isImported())
       {
@@ -73,9 +73,10 @@ void GlobalVariableList::clear_all(class ExceptionSink *xsink)
 
 void GlobalVariableList::delete_all(class ExceptionSink *xsink)
 {
-   hm_var_t::iterator i;
-   while ((i = vmap.begin()) != vmap.end())
+   map_var_t::iterator i;
+   while ((i = vmap.end()) != vmap.begin())
    {
+      --i;
       class Var *v = i->second;
       vmap.erase(i);
       v->deref(xsink);
@@ -102,7 +103,7 @@ class Var *GlobalVariableList::newVar(class Var *v, bool readonly)
 
 class Var *GlobalVariableList::findVar(const char *name)
 {
-   hm_var_t::iterator i = vmap.find(name);
+   map_var_t::iterator i = vmap.find(name);
    if (i != vmap.end())
       return i->second;
    return NULL;
@@ -127,7 +128,7 @@ class List *GlobalVariableList::getVarList() const
 {
    List *l = new List();
    
-   for (hm_var_t::const_iterator i = vmap.begin(); i != vmap.end(); i++)
+   for (map_var_t::const_iterator i = vmap.begin(); i != vmap.end(); i++)
       l->push(new QoreNode(i->first));
    
    return l;

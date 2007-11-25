@@ -56,7 +56,7 @@ int DoWhileStatement::execImpl(class QoreNode **return_value, class ExceptionSin
  * however, it doesn't do much good :-) */
 int DoWhileStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
-   int i, lvids = 0;
+   int lvids = 0;
    
    if (code)
       code->parseInitImpl(oflag, pflag);
@@ -64,8 +64,6 @@ int DoWhileStatement::parseInitImpl(lvh_t oflag, int pflag)
    
    // save local variables
    lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
 
    return 0;
 }

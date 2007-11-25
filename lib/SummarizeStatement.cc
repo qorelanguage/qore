@@ -72,7 +72,7 @@ int SummarizeStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
    tracein("SummarizeStatement::parseInit()");
    
-   int i, lvids = 0;
+   int lvids = 0;
    
    // initialize context expression
    if (exp)
@@ -96,8 +96,6 @@ int SummarizeStatement::parseInitImpl(lvh_t oflag, int pflag)
    
    // save local variables
    lvars = new LVList(lvids);
-   for (i = 0; i < lvids; i++)
-      lvars->ids[i] = pop_local_var();
    
    pop_cvar();
    traceout("SummarizeStatement::parseInit()");
