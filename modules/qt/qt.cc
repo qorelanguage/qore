@@ -1595,11 +1595,12 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQPainterPathClass());
    qt->addSystemClass(initQPaintEngineClass());
    qt->addSystemClass(initQBasicTimerClass());
-   qt->addSystemClass(initQTextEditClass(qabstractscrollarea));
    qt->addSystemClass(initQTabBarClass(qwidget));
    qt->addSystemClass(initQStyleOptionTabClass(qstyleoption));
    qt->addSystemClass(initQStyleOptionTabWidgetFrameClass(qstyleoption));
    qt->addSystemClass(initQTabWidgetClass(qwidget));
+
+   qt->addInitialNamespace(initQTextEditNS(qabstractscrollarea));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");

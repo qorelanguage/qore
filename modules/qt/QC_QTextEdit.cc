@@ -87,13 +87,11 @@ static QoreNode *QTEXTEDIT_anchorAt(Object *self, QoreAbstractQTextEdit *qte, Qo
    return new QoreNode(new QoreString(qte->getQTextEdit()->anchorAt(*(static_cast<QPoint *>(pos))).toUtf8().data(), QCS_UTF8));
 }
 
-/*
 //AutoFormatting autoFormatting () const
 static QoreNode *QTEXTEDIT_autoFormatting(Object *self, QoreAbstractQTextEdit *qte, QoreNode *params, ExceptionSink *xsink)
 {
-   ??? return new QoreNode((int64)qte->getQTextEdit()->autoFormatting());
+   return new QoreNode((int64)qte->getQTextEdit()->autoFormatting());
 }
-*/
 
 //bool canPaste () const
 static QoreNode *QTEXTEDIT_canPaste(Object *self, QoreAbstractQTextEdit *qte, QoreNode *params, ExceptionSink *xsink)
@@ -268,13 +266,11 @@ static QoreNode *QTEXTEDIT_lineWrapColumnOrWidth(Object *self, QoreAbstractQText
    return new QoreNode((int64)qte->getQTextEdit()->lineWrapColumnOrWidth());
 }
 
-/*
 //LineWrapMode lineWrapMode () const
 static QoreNode *QTEXTEDIT_lineWrapMode(Object *self, QoreAbstractQTextEdit *qte, QoreNode *params, ExceptionSink *xsink)
 {
-   ??? return new QoreNode((int64)qte->getQTextEdit()->lineWrapMode());
+   return new QoreNode((int64)qte->getQTextEdit()->lineWrapMode());
 }
-*/
 
 //virtual QVariant loadResource ( int type, const QUrl & name )
 static QoreNode *QTEXTEDIT_loadResource(Object *self, QoreAbstractQTextEdit *qte, QoreNode *params, ExceptionSink *xsink)
@@ -789,7 +785,7 @@ static QoreNode *QTEXTEDIT_zoomOut(Object *self, QoreAbstractQTextEdit *qte, Qor
    return 0;
 }
 
-QoreClass *initQTextEditClass(QoreClass *qabstractscrollarea)
+static QoreClass *initQTextEditClass(QoreClass *qabstractscrollarea)
 {
    QC_QTextEdit = new QoreClass("QTextEdit", QDOM_GUI);
    CID_QTEXTEDIT = QC_QTextEdit->getID();
@@ -802,7 +798,7 @@ QoreClass *initQTextEditClass(QoreClass *qabstractscrollarea)
    QC_QTextEdit->addMethod("acceptRichText",              (q_method_t)QTEXTEDIT_acceptRichText);
    QC_QTextEdit->addMethod("alignment",                   (q_method_t)QTEXTEDIT_alignment);
    QC_QTextEdit->addMethod("anchorAt",                    (q_method_t)QTEXTEDIT_anchorAt);
-   //QC_QTextEdit->addMethod("autoFormatting",              (q_method_t)QTEXTEDIT_autoFormatting);
+   QC_QTextEdit->addMethod("autoFormatting",              (q_method_t)QTEXTEDIT_autoFormatting);
    QC_QTextEdit->addMethod("canPaste",                    (q_method_t)QTEXTEDIT_canPaste);
    QC_QTextEdit->addMethod("createStandardContextMenu",   (q_method_t)QTEXTEDIT_createStandardContextMenu);
    QC_QTextEdit->addMethod("currentCharFormat",           (q_method_t)QTEXTEDIT_currentCharFormat);
@@ -823,7 +819,7 @@ QoreClass *initQTextEditClass(QoreClass *qabstractscrollarea)
    QC_QTextEdit->addMethod("isReadOnly",                  (q_method_t)QTEXTEDIT_isReadOnly);
    QC_QTextEdit->addMethod("isUndoRedoEnabled",           (q_method_t)QTEXTEDIT_isUndoRedoEnabled);
    QC_QTextEdit->addMethod("lineWrapColumnOrWidth",       (q_method_t)QTEXTEDIT_lineWrapColumnOrWidth);
-   //QC_QTextEdit->addMethod("lineWrapMode",                (q_method_t)QTEXTEDIT_lineWrapMode);
+   QC_QTextEdit->addMethod("lineWrapMode",                (q_method_t)QTEXTEDIT_lineWrapMode);
    QC_QTextEdit->addMethod("loadResource",                (q_method_t)QTEXTEDIT_loadResource);
    QC_QTextEdit->addMethod("mergeCurrentCharFormat",      (q_method_t)QTEXTEDIT_mergeCurrentCharFormat);
    QC_QTextEdit->addMethod("moveCursor",                  (q_method_t)QTEXTEDIT_moveCursor);
@@ -881,3 +877,23 @@ QoreClass *initQTextEditClass(QoreClass *qabstractscrollarea)
 
    return QC_QTextEdit;
 }
+
+Namespace *initQTextEditNS(QoreClass *qabstractscrollarea)
+{
+   Namespace *ns = new Namespace("QTextEdit");
+   ns->addSystemClass(initQTextEditClass(qabstractscrollarea));
+
+   // LineWrapMode enum
+   ns->addConstant("NoWrap",                   new QoreNode((int64)QTextEdit::NoWrap));
+   ns->addConstant("WidgetWidth",              new QoreNode((int64)QTextEdit::WidgetWidth));
+   ns->addConstant("FixedPixelWidth",          new QoreNode((int64)QTextEdit::FixedPixelWidth));
+   ns->addConstant("FixedColumnWidth",         new QoreNode((int64)QTextEdit::FixedColumnWidth));
+
+   // AutoFormattingFlag enum
+   ns->addConstant("AutoNone",                 new QoreNode((int64)QTextEdit::AutoNone));
+   ns->addConstant("AutoBulletList",           new QoreNode((int64)QTextEdit::AutoBulletList));
+   ns->addConstant("AutoAll",                  new QoreNode((int64)QTextEdit::AutoAll));
+
+   return ns;
+}
+

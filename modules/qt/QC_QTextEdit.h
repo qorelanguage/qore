@@ -31,7 +31,7 @@
 DLLLOCAL extern int CID_QTEXTEDIT;
 DLLLOCAL extern class QoreClass *QC_QTextEdit;
 
-DLLLOCAL class QoreClass *initQTextEditClass(QoreClass *);
+DLLLOCAL Namespace *initQTextEditNS(QoreClass *);
 
 class myQTextEdit : public QTextEdit, public QoreQWidgetExtension
 {
