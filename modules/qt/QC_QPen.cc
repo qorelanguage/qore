@@ -46,7 +46,11 @@ static void QPEN_constructor(Object *self, QoreNode *params, ExceptionSink *xsin
       p = get_param(params, 1);
       qreal width = p ? p->getAsFloat() : 0.0;
       p = get_param(params, 2);
-      Qt::PenStyle style = !is_nothing(p) ? (Qt::PenStyle)p->getAsInt() : Qt::SolidLine;
+      Qt::PenStyle style;
+      if (p && p->type == NT_PENSTYLE)
+	 style = (Qt::PenStyle)p->val.intval;
+      else
+	 style = !is_nothing(p) ? (Qt::PenStyle)p->getAsInt() : Qt::SolidLine;
       p = get_param(params, 3);
       Qt::PenCapStyle cap = !is_nothing(p) ? (Qt::PenCapStyle)p->getAsInt() : Qt::SquareCap;
       p = get_param(params, 4);

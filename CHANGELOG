@@ -1,3 +1,6 @@
+2007.11.26: David Nichols
+	* qt: fixed QPen constructor PenStyle argument processing
+
 2007.11.25: David Nichols
 	* qt: event handling fixes
 	* qt: new example: "tooltips.q"

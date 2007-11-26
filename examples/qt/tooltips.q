@@ -104,8 +104,6 @@ class SortingBox inherits QWidget
 		my $save = $.shapeItems[$index];
 		splice $.shapeItems, $index, 1;
 		$.shapeItems += $save;
-		#printf("shapeItems=%N\n", $.shapeItems);
-		#$.shapeItems.move($index, $.shapeItems.size() - 1);
 		$.update();
 	    }
 	}
@@ -184,7 +182,6 @@ class SortingBox inherits QWidget
 	$shapeItem.setPosition($pos);
 	$shapeItem.setColor($color);
 	$.shapeItems += $shapeItem;
-	#printf("shapeItems=%N\n", $.shapeItems);
 	$.update();
     }
 

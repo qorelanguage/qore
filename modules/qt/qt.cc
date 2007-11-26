@@ -333,7 +333,7 @@ int get_qbytearray(const QoreNode *n, QByteArray &ba, class ExceptionSink *xsink
 
 int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, bool suppress_exception)
 {
-   //printd(0, "get_variant() n=%08p %s\n", n, n ? n->type->getName() : "n/a");
+   //printd(5, "get_variant() n=%08p %s\n", n, n ? n->type->getName() : "n/a");
    if (n) {
       if (n->type == NT_OBJECT) {
 	 class QoreQVariant *qv = (QoreQVariant *)n->val.object->getReferencedPrivateData(CID_QVARIANT, xsink);
@@ -366,7 +366,7 @@ int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
 	    qva.setValue((int)n->val.intval);
 	 else
 	    qva.setValue(n->val.intval);
-	 //printd(0, "qvariant integer %d (%d)\n", (int)n->val.intval, qva.toInt());
+	 //printd(5, "qvariant integer %d (%d)\n", (int)n->val.intval, qva.toInt());
 	 return 0;
       }
       if (n->type == NT_FLOAT) {
@@ -504,6 +504,7 @@ int get_qkeysequence(const QoreNode *n, QKeySequence &ks, class ExceptionSink *x
 
 int get_qbrush(const QoreNode *n, QBrush &brush, class ExceptionSink *xsink)
 {
+   //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->type->getName() : "n/a", n && n->type == NT_OBJECT ? n->val.object->getClass()->getName() : "n/a");
    if (n) {
       if (n->type == NT_OBJECT) {
 	 class QoreQBrush *qb = (QoreQBrush *)n->val.object->getReferencedPrivateData(CID_QBRUSH, xsink);
@@ -834,6 +835,13 @@ class QoreNode *return_qevent(QEvent *event)
       return 0;
 
    // the order is important here so the most specific subclass is checked before any base classes
+/*
+   {
+      QAccessibleEvent *qae = dynamic_cast<QAccessibleEvent *>(event);
+      if (qae)
+         return return_object(QC_QAccessibleEvent, new QoreQAccessibleEvent(*qae));
+   }
+*/
    {
       QActionEvent *qae = dynamic_cast<QActionEvent *>(event);
       if (qae)
