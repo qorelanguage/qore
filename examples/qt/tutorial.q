@@ -1,6 +1,6 @@
 #!/usr/bin/env qore
 
-# This is bascially a direct port of the QT tutorial to Qore 
+# This is basically a direct port of the QT tutorial to Qore 
 # using Qore's "qt" module.  
 
 # Note that Qore's "qt" module requires QT 4.3 or above 

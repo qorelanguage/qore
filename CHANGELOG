@@ -1,5 +1,6 @@
 2007.11.26: David Nichols
 	* qt: fixed QPen constructor PenStyle argument processing
+	* qt: new example program "wiggly.q"
 
 2007.11.25: David Nichols
 	* qt: event handling fixes

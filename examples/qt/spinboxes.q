@@ -1,6 +1,6 @@
 #!/usr/bin/env qore
 
-# this is bascially a direct port of the QT widget example
+# this is basically a direct port of the QT widget example
 # "spinboxes" to Qore using Qore's "qt" module.  
 
 # Note that Qore's "qt" module requires QT 4.3 or above 

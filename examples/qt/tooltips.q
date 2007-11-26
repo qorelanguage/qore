@@ -1,6 +1,6 @@
 #!/usr/bin/env qore
 
-# $self is bascially a direct port of the QT widget example
+# $self is basically a direct port of the QT widget example
 # "tooltips" to Qore using Qore's "qt" module.  
 
 # Note that Qore's "qt" module requires QT 4.3 or above 
