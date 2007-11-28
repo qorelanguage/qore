@@ -31,6 +31,7 @@
 DLLEXPORT extern int CID_QTIMER;
 
 DLLLOCAL class QoreClass *initQTimerClass(class QoreClass *qobject);
+DLLLOCAL void initQTimerStaticFunctions();
 
 class myQTimer : public QTimer, public QoreQObjectExtension
 {
@@ -58,6 +59,69 @@ class QoreQTimer : public QoreAbstractQObject
 	 return static_cast<QObject *>(&(*qobj));
       }
 
+      QORE_VIRTUAL_QOBJECT_METHODS
+};
+
+class QoreSingleShotTimer : public QObject, public QoreQObjectExtension
+{
+#define QORE_NO_TIMER_EVENT
+#define QOREQTYPE QObject
+#include "qore-qt-metacode.h"
+#undef QOREQTYPE
+#undef QORE_NO_TIMER_EVENT
+
+   private:
+      int timerId;
+
+   public:
+      DLLLOCAL QoreSingleShotTimer(Object *obj) : QoreQObjectExtension(obj->getClass())
+      {
+	 init(obj);
+      }
+
+      DLLLOCAL void timer_init(QoreAbstractQObject *qsst, int msec, QoreAbstractQObject *receiver, const char *member, class ExceptionSink *xsink)
+      {
+	 createDynamicSignal("timeout()", xsink);
+	 assert(!*xsink);
+
+	 receiver->connectDynamic(qsst, "2timeout()", member, xsink);
+	 if (*xsink) {
+	    qore_obj->dereference(xsink);
+	    return;
+	 }
+	 timerId = startTimer(msec);
+      }
+      
+protected:
+      DLLLOCAL virtual void timerEvent(QTimerEvent *)
+      {
+	 // need to kill the timer _before_ we emit timeout() in case the
+	 // slot connected to timeout calls processEvents()
+	 if (timerId > 0)
+	    killTimer(timerId);
+	 timerId = -1;
+	 emit_signal("timeout()", 0);
+
+	 ExceptionSink xsink;
+	 qore_obj->dereference(&xsink);
+      }
+};
+
+class QoreQtSingleShotTimer : public QoreAbstractQObject
+{
+   public:
+      Object *qore_obj;
+      QPointer<QoreSingleShotTimer> qobj;
+
+      DLLLOCAL QoreQtSingleShotTimer(Object *obj, int msec, QoreAbstractQObject *receiver, const char *member, class ExceptionSink *xsink) : qore_obj(obj), qobj(new QoreSingleShotTimer(qore_obj))
+      {
+	 qobj->timer_init(this, msec, receiver, member, xsink);
+      }
+
+      DLLLOCAL virtual class QObject *getQObject() const
+      {
+         return &*qobj;
+      }
       QORE_VIRTUAL_QOBJECT_METHODS
 };
 

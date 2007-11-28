@@ -197,11 +197,23 @@ static QoreNode *f_QApplication_cursorFlashTime(QoreNode *params, ExceptionSink 
    return new QoreNode((int64)QApplication::cursorFlashTime());
 }
 
-////QDesktopWidget * desktop ()
-//static QoreNode *f_QApplication_desktop(QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)QApplication::desktop());
-//}
+//QDesktopWidget * desktop ()
+static QoreNode *f_QApplication_desktop(QoreNode *params, ExceptionSink *xsink)
+{
+   QDesktopWidget *qt_qobj = QApplication::desktop();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QDesktopWidget, getProgram());
+      QoreQtQDesktopWidget *t_qobj = new QoreQtQDesktopWidget(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QDESKTOPWIDGET, t_qobj);
+   }
+   return new QoreNode(rv_obj);
+}
 
 //bool desktopSettingsAware ()
 static QoreNode *f_QApplication_desktopSettingsAware(QoreNode *params, ExceptionSink *xsink)
@@ -792,7 +804,7 @@ void initQApplicationStaticFunctions()
    builtinFunctions.add("QApplication_clipboard",                    f_QApplication_clipboard);
    builtinFunctions.add("QApplication_colorSpec",                    f_QApplication_colorSpec);
    builtinFunctions.add("QApplication_cursorFlashTime",              f_QApplication_cursorFlashTime);
-   //builtinFunctions.add("QApplication_desktop",                      f_QApplication_desktop);
+   builtinFunctions.add("QApplication_desktop",                      f_QApplication_desktop);
    builtinFunctions.add("QApplication_desktopSettingsAware",         f_QApplication_desktopSettingsAware);
    builtinFunctions.add("QApplication_doubleClickInterval",          f_QApplication_doubleClickInterval);
    builtinFunctions.add("QApplication_exec",                         f_QApplication_exec);

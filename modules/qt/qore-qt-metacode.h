@@ -31,6 +31,7 @@ class T {
      }
 
    protected:
+#ifndef QORE_NO_TIMER_EVENT
       DLLLOCAL virtual void timerEvent(QTimerEvent * event)
       {
 	 if (!e_timerEvent) {
@@ -40,6 +41,7 @@ class T {
 
 	 dispatch_event(qore_obj, e_timerEvent, QC_QTimerEvent, new QoreQTimerEvent(*event));
       }
+#endif
 
       DLLLOCAL virtual void childEvent(QChildEvent * event)
       {

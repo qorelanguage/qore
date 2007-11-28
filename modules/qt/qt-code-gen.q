@@ -38,7 +38,8 @@ const qobject_list =
       "QAbstractButton", "QLineEdit", "QScrollBar", "QMimeData",
       "QApplication", "QStyle", "QAbstractItemModel", "ToolButton", "QMessageBox",
       "QCheckBox", "QRadioButton", "QPushButton", "QMenuBar",
-      "QPrintDialog", "QValidator", "QIODevice", "QTabBar", "QTabWidget",
+      "QPrintDialog", "QValidator", "QIODevice", "QTabBar", "QTabWidget", 
+      "QDesktopWidget"
  );
 
 const abstract_class_list = 
@@ -753,7 +754,7 @@ DLLLOCAL class QoreClass *init%sClass(%s);
 	else # abstract/dependent class
 	{
 	    $of.printf("class my%s : public %s%s\n", $cn, $cn, $o.widget ? ", public QoreQWidgetExtension" 
-		       : ($o.validator ? ", public QoreQValidatorExtension" : ""));
+		       : ($o.validator ? ", public QoreQValidatorExtension" : ", public QoreQObjectExtension"));
             $of.printf("{\n");
             if ($o.style)
                 $of.printf("      friend class Qore%s;\n\n", $cn);
@@ -777,7 +778,7 @@ DLLLOCAL class QoreClass *init%sClass(%s);
 			$str += ", " + $i.orig_args;
 		    $of.printf("      DLLLOCAL my%s(%s) : %s(%s)%s\n      {\n", $cn, $str, $cn, $arg_names,
 			$o.widget ? ", QoreQWidgetExtension(obj->getClass())" 
-			       : $o.validator ? ", QoreQValidatorExtension(obj->getClass())" : "");
+			       : $o.validator ? ", QoreQValidatorExtension(obj->getClass())" : ", QoreQObjectExtension(obj->getClass())");
 		    $of.printf("         init(obj);\n");
 		    $of.printf("      }\n"); 
 		}

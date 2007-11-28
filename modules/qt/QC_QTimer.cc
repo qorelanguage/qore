@@ -28,18 +28,19 @@
 
 int CID_QTIMER;
 
+// QTimer ( QObject * parent = 0 )
 static void QTIMER_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQTimer *qw;
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
 
    if (!parent)
       qw = new QoreQTimer(self);
    else 
    {
-      ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-      qw = new QoreQTimer(self, parent->getQWidget());
+      ReferenceHolder<QoreAbstractQObject> holder(parent, xsink);
+      qw = new QoreQTimer(self, parent->getQObject());
    }
 
    self->setPrivate(CID_QTIMER, qw);
@@ -138,4 +139,37 @@ class QoreClass *initQTimerClass(class QoreClass *qobject)
 
    traceout("initQTimerClass()");
    return QC_QTimer;
+}
+
+//void singleShot ( int msec, QObject * receiver, const char * member )
+static QoreNode *f_QTimer_singleShot(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   int msec = p ? p->getAsInt() : 0;
+   p = get_param(params, 1);
+   QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   if (!receiver) {
+      if (!xsink->isException())
+         xsink->raiseException("QTIMER-SINGLESHOT-PARAM-ERROR", "expecting a QObject object as second argument to QTimer::singleShot()");
+      return 0;
+   }
+   ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
+   p = get_param(params, 2);
+   if (!p || p->type != NT_STRING) {
+      xsink->raiseException("QTIMER-SINGLESHOT-PARAM-ERROR", "expecting a string as third argument to QTimer::singleShot()");
+      return 0;
+   }
+   const char *member = p->val.String->getBuffer();
+   
+   Object *obj = new Object(QC_QObject, getProgram());
+   class QoreQtSingleShotTimer *qsst = new QoreQtSingleShotTimer(obj, msec, receiver, member, xsink);
+   if (!*xsink)
+      obj->setPrivate(CID_QOBJECT, qsst);
+
+   return 0;
+}
+
+void initQTimerStaticFunctions()
+{
+   builtinFunctions.add("QTimer_singleShot",                   f_QTimer_singleShot);
 }

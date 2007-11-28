@@ -288,11 +288,6 @@ class ScribbleArea inherits QWidget
     
     drawLineTo($endPoint)
     {
-/*
-	printf("drawLineTo() (%d, %d) (%d, %d) image=%N (%n)\n", $.lastPoint.x(), $.lastPoint.y
-	       (), $endPoint.x(), $endPoint.y
-	       (), $.image, $.image instanceof QImage ? $.image.isNull() : "ERROR");
-*/
 	my $painter = new QPainter($.image);
 	$painter.setPen(new QPen($.myPenColor, $.myPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 	$painter.drawLine($.lastPoint, $endPoint);

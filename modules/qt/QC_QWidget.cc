@@ -1901,9 +1901,10 @@ static QoreNode *QWIDGET_width(class Object *self, QoreAbstractQWidget *qw, clas
 }
 
 //WId winId () const
-//static QoreNode *QWIDGET_winId(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
-//{
-//}
+static QoreNode *QWIDGET_winId(class Object *self, QoreAbstractQWidget *qw, class QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode((int64)qw->getQWidget()->winId());
+}
 
 //QWidget * window () const
 static QoreNode *QWIDGET_window(Object *self, QoreAbstractQWidget *qw, QoreNode *params, ExceptionSink *xsink)
@@ -2786,7 +2787,7 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->addMethod("visibleRegion",                (q_method_t)QWIDGET_visibleRegion);
    QC_QWidget->addMethod("whatsThis",                    (q_method_t)QWIDGET_whatsThis);
    QC_QWidget->addMethod("width",                        (q_method_t)QWIDGET_width);
-   //QC_QWidget->addMethod("winId",                        (q_method_t)QWIDGET_winId);
+   QC_QWidget->addMethod("winId",                        (q_method_t)QWIDGET_winId);
    QC_QWidget->addMethod("window",                       (q_method_t)QWIDGET_window);
    QC_QWidget->addMethod("windowFlags",                  (q_method_t)QWIDGET_windowFlags);
    QC_QWidget->addMethod("windowIcon",                   (q_method_t)QWIDGET_windowIcon);

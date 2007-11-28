@@ -159,6 +159,8 @@
 #include "QC_QStyleOptionTabWidgetFrame.h"
 #include "QC_QTabWidget.h"
 #include "QC_QEvent.h"
+#include "QC_QDesktopWidget.h"
+#include "QC_QSystemTrayIcon.h"
 
 #include "QT_BrushStyle.h"
 #include "QT_PenStyle.h"
@@ -1295,6 +1297,8 @@ static class QoreString *qt_module_init()
    initQInputDialogStaticFunctions();
    initQImageWriterStaticFunctions();
    initQColorStaticFunctions();
+   initQTimerStaticFunctions();
+   initQSystemTrayIconStaticFunctions();
 
    addBrushStyleType();
    addPenStyleType();
@@ -1601,6 +1605,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQTabWidgetClass(qwidget));
 
    qt->addInitialNamespace(initQTextEditNS(qabstractscrollarea));
+   qt->addSystemClass(initQDesktopWidgetClass(qwidget));
+   qt->addSystemClass(initQSystemTrayIconClass(qobject));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -2534,13 +2540,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("PartiallyChecked",         new QoreNode((int64)Qt::PartiallyChecked));
    qt->addConstant("Checked",                  new QoreNode((int64)Qt::Checked));
 
-   // add connection enum values
-   qt->addConstant("AutoConnection",           new QoreNode((int64)Qt::AutoConnection));
-   qt->addConstant("DirectConnection",         new QoreNode((int64)Qt::DirectConnection));
-   qt->addConstant("QueuedConnection",         new QoreNode((int64)Qt::QueuedConnection));
-   qt->addConstant("AutoCompatConnection",     new QoreNode((int64)Qt::AutoCompatConnection));
-   qt->addConstant("BlockingQueuedConnection", new QoreNode((int64)Qt::BlockingQueuedConnection));
-
    // orientation enum values
    qt->addConstant("Vertical",        new QoreNode((int64)Qt::Vertical));
    qt->addConstant("Horizontal",      new QoreNode((int64)Qt::Horizontal));
@@ -3199,7 +3198,53 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addConstant("ClickFocus",               new QoreNode((int64)Qt::ClickFocus));
    qt->addConstant("StrongFocus",              new QoreNode((int64)Qt::StrongFocus));
    qt->addConstant("WheelFocus",               new QoreNode((int64)Qt::WheelFocus));
-   
+
+   // ConnectionType enum
+   qt->addConstant("AutoConnection",           new QoreNode((int64)Qt::AutoConnection));
+   qt->addConstant("DirectConnection",         new QoreNode((int64)Qt::DirectConnection));
+   qt->addConstant("QueuedConnection",         new QoreNode((int64)Qt::QueuedConnection));
+   qt->addConstant("AutoCompatConnection",     new QoreNode((int64)Qt::AutoCompatConnection));
+   qt->addConstant("BlockingQueuedConnection", new QoreNode((int64)Qt::BlockingQueuedConnection));
+
+   // DateFormat enum
+   qt->addConstant("TextDate",                 new QoreNode((int64)Qt::TextDate));
+   qt->addConstant("ISODate",                  new QoreNode((int64)Qt::ISODate));
+   qt->addConstant("SystemLocaleDate",         new QoreNode((int64)Qt::SystemLocaleDate));
+   qt->addConstant("LocalDate",                new QoreNode((int64)Qt::LocalDate));
+   qt->addConstant("LocaleDate",               new QoreNode((int64)Qt::LocaleDate));
+
+   // TimeSpec enum
+   qt->addConstant("LocalTime",                new QoreNode((int64)Qt::LocalTime));
+   qt->addConstant("UTC",                      new QoreNode((int64)Qt::UTC));
+
+   // ScrollBarPolicy enum
+   qt->addConstant("ScrollBarAsNeeded",        new QoreNode((int64)Qt::ScrollBarAsNeeded));
+   qt->addConstant("ScrollBarAlwaysOff",       new QoreNode((int64)Qt::ScrollBarAlwaysOff));
+   qt->addConstant("ScrollBarAlwaysOn",        new QoreNode((int64)Qt::ScrollBarAlwaysOn));
+
+   // CaseSensitivity enum
+   qt->addConstant("CaseInsensitive",          new QoreNode((int64)Qt::CaseInsensitive));
+   qt->addConstant("CaseSensitive",            new QoreNode((int64)Qt::CaseSensitive));
+
+   // Corner enum
+   qt->addConstant("TopLeftCorner",            new QoreNode((int64)Qt::TopLeftCorner));
+   qt->addConstant("TopRightCorner",           new QoreNode((int64)Qt::TopRightCorner));
+   qt->addConstant("BottomLeftCorner",         new QoreNode((int64)Qt::BottomLeftCorner));
+   qt->addConstant("BottomRightCorner",        new QoreNode((int64)Qt::BottomRightCorner));
+
+   // ShortcutContext enum
+   qt->addConstant("WidgetShortcut",           new QoreNode((int64)Qt::WidgetShortcut));
+   qt->addConstant("WindowShortcut",           new QoreNode((int64)Qt::WindowShortcut));
+   qt->addConstant("ApplicationShortcut",      new QoreNode((int64)Qt::ApplicationShortcut));
+
+   // FillRule enum
+   qt->addConstant("OddEvenFill",              new QoreNode((int64)Qt::OddEvenFill));
+   qt->addConstant("WindingFill",              new QoreNode((int64)Qt::WindingFill));
+
+   // MaskMode enum
+   qt->addConstant("MaskInColor",              new QoreNode((int64)Qt::MaskInColor));
+   qt->addConstant("MaskOutColor",             new QoreNode((int64)Qt::MaskOutColor));
+
    // ClipOperation enum
    qt->addConstant("NoClip",                   new QoreNode((int64)Qt::NoClip));
    qt->addConstant("ReplaceClip",              new QoreNode((int64)Qt::ReplaceClip));
@@ -3209,6 +3254,21 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    // LayoutDirection enum
    qt->addConstant("LeftToRight",              new QoreNode((int64)Qt::LeftToRight));
    qt->addConstant("RightToLeft",              new QoreNode((int64)Qt::RightToLeft));
+
+   // ItemSelectionMode
+   qt->addConstant("ContainsItemShape",        new QoreNode((int64)Qt::ContainsItemShape));
+   qt->addConstant("IntersectsItemShape",      new QoreNode((int64)Qt::IntersectsItemShape));
+   qt->addConstant("ContainsItemBoundingRect", new QoreNode((int64)Qt::ContainsItemBoundingRect));
+   qt->addConstant("IntersectsItemBoundingRect", new QoreNode((int64)Qt::IntersectsItemBoundingRect));
+
+   // TransformationMode enum
+   qt->addConstant("FastTransformation",       new QoreNode((int64)Qt::FastTransformation));
+   qt->addConstant("SmoothTransformation",     new QoreNode((int64)Qt::SmoothTransformation));
+
+   // Axis enum
+   qt->addConstant("XAxis",                    new QoreNode((int64)Qt::XAxis));
+   qt->addConstant("YAxis",                    new QoreNode((int64)Qt::YAxis));
+   qt->addConstant("ZAxis",                    new QoreNode((int64)Qt::ZAxis));
 
    qns->addInitialNamespace(qt);
 }

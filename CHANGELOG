@@ -1,3 +1,7 @@
+2007.11.27: David Nichols
+	* qt: new example program "screenshot.q"
+	* qt: new methods, constants, implemented QDesktopWidget class
+
 2007.11.26: David Nichols
 	* qt: fixed QPen constructor PenStyle argument processing
 	* qt: new example program "wiggly.q"

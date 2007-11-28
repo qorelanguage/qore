@@ -453,6 +453,8 @@ noinst_HEADERS = \
 	modules/qt/QC_QChildEvent.h \
 	modules/qt/QC_QTimerEvent.h \
 	modules/qt/QC_QHelpEvent.h \
+	modules/qt/QC_QDesktopWidget.h \
+	modules/qt/QC_QSystemTrayIcon.h \
 	command-line.h \
 	include/qore/Qore.h
 

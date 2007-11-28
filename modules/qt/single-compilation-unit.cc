@@ -174,3 +174,5 @@
 #include "QC_QChildEvent.cc"
 #include "QC_QTimerEvent.cc"
 #include "QC_QHelpEvent.cc"
+#include "QC_QDesktopWidget.cc"
+#include "QC_QSystemTrayIcon.cc"

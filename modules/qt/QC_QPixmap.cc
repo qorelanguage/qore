@@ -619,6 +619,25 @@ static QoreNode *f_QPixmap_grabWidget(QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(o_qp);
 }
 
+//QPixmap grabWindow ( WId window, int x = 0, int y = 0, int width = -1, int height = -1 )
+static QoreNode *f_QPixmap_grabWindow(QoreNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p = get_param(params, 0);
+   WId window = (WId)(p ? p->getAsBigInt() : 0);
+   p = get_param(params, 1);
+   int x = !is_nothing(p) ? p->getAsInt() : 0;
+   p = get_param(params, 2);
+   int y = !is_nothing(p) ? p->getAsInt() : 0;
+   p = get_param(params, 3);
+   int width = !is_nothing(p) ? p->getAsInt() : -1;
+   p = get_param(params, 4);
+   int height = !is_nothing(p) ? p->getAsInt() : -1;
+   QoreQPixmap *q_qp = new QoreQPixmap(QPixmap::grabWindow(window, x, y, width, height));
+   Object *o_qp = new Object(QC_QPixmap, getProgram());
+   o_qp->setPrivate(CID_QPIXMAP, q_qp);
+   return new QoreNode(o_qp);
+}
+
 void initQPixmapStaticFunctions()
 {
    builtinFunctions.add("QPixmap_defaultDepth",                 f_QPixmap_defaultDepth);
@@ -626,6 +645,6 @@ void initQPixmapStaticFunctions()
    //builtinFunctions.add("QPixmap_fromMacCGImageRef",            f_QPixmap_fromMacCGImageRef);
    //builtinFunctions.add("QPixmap_fromWinHBITMAP",               f_QPixmap_fromWinHBITMAP);
    builtinFunctions.add("QPixmap_grabWidget",                   f_QPixmap_grabWidget);
-   //builtinFunctions.add("QPixmap_grabWindow",                   f_QPixmap_grabWindow);
+   builtinFunctions.add("QPixmap_grabWindow",                   f_QPixmap_grabWindow);
    //builtinFunctions.add("QPixmap_trueMatrix",                   f_QPixmap_trueMatrix);
 }
