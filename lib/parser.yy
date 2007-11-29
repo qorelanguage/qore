@@ -2047,9 +2047,9 @@ string:
 	}
 	| QUOTED_WORD string
 	{
-	   $2->concat($1);
-	   free($1);
-	   $$ = $2;	
+	   $$ = new QoreString($1);
+	   $$->concat($2);
+	   delete $2;
 	}
 
 scalar:
