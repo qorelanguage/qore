@@ -33,15 +33,15 @@ DLLLOCAL extern class QoreClass *QC_QDialog;
 
 DLLLOCAL class QoreClass *initQDialogClass(QoreClass *);
 
-class myQDialog : public QDialog, public QoreQWidgetExtension
+class myQDialog : public QDialog, public QoreQDialogExtension
 {
 #define QOREQTYPE QDialog
 #include "qore-qt-metacode.h"
-#include "qore-qt-widget-events.h"
+#include "qore-qt-qdialog-methods.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDialog(Object *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog(parent, f), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDialog(Object *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog(parent, f), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
@@ -71,7 +71,7 @@ class QoreQDialog : public QoreAbstractQDialog
       {
          return static_cast<QDialog *>(&(*qobj));
       }
-      QORE_VIRTUAL_QWIDGET_METHODS
+      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
 #endif // _QORE_QT_QC_QDIALOG_H

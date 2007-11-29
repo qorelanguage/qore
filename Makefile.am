@@ -283,11 +283,13 @@ noinst_HEADERS = \
 	modules/qt/qore-qt-metacode.h \
 	modules/qt/qore-qt-qabstractitemdelegate-methods.h \
 	modules/qt/qore-qt-qstyle-methods.h \
+	modules/qt/qore-qt-qdialog-methods.h \
 	modules/qt/qore-qt-static-qobject-methods.h \
 	modules/qt/qore-qt-static-qwidget-methods.h \
 	modules/qt/qore-qt-static-qstyle-methods.h \
 	modules/qt/qore-qt-static-qabstractitemmodel-methods.h \
 	modules/qt/qore-qt-static-qvalidator-methods.h \
+	modules/qt/qore-qt-static-qdialog-methods.h \
 	modules/qt/QC_QBrush.h \
 	modules/qt/QC_QColor.h \
 	modules/qt/QC_QPaintDevice.h \
@@ -455,6 +457,12 @@ noinst_HEADERS = \
 	modules/qt/QC_QHelpEvent.h \
 	modules/qt/QC_QDesktopWidget.h \
 	modules/qt/QC_QSystemTrayIcon.h \
+	modules/qt/QC_QWizard.h \
+	modules/qt/QC_QWizardPage.h \
+	modules/qt/QC_QTranslator.h \
+	modules/qt/QC_QLibraryInfo.h \
+	modules/qt/QC_QCoreApplication.h \
+	modules/qt/QoreAbstractQCoreApplication.h \
 	command-line.h \
 	include/qore/Qore.h
 

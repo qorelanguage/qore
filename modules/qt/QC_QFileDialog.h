@@ -34,19 +34,19 @@ DLLLOCAL extern class QoreClass *QC_QFileDialog;
 DLLLOCAL class QoreClass *initQFileDialogClass(QoreClass *);
 DLLLOCAL void initQFileDialogStaticFunctions();
 
-class myQFileDialog : public QFileDialog, public QoreQWidgetExtension
+class myQFileDialog : public QFileDialog, public QoreQDialogExtension
 {
 #define QOREQTYPE QFileDialog
 #include "qore-qt-metacode.h"
-#include "qore-qt-widget-events.h"
+#include "qore-qt-qdialog-methods.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQFileDialog(Object *obj, QWidget* parent, Qt::WindowFlags flags) : QFileDialog(parent, flags), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQFileDialog(Object *obj, QWidget* parent, Qt::WindowFlags flags) : QFileDialog(parent, flags), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQFileDialog(Object *obj, QWidget* parent = 0, const QString& caption = QString(), const QString& directory = QString(), const QString& filter = QString()) : QFileDialog(parent, caption, directory, filter), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQFileDialog(Object *obj, QWidget* parent = 0, const QString& caption = QString(), const QString& directory = QString(), const QString& filter = QString()) : QFileDialog(parent, caption, directory, filter), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
@@ -79,7 +79,7 @@ class QoreQFileDialog : public QoreAbstractQDialog
       {
          return static_cast<QDialog *>(&(*qobj));
       }
-      QORE_VIRTUAL_QWIDGET_METHODS
+      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
 #endif // _QORE_QT_QC_QFILEDIALOG_H

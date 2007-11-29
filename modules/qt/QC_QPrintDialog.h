@@ -33,15 +33,15 @@ DLLLOCAL extern class QoreClass *QC_QPrintDialog;
 
 DLLLOCAL class QoreClass *initQPrintDialogClass(QoreClass *);
 
-class myQPrintDialog : public QPrintDialog, public QoreQWidgetExtension
+class myQPrintDialog : public QPrintDialog, public QoreQDialogExtension
 {
 #define QOREQTYPE QPrintDialog
 #include "qore-qt-metacode.h"
-#include "qore-qt-widget-events.h"
+#include "qore-qt-qdialog-methods.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQPrintDialog(Object *obj, QPrinter* printer, QWidget* parent = 0) : QPrintDialog(printer, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQPrintDialog(Object *obj, QPrinter* printer, QWidget* parent = 0) : QPrintDialog(printer, parent), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
@@ -75,7 +75,7 @@ class QoreQPrintDialog : public QoreAbstractQDialog
       {
          return static_cast<QPrintDialog *>(&(*qobj));
       }
-      QORE_VIRTUAL_QWIDGET_METHODS
+      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
 #endif // _QORE_QT_QC_QPRINTDIALOG_H

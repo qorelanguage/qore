@@ -134,7 +134,12 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QTimerEvent.cc \
 	QC_QHelpEvent.cc \
 	QC_QDesktopWidget.cc \
-	QC_QSystemTrayIcon.cc
+	QC_QSystemTrayIcon.cc \
+	QC_QWizard.cc \
+	QC_QWizardPage.cc \
+	QC_QTranslator.cc \
+	QC_QLibraryInfo.cc \
+	QC_QCoreApplication.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

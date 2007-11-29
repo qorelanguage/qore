@@ -161,6 +161,11 @@
 #include "QC_QEvent.h"
 #include "QC_QDesktopWidget.h"
 #include "QC_QSystemTrayIcon.h"
+#include "QC_QWizard.h"
+#include "QC_QWizardPage.h"
+#include "QC_QTranslator.h"
+#include "QC_QLibraryInfo.h"
+#include "QC_QCoreApplication.h"
 
 #include "QT_BrushStyle.h"
 #include "QT_PenStyle.h"
@@ -1285,6 +1290,7 @@ static class QoreString *qt_module_init()
    builtinFunctions.add("QStyleFactory_keys",         f_QStyleFactory_keys);
 
    // add static class functions as builtin functions
+   initQCoreApplicationStaticFunctions();
    initQApplicationStaticFunctions();
    initQLocaleStaticFunctions();
    initQFontDatabaseStaticFunctions();
@@ -1299,6 +1305,7 @@ static class QoreString *qt_module_init()
    initQColorStaticFunctions();
    initQTimerStaticFunctions();
    initQSystemTrayIconStaticFunctions();
+   initQLibraryInfoStaticFunctions();
 
    addBrushStyleType();
    addPenStyleType();
@@ -1311,9 +1318,12 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    class Namespace *qt = new Namespace("Qt");
 
     // the order is sensitive here as child classes need the parent IDs
-   class QoreClass *qobject, *qwidget, *qlayout, *qframe, *qboxlayout, *qpaintdevice, *qpixmap, *qabstractslider;
+   class QoreClass *qobject, *qcoreapplication, *qwidget, *qlayout, *qframe, 
+      *qboxlayout, *qpaintdevice, *qpixmap, *qabstractslider;
+
    qt->addSystemClass((qobject = initQObjectClass()));
-   qt->addSystemClass(initQApplicationClass(qobject));
+   qt->addSystemClass((qcoreapplication = initQCoreApplicationClass(qobject)));
+   qt->addSystemClass(initQApplicationClass(qcoreapplication));
    qt->addSystemClass(initQActionClass(qobject));
    qt->addSystemClass(initQActionGroupClass(qobject));
    qt->addSystemClass(initQShortcutClass(qobject));
@@ -1463,6 +1473,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qsizepolicy);
 
+   qt->addInitialNamespace(initQLibraryInfoNS());
+
    Namespace *qicon = new Namespace("QIcon");
 
    // Mode enum
@@ -1606,6 +1618,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(initQTextEditNS(qabstractscrollarea));
    qt->addSystemClass(initQDesktopWidgetClass(qwidget));
+   qt->addSystemClass(initQWizardPageClass(qwidget));
+   qt->addSystemClass(initQTranslatorClass(qobject));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -1649,6 +1663,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qdialog_ns->addConstant("Rejected",   new QoreNode((int64)QDialog::Rejected));
    qdialog_ns->addConstant("Accepted",   new QoreNode((int64)QDialog::Accepted));
+
+   qdialog_ns->addInitialNamespace(initQWizardNS(qdialog));
 
    Namespace *qmessagebox = new Namespace("QMessageBox");
    qmessagebox->addSystemClass(initQMessageBoxClass(qdialog));

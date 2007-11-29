@@ -74,14 +74,14 @@ static class QoreNode *QA_exec(class Object *self, class QoreQApplication *qa, c
    return 0;
 }
 
-class QoreClass *initQApplicationClass(class QoreClass *qobject)
+class QoreClass *initQApplicationClass(class QoreClass *qcoreapplication)
 {
    tracein("initQApplicationClass()");
    
    class QoreClass *QC_QApplication = new QoreClass("QApplication", QDOM_GUI);
    CID_QAPPLICATION = QC_QApplication->getID();
 
-   QC_QApplication->addBuiltinVirtualBaseClass(qobject);
+   QC_QApplication->addBuiltinVirtualBaseClass(qcoreapplication);
 
    QC_QApplication->setConstructor(QA_constructor);
    QC_QApplication->setCopy((q_copy_t)QA_copy);

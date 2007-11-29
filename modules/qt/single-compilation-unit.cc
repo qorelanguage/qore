@@ -176,3 +176,8 @@
 #include "QC_QHelpEvent.cc"
 #include "QC_QDesktopWidget.cc"
 #include "QC_QSystemTrayIcon.cc"
+#include "QC_QWizard.cc"
+#include "QC_QWizardPage.cc"
+#include "QC_QTranslator.cc"
+#include "QC_QLibraryInfo.cc"
+#include "QC_QCoreApplication.cc"

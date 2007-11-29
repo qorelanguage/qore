@@ -88,7 +88,7 @@ static QoreNode *QDIALOG_setSizeGripEnabled(Object *self, QoreAbstractQDialog *q
 //virtual void accept ()
 static QoreNode *QDIALOG_accept(Object *self, QoreAbstractQDialog *qd, QoreNode *params, ExceptionSink *xsink)
 {
-   qd->getQDialog()->accept();
+   qd->accept();
    return 0;
 }
 
@@ -97,7 +97,7 @@ static QoreNode *QDIALOG_done(Object *self, QoreAbstractQDialog *qd, QoreNode *p
 {
    QoreNode *p = get_param(params, 0);
    int r = p ? p->getAsInt() : 0;
-   qd->getQDialog()->done(r);
+   qd->done(r);
    return 0;
 }
 
@@ -110,7 +110,7 @@ static QoreNode *QDIALOG_exec(Object *self, QoreAbstractQDialog *qd, QoreNode *p
 //virtual void reject ()
 static QoreNode *QDIALOG_reject(Object *self, QoreAbstractQDialog *qd, QoreNode *params, ExceptionSink *xsink)
 {
-   qd->getQDialog()->reject();
+   qd->reject();
    return 0;
 }
 

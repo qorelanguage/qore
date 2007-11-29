@@ -1,6 +1,8 @@
 2007.11.29: David Nichols
 	* qt: new example "systray.q"
 	* qt: event handling improvements
+	* qt: new example "classwizard.q"
+	* qt: new classes and QDialog improvements
 
 2007.11.27: David Nichols
 	* qt: new example program "screenshot.q"

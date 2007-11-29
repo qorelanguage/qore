@@ -24,7 +24,7 @@
 
 #define _QORE_QC_QAPPLICATION_H
 
-#include "QoreAbstractQObject.h"
+#include "QoreAbstractQCoreApplication.h"
 
 #include <QApplication>
 
@@ -51,7 +51,7 @@ class myQApplication : public QApplication, public QoreQObjectExtension
       }
 };
 
-class QoreQApplication : public QoreAbstractQObject
+class QoreQApplication : public QoreAbstractQCoreApplication
 {
    public:
       myQApplication *qobj;
@@ -69,6 +69,11 @@ class QoreQApplication : public QoreAbstractQObject
       {
 	 return static_cast<QObject *>(qobj);
       }
+      DLLLOCAL virtual class QCoreApplication *getQCoreApplication() const
+      {
+         return static_cast<QCoreApplication *>(&(*qobj));
+      }
+
       QORE_VIRTUAL_QOBJECT_METHODS
 };
 

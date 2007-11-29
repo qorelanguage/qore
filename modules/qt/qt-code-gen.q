@@ -39,7 +39,8 @@ const qobject_list =
       "QApplication", "QStyle", "QAbstractItemModel", "ToolButton", "QMessageBox",
       "QCheckBox", "QRadioButton", "QPushButton", "QMenuBar",
       "QPrintDialog", "QValidator", "QIODevice", "QTabBar", "QTabWidget", 
-      "QDesktopWidget"
+      "QDesktopWidget", "QWizard", "QWizardPage", "QTranslator", 
+      "QApplication", "QCoreApplication",
  );
 
 const abstract_class_list = 
@@ -104,7 +105,6 @@ const class_list = ( "QRegion",
 		     "QPrinter",
 		     "QPaintDevice",
 		     "QPaintEngine",
-
  ) + const_class_list + qobject_list;
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 

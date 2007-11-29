@@ -26,10 +26,34 @@
 
 #include "QoreAbstractQWidget.h"
 
+class QoreQDialogExtension : public QoreQWidgetExtension
+{
+   protected:
+      Method *m_accept, *m_done, *m_reject;
+
+   public:
+      DLLLOCAL QoreQDialogExtension(QoreClass *qc) : QoreQWidgetExtension(qc)
+      {
+         m_accept = findMethod(qc, "accept");
+         m_done   = findMethod(qc, "done");
+         m_reject = findMethod(qc, "reject");
+      }
+};
+
 class QoreAbstractQDialog : public QoreAbstractQWidget
 {
    public:
       DLLLOCAL virtual class QDialog *getQDialog() const = 0;
+
+      // virtual methods
+      DLLLOCAL virtual void accept () = 0;
+      DLLLOCAL virtual void done ( int r ) = 0;
+      DLLLOCAL virtual void reject () = 0;
 };
+
+#define QORE_VIRTUAL_QDIALOG_METHODS QORE_VIRTUAL_QWIDGET_METHODS \
+   DLLLOCAL virtual void accept () { qobj->parent_accept(); } \
+   DLLLOCAL virtual void done ( int r ) { qobj->parent_done(r); } \
+   DLLLOCAL virtual void reject () { qobj->parent_reject(); }
 
 #endif  // _QORE_QT_QOREABSTRACTQDIALOG_H

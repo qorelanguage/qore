@@ -34,19 +34,19 @@ DLLLOCAL extern class QoreClass *QC_QMessageBox;
 DLLLOCAL class QoreClass *initQMessageBoxClass(QoreClass *);
 DLLLOCAL void initQMessageBoxStaticFunctions();
 
-class myQMessageBox : public QMessageBox, public QoreQWidgetExtension
+class myQMessageBox : public QMessageBox, public QoreQDialogExtension
 {
 #define QOREQTYPE QMessageBox
 #include "qore-qt-metacode.h"
-#include "qore-qt-widget-events.h"
+#include "qore-qt-qdialog-methods.h"
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMessageBox(Object *obj, QWidget* parent = 0) : QMessageBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQMessageBox(Object *obj, QWidget* parent = 0) : QMessageBox(parent), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQMessageBox(Object *obj, Icon icon, const QString& title, const QString& text, StandardButtons buttons = NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : QMessageBox(icon, title, text, buttons, parent, f), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQMessageBox(Object *obj, Icon icon, const QString& title, const QString& text, StandardButtons buttons = NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : QMessageBox(icon, title, text, buttons, parent, f), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
@@ -79,7 +79,7 @@ class QoreQMessageBox : public QoreAbstractQDialog
       {
          return static_cast<QDialog *>(&(*qobj));
       }
-      QORE_VIRTUAL_QWIDGET_METHODS
+      QORE_VIRTUAL_QDIALOG_METHODS
 };
 
 #endif // _QORE_QT_QC_QMESSAGEBOX_H
