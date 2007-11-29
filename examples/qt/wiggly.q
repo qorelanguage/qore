@@ -1,6 +1,6 @@
 #!/usr/bin/env qore
 
-# $self is basically a direct port of the QT widget example
+# this is basically a direct port of the QT widget example
 # "wiggly" to Qore using Qore's "qt" module.  
 
 # Note that Qore's "qt" module requires QT 4.3 or above 
@@ -8,7 +8,7 @@
 # use the "qt" module
 %requires qt
 
-# $self is an object-oriented program; the application class is "wiggly_example"
+# this is an object-oriented program; the application class is "wiggly_example"
 %exec-class wiggly_example
 # require all variables to be explicitly declared
 %require-our

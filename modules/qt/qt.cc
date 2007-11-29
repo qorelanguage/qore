@@ -1606,7 +1606,6 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(initQTextEditNS(qabstractscrollarea));
    qt->addSystemClass(initQDesktopWidgetClass(qwidget));
-   qt->addSystemClass(initQSystemTrayIconClass(qobject));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -1618,6 +1617,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qbl->addConstant("BottomToTop",    new QoreNode((int64)QBoxLayout::BottomToTop));
 
    qt->addInitialNamespace(qbl);
+
+   qt->addInitialNamespace(initQSystemTrayIconNS(qobject));
 
    Namespace *qdatetimeedit_ns = new Namespace("QDateTimeEdit");
    

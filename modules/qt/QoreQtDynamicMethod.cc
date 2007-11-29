@@ -67,7 +67,11 @@ int QoreQtDynamicMethod::get_type(const char *&p)
    }
    else if (!strncmp("QString", p, 7)) {
       rt = QQT_TYPE_QSTRING;
-      p += 5;
+      p += 7;
+   }
+   else if (!strncmp("QSystemTrayIcon::ActivationReason", p, 33)) {
+      rt = QQT_TYPE_INT;
+      p += 33;
    }
    else {
       //printd(5, "QoreQtDynamicMethod::get_type(%s) unknown type error!\n", p);

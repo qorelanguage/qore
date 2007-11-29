@@ -24,7 +24,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_mouseMoveEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQMouseEvent *e = new QoreQMouseEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_mouseMoveEvent, QC_QMouseEvent, e);
+
+	 *event = *e;
       }
       DLLLOCAL virtual void mousePressEvent(QMouseEvent *event) 
       {
@@ -33,7 +41,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_mousePressEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQMouseEvent *e = new QoreQMouseEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_mousePressEvent, QC_QMouseEvent, e);
+
+	 *event = *e;
       }
       DLLLOCAL virtual void mouseReleaseEvent(QMouseEvent *event) 
       {
@@ -42,7 +58,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_mouseReleaseEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQMouseEvent *e = new QoreQMouseEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_mouseReleaseEvent, QC_QMouseEvent, e);
+
+	 *event = *e;
       }
       DLLLOCAL virtual void mouseDoubleClickEvent(QMouseEvent *event) 
       {
@@ -51,7 +75,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_mouseDoubleClickEvent, QC_QMouseEvent, new QoreQMouseEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQMouseEvent *e = new QoreQMouseEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_mouseDoubleClickEvent, QC_QMouseEvent, e);
+
+	 *event = *e;
       }
       DLLLOCAL virtual void keyPressEvent(QKeyEvent *event) 
       {
@@ -60,7 +92,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_keyPressEvent, QC_QKeyEvent, new QoreQKeyEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQKeyEvent *e = new QoreQKeyEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_keyPressEvent, QC_QKeyEvent, e);
+
+	 *event = *e;
       }
       DLLLOCAL virtual void keyReleaseEvent(QKeyEvent *event) 
       {
@@ -69,7 +109,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_keyReleaseEvent, QC_QKeyEvent, new QoreQKeyEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQKeyEvent *e = new QoreQKeyEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_keyReleaseEvent, QC_QKeyEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void changeEvent(QEvent *event)
@@ -79,7 +127,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_changeEvent, QC_QEvent, new QoreQEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQEvent *e = new QoreQEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_changeEvent, QC_QEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void enterEvent(QEvent *event)
@@ -89,7 +145,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_enterEvent, QC_QEvent, new QoreQEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQEvent *e = new QoreQEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_enterEvent, QC_QEvent, e);
+
+	 *event = *e;
       }
       DLLLOCAL virtual bool event(QEvent *event)
       {
@@ -110,7 +174,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_leaveEvent, QC_QEvent, new QoreQEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQEvent *e = new QoreQEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_leaveEvent, QC_QEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void resizeEvent(QResizeEvent *event)
@@ -120,7 +192,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_resizeEvent, QC_QResizeEvent, new QoreQResizeEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQResizeEvent *e = new QoreQResizeEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_resizeEvent, QC_QResizeEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void moveEvent(QMoveEvent *event)
@@ -130,7 +210,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_moveEvent, QC_QMoveEvent, new QoreQMoveEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQMoveEvent *e = new QoreQMoveEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_moveEvent, QC_QMoveEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void actionEvent(QActionEvent *event)
@@ -140,7 +228,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_actionEvent, QC_QActionEvent, new QoreQActionEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQActionEvent *e = new QoreQActionEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_actionEvent, QC_QActionEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void closeEvent(QCloseEvent *event)
@@ -150,7 +246,17 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_closeEvent, QC_QCloseEvent, new QoreQCloseEvent(*event));
+	 ExceptionSink xsink;
+
+	 QoreQCloseEvent *e = new QoreQCloseEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+
+	 dispatch_event(qore_obj, e_closeEvent, QC_QCloseEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void contextMenuEvent(QContextMenuEvent *event)
@@ -160,7 +266,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_contextMenuEvent, QC_QContextMenuEvent, new QoreQContextMenuEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQContextMenuEvent *e = new QoreQContextMenuEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_contextMenuEvent, QC_QContextMenuEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void dragEnterEvent(QDragEnterEvent *event)
@@ -170,7 +284,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_dragEnterEvent, QC_QDragEnterEvent, new QoreQDragEnterEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQDragEnterEvent *e = new QoreQDragEnterEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_dragEnterEvent, QC_QDragEnterEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void dragMoveEvent(QDragMoveEvent *event)
@@ -180,7 +302,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_dragMoveEvent, QC_QDragMoveEvent, new QoreQDragMoveEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQDragMoveEvent *e = new QoreQDragMoveEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_dragMoveEvent, QC_QDragMoveEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void dragLeaveEvent(QDragLeaveEvent *event)
@@ -190,7 +320,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_dragLeaveEvent, QC_QDragLeaveEvent, new QoreQDragLeaveEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQDragLeaveEvent *e = new QoreQDragLeaveEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_dragLeaveEvent, QC_QDragLeaveEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void dropEvent(QDropEvent *event)
@@ -200,7 +338,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_dropEvent, QC_QDropEvent, new QoreQDropEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQDropEvent *e = new QoreQDropEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_dropEvent, QC_QDropEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void focusInEvent(QFocusEvent *event)
@@ -210,7 +356,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_focusInEvent, QC_QFocusEvent, new QoreQFocusEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQFocusEvent *e = new QoreQFocusEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_focusInEvent, QC_QFocusEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void focusOutEvent(QFocusEvent *event)
@@ -220,7 +374,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_focusOutEvent, QC_QFocusEvent, new QoreQFocusEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQFocusEvent *e = new QoreQFocusEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_focusOutEvent, QC_QFocusEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void hideEvent(QHideEvent *event)
@@ -230,7 +392,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_hideEvent, QC_QHideEvent, new QoreQHideEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQHideEvent *e = new QoreQHideEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_hideEvent, QC_QHideEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void inputMethodEvent(QInputMethodEvent *event)
@@ -240,7 +410,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_inputMethodEvent, QC_QInputMethodEvent, new QoreQInputMethodEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQInputMethodEvent *e = new QoreQInputMethodEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_inputMethodEvent, QC_QInputMethodEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void showEvent(QShowEvent *event)
@@ -250,7 +428,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_showEvent, QC_QShowEvent, new QoreQShowEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQShowEvent *e = new QoreQShowEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_showEvent, QC_QShowEvent, e);
+
+	 *event = *e;
       }
 
       DLLLOCAL virtual void tabletEvent(QTabletEvent *event)
@@ -260,7 +446,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_tabletEvent, QC_QTabletEvent, new QoreQTabletEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQTabletEvent *e = new QoreQTabletEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_tabletEvent, QC_QTabletEvent, e);
+
+	 *event = *e;
       }
       
       DLLLOCAL virtual void wheelEvent(QWheelEvent *event)
@@ -270,7 +464,15 @@ class T {
 	    return;
 	 }
 
-	 dispatch_event(qore_obj, e_wheelEvent, QC_QWheelEvent, new QoreQWheelEvent(*event));
+	 ExceptionSink xsink;
+	 QoreQWheelEvent *e = new QoreQWheelEvent(*event);
+	 // reference so we can copy value after method has been run
+	 e->ref();
+	 // holder for extra reference
+	 ReferenceHolder<AbstractPrivateData> eventHolder(e, &xsink);
+	 dispatch_event(qore_obj, e_wheelEvent, QC_QWheelEvent, e);
+
+	 *event = *e;
       }
 
       /*
