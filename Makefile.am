@@ -463,6 +463,12 @@ noinst_HEADERS = \
 	modules/qt/QC_QLibraryInfo.h \
 	modules/qt/QC_QCoreApplication.h \
 	modules/qt/QoreAbstractQCoreApplication.h \
+	modules/qt/QC_QListView.h \
+	modules/qt/QoreAbstractQListView.h \
+	modules/qt/QC_QListWidget.h \
+	modules/qt/QoreAbstractQListWidget.h \
+	modules/qt/QC_QListWidgetItem.h \
+	modules/qt/QC_QDialogButtonBox.h \
 	command-line.h \
 	include/qore/Qore.h
 

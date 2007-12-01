@@ -16,6 +16,7 @@ const opts = (
     "qt"              : "q,qt-class",
     "static"          : "S,static",
     "test"            : "t,test",
+    "ns"              : "N,namespace",
     "help"            : "h,help"
     );
 
@@ -40,7 +41,7 @@ const qobject_list =
       "QCheckBox", "QRadioButton", "QPushButton", "QMenuBar",
       "QPrintDialog", "QValidator", "QIODevice", "QTabBar", "QTabWidget", 
       "QDesktopWidget", "QWizard", "QWizardPage", "QTranslator", 
-      "QApplication", "QCoreApplication",
+      "QApplication", "QCoreApplication", "QListView", "QListWidget",
  );
 
 const abstract_class_list = 
@@ -105,6 +106,7 @@ const class_list = ( "QRegion",
 		     "QPrinter",
 		     "QPaintDevice",
 		     "QPaintEngine",
+		     "QListWidgetItem",
  ) + const_class_list + qobject_list;
 
 const dynamic_class_list = ( "QPaintDevice", "QPixmap", 
@@ -128,6 +130,7 @@ sub usage()
   -q,--qt-class            add Qt class to abstract class
   -p,--parent=ARG          parent class name
   -S,--static              assume prototypes are static functions
+  -n,--namespace           add class as namespace
   -t,--test                do not create files (use with -f)
   -h,--help                this help text
 ", basename($ENV."_"));
@@ -416,9 +419,12 @@ sub add_new_build_files($fp)
 		    $done = True;
 		}
 	    }
-	    else if ($lines[$i + 1] =~ /add QBoxLayout namespace/)
-		$of.printf("   qt->addSystemClass(init%sClass(%s));\n", $cn, tolower($o.parent));
-
+	    else if ($lines[$i + 1] =~ /add QBoxLayout namespace/) {
+		if ($o.ns)
+		    $of.printf("   qt->addInitialNamespace(init%sNS(%s));\n", $cn, tolower($o.parent));
+		else
+		    $of.printf("   qt->addSystemClass(init%sClass(%s));\n", $cn, tolower($o.parent));
+	    }
 	    $of.printf("%s\n", $lines[$i]);
 	}	
     }
@@ -721,11 +727,12 @@ sub main()
 
 	$of.printf("
 DLLLOCAL extern int CID_%s;
-DLLLOCAL extern class QoreClass *QC_%s;
-
-DLLLOCAL class QoreClass *init%sClass(%s);
-
-", $func_prefix, $cn, $cn, exists $o.parent ? "QoreClass *" : "");
+DLLLOCAL extern QoreClass *QC_%s;
+", $func_prefix, $cn);
+        if ($o.ns)
+            $of.printf("DLLLOCAL Namespace *init%sNS(%s);\n\n", $cn, exists $o.parent ? "QoreClass *" : "");
+        else
+            $of.printf("DLLLOCAL QoreClass *init%sClass(%s);\n\n", $cn, exists $o.parent ? "QoreClass *" : "");
 
 	if ($o.indep) {
 	    if ($o.abstract)
@@ -912,7 +919,7 @@ class QoreClass *QC_%s = 0;
 
     # do init function
     if (exists $o.file) {
-	$of.printf("QoreClass *init%sClass(%s)\n{\n", $cn, exists $o.parent ? "QoreClass *" + tolower($o.parent) : "");
+	$of.printf("%sQoreClass *init%sClass(%s)\n{\n", $o.ns ? "static " : "", $cn, exists $o.parent ? "QoreClass *" + tolower($o.parent) : "");
 	$of.printf("   QC_%s = new QoreClass(\"%s\", QDOM_GUI);\n", $cn, $cn);
 	$of.printf("   CID_%s = QC_%s->getID();\n\n", $func_prefix, $cn);
 
@@ -933,6 +940,11 @@ class QoreClass *QC_%s = 0;
 
     if (exists $o.file) {
 	$of.printf("\n   return QC_%s;\n}\n", $cn);
+
+        if ($o.ns) {
+            # print out namespace initializer
+            $of.printf("\nNamespace *init%sNS(%s)\n{\n   Namespace *ns = new Namespace(\"%s\");\n   ns->addSystemClass(init%sClass(%s));\n\n   return ns;\n}\n", $cn, exists $o.parent ? "QoreClass *" + tolower($o.parent) : "", $cn, $cn, tolower($o.parent)); 
+        }
     }
 }
 

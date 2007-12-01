@@ -139,7 +139,11 @@ QT_SOURCES = qt.cc QC_QObject.cc QC_QApplication.cc QC_QPushButton.cc QC_QFont.c
 	QC_QWizardPage.cc \
 	QC_QTranslator.cc \
 	QC_QLibraryInfo.cc \
-	QC_QCoreApplication.cc
+	QC_QCoreApplication.cc \
+	QC_QListView.cc \
+	QC_QListWidget.cc \
+	QC_QListWidgetItem.cc \
+	QC_QDialogButtonBox.cc
 if COND_MACOSX
 QT_SOURCES += QC_QMacStyle.cc
 endif

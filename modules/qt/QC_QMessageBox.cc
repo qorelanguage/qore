@@ -91,6 +91,8 @@ static QoreNode *QMESSAGEBOX_addButton(Object *self, QoreQMessageBox *qmb, QoreN
       qmb->qobj->addButton(static_cast<QAbstractButton *>(button->qobj), role);
       return 0;
    }
+   QPushButton *qt_qobj;
+
    if (p && p->type == NT_STRING) {
       QString text;
       if (get_qstring(p, text, xsink))
@@ -98,19 +100,25 @@ static QoreNode *QMESSAGEBOX_addButton(Object *self, QoreQMessageBox *qmb, QoreN
       p = get_param(params, 1);
       QMessageBox::ButtonRole role = (QMessageBox::ButtonRole)(p ? p->getAsInt() : 0);
 
-      Object *pbo = new Object(QC_QPushButton, getProgram());
-      QoreQPushButton *pb = new QoreQPushButton(pbo, text, qmb->getQWidget());
-      qmb->qobj->addButton(pb->qobj, role);
-      pbo->setPrivate(CID_QPUSHBUTTON, pb);
-      return new QoreNode(pbo);
+      qt_qobj = qmb->qobj->addButton(text, role);
+   }
+   else {
+      QMessageBox::StandardButton button = (QMessageBox::StandardButton)(p ? p->getAsInt() : 0);
+      qt_qobj = qmb->qobj->addButton(button);
    }
 
-   QMessageBox::StandardButton button = (QMessageBox::StandardButton)(p ? p->getAsInt() : 0);
-
-   Object *pbo = new Object(QC_QPushButton, getProgram());
-   class QoreQtQPushButton *pb = new QoreQtQPushButton(pbo, qmb->qobj->addButton(button));
-   pbo->setPrivate(CID_QPUSHBUTTON, pb);
-   return new QoreNode(pbo);
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QPushButton, getProgram());
+      QoreQtQPushButton *t_qobj = new QoreQtQPushButton(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QPUSHBUTTON, t_qobj);
+   }
+   return new QoreNode(rv_obj);
 }
 
 //QAbstractButton * button ( StandardButton which ) const
@@ -179,11 +187,23 @@ static QoreNode *QMESSAGEBOX_clickedButton(Object *self, QoreQMessageBox *qmb, Q
    return new QoreNode(rv_obj);
 }
 
-////QPushButton * defaultButton () const
-//static QoreNode *QMESSAGEBOX_defaultButton(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
-//{
-//   ??? return new QoreNode((int64)qmb->qobj->defaultButton());
-//}
+//QPushButton * defaultButton () const
+static QoreNode *QMESSAGEBOX_defaultButton(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+{
+   QPushButton *qt_qobj = qmb->qobj->defaultButton();
+   if (!qt_qobj)
+      return 0;
+   QVariant qv_ptr = qt_qobj->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QPushButton, getProgram());
+      QoreQtQPushButton *t_qobj = new QoreQtQPushButton(rv_obj, qt_qobj);
+      rv_obj->setPrivate(CID_QPUSHBUTTON, t_qobj);
+   }
+   return new QoreNode(rv_obj);
+}
 
 //QString detailedText () const
 static QoreNode *QMESSAGEBOX_detailedText(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
@@ -422,7 +442,7 @@ QoreClass *initQMessageBoxClass(QoreClass *qdialog)
    QC_QMessageBox->addMethod("addButton",                   (q_method_t)QMESSAGEBOX_addButton);
    QC_QMessageBox->addMethod("button",                      (q_method_t)QMESSAGEBOX_button);
    QC_QMessageBox->addMethod("clickedButton",               (q_method_t)QMESSAGEBOX_clickedButton);
-   //QC_QMessageBox->addMethod("defaultButton",               (q_method_t)QMESSAGEBOX_defaultButton);
+   QC_QMessageBox->addMethod("defaultButton",               (q_method_t)QMESSAGEBOX_defaultButton);
    QC_QMessageBox->addMethod("detailedText",                (q_method_t)QMESSAGEBOX_detailedText);
    QC_QMessageBox->addMethod("escapeButton",                (q_method_t)QMESSAGEBOX_escapeButton);
    QC_QMessageBox->addMethod("icon",                        (q_method_t)QMESSAGEBOX_icon);

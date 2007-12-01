@@ -166,6 +166,9 @@
 #include "QC_QTranslator.h"
 #include "QC_QLibraryInfo.h"
 #include "QC_QCoreApplication.h"
+#include "QC_QListView.h"
+#include "QC_QListWidgetItem.h"
+#include "QC_QDialogButtonBox.h"
 
 #include "QT_BrushStyle.h"
 #include "QT_PenStyle.h"
@@ -1620,6 +1623,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQDesktopWidgetClass(qwidget));
    qt->addSystemClass(initQWizardPageClass(qwidget));
    qt->addSystemClass(initQTranslatorClass(qobject));
+   qt->addInitialNamespace(initQListWidgetItemNS());
+   qt->addInitialNamespace(initQDialogButtonBoxNS(qwidget));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");
@@ -1857,6 +1862,8 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qabstractitemview_ns->addSystemClass((qabstractitemview = initQAbstractItemViewClass(qabstractscrollarea)));
    qabstractitemview_ns->addSystemClass((qtableview = initQTableViewClass(qabstractitemview)));
    qabstractitemview_ns->addSystemClass(initQTableWidgetClass(qtableview));
+
+   qabstractitemview_ns->addInitialNamespace(initQListViewNS(qabstractitemview));
    
    qt->addInitialNamespace(qabstractitemview_ns);
 

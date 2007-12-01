@@ -73,6 +73,10 @@ int QoreQtDynamicMethod::get_type(const char *&p)
       rt = QQT_TYPE_INT;
       p += 33;
    }
+   else if (!strncmp("QListWidgetItem*", p, 16)) {
+      rt = QQT_TYPE_P_QLISTWIDGETITEM;
+      p += 16;
+   }
    else {
       //printd(5, "QoreQtDynamicMethod::get_type(%s) unknown type error!\n", p);
       return QQT_TYPE_UNKNOWN;
@@ -219,6 +223,15 @@ void QoreQtDynamicSlot::call(void **arguments)
 	 o_qf->setPrivate(CID_QFONT, q_qf);
 
 	 args->push(new QoreNode(o_qf));
+      }
+      else if (type_list[i] == QQT_TYPE_P_QLISTWIDGETITEM) {
+	 QListWidgetItem *qlwi = *(reinterpret_cast<QListWidgetItem **>(arguments[i + 1]));
+	 
+	 Object *o_qlwi = new Object(QC_QListWidgetItem, getProgram());
+	 QoreQListWidgetItem *q_qlwi = new QoreQListWidgetItem(qlwi);
+	 o_qlwi->setPrivate(CID_QLISTWIDGETITEM, q_qlwi);
+
+	 args->push(new QoreNode(o_qlwi));
       }
       else {
 	 printd(0, "QoreQtDynamicSlot::call() ignoring argument %d type %d\n", i, type_list[i]);

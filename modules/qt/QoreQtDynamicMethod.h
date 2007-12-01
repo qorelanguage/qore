@@ -48,18 +48,19 @@
 
 #include <vector>
 
-#define QQT_TYPE_UNKNOWN     -1
-#define QQT_TYPE_VOID         0
-#define QQT_TYPE_INT          1
-#define QQT_TYPE_LONG         2
-#define QQT_TYPE_BOOL         3
-#define QQT_TYPE_FLOAT        4
-#define QQT_TYPE_DOUBLE       5
-#define QQT_TYPE_P_CHAR       6
-#define QQT_TYPE_QDATE        7
-#define QQT_TYPE_QFONT        8
-#define QQT_TYPE_QSTRING      9
-#define QQT_TYPE_P_QWIDGET   10
+#define QQT_TYPE_UNKNOWN             -1
+#define QQT_TYPE_VOID                 0
+#define QQT_TYPE_INT                  1
+#define QQT_TYPE_LONG                 2
+#define QQT_TYPE_BOOL                 3
+#define QQT_TYPE_FLOAT                4
+#define QQT_TYPE_DOUBLE               5
+#define QQT_TYPE_P_CHAR               6
+#define QQT_TYPE_QDATE                7
+#define QQT_TYPE_QFONT                8
+#define QQT_TYPE_QSTRING              9
+#define QQT_TYPE_P_QWIDGET           10
+#define QQT_TYPE_P_QLISTWIDGETITEM   11
 
 union qt_arg_u {
       int t_int;

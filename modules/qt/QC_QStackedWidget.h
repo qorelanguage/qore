@@ -29,9 +29,8 @@
 #include "qore-qt-events.h"
 
 DLLLOCAL extern int CID_QSTACKEDWIDGET;
-DLLLOCAL extern class QoreClass *QC_QStackedWidget;
-
-DLLLOCAL class QoreClass *initQStackedWidgetClass(QoreClass *);
+DLLLOCAL extern QoreClass *QC_QStackedWidget;
+DLLLOCAL QoreClass *initQStackedWidgetClass(QoreClass *);
 
 class myQStackedWidget : public QStackedWidget, public QoreQWidgetExtension
 {

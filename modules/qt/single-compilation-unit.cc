@@ -181,3 +181,7 @@
 #include "QC_QTranslator.cc"
 #include "QC_QLibraryInfo.cc"
 #include "QC_QCoreApplication.cc"
+#include "QC_QListView.cc"
+#include "QC_QListWidget.cc"
+#include "QC_QListWidgetItem.cc"
+#include "QC_QDialogButtonBox.cc"

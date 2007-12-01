@@ -177,12 +177,12 @@ static QoreNode *QSTACKEDWIDGET_setCurrentWidget(Object *self, QoreQStackedWidge
    return 0;
 }
 
-QoreClass *initQStackedWidgetClass(QoreClass *qframe)
+QoreClass *initQStackedWidgetClass(QoreClass *qwidget)
 {
    QC_QStackedWidget = new QoreClass("QStackedWidget", QDOM_GUI);
    CID_QSTACKEDWIDGET = QC_QStackedWidget->getID();
 
-   QC_QStackedWidget->addBuiltinVirtualBaseClass(qframe);
+   QC_QStackedWidget->addBuiltinVirtualBaseClass(qwidget);
 
    QC_QStackedWidget->setConstructor(QSTACKEDWIDGET_constructor);
    QC_QStackedWidget->setCopy((q_copy_t)QSTACKEDWIDGET_copy);

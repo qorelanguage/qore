@@ -1,3 +1,9 @@
+2007.12.01: David Nichols
+	* qt: new example "extension.q", new classes
+
+2007.11.30: David Nichols
+	* qt: new example "configdialog.q", new classes
+
 2007.11.29: David Nichols
 	* qt: new example "systray.q"
 	* qt: event handling improvements
