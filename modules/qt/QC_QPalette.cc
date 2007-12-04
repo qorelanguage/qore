@@ -407,7 +407,7 @@ static QoreNode *QPALETTE_setColor(Object *self, QoreQPalette *qp, QoreNode *par
    int a1 = p ? p->getAsInt() : 0;
 
    p = get_param(params, 1);
-   int a2;
+   int a2 = 0;
    bool got_a2 = false;
    if (!p || p->type != NT_OBJECT) {
       a2 = p ? p->getAsInt() : 0;

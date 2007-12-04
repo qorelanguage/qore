@@ -133,7 +133,7 @@ QoreQtDynamicSlot::QoreQtDynamicSlot(Object *n_qore_obj, const char *sig, Except
 	 return;
    }
    else {
-      const char *p1;
+      const char *p1 = 0;
       while (p && *p && (*p) != '(') {
 	 p1 = p;
 	 p = strchrs(p, " (");
