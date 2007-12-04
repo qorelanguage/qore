@@ -33,11 +33,11 @@ static inline void strindent(QoreString *s, int indent)
 
 static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class ExceptionSink *xsink)
 {
-   tracein("dni()");
+   //tracein("dni()");
    if (!n)
    {
       s->concat("node=NULL\n");
-      traceout("dni()");
+      //traceout("dni()");
       return s;
    }
    
@@ -136,7 +136,7 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
       s->sprintf("don't know how to print type '%s' :-(", n->type->getName());
    
    //printd(5, "D\n");
-   traceout("dni()");
+   //traceout("dni()");
    return s;
 }
 

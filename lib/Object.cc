@@ -93,6 +93,8 @@ class KeyList
 
 inline void Object::init(class QoreClass *oc, class QoreProgram *p)
 {
+   printd(1, "Object::Object() this=%08p, pgm=%08p, class=%s\n", this, pgm, oc->getName());
+
    status = OS_OK;
 
    myclass = oc; 
@@ -125,7 +127,7 @@ Object::Object(class QoreClass *oc, class QoreProgram *p, class Hash *h)
 Object::~Object()
 {
    //tracein("Object::~Object()");
-   printd(5, "Object::~Object() this=%08p, pgm=%08p\n", this, pgm);
+   printd(1, "Object::~Object() this=%08p, pgm=%08p, class=%s\n", this, pgm, myclass->getName());
    assert(!pgm);
    assert(!data);
    assert(!privateData);

@@ -751,7 +751,7 @@ if test -n "$with_tibae"; then
    if test "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
       AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
       unset with_tibae
-   elif test ! -e "$with_tibae/include/sdk/Maverick.h"; then
+   elif test ! -e "$with_tibae/include/sdk/Maverick.h" -a ! -e "$with_tibae/include/Maverick.h"; then
       AC_MSG_ERROR([can't find Maverick.h in $with_tibae/include/sdk])
    elif test -z "`ls $with_tibae/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
       AC_MSG_ERROR([can't find libmaverick*.${SHLIB_SUFFIX} in $with_tibae/lib])
@@ -763,7 +763,7 @@ else
    if test "$OS" = "HP-UX" -a $host_cpu != "ia64"; then
       AC_MSG_WARN([TIBCO Adapters SDK not supported on HP-UX])
       unset with_tibae
-   elif test -n "$SDK_ROOT" -a -f "$SDK_ROOT/include/sdk/Maverick.h" -a -n "`ls $SDK_ROOT/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
+   elif test -n "$SDK_ROOT" -a \( -f "$SDK_ROOT/include/sdk/Maverick.h" -o -f "$SDK_ROOT/include/Maverick.h" \) -a -n "`ls $SDK_ROOT/lib/libmaverick*.${SHLIB_SUFFIX} 2>/dev/null`"; then
       AC_MSG_RESULT([$SDK_ROOT])
       with_tibae=$SDK_ROOT
    else
@@ -841,6 +841,10 @@ if test -n "$with_tibae"; then
 	       TIBAE_CPPFLAGS="-I${with_tibae}/include/sdk"
 	       AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
 	       ;;
+        5.4.*|5.5.*) TIBAE_LDFLAGS="-L${with_tibae}/lib -L${with_tibae_tpcl}/lib -lmaverick53 -lrepowww532 -lxerces-c2_1 -lssl -lcrypto -licuuc -lpthread"
+               TIBAE_CPPFLAGS="-I${with_tibae}/include"
+               AC_DEFINE(TIBCO_SDK, 5, [define for TIBCO SDK 5.*])
+               ;;
 	*)     AC_MSG_ERROR(Unsupported TIBCO SDK Version) 
 	       ;;
    esac

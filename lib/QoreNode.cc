@@ -165,7 +165,7 @@ QoreNode::QoreNode(Object *o)
    type = NT_OBJECT;
    val.object = o;
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
+   printd(5, "QoreNode::ref() %08p type=%s (0->1) object=%08p, class=%s\n", this, type->getName(), o, o->getClass()->getName());
 #endif
 }
 
@@ -447,7 +447,10 @@ void QoreNode::ref()
 {
 #ifdef DEBUG
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (%d->%d)\n", this, type->getName(), references, references + 1);
+   if (type == NT_OBJECT)
+      printd(5, "QoreNode::ref() %08p type=%s (%d->%d) object=%08p, class=%s\n", this, type->getName(), references, references + 1, val.object, val.object->getClass()->getName());
+   else
+      printd(5, "QoreNode::ref() %08p type=%s (%d->%d)\n", this, type->getName(), references, references + 1);
 #endif
 #endif
    ROreference();
@@ -468,11 +471,14 @@ void QoreNode::deref(ExceptionSink *xsink)
 #if TRACK_REFS
    printd(5, "QoreNode::deref() %08p type=%s (%d->%d)\n", this, type->getName(), references, references - 1);
    if (type == NT_STRING) printd(5, "QoreNode::deref() %08p string='%s'\n", this, val.String ? val.String->getBuffer() : "(null)");
+   else if (type == NT_OBJECT) printd(5, "QoreNode::deref() %08p object=%08p class=%s\n", this, val.object, val.object->getClass()->getName());
+/*
    else if (type == NT_HASH && references <= 51200 && references > 0) { 
       QoreString tmp; 
       dni(&tmp, this, 0, xsink);
       printd(5, "QoreNode::deref() %08p hash=%s\n", this, tmp.getBuffer());
    }
+*/
 
 #endif
    if (references > 51200 || references < 0)
