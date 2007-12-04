@@ -2043,11 +2043,11 @@ exp:    scalar
 string:
 	QUOTED_WORD 
 	{
-	   $$ = new QoreString($1);
+	   $$ = $1;
 	}
 	| QUOTED_WORD string
 	{
-	   $$ = new QoreString($1);
+	   $$ = $1;
 	   $$->concat($2);
 	   delete $2;
 	}
