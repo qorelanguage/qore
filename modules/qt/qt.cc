@@ -169,6 +169,7 @@
 #include "QC_QListView.h"
 #include "QC_QListWidgetItem.h"
 #include "QC_QDialogButtonBox.h"
+#include "QC_QToolBar.h"
 
 #include "QT_BrushStyle.h"
 #include "QT_PenStyle.h"
@@ -816,6 +817,15 @@ class QoreNode *return_qvariant(const QVariant &qv)
    return 0;
 }
 
+// here QWidget subclasses can be determined if necessary
+static QoreNode *return_qwidget_intern(QWidget *w)
+{
+   // assign as QWidget
+   Object *qo = new Object(QC_QWidget, getProgram());
+   qo->setPrivate(CID_QWIDGET, new QoreQtQWidget(qo, w));
+   return new QoreNode(qo);
+}
+
 // returns a QoreNode tagged as the appropriate QObject subclass
 class QoreNode *return_qobject(QObject *o)
 {
@@ -832,11 +842,46 @@ class QoreNode *return_qobject(QObject *o)
 
    // see what subclass it is
    QWidget *qw = dynamic_cast<QWidget *>(o);
-   if (qw) 
-      return return_object(QC_QWidget, new QoreQtQWidget(qo, qw));
+   if (qw)
+      return return_qwidget_intern(qw);
 
    // assign as QObject
-   return return_object(QC_QObject, new QoreQtQObject(qo, o));
+   qo = new Object(QC_QObject, getProgram());
+   qo->setPrivate(CID_QOBJECT, new QoreQtQObject(qo, o));
+   return new QoreNode(qo);
+}
+
+// returns a QoreNode tagged as the appropriate QWidget subclass
+class QoreNode *return_qwidget(QWidget *w)
+{
+   if (!w)
+      return 0;
+
+   // see if it's an object created in Qore
+   QVariant qv_ptr = w->property("qobject");
+   Object *qo = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (qo) {
+      qo->ref();
+      return new QoreNode(qo);
+   }
+
+   return return_qwidget_intern(w);
+}
+
+class QoreNode *return_qaction(QAction *action)
+{
+   if (!action)
+      return 0;
+   QVariant qv_ptr = action->property("qobject");
+   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   if (rv_obj)
+      rv_obj->ref();
+   else {
+      rv_obj = new Object(QC_QAction, getProgram());
+      QoreQtQAction *t_qobj = new QoreQtQAction(rv_obj, action);
+      rv_obj->setPrivate(CID_QACTION, t_qobj);
+   }
+   return new QoreNode(rv_obj);
 }
 
 class QoreNode *return_qevent(QEvent *event)
@@ -1625,6 +1670,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addSystemClass(initQTranslatorClass(qobject));
    qt->addInitialNamespace(initQListWidgetItemNS());
    qt->addInitialNamespace(initQDialogButtonBoxNS(qwidget));
+   qt->addInitialNamespace(initQToolBarNS(qwidget));
 
    // add QBoxLayout namespace and constants
    class Namespace *qbl = new Namespace("QBoxLayout");

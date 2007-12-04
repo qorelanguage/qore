@@ -49,11 +49,13 @@ DLLLOCAL int get_qchar(const QoreNode *n, QChar &c, class ExceptionSink *xsink, 
 DLLLOCAL int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception = false);
 DLLLOCAL int get_qkeysequence(const QoreNode *n, QKeySequence &qks, class ExceptionSink *xsink, bool suppress_exception = false);
 
-DLLLOCAL class QoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data);
-DLLLOCAL class QoreNode *return_qvariant(QVariant &qv);
-DLLLOCAL class QoreNode *return_qstyle(const QString &style, class QStyle *qs, ExceptionSink *xsink);
-DLLLOCAL class QoreNode *return_qobject(QObject *o);
-DLLLOCAL class QoreNode *return_qstyleoption(const class QStyleOption *qso);
-DLLLOCAL class QoreNode *return_qevent(class QEvent *event);
+DLLLOCAL QoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data);
+DLLLOCAL QoreNode *return_qvariant(QVariant &qv);
+DLLLOCAL QoreNode *return_qstyle(const QString &style, class QStyle *qs, ExceptionSink *xsink);
+DLLLOCAL QoreNode *return_qobject(QObject *o);
+DLLLOCAL QoreNode *return_qstyleoption(const class QStyleOption *qso);
+DLLLOCAL QoreNode *return_qevent(class QEvent *event);
+DLLLOCAL QoreNode *return_qaction(class QAction *action);
+DLLLOCAL QoreNode *return_qwidget(class QWidget *widget);
 
 #endif

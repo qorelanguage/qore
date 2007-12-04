@@ -469,6 +469,7 @@ noinst_HEADERS = \
 	modules/qt/QoreAbstractQListWidget.h \
 	modules/qt/QC_QListWidgetItem.h \
 	modules/qt/QC_QDialogButtonBox.h \
+	modules/qt/QC_QToolBar.h \
 	command-line.h \
 	include/qore/Qore.h
 

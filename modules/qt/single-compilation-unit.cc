@@ -185,3 +185,4 @@
 #include "QC_QListWidget.cc"
 #include "QC_QListWidgetItem.cc"
 #include "QC_QDialogButtonBox.cc"
+#include "QC_QToolBar.cc"

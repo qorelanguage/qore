@@ -130,7 +130,7 @@ sub usage()
   -q,--qt-class            add Qt class to abstract class
   -p,--parent=ARG          parent class name
   -S,--static              assume prototypes are static functions
-  -n,--namespace           add class as namespace
+  -N,--namespace           add class as namespace
   -t,--test                do not create files (use with -f)
   -h,--help                this help text
 ", basename($ENV."_"));
@@ -212,6 +212,10 @@ sub do_return_qobject($type, $callstr)
 {
     if ($type == "QObject")
 	return sprintf("return return_qobject(%s);", $callstr);
+    if ($type == "QAction")
+	return sprintf("return return_qaction(%s);", $callstr);	
+    if ($type == "QWidget")
+	return sprintf("return return_qwidget(%s);", $callstr);	
     
     my $lo = ();
     
@@ -988,12 +992,15 @@ sub do_multi_class_header($offset, $final, $arg, $name, $i, $const, $last)
 	if ($final) {
 	    $lo += sprintf("%s   if (!xsink->isException())", $os);
 	    my $str;
-	    if (!$last) 
+	    if (!$last) {
 		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"%s::%s() does not know how to handle arguments of class '%s' as passed as the ", 
 			       $os, toupper($cn), toupper($name), $cn, $name);
-	    else
-		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the ", 
-			       $os, toupper($cn), toupper($name), $cn, $name, $type);
+		$str += sprintf("%s argument\", p->val.object->getClass()->getName());", ordinal[$i]);
+	    }
+	    else {
+		$str = sprintf("%s      xsink->raiseException(\"%s-%s-PARAM-ERROR\", \"this version of %s::%s() expects an object derived from %s as the %s argument\");",
+			       $os, toupper($cn), toupper($name), $cn, $name, $type, ordinal[$i]);
+	    }
 	    
 	    $str += sprintf("%s argument\", p->val.object->getClass()->getName());", ordinal[$i]);
 	    $lo += $str;
