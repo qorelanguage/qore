@@ -29,7 +29,7 @@
 int CID_TIBRVLISTENER;
 
 // syntax: subject, [desc, service, network, daemon] 
-void TIBRVLISTENER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVLISTENER_constructor(class QoreObject *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVLISTENER_constructor");
 
@@ -65,12 +65,12 @@ void TIBRVLISTENER_constructor(class Object *self, class QoreNode *params, class
    traceout("TIBRVLISTENER_constructor");
 }
 
-void TIBRVLISTENER_copy(class Object *self, class Object *old, class QoreTibrvListener *trvl, ExceptionSink *xsink)
+void TIBRVLISTENER_copy(class QoreObject *self, class QoreObject *old, class QoreTibrvListener *trvl, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRVLISTENER-COPY-ERROR", "copying TibrvListener objects is curently not supported");
 }
 
-static QoreNode *TIBRVLISTENER_getQueueSize(class Object *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVLISTENER_getQueueSize(class QoreObject *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
 {
    int c = trvl->getQueueSize(xsink);
    if (!xsink->isException())
@@ -79,11 +79,11 @@ static QoreNode *TIBRVLISTENER_getQueueSize(class Object *self, class QoreTibrvL
    return NULL;
 }
 
-static QoreNode *TIBRVLISTENER_getMessage(class Object *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVLISTENER_getMessage(class QoreObject *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
 {
    int64 timeout = getMsMinusOneBigInt(get_param(params, 0));
 
-   class Hash *h;
+   class QoreHash *h;
    // if timeout is < 0, then do not time out
    if (timeout < 0)
       h = trvl->getMessage(xsink);
@@ -95,7 +95,7 @@ static QoreNode *TIBRVLISTENER_getMessage(class Object *self, class QoreTibrvLis
    return NULL;
 }
 
-static QoreNode *TIBRVLISTENER_createInboxName(class Object *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVLISTENER_createInboxName(class QoreObject *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreString *str = trvl->createInboxName(xsink);
    if (str)
@@ -104,7 +104,7 @@ static QoreNode *TIBRVLISTENER_createInboxName(class Object *self, class QoreTib
    return NULL;
 }
 
-class QoreNode *TIBRVLISTENER_setStringEncoding(class Object *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVLISTENER_setStringEncoding(class QoreObject *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -119,7 +119,7 @@ class QoreNode *TIBRVLISTENER_setStringEncoding(class Object *self, class QoreTi
    return NULL;
 }
 
-class QoreNode *TIBRVLISTENER_getStringEncoding(class Object *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVLISTENER_getStringEncoding(class QoreObject *self, class QoreTibrvListener *trvl, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(trvl->getStringEncoding()->getCode());
 }

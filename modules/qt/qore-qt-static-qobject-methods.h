@@ -4,7 +4,7 @@ class T {
 #endif
       
    public:
-      DLLLOCAL virtual Object* getQoreObject() const
+      DLLLOCAL virtual QoreObject* getQoreObject() const
       {
 	 return qore_obj;
       }

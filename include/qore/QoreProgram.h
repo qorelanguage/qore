@@ -1,7 +1,7 @@
 /*
   QoreProgram.h
 
-  Program Object Definition
+  Program QoreObject Definition
 
   Qore Programming Language
 
@@ -80,7 +80,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void importUserFunction(class QoreProgram *p, class UserFunction *uf, class ExceptionSink *xsink);
       DLLLOCAL void internParseRollback();
       DLLLOCAL int internParsePending(const char *code, const char *label);
-      DLLLOCAL class Hash *clearThreadData(class ExceptionSink *xsink);
+      DLLLOCAL class QoreHash *clearThreadData(class ExceptionSink *xsink);
       DLLLOCAL void del(class ExceptionSink *xsink);
       
    protected:
@@ -153,7 +153,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void exportUserFunction(const char *name, class QoreProgram *p, class ExceptionSink *xsink);
       DLLLOCAL void endThread(class ExceptionSink *xsink);
       DLLLOCAL void startThread();
-      DLLLOCAL class Hash *getThreadData();
+      DLLLOCAL class QoreHash *getThreadData();
       DLLLOCAL void depRef();
       DLLLOCAL void depDeref(class ExceptionSink *xsink);
       DLLLOCAL void addFeature(const char *f);

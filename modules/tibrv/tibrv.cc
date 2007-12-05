@@ -117,7 +117,7 @@ static class QoreNode *f_tibrvSetUserCertWithKey(class QoreNode *params, class E
 
 static class QoreNode *tibrv_hash_helper(char *key, class QoreNode *val)
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    if (val)
       val->ref();
    h->setKeyValue("^type^", new QoreNode(key), NULL);

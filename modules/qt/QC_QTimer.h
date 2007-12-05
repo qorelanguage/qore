@@ -39,7 +39,7 @@ class myQTimer : public QTimer, public QoreQObjectExtension
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
-      DLLLOCAL myQTimer(Object *obj, QObject *parent) : QTimer(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQTimer(QoreObject *obj, QObject *parent) : QTimer(parent), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }      
@@ -50,7 +50,7 @@ class QoreQTimer : public QoreAbstractQObject
    public:
       QPointer<myQTimer> qobj;
 
-      DLLLOCAL QoreQTimer(Object *obj, QObject *parent = 0) : qobj(new myQTimer(obj, parent))
+      DLLLOCAL QoreQTimer(QoreObject *obj, QObject *parent = 0) : qobj(new myQTimer(obj, parent))
       {
       }
 
@@ -74,7 +74,7 @@ class QoreSingleShotTimer : public QObject, public QoreQObjectExtension
       int timerId;
 
    public:
-      DLLLOCAL QoreSingleShotTimer(Object *obj) : QoreQObjectExtension(obj->getClass())
+      DLLLOCAL QoreSingleShotTimer(QoreObject *obj) : QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
@@ -110,10 +110,10 @@ protected:
 class QoreQtSingleShotTimer : public QoreAbstractQObject
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QoreSingleShotTimer> qobj;
 
-      DLLLOCAL QoreQtSingleShotTimer(Object *obj, int msec, QoreAbstractQObject *receiver, const char *member, class ExceptionSink *xsink) : qore_obj(obj), qobj(new QoreSingleShotTimer(qore_obj))
+      DLLLOCAL QoreQtSingleShotTimer(QoreObject *obj, int msec, QoreAbstractQObject *receiver, const char *member, class ExceptionSink *xsink) : qore_obj(obj), qobj(new QoreSingleShotTimer(qore_obj))
       {
 	 qobj->timer_init(this, msec, receiver, member, xsink);
       }

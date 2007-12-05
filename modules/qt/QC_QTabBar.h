@@ -41,7 +41,7 @@ class myQTabBar : public QTabBar, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTabBar(Object *obj, QWidget* parent = 0) : QTabBar(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTabBar(QoreObject *obj, QWidget* parent = 0) : QTabBar(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -77,7 +77,7 @@ class QoreQTabBar : public QoreAbstractQTabBar
    public:
       QPointer<myQTabBar> qobj;
 
-      DLLLOCAL QoreQTabBar(Object *obj, QWidget* parent = 0) : qobj(new myQTabBar(obj, parent))
+      DLLLOCAL QoreQTabBar(QoreObject *obj, QWidget* parent = 0) : qobj(new myQTabBar(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -128,10 +128,10 @@ class QoreQTabBar : public QoreAbstractQTabBar
 class QoreQtQTabBar : public QoreAbstractQTabBar
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QTabBar> qobj;
 
-      DLLLOCAL QoreQtQTabBar(Object *obj, QTabBar *qtabbar) : qore_obj(obj), qobj(qtabbar)
+      DLLLOCAL QoreQtQTabBar(QoreObject *obj, QTabBar *qtabbar) : qore_obj(obj), qobj(qtabbar)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

@@ -26,10 +26,7 @@
 
 #define _QORE_TIBCO_QORETIBRVCMTRANSPORT_H
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/Exception.h>
-#include <qore/charset.h>
+#include <qore/Qore.h>
 
 #include "QoreTibrvTransport.h"
 
@@ -206,7 +203,7 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 	 if (!l)
 	    l = new QoreList();
 
-	 class Hash *h = cmt->msgToHash(&msg, &xsink);
+	 class QoreHash *h = cmt->msgToHash(&msg, &xsink);
 	 if (xsink.isException())
 	 {
 	    if (h)

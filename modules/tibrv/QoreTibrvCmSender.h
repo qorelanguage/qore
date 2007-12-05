@@ -26,11 +26,7 @@
 
 #define _QORE_TIBCO_QORETIBRVCMSENDER_H
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/AbstractPrivateData.h>
-#include <qore/Exception.h>
-#include <qore/charset.h>
+#include <qore/Qore.h>
 
 #include "QoreTibrvCmTransport.h"
 
@@ -47,10 +43,10 @@ class QoreTibrvCmSender : public AbstractPrivateData, public QoreTibrvCmTranspor
 	 : QoreTibrvCmTransport(cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon, xsink)  { }
 
       // time_limit for certified delivery in ms
-      void sendSubject(const char *subject, class Hash *data, const char *replySubject, int64 time_limit, class ExceptionSink *xsink);
+      void sendSubject(const char *subject, class QoreHash *data, const char *replySubject, int64 time_limit, class ExceptionSink *xsink);
 
       // timeout and time_limit for certified delivery in ms
-      class Hash *sendSubjectWithSyncReply(const char *subject, class Hash *data, int64 timeout, int64 time_limit, class ExceptionSink *xsink);
+      class QoreHash *sendSubjectWithSyncReply(const char *subject, class QoreHash *data, int64 timeout, int64 time_limit, class ExceptionSink *xsink);
 };
 
 #endif

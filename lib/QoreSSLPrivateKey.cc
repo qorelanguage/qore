@@ -144,9 +144,9 @@ int64 QoreSSLPrivateKey::getBitLength() const
    }
 }
 
-class Hash *QoreSSLPrivateKey::getInfo() const
+class QoreHash *QoreSSLPrivateKey::getInfo() const
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("type", new QoreNode(getType()), NULL);
    h->setKeyValue("version", new QoreNode(getVersion()), NULL);
    h->setKeyValue("bitLength", new QoreNode(getBitLength()), NULL);

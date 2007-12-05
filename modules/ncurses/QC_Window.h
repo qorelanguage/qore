@@ -24,10 +24,7 @@
 
 #define _QORE_NCURSES_WINDOW_H
 
-#include <qore/AbstractPrivateData.h>
-#include <qore/Exception.h>
-#include <qore/LockedObject.h>
-#include <qore/QoreString.h>
+#include <qore/Qore.h>
 
 #include <curses.h>
 

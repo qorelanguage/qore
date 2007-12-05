@@ -26,11 +26,7 @@
 
 #define _QORE_TIBCO_QORETIBRVDISTRIBUTEDQUEUE_H
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/AbstractPrivateData.h>
-#include <qore/Exception.h>
-#include <qore/charset.h>
+#include <qore/Qore.h>
 
 #include <tibrv/cmcpp.h>
 

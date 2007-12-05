@@ -569,7 +569,7 @@ int get_qbrush(const QoreNode *n, QBrush &brush, class ExceptionSink *xsink)
 
 class QoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data)
 {
-   Object *qore_object = new Object(qclass, getProgram());
+   QoreObject *qore_object = new QoreObject(qclass, getProgram());
    qore_object->setPrivate(qclass->getID(), data);
    return new QoreNode(qore_object);
 }
@@ -582,13 +582,13 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
    }
 
    QoreClass *qc;
-   Object *obj;
+   QoreObject *obj;
 
    // try to determine what subclass the QStyle is if possible
    QCleanlooksStyle *qcls = dynamic_cast<QCleanlooksStyle *>(qs);
    if (qcls) {
       qc = QC_QCleanlooksStyle;
-      obj = new Object(qc, getProgram());
+      obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQCleanlooksStyle(obj, qcls));
       return new QoreNode(obj);
    }
@@ -596,7 +596,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
    QPlastiqueStyle *qps = dynamic_cast<QPlastiqueStyle *>(qs);
    if (qps) {
       qc = QC_QPlastiqueStyle;
-      obj = new Object(qc, getProgram());
+      obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQPlastiqueStyle(obj, qps));
       return new QoreNode(obj);
    }
@@ -605,7 +605,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
    QWindowsXPStyle *qxps = dynamic_cast<QWindowsXPStyle *>(qs);
    if (qxps) {
       qc = QC_QWindowsXPStyle;
-      obj = new Object(qc, getProgram());
+      obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQWindowsXPStyle(obj, qxps));
       return new QoreNode(obj);
    }
@@ -615,7 +615,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
    QMacStyle *qms = dynamic_cast<QMacStyle *>(qs);
    if (qms) {
       qc = QC_QMacStyle;
-      obj = new Object(qc, getProgram());
+      obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQMacStyle(obj, qms));
       return new QoreNode(obj);
    }
@@ -624,7 +624,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
    QWindowsStyle *qws = dynamic_cast<QWindowsStyle *>(qs);
    if (qws) {
       qc = QC_QWindowsStyle;
-      obj = new Object(qc, getProgram());
+      obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQWindowsStyle(obj, qws));
       return new QoreNode(obj);
    }
@@ -632,7 +632,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
    QCDEStyle *qcs = dynamic_cast<QCDEStyle *>(qs);
    if (qcs) {
       qc = QC_QCDEStyle;
-      obj = new Object(qc, getProgram());
+      obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQCDEStyle(obj, qcs));
       return new QoreNode(obj);
    }
@@ -640,13 +640,13 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
    QMotifStyle *qmts = dynamic_cast<QMotifStyle *>(qs);
    if (qmts) {
       qc = QC_QMotifStyle;
-      obj = new Object(qc, getProgram());
+      obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQMotifStyle(obj, qmts));
       return new QoreNode(obj);
    }
 
    // otherwise return a QStyle object
-   obj = new Object(QC_QStyle, getProgram());
+   obj = new QoreObject(QC_QStyle, getProgram());
    obj->setPrivate(CID_QSTYLE, new QoreQtQStyle(obj, qs));
    return new QoreNode(obj);
 }
@@ -821,7 +821,7 @@ class QoreNode *return_qvariant(const QVariant &qv)
 static QoreNode *return_qwidget_intern(QWidget *w)
 {
    // assign as QWidget
-   Object *qo = new Object(QC_QWidget, getProgram());
+   QoreObject *qo = new QoreObject(QC_QWidget, getProgram());
    qo->setPrivate(CID_QWIDGET, new QoreQtQWidget(qo, w));
    return new QoreNode(qo);
 }
@@ -834,7 +834,7 @@ class QoreNode *return_qobject(QObject *o)
 
    // see if it's an object created in Qore
    QVariant qv_ptr = o->property("qobject");
-   Object *qo = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *qo = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (qo) {
       qo->ref();
       return new QoreNode(qo);
@@ -846,7 +846,7 @@ class QoreNode *return_qobject(QObject *o)
       return return_qwidget_intern(qw);
 
    // assign as QObject
-   qo = new Object(QC_QObject, getProgram());
+   qo = new QoreObject(QC_QObject, getProgram());
    qo->setPrivate(CID_QOBJECT, new QoreQtQObject(qo, o));
    return new QoreNode(qo);
 }
@@ -859,7 +859,7 @@ class QoreNode *return_qwidget(QWidget *w)
 
    // see if it's an object created in Qore
    QVariant qv_ptr = w->property("qobject");
-   Object *qo = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *qo = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (qo) {
       qo->ref();
       return new QoreNode(qo);
@@ -873,11 +873,11 @@ class QoreNode *return_qaction(QAction *action)
    if (!action)
       return 0;
    QVariant qv_ptr = action->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (rv_obj)
       rv_obj->ref();
    else {
-      rv_obj = new Object(QC_QAction, getProgram());
+      rv_obj = new QoreObject(QC_QAction, getProgram());
       QoreQtQAction *t_qobj = new QoreQtQAction(rv_obj, action);
       rv_obj->setPrivate(CID_QACTION, t_qobj);
    }
@@ -1187,7 +1187,7 @@ static class QoreNode *f_qrand(class QoreNode *params, class ExceptionSink *xsin
 
 static QoreNode *f_QToolTip_font(QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qf = new Object(QC_QFont, getProgram());
+   QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(QToolTip::font());
    o_qf->setPrivate(CID_QFONT, q_qf);
    return new QoreNode(o_qf);
@@ -1203,7 +1203,7 @@ static QoreNode *f_QToolTip_hideText(QoreNode *params, ExceptionSink *xsink)
 //QPalette palette ()
 static QoreNode *f_QToolTip_palette(QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qp = new Object(QC_QPalette, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
    QoreQPalette *q_qp = new QoreQPalette(QToolTip::palette());
    o_qp->setPrivate(CID_QPALETTE, q_qp);
    return new QoreNode(o_qp);

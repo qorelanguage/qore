@@ -31,7 +31,7 @@ int CID_XMLRPCCLIENT;
 
 typedef ReferenceHolder<QoreHTTPClient> safe_httpclient_t;
 
-static void XRC_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void XRC_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    // get HTTPClient object
    safe_httpclient_t client((QoreHTTPClient *)getStackObject()->getReferencedPrivateData(CID_HTTPCLIENT, xsink), xsink);
@@ -54,12 +54,12 @@ static void XRC_constructor(class Object *self, class QoreNode *params, Exceptio
    client->connect(xsink); 
 }
 
-static void XRC_copy(Object *self, Object *old, QoreHTTPClient* client, ExceptionSink *xsink)
+static void XRC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, ExceptionSink *xsink)
 {
    xsink->raiseException("XMLRPCCLIENT-COPY-ERROR", "copying XmlRpcClient objects is not yet supported.");
 }
 
-static class QoreNode *XRC_callArgs(Object *self, QoreHTTPClient *client, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, class QoreNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
    if (xsink->isEvent())
@@ -77,7 +77,7 @@ static class QoreNode *XRC_callArgs(Object *self, QoreHTTPClient *client, class 
    return parseXMLRPCResponse(ans->val.String, QCS_DEFAULT, xsink);
 }
 
-static class QoreNode *XRC_call(Object *self, QoreHTTPClient *client, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, class QoreNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
    if (xsink->isEvent())

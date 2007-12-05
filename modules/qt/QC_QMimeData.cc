@@ -28,46 +28,46 @@ int CID_QMIMEDATA;
 class QoreClass *QC_QMimeData = 0;
 
 //QMimeData ()
-static void QMIMEDATA_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QMIMEDATA_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QMIMEDATA, new QoreQMimeData(self));
    return;
 }
 
-static void QMIMEDATA_copy(class Object *self, class Object *old, class QoreQMimeData *qmd, ExceptionSink *xsink)
+static void QMIMEDATA_copy(class QoreObject *self, class QoreObject *old, class QoreQMimeData *qmd, ExceptionSink *xsink)
 {
    xsink->raiseException("QMIMEDATA-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //void clear ()
-static QoreNode *QMIMEDATA_clear(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_clear(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    qmd->qobj->clear();
    return 0;
 }
 
 //QVariant colorData () const
-static QoreNode *QMIMEDATA_colorData(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_colorData(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    return return_qvariant(qmd->qobj->colorData());
 }
 
 //QByteArray data ( const QString & mimeType ) const
-static QoreNode *QMIMEDATA_data(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_data(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString mimeType;
    if (get_qstring(p, mimeType, xsink))
       return 0;
 
-   Object *o_qba = new Object(QC_QByteArray, getProgram());
+   QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qmd->qobj->data(mimeType));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
    return new QoreNode(o_qba);
 }
 
 //virtual QStringList formats () const
-static QoreNode *QMIMEDATA_formats(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_formats(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qmd->qobj->formats();
    QoreList *l = new QoreList();
@@ -77,13 +77,13 @@ static QoreNode *QMIMEDATA_formats(Object *self, QoreQMimeData *qmd, QoreNode *p
 }
 
 //bool hasColor () const
-static QoreNode *QMIMEDATA_hasColor(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_hasColor(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qmd->qobj->hasColor());
 }
 
 //virtual bool hasFormat ( const QString & mimeType ) const
-static QoreNode *QMIMEDATA_hasFormat(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_hasFormat(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString mimeType;
@@ -94,43 +94,43 @@ static QoreNode *QMIMEDATA_hasFormat(Object *self, QoreQMimeData *qmd, QoreNode 
 }
 
 //bool hasHtml () const
-static QoreNode *QMIMEDATA_hasHtml(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_hasHtml(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qmd->qobj->hasHtml());
 }
 
 //bool hasImage () const
-static QoreNode *QMIMEDATA_hasImage(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_hasImage(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qmd->qobj->hasImage());
 }
 
 //bool hasText () const
-static QoreNode *QMIMEDATA_hasText(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_hasText(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qmd->qobj->hasText());
 }
 
 //bool hasUrls () const
-static QoreNode *QMIMEDATA_hasUrls(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_hasUrls(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qmd->qobj->hasUrls());
 }
 
 //QString html () const
-static QoreNode *QMIMEDATA_html(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_html(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qmd->qobj->html().toUtf8().data(), QCS_UTF8));
 }
 
 //QVariant imageData () const
-static QoreNode *QMIMEDATA_imageData(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_imageData(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    return return_qvariant(qmd->qobj->imageData());
 }
 
 //void setColorData ( const QVariant & color )
-static QoreNode *QMIMEDATA_setColorData(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_setColorData(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QVariant color;
@@ -141,7 +141,7 @@ static QoreNode *QMIMEDATA_setColorData(Object *self, QoreQMimeData *qmd, QoreNo
 }
 
 //void setData ( const QString & mimeType, const QByteArray & data )
-static QoreNode *QMIMEDATA_setData(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_setData(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString mimeType;
@@ -157,7 +157,7 @@ static QoreNode *QMIMEDATA_setData(Object *self, QoreQMimeData *qmd, QoreNode *p
 }
 
 //void setHtml ( const QString & html )
-static QoreNode *QMIMEDATA_setHtml(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_setHtml(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString html;
@@ -169,7 +169,7 @@ static QoreNode *QMIMEDATA_setHtml(Object *self, QoreQMimeData *qmd, QoreNode *p
 }
 
 //void setImageData ( const QVariant & image )
-static QoreNode *QMIMEDATA_setImageData(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_setImageData(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QVariant image;
@@ -180,7 +180,7 @@ static QoreNode *QMIMEDATA_setImageData(Object *self, QoreQMimeData *qmd, QoreNo
 }
 
 //void setText ( const QString & text )
-static QoreNode *QMIMEDATA_setText(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_setText(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -192,7 +192,7 @@ static QoreNode *QMIMEDATA_setText(Object *self, QoreQMimeData *qmd, QoreNode *p
 }
 
 ////void setUrls ( const QList<QUrl> & urls )
-//static QoreNode *QMIMEDATA_setUrls(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QMIMEDATA_setUrls(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QList<QUrl> urls = p;
@@ -201,13 +201,13 @@ static QoreNode *QMIMEDATA_setText(Object *self, QoreQMimeData *qmd, QoreNode *p
 //}
 
 //QString text () const
-static QoreNode *QMIMEDATA_text(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMIMEDATA_text(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qmd->qobj->text().toUtf8().data(), QCS_UTF8));
 }
 
 ////QList<QUrl> urls () const
-//static QoreNode *QMIMEDATA_urls(Object *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QMIMEDATA_urls(QoreObject *self, QoreQMimeData *qmd, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qmd->qobj->urls());
 //}

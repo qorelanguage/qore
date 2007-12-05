@@ -38,10 +38,10 @@ DLLLOCAL class QoreClass *initQLayoutClass(class QoreClass *qobject);
 class QoreQtQLayout : public QoreAbstractQLayout
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QLayout> qobj;
 
-      DLLLOCAL QoreQtQLayout(Object *obj, QLayout *ql) : qore_obj(obj), qobj(ql)
+      DLLLOCAL QoreQtQLayout(QoreObject *obj, QLayout *ql) : qore_obj(obj), qobj(ql)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

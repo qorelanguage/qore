@@ -26,11 +26,7 @@
 
 #define _QORE_TIBCO_QORETIBRVTRANSPORT_H
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/QoreNode.h>
-#include <qore/Exception.h>
-#include <qore/charset.h>
+#include <qore/Qore.h>
 
 #include <tibrv/tibrvcpp.h>
 
@@ -82,9 +78,9 @@ class QoreTibrvTransport
       }
 
       int doEncodedType(TibrvMsg *msg, const char *key, const char *type, class QoreNode *val, class ExceptionSink *xsink);
-      class Hash *parseMsg(TibrvMsg *msg, class ExceptionSink *xsink);
-      class Hash *msgToHash(TibrvMsg *msg, class ExceptionSink *xsink);
-      int hashToMsg(TibrvMsg *msg, class Hash *hash, class ExceptionSink *xsink);
+      class QoreHash *parseMsg(TibrvMsg *msg, class ExceptionSink *xsink);
+      class QoreHash *msgToHash(TibrvMsg *msg, class ExceptionSink *xsink);
+      int hashToMsg(TibrvMsg *msg, class QoreHash *hash, class ExceptionSink *xsink);
       int valueToField(const char *key, class QoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink);
       class QoreNode *fieldToNode(TibrvMsgField *field, class ExceptionSink *xsink);
       class QoreNode *listToNode(TibrvMsgField *field, class ExceptionSink *xsink);

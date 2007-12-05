@@ -1018,7 +1018,7 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
       else if (new_right->type == NT_OBJECT)
       {
 	 ensure_unique(v, xsink);
-	 class Hash *h = new_right->val.object->evalData(xsink);
+	 class QoreHash *h = new_right->val.object->evalData(xsink);
 	 if (h)
 	    (*v)->val.hash->assimilate(h, xsink);
       }
@@ -1030,7 +1030,7 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
    {
       if (new_right->type == NT_OBJECT)
       {
-	 class Hash *h = new_right->val.object->evalData(xsink);
+	 class QoreHash *h = new_right->val.object->evalData(xsink);
 	 if (h)
 	    (*v)->val.object->assimilate(h, xsink);
       }
@@ -1693,7 +1693,7 @@ static class QoreNode *op_plus_hash_hash(class QoreNode *left, class QoreNode *r
 
 static class QoreNode *op_plus_hash_object(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class Hash *h = right->val.object->evalData(xsink);
+   class QoreHash *h = right->val.object->evalData(xsink);
    if (!h)
       return NULL;
 
@@ -1705,7 +1705,7 @@ static class QoreNode *op_plus_hash_object(class QoreNode *left, class QoreNode 
 // note that this will return a hash
 static class QoreNode *op_plus_object_hash(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class Hash *h = left->val.object->evalData(xsink);
+   class QoreHash *h = left->val.object->evalData(xsink);
    if (!h)
       return NULL;
    h->merge(right->val.hash, xsink);

@@ -1,7 +1,7 @@
 /*
  GlobalVariableList.cc
  
- Program Object Definition
+ Program QoreObject Definition
  
  Qore Programming Language
  

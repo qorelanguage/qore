@@ -42,7 +42,7 @@ QoreTibrvTransport::QoreTibrvTransport(const char *desc, const char *service, co
    transport.setDescription(desc);
 }
 
-int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, class Hash *hash, class ExceptionSink *xsink)
+int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, class QoreHash *hash, class ExceptionSink *xsink)
 {
    class HashIterator hi(hash);
    
@@ -101,7 +101,7 @@ int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMs
    }
    else if (v->type == NT_HASH)
    {
-      Hash *h = v->val.hash;
+      QoreHash *h = v->val.hash;
       //check if it's a type-encoded hash
       class QoreNode *t;
       if (h->size() == 2 && (t = h->getKeyValue("^type^")) && (t->type == NT_STRING))
@@ -128,9 +128,9 @@ int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMs
    return 0;
 }
 
-class Hash *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink *xsink)
+class QoreHash *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink *xsink)
 {
-   class Hash *data = msgToHash(msg, xsink);
+   class QoreHash *data = msgToHash(msg, xsink);
    if (xsink->isException())
    {
       if (data)
@@ -138,7 +138,7 @@ class Hash *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink *xsi
       return NULL;
    }
    
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("msg", new QoreNode(data), NULL);
    
    const char *str;
@@ -153,7 +153,7 @@ class Hash *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink *xsi
    return h;
 }
 
-class Hash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xsink)
+class QoreHash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xsink)
 {
    tibrv_u32 len;
    TibrvStatus status = msg->getNumFields(len);
@@ -165,7 +165,7 @@ class Hash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xs
 
    TibrvMsgField field;
 
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    for (unsigned i = 0; i < len; i++)
    {
       status = msg->getFieldByIndex(field, i);

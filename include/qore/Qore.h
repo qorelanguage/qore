@@ -25,17 +25,16 @@
 #define _QORE_QORE_H
 
 #include <qore/common.h>
-#include <qore/List.h>
+#include <qore/QoreList.h>
 #include <qore/QoreProgram.h>
 #include <qore/ModuleManager.h>
 #include <qore/QoreLib.h>
 #include <qore/QoreNode.h>
 #include <qore/QoreNet.h>
-#include <qore/Hash.h>
-#include <qore/List.h>
-#include <qore/Object.h>
+#include <qore/QoreHash.h>
+#include <qore/QoreObject.h>
 #include <qore/Namespace.h>
-#include <qore/Exception.h>
+#include <qore/QoreException.h>
 #include <qore/BinaryObject.h>
 #include <qore/support.h>
 #include <qore/QoreString.h>

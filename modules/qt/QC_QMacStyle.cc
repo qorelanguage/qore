@@ -28,13 +28,13 @@ int CID_QMACSTYLE;
 class QoreClass *QC_QMacStyle = 0;
 
 //QMacStyle ()
-static void QMACSTYLE_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QMACSTYLE_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QMACSTYLE, new QoreQMacStyle(self));
    return;
 }
 
-static void QMACSTYLE_copy(class Object *self, class Object *old, class QoreQMacStyle *qms, ExceptionSink *xsink)
+static void QMACSTYLE_copy(class QoreObject *self, class QoreObject *old, class QoreQMacStyle *qms, ExceptionSink *xsink)
 {
    xsink->raiseException("QMACSTYLE-COPY-ERROR", "objects of this class cannot be copied");
 }

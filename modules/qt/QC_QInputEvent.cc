@@ -30,18 +30,18 @@ int CID_QINPUTEVENT;
 
 class QoreClass *QC_QInputEvent = 0;
 
-static void QINPUTEVENT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QINPUTEVENT_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    xsink->raiseException("QINPUTEVENT-CONSTRUCTOR-ERROR", "QInputEvent is an abstract base class");
 }
 
-static void QINPUTEVENT_copy(class Object *self, class Object *old, class QoreQInputEvent *qr, ExceptionSink *xsink)
+static void QINPUTEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQInputEvent *qr, ExceptionSink *xsink)
 {
    xsink->raiseException("QINPUTEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //Qt::KeyboardModifiers modifiers () const
-static QoreNode *QINPUTEVENT_modifiers(Object *self, QoreQInputEvent *qie, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINPUTEVENT_modifiers(QoreObject *self, QoreQInputEvent *qie, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qie->modifiers());
 }

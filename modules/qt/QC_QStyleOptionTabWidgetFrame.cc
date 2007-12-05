@@ -29,12 +29,12 @@ class QoreClass *QC_QStyleOptionTabWidgetFrame = 0;
 
 //QStyleOptionTabWidgetFrame ()
 //QStyleOptionTabWidgetFrame ( const QStyleOptionTabWidgetFrame & other )
-static void QSTYLEOPTIONTABWIDGETFRAME_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONTABWIDGETFRAME_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTABWIDGETFRAME, new QoreQStyleOptionTabWidgetFrame());
 }
 
-static void QSTYLEOPTIONTABWIDGETFRAME_copy(class Object *self, class Object *old, class QoreQStyleOptionTabWidgetFrame *qsotwf, ExceptionSink *xsink)
+static void QSTYLEOPTIONTABWIDGETFRAME_copy(class QoreObject *self, class QoreObject *old, class QoreQStyleOptionTabWidgetFrame *qsotwf, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTABWIDGETFRAME, new QoreQStyleOptionTabWidgetFrame(*qsotwf));
 }

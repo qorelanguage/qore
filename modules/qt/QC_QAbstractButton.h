@@ -41,7 +41,7 @@ class myQAbstractButton : public QAbstractButton, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-   DLLLOCAL myQAbstractButton(Object *obj, QWidget* parent = 0) : QAbstractButton(parent), QoreQWidgetExtension(obj->getClass())
+   DLLLOCAL myQAbstractButton(QoreObject *obj, QWidget* parent = 0) : QAbstractButton(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
          //init_widget_events();
@@ -53,7 +53,7 @@ class QoreQAbstractButton : public QoreAbstractQAbstractButton
    public:
       QPointer<myQAbstractButton> qobj;
 
-      DLLLOCAL QoreQAbstractButton(Object *obj, QWidget* parent = 0) : qobj(new myQAbstractButton(obj, parent))
+      DLLLOCAL QoreQAbstractButton(QoreObject *obj, QWidget* parent = 0) : qobj(new myQAbstractButton(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -79,10 +79,10 @@ class QoreQAbstractButton : public QoreAbstractQAbstractButton
 class QoreQtQAbstractButton : public QoreAbstractQAbstractButton
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QAbstractButton> qobj;
 
-      DLLLOCAL QoreQtQAbstractButton(Object *obj, QAbstractButton *b) : qore_obj(obj), qobj(b)
+      DLLLOCAL QoreQtQAbstractButton(QoreObject *obj, QAbstractButton *b) : qore_obj(obj), qobj(b)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

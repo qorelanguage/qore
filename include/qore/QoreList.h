@@ -1,5 +1,5 @@
 /*
-  List.h
+  QoreList.h
 
   Qore Programming Language
 

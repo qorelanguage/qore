@@ -287,7 +287,7 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
 	       // put the results already read into hash key "query0"
 	       if (result_count == 1)
 	       {
-		  Hash *h = new Hash();
+		  QoreHash *h = new QoreHash();
 		  h->setKeyValue("query0", query_result.release(), 0);
 		  h->setKeyValue("query1", t, 0);
 		  query_result = new QoreNode(h);
@@ -366,7 +366,7 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
    if (!param_result)
       return rv;
 
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("query", rv, xsink);
    rv = new QoreNode(h);
 
@@ -399,7 +399,7 @@ class QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list,
    // setup hash of lists if necessary
    if (!list)
    {
-      Hash *h = new Hash();
+      QoreHash *h = new QoreHash();
       QoreString str(encoding);
       for (unsigned i = 0, n = descriptions.size(); i != n; ++i) {
 
@@ -433,7 +433,7 @@ class QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list,
       }
       else
       {
-	 Hash* h = output_buffers_to_hash(placeholder_list, descriptions, out_buffers, xsink);
+	 QoreHash* h = output_buffers_to_hash(placeholder_list, descriptions, out_buffers, xsink);
 	 if (xsink->isException()) {
 	    if (rv)
 	       rv->deref(xsink);
@@ -554,7 +554,7 @@ int command::setup_output_buffers(const row_result_t &input_row_descriptions, ro
 
 int command::append_buffers_to_list(PlaceholderList *placeholder_list, row_result_t &column_info, 
 				    row_output_buffers& all_buffers, 
-				    class Hash *h, ExceptionSink *xsink)
+				    class QoreHash *h, ExceptionSink *xsink)
 {
    //class QoreEncoding *encoding = m_conn.getEncoding();
 
@@ -575,9 +575,9 @@ int command::append_buffers_to_list(PlaceholderList *placeholder_list, row_resul
    return 0;
 }
 
-class Hash *command::output_buffers_to_hash(PlaceholderList *placeholder_list, row_result_t column_info, row_output_buffers& all_buffers, ExceptionSink* xsink)
+class QoreHash *command::output_buffers_to_hash(PlaceholderList *placeholder_list, row_result_t column_info, row_output_buffers& all_buffers, ExceptionSink* xsink)
 {
-   Hash *result = new Hash;
+   QoreHash *result = new QoreHash;
    if (placeholder_list)
       placeholder_list->reset();
    for (unsigned i = 0, n = column_info.size(); i != n; ++i) 

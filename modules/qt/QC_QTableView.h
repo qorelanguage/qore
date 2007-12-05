@@ -43,7 +43,7 @@ class myQTableView : public QTableView, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTableView(Object *obj, QWidget* parent = 0) : QTableView(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTableView(QoreObject *obj, QWidget* parent = 0) : QTableView(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -54,7 +54,7 @@ class QoreQTableView : public QoreAbstractQTableView
    public:
       QPointer<myQTableView> qobj;
 
-      DLLLOCAL QoreQTableView(Object *obj, QWidget* parent = 0) : qobj(new myQTableView(obj, parent))
+      DLLLOCAL QoreQTableView(QoreObject *obj, QWidget* parent = 0) : qobj(new myQTableView(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

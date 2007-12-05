@@ -129,7 +129,7 @@ class QoreEncoding *QoreHTTPClient::getEncoding() const
    return m_socket.getEncoding();
 }
 
-int QoreHTTPClient::setOptions(Hash* opts, ExceptionSink* xsink)
+int QoreHTTPClient::setOptions(QoreHash* opts, ExceptionSink* xsink)
 {
    // process new protocols
    class QoreNode *n = opts->getKeyValue("protocols");  
@@ -590,7 +590,7 @@ const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr
    return (const char *)pstr.getBuffer();
 }
 
-class QoreNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, class Hash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, class QoreHash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink)
 {
    class QoreString pathstr(m_socket.getEncoding());
    const char *msgpath = getMsgPath(mpath, pathstr);
@@ -680,7 +680,7 @@ class QoreNode *QoreHTTPClient::getHostHeaderValue()
    return hv;
 }
 
-class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
    // check if method is valid
    ccharcase_set_t::const_iterator i = method_set.find(meth);
@@ -799,7 +799,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 
    int code;
    class QoreNode *ans;
-   class Hash *ah;
+   class QoreHash *ah;
    class QoreNode *v;
    int redirect_count = 0;
    class StackHash redirect_hash(xsink);
@@ -944,7 +944,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    class QoreNode *body = NULL;   
    if (te && !strcasecmp(te->val.String->getBuffer(), "chunked")) // check for chunked response body
    {
-      class Hash *nah;
+      class QoreHash *nah;
       if (content_encoding)
 	 nah = m_socket.readHTTPChunkedBodyBinary(timeout, xsink);
       else
@@ -1042,12 +1042,12 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    return ans;
 }
 
-class QoreNode *QoreHTTPClient::send(const char *meth, const char *new_path, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::send(const char *meth, const char *new_path, class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
 {
    return send_internal(meth, new_path, headers, data, size, getbody, xsink);
 }
 
-class QoreNode *QoreHTTPClient::get(const char *new_path, class Hash *headers, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::get(const char *new_path, class QoreHash *headers, class ExceptionSink *xsink)
 {
    class QoreNode *ans = send_internal("GET", new_path, headers, NULL, 0, true, xsink);
    if (!ans)
@@ -1057,12 +1057,12 @@ class QoreNode *QoreHTTPClient::get(const char *new_path, class Hash *headers, c
    return rv;
 }
 
-class QoreNode *QoreHTTPClient::head(const char *new_path, class Hash *headers, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::head(const char *new_path, class QoreHash *headers, class ExceptionSink *xsink)
 {
    return send_internal("HEAD", new_path, headers, NULL, 0, false, xsink);
 }
 
-class QoreNode *QoreHTTPClient::post(const char *new_path, class Hash *headers, const void *data, unsigned size, class ExceptionSink *xsink)
+class QoreNode *QoreHTTPClient::post(const char *new_path, class QoreHash *headers, const void *data, unsigned size, class ExceptionSink *xsink)
 {
    class QoreNode *ans = send_internal("POST", new_path, headers, data, size, true, xsink);
    if (!ans)

@@ -1,7 +1,7 @@
 /*
   QoreProgram.cc
 
-  Program Object Definition
+  Program QoreObject Definition
 
   Qore Programming Language
 
@@ -29,7 +29,7 @@
 #include <typeinfo>
 
 extern class QoreList *ARGV, *QORE_ARGV;
-extern class Hash *ENV;
+extern class QoreHash *ENV;
 
 // note the number and order of the warnings has to correspond to those in QoreProgram.h
 const char *qore_warnings[] = { 
@@ -281,7 +281,7 @@ void QoreProgram::makeParseException(const char *err, class QoreString *desc)
    tracein("QoreProgram::makeParseException()");
    if (!requires_exception)
    {
-      class Exception *ne = new ParseException(err, desc);
+      class QoreException *ne = new ParseException(err, desc);
       parseSink->raiseException(ne);
    }
    else
@@ -294,7 +294,7 @@ void QoreProgram::makeParseException(class QoreString *desc)
    tracein("QoreProgram::makeParseException()");
    if (!requires_exception)
    {
-      class Exception *ne = new ParseException("PARSE-EXCEPTION", desc);
+      class QoreException *ne = new ParseException("PARSE-EXCEPTION", desc);
       parseSink->raiseException(ne);
    }
    else
@@ -307,7 +307,7 @@ void QoreProgram::makeParseException(int sline, int eline, class QoreString *des
    tracein("QoreProgram::makeParseException()");
    if (!requires_exception)
    {
-      class Exception *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", desc);
+      class QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", desc);
       parseSink->raiseException(ne);
    }
    else
@@ -345,7 +345,7 @@ void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, 
       if (!rc)
          break;
    }
-   class Exception *ne = new ParseException(warn, desc);
+   class QoreException *ne = new ParseException(warn, desc);
    warnSink->raiseException(ne);
    traceout("QoreProgram::makeParseWarning()");
 }
@@ -367,7 +367,7 @@ void QoreProgram::cannotProvideFeature(class QoreString *desc)
       requires_exception = true;
    }
 
-   class Exception *ne = new ParseException("CANNOT-PROVIDE-FEATURE", desc);
+   class QoreException *ne = new ParseException("CANNOT-PROVIDE-FEATURE", desc);
    parseSink->raiseException(ne);
    
    traceout("QoreProgram::cannotProvideFeature()");
@@ -495,7 +495,7 @@ int QoreProgram::getParseOptions() const
 class QoreList *QoreProgram::getUserFunctionList()
 {
    AutoLocker al(&plock);
-   return user_func_list.getQoreList(); 
+   return user_func_list.getList(); 
 }
 
 void QoreProgram::waitForTermination()
@@ -633,12 +633,12 @@ void QoreProgram::parsePending(const char *code, const char *label, class Except
 
 void QoreProgram::startThread()
 {
-   pthread_setspecific(thread_local_storage, new Hash());
+   pthread_setspecific(thread_local_storage, new QoreHash());
 }
 
-class Hash *QoreProgram::getThreadData()
+class QoreHash *QoreProgram::getThreadData()
 {
-   return (class Hash *)pthread_getspecific(thread_local_storage);
+   return (class QoreHash *)pthread_getspecific(thread_local_storage);
 }
 
 class QoreNode *QoreProgram::run(class ExceptionSink *xsink)
@@ -651,9 +651,9 @@ class QoreNode *QoreProgram::run(class ExceptionSink *xsink)
    return runTopLevel(xsink);
 }
 
-class Hash *QoreProgram::clearThreadData(class ExceptionSink *xsink)
+class QoreHash *QoreProgram::clearThreadData(class ExceptionSink *xsink)
 {
-   class Hash *h = (class Hash *)pthread_getspecific(thread_local_storage);
+   class QoreHash *h = (class QoreHash *)pthread_getspecific(thread_local_storage);
    printd(5, "QoreProgram::clearThreadData() this=%08p h=%08p (size=%d)\n", this, h, h->size());
    h->dereference(xsink);
    return h;
@@ -662,7 +662,7 @@ class Hash *QoreProgram::clearThreadData(class ExceptionSink *xsink)
 void QoreProgram::endThread(class ExceptionSink *xsink)
 {
    // delete thread local storage data
-   class Hash *h = clearThreadData(xsink);
+   class QoreHash *h = clearThreadData(xsink);
    h->derefAndDelete(xsink);
 }
 

@@ -28,37 +28,37 @@ int CID_QABSTRACTSPINBOX;
 class QoreClass *QC_QAbstractSpinBox = 0;
 
 //QAbstractSpinBox ( QWidget * parent = 0 )
-static void QABSTRACTSPINBOX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QABSTRACTSPINBOX_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    xsink->raiseException("QABSTRACTSPINBOX-CONSTRUCTOR-PARAM-ERROR", "QAbstractSpinBox is an abstract class");
    return;
 }
 
-static void QABSTRACTSPINBOX_copy(class Object *self, class Object *old, class QoreQAbstractSpinBox *qasb, ExceptionSink *xsink)
+static void QABSTRACTSPINBOX_copy(class QoreObject *self, class QoreObject *old, class QoreQAbstractSpinBox *qasb, ExceptionSink *xsink)
 {
    xsink->raiseException("QABSTRACTSPINBOX-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //Qt::Alignment alignment () const
-static QoreNode *QABSTRACTSPINBOX_alignment(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_alignment(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qasb->getQAbstractSpinBox()->alignment());
 }
 
 //ButtonSymbols buttonSymbols () const
-static QoreNode *QABSTRACTSPINBOX_buttonSymbols(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_buttonSymbols(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qasb->getQAbstractSpinBox()->buttonSymbols());
 }
 
 //CorrectionMode correctionMode () const
-static QoreNode *QABSTRACTSPINBOX_correctionMode(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_correctionMode(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qasb->getQAbstractSpinBox()->correctionMode());
 }
 
 //virtual void fixup ( QString & input ) const
-//static QoreNode *QABSTRACTSPINBOX_fixup(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QABSTRACTSPINBOX_fixup(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QString input;
@@ -70,44 +70,44 @@ static QoreNode *QABSTRACTSPINBOX_correctionMode(Object *self, QoreAbstractQAbst
 //}
 
 //bool hasAcceptableInput () const
-static QoreNode *QABSTRACTSPINBOX_hasAcceptableInput(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_hasAcceptableInput(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qasb->getQAbstractSpinBox()->hasAcceptableInput());
 }
 
 //bool hasFrame () const
-static QoreNode *QABSTRACTSPINBOX_hasFrame(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_hasFrame(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qasb->getQAbstractSpinBox()->hasFrame());
 }
 
 //void interpretText ()
-static QoreNode *QABSTRACTSPINBOX_interpretText(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_interpretText(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    qasb->getQAbstractSpinBox()->interpretText();
    return 0;
 }
 
 //bool isAccelerated () const
-static QoreNode *QABSTRACTSPINBOX_isAccelerated(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_isAccelerated(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qasb->getQAbstractSpinBox()->isAccelerated());
 }
 
 //bool isReadOnly () const
-static QoreNode *QABSTRACTSPINBOX_isReadOnly(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_isReadOnly(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qasb->getQAbstractSpinBox()->isReadOnly());
 }
 
 //bool keyboardTracking () const
-static QoreNode *QABSTRACTSPINBOX_keyboardTracking(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_keyboardTracking(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qasb->getQAbstractSpinBox()->keyboardTracking());
 }
 
 //void setAccelerated ( bool on )
-static QoreNode *QABSTRACTSPINBOX_setAccelerated(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_setAccelerated(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
@@ -116,7 +116,7 @@ static QoreNode *QABSTRACTSPINBOX_setAccelerated(Object *self, QoreAbstractQAbst
 }
 
 //void setAlignment ( Qt::Alignment flag )
-static QoreNode *QABSTRACTSPINBOX_setAlignment(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_setAlignment(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Alignment flag = (Qt::Alignment)(p ? p->getAsInt() : 0);
@@ -125,7 +125,7 @@ static QoreNode *QABSTRACTSPINBOX_setAlignment(Object *self, QoreAbstractQAbstra
 }
 
 //void setButtonSymbols ( ButtonSymbols bs )
-static QoreNode *QABSTRACTSPINBOX_setButtonSymbols(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_setButtonSymbols(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QAbstractSpinBox::ButtonSymbols bs = (QAbstractSpinBox::ButtonSymbols)(p ? p->getAsInt() : 0);
@@ -134,7 +134,7 @@ static QoreNode *QABSTRACTSPINBOX_setButtonSymbols(Object *self, QoreAbstractQAb
 }
 
 //void setCorrectionMode ( CorrectionMode cm )
-static QoreNode *QABSTRACTSPINBOX_setCorrectionMode(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_setCorrectionMode(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QAbstractSpinBox::CorrectionMode cm = (QAbstractSpinBox::CorrectionMode)(p ? p->getAsInt() : 0);
@@ -143,7 +143,7 @@ static QoreNode *QABSTRACTSPINBOX_setCorrectionMode(Object *self, QoreAbstractQA
 }
 
 //void setFrame ( bool )
-static QoreNode *QABSTRACTSPINBOX_setFrame(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_setFrame(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -152,7 +152,7 @@ static QoreNode *QABSTRACTSPINBOX_setFrame(Object *self, QoreAbstractQAbstractSp
 }
 
 //void setKeyboardTracking ( bool kt )
-static QoreNode *QABSTRACTSPINBOX_setKeyboardTracking(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_setKeyboardTracking(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool kt = p ? p->getAsBool() : false;
@@ -161,7 +161,7 @@ static QoreNode *QABSTRACTSPINBOX_setKeyboardTracking(Object *self, QoreAbstract
 }
 
 //void setReadOnly ( bool r )
-static QoreNode *QABSTRACTSPINBOX_setReadOnly(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_setReadOnly(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool r = p ? p->getAsBool() : false;
@@ -170,7 +170,7 @@ static QoreNode *QABSTRACTSPINBOX_setReadOnly(Object *self, QoreAbstractQAbstrac
 }
 
 //void setSpecialValueText ( const QString & txt )
-static QoreNode *QABSTRACTSPINBOX_setSpecialValueText(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_setSpecialValueText(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString txt;
@@ -183,7 +183,7 @@ static QoreNode *QABSTRACTSPINBOX_setSpecialValueText(Object *self, QoreAbstract
 }
 
 //void setWrapping ( bool w )
-static QoreNode *QABSTRACTSPINBOX_setWrapping(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_setWrapping(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool w = p ? p->getAsBool() : false;
@@ -192,13 +192,13 @@ static QoreNode *QABSTRACTSPINBOX_setWrapping(Object *self, QoreAbstractQAbstrac
 }
 
 //QString specialValueText () const
-static QoreNode *QABSTRACTSPINBOX_specialValueText(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_specialValueText(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qasb->getQAbstractSpinBox()->specialValueText().toUtf8().data(), QCS_UTF8));
 }
 
 //virtual void stepBy ( int steps )
-static QoreNode *QABSTRACTSPINBOX_stepBy(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_stepBy(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int steps = p ? p->getAsInt() : 0;
@@ -207,13 +207,13 @@ static QoreNode *QABSTRACTSPINBOX_stepBy(Object *self, QoreAbstractQAbstractSpin
 }
 
 //QString text () const
-static QoreNode *QABSTRACTSPINBOX_text(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_text(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qasb->getQAbstractSpinBox()->text().toUtf8().data(), QCS_UTF8));
 }
 
 //virtual QValidator::State validate ( QString & input, int & pos ) const
-//static QoreNode *QABSTRACTSPINBOX_validate(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QABSTRACTSPINBOX_validate(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 //{
 //  QoreNode *p = get_param(params, 0);
 //   if (!p || p->type != NT_STRING) {
@@ -227,34 +227,34 @@ static QoreNode *QABSTRACTSPINBOX_text(Object *self, QoreAbstractQAbstractSpinBo
 //}
 
 //bool wrapping () const
-static QoreNode *QABSTRACTSPINBOX_wrapping(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_wrapping(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qasb->getQAbstractSpinBox()->wrapping());
 }
 
 //virtual void clear ()
-static QoreNode *QABSTRACTSPINBOX_clear(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_clear(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    qasb->getQAbstractSpinBox()->clear();
    return 0;
 }
 
 //void selectAll ()
-static QoreNode *QABSTRACTSPINBOX_selectAll(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_selectAll(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    qasb->getQAbstractSpinBox()->selectAll();
    return 0;
 }
 
 //void stepDown ()
-static QoreNode *QABSTRACTSPINBOX_stepDown(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_stepDown(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    qasb->getQAbstractSpinBox()->stepDown();
    return 0;
 }
 
 //void stepUp ()
-static QoreNode *QABSTRACTSPINBOX_stepUp(Object *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSPINBOX_stepUp(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, QoreNode *params, ExceptionSink *xsink)
 {
    qasb->getQAbstractSpinBox()->stepUp();
    return 0;

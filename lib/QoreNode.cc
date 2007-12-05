@@ -21,7 +21,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/common.h>
 #include <qore/ScopedObjectCall.h>
 #include <qore/ClassRef.h>
 #include <qore/Find.h>
@@ -151,7 +150,7 @@ QoreNode::QoreNode(bool v)
 #endif
 }
 
-QoreNode::QoreNode(class Hash *h)
+QoreNode::QoreNode(class QoreHash *h)
 {
    type = NT_HASH;
    val.hash = h;
@@ -160,7 +159,7 @@ QoreNode::QoreNode(class Hash *h)
 #endif
 }
 
-QoreNode::QoreNode(Object *o)
+QoreNode::QoreNode(QoreObject *o)
 {
    type = NT_OBJECT;
    val.object = o;
@@ -763,7 +762,7 @@ static inline QoreNode *crlr_hash_copy(QoreNode *n, ExceptionSink *xsink)
    if (!n->val.hash->needsEval())
       return n->RefSelf();
 
-   Hash *h = new Hash(1);
+   QoreHash *h = new QoreHash(1);
    HashIterator hi(n->val.hash);
    while (hi.next())
       h->setKeyValue(hi.getKey(), copy_and_resolve_lvar_refs(hi.getValue(), xsink), xsink);

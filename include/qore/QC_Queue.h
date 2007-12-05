@@ -29,7 +29,7 @@
 #include <qore/support.h>
 #include <qore/QoreQueue.h>
 #include <qore/AbstractPrivateData.h>
-#include <qore/Exception.h>
+#include <qore/QoreException.h>
 
 DLLEXPORT extern int CID_QUEUE;
 DLLLOCAL class QoreClass *initQueueClass();

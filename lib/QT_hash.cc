@@ -33,12 +33,12 @@ class QoreNode *hash_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
 {
    if (n && n->type == NT_OBJECT)
    {
-      class Hash *h = n->val.object->evalData(xsink);
+      class QoreHash *h = n->val.object->evalData(xsink);
       if (!h)
 	 return NULL;
       return new QoreNode(h);
    }
-   return new QoreNode(new Hash());
+   return new QoreNode(new QoreHash());
 }
 
 bool hash_needs_eval(class QoreNode *n)

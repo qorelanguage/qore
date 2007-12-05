@@ -28,7 +28,7 @@ int CID_QTABLETEVENT;
 class QoreClass *QC_QTabletEvent = 0;
 
 //QTabletEvent ( Type type, const QPoint & pos, const QPoint & globalPos, const QPointF & hiResGlobalPos, int device, int pointerType, qreal pressure, int xTilt, int yTilt, qreal tangentialPressure, qreal rotation, int z, Qt::KeyboardModifiers keyState, qint64 uniqueID )
-static void QTABLETEVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QTABLETEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTabletEvent::Type type = (QTabletEvent::Type)(p ? p->getAsInt() : 0);
@@ -80,124 +80,124 @@ static void QTABLETEVENT_constructor(Object *self, QoreNode *params, ExceptionSi
    return;
 }
 
-static void QTABLETEVENT_copy(class Object *self, class Object *old, class QoreQTabletEvent *qte, ExceptionSink *xsink)
+static void QTABLETEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQTabletEvent *qte, ExceptionSink *xsink)
 {
    xsink->raiseException("QTABLETEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //TabletDevice device () const
-static QoreNode *QTABLETEVENT_device(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_device(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->device());
 }
 
 //const QPoint & globalPos () const
-static QoreNode *QTABLETEVENT_globalPos(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_globalPos(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qte->globalPos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
    return new QoreNode(o_qp);
 }
 
 //int globalX () const
-static QoreNode *QTABLETEVENT_globalX(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_globalX(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->globalX());
 }
 
 //int globalY () const
-static QoreNode *QTABLETEVENT_globalY(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_globalY(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->globalY());
 }
 
 //const QPointF & hiResGlobalPos () const
-static QoreNode *QTABLETEVENT_hiResGlobalPos(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_hiResGlobalPos(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qpf = new Object(QC_QPointF, getProgram());
+   QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qte->hiResGlobalPos());
    o_qpf->setPrivate(CID_QPOINTF, q_qpf);
    return new QoreNode(o_qpf);
 }
 
 //qreal hiResGlobalX () const
-static QoreNode *QTABLETEVENT_hiResGlobalX(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_hiResGlobalX(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qte->hiResGlobalX());
 }
 
 //qreal hiResGlobalY () const
-static QoreNode *QTABLETEVENT_hiResGlobalY(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_hiResGlobalY(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qte->hiResGlobalY());
 }
 
 //PointerType pointerType () const
-static QoreNode *QTABLETEVENT_pointerType(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_pointerType(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->pointerType());
 }
 
 //const QPoint & pos () const
-static QoreNode *QTABLETEVENT_pos(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_pos(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qte->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
    return new QoreNode(o_qp);
 }
 
 //qreal pressure () const
-static QoreNode *QTABLETEVENT_pressure(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_pressure(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qte->pressure());
 }
 
 //qreal rotation () const
-static QoreNode *QTABLETEVENT_rotation(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_rotation(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qte->rotation());
 }
 
 //qreal tangentialPressure () const
-static QoreNode *QTABLETEVENT_tangentialPressure(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_tangentialPressure(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qte->tangentialPressure());
 }
 
 //qint64 uniqueId () const
-static QoreNode *QTABLETEVENT_uniqueId(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_uniqueId(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->uniqueId());
 }
 
 //int x () const
-static QoreNode *QTABLETEVENT_x(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_x(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->x());
 }
 
 //int xTilt () const
-static QoreNode *QTABLETEVENT_xTilt(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_xTilt(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->xTilt());
 }
 
 //int y () const
-static QoreNode *QTABLETEVENT_y(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_y(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->y());
 }
 
 //int yTilt () const
-static QoreNode *QTABLETEVENT_yTilt(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_yTilt(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->yTilt());
 }
 
 //int z () const
-static QoreNode *QTABLETEVENT_z(Object *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABLETEVENT_z(QoreObject *self, QoreQTabletEvent *qte, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->z());
 }

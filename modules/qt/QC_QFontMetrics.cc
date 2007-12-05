@@ -30,7 +30,7 @@ class QoreClass *QC_QFontMetrics = 0;
 //QFontMetrics ( const QFont & font )
 //QFontMetrics ( const QFont & font, QPaintDevice * paintdevice )
 //QFontMetrics ( const QFontMetrics & fm )
-static void QFONTMETRICS_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QFONTMETRICS_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -55,19 +55,19 @@ static void QFONTMETRICS_constructor(Object *self, QoreNode *params, ExceptionSi
       self->setPrivate(CID_QFONTMETRICS, new QoreQFontMetrics(*(static_cast<QFont *>(font))));
 }
 
-static void QFONTMETRICS_copy(class Object *self, class Object *old, class QoreQFontMetrics *qfm, ExceptionSink *xsink)
+static void QFONTMETRICS_copy(class QoreObject *self, class QoreObject *old, class QoreQFontMetrics *qfm, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QFONTMETRICS, new QoreQFontMetrics(*qfm));
 }
 
 //int ascent () const
-static QoreNode *QFONTMETRICS_ascent(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_ascent(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->ascent());
 }
 
 //int averageCharWidth () const
-static QoreNode *QFONTMETRICS_averageCharWidth(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->averageCharWidth());
 }
@@ -76,7 +76,7 @@ static QoreNode *QFONTMETRICS_averageCharWidth(Object *self, QoreQFontMetrics *q
 ////QRect boundingRect ( const QString & text ) const
 ////QRect boundingRect ( int x, int y, int width, int height, int flags, const QString & text, int tabStops = 0, int * tabArray = 0 ) const
 ////QRect boundingRect ( const QRect & rect, int flags, const QString & text, int tabStops = 0, int * tabArray = 0 ) const
-//static QoreNode *QFONTMETRICS_boundingRect(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QFONTMETRICS_boundingRect(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_OBJECT) {
@@ -99,7 +99,7 @@ static QoreNode *QFONTMETRICS_averageCharWidth(Object *self, QoreQFontMetrics *q
 //      int tabStops = p ? p->getAsInt() : 0;
 //      p = get_param(params, 4);
 //      ??? int* tabArray = p;
-//      Object *o_qr = new Object(QC_QRect, getProgram());
+//      QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
 //      QoreQRect *q_qr = new QoreQRect(qfm->boundingRect(*(static_cast<QRect *>(rect)), flags, text, tabStops, tabArray));
 //      o_qr->setPrivate(CID_QRECT, q_qr);
 //      return new QoreNode(o_qr);
@@ -110,7 +110,7 @@ static QoreNode *QFONTMETRICS_averageCharWidth(Object *self, QoreQFontMetrics *q
 //         return 0;
 //      }
 //      const char *text = p->val.String->getBuffer();
-//      Object *o_qr = new Object(QC_QRect, getProgram());
+//      QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
 //      QoreQRect *q_qr = new QoreQRect(qfm->boundingRect(text));
 //      o_qr->setPrivate(CID_QRECT, q_qr);
 //      return new QoreNode(o_qr);
@@ -134,14 +134,14 @@ static QoreNode *QFONTMETRICS_averageCharWidth(Object *self, QoreQFontMetrics *q
 //   int tabStops = p ? p->getAsInt() : 0;
 //   p = get_param(params, 7);
 //   ??? int* tabArray = p;
-//   Object *o_qr = new Object(QC_QRect, getProgram());
+//   QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
 //   QoreQRect *q_qr = new QoreQRect(qfm->boundingRect(x, y, width, height, flags, text, tabStops, tabArray));
 //   o_qr->setPrivate(CID_QRECT, q_qr);
 //   return new QoreNode(o_qr);
 //}
 
 //int charWidth ( const QString & text, int pos ) const
-static QoreNode *QFONTMETRICS_charWidth(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_charWidth(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -155,13 +155,13 @@ static QoreNode *QFONTMETRICS_charWidth(Object *self, QoreQFontMetrics *qfm, Qor
 }
 
 //int descent () const
-static QoreNode *QFONTMETRICS_descent(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_descent(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->descent());
 }
 
 //QString elidedText ( const QString & text, Qt::TextElideMode mode, int width, int flags = 0 ) const
-static QoreNode *QFONTMETRICS_elidedText(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_elidedText(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -179,13 +179,13 @@ static QoreNode *QFONTMETRICS_elidedText(Object *self, QoreQFontMetrics *qfm, Qo
 }
 
 //int height () const
-static QoreNode *QFONTMETRICS_height(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_height(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->height());
 }
 
 //bool inFont ( QChar ch ) const
-static QoreNode *QFONTMETRICS_inFont(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_inFont(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QChar ch;
@@ -196,13 +196,13 @@ static QoreNode *QFONTMETRICS_inFont(Object *self, QoreQFontMetrics *qfm, QoreNo
 }
 
 //int leading () const
-static QoreNode *QFONTMETRICS_leading(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_leading(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->leading());
 }
 
 //int leftBearing ( QChar ch ) const
-static QoreNode *QFONTMETRICS_leftBearing(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_leftBearing(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -214,43 +214,43 @@ static QoreNode *QFONTMETRICS_leftBearing(Object *self, QoreQFontMetrics *qfm, Q
 }
 
 //int lineSpacing () const
-static QoreNode *QFONTMETRICS_lineSpacing(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_lineSpacing(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->lineSpacing());
 }
 
 //int lineWidth () const
-static QoreNode *QFONTMETRICS_lineWidth(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_lineWidth(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->lineWidth());
 }
 
 //int maxWidth () const
-static QoreNode *QFONTMETRICS_maxWidth(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_maxWidth(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->maxWidth());
 }
 
 //int minLeftBearing () const
-static QoreNode *QFONTMETRICS_minLeftBearing(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_minLeftBearing(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->minLeftBearing());
 }
 
 //int minRightBearing () const
-static QoreNode *QFONTMETRICS_minRightBearing(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_minRightBearing(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->minRightBearing());
 }
 
 //int overlinePos () const
-static QoreNode *QFONTMETRICS_overlinePos(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_overlinePos(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->overlinePos());
 }
 
 //int rightBearing ( QChar ch ) const
-static QoreNode *QFONTMETRICS_rightBearing(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_rightBearing(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -262,7 +262,7 @@ static QoreNode *QFONTMETRICS_rightBearing(Object *self, QoreQFontMetrics *qfm, 
 }
 
 ////QSize size ( int flags, const QString & text, int tabStops = 0, int * tabArray = 0 ) const
-//static QoreNode *QFONTMETRICS_size(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QFONTMETRICS_size(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int flags = p ? p->getAsInt() : 0;
@@ -276,20 +276,20 @@ static QoreNode *QFONTMETRICS_rightBearing(Object *self, QoreQFontMetrics *qfm, 
 //   int tabStops = p ? p->getAsInt() : 0;
 //   p = get_param(params, 3);
 //   ??? int* tabArray = p;
-//   Object *o_qs = new Object(QC_QSize, getProgram());
+//   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
 //   QoreQSize *q_qs = new QoreQSize(qfm->size(flags, text, tabStops, tabArray));
 //   o_qs->setPrivate(CID_QSIZE, q_qs);
 //   return new QoreNode(o_qs);
 //}
 
 //int strikeOutPos () const
-static QoreNode *QFONTMETRICS_strikeOutPos(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_strikeOutPos(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->strikeOutPos());
 }
 
 //QRect tightBoundingRect ( const QString & text ) const
-static QoreNode *QFONTMETRICS_tightBoundingRect(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_tightBoundingRect(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -297,21 +297,21 @@ static QoreNode *QFONTMETRICS_tightBoundingRect(Object *self, QoreQFontMetrics *
       return 0;
    }
    const char *text = p->val.String->getBuffer();
-   Object *o_qr = new Object(QC_QRect, getProgram());
+   QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qfm->tightBoundingRect(text));
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
 
 //int underlinePos () const
-static QoreNode *QFONTMETRICS_underlinePos(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_underlinePos(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->underlinePos());
 }
 
 //int width ( const QString & text, int len = -1 ) const
 //int width ( QChar ch ) const
-static QoreNode *QFONTMETRICS_width(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_width(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_STRING) {
@@ -328,7 +328,7 @@ static QoreNode *QFONTMETRICS_width(Object *self, QoreQFontMetrics *qfm, QoreNod
 }
 
 //int xHeight () const
-static QoreNode *QFONTMETRICS_xHeight(Object *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTMETRICS_xHeight(QoreObject *self, QoreQFontMetrics *qfm, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfm->xHeight());
 }

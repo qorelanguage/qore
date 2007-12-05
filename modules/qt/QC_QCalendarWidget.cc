@@ -28,7 +28,7 @@ int CID_QCALENDARWIDGET;
 class QoreClass *QC_QCalendarWidget = 0;
 
 //QCalendarWidget ( QWidget * parent = 0 )
-static void QCALENDARWIDGET_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QCALENDARWIDGET_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -37,20 +37,20 @@ static void QCALENDARWIDGET_constructor(Object *self, QoreNode *params, Exceptio
    return;
 }
 
-static void QCALENDARWIDGET_copy(class Object *self, class Object *old, class QoreQCalendarWidget *qcw, ExceptionSink *xsink)
+static void QCALENDARWIDGET_copy(class QoreObject *self, class QoreObject *old, class QoreQCalendarWidget *qcw, ExceptionSink *xsink)
 {
    xsink->raiseException("QCALENDARWIDGET-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //int dateEditAcceptDelay () const
-static QoreNode *QCALENDARWIDGET_dateEditAcceptDelay(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_dateEditAcceptDelay(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcw->qobj->dateEditAcceptDelay());
 }
 
 ////QMap<QDate, QTextCharFormat> dateTextFormat () const
 ////QTextCharFormat dateTextFormat ( const QDate & date ) const
-//static QoreNode *QCALENDARWIDGET_dateTextFormat(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCALENDARWIDGET_dateTextFormat(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   if (is_nothing(p)) {
@@ -63,79 +63,79 @@ static QoreNode *QCALENDARWIDGET_dateEditAcceptDelay(Object *self, QoreQCalendar
 //}
 
 //Qt::DayOfWeek firstDayOfWeek () const
-static QoreNode *QCALENDARWIDGET_firstDayOfWeek(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_firstDayOfWeek(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcw->qobj->firstDayOfWeek());
 }
 
 //QTextCharFormat headerTextFormat () const
-static QoreNode *QCALENDARWIDGET_headerTextFormat(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_headerTextFormat(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qtcf = new Object(QC_QTextCharFormat, getProgram());
+   QoreObject *o_qtcf = new QoreObject(QC_QTextCharFormat, getProgram());
    QoreQTextCharFormat *q_qtcf = new QoreQTextCharFormat(qcw->qobj->headerTextFormat());
    o_qtcf->setPrivate(CID_QTEXTCHARFORMAT, q_qtcf);
    return new QoreNode(o_qtcf);
 }
 
 //HorizontalHeaderFormat horizontalHeaderFormat () const
-static QoreNode *QCALENDARWIDGET_horizontalHeaderFormat(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_horizontalHeaderFormat(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcw->qobj->horizontalHeaderFormat());
 }
 
 //bool isDateEditEnabled () const
-static QoreNode *QCALENDARWIDGET_isDateEditEnabled(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_isDateEditEnabled(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qcw->qobj->isDateEditEnabled());
 }
 
 //bool isGridVisible () const
-static QoreNode *QCALENDARWIDGET_isGridVisible(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_isGridVisible(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qcw->qobj->isGridVisible());
 }
 
 //bool isNavigationBarVisible () const
-static QoreNode *QCALENDARWIDGET_isNavigationBarVisible(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_isNavigationBarVisible(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qcw->qobj->isNavigationBarVisible());
 }
 
 //QDate maximumDate () const
-static QoreNode *QCALENDARWIDGET_maximumDate(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_maximumDate(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qcw->qobj->maximumDate();
    return new QoreNode(new DateTime(rv_date.year(), rv_date.month(), rv_date.day()));
 }
 
 //QDate minimumDate () const
-static QoreNode *QCALENDARWIDGET_minimumDate(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_minimumDate(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qcw->qobj->minimumDate();
    return new QoreNode(new DateTime(rv_date.year(), rv_date.month(), rv_date.day()));
 }
 
 //int monthShown () const
-static QoreNode *QCALENDARWIDGET_monthShown(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_monthShown(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcw->qobj->monthShown());
 }
 
 //QDate selectedDate () const
-static QoreNode *QCALENDARWIDGET_selectedDate(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_selectedDate(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qcw->qobj->selectedDate();
    return new QoreNode(new DateTime(rv_date.year(), rv_date.month(), rv_date.day()));
 }
 
 //SelectionMode selectionMode () const
-static QoreNode *QCALENDARWIDGET_selectionMode(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_selectionMode(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcw->qobj->selectionMode());
 }
 
 //void setDateEditAcceptDelay ( int delay )
-static QoreNode *QCALENDARWIDGET_setDateEditAcceptDelay(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setDateEditAcceptDelay(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int delay = p ? p->getAsInt() : 0;
@@ -144,7 +144,7 @@ static QoreNode *QCALENDARWIDGET_setDateEditAcceptDelay(Object *self, QoreQCalen
 }
 
 //void setDateEditEnabled ( bool enable )
-static QoreNode *QCALENDARWIDGET_setDateEditEnabled(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setDateEditEnabled(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
@@ -153,7 +153,7 @@ static QoreNode *QCALENDARWIDGET_setDateEditEnabled(Object *self, QoreQCalendarW
 }
 
 //void setDateTextFormat ( const QDate & date, const QTextCharFormat & format )
-static QoreNode *QCALENDARWIDGET_setDateTextFormat(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setDateTextFormat(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QDate date;
@@ -172,7 +172,7 @@ static QoreNode *QCALENDARWIDGET_setDateTextFormat(Object *self, QoreQCalendarWi
 }
 
 //void setFirstDayOfWeek ( Qt::DayOfWeek dayOfWeek )
-static QoreNode *QCALENDARWIDGET_setFirstDayOfWeek(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setFirstDayOfWeek(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::DayOfWeek dayOfWeek = (Qt::DayOfWeek)(p ? p->getAsInt() : 0);
@@ -181,7 +181,7 @@ static QoreNode *QCALENDARWIDGET_setFirstDayOfWeek(Object *self, QoreQCalendarWi
 }
 
 //void setHeaderTextFormat ( const QTextCharFormat & format )
-static QoreNode *QCALENDARWIDGET_setHeaderTextFormat(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setHeaderTextFormat(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQTextCharFormat *format = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)p->val.object->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
@@ -196,7 +196,7 @@ static QoreNode *QCALENDARWIDGET_setHeaderTextFormat(Object *self, QoreQCalendar
 }
 
 //void setHorizontalHeaderFormat ( HorizontalHeaderFormat format )
-static QoreNode *QCALENDARWIDGET_setHorizontalHeaderFormat(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setHorizontalHeaderFormat(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QCalendarWidget::HorizontalHeaderFormat format = (QCalendarWidget::HorizontalHeaderFormat)(p ? p->getAsInt() : 0);
@@ -205,7 +205,7 @@ static QoreNode *QCALENDARWIDGET_setHorizontalHeaderFormat(Object *self, QoreQCa
 }
 
 //void setMaximumDate ( const QDate & date )
-static QoreNode *QCALENDARWIDGET_setMaximumDate(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setMaximumDate(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QDate date;
@@ -216,7 +216,7 @@ static QoreNode *QCALENDARWIDGET_setMaximumDate(Object *self, QoreQCalendarWidge
 }
 
 //void setMinimumDate ( const QDate & date )
-static QoreNode *QCALENDARWIDGET_setMinimumDate(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setMinimumDate(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QDate date;
@@ -227,7 +227,7 @@ static QoreNode *QCALENDARWIDGET_setMinimumDate(Object *self, QoreQCalendarWidge
 }
 
 //void setSelectionMode ( SelectionMode mode )
-static QoreNode *QCALENDARWIDGET_setSelectionMode(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setSelectionMode(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QCalendarWidget::SelectionMode mode = (QCalendarWidget::SelectionMode)(p ? p->getAsInt() : 0);
@@ -236,7 +236,7 @@ static QoreNode *QCALENDARWIDGET_setSelectionMode(Object *self, QoreQCalendarWid
 }
 
 //void setVerticalHeaderFormat ( VerticalHeaderFormat format )
-static QoreNode *QCALENDARWIDGET_setVerticalHeaderFormat(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setVerticalHeaderFormat(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QCalendarWidget::VerticalHeaderFormat format = (QCalendarWidget::VerticalHeaderFormat)(p ? p->getAsInt() : 0);
@@ -245,7 +245,7 @@ static QoreNode *QCALENDARWIDGET_setVerticalHeaderFormat(Object *self, QoreQCale
 }
 
 //void setWeekdayTextFormat ( Qt::DayOfWeek dayOfWeek, const QTextCharFormat & format )
-static QoreNode *QCALENDARWIDGET_setWeekdayTextFormat(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setWeekdayTextFormat(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::DayOfWeek dayOfWeek = (Qt::DayOfWeek)(p ? p->getAsInt() : 0);
@@ -262,30 +262,30 @@ static QoreNode *QCALENDARWIDGET_setWeekdayTextFormat(Object *self, QoreQCalenda
 }
 
 //VerticalHeaderFormat verticalHeaderFormat () const
-static QoreNode *QCALENDARWIDGET_verticalHeaderFormat(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_verticalHeaderFormat(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcw->qobj->verticalHeaderFormat());
 }
 
 //QTextCharFormat weekdayTextFormat ( Qt::DayOfWeek dayOfWeek ) const
-static QoreNode *QCALENDARWIDGET_weekdayTextFormat(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_weekdayTextFormat(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::DayOfWeek dayOfWeek = (Qt::DayOfWeek)(p ? p->getAsInt() : 0);
-   Object *o_qtcf = new Object(QC_QTextCharFormat, getProgram());
+   QoreObject *o_qtcf = new QoreObject(QC_QTextCharFormat, getProgram());
    QoreQTextCharFormat *q_qtcf = new QoreQTextCharFormat(qcw->qobj->weekdayTextFormat(dayOfWeek));
    o_qtcf->setPrivate(CID_QTEXTCHARFORMAT, q_qtcf);
    return new QoreNode(o_qtcf);
 }
 
 //int yearShown () const
-static QoreNode *QCALENDARWIDGET_yearShown(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_yearShown(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcw->qobj->yearShown());
 }
 
 //void setCurrentPage ( int year, int month )
-static QoreNode *QCALENDARWIDGET_setCurrentPage(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setCurrentPage(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int year = p ? p->getAsInt() : 0;
@@ -296,7 +296,7 @@ static QoreNode *QCALENDARWIDGET_setCurrentPage(Object *self, QoreQCalendarWidge
 }
 
 //void setDateRange ( const QDate & min, const QDate & max )
-static QoreNode *QCALENDARWIDGET_setDateRange(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setDateRange(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QDate min;
@@ -311,7 +311,7 @@ static QoreNode *QCALENDARWIDGET_setDateRange(Object *self, QoreQCalendarWidget 
 }
 
 //void setGridVisible ( bool show )
-static QoreNode *QCALENDARWIDGET_setGridVisible(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setGridVisible(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool show = p ? p->getAsBool() : false;
@@ -320,7 +320,7 @@ static QoreNode *QCALENDARWIDGET_setGridVisible(Object *self, QoreQCalendarWidge
 }
 
 //void setNavigationBarVisible ( bool visible )
-static QoreNode *QCALENDARWIDGET_setNavigationBarVisible(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setNavigationBarVisible(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool visible = p ? p->getAsBool() : false;
@@ -329,7 +329,7 @@ static QoreNode *QCALENDARWIDGET_setNavigationBarVisible(Object *self, QoreQCale
 }
 
 //void setSelectedDate ( const QDate & date )
-static QoreNode *QCALENDARWIDGET_setSelectedDate(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_setSelectedDate(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QDate date;
@@ -340,42 +340,42 @@ static QoreNode *QCALENDARWIDGET_setSelectedDate(Object *self, QoreQCalendarWidg
 }
 
 //void showNextMonth ()
-static QoreNode *QCALENDARWIDGET_showNextMonth(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_showNextMonth(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    qcw->qobj->showNextMonth();
    return 0;
 }
 
 //void showNextYear ()
-static QoreNode *QCALENDARWIDGET_showNextYear(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_showNextYear(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    qcw->qobj->showNextYear();
    return 0;
 }
 
 //void showPreviousMonth ()
-static QoreNode *QCALENDARWIDGET_showPreviousMonth(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_showPreviousMonth(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    qcw->qobj->showPreviousMonth();
    return 0;
 }
 
 //void showPreviousYear ()
-static QoreNode *QCALENDARWIDGET_showPreviousYear(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_showPreviousYear(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    qcw->qobj->showPreviousYear();
    return 0;
 }
 
 //void showSelectedDate ()
-static QoreNode *QCALENDARWIDGET_showSelectedDate(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_showSelectedDate(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    qcw->qobj->showSelectedDate();
    return 0;
 }
 
 //void showToday ()
-static QoreNode *QCALENDARWIDGET_showToday(Object *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCALENDARWIDGET_showToday(QoreObject *self, QoreQCalendarWidget *qcw, QoreNode *params, ExceptionSink *xsink)
 {
    qcw->qobj->showToday();
    return 0;

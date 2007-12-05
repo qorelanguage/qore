@@ -28,7 +28,7 @@
 int CID_QBITMAP;
 QoreClass *QC_QBitmap = 0;
 
-static void QBITMAP_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QBITMAP_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQBitmap *qp;
    QoreNode *p = get_param(params, 0);
@@ -64,14 +64,14 @@ static void QBITMAP_constructor(class Object *self, class QoreNode *params, Exce
    self->setPrivate(CID_QBITMAP, qp);
 }
 
-static void QBITMAP_copy(class Object *self, class Object *old, class QoreQBitmap *qlcdn, ExceptionSink *xsink)
+static void QBITMAP_copy(class QoreObject *self, class QoreObject *old, class QoreQBitmap *qlcdn, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QBITMAP, new QoreQBitmap(*qlcdn));
    //xsink->raiseException("QBITMAP-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //void clear ()
-static QoreNode *QBITMAP_clear(Object *self, QoreQBitmap *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBITMAP_clear(QoreObject *self, QoreQBitmap *qb, QoreNode *params, ExceptionSink *xsink)
 {
    qb->clear();
    return 0;
@@ -79,11 +79,11 @@ static QoreNode *QBITMAP_clear(Object *self, QoreQBitmap *qb, QoreNode *params, 
 
 //QBitmap transformed ( const QMatrix & matrix ) const
 //QBitmap transformed ( const QTransform & matrix ) const
-//static QoreNode *QBITMAP_transformed(Object *self, QoreQBitmap *qb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QBITMAP_transformed(QoreObject *self, QoreQBitmap *qb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QMatrix matrix = p;
-//   Object *o_qb = new Object(self->getClass(CID_QBITMAP), getProgram());
+//   QoreObject *o_qb = new QoreObject(self->getClass(CID_QBITMAP), getProgram());
 //   QoreQBitmap *q_qb = new QoreQBitmap(qb->transformed(matrix));
 //   o_qb->setPrivate(CID_QBITMAP, q_qb);
 //   return new QoreNode(o_qb);

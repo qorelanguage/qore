@@ -218,13 +218,13 @@ class ThreadData
       class VNode *vstack;  // used during parsing (local variable stack)
       class CVNode *cvarstack;
       class QoreClass *parseClass;
-      class Exception *catchException;
+      class QoreException *catchException;
       std::list<block_list_t::iterator> on_block_exit_list;
       class ThreadResourceList trlist;
       // current function/method name
       const char *current_code;
       // current object context
-      class Object *current_obj;
+      class QoreObject *current_obj;
       // current program context
       class QoreProgram *current_pgm;
       // current argvid
@@ -311,8 +311,8 @@ tid_node::~tid_node()
 
 class BGThreadParams {
    public:
-      class Object *obj;
-      class Object *callobj;
+      class QoreObject *obj;
+      class QoreObject *callobj;
       class QoreNode *fc;
       class QoreProgram *pgm;
       int tid;
@@ -657,7 +657,7 @@ const char *get_parse_file()
    return ((ThreadData *)pthread_getspecific(thread_data_key))->parse_file;
 }
 
-ObjectSubstitutionHelper::ObjectSubstitutionHelper(class Object *obj)
+ObjectSubstitutionHelper::ObjectSubstitutionHelper(class QoreObject *obj)
 {
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    old_obj = td->current_obj;
@@ -670,7 +670,7 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper()
    td->current_obj = old_obj;
 }
 
-CodeContextHelper::CodeContextHelper(const char *code, class Object *obj, class ExceptionSink *xs)
+CodeContextHelper::CodeContextHelper(const char *code, class QoreObject *obj, class ExceptionSink *xs)
 {
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    old_code = td->current_code;
@@ -707,7 +707,7 @@ ArgvContextHelper::~ArgvContextHelper()
 }
 
 #ifdef DEBUG
-void pushCall(const char *f, int type, class Object *o)
+void pushCall(const char *f, int type, class QoreObject *o)
 {
    thread_list[gettid()].callStack->push(f, type, o);
 }
@@ -728,7 +728,7 @@ class CallStack *getCallStack()
 }
 #endif
 
-bool inMethod(const char *name, class Object *o)
+bool inMethod(const char *name, class QoreObject *o)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    if (td->current_obj == o && td->current_code == name)
@@ -737,7 +737,7 @@ bool inMethod(const char *name, class Object *o)
    //return thread_list[gettid()].callStack->inMethod(name, o);
 }
 
-class Object *getStackObject()
+class QoreObject *getStackObject()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->current_obj;
    //return thread_list[gettid()].callStack->getStackObject();
@@ -817,14 +817,14 @@ class QoreClass *getParseClass()
 }
 
 // to save the exception for "rethrow"
-void catchSaveException(class Exception *e)
+void catchSaveException(class QoreException *e)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    td->catchException = e;
 }
 
 // for "rethrow"
-class Exception *catchGetException()
+class QoreException *catchGetException()
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    assert(td->catchException);
@@ -1137,9 +1137,9 @@ QoreList *get_thread_list()
 }
 
 #ifdef DEBUG
-Hash *getAllCallStacks()
+QoreHash *getAllCallStacks()
 {
-   Hash *h = new Hash();
+   QoreHash *h = new QoreHash();
    QoreString str;
    lThreadList.lock();
    tid_node *w = tid_head;

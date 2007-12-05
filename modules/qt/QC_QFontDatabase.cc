@@ -28,19 +28,19 @@ int CID_QFONTDATABASE;
 class QoreClass *QC_QFontDatabase = 0;
 
 //QFontDatabase ()
-static void QFONTDATABASE_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QFONTDATABASE_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QFONTDATABASE, new QoreQFontDatabase());
    return;
 }
 
-static void QFONTDATABASE_copy(class Object *self, class Object *old, class QoreQFontDatabase *qfd, ExceptionSink *xsink)
+static void QFONTDATABASE_copy(class QoreObject *self, class QoreObject *old, class QoreQFontDatabase *qfd, ExceptionSink *xsink)
 {
    xsink->raiseException("QFONTDATABASE-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //bool bold ( const QString & family, const QString & style ) const
-static QoreNode *QFONTDATABASE_bold(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_bold(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -58,7 +58,7 @@ static QoreNode *QFONTDATABASE_bold(Object *self, QoreQFontDatabase *qfd, QoreNo
 }
 
 //QStringList families ( WritingSystem writingSystem = Any ) const
-static QoreNode *QFONTDATABASE_families(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_families(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QFontDatabase::WritingSystem writingSystem = (QFontDatabase::WritingSystem)(p ? p->getAsInt() : 0);
@@ -70,7 +70,7 @@ static QoreNode *QFONTDATABASE_families(Object *self, QoreQFontDatabase *qfd, Qo
 }
 
 //QFont font ( const QString & family, const QString & style, int pointSize ) const
-static QoreNode *QFONTDATABASE_font(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_font(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -86,14 +86,14 @@ static QoreNode *QFONTDATABASE_font(Object *self, QoreQFontDatabase *qfd, QoreNo
    const char *style = p->val.String->getBuffer();
    p = get_param(params, 2);
    int pointSize = p ? p->getAsInt() : 0;
-   Object *o_qf = new Object(QC_QFont, getProgram());
+   QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qfd->font(family, style, pointSize));
    o_qf->setPrivate(CID_QFONT, q_qf);
    return new QoreNode(o_qf);
 }
 
 //bool isBitmapScalable ( const QString & family, const QString & style = QString() ) const
-static QoreNode *QFONTDATABASE_isBitmapScalable(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_isBitmapScalable(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -109,7 +109,7 @@ static QoreNode *QFONTDATABASE_isBitmapScalable(Object *self, QoreQFontDatabase 
 }
 
 //bool isFixedPitch ( const QString & family, const QString & style = QString() ) const
-static QoreNode *QFONTDATABASE_isFixedPitch(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_isFixedPitch(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -125,7 +125,7 @@ static QoreNode *QFONTDATABASE_isFixedPitch(Object *self, QoreQFontDatabase *qfd
 }
 
 //bool isScalable ( const QString & family, const QString & style = QString() ) const
-static QoreNode *QFONTDATABASE_isScalable(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_isScalable(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -141,7 +141,7 @@ static QoreNode *QFONTDATABASE_isScalable(Object *self, QoreQFontDatabase *qfd, 
 }
 
 //bool isSmoothlyScalable ( const QString & family, const QString & style = QString() ) const
-static QoreNode *QFONTDATABASE_isSmoothlyScalable(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_isSmoothlyScalable(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -157,7 +157,7 @@ static QoreNode *QFONTDATABASE_isSmoothlyScalable(Object *self, QoreQFontDatabas
 }
 
 //bool italic ( const QString & family, const QString & style ) const
-static QoreNode *QFONTDATABASE_italic(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_italic(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -175,7 +175,7 @@ static QoreNode *QFONTDATABASE_italic(Object *self, QoreQFontDatabase *qfd, Qore
 }
 
 ////QList<int> pointSizes ( const QString & family, const QString & style = QString() )
-static QoreNode *QFONTDATABASE_pointSizes(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_pointSizes(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -193,7 +193,7 @@ static QoreNode *QFONTDATABASE_pointSizes(Object *self, QoreQFontDatabase *qfd, 
 }
 
 //QList<int> smoothSizes ( const QString & family, const QString & style )
-static QoreNode *QFONTDATABASE_smoothSizes(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_smoothSizes(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -216,7 +216,7 @@ static QoreNode *QFONTDATABASE_smoothSizes(Object *self, QoreQFontDatabase *qfd,
 
 //QString styleString ( const QFont & font )
 //QString styleString ( const QFontInfo & fontInfo )
-static QoreNode *QFONTDATABASE_styleString(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_styleString(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
   
@@ -236,7 +236,7 @@ static QoreNode *QFONTDATABASE_styleString(Object *self, QoreQFontDatabase *qfd,
 }
 
 //QStringList styles ( const QString & family ) const
-static QoreNode *QFONTDATABASE_styles(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_styles(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -252,7 +252,7 @@ static QoreNode *QFONTDATABASE_styles(Object *self, QoreQFontDatabase *qfd, Qore
 }
 
 //int weight ( const QString & family, const QString & style ) const
-static QoreNode *QFONTDATABASE_weight(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_weight(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -271,7 +271,7 @@ static QoreNode *QFONTDATABASE_weight(Object *self, QoreQFontDatabase *qfd, Qore
 
 //QList<WritingSystem> writingSystems () const
 //QList<WritingSystem> writingSystems ( const QString & family ) const
-static QoreNode *QFONTDATABASE_writingSystems(Object *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTDATABASE_writingSystems(QoreObject *self, QoreQFontDatabase *qfd, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!is_nothing(p) && p->type != NT_STRING) {

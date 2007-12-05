@@ -311,7 +311,7 @@ int DBI_concat_string(class QoreString *str, class QoreNode *v, class ExceptionS
   driver, charset, and host are optional
 */
 
-class Hash *parseDatasource(const char *ds, class ExceptionSink *xsink)
+class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
 {
    if (!ds || !ds[0])
       return NULL;
@@ -319,7 +319,7 @@ class Hash *parseDatasource(const char *ds, class ExceptionSink *xsink)
    char *str = strdup(ds);
    char *ostr = str;
    
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    char *p = strchr(str, ':');
    if (p)
    {
@@ -403,7 +403,7 @@ class QoreNode *f_parseDatasource(class QoreNode *params, ExceptionSink *xsink)
    if (!(p0 = test_param(params, NT_STRING, 0)))
       return NULL;
 
-   class Hash *h = parseDatasource(p0->val.String->getBuffer(), xsink);
+   class QoreHash *h = parseDatasource(p0->val.String->getBuffer(), xsink);
 
    return h ? new QoreNode(h) : NULL;
 }

@@ -41,12 +41,12 @@ class myQLineEdit : public QLineEdit, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQLineEdit(Object *obj, QWidget* parent = 0) : QLineEdit(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLineEdit(QoreObject *obj, QWidget* parent = 0) : QLineEdit(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
          //init_widget_events();
       }
-      DLLLOCAL myQLineEdit(Object *obj, const QString& contents, QWidget* parent = 0) : QLineEdit(contents, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLineEdit(QoreObject *obj, const QString& contents, QWidget* parent = 0) : QLineEdit(contents, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
          //init_widget_events();
@@ -58,10 +58,10 @@ class QoreQLineEdit : public QoreAbstractQWidget
    public:
       QPointer<myQLineEdit> qobj;
 
-      DLLLOCAL QoreQLineEdit(Object *obj, QWidget* parent = 0) : qobj(new myQLineEdit(obj, parent))
+      DLLLOCAL QoreQLineEdit(QoreObject *obj, QWidget* parent = 0) : qobj(new myQLineEdit(obj, parent))
       {
       }
-      DLLLOCAL QoreQLineEdit(Object *obj, const QString& contents, QWidget* parent = 0) : qobj(new myQLineEdit(obj, contents, parent))
+      DLLLOCAL QoreQLineEdit(QoreObject *obj, const QString& contents, QWidget* parent = 0) : qobj(new myQLineEdit(obj, contents, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

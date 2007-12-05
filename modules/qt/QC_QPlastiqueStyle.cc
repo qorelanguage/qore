@@ -28,13 +28,13 @@ int CID_QPLASTIQUESTYLE;
 class QoreClass *QC_QPlastiqueStyle = 0;
 
 //QPlastiqueStyle ()
-static void QPLASTIQUESTYLE_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QPLASTIQUESTYLE_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QPLASTIQUESTYLE, new QoreQPlastiqueStyle(self));
    return;
 }
 
-static void QPLASTIQUESTYLE_copy(class Object *self, class Object *old, class QoreQPlastiqueStyle *qps, ExceptionSink *xsink)
+static void QPLASTIQUESTYLE_copy(class QoreObject *self, class QoreObject *old, class QoreQPlastiqueStyle *qps, ExceptionSink *xsink)
 {
    xsink->raiseException("QPLASTIQUESTYLE-COPY-ERROR", "objects of this class cannot be copied");
 }

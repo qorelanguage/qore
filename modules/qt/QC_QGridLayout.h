@@ -37,12 +37,12 @@ class myQGridLayout : public QGridLayout, public QoreQObjectExtension
 #define QOREQTYPE QGridLayout
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
-      DLLLOCAL myQGridLayout(Object *obj) : QGridLayout(), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQGridLayout(QoreObject *obj) : QGridLayout(), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
 
-      DLLLOCAL myQGridLayout(Object *obj, QWidget *parent) : QGridLayout(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQGridLayout(QoreObject *obj, QWidget *parent) : QGridLayout(parent), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
@@ -53,11 +53,11 @@ class QoreQGridLayout : public QoreAbstractQLayout
    public:
       QPointer<myQGridLayout> qobj;
 
-      DLLLOCAL QoreQGridLayout(Object *obj) : qobj(new myQGridLayout(obj))
+      DLLLOCAL QoreQGridLayout(QoreObject *obj) : qobj(new myQGridLayout(obj))
       {
       }
 
-      DLLLOCAL QoreQGridLayout(Object *obj, QWidget *parent) : qobj(new myQGridLayout(obj, parent))
+      DLLLOCAL QoreQGridLayout(QoreObject *obj, QWidget *parent) : qobj(new myQGridLayout(obj, parent))
       {
       }
 

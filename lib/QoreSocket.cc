@@ -245,7 +245,7 @@ class QoreString *SocketSource::takeHostName()
    return host;
 }
 
-void SocketSource::setAll(class Object *o, class ExceptionSink *xsink)
+void SocketSource::setAll(class QoreObject *o, class ExceptionSink *xsink)
 {
    if (address)
    {
@@ -1208,7 +1208,7 @@ int QoreSocket::recv(int fd, int size, int timeout)
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, const void *data, int size)
+int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, class QoreHash *headers, const void *data, int size)
 {
    // prepare header string
    QoreString hdr(charsetid);
@@ -1252,7 +1252,7 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, const void *data, int size)
+int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, class QoreHash *headers, const void *data, int size)
 {
    // prepare header string
    QoreString hdr(charsetid);
@@ -1358,7 +1358,7 @@ class QoreString *QoreSocket::readHTTPData(int timeout, int *rc, int state)
 }
 
 // static method
-void QoreSocket::convertHeaderToHash(class Hash *h, char *p)
+void QoreSocket::convertHeaderToHash(class QoreHash *h, char *p)
 {
    while (*p)
    {
@@ -1429,7 +1429,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    if (!(t1 = (char *)strstr(buf, "HTTP/1.")))
       return new QoreNode(hdr);
 
-   Hash *h = new Hash();
+   QoreHash *h = new QoreHash();
 
 #if 0
    h->setKeyValue("dbg_hdr", new QoreNode(buf), NULL);
@@ -1488,7 +1488,7 @@ void QoreSocket::doException(int rc, const char *meth, class ExceptionSink *xsin
 }
 
 // receive a binary message in HTTP chunked format
-class Hash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
+class QoreHash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
 {
    class BinaryObject *b = new BinaryObject;
    class QoreString str; // for reading the size of each chunk
@@ -1595,7 +1595,7 @@ class Hash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSi
       doException(rc, "readHTTPChunkedBodyBinary", xsink);
       return NULL;
    }
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("body", new QoreNode(b), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
@@ -1609,7 +1609,7 @@ class Hash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSi
 }
 
 // receive a message in HTTP chunked format
-class Hash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
+class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
 {
    class QoreString *buf = new QoreString(charsetid);
    class QoreString str; // for reading the size of each chunk
@@ -1715,7 +1715,7 @@ class Hash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xs
       doException(rc, "readHTTPChunkedBody", xsink);
       return NULL;
    }
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("body", new QoreNode(buf), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)

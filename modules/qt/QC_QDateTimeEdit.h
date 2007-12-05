@@ -41,19 +41,19 @@ class myQDateTimeEdit : public QDateTimeEdit, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDateTimeEdit(Object *obj, QWidget* parent = 0) : QDateTimeEdit(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDateTimeEdit(QoreObject *obj, QWidget* parent = 0) : QDateTimeEdit(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQDateTimeEdit(Object *obj, const QDateTime& datetime, QWidget* parent = 0) : QDateTimeEdit(datetime, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDateTimeEdit(QoreObject *obj, const QDateTime& datetime, QWidget* parent = 0) : QDateTimeEdit(datetime, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQDateTimeEdit(Object *obj, const QDate& date, QWidget* parent = 0) : QDateTimeEdit(date, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDateTimeEdit(QoreObject *obj, const QDate& date, QWidget* parent = 0) : QDateTimeEdit(date, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQDateTimeEdit(Object *obj, const QTime& time, QWidget* parent = 0) : QDateTimeEdit(time, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDateTimeEdit(QoreObject *obj, const QTime& time, QWidget* parent = 0) : QDateTimeEdit(time, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -64,16 +64,16 @@ class QoreQDateTimeEdit : public QoreAbstractQDateTimeEdit
    public:
       QPointer<myQDateTimeEdit> qobj;
 
-      DLLLOCAL QoreQDateTimeEdit(Object *obj, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, parent))
+      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, parent))
       {
       }
-      DLLLOCAL QoreQDateTimeEdit(Object *obj, const QDateTime& datetime, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, datetime, parent))
+      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, const QDateTime& datetime, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, datetime, parent))
       {
       }
-      DLLLOCAL QoreQDateTimeEdit(Object *obj, const QDate& date, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, date, parent))
+      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, const QDate& date, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, date, parent))
       {
       }
-      DLLLOCAL QoreQDateTimeEdit(Object *obj, const QTime& time, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, time, parent))
+      DLLLOCAL QoreQDateTimeEdit(QoreObject *obj, const QTime& time, QWidget* parent = 0) : qobj(new myQDateTimeEdit(obj, time, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

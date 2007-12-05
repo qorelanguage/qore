@@ -32,7 +32,7 @@ DLLLOCAL int static_argc    = 0;
 DLLLOCAL char **static_argv = 0;
 
 static LockedObject qapp_lock;
-static Object *qore_qapp = 0;
+static QoreObject *qore_qapp = 0;
 
 void qapp_dec()
 {
@@ -50,7 +50,7 @@ class QoreNode *get_qore_qapp()
    return new QoreNode(qore_qapp);
 }
 
-static void QA_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QA_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    AutoLocker al(&qapp_lock);
    if (qore_qapp) {
@@ -63,12 +63,12 @@ static void QA_constructor(class Object *self, class QoreNode *params, Exception
    qore_qapp = self;
 }
 
-static void QA_copy(class Object *self, class Object *old, class QoreQApplication *qa, ExceptionSink *xsink)
+static void QA_copy(class QoreObject *self, class QoreObject *old, class QoreQApplication *qa, ExceptionSink *xsink)
 {
    xsink->raiseException("QAPPLICATION-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-static class QoreNode *QA_exec(class Object *self, class QoreQApplication *qa, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *QA_exec(class QoreObject *self, class QoreQApplication *qa, class QoreNode *params, ExceptionSink *xsink)
 {
    qa->qobj->exec();
    return 0;
@@ -99,7 +99,7 @@ static QoreNode *f_QApplication_activeModalWidget(QoreNode *params, ExceptionSin
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
@@ -112,7 +112,7 @@ static QoreNode *f_QApplication_activePopupWidget(QoreNode *params, ExceptionSin
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
@@ -125,7 +125,7 @@ static QoreNode *f_QApplication_activeWindow(QoreNode *params, ExceptionSink *xs
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
@@ -177,7 +177,7 @@ static QoreNode *f_QApplication_clipboard(class QoreNode *params, class Exceptio
    AutoLocker al(&lClipboard);
 
    if (!C_Clipboard) {
-      Object *o = new Object(QC_QClipboard, getProgram());
+      QoreObject *o = new QoreObject(QC_QClipboard, getProgram());
       QoreQClipboard *qcb = new QoreQClipboard(o, QApplication::clipboard());
       o->setPrivate(CID_QCLIPBOARD, qcb);
       C_Clipboard = new QoreNode(o);
@@ -204,11 +204,11 @@ static QoreNode *f_QApplication_desktop(QoreNode *params, ExceptionSink *xsink)
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (rv_obj)
       rv_obj->ref();
    else {
-      rv_obj = new Object(QC_QDesktopWidget, getProgram());
+      rv_obj = new QoreObject(QC_QDesktopWidget, getProgram());
       QoreQtQDesktopWidget *t_qobj = new QoreQtQDesktopWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QDESKTOPWIDGET, t_qobj);
    }
@@ -240,7 +240,7 @@ static QoreNode *f_QApplication_focusWidget(QoreNode *params, ExceptionSink *xsi
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
@@ -253,7 +253,7 @@ static QoreNode *f_QApplication_font(QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
-      Object *o_qf = new Object(QC_QFont, getProgram());
+      QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
       QoreQFont *q_qf = new QoreQFont(QApplication::font());
       o_qf->setPrivate(CID_QFONT, q_qf);
       return new QoreNode(o_qf);
@@ -266,7 +266,7 @@ static QoreNode *f_QApplication_font(QoreNode *params, ExceptionSink *xsink)
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-      Object *o_qf = new Object(QC_QFont, getProgram());
+      QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
       QoreQFont *q_qf = new QoreQFont(QApplication::font(static_cast<QWidget *>(widget->getQWidget())));
       o_qf->setPrivate(CID_QFONT, q_qf);
       return new QoreNode(o_qf);
@@ -276,7 +276,7 @@ static QoreNode *f_QApplication_font(QoreNode *params, ExceptionSink *xsink)
       return 0;
    }
    const char *className = p->val.String->getBuffer();
-   Object *o_qf = new Object(QC_QFont, getProgram());
+   QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(QApplication::font(className));
    o_qf->setPrivate(CID_QFONT, q_qf);
    return new QoreNode(o_qf);
@@ -285,7 +285,7 @@ static QoreNode *f_QApplication_font(QoreNode *params, ExceptionSink *xsink)
 //QFontMetrics fontMetrics ()
 static QoreNode *f_QApplication_fontMetrics(QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qfm = new Object(QC_QFontMetrics, getProgram());
+   QoreObject *o_qfm = new QoreObject(QC_QFontMetrics, getProgram());
    QoreQFontMetrics *q_qfm = new QoreQFontMetrics(QApplication::fontMetrics());
    o_qfm->setPrivate(CID_QFONTMETRICS, q_qfm);
    return new QoreNode(o_qfm);
@@ -294,7 +294,7 @@ static QoreNode *f_QApplication_fontMetrics(QoreNode *params, ExceptionSink *xsi
 //QSize globalStrut ()
 static QoreNode *f_QApplication_globalStrut(QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(QApplication::globalStrut());
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
@@ -335,7 +335,7 @@ static QoreNode *f_QApplication_keyboardInputInterval(QoreNode *params, Exceptio
 //QLocale keyboardInputLocale ()
 static QoreNode *f_QApplication_keyboardInputLocale(QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_ql = new Object(QC_QLocale, getProgram());
+   QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    QoreQLocale *q_ql = new QoreQLocale(QApplication::keyboardInputLocale());
    o_ql->setPrivate(CID_QLOCALE, q_ql);
    return new QoreNode(o_ql);
@@ -380,7 +380,7 @@ static QoreNode *f_QApplication_palette(QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
-      Object *o_qp = new Object(QC_QPalette, getProgram());
+      QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
       QoreQPalette *q_qp = new QoreQPalette(QApplication::palette());
       o_qp->setPrivate(CID_QPALETTE, q_qp);
       return new QoreNode(o_qp);
@@ -393,7 +393,7 @@ static QoreNode *f_QApplication_palette(QoreNode *params, ExceptionSink *xsink)
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-      Object *o_qp = new Object(QC_QPalette, getProgram());
+      QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
       QoreQPalette *q_qp = new QoreQPalette(QApplication::palette(static_cast<QWidget *>(widget->getQWidget())));
       o_qp->setPrivate(CID_QPALETTE, q_qp);
       return new QoreNode(o_qp);
@@ -403,7 +403,7 @@ static QoreNode *f_QApplication_palette(QoreNode *params, ExceptionSink *xsink)
       return 0;
    }
    const char *className = p->val.String->getBuffer();
-   Object *o_qp = new Object(QC_QPalette, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
    QoreQPalette *q_qp = new QoreQPalette(QApplication::palette(className));
    o_qp->setPrivate(CID_QPALETTE, q_qp);
    return new QoreNode(o_qp);
@@ -673,12 +673,12 @@ static QoreNode *f_QApplication_style(QoreNode *params, ExceptionSink *xsink)
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (rv_obj)
       rv_obj->ref();
    else
    {
-      rv_obj = new Object(QC_QStyle, getProgram());
+      rv_obj = new QoreObject(QC_QStyle, getProgram());
       QoreQtQStyle *qs = new QoreQtQStyle(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QSTYLE, qs);
    }
@@ -709,7 +709,7 @@ static QoreNode *f_QApplication_topLevelAt(QoreNode *params, ExceptionSink *xsin
       if (!qt_qobj)
          return 0;
       QVariant qv_ptr = qt_qobj->property("qobject");
-      Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+      QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
       assert(rv_obj);
       rv_obj->ref();
       return new QoreNode(rv_obj);
@@ -721,7 +721,7 @@ static QoreNode *f_QApplication_topLevelAt(QoreNode *params, ExceptionSink *xsin
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
@@ -762,7 +762,7 @@ static QoreNode *f_QApplication_widgetAt(QoreNode *params, ExceptionSink *xsink)
       if (!qt_qobj)
          return 0;
       QVariant qv_ptr = qt_qobj->property("qobject");
-      Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+      QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
       assert(rv_obj);
       rv_obj->ref();
       return new QoreNode(rv_obj);
@@ -774,7 +774,7 @@ static QoreNode *f_QApplication_widgetAt(QoreNode *params, ExceptionSink *xsink)
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
@@ -783,7 +783,7 @@ static QoreNode *f_QApplication_widgetAt(QoreNode *params, ExceptionSink *xsink)
 //QIcon windowIcon ()
 static QoreNode *f_QApplication_windowIcon(QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qi = new Object(QC_QIcon, getProgram());
+   QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(QApplication::windowIcon());
    o_qi->setPrivate(CID_QICON, q_qi);
    return new QoreNode(o_qi);

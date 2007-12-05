@@ -41,7 +41,7 @@ class myQItemDelegate : public QItemDelegate, public QoreQAbstractItemDelegateEx
 #undef QOREQTYPE
 
    public:
-   DLLLOCAL myQItemDelegate(Object *obj, QObject* parent = 0) : QItemDelegate(parent), QoreQAbstractItemDelegateExtension(obj->getClass())
+   DLLLOCAL myQItemDelegate(QoreObject *obj, QObject* parent = 0) : QItemDelegate(parent), QoreQAbstractItemDelegateExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQItemDelegate : public QoreAbstractQItemDelegate
    public:
       QPointer<myQItemDelegate> qobj;
 
-      DLLLOCAL QoreQItemDelegate(Object *obj, QObject* parent = 0) : qobj(new myQItemDelegate(obj, parent))
+      DLLLOCAL QoreQItemDelegate(QoreObject *obj, QObject* parent = 0) : qobj(new myQItemDelegate(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

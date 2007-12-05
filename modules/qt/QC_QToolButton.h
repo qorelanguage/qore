@@ -41,7 +41,7 @@ class myQToolButton : public QToolButton, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQToolButton(Object *obj, QWidget* parent = 0) : QToolButton(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQToolButton(QoreObject *obj, QWidget* parent = 0) : QToolButton(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQToolButton : public QoreAbstractQToolButton
    public:
       QPointer<myQToolButton> qobj;
 
-      DLLLOCAL QoreQToolButton(Object *obj, QWidget* parent = 0) : qobj(new myQToolButton(obj, parent))
+      DLLLOCAL QoreQToolButton(QoreObject *obj, QWidget* parent = 0) : qobj(new myQToolButton(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -81,10 +81,10 @@ class QoreQToolButton : public QoreAbstractQToolButton
 class QoreQtQToolButton : public QoreAbstractQToolButton
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QToolButton> qobj;
 
-      DLLLOCAL QoreQtQToolButton(Object *obj, QToolButton *qtoolbutton) : qore_obj(obj), qobj(qtoolbutton)
+      DLLLOCAL QoreQtQToolButton(QoreObject *obj, QToolButton *qtoolbutton) : qore_obj(obj), qobj(qtoolbutton)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

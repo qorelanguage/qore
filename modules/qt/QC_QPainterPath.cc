@@ -30,7 +30,7 @@ class QoreClass *QC_QPainterPath = 0;
 //QPainterPath ()
 //QPainterPath ( const QPointF & startPoint )
 //QPainterPath ( const QPainterPath & path )
-static void QPAINTERPATH_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QPAINTERPATH_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -48,14 +48,14 @@ static void QPAINTERPATH_constructor(Object *self, QoreNode *params, ExceptionSi
    return;
 }
 
-static void QPAINTERPATH_copy(class Object *self, class Object *old, class QoreQPainterPath *qpp, ExceptionSink *xsink)
+static void QPAINTERPATH_copy(class QoreObject *self, class QoreObject *old, class QoreQPainterPath *qpp, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QPAINTERPATH, new QoreQPainterPath(*qpp));
 }
 
 //void addEllipse ( const QRectF & boundingRectangle )
 //void addEllipse ( qreal x, qreal y, qreal width, qreal height )
-static QoreNode *QPAINTERPATH_addEllipse(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_addEllipse(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -81,7 +81,7 @@ static QoreNode *QPAINTERPATH_addEllipse(Object *self, QoreQPainterPath *qpp, Qo
 }
 
 //void addPath ( const QPainterPath & path )
-static QoreNode *QPAINTERPATH_addPath(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_addPath(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -96,7 +96,7 @@ static QoreNode *QPAINTERPATH_addPath(Object *self, QoreQPainterPath *qpp, QoreN
 }
 
 //void addPolygon ( const QPolygonF & polygon )
-static QoreNode *QPAINTERPATH_addPolygon(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_addPolygon(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPolygonF *polygon = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)p->val.object->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
@@ -112,7 +112,7 @@ static QoreNode *QPAINTERPATH_addPolygon(Object *self, QoreQPainterPath *qpp, Qo
 
 //void addRect ( const QRectF & rectangle )
 //void addRect ( qreal x, qreal y, qreal width, qreal height )
-static QoreNode *QPAINTERPATH_addRect(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_addRect(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -138,7 +138,7 @@ static QoreNode *QPAINTERPATH_addRect(Object *self, QoreQPainterPath *qpp, QoreN
 }
 
 //void addRegion ( const QRegion & region )
-static QoreNode *QPAINTERPATH_addRegion(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_addRegion(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQRegion *region = (p && p->type == NT_OBJECT) ? (QoreQRegion *)p->val.object->getReferencedPrivateData(CID_QREGION, xsink) : 0;
@@ -156,7 +156,7 @@ static QoreNode *QPAINTERPATH_addRegion(Object *self, QoreQPainterPath *qpp, Qor
 //void addRoundRect ( qreal x, qreal y, qreal w, qreal h, int xRnd, int yRnd )
 //void addRoundRect ( const QRectF & rect, int roundness )
 //void addRoundRect ( qreal x, qreal y, qreal w, qreal h, int roundness )
-static QoreNode *QPAINTERPATH_addRoundRect(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_addRoundRect(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -203,7 +203,7 @@ static QoreNode *QPAINTERPATH_addRoundRect(Object *self, QoreQPainterPath *qpp, 
 
 //void addText ( const QPointF & point, const QFont & font, const QString & text )
 //void addText ( qreal x, qreal y, const QFont & font, const QString & text )
-static QoreNode *QPAINTERPATH_addText(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_addText(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -249,7 +249,7 @@ static QoreNode *QPAINTERPATH_addText(Object *self, QoreQPainterPath *qpp, QoreN
 }
 
 //qreal angleAtPercent ( qreal t ) const
-static QoreNode *QPAINTERPATH_angleAtPercent(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_angleAtPercent(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
@@ -258,7 +258,7 @@ static QoreNode *QPAINTERPATH_angleAtPercent(Object *self, QoreQPainterPath *qpp
 
 //void arcMoveTo ( const QRectF & rectangle, qreal angle )
 //void arcMoveTo ( qreal x, qreal y, qreal width, qreal height, qreal angle )
-static QoreNode *QPAINTERPATH_arcMoveTo(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_arcMoveTo(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -289,7 +289,7 @@ static QoreNode *QPAINTERPATH_arcMoveTo(Object *self, QoreQPainterPath *qpp, Qor
 
 //void arcTo ( const QRectF & rectangle, qreal startAngle, qreal sweepLength )
 //void arcTo ( qreal x, qreal y, qreal width, qreal height, qreal startAngle, qreal sweepLength )
-static QoreNode *QPAINTERPATH_arcTo(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_arcTo(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    //printd(5, "QPainterPath::arcTo() p=%08p '%s' params=%d p=%d\n", p, p ? p->type->getName() : "N/A", params ? params->val.list->size() : 0, p && p->type == NT_LIST ? p->val.list->size() : 0);
@@ -325,23 +325,23 @@ static QoreNode *QPAINTERPATH_arcTo(Object *self, QoreQPainterPath *qpp, QoreNod
 }
 
 //QRectF boundingRect () const
-static QoreNode *QPAINTERPATH_boundingRect(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_boundingRect(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qrf = new Object(QC_QRectF, getProgram());
+   QoreObject *o_qrf = new QoreObject(QC_QRectF, getProgram());
    QoreQRectF *q_qrf = new QoreQRectF(qpp->boundingRect());
    o_qrf->setPrivate(CID_QRECTF, q_qrf);
    return new QoreNode(o_qrf);
 }
 
 //void closeSubpath ()
-static QoreNode *QPAINTERPATH_closeSubpath(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_closeSubpath(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    qpp->closeSubpath();
    return 0;
 }
 
 //void connectPath ( const QPainterPath & path )
-static QoreNode *QPAINTERPATH_connectPath(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_connectPath(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -358,7 +358,7 @@ static QoreNode *QPAINTERPATH_connectPath(Object *self, QoreQPainterPath *qpp, Q
 //bool contains ( const QPointF & point ) const
 //bool contains ( const QPainterPath & p ) const
 //bool contains ( const QRectF & rectangle ) const
-static QoreNode *QPAINTERPATH_contains(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_contains(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQPainterPath *path = p ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -387,9 +387,9 @@ static QoreNode *QPAINTERPATH_contains(Object *self, QoreQPainterPath *qpp, Qore
 }
 
 //QRectF controlPointRect () const
-static QoreNode *QPAINTERPATH_controlPointRect(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_controlPointRect(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qrf = new Object(QC_QRectF, getProgram());
+   QoreObject *o_qrf = new QoreObject(QC_QRectF, getProgram());
    QoreQRectF *q_qrf = new QoreQRectF(qpp->controlPointRect());
    o_qrf->setPrivate(CID_QRECTF, q_qrf);
    return new QoreNode(o_qrf);
@@ -397,7 +397,7 @@ static QoreNode *QPAINTERPATH_controlPointRect(Object *self, QoreQPainterPath *q
 
 //void cubicTo ( const QPointF & c1, const QPointF & c2, const QPointF & endPoint )
 //void cubicTo ( qreal c1X, qreal c1Y, qreal c2X, qreal c2Y, qreal endPointX, qreal endPointY )
-static QoreNode *QPAINTERPATH_cubicTo(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_cubicTo(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -443,9 +443,9 @@ static QoreNode *QPAINTERPATH_cubicTo(Object *self, QoreQPainterPath *qpp, QoreN
 }
 
 //QPointF currentPosition () const
-static QoreNode *QPAINTERPATH_currentPosition(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_currentPosition(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qpf = new Object(QC_QPointF, getProgram());
+   QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qpp->currentPosition());
    o_qpf->setPrivate(CID_QPOINTF, q_qpf);
    return new QoreNode(o_qpf);
@@ -453,7 +453,7 @@ static QoreNode *QPAINTERPATH_currentPosition(Object *self, QoreQPainterPath *qp
 
 /*
 //const QPainterPath::Element & elementAt ( int index ) const
-static QoreNode *QPAINTERPATH_elementAt(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_elementAt(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -462,19 +462,19 @@ static QoreNode *QPAINTERPATH_elementAt(Object *self, QoreQPainterPath *qpp, Qor
 */
 
 //int elementCount () const
-static QoreNode *QPAINTERPATH_elementCount(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_elementCount(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpp->elementCount());
 }
 
 //Qt::FillRule fillRule () const
-static QoreNode *QPAINTERPATH_fillRule(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_fillRule(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpp->fillRule());
 }
 
 //QPainterPath intersected ( const QPainterPath & p ) const
-static QoreNode *QPAINTERPATH_intersected(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_intersected(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -484,7 +484,7 @@ static QoreNode *QPAINTERPATH_intersected(Object *self, QoreQPainterPath *qpp, Q
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(path), xsink);
-   Object *o_qpp = new Object(self->getClass(CID_QPAINTERPATH), getProgram());
+   QoreObject *o_qpp = new QoreObject(self->getClass(CID_QPAINTERPATH), getProgram());
    QoreQPainterPath *q_qpp = new QoreQPainterPath(qpp->intersected(*(static_cast<QPainterPath *>(path))));
    o_qpp->setPrivate(CID_QPAINTERPATH, q_qpp);
    return new QoreNode(o_qpp);
@@ -492,7 +492,7 @@ static QoreNode *QPAINTERPATH_intersected(Object *self, QoreQPainterPath *qpp, Q
 
 //bool intersects ( const QRectF & rectangle ) const
 //bool intersects ( const QPainterPath & p ) const
-static QoreNode *QPAINTERPATH_intersects(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_intersects(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQPainterPath *path = p ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -512,20 +512,20 @@ static QoreNode *QPAINTERPATH_intersects(Object *self, QoreQPainterPath *qpp, Qo
 
 
 //bool isEmpty () const
-static QoreNode *QPAINTERPATH_isEmpty(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_isEmpty(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qpp->isEmpty());
 }
 
 //qreal length () const
-static QoreNode *QPAINTERPATH_length(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_length(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qpp->length());
 }
 
 //void lineTo ( const QPointF & endPoint )
 //void lineTo ( qreal x, qreal y )
-static QoreNode *QPAINTERPATH_lineTo(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_lineTo(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -548,7 +548,7 @@ static QoreNode *QPAINTERPATH_lineTo(Object *self, QoreQPainterPath *qpp, QoreNo
 
 //void moveTo ( const QPointF & point )
 //void moveTo ( qreal x, qreal y )
-static QoreNode *QPAINTERPATH_moveTo(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_moveTo(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -570,7 +570,7 @@ static QoreNode *QPAINTERPATH_moveTo(Object *self, QoreQPainterPath *qpp, QoreNo
 }
 
 //qreal percentAtLength ( qreal len ) const
-static QoreNode *QPAINTERPATH_percentAtLength(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_percentAtLength(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal len = p ? p->getAsFloat() : 0.0;
@@ -578,11 +578,11 @@ static QoreNode *QPAINTERPATH_percentAtLength(Object *self, QoreQPainterPath *qp
 }
 
 //QPointF pointAtPercent ( qreal t ) const
-static QoreNode *QPAINTERPATH_pointAtPercent(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_pointAtPercent(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
-   Object *o_qpf = new Object(QC_QPointF, getProgram());
+   QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qpp->pointAtPercent(t));
    o_qpf->setPrivate(CID_QPOINTF, q_qpf);
    return new QoreNode(o_qpf);
@@ -590,7 +590,7 @@ static QoreNode *QPAINTERPATH_pointAtPercent(Object *self, QoreQPainterPath *qpp
 
 //void quadTo ( const QPointF & c, const QPointF & endPoint )
 //void quadTo ( qreal cx, qreal cy, qreal endPointX, qreal endPointY )
-static QoreNode *QPAINTERPATH_quadTo(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_quadTo(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -624,7 +624,7 @@ static QoreNode *QPAINTERPATH_quadTo(Object *self, QoreQPainterPath *qpp, QoreNo
 }
 
 //void setElementPositionAt ( int index, qreal x, qreal y )
-static QoreNode *QPAINTERPATH_setElementPositionAt(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_setElementPositionAt(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -637,7 +637,7 @@ static QoreNode *QPAINTERPATH_setElementPositionAt(Object *self, QoreQPainterPat
 }
 
 //void setFillRule ( Qt::FillRule fillRule )
-static QoreNode *QPAINTERPATH_setFillRule(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_setFillRule(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::FillRule fillRule = (Qt::FillRule)(p ? p->getAsInt() : 0);
@@ -646,7 +646,7 @@ static QoreNode *QPAINTERPATH_setFillRule(Object *self, QoreQPainterPath *qpp, Q
 }
 
 //qreal slopeAtPercent ( qreal t ) const
-static QoreNode *QPAINTERPATH_slopeAtPercent(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_slopeAtPercent(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
@@ -654,7 +654,7 @@ static QoreNode *QPAINTERPATH_slopeAtPercent(Object *self, QoreQPainterPath *qpp
 }
 
 //QPainterPath subtracted ( const QPainterPath & p ) const
-static QoreNode *QPAINTERPATH_subtracted(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_subtracted(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -664,14 +664,14 @@ static QoreNode *QPAINTERPATH_subtracted(Object *self, QoreQPainterPath *qpp, Qo
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(path), xsink);
-   Object *o_qpp = new Object(self->getClass(CID_QPAINTERPATH), getProgram());
+   QoreObject *o_qpp = new QoreObject(self->getClass(CID_QPAINTERPATH), getProgram());
    QoreQPainterPath *q_qpp = new QoreQPainterPath(qpp->subtracted(*(static_cast<QPainterPath *>(path))));
    o_qpp->setPrivate(CID_QPAINTERPATH, q_qpp);
    return new QoreNode(o_qpp);
 }
 
 //QPainterPath subtractedInverted ( const QPainterPath & p ) const
-static QoreNode *QPAINTERPATH_subtractedInverted(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_subtractedInverted(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -681,7 +681,7 @@ static QoreNode *QPAINTERPATH_subtractedInverted(Object *self, QoreQPainterPath 
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(path), xsink);
-   Object *o_qpp = new Object(self->getClass(CID_QPAINTERPATH), getProgram());
+   QoreObject *o_qpp = new QoreObject(self->getClass(CID_QPAINTERPATH), getProgram());
    QoreQPainterPath *q_qpp = new QoreQPainterPath(qpp->subtractedInverted(*(static_cast<QPainterPath *>(path))));
    o_qpp->setPrivate(CID_QPAINTERPATH, q_qpp);
    return new QoreNode(o_qpp);
@@ -690,11 +690,11 @@ static QoreNode *QPAINTERPATH_subtractedInverted(Object *self, QoreQPainterPath 
 /*
 //QPolygonF toFillPolygon ( const QMatrix & matrix = QMatrix() ) const
 //QPolygonF toFillPolygon ( const QTransform & matrix ) const
-static QoreNode *QPAINTERPATH_toFillPolygon(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_toFillPolygon(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
-      Object *o_qpf = new Object(QC_QPolygonF, getProgram());
+      QoreObject *o_qpf = new QoreObject(QC_QPolygonF, getProgram());
       QoreQPolygonF *q_qpf = new QoreQPolygonF(qpp->toFillPolygon());
       o_qpf->setPrivate(CID_QPOLYGONF, q_qpf);
       return new QoreNode(o_qpf);
@@ -704,13 +704,13 @@ static QoreNode *QPAINTERPATH_toFillPolygon(Object *self, QoreQPainterPath *qpp,
       if (*xsink)
          return 0;
       ReferenceHolder<AbstractPrivateData> matrixHolder(static_cast<AbstractPrivateData *>(matrix), xsink);
-      Object *o_qpf = new Object(QC_QPolygonF, getProgram());
+      QoreObject *o_qpf = new QoreObject(QC_QPolygonF, getProgram());
       QoreQPolygonF *q_qpf = new QoreQPolygonF(qpp->toFillPolygon(*(static_cast<QMatrix *>(matrix))));
       o_qpf->setPrivate(CID_QPOLYGONF, q_qpf);
       return new QoreNode(o_qpf);
    }
    ??? QTransform matrix = p;
-   Object *o_qpf = new Object(QC_QPolygonF, getProgram());
+   QoreObject *o_qpf = new QoreObject(QC_QPolygonF, getProgram());
    QoreQPolygonF *q_qpf = new QoreQPolygonF(qpp->toFillPolygon(matrix));
    o_qpf->setPrivate(CID_QPOLYGONF, q_qpf);
    return new QoreNode(o_qpf);
@@ -720,7 +720,7 @@ static QoreNode *QPAINTERPATH_toFillPolygon(Object *self, QoreQPainterPath *qpp,
 /*
 //QList<QPolygonF> toFillPolygons ( const QMatrix & matrix = QMatrix() ) const
 //QList<QPolygonF> toFillPolygons ( const QTransform & matrix ) const
-static QoreNode *QPAINTERPATH_toFillPolygons(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_toFillPolygons(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -739,9 +739,9 @@ static QoreNode *QPAINTERPATH_toFillPolygons(Object *self, QoreQPainterPath *qpp
 */
 
 //QPainterPath toReversed () const
-static QoreNode *QPAINTERPATH_toReversed(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_toReversed(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qpp = new Object(self->getClass(CID_QPAINTERPATH), getProgram());
+   QoreObject *o_qpp = new QoreObject(self->getClass(CID_QPAINTERPATH), getProgram());
    QoreQPainterPath *q_qpp = new QoreQPainterPath(qpp->toReversed());
    o_qpp->setPrivate(CID_QPAINTERPATH, q_qpp);
    return new QoreNode(o_qpp);
@@ -750,7 +750,7 @@ static QoreNode *QPAINTERPATH_toReversed(Object *self, QoreQPainterPath *qpp, Qo
 /*
 //QList<QPolygonF> toSubpathPolygons ( const QMatrix & matrix = QMatrix() ) const
 //QList<QPolygonF> toSubpathPolygons ( const QTransform & matrix ) const
-static QoreNode *QPAINTERPATH_toSubpathPolygons(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_toSubpathPolygons(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -769,7 +769,7 @@ static QoreNode *QPAINTERPATH_toSubpathPolygons(Object *self, QoreQPainterPath *
 */
 
 //QPainterPath united ( const QPainterPath & p ) const
-static QoreNode *QPAINTERPATH_united(Object *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTERPATH_united(QoreObject *self, QoreQPainterPath *qpp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -779,7 +779,7 @@ static QoreNode *QPAINTERPATH_united(Object *self, QoreQPainterPath *qpp, QoreNo
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(path), xsink);
-   Object *o_qpp = new Object(self->getClass(CID_QPAINTERPATH), getProgram());
+   QoreObject *o_qpp = new QoreObject(self->getClass(CID_QPAINTERPATH), getProgram());
    QoreQPainterPath *q_qpp = new QoreQPainterPath(qpp->united(*(static_cast<QPainterPath *>(path))));
    o_qpp->setPrivate(CID_QPAINTERPATH, q_qpp);
    return new QoreNode(o_qpp);

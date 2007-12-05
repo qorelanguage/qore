@@ -51,18 +51,18 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       DLLLOCAL QoreSSLCertificate(X509 *c);
       DLLLOCAL QoreSSLCertificate(const char *fn, class ExceptionSink *xsink);
       DLLLOCAL X509 *getData() const;
-      DLLLOCAL class Hash *getSubjectHash() const;
-      DLLLOCAL class Hash *getIssuerHash() const;
+      DLLLOCAL class QoreHash *getSubjectHash() const;
+      DLLLOCAL class QoreHash *getIssuerHash() const;
       DLLLOCAL int64 getSerialNumber() const;
       DLLLOCAL int64 getVersion() const;
-      DLLLOCAL class Hash *getPurposeHash() const;
+      DLLLOCAL class QoreHash *getPurposeHash() const;
       DLLLOCAL class DateTime *getNotBeforeDate() const;
       DLLLOCAL class DateTime *getNotAfterDate() const;
       DLLLOCAL class QoreString *getSignatureType() const;
       DLLLOCAL class BinaryObject *getSignature() const;
       DLLLOCAL class QoreString *getPublicKeyAlgorithm() const;
       DLLLOCAL class BinaryObject *getPublicKey() const;
-      DLLLOCAL class Hash *getInfo() const;
+      DLLLOCAL class QoreHash *getInfo() const;
 };
 
 #endif // _QORE_CLASS_SSLCERTIFICATE_H

@@ -595,7 +595,7 @@ void initENV(char *env[])
 {
    // set up environment hash
    int i = 0;
-   ENV = new Hash();
+   ENV = new QoreHash();
    while (env[i])
    {
       char *p;

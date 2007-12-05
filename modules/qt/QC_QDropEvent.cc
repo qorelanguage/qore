@@ -28,7 +28,7 @@ int CID_QDROPEVENT;
 class QoreClass *QC_QDropEvent = 0;
 
 //QDropEvent ( const QPoint & pos, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Type type = Drop )
-static void QDROPEVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QDROPEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -58,72 +58,72 @@ static void QDROPEVENT_constructor(Object *self, QoreNode *params, ExceptionSink
    return;
 }
 
-static void QDROPEVENT_copy(class Object *self, class Object *old, class QoreQDropEvent *qde, ExceptionSink *xsink)
+static void QDROPEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQDropEvent *qde, ExceptionSink *xsink)
 {
    xsink->raiseException("QDROPEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //void acceptProposedAction ()
-static QoreNode *QDROPEVENT_acceptProposedAction(Object *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_acceptProposedAction(QoreObject *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
 {
    qde->acceptProposedAction();
    return 0;
 }
 
 //Qt::DropAction dropAction () const
-static QoreNode *QDROPEVENT_dropAction(Object *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_dropAction(QoreObject *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qde->dropAction());
 }
 
 //Qt::KeyboardModifiers keyboardModifiers () const
-static QoreNode *QDROPEVENT_keyboardModifiers(Object *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_keyboardModifiers(QoreObject *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qde->keyboardModifiers());
 }
 
 //const QMimeData * mimeData () const
-static QoreNode *QDROPEVENT_mimeData(Object *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_mimeData(QoreObject *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
 {
    const QMimeData *qt_qobj = qde->mimeData();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
 }
 
 //Qt::MouseButtons mouseButtons () const
-static QoreNode *QDROPEVENT_mouseButtons(Object *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_mouseButtons(QoreObject *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qde->mouseButtons());
 }
 
 //const QPoint & pos () const
-static QoreNode *QDROPEVENT_pos(Object *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_pos(QoreObject *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qde->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
    return new QoreNode(o_qp);
 }
 
 //Qt::DropActions possibleActions () const
-static QoreNode *QDROPEVENT_possibleActions(Object *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_possibleActions(QoreObject *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qde->possibleActions());
 }
 
 //Qt::DropAction proposedAction () const
-static QoreNode *QDROPEVENT_proposedAction(Object *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_proposedAction(QoreObject *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qde->proposedAction());
 }
 
 //void setDropAction ( Qt::DropAction action )
-static QoreNode *QDROPEVENT_setDropAction(Object *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_setDropAction(QoreObject *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::DropAction action = (Qt::DropAction)(p ? p->getAsInt() : 0);
@@ -132,13 +132,13 @@ static QoreNode *QDROPEVENT_setDropAction(Object *self, QoreQDropEvent *qde, Qor
 }
 
 //QWidget * source () const
-static QoreNode *QDROPEVENT_source(Object *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_source(QoreObject *self, QoreQDropEvent *qde, QoreNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = qde->source();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);

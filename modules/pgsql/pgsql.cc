@@ -166,7 +166,7 @@ static class QoreNode *f_pgsql_bind(class QoreNode *params, class ExceptionSink 
       return NULL;
    }
    p = get_param(params, 1);
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("^pgtype^", new QoreNode((int64)type), xsink);
    h->setKeyValue("^value^", p ? p->RefSelf() : NULL, xsink);
    return new QoreNode(h);

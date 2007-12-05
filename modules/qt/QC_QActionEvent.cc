@@ -28,7 +28,7 @@ int CID_QACTIONEVENT;
 class QoreClass *QC_QActionEvent = 0;
 
 //QActionEvent ( int type, QAction * action, QAction * before = 0 )
-static void QACTIONEVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QACTIONEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int type = p ? p->getAsInt() : 0;
@@ -49,32 +49,32 @@ static void QACTIONEVENT_constructor(Object *self, QoreNode *params, ExceptionSi
    return;
 }
 
-static void QACTIONEVENT_copy(class Object *self, class Object *old, class QoreQActionEvent *qae, ExceptionSink *xsink)
+static void QACTIONEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQActionEvent *qae, ExceptionSink *xsink)
 {
    xsink->raiseException("QACTIONEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QAction * action () const
-static QoreNode *QACTIONEVENT_action(Object *self, QoreQActionEvent *qae, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTIONEVENT_action(QoreObject *self, QoreQActionEvent *qae, QoreNode *params, ExceptionSink *xsink)
 {
    QAction *qt_qobj = qae->action();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
 }
 
 //QAction * before () const
-static QoreNode *QACTIONEVENT_before(Object *self, QoreQActionEvent *qae, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTIONEVENT_before(QoreObject *self, QoreQActionEvent *qae, QoreNode *params, ExceptionSink *xsink)
 {
    QAction *qt_qobj = qae->before();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);

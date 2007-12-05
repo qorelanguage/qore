@@ -36,7 +36,7 @@ DLLLOCAL class QoreClass *initQClipboardClass(QoreClass *);
 class QoreQClipboard : public QoreAbstractQObject
 {
    private:
-      Object *qore_obj;     // containing qore object
+      QoreObject *qore_obj;     // containing qore object
 
    protected:
       DLLLOCAL ~QoreQClipboard()
@@ -47,7 +47,7 @@ class QoreQClipboard : public QoreAbstractQObject
    public:
       QPointer<QClipboard> qobj;
 
-      DLLLOCAL QoreQClipboard(Object *obj, QClipboard *cb) : qore_obj(obj), qobj(cb)
+      DLLLOCAL QoreQClipboard(QoreObject *obj, QClipboard *cb) : qore_obj(obj), qobj(cb)
       {
 	 // set pointer to object owner as a property
          qobj->setProperty("qobject", reinterpret_cast<qulonglong>(obj));

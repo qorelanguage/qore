@@ -25,7 +25,7 @@ TEST()
   NamedScope scope(strdup("bbb"));
 
   ExceptionSink xsink;
-  Hash* h = new Hash;
+  QoreHash* h = new QoreHash;
   h->setKeyValue("name", new QoreNode("value"), &xsink);
   assert(!xsink);
   QoreNode* n = new QoreNode(h);

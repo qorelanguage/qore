@@ -29,7 +29,7 @@ int CID_QPOINT;
 class QoreClass *QC_QPoint = 0;
 
 
-static void QPOINT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QPOINT_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQPoint *qr;
 
@@ -47,38 +47,38 @@ static void QPOINT_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_QPOINT, qr);
 }
 
-static void QPOINT_copy(class Object *self, class Object *old, class QoreQPoint *qr, ExceptionSink *xsink)
+static void QPOINT_copy(class QoreObject *self, class QoreObject *old, class QoreQPoint *qr, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QPOINT, new QoreQPoint(*qr));
    //xsink->raiseException("QPOINT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //bool isNull () const
-static QoreNode *QPOINT_isNull(Object *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_isNull(QoreObject *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->isNull());
 }
 
 //int manhattanLength () const
-static QoreNode *QPOINT_manhattanLength(Object *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_manhattanLength(QoreObject *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->manhattanLength());
 }
 
 //int & rx ()
-//static QoreNode *QPOINT_rx(Object *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPOINT_rx(QoreObject *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->rx());
 //}
 
 //int & ry ()
-//static QoreNode *QPOINT_ry(Object *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPOINT_ry(QoreObject *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->ry());
 //}
 
 //void setX ( int x )
-static QoreNode *QPOINT_setX(Object *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_setX(QoreObject *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -87,7 +87,7 @@ static QoreNode *QPOINT_setX(Object *self, QoreQPoint *qp, QoreNode *params, Exc
 }
 
 //void setY ( int y )
-static QoreNode *QPOINT_setY(Object *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_setY(QoreObject *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int y = p ? p->getAsInt() : 0;
@@ -96,19 +96,19 @@ static QoreNode *QPOINT_setY(Object *self, QoreQPoint *qp, QoreNode *params, Exc
 }
 
 //int x () const
-static QoreNode *QPOINT_x(Object *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_x(QoreObject *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->x());
 }
 
 //int y () const
-static QoreNode *QPOINT_y(Object *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_y(QoreObject *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->y());
 }
 
 //QPoint unaryMinus () const
-static QoreNode *QPOINT_unaryMinus(Object *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_unaryMinus(QoreObject *self, QoreQPoint *qp, QoreNode *params, ExceptionSink *xsink)
 {
    return return_object(QC_QPoint, new QoreQPoint(-(*qp)));
 }

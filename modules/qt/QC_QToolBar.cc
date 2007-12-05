@@ -29,7 +29,7 @@ class QoreClass *QC_QToolBar = 0;
 
 //QToolBar ( const QString & title, QWidget * parent = 0 )
 //QToolBar ( QWidget * parent = 0 )
-static void QTOOLBAR_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QTOOLBAR_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -57,14 +57,14 @@ static void QTOOLBAR_constructor(Object *self, QoreNode *params, ExceptionSink *
    return;
 }
 
-static void QTOOLBAR_copy(class Object *self, class Object *old, class QoreQToolBar *qtb, ExceptionSink *xsink)
+static void QTOOLBAR_copy(class QoreObject *self, class QoreObject *old, class QoreQToolBar *qtb, ExceptionSink *xsink)
 {
    xsink->raiseException("QTOOLBAR-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QAction * actionAt ( const QPoint & p ) const
 //QAction * actionAt ( int x, int y ) const
-static QoreNode *QTOOLBAR_actionAt(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_actionAt(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -88,7 +88,7 @@ static QoreNode *QTOOLBAR_actionAt(Object *self, QoreQToolBar *qtb, QoreNode *pa
 //QAction * addAction ( const QIcon & icon, const QString & text )
 //QAction * addAction ( const QString & text, const QObject * receiver, const char * member )
 //QAction * addAction ( const QIcon & icon, const QString & text, const QObject * receiver, const char * member )
-static QoreNode *QTOOLBAR_addAction(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_addAction(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -154,13 +154,13 @@ static QoreNode *QTOOLBAR_addAction(Object *self, QoreQToolBar *qtb, QoreNode *p
 }
 
 //QAction * addSeparator ()
-static QoreNode *QTOOLBAR_addSeparator(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_addSeparator(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return return_qaction(qtb->qobj->addSeparator());
 }
 
 //QAction * addWidget ( QWidget * widget )
-static QoreNode *QTOOLBAR_addWidget(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_addWidget(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -174,29 +174,29 @@ static QoreNode *QTOOLBAR_addWidget(Object *self, QoreQToolBar *qtb, QoreNode *p
 }
 
 //Qt::ToolBarAreas allowedAreas () const
-static QoreNode *QTOOLBAR_allowedAreas(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_allowedAreas(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtb->qobj->allowedAreas());
 }
 
 //void clear ()
-static QoreNode *QTOOLBAR_clear(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_clear(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    qtb->qobj->clear();
    return 0;
 }
 
 //QSize iconSize () const
-static QoreNode *QTOOLBAR_iconSize(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_iconSize(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qtb->qobj->iconSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
 }
 
 //QAction * insertSeparator ( QAction * before )
-static QoreNode *QTOOLBAR_insertSeparator(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_insertSeparator(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQAction *before = (p && p->type == NT_OBJECT) ? (QoreQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
@@ -210,7 +210,7 @@ static QoreNode *QTOOLBAR_insertSeparator(Object *self, QoreQToolBar *qtb, QoreN
 }
 
 //QAction * insertWidget ( QAction * before, QWidget * widget )
-static QoreNode *QTOOLBAR_insertWidget(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_insertWidget(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQAction *before = (p && p->type == NT_OBJECT) ? (QoreQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
@@ -232,7 +232,7 @@ static QoreNode *QTOOLBAR_insertWidget(Object *self, QoreQToolBar *qtb, QoreNode
 }
 
 //bool isAreaAllowed ( Qt::ToolBarArea area ) const
-static QoreNode *QTOOLBAR_isAreaAllowed(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_isAreaAllowed(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::ToolBarArea area = (Qt::ToolBarArea)(p ? p->getAsInt() : 0);
@@ -240,31 +240,31 @@ static QoreNode *QTOOLBAR_isAreaAllowed(Object *self, QoreQToolBar *qtb, QoreNod
 }
 
 //bool isFloatable () const
-static QoreNode *QTOOLBAR_isFloatable(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_isFloatable(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtb->qobj->isFloatable());
 }
 
 //bool isFloating () const
-static QoreNode *QTOOLBAR_isFloating(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_isFloating(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtb->qobj->isFloating());
 }
 
 //bool isMovable () const
-static QoreNode *QTOOLBAR_isMovable(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_isMovable(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtb->qobj->isMovable());
 }
 
 //Qt::Orientation orientation () const
-static QoreNode *QTOOLBAR_orientation(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_orientation(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtb->qobj->orientation());
 }
 
 //void setAllowedAreas ( Qt::ToolBarAreas areas )
-static QoreNode *QTOOLBAR_setAllowedAreas(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_setAllowedAreas(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::ToolBarAreas areas = (Qt::ToolBarAreas)(p ? p->getAsInt() : 0);
@@ -273,7 +273,7 @@ static QoreNode *QTOOLBAR_setAllowedAreas(Object *self, QoreQToolBar *qtb, QoreN
 }
 
 //void setFloatable ( bool floatable )
-static QoreNode *QTOOLBAR_setFloatable(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_setFloatable(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool floatable = p ? p->getAsBool() : false;
@@ -282,7 +282,7 @@ static QoreNode *QTOOLBAR_setFloatable(Object *self, QoreQToolBar *qtb, QoreNode
 }
 
 //void setMovable ( bool movable )
-static QoreNode *QTOOLBAR_setMovable(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_setMovable(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool movable = p ? p->getAsBool() : false;
@@ -291,7 +291,7 @@ static QoreNode *QTOOLBAR_setMovable(Object *self, QoreQToolBar *qtb, QoreNode *
 }
 
 //void setOrientation ( Qt::Orientation orientation )
-static QoreNode *QTOOLBAR_setOrientation(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_setOrientation(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
@@ -300,19 +300,19 @@ static QoreNode *QTOOLBAR_setOrientation(Object *self, QoreQToolBar *qtb, QoreNo
 }
 
 //QAction * toggleViewAction () const
-static QoreNode *QTOOLBAR_toggleViewAction(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_toggleViewAction(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return return_qaction(qtb->qobj->toggleViewAction());
 }
 
 //Qt::ToolButtonStyle toolButtonStyle () const
-static QoreNode *QTOOLBAR_toolButtonStyle(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_toolButtonStyle(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtb->qobj->toolButtonStyle());
 }
 
 //QWidget * widgetForAction ( QAction * action ) const
-static QoreNode *QTOOLBAR_widgetForAction(Object *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTOOLBAR_widgetForAction(QoreObject *self, QoreQToolBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;

@@ -29,7 +29,7 @@ class QoreClass *QC_QTimeEdit = 0;
 
 //QTimeEdit ( QWidget * parent = 0 )
 //QTimeEdit ( const QTime & time, QWidget * parent = 0 )
-static void QTIMEEDIT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QTIMEEDIT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -57,7 +57,7 @@ static void QTIMEEDIT_constructor(Object *self, QoreNode *params, ExceptionSink 
    return;
 }
 
-static void QTIMEEDIT_copy(class Object *self, class Object *old, class QoreQTimeEdit *qte, ExceptionSink *xsink)
+static void QTIMEEDIT_copy(class QoreObject *self, class QoreObject *old, class QoreQTimeEdit *qte, ExceptionSink *xsink)
 {
    xsink->raiseException("QTIMEEDIT-COPY-ERROR", "objects of this class cannot be copied");
 }

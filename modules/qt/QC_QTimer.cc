@@ -29,7 +29,7 @@
 int CID_QTIMER;
 
 // QTimer ( QObject * parent = 0 )
-static void QTIMER_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QTIMER_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQTimer *qw;
    QoreNode *p = test_param(params, NT_OBJECT, 0);
@@ -46,31 +46,31 @@ static void QTIMER_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_QTIMER, qw);
 }
 
-static void QTIMER_copy(class Object *self, class Object *old, class QoreQTimer *ql, ExceptionSink *xsink)
+static void QTIMER_copy(class QoreObject *self, class QoreObject *old, class QoreQTimer *ql, ExceptionSink *xsink)
 {
    xsink->raiseException("QTIMER-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //int interval () const
-static QoreNode *QTIMER_interval(Object *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTIMER_interval(QoreObject *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qt->qobj->interval());
 }
 
 //bool isActive () const
-static QoreNode *QTIMER_isActive(Object *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTIMER_isActive(QoreObject *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qt->qobj->isActive());
 }
 
 //bool isSingleShot () const
-static QoreNode *QTIMER_isSingleShot(Object *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTIMER_isSingleShot(QoreObject *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qt->qobj->isSingleShot());
 }
 
 //void setInterval ( int msec )
-static QoreNode *QTIMER_setInterval(Object *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTIMER_setInterval(QoreObject *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int msec = p ? p->getAsInt() : 0;
@@ -79,7 +79,7 @@ static QoreNode *QTIMER_setInterval(Object *self, QoreQTimer *qt, QoreNode *para
 }
 
 //void setSingleShot ( bool singleShot )
-static QoreNode *QTIMER_setSingleShot(Object *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTIMER_setSingleShot(QoreObject *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool singleShot = p ? p->getAsBool() : false;
@@ -88,7 +88,7 @@ static QoreNode *QTIMER_setSingleShot(Object *self, QoreQTimer *qt, QoreNode *pa
 }
 
 //int timerId () const
-static QoreNode *QTIMER_timerId(Object *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTIMER_timerId(QoreObject *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qt->qobj->timerId());
 }
@@ -97,7 +97,7 @@ static QoreNode *QTIMER_timerId(Object *self, QoreQTimer *qt, QoreNode *params, 
 
 //void start ( int msec )
 //void start ()
-static QoreNode *QTIMER_start(Object *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTIMER_start(QoreObject *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p))
@@ -110,7 +110,7 @@ static QoreNode *QTIMER_start(Object *self, QoreQTimer *qt, QoreNode *params, Ex
 }
 
 //void stop ()
-static QoreNode *QTIMER_stop(Object *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTIMER_stop(QoreObject *self, QoreQTimer *qt, QoreNode *params, ExceptionSink *xsink)
 {
    qt->qobj->stop();
    return 0;
@@ -161,7 +161,7 @@ static QoreNode *f_QTimer_singleShot(QoreNode *params, ExceptionSink *xsink)
    }
    const char *member = p->val.String->getBuffer();
    
-   Object *obj = new Object(QC_QObject, getProgram());
+   QoreObject *obj = new QoreObject(QC_QObject, getProgram());
    class QoreQtSingleShotTimer *qsst = new QoreQtSingleShotTimer(obj, msec, receiver, member, xsink);
    if (!*xsink)
       obj->setPrivate(CID_QOBJECT, qsst);

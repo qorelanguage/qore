@@ -29,12 +29,12 @@ class QoreClass *QC_QStyleOptionSizeGrip = 0;
 
 //QStyleOptionSizeGrip ()
 //QStyleOptionSizeGrip ( const QStyleOptionSizeGrip & other )
-static void QSTYLEOPTIONSIZEGRIP_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONSIZEGRIP_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONSIZEGRIP, new QoreQStyleOptionSizeGrip());
 }
 
-static void QSTYLEOPTIONSIZEGRIP_copy(class Object *self, class Object *old, class QoreQStyleOptionSizeGrip *qsosg, ExceptionSink *xsink)
+static void QSTYLEOPTIONSIZEGRIP_copy(class QoreObject *self, class QoreObject *old, class QoreQStyleOptionSizeGrip *qsosg, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONSIZEGRIP, new QoreQStyleOptionSizeGrip(*qsosg));
 }

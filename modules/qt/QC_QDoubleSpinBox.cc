@@ -28,7 +28,7 @@ int CID_QDOUBLESPINBOX;
 class QoreClass *QC_QDoubleSpinBox = 0;
 
 //QDoubleSpinBox ( QWidget * parent = 0 )
-static void QDOUBLESPINBOX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QDOUBLESPINBOX_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -39,43 +39,43 @@ static void QDOUBLESPINBOX_constructor(Object *self, QoreNode *params, Exception
    return;
 }
 
-static void QDOUBLESPINBOX_copy(class Object *self, class Object *old, class QoreQDoubleSpinBox *qdsb, ExceptionSink *xsink)
+static void QDOUBLESPINBOX_copy(class QoreObject *self, class QoreObject *old, class QoreQDoubleSpinBox *qdsb, ExceptionSink *xsink)
 {
    xsink->raiseException("QDOUBLESPINBOX-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QString cleanText () const
-static QoreNode *QDOUBLESPINBOX_cleanText(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_cleanText(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qdsb->qobj->cleanText().toUtf8().data(), QCS_UTF8));
 }
 
 //int decimals () const
-static QoreNode *QDOUBLESPINBOX_decimals(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_decimals(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qdsb->qobj->decimals());
 }
 
 //double maximum () const
-static QoreNode *QDOUBLESPINBOX_maximum(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_maximum(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qdsb->qobj->maximum());
 }
 
 //double minimum () const
-static QoreNode *QDOUBLESPINBOX_minimum(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_minimum(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qdsb->qobj->minimum());
 }
 
 //QString prefix () const
-static QoreNode *QDOUBLESPINBOX_prefix(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_prefix(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qdsb->qobj->prefix().toUtf8().data(), QCS_UTF8));
 }
 
 //void setDecimals ( int prec )
-static QoreNode *QDOUBLESPINBOX_setDecimals(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_setDecimals(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int prec = p ? p->getAsInt() : 0;
@@ -84,7 +84,7 @@ static QoreNode *QDOUBLESPINBOX_setDecimals(Object *self, QoreQDoubleSpinBox *qd
 }
 
 //void setMaximum ( double max )
-static QoreNode *QDOUBLESPINBOX_setMaximum(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_setMaximum(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    double max = p ? p->getAsFloat() : 0.0;
@@ -93,7 +93,7 @@ static QoreNode *QDOUBLESPINBOX_setMaximum(Object *self, QoreQDoubleSpinBox *qds
 }
 
 //void setMinimum ( double min )
-static QoreNode *QDOUBLESPINBOX_setMinimum(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_setMinimum(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    double min = p ? p->getAsFloat() : 0.0;
@@ -102,7 +102,7 @@ static QoreNode *QDOUBLESPINBOX_setMinimum(Object *self, QoreQDoubleSpinBox *qds
 }
 
 //void setPrefix ( const QString & prefix )
-static QoreNode *QDOUBLESPINBOX_setPrefix(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_setPrefix(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString prefix;
@@ -113,7 +113,7 @@ static QoreNode *QDOUBLESPINBOX_setPrefix(Object *self, QoreQDoubleSpinBox *qdsb
 }
 
 //void setRange ( double minimum, double maximum )
-static QoreNode *QDOUBLESPINBOX_setRange(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_setRange(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    double minimum = p ? p->getAsFloat() : 0.0;
@@ -124,7 +124,7 @@ static QoreNode *QDOUBLESPINBOX_setRange(Object *self, QoreQDoubleSpinBox *qdsb,
 }
 
 //void setSingleStep ( double val )
-static QoreNode *QDOUBLESPINBOX_setSingleStep(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_setSingleStep(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    double val = p ? p->getAsFloat() : 0.0;
@@ -133,7 +133,7 @@ static QoreNode *QDOUBLESPINBOX_setSingleStep(Object *self, QoreQDoubleSpinBox *
 }
 
 //void setSuffix ( const QString & suffix )
-static QoreNode *QDOUBLESPINBOX_setSuffix(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_setSuffix(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString suffix;
@@ -144,19 +144,19 @@ static QoreNode *QDOUBLESPINBOX_setSuffix(Object *self, QoreQDoubleSpinBox *qdsb
 }
 
 //double singleStep () const
-static QoreNode *QDOUBLESPINBOX_singleStep(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_singleStep(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qdsb->qobj->singleStep());
 }
 
 //QString suffix () const
-static QoreNode *QDOUBLESPINBOX_suffix(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_suffix(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qdsb->qobj->suffix().toUtf8().data(), QCS_UTF8));
 }
 
 //virtual QString textFromValue ( double value ) const
-static QoreNode *QDOUBLESPINBOX_textFromValue(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_textFromValue(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    double value = p ? p->getAsFloat() : 0.0;
@@ -164,13 +164,13 @@ static QoreNode *QDOUBLESPINBOX_textFromValue(Object *self, QoreQDoubleSpinBox *
 }
 
 //double value () const
-static QoreNode *QDOUBLESPINBOX_value(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_value(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qdsb->qobj->value());
 }
 
 //virtual double valueFromText ( const QString & text ) const
-static QoreNode *QDOUBLESPINBOX_valueFromText(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_valueFromText(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -180,7 +180,7 @@ static QoreNode *QDOUBLESPINBOX_valueFromText(Object *self, QoreQDoubleSpinBox *
 }
 
 //void setValue ( double val )
-static QoreNode *QDOUBLESPINBOX_setValue(Object *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLESPINBOX_setValue(QoreObject *self, QoreQDoubleSpinBox *qdsb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    double val = p ? p->getAsFloat() : 0.0;

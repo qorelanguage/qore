@@ -22,11 +22,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/Namespace.h>
-#include <qore/ModuleManager.h>
+#include <qore/Qore.h>
 
 #include "tibae-module.h"
 #include "QC_TibcoAdapter.h"
@@ -55,7 +51,7 @@ static class QoreNode *f_tibae_type(class QoreNode *params, class ExceptionSink 
       xsink->raiseException("TIBAE-TYPE-ERROR", "type %d is out of range (expecting 1 - %d)", type, MAX_TIBAE_TYPE);
       return 0;
    }
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("^type^", new QoreNode((int64)type), xsink);
    p = get_param(params, 1);
    if (p)

@@ -42,7 +42,7 @@ class myQAbstractSlider : public QAbstractSlider, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQAbstractSlider(Object *obj, QWidget *parent = 0) : QAbstractSlider(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQAbstractSlider(QoreObject *obj, QWidget *parent = 0) : QAbstractSlider(parent), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
       }
@@ -54,7 +54,7 @@ class QoreQAbstractSlider : public QoreAbstractQAbstractSlider
    public:
       QPointer<myQAbstractSlider>qobj;
 
-      DLLLOCAL QoreQAbstractSlider(Object *obj, QWidget *parent = 0) : qobj(new myQAbstractSlider(obj, parent))
+      DLLLOCAL QoreQAbstractSlider(QoreObject *obj, QWidget *parent = 0) : qobj(new myQAbstractSlider(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

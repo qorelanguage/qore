@@ -43,11 +43,11 @@ class myQTableWidget : public QTableWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTableWidget(Object *obj, QWidget* parent = 0) : QTableWidget(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTableWidget(QoreObject *obj, QWidget* parent = 0) : QTableWidget(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQTableWidget(Object *obj, int rows, int columns, QWidget* parent = 0) : QTableWidget(rows, columns, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTableWidget(QoreObject *obj, int rows, int columns, QWidget* parent = 0) : QTableWidget(rows, columns, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -58,10 +58,10 @@ class QoreQTableWidget : public QoreAbstractQTableView
    public:
       QPointer<myQTableWidget> qobj;
 
-      DLLLOCAL QoreQTableWidget(Object *obj, QWidget* parent = 0) : qobj(new myQTableWidget(obj, parent))
+      DLLLOCAL QoreQTableWidget(QoreObject *obj, QWidget* parent = 0) : qobj(new myQTableWidget(obj, parent))
       {
       }
-      DLLLOCAL QoreQTableWidget(Object *obj, int rows, int columns, QWidget* parent = 0) : qobj(new myQTableWidget(obj, rows, columns, parent))
+      DLLLOCAL QoreQTableWidget(QoreObject *obj, int rows, int columns, QWidget* parent = 0) : qobj(new myQTableWidget(obj, rows, columns, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

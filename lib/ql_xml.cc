@@ -76,14 +76,14 @@ class XmlRpcValue {
       }
 };
 
-// convenient class to hold a Hash pointer on the stack and delete it if not needed
+// convenient class to hold a QoreHash pointer on the stack and delete it if not needed
 class hashKeeper {
    private:
-      class Hash *h;
+      class QoreHash *h;
 
    public:
       inline hashKeeper()
-      : h(new Hash)
+      : h(new QoreHash)
       {
       }
       inline ~hashKeeper()
@@ -96,9 +96,9 @@ class hashKeeper {
          assert(h);
 	 h->setKeyValue(k, v, NULL);
       }
-      inline class Hash *getHash()
+      inline class QoreHash *getHash()
       {
-	 class Hash *rv = h;
+	 class QoreHash *rv = h;
 	 h = NULL;
 	 return rv;
       }
@@ -196,7 +196,7 @@ inline xml_stack::xml_stack()
 
 } // anonymous namespace
 
-static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink);
+static void makeXMLString(QoreString *str, QoreHash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink);
 
 static void concatSimpleValue(QoreString *str, QoreNode *n, class ExceptionSink *xsink)
 {
@@ -388,7 +388,7 @@ static void addXMLElement(const char *key, QoreString *str, QoreNode *n, int ind
 	 if (n->type == NT_OBJECT)
 	 {
 	    // get snapshot of data
-	    class Hash *h = n->val.object->evalData(xsink);
+	    class QoreHash *h = n->val.object->evalData(xsink);
 	    if (!xsink->isEvent())
 	    {
 	       if (format)
@@ -412,7 +412,7 @@ static void addXMLElement(const char *key, QoreString *str, QoreNode *n, int ind
    //traceout("addXMLElement()");
 }
 
-static void makeXMLString(QoreString *str, Hash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink)
+static void makeXMLString(QoreString *str, QoreHash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink)
 {
    tracein("makeXMLString()");
    HashIterator hi(h);
@@ -627,7 +627,7 @@ static class QoreNode *f_makeFormattedXMLFragment(class QoreNode *params, Except
 
 static void addXMLRPCValue(QoreString *str, QoreNode *n, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink);
 
-static inline void addXMLRPCValueInternHash(QoreString *str, Hash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink)
+static inline void addXMLRPCValueInternHash(QoreString *str, QoreHash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink)
 {
    str->concat("<struct>");
    if (format) str->concat('\n');
@@ -998,7 +998,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	 // if there is no node pointer, then make a hash
 	 if (!n)
 	 {
-	    class Hash *h = new Hash();
+	    class QoreHash *h = new QoreHash();
 	    xstack->setNode(new QoreNode(h));
 	    xstack->push(h->getKeyValuePtr(name), depth);
 	 }
@@ -1006,7 +1006,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	 {
 	    if (n->type != NT_HASH)
 	    {
-	       class Hash *h = new Hash();
+	       class QoreHash *h = new QoreHash();
 	       xstack->setNode(new QoreNode(h));
 	       h->setKeyValue("^value^", n, NULL);
 	       xstack->incValueCount();
@@ -1062,7 +1062,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	 // add attributes to structure if possible
 	 if (xmlTextReaderHasAttributes(reader))
 	 {
-	    Hash *h = new Hash();
+	    QoreHash *h = new QoreHash();
 	    while (xmlTextReaderMoveToNextAttribute(reader) == 1)
 	    {
 	       char *name = (char *)xmlTextReaderConstName(reader);
@@ -1076,7 +1076,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	    }
 
 	    // make new new a hash and assign "^attributes^" key
-	    class Hash *nv = new Hash();
+	    class QoreHash *nv = new QoreHash();
 	    nv->setKeyValue("^attributes^", new QoreNode(h), xsink);
 	    xstack->setNode(new QoreNode(nv));
 	 }
@@ -1112,7 +1112,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	       }
 	       else // convert value to hash and save value node
 	       {
-		  class Hash *h = new Hash();
+		  class QoreHash *h = new QoreHash();
 		  xstack->setNode(new QoreNode(h));
 		  h->setKeyValue("^value^", n, NULL);
 		  xstack->incValueCount();
@@ -1164,7 +1164,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
 	    }
 	    else // convert value to hash and save value node
 	    {
-	       class Hash *h = new Hash();
+	       class QoreHash *h = new QoreHash();
 	       xstack->setNode(new QoreNode(h));
 	       if (n)
 	       {
@@ -1254,7 +1254,7 @@ static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, class Q
 {
    int nt;
 
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    v->set(new QoreNode(h));
 
    int member_depth = xmlTextReaderDepth(reader);
@@ -1819,7 +1819,7 @@ static void doEmptyValue(class XmlRpcValue *v, char *name, int depth, class Exce
    else if (!strcmp(name, "boolean"))
       v->set(boolean_false());
    else if (!strcmp(name, "struct"))
-      v->set(new QoreNode(new Hash()));
+      v->set(new QoreNode(new QoreHash()));
    else if (!strcmp(name, "array"))
       v->set(new QoreNode(new QoreList()));
    else if (!strcmp(name, "double"))
@@ -1909,7 +1909,7 @@ static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, clas
       qore_xmlRead(reader, xsink);
 }
 
-static void makeXMLStringNew(xmlTextWriterPtr writer, Hash *h, class ExceptionSink *xsink);
+static void makeXMLStringNew(xmlTextWriterPtr writer, QoreHash *h, class ExceptionSink *xsink);
 
 static void addXMLElementNew(xmlTextWriterPtr writer, QoreNode *n, xmlChar *key, ExceptionSink *xsink)
 {
@@ -2050,7 +2050,7 @@ static void addXMLElementNew(xmlTextWriterPtr writer, QoreNode *n, xmlChar *key,
    //traceout("addXMLElementNew()");
 }
 
-static void makeXMLStringNew(xmlTextWriterPtr writer, Hash *h, class ExceptionSink *xsink)
+static void makeXMLStringNew(xmlTextWriterPtr writer, QoreHash *h, class ExceptionSink *xsink)
 {
    tracein("makeXMLStringNew()");
    HashIterator hi(h);
@@ -2307,7 +2307,7 @@ static class QoreNode *f_makeFormattedXMLStringNew(class QoreNode *params, Excep
 
 static void addXMLRPCValueNew(xmlTextWriterPtr writer, QoreNode *n, class ExceptionSink *xsink);
 
-static inline void addXMLRPCValueInternHashNew(xmlTextWriterPtr writer, Hash *h, class ExceptionSink *xsink)
+static inline void addXMLRPCValueInternHashNew(xmlTextWriterPtr writer, QoreHash *h, class ExceptionSink *xsink)
 {
    if (xmlTextWriterStartElement(writer, (xmlChar *)"struct") < 0)
    {
@@ -3314,7 +3314,7 @@ class QoreNode *parseXMLRPCResponse(class QoreString *msg, class QoreEncoding *c
    if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
       return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'methodResponse' end element", xsink);
 
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    if (fault)
       h->setKeyValue("fault", v.getValue(), NULL);
    else

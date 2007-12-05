@@ -54,11 +54,11 @@ int TryStatement::execImpl(class QoreNode **return_value, class ExceptionSink *x
    
    /*
     // if thread_exit has been executed
-    if (except == (Exception *)1)
+    if (except == (QoreException *)1)
     return rc;
     */
    
-   class Exception *except = xsink->catchException();
+   class QoreException *except = xsink->catchException();
    if (except)
    {
       printd(5, "TryStatement::execImpl() entering catch handler, e=%08p\n", except);

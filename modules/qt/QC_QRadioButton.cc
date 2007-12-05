@@ -29,7 +29,7 @@ class QoreClass *QC_QRadioButton = 0;
 
 //QRadioButton ( QWidget * parent = 0 )
 //QRadioButton ( const QString & text, QWidget * parent = 0 )
-static void QRADIOBUTTON_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QRADIOBUTTON_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -56,14 +56,14 @@ static void QRADIOBUTTON_constructor(Object *self, QoreNode *params, ExceptionSi
    return;
 }
 
-static void QRADIOBUTTON_copy(class Object *self, class Object *old, class QoreQRadioButton *qrb, ExceptionSink *xsink)
+static void QRADIOBUTTON_copy(class QoreObject *self, class QoreObject *old, class QoreQRadioButton *qrb, ExceptionSink *xsink)
 {
    xsink->raiseException("QRADIOBUTTON-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //void initStyleOption ( QStyleOptionButton * option ) const
 /*
-static QoreNode *QRADIOBUTTON_initStyleOption(Object *self, QoreAbstractQRadioButton *qrb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QRADIOBUTTON_initStyleOption(QoreObject *self, QoreAbstractQRadioButton *qrb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQStyleOptionButton *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionButton *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONBUTTON, xsink) : 0;

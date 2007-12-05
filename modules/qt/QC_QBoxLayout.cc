@@ -26,7 +26,7 @@
 
 int CID_QBOXLAYOUT;
 
-static void QBOXLAYOUT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QBOXLAYOUT_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int direction = p ? p->getAsInt() : 0;
@@ -46,13 +46,13 @@ static void QBOXLAYOUT_constructor(class Object *self, class QoreNode *params, E
    self->setPrivate(CID_QBOXLAYOUT, qw);
 }
 
-static void QBOXLAYOUT_copy(class Object *self, class Object *old, class QoreQBoxLayout *ql, ExceptionSink *xsink)
+static void QBOXLAYOUT_copy(class QoreObject *self, class QoreObject *old, class QoreQBoxLayout *ql, ExceptionSink *xsink)
 {
    xsink->raiseException("QBOXLAYOUT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //void addLayout ( QLayout * layout, int stretch = 0 )
-static QoreNode *QBOXLAYOUT_addLayout(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_addLayout(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQLayout *layout = (p && p->type == NT_OBJECT) ? (QoreAbstractQLayout *)p->val.object->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
@@ -70,7 +70,7 @@ static QoreNode *QBOXLAYOUT_addLayout(Object *self, QoreAbstractQBoxLayout *qbl,
 }
 
 //void addSpacing ( int size )
-static QoreNode *QBOXLAYOUT_addSpacing(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_addSpacing(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int size = p ? p->getAsInt() : 0;
@@ -79,7 +79,7 @@ static QoreNode *QBOXLAYOUT_addSpacing(Object *self, QoreAbstractQBoxLayout *qbl
 }
 
 //void addStretch ( int stretch = 0 )
-static QoreNode *QBOXLAYOUT_addStretch(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_addStretch(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int stretch = p ? p->getAsInt() : 0;
@@ -88,7 +88,7 @@ static QoreNode *QBOXLAYOUT_addStretch(Object *self, QoreAbstractQBoxLayout *qbl
 }
 
 //void addStrut ( int size )
-static QoreNode *QBOXLAYOUT_addStrut(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_addStrut(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int size = p ? p->getAsInt() : 0;
@@ -97,7 +97,7 @@ static QoreNode *QBOXLAYOUT_addStrut(Object *self, QoreAbstractQBoxLayout *qbl, 
 }
 
 //void addWidget ( QWidget * widget, int stretch = 0, Qt::Alignment alignment = 0 )
-static QoreNode *QBOXLAYOUT_addWidget(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_addWidget(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -118,13 +118,13 @@ static QoreNode *QBOXLAYOUT_addWidget(Object *self, QoreAbstractQBoxLayout *qbl,
 }
 
 //Direction direction () const
-static QoreNode *QBOXLAYOUT_direction(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_direction(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qbl->getQBoxLayout()->direction());
 }
 
 //void insertLayout ( int index, QLayout * layout, int stretch = 0 )
-static QoreNode *QBOXLAYOUT_insertLayout(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_insertLayout(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -144,7 +144,7 @@ static QoreNode *QBOXLAYOUT_insertLayout(Object *self, QoreAbstractQBoxLayout *q
 }
 
 //void insertSpacing ( int index, int size )
-static QoreNode *QBOXLAYOUT_insertSpacing(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_insertSpacing(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -155,7 +155,7 @@ static QoreNode *QBOXLAYOUT_insertSpacing(Object *self, QoreAbstractQBoxLayout *
 }
 
 //void insertStretch ( int index, int stretch = 0 )
-static QoreNode *QBOXLAYOUT_insertStretch(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_insertStretch(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -166,7 +166,7 @@ static QoreNode *QBOXLAYOUT_insertStretch(Object *self, QoreAbstractQBoxLayout *
 }
 
 //void insertWidget ( int index, QWidget * widget, int stretch = 0, Qt::Alignment alignment = 0 )
-static QoreNode *QBOXLAYOUT_insertWidget(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_insertWidget(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -188,14 +188,14 @@ static QoreNode *QBOXLAYOUT_insertWidget(Object *self, QoreAbstractQBoxLayout *q
 }
 
 //virtual void invalidate ()
-static QoreNode *QBOXLAYOUT_invalidate(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_invalidate(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    qbl->getQBoxLayout()->invalidate();
    return 0;
 }
 
 //void setDirection ( Direction direction )
-static QoreNode *QBOXLAYOUT_setDirection(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_setDirection(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QBoxLayout::Direction direction = (QBoxLayout::Direction)(p ? p->getAsInt() : 0);
@@ -204,7 +204,7 @@ static QoreNode *QBOXLAYOUT_setDirection(Object *self, QoreAbstractQBoxLayout *q
 }
 
 //void setSpacing ( int spacing )
-static QoreNode *QBOXLAYOUT_setSpacing(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_setSpacing(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int spacing = p ? p->getAsInt() : 0;
@@ -214,7 +214,7 @@ static QoreNode *QBOXLAYOUT_setSpacing(Object *self, QoreAbstractQBoxLayout *qbl
 
 //bool setStretchFactor ( QWidget * widget, int stretch )
 //bool setStretchFactor ( QLayout * layout, int stretch )
-static QoreNode *QBOXLAYOUT_setStretchFactor(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_setStretchFactor(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 1);
    int stretch = p ? p->getAsInt() : 0;
@@ -240,7 +240,7 @@ static QoreNode *QBOXLAYOUT_setStretchFactor(Object *self, QoreAbstractQBoxLayou
 }
 
 //int spacing () const
-static QoreNode *QBOXLAYOUT_spacing(Object *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBOXLAYOUT_spacing(QoreObject *self, QoreAbstractQBoxLayout *qbl, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qbl->getQBoxLayout()->spacing());
 }

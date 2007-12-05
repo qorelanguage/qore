@@ -44,7 +44,7 @@ class myQWizard : public QWizard, public QoreQDialogExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQWizard(Object *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : QWizard(parent, flags), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQWizard(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : QWizard(parent, flags), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
@@ -61,7 +61,7 @@ class QoreQWizard : public QoreAbstractQWizard
    public:
       QPointer<myQWizard> qobj;
 
-      DLLLOCAL QoreQWizard(Object *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : qobj(new myQWizard(obj, parent, flags))
+      DLLLOCAL QoreQWizard(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : qobj(new myQWizard(obj, parent, flags))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -90,10 +90,10 @@ class QoreQWizard : public QoreAbstractQWizard
 class QoreQtQWizard : public QoreAbstractQWizard
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QWizard> qobj;
 
-      DLLLOCAL QoreQtQWizard(Object *obj, QWizard *qw) : qore_obj(obj), qobj(qw)
+      DLLLOCAL QoreQtQWizard(QoreObject *obj, QWizard *qw) : qore_obj(obj), qobj(qw)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

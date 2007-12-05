@@ -29,12 +29,12 @@ class QoreClass *QC_QStyleOptionTitleBar = 0;
 
 //QStyleOptionTitleBar ()
 //QStyleOptionTitleBar ( const QStyleOptionTitleBar & other )
-static void QSTYLEOPTIONTITLEBAR_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONTITLEBAR_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTITLEBAR, new QoreQStyleOptionTitleBar());
 }
 
-static void QSTYLEOPTIONTITLEBAR_copy(class Object *self, class Object *old, class QoreQStyleOptionTitleBar *qsotb, ExceptionSink *xsink)
+static void QSTYLEOPTIONTITLEBAR_copy(class QoreObject *self, class QoreObject *old, class QoreQStyleOptionTitleBar *qsotb, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTITLEBAR, new QoreQStyleOptionTitleBar(*qsotb));
 }

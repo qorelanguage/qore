@@ -28,30 +28,30 @@ int CID_QTEXTLISTFORMAT;
 class QoreClass *QC_QTextListFormat = 0;
 
 //QTextListFormat ()
-static void QTEXTLISTFORMAT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QTEXTLISTFORMAT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTLISTFORMAT, new QoreQTextListFormat());
 }
 
-static void QTEXTLISTFORMAT_copy(class Object *self, class Object *old, class QoreQTextListFormat *qtlf, ExceptionSink *xsink)
+static void QTEXTLISTFORMAT_copy(class QoreObject *self, class QoreObject *old, class QoreQTextListFormat *qtlf, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTLISTFORMAT, new QoreQTextListFormat(*qtlf));
 }
 
 //int indent () const
-static QoreNode *QTEXTLISTFORMAT_indent(Object *self, QoreQTextListFormat *qtlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTLISTFORMAT_indent(QoreObject *self, QoreQTextListFormat *qtlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtlf->indent());
 }
 
 //bool isValid () const
-static QoreNode *QTEXTLISTFORMAT_isValid(Object *self, QoreQTextListFormat *qtlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTLISTFORMAT_isValid(QoreObject *self, QoreQTextListFormat *qtlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtlf->isValid());
 }
 
 //void setIndent ( int indentation )
-static QoreNode *QTEXTLISTFORMAT_setIndent(Object *self, QoreQTextListFormat *qtlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTLISTFORMAT_setIndent(QoreObject *self, QoreQTextListFormat *qtlf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int indentation = p ? p->getAsInt() : 0;
@@ -60,7 +60,7 @@ static QoreNode *QTEXTLISTFORMAT_setIndent(Object *self, QoreQTextListFormat *qt
 }
 
 //void setStyle ( Style style )
-static QoreNode *QTEXTLISTFORMAT_setStyle(Object *self, QoreQTextListFormat *qtlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTLISTFORMAT_setStyle(QoreObject *self, QoreQTextListFormat *qtlf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextListFormat::Style style = (QTextListFormat::Style)(p ? p->getAsInt() : 0);
@@ -69,7 +69,7 @@ static QoreNode *QTEXTLISTFORMAT_setStyle(Object *self, QoreQTextListFormat *qtl
 }
 
 //Style style () const
-static QoreNode *QTEXTLISTFORMAT_style(Object *self, QoreQTextListFormat *qtlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTLISTFORMAT_style(QoreObject *self, QoreQTextListFormat *qtlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtlf->style());
 }

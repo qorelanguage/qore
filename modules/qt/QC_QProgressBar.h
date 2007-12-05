@@ -41,7 +41,7 @@ class myQProgressBar : public QProgressBar, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQProgressBar(Object *obj, QWidget* parent = 0) : QProgressBar(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQProgressBar(QoreObject *obj, QWidget* parent = 0) : QProgressBar(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQProgressBar : public QoreAbstractQWidget
    public:
       QPointer<myQProgressBar> qobj;
 
-      DLLLOCAL QoreQProgressBar(Object *obj, QWidget* parent = 0) : qobj(new myQProgressBar(obj, parent))
+      DLLLOCAL QoreQProgressBar(QoreObject *obj, QWidget* parent = 0) : qobj(new myQProgressBar(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

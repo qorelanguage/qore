@@ -648,9 +648,9 @@ class QoreNode *QorePGResult::getNode(int row, int col, class ExceptionSink *xsi
    return rv;
 }
 
-class Hash *QorePGResult::getHash(class ExceptionSink *xsink)
+class QoreHash *QorePGResult::getHash(class ExceptionSink *xsink)
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
 
    int num_columns = PQnfields(res);
 
@@ -685,7 +685,7 @@ class QoreList *QorePGResult::getQoreList(class ExceptionSink *xsink)
 
    for (int i = 0, e = PQntuples(res); i < e; ++i)
    {
-      class Hash *h = new Hash();
+      class QoreHash *h = new QoreHash();
       for (int j = 0; j < num_columns; ++j)
       {
 	 class QoreNode *n = getNode(i, j, xsink);
@@ -702,7 +702,7 @@ class QoreList *QorePGResult::getQoreList(class ExceptionSink *xsink)
    return l;
 }
 
-static int check_hash_type(class Hash *h, class ExceptionSink *xsink)
+static int check_hash_type(class QoreHash *h, class ExceptionSink *xsink)
 {
    class QoreNode *t = h->getKeyValue("^pgtype^");
    if (!t)
@@ -1057,7 +1057,7 @@ int QorePGBindArray::check_type(class QoreNode *n, class ExceptionSink *xsink)
    return 0;
 }
 
-int QorePGBindArray::check_oid(class Hash *h, class ExceptionSink *xsink)
+int QorePGBindArray::check_oid(class QoreHash *h, class ExceptionSink *xsink)
 {
    int o = check_hash_type(h, xsink);
    if (o < 0)
@@ -1485,7 +1485,7 @@ class QoreNode *QorePGConnection::select(class Datasource *ds, QoreString *qstr,
    if (res.exec(pc, qstr, args, xsink))
       return NULL;
 
-   class Hash *h = res.getHash(xsink);
+   class QoreHash *h = res.getHash(xsink);
    return h ? new QoreNode(h) : NULL;
 }
 
@@ -1507,7 +1507,7 @@ class QoreNode *QorePGConnection::exec(class Datasource *ds, QoreString *qstr, c
 
    if (res.hasResultData())
    {
-      class Hash *h = res.getHash(xsink);
+      class QoreHash *h = res.getHash(xsink);
       return h ? new QoreNode(h) : NULL;
    }
 

@@ -41,7 +41,7 @@ class myQFontComboBox : public QFontComboBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQFontComboBox(Object *obj, QWidget* parent = 0) : QFontComboBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQFontComboBox(QoreObject *obj, QWidget* parent = 0) : QFontComboBox(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQFontComboBox : public QoreAbstractQWidget
    public:
       QPointer<myQFontComboBox> qobj;
 
-      DLLLOCAL QoreQFontComboBox(Object *obj, QWidget* parent = 0) : qobj(new myQFontComboBox(obj, parent))
+      DLLLOCAL QoreQFontComboBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQFontComboBox(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

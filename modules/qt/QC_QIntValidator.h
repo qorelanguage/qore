@@ -49,12 +49,12 @@ class myQIntValidator : public QIntValidator, public QoreQValidatorExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQIntValidator(Object *obj, QObject* parent) : QIntValidator(parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQIntValidator(QoreObject *obj, QObject* parent) : QIntValidator(parent), QoreQValidatorExtension(obj->getClass())
       {
          init(obj);
          qdv_init(obj->getClass());
       }
-      DLLLOCAL myQIntValidator(Object *obj, int minimum, int maximum, QObject* parent) : QIntValidator(minimum, maximum, parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQIntValidator(QoreObject *obj, int minimum, int maximum, QObject* parent) : QIntValidator(minimum, maximum, parent), QoreQValidatorExtension(obj->getClass())
       {
          init(obj);
          qdv_init(obj->getClass());
@@ -84,10 +84,10 @@ class QoreQIntValidator : public QoreAbstractQValidator
    public:
       QPointer<myQIntValidator> qobj;
 
-      DLLLOCAL QoreQIntValidator(Object *obj, QObject* parent) : qobj(new myQIntValidator(obj, parent))
+      DLLLOCAL QoreQIntValidator(QoreObject *obj, QObject* parent) : qobj(new myQIntValidator(obj, parent))
       {
       }
-      DLLLOCAL QoreQIntValidator(Object *obj, int minimum, int maximum, QObject* parent) : qobj(new myQIntValidator(obj, minimum, maximum, parent))
+      DLLLOCAL QoreQIntValidator(QoreObject *obj, int minimum, int maximum, QObject* parent) : qobj(new myQIntValidator(obj, minimum, maximum, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

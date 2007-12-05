@@ -43,7 +43,7 @@ class myQPlastiqueStyle : public QPlastiqueStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQPlastiqueStyle(Object *obj) : QPlastiqueStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQPlastiqueStyle(QoreObject *obj) : QPlastiqueStyle(), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }
@@ -54,7 +54,7 @@ class QoreQPlastiqueStyle : public QoreAbstractQWindowsStyle
    public:
       QPointer<myQPlastiqueStyle> qobj;
 
-      DLLLOCAL QoreQPlastiqueStyle(Object *obj) : qobj(new myQPlastiqueStyle(obj))
+      DLLLOCAL QoreQPlastiqueStyle(QoreObject *obj) : qobj(new myQPlastiqueStyle(obj))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -71,10 +71,10 @@ class QoreQPlastiqueStyle : public QoreAbstractQWindowsStyle
 class QoreQtQPlastiqueStyle : public QoreAbstractQWindowsStyle
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QPlastiqueStyle> qobj;
 
-      DLLLOCAL QoreQtQPlastiqueStyle(Object *obj, QPlastiqueStyle *qps) : qore_obj(obj), qobj(qps)
+      DLLLOCAL QoreQtQPlastiqueStyle(QoreObject *obj, QPlastiqueStyle *qps) : qore_obj(obj), qobj(qps)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

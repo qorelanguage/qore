@@ -31,7 +31,7 @@ class QoreClass *QC_QLineF = 0;
 //QLineF ( const QPointF & p1, const QPointF & p2 )
 //QLineF ( qreal x1, qreal y1, qreal x2, qreal y2 )
 //QLineF ( const QLine & line )
-static void QLINEF_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QLINEF_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -74,56 +74,56 @@ static void QLINEF_constructor(Object *self, QoreNode *params, ExceptionSink *xs
    return;
 }
 
-static void QLINEF_copy(class Object *self, class Object *old, class QoreQLineF *qlf, ExceptionSink *xsink)
+static void QLINEF_copy(class QoreObject *self, class QoreObject *old, class QoreQLineF *qlf, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QLINEF, new QoreQLineF(*qlf));
    //xsink->raiseException("QLINEF-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QPointF p1 () const
-static QoreNode *QLINEF_p1(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_p1(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qpf = new Object(QC_QPointF, getProgram());
+   QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qlf->p1());
    o_qpf->setPrivate(CID_QPOINTF, q_qpf);
    return new QoreNode(o_qpf);
 }
 
 //QPointF p2 () const
-static QoreNode *QLINEF_p2(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_p2(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qpf = new Object(QC_QPointF, getProgram());
+   QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qlf->p2());
    o_qpf->setPrivate(CID_QPOINTF, q_qpf);
    return new QoreNode(o_qpf);
 }
 
 //qreal x1 () const
-static QoreNode *QLINEF_x1(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_x1(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->x1());
 }
 
 //qreal x2 () const
-static QoreNode *QLINEF_x2(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_x2(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->x2());
 }
 
 //qreal y1 () const
-static QoreNode *QLINEF_y1(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_y1(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->y1());
 }
 
 //qreal y2 () const
-static QoreNode *QLINEF_y2(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_y2(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->y2());
 }
 
 //qreal angle ( const QLineF & line ) const
-static QoreNode *QLINEF_angle(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_angle(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQLineF *line = (p && p->type == NT_OBJECT) ? (QoreQLineF *)p->val.object->getReferencedPrivateData(CID_QLINEF, xsink) : 0;
@@ -137,19 +137,19 @@ static QoreNode *QLINEF_angle(Object *self, QoreQLineF *qlf, QoreNode *params, E
 }
 
 //qreal dx () const
-static QoreNode *QLINEF_dx(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_dx(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->dx());
 }
 
 //qreal dy () const
-static QoreNode *QLINEF_dy(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_dy(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->dy());
 }
 
 ////IntersectType intersect ( const QLineF & line, QPointF * intersectionPoint ) const
-//static QoreNode *QLINEF_intersect(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QLINEF_intersect(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QoreQLineF *line = (p && p->type == NT_OBJECT) ? (QoreQLineF *)p->val.object->getReferencedPrivateData(CID_QLINEF, xsink) : 0;
@@ -171,39 +171,39 @@ static QoreNode *QLINEF_dy(Object *self, QoreQLineF *qlf, QoreNode *params, Exce
 //}
 
 //bool isNull () const
-static QoreNode *QLINEF_isNull(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_isNull(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qlf->isNull());
 }
 
 //qreal length () const
-static QoreNode *QLINEF_length(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_length(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->length());
 }
 
 //QLineF normalVector () const
-static QoreNode *QLINEF_normalVector(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_normalVector(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qlf = new Object(self->getClass(CID_QLINEF), getProgram());
+   QoreObject *o_qlf = new QoreObject(self->getClass(CID_QLINEF), getProgram());
    QoreQLineF *q_qlf = new QoreQLineF(qlf->normalVector());
    o_qlf->setPrivate(CID_QLINEF, q_qlf);
    return new QoreNode(o_qlf);
 }
 
 //QPointF pointAt ( qreal t ) const
-static QoreNode *QLINEF_pointAt(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_pointAt(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
-   Object *o_qpf = new Object(QC_QPointF, getProgram());
+   QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qlf->pointAt(t));
    o_qpf->setPrivate(CID_QPOINTF, q_qpf);
    return new QoreNode(o_qpf);
 }
 
 //void setLength ( qreal length )
-static QoreNode *QLINEF_setLength(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_setLength(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal length = p ? p->getAsFloat() : 0.0;
@@ -212,9 +212,9 @@ static QoreNode *QLINEF_setLength(Object *self, QoreQLineF *qlf, QoreNode *param
 }
 
 //QLine toLine () const
-static QoreNode *QLINEF_toLine(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_toLine(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_ql = new Object(QC_QLine, getProgram());
+   QoreObject *o_ql = new QoreObject(QC_QLine, getProgram());
    QoreQLine *q_ql = new QoreQLine(qlf->toLine());
    o_ql->setPrivate(CID_QLINE, q_ql);
    return new QoreNode(o_ql);
@@ -222,7 +222,7 @@ static QoreNode *QLINEF_toLine(Object *self, QoreQLineF *qlf, QoreNode *params, 
 
 //void translate ( const QPointF & offset )
 //void translate ( qreal dx, qreal dy )
-static QoreNode *QLINEF_translate(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_translate(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -244,9 +244,9 @@ static QoreNode *QLINEF_translate(Object *self, QoreQLineF *qlf, QoreNode *param
 }
 
 //QLineF unitVector () const
-static QoreNode *QLINEF_unitVector(Object *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_unitVector(QoreObject *self, QoreQLineF *qlf, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qlf = new Object(self->getClass(CID_QLINEF), getProgram());
+   QoreObject *o_qlf = new QoreObject(self->getClass(CID_QLINEF), getProgram());
    QoreQLineF *q_qlf = new QoreQLineF(qlf->unitVector());
    o_qlf->setPrivate(CID_QLINEF, q_qlf);
    return new QoreNode(o_qlf);

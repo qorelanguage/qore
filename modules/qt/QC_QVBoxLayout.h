@@ -37,11 +37,11 @@ class myQVBoxLayout : public QVBoxLayout, public QoreQObjectExtension
 #define QOREQTYPE QVBoxLayout
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
-      DLLLOCAL myQVBoxLayout(Object *obj) : QVBoxLayout(), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQVBoxLayout(QoreObject *obj) : QVBoxLayout(), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
-      DLLLOCAL myQVBoxLayout(Object *obj, QWidget *parent) : QVBoxLayout(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQVBoxLayout(QoreObject *obj, QWidget *parent) : QVBoxLayout(parent), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
@@ -52,11 +52,11 @@ class QoreQVBoxLayout : public QoreAbstractQBoxLayout
    public:
       QPointer<myQVBoxLayout> qobj;
 
-      DLLLOCAL QoreQVBoxLayout(Object *obj) : qobj(new myQVBoxLayout(obj))
+      DLLLOCAL QoreQVBoxLayout(QoreObject *obj) : qobj(new myQVBoxLayout(obj))
       {
       }
 
-      DLLLOCAL QoreQVBoxLayout(Object *obj, QWidget *parent) : qobj(new myQVBoxLayout(obj, parent))
+      DLLLOCAL QoreQVBoxLayout(QoreObject *obj, QWidget *parent) : qobj(new myQVBoxLayout(obj, parent))
       {
       }
       DLLLOCAL virtual QObject *getQObject() const

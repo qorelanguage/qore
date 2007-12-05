@@ -4,12 +4,12 @@ class T {
 #endif
 
    private:
-      Object *qore_obj;                      // containing qore object for dispatching to qore code
+      QoreObject *qore_obj;                      // containing qore object for dispatching to qore code
       DynamicMethodMap methodMap;            // dynamic method manager
       QHash<QByteArray, int> slotIndices;    // map slot signatures to indices in the methodMap
       QHash<QByteArray, int> signalIndices;  // map signal signatures to signal IDs
 
-      DLLLOCAL void init(Object *obj)
+      DLLLOCAL void init(QoreObject *obj)
       {
 	 qore_obj = 0;
 
@@ -241,7 +241,7 @@ class T {
 	 }
       }
 
-      DLLLOCAL virtual Object *getQoreObject() const
+      DLLLOCAL virtual QoreObject *getQoreObject() const
       {
 	 return qore_obj;
       }

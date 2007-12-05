@@ -28,7 +28,7 @@ int CID_QDRAGMOVEEVENT;
 class QoreClass *QC_QDragMoveEvent = 0;
 
 //QDragMoveEvent ( const QPoint & pos, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Type type = DragMove )
-static void QDRAGMOVEEVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QDRAGMOVEEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -58,14 +58,14 @@ static void QDRAGMOVEEVENT_constructor(Object *self, QoreNode *params, Exception
    return;
 }
 
-static void QDRAGMOVEEVENT_copy(class Object *self, class Object *old, class QoreQDragMoveEvent *qdme, ExceptionSink *xsink)
+static void QDRAGMOVEEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQDragMoveEvent *qdme, ExceptionSink *xsink)
 {
    xsink->raiseException("QDRAGMOVEEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //void accept ( const QRect & rectangle )
 //void accept ()
-static QoreNode *QDRAGMOVEEVENT_accept(Object *self, QoreQDragMoveEvent *qdme, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDRAGMOVEEVENT_accept(QoreObject *self, QoreQDragMoveEvent *qdme, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -84,9 +84,9 @@ static QoreNode *QDRAGMOVEEVENT_accept(Object *self, QoreQDragMoveEvent *qdme, Q
 }
 
 //QRect answerRect () const
-static QoreNode *QDRAGMOVEEVENT_answerRect(Object *self, QoreQDragMoveEvent *qdme, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDRAGMOVEEVENT_answerRect(QoreObject *self, QoreQDragMoveEvent *qdme, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qr = new Object(QC_QRect, getProgram());
+   QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qdme->answerRect());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
@@ -94,7 +94,7 @@ static QoreNode *QDRAGMOVEEVENT_answerRect(Object *self, QoreQDragMoveEvent *qdm
 
 //void ignore ( const QRect & rectangle )
 //void ignore ()
-static QoreNode *QDRAGMOVEEVENT_ignore(Object *self, QoreQDragMoveEvent *qdme, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDRAGMOVEEVENT_ignore(QoreObject *self, QoreQDragMoveEvent *qdme, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {

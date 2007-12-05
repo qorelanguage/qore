@@ -41,11 +41,11 @@ class myQRadioButton : public QRadioButton, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQRadioButton(Object *obj, QWidget* parent = 0) : QRadioButton(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQRadioButton(QoreObject *obj, QWidget* parent = 0) : QRadioButton(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQRadioButton(Object *obj, const QString& text, QWidget* parent = 0) : QRadioButton(text, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQRadioButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : QRadioButton(text, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -56,10 +56,10 @@ class QoreQRadioButton : public QoreAbstractQRadioButton
    public:
       QPointer<myQRadioButton> qobj;
 
-      DLLLOCAL QoreQRadioButton(Object *obj, QWidget* parent = 0) : qobj(new myQRadioButton(obj, parent))
+      DLLLOCAL QoreQRadioButton(QoreObject *obj, QWidget* parent = 0) : qobj(new myQRadioButton(obj, parent))
       {
       }
-      DLLLOCAL QoreQRadioButton(Object *obj, const QString& text, QWidget* parent = 0) : qobj(new myQRadioButton(obj, text, parent))
+      DLLLOCAL QoreQRadioButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : qobj(new myQRadioButton(obj, text, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -88,10 +88,10 @@ class QoreQRadioButton : public QoreAbstractQRadioButton
 class QoreQtQRadioButton : public QoreAbstractQAbstractButton
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QRadioButton> qobj;
 
-      DLLLOCAL QoreQtQRadioButton(Object *obj, QRadioButton *qb) : qore_obj(obj), qobj(qb)
+      DLLLOCAL QoreQtQRadioButton(QoreObject *obj, QRadioButton *qb) : qore_obj(obj), qobj(qb)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

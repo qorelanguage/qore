@@ -41,7 +41,7 @@ class myQMenuBar : public QMenuBar, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMenuBar(Object *obj, QWidget* parent = 0) : QMenuBar(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQMenuBar(QoreObject *obj, QWidget* parent = 0) : QMenuBar(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQMenuBar : public QoreAbstractQMenuBar
    public:
       QPointer<myQMenuBar> qobj;
 
-      DLLLOCAL QoreQMenuBar(Object *obj, QWidget* parent = 0) : qobj(new myQMenuBar(obj, parent))
+      DLLLOCAL QoreQMenuBar(QoreObject *obj, QWidget* parent = 0) : qobj(new myQMenuBar(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -77,10 +77,10 @@ class QoreQMenuBar : public QoreAbstractQMenuBar
 class QoreQtQMenuBar : public QoreAbstractQMenuBar
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QMenuBar> qobj;
 
-      DLLLOCAL QoreQtQMenuBar(Object *obj, QMenuBar *qmenubar) : qore_obj(obj), qobj(qmenubar)
+      DLLLOCAL QoreQtQMenuBar(QoreObject *obj, QMenuBar *qmenubar) : qore_obj(obj), qobj(qmenubar)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

@@ -34,7 +34,7 @@ int ora_ds_close(class Datasource *ds);
 int ora_commit_transaction(class Datasource *ds, ExceptionSink *xsink);
 int ora_rollback_transaction(class Datasource *ds, ExceptionSink *xsink);
 class QoreNode *ora_exec_select(class Datasource *dsx, char *query_str, ExceptionSink *xsink);
-class QoreNode *ora_exec_sql(class Datasource *dsx, char *query_str, class Object *vmap,
+class QoreNode *ora_exec_sql(class Datasource *dsx, char *query_str, class QoreObject *vmap,
 			     ExceptionSink *xsink);
 class Query *ora_exec_query(class Query *query, char *query_str, ExceptionSink *xsink);
 

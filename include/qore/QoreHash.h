@@ -1,5 +1,5 @@
 /*
-  Hash.h
+  QoreHash.h
 
   Qore Programming Language
 
@@ -43,12 +43,12 @@ class HashMember {
 class HashIterator
 {
    private:
-      class Hash *h;
+      class QoreHash *h;
       class HashMember *ptr;
 
    public:
-      DLLEXPORT HashIterator(class Hash *h);
-      DLLEXPORT HashIterator(class Hash &h);
+      DLLEXPORT HashIterator(class QoreHash *h);
+      DLLEXPORT HashIterator(class QoreHash &h);
       DLLEXPORT class HashMember *next();
       DLLEXPORT const char *getKey() const;
       DLLEXPORT class QoreString *getKeyString() const;
@@ -61,7 +61,7 @@ class HashIterator
       //DLLEXPORT void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };
 
-class Hash
+class QoreHash
 {
       friend class HashIterator;
 
@@ -76,10 +76,10 @@ class Hash
       DLLLOCAL void deref_intern(class ExceptionSink *xsink);
 
   protected:
-      DLLEXPORT ~Hash();
+      DLLEXPORT ~QoreHash();
 
    public:
-      DLLEXPORT Hash(bool ne = false);
+      DLLEXPORT QoreHash(bool ne = false);
 
       DLLEXPORT const char *getFirstKey() const { return member_list ? member_list->key :NULL; }
       DLLEXPORT const char *getLastKey() const { return tail ? tail->key : NULL; }
@@ -89,14 +89,14 @@ class Hash
       DLLEXPORT class QoreNode *getKeyValueExistence(class QoreString *key, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *getKeyValue(class QoreString *key, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *getKeyValue(const char *key) const;
-      DLLEXPORT class Hash *copy() const;
+      DLLEXPORT class QoreHash *copy() const;
       DLLEXPORT class QoreNode **getKeyValuePtr(class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getKeyValuePtr(const char *key);
       DLLEXPORT class QoreNode **getExistingValuePtr(class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getExistingValuePtr(const char *key);
-      DLLEXPORT void merge(class Hash *h, class ExceptionSink *xsink);
-      DLLEXPORT void assimilate(class Hash *h, class ExceptionSink *xsink);
-      DLLEXPORT class Hash *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT void merge(class QoreHash *h, class ExceptionSink *xsink);
+      DLLEXPORT void assimilate(class QoreHash *h, class ExceptionSink *xsink);
+      DLLEXPORT class QoreHash *eval(class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *evalKey(const char *key, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *evalKeyExistence(const char *key, class ExceptionSink *xsink) const;
       DLLEXPORT void setKeyValue(class QoreString *key, class QoreNode *value, class ExceptionSink *xsink);
@@ -108,8 +108,8 @@ class Hash
       // "takes" the value of the key from the hash and removes the key from the hash and returns the value
       DLLEXPORT class QoreNode *takeKeyValue(const char *key);
       DLLEXPORT class QoreList *getKeys() const;
-      DLLEXPORT bool compareSoft(class Hash *h, class ExceptionSink *xsink) const;
-      DLLEXPORT bool compareHard(class Hash *h, class ExceptionSink *xsink) const;
+      DLLEXPORT bool compareSoft(class QoreHash *h, class ExceptionSink *xsink) const;
+      DLLEXPORT bool compareHard(class QoreHash *h, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink) const;
       DLLEXPORT void dereference(class ExceptionSink *xsink);
       DLLEXPORT void derefAndDelete(class ExceptionSink *xsink);
@@ -118,27 +118,26 @@ class Hash
       DLLEXPORT void clearNeedsEval();
 };
 
-class StackHash : public Hash
+class StackHash : public QoreHash
 {
-private:
-   class ExceptionSink *xsink;
+   private:
+      class ExceptionSink *xsink;
    
-   // none of these operators/methods are implemented - here to make sure they are not used
-   DLLLOCAL void *operator new(size_t); 
-   DLLLOCAL StackHash();
-   DLLLOCAL StackHash(bool i);
-   DLLLOCAL void deleteAndDeref(class ExceptionSink *xsink);
+      // none of these operators/methods are implemented - here to make sure they are not used
+      DLLLOCAL void *operator new(size_t); 
+      DLLLOCAL StackHash();
+      DLLLOCAL StackHash(bool i);
+      DLLLOCAL void deleteAndDeref(class ExceptionSink *xsink);
    
-public:
-   DLLEXPORT StackHash(class ExceptionSink *xs)
-   {
+   public:
+      DLLEXPORT StackHash(class ExceptionSink *xs)
+      {
 	 xsink = xs;
-   }
-   DLLEXPORT ~StackHash()
-   {
-      dereference(xsink);
-   }
+      }
+      DLLEXPORT ~StackHash()
+      {
+	 dereference(xsink);
+      }
 };
-
 
 #endif // _QORE_HASH_H

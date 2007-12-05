@@ -51,7 +51,7 @@ static QoreNode *f_QColorDialog_getColor(QoreNode *params, ExceptionSink *xsink)
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColorDialog::getColor(initial ? *(static_cast<QColor *>(initial)) : Qt::white, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);

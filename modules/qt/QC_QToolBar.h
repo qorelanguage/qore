@@ -40,11 +40,11 @@ class myQToolBar : public QToolBar, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQToolBar(Object *obj, const QString& title, QWidget* parent = 0) : QToolBar(title, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQToolBar(QoreObject *obj, const QString& title, QWidget* parent = 0) : QToolBar(title, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQToolBar(Object *obj, QWidget* parent = 0) : QToolBar(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQToolBar(QoreObject *obj, QWidget* parent = 0) : QToolBar(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -55,10 +55,10 @@ class QoreQToolBar : public QoreAbstractQWidget
    public:
       QPointer<myQToolBar> qobj;
 
-      DLLLOCAL QoreQToolBar(Object *obj, const QString& title, QWidget* parent = 0) : qobj(new myQToolBar(obj, title, parent))
+      DLLLOCAL QoreQToolBar(QoreObject *obj, const QString& title, QWidget* parent = 0) : qobj(new myQToolBar(obj, title, parent))
       {
       }
-      DLLLOCAL QoreQToolBar(Object *obj, QWidget* parent = 0) : qobj(new myQToolBar(obj, parent))
+      DLLLOCAL QoreQToolBar(QoreObject *obj, QWidget* parent = 0) : qobj(new myQToolBar(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

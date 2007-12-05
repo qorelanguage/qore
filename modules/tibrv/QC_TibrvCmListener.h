@@ -26,8 +26,7 @@
 
 #define _QORE_TIBCO_QC_TIBRVCMLISTENER_H
 
-#include <qore/common.h>
-#include <qore/support.h>
+#include <qore/Qore.h>
 
 #include "QoreTibrvCmListener.h"
 

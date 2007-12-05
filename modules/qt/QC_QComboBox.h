@@ -41,7 +41,7 @@ class myQComboBox : public QComboBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQComboBox(Object *obj, QWidget* parent = 0) : QComboBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQComboBox(QoreObject *obj, QWidget* parent = 0) : QComboBox(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQComboBox : public QoreAbstractQComboBox
    public:
       QPointer<myQComboBox> qobj;
 
-      DLLLOCAL QoreQComboBox(Object *obj, QWidget* parent = 0) : qobj(new myQComboBox(obj, parent))
+      DLLLOCAL QoreQComboBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQComboBox(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

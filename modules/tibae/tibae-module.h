@@ -24,8 +24,7 @@
 
 #define _QORE_TIBCO_MODULE_H
 
-#include <qore/common.h>
-#include <qore/QoreNode.h>
+#include <qore/Qore.h>
 
 class QoreString *tibae_module_init();
 void tibae_module_ns_init(class Namespace *rns, class Namespace *qns);

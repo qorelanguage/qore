@@ -92,7 +92,7 @@ int QoreQtDynamicMethod::get_type(const char *&p)
    return rt;
 }
 
-Method *QoreQtDynamicSlot::resolveMethod(Object *n_qore_obj, const char *name, class ExceptionSink *xsink)
+Method *QoreQtDynamicSlot::resolveMethod(QoreObject *n_qore_obj, const char *name, class ExceptionSink *xsink)
 {
    QoreClass *qc = n_qore_obj->getClass();
    const char *c = strchr(name, '(');
@@ -115,7 +115,7 @@ Method *QoreQtDynamicSlot::resolveMethod(Object *n_qore_obj, const char *name, c
    return meth;
 }
 
-QoreQtDynamicSlot::QoreQtDynamicSlot(Object *n_qore_obj, const char *sig, ExceptionSink *xsink) : qore_obj(n_qore_obj), return_type(QQT_TYPE_UNKNOWN)
+QoreQtDynamicSlot::QoreQtDynamicSlot(QoreObject *n_qore_obj, const char *sig, ExceptionSink *xsink) : qore_obj(n_qore_obj), return_type(QQT_TYPE_UNKNOWN)
 {
    if (!sig)
       return;
@@ -218,7 +218,7 @@ void QoreQtDynamicSlot::call(void **arguments)
       else if (type_list[i] == QQT_TYPE_QFONT) {
 	 QFont *qfont = reinterpret_cast<QFont *>(arguments[i + 1]);
 
-	 Object *o_qf = new Object(QC_QFont, getProgram());
+	 QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
 	 QoreQFont *q_qf = new QoreQFont(*qfont);
 	 o_qf->setPrivate(CID_QFONT, q_qf);
 
@@ -227,7 +227,7 @@ void QoreQtDynamicSlot::call(void **arguments)
       else if (type_list[i] == QQT_TYPE_P_QLISTWIDGETITEM) {
 	 QListWidgetItem *qlwi = *(reinterpret_cast<QListWidgetItem **>(arguments[i + 1]));
 	 
-	 Object *o_qlwi = new Object(QC_QListWidgetItem, getProgram());
+	 QoreObject *o_qlwi = new QoreObject(QC_QListWidgetItem, getProgram());
 	 QoreQListWidgetItem *q_qlwi = new QoreQListWidgetItem(qlwi);
 	 o_qlwi->setPrivate(CID_QLISTWIDGETITEM, q_qlwi);
 

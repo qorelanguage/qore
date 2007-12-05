@@ -28,7 +28,7 @@ int CID_QTRANSLATOR;
 class QoreClass *QC_QTranslator = 0;
 
 //QTranslator ( QObject * parent = 0 )
-static void QTRANSLATOR_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QTRANSLATOR_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -39,19 +39,19 @@ static void QTRANSLATOR_constructor(Object *self, QoreNode *params, ExceptionSin
    return;
 }
 
-static void QTRANSLATOR_copy(class Object *self, class Object *old, class QoreQTranslator *qt, ExceptionSink *xsink)
+static void QTRANSLATOR_copy(class QoreObject *self, class QoreObject *old, class QoreQTranslator *qt, ExceptionSink *xsink)
 {
    xsink->raiseException("QTRANSLATOR-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //virtual bool isEmpty () const
-static QoreNode *QTRANSLATOR_isEmpty(Object *self, QoreQTranslator *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTRANSLATOR_isEmpty(QoreObject *self, QoreQTranslator *qt, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qt->qobj->isEmpty());
 }
 
 //bool load ( const QString & filename, const QString & directory = QString(), const QString & search_delimiters = QString(), const QString & suffix = QString() )
-static QoreNode *QTRANSLATOR_load(Object *self, QoreQTranslator *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTRANSLATOR_load(QoreObject *self, QoreQTranslator *qt, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString filename;
@@ -74,7 +74,7 @@ static QoreNode *QTRANSLATOR_load(Object *self, QoreQTranslator *qt, QoreNode *p
 
 //virtual QString translate ( const char * context, const char * sourceText, const char * comment = 0 ) const
 //QString translate ( const char * context, const char * sourceText, const char * comment, int n ) const
-static QoreNode *QTRANSLATOR_translate(Object *self, QoreQTranslator *qt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTRANSLATOR_translate(QoreObject *self, QoreQTranslator *qt, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {

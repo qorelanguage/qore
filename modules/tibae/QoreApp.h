@@ -26,15 +26,7 @@
 
 #define _QORE_TIBAE_QOREAPP_H
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/Exception.h>
-#include <qore/QoreType.h>
-#include <qore/QoreString.h>
-#include <qore/config.h>
-#include <qore/AbstractPrivateData.h>
-#include <qore/LockedObject.h>
-#include <qore/Hash.h>
+#include <qore/Qore.h>
 
 #include "tibae.h"
 
@@ -60,7 +52,7 @@ class QoreApp : public AbstractPrivateData, public MApp
       char *rcv_subject;
       class LockedObject rcv_lock;
 
-      class Hash *classlist;
+      class QoreHash *classlist;
 
       class MPublisher *myPublisher;
       class MRvSession *mySession;
@@ -78,7 +70,7 @@ class QoreApp : public AbstractPrivateData, public MApp
       DLLLOCAL const MBaseClassDescription *find_class(const char *cn, ExceptionSink *xsink);
 
       // helpers for operations 
-      DLLLOCAL void setRequestParameters(MOperationRequest& req, Hash* params, ExceptionSink* xsink);
+      DLLLOCAL void setRequestParameters(MOperationRequest& req, QoreHash* params, ExceptionSink* xsink);
 
    protected:
       DLLLOCAL virtual void onInitialization() throw (MException);
@@ -86,7 +78,7 @@ class QoreApp : public AbstractPrivateData, public MApp
       DLLLOCAL virtual ~QoreApp();
 
    public:
-      DLLLOCAL QoreApp(MAppProperties *pMAP, const char *name, class Hash *clh, 
+      DLLLOCAL QoreApp(MAppProperties *pMAP, const char *name, class QoreHash *clh, 
 		       const char *svc = NULL, const char *net = NULL, 
 		       const char *dmn = NULL, const char *sbj = NULL);
       DLLLOCAL class QoreNode *sendWithSyncReply(const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
@@ -100,9 +92,9 @@ class QoreApp : public AbstractPrivateData, public MApp
       DLLLOCAL virtual void deref(class ExceptionSink *xsink);
 
       // operations
-      DLLLOCAL QoreNode* operationsCallWithSyncResult(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink);
-      DLLLOCAL void operationsOneWayCall(const char *class_name, const char *method_name, Hash* parameters, const char *client_name, ExceptionSink* xsink);
-      DLLLOCAL void operationsAsyncCall(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink);
+      DLLLOCAL QoreNode* operationsCallWithSyncResult(const char *class_name, const char *method_name, QoreHash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink);
+      DLLLOCAL void operationsOneWayCall(const char *class_name, const char *method_name, QoreHash* parameters, const char *client_name, ExceptionSink* xsink);
+      DLLLOCAL void operationsAsyncCall(const char *class_name, const char *method_name, QoreHash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink);
       DLLLOCAL QoreNode* operationsGetAsyncCallResult(const char *class_name, const char *method_name, ExceptionSink* xsink);
 };
 

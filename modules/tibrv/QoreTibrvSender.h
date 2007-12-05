@@ -26,11 +26,7 @@
 
 #define _QORE_TIBCO_QORETIBRVSENDER_H
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/AbstractPrivateData.h>
-#include <qore/Exception.h>
-#include <qore/charset.h>
+#include <qore/Qore.h>
 
 #include "QoreTibrvTransport.h"
 
@@ -45,10 +41,10 @@ class QoreTibrvSender : public AbstractPrivateData, public QoreTibrvTransport
       inline QoreTibrvSender(const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink) : QoreTibrvTransport(desc, service, network, daemon, xsink)
       { }
 
-      void sendSubject(const char *subject, class Hash *data, const char *replySubject, class ExceptionSink *xsink);
+      void sendSubject(const char *subject, class QoreHash *data, const char *replySubject, class ExceptionSink *xsink);
       
       // timout in ms
-      class Hash *sendSubjectWithSyncReply(const char *subject, class Hash *data, int64 timeout, class ExceptionSink *xsink);
+      class QoreHash *sendSubjectWithSyncReply(const char *subject, class QoreHash *data, int64 timeout, class ExceptionSink *xsink);
 };
 
 #endif

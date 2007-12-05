@@ -41,11 +41,11 @@ class myQScrollBar : public QScrollBar, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQScrollBar(Object *obj, QWidget* parent = 0) : QScrollBar(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQScrollBar(QoreObject *obj, QWidget* parent = 0) : QScrollBar(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQScrollBar(Object *obj, Qt::Orientation orientation, QWidget* parent = 0) : QScrollBar(orientation, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQScrollBar(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QScrollBar(orientation, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -56,10 +56,10 @@ class QoreQScrollBar : public QoreAbstractQScrollBar
    public:
       QPointer<myQScrollBar> qobj;
 
-      DLLLOCAL QoreQScrollBar(Object *obj, QWidget* parent = 0) : qobj(new myQScrollBar(obj, parent))
+      DLLLOCAL QoreQScrollBar(QoreObject *obj, QWidget* parent = 0) : qobj(new myQScrollBar(obj, parent))
       {
       }
-      DLLLOCAL QoreQScrollBar(Object *obj, Qt::Orientation orientation, QWidget* parent = 0) : qobj(new myQScrollBar(obj, orientation, parent))
+      DLLLOCAL QoreQScrollBar(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : qobj(new myQScrollBar(obj, orientation, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -88,10 +88,10 @@ class QoreQScrollBar : public QoreAbstractQScrollBar
 class QoreQtQScrollBar : public QoreAbstractQScrollBar
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QScrollBar> qobj;
 
-      DLLLOCAL QoreQtQScrollBar(Object *obj, QScrollBar *qscrollbar) : qore_obj(obj), qobj(qscrollbar)
+      DLLLOCAL QoreQtQScrollBar(QoreObject *obj, QScrollBar *qscrollbar) : qore_obj(obj), qobj(qscrollbar)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

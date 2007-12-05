@@ -27,7 +27,7 @@
 
 int CID_QSLIDER;
 
-static void QSLIDER_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QSLIDER_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQSlider *qs;
    QoreNode *p0 = get_param(params, 0);
@@ -60,13 +60,13 @@ static void QSLIDER_constructor(class Object *self, class QoreNode *params, Exce
    self->setPrivate(CID_QSLIDER, qs);
 }
 
-static void QSLIDER_copy(class Object *self, class Object *old, class QoreQSlider *qs, ExceptionSink *xsink)
+static void QSLIDER_copy(class QoreObject *self, class QoreObject *old, class QoreQSlider *qs, ExceptionSink *xsink)
 {
    xsink->raiseException("QSLIDER-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //void setTickInterval ( int ti )
-static QoreNode *QSLIDER_setTickInterval(Object *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSLIDER_setTickInterval(QoreObject *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int ti = p ? p->getAsInt() : 0;
@@ -75,7 +75,7 @@ static QoreNode *QSLIDER_setTickInterval(Object *self, QoreQSlider *qs, QoreNode
 }
 
 //void setTickPosition ( TickPosition position )
-static QoreNode *QSLIDER_setTickPosition(Object *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSLIDER_setTickPosition(QoreObject *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QSlider::TickPosition position = (QSlider::TickPosition)(p ? p->getAsInt() : 0);
@@ -84,13 +84,13 @@ static QoreNode *QSLIDER_setTickPosition(Object *self, QoreQSlider *qs, QoreNode
 }
 
 //int tickInterval () const
-static QoreNode *QSLIDER_tickInterval(Object *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSLIDER_tickInterval(QoreObject *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qs->qobj->tickInterval());
 }
 
 //TickPosition tickPosition () const
-static QoreNode *QSLIDER_tickPosition(Object *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSLIDER_tickPosition(QoreObject *self, QoreQSlider *qs, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qs->qobj->tickPosition());
 }

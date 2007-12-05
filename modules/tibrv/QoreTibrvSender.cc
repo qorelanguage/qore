@@ -26,7 +26,7 @@
 
 #include "QoreTibrvSender.h"
 
-void QoreTibrvSender::sendSubject(const char *subject, class Hash *data, const char *replySubject, class ExceptionSink *xsink)
+void QoreTibrvSender::sendSubject(const char *subject, class QoreHash *data, const char *replySubject, class ExceptionSink *xsink)
 {
    TibrvMsg msg;
 
@@ -55,7 +55,7 @@ void QoreTibrvSender::sendSubject(const char *subject, class Hash *data, const c
    //printd(0, "subject: %s msg=%08p sent OK\n", subject, data);
 }
 
-class Hash *QoreTibrvSender::sendSubjectWithSyncReply(const char *subject, class Hash *data, int64 timeout, class ExceptionSink *xsink)
+class QoreHash *QoreTibrvSender::sendSubjectWithSyncReply(const char *subject, class QoreHash *data, int64 timeout, class ExceptionSink *xsink)
 {
    TibrvMsg msg;
 

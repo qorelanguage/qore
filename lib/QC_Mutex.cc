@@ -26,23 +26,23 @@
 
 int CID_MUTEX;
 
-static void MUTEX_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void MUTEX_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }
 
-static void MUTEX_destructor(class Object *self, class SmartMutex *m, ExceptionSink *xsink)
+static void MUTEX_destructor(class QoreObject *self, class SmartMutex *m, ExceptionSink *xsink)
 {
    m->destructor(xsink);
    m->deref(xsink);
 }
 
-static void MUTEX_copy(class Object *self, class Object *old, class SmartMutex *m, ExceptionSink *xsink)
+static void MUTEX_copy(class QoreObject *self, class QoreObject *old, class SmartMutex *m, ExceptionSink *xsink)
 {
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }
 
-static class QoreNode *MUTEX_lock(class Object *self, class SmartMutex *m, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *MUTEX_lock(class QoreObject *self, class SmartMutex *m, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
    // we only return a return value if we have a timeout, otherwise we save allocating a QoreNode
@@ -58,12 +58,12 @@ static class QoreNode *MUTEX_lock(class Object *self, class SmartMutex *m, class
    return NULL;
 }
 
-static class QoreNode *MUTEX_trylock(class Object *self, class SmartMutex *m, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *MUTEX_trylock(class QoreObject *self, class SmartMutex *m, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)m->tryGrab()); 
 }
 
-static class QoreNode *MUTEX_unlock(class Object *self, class SmartMutex *m, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *MUTEX_unlock(class QoreObject *self, class SmartMutex *m, class QoreNode *params, ExceptionSink *xsink)
 {
    m->release(xsink);
    return NULL;

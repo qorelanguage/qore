@@ -83,7 +83,7 @@ public:
    DLLLOCAL class QoreNode *selectRow(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
    DLLLOCAL class QoreNode *selectRows(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
    DLLLOCAL class QoreNode *exec(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
-   //DLLLOCAL class Hash *describe(char *table_name, ExceptionSink *xsink);
+   //DLLLOCAL class QoreHash *describe(char *table_name, ExceptionSink *xsink);
    DLLLOCAL int commit(ExceptionSink *xsink);
    DLLLOCAL int rollback(ExceptionSink *xsink);
    DLLLOCAL int open(ExceptionSink *xsink);

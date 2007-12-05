@@ -27,7 +27,7 @@
 #include <qore/common.h>
 #include <qore/support.h>
 #include <qore/qore_thread.h>
-#include <qore/List.h>
+#include <qore/QoreList.h>
 #include <qore/safe_dslist>
 #include <qore/Datasource.h>
 
@@ -188,7 +188,7 @@ public:
 };
 
 DLLEXPORT extern class DBIDriverList DBI;
-DLLEXPORT class Hash *parseDatasource(const char *ds, class ExceptionSink *xsink);
+DLLEXPORT class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink);
 DLLEXPORT void DBI_concat_numeric(class QoreString *str, class QoreNode *v);
 DLLEXPORT int DBI_concat_string(class QoreString *str, class QoreNode *v, class ExceptionSink *xsink);
 

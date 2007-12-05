@@ -57,7 +57,7 @@ class QoreQPainter : public AbstractPrivateData
 	 return qpainter;
       }
 /*
-      DLLLOCAL Object *getQoreObject() const
+      DLLLOCAL QoreObject *getQoreObject() const
       {
 	 return qore_obj;
       }

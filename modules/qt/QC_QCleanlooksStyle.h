@@ -43,7 +43,7 @@ class myQCleanlooksStyle : public QCleanlooksStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQCleanlooksStyle(Object *obj) : QCleanlooksStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQCleanlooksStyle(QoreObject *obj) : QCleanlooksStyle(), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }
@@ -54,7 +54,7 @@ class QoreQCleanlooksStyle : public QoreAbstractQCleanlooksStyle
    public:
       QPointer<myQCleanlooksStyle> qobj;
 
-      DLLLOCAL QoreQCleanlooksStyle(Object *obj) : qobj(new myQCleanlooksStyle(obj))
+      DLLLOCAL QoreQCleanlooksStyle(QoreObject *obj) : qobj(new myQCleanlooksStyle(obj))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -75,10 +75,10 @@ class QoreQCleanlooksStyle : public QoreAbstractQCleanlooksStyle
 class QoreQtQCleanlooksStyle : public QoreAbstractQCleanlooksStyle
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QCleanlooksStyle> qobj;
 
-      DLLLOCAL QoreQtQCleanlooksStyle(Object *obj, QCleanlooksStyle *qcleanlooksstyle) : qore_obj(obj), qobj(qcleanlooksstyle)
+      DLLLOCAL QoreQtQCleanlooksStyle(QoreObject *obj, QCleanlooksStyle *qcleanlooksstyle) : qore_obj(obj), qobj(qcleanlooksstyle)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

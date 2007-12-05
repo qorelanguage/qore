@@ -62,7 +62,7 @@ static inline void addSSLConstants(class Namespace *ns)
    ns->addConstant("X509_V_ERR_KEYUSAGE_NO_CERTSIGN", new QoreNode((int64)X509_V_ERR_KEYUSAGE_NO_CERTSIGN));
    ns->addConstant("X509_V_ERR_APPLICATION_VERIFICATION", new QoreNode((int64)X509_V_ERR_APPLICATION_VERIFICATION));
 
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("X509_V_OK", new QoreNode("OK"), NULL);
    h->setKeyValue("X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT", new QoreNode("Unable to get issuer certificate"), NULL);
    h->setKeyValue("X509_V_ERR_UNABLE_TO_GET_CRL", new QoreNode("Unable to get certificate CRL"), NULL);

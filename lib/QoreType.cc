@@ -45,7 +45,7 @@
 #include <qore/QT_varref.h>
 
 #include <qore/support.h>
-#include <qore/List.h>
+#include <qore/QoreList.h>
 #include <qore/QoreNode.h>
 #include <qore/QoreString.h>
 #include <qore/Operator.h>
@@ -463,7 +463,7 @@ void QoreTypeManager::init()
    ZeroDate    = new QoreNode(new DateTime((int64)0));
    
    emptyList   = new QoreNode(new QoreList());
-   emptyHash   = new QoreNode(new Hash());
+   emptyHash   = new QoreNode(new QoreHash());
 }
 
 void QoreTypeManager::del()

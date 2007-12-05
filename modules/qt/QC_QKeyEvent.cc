@@ -28,7 +28,7 @@ int CID_QKEYEVENT;
 
 class QoreClass *QC_QKeyEvent = 0;
 
-static void QKEYEVENT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QKEYEVENT_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQKeyEvent *qke;
 
@@ -58,31 +58,31 @@ static void QKEYEVENT_constructor(class Object *self, class QoreNode *params, Ex
    self->setPrivate(CID_QKEYEVENT, qke);
 }
 
-static void QKEYEVENT_copy(class Object *self, class Object *old, class QoreQKeyEvent *qr, ExceptionSink *xsink)
+static void QKEYEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQKeyEvent *qr, ExceptionSink *xsink)
 {
    xsink->raiseException("QKEYEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //int count () const
-static QoreNode *QKEYEVENT_count(Object *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QKEYEVENT_count(QoreObject *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qke->count());
 }
 
 //bool isAutoRepeat () const
-static QoreNode *QKEYEVENT_isAutoRepeat(Object *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QKEYEVENT_isAutoRepeat(QoreObject *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qke->isAutoRepeat());
 }
 
 //int key () const
-static QoreNode *QKEYEVENT_key(Object *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QKEYEVENT_key(QoreObject *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qke->key());
 }
 
 //bool matches ( QKeySequence::StandardKey key ) const
-static QoreNode *QKEYEVENT_matches(Object *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QKEYEVENT_matches(QoreObject *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QKeySequence::StandardKey key = (QKeySequence::StandardKey)(p ? p->getAsInt() : 0);
@@ -90,31 +90,31 @@ static QoreNode *QKEYEVENT_matches(Object *self, QoreQKeyEvent *qke, QoreNode *p
 }
 
 //Qt::KeyboardModifiers modifiers () const
-static QoreNode *QKEYEVENT_modifiers(Object *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QKEYEVENT_modifiers(QoreObject *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qke->modifiers());
 }
 
 //quint32 nativeModifiers () const
-static QoreNode *QKEYEVENT_nativeModifiers(Object *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QKEYEVENT_nativeModifiers(QoreObject *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qke->nativeModifiers());
 }
 
 //quint32 nativeScanCode () const
-static QoreNode *QKEYEVENT_nativeScanCode(Object *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QKEYEVENT_nativeScanCode(QoreObject *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qke->nativeScanCode());
 }
 
 //quint32 nativeVirtualKey () const
-static QoreNode *QKEYEVENT_nativeVirtualKey(Object *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QKEYEVENT_nativeVirtualKey(QoreObject *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qke->nativeVirtualKey());
 }
 
 //QString text () const
-static QoreNode *QKEYEVENT_text(Object *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QKEYEVENT_text(QoreObject *self, QoreQKeyEvent *qke, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qke->text().toUtf8().data(), QCS_UTF8));
 }

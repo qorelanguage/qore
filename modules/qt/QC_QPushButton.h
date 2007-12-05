@@ -43,15 +43,15 @@ class myQPushButton : public QPushButton, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQPushButton(Object *obj, QWidget* parent = 0) : QPushButton(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQPushButton(QoreObject *obj, QWidget* parent = 0) : QPushButton(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQPushButton(Object *obj, const QString& text, QWidget* parent = 0) : QPushButton(text, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQPushButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : QPushButton(text, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQPushButton(Object *obj, const QIcon& icon, const QString& text, QWidget* parent = 0) : QPushButton(icon, text, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQPushButton(QoreObject *obj, const QIcon& icon, const QString& text, QWidget* parent = 0) : QPushButton(icon, text, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -62,13 +62,13 @@ class QoreQPushButton : public QoreAbstractQPushButton
    public:
       QPointer<myQPushButton> qobj;
 
-      DLLLOCAL QoreQPushButton(Object *obj, QWidget* parent = 0) : qobj(new myQPushButton(obj, parent))
+      DLLLOCAL QoreQPushButton(QoreObject *obj, QWidget* parent = 0) : qobj(new myQPushButton(obj, parent))
       {
       }
-      DLLLOCAL QoreQPushButton(Object *obj, const QString& text, QWidget* parent = 0) : qobj(new myQPushButton(obj, text, parent))
+      DLLLOCAL QoreQPushButton(QoreObject *obj, const QString& text, QWidget* parent = 0) : qobj(new myQPushButton(obj, text, parent))
       {
       }
-      DLLLOCAL QoreQPushButton(Object *obj, const QIcon& icon, const QString& text, QWidget* parent = 0) : qobj(new myQPushButton(obj, icon, text, parent))
+      DLLLOCAL QoreQPushButton(QoreObject *obj, const QIcon& icon, const QString& text, QWidget* parent = 0) : qobj(new myQPushButton(obj, icon, text, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -103,10 +103,10 @@ class QoreQPushButton : public QoreAbstractQPushButton
 class QoreQtQPushButton : public QoreAbstractQPushButton
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QPushButton> qobj;
 
-      DLLLOCAL QoreQtQPushButton(Object *obj, QPushButton *qpushbutton) : qore_obj(obj), qobj(qpushbutton)
+      DLLLOCAL QoreQtQPushButton(QoreObject *obj, QPushButton *qpushbutton) : qore_obj(obj), qobj(qpushbutton)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

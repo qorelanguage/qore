@@ -114,7 +114,7 @@ void showCallStack()
       printe("call stack:\n");
       for (int i = 0; i < callStack->size(); i++)
       {
-         class Hash *h = callStack->retrieve_entry(i)->val.hash;
+         class QoreHash *h = callStack->retrieve_entry(i)->val.hash;
          printe(" %2d: %s() (%s line %d, %s)\n", i + 1,
                 h->getKeyValue("function")->val.String->getBuffer(),
                 h->getKeyValue("file")->val.String->getBuffer(),

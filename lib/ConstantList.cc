@@ -153,9 +153,9 @@ void ConstantList::parseInit()
    }
 }
 
-Hash *ConstantList::getInfo()
+QoreHash *ConstantList::getInfo()
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
       h->setKeyValue(i->first, i->second->RefSelf(), NULL);

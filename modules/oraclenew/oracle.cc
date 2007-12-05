@@ -98,7 +98,7 @@ class QoreNode *ora_exec_select(class Datasource *ds, char *query_str, Exception
    return 0;
 }
 
-class QoreNode *ora_exec_sql(class Datasource *ds, char *query_str, Object *vmap,
+class QoreNode *ora_exec_sql(class Datasource *ds, char *query_str, QoreObject *vmap,
 			     ExceptionSink *xsink)
 {
    return 0;
@@ -125,17 +125,17 @@ int ora_ds_init(class Datasource *ds, ExceptionSink *xsink)
    }
    if (!ds->username)
    {
-      (xsink->isEvent()) = new Exception("DBI:MISSING-USERNAME", "datasource \"%s\" has an empty username parameter", ds->name);
+      (xsink->isEvent()) = new QoreException("DBI:MISSING-USERNAME", "datasource \"%s\" has an empty username parameter", ds->name);
       return 0;
    }
    if (!ds->password)
    {
-      (xsink->isEvent()) = new Exception("DBI:MISSING-PASSWORD", "datasource \"%s\" has an empty password parameter", ds->name);
+      (xsink->isEvent()) = new QoreException("DBI:MISSING-PASSWORD", "datasource \"%s\" has an empty password parameter", ds->name);
       return 0;
    }
    if (!ds->dbname)
    {
-      (xsink->isEvent()) = new Exception("DBI:MISSING-DBNAME", "datasource \"%s\" has an empty dbname parameter", ds->name);
+      (xsink->isEvent()) = new QoreException("DBI:MISSING-DBNAME", "datasource \"%s\" has an empty dbname parameter", ds->name);
       return 0;
    }
    printd(3, "ora_ds_init(): user=%s pass=%s db=%s\n",

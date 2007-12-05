@@ -21,7 +21,7 @@
 */
 
 // FIXME: add derefWithObjectDelete() method to QoreNode to do a delete in addition to a deref if the qorenode is an object
-//        and use this method instead of calling Object::doDelete directly in places around the library
+//        and use this method instead of calling QoreObject::doDelete directly in places around the library
 
 #ifndef _QORE_NODE_H
 
@@ -53,9 +53,9 @@ union node_u {
       // for Lists
       class QoreList *list;
       // for Hashes (Associative Arrays)
-      class Hash *hash;
+      class QoreHash *hash;
       // for Objects
-      class Object *object;
+      class QoreObject *object;
       // for variable references
       class VarRef *vref;
       // for find expressions
@@ -114,8 +114,8 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(class DateTime *dt);
       DLLEXPORT QoreNode(class BinaryObject *b);
       DLLEXPORT QoreNode(class QoreString *str);
-      DLLEXPORT QoreNode(class Object *o);
-      DLLEXPORT QoreNode(class Hash *h);
+      DLLEXPORT QoreNode(class QoreObject *o);
+      DLLEXPORT QoreNode(class QoreHash *h);
       DLLEXPORT QoreNode(class QoreList *l);
 
       DLLEXPORT class QoreNode *convert(class QoreType *new_type);

@@ -57,7 +57,7 @@ class QoreClass *QC_QVariant = 0;
 ////QVariant ( const QLocale & qlocale )
 ////QVariant ( const QRegExp & regExp )
 ////QVariant ( Qt::GlobalColor color )
-static void QVARIANT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QVARIANT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -210,14 +210,14 @@ static void QVARIANT_constructor(Object *self, QoreNode *params, ExceptionSink *
    return;
 }
 
-static void QVARIANT_copy(class Object *self, class Object *old, class QoreQVariant *qv, ExceptionSink *xsink)
+static void QVARIANT_copy(class QoreObject *self, class QoreObject *old, class QoreQVariant *qv, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QVARIANT, new QoreQVariant(*qv));
 }
 
 //bool canConvert ( Type t ) const
 ////bool canConvert () const
-static QoreNode *QVARIANT_canConvert(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_canConvert(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QVariant::Type t = (QVariant::Type)(p ? p->getAsInt() : 0);
@@ -225,14 +225,14 @@ static QoreNode *QVARIANT_canConvert(Object *self, QoreQVariant *qv, QoreNode *p
 }
 
 //void clear ()
-static QoreNode *QVARIANT_clear(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_clear(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    qv->clear();
    return 0;
 }
 
 //bool convert ( Type t )
-static QoreNode *QVARIANT_convert(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_convert(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QVariant::Type t = (QVariant::Type)(p ? p->getAsInt() : 0);
@@ -240,25 +240,25 @@ static QoreNode *QVARIANT_convert(Object *self, QoreQVariant *qv, QoreNode *para
 }
 
 ////DataPtr & data_ptr ()
-//static QoreNode *QVARIANT_data_ptr(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_data_ptr(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qv->data_ptr());
 //}
 
 //bool isNull () const
-static QoreNode *QVARIANT_isNull(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_isNull(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qv->isNull());
 }
 
 //bool isValid () const
-static QoreNode *QVARIANT_isValid(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_isValid(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qv->isValid());
 }
 
 ////void setValue ( const T & value )
-//static QoreNode *QVARIANT_setValue(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_setValue(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? T value = p;
@@ -267,21 +267,21 @@ static QoreNode *QVARIANT_isValid(Object *self, QoreQVariant *qv, QoreNode *para
 //}
 
 ////QBitArray toBitArray () const
-//static QoreNode *QVARIANT_toBitArray(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_toBitArray(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qv->toBitArray());
 //}
 
 //bool toBool () const
-static QoreNode *QVARIANT_toBool(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toBool(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qv->toBool());
 }
 
 //QByteArray toByteArray () const
-static QoreNode *QVARIANT_toByteArray(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toByteArray(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qba = new Object(QC_QByteArray, getProgram());
+   QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    if (!o_qba)
       return 0;
    QoreQByteArray *q_qba = new QoreQByteArray(qv->toByteArray());
@@ -290,7 +290,7 @@ static QoreNode *QVARIANT_toByteArray(Object *self, QoreQVariant *qv, QoreNode *
 }
 
 //QChar toChar () const
-static QoreNode *QVARIANT_toChar(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toChar(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = qv->toChar();
@@ -299,14 +299,14 @@ static QoreNode *QVARIANT_toChar(Object *self, QoreQVariant *qv, QoreNode *param
 }
 
 //QDate toDate () const
-static QoreNode *QVARIANT_toDate(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toDate(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qv->toDate();
    return new QoreNode(new DateTime(rv_date.year(), rv_date.month(), rv_date.day()));
 }
 
 //QDateTime toDateTime () const
-static QoreNode *QVARIANT_toDateTime(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toDateTime(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    QDateTime rv_dt = qv->toDateTime();
    QDate rv_d = rv_dt.date();
@@ -315,7 +315,7 @@ static QoreNode *QVARIANT_toDateTime(Object *self, QoreQVariant *qv, QoreNode *p
 }
 
 //double toDouble ( bool * ok = 0 ) const
-static QoreNode *QVARIANT_toDouble(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toDouble(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    bool ok = false;
    double rc = qv->toDouble(&ok);
@@ -327,7 +327,7 @@ static QoreNode *QVARIANT_toDouble(Object *self, QoreQVariant *qv, QoreNode *par
 }
 
 //int toInt ( bool * ok = 0 ) const
-static QoreNode *QVARIANT_toInt(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toInt(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    bool ok = false;
    int64 rc = qv->toInt(&ok);
@@ -339,9 +339,9 @@ static QoreNode *QVARIANT_toInt(Object *self, QoreQVariant *qv, QoreNode *params
 }
 
 //QLine toLine () const
-static QoreNode *QVARIANT_toLine(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toLine(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_ql = new Object(QC_QLine, getProgram());
+   QoreObject *o_ql = new QoreObject(QC_QLine, getProgram());
    if (!o_ql)
       return 0;
    QoreQLine *q_ql = new QoreQLine(qv->toLine());
@@ -350,9 +350,9 @@ static QoreNode *QVARIANT_toLine(Object *self, QoreQVariant *qv, QoreNode *param
 }
 
 //QLineF toLineF () const
-static QoreNode *QVARIANT_toLineF(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toLineF(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qlf = new Object(QC_QLineF, getProgram());
+   QoreObject *o_qlf = new QoreObject(QC_QLineF, getProgram());
    if (!o_qlf)
       return 0;
    QoreQLineF *q_qlf = new QoreQLineF(qv->toLineF());
@@ -361,15 +361,15 @@ static QoreNode *QVARIANT_toLineF(Object *self, QoreQVariant *qv, QoreNode *para
 }
 
 ////QList<QVariant> toList () const
-//static QoreNode *QVARIANT_toList(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_toList(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qv->toList());
 //}
 
 //QLocale toLocale () const
-static QoreNode *QVARIANT_toLocale(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toLocale(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_ql = new Object(QC_QLocale, getProgram());
+   QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    if (!o_ql)
       return 0;
    QoreQLocale *q_ql = new QoreQLocale(qv->toLocale());
@@ -378,7 +378,7 @@ static QoreNode *QVARIANT_toLocale(Object *self, QoreQVariant *qv, QoreNode *par
 }
 
 ////qlonglong toLongLong ( bool * ok = 0 ) const
-//static QoreNode *QVARIANT_toLongLong(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_toLongLong(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
@@ -386,57 +386,57 @@ static QoreNode *QVARIANT_toLocale(Object *self, QoreQVariant *qv, QoreNode *par
 //}
 
 ////QMap<QString, QVariant> toMap () const
-//static QoreNode *QVARIANT_toMap(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_toMap(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qv->toMap());
 //}
 
 //QPoint toPoint () const
-static QoreNode *QVARIANT_toPoint(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toPoint(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qv->toPoint());
    o_qp->setPrivate(CID_QPOINT, q_qp);
    return new QoreNode(o_qp);
 }
 
 //QPointF toPointF () const
-static QoreNode *QVARIANT_toPointF(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toPointF(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qpf = new Object(QC_QPointF, getProgram());
+   QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qv->toPointF());
    o_qpf->setPrivate(CID_QPOINTF, q_qpf);
    return new QoreNode(o_qpf);
 }
 
 //QRect toRect () const
-static QoreNode *QVARIANT_toRect(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toRect(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qr = new Object(QC_QRect, getProgram());
+   QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qv->toRect());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
 
 //QRectF toRectF () const
-static QoreNode *QVARIANT_toRectF(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toRectF(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qrf = new Object(QC_QRectF, getProgram());
+   QoreObject *o_qrf = new QoreObject(QC_QRectF, getProgram());
    QoreQRectF *q_qrf = new QoreQRectF(qv->toRectF());
    o_qrf->setPrivate(CID_QRECTF, q_qrf);
    return new QoreNode(o_qrf);
 }
 
 ////QRegExp toRegExp () const
-//static QoreNode *QVARIANT_toRegExp(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_toRegExp(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qv->toRegExp());
 //}
 
 //QSize toSize () const
-static QoreNode *QVARIANT_toSize(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toSize(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    if (!o_qs)
       return 0;
    QoreQSize *q_qs = new QoreQSize(qv->toSize());
@@ -445,32 +445,32 @@ static QoreNode *QVARIANT_toSize(Object *self, QoreQVariant *qv, QoreNode *param
 }
 
 ////QSizeF toSizeF () const
-//static QoreNode *QVARIANT_toSizeF(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_toSizeF(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qv->toSizeF());
 //}
 
 //QString toString () const
-static QoreNode *QVARIANT_toString(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toString(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qv->toString().toUtf8().data(), QCS_UTF8));
 }
 
 ////QStringList toStringList () const
-//static QoreNode *QVARIANT_toStringList(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_toStringList(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qv->toStringList());
 //}
 
 //QTime toTime () const
-static QoreNode *QVARIANT_toTime(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toTime(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    QTime rv_t = qv->toTime();
    return new QoreNode(new DateTime(1970, 1, 1, rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec()));
 }
 
 ////uint toUInt ( bool * ok = 0 ) const
-//static QoreNode *QVARIANT_toUInt(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_toUInt(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
@@ -478,7 +478,7 @@ static QoreNode *QVARIANT_toTime(Object *self, QoreQVariant *qv, QoreNode *param
 //}
 
 ////qulonglong toULongLong ( bool * ok = 0 ) const
-//static QoreNode *QVARIANT_toULongLong(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QVARIANT_toULongLong(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
@@ -486,9 +486,9 @@ static QoreNode *QVARIANT_toTime(Object *self, QoreQVariant *qv, QoreNode *param
 //}
 
 //QUrl toUrl () const
-static QoreNode *QVARIANT_toUrl(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_toUrl(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qu = new Object(QC_QUrl, getProgram());
+   QoreObject *o_qu = new QoreObject(QC_QUrl, getProgram());
    if (!o_qu)
       return 0;
    QoreQUrl *q_qu = new QoreQUrl(qv->toUrl());
@@ -497,13 +497,13 @@ static QoreNode *QVARIANT_toUrl(Object *self, QoreQVariant *qv, QoreNode *params
 }
 
 //Type type () const
-static QoreNode *QVARIANT_type(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_type(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qv->type());
 }
 
 //const char * typeName () const
-static QoreNode *QVARIANT_typeName(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_typeName(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    const char *c_rv = qv->typeName();
    if (!c_rv)
@@ -512,7 +512,7 @@ static QoreNode *QVARIANT_typeName(Object *self, QoreQVariant *qv, QoreNode *par
 }
 
 //int userType () const
-static QoreNode *QVARIANT_userType(Object *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QVARIANT_userType(QoreObject *self, QoreQVariant *qv, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qv->userType());
 }

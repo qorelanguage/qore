@@ -43,7 +43,7 @@ class myQMacStyle : public QMacStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMacStyle(Object *obj) : QMacStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQMacStyle(QoreObject *obj) : QMacStyle(), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }
@@ -54,7 +54,7 @@ class QoreQMacStyle : public QoreAbstractQWindowsStyle
    public:
       QPointer<myQMacStyle> qobj;
 
-      DLLLOCAL QoreQMacStyle(Object *obj) : qobj(new myQMacStyle(obj))
+      DLLLOCAL QoreQMacStyle(QoreObject *obj) : qobj(new myQMacStyle(obj))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -71,10 +71,10 @@ class QoreQMacStyle : public QoreAbstractQWindowsStyle
 class QoreQtQMacStyle : public QoreAbstractQWindowsStyle
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QMacStyle> qobj;
 
-      DLLLOCAL QoreQtQMacStyle(Object *obj, QMacStyle *qms) : qore_obj(obj), qobj(qms)
+      DLLLOCAL QoreQtQMacStyle(QoreObject *obj, QMacStyle *qms) : qore_obj(obj), qobj(qms)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

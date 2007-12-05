@@ -28,13 +28,13 @@ int CID_QWINDOWSXPSTYLE;
 class QoreClass *QC_QWindowsXPStyle = 0;
 
 //QWindowsXPStyle ()
-static void QWINDOWSXPSTYLE_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QWINDOWSXPSTYLE_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QWINDOWSXPSTYLE, new QoreQWindowsXPStyle(self));
    return;
 }
 
-static void QWINDOWSXPSTYLE_copy(class Object *self, class Object *old, class QoreQWindowsXPStyle *qwxps, ExceptionSink *xsink)
+static void QWINDOWSXPSTYLE_copy(class QoreObject *self, class QoreObject *old, class QoreQWindowsXPStyle *qwxps, ExceptionSink *xsink)
 {
    xsink->raiseException("QWINDOWSXPSTYLE-COPY-ERROR", "objects of this class cannot be copied");
 }

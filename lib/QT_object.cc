@@ -44,7 +44,7 @@ bool object_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *x
 
 class QoreString *object_MakeString(class QoreNode *n, int foff, class ExceptionSink *xsink)
 {
-   Hash *h = n->val.object->evalData(xsink);
+   QoreHash *h = n->val.object->evalData(xsink);
    if (xsink->isEvent())
    {
       if (h)

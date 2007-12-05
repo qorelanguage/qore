@@ -29,100 +29,100 @@ int CID_QTEXTCHARFORMAT;
 class QoreClass *QC_QTextCharFormat = 0;
 
 //QTextCharFormat ()
-static void QTEXTCHARFORMAT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QTEXTCHARFORMAT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTCHARFORMAT, new QoreQTextCharFormat());
    return;
 }
 
-static void QTEXTCHARFORMAT_copy(class Object *self, class Object *old, class QoreQTextCharFormat *qtcf, ExceptionSink *xsink)
+static void QTEXTCHARFORMAT_copy(class QoreObject *self, class QoreObject *old, class QoreQTextCharFormat *qtcf, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTCHARFORMAT, new QoreQTextCharFormat(*qtcf));
 }
 
 //QString anchorHref () const
-static QoreNode *QTEXTCHARFORMAT_anchorHref(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_anchorHref(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qtcf->anchorHref().toUtf8().data(), QCS_UTF8));
 }
 
 ////QStringList anchorNames () const
-//static QoreNode *QTEXTCHARFORMAT_anchorNames(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QTEXTCHARFORMAT_anchorNames(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qtcf->anchorNames());
 //}
 
 //QFont font () const
-static QoreNode *QTEXTCHARFORMAT_font(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_font(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qf = new Object(QC_QFont, getProgram());
+   QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qtcf->font());
    o_qf->setPrivate(CID_QFONT, q_qf);
    return new QoreNode(o_qf);
 }
 
 //QString fontFamily () const
-static QoreNode *QTEXTCHARFORMAT_fontFamily(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_fontFamily(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qtcf->fontFamily().toUtf8().data(), QCS_UTF8));
 }
 
 //bool fontFixedPitch () const
-static QoreNode *QTEXTCHARFORMAT_fontFixedPitch(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_fontFixedPitch(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtcf->fontFixedPitch());
 }
 
 //bool fontItalic () const
-static QoreNode *QTEXTCHARFORMAT_fontItalic(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_fontItalic(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtcf->fontItalic());
 }
 
 //bool fontOverline () const
-static QoreNode *QTEXTCHARFORMAT_fontOverline(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_fontOverline(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtcf->fontOverline());
 }
 
 //qreal fontPointSize () const
-static QoreNode *QTEXTCHARFORMAT_fontPointSize(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_fontPointSize(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtcf->fontPointSize());
 }
 
 //bool fontStrikeOut () const
-static QoreNode *QTEXTCHARFORMAT_fontStrikeOut(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_fontStrikeOut(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtcf->fontStrikeOut());
 }
 
 //bool fontUnderline () const
-static QoreNode *QTEXTCHARFORMAT_fontUnderline(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_fontUnderline(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtcf->fontUnderline());
 }
 
 //int fontWeight () const
-static QoreNode *QTEXTCHARFORMAT_fontWeight(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_fontWeight(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtcf->fontWeight());
 }
 
 //bool isAnchor () const
-static QoreNode *QTEXTCHARFORMAT_isAnchor(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_isAnchor(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtcf->isAnchor());
 }
 
 //bool isValid () const
-static QoreNode *QTEXTCHARFORMAT_isValid(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_isValid(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtcf->isValid());
 }
 
 //void setAnchor ( bool anchor )
-static QoreNode *QTEXTCHARFORMAT_setAnchor(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setAnchor(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool anchor = p ? p->getAsBool() : false;
@@ -131,7 +131,7 @@ static QoreNode *QTEXTCHARFORMAT_setAnchor(Object *self, QoreQTextCharFormat *qt
 }
 
 //void setAnchorHref ( const QString & value )
-static QoreNode *QTEXTCHARFORMAT_setAnchorHref(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setAnchorHref(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString value;
@@ -144,7 +144,7 @@ static QoreNode *QTEXTCHARFORMAT_setAnchorHref(Object *self, QoreQTextCharFormat
 }
 
 ////void setAnchorNames ( const QStringList & names )
-//static QoreNode *QTEXTCHARFORMAT_setAnchorNames(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QTEXTCHARFORMAT_setAnchorNames(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QStringList names = p;
@@ -153,7 +153,7 @@ static QoreNode *QTEXTCHARFORMAT_setAnchorHref(Object *self, QoreQTextCharFormat
 //}
 
 //void setFont ( const QFont & font )
-static QoreNode *QTEXTCHARFORMAT_setFont(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setFont(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
@@ -168,7 +168,7 @@ static QoreNode *QTEXTCHARFORMAT_setFont(Object *self, QoreQTextCharFormat *qtcf
 }
 
 //void setFontFamily ( const QString & family )
-static QoreNode *QTEXTCHARFORMAT_setFontFamily(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setFontFamily(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString family;
@@ -181,7 +181,7 @@ static QoreNode *QTEXTCHARFORMAT_setFontFamily(Object *self, QoreQTextCharFormat
 }
 
 //void setFontFixedPitch ( bool fixedPitch )
-static QoreNode *QTEXTCHARFORMAT_setFontFixedPitch(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setFontFixedPitch(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool fixedPitch = p ? p->getAsBool() : false;
@@ -190,7 +190,7 @@ static QoreNode *QTEXTCHARFORMAT_setFontFixedPitch(Object *self, QoreQTextCharFo
 }
 
 //void setFontItalic ( bool italic )
-static QoreNode *QTEXTCHARFORMAT_setFontItalic(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setFontItalic(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool italic = p ? p->getAsBool() : false;
@@ -199,7 +199,7 @@ static QoreNode *QTEXTCHARFORMAT_setFontItalic(Object *self, QoreQTextCharFormat
 }
 
 //void setFontOverline ( bool overline )
-static QoreNode *QTEXTCHARFORMAT_setFontOverline(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setFontOverline(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool overline = p ? p->getAsBool() : false;
@@ -208,7 +208,7 @@ static QoreNode *QTEXTCHARFORMAT_setFontOverline(Object *self, QoreQTextCharForm
 }
 
 //void setFontPointSize ( qreal size )
-static QoreNode *QTEXTCHARFORMAT_setFontPointSize(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setFontPointSize(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal size = p ? p->getAsFloat() : 0.0;
@@ -217,7 +217,7 @@ static QoreNode *QTEXTCHARFORMAT_setFontPointSize(Object *self, QoreQTextCharFor
 }
 
 //void setFontStrikeOut ( bool strikeOut )
-static QoreNode *QTEXTCHARFORMAT_setFontStrikeOut(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setFontStrikeOut(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool strikeOut = p ? p->getAsBool() : false;
@@ -226,7 +226,7 @@ static QoreNode *QTEXTCHARFORMAT_setFontStrikeOut(Object *self, QoreQTextCharFor
 }
 
 //void setFontUnderline ( bool underline )
-static QoreNode *QTEXTCHARFORMAT_setFontUnderline(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setFontUnderline(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool underline = p ? p->getAsBool() : false;
@@ -235,7 +235,7 @@ static QoreNode *QTEXTCHARFORMAT_setFontUnderline(Object *self, QoreQTextCharFor
 }
 
 //void setFontWeight ( int weight )
-static QoreNode *QTEXTCHARFORMAT_setFontWeight(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setFontWeight(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int weight = p ? p->getAsInt() : 0;
@@ -244,7 +244,7 @@ static QoreNode *QTEXTCHARFORMAT_setFontWeight(Object *self, QoreQTextCharFormat
 }
 
 //void setTextOutline ( const QPen & pen )
-static QoreNode *QTEXTCHARFORMAT_setTextOutline(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setTextOutline(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPen *pen = (p && p->type == NT_OBJECT) ? (QoreQPen *)p->val.object->getReferencedPrivateData(CID_QPEN, xsink) : 0;
@@ -259,7 +259,7 @@ static QoreNode *QTEXTCHARFORMAT_setTextOutline(Object *self, QoreQTextCharForma
 }
 
 //void setToolTip ( const QString & text )
-static QoreNode *QTEXTCHARFORMAT_setToolTip(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setToolTip(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -271,7 +271,7 @@ static QoreNode *QTEXTCHARFORMAT_setToolTip(Object *self, QoreQTextCharFormat *q
 }
 
 //void setUnderlineColor ( const QColor & color )
-static QoreNode *QTEXTCHARFORMAT_setUnderlineColor(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setUnderlineColor(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
@@ -286,7 +286,7 @@ static QoreNode *QTEXTCHARFORMAT_setUnderlineColor(Object *self, QoreQTextCharFo
 }
 
 //void setUnderlineStyle ( UnderlineStyle style )
-static QoreNode *QTEXTCHARFORMAT_setUnderlineStyle(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setUnderlineStyle(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextCharFormat::UnderlineStyle style = (QTextCharFormat::UnderlineStyle)(p ? p->getAsInt() : 0);
@@ -295,7 +295,7 @@ static QoreNode *QTEXTCHARFORMAT_setUnderlineStyle(Object *self, QoreQTextCharFo
 }
 
 //void setVerticalAlignment ( VerticalAlignment alignment )
-static QoreNode *QTEXTCHARFORMAT_setVerticalAlignment(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_setVerticalAlignment(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextCharFormat::VerticalAlignment alignment = (QTextCharFormat::VerticalAlignment)(p ? p->getAsInt() : 0);
@@ -304,37 +304,37 @@ static QoreNode *QTEXTCHARFORMAT_setVerticalAlignment(Object *self, QoreQTextCha
 }
 
 //QPen textOutline () const
-static QoreNode *QTEXTCHARFORMAT_textOutline(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_textOutline(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qp = new Object(QC_QPen, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPen, getProgram());
    QoreQPen *q_qp = new QoreQPen(qtcf->textOutline());
    o_qp->setPrivate(CID_QPEN, q_qp);
    return new QoreNode(o_qp);
 }
 
 //QString toolTip () const
-static QoreNode *QTEXTCHARFORMAT_toolTip(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_toolTip(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qtcf->toolTip().toUtf8().data(), QCS_UTF8));
 }
 
 //QColor underlineColor () const
-static QoreNode *QTEXTCHARFORMAT_underlineColor(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_underlineColor(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qtcf->underlineColor());
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
 }
 
 //UnderlineStyle underlineStyle () const
-static QoreNode *QTEXTCHARFORMAT_underlineStyle(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_underlineStyle(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtcf->underlineStyle());
 }
 
 //VerticalAlignment verticalAlignment () const
-static QoreNode *QTEXTCHARFORMAT_verticalAlignment(Object *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTCHARFORMAT_verticalAlignment(QoreObject *self, QoreQTextCharFormat *qtcf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtcf->verticalAlignment());
 }

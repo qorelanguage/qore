@@ -29,7 +29,7 @@
 
 int CID_QLABEL;
 
-static void QLABEL_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QLABEL_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQLabel *ql;
    QoreNode *p = get_param(params, 0);
@@ -65,45 +65,45 @@ static void QLABEL_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_QLABEL, ql);
 }
 
-static void QLABEL_copy(class Object *self, class Object *old, class QoreQLabel *qlcdn, ExceptionSink *xsink)
+static void QLABEL_copy(class QoreObject *self, class QoreObject *old, class QoreQLabel *qlcdn, ExceptionSink *xsink)
 {
    xsink->raiseException("QLABEL-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //Qt::Alignment alignment () const
-static QoreNode *QLABEL_alignment(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_alignment(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ql->qobj->alignment());
 }
 
 //QWidget * buddy () const
-//static QoreNode *QLABEL_buddy(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QLABEL_buddy(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return ql->qobj->buddy();
 //}
 
 //bool hasScaledContents () const
-static QoreNode *QLABEL_hasScaledContents(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_hasScaledContents(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(ql->qobj->hasScaledContents());
 }
 
 //int indent () const
-static QoreNode *QLABEL_indent(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_indent(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ql->qobj->indent());
 }
 
 //int margin () const
-static QoreNode *QLABEL_margin(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_margin(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ql->qobj->margin());
 }
 
 //QMovie * movie () const
-static QoreNode *QLABEL_movie(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_movie(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qm = new Object(QC_QMovie, getProgram());
+   QoreObject *o_qm = new QoreObject(QC_QMovie, getProgram());
    QoreQMovie *q_qm;
    QMovie *mov = ql->qobj->movie();
    if (mov->device())
@@ -115,31 +115,31 @@ static QoreNode *QLABEL_movie(Object *self, QoreQLabel *ql, QoreNode *params, Ex
 }
 
 //bool openExternalLinks () const
-static QoreNode *QLABEL_openExternalLinks(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_openExternalLinks(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(ql->qobj->openExternalLinks());
 }
 
 //const QPicture * picture () const
-static QoreNode *QLABEL_picture(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_picture(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreQPicture *q_qp = new QoreQPicture(*(ql->qobj->picture()));
-   Object *o_qp = new Object(QC_QPicture, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPicture, getProgram());
    o_qp->setPrivate(CID_QPICTURE, q_qp);
    return new QoreNode(o_qp);
 }
 
 //const QPixmap * pixmap () const
-static QoreNode *QLABEL_pixmap(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_pixmap(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreQPixmap *q_qp = new QoreQPixmap(*(ql->qobj->pixmap()));
-   Object *o_qp = new Object(QC_QPixmap, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPixmap, getProgram());
    o_qp->setPrivate(CID_QPIXMAP, q_qp);
    return new QoreNode(o_qp);
 }
 
 //void setAlignment ( Qt::Alignment )
-static QoreNode *QLABEL_setAlignment(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setAlignment(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
@@ -148,7 +148,7 @@ static QoreNode *QLABEL_setAlignment(Object *self, QoreQLabel *ql, QoreNode *par
 }
 
 //void setBuddy ( QWidget * buddy )
-static QoreNode *QLABEL_setBuddy(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setBuddy(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *buddy = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -163,7 +163,7 @@ static QoreNode *QLABEL_setBuddy(Object *self, QoreQLabel *ql, QoreNode *params,
 }
 
 //void setIndent ( int )
-static QoreNode *QLABEL_setIndent(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setIndent(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -172,7 +172,7 @@ static QoreNode *QLABEL_setIndent(Object *self, QoreQLabel *ql, QoreNode *params
 }
 
 //void setMargin ( int )
-static QoreNode *QLABEL_setMargin(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setMargin(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -181,7 +181,7 @@ static QoreNode *QLABEL_setMargin(Object *self, QoreQLabel *ql, QoreNode *params
 }
 
 //void setOpenExternalLinks ( bool open )
-static QoreNode *QLABEL_setOpenExternalLinks(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setOpenExternalLinks(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool open = p ? p->getAsBool() : false;
@@ -190,7 +190,7 @@ static QoreNode *QLABEL_setOpenExternalLinks(Object *self, QoreQLabel *ql, QoreN
 }
 
 //void setScaledContents ( bool )
-static QoreNode *QLABEL_setScaledContents(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setScaledContents(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -199,7 +199,7 @@ static QoreNode *QLABEL_setScaledContents(Object *self, QoreQLabel *ql, QoreNode
 }
 
 //void setTextFormat ( Qt::TextFormat )
-static QoreNode *QLABEL_setTextFormat(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setTextFormat(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::TextFormat textformat = (Qt::TextFormat)(p ? p->getAsInt() : 0);
@@ -208,7 +208,7 @@ static QoreNode *QLABEL_setTextFormat(Object *self, QoreQLabel *ql, QoreNode *pa
 }
 
 //void setTextInteractionFlags ( Qt::TextInteractionFlags flags )
-static QoreNode *QLABEL_setTextInteractionFlags(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setTextInteractionFlags(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::TextInteractionFlags flags = (Qt::TextInteractionFlags)(p ? p->getAsInt() : 0);
@@ -217,7 +217,7 @@ static QoreNode *QLABEL_setTextInteractionFlags(Object *self, QoreQLabel *ql, Qo
 }
 
 //void setWordWrap ( bool on )
-static QoreNode *QLABEL_setWordWrap(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setWordWrap(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
@@ -226,38 +226,38 @@ static QoreNode *QLABEL_setWordWrap(Object *self, QoreQLabel *ql, QoreNode *para
 }
 
 //QString text () const
-static QoreNode *QLABEL_text(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_text(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(ql->qobj->text().toUtf8().data(), QCS_UTF8));
 }
 
 //Qt::TextFormat textFormat () const
-static QoreNode *QLABEL_textFormat(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_textFormat(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ql->qobj->textFormat());
 }
 
 //Qt::TextInteractionFlags textInteractionFlags () const
-static QoreNode *QLABEL_textInteractionFlags(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_textInteractionFlags(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ql->qobj->textInteractionFlags());
 }
 
 //bool wordWrap () const
-static QoreNode *QLABEL_wordWrap(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_wordWrap(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(ql->qobj->wordWrap());
 }
 
 //void clear ()
-static QoreNode *QLABEL_clear(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_clear(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    ql->qobj->clear();
    return 0;
 }
 
 //void setMovie ( QMovie * movie )
-static QoreNode *QLABEL_setMovie(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setMovie(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQMovie *movie = (p && p->type == NT_OBJECT) ? (QoreQMovie *)p->val.object->getReferencedPrivateData(CID_QMOVIE, xsink) : 0;
@@ -273,7 +273,7 @@ static QoreNode *QLABEL_setMovie(Object *self, QoreQLabel *ql, QoreNode *params,
 
 //void setNum ( int num )
 //void setNum ( double num )
-static QoreNode *QLABEL_setNum(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setNum(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_INT) {
@@ -287,7 +287,7 @@ static QoreNode *QLABEL_setNum(Object *self, QoreQLabel *ql, QoreNode *params, E
 }
 
 //void setPicture ( const QPicture & picture )
-static QoreNode *QLABEL_setPicture(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setPicture(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPicture *picture = (p && p->type == NT_OBJECT) ? (QoreQPicture *)p->val.object->getReferencedPrivateData(CID_QPICTURE, xsink) : 0;
@@ -302,7 +302,7 @@ static QoreNode *QLABEL_setPicture(Object *self, QoreQLabel *ql, QoreNode *param
 }
 
 //void setPixmap ( const QPixmap & )
-static QoreNode *QLABEL_setPixmap(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setPixmap(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
@@ -319,7 +319,7 @@ static QoreNode *QLABEL_setPixmap(Object *self, QoreQLabel *ql, QoreNode *params
 }
 
 //void setText ( const QString & )
-static QoreNode *QLABEL_setText(Object *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLABEL_setText(QoreObject *self, QoreQLabel *ql, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {

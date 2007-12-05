@@ -1,5 +1,5 @@
 /*
-  Object.h
+  QoreObject.h
 
   thread-safe object definition
 
@@ -24,9 +24,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_OBJECT_H
+#ifndef _QORE_QOREOBJECT_H
 
-#define _QORE_OBJECT_H
+#define _QORE_QOREOBJECT_H
 
 #include <qore/common.h>
 #include <qore/ReferenceObject.h>
@@ -47,7 +47,7 @@
 // actually be deleted
 
 // note that any of the methods below that involve locking cannot be const methods
-class Object : public ReferenceObject
+class QoreObject : public ReferenceObject
 {
    private:
       class QoreClass *myclass;
@@ -56,21 +56,21 @@ class Object : public ReferenceObject
       class VRMutex g;
       class KeyList *privateData;
       class ReferenceObject tRefs;  // reference-references
-      class Hash *data;
+      class QoreHash *data;
       class QoreProgram *pgm;
 
       DLLLOCAL inline void init(class QoreClass *oc, class QoreProgram *p);
       // must only be called when inside the gate
       DLLLOCAL inline void doDeleteIntern(class ExceptionSink *xsink);
-      DLLLOCAL void cleanup(class ExceptionSink *xsink, class Hash *td);
+      DLLLOCAL void cleanup(class ExceptionSink *xsink, class QoreHash *td);
       DLLLOCAL void addVirtualPrivateData(AbstractPrivateData *apd);
       
    protected:
-      DLLLOCAL ~Object();
+      DLLLOCAL ~QoreObject();
 
    public:
-      DLLEXPORT Object(class QoreClass *oc, class QoreProgram *p);
-      DLLEXPORT Object(class QoreClass *oc, class QoreProgram *p, class Hash *d);
+      DLLEXPORT QoreObject(class QoreClass *oc, class QoreProgram *p);
+      DLLEXPORT QoreObject(class QoreClass *oc, class QoreProgram *p, class QoreHash *d);
 
       DLLEXPORT class QoreNode **getMemberValuePtr(class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getMemberValuePtr(const char *key, class AutoVLock *vl, class ExceptionSink *xsink);
@@ -84,13 +84,13 @@ class Object : public ReferenceObject
       DLLEXPORT void deleteMemberValue(class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT void deleteMemberValue(const char *key, class ExceptionSink *xsink);
       DLLEXPORT int size(class ExceptionSink *xsink);
-      DLLEXPORT bool compareSoft(class Object *obj, class ExceptionSink *xsink);
-      DLLEXPORT bool compareHard(class Object *obj, class ExceptionSink *xsink);
+      DLLEXPORT bool compareSoft(class QoreObject *obj, class ExceptionSink *xsink);
+      DLLEXPORT bool compareHard(class QoreObject *obj, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMember(class QoreNode *member, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMemberNoMethod(const char *mem, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMemberExistence(const char *mem, class ExceptionSink *xsink);
-      DLLEXPORT class Hash *evalData(class ExceptionSink *xsink);
+      DLLEXPORT class QoreHash *evalData(class ExceptionSink *xsink);
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
       DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink);
@@ -107,13 +107,13 @@ class Object : public ReferenceObject
 
       DLLLOCAL void instantiateLVar(lvh_t id);
       DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
-      DLLLOCAL void merge(class Hash *h, class ExceptionSink *xsink);
-      DLLLOCAL void assimilate(class Hash *h, class ExceptionSink *xsink);
+      DLLLOCAL void merge(class QoreHash *h, class ExceptionSink *xsink);
+      DLLLOCAL void assimilate(class QoreHash *h, class ExceptionSink *xsink);
       DLLLOCAL class KeyNode *getReferencedPrivateDataNode(int key);
       DLLLOCAL AbstractPrivateData *getAndClearPrivateData(int key, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, class QoreNode *args, class ExceptionSink *xsink);
       // called on old to acquire private data, copy method called on self (new copy)
-      DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class Object *self, const char *class_name, class ExceptionSink *xsink);
+      DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class QoreObject *self, const char *class_name, class ExceptionSink *xsink);
       DLLLOCAL void addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink);
       DLLLOCAL void obliterate(class ExceptionSink *xsink);
       DLLLOCAL void doDelete(class ExceptionSink *xsink);

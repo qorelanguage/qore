@@ -26,11 +26,7 @@
 
 #define _QORE_TIBCO_QORETIBRVCMLISTENER_H
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/AbstractPrivateData.h>
-#include <qore/Exception.h>
-#include <qore/charset.h>
+#include <qore/Qore.h>
 
 #include "QoreTibrvCmTransport.h"
 
@@ -61,8 +57,8 @@ class QoreTibrvCmListener : public AbstractPrivateData, public QoreTibrvCmTransp
 	 return count;
       }
 
-      class Hash *getMessage(class ExceptionSink *xsink);
-      class Hash *getMessage(int64 timeout, class ExceptionSink *xsink);
+      class QoreHash *getMessage(class ExceptionSink *xsink);
+      class QoreHash *getMessage(int64 timeout, class ExceptionSink *xsink);
 
       class QoreString *createInboxName(class ExceptionSink *xsink)
       {
@@ -84,7 +80,7 @@ class QoreTibrvCmMsgCallback : public TibrvCmMsgCallback
    private:
       class QoreTibrvCmListener *ql;
       class ExceptionSink xsink;
-      class Hash *h;
+      class QoreHash *h;
 
       virtual void onCmMsg(TibrvCmListener *cmListener, TibrvMsg &msg)
       {
@@ -115,14 +111,14 @@ class QoreTibrvCmMsgCallback : public TibrvCmMsgCallback
 	    h->derefAndDelete(&xsink);
       }
 
-      inline class Hash *getMessage(class ExceptionSink *xs)
+      inline class QoreHash *getMessage(class ExceptionSink *xs)
       {
 	 if (xsink.isException())
 	 {
 	    xs->assimilate(&xsink);
 	    return NULL;
 	 }
-	 class Hash *rv = h;
+	 class QoreHash *rv = h;
 	 h = NULL;
 	 return rv;
       }

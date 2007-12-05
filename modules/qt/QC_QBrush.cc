@@ -38,7 +38,7 @@ QoreClass *QC_QBrush = 0;
 //QBrush ( const QImage & image )
 //QBrush ( const QBrush & other )
 //QBrush ( const QGradient & gradient )
-static void QBRUSH_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QBRUSH_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQBrush *qb;
 
@@ -105,52 +105,52 @@ static void QBRUSH_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_QBRUSH, qb);
 }
 
-static void QBRUSH_copy(class Object *self, class Object *old, class QoreQBrush *qf, ExceptionSink *xsink)
+static void QBRUSH_copy(class QoreObject *self, class QoreObject *old, class QoreQBrush *qf, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QBRUSH, new QoreQBrush(*qf));
 }
 
 //const QColor & color () const
-static QoreNode *QBRUSH_color(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBRUSH_color(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreQColor *n_qc = new QoreQColor(qb->getQBrush()->color());
-   Object *nqc = new Object(QC_QColor, getProgram());
+   QoreObject *nqc = new QoreObject(QC_QColor, getProgram());
    nqc->setPrivate(CID_QCOLOR, n_qc);
    return new QoreNode(nqc);
 }
 
 //DataPtr & data_ptr ()
-//static QoreNode *QBRUSH_data_ptr(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QBRUSH_data_ptr(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qb->getQBrush()->data_ptr());
 //}
 
 //const QGradient * gradient () const
-//static QoreNode *QBRUSH_gradient(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QBRUSH_gradient(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return qb->getQBrush()->gradient();
 //}
 
 //bool isDetached () const
-static QoreNode *QBRUSH_isDetached(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBRUSH_isDetached(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qb->getQBrush()->isDetached());
 }
 
 //bool isOpaque () const
-static QoreNode *QBRUSH_isOpaque(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBRUSH_isOpaque(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qb->getQBrush()->isOpaque());
 }
 
 //const QMatrix & matrix () const
-//static QoreNode *QBRUSH_matrix(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QBRUSH_matrix(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qb->getQBrush()->matrix());
 //}
 
 //void setColor ( const QColor & color )
-static QoreNode *QBRUSH_setColor(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBRUSH_setColor(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -172,7 +172,7 @@ static QoreNode *QBRUSH_setColor(Object *self, QoreQBrush *qb, QoreNode *params,
 }
 
 //void setMatrix ( const QMatrix & matrix )
-//static QoreNode *QBRUSH_setMatrix(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QBRUSH_setMatrix(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QMatrix matrix = p;
@@ -181,7 +181,7 @@ static QoreNode *QBRUSH_setColor(Object *self, QoreQBrush *qb, QoreNode *params,
 //}
 
 //void setStyle ( Qt::BrushStyle style )
-static QoreNode *QBRUSH_setStyle(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBRUSH_setStyle(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_BRUSHSTYLE, 0);
    if (!p) {
@@ -194,7 +194,7 @@ static QoreNode *QBRUSH_setStyle(Object *self, QoreQBrush *qb, QoreNode *params,
 }
 
 //void setTexture ( const QPixmap & pixmap )
-static QoreNode *QBRUSH_setTexture(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBRUSH_setTexture(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
@@ -209,7 +209,7 @@ static QoreNode *QBRUSH_setTexture(Object *self, QoreQBrush *qb, QoreNode *param
 }
 
 //void setTextureImage ( const QImage & image )
-static QoreNode *QBRUSH_setTextureImage(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBRUSH_setTextureImage(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)p->val.object->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
@@ -224,7 +224,7 @@ static QoreNode *QBRUSH_setTextureImage(Object *self, QoreQBrush *qb, QoreNode *
 }
 
 //void setTransform ( const QTransform & )
-//static QoreNode *QBRUSH_setTransform(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QBRUSH_setTransform(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QTransform qtransform = p;
@@ -233,31 +233,31 @@ static QoreNode *QBRUSH_setTextureImage(Object *self, QoreQBrush *qb, QoreNode *
 //}
 
 //Qt::BrushStyle style () const
-static QoreNode *QBRUSH_style(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBRUSH_style(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
    return make_enum(NT_BRUSHSTYLE, (int)qb->getQBrush()->style());
 }
 
 //QPixmap texture () const
-static QoreNode *QBRUSH_texture(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBRUSH_texture(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qp = new Object(QC_QPixmap, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPixmap, getProgram());
    QoreQPixmap *q_qp = new QoreQPixmap(qb->getQBrush()->texture());
    o_qp->setPrivate(CID_QPIXMAP, q_qp);
    return new QoreNode(o_qp);
 }
 
 //QImage textureImage () const
-static QoreNode *QBRUSH_textureImage(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBRUSH_textureImage(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qi = new Object(QC_QImage, getProgram());
+   QoreObject *o_qi = new QoreObject(QC_QImage, getProgram());
    QoreQImage *q_qi = new QoreQImage(qb->getQBrush()->textureImage());
    o_qi->setPrivate(CID_QIMAGE, q_qi);
    return new QoreNode(o_qi);
 }
 
 //QTransform transform () const
-//static QoreNode *QBRUSH_transform(Object *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QBRUSH_transform(QoreObject *self, QoreQBrush *qb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qb->getQBrush()->transform());
 //}

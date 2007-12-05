@@ -30,7 +30,7 @@ class QoreClass *QC_QInputMethodEvent = 0;
 //QInputMethodEvent ()
 ////QInputMethodEvent ( const QString & preeditText, const QList<Attribute> & attributes )
 ////QInputMethodEvent ( const QInputMethodEvent & other )
-static void QINPUTMETHODEVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QINPUTMETHODEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -51,43 +51,43 @@ static void QINPUTMETHODEVENT_constructor(Object *self, QoreNode *params, Except
 //   return;
 }
 
-static void QINPUTMETHODEVENT_copy(class Object *self, class Object *old, class QoreQInputMethodEvent *qime, ExceptionSink *xsink)
+static void QINPUTMETHODEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQInputMethodEvent *qime, ExceptionSink *xsink)
 {
    xsink->raiseException("QINPUTMETHODEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 ////const QList<Attribute> & attributes () const
-//static QoreNode *QINPUTMETHODEVENT_attributes(Object *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QINPUTMETHODEVENT_attributes(QoreObject *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qime->attributes());
 //}
 
 //const QString & commitString () const
-static QoreNode *QINPUTMETHODEVENT_commitString(Object *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINPUTMETHODEVENT_commitString(QoreObject *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qime->commitString().toUtf8().data(), QCS_UTF8));
 }
 
 //const QString & preeditString () const
-static QoreNode *QINPUTMETHODEVENT_preeditString(Object *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINPUTMETHODEVENT_preeditString(QoreObject *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qime->preeditString().toUtf8().data(), QCS_UTF8));
 }
 
 //int replacementLength () const
-static QoreNode *QINPUTMETHODEVENT_replacementLength(Object *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINPUTMETHODEVENT_replacementLength(QoreObject *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qime->replacementLength());
 }
 
 //int replacementStart () const
-static QoreNode *QINPUTMETHODEVENT_replacementStart(Object *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINPUTMETHODEVENT_replacementStart(QoreObject *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qime->replacementStart());
 }
 
 //void setCommitString ( const QString & commitString, int replaceFrom = 0, int replaceLength = 0 )
-static QoreNode *QINPUTMETHODEVENT_setCommitString(Object *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINPUTMETHODEVENT_setCommitString(QoreObject *self, QoreQInputMethodEvent *qime, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {

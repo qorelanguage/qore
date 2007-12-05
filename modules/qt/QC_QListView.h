@@ -40,7 +40,7 @@ class myQListView : public QListView, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQListView(Object *obj, QWidget* parent = 0) : QListView(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQListView(QoreObject *obj, QWidget* parent = 0) : QListView(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -63,7 +63,7 @@ class QoreQListView : public QoreAbstractQListView
    public:
       QPointer<myQListView> qobj;
 
-      DLLLOCAL QoreQListView(Object *obj, QWidget* parent = 0) : qobj(new myQListView(obj, parent))
+      DLLLOCAL QoreQListView(QoreObject *obj, QWidget* parent = 0) : qobj(new myQListView(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

@@ -34,7 +34,7 @@ static inline class QoreNode *map_minstance_to_node(const MInstance *min, Except
    MString name;
    MData *val;
 
-   Hash* h = new Hash;
+   QoreHash* h = new QoreHash;
    while (me->next(name, val) && !xsink->isEvent())
       h->setKeyValue((char *)name.c_str(), map_mdata_to_node(val, xsink), xsink);
 
@@ -66,7 +66,7 @@ static inline class QoreNode *map_msequence_to_node(const MSequence *ms, Excepti
 // maps a TIBCO associative list to a QORE hash
 static inline class QoreNode *map_massoclist_to_node(const MAssocList *mal, ExceptionSink *xsink)
 {
-   Hash *h = new Hash();
+   QoreHash *h = new QoreHash();
 
    MEnumerator<MString, MData *> *me = mal->newEnumerator();
    MString name;
@@ -87,7 +87,7 @@ static inline class QoreNode *map_massoclist_to_node(const MAssocList *mal, Exce
 // maps a TIBCO union to a QORE hash
 static inline class QoreNode *map_munion_to_node(const MUnion *mu, ExceptionSink *xsink)
 {
-   Hash *h = new Hash();
+   QoreHash *h = new QoreHash();
 
    MString MSkey = mu->getMemberName();
    h->setKeyValue((char *)MSkey.c_str(), map_mdata_to_node((MData *)mu->get(MSkey), xsink), xsink);
@@ -177,12 +177,12 @@ class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    return NULL;
 }
 
-void set_properties(MAppProperties *appProperties, Hash *h, TibCommandLine &tcl, ExceptionSink *xsink)
+void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &tcl, ExceptionSink *xsink)
 {
    tracein("set_properties()");
 
    // variable hash for overridding global variables
-   class Hash *vh = NULL;
+   class QoreHash *vh = NULL;
 
    HashIterator hi(h);
    while (hi.next())

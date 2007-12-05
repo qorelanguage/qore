@@ -29,12 +29,12 @@ class QoreClass *QC_QStyleOptionMenuItem = 0;
 
 //QStyleOptionMenuItem ()
 //QStyleOptionMenuItem ( const QStyleOptionMenuItem & other )
-static void QSTYLEOPTIONMENUITEM_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONMENUITEM_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONMENUITEM, new QoreQStyleOptionMenuItem());
 }
 
-static void QSTYLEOPTIONMENUITEM_copy(class Object *self, class Object *old, class QoreQStyleOptionMenuItem *qsomi, ExceptionSink *xsink)
+static void QSTYLEOPTIONMENUITEM_copy(class QoreObject *self, class QoreObject *old, class QoreQStyleOptionMenuItem *qsomi, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONMENUITEM, new QoreQStyleOptionMenuItem(*qsomi));
 }

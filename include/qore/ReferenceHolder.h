@@ -26,7 +26,7 @@
 #ifndef QORE_REFERENCE_HOLDER_H_
 #define QORE_REFERENCE_HOLDER_H_
 
-#include <qore/Exception.h>
+#include <qore/QoreException.h>
 
 //-----------------------------------------------------------------------------
 // Example of use:

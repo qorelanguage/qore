@@ -13,11 +13,11 @@ class T {
 
 	 args->push(return_qobject(parent));
 
-	 Object *qw = new Object(QC_QStyleOptionViewItem, getProgram());
+	 QoreObject *qw = new QoreObject(QC_QStyleOptionViewItem, getProgram());
 	 qw->setPrivate(CID_QSTYLEOPTIONVIEWITEM, new QoreQStyleOptionViewItem(option));
 	 args->push(new QoreNode(qw));
 	 
-	 qw = new Object(QC_QModelIndex, getProgram());
+	 qw = new QoreObject(QC_QModelIndex, getProgram());
 	 qw->setPrivate(CID_QMODELINDEX, new QoreQModelIndex(index));
 	 args->push(new QoreNode(qw));
 
@@ -47,20 +47,20 @@ class T {
 	    return QOREQTYPE::editorEvent(event, model, option, index);
 
 	 QoreList *args = new QoreList();
-	 Object *o = new Object(QC_QEvent, getProgram());
+	 QoreObject *o = new QoreObject(QC_QEvent, getProgram());
 	 o->setPrivate(CID_QEVENT, new QoreQEvent(*event));
 	 args->push(new QoreNode(o));
 
 	 // FIXME: find derived class from QAbstractItemModel and instantiate qore class
-	 o = new Object(QC_QAbstractItemModel, getProgram());
+	 o = new QoreObject(QC_QAbstractItemModel, getProgram());
 	 o->setPrivate(CID_QABSTRACTITEMMODEL, new QoreQtQAbstractItemModel(o, model));
 	 args->push(new QoreNode(o));
 
-	 o = new Object(QC_QStyleOptionViewItem, getProgram());
+	 o = new QoreObject(QC_QStyleOptionViewItem, getProgram());
 	 o->setPrivate(CID_QSTYLEOPTIONVIEWITEM, new QoreQStyleOptionViewItem(option));
 	 args->push(new QoreNode(o));
 
-	 o = new Object(QC_QModelIndex, getProgram());
+	 o = new QoreObject(QC_QModelIndex, getProgram());
 	 o->setPrivate(CID_QMODELINDEX, new QoreQModelIndex(index));
 	 args->push(new QoreNode(o));
 
@@ -75,15 +75,15 @@ class T {
 	 }
 
 	 QoreList *args = new QoreList();
-	 Object *o = new Object(QC_QPainter, getProgram());
+	 QoreObject *o = new QoreObject(QC_QPainter, getProgram());
 	 o->setPrivate(CID_QPAINTER, new QoreQPainter(painter));
 	 args->push(new QoreNode(o));
 
-	 o = new Object(QC_QStyleOptionViewItem, getProgram());
+	 o = new QoreObject(QC_QStyleOptionViewItem, getProgram());
 	 o->setPrivate(CID_QSTYLEOPTIONVIEWITEM, new QoreQStyleOptionViewItem(option));
 	 args->push(new QoreNode(o));
 
-	 o = new Object(QC_QModelIndex, getProgram());
+	 o = new QoreObject(QC_QModelIndex, getProgram());
 	 o->setPrivate(CID_QMODELINDEX, new QoreQModelIndex(index));
 	 args->push(new QoreNode(o));
 
@@ -99,7 +99,7 @@ class T {
 
 	 args->push(return_qobject(editor));
 
-	 Object *qw = new Object(QC_QModelIndex, getProgram());
+	 QoreObject *qw = new QoreObject(QC_QModelIndex, getProgram());
 	 qw->setPrivate(CID_QMODELINDEX, new QoreQModelIndex(index));
 	 args->push(new QoreNode(qw));
 
@@ -115,21 +115,21 @@ class T {
 
 	 QoreList *args = new QoreList();
 
-	 Object *qw = 0;
+	 QoreObject *qw = 0;
 	 if (editor) {
 	    QVariant qv_ptr = editor->property("qobject");
-	    qw = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+	    qw = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
 	    if (qw) 
 	       qw->ref();
 	 }
 	 args->push(qw ? new QoreNode(qw) : nothing());
 
 	 // FIXME: find derived class from QAbstractItemModel and instantiate qore class
-	 Object *o = new Object(QC_QAbstractItemModel, getProgram());
+	 QoreObject *o = new QoreObject(QC_QAbstractItemModel, getProgram());
 	 o->setPrivate(CID_QABSTRACTITEMMODEL, new QoreQtQAbstractItemModel(o, model));
 	 args->push(new QoreNode(o));
 
-	 qw = new Object(QC_QModelIndex, getProgram());
+	 qw = new QoreObject(QC_QModelIndex, getProgram());
 	 qw->setPrivate(CID_QMODELINDEX, new QoreQModelIndex(index));
 	 args->push(new QoreNode(qw));
 
@@ -143,11 +143,11 @@ class T {
 
 	 QoreList *args = new QoreList();
 
-	 Object *o = new Object(QC_QStyleOptionViewItem, getProgram());
+	 QoreObject *o = new QoreObject(QC_QStyleOptionViewItem, getProgram());
 	 o->setPrivate(CID_QSTYLEOPTIONVIEWITEM, new QoreQStyleOptionViewItem(option));
 	 args->push(new QoreNode(o));
 	 
-	 o = new Object(QC_QModelIndex, getProgram());
+	 o = new QoreObject(QC_QModelIndex, getProgram());
 	 o->setPrivate(CID_QMODELINDEX, new QoreQModelIndex(index));
 	 args->push(new QoreNode(o));
 
@@ -181,20 +181,20 @@ class T {
 
 	 QoreList *args = new QoreList();
 
-	 Object *o = 0;
+	 QoreObject *o = 0;
 	 if (editor) {
 	    QVariant qv_ptr = editor->property("qobject");
-	    o = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+	    o = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
 	    if (o) 
 	       o->ref();
 	 }
 	 args->push(o ? new QoreNode(o) : nothing());
 
-	 o = new Object(QC_QStyleOptionViewItem, getProgram());
+	 o = new QoreObject(QC_QStyleOptionViewItem, getProgram());
 	 o->setPrivate(CID_QSTYLEOPTIONVIEWITEM, new QoreQStyleOptionViewItem(option));
 	 args->push(new QoreNode(o));
 
-	 o = new Object(QC_QModelIndex, getProgram());
+	 o = new QoreObject(QC_QModelIndex, getProgram());
 	 o->setPrivate(CID_QMODELINDEX, new QoreQModelIndex(index));
 	 args->push(new QoreNode(o));
 

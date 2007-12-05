@@ -30,7 +30,7 @@ class QoreClass *QC_QMessageBox = 0;
 
 //QMessageBox ( QWidget * parent = 0 )
 //QMessageBox ( Icon icon, const QString & title, const QString & text, StandardButtons buttons = NoButton, QWidget * parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint )
-static void QMESSAGEBOX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QMESSAGEBOX_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -67,7 +67,7 @@ static void QMESSAGEBOX_constructor(Object *self, QoreNode *params, ExceptionSin
    return;
 }
 
-static void QMESSAGEBOX_copy(class Object *self, class Object *old, class QoreQMessageBox *qmb, ExceptionSink *xsink)
+static void QMESSAGEBOX_copy(class QoreObject *self, class QoreObject *old, class QoreQMessageBox *qmb, ExceptionSink *xsink)
 {
    xsink->raiseException("QMESSAGEBOX-COPY-ERROR", "objects of this class cannot be copied");
 }
@@ -75,7 +75,7 @@ static void QMESSAGEBOX_copy(class Object *self, class Object *old, class QoreQM
 //void addButton ( QAbstractButton * button, ButtonRole role )
 //QPushButton * addButton ( const QString & text, ButtonRole role )
 //QPushButton * addButton ( StandardButton button )
-static QoreNode *QMESSAGEBOX_addButton(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_addButton(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -110,11 +110,11 @@ static QoreNode *QMESSAGEBOX_addButton(Object *self, QoreQMessageBox *qmb, QoreN
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (rv_obj)
       rv_obj->ref();
    else {
-      rv_obj = new Object(QC_QPushButton, getProgram());
+      rv_obj = new QoreObject(QC_QPushButton, getProgram());
       QoreQtQPushButton *t_qobj = new QoreQtQPushButton(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QPUSHBUTTON, t_qobj);
    }
@@ -122,7 +122,7 @@ static QoreNode *QMESSAGEBOX_addButton(Object *self, QoreQMessageBox *qmb, QoreN
 }
 
 //QAbstractButton * button ( StandardButton which ) const
-static QoreNode *QMESSAGEBOX_button(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_button(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMessageBox::StandardButton which = (QMessageBox::StandardButton)(p ? p->getAsInt() : 0);
@@ -133,37 +133,37 @@ static QoreNode *QMESSAGEBOX_button(Object *self, QoreQMessageBox *qmb, QoreNode
    QoreAbstractQAbstractButton *qaqab;
 
    QoreClass *qc;
-   Object *pbo;
+   QoreObject *pbo;
    QPushButton *pb = dynamic_cast<QPushButton *>(qab);
    if (pb) {
       qc = QC_QPushButton;
-      pbo = new Object(qc, getProgram());
+      pbo = new QoreObject(qc, getProgram());
       qaqab = new QoreQtQPushButton(pbo, pb);
    }
    else {
       QCheckBox *cb = dynamic_cast<QCheckBox *>(qab);
       if (cb) {
 	 qc = QC_QCheckBox;
-	 pbo = new Object(qc, getProgram());
+	 pbo = new QoreObject(qc, getProgram());
 	 qaqab = new QoreQtQCheckBox(pbo, cb);
       }
       else {
 	 QRadioButton *rb = dynamic_cast<QRadioButton *>(qab);
 	 if (rb) {
 	    qc = QC_QRadioButton;
-	    pbo = new Object(qc, getProgram());
+	    pbo = new QoreObject(qc, getProgram());
 	    qaqab = new QoreQtQRadioButton(pbo, rb);
 	 }
 	 else {
 	    QToolButton *tb = dynamic_cast<QToolButton *>(qab);
 	    if (tb) {
 	       qc = QC_QToolButton;
-	       pbo = new Object(qc, getProgram());
+	       pbo = new QoreObject(qc, getProgram());
 	       qaqab = new QoreQtQToolButton(pbo, tb);
 	    }
 	    else {
 	       qc = QC_QAbstractButton;
-	       pbo = new Object(qc, getProgram());
+	       pbo = new QoreObject(qc, getProgram());
 	       qaqab = new QoreQtQAbstractButton(pbo, qab);
 	    }
 	 }
@@ -175,30 +175,30 @@ static QoreNode *QMESSAGEBOX_button(Object *self, QoreQMessageBox *qmb, QoreNode
 }
 
 //QAbstractButton * clickedButton () const
-static QoreNode *QMESSAGEBOX_clickedButton(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_clickedButton(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QAbstractButton *qt_qobj = qmb->qobj->clickedButton();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
 }
 
 //QPushButton * defaultButton () const
-static QoreNode *QMESSAGEBOX_defaultButton(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_defaultButton(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QPushButton *qt_qobj = qmb->qobj->defaultButton();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (rv_obj)
       rv_obj->ref();
    else {
-      rv_obj = new Object(QC_QPushButton, getProgram());
+      rv_obj = new QoreObject(QC_QPushButton, getProgram());
       QoreQtQPushButton *t_qobj = new QoreQtQPushButton(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QPUSHBUTTON, t_qobj);
    }
@@ -206,47 +206,47 @@ static QoreNode *QMESSAGEBOX_defaultButton(Object *self, QoreQMessageBox *qmb, Q
 }
 
 //QString detailedText () const
-static QoreNode *QMESSAGEBOX_detailedText(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_detailedText(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qmb->qobj->detailedText().toUtf8().data(), QCS_UTF8));
 }
 
 //QAbstractButton * escapeButton () const
-static QoreNode *QMESSAGEBOX_escapeButton(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_escapeButton(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QAbstractButton *qt_qobj = qmb->qobj->escapeButton();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
 }
 
 //Icon icon () const
-static QoreNode *QMESSAGEBOX_icon(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_icon(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qmb->qobj->icon());
 }
 
 //QPixmap iconPixmap () const
-static QoreNode *QMESSAGEBOX_iconPixmap(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_iconPixmap(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qp = new Object(QC_QPixmap, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPixmap, getProgram());
    QoreQPixmap *q_qp = new QoreQPixmap(qmb->qobj->iconPixmap());
    o_qp->setPrivate(CID_QPIXMAP, q_qp);
    return new QoreNode(o_qp);
 }
 
 //QString informativeText () const
-static QoreNode *QMESSAGEBOX_informativeText(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_informativeText(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qmb->qobj->informativeText().toUtf8().data(), QCS_UTF8));
 }
 
 //void removeButton ( QAbstractButton * button )
-static QoreNode *QMESSAGEBOX_removeButton(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_removeButton(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)p->val.object->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
@@ -262,7 +262,7 @@ static QoreNode *QMESSAGEBOX_removeButton(Object *self, QoreQMessageBox *qmb, Qo
 
 ////void setDefaultButton ( QPushButton * button )
 ////void setDefaultButton ( StandardButton button )
-//static QoreNode *QMESSAGEBOX_setDefaultButton(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QMESSAGEBOX_setDefaultButton(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
@@ -276,7 +276,7 @@ static QoreNode *QMESSAGEBOX_removeButton(Object *self, QoreQMessageBox *qmb, Qo
 //}
 
 //void setDetailedText ( const QString & text )
-static QoreNode *QMESSAGEBOX_setDetailedText(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_setDetailedText(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -288,7 +288,7 @@ static QoreNode *QMESSAGEBOX_setDetailedText(Object *self, QoreQMessageBox *qmb,
 
 //void setEscapeButton ( QAbstractButton * button )
 //void setEscapeButton ( StandardButton button )
-static QoreNode *QMESSAGEBOX_setEscapeButton(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_setEscapeButton(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -308,7 +308,7 @@ static QoreNode *QMESSAGEBOX_setEscapeButton(Object *self, QoreQMessageBox *qmb,
 }
 
 //void setIcon ( Icon )
-static QoreNode *QMESSAGEBOX_setIcon(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_setIcon(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMessageBox::Icon icon = (QMessageBox::Icon)(p ? p->getAsInt() : 0);
@@ -317,7 +317,7 @@ static QoreNode *QMESSAGEBOX_setIcon(Object *self, QoreQMessageBox *qmb, QoreNod
 }
 
 //void setIconPixmap ( const QPixmap & pixmap )
-static QoreNode *QMESSAGEBOX_setIconPixmap(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_setIconPixmap(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
@@ -332,7 +332,7 @@ static QoreNode *QMESSAGEBOX_setIconPixmap(Object *self, QoreQMessageBox *qmb, Q
 }
 
 //void setInformativeText ( const QString & text )
-static QoreNode *QMESSAGEBOX_setInformativeText(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_setInformativeText(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -343,7 +343,7 @@ static QoreNode *QMESSAGEBOX_setInformativeText(Object *self, QoreQMessageBox *q
 }
 
 //void setStandardButtons ( StandardButtons buttons )
-static QoreNode *QMESSAGEBOX_setStandardButtons(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_setStandardButtons(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMessageBox::StandardButtons buttons = (QMessageBox::StandardButtons)(p ? p->getAsInt() : 0);
@@ -352,7 +352,7 @@ static QoreNode *QMESSAGEBOX_setStandardButtons(Object *self, QoreQMessageBox *q
 }
 
 //void setText ( const QString & text )
-static QoreNode *QMESSAGEBOX_setText(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_setText(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -363,7 +363,7 @@ static QoreNode *QMESSAGEBOX_setText(Object *self, QoreQMessageBox *qmb, QoreNod
 }
 
 //void setTextFormat ( Qt::TextFormat format )
-static QoreNode *QMESSAGEBOX_setTextFormat(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_setTextFormat(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::TextFormat format = (Qt::TextFormat)(p ? p->getAsInt() : 0);
@@ -372,7 +372,7 @@ static QoreNode *QMESSAGEBOX_setTextFormat(Object *self, QoreQMessageBox *qmb, Q
 }
 
 //void setWindowModality ( Qt::WindowModality windowModality )
-static QoreNode *QMESSAGEBOX_setWindowModality(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_setWindowModality(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::WindowModality windowModality = (Qt::WindowModality)(p ? p->getAsInt() : 0);
@@ -381,7 +381,7 @@ static QoreNode *QMESSAGEBOX_setWindowModality(Object *self, QoreQMessageBox *qm
 }
 
 //void setWindowTitle ( const QString & title )
-static QoreNode *QMESSAGEBOX_setWindowTitle(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_setWindowTitle(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString title;
@@ -392,7 +392,7 @@ static QoreNode *QMESSAGEBOX_setWindowTitle(Object *self, QoreQMessageBox *qmb, 
 }
 
 ////StandardButton standardButton ( QAbstractButton * button ) const
-//static QoreNode *QMESSAGEBOX_standardButton(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QMESSAGEBOX_standardButton(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)p->val.object->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
@@ -406,25 +406,25 @@ static QoreNode *QMESSAGEBOX_setWindowTitle(Object *self, QoreQMessageBox *qmb, 
 //}
 
 ////StandardButtons standardButtons () const
-//static QoreNode *QMESSAGEBOX_standardButtons(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QMESSAGEBOX_standardButtons(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qmb->qobj->standardButtons());
 //}
 
 //QString text () const
-static QoreNode *QMESSAGEBOX_text(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_text(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qmb->qobj->text().toUtf8().data(), QCS_UTF8));
 }
 
 //Qt::TextFormat textFormat () const
-static QoreNode *QMESSAGEBOX_textFormat(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_textFormat(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qmb->qobj->textFormat());
 }
 
 //int exec ()
-static QoreNode *QMESSAGEBOX_exec(Object *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMESSAGEBOX_exec(QoreObject *self, QoreQMessageBox *qmb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qmb->qobj->exec());
 }

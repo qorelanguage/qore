@@ -54,7 +54,7 @@ void Query::validate(int &stc, QList *&ql, ExceptionSink *xsink)
 
    for (int i = 0; i < qpl->len; i++)
    {
-      Object *qo = qpl->pl[i]->getQuery();
+      QoreObject *qo = qpl->pl[i]->getQuery();
       if (qo)
       {
 	 Query *q = (Query *)qo->getPrivateData(CID_QUERY);
@@ -73,7 +73,7 @@ void Query::validate(int &stc, QList *&ql, ExceptionSink *xsink)
 	 return;
    }
 }
-class QoreNode *f_dbg_node_info(class Object *self, class QoreNode *params, ExceptionSink *xsink);
+class QoreNode *f_dbg_node_info(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink);
 
 static inline void getQ(void *obj)
 {
@@ -85,7 +85,7 @@ static inline void releaseQ(void *obj)
    ((Query *)obj)->deref();
 }
 
-static void Q_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void Q_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    tracein("Q_constructor()");
 
@@ -165,17 +165,17 @@ static void Q_constructor(class Object *self, class QoreNode *params, ExceptionS
    traceout("Q_constructor()");
 }
 
-static void Q_copy(class Object *self, class Object *old, class Query *q, class ExceptionSink *xsink)
+static void Q_copy(class QoreObject *self, class QoreObject *old, class Query *q, class ExceptionSink *xsink)
 {
    xsink->raiseException("COPY-ERROR", "cannot copy queue objects");
 }
 
-static QoreNode *Q_refresh(class Object *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *Q_refresh(class QoreObject *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
 {
    Query *q = (Query *)self->getReferencedPrivateData(CID_QUERY);
    if (q)
    {
-      Hash *h = q->exec(xsink);
+      QoreHash *h = q->exec(xsink);
       if (h)
 	 self->replaceData(h, xsink);
       q->deref();
@@ -185,13 +185,13 @@ static QoreNode *Q_refresh(class Object *self, class Query *q, class QoreNode *p
    return NULL;
 }
 
-static QoreNode *Q_check(class Object *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *Q_check(class QoreObject *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
 {
    Query *q = (Query *)self->getReferencedPrivateData(CID_QUERY);
 
    if (q)
    {
-      class Hash *h = q->check(xsink);
+      class QoreHash *h = q->check(xsink);
 
       if (h) // set new data
 	 self->replaceData(h, xsink);
@@ -202,7 +202,7 @@ static QoreNode *Q_check(class Object *self, class Query *q, class QoreNode *par
    return NULL;
 }
 
-static QoreNode *Q_key(class Object *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *Q_key(class QoreObject *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1, *p2;
    if (!(p0 = test_param(params, NT_STRING, 0)) ||
@@ -227,7 +227,7 @@ static QoreNode *Q_key(class Object *self, class Query *q, class QoreNode *param
    return NULL;
 }
 
-static QoreNode *Q_setSQL(class Object *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *Q_setSQL(class QoreObject *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)

@@ -40,7 +40,7 @@ class myQStackedWidget : public QStackedWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQStackedWidget(Object *obj, QWidget* parent = 0) : QStackedWidget(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQStackedWidget(QoreObject *obj, QWidget* parent = 0) : QStackedWidget(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -51,7 +51,7 @@ class QoreQStackedWidget : public QoreAbstractQFrame
    public:
       QPointer<myQStackedWidget> qobj;
 
-      DLLLOCAL QoreQStackedWidget(Object *obj, QWidget* parent = 0) : qobj(new myQStackedWidget(obj, parent))
+      DLLLOCAL QoreQStackedWidget(QoreObject *obj, QWidget* parent = 0) : qobj(new myQStackedWidget(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

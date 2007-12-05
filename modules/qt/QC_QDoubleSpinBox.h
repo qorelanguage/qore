@@ -41,7 +41,7 @@ class myQDoubleSpinBox : public QDoubleSpinBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDoubleSpinBox(Object *obj, QWidget* parent = 0) : QDoubleSpinBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDoubleSpinBox(QoreObject *obj, QWidget* parent = 0) : QDoubleSpinBox(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQDoubleSpinBox : public QoreAbstractQAbstractSpinBox
    public:
       QPointer<myQDoubleSpinBox> qobj;
 
-      DLLLOCAL QoreQDoubleSpinBox(Object *obj, QWidget* parent = 0) : qobj(new myQDoubleSpinBox(obj, parent))
+      DLLLOCAL QoreQDoubleSpinBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQDoubleSpinBox(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

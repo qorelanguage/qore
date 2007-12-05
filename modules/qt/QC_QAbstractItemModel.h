@@ -36,10 +36,10 @@ DLLLOCAL class QoreClass *initQAbstractItemModelClass(QoreClass *);
 class QoreQtQAbstractItemModel : public QoreAbstractQAbstractItemModel
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QAbstractItemModel> qobj;
 
-      DLLLOCAL QoreQtQAbstractItemModel(Object *obj, QAbstractItemModel *aim) : qore_obj(obj), qobj(aim)
+      DLLLOCAL QoreQtQAbstractItemModel(QoreObject *obj, QAbstractItemModel *aim) : qore_obj(obj), qobj(aim)
       {
       }
       DLLLOCAL QObject *getQObject() const

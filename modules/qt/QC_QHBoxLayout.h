@@ -38,11 +38,11 @@ class myQHBoxLayout : public QHBoxLayout, public QoreQObjectExtension
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
    public:
-      DLLLOCAL myQHBoxLayout(Object *obj) : QHBoxLayout(), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQHBoxLayout(QoreObject *obj) : QHBoxLayout(), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
-      DLLLOCAL myQHBoxLayout(Object *obj, QWidget *parent) : QHBoxLayout(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQHBoxLayout(QoreObject *obj, QWidget *parent) : QHBoxLayout(parent), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
@@ -53,11 +53,11 @@ class QoreQHBoxLayout : public QoreAbstractQBoxLayout
    public:
       QPointer<myQHBoxLayout> qobj;
 
-      DLLLOCAL QoreQHBoxLayout(Object *obj) : qobj(new myQHBoxLayout(obj))
+      DLLLOCAL QoreQHBoxLayout(QoreObject *obj) : qobj(new myQHBoxLayout(obj))
       {
       }
 
-      DLLLOCAL QoreQHBoxLayout(Object *obj, QWidget *parent) : qobj(new myQHBoxLayout(obj, parent))
+      DLLLOCAL QoreQHBoxLayout(QoreObject *obj, QWidget *parent) : qobj(new myQHBoxLayout(obj, parent))
       {
       }
       DLLLOCAL virtual QObject *getQObject() const

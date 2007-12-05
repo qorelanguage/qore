@@ -36,10 +36,10 @@ DLLLOCAL class QoreClass *initQIODeviceClass(QoreClass *);
 class QoreQtQIODevice : public QoreAbstractQIODevice
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QIODevice> qobj;
 
-      DLLLOCAL QoreQtQIODevice(Object *obj, QIODevice* qiod) : qore_obj(obj), qobj(qiod)
+      DLLLOCAL QoreQtQIODevice(QoreObject *obj, QIODevice* qiod) : qore_obj(obj), qobj(qiod)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

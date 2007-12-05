@@ -24,7 +24,7 @@
 
 #define _QORE_NCURSES_PANEL_H
 
-#include <qore/Exception.h>
+#include <qore/Qore.h>
 
 #include <curses.h>
 #include <panel.h>

@@ -30,7 +30,7 @@ class QoreClass *QC_QDialogButtonBox = 0;
 //QDialogButtonBox ( QWidget * parent = 0 )
 //QDialogButtonBox ( Qt::Orientation orientation, QWidget * parent = 0 )
 //QDialogButtonBox ( StandardButtons buttons, Qt::Orientation orientation = Qt::Horizontal, QWidget * parent = 0 )
-static void QDIALOGBUTTONBOX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QDIALOGBUTTONBOX_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -82,7 +82,7 @@ static void QDIALOGBUTTONBOX_constructor(Object *self, QoreNode *params, Excepti
    self->setPrivate(CID_QDIALOGBUTTONBOX, new QoreQDialogButtonBox(self, buttons, orientation, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));
 }
 
-static void QDIALOGBUTTONBOX_copy(class Object *self, class Object *old, class QoreQDialogButtonBox *qdbb, ExceptionSink *xsink)
+static void QDIALOGBUTTONBOX_copy(class QoreObject *self, class QoreObject *old, class QoreQDialogButtonBox *qdbb, ExceptionSink *xsink)
 {
    xsink->raiseException("QDIALOGBUTTONBOX-COPY-ERROR", "objects of this class cannot be copied");
 }
@@ -90,7 +90,7 @@ static void QDIALOGBUTTONBOX_copy(class Object *self, class Object *old, class Q
 //void addButton ( QAbstractButton * button, ButtonRole role )
 //QPushButton * addButton ( const QString & text, ButtonRole role )
 //QPushButton * addButton ( StandardButton button )
-static QoreNode *QDIALOGBUTTONBOX_addButton(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_addButton(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -123,11 +123,11 @@ static QoreNode *QDIALOGBUTTONBOX_addButton(Object *self, QoreQDialogButtonBox *
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (rv_obj)
       rv_obj->ref();
    else {
-      rv_obj = new Object(QC_QPushButton, getProgram());
+      rv_obj = new QoreObject(QC_QPushButton, getProgram());
       QoreQtQPushButton *t_qobj = new QoreQtQPushButton(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QPUSHBUTTON, t_qobj);
    }
@@ -135,7 +135,7 @@ static QoreNode *QDIALOGBUTTONBOX_addButton(Object *self, QoreQDialogButtonBox *
 }
 
 //QPushButton * button ( StandardButton which ) const
-static QoreNode *QDIALOGBUTTONBOX_button(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_button(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QDialogButtonBox::StandardButton which = (QDialogButtonBox::StandardButton)(p ? p->getAsInt() : 0);
@@ -143,11 +143,11 @@ static QoreNode *QDIALOGBUTTONBOX_button(Object *self, QoreQDialogButtonBox *qdb
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (rv_obj)
       rv_obj->ref();
    else {
-      rv_obj = new Object(QC_QPushButton, getProgram());
+      rv_obj = new QoreObject(QC_QPushButton, getProgram());
       QoreQtQPushButton *t_qobj = new QoreQtQPushButton(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QPUSHBUTTON, t_qobj);
    }
@@ -155,7 +155,7 @@ static QoreNode *QDIALOGBUTTONBOX_button(Object *self, QoreQDialogButtonBox *qdb
 }
 
 //ButtonRole buttonRole ( QAbstractButton * button ) const
-static QoreNode *QDIALOGBUTTONBOX_buttonRole(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_buttonRole(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)p->val.object->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
@@ -170,33 +170,33 @@ static QoreNode *QDIALOGBUTTONBOX_buttonRole(Object *self, QoreQDialogButtonBox 
 
 /*
 //QList<QAbstractButton *> buttons () const
-static QoreNode *QDIALOGBUTTONBOX_buttons(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_buttons(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    ??? return new QoreNode((int64)qdbb->qobj->buttons());
 }
 */
 
 //bool centerButtons () const
-static QoreNode *QDIALOGBUTTONBOX_centerButtons(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_centerButtons(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qdbb->qobj->centerButtons());
 }
 
 //void clear ()
-static QoreNode *QDIALOGBUTTONBOX_clear(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_clear(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    qdbb->qobj->clear();
    return 0;
 }
 
 //Qt::Orientation orientation () const
-static QoreNode *QDIALOGBUTTONBOX_orientation(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_orientation(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qdbb->qobj->orientation());
 }
 
 //void removeButton ( QAbstractButton * button )
-static QoreNode *QDIALOGBUTTONBOX_removeButton(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_removeButton(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)p->val.object->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
@@ -211,7 +211,7 @@ static QoreNode *QDIALOGBUTTONBOX_removeButton(Object *self, QoreQDialogButtonBo
 }
 
 //void setCenterButtons ( bool center )
-static QoreNode *QDIALOGBUTTONBOX_setCenterButtons(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_setCenterButtons(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool center = p ? p->getAsBool() : false;
@@ -220,7 +220,7 @@ static QoreNode *QDIALOGBUTTONBOX_setCenterButtons(Object *self, QoreQDialogButt
 }
 
 //void setOrientation ( Qt::Orientation orientation )
-static QoreNode *QDIALOGBUTTONBOX_setOrientation(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_setOrientation(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
@@ -229,7 +229,7 @@ static QoreNode *QDIALOGBUTTONBOX_setOrientation(Object *self, QoreQDialogButton
 }
 
 //void setStandardButtons ( StandardButtons buttons )
-static QoreNode *QDIALOGBUTTONBOX_setStandardButtons(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_setStandardButtons(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QDialogButtonBox::StandardButtons buttons = (QDialogButtonBox::StandardButtons)(p ? p->getAsInt() : 0);
@@ -238,7 +238,7 @@ static QoreNode *QDIALOGBUTTONBOX_setStandardButtons(Object *self, QoreQDialogBu
 }
 
 //StandardButton standardButton ( QAbstractButton * button ) const
-static QoreNode *QDIALOGBUTTONBOX_standardButton(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_standardButton(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)p->val.object->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
@@ -252,7 +252,7 @@ static QoreNode *QDIALOGBUTTONBOX_standardButton(Object *self, QoreQDialogButton
 }
 
 //StandardButtons standardButtons () const
-static QoreNode *QDIALOGBUTTONBOX_standardButtons(Object *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDIALOGBUTTONBOX_standardButtons(QoreObject *self, QoreQDialogButtonBox *qdbb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qdbb->qobj->standardButtons());
 }

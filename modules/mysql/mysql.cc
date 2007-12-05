@@ -615,7 +615,7 @@ inline int MyBindGroup::parse(class QoreList *args, class ExceptionSink *xsink)
 
 inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
 
    StringList::iterator sli = phl.begin();
    while (sli != phl.end())
@@ -694,7 +694,7 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 	 return NULL;
       }
 
-      Hash *h = new Hash();
+      QoreHash *h = new QoreHash();
       class QoreEncoding *enc = ds->getQoreEncoding();
       class QoreString tstr;
 	 
@@ -771,7 +771,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 
 	 while (!mysql_stmt_fetch(stmt))
 	 {
-	    class Hash *h = new Hash();
+	    class QoreHash *h = new QoreHash();
 
 	    for (int i = 0; i < myres.getNumFields(); i++)
 	    {
@@ -876,11 +876,11 @@ int MyBindNode::bindValue(class QoreEncoding *enc, MYSQL_BIND *buf, class Except
 }
 
 #else  // !HAVE_MYSQL_STMT
-static class Hash *get_result_set(class Datasource *ds, MYSQL_RES *res)
+static class QoreHash *get_result_set(class Datasource *ds, MYSQL_RES *res)
 {
    MYSQL_ROW row;
    int num_fields = mysql_num_fields(res);
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    
    // get column names and set up column lists
    MYSQL_FIELD *field = mysql_fetch_fields(res);
@@ -990,7 +990,7 @@ static class QoreNode *qore_mysql_do_sql(class Datasource *ds, QoreString *qstr,
 	 xsink->raiseException("DBI:MYSQL:SELECT-ERROR", (char *)mysql_error(db));
 	 return NULL;
       }
-      class Hash *h = get_result_set(ds, res);
+      class QoreHash *h = get_result_set(ds, res);
       rv = new QoreNode(h);
       mysql_free_result(res);
    }
@@ -1015,7 +1015,7 @@ static class QoreNode *qore_mysql_do_sql_horizontal(class Datasource *ds, QoreSt
 #endif // HAVE_MYSQL_STMT
 
 /*
-static class Hash *qore_mysql_describe(class Datasource *ds, char *table_name, ExceptionSink *xsink)
+static class QoreHash *qore_mysql_describe(class Datasource *ds, char *table_name, ExceptionSink *xsink)
 {
    tracein("qore_mysql_describe()");
 

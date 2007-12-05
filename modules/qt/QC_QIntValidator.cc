@@ -29,7 +29,7 @@ class QoreClass *QC_QIntValidator = 0;
 
 //QIntValidator ( QObject * parent )
 //QIntValidator ( int minimum, int maximum, QObject * parent )
-static void QINTVALIDATOR_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QINTVALIDATOR_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -58,19 +58,19 @@ static void QINTVALIDATOR_constructor(Object *self, QoreNode *params, ExceptionS
    return;
 }
 
-static void QINTVALIDATOR_copy(class Object *self, class Object *old, class QoreQIntValidator *qiv, ExceptionSink *xsink)
+static void QINTVALIDATOR_copy(class QoreObject *self, class QoreObject *old, class QoreQIntValidator *qiv, ExceptionSink *xsink)
 {
    xsink->raiseException("QINTVALIDATOR-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //int bottom () const
-static QoreNode *QINTVALIDATOR_bottom(Object *self, QoreQIntValidator *qiv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINTVALIDATOR_bottom(QoreObject *self, QoreQIntValidator *qiv, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qiv->qobj->bottom());
 }
 
 //void setBottom ( int )
-static QoreNode *QINTVALIDATOR_setBottom(Object *self, QoreQIntValidator *qiv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINTVALIDATOR_setBottom(QoreObject *self, QoreQIntValidator *qiv, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -79,7 +79,7 @@ static QoreNode *QINTVALIDATOR_setBottom(Object *self, QoreQIntValidator *qiv, Q
 }
 
 //virtual void setRange ( int bottom, int top )
-static QoreNode *QINTVALIDATOR_setRange(Object *self, QoreQIntValidator *qiv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINTVALIDATOR_setRange(QoreObject *self, QoreQIntValidator *qiv, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int bottom = p ? p->getAsInt() : 0;
@@ -90,7 +90,7 @@ static QoreNode *QINTVALIDATOR_setRange(Object *self, QoreQIntValidator *qiv, Qo
 }
 
 //void setTop ( int )
-static QoreNode *QINTVALIDATOR_setTop(Object *self, QoreQIntValidator *qiv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINTVALIDATOR_setTop(QoreObject *self, QoreQIntValidator *qiv, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -99,7 +99,7 @@ static QoreNode *QINTVALIDATOR_setTop(Object *self, QoreQIntValidator *qiv, Qore
 }
 
 //int top () const
-static QoreNode *QINTVALIDATOR_top(Object *self, QoreQIntValidator *qiv, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QINTVALIDATOR_top(QoreObject *self, QoreQIntValidator *qiv, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qiv->qobj->top());
 }

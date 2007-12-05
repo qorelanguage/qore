@@ -166,7 +166,7 @@ int ParseScopedSelfMethodReference::parseInit(lvh_t oflag, int pflag)
    return 0;
 }
 
-RunTimeObjectScopedMethodReference::RunTimeObjectScopedMethodReference(class Object *n_obj, class Method *n_method) : obj(n_obj), method(n_method)
+RunTimeObjectScopedMethodReference::RunTimeObjectScopedMethodReference(class QoreObject *n_obj, class Method *n_method) : obj(n_obj), method(n_method)
 {
    obj->tRef();
 }
@@ -192,7 +192,7 @@ class QoreProgram *RunTimeObjectScopedMethodReference::getProgram() const
    return obj->getProgram();
 }
 
-RunTimeObjectMethodReference::RunTimeObjectMethodReference(class Object *n_obj, char *n_method) : obj(n_obj), method(strdup(n_method))
+RunTimeObjectMethodReference::RunTimeObjectMethodReference(class QoreObject *n_obj, char *n_method) : obj(n_obj), method(strdup(n_method))
 {
    //printd(5, "RunTimeObjectMethodReference::RunTimeObjectMethodReference() this=%08p obj=%08p (method=%s)\n", this, obj, method);
    obj->tRef();

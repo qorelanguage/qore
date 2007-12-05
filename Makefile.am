@@ -25,7 +25,7 @@ noinst_HEADERS = \
 	include/qore/AbstractSmartLock.h \
 	include/qore/SmartMutex.h \
 	include/qore/QoreType.h \
-	include/qore/List.h \
+	include/qore/QoreList.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
 	include/qore/Function.h \
@@ -75,8 +75,8 @@ noinst_HEADERS = \
 	include/qore/ParserSupport.h \
 	include/qore/DateTime.h \
 	include/qore/support.h \
-	include/qore/Exception.h \
-	include/qore/Hash.h \
+	include/qore/QoreException.h \
+	include/qore/QoreHash.h \
 	include/qore/Find.h \
 	include/qore/QoreNumber.h \
 	include/qore/ErrnoConstants.h \
@@ -87,7 +87,7 @@ noinst_HEADERS = \
 	include/qore/ModuleManager.h \
 	include/qore/Namespace.h \
 	include/qore/NamedScope.h \
-	include/qore/Object.h \
+	include/qore/QoreObject.h \
 	include/qore/macros-i386.h \
 	include/qore/macros-powerpc.h \
 	include/qore/macros-sparc.h \

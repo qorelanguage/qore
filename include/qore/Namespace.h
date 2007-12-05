@@ -118,9 +118,9 @@ class Namespace
       DLLEXPORT void addInitialNamespace(class Namespace *ns);
       DLLEXPORT class Namespace *copy(int po = 0) const;
       // info
-      DLLEXPORT class Hash *getClassInfo() const;
-      DLLEXPORT class Hash *getConstantInfo() const;
-      DLLEXPORT class Hash *getInfo() const;
+      DLLEXPORT class QoreHash *getClassInfo() const;
+      DLLEXPORT class QoreHash *getConstantInfo() const;
+      DLLEXPORT class QoreHash *getInfo() const;
       DLLEXPORT const char *getName() const;
 };
 

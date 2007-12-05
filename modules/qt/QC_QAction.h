@@ -40,15 +40,15 @@ class myQAction : public QAction, public QoreQObjectExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQAction(Object *obj, QObject* parent) : QAction(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQAction(QoreObject *obj, QObject* parent) : QAction(parent), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQAction(Object *obj, const QString& text, QObject* parent) : QAction(text, parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQAction(QoreObject *obj, const QString& text, QObject* parent) : QAction(text, parent), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQAction(Object *obj, const QIcon& icon, const QString& text, QObject* parent) : QAction(icon, text, parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQAction(QoreObject *obj, const QIcon& icon, const QString& text, QObject* parent) : QAction(icon, text, parent), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }
@@ -59,13 +59,13 @@ class QoreQAction : public QoreAbstractQAction
    public:
       QPointer<myQAction> qobj;
 
-      DLLLOCAL QoreQAction(Object *obj, QObject* parent) : qobj(new myQAction(obj, parent))
+      DLLLOCAL QoreQAction(QoreObject *obj, QObject* parent) : qobj(new myQAction(obj, parent))
       {
       }
-      DLLLOCAL QoreQAction(Object *obj, const QString& text, QObject* parent) : qobj(new myQAction(obj, text, parent))
+      DLLLOCAL QoreQAction(QoreObject *obj, const QString& text, QObject* parent) : qobj(new myQAction(obj, text, parent))
       {
       }
-      DLLLOCAL QoreQAction(Object *obj, const QIcon& icon, const QString& text, QObject* parent) : qobj(new myQAction(obj, icon, text, parent))
+      DLLLOCAL QoreQAction(QoreObject *obj, const QIcon& icon, const QString& text, QObject* parent) : qobj(new myQAction(obj, icon, text, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -82,10 +82,10 @@ class QoreQAction : public QoreAbstractQAction
 class QoreQtQAction : public QoreAbstractQAction
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QAction> qobj;
 
-      DLLLOCAL QoreQtQAction(Object *obj, QAction *qaction) : qore_obj(obj), qobj(qaction)
+      DLLLOCAL QoreQtQAction(QoreObject *obj, QAction *qaction) : qore_obj(obj), qobj(qaction)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

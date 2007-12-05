@@ -28,7 +28,7 @@ DLLEXPORT extern int CID_SSLPRIVATEKEY;
 DLLLOCAL class QoreClass *initSSLPrivateKeyClass();
 
 #include <qore/AbstractPrivateData.h>
-#include <qore/Exception.h>
+#include <qore/QoreException.h>
 
 #include <openssl/ssl.h>
 #include <openssl/evp.h>
@@ -54,7 +54,7 @@ class QoreSSLPrivateKey : public AbstractPrivateData
       DLLLOCAL int64 getVersion() const;
       // returns the length in bits
       DLLLOCAL int64 getBitLength() const;
-      DLLLOCAL class Hash *getInfo() const;
+      DLLLOCAL class QoreHash *getInfo() const;
 };
 
 #endif // _QORE_CLASS_SSLPRIVATEKEY_H

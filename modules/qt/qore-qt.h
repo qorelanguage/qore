@@ -26,7 +26,7 @@
 
 DLLLOCAL extern QoreType *NT_BRUSHSTYLE, *NT_PENSTYLE;
 
-DLLLOCAL extern Object *C_ClipBoard;
+DLLLOCAL extern QoreObject *C_ClipBoard;
 
 #include <map>
 

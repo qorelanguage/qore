@@ -41,7 +41,7 @@ class myQDialog : public QDialog, public QoreQDialogExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDialog(Object *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog(parent, f), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog(parent, f), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQDialog : public QoreAbstractQDialog
    public:
       QPointer<myQDialog> qobj;
 
-      DLLLOCAL QoreQDialog(Object *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : qobj(new myQDialog(obj, parent, f))
+      DLLLOCAL QoreQDialog(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags f = 0) : qobj(new myQDialog(obj, parent, f))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

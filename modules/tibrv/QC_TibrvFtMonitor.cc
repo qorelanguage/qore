@@ -29,7 +29,7 @@
 int CID_TIBRVFTMONITOR;
 
 // syntax: group name, lostInterval, [service, network, daemon, desc] 
-static void TIBRVFTMONITOR_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+static void TIBRVFTMONITOR_constructor(class QoreObject *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVFTMONITOR_constructor");
 
@@ -74,7 +74,7 @@ static void TIBRVFTMONITOR_constructor(class Object *self, class QoreNode *param
    traceout("TIBRVFTMONITOR_constructor");
 }
 
-static void TIBRVFTMONITOR_destructor(class Object *self, class QoreTibrvFtMonitor *ftm, class ExceptionSink *xsink)
+static void TIBRVFTMONITOR_destructor(class QoreObject *self, class QoreTibrvFtMonitor *ftm, class ExceptionSink *xsink)
 {
    tracein("TIBRVFTMONITOR_destructor()");
    ftm->stop();
@@ -82,23 +82,23 @@ static void TIBRVFTMONITOR_destructor(class Object *self, class QoreTibrvFtMonit
    traceout("TIBRVFTMONITOR_destructor()");
 }
 
-static void TIBRVFTMONITOR_copy(class Object *self, class Object *old, class QoreTibrvFtMonitor *ftm, ExceptionSink *xsink)
+static void TIBRVFTMONITOR_copy(class QoreObject *self, class QoreObject *old, class QoreTibrvFtMonitor *ftm, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRVFTMONITOR-COPY-ERROR", "copying TibrvFtMonitor objects is curently not supported");
 }
 
-static QoreNode *TIBRVFTMONITOR_getEvent(class Object *self, class QoreTibrvFtMonitor *ftm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVFTMONITOR_getEvent(class QoreObject *self, class QoreTibrvFtMonitor *ftm, QoreNode *params, ExceptionSink *xsink)
 {
    return ftm->getEvent(xsink);
 }
 
-static QoreNode *TIBRVFTMONITOR_stop(class Object *self, class QoreTibrvFtMonitor *ftm, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVFTMONITOR_stop(class QoreObject *self, class QoreTibrvFtMonitor *ftm, QoreNode *params, ExceptionSink *xsink)
 {
    ftm->stop();
    return NULL;
 }
 
-class QoreNode *TIBRVFTMONITOR_getGroupName(class Object *self, class QoreTibrvFtMonitor *ftm, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVFTMONITOR_getGroupName(class QoreObject *self, class QoreTibrvFtMonitor *ftm, QoreNode *params, ExceptionSink *xsink)
 {
    const char *name = ftm->getGroupName();
    if (name)

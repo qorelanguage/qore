@@ -25,7 +25,7 @@
 
 int CID_AUTOREADLOCK;
 
-static void ARL_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void ARL_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p = test_param(params, NT_OBJECT, 0);
    RWLock *rwl = p ? (RWLock *)p->val.object->getReferencedPrivateData(CID_RWLOCK, xsink) : NULL;
@@ -45,13 +45,13 @@ static void ARL_constructor(class Object *self, class QoreNode *params, Exceptio
       self->setPrivate(CID_AUTOREADLOCK, arwl);
 }
 
-static void ARL_destructor(class Object *self, class QoreAutoReadLock *arwl, ExceptionSink *xsink)
+static void ARL_destructor(class QoreObject *self, class QoreAutoReadLock *arwl, ExceptionSink *xsink)
 {
    arwl->destructor(xsink);
    arwl->deref(xsink);
 }
 
-static void ARL_copy(class Object *self, class Object *old, class QoreAutoReadLock *m, ExceptionSink *xsink)
+static void ARL_copy(class QoreObject *self, class QoreObject *old, class QoreAutoReadLock *m, ExceptionSink *xsink)
 {
    xsink->raiseException("AUTOREADLOCK-COPY-ERROR", "objects of this class cannot be copied");
 }

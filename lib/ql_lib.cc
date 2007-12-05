@@ -243,9 +243,9 @@ static QoreList *map_sbuf_to_list(struct stat *sbuf)
    return l;
 }
 
-static class Hash *map_sbuf_to_hash(struct stat *sbuf)
+static class QoreHash *map_sbuf_to_hash(struct stat *sbuf)
 {
-   Hash *h = new Hash();
+   QoreHash *h = new QoreHash();
 
    h->setKeyValue("dev",     new QoreNode((int64)sbuf->st_dev), NULL);
    h->setKeyValue("inode",   new QoreNode((int64)sbuf->st_ino), NULL);
@@ -671,7 +671,7 @@ static class QoreNode *f_gethostbyname_long(class QoreNode *params, ExceptionSin
    if (!p)
       return NULL;
 
-   class Hash *h = q_gethostbyname_to_hash(p->val.String->getBuffer());
+   class QoreHash *h = q_gethostbyname_to_hash(p->val.String->getBuffer());
    return h ? new QoreNode(h) : 0;
 }
 
@@ -685,7 +685,7 @@ static class QoreNode *f_gethostbyaddr_long(class QoreNode *params, ExceptionSin
    int type = p1 ? p1->getAsInt() : 0;
    if (!type) type = AF_INET;
 
-   class Hash *h = q_gethostbyaddr_to_hash(xsink, p0->val.String->getBuffer(), type);
+   class QoreHash *h = q_gethostbyaddr_to_hash(xsink, p0->val.String->getBuffer(), type);
    return h ? new QoreNode(h) : 0;
 }
 

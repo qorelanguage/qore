@@ -28,25 +28,25 @@ int CID_QBASICTIMER;
 class QoreClass *QC_QBasicTimer = 0;
 
 //QBasicTimer ()
-static void QBASICTIMER_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QBASICTIMER_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QBASICTIMER, new QoreQBasicTimer());
    return;
 }
 
-static void QBASICTIMER_copy(class Object *self, class Object *old, class QoreQBasicTimer *qbt, ExceptionSink *xsink)
+static void QBASICTIMER_copy(class QoreObject *self, class QoreObject *old, class QoreQBasicTimer *qbt, ExceptionSink *xsink)
 {
    xsink->raiseException("QBASICTIMER-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //bool isActive () const
-static QoreNode *QBASICTIMER_isActive(Object *self, QoreQBasicTimer *qbt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBASICTIMER_isActive(QoreObject *self, QoreQBasicTimer *qbt, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qbt->isActive());
 }
 
 //void start ( int msec, QObject * object )
-static QoreNode *QBASICTIMER_start(Object *self, QoreQBasicTimer *qbt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBASICTIMER_start(QoreObject *self, QoreQBasicTimer *qbt, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int msec = p ? p->getAsInt() : 0;
@@ -63,14 +63,14 @@ static QoreNode *QBASICTIMER_start(Object *self, QoreQBasicTimer *qbt, QoreNode 
 }
 
 //void stop ()
-static QoreNode *QBASICTIMER_stop(Object *self, QoreQBasicTimer *qbt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBASICTIMER_stop(QoreObject *self, QoreQBasicTimer *qbt, QoreNode *params, ExceptionSink *xsink)
 {
    qbt->stop();
    return 0;
 }
 
 //int timerId () const
-static QoreNode *QBASICTIMER_timerId(Object *self, QoreQBasicTimer *qbt, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBASICTIMER_timerId(QoreObject *self, QoreQBasicTimer *qbt, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qbt->timerId());
 }

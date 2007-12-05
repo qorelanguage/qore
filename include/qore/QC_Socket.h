@@ -106,15 +106,15 @@ class mySocket : public AbstractPrivateData, public LockedObject
       DLLLOCAL int recvu2LSB(int timeout, unsigned short *b);
       DLLLOCAL int recvu4LSB(int timeout, unsigned int *b);
       // send HTTP message
-      DLLLOCAL int sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, const void *ptr, int size);
+      DLLLOCAL int sendHTTPMessage(const char *method, const char *path, const char *http_version, class QoreHash *headers, const void *ptr, int size);
       // send HTTP response
-      DLLLOCAL int sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, const void *ptr, int size);
+      DLLLOCAL int sendHTTPResponse(int code, const char *desc, const char *http_version, class QoreHash *headers, const void *ptr, int size);
       // read and parse HTTP header
       DLLLOCAL class QoreNode *readHTTPHeader(int timeout, int *rc);
       // receive a binary message in HTTP chunked format
-      DLLLOCAL class Hash *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
+      DLLLOCAL class QoreHash *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
       // receive a string message in HTTP chunked format
-      DLLLOCAL class Hash *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
+      DLLLOCAL class QoreHash *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
       DLLLOCAL int setSendTimeout(int ms);
       DLLLOCAL int setRecvTimeout(int ms);
       DLLLOCAL int getSendTimeout();

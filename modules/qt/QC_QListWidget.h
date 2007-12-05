@@ -40,7 +40,7 @@ class myQListWidget : public QListWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQListWidget(Object *obj, QWidget* parent = 0) : QListWidget(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQListWidget(QoreObject *obj, QWidget* parent = 0) : QListWidget(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -63,7 +63,7 @@ class QoreQListWidget : public QoreAbstractQListWidget
    public:
       QPointer<myQListWidget> qobj;
 
-      DLLLOCAL QoreQListWidget(Object *obj, QWidget* parent = 0) : qobj(new myQListWidget(obj, parent))
+      DLLLOCAL QoreQListWidget(QoreObject *obj, QWidget* parent = 0) : qobj(new myQListWidget(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -117,10 +117,10 @@ class QoreQListWidget : public QoreAbstractQListWidget
 class QoreQtQListWidget : public QoreAbstractQListWidget
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QListWidget> qobj;
 
-      DLLLOCAL QoreQtQListWidget(Object *obj, QListWidget *qlw) : qore_obj(obj), qobj(qlw)
+      DLLLOCAL QoreQtQListWidget(QoreObject *obj, QListWidget *qlw) : qore_obj(obj), qobj(qlw)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

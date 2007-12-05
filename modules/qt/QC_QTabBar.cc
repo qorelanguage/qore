@@ -28,7 +28,7 @@ int CID_QTABBAR;
 class QoreClass *QC_QTabBar = 0;
 
 //QTabBar ( QWidget * parent = 0 )
-static void QTABBAR_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QTABBAR_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -39,14 +39,14 @@ static void QTABBAR_constructor(Object *self, QoreNode *params, ExceptionSink *x
    return;
 }
 
-static void QTABBAR_copy(class Object *self, class Object *old, class QoreQTabBar *qtb, ExceptionSink *xsink)
+static void QTABBAR_copy(class QoreObject *self, class QoreObject *old, class QoreQTabBar *qtb, ExceptionSink *xsink)
 {
    xsink->raiseException("QTABBAR-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //int addTab ( const QString & text )
 //int addTab ( const QIcon & icon, const QString & text )
-static QoreNode *QTABBAR_addTab(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_addTab(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -70,33 +70,33 @@ static QoreNode *QTABBAR_addTab(Object *self, QoreAbstractQTabBar *qtb, QoreNode
 }
 
 //int count () const
-static QoreNode *QTABBAR_count(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_count(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtb->getQTabBar()->count());
 }
 
 //int currentIndex () const
-static QoreNode *QTABBAR_currentIndex(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_currentIndex(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtb->getQTabBar()->currentIndex());
 }
 
 //bool drawBase () const
-static QoreNode *QTABBAR_drawBase(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_drawBase(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtb->getQTabBar()->drawBase());
 }
 
 //Qt::TextElideMode elideMode () const
-static QoreNode *QTABBAR_elideMode(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_elideMode(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtb->getQTabBar()->elideMode());
 }
 
 //QSize iconSize () const
-static QoreNode *QTABBAR_iconSize(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_iconSize(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qtb->getQTabBar()->iconSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
@@ -104,7 +104,7 @@ static QoreNode *QTABBAR_iconSize(Object *self, QoreAbstractQTabBar *qtb, QoreNo
 
 //int insertTab ( int index, const QString & text )
 //int insertTab ( int index, const QIcon & icon, const QString & text )
-static QoreNode *QTABBAR_insertTab(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_insertTab(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -131,7 +131,7 @@ static QoreNode *QTABBAR_insertTab(Object *self, QoreAbstractQTabBar *qtb, QoreN
 }
 
 //bool isTabEnabled ( int index ) const
-static QoreNode *QTABBAR_isTabEnabled(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_isTabEnabled(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -139,7 +139,7 @@ static QoreNode *QTABBAR_isTabEnabled(Object *self, QoreAbstractQTabBar *qtb, Qo
 }
 
 //void removeTab ( int index )
-static QoreNode *QTABBAR_removeTab(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_removeTab(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -148,7 +148,7 @@ static QoreNode *QTABBAR_removeTab(Object *self, QoreAbstractQTabBar *qtb, QoreN
 }
 
 //void setDrawBase ( bool drawTheBase )
-static QoreNode *QTABBAR_setDrawBase(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setDrawBase(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool drawTheBase = p ? p->getAsBool() : false;
@@ -157,7 +157,7 @@ static QoreNode *QTABBAR_setDrawBase(Object *self, QoreAbstractQTabBar *qtb, Qor
 }
 
 //void setElideMode ( Qt::TextElideMode )
-static QoreNode *QTABBAR_setElideMode(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setElideMode(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::TextElideMode textelidemode = (Qt::TextElideMode)(p ? p->getAsInt() : 0);
@@ -166,7 +166,7 @@ static QoreNode *QTABBAR_setElideMode(Object *self, QoreAbstractQTabBar *qtb, Qo
 }
 
 //void setIconSize ( const QSize & size )
-static QoreNode *QTABBAR_setIconSize(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setIconSize(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
@@ -181,7 +181,7 @@ static QoreNode *QTABBAR_setIconSize(Object *self, QoreAbstractQTabBar *qtb, Qor
 }
 
 //void setShape ( Shape shape )
-static QoreNode *QTABBAR_setShape(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setShape(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTabBar::Shape shape = (QTabBar::Shape)(p ? p->getAsInt() : 0);
@@ -190,7 +190,7 @@ static QoreNode *QTABBAR_setShape(Object *self, QoreAbstractQTabBar *qtb, QoreNo
 }
 
 //void setTabData ( int index, const QVariant & data )
-static QoreNode *QTABBAR_setTabData(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setTabData(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -203,7 +203,7 @@ static QoreNode *QTABBAR_setTabData(Object *self, QoreAbstractQTabBar *qtb, Qore
 }
 
 //void setTabEnabled ( int index, bool enabled )
-static QoreNode *QTABBAR_setTabEnabled(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setTabEnabled(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -214,7 +214,7 @@ static QoreNode *QTABBAR_setTabEnabled(Object *self, QoreAbstractQTabBar *qtb, Q
 }
 
 //void setTabIcon ( int index, const QIcon & icon )
-static QoreNode *QTABBAR_setTabIcon(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setTabIcon(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -231,7 +231,7 @@ static QoreNode *QTABBAR_setTabIcon(Object *self, QoreAbstractQTabBar *qtb, Qore
 }
 
 //void setTabText ( int index, const QString & text )
-static QoreNode *QTABBAR_setTabText(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setTabText(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -244,7 +244,7 @@ static QoreNode *QTABBAR_setTabText(Object *self, QoreAbstractQTabBar *qtb, Qore
 }
 
 //void setTabTextColor ( int index, const QColor & color )
-static QoreNode *QTABBAR_setTabTextColor(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setTabTextColor(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -261,7 +261,7 @@ static QoreNode *QTABBAR_setTabTextColor(Object *self, QoreAbstractQTabBar *qtb,
 }
 
 //void setTabToolTip ( int index, const QString & tip )
-static QoreNode *QTABBAR_setTabToolTip(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setTabToolTip(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -274,7 +274,7 @@ static QoreNode *QTABBAR_setTabToolTip(Object *self, QoreAbstractQTabBar *qtb, Q
 }
 
 //void setTabWhatsThis ( int index, const QString & text )
-static QoreNode *QTABBAR_setTabWhatsThis(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setTabWhatsThis(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -287,7 +287,7 @@ static QoreNode *QTABBAR_setTabWhatsThis(Object *self, QoreAbstractQTabBar *qtb,
 }
 
 //void setUsesScrollButtons ( bool useButtons )
-static QoreNode *QTABBAR_setUsesScrollButtons(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setUsesScrollButtons(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool useButtons = p ? p->getAsBool() : false;
@@ -296,13 +296,13 @@ static QoreNode *QTABBAR_setUsesScrollButtons(Object *self, QoreAbstractQTabBar 
 }
 
 //Shape shape () const
-static QoreNode *QTABBAR_shape(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_shape(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtb->getQTabBar()->shape());
 }
 
 //int tabAt ( const QPoint & position ) const
-static QoreNode *QTABBAR_tabAt(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabAt(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -316,7 +316,7 @@ static QoreNode *QTABBAR_tabAt(Object *self, QoreAbstractQTabBar *qtb, QoreNode 
 }
 
 //QVariant tabData ( int index ) const
-static QoreNode *QTABBAR_tabData(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabData(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -324,29 +324,29 @@ static QoreNode *QTABBAR_tabData(Object *self, QoreAbstractQTabBar *qtb, QoreNod
 }
 
 //QIcon tabIcon ( int index ) const
-static QoreNode *QTABBAR_tabIcon(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabIcon(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   Object *o_qi = new Object(QC_QIcon, getProgram());
+   QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qtb->getQTabBar()->tabIcon(index));
    o_qi->setPrivate(CID_QICON, q_qi);
    return new QoreNode(o_qi);
 }
 
 //QRect tabRect ( int index ) const
-static QoreNode *QTABBAR_tabRect(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabRect(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   Object *o_qr = new Object(QC_QRect, getProgram());
+   QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qtb->getQTabBar()->tabRect(index));
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
 
 //QString tabText ( int index ) const
-static QoreNode *QTABBAR_tabText(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabText(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -354,18 +354,18 @@ static QoreNode *QTABBAR_tabText(Object *self, QoreAbstractQTabBar *qtb, QoreNod
 }
 
 //QColor tabTextColor ( int index ) const
-static QoreNode *QTABBAR_tabTextColor(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabTextColor(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qtb->getQTabBar()->tabTextColor(index));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
 }
 
 //QString tabToolTip ( int index ) const
-static QoreNode *QTABBAR_tabToolTip(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabToolTip(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -373,7 +373,7 @@ static QoreNode *QTABBAR_tabToolTip(Object *self, QoreAbstractQTabBar *qtb, Qore
 }
 
 //QString tabWhatsThis ( int index ) const
-static QoreNode *QTABBAR_tabWhatsThis(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabWhatsThis(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -381,13 +381,13 @@ static QoreNode *QTABBAR_tabWhatsThis(Object *self, QoreAbstractQTabBar *qtb, Qo
 }
 
 //bool usesScrollButtons () const
-static QoreNode *QTABBAR_usesScrollButtons(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_usesScrollButtons(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtb->getQTabBar()->usesScrollButtons());
 }
 
 //void setCurrentIndex ( int index )
-static QoreNode *QTABBAR_setCurrentIndex(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_setCurrentIndex(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -396,7 +396,7 @@ static QoreNode *QTABBAR_setCurrentIndex(Object *self, QoreAbstractQTabBar *qtb,
 }
 
 //void initStyleOption ( QStyleOptionTab * option, int tabIndex ) const
-static QoreNode *QTABBAR_initStyleOption(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_initStyleOption(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQStyleOptionTab *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionTab *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONTAB, xsink) : 0;
@@ -413,7 +413,7 @@ static QoreNode *QTABBAR_initStyleOption(Object *self, QoreAbstractQTabBar *qtb,
 }
 
 //virtual void tabInserted ( int index )
-static QoreNode *QTABBAR_tabInserted(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabInserted(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -422,14 +422,14 @@ static QoreNode *QTABBAR_tabInserted(Object *self, QoreAbstractQTabBar *qtb, Qor
 }
 
 //virtual void tabLayoutChange ()
-static QoreNode *QTABBAR_tabLayoutChange(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabLayoutChange(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    qtb->tabLayoutChange();
    return 0;
 }
 
 //virtual void tabRemoved ( int index )
-static QoreNode *QTABBAR_tabRemoved(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabRemoved(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -438,11 +438,11 @@ static QoreNode *QTABBAR_tabRemoved(Object *self, QoreAbstractQTabBar *qtb, Qore
 }
 
 //virtual QSize tabSizeHint ( int index ) const
-static QoreNode *QTABBAR_tabSizeHint(Object *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTABBAR_tabSizeHint(QoreObject *self, QoreAbstractQTabBar *qtb, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qtb->tabSizeHint(index));
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);

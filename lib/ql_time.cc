@@ -352,7 +352,7 @@ static class QoreNode *f_getISOWeekHash(class QoreNode *params, ExceptionSink *x
 
    int year, week, day;
    p0->val.date_time->getISOWeek(year, week, day);
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("year", new QoreNode((int64)year), NULL);
    h->setKeyValue("week", new QoreNode((int64)week), NULL);
    h->setKeyValue("day", new QoreNode((int64)day), NULL);

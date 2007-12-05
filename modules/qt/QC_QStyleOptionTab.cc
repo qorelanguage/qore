@@ -29,12 +29,12 @@ class QoreClass *QC_QStyleOptionTab = 0;
 
 //QStyleOptionTab ()
 //QStyleOptionTab ( const QStyleOptionTab & other )
-static void QSTYLEOPTIONTAB_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONTAB_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTAB, new QoreQStyleOptionTab());
 }
 
-static void QSTYLEOPTIONTAB_copy(class Object *self, class Object *old, class QoreQStyleOptionTab *qsot, ExceptionSink *xsink)
+static void QSTYLEOPTIONTAB_copy(class QoreObject *self, class QoreObject *old, class QoreQStyleOptionTab *qsot, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTAB, new QoreQStyleOptionTab(*qsot));
 }

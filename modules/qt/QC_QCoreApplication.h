@@ -41,7 +41,7 @@ class myQCoreApplication : public QCoreApplication, public QoreQObjectExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQCoreApplication(Object *obj, int& argc, char ** argv) : QCoreApplication(argc, argv), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQCoreApplication(QoreObject *obj, int& argc, char ** argv) : QCoreApplication(argc, argv), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,10 +52,10 @@ class QoreQCoreApplication : public QoreAbstractQCoreApplication
    public:
       QPointer<myQCoreApplication> qobj;
 
-      DLLLOCAL QoreQCoreApplication(Object *obj) : qobj(new myQCoreApplication(obj, static_argc, static_argv))
+      DLLLOCAL QoreQCoreApplication(QoreObject *obj) : qobj(new myQCoreApplication(obj, static_argc, static_argv))
       {
       }
-      DLLLOCAL QoreQCoreApplication(Object *obj, int& argc, char ** argv) : qobj(new myQCoreApplication(obj, argc, argv))
+      DLLLOCAL QoreQCoreApplication(QoreObject *obj, int& argc, char ** argv) : qobj(new myQCoreApplication(obj, argc, argv))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -72,10 +72,10 @@ class QoreQCoreApplication : public QoreAbstractQCoreApplication
 class QoreQtQCoreApplication : public QoreAbstractQCoreApplication
 {
   public:
-   Object *qore_obj;
+   QoreObject *qore_obj;
    QPointer<QCoreApplication> qobj;
 
-   DLLLOCAL QoreQtQCoreApplication(Object *obj, QCoreApplication *qcoreapplication) : qore_obj(obj), qobj(qcoreapplication)
+   DLLLOCAL QoreQtQCoreApplication(QoreObject *obj, QCoreApplication *qcoreapplication) : qore_obj(obj), qobj(qcoreapplication)
    {
    }
    DLLLOCAL virtual class QObject *getQObject() const

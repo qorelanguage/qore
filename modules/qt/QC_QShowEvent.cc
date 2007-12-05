@@ -28,13 +28,13 @@ int CID_QSHOWEVENT;
 class QoreClass *QC_QShowEvent = 0;
 
 //QShowEvent ()
-static void QSHOWEVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSHOWEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSHOWEVENT, new QoreQShowEvent());
    return;
 }
 
-static void QSHOWEVENT_copy(class Object *self, class Object *old, class QoreQShowEvent *qse, ExceptionSink *xsink)
+static void QSHOWEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQShowEvent *qse, ExceptionSink *xsink)
 {
    xsink->raiseException("QSHOWEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }

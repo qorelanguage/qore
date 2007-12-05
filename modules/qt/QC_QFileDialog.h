@@ -42,11 +42,11 @@ class myQFileDialog : public QFileDialog, public QoreQDialogExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQFileDialog(Object *obj, QWidget* parent, Qt::WindowFlags flags) : QFileDialog(parent, flags), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQFileDialog(QoreObject *obj, QWidget* parent, Qt::WindowFlags flags) : QFileDialog(parent, flags), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQFileDialog(Object *obj, QWidget* parent = 0, const QString& caption = QString(), const QString& directory = QString(), const QString& filter = QString()) : QFileDialog(parent, caption, directory, filter), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQFileDialog(QoreObject *obj, QWidget* parent = 0, const QString& caption = QString(), const QString& directory = QString(), const QString& filter = QString()) : QFileDialog(parent, caption, directory, filter), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
@@ -57,10 +57,10 @@ class QoreQFileDialog : public QoreAbstractQDialog
    public:
       QPointer<myQFileDialog> qobj;
 
-      DLLLOCAL QoreQFileDialog(Object *obj, QWidget* parent, Qt::WindowFlags flags) : qobj(new myQFileDialog(obj, parent, flags))
+      DLLLOCAL QoreQFileDialog(QoreObject *obj, QWidget* parent, Qt::WindowFlags flags) : qobj(new myQFileDialog(obj, parent, flags))
       {
       }
-      DLLLOCAL QoreQFileDialog(Object *obj, QWidget* parent = 0, const QString& caption = QString(), const QString& directory = QString(), const QString& filter = QString()) : qobj(new myQFileDialog(obj, parent, caption, directory, filter))
+      DLLLOCAL QoreQFileDialog(QoreObject *obj, QWidget* parent = 0, const QString& caption = QString(), const QString& directory = QString(), const QString& filter = QString()) : qobj(new myQFileDialog(obj, parent, caption, directory, filter))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

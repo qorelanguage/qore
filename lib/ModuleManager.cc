@@ -152,9 +152,9 @@ bool ModuleInfo::isBuiltin() const
    return !dlptr;
 }
 
-class Hash *ModuleInfo::getHash() const
+class QoreHash *ModuleInfo::getHash() const
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("filename", new QoreNode(filename), NULL);
    h->setKeyValue("name", new QoreNode(name), NULL);
    h->setKeyValue("desc", new QoreNode(desc), NULL);

@@ -28,67 +28,67 @@ int CID_QTEXTBLOCKFORMAT;
 class QoreClass *QC_QTextBlockFormat = 0;
 
 //QTextBlockFormat ()
-static void QTEXTBLOCKFORMAT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QTEXTBLOCKFORMAT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTBLOCKFORMAT, new QoreQTextBlockFormat());
    return;
 }
 
-static void QTEXTBLOCKFORMAT_copy(class Object *self, class Object *old, class QoreQTextBlockFormat *qtbf, ExceptionSink *xsink)
+static void QTEXTBLOCKFORMAT_copy(class QoreObject *self, class QoreObject *old, class QoreQTextBlockFormat *qtbf, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTBLOCKFORMAT, new QoreQTextBlockFormat(*qtbf));
 }
 
 //Qt::Alignment alignment () const
-static QoreNode *QTEXTBLOCKFORMAT_alignment(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_alignment(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtbf->alignment());
 }
 
 //qreal bottomMargin () const
-static QoreNode *QTEXTBLOCKFORMAT_bottomMargin(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_bottomMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtbf->bottomMargin());
 }
 
 //int indent () const
-static QoreNode *QTEXTBLOCKFORMAT_indent(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_indent(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtbf->indent());
 }
 
 //bool isValid () const
-static QoreNode *QTEXTBLOCKFORMAT_isValid(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_isValid(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtbf->isValid());
 }
 
 //qreal leftMargin () const
-static QoreNode *QTEXTBLOCKFORMAT_leftMargin(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_leftMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtbf->leftMargin());
 }
 
 //bool nonBreakableLines () const
-static QoreNode *QTEXTBLOCKFORMAT_nonBreakableLines(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_nonBreakableLines(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtbf->nonBreakableLines());
 }
 
 //PageBreakFlags pageBreakPolicy () const
-static QoreNode *QTEXTBLOCKFORMAT_pageBreakPolicy(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_pageBreakPolicy(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtbf->pageBreakPolicy());
 }
 
 //qreal rightMargin () const
-static QoreNode *QTEXTBLOCKFORMAT_rightMargin(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_rightMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtbf->rightMargin());
 }
 
 //void setAlignment ( Qt::Alignment alignment )
-static QoreNode *QTEXTBLOCKFORMAT_setAlignment(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_setAlignment(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
@@ -97,7 +97,7 @@ static QoreNode *QTEXTBLOCKFORMAT_setAlignment(Object *self, QoreQTextBlockForma
 }
 
 //void setBottomMargin ( qreal margin )
-static QoreNode *QTEXTBLOCKFORMAT_setBottomMargin(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_setBottomMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
@@ -106,7 +106,7 @@ static QoreNode *QTEXTBLOCKFORMAT_setBottomMargin(Object *self, QoreQTextBlockFo
 }
 
 //void setIndent ( int indentation )
-static QoreNode *QTEXTBLOCKFORMAT_setIndent(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_setIndent(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int indentation = p ? p->getAsInt() : 0;
@@ -115,7 +115,7 @@ static QoreNode *QTEXTBLOCKFORMAT_setIndent(Object *self, QoreQTextBlockFormat *
 }
 
 //void setLeftMargin ( qreal margin )
-static QoreNode *QTEXTBLOCKFORMAT_setLeftMargin(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_setLeftMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
@@ -124,7 +124,7 @@ static QoreNode *QTEXTBLOCKFORMAT_setLeftMargin(Object *self, QoreQTextBlockForm
 }
 
 //void setNonBreakableLines ( bool b )
-static QoreNode *QTEXTBLOCKFORMAT_setNonBreakableLines(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_setNonBreakableLines(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -133,7 +133,7 @@ static QoreNode *QTEXTBLOCKFORMAT_setNonBreakableLines(Object *self, QoreQTextBl
 }
 
 //void setPageBreakPolicy ( PageBreakFlags policy )
-static QoreNode *QTEXTBLOCKFORMAT_setPageBreakPolicy(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_setPageBreakPolicy(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextBlockFormat::PageBreakFlags policy = (QTextBlockFormat::PageBreakFlags)(p ? p->getAsInt() : 0);
@@ -142,7 +142,7 @@ static QoreNode *QTEXTBLOCKFORMAT_setPageBreakPolicy(Object *self, QoreQTextBloc
 }
 
 //void setRightMargin ( qreal margin )
-static QoreNode *QTEXTBLOCKFORMAT_setRightMargin(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_setRightMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
@@ -151,7 +151,7 @@ static QoreNode *QTEXTBLOCKFORMAT_setRightMargin(Object *self, QoreQTextBlockFor
 }
 
 //void setTextIndent ( qreal indent )
-static QoreNode *QTEXTBLOCKFORMAT_setTextIndent(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_setTextIndent(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal indent = p ? p->getAsFloat() : 0.0;
@@ -160,7 +160,7 @@ static QoreNode *QTEXTBLOCKFORMAT_setTextIndent(Object *self, QoreQTextBlockForm
 }
 
 //void setTopMargin ( qreal margin )
-static QoreNode *QTEXTBLOCKFORMAT_setTopMargin(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_setTopMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
@@ -169,13 +169,13 @@ static QoreNode *QTEXTBLOCKFORMAT_setTopMargin(Object *self, QoreQTextBlockForma
 }
 
 //qreal textIndent () const
-static QoreNode *QTEXTBLOCKFORMAT_textIndent(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_textIndent(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtbf->textIndent());
 }
 
 //qreal topMargin () const
-static QoreNode *QTEXTBLOCKFORMAT_topMargin(Object *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTBLOCKFORMAT_topMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtbf->topMargin());
 }

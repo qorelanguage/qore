@@ -31,7 +31,7 @@ class QoreClass *QC_QChar = 0;
 //QChar ( char ch )
 //QChar ( int code )
 //QChar ( SpecialCharacter ch )
-static void QCHAR_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QCHAR_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -50,25 +50,25 @@ static void QCHAR_constructor(Object *self, QoreNode *params, ExceptionSink *xsi
    self->setPrivate(CID_QCHAR, new QoreQChar(code));   
 }
 
-static void QCHAR_copy(class Object *self, class Object *old, class QoreQChar *qc, ExceptionSink *xsink)
+static void QCHAR_copy(class QoreObject *self, class QoreObject *old, class QoreQChar *qc, ExceptionSink *xsink)
 {
    xsink->raiseException("QCHAR-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //Category category () const
-static QoreNode *QCHAR_category(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_category(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->category());
 }
 
 //uchar cell () const
-static QoreNode *QCHAR_cell(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_cell(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->cell());
 }
 
 //unsigned char combiningClass () const
-static QoreNode *QCHAR_combiningClass(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_combiningClass(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    const char c_rv = qc->combiningClass();
    QoreString *rv_str = new QoreString();
@@ -77,133 +77,133 @@ static QoreNode *QCHAR_combiningClass(Object *self, QoreQChar *qc, QoreNode *par
 }
 
 //QString decomposition () const
-static QoreNode *QCHAR_decomposition(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_decomposition(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qc->decomposition().toUtf8().data(), QCS_UTF8));
 }
 
 //Decomposition decompositionTag () const
-static QoreNode *QCHAR_decompositionTag(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_decompositionTag(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->decompositionTag());
 }
 
 //int digitValue () const
-static QoreNode *QCHAR_digitValue(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_digitValue(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->digitValue());
 }
 
 //Direction direction () const
-static QoreNode *QCHAR_direction(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_direction(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->direction());
 }
 
 //bool hasMirrored () const
-static QoreNode *QCHAR_hasMirrored(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_hasMirrored(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->hasMirrored());
 }
 
 //bool isDigit () const
-static QoreNode *QCHAR_isDigit(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isDigit(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isDigit());
 }
 
 //bool isHighSurrogate () const
-static QoreNode *QCHAR_isHighSurrogate(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isHighSurrogate(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isHighSurrogate());
 }
 
 //bool isLetter () const
-static QoreNode *QCHAR_isLetter(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isLetter(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isLetter());
 }
 
 //bool isLetterOrNumber () const
-static QoreNode *QCHAR_isLetterOrNumber(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isLetterOrNumber(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isLetterOrNumber());
 }
 
 //bool isLowSurrogate () const
-static QoreNode *QCHAR_isLowSurrogate(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isLowSurrogate(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isLowSurrogate());
 }
 
 //bool isLower () const
-static QoreNode *QCHAR_isLower(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isLower(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isLower());
 }
 
 //bool isMark () const
-static QoreNode *QCHAR_isMark(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isMark(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isMark());
 }
 
 //bool isNull () const
-static QoreNode *QCHAR_isNull(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isNull(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isNull());
 }
 
 //bool isNumber () const
-static QoreNode *QCHAR_isNumber(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isNumber(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isNumber());
 }
 
 //bool isPrint () const
-static QoreNode *QCHAR_isPrint(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isPrint(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isPrint());
 }
 
 //bool isPunct () const
-static QoreNode *QCHAR_isPunct(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isPunct(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isPunct());
 }
 
 //bool isSpace () const
-static QoreNode *QCHAR_isSpace(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isSpace(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isSpace());
 }
 
 //bool isSymbol () const
-static QoreNode *QCHAR_isSymbol(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isSymbol(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isSymbol());
 }
 
 //bool isTitleCase () const
-static QoreNode *QCHAR_isTitleCase(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isTitleCase(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isTitleCase());
 }
 
 //bool isUpper () const
-static QoreNode *QCHAR_isUpper(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_isUpper(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isUpper());
 }
 
 //Joining joining () const
-static QoreNode *QCHAR_joining(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_joining(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->joining());
 }
 
 //QChar mirroredChar () const
-static QoreNode *QCHAR_mirroredChar(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_mirroredChar(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = qc->mirroredChar();
@@ -212,13 +212,13 @@ static QoreNode *QCHAR_mirroredChar(Object *self, QoreQChar *qc, QoreNode *param
 }
 
 //uchar row () const
-static QoreNode *QCHAR_row(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_row(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->row());
 }
 
 //const char toAscii () const
-static QoreNode *QCHAR_toAscii(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_toAscii(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    const char c_rv = qc->toAscii();
    QoreString *rv_str = new QoreString();
@@ -227,7 +227,7 @@ static QoreNode *QCHAR_toAscii(Object *self, QoreQChar *qc, QoreNode *params, Ex
 }
 
 //QChar toCaseFolded () const
-static QoreNode *QCHAR_toCaseFolded(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_toCaseFolded(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = qc->toCaseFolded();
@@ -236,7 +236,7 @@ static QoreNode *QCHAR_toCaseFolded(Object *self, QoreQChar *qc, QoreNode *param
 }
 
 //const char toLatin1 () const
-static QoreNode *QCHAR_toLatin1(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_toLatin1(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    const char c_rv = qc->toLatin1();
    QoreString *rv_str = new QoreString();
@@ -245,7 +245,7 @@ static QoreNode *QCHAR_toLatin1(Object *self, QoreQChar *qc, QoreNode *params, E
 }
 
 //QChar toLower () const
-static QoreNode *QCHAR_toLower(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_toLower(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = qc->toLower();
@@ -254,7 +254,7 @@ static QoreNode *QCHAR_toLower(Object *self, QoreQChar *qc, QoreNode *params, Ex
 }
 
 //QChar toTitleCase () const
-static QoreNode *QCHAR_toTitleCase(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_toTitleCase(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = qc->toTitleCase();
@@ -263,7 +263,7 @@ static QoreNode *QCHAR_toTitleCase(Object *self, QoreQChar *qc, QoreNode *params
 }
 
 //QChar toUpper () const
-static QoreNode *QCHAR_toUpper(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_toUpper(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = qc->toUpper();
@@ -273,13 +273,13 @@ static QoreNode *QCHAR_toUpper(Object *self, QoreQChar *qc, QoreNode *params, Ex
 
 //ushort & unicode ()
 //const ushort unicode () const
-static QoreNode *QCHAR_unicode(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_unicode(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->unicode());
 }
 
 //UnicodeVersion unicodeVersion () const
-static QoreNode *QCHAR_unicodeVersion(Object *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHAR_unicodeVersion(QoreObject *self, QoreQChar *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->unicodeVersion());
 }

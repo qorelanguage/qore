@@ -28,7 +28,7 @@ int CID_QDRAGENTEREVENT;
 class QoreClass *QC_QDragEnterEvent = 0;
 
 //QDragEnterEvent ( const QPoint & point, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers )
-static void QDRAGENTEREVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QDRAGENTEREVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *point = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -56,7 +56,7 @@ static void QDRAGENTEREVENT_constructor(Object *self, QoreNode *params, Exceptio
    return;
 }
 
-static void QDRAGENTEREVENT_copy(class Object *self, class Object *old, class QoreQDragEnterEvent *qdee, ExceptionSink *xsink)
+static void QDRAGENTEREVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQDragEnterEvent *qdee, ExceptionSink *xsink)
 {
    xsink->raiseException("QDRAGENTEREVENT-COPY-ERROR", "objects of this class cannot be copied");
 }

@@ -28,7 +28,7 @@ int CID_QPRINTDIALOG;
 class QoreClass *QC_QPrintDialog = 0;
 
 //QPrintDialog ( QPrinter * printer, QWidget * parent = 0 )
-static void QPRINTDIALOG_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QPRINTDIALOG_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPrinter *printer = (p && p->type == NT_OBJECT) ? (QoreQPrinter *)p->val.object->getReferencedPrivateData(CID_QPRINTER, xsink) : 0;
@@ -47,7 +47,7 @@ static void QPRINTDIALOG_constructor(Object *self, QoreNode *params, ExceptionSi
    return;
 }
 
-static void QPRINTDIALOG_copy(class Object *self, class Object *old, class QoreQPrintDialog *qpd, ExceptionSink *xsink)
+static void QPRINTDIALOG_copy(class QoreObject *self, class QoreObject *old, class QoreQPrintDialog *qpd, ExceptionSink *xsink)
 {
    xsink->raiseException("QPRINTDIALOG-COPY-ERROR", "objects of this class cannot be copied");
 }

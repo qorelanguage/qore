@@ -30,7 +30,7 @@ int CID_QPAINTEVENT;
 
 class QoreClass *QC_QPaintEvent = 0;
 
-static void QPAINTEVENT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QPAINTEVENT_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQPaintEvent *qr;
 
@@ -58,25 +58,25 @@ static void QPAINTEVENT_constructor(class Object *self, class QoreNode *params, 
    self->setPrivate(CID_QPAINTEVENT, qr);
 }
 
-static void QPAINTEVENT_copy(class Object *self, class Object *old, class QoreQPaintEvent *qr, ExceptionSink *xsink)
+static void QPAINTEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQPaintEvent *qr, ExceptionSink *xsink)
 {
    xsink->raiseException("QPAINTEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //const QRect & rect () const
-static QoreNode *QPAINTEVENT_rect(Object *self, QoreQPaintEvent *qpe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTEVENT_rect(QoreObject *self, QoreQPaintEvent *qpe, QoreNode *params, ExceptionSink *xsink)
 {
    QoreQRect *q_qr = new QoreQRect(qpe->rect());
-   Object *o_qr = new Object(QC_QRect, getProgram());
+   QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
 
 //const QRegion & region () const
-static QoreNode *QPAINTEVENT_region(Object *self, QoreQPaintEvent *qpe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTEVENT_region(QoreObject *self, QoreQPaintEvent *qpe, QoreNode *params, ExceptionSink *xsink)
 {
    QoreQRegion *q_qr = new QoreQRegion(qpe->region());
-   Object *o_qr = new Object(QC_QRegion, getProgram());
+   QoreObject *o_qr = new QoreObject(QC_QRegion, getProgram());
    o_qr->setPrivate(CID_QREGION, q_qr);
    return new QoreNode(o_qr);
 }

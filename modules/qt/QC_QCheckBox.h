@@ -41,11 +41,11 @@ class myQCheckBox : public QCheckBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQCheckBox(Object *obj, QWidget* parent = 0) : QCheckBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQCheckBox(QoreObject *obj, QWidget* parent = 0) : QCheckBox(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQCheckBox(Object *obj, const QString& text, QWidget* parent = 0) : QCheckBox(text, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQCheckBox(QoreObject *obj, const QString& text, QWidget* parent = 0) : QCheckBox(text, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -56,10 +56,10 @@ class QoreQCheckBox : public QoreAbstractQCheckBox
    public:
       QPointer<myQCheckBox> qobj;
 
-      DLLLOCAL QoreQCheckBox(Object *obj, QWidget* parent = 0) : qobj(new myQCheckBox(obj, parent))
+      DLLLOCAL QoreQCheckBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQCheckBox(obj, parent))
       {
       }
-      DLLLOCAL QoreQCheckBox(Object *obj, const QString& text, QWidget* parent = 0) : qobj(new myQCheckBox(obj, text, parent))
+      DLLLOCAL QoreQCheckBox(QoreObject *obj, const QString& text, QWidget* parent = 0) : qobj(new myQCheckBox(obj, text, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -88,10 +88,10 @@ class QoreQCheckBox : public QoreAbstractQCheckBox
 class QoreQtQCheckBox : public QoreAbstractQAbstractButton
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QCheckBox> qobj;
 
-      DLLLOCAL QoreQtQCheckBox(Object *obj, QCheckBox *cb) : qore_obj(obj), qobj(cb)
+      DLLLOCAL QoreQtQCheckBox(QoreObject *obj, QCheckBox *cb) : qore_obj(obj), qobj(cb)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

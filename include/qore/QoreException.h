@@ -1,5 +1,5 @@
 /*
-  Exception.h
+  QoreException.h
 
   Qore programming language exception handling support
 
@@ -20,9 +20,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_EXCEPTION_H
+#ifndef _QORE_QOREEXCEPTION_H
 
-#define _QORE_EXCEPTION_H
+#define _QORE_QOREEXCEPTION_H
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -34,9 +34,9 @@
 class ExceptionSink {
    private:
       bool thread_exit;
-      class Exception *head, *tail;
+      class QoreException *head, *tail;
 
-      DLLLOCAL void insert(class Exception *e);
+      DLLLOCAL void insert(class QoreException *e);
       DLLLOCAL void clearIntern();
       
    public:
@@ -57,7 +57,7 @@ class ExceptionSink {
       DLLEXPORT QoreNode* raiseExceptionArg(const char* err, QoreNode* arg, const char* fmt, ...);
       // returns NULL, takes owenership of the "desc" argument
       DLLEXPORT QoreNode *raiseException(const char *err, class QoreString *desc);
-      DLLEXPORT void rethrow(class Exception *old);
+      DLLEXPORT void rethrow(class QoreException *old);
       DLLEXPORT void raiseThreadExit();
       DLLEXPORT void assimilate(class ExceptionSink *xs);
       DLLEXPORT void outOfMemory();
@@ -65,16 +65,16 @@ class ExceptionSink {
       DLLEXPORT void addStackInfo(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
       DLLEXPORT void addStackInfo(int type, const char *class_name, const char *code);
 
-      DLLLOCAL void raiseException(class Exception *e);
+      DLLLOCAL void raiseException(class QoreException *e);
       DLLLOCAL void raiseException(class QoreNode *n);
-      DLLLOCAL class Exception *catchException();
+      DLLLOCAL class QoreException *catchException();
       DLLLOCAL void overrideLocation(int sline, int eline, const char *file);
 
-      DLLLOCAL static void defaultExceptionHandler(class Exception *e);
-      DLLLOCAL static void defaultWarningHandler(class Exception *e);
+      DLLLOCAL static void defaultExceptionHandler(class QoreException *e);
+      DLLLOCAL static void defaultWarningHandler(class QoreException *e);
 };
 
-class Exception {
+class QoreException {
    friend class ExceptionSink;
 
    private:
@@ -84,11 +84,11 @@ class Exception {
       int start_line, end_line;
       char *file;
       class QoreNode *callStack, *err, *desc, *arg;
-      class Exception *next;
+      class QoreException *next;
 
-      DLLLOCAL ~Exception();
+      DLLLOCAL ~QoreException();
       DLLLOCAL void addStackInfo(class QoreNode *n);
-      DLLLOCAL static class Hash *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
+      DLLLOCAL static class QoreHash *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
       
    public:
       // called for generic exceptions
@@ -96,17 +96,17 @@ class Exception {
       DLLEXPORT class QoreNode *makeExceptionObject();
 
       // called for runtime exceptions
-      DLLLOCAL Exception(const char *err, class QoreString *desc);
+      DLLLOCAL QoreException(const char *err, class QoreString *desc);
       // called for rethrow
-      DLLLOCAL Exception(class Exception *old, class ExceptionSink *xsink);
+      DLLLOCAL QoreException(class QoreException *old, class ExceptionSink *xsink);
       // called for user exceptions
-      DLLLOCAL Exception(class QoreNode *n);
+      DLLLOCAL QoreException(class QoreNode *n);
       // for derived classes
-      DLLLOCAL Exception();
+      DLLLOCAL QoreException();
       DLLLOCAL void del(class ExceptionSink *xsink);
 };
 
-class ParseException : public Exception
+class ParseException : public QoreException
 {
    public:
       // called for parse exceptions

@@ -32,7 +32,7 @@
 int CID_TIBAE;
 
 // usage: new TibcoAdapter(session-name, properties, classlist, [, service, network, daemon])
-void TIBAE_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBAE_constructor(class QoreObject *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBAE_constructor");
 
@@ -48,7 +48,7 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
    }
 
    session_name = p0->val.String->getBuffer();
-   Hash *classlist;
+   QoreHash *classlist;
    if ((p2 = test_param(params, NT_HASH, 2)))
    {
       // FIXME: check that classlist hash has only String values!
@@ -111,7 +111,7 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
    }
    catch (MException &te)
    {
-      xsink->raiseException("TIBCO-EXCEPTION", "Exception thrown in Tibco() constructor %s: %s",
+      xsink->raiseException("TIBCO-EXCEPTION", "QoreException thrown in Tibco() constructor %s: %s",
 			 te.getType().c_str(), te.getDescription().c_str());
       if (myQoreApp)
 	 myQoreApp->deref(xsink);
@@ -123,13 +123,13 @@ void TIBAE_constructor(class Object *self, class QoreNode *params, class Excepti
    traceout("TIBAE_constructor");
 }
 
-void TIBAE_copy(class Object *self, class Object *old, class QoreApp *myQoreApp, class ExceptionSink *xsink)
+void TIBAE_copy(class QoreObject *self, class QoreObject *old, class QoreApp *myQoreApp, class ExceptionSink *xsink)
 {
    xsink->raiseException("TIBCO-ADAPTER-COPY-ERROR", "copying TibcoAdapter objects is curently not supported");
 }
 
 // usage: TIBAE_sendSubject(subject, function_name, message)
-class QoreNode *TIBAE_sendSubject(class Object *self, class QoreApp *myQoreApp, class QoreNode *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_sendSubject(class QoreObject *self, class QoreApp *myQoreApp, class QoreNode *params, class ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2;
 
@@ -153,14 +153,14 @@ class QoreNode *TIBAE_sendSubject(class Object *self, class QoreApp *myQoreApp, 
    catch(MException &te)
    {
       xsink->raiseException("TIBCO-EXCEPTION", 
-			    "Exception caught while sending \"%s\" with subject \"%s\": %s: %s", 
+			    "QoreException caught while sending \"%s\" with subject \"%s\": %s: %s", 
 			    fname, subject, te.getType().c_str(), te.getDescription().c_str());      
    }
    return NULL;
 }
 
 // usage: Tibco::sendSubjectWithSyncReply(subject, function_name, message[, timeout])
-class QoreNode *TIBAE_sendSubjectWithSyncReply(class Object *self, class QoreApp *myQoreApp, class QoreNode *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_sendSubjectWithSyncReply(class QoreObject *self, class QoreApp *myQoreApp, class QoreNode *params, class ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2, *p3;
 
@@ -200,7 +200,7 @@ class QoreNode *TIBAE_sendSubjectWithSyncReply(class Object *self, class QoreApp
    catch(MException &te)
    {
       xsink->raiseException("TIBCO-EXCEPTION", 
-			    "Exception caught while sending \"%s\" with subject \"%s\": %s: %s", 
+			    "QoreException caught while sending \"%s\" with subject \"%s\": %s: %s", 
 			    fname, p0->val.String->getBuffer(), te.getType().c_str(), te.getDescription().c_str());      
    }
 
@@ -208,7 +208,7 @@ class QoreNode *TIBAE_sendSubjectWithSyncReply(class Object *self, class QoreApp
 }
 
 // Tibco::receive(subject, [timeout])
-class QoreNode *TIBAE_receive(class Object *self, class QoreApp *myQoreApp, class QoreNode *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_receive(class QoreObject *self, class QoreApp *myQoreApp, class QoreNode *params, class ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
 
@@ -251,7 +251,7 @@ class QoreNode *TIBAE_receive(class Object *self, class QoreApp *myQoreApp, clas
 //
 // Returns hash with data send as a reply to this call.
 //
-static QoreNode* TIBAE_operationsCallWithSyncResult(Object* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+static QoreNode* TIBAE_operationsCallWithSyncResult(QoreObject* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
 {
    char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
       "[timeout (integer in millis or date/time), ] [client name (string)]";
@@ -270,7 +270,7 @@ static QoreNode* TIBAE_operationsCallWithSyncResult(Object* self, QoreApp* myQor
    if (!data) {
       return xsink->raiseException(func, err);
    }
-   Hash* data_extracted = data->val.hash;
+   QoreHash* data_extracted = data->val.hash;
    unsigned timeout = 60 * 1000;
    const char* client_name = "";
   
@@ -299,7 +299,7 @@ static QoreNode* TIBAE_operationsCallWithSyncResult(Object* self, QoreApp* myQor
 // The same parameters as for TIBAE_operationsCallWithSyncResult, 
 // except for the timeout (not needed), always returns 0.
 //
-static QoreNode* TIBAE_operationsOneWayCall(Object* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+static QoreNode* TIBAE_operationsOneWayCall(QoreObject* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
 {
    char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
       "[client name (string)]";
@@ -318,7 +318,7 @@ static QoreNode* TIBAE_operationsOneWayCall(Object* self, QoreApp* myQoreApp, Qo
    if (!data) {
       return xsink->raiseException(func, err);
    }
-   Hash* data_extracted = data->val.hash;
+   QoreHash* data_extracted = data->val.hash;
    const char* client_name = "";
 
    QoreNode* n = test_param(params, NT_STRING, 3);
@@ -332,7 +332,7 @@ static QoreNode* TIBAE_operationsOneWayCall(Object* self, QoreApp* myQoreApp, Qo
 
 // The same parameters as for TIBAE_operationsCallWithSyncResult (including timeout).
 // Always return 0. To get the reply use combination of class name + method name passed to this call.
-static QoreNode* TIBAE_operationsAsyncCall(Object* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+static QoreNode* TIBAE_operationsAsyncCall(QoreObject* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
 {
    char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
       "[timeout (integer in millis or date/time), ] [client name (string)]";
@@ -351,7 +351,7 @@ static QoreNode* TIBAE_operationsAsyncCall(Object* self, QoreApp* myQoreApp, Qor
    if (!data) {
       return xsink->raiseException(func, err);
    }
-   Hash* data_extracted = data->val.hash;
+   QoreHash* data_extracted = data->val.hash;
    unsigned timeout = 60 * 1000;
    const char* client_name = "";
 
@@ -384,7 +384,7 @@ static QoreNode* TIBAE_operationsAsyncCall(Object* self, QoreApp* myQoreApp, Qor
 //
 // Returns hash with retrieved values.
 //
-static QoreNode* TIBAE_operationsGetAsyncCallResult(Object* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+static QoreNode* TIBAE_operationsGetAsyncCallResult(QoreObject* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
 {
    char* err = "Invalid parameters. Expected: class name (string), method name (string)";
    char* func = "TIBCO-OPERATIONS-GET-ASYNC-RESULT";

@@ -42,7 +42,7 @@
    } \
    DLLLOCAL virtual void emit_signal(const char *sig, QoreList *args) { return qobj->emit_signal(sig, args); } \
    DLLLOCAL virtual QObject *sender() const { return qobj->getSender(); } \
-   DLLLOCAL virtual Object *getQoreObject() const { return qobj->getQoreObject(); } \
+   DLLLOCAL virtual QoreObject *getQoreObject() const { return qobj->getQoreObject(); } \
    DLLLOCAL virtual void timerEvent(QTimerEvent * event) { qobj->parent_timerEvent(event); } \
    DLLLOCAL virtual void childEvent(QChildEvent * event) { qobj->parent_childEvent(event); }
 
@@ -132,14 +132,14 @@ struct QoreQtDynamicMethod {
 class QoreQtDynamicSlot : public QoreQtDynamicMethod
 {
    private:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       Method *method;
       int return_type;
 
-      DLLLOCAL static Method *resolveMethod(Object *n_qore_obj, const char *name, class ExceptionSink *xsink);
+      DLLLOCAL static Method *resolveMethod(QoreObject *n_qore_obj, const char *name, class ExceptionSink *xsink);
 
    public:
-      DLLLOCAL QoreQtDynamicSlot(Object *n_qore_obj, const char *sig, ExceptionSink *xsink);
+      DLLLOCAL QoreQtDynamicSlot(QoreObject *n_qore_obj, const char *sig, ExceptionSink *xsink);
 
       DLLLOCAL virtual ~QoreQtDynamicSlot()
       {

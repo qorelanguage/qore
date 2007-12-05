@@ -42,12 +42,12 @@ class myQSlider : public QSlider, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQSlider(Object *obj, QWidget *parent = 0) : QSlider(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQSlider(QoreObject *obj, QWidget *parent = 0) : QSlider(parent), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
 	 //init_widget_events();
       }
-      DLLLOCAL myQSlider(Object *obj, Qt::Orientation orientation, QWidget *parent = 0) : QSlider(orientation, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQSlider(QoreObject *obj, Qt::Orientation orientation, QWidget *parent = 0) : QSlider(orientation, parent), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
 	 //init_widget_events();
@@ -60,10 +60,10 @@ class QoreQSlider : public QoreAbstractQAbstractSlider
    public:
       QPointer<myQSlider>qobj;
 
-      DLLLOCAL QoreQSlider(Object *obj, QWidget *parent = 0) : qobj(new myQSlider(obj, parent))
+      DLLLOCAL QoreQSlider(QoreObject *obj, QWidget *parent = 0) : qobj(new myQSlider(obj, parent))
       {
       }
-      DLLLOCAL QoreQSlider(Object *obj, Qt::Orientation orientation, QWidget *parent = 0) : qobj(new myQSlider(obj, orientation, parent))
+      DLLLOCAL QoreQSlider(QoreObject *obj, Qt::Orientation orientation, QWidget *parent = 0) : qobj(new myQSlider(obj, orientation, parent))
       {
       }
 

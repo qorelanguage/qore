@@ -43,7 +43,7 @@ class myQWindowsStyle : public QWindowsStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQWindowsStyle(Object *obj) : QWindowsStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQWindowsStyle(QoreObject *obj) : QWindowsStyle(), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }
@@ -54,7 +54,7 @@ class QoreQWindowsStyle : public QoreAbstractQWindowsStyle
    public:
       QPointer<myQWindowsStyle> qobj;
 
-      DLLLOCAL QoreQWindowsStyle(Object *obj) : qobj(new myQWindowsStyle(obj))
+      DLLLOCAL QoreQWindowsStyle(QoreObject *obj) : qobj(new myQWindowsStyle(obj))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -71,10 +71,10 @@ class QoreQWindowsStyle : public QoreAbstractQWindowsStyle
 class QoreQtQWindowsStyle : public QoreAbstractQWindowsStyle
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QWindowsStyle> qobj;
 
-      DLLLOCAL QoreQtQWindowsStyle(Object *obj, QWindowsStyle *qws) : qore_obj(obj), qobj(qws)
+      DLLLOCAL QoreQtQWindowsStyle(QoreObject *obj, QWindowsStyle *qws) : qore_obj(obj), qobj(qws)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

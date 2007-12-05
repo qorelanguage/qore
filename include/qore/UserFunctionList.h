@@ -31,7 +31,7 @@ class UserFunctionList
 {
 private:
    hm_uf_t fmap, pmap;   // maps of functions for quick lookups
-   
+
 public:
    DLLLOCAL UserFunctionList() {}
    DLLLOCAL ~UserFunctionList();
@@ -41,7 +41,7 @@ public:
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit();
-   DLLLOCAL class QoreList *getQoreList();
+   DLLLOCAL class QoreList *getList();
 };
 
 #endif

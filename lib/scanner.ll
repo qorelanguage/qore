@@ -32,7 +32,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/common.h>
 #include <qore/ParserSupport.h>
 #include <qore/RegexSubst.h>
 #include <qore/RegexTrans.h>

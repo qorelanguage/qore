@@ -42,11 +42,11 @@ class myQMessageBox : public QMessageBox, public QoreQDialogExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMessageBox(Object *obj, QWidget* parent = 0) : QMessageBox(parent), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQMessageBox(QoreObject *obj, QWidget* parent = 0) : QMessageBox(parent), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQMessageBox(Object *obj, Icon icon, const QString& title, const QString& text, StandardButtons buttons = NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : QMessageBox(icon, title, text, buttons, parent, f), QoreQDialogExtension(obj->getClass())
+      DLLLOCAL myQMessageBox(QoreObject *obj, Icon icon, const QString& title, const QString& text, StandardButtons buttons = NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : QMessageBox(icon, title, text, buttons, parent, f), QoreQDialogExtension(obj->getClass())
       {
          init(obj);
       }
@@ -57,10 +57,10 @@ class QoreQMessageBox : public QoreAbstractQDialog
    public:
       QPointer<myQMessageBox> qobj;
 
-      DLLLOCAL QoreQMessageBox(Object *obj, QWidget* parent = 0) : qobj(new myQMessageBox(obj, parent))
+      DLLLOCAL QoreQMessageBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQMessageBox(obj, parent))
       {
       }
-      DLLLOCAL QoreQMessageBox(Object *obj, QMessageBox::Icon icon, const QString& title, const QString& text, QMessageBox::StandardButtons buttons = QMessageBox::NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : qobj(new myQMessageBox(obj, icon, title, text, buttons, parent, f))
+      DLLLOCAL QoreQMessageBox(QoreObject *obj, QMessageBox::Icon icon, const QString& title, const QString& text, QMessageBox::StandardButtons buttons = QMessageBox::NoButton, QWidget* parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint) : qobj(new myQMessageBox(obj, icon, title, text, buttons, parent, f))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

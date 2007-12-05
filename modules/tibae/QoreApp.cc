@@ -37,7 +37,7 @@
 
 static void remove_pending_calls(MApp* app);
 
-static const char *get_class(Hash *h)
+static const char *get_class(QoreHash *h)
 {
    QoreNode *t;
 
@@ -48,7 +48,7 @@ static const char *get_class(Hash *h)
    return t->val.String->getBuffer();
 }
 
-QoreApp::QoreApp(MAppProperties *pMAP, const char *name, Hash *clh,
+QoreApp::QoreApp(MAppProperties *pMAP, const char *name, QoreHash *clh,
 		 const char *svc, const char *net, const char *dmn, const char *sbj) : MApp(pMAP)
 {
    appProps = pMAP;
@@ -114,7 +114,7 @@ void QoreApp::deref(ExceptionSink *xsink)
       }
       catch (MException &te)
       {
-         //xsink->raiseException("TIBCO-EXCEPTION", "Exception caught in TibcoAdapter::destructor(): %s: %s",
+         //xsink->raiseException("TIBCO-EXCEPTION", "QoreException caught in TibcoAdapter::destructor(): %s: %s",
          //te.getType().c_str(), te.getDescription().c_str());
       }
    }
@@ -560,7 +560,7 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Qo
       traceout("QoreApp::instantiate_modeledclass()");
       return new MInstance(mcr, mcd->getFullName());
    }
-   Hash *h;
+   QoreHash *h;
    if (v->type == NT_HASH)
       h = v->val.hash;
 /*
@@ -636,7 +636,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
       traceout("QoreApp::instantiate_union()");
       return new MUnion(mcr, mud->getFullName());
    }
-   Hash *h;
+   QoreHash *h;
    if (v->type == NT_HASH)
       h = v->val.hash;
 /*
@@ -650,7 +650,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
                          mud->getFullName().c_str(), v->type->getName());
       return NULL;
    }
-   // ensure that Object does not have more than one key
+   // ensure that QoreObject does not have more than one key
    if (h->size() > 1)
    {
       xsink->raiseException("TIBCO-INVALID-MULTIPLE-KEYS-FOR-UNION",
@@ -965,7 +965,7 @@ class QoreNode *QoreApp::receive(const char *subj, unsigned long timeout, Except
       if (!myEventHandler->xsink.isEvent())
       {
 	 // build return value
-	 Hash *h = new Hash();
+	 QoreHash *h = new QoreHash();
 	 
 	 printd(5, "QoreApp::receive() msgNode=%08p\n", myEventHandler->msgNode);
 	 // assign "msg" member
@@ -1061,7 +1061,7 @@ QoreEventHandler::~QoreEventHandler()
 // Tibco.Operations related functionality
 
 //------------------------------------------------------------------------------
-void QoreApp::setRequestParameters(MOperationRequest& req, Hash* params, ExceptionSink* xsink)
+void QoreApp::setRequestParameters(MOperationRequest& req, QoreHash* params, ExceptionSink* xsink)
 {
    const MOperationDescription *mod = req.getOperationDescription();
 
@@ -1138,7 +1138,7 @@ struct OperationsListener : public MOperationReplyListener
 } // anonymous namespace
 
 //------------------------------------------------------------------------------
-QoreNode* QoreApp::operationsCallWithSyncResult(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
+QoreNode* QoreApp::operationsCallWithSyncResult(const char *class_name, const char *method_name, QoreHash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
 {
   try {
     MOperationRequest req(this, class_name, method_name, client_name);
@@ -1162,7 +1162,7 @@ QoreNode* QoreApp::operationsCallWithSyncResult(const char *class_name, const ch
 }
 
 //------------------------------------------------------------------------------
-void QoreApp::operationsOneWayCall(const char *class_name, const char *method_name, Hash* parameters, const char *client_name, ExceptionSink* xsink)
+void QoreApp::operationsOneWayCall(const char *class_name, const char *method_name, QoreHash* parameters, const char *client_name, ExceptionSink* xsink)
 {
   try {
     MOperationRequest req(this, class_name, method_name, client_name);
@@ -1266,7 +1266,7 @@ static void remove_pending_calls(MApp* app)
 }
 
 //------------------------------------------------------------------------------
-void QoreApp::operationsAsyncCall(const char *class_name, const char *method_name, Hash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
+void QoreApp::operationsAsyncCall(const char *class_name, const char *method_name, QoreHash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
 {
   try {
     std::auto_ptr<MOperationRequest> req(new MOperationRequest(this, class_name, method_name, client_name));

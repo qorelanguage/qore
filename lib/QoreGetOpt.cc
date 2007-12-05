@@ -102,7 +102,7 @@ int QoreGetOpt::add(const char *name, char short_opt, char *long_opt, class Qore
    return 0;
 }
 
-static void inline addError(class Hash *h, QoreString *err)
+static void inline addError(class QoreHash *h, QoreString *err)
 {
    //printd(5, "addError() adding: %s\n", err->getBuffer());
    class QoreNode **v = h->getKeyValuePtr("_ERRORS_");
@@ -146,7 +146,7 @@ class QoreNode *QoreGetOpt::parseDate(const char *val)
    return new QoreNode(new DateTime(val));
 }
 
-void QoreGetOpt::doOption(class QoreGetOptNode *n, class Hash *h, const char *val)
+void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char *val)
 {
    // get current value
    class QoreNode **cv = h->getKeyValuePtr(n->name);
@@ -226,7 +226,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class Hash *h, const char *va
    (*cv) = v;
 }
 
-char *QoreGetOpt::getNextArgument(class QoreList *l, class Hash *h, int &i, const char *lopt, char sopt)
+char *QoreGetOpt::getNextArgument(class QoreList *l, class QoreHash *h, int &i, const char *lopt, char sopt)
 {
    if (i < (l->size() - 1))
    {
@@ -244,7 +244,7 @@ char *QoreGetOpt::getNextArgument(class QoreList *l, class Hash *h, int &i, cons
    return NULL;
 }
 
-void QoreGetOpt::processLongArg(const char *arg, class QoreList *l, class Hash *h, int &i, bool modify)
+void QoreGetOpt::processLongArg(const char *arg, class QoreList *l, class QoreHash *h, int &i, bool modify)
 {
    const char *opt;
    char *val;
@@ -290,7 +290,7 @@ void QoreGetOpt::processLongArg(const char *arg, class QoreList *l, class Hash *
       l->pop_entry(--i, NULL);
 }
 
-int QoreGetOpt::processShortArg(const char *arg, class QoreList *l, class Hash *h, int &i, int &j, bool modify)
+int QoreGetOpt::processShortArg(const char *arg, class QoreList *l, class QoreHash *h, int &i, int &j, bool modify)
 {
    char opt = (arg + j)[0];
    // find option
@@ -329,9 +329,9 @@ int QoreGetOpt::processShortArg(const char *arg, class QoreList *l, class Hash *
    return !j;
 }
 
-class Hash *QoreGetOpt::parse(class QoreList *l, bool modify, class ExceptionSink *xsink)
+class QoreHash *QoreGetOpt::parse(class QoreList *l, bool modify, class ExceptionSink *xsink)
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    for (int i = 0; i < l->size(); i++)
    {
       //printf("QoreGetOpt::parse() %d/%d\n", i, l->size());

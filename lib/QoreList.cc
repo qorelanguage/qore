@@ -1,5 +1,5 @@
 /*
-  List.cc
+  QoreList.cc
 
   Qore Programming Language
 

@@ -1,7 +1,7 @@
 /*
  QoreProgram.h
  
- Program Object Definition
+ Program QoreObject Definition
  
  Qore Programming Language
  

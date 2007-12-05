@@ -28,13 +28,13 @@ int CID_QCLOSEEVENT;
 class QoreClass *QC_QCloseEvent = 0;
 
 //QCloseEvent ()
-static void QCLOSEEVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QCLOSEEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QCLOSEEVENT, new QoreQCloseEvent());
    return;
 }
 
-static void QCLOSEEVENT_copy(class Object *self, class Object *old, class QoreQCloseEvent *qce, ExceptionSink *xsink)
+static void QCLOSEEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQCloseEvent *qce, ExceptionSink *xsink)
 {
    xsink->raiseException("QCLOSEEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }

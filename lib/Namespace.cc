@@ -448,7 +448,7 @@ void Namespace::addInitialNamespace(class Namespace *ns)
    nsl->add(ns);
 }
 
-int parseInitConstantHash(class Hash *h, int level)
+int parseInitConstantHash(class QoreHash *h, int level)
 {
    // cannot use an iterator here because we change the hash
    QoreList *keys = h->getKeys();
@@ -1356,27 +1356,27 @@ class QoreNode *Namespace::parseMatchScopedConstantValue(class NamedScope *nscop
    return ns->getConstantValue(nscope->getIdentifier());
 }
 
-class Hash *Namespace::getConstantInfo() const
+class QoreHash *Namespace::getConstantInfo() const
 {
    return constant->getInfo();
 }
 
-class Hash *Namespace::getClassInfo() const
+class QoreHash *Namespace::getClassInfo() const
 {
    return classList->getInfo();
 }
 
 // returns a hash of namespace information
-class Hash *Namespace::getInfo() const
+class QoreHash *Namespace::getInfo() const
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
 
    h->setKeyValue("constants", new QoreNode(getConstantInfo()), NULL);
    h->setKeyValue("classes", new QoreNode(getClassInfo()), NULL);
 
    if (nsl->head)
    {
-      class Hash *nsh = new Hash();
+      class QoreHash *nsh = new QoreHash();
       
       class Namespace *w = nsl->head;
       while (w)

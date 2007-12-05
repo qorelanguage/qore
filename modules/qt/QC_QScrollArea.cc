@@ -28,7 +28,7 @@ int CID_QSCROLLAREA;
 class QoreClass *QC_QScrollArea = 0;
 
 //QScrollArea ( QWidget * parent = 0 )
-static void QSCROLLAREA_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSCROLLAREA_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -42,19 +42,19 @@ static void QSCROLLAREA_constructor(Object *self, QoreNode *params, ExceptionSin
    return;
 }
 
-static void QSCROLLAREA_copy(class Object *self, class Object *old, class QoreQScrollArea *qsa, ExceptionSink *xsink)
+static void QSCROLLAREA_copy(class QoreObject *self, class QoreObject *old, class QoreQScrollArea *qsa, ExceptionSink *xsink)
 {
    xsink->raiseException("QSCROLLAREA-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //Qt::Alignment alignment () const
-static QoreNode *QSCROLLAREA_alignment(Object *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSCROLLAREA_alignment(QoreObject *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qsa->qobj->alignment());
 }
 
 //void ensureVisible ( int x, int y, int xmargin = 50, int ymargin = 50 )
-static QoreNode *QSCROLLAREA_ensureVisible(Object *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSCROLLAREA_ensureVisible(QoreObject *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -69,7 +69,7 @@ static QoreNode *QSCROLLAREA_ensureVisible(Object *self, QoreQScrollArea *qsa, Q
 }
 
 //void ensureWidgetVisible ( QWidget * childWidget, int xmargin = 50, int ymargin = 50 )
-static QoreNode *QSCROLLAREA_ensureWidgetVisible(Object *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSCROLLAREA_ensureWidgetVisible(QoreObject *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *childWidget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -88,7 +88,7 @@ static QoreNode *QSCROLLAREA_ensureWidgetVisible(Object *self, QoreQScrollArea *
 }
 
 //void setAlignment ( Qt::Alignment )
-static QoreNode *QSCROLLAREA_setAlignment(Object *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSCROLLAREA_setAlignment(QoreObject *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
@@ -97,7 +97,7 @@ static QoreNode *QSCROLLAREA_setAlignment(Object *self, QoreQScrollArea *qsa, Qo
 }
 
 //void setWidget ( QWidget * widget )
-static QoreNode *QSCROLLAREA_setWidget(Object *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSCROLLAREA_setWidget(QoreObject *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -113,7 +113,7 @@ static QoreNode *QSCROLLAREA_setWidget(Object *self, QoreQScrollArea *qsa, QoreN
 }
 
 //void setWidgetResizable ( bool resizable )
-static QoreNode *QSCROLLAREA_setWidgetResizable(Object *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSCROLLAREA_setWidgetResizable(QoreObject *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool resizable = p ? p->getAsBool() : false;
@@ -122,33 +122,33 @@ static QoreNode *QSCROLLAREA_setWidgetResizable(Object *self, QoreQScrollArea *q
 }
 
 //QWidget * takeWidget ()
-static QoreNode *QSCROLLAREA_takeWidget(Object *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSCROLLAREA_takeWidget(QoreObject *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = qsa->qobj->takeWidget();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
 }
 
 //QWidget * widget () const
-static QoreNode *QSCROLLAREA_widget(Object *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSCROLLAREA_widget(QoreObject *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = qsa->qobj->widget();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
 }
 
 //bool widgetResizable () const
-static QoreNode *QSCROLLAREA_widgetResizable(Object *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSCROLLAREA_widgetResizable(QoreObject *self, QoreQScrollArea *qsa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qsa->qobj->widgetResizable());
 }

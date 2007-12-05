@@ -43,7 +43,7 @@ class myQHeaderView : public QHeaderView, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQHeaderView(Object *obj, Qt::Orientation orientation, QWidget* parent = 0) : QHeaderView(orientation, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQHeaderView(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : QHeaderView(orientation, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -54,7 +54,7 @@ class QoreQHeaderView : public QoreAbstractQHeaderView
    public:
       QPointer<myQHeaderView> qobj;
 
-      DLLLOCAL QoreQHeaderView(Object *obj, Qt::Orientation orientation, QWidget* parent = 0) : qobj(new myQHeaderView(obj, orientation, parent))
+      DLLLOCAL QoreQHeaderView(QoreObject *obj, Qt::Orientation orientation, QWidget* parent = 0) : qobj(new myQHeaderView(obj, orientation, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -95,10 +95,10 @@ class QoreQHeaderView : public QoreAbstractQHeaderView
 class QoreQtQHeaderView : public QoreAbstractQHeaderView
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QHeaderView> qobj;
 
-      DLLLOCAL QoreQtQHeaderView(Object *obj, QHeaderView *hv) : qore_obj(obj), qobj(hv)
+      DLLLOCAL QoreQtQHeaderView(QoreObject *obj, QHeaderView *hv) : qore_obj(obj), qobj(hv)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

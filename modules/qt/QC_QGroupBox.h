@@ -41,11 +41,11 @@ class myQGroupBox : public QGroupBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQGroupBox(Object *obj, QWidget* parent = 0) : QGroupBox(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQGroupBox(QoreObject *obj, QWidget* parent = 0) : QGroupBox(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQGroupBox(Object *obj, const QString& title, QWidget* parent = 0) : QGroupBox(title, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQGroupBox(QoreObject *obj, const QString& title, QWidget* parent = 0) : QGroupBox(title, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -56,10 +56,10 @@ class QoreQGroupBox : public QoreAbstractQGroupBox
    public:
       QPointer<myQGroupBox> qobj;
 
-      DLLLOCAL QoreQGroupBox(Object *obj, QWidget* parent = 0) : qobj(new myQGroupBox(obj, parent))
+      DLLLOCAL QoreQGroupBox(QoreObject *obj, QWidget* parent = 0) : qobj(new myQGroupBox(obj, parent))
       {
       }
-      DLLLOCAL QoreQGroupBox(Object *obj, const QString& title, QWidget* parent = 0) : qobj(new myQGroupBox(obj, title, parent))
+      DLLLOCAL QoreQGroupBox(QoreObject *obj, const QString& title, QWidget* parent = 0) : qobj(new myQGroupBox(obj, title, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

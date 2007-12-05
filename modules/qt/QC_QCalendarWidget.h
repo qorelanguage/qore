@@ -41,7 +41,7 @@ class myQCalendarWidget : public QCalendarWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-   DLLLOCAL myQCalendarWidget(Object *obj, QWidget* parent = 0) : QCalendarWidget(parent), QoreQWidgetExtension(obj->getClass())
+   DLLLOCAL myQCalendarWidget(QoreObject *obj, QWidget* parent = 0) : QCalendarWidget(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQCalendarWidget : public QoreAbstractQWidget
    public:
       QPointer<myQCalendarWidget> qobj;
 
-      DLLLOCAL QoreQCalendarWidget(Object *obj, QWidget* parent = 0) : qobj(new myQCalendarWidget(obj, parent))
+      DLLLOCAL QoreQCalendarWidget(QoreObject *obj, QWidget* parent = 0) : qobj(new myQCalendarWidget(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

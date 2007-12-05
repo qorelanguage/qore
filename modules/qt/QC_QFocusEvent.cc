@@ -28,7 +28,7 @@ int CID_QFOCUSEVENT;
 class QoreClass *QC_QFocusEvent = 0;
 
 //QFocusEvent ( Type type, Qt::FocusReason reason = Qt::OtherFocusReason )
-static void QFOCUSEVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QFOCUSEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QFocusEvent::Type type = (QFocusEvent::Type)(p ? p->getAsInt() : 0);
@@ -38,25 +38,25 @@ static void QFOCUSEVENT_constructor(Object *self, QoreNode *params, ExceptionSin
    return;
 }
 
-static void QFOCUSEVENT_copy(class Object *self, class Object *old, class QoreQFocusEvent *qfe, ExceptionSink *xsink)
+static void QFOCUSEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQFocusEvent *qfe, ExceptionSink *xsink)
 {
    xsink->raiseException("QFOCUSEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //bool gotFocus () const
-static QoreNode *QFOCUSEVENT_gotFocus(Object *self, QoreQFocusEvent *qfe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFOCUSEVENT_gotFocus(QoreObject *self, QoreQFocusEvent *qfe, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfe->gotFocus());
 }
 
 //bool lostFocus () const
-static QoreNode *QFOCUSEVENT_lostFocus(Object *self, QoreQFocusEvent *qfe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFOCUSEVENT_lostFocus(QoreObject *self, QoreQFocusEvent *qfe, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfe->lostFocus());
 }
 
 //Qt::FocusReason reason () const
-static QoreNode *QFOCUSEVENT_reason(Object *self, QoreQFocusEvent *qfe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFOCUSEVENT_reason(QoreObject *self, QoreQFocusEvent *qfe, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfe->reason());
 }

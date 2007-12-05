@@ -28,7 +28,7 @@
 int CID_QOBJECT;
 QoreClass *QC_QObject = 0;
 
-static void QOBJECT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QOBJECT_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQObject *qo;
    int np = num_params(params);
@@ -51,13 +51,13 @@ static void QOBJECT_constructor(class Object *self, class QoreNode *params, Exce
    self->setPrivate(CID_QOBJECT, qo);
 }
 
-static void QOBJECT_copy(class Object *self, class Object *old, class QoreQObject *qo, ExceptionSink *xsink)
+static void QOBJECT_copy(class QoreObject *self, class QoreObject *old, class QoreQObject *qo, ExceptionSink *xsink)
 {
    xsink->raiseException("QOBJECT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //bool blockSignals ( bool block )
-static QoreNode *QOBJECT_blockSignals(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_blockSignals(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool block = p ? p->getAsBool() : 0;
@@ -65,13 +65,13 @@ static QoreNode *QOBJECT_blockSignals(Object *self, QoreAbstractQObject *qo, Qor
 }
 
 //const QObjectQoreList & children () const
-//static QoreNode *QOBJECT_children(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QOBJECT_children(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qo->getQObject()->children());
 //}
 
 //bool connect ( const QObject * sender, const char * signal, const char * method, Qt::ConnectionType type = Qt::AutoCompatConnection ) const
-static QoreNode *QOBJECT_connect(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_connect(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -105,7 +105,7 @@ static QoreNode *QOBJECT_connect(Object *self, QoreAbstractQObject *qo, QoreNode
 
 //bool disconnect ( const char * signal = 0, const QObject * receiver = 0, const char * method = 0 )
 //bool disconnect ( const QObject * receiver, const char * method = 0 )
-static QoreNode *QOBJECT_disconnect(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_disconnect(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    int offset = 0;
 
@@ -142,27 +142,27 @@ static QoreNode *QOBJECT_disconnect(Object *self, QoreAbstractQObject *qo, QoreN
 }
 
 //void dumpObjectInfo ()
-static QoreNode *QOBJECT_dumpObjectInfo(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_dumpObjectInfo(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    qo->getQObject()->dumpObjectInfo();
    return 0;
 }
 
 //void dumpObjectTree ()
-static QoreNode *QOBJECT_dumpObjectTree(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_dumpObjectTree(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    qo->getQObject()->dumpObjectTree();
    return 0;
 }
 
 //QList<QByteArray> dynamicPropertyNames () const
-//static QoreNode *QOBJECT_dynamicPropertyNames(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QOBJECT_dynamicPropertyNames(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qo->getQObject()->dynamicPropertyNames());
 //}
 
 //virtual bool event ( QEvent * e )
-//static QoreNode *QOBJECT_event(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QOBJECT_event(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QEvent* e = p;
@@ -170,7 +170,7 @@ static QoreNode *QOBJECT_dumpObjectTree(Object *self, QoreAbstractQObject *qo, Q
 //}
 
 //virtual bool eventFilter ( QObject * watched, QEvent * event )
-//static QoreNode *QOBJECT_eventFilter(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QOBJECT_eventFilter(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QoreAbstractQObject *watched = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -187,7 +187,7 @@ static QoreNode *QOBJECT_dumpObjectTree(Object *self, QoreAbstractQObject *qo, Q
 //}
 
 //T findChild ( const QString & name = QString() ) const
-//static QoreNode *QOBJECT_findChild(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QOBJECT_findChild(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   if (!p || p->type != NT_STRING) {
@@ -199,7 +199,7 @@ static QoreNode *QOBJECT_dumpObjectTree(Object *self, QoreAbstractQObject *qo, Q
 //}
 
 //QList<T> findChildren ( const QString & name = QString() ) const
-//static QoreNode *QOBJECT_findChildren(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QOBJECT_findChildren(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   if (!p || p->type != NT_STRING) {
@@ -210,7 +210,7 @@ static QoreNode *QOBJECT_dumpObjectTree(Object *self, QoreAbstractQObject *qo, Q
 //   ??? return new QoreNode((int64)qo->getQObject()->findChildren(name));
 //}
 //QList<T> findChildren ( const QRegExp & regExp ) const
-//static QoreNode *QOBJECT_findChildren(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QOBJECT_findChildren(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QRegExp& regExp = p;
@@ -218,7 +218,7 @@ static QoreNode *QOBJECT_dumpObjectTree(Object *self, QoreAbstractQObject *qo, Q
 //}
 
 //bool inherits ( const char * className ) const
-static QoreNode *QOBJECT_inherits(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_inherits(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -230,7 +230,7 @@ static QoreNode *QOBJECT_inherits(Object *self, QoreAbstractQObject *qo, QoreNod
 }
 
 //void installEventFilter ( QObject * filterObj )
-static QoreNode *QOBJECT_installEventFilter(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_installEventFilter(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQObject *filterObj = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -246,13 +246,13 @@ static QoreNode *QOBJECT_installEventFilter(Object *self, QoreAbstractQObject *q
 }
 
 //bool isWidgetType () const
-static QoreNode *QOBJECT_isWidgetType(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_isWidgetType(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qo->getQObject()->isWidgetType());
 }
 
 //void killTimer ( int id )
-static QoreNode *QOBJECT_killTimer(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_killTimer(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int id = p ? p->getAsInt() : 0;
@@ -261,16 +261,16 @@ static QoreNode *QOBJECT_killTimer(Object *self, QoreAbstractQObject *qo, QoreNo
 }
 
 //virtual const QMetaObject * metaObject () const
-static QoreNode *QOBJECT_metaObject(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_metaObject(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qmo = new Object(QC_QMetaObject, getProgram());
+   QoreObject *o_qmo = new QoreObject(QC_QMetaObject, getProgram());
    QoreQMetaObject *q_qmo = new QoreQMetaObject(const_cast<QMetaObject *>(qo->getQObject()->metaObject()));
    o_qmo->setPrivate(CID_QMETAOBJECT, q_qmo);
    return new QoreNode(o_qmo);
 }
 
 //void moveToThread ( QThread * targetThread )
-//static QoreNode *QOBJECT_moveToThread(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QOBJECT_moveToThread(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QThread* targetThread = p;
@@ -279,13 +279,13 @@ static QoreNode *QOBJECT_metaObject(Object *self, QoreAbstractQObject *qo, QoreN
 //}
 
 //QString objectName () const
-static QoreNode *QOBJECT_objectName(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_objectName(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qo->getQObject()->objectName().toUtf8().data(), QCS_UTF8));
 }
 
 //QObject * parent () const
-static QoreNode *QOBJECT_parent(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_parent(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QObject *parent = qo->getQObject()->parent();
 
@@ -293,7 +293,7 @@ static QoreNode *QOBJECT_parent(Object *self, QoreAbstractQObject *qo, QoreNode 
       return 0;
 
    QVariant qv_ptr = parent->property("qobject");
-   Object *obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    //printd(0, "sender=%08p class=%s\n", obj, obj->getClass()->getName());
    assert(obj);
    obj->ref();
@@ -301,7 +301,7 @@ static QoreNode *QOBJECT_parent(Object *self, QoreAbstractQObject *qo, QoreNode 
 }
 
 //QVariant property ( const char * name ) const
-static QoreNode *QOBJECT_property(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_property(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -313,7 +313,7 @@ static QoreNode *QOBJECT_property(Object *self, QoreAbstractQObject *qo, QoreNod
 }
 
 //void removeEventFilter ( QObject * obj )
-static QoreNode *QOBJECT_removeEventFilter(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_removeEventFilter(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQObject *obj = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -329,7 +329,7 @@ static QoreNode *QOBJECT_removeEventFilter(Object *self, QoreAbstractQObject *qo
 }
 
 //void setObjectName ( const QString & name )
-static QoreNode *QOBJECT_setObjectName(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_setObjectName(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString name;
@@ -340,7 +340,7 @@ static QoreNode *QOBJECT_setObjectName(Object *self, QoreAbstractQObject *qo, Qo
 }
 
 //void setParent ( QObject * parent )
-static QoreNode *QOBJECT_setParent(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_setParent(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -356,7 +356,7 @@ static QoreNode *QOBJECT_setParent(Object *self, QoreAbstractQObject *qo, QoreNo
 }
 
 //bool setProperty ( const char * name, const QVariant & value )
-static QoreNode *QOBJECT_setProperty(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_setProperty(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -373,13 +373,13 @@ static QoreNode *QOBJECT_setProperty(Object *self, QoreAbstractQObject *qo, Qore
 }
 
 //bool signalsBlocked () const
-static QoreNode *QOBJECT_signalsBlocked(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_signalsBlocked(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qo->getQObject()->signalsBlocked());
 }
 
 //int startTimer ( int interval )
-static QoreNode *QOBJECT_startTimer(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_startTimer(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int interval = p ? p->getAsInt() : 0;
@@ -387,13 +387,13 @@ static QoreNode *QOBJECT_startTimer(Object *self, QoreAbstractQObject *qo, QoreN
 }
 
 //QThread * thread () const
-//static QoreNode *QOBJECT_thread(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QOBJECT_thread(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return qo->getQObject()->thread();
 //}
 
 // custom methods
-static QoreNode *QOBJECT_createSignal(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_createSignal(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p) {
@@ -405,7 +405,7 @@ static QoreNode *QOBJECT_createSignal(Object *self, QoreAbstractQObject *qo, Qor
    return 0;
 }
 
-static QoreNode *QOBJECT_emit(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_emit(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p) {
@@ -417,14 +417,14 @@ static QoreNode *QOBJECT_emit(Object *self, QoreAbstractQObject *qo, QoreNode *p
    return 0;
 }
 
-static QoreNode *QOBJECT_sender(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_sender(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QObject *sender = qo->sender();
    if (!sender)
       return 0;
 
    QVariant qv_ptr = sender->property("qobject");
-   Object *obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    //printd(0, "sender=%08p class=%s\n", obj, obj->getClass()->getName());
    assert(obj);
    obj->ref();
@@ -432,7 +432,7 @@ static QoreNode *QOBJECT_sender(Object *self, QoreAbstractQObject *qo, QoreNode 
 }
 
 //virtual void childEvent ( QChildEvent * event )
-static QoreNode *QOBJECT_childEvent(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_childEvent(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQChildEvent *event = (p && p->type == NT_OBJECT) ? (QoreQChildEvent *)p->val.object->getReferencedPrivateData(CID_QCHILDEVENT, xsink) : 0;
@@ -447,7 +447,7 @@ static QoreNode *QOBJECT_childEvent(Object *self, QoreAbstractQObject *qo, QoreN
 }
 
 //virtual void timerEvent ( QTimerEvent * event )
-static QoreNode *QOBJECT_timerEvent(Object *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QOBJECT_timerEvent(QoreObject *self, QoreAbstractQObject *qo, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQTimerEvent *event = (p && p->type == NT_OBJECT) ? (QoreQTimerEvent *)p->val.object->getReferencedPrivateData(CID_QTIMEREVENT, xsink) : 0;

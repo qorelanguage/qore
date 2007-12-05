@@ -29,7 +29,7 @@
 int CID_TIBRVSENDER;
 
 // syntax: [desc, service, network, daemon] 
-void TIBRVSENDER_constructor(class Object *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVSENDER_constructor(class QoreObject *self, class QoreNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVSENDER_constructor");
 
@@ -57,12 +57,12 @@ void TIBRVSENDER_constructor(class Object *self, class QoreNode *params, class E
    traceout("TIBRVSENDER_constructor");
 }
 
-void TIBRVSENDER_copy(class Object *self, class Object *old, class QoreTibrvSender *trvs, ExceptionSink *xsink)
+void TIBRVSENDER_copy(class QoreObject *self, class QoreObject *old, class QoreTibrvSender *trvs, ExceptionSink *xsink)
 {
    xsink->raiseException("TIBRVSENDER-COPY-ERROR", "copying TibrvSender objects is curently not supported");
 }
 
-static QoreNode *TIBRVSENDER_sendSubject(class Object *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVSENDER_sendSubject(class QoreObject *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -77,7 +77,7 @@ static QoreNode *TIBRVSENDER_sendSubject(class Object *self, class QoreTibrvSend
       xsink->raiseException("TIBRVSENDER-SENDSUBJECT-ERROR", "missing data hash as second parameter to method");
       return NULL;
    }
-   class Hash *h = pt->val.hash;
+   class QoreHash *h = pt->val.hash;
    pt = test_param(params, NT_STRING, 2);
    const char *replySubject = pt ? pt->val.String->getBuffer() : NULL;
 
@@ -85,7 +85,7 @@ static QoreNode *TIBRVSENDER_sendSubject(class Object *self, class QoreTibrvSend
    return NULL;
 }
 
-static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class Object *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class QoreObject *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -100,7 +100,7 @@ static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class Object *self, class 
       xsink->raiseException("TIBRVSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing data hash as second parameter to method");
       return NULL;
    }
-   class Hash *h = pt->val.hash;
+   class QoreHash *h = pt->val.hash;
    int64 timeout = getMsMinusOneBigInt(get_param(params, 2));
 
    h = trvs->sendSubjectWithSyncReply(subject, h, timeout, xsink);
@@ -109,7 +109,7 @@ static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class Object *self, class 
    return NULL;
 }
 
-class QoreNode *TIBRVSENDER_setStringEncoding(class Object *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVSENDER_setStringEncoding(class QoreObject *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = test_param(params, NT_STRING, 0);
    if (!pt)
@@ -123,7 +123,7 @@ class QoreNode *TIBRVSENDER_setStringEncoding(class Object *self, class QoreTibr
    return NULL;
 }
 
-class QoreNode *TIBRVSENDER_getStringEncoding(class Object *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVSENDER_getStringEncoding(class QoreObject *self, class QoreTibrvSender *trvs, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(trvs->getStringEncoding()->getCode());
 }

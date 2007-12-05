@@ -42,7 +42,7 @@ class myQMotifStyle : public QMotifStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMotifStyle(Object *obj, bool useHighlightCols = false) : QMotifStyle(useHighlightCols), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQMotifStyle(QoreObject *obj, bool useHighlightCols = false) : QMotifStyle(useHighlightCols), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }
@@ -53,7 +53,7 @@ class QoreQMotifStyle : public QoreAbstractQMotifStyle
    public:
       QPointer<myQMotifStyle> qobj;
 
-      DLLLOCAL QoreQMotifStyle(Object *obj, bool useHighlightCols = false) : qobj(new myQMotifStyle(obj, useHighlightCols))
+      DLLLOCAL QoreQMotifStyle(QoreObject *obj, bool useHighlightCols = false) : qobj(new myQMotifStyle(obj, useHighlightCols))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -70,10 +70,10 @@ class QoreQMotifStyle : public QoreAbstractQMotifStyle
 class QoreQtQMotifStyle : public QoreAbstractQMotifStyle
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QMotifStyle> qobj;
 
-      DLLLOCAL QoreQtQMotifStyle(Object *obj, QMotifStyle *qms) : qore_obj(obj), qobj(qms)
+      DLLLOCAL QoreQtQMotifStyle(QoreObject *obj, QMotifStyle *qms) : qore_obj(obj), qobj(qms)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

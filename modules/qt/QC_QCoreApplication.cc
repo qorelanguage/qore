@@ -28,19 +28,19 @@ int CID_QCOREAPPLICATION;
 class QoreClass *QC_QCoreApplication = 0;
 
 //QCoreApplication ( int & argc, char ** argv )
-static void QCOREAPPLICATION_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QCOREAPPLICATION_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QCOREAPPLICATION, new QoreQCoreApplication(self));
 }
 
-static void QCOREAPPLICATION_copy(class Object *self, class Object *old, class QoreQCoreApplication *qca, ExceptionSink *xsink)
+static void QCOREAPPLICATION_copy(class QoreObject *self, class QoreObject *old, class QoreQCoreApplication *qca, ExceptionSink *xsink)
 {
    xsink->raiseException("QCOREAPPLICATION-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 /*
 //bool filterEvent ( void * message, long * result )
-static QoreNode *QCOREAPPLICATION_filterEvent(Object *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOREAPPLICATION_filterEvent(QoreObject *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? void* message = p;
@@ -51,7 +51,7 @@ static QoreNode *QCOREAPPLICATION_filterEvent(Object *self, QoreAbstractQCoreApp
 */
 
 //virtual bool notify ( QObject * receiver, QEvent * event )
-static QoreNode *QCOREAPPLICATION_notify(Object *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOREAPPLICATION_notify(QoreObject *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -73,7 +73,7 @@ static QoreNode *QCOREAPPLICATION_notify(Object *self, QoreAbstractQCoreApplicat
 }
 
 //EventFilter setEventFilter ( EventFilter filter )
-static QoreNode *QCOREAPPLICATION_setEventFilter(Object *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOREAPPLICATION_setEventFilter(QoreObject *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QCoreApplication::EventFilter filter = (QCoreApplication::EventFilter)(p ? p->getAsInt() : 0);
@@ -82,7 +82,7 @@ static QoreNode *QCOREAPPLICATION_setEventFilter(Object *self, QoreAbstractQCore
 
 /*
 //virtual bool winEventFilter ( MSG * msg, long * result )
-static QoreNode *QCOREAPPLICATION_winEventFilter(Object *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOREAPPLICATION_winEventFilter(QoreObject *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? MSG* msg = p;
@@ -205,11 +205,11 @@ static QoreNode *f_QCoreApplication_instance(QoreNode *params, ExceptionSink *xs
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (rv_obj)
       rv_obj->ref();
    else {
-      rv_obj = new Object(QC_QCoreApplication, getProgram());
+      rv_obj = new QoreObject(QC_QCoreApplication, getProgram());
       QoreQtQCoreApplication *t_qobj = new QoreQtQCoreApplication(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QCOREAPPLICATION, t_qobj);
    }

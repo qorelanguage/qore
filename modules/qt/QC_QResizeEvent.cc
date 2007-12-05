@@ -29,29 +29,29 @@ int CID_QRESIZEEVENT;
 
 class QoreClass *QC_QResizeEvent = 0;
 
-static void QRESIZEEVENT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QRESIZEEVENT_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    xsink->raiseException("QRESIZEEVENT-CONSTRUCTOR-ERROR", "QResizeEvent is an abstract base class");
 }
 
-static void QRESIZEEVENT_copy(class Object *self, class Object *old, class QoreQResizeEvent *qr, ExceptionSink *xsink)
+static void QRESIZEEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQResizeEvent *qr, ExceptionSink *xsink)
 {
    xsink->raiseException("QRESIZEEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //const QSize & oldSize () const
-static QoreNode *QRESIZEEVENT_oldSize(Object *self, QoreQResizeEvent *qre, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QRESIZEEVENT_oldSize(QoreObject *self, QoreQResizeEvent *qre, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qre->oldSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
 }
 
 //const QSize & size () const
-static QoreNode *QRESIZEEVENT_size(Object *self, QoreQResizeEvent *qre, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QRESIZEEVENT_size(QoreObject *self, QoreQResizeEvent *qre, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qre->size());
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);

@@ -30,7 +30,7 @@ int CID_QMOVEEVENT;
 
 class QoreClass *QC_QMoveEvent = 0;
 
-static void QMOVEEVENT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QMOVEEVENT_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -53,24 +53,24 @@ static void QMOVEEVENT_constructor(class Object *self, class QoreNode *params, E
    self->setPrivate(CID_QMOVEEVENT, qme);
 }
 
-static void QMOVEEVENT_copy(class Object *self, class Object *old, class QoreQMoveEvent *qr, ExceptionSink *xsink)
+static void QMOVEEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQMoveEvent *qr, ExceptionSink *xsink)
 {
    xsink->raiseException("QMOVEEVENT-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //const QPoint & oldPos () const
-static QoreNode *QMOVEEVENT_oldPos(Object *self, QoreQMoveEvent *qme, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOVEEVENT_oldPos(QoreObject *self, QoreQMoveEvent *qme, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qme->oldPos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
    return new QoreNode(o_qp);
 }
 
 //const QPoint & pos () const
-static QoreNode *QMOVEEVENT_pos(Object *self, QoreQMoveEvent *qme, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOVEEVENT_pos(QoreObject *self, QoreQMoveEvent *qme, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qp = new Object(QC_QPoint, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qme->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
    return new QoreNode(o_qp);

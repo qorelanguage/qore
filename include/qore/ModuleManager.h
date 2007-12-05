@@ -64,7 +64,7 @@ class ModuleInfo {
       DLLLOCAL int getAPIMinor() const;
       DLLLOCAL void ns_init(class Namespace *rns, class Namespace *qns) const;
       DLLLOCAL bool isBuiltin() const;
-      DLLLOCAL class Hash *getHash() const;
+      DLLLOCAL class QoreHash *getHash() const;
 };
 
 typedef std::map<const char *, ModuleInfo *, class ltstr> module_map_t;

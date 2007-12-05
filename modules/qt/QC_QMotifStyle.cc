@@ -28,7 +28,7 @@ int CID_QMOTIFSTYLE;
 class QoreClass *QC_QMotifStyle = 0;
 
 //QMotifStyle ( bool useHighlightCols = false )
-static void QMOTIFSTYLE_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QMOTIFSTYLE_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool useHighlightCols = p ? p->getAsBool() : false;
@@ -36,13 +36,13 @@ static void QMOTIFSTYLE_constructor(Object *self, QoreNode *params, ExceptionSin
    return;
 }
 
-static void QMOTIFSTYLE_copy(class Object *self, class Object *old, class QoreQMotifStyle *qms, ExceptionSink *xsink)
+static void QMOTIFSTYLE_copy(class QoreObject *self, class QoreObject *old, class QoreQMotifStyle *qms, ExceptionSink *xsink)
 {
    xsink->raiseException("QMOTIFSTYLE-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //void setUseHighlightColors ( bool arg )
-static QoreNode *QMOTIFSTYLE_setUseHighlightColors(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_setUseHighlightColors(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool arg = p ? p->getAsBool() : false;
@@ -51,13 +51,13 @@ static QoreNode *QMOTIFSTYLE_setUseHighlightColors(Object *self, QoreAbstractQMo
 }
 
 //bool useHighlightColors () const
-static QoreNode *QMOTIFSTYLE_useHighlightColors(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_useHighlightColors(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qms->getQMotifStyle()->useHighlightColors());
 }
 
 //virtual void drawComplexControl ( ComplexControl control, const QStyleOptionComplex * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
-static QoreNode *QMOTIFSTYLE_drawComplexControl(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_drawComplexControl(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMotifStyle::ComplexControl control = (QMotifStyle::ComplexControl)(p ? p->getAsInt() : 0);
@@ -87,7 +87,7 @@ static QoreNode *QMOTIFSTYLE_drawComplexControl(Object *self, QoreAbstractQMotif
 }
 
 //virtual void drawControl ( ControlElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
-static QoreNode *QMOTIFSTYLE_drawControl(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_drawControl(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMotifStyle::ControlElement element = (QMotifStyle::ControlElement)(p ? p->getAsInt() : 0);
@@ -117,7 +117,7 @@ static QoreNode *QMOTIFSTYLE_drawControl(Object *self, QoreAbstractQMotifStyle *
 }
 
 //virtual void drawPrimitive ( PrimitiveElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
-static QoreNode *QMOTIFSTYLE_drawPrimitive(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_drawPrimitive(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMotifStyle::PrimitiveElement element = (QMotifStyle::PrimitiveElement)(p ? p->getAsInt() : 0);
@@ -147,7 +147,7 @@ static QoreNode *QMOTIFSTYLE_drawPrimitive(Object *self, QoreAbstractQMotifStyle
 }
 
 //virtual QPixmap generatedIconPixmap ( QIcon::Mode iconMode, const QPixmap & pixmap, const QStyleOption * option ) const = 0
-static QoreNode *QMOTIFSTYLE_generatedIconPixmap(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_generatedIconPixmap(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QIcon::Mode iconMode = (QIcon::Mode)(p ? p->getAsInt() : 0);
@@ -167,14 +167,14 @@ static QoreNode *QMOTIFSTYLE_generatedIconPixmap(Object *self, QoreAbstractQMoti
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
-   Object *o_qp = new Object(QC_QPixmap, getProgram());
+   QoreObject *o_qp = new QoreObject(QC_QPixmap, getProgram());
    QoreQPixmap *q_qp = new QoreQPixmap(qms->generatedIconPixmap(iconMode, *(static_cast<QPixmap *>(pixmap)), static_cast<QStyleOption *>(option)));
    o_qp->setPrivate(CID_QPIXMAP, q_qp);
    return new QoreNode(o_qp);
 }
 
 //virtual SubControl hitTestComplexControl ( ComplexControl control, const QStyleOptionComplex * option, const QPoint & position, const QWidget * widget = 0 ) const = 0
-static QoreNode *QMOTIFSTYLE_hitTestComplexControl(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_hitTestComplexControl(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMotifStyle::ComplexControl control = (QMotifStyle::ComplexControl)(p ? p->getAsInt() : 0);
@@ -203,7 +203,7 @@ static QoreNode *QMOTIFSTYLE_hitTestComplexControl(Object *self, QoreAbstractQMo
 }
 
 //virtual int pixelMetric ( PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) const = 0
-static QoreNode *QMOTIFSTYLE_pixelMetric(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_pixelMetric(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMotifStyle::PixelMetric metric = (QMotifStyle::PixelMetric)(p ? p->getAsInt() : 0);
@@ -221,7 +221,7 @@ static QoreNode *QMOTIFSTYLE_pixelMetric(Object *self, QoreAbstractQMotifStyle *
 }
 
 //virtual QSize sizeFromContents ( ContentsType type, const QStyleOption * option, const QSize & contentsSize, const QWidget * widget = 0 ) const = 0
-static QoreNode *QMOTIFSTYLE_sizeFromContents(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_sizeFromContents(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMotifStyle::ContentsType type = (QMotifStyle::ContentsType)(p ? p->getAsInt() : 0);
@@ -246,14 +246,14 @@ static QoreNode *QMOTIFSTYLE_sizeFromContents(Object *self, QoreAbstractQMotifSt
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qms->sizeFromContents(type, static_cast<QStyleOption *>(option), *(static_cast<QSize *>(contentsSize)), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
 }
 
 //virtual int styleHint ( StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0, QStyleHintReturn * returnData = 0 ) const = 0
-static QoreNode *QMOTIFSTYLE_styleHint(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_styleHint(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMotifStyle::StyleHint hint = (QMotifStyle::StyleHint)(p ? p->getAsInt() : 0);
@@ -271,7 +271,7 @@ static QoreNode *QMOTIFSTYLE_styleHint(Object *self, QoreAbstractQMotifStyle *qm
 }
 
 //virtual QRect subControlRect ( ComplexControl control, const QStyleOptionComplex * option, SubControl subControl, const QWidget * widget = 0 ) const = 0
-static QoreNode *QMOTIFSTYLE_subControlRect(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_subControlRect(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMotifStyle::ComplexControl control = (QMotifStyle::ComplexControl)(p ? p->getAsInt() : 0);
@@ -290,14 +290,14 @@ static QoreNode *QMOTIFSTYLE_subControlRect(Object *self, QoreAbstractQMotifStyl
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   Object *o_qr = new Object(QC_QRect, getProgram());
+   QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qms->subControlRect(control, static_cast<QStyleOptionComplex *>(option), subControl, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
 
 //virtual QRect subElementRect ( SubElement element, const QStyleOption * option, const QWidget * widget = 0 ) const = 0
-static QoreNode *QMOTIFSTYLE_subElementRect(Object *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOTIFSTYLE_subElementRect(QoreObject *self, QoreAbstractQMotifStyle *qms, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMotifStyle::SubElement element = (QMotifStyle::SubElement)(p ? p->getAsInt() : 0);
@@ -314,7 +314,7 @@ static QoreNode *QMOTIFSTYLE_subElementRect(Object *self, QoreAbstractQMotifStyl
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   Object *o_qr = new Object(QC_QRect, getProgram());
+   QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qms->subElementRect(element, static_cast<QStyleOption *>(option), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);

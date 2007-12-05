@@ -26,7 +26,7 @@
 int CID_QCOLOR;
 QoreClass *QC_QColor = 0;
 
-static void QCOLOR_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QCOLOR_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -54,75 +54,75 @@ static void QCOLOR_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_QCOLOR, qc);
 }
 
-static void QCOLOR_copy(class Object *self, class Object *old, class QoreQColor *qf, ExceptionSink *xsink)
+static void QCOLOR_copy(class QoreObject *self, class QoreObject *old, class QoreQColor *qf, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QCOLOR, new QoreQColor(*qf));
    //xsink->raiseException("QCOLOR-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //int alpha () const
-static QoreNode *QCOLOR_alpha(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_alpha(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->alpha());
 }
 
 //qreal alphaF () const
-static QoreNode *QCOLOR_alphaF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_alphaF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->alphaF());
 }
 
 //int black () const
-static QoreNode *QCOLOR_black(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_black(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->black());
 }
 
 //qreal blackF () const
-static QoreNode *QCOLOR_blackF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_blackF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->blackF());
 }
 
 //int blue () const
-static QoreNode *QCOLOR_blue(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_blue(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->blue());
 }
 
 //qreal blueF () const
-static QoreNode *QCOLOR_blueF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_blueF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->blueF());
 }
 
 //QColor convertTo ( Spec colorSpec ) const
-static QoreNode *QCOLOR_convertTo(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_convertTo(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    
    QColor::Spec colorSpec = (QColor::Spec)(p ? p->getAsInt() : 0);
    QoreQColor *n_qc = new QoreQColor(qc->convertTo(colorSpec));
-   Object *nqc = new Object(self->getClass(CID_QCOLOR), getProgram());
+   QoreObject *nqc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    nqc->setPrivate(CID_QCOLOR, n_qc);
 
    return new QoreNode(nqc);
 }
 
 //int cyan () const
-static QoreNode *QCOLOR_cyan(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_cyan(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->cyan());
 }
 
 //qreal cyanF () const
-static QoreNode *QCOLOR_cyanF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_cyanF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->cyanF());
 }
 
 //QColor darker ( int factor = 200 ) const
-//static QoreNode *QCOLOR_darker(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_darker(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int factor = !is_nothing(p) ? p->getAsInt() : 200;
@@ -130,7 +130,7 @@ static QoreNode *QCOLOR_cyanF(Object *self, QoreQColor *qc, QoreNode *params, Ex
 //}
 
 //void getCmyk ( int * c, int * m, int * y, int * k, int * a = 0 )
-//static QoreNode *QCOLOR_getCmyk(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_getCmyk(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? int* c = p;
@@ -147,7 +147,7 @@ static QoreNode *QCOLOR_cyanF(Object *self, QoreQColor *qc, QoreNode *params, Ex
 //}
 
 //void getCmykF ( qreal * c, qreal * m, qreal * y, qreal * k, qreal * a = 0 )
-//static QoreNode *QCOLOR_getCmykF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_getCmykF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? qreal* c = p;
@@ -164,7 +164,7 @@ static QoreNode *QCOLOR_cyanF(Object *self, QoreQColor *qc, QoreNode *params, Ex
 //}
 
 //void getHsv ( int * h, int * s, int * v, int * a = 0 ) const
-//static QoreNode *QCOLOR_getHsv(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_getHsv(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? int* h = p;
@@ -179,7 +179,7 @@ static QoreNode *QCOLOR_cyanF(Object *self, QoreQColor *qc, QoreNode *params, Ex
 //}
 
 //void getHsvF ( qreal * h, qreal * s, qreal * v, qreal * a = 0 ) const
-//static QoreNode *QCOLOR_getHsvF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_getHsvF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? qreal* h = p;
@@ -194,7 +194,7 @@ static QoreNode *QCOLOR_cyanF(Object *self, QoreQColor *qc, QoreNode *params, Ex
 //}
 
 //void getRgb ( int * r, int * g, int * b, int * a = 0 ) const
-//static QoreNode *QCOLOR_getRgb(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_getRgb(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? int* r = p;
@@ -209,7 +209,7 @@ static QoreNode *QCOLOR_cyanF(Object *self, QoreQColor *qc, QoreNode *params, Ex
 //}
 
 //void getRgbF ( qreal * r, qreal * g, qreal * b, qreal * a = 0 ) const
-//static QoreNode *QCOLOR_getRgbF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_getRgbF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? qreal* r = p;
@@ -224,91 +224,91 @@ static QoreNode *QCOLOR_cyanF(Object *self, QoreQColor *qc, QoreNode *params, Ex
 //}
 
 //int green () const
-static QoreNode *QCOLOR_green(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_green(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->green());
 }
 
 //qreal greenF () const
-static QoreNode *QCOLOR_greenF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_greenF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->greenF());
 }
 
 //int hue () const
-static QoreNode *QCOLOR_hue(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_hue(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->hue());
 }
 
 //qreal hueF () const
-static QoreNode *QCOLOR_hueF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_hueF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->hueF());
 }
 
 //bool isValid () const
-static QoreNode *QCOLOR_isValid(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_isValid(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->isValid());
 }
 
 //int magenta () const
-static QoreNode *QCOLOR_magenta(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_magenta(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->magenta());
 }
 
 //qreal magentaF () const
-static QoreNode *QCOLOR_magentaF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_magentaF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->magentaF());
 }
 
 //QString name () const
-static QoreNode *QCOLOR_name(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_name(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qc->name().toUtf8().data(), QCS_UTF8));
 }
 
 //int red () const
-static QoreNode *QCOLOR_red(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_red(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->red());
 }
 
 //qreal redF () const
-static QoreNode *QCOLOR_redF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_redF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->redF());
 }
 
 //QRgb rgb () const
-static QoreNode *QCOLOR_rgb(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_rgb(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->rgb());
 }
 
 //QRgb rgba () const
-static QoreNode *QCOLOR_rgba(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_rgba(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->rgba());
 }
 
 //int saturation () const
-static QoreNode *QCOLOR_saturation(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_saturation(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->saturation());
 }
 
 //qreal saturationF () const
-static QoreNode *QCOLOR_saturationF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_saturationF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->saturationF());
 }
 
 //void setAlpha ( int alpha )
-static QoreNode *QCOLOR_setAlpha(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setAlpha(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int alpha = p ? p->getAsInt() : 0;
@@ -317,7 +317,7 @@ static QoreNode *QCOLOR_setAlpha(Object *self, QoreQColor *qc, QoreNode *params,
 }
 
 //void setAlphaF ( qreal alpha )
-static QoreNode *QCOLOR_setAlphaF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setAlphaF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float alpha = p ? p->getAsFloat() : 0;
@@ -326,7 +326,7 @@ static QoreNode *QCOLOR_setAlphaF(Object *self, QoreQColor *qc, QoreNode *params
 }
 
 //void setBlue ( int blue )
-static QoreNode *QCOLOR_setBlue(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setBlue(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int blue = p ? p->getAsInt() : 0;
@@ -335,7 +335,7 @@ static QoreNode *QCOLOR_setBlue(Object *self, QoreQColor *qc, QoreNode *params, 
 }
 
 //void setBlueF ( qreal blue )
-static QoreNode *QCOLOR_setBlueF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setBlueF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float blue = p ? p->getAsFloat() : 0;
@@ -344,7 +344,7 @@ static QoreNode *QCOLOR_setBlueF(Object *self, QoreQColor *qc, QoreNode *params,
 }
 
 //void setCmyk ( int c, int m, int y, int k, int a = 255 )
-static QoreNode *QCOLOR_setCmyk(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setCmyk(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int c = p ? p->getAsInt() : 0;
@@ -361,7 +361,7 @@ static QoreNode *QCOLOR_setCmyk(Object *self, QoreQColor *qc, QoreNode *params, 
 }
 
 //void setCmykF ( qreal c, qreal m, qreal y, qreal k, qreal a = 1.0 )
-static QoreNode *QCOLOR_setCmykF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setCmykF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float c = p ? p->getAsFloat() : 0;
@@ -378,7 +378,7 @@ static QoreNode *QCOLOR_setCmykF(Object *self, QoreQColor *qc, QoreNode *params,
 }
 
 //void setGreen ( int green )
-static QoreNode *QCOLOR_setGreen(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setGreen(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int green = p ? p->getAsInt() : 0;
@@ -387,7 +387,7 @@ static QoreNode *QCOLOR_setGreen(Object *self, QoreQColor *qc, QoreNode *params,
 }
 
 //void setGreenF ( qreal green )
-static QoreNode *QCOLOR_setGreenF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setGreenF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float green = p ? p->getAsFloat() : 0;
@@ -396,7 +396,7 @@ static QoreNode *QCOLOR_setGreenF(Object *self, QoreQColor *qc, QoreNode *params
 }
 
 //void setHsv ( int h, int s, int v, int a = 255 )
-static QoreNode *QCOLOR_setHsv(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setHsv(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int h = p ? p->getAsInt() : 0;
@@ -411,7 +411,7 @@ static QoreNode *QCOLOR_setHsv(Object *self, QoreQColor *qc, QoreNode *params, E
 }
 
 //void setHsvF ( qreal h, qreal s, qreal v, qreal a = 1.0 )
-static QoreNode *QCOLOR_setHsvF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setHsvF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float h = p ? p->getAsFloat() : 0;
@@ -426,7 +426,7 @@ static QoreNode *QCOLOR_setHsvF(Object *self, QoreQColor *qc, QoreNode *params, 
 }
 
 //void setNamedColor ( const QString & name )
-static QoreNode *QCOLOR_setNamedColor(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setNamedColor(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString name;
@@ -437,7 +437,7 @@ static QoreNode *QCOLOR_setNamedColor(Object *self, QoreQColor *qc, QoreNode *pa
 }
 
 //void setRed ( int red )
-static QoreNode *QCOLOR_setRed(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setRed(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int red = p ? p->getAsInt() : 0;
@@ -446,7 +446,7 @@ static QoreNode *QCOLOR_setRed(Object *self, QoreQColor *qc, QoreNode *params, E
 }
 
 //void setRedF ( qreal red )
-static QoreNode *QCOLOR_setRedF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setRedF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float red = p ? p->getAsFloat() : 0;
@@ -456,7 +456,7 @@ static QoreNode *QCOLOR_setRedF(Object *self, QoreQColor *qc, QoreNode *params, 
 
 //void setRgb ( int r, int g, int b, int a = 255 )
 //void setRgb ( QRgb rgb )
-static QoreNode *QCOLOR_setRgb(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setRgb(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int r = p ? p->getAsInt() : 0;
@@ -476,7 +476,7 @@ static QoreNode *QCOLOR_setRgb(Object *self, QoreQColor *qc, QoreNode *params, E
 }
 
 //void setRgbF ( qreal r, qreal g, qreal b, qreal a = 1.0 )
-static QoreNode *QCOLOR_setRgbF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setRgbF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float r = p ? p->getAsFloat() : 0;
@@ -491,7 +491,7 @@ static QoreNode *QCOLOR_setRgbF(Object *self, QoreQColor *qc, QoreNode *params, 
 }
 
 //void setRgba ( QRgb rgba )
-static QoreNode *QCOLOR_setRgba(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_setRgba(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int rgba = p ? p->getAsInt() : 0;
@@ -500,92 +500,92 @@ static QoreNode *QCOLOR_setRgba(Object *self, QoreQColor *qc, QoreNode *params, 
 }
 
 //Spec spec () const
-//static QoreNode *QCOLOR_spec(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_spec(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qc->spec());
 //}
 
 //QColor toCmyk () const
-//static QoreNode *QCOLOR_toCmyk(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_toCmyk(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qc->toCmyk());
 //}
 
 //QColor toHsv () const
-//static QoreNode *QCOLOR_toHsv(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_toHsv(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qc->toHsv());
 //}
 
 //QColor toRgb () const
-//static QoreNode *QCOLOR_toRgb(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOLOR_toRgb(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qc->toRgb());
 //}
 
 //int value () const
-static QoreNode *QCOLOR_value(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_value(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->value());
 }
 
 //qreal valueF () const
-static QoreNode *QCOLOR_valueF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_valueF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->valueF());
 }
 
 //int yellow () const
-static QoreNode *QCOLOR_yellow(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_yellow(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qc->yellow());
 }
 
 //qreal yellowF () const
-static QoreNode *QCOLOR_yellowF(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_yellowF(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->yellowF());
 }
 
 //QColor light (int f = 150) const
-static QoreNode *QCOLOR_light(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_light(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int f = !is_nothing(p) ? p->getAsInt() : 150;
-   Object *o_qc = new Object(self->getClass(CID_QCOLOR), getProgram());
+   QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->light(f));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
 }
 
 //QColor lighter (int f = 150) const
-static QoreNode *QCOLOR_lighter(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_lighter(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int f = !is_nothing(p) ? p->getAsInt() : 150;
-   Object *o_qc = new Object(self->getClass(CID_QCOLOR), getProgram());
+   QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->lighter(f));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
 }
 
 //QColor dark (int f = 200) const
-static QoreNode *QCOLOR_dark(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_dark(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int f = !is_nothing(p) ? p->getAsInt() : 200;
-   Object *o_qc = new Object(self->getClass(CID_QCOLOR), getProgram());
+   QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->dark(f));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
 }
 
 //QColor darker (int f = 200) const
-static QoreNode *QCOLOR_darker(Object *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOLOR_darker(QoreObject *self, QoreQColor *qc, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int f = !is_nothing(p) ? p->getAsInt() : 200;
-   Object *o_qc = new Object(self->getClass(CID_QCOLOR), getProgram());
+   QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->darker(f));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
@@ -696,7 +696,7 @@ static QoreNode *f_QColor_fromCmyk(QoreNode *params, ExceptionSink *xsink)
    int k = p ? p->getAsInt() : 0;
    p = get_param(params, 4);
    int a = !is_nothing(p) ? p->getAsInt() : 255;
-   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromCmyk(c, m, y, k, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
@@ -715,7 +715,7 @@ static QoreNode *f_QColor_fromCmykF(QoreNode *params, ExceptionSink *xsink)
    qreal k = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 4);
    qreal a = p ? p->getAsFloat() : 0.0;
-   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromCmykF(c, m, y, k, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
@@ -732,7 +732,7 @@ static QoreNode *f_QColor_fromHsv(QoreNode *params, ExceptionSink *xsink)
    int v = p ? p->getAsInt() : 0;
    p = get_param(params, 3);
    int a = !is_nothing(p) ? p->getAsInt() : 255;
-   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromHsv(h, s, v, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
@@ -749,7 +749,7 @@ static QoreNode *f_QColor_fromHsvF(QoreNode *params, ExceptionSink *xsink)
    qreal v = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 3);
    qreal a = p ? p->getAsFloat() : 0.0;
-   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromHsvF(h, s, v, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
@@ -767,7 +767,7 @@ static QoreNode *f_QColor_fromRgb(QoreNode *params, ExceptionSink *xsink)
    int b = p ? p->getAsInt() : 0;
    p = get_param(params, 3);
    int a = !is_nothing(p) ? p->getAsInt() : 255;
-   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromRgb(r, g, b, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
@@ -784,7 +784,7 @@ static QoreNode *f_QColor_fromRgbF(QoreNode *params, ExceptionSink *xsink)
    qreal b = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 3);
    qreal a = p ? p->getAsFloat() : 0.0;
-   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromRgbF(r, g, b, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);
@@ -795,7 +795,7 @@ static QoreNode *f_QColor_fromRgba(QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int64 rgba = p ? p->getAsBigInt() : 0;
-   Object *o_qc = new Object(QC_QColor, getProgram());
+   QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromRgba(rgba));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
    return new QoreNode(o_qc);

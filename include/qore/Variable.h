@@ -50,7 +50,7 @@ class LVar {
    private:
       class QoreNode *value;
       class QoreNode *vexp;  // partially evaluated lvalue expression for references
-      class Object *obj;     // for references to object members
+      class QoreObject *obj;     // for references to object members
 
       DLLLOCAL class QoreNode *evalReference(class ExceptionSink *xsink);
       
@@ -60,10 +60,10 @@ class LVar {
 
       /*
       DLLLOCAL LVar(lvh_t nid, class QoreNode *nvalue);
-      DLLLOCAL LVar(lvh_t nid, class QoreNode *ve, class Object *o);
+      DLLLOCAL LVar(lvh_t nid, class QoreNode *ve, class QoreObject *o);
        */
       DLLLOCAL void set(lvh_t nid, class QoreNode *nvalue);
-      DLLLOCAL void set(lvh_t nid, class QoreNode *ve, class Object *o);
+      DLLLOCAL void set(lvh_t nid, class QoreNode *ve, class QoreObject *o);
       
       DLLLOCAL class QoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
@@ -142,11 +142,11 @@ DLLLOCAL class QoreNode *getExistingVarValue(class QoreNode *n, class ExceptionS
 DLLLOCAL void delete_var_node(class QoreNode *node, class ExceptionSink *xsink);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL class LVar *instantiateLVar(lvh_t id, class QoreNode *value);
-DLLLOCAL class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class Object *o);
+DLLLOCAL class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class QoreObject *o);
 DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
 DLLLOCAL class LVar *find_lvar(lvh_t id);
 
-DLLLOCAL extern class Hash *ENV;
+DLLLOCAL extern class QoreHash *ENV;
 
 DLLEXPORT class QoreNode **get_var_value_ptr(class QoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
 

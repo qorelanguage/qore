@@ -39,7 +39,7 @@ class myQActionGroup : public QActionGroup, public QoreQObjectExtension
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
-      DLLLOCAL myQActionGroup(Object *obj, QObject *parent) : QActionGroup(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQActionGroup(QoreObject *obj, QObject *parent) : QActionGroup(parent), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
@@ -50,7 +50,7 @@ class QoreQActionGroup : public QoreAbstractQObject
    public:
       myQActionGroup *qobj;
 
-      DLLLOCAL QoreQActionGroup(Object *obj, QObject *parent) : qobj(new myQActionGroup(obj, parent))
+      DLLLOCAL QoreQActionGroup(QoreObject *obj, QObject *parent) : qobj(new myQActionGroup(obj, parent))
       {
       }
 

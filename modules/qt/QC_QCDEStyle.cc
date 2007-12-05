@@ -28,7 +28,7 @@ int CID_QCDESTYLE;
 class QoreClass *QC_QCDEStyle = 0;
 
 //QCDEStyle ( bool useHighlightCols = false )
-static void QCDESTYLE_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QCDESTYLE_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool useHighlightCols = p ? p->getAsBool() : false;
@@ -36,7 +36,7 @@ static void QCDESTYLE_constructor(Object *self, QoreNode *params, ExceptionSink 
    return;
 }
 
-static void QCDESTYLE_copy(class Object *self, class Object *old, class QoreQCDEStyle *qcdes, ExceptionSink *xsink)
+static void QCDESTYLE_copy(class QoreObject *self, class QoreObject *old, class QoreQCDEStyle *qcdes, ExceptionSink *xsink)
 {
    xsink->raiseException("QCDESTYLE-COPY-ERROR", "objects of this class cannot be copied");
 }

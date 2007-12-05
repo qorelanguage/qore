@@ -46,7 +46,7 @@ class myQWidget : public QWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQWidget(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QWidget(parent, window_flags), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQWidget(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : QWidget(parent, window_flags), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
 	 //init_widget_events();
@@ -58,7 +58,7 @@ class QoreQWidget : public QoreAbstractQWidget
    public:
       QPointer<myQWidget>qobj;
 
-      DLLLOCAL QoreQWidget(Object *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new myQWidget(obj, parent, window_flags))
+      DLLLOCAL QoreQWidget(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags window_flags = 0) : qobj(new myQWidget(obj, parent, window_flags))
       {
       }
       DLLLOCAL virtual QObject *getQObject() const
@@ -81,10 +81,10 @@ class QoreQWidget : public QoreAbstractQWidget
 class QoreQtQWidget : public QoreAbstractQWidget
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QWidget>qobj;
 
-      DLLLOCAL QoreQtQWidget(Object *obj, QWidget *qw) : qore_obj(obj), qobj(qw)
+      DLLLOCAL QoreQtQWidget(QoreObject *obj, QWidget *qw) : qore_obj(obj), qobj(qw)
       {
       }
       DLLLOCAL virtual QObject *getQObject() const

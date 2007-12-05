@@ -28,7 +28,7 @@
 
 int CID_QHBOXLAYOUT;
 
-static void QHBOXL_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QHBOXL_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQHBoxLayout *qw;
    QoreNode *p = test_param(params, NT_OBJECT, 0);
@@ -45,7 +45,7 @@ static void QHBOXL_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_QHBOXLAYOUT, qw);
 }
 
-static void QHBOXL_copy(class Object *self, class Object *old, class QoreQHBoxLayout *ql, ExceptionSink *xsink)
+static void QHBOXL_copy(class QoreObject *self, class QoreObject *old, class QoreQHBoxLayout *ql, ExceptionSink *xsink)
 {
    xsink->raiseException("QHBOXLAYOUT-COPY-ERROR", "objects of this class cannot be copied");
 }

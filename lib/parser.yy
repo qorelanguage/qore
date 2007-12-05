@@ -1403,7 +1403,7 @@ list:
 hash:
 	hash_element
 	{
-	   class Hash *h = new Hash(1);
+	   class QoreHash *h = new QoreHash(1);
 	   h->setKeyValue($1->key, $1->value, NULL);
 	   delete $1;
 	   $$ = new QoreNode(h);

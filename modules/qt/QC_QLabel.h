@@ -42,12 +42,12 @@ class myQLabel : public QLabel, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQLabel(Object *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(parent, f), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLabel(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(parent, f), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
 	 //init_widget_events();
       }
-      DLLLOCAL myQLabel(Object *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(text, parent, f), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQLabel(QoreObject *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : QLabel(text, parent, f), QoreQWidgetExtension(obj->getClass())
       {
 	 init(obj);
 	 //init_widget_events();
@@ -59,10 +59,10 @@ class QoreQLabel : public QoreAbstractQFrame
    public:
       QPointer<myQLabel>qobj;
 
-      DLLLOCAL QoreQLabel(Object *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : qobj(new myQLabel(obj, parent, f))
+      DLLLOCAL QoreQLabel(QoreObject *obj, QWidget *parent = 0, Qt::WindowFlags f = 0) : qobj(new myQLabel(obj, parent, f))
       {
       }
-      DLLLOCAL QoreQLabel(Object *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : qobj(new myQLabel(obj, text, parent, f))
+      DLLLOCAL QoreQLabel(QoreObject *obj, const char *text, QWidget *parent = 0, Qt::WindowFlags f = 0) : qobj(new myQLabel(obj, text, parent, f))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

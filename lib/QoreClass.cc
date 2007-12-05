@@ -340,7 +340,7 @@ inline class Method *BCList::resolveSelfMethod(const char *name)
    return NULL;
 }
 
-inline void BCList::execConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink)
+inline void BCList::execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink)
 {
    for (bclist_t::iterator i = begin(); i != end(); i++)
    {
@@ -355,7 +355,7 @@ inline void BCList::execConstructors(class Object *o, class BCEAList *bceal, cla
    }
 }
 
-void BCList::execConstructorsWithArgs(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink)
+void BCList::execConstructorsWithArgs(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink)
 {
    // if there are base class constructor arguments that haven't already been overridden
    // by a base class constructor argument specification in a subclass, evaluate them now
@@ -365,7 +365,7 @@ void BCList::execConstructorsWithArgs(class Object *o, class BCEAList *bceal, cl
    execConstructors(o, bceal, xsink);
 }
 
-inline void BCList::execSystemConstructors(class Object *o, class BCEAList *bceal, class ExceptionSink *xsink)
+inline void BCList::execSystemConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink)
 {
    for (bclist_t::iterator i = begin(); i != end(); i++)
    {
@@ -622,20 +622,20 @@ bool Method::isSynchronized() const
    return func.userFunc->isSynchronized();
 }
 
-bool Method::inMethod(class Object *self) const
+bool Method::inMethod(class QoreObject *self) const
 {
    if (type == OTF_USER)
       return ::inMethod(func.userFunc->getName(), self);
    return ::inMethod(func.builtin->getName(), self);
 }
 
-void Method::evalSystemConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
+void Method::evalSystemConstructor(QoreObject *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
 {
    // type must be OTF_BUILTIN
    func.builtin->evalSystemConstructor(self, args, bcl, bceal, xsink);
 }
 
-void Method::evalSystemDestructor(class Object *self, class ExceptionSink *xsink)
+void Method::evalSystemDestructor(class QoreObject *self, class ExceptionSink *xsink)
 {
    // get pointer to private data object from class ID of base type
    AbstractPrivateData *ptr = self->getAndClearPrivateData(func.builtin->myclass->getID(), xsink);
@@ -676,7 +676,7 @@ class Method *Method::copy(class QoreClass *p_class) const
 
 static inline class QoreClass *getStackClass()
 {
-   class Object *obj = getStackObject();
+   class QoreObject *obj = getStackObject();
    if (obj)
       return obj->getClass();
    return NULL;
@@ -755,7 +755,7 @@ inline void BCSMList::add(class QoreClass *thisclass, class QoreClass *qc, bool 
    push_back(std::make_pair(qc, is_virtual));
 }
 
-inline void BCSMList::execDestructors(class Object *o, class ExceptionSink *xsink)
+inline void BCSMList::execDestructors(class QoreObject *o, class ExceptionSink *xsink)
 {
    class_list_t::reverse_iterator i = rbegin();
    // cast below required by g++ 3.2 at least
@@ -768,7 +768,7 @@ inline void BCSMList::execDestructors(class Object *o, class ExceptionSink *xsin
    }
 }
 
-inline void BCSMList::execSystemDestructors(class Object *o, class ExceptionSink *xsink)
+inline void BCSMList::execSystemDestructors(class QoreObject *o, class ExceptionSink *xsink)
 {
    class_list_t::reverse_iterator i = rbegin();
    while (i != rend())
@@ -780,7 +780,7 @@ inline void BCSMList::execSystemDestructors(class Object *o, class ExceptionSink
    }
 }
 
-inline void BCSMList::execCopyMethods(class Object *self, class Object *old, class ExceptionSink *xsink)
+inline void BCSMList::execCopyMethods(class QoreObject *self, class QoreObject *old, class ExceptionSink *xsink)
 {
    class_list_t::const_iterator i = begin();
    while (i != end())
@@ -906,7 +906,7 @@ class QoreClass *QoreClass::getClass(int cid) const
    return scl ? scl->sml.getClass(cid) : NULL;
 }
 
-class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
+class QoreNode *Method::eval(QoreObject *self, QoreNode *args, ExceptionSink *xsink)
 {
    QoreNode *rv = NULL;
 
@@ -971,7 +971,7 @@ class QoreNode *Method::eval(Object *self, QoreNode *args, ExceptionSink *xsink)
    return rv;
 }
 
-void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
+void Method::evalConstructor(QoreObject *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink)
 {
    tracein("Method::evalConstructor()");
 #ifdef DEBUG
@@ -1030,7 +1030,7 @@ void Method::evalConstructor(Object *self, QoreNode *args, class BCList *bcl, cl
    traceout("Method::evalConstructor()");
 }
 
-void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
+void Method::evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink)
 {
    // switch to new program for imported objects
    ProgramContextHelper pch(self->getProgram());
@@ -1041,7 +1041,7 @@ void Method::evalCopy(Object *self, Object *old, ExceptionSink *xsink)
       old->evalCopyMethodWithPrivateData(func.builtin, self, parent_class->getName(), xsink);
 }
 
-void Method::evalDestructor(Object *self, ExceptionSink *xsink)
+void Method::evalDestructor(QoreObject *self, ExceptionSink *xsink)
 {
    // switch to new program for imported objects
    ProgramContextHelper pch(self->getProgram());
@@ -1115,7 +1115,7 @@ inline void QoreClass::addDomain(int dom)
    domain |= dom;
 }
 
-class QoreNode *QoreClass::evalMethod(Object *self, const char *nme, QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, QoreNode *args, class ExceptionSink *xsink)
 {
    tracein("QoreClass::evalMethod()");
    Method *w;
@@ -1164,7 +1164,7 @@ class QoreNode *QoreClass::evalMethod(Object *self, const char *nme, QoreNode *a
    return w->eval(self, args, xsink);
 }
 
-class QoreNode *QoreClass::evalMethodGate(Object *self, const char *nme, QoreNode *args, ExceptionSink *xsink)
+class QoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, QoreNode *args, ExceptionSink *xsink)
 {
    tracein("QoreClass::evalMethodGate()");
    printd(5, "QoreClass::evalMethodGate() method=%s args=%08p\n", nme, args);
@@ -1203,7 +1203,7 @@ bool QoreClass::isPrivateMember(const char *str) const
    return false;
 }
 
-class QoreNode *QoreClass::evalMemberGate(class Object *self, class QoreNode *nme, class ExceptionSink *xsink)
+class QoreNode *QoreClass::evalMemberGate(class QoreObject *self, class QoreNode *nme, class ExceptionSink *xsink)
 {
    tracein("QoreClass::evalMembeGatre()");
    printd(5, "QoreClass::evalMemberGate() member=%s\n", nme->val.String->getBuffer());
@@ -1224,7 +1224,7 @@ class QoreNode *QoreClass::evalMemberGate(class Object *self, class QoreNode *nm
 class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink *xsink)
 {
    // create new object
-   class Object *o = new Object(this, getProgram());
+   class QoreObject *o = new QoreObject(this, getProgram());
    class BCEAList *bceal;
    if (scl)
       bceal = new BCEAList();
@@ -1246,7 +1246,7 @@ class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink *xsink)
 
    if (xsink->isEvent())
    {
-      // instead of executing the destructors for the superclasses that were already executed we call Object::obliterate()
+      // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
       // which will clear out all the private data by running their dereference methods which should generally be OK
       o->obliterate(xsink);
       printd(5, "QoreClass::execConstructor() %s::constructor() o=%08p, exception in constructor, dereferencing object and returning NULL\n", name, o);
@@ -1261,7 +1261,7 @@ class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink *xsink)
 class QoreNode *QoreClass::execSystemConstructor(QoreNode *args, class ExceptionSink *xsink)
 {
    // create new object
-   class Object *o = new Object(this, NULL);
+   class QoreObject *o = new QoreObject(this, NULL);
    class BCEAList *bceal;
    if (scl)
       bceal = new BCEAList();
@@ -1289,7 +1289,7 @@ class QoreNode *QoreClass::execSystemConstructor(QoreNode *args, class Exception
    return rv;
 }
 
-inline void QoreClass::execSubclassConstructor(class Object *self, class BCEAList *bceal, class ExceptionSink *xsink)
+inline void QoreClass::execSubclassConstructor(class QoreObject *self, class BCEAList *bceal, class ExceptionSink *xsink)
 {
    if (!constructor)
    {
@@ -1305,7 +1305,7 @@ inline void QoreClass::execSubclassConstructor(class Object *self, class BCEALis
    }
 }
 
-inline void QoreClass::execSubclassSystemConstructor(class Object *self, class BCEAList *bceal, class ExceptionSink *xsink)
+inline void QoreClass::execSubclassSystemConstructor(class QoreObject *self, class BCEAList *bceal, class ExceptionSink *xsink)
 {
    if (!constructor)
    {
@@ -1321,7 +1321,7 @@ inline void QoreClass::execSubclassSystemConstructor(class Object *self, class B
    }
 }
 
-void QoreClass::execDestructor(Object *self, ExceptionSink *xsink)
+void QoreClass::execDestructor(QoreObject *self, ExceptionSink *xsink)
 {
    printd(5, "QoreClass::execDestructor() %s::destructor() o=%08p\n", name, self);
 
@@ -1355,7 +1355,7 @@ void QoreClass::execDestructor(Object *self, ExceptionSink *xsink)
    xsink->assimilate(&de);
 }
 
-inline void QoreClass::execSubclassDestructor(Object *self, ExceptionSink *xsink)
+inline void QoreClass::execSubclassDestructor(QoreObject *self, ExceptionSink *xsink)
 {
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
@@ -1368,7 +1368,7 @@ inline void QoreClass::execSubclassDestructor(Object *self, ExceptionSink *xsink
    xsink->assimilate(&de);
 }
 
-inline void QoreClass::execSubclassSystemDestructor(Object *self, ExceptionSink *xsink)
+inline void QoreClass::execSubclassSystemDestructor(QoreObject *self, ExceptionSink *xsink)
 {
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
@@ -1381,9 +1381,9 @@ inline void QoreClass::execSubclassSystemDestructor(Object *self, ExceptionSink 
    xsink->assimilate(&de);
 }
 
-class QoreNode *QoreClass::execCopy(Object *old, ExceptionSink *xsink)
+class QoreNode *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink)
 {
-   class Hash *h = old->evalData(xsink);
+   class QoreHash *h = old->evalData(xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1391,7 +1391,7 @@ class QoreNode *QoreClass::execCopy(Object *old, ExceptionSink *xsink)
    const char *o_fn = NULL;
    int o_ln = 0, o_eln = 0;
    
-   class Object *self = new Object(this, getProgram(), h);
+   class QoreObject *self = new QoreObject(this, getProgram(), h);
 
    // execute superclass copy methods
    if (scl)
@@ -1419,7 +1419,7 @@ class QoreNode *QoreClass::execCopy(Object *old, ExceptionSink *xsink)
    return NULL;
 }
 
-inline void QoreClass::execSubclassCopy(Object *self, Object *old, ExceptionSink *xsink)
+inline void QoreClass::execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink)
 {
    if (copyMethod)
       copyMethod->evalCopy(self, old, xsink);

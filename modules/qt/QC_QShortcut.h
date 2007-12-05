@@ -87,12 +87,12 @@ class myQShortcut : public QShortcut, public QoreQObjectExtension
       }
       
    public:
-      DLLLOCAL myQShortcut(Object *obj, QoreAbstractQWidget *parent = 0) : QShortcut(parent->getQWidget()), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQShortcut(QoreObject *obj, QoreAbstractQWidget *parent = 0) : QShortcut(parent->getQWidget()), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
 	 init_shortcut(parent);
       }
-      DLLLOCAL myQShortcut(Object *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : QShortcut(key, parent->getQWidget(), 0, 0, context), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQShortcut(QoreObject *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : QShortcut(key, parent->getQWidget(), 0, 0, context), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
 	 init_shortcut(parent);
@@ -137,11 +137,11 @@ class QoreQShortcut : public QoreAbstractQObject
    public:
       myQShortcut *qobj;
 
-      DLLLOCAL QoreQShortcut(Object *obj, QoreAbstractQWidget *parent = 0) : qobj(new myQShortcut(obj, parent))
+      DLLLOCAL QoreQShortcut(QoreObject *obj, QoreAbstractQWidget *parent = 0) : qobj(new myQShortcut(obj, parent))
       {
       }
 
-      DLLLOCAL QoreQShortcut(Object *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : qobj(new myQShortcut(obj, key, parent, context))
+      DLLLOCAL QoreQShortcut(QoreObject *obj, const QKeySequence & key, QoreAbstractQWidget * parent, Qt::ShortcutContext context = Qt::WindowShortcut) : qobj(new myQShortcut(obj, key, parent, context))
       {
       }
 

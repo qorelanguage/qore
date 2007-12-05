@@ -59,7 +59,7 @@ class myQStyle : public QStyle, public QoreQStyleExtension
 #undef QORE_IS_QSTYLE
 
    public:
-      DLLLOCAL myQStyle(Object *obj) : QStyle(), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQStyle(QoreObject *obj) : QStyle(), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }
@@ -70,7 +70,7 @@ class QoreQStyle : public QoreAbstractQStyle
    public:
       QPointer<myQStyle> qobj;
 
-      DLLLOCAL QoreQStyle(Object *obj) : qobj(new myQStyle(obj))
+      DLLLOCAL QoreQStyle(QoreObject *obj) : qobj(new myQStyle(obj))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -84,10 +84,10 @@ class QoreQStyle : public QoreAbstractQStyle
 class QoreQtQStyle : public QoreAbstractQStyle
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QStyle> qobj;
 
-      DLLLOCAL QoreQtQStyle(Object *obj, QStyle *qs) : qore_obj(obj), qobj(qs)
+      DLLLOCAL QoreQtQStyle(QoreObject *obj, QStyle *qs) : qore_obj(obj), qobj(qs)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

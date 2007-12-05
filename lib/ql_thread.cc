@@ -49,7 +49,7 @@ class QoreNode *f_save_thread_data(class QoreNode *params, ExceptionSink *xsink)
    if (!p0 || (p0->type != NT_HASH && p0->type != NT_STRING))
       return NULL;
 
-   Hash *data = getProgram()->getThreadData();
+   QoreHash *data = getProgram()->getThreadData();
    if (p0->type == NT_HASH)
       data->merge(p0->val.hash, xsink);
    else
@@ -69,7 +69,7 @@ class QoreNode *f_delete_thread_data(class QoreNode *params, ExceptionSink *xsin
    if (num_params(params))
    {
       // get thread data hash
-      Hash *data = getProgram()->getThreadData();
+      QoreHash *data = getProgram()->getThreadData();
       
       // iterate through arguments and delete each key
       for (int i = 0; i < params->val.list->size(); i++)
@@ -97,7 +97,7 @@ class QoreNode *f_delete_thread_data(class QoreNode *params, ExceptionSink *xsin
 class QoreNode *f_delete_all_thread_data(class QoreNode *params, ExceptionSink *xsink)
 {
    // get thread data hash
-   Hash *data = getProgram()->getThreadData();
+   QoreHash *data = getProgram()->getThreadData();
 
    data->dereference(xsink);
    return NULL;
@@ -109,7 +109,7 @@ class QoreNode *f_get_thread_data(class QoreNode *params, ExceptionSink *xsink)
 
    if (!(p0 = test_param(params, NT_STRING, 0)))
       return NULL;
-   Hash *data = getProgram()->getThreadData();
+   QoreHash *data = getProgram()->getThreadData();
    QoreNode *v = data->getKeyValue(p0->val.String->getBuffer());
    if (v)
    {

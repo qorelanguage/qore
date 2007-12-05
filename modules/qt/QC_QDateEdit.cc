@@ -29,7 +29,7 @@ class QoreClass *QC_QDateEdit = 0;
 
 //QDateEdit ( QWidget * parent = 0 )
 //QDateEdit ( const QDate & date, QWidget * parent = 0 )
-static void QDATEEDIT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QDATEEDIT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -55,7 +55,7 @@ static void QDATEEDIT_constructor(Object *self, QoreNode *params, ExceptionSink 
    self->setPrivate(CID_QDATEEDIT, new QoreQDateEdit(self, date, parent ? parent->getQWidget() : 0));      
 }
 
-static void QDATEEDIT_copy(class Object *self, class Object *old, class QoreQDateEdit *qde, ExceptionSink *xsink)
+static void QDATEEDIT_copy(class QoreObject *self, class QoreObject *old, class QoreQDateEdit *qde, ExceptionSink *xsink)
 {
    xsink->raiseException("QDATEEDIT-COPY-ERROR", "objects of this class cannot be copied");
 }

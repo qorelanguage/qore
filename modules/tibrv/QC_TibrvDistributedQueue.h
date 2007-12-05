@@ -26,7 +26,7 @@
 
 #define _QORE_TIBCO_QC_TIBRVDISTRIBUTEDQUEUE_H
 
-#include <qore/common.h>
+#include <qore/Qore.h>
 
 #include "QoreTibrvDistributedQueue.h"
 

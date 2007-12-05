@@ -30,7 +30,7 @@ class QoreClass *QC_QStyleOptionViewItemV2 = 0;
 //QStyleOptionViewItemV2 ()
 //QStyleOptionViewItemV2 ( const QStyleOptionViewItemV2 & other )
 //QStyleOptionViewItemV2 ( const QStyleOptionViewItem & other )
-static void QSTYLEOPTIONVIEWITEMV2_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONVIEWITEMV2_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -48,7 +48,7 @@ static void QSTYLEOPTIONVIEWITEMV2_constructor(Object *self, QoreNode *params, E
    return;
 }
 
-static void QSTYLEOPTIONVIEWITEMV2_copy(class Object *self, class Object *old, class QoreQStyleOptionViewItemV2 *qsoviv2, ExceptionSink *xsink)
+static void QSTYLEOPTIONVIEWITEMV2_copy(class QoreObject *self, class QoreObject *old, class QoreQStyleOptionViewItemV2 *qsoviv2, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONVIEWITEMV2, new QoreQStyleOptionViewItemV2(*qsoviv2));
 }

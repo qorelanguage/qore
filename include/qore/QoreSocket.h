@@ -32,15 +32,7 @@
 #define DEFAULT_SOCKET_BUFSIZE 4096
 #endif
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/QoreString.h>
-#include <qore/qore_thread.h>
-#include <qore/Object.h>
-#include <qore/QoreNet.h>
-#include <qore/BinaryObject.h>
-#include <qore/charset.h>
-#include <qore/Exception.h>
+#include <qore/Qore.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -107,7 +99,7 @@ class SocketSource {
       DLLEXPORT void setHostName(class QoreString *host);
       DLLEXPORT class QoreString *takeAddress();
       DLLEXPORT class QoreString *takeHostName();
-      DLLEXPORT void setAll(class Object *o, class ExceptionSink *xsink);
+      DLLEXPORT void setAll(class QoreObject *o, class ExceptionSink *xsink);
 };
 
 class QoreSocket 
@@ -136,7 +128,7 @@ class QoreSocket
       DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       // read until \r\n and return the string
       DLLLOCAL class QoreString *readHTTPData(int timeout, int *rc, int state = -1);
-      DLLLOCAL static void convertHeaderToHash(class Hash *h, char *p);
+      DLLLOCAL static void convertHeaderToHash(class QoreHash *h, char *p);
       
    public:
       DLLEXPORT QoreSocket();
@@ -199,15 +191,15 @@ class QoreSocket
       // receive and write data to a file descriptor
       DLLEXPORT int recv(int fd, int size, int timeout);
       // send an HTTP message
-      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, class Hash *headers, const void *data, int size);
+      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, class QoreHash *headers, const void *data, int size);
       // send an HTTP response
-      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, class Hash *headers, const void *data, int size);
+      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, class QoreHash *headers, const void *data, int size);
       // read and parse HTTP header
       DLLEXPORT class QoreNode *readHTTPHeader(int timeout, int *prc);
       // receive a binary message in HTTP chunked format
-      DLLEXPORT class Hash *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
+      DLLEXPORT class QoreHash *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
       // receive a string message in HTTP chunked format
-      DLLEXPORT class Hash *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
+      DLLEXPORT class QoreHash *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
       // set send timeout in milliseconds
       DLLEXPORT int setSendTimeout(int ms);
       // set recv timeout in milliseconds

@@ -41,7 +41,7 @@ class myQDesktopWidget : public QDesktopWidget, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDesktopWidget(Object *obj) : QDesktopWidget(), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDesktopWidget(QoreObject *obj) : QDesktopWidget(), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQDesktopWidget : public QoreAbstractQWidget
    public:
       QPointer<myQDesktopWidget> qobj;
 
-      DLLLOCAL QoreQDesktopWidget(Object *obj) : qobj(new myQDesktopWidget(obj))
+      DLLLOCAL QoreQDesktopWidget(QoreObject *obj) : qobj(new myQDesktopWidget(obj))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -73,10 +73,10 @@ class QoreQDesktopWidget : public QoreAbstractQWidget
 class QoreQtQDesktopWidget : public QoreAbstractQWidget
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QDesktopWidget> qobj;
 
-      DLLLOCAL QoreQtQDesktopWidget(Object *obj, QDesktopWidget *qdw) : qore_obj(obj), qobj(qdw)
+      DLLLOCAL QoreQtQDesktopWidget(QoreObject *obj, QDesktopWidget *qdw) : qore_obj(obj), qobj(qdw)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

@@ -30,7 +30,7 @@ class QoreClass *QC_QAction = 0;
 //QAction ( QObject * parent )
 //QAction ( const QString & text, QObject * parent )
 //QAction ( const QIcon & icon, const QString & text, QObject * parent )
-static void QACTION_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QACTION_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -77,26 +77,26 @@ static void QACTION_constructor(Object *self, QoreNode *params, ExceptionSink *x
    return;
 }
 
-static void QACTION_copy(class Object *self, class Object *old, class QoreQAction *qa, ExceptionSink *xsink)
+static void QACTION_copy(class QoreObject *self, class QoreObject *old, class QoreQAction *qa, ExceptionSink *xsink)
 {
    xsink->raiseException("QACTION-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QActionGroup * actionGroup () const
-static QoreNode *QACTION_actionGroup(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_actionGroup(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QActionGroup *qt_qobj = qa->getQAction()->actionGroup();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
 }
 
 //void activate ( ActionEvent event )
-static QoreNode *QACTION_activate(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_activate(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QAction::ActionEvent event = (QAction::ActionEvent)(p ? p->getAsInt() : 0);
@@ -105,111 +105,111 @@ static QoreNode *QACTION_activate(Object *self, QoreAbstractQAction *qa, QoreNod
 }
 
 ////QList<QWidget *> associatedWidgets () const
-//static QoreNode *QACTION_associatedWidgets(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QACTION_associatedWidgets(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qa->getQAction()->associatedWidgets());
 //}
 
 //bool autoRepeat () const
-static QoreNode *QACTION_autoRepeat(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_autoRepeat(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qa->getQAction()->autoRepeat());
 }
 
 //QVariant data () const
-static QoreNode *QACTION_data(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_data(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return return_qvariant(qa->getQAction()->data());
 }
 
 //QFont font () const
-static QoreNode *QACTION_font(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_font(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qf = new Object(QC_QFont, getProgram());
+   QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qa->getQAction()->font());
    o_qf->setPrivate(CID_QFONT, q_qf);
    return new QoreNode(o_qf);
 }
 
 //QIcon icon () const
-static QoreNode *QACTION_icon(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_icon(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qi = new Object(QC_QIcon, getProgram());
+   QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qa->getQAction()->icon());
    o_qi->setPrivate(CID_QICON, q_qi);
    return new QoreNode(o_qi);
 }
 
 //QString iconText () const
-static QoreNode *QACTION_iconText(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_iconText(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qa->getQAction()->iconText().toUtf8().data(), QCS_UTF8));
 }
 
 //bool isCheckable () const
-static QoreNode *QACTION_isCheckable(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_isCheckable(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qa->getQAction()->isCheckable());
 }
 
 //bool isChecked () const
-static QoreNode *QACTION_isChecked(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_isChecked(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qa->getQAction()->isChecked());
 }
 
 //bool isEnabled () const
-static QoreNode *QACTION_isEnabled(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_isEnabled(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qa->getQAction()->isEnabled());
 }
 
 //bool isSeparator () const
-static QoreNode *QACTION_isSeparator(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_isSeparator(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qa->getQAction()->isSeparator());
 }
 
 //bool isVisible () const
-static QoreNode *QACTION_isVisible(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_isVisible(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qa->getQAction()->isVisible());
 }
 
 //QMenu * menu () const
-static QoreNode *QACTION_menu(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_menu(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QMenu *qt_qobj = qa->getQAction()->menu();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
 }
 
 //MenuRole menuRole () const
-static QoreNode *QACTION_menuRole(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_menuRole(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qa->getQAction()->menuRole());
 }
 
 //QWidget * parentWidget () const
-static QoreNode *QACTION_parentWidget(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_parentWidget(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = qa->getQAction()->parentWidget();
    if (!qt_qobj)
       return 0;
    QVariant qv_ptr = qt_qobj->property("qobject");
-   Object *rv_obj = reinterpret_cast<Object *>(qv_ptr.toULongLong());
+   QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
    return new QoreNode(rv_obj);
 }
 
 //void setActionGroup ( QActionGroup * group )
-static QoreNode *QACTION_setActionGroup(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setActionGroup(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQActionGroup *group = (p && p->type == NT_OBJECT) ? (QoreQActionGroup *)p->val.object->getReferencedPrivateData(CID_QACTIONGROUP, xsink) : 0;
@@ -224,7 +224,7 @@ static QoreNode *QACTION_setActionGroup(Object *self, QoreAbstractQAction *qa, Q
 }
 
 //void setAutoRepeat ( bool )
-static QoreNode *QACTION_setAutoRepeat(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setAutoRepeat(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -233,7 +233,7 @@ static QoreNode *QACTION_setAutoRepeat(Object *self, QoreAbstractQAction *qa, Qo
 }
 
 //void setCheckable ( bool )
-static QoreNode *QACTION_setCheckable(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setCheckable(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -242,7 +242,7 @@ static QoreNode *QACTION_setCheckable(Object *self, QoreAbstractQAction *qa, Qor
 }
 
 //void setData ( const QVariant & userData )
-static QoreNode *QACTION_setData(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setData(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QVariant userData;
@@ -253,7 +253,7 @@ static QoreNode *QACTION_setData(Object *self, QoreAbstractQAction *qa, QoreNode
 }
 
 //void setFont ( const QFont & font )
-static QoreNode *QACTION_setFont(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setFont(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
@@ -268,7 +268,7 @@ static QoreNode *QACTION_setFont(Object *self, QoreAbstractQAction *qa, QoreNode
 }
 
 //void setIcon ( const QIcon & icon )
-static QoreNode *QACTION_setIcon(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setIcon(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
@@ -283,7 +283,7 @@ static QoreNode *QACTION_setIcon(Object *self, QoreAbstractQAction *qa, QoreNode
 }
 
 //void setIconText ( const QString & text )
-static QoreNode *QACTION_setIconText(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setIconText(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -294,7 +294,7 @@ static QoreNode *QACTION_setIconText(Object *self, QoreAbstractQAction *qa, Qore
 }
 
 //void setMenu ( QMenu * menu )
-static QoreNode *QACTION_setMenu(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setMenu(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreAbstractQMenu *)p->val.object->getReferencedPrivateData(CID_QMENU, xsink) : 0;
@@ -309,7 +309,7 @@ static QoreNode *QACTION_setMenu(Object *self, QoreAbstractQAction *qa, QoreNode
 }
 
 //void setMenuRole ( MenuRole menuRole )
-static QoreNode *QACTION_setMenuRole(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setMenuRole(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QAction::MenuRole menuRole = (QAction::MenuRole)(p ? p->getAsInt() : 0);
@@ -318,7 +318,7 @@ static QoreNode *QACTION_setMenuRole(Object *self, QoreAbstractQAction *qa, Qore
 }
 
 //void setSeparator ( bool b )
-static QoreNode *QACTION_setSeparator(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setSeparator(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -327,7 +327,7 @@ static QoreNode *QACTION_setSeparator(Object *self, QoreAbstractQAction *qa, Qor
 }
 
 //void setShortcut ( const QKeySequence & shortcut )
-static QoreNode *QACTION_setShortcut(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setShortcut(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -340,7 +340,7 @@ static QoreNode *QACTION_setShortcut(Object *self, QoreAbstractQAction *qa, Qore
 }
 
 //void setShortcutContext ( Qt::ShortcutContext context )
-static QoreNode *QACTION_setShortcutContext(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setShortcutContext(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::ShortcutContext context = (Qt::ShortcutContext)(p ? p->getAsInt() : 0);
@@ -350,7 +350,7 @@ static QoreNode *QACTION_setShortcutContext(Object *self, QoreAbstractQAction *q
 
 //void setShortcuts ( const QList<QKeySequence> & shortcuts )
 //void setShortcuts ( QKeySequence::StandardKey key )
-static QoreNode *QACTION_setShortcuts(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setShortcuts(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -375,7 +375,7 @@ static QoreNode *QACTION_setShortcuts(Object *self, QoreAbstractQAction *qa, Qor
 }
 
 //void setStatusTip ( const QString & statusTip )
-static QoreNode *QACTION_setStatusTip(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setStatusTip(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString statusTip;
@@ -386,7 +386,7 @@ static QoreNode *QACTION_setStatusTip(Object *self, QoreAbstractQAction *qa, Qor
 }
 
 //void setText ( const QString & text )
-static QoreNode *QACTION_setText(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setText(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -397,7 +397,7 @@ static QoreNode *QACTION_setText(Object *self, QoreAbstractQAction *qa, QoreNode
 }
 
 //void setToolTip ( const QString & tip )
-static QoreNode *QACTION_setToolTip(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setToolTip(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString tip;
@@ -408,7 +408,7 @@ static QoreNode *QACTION_setToolTip(Object *self, QoreAbstractQAction *qa, QoreN
 }
 
 //void setWhatsThis ( const QString & what )
-static QoreNode *QACTION_setWhatsThis(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setWhatsThis(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString what;
@@ -419,27 +419,27 @@ static QoreNode *QACTION_setWhatsThis(Object *self, QoreAbstractQAction *qa, Qor
 }
 
 //QKeySequence shortcut () const
-static QoreNode *QACTION_shortcut(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_shortcut(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qks = new Object(QC_QKeySequence, getProgram());
+   QoreObject *o_qks = new QoreObject(QC_QKeySequence, getProgram());
    QoreQKeySequence *q_qks = new QoreQKeySequence(qa->getQAction()->shortcut());
    o_qks->setPrivate(CID_QKEYSEQUENCE, q_qks);
    return new QoreNode(o_qks);
 }
 
 //Qt::ShortcutContext shortcutContext () const
-static QoreNode *QACTION_shortcutContext(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_shortcutContext(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qa->getQAction()->shortcutContext());
 }
 
 //QList<QKeySequence> shortcuts () const
-static QoreNode *QACTION_shortcuts(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_shortcuts(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QList<QKeySequence> qsl = qa->getQAction()->shortcuts();
    QoreList *l = new QoreList();
    for (QList<QKeySequence>::iterator i = qsl.begin(), e = qsl.end(); i != e; ++i) {
-      Object *o_qks = new Object(QC_QKeySequence, getProgram());
+      QoreObject *o_qks = new QoreObject(QC_QKeySequence, getProgram());
       QoreQKeySequence *q_qks = new QoreQKeySequence(*i);
       o_qks->setPrivate(CID_QKEYSEQUENCE, q_qks);
       l->push(new QoreNode(o_qks));
@@ -448,7 +448,7 @@ static QoreNode *QACTION_shortcuts(Object *self, QoreAbstractQAction *qa, QoreNo
 }
 
 //bool showStatusText ( QWidget * widget = 0 )
-static QoreNode *QACTION_showStatusText(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_showStatusText(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -459,38 +459,38 @@ static QoreNode *QACTION_showStatusText(Object *self, QoreAbstractQAction *qa, Q
 }
 
 //QString statusTip () const
-static QoreNode *QACTION_statusTip(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_statusTip(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qa->getQAction()->statusTip().toUtf8().data(), QCS_UTF8));
 }
 
 //QString text () const
-static QoreNode *QACTION_text(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_text(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qa->getQAction()->text().toUtf8().data(), QCS_UTF8));
 }
 
 //QString toolTip () const
-static QoreNode *QACTION_toolTip(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_toolTip(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qa->getQAction()->toolTip().toUtf8().data(), QCS_UTF8));
 }
 
 //QString whatsThis () const
-static QoreNode *QACTION_whatsThis(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_whatsThis(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qa->getQAction()->whatsThis().toUtf8().data(), QCS_UTF8));
 }
 
 //void hover ()
-static QoreNode *QACTION_hover(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_hover(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    qa->getQAction()->hover();
    return 0;
 }
 
 //void setChecked ( bool )
-static QoreNode *QACTION_setChecked(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setChecked(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -499,7 +499,7 @@ static QoreNode *QACTION_setChecked(Object *self, QoreAbstractQAction *qa, QoreN
 }
 
 //void setDisabled ( bool b )
-static QoreNode *QACTION_setDisabled(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setDisabled(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -508,7 +508,7 @@ static QoreNode *QACTION_setDisabled(Object *self, QoreAbstractQAction *qa, Qore
 }
 
 //void setEnabled ( bool )
-static QoreNode *QACTION_setEnabled(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setEnabled(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -517,7 +517,7 @@ static QoreNode *QACTION_setEnabled(Object *self, QoreAbstractQAction *qa, QoreN
 }
 
 //void setVisible ( bool )
-static QoreNode *QACTION_setVisible(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_setVisible(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -526,14 +526,14 @@ static QoreNode *QACTION_setVisible(Object *self, QoreAbstractQAction *qa, QoreN
 }
 
 //void toggle ()
-static QoreNode *QACTION_toggle(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_toggle(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    qa->getQAction()->toggle();
    return 0;
 }
 
 //void trigger ()
-static QoreNode *QACTION_trigger(Object *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTION_trigger(QoreObject *self, QoreAbstractQAction *qa, QoreNode *params, ExceptionSink *xsink)
 {
    qa->getQAction()->trigger();
    return 0;

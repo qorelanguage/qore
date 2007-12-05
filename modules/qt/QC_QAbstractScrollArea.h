@@ -41,7 +41,7 @@ class myQAbstractScrollArea : public QAbstractScrollArea, public QoreQWidgetExte
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQAbstractScrollArea(Object *obj, QWidget* parent = 0) : QAbstractScrollArea(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQAbstractScrollArea(QoreObject *obj, QWidget* parent = 0) : QAbstractScrollArea(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -56,7 +56,7 @@ class QoreQAbstractScrollArea : public QoreAbstractQAbstractScrollArea
    public:
       QPointer<myQAbstractScrollArea> qobj;
 
-      DLLLOCAL QoreQAbstractScrollArea(Object *obj, QWidget* parent = 0) : qobj(new myQAbstractScrollArea(obj, parent))
+      DLLLOCAL QoreQAbstractScrollArea(QoreObject *obj, QWidget* parent = 0) : qobj(new myQAbstractScrollArea(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

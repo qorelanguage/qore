@@ -41,7 +41,7 @@ class myQDial : public QDial, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDial(Object *obj, QWidget* parent = 0) : QDial(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQDial(QoreObject *obj, QWidget* parent = 0) : QDial(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -56,7 +56,7 @@ class QoreQDial : public QoreAbstractQAbstractSlider
    public:
       QPointer<myQDial> qobj;
 
-      DLLLOCAL QoreQDial(Object *obj, QWidget* parent = 0) : qobj(new myQDial(obj, parent))
+      DLLLOCAL QoreQDial(QoreObject *obj, QWidget* parent = 0) : qobj(new myQDial(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

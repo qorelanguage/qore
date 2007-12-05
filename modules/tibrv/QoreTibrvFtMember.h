@@ -26,12 +26,7 @@
 
 #define _QORE_TIBCO_QORETIBRVFTMEMBER_H
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/AbstractPrivateData.h>
-#include <qore/Exception.h>
-#include <qore/charset.h>
-#include <qore/Hash.h>
+#include <qore/Qore.h>
 
 #include "QoreTibrvTransport.h"
 
@@ -94,12 +89,12 @@ class QoreTibrvFtMember : public AbstractPrivateData, public QoreTibrvTransport
 class QoreTibrvFtMemberCallback : public TibrvFtMemberCallback
 {
    private:
-      class Hash *h;
+      class QoreHash *h;
 
       virtual void onFtAction(TibrvFtMember *ftMember, const char *groupName, tibrvftAction action)
       {
 	 //printd(0, "onFtAction %s: %d\n", groupName, action);
-	 h = new Hash();
+	 h = new QoreHash();
 	 h->setKeyValue("action", new QoreNode((int64)action), NULL);
 	 h->setKeyValue("group", new QoreNode(groupName), NULL);
       }
@@ -116,9 +111,9 @@ class QoreTibrvFtMemberCallback : public TibrvFtMemberCallback
 	    h->derefAndDelete(NULL);
       }
 
-      class Hash *getEvent()
+      class QoreHash *getEvent()
       {
-	 class Hash *rv = h;
+	 class QoreHash *rv = h;
 	 h = NULL;
 	 //printd(0, "callback getEvent() returning %08p\n", rv);
 	 return rv;
@@ -142,7 +137,7 @@ inline QoreNode *QoreTibrvFtMember::getEvent(class ExceptionSink *xsink)
 
       if (status == TIBRV_INVALID_QUEUE)
       {
-	 class Hash *h = new Hash();
+	 class QoreHash *h = new QoreHash();
 	 h->setKeyValue("action", new QoreNode((int64)-1), NULL);
 	 return new QoreNode(h);
       }
@@ -153,7 +148,7 @@ inline QoreNode *QoreTibrvFtMember::getEvent(class ExceptionSink *xsink)
 	 return NULL;
       }
       
-      class Hash *h = callback->getEvent();
+      class QoreHash *h = callback->getEvent();
       if (!h)
 	 continue;
 

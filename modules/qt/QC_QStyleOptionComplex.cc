@@ -29,7 +29,7 @@ class QoreClass *QC_QStyleOptionComplex = 0;
 
 //QStyleOptionComplex ( int version = QStyleOptionComplex::Version, int type = SO_Complex )
 //QStyleOptionComplex ( const QStyleOptionComplex & other )
-static void QSTYLEOPTIONCOMPLEX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONCOMPLEX_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int version = !is_nothing(p) ? p->getAsInt() : QStyleOptionComplex::Version;
@@ -39,7 +39,7 @@ static void QSTYLEOPTIONCOMPLEX_constructor(Object *self, QoreNode *params, Exce
    return;
 }
 
-static void QSTYLEOPTIONCOMPLEX_copy(class Object *self, class Object *old, class QoreQStyleOptionComplex *qsoc, ExceptionSink *xsink)
+static void QSTYLEOPTIONCOMPLEX_copy(class QoreObject *self, class QoreObject *old, class QoreQStyleOptionComplex *qsoc, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONCOMPLEX, new QoreQStyleOptionComplex(*qsoc));
 }

@@ -90,7 +90,7 @@ class Datasource
       DLLEXPORT class QoreNode *select(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
       DLLEXPORT class QoreNode *selectRows(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
       DLLEXPORT class QoreNode *exec(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
-      //DLLEXPORT class Hash *describe(char *table_name, ExceptionSink *xsink);
+      //DLLEXPORT class QoreHash *describe(char *table_name, ExceptionSink *xsink);
       DLLEXPORT int commit(ExceptionSink *xsink);
       DLLEXPORT int rollback(ExceptionSink *xsink);
       DLLEXPORT int close();

@@ -29,7 +29,7 @@
 #include <assert.h>
 
 // global environment hash
-class Hash *ENV;
+class QoreHash *ENV;
 
 #include <qore/QoreType.h>
 
@@ -213,7 +213,7 @@ LVar::LVar(lvh_t nid, QoreNode *nvalue)
    obj = NULL;
 }
 
-LVar::LVar(lvh_t nid, QoreNode *ve, class Object *o) 
+LVar::LVar(lvh_t nid, QoreNode *ve, class QoreObject *o) 
 {
    id = nid; 
    value = NULL;
@@ -232,7 +232,7 @@ void LVar::set(lvh_t nid, QoreNode *nvalue)
    obj = NULL;
 }
 
-void LVar::set(lvh_t nid, QoreNode *ve, class Object *o) 
+void LVar::set(lvh_t nid, QoreNode *ve, class QoreObject *o) 
 {
    id = nid; 
    value = NULL;
@@ -533,11 +533,11 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vl
    // if the variable's value is not already a hash or an object, then make it a hash
    //printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->getName() : "(null)");
    if (!(*val))
-      (*val) = new QoreNode(new Hash());
+      (*val) = new QoreNode(new QoreHash());
    else if ((*val)->type != NT_OBJECT && (*val)->type != NT_HASH)
    {
       (*val)->deref(xsink);
-      (*val) = new QoreNode(new Hash());
+      (*val) = new QoreNode(new QoreHash());
    }
    // otherwise if the reference_count > 1, then duplicate it.
    else if ((*val)->reference_count() > 1)
@@ -563,7 +563,7 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vl
 	 else
 	 {
 	    (*val)->deref(xsink);
-	    (*val) = new QoreNode(new Hash());
+	    (*val) = new QoreNode(new QoreHash());
 	    rv = (*val)->val.hash->getKeyValuePtr(member->val.String, xsink);
 	 }
       }
@@ -944,7 +944,7 @@ class LVar *instantiateLVar(lvh_t id, class QoreNode *value)
    return lvar;
 }
 
-class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class Object *o)
+class LVar *instantiateLVar(lvh_t id, class QoreNode *ve, class QoreObject *o)
 {
    printd(3, "instantiating lvar %08p '%s' by reference (ve=%08p, o=%08p)\n", id, id, ve, o);
    // if we're instantiating the same variable recursively, then don't instantiate it at all

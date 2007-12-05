@@ -40,7 +40,7 @@ class myQTranslator : public QTranslator, public QoreQObjectExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTranslator(Object *obj, QObject* parent = 0) : QTranslator(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQTranslator(QoreObject *obj, QObject* parent = 0) : QTranslator(parent), QoreQObjectExtension(obj->getClass())
       {
          init(obj);
       }
@@ -51,7 +51,7 @@ class QoreQTranslator : public QoreAbstractQObject
    public:
       QPointer<myQTranslator> qobj;
 
-      DLLLOCAL QoreQTranslator(Object *obj, QObject* parent = 0) : qobj(new myQTranslator(obj, parent))
+      DLLLOCAL QoreQTranslator(QoreObject *obj, QObject* parent = 0) : qobj(new myQTranslator(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

@@ -44,7 +44,7 @@ public:
    DLLEXPORT int parse(class QoreString *url);
    DLLEXPORT bool isValid() const;
    // returns a hash of the parameters parsed - destructive: zeros out all elements
-   DLLEXPORT class Hash *getHash();
+   DLLEXPORT class QoreHash *getHash();
       // returns the QoreString without zeroing it out in the class
    DLLEXPORT class QoreString *getHost() const;
    DLLEXPORT class QoreString *getUserName() const;

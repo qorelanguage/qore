@@ -56,7 +56,7 @@ class QoreAbstractQObject : public AbstractPrivateData
 
       DLLLOCAL virtual class QObject *getQObject() const = 0;
 
-      DLLLOCAL virtual Object *getQoreObject() const = 0;
+      DLLLOCAL virtual QoreObject *getQoreObject() const = 0;
 
       // event methods
       DLLLOCAL virtual void timerEvent(QTimerEvent * event) = 0;

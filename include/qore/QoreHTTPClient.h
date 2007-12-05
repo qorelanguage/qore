@@ -52,7 +52,7 @@ typedef std::set<const char *, ltcstrcase> ccharcase_set_t;
 typedef std::set<std::string, ltstrcase> strcase_set_t;
 typedef std::map<std::string, std::string> header_map_t;
 
-class SafeHash : public Hash
+class SafeHash : public QoreHash
 {
       // none of these operators/methods are implemented - here to make sure they are not used
       DLLLOCAL void *operator new(size_t); 
@@ -96,10 +96,10 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       // returns -1 if an exception was thrown, 0 for OK
       DLLLOCAL int connect_unlocked(class ExceptionSink *xsink);
       DLLLOCAL void disconnect_unlocked();
-      DLLLOCAL class QoreNode *send_internal(const char *meth, const char *mpath, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *send_internal(const char *meth, const char *mpath, class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
       DLLLOCAL void setSocketPath();
       DLLLOCAL const char *getMsgPath(const char *mpath, class QoreString &pstr);
-      DLLLOCAL class QoreNode *getResponseHeader(const char *meth, const char *mpath, class Hash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *getResponseHeader(const char *meth, const char *mpath, class QoreHash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getHostHeaderValue();
 
    protected:
@@ -113,7 +113,7 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLEXPORT QoreHTTPClient();
       // set options with a hash, returns -1 if an exception was thrown, 0 for OK
       // NOTE: this function is unlocked and designed only to be called with the constructor
-      DLLEXPORT int setOptions(Hash* opts, ExceptionSink* xsink);
+      DLLEXPORT int setOptions(QoreHash* opts, ExceptionSink* xsink);
       // useful for c++ derived classes
       DLLEXPORT void setDefaultPort(int prt);
       // useful for c++ derived classes
@@ -158,10 +158,10 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLEXPORT int connect(class ExceptionSink *xsink);
       DLLEXPORT void disconnect();
 
-      DLLEXPORT class QoreNode *send(const char *meth, const char *path, class Hash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *get(const char *path, class Hash *headers, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *head(const char *path, class Hash *headers, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *post(const char *path, class Hash *headers, const void *data, unsigned size, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *send(const char *meth, const char *path, class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *get(const char *path, class QoreHash *headers, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *head(const char *path, class QoreHash *headers, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *post(const char *path, class QoreHash *headers, const void *data, unsigned size, class ExceptionSink *xsink);
 };
 
 #endif 

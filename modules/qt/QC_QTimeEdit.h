@@ -41,11 +41,11 @@ class myQTimeEdit : public QTimeEdit, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQTimeEdit(Object *obj, QWidget* parent = 0) : QTimeEdit(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTimeEdit(QoreObject *obj, QWidget* parent = 0) : QTimeEdit(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQTimeEdit(Object *obj, const QTime& time, QWidget* parent = 0) : QTimeEdit(time, parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQTimeEdit(QoreObject *obj, const QTime& time, QWidget* parent = 0) : QTimeEdit(time, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -56,10 +56,10 @@ class QoreQTimeEdit : public QoreAbstractQDateTimeEdit
    public:
       QPointer<myQTimeEdit> qobj;
 
-      DLLLOCAL QoreQTimeEdit(Object *obj, QWidget* parent = 0) : qobj(new myQTimeEdit(obj, parent))
+      DLLLOCAL QoreQTimeEdit(QoreObject *obj, QWidget* parent = 0) : qobj(new myQTimeEdit(obj, parent))
       {
       }
-      DLLLOCAL QoreQTimeEdit(Object *obj, const QTime& time, QWidget* parent = 0) : qobj(new myQTimeEdit(obj, time, parent))
+      DLLLOCAL QoreQTimeEdit(QoreObject *obj, const QTime& time, QWidget* parent = 0) : qobj(new myQTimeEdit(obj, time, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

@@ -28,97 +28,97 @@ int CID_QTEXTFRAMEFORMAT;
 class QoreClass *QC_QTextFrameFormat = 0;
 
 //QTextFrameFormat ()
-static void QTEXTFRAMEFORMAT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QTEXTFRAMEFORMAT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTFRAMEFORMAT, new QoreQTextFrameFormat());
    return;
 }
 
-static void QTEXTFRAMEFORMAT_copy(class Object *self, class Object *old, class QoreQTextFrameFormat *qtff, ExceptionSink *xsink)
+static void QTEXTFRAMEFORMAT_copy(class QoreObject *self, class QoreObject *old, class QoreQTextFrameFormat *qtff, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTFRAMEFORMAT, new QoreQTextFrameFormat(*qtff));
 }
 
 //qreal border () const
-static QoreNode *QTEXTFRAMEFORMAT_border(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_border(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtff->border());
 }
 
 //QBrush borderBrush () const
-static QoreNode *QTEXTFRAMEFORMAT_borderBrush(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_borderBrush(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qb = new Object(QC_QBrush, getProgram());
+   QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qtff->borderBrush());
    o_qb->setPrivate(CID_QBRUSH, q_qb);
    return new QoreNode(o_qb);
 }
 
 //BorderStyle borderStyle () const
-static QoreNode *QTEXTFRAMEFORMAT_borderStyle(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_borderStyle(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtff->borderStyle());
 }
 
 //qreal bottomMargin () const
-static QoreNode *QTEXTFRAMEFORMAT_bottomMargin(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_bottomMargin(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtff->bottomMargin());
 }
 
 //QTextLength height () const
-static QoreNode *QTEXTFRAMEFORMAT_height(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_height(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qtl = new Object(QC_QTextLength, getProgram());
+   QoreObject *o_qtl = new QoreObject(QC_QTextLength, getProgram());
    QoreQTextLength *q_qtl = new QoreQTextLength(qtff->height());
    o_qtl->setPrivate(CID_QTEXTLENGTH, q_qtl);
    return new QoreNode(o_qtl);
 }
 
 //bool isValid () const
-static QoreNode *QTEXTFRAMEFORMAT_isValid(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_isValid(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtff->isValid());
 }
 
 //qreal leftMargin () const
-static QoreNode *QTEXTFRAMEFORMAT_leftMargin(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_leftMargin(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtff->leftMargin());
 }
 
 //qreal margin () const
-static QoreNode *QTEXTFRAMEFORMAT_margin(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_margin(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtff->margin());
 }
 
 //qreal padding () const
-static QoreNode *QTEXTFRAMEFORMAT_padding(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_padding(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtff->padding());
 }
 
 //PageBreakFlags pageBreakPolicy () const
-static QoreNode *QTEXTFRAMEFORMAT_pageBreakPolicy(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_pageBreakPolicy(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtff->pageBreakPolicy());
 }
 
 //Position position () const
-static QoreNode *QTEXTFRAMEFORMAT_position(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_position(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qtff->position());
 }
 
 //qreal rightMargin () const
-static QoreNode *QTEXTFRAMEFORMAT_rightMargin(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_rightMargin(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtff->rightMargin());
 }
 
 //void setBorder ( qreal width )
-static QoreNode *QTEXTFRAMEFORMAT_setBorder(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setBorder(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal width = p ? p->getAsFloat() : 0.0;
@@ -127,7 +127,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setBorder(Object *self, QoreQTextFrameFormat *
 }
 
 //void setBorderBrush ( const QBrush & brush )
-static QoreNode *QTEXTFRAMEFORMAT_setBorderBrush(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setBorderBrush(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QBrush brush;
@@ -138,7 +138,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setBorderBrush(Object *self, QoreQTextFrameFor
 }
 
 //void setBorderStyle ( BorderStyle style )
-static QoreNode *QTEXTFRAMEFORMAT_setBorderStyle(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setBorderStyle(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextFrameFormat::BorderStyle style = (QTextFrameFormat::BorderStyle)(p ? p->getAsInt() : 0);
@@ -147,7 +147,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setBorderStyle(Object *self, QoreQTextFrameFor
 }
 
 //void setBottomMargin ( qreal margin )
-static QoreNode *QTEXTFRAMEFORMAT_setBottomMargin(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setBottomMargin(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
@@ -157,7 +157,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setBottomMargin(Object *self, QoreQTextFrameFo
 
 //void setHeight ( const QTextLength & height )
 //void setHeight ( qreal height )
-static QoreNode *QTEXTFRAMEFORMAT_setHeight(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setHeight(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -177,7 +177,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setHeight(Object *self, QoreQTextFrameFormat *
 }
 
 //void setLeftMargin ( qreal margin )
-static QoreNode *QTEXTFRAMEFORMAT_setLeftMargin(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setLeftMargin(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
@@ -186,7 +186,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setLeftMargin(Object *self, QoreQTextFrameForm
 }
 
 //void setMargin ( qreal margin )
-static QoreNode *QTEXTFRAMEFORMAT_setMargin(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setMargin(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
@@ -195,7 +195,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setMargin(Object *self, QoreQTextFrameFormat *
 }
 
 //void setPadding ( qreal width )
-static QoreNode *QTEXTFRAMEFORMAT_setPadding(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setPadding(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal width = p ? p->getAsFloat() : 0.0;
@@ -204,7 +204,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setPadding(Object *self, QoreQTextFrameFormat 
 }
 
 //void setPageBreakPolicy ( PageBreakFlags policy )
-static QoreNode *QTEXTFRAMEFORMAT_setPageBreakPolicy(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setPageBreakPolicy(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextFrameFormat::PageBreakFlags policy = (QTextFrameFormat::PageBreakFlags)(p ? p->getAsInt() : 0);
@@ -213,7 +213,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setPageBreakPolicy(Object *self, QoreQTextFram
 }
 
 //void setPosition ( Position policy )
-static QoreNode *QTEXTFRAMEFORMAT_setPosition(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setPosition(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextFrameFormat::Position policy = (QTextFrameFormat::Position)(p ? p->getAsInt() : 0);
@@ -222,7 +222,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setPosition(Object *self, QoreQTextFrameFormat
 }
 
 //void setRightMargin ( qreal margin )
-static QoreNode *QTEXTFRAMEFORMAT_setRightMargin(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setRightMargin(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
@@ -231,7 +231,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setRightMargin(Object *self, QoreQTextFrameFor
 }
 
 //void setTopMargin ( qreal margin )
-static QoreNode *QTEXTFRAMEFORMAT_setTopMargin(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setTopMargin(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
@@ -241,7 +241,7 @@ static QoreNode *QTEXTFRAMEFORMAT_setTopMargin(Object *self, QoreQTextFrameForma
 
 //void setWidth ( const QTextLength & width )
 //void setWidth ( qreal width )
-static QoreNode *QTEXTFRAMEFORMAT_setWidth(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_setWidth(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -261,15 +261,15 @@ static QoreNode *QTEXTFRAMEFORMAT_setWidth(Object *self, QoreQTextFrameFormat *q
 }
 
 //qreal topMargin () const
-static QoreNode *QTEXTFRAMEFORMAT_topMargin(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_topMargin(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtff->topMargin());
 }
 
 //QTextLength width () const
-static QoreNode *QTEXTFRAMEFORMAT_width(Object *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFRAMEFORMAT_width(QoreObject *self, QoreQTextFrameFormat *qtff, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qtl = new Object(QC_QTextLength, getProgram());
+   QoreObject *o_qtl = new QoreObject(QC_QTextLength, getProgram());
    QoreQTextLength *q_qtl = new QoreQTextLength(qtff->width());
    o_qtl->setPrivate(CID_QTEXTLENGTH, q_qtl);
    return new QoreNode(o_qtl);

@@ -83,12 +83,12 @@ class QoreString *QoreSSLCertificate::getPEM(class ExceptionSink *xsink) const
    return str;
 }
 
-class Hash *QoreSSLCertificate::getSubjectHash() const
+class QoreHash *QoreSSLCertificate::getSubjectHash() const
 {
    return X509_NAME_to_hash(X509_get_subject_name(cert));
 }
 
-class Hash *QoreSSLCertificate::getIssuerHash() const
+class QoreHash *QoreSSLCertificate::getIssuerHash() const
 {
    return X509_NAME_to_hash(X509_get_issuer_name(cert));
 }
@@ -143,9 +143,9 @@ class BinaryObject *QoreSSLCertificate::getPublicKey() const
    return new BinaryObject(buf, len);
 }
 
-class Hash *QoreSSLCertificate::getPurposeHash() const
+class QoreHash *QoreSSLCertificate::getPurposeHash() const
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    QoreString tstr;
    for (int i = 0; i < X509_PURPOSE_get_count(); i++)
    {
@@ -204,9 +204,9 @@ class Hash *QoreSSLCertificate::getPurposeHash() const
    return h;
 }
 
-Hash *QoreSSLCertificate::getInfo() const
+QoreHash *QoreSSLCertificate::getInfo() const
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    // get version
    h->setKeyValue("version", new QoreNode(getVersion()), NULL);
    // get serial number

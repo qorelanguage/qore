@@ -1,7 +1,7 @@
 /*
   lib/ql_xml.cc
 
-  Qore JSON (JavaScript Object Notation) functions
+  Qore JSON (JavaScript QoreObject Notation) functions
 
   Qore Programming Language
 
@@ -144,7 +144,7 @@ static class QoreNode *getJSONObject(const char *&buf, int &line_number, class Q
 {
    // increment buffer to first character of object description
    buf++;
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
 
    // get either string or '}'
    skip_whitespace(buf, line_number);

@@ -29,7 +29,7 @@ class QoreClass *QC_QRegExpValidator = 0;
 
 //QRegExpValidator ( QObject * parent )
 //QRegExpValidator ( const QRegExp & rx, QObject * parent )
-static void QREGEXPVALIDATOR_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QREGEXPVALIDATOR_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -59,22 +59,22 @@ static void QREGEXPVALIDATOR_constructor(Object *self, QoreNode *params, Excepti
    }
 }
 
-static void QREGEXPVALIDATOR_copy(class Object *self, class Object *old, class QoreQRegExpValidator *qrev, ExceptionSink *xsink)
+static void QREGEXPVALIDATOR_copy(class QoreObject *self, class QoreObject *old, class QoreQRegExpValidator *qrev, ExceptionSink *xsink)
 {
    xsink->raiseException("QREGEXPVALIDATOR-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //const QRegExp & regExp () const
-static QoreNode *QREGEXPVALIDATOR_regExp(Object *self, QoreQRegExpValidator *qrev, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QREGEXPVALIDATOR_regExp(QoreObject *self, QoreQRegExpValidator *qrev, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qre = new Object(QC_QRegExp, getProgram());
+   QoreObject *o_qre = new QoreObject(QC_QRegExp, getProgram());
    QoreQRegExp *q_qre = new QoreQRegExp(qrev->qobj->regExp());
    o_qre->setPrivate(CID_QREGEXP, q_qre);
    return new QoreNode(o_qre);
 }
 
 //void setRegExp ( const QRegExp & rx )
-static QoreNode *QREGEXPVALIDATOR_setRegExp(Object *self, QoreQRegExpValidator *qrev, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QREGEXPVALIDATOR_setRegExp(QoreObject *self, QoreQRegExpValidator *qrev, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQRegExp *rx = (p && p->type == NT_OBJECT) ? (QoreQRegExp *)p->val.object->getReferencedPrivateData(CID_QREGEXP, xsink) : 0;

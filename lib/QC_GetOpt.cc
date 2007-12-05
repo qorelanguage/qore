@@ -114,7 +114,7 @@ static inline int process_type(const char *key, int &attributes, char *opt, clas
    return -1;
 }
 
-static void GETOPT_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void GETOPT_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_HASH, 0);
    if (!p0)
@@ -222,12 +222,12 @@ static void GETOPT_constructor(class Object *self, class QoreNode *params, Excep
       g->deref();
 }
 
-static void GETOPT_copy(class Object *self, class Object *old, class GetOpt *g, class ExceptionSink *xsink)
+static void GETOPT_copy(class QoreObject *self, class QoreObject *old, class GetOpt *g, class ExceptionSink *xsink)
 {
    xsink->raiseException("GETOPT-COPY-ERROR", "copying GetOpt objects is not supported");
 }
 
-static class QoreNode *GETOPT_parse(class Object *self, class GetOpt *g, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GETOPT_parse(class QoreObject *self, class GetOpt *g, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    if (!p0)
@@ -255,7 +255,7 @@ static class QoreNode *GETOPT_parse(class Object *self, class GetOpt *g, class Q
    else
       return NULL;
 
-   class Hash *h = g->parse(l, modify, xsink);
+   class QoreHash *h = g->parse(l, modify, xsink);
    if (h)
       return new QoreNode(h);
 

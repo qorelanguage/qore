@@ -41,11 +41,11 @@ class myQRegExpValidator : public QRegExpValidator, public QoreQValidatorExtensi
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQRegExpValidator(Object *obj, QObject* parent) : QRegExpValidator(parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQRegExpValidator(QoreObject *obj, QObject* parent) : QRegExpValidator(parent), QoreQValidatorExtension(obj->getClass())
       {
          init(obj);
       }
-      DLLLOCAL myQRegExpValidator(Object *obj, const QRegExp& rx, QObject* parent) : QRegExpValidator(rx, parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQRegExpValidator(QoreObject *obj, const QRegExp& rx, QObject* parent) : QRegExpValidator(rx, parent), QoreQValidatorExtension(obj->getClass())
       {
          init(obj);
       }
@@ -56,10 +56,10 @@ class QoreQRegExpValidator : public QoreAbstractQValidator
    public:
       QPointer<myQRegExpValidator> qobj;
 
-      DLLLOCAL QoreQRegExpValidator(Object *obj, QObject* parent) : qobj(new myQRegExpValidator(obj, parent))
+      DLLLOCAL QoreQRegExpValidator(QoreObject *obj, QObject* parent) : qobj(new myQRegExpValidator(obj, parent))
       {
       }
-      DLLLOCAL QoreQRegExpValidator(Object *obj, const QRegExp& rx, QObject* parent) : qobj(new myQRegExpValidator(obj, rx, parent))
+      DLLLOCAL QoreQRegExpValidator(QoreObject *obj, const QRegExp& rx, QObject* parent) : qobj(new myQRegExpValidator(obj, rx, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

@@ -39,7 +39,7 @@ class myQObject : public QObject, public QoreQObjectExtension
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
    public:
-      DLLLOCAL myQObject(Object *obj, QObject *parent = 0) : QObject(parent), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQObject(QoreObject *obj, QObject *parent = 0) : QObject(parent), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
@@ -51,7 +51,7 @@ class QoreQObject : public QoreAbstractQObject
    public:
       QPointer<myQObject> qobj;
 
-      DLLLOCAL QoreQObject(Object *obj, QObject *parent = 0) : qobj(new myQObject(obj, parent))
+      DLLLOCAL QoreQObject(QoreObject *obj, QObject *parent = 0) : qobj(new myQObject(obj, parent))
       {
       }
 
@@ -66,10 +66,10 @@ class QoreQObject : public QoreAbstractQObject
 class QoreQtQObject : public QoreAbstractQObject
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QObject> qobj;
 
-      DLLLOCAL QoreQtQObject(Object *obj, QObject *qo) : qore_obj(obj), qobj(qo)
+      DLLLOCAL QoreQtQObject(QoreObject *obj, QObject *qo) : qore_obj(obj), qobj(qo)
       {
       }
 

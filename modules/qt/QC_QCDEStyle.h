@@ -43,7 +43,7 @@ class myQCDEStyle : public QCDEStyle, public QoreQStyleExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQCDEStyle(Object *obj, bool useHighlightCols = false) : QCDEStyle(useHighlightCols), QoreQStyleExtension(obj->getClass())
+      DLLLOCAL myQCDEStyle(QoreObject *obj, bool useHighlightCols = false) : QCDEStyle(useHighlightCols), QoreQStyleExtension(obj->getClass())
       {
          init(obj);
       }
@@ -54,7 +54,7 @@ class QoreQCDEStyle : public QoreAbstractQMotifStyle
    public:
       QPointer<myQCDEStyle> qobj;
 
-      DLLLOCAL QoreQCDEStyle(Object *obj, bool useHighlightCols = false) : qobj(new myQCDEStyle(obj, useHighlightCols))
+      DLLLOCAL QoreQCDEStyle(QoreObject *obj, bool useHighlightCols = false) : qobj(new myQCDEStyle(obj, useHighlightCols))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -75,10 +75,10 @@ class QoreQCDEStyle : public QoreAbstractQMotifStyle
 class QoreQtQCDEStyle : public QoreAbstractQMotifStyle
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QCDEStyle> qobj;
 
-      DLLLOCAL QoreQtQCDEStyle(Object *obj, QCDEStyle *qcdestyle) : qore_obj(obj), qobj(qcdestyle)
+      DLLLOCAL QoreQtQCDEStyle(QoreObject *obj, QCDEStyle *qcdestyle) : qore_obj(obj), qobj(qcdestyle)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

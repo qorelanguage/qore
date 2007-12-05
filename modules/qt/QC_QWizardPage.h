@@ -43,7 +43,7 @@ class myQWizardPage : public QWizardPage, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQWizardPage(Object *obj, QWidget* parent = 0) : QWizardPage(parent), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQWizardPage(QoreObject *obj, QWidget* parent = 0) : QWizardPage(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -64,7 +64,7 @@ class QoreQWizardPage : public QoreAbstractQWizardPage
    public:
       QPointer<myQWizardPage> qobj;
 
-      DLLLOCAL QoreQWizardPage(Object *obj, QWidget* parent = 0) : qobj(new myQWizardPage(obj, parent))
+      DLLLOCAL QoreQWizardPage(QoreObject *obj, QWidget* parent = 0) : qobj(new myQWizardPage(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -107,10 +107,10 @@ class QoreQWizardPage : public QoreAbstractQWizardPage
 class QoreQtQWizardPage : public QoreAbstractQWizardPage
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QWizardPage> qobj;
 
-      DLLLOCAL QoreQtQWizardPage(Object *obj, QWizardPage *qwp) : qore_obj(obj), qobj(qwp)
+      DLLLOCAL QoreQtQWizardPage(QoreObject *obj, QWizardPage *qwp) : qore_obj(obj), qobj(qwp)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

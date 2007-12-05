@@ -55,9 +55,9 @@ QoreTibrvCmListener::QoreTibrvCmListener(const char *subject, const char *cmName
    }  
 }
 
-class Hash *QoreTibrvCmListener::getMessage(class ExceptionSink *xsink)
+class QoreHash *QoreTibrvCmListener::getMessage(class ExceptionSink *xsink)
 {
-   class Hash *h;
+   class QoreHash *h;
 
    while (true)
    {
@@ -75,7 +75,7 @@ class Hash *QoreTibrvCmListener::getMessage(class ExceptionSink *xsink)
    return NULL;
 }
 
-class Hash *QoreTibrvCmListener::getMessage(int64 timeout_ms, class ExceptionSink *xsink)
+class QoreHash *QoreTibrvCmListener::getMessage(int64 timeout_ms, class ExceptionSink *xsink)
 {
    tibrv_f64 timeout = (tibrv_f64)timeout_ms / 1000.0;
    TibrvStatus status = queue.timedDispatch(timeout);

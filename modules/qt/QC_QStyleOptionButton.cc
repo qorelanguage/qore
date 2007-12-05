@@ -29,48 +29,48 @@ class QoreClass *QC_QStyleOptionButton = 0;
 
 //QStyleOptionButton ()
 //QStyleOptionButton ( const QStyleOptionButton & other )
-static void QSTYLEOPTIONBUTTON_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONBUTTON_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONBUTTON, new QoreQStyleOptionButton());
 }
 
-static void QSTYLEOPTIONBUTTON_copy(class Object *self, class Object *old, class QoreQStyleOptionButton *qsob, ExceptionSink *xsink)
+static void QSTYLEOPTIONBUTTON_copy(class QoreObject *self, class QoreObject *old, class QoreQStyleOptionButton *qsob, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONBUTTON, new QoreQStyleOptionButton(*qsob));
 }
 
 //ButtonFeatures features ()
-static QoreNode *QSTYLEOPTIONBUTTON_features(Object *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLEOPTIONBUTTON_features(QoreObject *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qsob->features);
 }
 
 //QIcon icon ()
-static QoreNode *QSTYLEOPTIONBUTTON_icon(Object *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLEOPTIONBUTTON_icon(QoreObject *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qi = new Object(QC_QIcon, getProgram());
+   QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qsob->icon);
    o_qi->setPrivate(CID_QICON, q_qi);
    return new QoreNode(o_qi);
 }
 
 //QSize iconSize ()
-static QoreNode *QSTYLEOPTIONBUTTON_iconSize(Object *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLEOPTIONBUTTON_iconSize(QoreObject *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
 {
-   Object *o_qs = new Object(QC_QSize, getProgram());
+   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qsob->iconSize);
    o_qs->setPrivate(CID_QSIZE, q_qs);
    return new QoreNode(o_qs);
 }
 
 //QString text ()
-static QoreNode *QSTYLEOPTIONBUTTON_text(Object *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLEOPTIONBUTTON_text(QoreObject *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qsob->text.toUtf8().data(), QCS_UTF8));
 }
 
 //void setFeatures ( ButtonFeatures features )
-static QoreNode *QSTYLEOPTIONBUTTON_setFeatures(Object *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLEOPTIONBUTTON_setFeatures(QoreObject *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyleOptionButton::ButtonFeatures features = (QStyleOptionButton::ButtonFeatures)(p ? p->getAsInt() : 0);
@@ -79,7 +79,7 @@ static QoreNode *QSTYLEOPTIONBUTTON_setFeatures(Object *self, QoreQStyleOptionBu
 }
 
 //void setIcon ( const QIcon & icon )
-static QoreNode *QSTYLEOPTIONBUTTON_setIcon(Object *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLEOPTIONBUTTON_setIcon(QoreObject *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
@@ -94,7 +94,7 @@ static QoreNode *QSTYLEOPTIONBUTTON_setIcon(Object *self, QoreQStyleOptionButton
 }
 
 //void setIconSize ( const QSize & size )
-static QoreNode *QSTYLEOPTIONBUTTON_setIconSize(Object *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLEOPTIONBUTTON_setIconSize(QoreObject *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
@@ -109,7 +109,7 @@ static QoreNode *QSTYLEOPTIONBUTTON_setIconSize(Object *self, QoreQStyleOptionBu
 }
 
 //void setText ( const QString & text )
-static QoreNode *QSTYLEOPTIONBUTTON_setText(Object *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLEOPTIONBUTTON_setText(QoreObject *self, QoreQStyleOptionButton *qsob, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;

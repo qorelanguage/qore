@@ -41,7 +41,7 @@ class myQMainWindow : public QMainWindow, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQMainWindow(Object *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : QMainWindow(parent, flags), QoreQWidgetExtension(obj->getClass())
+      DLLLOCAL myQMainWindow(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : QMainWindow(parent, flags), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
       }
@@ -52,7 +52,7 @@ class QoreQMainWindow : public QoreAbstractQWidget
    public:
       QPointer<myQMainWindow> qobj;
 
-      DLLLOCAL QoreQMainWindow(Object *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : qobj(new myQMainWindow(obj, parent, flags))
+      DLLLOCAL QoreQMainWindow(QoreObject *obj, QWidget* parent = 0, Qt::WindowFlags flags = 0) : qobj(new myQMainWindow(obj, parent, flags))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

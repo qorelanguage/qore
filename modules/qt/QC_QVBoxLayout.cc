@@ -28,7 +28,7 @@
 
 int CID_QVBOXLAYOUT;
 
-static void QVBOXL_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QVBOXL_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQVBoxLayout *qw;
    QoreNode *p = test_param(params, NT_OBJECT, 0);
@@ -45,7 +45,7 @@ static void QVBOXL_constructor(class Object *self, class QoreNode *params, Excep
    self->setPrivate(CID_QVBOXLAYOUT, qw);
 }
 
-static void QVBOXL_copy(class Object *self, class Object *old, class QoreQVBoxLayout *ql, ExceptionSink *xsink)
+static void QVBOXL_copy(class QoreObject *self, class QoreObject *old, class QoreQVBoxLayout *ql, ExceptionSink *xsink)
 {
    xsink->raiseException("QVBOXLAYOUT-COPY-ERROR", "objects of this class cannot be copied");
 }

@@ -49,12 +49,12 @@ class myQDoubleValidator : public QDoubleValidator, public QoreQValidatorExtensi
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQDoubleValidator(Object *obj, QObject* parent) : QDoubleValidator(parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQDoubleValidator(QoreObject *obj, QObject* parent) : QDoubleValidator(parent), QoreQValidatorExtension(obj->getClass())
       {
          init(obj);
 	 qdv_init(obj->getClass());
       }
-      DLLLOCAL myQDoubleValidator(Object *obj, double bottom, double top, int decimals, QObject* parent) : QDoubleValidator(bottom, top, decimals, parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQDoubleValidator(QoreObject *obj, double bottom, double top, int decimals, QObject* parent) : QDoubleValidator(bottom, top, decimals, parent), QoreQValidatorExtension(obj->getClass())
       {
          init(obj);
 	 qdv_init(obj->getClass());
@@ -86,10 +86,10 @@ class QoreQDoubleValidator : public QoreAbstractQValidator
    public:
       QPointer<myQDoubleValidator> qobj;
 
-      DLLLOCAL QoreQDoubleValidator(Object *obj, QObject* parent) : qobj(new myQDoubleValidator(obj, parent))
+      DLLLOCAL QoreQDoubleValidator(QoreObject *obj, QObject* parent) : qobj(new myQDoubleValidator(obj, parent))
       {
       }
-      DLLLOCAL QoreQDoubleValidator(Object *obj, double bottom, double top, int decimals, QObject* parent) : qobj(new myQDoubleValidator(obj, bottom, top, decimals, parent))
+      DLLLOCAL QoreQDoubleValidator(QoreObject *obj, double bottom, double top, int decimals, QObject* parent) : qobj(new myQDoubleValidator(obj, bottom, top, decimals, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

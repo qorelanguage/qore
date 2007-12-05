@@ -26,10 +26,7 @@
 
 #define _QORE_TIBCO_QC_TIBRVSENDER_H
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/ReferenceObject.h>
-#include <qore/Exception.h>
+#include <qore/Qore.h>
 
 #include "QoreTibrvSender.h"
 

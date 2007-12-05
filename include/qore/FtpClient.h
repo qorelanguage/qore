@@ -52,7 +52,7 @@
 
 #include <qore/QoreSocket.h>
 #include <qore/QoreString.h>
-#include <qore/Exception.h>
+#include <qore/QoreException.h>
 #include <qore/QoreNet.h>
 #include <qore/LockedObject.h>
 

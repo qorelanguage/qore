@@ -29,12 +29,12 @@ class QoreClass *QC_QStyleOptionComboBox = 0;
 
 //QStyleOptionComboBox ()
 //QStyleOptionComboBox ( const QStyleOptionComboBox & other )
-static void QSTYLEOPTIONCOMBOBOX_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONCOMBOBOX_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONCOMBOBOX, new QoreQStyleOptionComboBox());
 }
 
-static void QSTYLEOPTIONCOMBOBOX_copy(class Object *self, class Object *old, class QoreQStyleOptionComboBox *qsocb, ExceptionSink *xsink)
+static void QSTYLEOPTIONCOMBOBOX_copy(class QoreObject *self, class QoreObject *old, class QoreQStyleOptionComboBox *qsocb, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONCOMBOBOX, new QoreQStyleOptionComboBox(*qsocb));
 }

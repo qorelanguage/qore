@@ -106,7 +106,7 @@ static class QoreNode *f_list(class QoreNode *params, ExceptionSink *xsink)
 static class QoreNode *f_hash(class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *rv = new QoreNode(NT_HASH);
-   rv->val.hash = new Hash();
+   rv->val.hash = new QoreHash();
    return rv;
 }
 

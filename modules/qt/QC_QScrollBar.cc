@@ -29,7 +29,7 @@ class QoreClass *QC_QScrollBar = 0;
 
 //QScrollBar ( QWidget * parent = 0 )
 //QScrollBar ( Qt::Orientation orientation, QWidget * parent = 0 )
-static void QSCROLLBAR_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSCROLLBAR_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -54,7 +54,7 @@ static void QSCROLLBAR_constructor(Object *self, QoreNode *params, ExceptionSink
    return;
 }
 
-static void QSCROLLBAR_copy(class Object *self, class Object *old, class QoreQScrollBar *qsb, ExceptionSink *xsink)
+static void QSCROLLBAR_copy(class QoreObject *self, class QoreObject *old, class QoreQScrollBar *qsb, ExceptionSink *xsink)
 {
    xsink->raiseException("QSCROLLBAR-COPY-ERROR", "objects of this class cannot be copied");
 }

@@ -45,7 +45,7 @@ class myQApplication : public QApplication, public QoreQObjectExtension
 #include "qore-qt-metacode.h"
 #undef QOREQTYPE
 
-      DLLLOCAL myQApplication(Object *obj, int &argc, char **argv) : QApplication(argc, argv), QoreQObjectExtension(obj->getClass())
+      DLLLOCAL myQApplication(QoreObject *obj, int &argc, char **argv) : QApplication(argc, argv), QoreQObjectExtension(obj->getClass())
       {
 	 init(obj);
       }
@@ -56,7 +56,7 @@ class QoreQApplication : public QoreAbstractQCoreApplication
    public:
       myQApplication *qobj;
 
-      DLLLOCAL QoreQApplication(Object *obj) : qobj(new myQApplication(obj, static_argc, static_argv))
+      DLLLOCAL QoreQApplication(QoreObject *obj) : qobj(new myQApplication(obj, static_argc, static_argv))
       {
       }
 

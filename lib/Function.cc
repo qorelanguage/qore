@@ -79,7 +79,7 @@ class NamedScope *SelfFunctionCall::takeNScope()
 
 class QoreNode *SelfFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink)
 {
-   class Object *self = getStackObject();
+   class QoreObject *self = getStackObject();
    
    if (func)
       return func->eval(self, args, xsink);
@@ -429,7 +429,7 @@ BuiltinFunction::BuiltinFunction(q_copy_t m, int typ)
    next = NULL;
 }
 
-void BuiltinFunction::evalConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink)
+void BuiltinFunction::evalConstructor(class QoreObject *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink)
 {
    tracein("BuiltinFunction::evalConstructor()");
 
@@ -457,7 +457,7 @@ void BuiltinFunction::evalConstructor(class Object *self, class QoreNode *args, 
    traceout("BuiltinFunction::evalWithArgs()");
 }
 
-void BuiltinFunction::evalSystemConstructor(class Object *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink)
+void BuiltinFunction::evalSystemConstructor(class QoreObject *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink)
 {
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
@@ -465,7 +465,7 @@ void BuiltinFunction::evalSystemConstructor(class Object *self, class QoreNode *
    code.constructor(self, args, xsink);
 }
 
-QoreNode *BuiltinFunction::evalWithArgs(class Object *self, class QoreNode *args, class ExceptionSink *xsink)
+QoreNode *BuiltinFunction::evalWithArgs(class QoreObject *self, class QoreNode *args, class ExceptionSink *xsink)
 {
    tracein("BuiltinFunction::evalWithArgs()");
    printd(2, "BuiltinFunction::evalWithArgs() calling builtin function \"%s\"\n", name);
@@ -493,7 +493,7 @@ QoreNode *BuiltinFunction::evalWithArgs(class Object *self, class QoreNode *args
    return rv;
 }
 
-QoreNode *BuiltinFunction::evalMethod(class Object *self, void *private_data, class QoreNode *args, class ExceptionSink *xsink)
+QoreNode *BuiltinFunction::evalMethod(class QoreObject *self, void *private_data, class QoreNode *args, class ExceptionSink *xsink)
 {
    tracein("BuiltinFunction::evalMethod()");
    printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
@@ -511,7 +511,7 @@ QoreNode *BuiltinFunction::evalMethod(class Object *self, void *private_data, cl
    return rv;
 }
 
-void BuiltinFunction::evalDestructor(class Object *self, void *private_data, const char *class_name, class ExceptionSink *xsink)
+void BuiltinFunction::evalDestructor(class QoreObject *self, void *private_data, const char *class_name, class ExceptionSink *xsink)
 {
    tracein("BuiltinFunction::evalDestructor()");
    
@@ -536,7 +536,7 @@ void BuiltinFunction::evalDestructor(class Object *self, void *private_data, con
    traceout("BuiltinFunction::destructor()");
 }
 
-void BuiltinFunction::evalCopy(class Object *self, class Object *old, void *private_data, const char *class_name, class ExceptionSink *xsink)
+void BuiltinFunction::evalCopy(class QoreObject *self, class QoreObject *old, void *private_data, const char *class_name, class ExceptionSink *xsink)
 {
    tracein("BuiltinFunction::evalCopy()");
    
@@ -561,7 +561,7 @@ void BuiltinFunction::evalCopy(class Object *self, class Object *old, void *priv
    traceout("BuiltinFunction::evalCopy()");
 }
 
-void BuiltinFunction::evalSystemDestructor(class Object *self, void *private_data, class ExceptionSink *xsink)
+void BuiltinFunction::evalSystemDestructor(class QoreObject *self, void *private_data, class ExceptionSink *xsink)
 {
    code.destructor(self, private_data, xsink);
 }
@@ -616,7 +616,7 @@ QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink)
 }
 
 // calls a user function
-class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class ExceptionSink *xsink, const char *class_name)
+class QoreNode *UserFunction::eval(QoreNode *args, QoreObject *self, class ExceptionSink *xsink, const char *class_name)
 {
    tracein("UserFunction::eval()");
    printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", name, args, args ? args->val.list->size() : 0);
@@ -760,7 +760,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, Object *self, class Exception
 }
 
 // this function will set up user copy constructor calls
-void UserFunction::evalCopy(Object *oold, Object *self, const char *class_name, ExceptionSink *xsink)
+void UserFunction::evalCopy(QoreObject *oold, QoreObject *self, const char *class_name, ExceptionSink *xsink)
 {
    tracein("UserFunction::evalCopy()");
    printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name, params->num_params, oold);
@@ -834,7 +834,7 @@ void UserFunction::evalCopy(Object *oold, Object *self, const char *class_name, 
 }
 
 // calls a user constructor method
-class QoreNode *UserFunction::evalConstructor(QoreNode *args, Object *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink)
+class QoreNode *UserFunction::evalConstructor(QoreNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink)
 {
    tracein("UserFunction::evalConstructor()");
    printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", 

@@ -43,12 +43,12 @@ class myQMenu : public QMenu, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    public:
-   DLLLOCAL myQMenu(Object *obj, QWidget* parent = 0) : QMenu(parent), QoreQWidgetExtension(obj->getClass())
+   DLLLOCAL myQMenu(QoreObject *obj, QWidget* parent = 0) : QMenu(parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
          //init_widget_events();
       }
-   DLLLOCAL myQMenu(Object *obj, const QString& title, QWidget* parent = 0) : QMenu(title, parent), QoreQWidgetExtension(obj->getClass())
+   DLLLOCAL myQMenu(QoreObject *obj, const QString& title, QWidget* parent = 0) : QMenu(title, parent), QoreQWidgetExtension(obj->getClass())
       {
          init(obj);
          //init_widget_events();
@@ -60,10 +60,10 @@ class QoreQMenu : public QoreAbstractQMenu
    public:
       QPointer<myQMenu> qobj;
 
-      DLLLOCAL QoreQMenu(Object *obj, QWidget* parent = 0) : qobj(new myQMenu(obj, parent))
+      DLLLOCAL QoreQMenu(QoreObject *obj, QWidget* parent = 0) : qobj(new myQMenu(obj, parent))
       {
       }
-      DLLLOCAL QoreQMenu(Object *obj, const QString& title, QWidget* parent = 0) : qobj(new myQMenu(obj, title, parent))
+      DLLLOCAL QoreQMenu(QoreObject *obj, const QString& title, QWidget* parent = 0) : qobj(new myQMenu(obj, title, parent))
       {
       }
       DLLLOCAL int columnCount () const
@@ -96,10 +96,10 @@ class QoreQMenu : public QoreAbstractQMenu
 class QoreQtQMenu : public QoreAbstractQMenu
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QMenu> qobj;
 
-      DLLLOCAL QoreQtQMenu(Object *obj, QMenu *qm) : qore_obj(obj), qobj(qm)
+      DLLLOCAL QoreQtQMenu(QoreObject *obj, QMenu *qm) : qore_obj(obj), qobj(qm)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

@@ -51,7 +51,7 @@ libqore_la_SOURCES = \
 	QoreSignal.cc \
 	QoreType.cc \
 	ModuleManager.cc \
-	Exception.cc \
+	QoreException.cc \
 	QoreClass.cc \
 	Context.cc \
 	Find.cc \
@@ -65,9 +65,9 @@ libqore_la_SOURCES = \
 	DateTime.cc \
 	QoreLib.cc \
 	QoreString.cc \
-	Hash.cc \
-	Object.cc \
-	List.cc \
+	QoreHash.cc \
+	QoreObject.cc \
+	QoreList.cc \
 	qore-main.cc \
 	QoreGetOpt.cc \
 	FtpClient.cc \

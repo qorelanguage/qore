@@ -43,7 +43,7 @@ class myQValidator : public QValidator, public QoreQValidatorExtension
 #undef QOREQTYPE
 
    public:
-      DLLLOCAL myQValidator(Object *obj, QObject* parent) : QValidator(parent), QoreQValidatorExtension(obj->getClass())
+      DLLLOCAL myQValidator(QoreObject *obj, QObject* parent) : QValidator(parent), QoreQValidatorExtension(obj->getClass())
       {
          init(obj);
       }
@@ -54,7 +54,7 @@ class QoreQValidator : public QoreAbstractQValidator
    public:
       QPointer<myQValidator> qobj;
 
-      DLLLOCAL QoreQValidator(Object *obj, QObject* parent) : qobj(new myQValidator(obj, parent))
+      DLLLOCAL QoreQValidator(QoreObject *obj, QObject* parent) : qobj(new myQValidator(obj, parent))
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const
@@ -72,10 +72,10 @@ class QoreQValidator : public QoreAbstractQValidator
 class QoreQtQValidator : public QoreAbstractQValidator
 {
    public:
-      Object *qore_obj;
+      QoreObject *qore_obj;
       QPointer<QValidator> qobj;
 
-      DLLLOCAL QoreQtQValidator(Object *obj, QValidator *qv) : qore_obj(obj), qobj(qv)
+      DLLLOCAL QoreQtQValidator(QoreObject *obj, QValidator *qv) : qore_obj(obj), qobj(qv)
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

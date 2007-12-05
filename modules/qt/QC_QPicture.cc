@@ -27,7 +27,7 @@
 int CID_QPICTURE;
 QoreClass *QC_QPicture = 0;
 
-static void QPICTURE_constructor(class Object *self, class QoreNode *params, ExceptionSink *xsink)
+static void QPICTURE_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreQPicture *qp;
    QoreNode *p = get_param(params, 0);
@@ -53,7 +53,7 @@ static void QPICTURE_constructor(class Object *self, class QoreNode *params, Exc
    self->setPrivate(CID_QPICTURE, qp);
 }
 
-static void QPICTURE_copy(class Object *self, class Object *old, class QoreQPicture *qlcdn, ExceptionSink *xsink)
+static void QPICTURE_copy(class QoreObject *self, class QoreObject *old, class QoreQPicture *qlcdn, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QPICTURE, new QoreQPicture(*qlcdn));
    //xsink->raiseException("QPICTURE-COPY-ERROR", "objects of this class cannot be copied");
@@ -61,16 +61,16 @@ static void QPICTURE_copy(class Object *self, class Object *old, class QoreQPict
 
 
 //QRect boundingRect () const
-static QoreNode *QPICTURE_boundingRect(Object *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPICTURE_boundingRect(QoreObject *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreQRect *q_qr = new QoreQRect(qp->boundingRect());
-   Object *o_qr = new Object(QC_QRect, getProgram());
+   QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
    return new QoreNode(o_qr);
 }
 
 //const char * data () const
-static QoreNode *QPICTURE_data(Object *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPICTURE_data(QoreObject *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
 {
    const char *ptr = qp->data();
    if (!ptr)
@@ -82,20 +82,20 @@ static QoreNode *QPICTURE_data(Object *self, QoreQPicture *qp, QoreNode *params,
 }
 
 //DataPtr & data_ptr ()
-//static QoreNode *QPICTURE_data_ptr(Object *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPICTURE_data_ptr(QoreObject *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->data_ptr());
 //}
 
 //bool isNull () const
-static QoreNode *QPICTURE_isNull(Object *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPICTURE_isNull(QoreObject *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->isNull());
 }
 
 //bool load ( const QString & fileName, const char * format = 0 )
 //bool load ( QIODevice * dev, const char * format = 0 )
-static QoreNode *QPICTURE_load(Object *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPICTURE_load(QoreObject *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -109,7 +109,7 @@ static QoreNode *QPICTURE_load(Object *self, QoreQPicture *qp, QoreNode *params,
 }
 
 //bool play ( QPainter * painter )
-static QoreNode *QPICTURE_play(Object *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPICTURE_play(QoreObject *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)p->val.object->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
@@ -124,7 +124,7 @@ static QoreNode *QPICTURE_play(Object *self, QoreQPicture *qp, QoreNode *params,
 
 //bool save ( const QString & fileName, const char * format = 0 )
 //bool save ( QIODevice * dev, const char * format = 0 )
-static QoreNode *QPICTURE_save(Object *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPICTURE_save(QoreObject *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -138,7 +138,7 @@ static QoreNode *QPICTURE_save(Object *self, QoreQPicture *qp, QoreNode *params,
 }
 
 //void setBoundingRect ( const QRect & r )
-static QoreNode *QPICTURE_setBoundingRect(Object *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPICTURE_setBoundingRect(QoreObject *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQRect *r = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
@@ -153,7 +153,7 @@ static QoreNode *QPICTURE_setBoundingRect(Object *self, QoreQPicture *qp, QoreNo
 }
 
 //virtual void setData ( const char * data, uint size )
-static QoreNode *QPICTURE_setData(Object *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPICTURE_setData(QoreObject *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -168,7 +168,7 @@ static QoreNode *QPICTURE_setData(Object *self, QoreQPicture *qp, QoreNode *para
 }
 
 //uint size () const
-static QoreNode *QPICTURE_size(Object *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPICTURE_size(QoreObject *self, QoreQPicture *qp, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->size());
 }

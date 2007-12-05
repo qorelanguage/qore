@@ -29,12 +29,12 @@ class QoreClass *QC_QStyleOptionSlider = 0;
 
 //QStyleOptionSlider ()
 //QStyleOptionSlider ( const QStyleOptionSlider & other )
-static void QSTYLEOPTIONSLIDER_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONSLIDER_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONSLIDER, new QoreQStyleOptionSlider());
 }
 
-static void QSTYLEOPTIONSLIDER_copy(class Object *self, class Object *old, class QoreQStyleOptionSlider *qsos, ExceptionSink *xsink)
+static void QSTYLEOPTIONSLIDER_copy(class QoreObject *self, class QoreObject *old, class QoreQStyleOptionSlider *qsos, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONSLIDER, new QoreQStyleOptionSlider(*qsos));
 }

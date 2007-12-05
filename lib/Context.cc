@@ -176,7 +176,7 @@ class QoreNode *Context::getRow(class ExceptionSink *xsink)
    if (!value)
       return NULL;
 
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
 
    class HashIterator hi(value->val.hash);
    while (hi.next())

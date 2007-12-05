@@ -28,7 +28,7 @@ int CID_QCHILDEVENT;
 class QoreClass *QC_QChildEvent = 0;
 
 //QChildEvent ( Type type, QObject * child )
-static void QCHILDEVENT_constructor(Object *self, QoreNode *params, ExceptionSink *xsink)
+static void QCHILDEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QChildEvent::Type type = (QChildEvent::Type)(p ? p->getAsInt() : 0);
@@ -44,31 +44,31 @@ static void QCHILDEVENT_constructor(Object *self, QoreNode *params, ExceptionSin
    return;
 }
 
-static void QCHILDEVENT_copy(class Object *self, class Object *old, class QoreQChildEvent *qce, ExceptionSink *xsink)
+static void QCHILDEVENT_copy(class QoreObject *self, class QoreObject *old, class QoreQChildEvent *qce, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QCHILDEVENT, new QoreQChildEvent(*qce));
 }
 
 //bool added () const
-static QoreNode *QCHILDEVENT_added(Object *self, QoreQChildEvent *qce, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHILDEVENT_added(QoreObject *self, QoreQChildEvent *qce, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qce->added());
 }
 
 //QObject * child () const
-static QoreNode *QCHILDEVENT_child(Object *self, QoreQChildEvent *qce, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHILDEVENT_child(QoreObject *self, QoreQChildEvent *qce, QoreNode *params, ExceptionSink *xsink)
 {
    return return_qobject(qce->child());
 }
 
 //bool polished () const
-static QoreNode *QCHILDEVENT_polished(Object *self, QoreQChildEvent *qce, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHILDEVENT_polished(QoreObject *self, QoreQChildEvent *qce, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qce->polished());
 }
 
 //bool removed () const
-static QoreNode *QCHILDEVENT_removed(Object *self, QoreQChildEvent *qce, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCHILDEVENT_removed(QoreObject *self, QoreQChildEvent *qce, QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qce->removed());
 }

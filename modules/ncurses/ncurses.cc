@@ -628,7 +628,7 @@ static class QoreNode *f_getmouse(class QoreNode *params, class ExceptionSink *x
    if (getmouse(&event))
       return NULL;
 
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("id",     new QoreNode((int64)event.id), NULL);
    h->setKeyValue("x",      new QoreNode((int64)event.x), NULL);
    h->setKeyValue("y",      new QoreNode((int64)event.y), NULL);

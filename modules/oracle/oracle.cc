@@ -476,9 +476,9 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
    return NULL;
 }
 
-static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class ExceptionSink *xsink)
+static class QoreHash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class ExceptionSink *xsink)
 {
-   class Hash *h = NULL;
+   class QoreHash *h = NULL;
    // retrieve results from statement and return hash
    
    // setup column structure for output columns
@@ -487,7 +487,7 @@ static class Hash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Except
    if (!xsink->isEvent())
    {
       // allocate result hash for result value
-      h = new Hash();
+      h = new QoreHash();
       
       // create hash elements for each column, assign empty list
       class OraColumn *w = columns.getHead();
@@ -587,7 +587,7 @@ static class QoreList *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *d
 	 //printd(5, "ora_fetch_horizontal(): l=%08p, %d column(s), got row %d\n", l, columns.size(), l->size());
 
 	 // set up hash for row
-	 class Hash *h = new Hash();
+	 class QoreHash *h = new QoreHash();
 
 	 // copy data or perform per-value processing if needed
 	 class OraColumn *w = columns.getHead();
@@ -991,7 +991,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
       return new QoreNode(buf.f8);
    else if (buftype == SQLT_RSET)
    {
-      class Hash *h = ora_fetch((OCIStmt *)buf.ptr, ds, xsink);
+      class QoreHash *h = ora_fetch((OCIStmt *)buf.ptr, ds, xsink);
       return h ? new QoreNode(h) : NULL;
    }
    else if (buftype == SQLT_LVB)
@@ -1040,7 +1040,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
 
 class QoreNode *OraBindGroup::getOutputHash(class ExceptionSink *xsink)
 {
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    
    class OraBindNode *w = head;
    while (w)
@@ -1092,7 +1092,7 @@ class QoreNode *OraBindGroup::select(class ExceptionSink *xsink)
    if (status)
       ora_checkerr(d_ora->errhp, status, "OraBindGroup::select()", ds, xsink);
 
-   class Hash *h = NULL;
+   class QoreHash *h = NULL;
    if (!xsink->isEvent())
       h = ora_fetch(stmthp, ds, xsink);
 
@@ -1359,7 +1359,7 @@ static class QoreNode *oracle_get_client_version(class Datasource *ds, class Exc
    sword major, minor, update, patch, port_update;
 
    OCIClientVersion(&major, &minor, &update, &patch, &port_update);
-   class Hash *h = new Hash();
+   class QoreHash *h = new QoreHash();
    h->setKeyValue("major", new QoreNode((int64)major), NULL);
    h->setKeyValue("minor", new QoreNode((int64)minor), NULL);
    h->setKeyValue("update", new QoreNode((int64)update), NULL);

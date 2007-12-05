@@ -24,10 +24,7 @@
 
 #define QORE_ORACLE_H
 
-#include <qore/common.h>
-#include <qore/Exception.h>
-#include <qore/support.h>
-#include <qore/DBI.h>
+#include <qore/Qore.h>
 
 #include "oracle-config.h"
 
@@ -259,7 +256,7 @@ class OraBindGroup {
       class Datasource *ds;
       bool hasOutput;
 
-      DLLLOCAL void parseOld(class Hash *h, class ExceptionSink *xsink);
+      DLLLOCAL void parseOld(class QoreHash *h, class ExceptionSink *xsink);
       DLLLOCAL void parseQuery(class QoreList *args, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getOutputHash(class ExceptionSink *xsink);
 
