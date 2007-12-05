@@ -7,9 +7,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/Exception.h>
-#include <qore/charset.h>
-#include <qore/QoreNode.h>
 
 #include "command-line.h"
 
