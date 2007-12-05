@@ -25,10 +25,10 @@
 #include <qore/config.h>
 #include <qore/support.h>
 #include <qore/QoreString.h>
-#include <qore/Exception.h>
+#include <qore/QoreException.h>
 #include <qore/Namespace.h>
 #include <qore/ModuleManager.h>
-#include <qore/Object.h>
+#include <qore/QoreObject.h>
 #include <qore/minitest.hpp>
 #include <qore/BuiltinFunctionList.h>
 #include <qore/QoreNode.h>
