@@ -58,6 +58,9 @@ struct fr_user_s {
 
 class FunctionReference : public AbstractFunctionReference
 {
+   private:
+      DLLLOCAL virtual ~FunctionReference();
+
    public:
       union {
 	    struct fr_user_s user;
@@ -70,7 +73,6 @@ class FunctionReference : public AbstractFunctionReference
       DLLLOCAL FunctionReference(char *n_str);
       DLLLOCAL FunctionReference(class UserFunction *n_uf);
       DLLLOCAL FunctionReference(class UserFunction *n_uf, class QoreProgram *pgm);
-      DLLLOCAL virtual ~FunctionReference();
       DLLLOCAL virtual void del(class ExceptionSink *xsink);
       DLLLOCAL virtual class QoreNode *exec(class QoreNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual void resolve();

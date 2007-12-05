@@ -93,7 +93,7 @@ class KeyList
 
 inline void Object::init(class QoreClass *oc, class QoreProgram *p)
 {
-   printd(1, "Object::Object() this=%08p, pgm=%08p, class=%s\n", this, pgm, oc->getName());
+   printd(5, "Object::Object() this=%08p, pgm=%08p, class=%s, refs 0->1\n", this, pgm, oc->getName());
 
    status = OS_OK;
 
@@ -127,7 +127,7 @@ Object::Object(class QoreClass *oc, class QoreProgram *p, class Hash *h)
 Object::~Object()
 {
    //tracein("Object::~Object()");
-   printd(1, "Object::~Object() this=%08p, pgm=%08p, class=%s\n", this, pgm, myclass->getName());
+   printd(5, "Object::~Object() this=%08p, pgm=%08p, class=%s\n", this, pgm, myclass->getName());
    assert(!pgm);
    assert(!data);
    assert(!privateData);
@@ -161,13 +161,13 @@ bool Object::isSystemObject() const
 
 void Object::tRef()
 {
-   printd(5, "Object::tRef(this=%08p) tref %d->%d\n", this, tRefs.reference_count(), tRefs.reference_count() + 1);
+   printd(5, "Object::tRef(this=%08p) class=%s, tref %d->%d\n", this, myclass->getName(), tRefs.reference_count(), tRefs.reference_count() + 1);
    tRefs.ROreference();
 }
 
 void Object::tDeref()
 {
-   printd(5, "Object::tDeref(this=%08p) tref %d->%d\n", this, tRefs.reference_count(), tRefs.reference_count() - 1);
+   printd(5, "Object::tDeref(this=%08p) class=%s, tref %d->%d\n", this, myclass->getName(), tRefs.reference_count(), tRefs.reference_count() - 1);
    if (tRefs.ROdereference())
       delete this;
 }
@@ -226,7 +226,7 @@ void Object::uninstantiateLVar(class ExceptionSink *xsink)
 
 void Object::ref()
 {
-   printd(5, "Object::ref(this=%08p) %d->%d\n", this, references, references + 1);
+   printd(5, "Object::ref(this=%08p) class=%s, %d->%d\n", this, myclass->getName(), references, references + 1);
    ROreference();   // increment destructor-relevant references
 }
 
@@ -429,7 +429,7 @@ void Object::dereference(ExceptionSink *xsink)
 	 else
 	 {
 	    g.exit();
-	    printd(5, "Object::dereference() %08p data=%08p status=%d\n", this, data, status);
+	    printd(5, "Object::dereference() %08p class=%s data=%08p status=%d\n", this, myclass->getName(), data, status);
 	 }
 	 tDeref();
       }

@@ -680,17 +680,17 @@ CodeContextHelper::CodeContextHelper(const char *code, class Object *obj, class 
       obj->ref();
    td->current_code = code;
    td->current_obj = obj;
-   //printd(0, "CodeContextHelper::CodeContextHelper(%s, %08p) old=%s, %08p\n", code ? code : "null", obj, old_code ? old_code : "null", old_obj);
+   //printd(5, "CodeContextHelper::CodeContextHelper(%s, %08p) this=%08p, old=%s, %08p\n", code ? code : "null", obj, this, old_code ? old_code : "null", old_obj);
 }
 
 CodeContextHelper::~CodeContextHelper()
 {
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
+   //printd(5, "CodeContextHelper::~CodeContextHelper() this=%08p current=(%s, %08p) restoring %s, %08p\n", this, td->current_code ? td->current_code : "null", td->current_obj, old_code ? old_code : "null", old_obj);
    if (td->current_obj)
       td->current_obj->dereference(xsink);
    td->current_code = old_code;
    td->current_obj = old_obj;
-   //printd(0, "CodeContextHelper::~CodeContextHelper() restoring %s, %08p\n", old_code ? old_code : "null", old_obj);
 }
 
 ArgvContextHelper::ArgvContextHelper(lvh_t argvid)

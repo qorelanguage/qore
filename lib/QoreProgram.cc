@@ -100,12 +100,12 @@ inline void SBNode::reset()
 
 QoreProgram::~QoreProgram()
 {
-   //printd(5, "QoreProgram::~QoreProgram() this=%08p\n", this);
+   printd(5, "QoreProgram::~QoreProgram() this=%08p\n", this);
 }
 
 void QoreProgram::init()
 {
-   //printd(5, "QoreProgram::QoreProgram() (init()) this=%08p\n", this);
+   printd(5, "QoreProgram::QoreProgram() (init()) this=%08p\n", this);
 #ifdef DEBUG
    parseSink = NULL;
 #endif

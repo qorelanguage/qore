@@ -469,9 +469,11 @@ void QoreNode::deref(ExceptionSink *xsink)
    //tracein("QoreNode::deref()");
 #ifdef DEBUG
 #if TRACK_REFS
-   printd(5, "QoreNode::deref() %08p type=%s (%d->%d)\n", this, type->getName(), references, references - 1);
-   if (type == NT_STRING) printd(5, "QoreNode::deref() %08p string='%s'\n", this, val.String ? val.String->getBuffer() : "(null)");
-   else if (type == NT_OBJECT) printd(5, "QoreNode::deref() %08p object=%08p class=%s\n", this, val.object, val.object->getClass()->getName());
+   if (type == NT_STRING) printd(5, "QoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, val.String ? val.String->getBuffer() : "(null)");
+   else if (type == NT_OBJECT) printd(5, "QoreNode::deref() %08p (%d->%d) object=%08p class=%s\n", this, references, references - 1, val.object, val.object->getClass()->getName());
+   else
+      printd(5, "QoreNode::deref() %08p type=%s (%d->%d)\n", this, type->getName(), references, references - 1);
+
 /*
    else if (type == NT_HASH && references <= 51200 && references > 0) { 
       QoreString tmp; 
