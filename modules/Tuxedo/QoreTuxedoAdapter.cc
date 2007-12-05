@@ -1598,7 +1598,7 @@ void QoreTuxedoAdapter::remove_pending_async_call(int handle)
 }
 
 //------------------------------------------------------------------------------
-Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is_fml32, ExceptionSink* xsink)
+QoreHash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is_fml32, ExceptionSink* xsink)
 {
   vector<string> all_names = read_names_from_all_fml_description_files(files,xsink);
   if (*xsink) return 0;
@@ -1644,7 +1644,7 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is
 }
 
 //------------------------------------------------------------------------------
-Hash* QoreTuxedoAdapter::loadFmlDescription(const string& file, bool is_fml32, ExceptionSink* xsink)
+QoreHash* QoreTuxedoAdapter::loadFmlDescription(const string& file, bool is_fml32, ExceptionSink* xsink)
 {
   vector<string> files;
   files.push_back(file);
@@ -1652,7 +1652,7 @@ Hash* QoreTuxedoAdapter::loadFmlDescription(const string& file, bool is_fml32, E
 }
 
 //------------------------------------------------------------------------------
-Hash* QoreTuxedoAdapter::generateFmlDescription(int base, QoreHash* typed_names, bool is_fml32, ExceptionSink* xsink)
+QoreHash* QoreTuxedoAdapter::generateFmlDescription(int base, QoreHash* typed_names, bool is_fml32, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"LOAD-FML-DESCRIPTION-ERROR";
 
@@ -2119,7 +2119,7 @@ void QoreTuxedoAdapter::setFmlDataToSend(QoreHash* description_info, QoreHash* d
 
 
 //------------------------------------------------------------------------------
-Hash* QoreTuxedoAdapter::getFmlDataFromBuffer(QoreHash* description_info, bool is_fml32, 
+QoreHash* QoreTuxedoAdapter::getFmlDataFromBuffer(QoreHash* description_info, bool is_fml32, 
   ExceptionSink* xsink, const char* buffer, long buffer_size, const char* err_name)
 {
  
