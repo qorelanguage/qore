@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/AbstractStatement.h>
+#include <qore/intern/AbstractStatement.h>
 
 #include <qore/QoreSignal.h>
 

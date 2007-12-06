@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_NULL.h>
+#include <qore/intern/QT_NULL.h>
 
 class QoreNode *NULL_DefaultValue()
 {

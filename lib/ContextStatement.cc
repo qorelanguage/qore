@@ -21,9 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ContextStatement.h>
-#include <qore/Context.h>
-#include <qore/Variable.h>
+#include <qore/intern/ContextStatement.h>
 
 ContextMod::ContextMod(int t, class QoreNode *n)
 {

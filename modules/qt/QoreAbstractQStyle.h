@@ -68,7 +68,7 @@ class QoreAbstractQStyle : public QoreAbstractQObject
 class QoreQStyleExtension : public QoreQObjectExtension
 {
    protected:
-      Method *m_drawComplexControl, *m_drawControl, *m_drawItemPixmap, *m_drawItemText, *m_drawPrimitive, 
+      QoreMethod *m_drawComplexControl, *m_drawControl, *m_drawItemPixmap, *m_drawItemText, *m_drawPrimitive, 
 	 *m_generatedIconPixmap, *m_hitTestComplexControl, *m_itemPixmapRect, *m_itemTextRect, *m_pixelMetric,
 	 *m_polish, *m_sizeFromContents, *m_standardPalette, *m_standardPixmap, *m_styleHint, 
 	 *m_subControlRect, *m_subElementRect, *m_unpolish;

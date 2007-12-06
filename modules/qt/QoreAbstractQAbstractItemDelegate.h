@@ -50,7 +50,7 @@ class QoreAbstractQAbstractItemDelegate : public QoreAbstractQObject
 class QoreQAbstractItemDelegateExtension : public QoreQObjectExtension
 {
    protected:
-      Method *m_createEditor, *m_editorEvent, *m_paint, *m_setEditorData, 
+      QoreMethod *m_createEditor, *m_editorEvent, *m_paint, *m_setEditorData, 
 	 *m_setModelData, *m_sizeHint, *m_updateEditorGeometry;
 
       DLLLOCAL QoreQAbstractItemDelegateExtension(QoreClass *qc) : QoreQObjectExtension(qc)

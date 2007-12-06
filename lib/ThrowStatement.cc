@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ThrowStatement.h>
+#include <qore/intern/ThrowStatement.h>
 
 ThrowStatement::ThrowStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
 {

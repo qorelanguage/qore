@@ -32,6 +32,7 @@
 #include <qore/QoreNode.h>
 #include <qore/QoreNet.h>
 #include <qore/QoreHash.h>
+#include <qore/AbstractPrivateData.h>
 #include <qore/QoreObject.h>
 #include <qore/Namespace.h>
 #include <qore/QoreException.h>
@@ -46,23 +47,26 @@
 #include <qore/qore_thread.h>
 #include <qore/LockedObject.h>
 #include <qore/DBI.h>
-#include <qore/Datasource.h>
 #include <qore/QoreClass.h>
 #include <qore/ScopeGuard.h>
 #include <qore/ReferenceHolder.h>
 #include <qore/Environment.h>
+#include <qore/AutoVLock.h>
 
 // include private definitions if compiling the library
 #ifdef _QORE_LIB_INTERN
 #include <qore/Function.h>
-#include <qore/AbstractStatement.h>
+#include <qore/intern/AbstractStatement.h>
 #include <qore/Variable.h>
 #include <qore/NamedScope.h>
 #include <qore/ScopedObjectCall.h>
-#include <qore/ClassRef.h>
-#include <qore/Context.h>
+#include <qore/intern/ClassRef.h>
+#include <qore/intern/Context.h>
 #include <qore/Operator.h>
 #include <qore/Tree.h>
+#include <qore/Datasource.h>
+#include <qore/VRMutex.h>
+#include <qore/intern/VLock.h>
 
 DLLLOCAL extern int qore_library_options;
 #endif

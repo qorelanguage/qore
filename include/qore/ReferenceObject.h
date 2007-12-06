@@ -27,18 +27,13 @@
 #include <qore/common.h>
 #include <qore/macros.h>
 
-#if !defined(HAVE_ATOMIC_MACROS)
-#include <qore/LockedObject.h>
-#endif
+struct qore_ro_private;
 
 class ReferenceObject 
 {
    protected:
       int references;
-#if !defined(HAVE_ATOMIC_MACROS)
-      // for atomic reference updates
-      class LockedObject mRO;
-#endif
+      struct qore_ro_private *priv;
 
    public:
       DLLEXPORT ReferenceObject();

@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_io.h>
+#include <qore/intern/ql_io.h>
 
 #include <string.h>
 #include <stdio.h>

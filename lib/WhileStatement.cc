@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/WhileStatement.h>
+#include <qore/intern/WhileStatement.h>
 #include <qore/Variable.h>
 
 WhileStatement::WhileStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *cd) : AbstractStatement(start_line, end_line)

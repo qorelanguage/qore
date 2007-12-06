@@ -21,19 +21,11 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/StatementBlock.h>
-#include <qore/Variable.h>
-#include <qore/Function.h>
-#include <qore/Context.h>
-#include <qore/Operator.h>
+#include <qore/intern/StatementBlock.h>
 #include <qore/ParserSupport.h>
 #include <qore/QoreWarnings.h>
 #include <qore/minitest.hpp>
-#include <qore/Tree.h>
-#include <qore/Find.h>
-#include <qore/ScopedObjectCall.h>
-#include <qore/ClassRef.h>
-#include <qore/NamedScope.h>
+#include <qore/intern/Find.h>
 
 #include <stdio.h>
 #include <stdlib.h>

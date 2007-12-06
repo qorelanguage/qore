@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/DBI.h>
 
-#include <qore/QC_DatasourcePool.h>
+#include <qore/intern/QC_DatasourcePool.h>
 
 int CID_DATASOURCEPOOL;
 

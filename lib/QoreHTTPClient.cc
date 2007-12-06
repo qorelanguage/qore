@@ -29,7 +29,7 @@
 #include <qore/Qore.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreHTTPClient.h>
-#include <qore/ql_misc.h>
+#include <qore/intern/ql_misc.h>
 #include <qore/minitest.hpp>
 
 #include <ctype.h>

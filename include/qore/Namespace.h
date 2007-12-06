@@ -160,7 +160,7 @@ class RootNamespace : public Namespace
       // returns 0 for success, non-zero for error
       DLLLOCAL int resolveScopedConstant(class QoreNode **, int level) const;
       // returns 0 for success, non-zero for error
-      DLLLOCAL int addMethodToClass(class NamedScope *name, class Method *qcmethod, class BCAList *bcal);
+      DLLLOCAL int addMethodToClass(class NamedScope *name, class QoreMethod *qcmethod, class BCAList *bcal);
 };
 
 #endif // QORE_NAMESPACE_H

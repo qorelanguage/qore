@@ -23,8 +23,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Datasource.h>
-#include <qore/QC_DatasourcePool.h>
+#include <qore/intern/QC_Datasource.h>
+#include <qore/intern/QC_DatasourcePool.h>
 
 #include <string.h>
 #include <stdio.h>

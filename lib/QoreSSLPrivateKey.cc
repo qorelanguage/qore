@@ -21,42 +21,54 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/QC_SSLPrivateKey.h>
+#include <qore/QoreSSLPrivateKey.h>
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(EVP_PKEY *p) : pk(p) 
+struct qore_sslpk_private {
+      EVP_PKEY *pk;
+
+      DLLLOCAL qore_sslpk_private(EVP_PKEY *p) : pk(p)
+      {
+      }
+      DLLLOCAL ~qore_sslpk_private()
+      {
+	 if (pk)
+	    EVP_PKEY_free(pk);
+      }
+};
+
+QoreSSLPrivateKey::QoreSSLPrivateKey(EVP_PKEY *p) : priv(new qore_sslpk_private(p)) 
 {
 }
 
 QoreSSLPrivateKey::~QoreSSLPrivateKey()
 {
-   if (pk)
-      EVP_PKEY_free(pk);
+   delete priv;
 }
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, char *pp, class ExceptionSink *xsink)
+QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, char *pp, class ExceptionSink *xsink) : priv(new qore_sslpk_private(0))
 {
-   pk = NULL;
+   priv->pk = 0;
    FILE *fp = fopen(fn, "r");
    if (!fp)
    {
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "'%s': %s", fn, strerror(errno));
       return;
    }
-   PEM_read_PrivateKey(fp, &pk, NULL, pp ? pp : (void *)"_none_");
+   PEM_read_PrivateKey(fp, &priv->pk, NULL, pp ? pp : (void *)"_none_");
    fclose(fp);
-   if (!pk)
+   if (!priv->pk)
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing private key file '%s'", fn);
 }
 
 EVP_PKEY *QoreSSLPrivateKey::getData() const 
 { 
-   return pk; 
+   return priv->pk; 
 }
 
 class QoreString *QoreSSLPrivateKey::getPEM(class ExceptionSink *xsink) const
 {
    BIO *bp = BIO_new(BIO_s_mem());
-   if (!PEM_write_bio_PrivateKey(bp, pk, NULL, NULL, 0, NULL, NULL))
+   if (!PEM_write_bio_PrivateKey(bp, priv->pk, NULL, NULL, 0, NULL, NULL))
    {
       BIO_free(bp);
       xsink->raiseException("SSLPRIVATEKEY-ERROR", "could not create PEM string from private key data");
@@ -72,7 +84,7 @@ class QoreString *QoreSSLPrivateKey::getPEM(class ExceptionSink *xsink) const
 
 char *QoreSSLPrivateKey::getType() const
 {
-   switch (EVP_PKEY_type(pk->type))
+   switch (EVP_PKEY_type(priv->pk->type))
    {
 #ifndef OPENSSL_NO_RSA
       case EVP_PKEY_RSA:
@@ -103,19 +115,19 @@ char *QoreSSLPrivateKey::getType() const
 
 int64 QoreSSLPrivateKey::getVersion() const
 {
-   switch (EVP_PKEY_type(pk->type))
+   switch (EVP_PKEY_type(priv->pk->type))
    {
 #ifndef OPENSSL_NO_RSA
       case EVP_PKEY_RSA:
-	 return (int64)pk->pkey.rsa->version + 1;
+	 return (int64)priv->pk->pkey.rsa->version + 1;
 #endif
 #ifndef OPENSSL_NO_DSA
       case EVP_PKEY_DSA:
-	 return (int64)pk->pkey.dsa->version + 1;
+	 return (int64)priv->pk->pkey.dsa->version + 1;
 #endif
 #ifndef OPENSSL_NO_DH
       case EVP_PKEY_DH:
-	 return (int64)pk->pkey.dh->version + 1;
+	 return (int64)priv->pk->pkey.dh->version + 1;
 #endif
       default:
 	 return 0;
@@ -125,19 +137,19 @@ int64 QoreSSLPrivateKey::getVersion() const
 // returns the length in bits
 int64 QoreSSLPrivateKey::getBitLength() const
 {
-   switch (EVP_PKEY_type(pk->type))
+   switch (EVP_PKEY_type(priv->pk->type))
    {
 #ifndef OPENSSL_NO_RSA
       case EVP_PKEY_RSA:
-	 return (int64)RSA_size(pk->pkey.rsa) * 8;
+	 return (int64)RSA_size(priv->pk->pkey.rsa) * 8;
 #endif
 #ifndef OPENSSL_NO_DSA
       case EVP_PKEY_DSA:
-	 return (int64)DSA_size(pk->pkey.dsa) * 8;
+	 return (int64)DSA_size(priv->pk->pkey.dsa) * 8;
 #endif
 #ifndef OPENSSL_NO_DH
       case EVP_PKEY_DH:
-	 return (int64)DH_size(pk->pkey.dh) * 8;
+	 return (int64)DH_size(priv->pk->pkey.dh) * 8;
 #endif
       default:
 	 return 0;

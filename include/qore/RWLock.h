@@ -26,8 +26,8 @@
 
 #define _QORE_CLASS_RWLOCK
 
-#include <qore/AbstractSmartLock.h>
-#include <qore/VLock.h>
+#include <qore/intern/AbstractSmartLock.h>
+#include <qore/intern/VLock.h>
 
 #include <map>
 

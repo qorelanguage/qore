@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/DoWhileStatement.h>
+#include <qore/intern/DoWhileStatement.h>
 
 int DoWhileStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {

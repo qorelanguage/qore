@@ -21,36 +21,36 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ErrnoConstants.h>
+#include <qore/intern/ErrnoConstants.h>
 #include <qore/TypeConstants.h>
 #include <qore/ParserSupport.h>
 #include <qore/Function.h>
-#include <qore/CallStack.h>
+#include <qore/intern/CallStack.h>
 #include <qore/QoreRegexBase.h>
-#include <qore/AutoNamespaceList.h>
+#include <qore/intern/AutoNamespaceList.h>
 #include <qore/ssl_constants.h>
 #include <qore/NamedScope.h>
 #include <qore/QoreFile.h>
 #include <qore/minitest.hpp>
-#include <qore/ConstantList.h>
+#include <qore/intern/ConstantList.h>
 #include <qore/QoreClassList.h>
 #include <qore/QoreSignal.h>
 
 // include files for default object classes
-#include <qore/QC_Socket.h>
-#include <qore/QC_SSLCertificate.h>
-#include <qore/QC_SSLPrivateKey.h>
-#include <qore/QC_Program.h>
-#include <qore/QC_File.h>
-#include <qore/QC_GetOpt.h>
-#include <qore/QC_FtpClient.h>
-#include <qore/QC_HTTPClient.h>
-#include <qore/QC_XmlRpcClient.h>
-#include <qore/QC_JsonRpcClient.h>
-#include <qore/QC_AutoLock.h>
-#include <qore/QC_AutoGate.h>
-#include <qore/QC_AutoReadLock.h>
-#include <qore/QC_AutoWriteLock.h>
+#include <qore/intern/QC_Socket.h>
+#include <qore/intern/QC_SSLCertificate.h>
+#include <qore/intern/QC_SSLPrivateKey.h>
+#include <qore/intern/QC_Program.h>
+#include <qore/intern/QC_File.h>
+#include <qore/intern/QC_GetOpt.h>
+#include <qore/intern/QC_FtpClient.h>
+#include <qore/intern/QC_HTTPClient.h>
+#include <qore/intern/QC_XmlRpcClient.h>
+#include <qore/intern/QC_JsonRpcClient.h>
+#include <qore/intern/QC_AutoLock.h>
+#include <qore/intern/QC_AutoGate.h>
+#include <qore/intern/QC_AutoReadLock.h>
+#include <qore/intern/QC_AutoWriteLock.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -857,7 +857,7 @@ class QoreNode *get_file_constant(class QoreClass *fc, int fd)
 }
 
 // returns 0 for success, non-zero return value means error
-int RootNamespace::addMethodToClass(class NamedScope *scname, class Method *qcmethod, class BCAList *bcal)
+int RootNamespace::addMethodToClass(class NamedScope *scname, class QoreMethod *qcmethod, class BCAList *bcal)
 {
    // find class
    //class QoreClassList *plist;

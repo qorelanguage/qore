@@ -21,15 +21,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/Operator.h>
-#include <qore/Variable.h>
-#include <qore/Function.h>
-#include <qore/Context.h>
 #include <qore/RegexSubst.h>
 #include <qore/RegexTrans.h>
 #include <qore/QoreRegex.h>
-#include <qore/ScopedObjectCall.h>
-#include <qore/ClassRef.h>
 
 #include <stdio.h>
 #include <string.h>

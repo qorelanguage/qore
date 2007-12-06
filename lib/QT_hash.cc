@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_hash.h>
+#include <qore/intern/QT_hash.h>
 
 class QoreNode *hash_DefaultValue()
 {

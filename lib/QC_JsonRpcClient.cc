@@ -21,11 +21,11 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_JsonRpcClient.h>
-#include <qore/QC_HTTPClient.h>
+#include <qore/intern/QC_JsonRpcClient.h>
+#include <qore/intern/QC_HTTPClient.h>
 #include <qore/QoreHTTPClient.h>
 #include <qore/ReferenceHolder.h>
-#include <qore/ql_json.h>
+#include <qore/intern/ql_json.h>
 
 int CID_JSONRPCCLIENT;
 

@@ -23,7 +23,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/AutoNamespaceList.h>
+#include <qore/intern/AutoNamespaceList.h>
 
 #include <dlfcn.h>
 #include <errno.h>

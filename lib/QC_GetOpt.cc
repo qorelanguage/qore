@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_GetOpt.h>
+#include <qore/intern/QC_GetOpt.h>
 
 #include <string.h>
 

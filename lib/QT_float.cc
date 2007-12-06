@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_float.h>
+#include <qore/intern/QT_float.h>
 
 class QoreNode *float_DefaultValue()
 {

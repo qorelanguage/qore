@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_boolean.h>
+#include <qore/intern/QT_boolean.h>
 
 class QoreNode *boolean_DefaultValue()
 {

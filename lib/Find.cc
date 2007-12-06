@@ -21,8 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/Find.h>
-#include <qore/Context.h>
+#include <qore/intern/Find.h>
 
 Find::Find(class QoreNode *expr, class QoreNode *find_expr, class QoreNode *w)
 {

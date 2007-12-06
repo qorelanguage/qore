@@ -22,25 +22,25 @@
 
 #include <qore/Qore.h>
 
-#include <qore/ql_io.h>
-#include <qore/ql_time.h>
-#include <qore/ql_lib.h>
-#include <qore/ql_math.h>
-#include <qore/ql_type.h>
-#include <qore/ql_env.h>
-#include <qore/ql_string.h>
-#include <qore/ql_pwd.h>
-#include <qore/ql_misc.h>
-#include <qore/ql_list.h>
-#include <qore/ql_xml.h>
-#include <qore/ql_json.h>
-#include <qore/ql_thread.h>
-#include <qore/ql_crypto.h>
-#include <qore/ql_object.h>
-#include <qore/ql_file.h>
+#include <qore/intern/ql_io.h>
+#include <qore/intern/ql_time.h>
+#include <qore/intern/ql_lib.h>
+#include <qore/intern/ql_math.h>
+#include <qore/intern/ql_type.h>
+#include <qore/intern/ql_env.h>
+#include <qore/intern/ql_string.h>
+#include <qore/intern/ql_pwd.h>
+#include <qore/intern/ql_misc.h>
+#include <qore/intern/ql_list.h>
+#include <qore/intern/ql_xml.h>
+#include <qore/intern/ql_json.h>
+#include <qore/intern/ql_thread.h>
+#include <qore/intern/ql_crypto.h>
+#include <qore/intern/ql_object.h>
+#include <qore/intern/ql_file.h>
 
 #ifdef DEBUG
-#include <qore/ql_debug.h>
+#include <qore/intern/ql_debug.h>
 #endif // DEBUG
 
 #include <string.h>

@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/CallStack.h>
+#include <qore/intern/CallStack.h>
 
 #include <assert.h>
 

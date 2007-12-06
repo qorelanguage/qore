@@ -40,7 +40,7 @@
 class QoreQObjectExtension : public QoreQtEventDispatcher
 {
    protected:
-      Method *e_timerEvent, *e_childEvent;
+      QoreMethod *e_timerEvent, *e_childEvent;
 
    public:
       DLLLOCAL QoreQObjectExtension(QoreClass *qc)

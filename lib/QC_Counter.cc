@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Counter.h>
+#include <qore/intern/QC_Counter.h>
 
 int CID_COUNTER;
 

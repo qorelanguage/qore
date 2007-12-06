@@ -36,7 +36,7 @@ DLLLOCAL class QoreClass *initQDoubleValidatorClass(QoreClass *);
 class myQDoubleValidator : public QDoubleValidator, public QoreQValidatorExtension
 {
   private:
-      Method *m_setRange;
+      QoreMethod *m_setRange;
 
       void qdv_init(QoreClass *qc)
       {

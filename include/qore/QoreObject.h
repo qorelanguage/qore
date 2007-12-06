@@ -28,13 +28,6 @@
 
 #define _QORE_QOREOBJECT_H
 
-#include <qore/common.h>
-#include <qore/ReferenceObject.h>
-#include <qore/VRMutex.h>
-#include <qore/AbstractPrivateData.h>
-
-#include <stdio.h>
-
 #define OS_OK            0
 #define OS_DELETED       1
 #define OS_BEING_DELETED 2
@@ -46,18 +39,13 @@
 // only when tRefs reaches 0, meaning that no more pointers are pointing to this object will the object
 // actually be deleted
 
+struct qore_object_private;
+
 // note that any of the methods below that involve locking cannot be const methods
 class QoreObject : public ReferenceObject
 {
    private:
-      class QoreClass *myclass;
-      int status;
-      bool system_object;
-      class VRMutex g;
-      class KeyList *privateData;
-      class ReferenceObject tRefs;  // reference-references
-      class QoreHash *data;
-      class QoreProgram *pgm;
+      struct qore_object_private *priv;
 
       DLLLOCAL inline void init(class QoreClass *oc, class QoreProgram *p);
       // must only be called when inside the gate

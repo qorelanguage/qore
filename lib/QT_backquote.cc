@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_backquote.h>
+#include <qore/intern/QT_backquote.h>
 
 #include <stdio.h>
 #include <errno.h>

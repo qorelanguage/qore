@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ReturnStatement.h>
+#include <qore/intern/ReturnStatement.h>
 
 ReturnStatement::ReturnStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
 {

@@ -25,17 +25,17 @@
 #include <qore/Qore.h>
 #include <qore/ThreadResourceList.h>
 #ifdef DEBUG
-#include <qore/CallStack.h>
+#include <qore/intern/CallStack.h>
 #endif
 
 // to register object types
-#include <qore/QC_Queue.h>
-#include <qore/QC_Mutex.h>
-#include <qore/QC_Condition.h>
-#include <qore/QC_RWLock.h>
-#include <qore/QC_Gate.h>
-#include <qore/QC_Sequence.h>
-#include <qore/QC_Counter.h>
+#include <qore/intern/QC_Queue.h>
+#include <qore/intern/QC_Mutex.h>
+#include <qore/intern/QC_Condition.h>
+#include <qore/intern/QC_RWLock.h>
+#include <qore/intern/QC_Gate.h>
+#include <qore/intern/QC_Sequence.h>
+#include <qore/intern/QC_Counter.h>
 
 #include <pthread.h>
 #include <sys/time.h>

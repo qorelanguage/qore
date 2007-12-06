@@ -33,20 +33,20 @@ class BinaryObject {
       unsigned len;
 
    public:
-      inline BinaryObject(void *p = NULL, unsigned size = 0)
+      DLLEXPORT BinaryObject(void *p = NULL, unsigned size = 0)
       {
 	 ptr = p;
 	 len = size;
       }
 
-      inline ~BinaryObject()
+      DLLEXPORT ~BinaryObject()
       {
 	 if (ptr)
 	    free(ptr);
       }
 
       // returns 0 = equal, 1 = not equal
-      inline int compare(class BinaryObject *obj) const
+      DLLEXPORT int compare(class BinaryObject *obj) const
       {
 	 // if the sizes are not equal, then the objects can't be equal
 	 if (len != obj->len)
@@ -59,12 +59,12 @@ class BinaryObject {
 	 return memcmp(ptr, obj->ptr, len);
       }
 
-      inline unsigned size() const
+      DLLEXPORT unsigned size() const
       {
 	 return len;
       }
 
-      inline class BinaryObject *copy() const
+      DLLEXPORT class BinaryObject *copy() const
       {
 	 if (!len)
 	    return new BinaryObject();
@@ -74,24 +74,24 @@ class BinaryObject {
 	 return new BinaryObject(np, len);
       }
 
-      inline const void *getPtr() const
+      DLLEXPORT const void *getPtr() const
       {
 	 return ptr;
       }
 
-      inline void append(const void *nptr, unsigned size)
+      DLLEXPORT void append(const void *nptr, unsigned size)
       {
 	 ptr = realloc(ptr, len + size);
 	 memcpy((char *)ptr + len, nptr, size);
 	 len += size;
       }
 
-      inline void append(class BinaryObject *b)
+      DLLEXPORT void append(class BinaryObject *b)
       {
 	 append(b->ptr, b->len);
       }
 
-      inline void *giveBuffer()
+      DLLEXPORT void *giveBuffer()
       {
 	 void *p = ptr;
 	 ptr = NULL;

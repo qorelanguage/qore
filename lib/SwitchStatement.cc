@@ -21,8 +21,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/CaseNodeWithOperator.h>
-#include <qore/CaseNodeRegex.h>
+#include <qore/intern/CaseNodeWithOperator.h>
+#include <qore/intern/CaseNodeRegex.h>
 #include <qore/minitest.hpp>
 
 #ifdef DEBUG_TESTS

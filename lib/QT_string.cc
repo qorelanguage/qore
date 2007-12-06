@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_string.h>
+#include <qore/intern/QT_string.h>
 
 class QoreNode *string_DefaultValue()
 {

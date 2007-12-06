@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_SSLPrivateKey.h>
+#include <qore/intern/QC_SSLPrivateKey.h>
 
 #include <openssl/ssl.h>
 #include <openssl/pem.h>

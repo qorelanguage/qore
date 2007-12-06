@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ql_file.h>
+#include <qore/intern/ql_file.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Gate.h>
+#include <qore/intern/QC_Gate.h>
 
 // rmutex class is depcreated and will be removed in the next major release
 int CID_GATE, CID_RMUTEX;

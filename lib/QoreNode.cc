@@ -21,12 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ScopedObjectCall.h>
-#include <qore/ClassRef.h>
-#include <qore/Find.h>
-#include <qore/Operator.h>
-#include <qore/NamedScope.h>
-#include <qore/Tree.h>
+#include <qore/intern/Find.h>
 
 #include <string.h>
 #include <stdlib.h>

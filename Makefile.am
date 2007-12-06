@@ -13,61 +13,35 @@ noinst_HEADERS = \
 	include/qore/ObjectMethodReference.h \
 	include/qore/FunctionReference.h \
 	include/qore/LVarInstantiatorHelper.h \
-	include/qore/AutoNamespaceList.h \
 	include/qore/types/Number.h \
-	include/qore/Context.h \
 	include/qore/qore_thread.h \
 	include/qore/ThreadResourceList.h \
 	include/qore/AbstractThreadResource.h \
 	include/qore/QoreProgram.h \
 	include/qore/ReferenceObject.h \
 	include/qore/AbstractPrivateData.h \
-	include/qore/AbstractSmartLock.h \
 	include/qore/SmartMutex.h \
 	include/qore/QoreType.h \
 	include/qore/QoreList.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
 	include/qore/Function.h \
-	include/qore/BuiltinMethod.h \
 	include/qore/BuiltinFunctionList.h \
 	include/qore/UserFunctionList.h \
 	include/qore/QoreClassList.h \
-	include/qore/ConstantList.h \
 	include/qore/GlobalVariableList.h \
 	include/qore/ImportedFunctionList.h \
 	include/qore/Variable.h \
 	include/qore/TypeConstants.h \
 	include/qore/Sequence.h \
-	include/qore/CallStack.h \
 	include/qore/LockedObject.h \
 	include/qore/RWLock.h \
 	include/qore/RMutex.h \
 	include/qore/VRMutex.h \
-	include/qore/VLock.h \
 	include/qore/QoreClass.h \
 	include/qore/Operator.h \
 	include/qore/QoreString.h \
 	include/qore/Reference.h \
-	include/qore/AbstractStatement.h \
-	include/qore/OnBlockExitStatement.h \
-	include/qore/RethrowStatement.h \
-	include/qore/ThreadExitStatement.h \
-	include/qore/BreakStatement.h \
-	include/qore/ContinueStatement.h \
-	include/qore/ReturnStatement.h \
-	include/qore/ExpressionStatement.h \
-	include/qore/StatementBlock.h \
-	include/qore/ContextStatement.h \
-	include/qore/SummarizeStatement.h \
-	include/qore/IfStatement.h \
-	include/qore/WhileStatement.h \
-	include/qore/DoWhileStatement.h \
-	include/qore/ForStatement.h \
-	include/qore/ForEachStatement.h \
-	include/qore/DeleteStatement.h \
-	include/qore/TryStatement.h \
-	include/qore/ThrowStatement.h \
 	include/qore/common.h \
 	include/qore/config.h \
 	include/qore/proto.h \
@@ -77,11 +51,8 @@ noinst_HEADERS = \
 	include/qore/support.h \
 	include/qore/QoreException.h \
 	include/qore/QoreHash.h \
-	include/qore/Find.h \
 	include/qore/QoreNumber.h \
-	include/qore/ErrnoConstants.h \
 	include/qore/Tree.h \
-	include/qore/ClassRef.h \
 	include/qore/ScopedObjectCall.h \
 	include/qore/QoreNode.h \
 	include/qore/ModuleManager.h \
@@ -104,10 +75,6 @@ noinst_HEADERS = \
 	include/qore/RegexSubst.h \
 	include/qore/RegexTrans.h \
 	include/qore/hash_map.h \
-	include/qore/ExecArgList.h \
-	include/qore/SwitchStatement.h \
-	include/qore/CaseNodeWithOperator.h \
-	include/qore/CaseNodeRegex.h \
 	include/qore/QoreRegex.h \
 	include/qore/QoreRegexBase.h \
 	include/qore/QoreGetOpt.h \
@@ -125,60 +92,6 @@ noinst_HEADERS = \
 	include/qore/ManagedDatasource.h \
 	include/qore/Environment.h \
 	include/qore/ParseOptionMap.h \
-	include/qore/QT_NOTHING.h \
-	include/qore/QT_bigint.h \
-	include/qore/QT_float.h \
-	include/qore/QT_string.h \
-	include/qore/QT_date.h \
-	include/qore/QT_boolean.h \
-	include/qore/QT_NULL.h \
-	include/qore/QT_binary.h \
-	include/qore/QT_list.h \
-	include/qore/QT_hash.h \
-	include/qore/QT_object.h \
-	include/qore/QT_backquote.h \
-	include/qore/QT_context.h \
-	include/qore/QT_varref.h \
-	include/qore/ql_string.h \
-	include/qore/ql_list.h \
-	include/qore/ql_misc.h \
-	include/qore/ql_math.h \
-	include/qore/ql_io.h \
-	include/qore/ql_pwd.h \
-	include/qore/ql_env.h \
-	include/qore/ql_type.h \
-	include/qore/ql_lib.h \
-	include/qore/ql_time.h \
-	include/qore/ql_debug.h \
-	include/qore/ql_thread.h \
-	include/qore/ql_xml.h \
-	include/qore/ql_json.h \
-	include/qore/ql_crypto.h \
-	include/qore/ql_file.h \
-	include/qore/ql_object.h \
-	include/qore/QC_Queue.h \
-	include/qore/QC_Socket.h \
-	include/qore/QC_Sequence.h \
-	include/qore/QC_RWLock.h \
-	include/qore/QC_Program.h \
-	include/qore/QC_Mutex.h \
-	include/qore/QC_Condition.h \
-	include/qore/QC_Gate.h \
-	include/qore/QC_File.h \
-	include/qore/QC_Counter.h \
-	include/qore/QC_Datasource.h \
-	include/qore/QC_DatasourcePool.h \
-	include/qore/QC_GetOpt.h \
-	include/qore/QC_FtpClient.h \
-	include/qore/QC_SSLCertificate.h \
-	include/qore/QC_SSLPrivateKey.h \
-	include/qore/QC_HTTPClient.h \
-	include/qore/QC_XmlRpcClient.h \
-	include/qore/QC_JsonRpcClient.h \
-	include/qore/QC_AutoGate.h \
-	include/qore/QC_AutoLock.h \
-	include/qore/QC_AutoReadLock.h \
-	include/qore/QC_AutoWriteLock.h \
 	include/qore/QoreHTTPClient.h \
 	include/qore/DBI.h \
 	include/qore/ScopeGuard.h \
@@ -186,6 +99,97 @@ noinst_HEADERS = \
 	include/qore/inline_printf.h \
 	include/qore/QException.h \
 	include/qore/ReferenceHolder.h \
+	include/qore/QoreSSLCertificate.h \
+	include/qore/QoreSSLPrivateKey.h \
+	include/qore/AutoVLock.h \
+	include/qore/intern/Find.h \
+	include/qore/intern/ExecArgList.h \
+	include/qore/intern/ErrnoConstants.h \
+	include/qore/intern/Context.h \
+	include/qore/intern/ConstantList.h \
+	include/qore/intern/CaseNodeWithOperator.h \
+	include/qore/intern/CaseNodeRegex.h \
+	include/qore/intern/ClassRef.h \
+	include/qore/intern/CallStack.h \
+	include/qore/intern/BuiltinMethod.h \
+	include/qore/intern/AbstractStatement.h \
+	include/qore/intern/OnBlockExitStatement.h \
+	include/qore/intern/RethrowStatement.h \
+	include/qore/intern/ThreadExitStatement.h \
+	include/qore/intern/BreakStatement.h \
+	include/qore/intern/ContinueStatement.h \
+	include/qore/intern/ReturnStatement.h \
+	include/qore/intern/ExpressionStatement.h \
+	include/qore/intern/StatementBlock.h \
+	include/qore/intern/ContextStatement.h \
+	include/qore/intern/SummarizeStatement.h \
+	include/qore/intern/IfStatement.h \
+	include/qore/intern/WhileStatement.h \
+	include/qore/intern/DoWhileStatement.h \
+	include/qore/intern/ForStatement.h \
+	include/qore/intern/ForEachStatement.h \
+	include/qore/intern/DeleteStatement.h \
+	include/qore/intern/TryStatement.h \
+	include/qore/intern/ThrowStatement.h \
+	include/qore/intern/SwitchStatement.h \
+	include/qore/intern/QoreClassIntern.h \
+	include/qore/intern/AbstractSmartLock.h \
+	include/qore/intern/VLock.h \
+	include/qore/intern/AutoNamespaceList.h \
+	include/qore/intern/ql_string.h \
+	include/qore/intern/ql_list.h \
+	include/qore/intern/ql_misc.h \
+	include/qore/intern/ql_math.h \
+	include/qore/intern/ql_io.h \
+	include/qore/intern/ql_pwd.h \
+	include/qore/intern/ql_env.h \
+	include/qore/intern/ql_type.h \
+	include/qore/intern/ql_lib.h \
+	include/qore/intern/ql_time.h \
+	include/qore/intern/ql_debug.h \
+	include/qore/intern/ql_thread.h \
+	include/qore/intern/ql_xml.h \
+	include/qore/intern/ql_json.h \
+	include/qore/intern/ql_crypto.h \
+	include/qore/intern/ql_file.h \
+	include/qore/intern/ql_object.h \
+	include/qore/intern/QC_Queue.h \
+	include/qore/intern/QC_Socket.h \
+	include/qore/intern/QC_Sequence.h \
+	include/qore/intern/QC_RWLock.h \
+	include/qore/intern/QC_Program.h \
+	include/qore/intern/QC_Mutex.h \
+	include/qore/intern/QC_Condition.h \
+	include/qore/intern/QC_Gate.h \
+	include/qore/intern/QC_File.h \
+	include/qore/intern/QC_Counter.h \
+	include/qore/intern/QC_Datasource.h \
+	include/qore/intern/QC_DatasourcePool.h \
+	include/qore/intern/QC_GetOpt.h \
+	include/qore/intern/QC_FtpClient.h \
+	include/qore/intern/QC_SSLCertificate.h \
+	include/qore/intern/QC_SSLPrivateKey.h \
+	include/qore/intern/QC_HTTPClient.h \
+	include/qore/intern/QC_XmlRpcClient.h \
+	include/qore/intern/QC_JsonRpcClient.h \
+	include/qore/intern/QC_AutoGate.h \
+	include/qore/intern/QC_AutoLock.h \
+	include/qore/intern/QC_AutoReadLock.h \
+	include/qore/intern/QC_AutoWriteLock.h \
+	include/qore/intern/QT_NOTHING.h \
+	include/qore/intern/QT_bigint.h \
+	include/qore/intern/QT_float.h \
+	include/qore/intern/QT_string.h \
+	include/qore/intern/QT_date.h \
+	include/qore/intern/QT_boolean.h \
+	include/qore/intern/QT_NULL.h \
+	include/qore/intern/QT_binary.h \
+	include/qore/intern/QT_list.h \
+	include/qore/intern/QT_hash.h \
+	include/qore/intern/QT_object.h \
+	include/qore/intern/QT_backquote.h \
+	include/qore/intern/QT_context.h \
+	include/qore/intern/QT_varref.h \
 	modules/oracle/oracle-config.h \
 	modules/oracle/oracle.h \
 	modules/oracle/oracle-module.h \

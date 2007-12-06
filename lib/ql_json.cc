@@ -24,7 +24,7 @@
 
 
 #include <qore/Qore.h>
-#include <qore/ql_json.h>
+#include <qore/intern/ql_json.h>
 
 #include <ctype.h>
 #include <stdlib.h>

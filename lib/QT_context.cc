@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_context.h>
+#include <qore/intern/QT_context.h>
 
 class QoreNode *contextref_Eval(class QoreNode *n, class ExceptionSink *xsink)
 {

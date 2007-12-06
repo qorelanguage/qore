@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ql_object.h>
+#include <qore/intern/ql_object.h>
 
 // returns a list of method names for the object passed as a parameter
 static QoreNode *f_getMethodList(QoreNode *params, ExceptionSink *xsink)

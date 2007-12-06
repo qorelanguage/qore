@@ -1,3 +1,11 @@
+2007.12.06: David Nichols
+	* made ReferenceObject implementation private (pimpl)
+	* made QoreClass and Method implementations private (pimpl)
+	* renamed Method to QoreMethod to avoid potential name clashes
+	* made QoreObject class implementation private (pimpl)
+	* started moving internal Qore library header files to the "intern"
+	  subdirectory
+
 2007.12.05: David Nichols
 	* renamed Hash to QoreHash, Object to QoreObject, and Exception to 
 	  QoreException to avoid potential clashes with other code

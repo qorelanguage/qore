@@ -21,8 +21,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Condition.h>
-#include <qore/QC_Mutex.h>
+#include <qore/intern/QC_Condition.h>
+#include <qore/intern/QC_Mutex.h>
 #include <qore/ReferenceHolder.h>
 
 #include <errno.h>

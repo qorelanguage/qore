@@ -29,7 +29,7 @@
 class QoreQDialogExtension : public QoreQWidgetExtension
 {
    protected:
-      Method *m_accept, *m_done, *m_reject;
+      QoreMethod *m_accept, *m_done, *m_reject;
 
    public:
       DLLLOCAL QoreQDialogExtension(QoreClass *qc) : QoreQWidgetExtension(qc)

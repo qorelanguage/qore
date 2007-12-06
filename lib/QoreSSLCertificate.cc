@@ -21,21 +21,32 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/QC_SSLCertificate.h>
+#include <qore/intern/QC_SSLCertificate.h>
+
+struct qore_sslcert_private {
+      X509 *cert;
+
+      DLLLOCAL qore_sslcert_private(X509 *c) : cert(c)
+      {
+      }
+      DLLLOCAL ~qore_sslcert_private()
+      {
+	 if (cert)
+	    X509_free(cert);
+      }
+};
 
 QoreSSLCertificate::~QoreSSLCertificate()
 {
-   if (cert)
-      X509_free(cert);
+   delete priv;
 }
 
-QoreSSLCertificate::QoreSSLCertificate(X509 *c) : cert(c) 
+QoreSSLCertificate::QoreSSLCertificate(X509 *c) : priv(new qore_sslcert_private(c)) 
 {
 }
 
-QoreSSLCertificate::QoreSSLCertificate(const char *fn, class ExceptionSink *xsink)
+QoreSSLCertificate::QoreSSLCertificate(const char *fn, class ExceptionSink *xsink) : priv(new qore_sslcert_private(0))
 {
-   cert = NULL;
    FILE *fp = fopen(fn, "r");
    if (!fp)
    {
@@ -43,15 +54,15 @@ QoreSSLCertificate::QoreSSLCertificate(const char *fn, class ExceptionSink *xsin
       return;
    }
    
-   PEM_read_X509(fp, &cert, NULL, NULL);
+   PEM_read_X509(fp, &priv->cert, NULL, NULL);
    fclose(fp);
-   if (!cert)
+   if (!priv->cert)
       xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "error parsing certificate file '%s'", fn);
 }
 
 class QoreNode *QoreSSLCertificate::doPurposeValue(int id, int ca) const
 {
-   int rc = X509_check_purpose(cert, id, ca);
+   int rc = X509_check_purpose(priv->cert, id, ca);
    if (rc == 1)
       return boolean_true();
    
@@ -63,13 +74,13 @@ class QoreNode *QoreSSLCertificate::doPurposeValue(int id, int ca) const
 
 X509 *QoreSSLCertificate::getData() const 
 { 
-   return cert; 
+   return priv->cert; 
 }
 
 class QoreString *QoreSSLCertificate::getPEM(class ExceptionSink *xsink) const
 {
    BIO *bp = BIO_new(BIO_s_mem());
-   if (!PEM_write_bio_X509(bp, cert))
+   if (!PEM_write_bio_X509(bp, priv->cert))
    {
       BIO_free(bp);
       xsink->raiseException("X509-ERROR", "could not create PEM string from X509 certificate data");
@@ -85,61 +96,61 @@ class QoreString *QoreSSLCertificate::getPEM(class ExceptionSink *xsink) const
 
 class QoreHash *QoreSSLCertificate::getSubjectHash() const
 {
-   return X509_NAME_to_hash(X509_get_subject_name(cert));
+   return X509_NAME_to_hash(X509_get_subject_name(priv->cert));
 }
 
 class QoreHash *QoreSSLCertificate::getIssuerHash() const
 {
-   return X509_NAME_to_hash(X509_get_issuer_name(cert));
+   return X509_NAME_to_hash(X509_get_issuer_name(priv->cert));
 }
 
 int64 QoreSSLCertificate::getSerialNumber() const
 {
-   return (int64)ASN1_INTEGER_get(X509_get_serialNumber(cert));
+   return (int64)ASN1_INTEGER_get(X509_get_serialNumber(priv->cert));
 }
 
 int64 QoreSSLCertificate::getVersion() const
 {
-   return (int64)(X509_get_version(cert) + 1);
+   return (int64)(X509_get_version(priv->cert) + 1);
 }
 
 class DateTime *QoreSSLCertificate::getNotBeforeDate() const
 {
-   return ASN1_TIME_to_DateTime(X509_get_notBefore(cert));
+   return ASN1_TIME_to_DateTime(X509_get_notBefore(priv->cert));
 }
 
 class DateTime *QoreSSLCertificate::getNotAfterDate() const
 {
-   return ASN1_TIME_to_DateTime(X509_get_notAfter(cert));
+   return ASN1_TIME_to_DateTime(X509_get_notAfter(priv->cert));
 }
 
 class QoreString *QoreSSLCertificate::getSignatureType() const
 {
-   return ASN1_OBJECT_to_QoreString(cert->sig_alg->algorithm);
+   return ASN1_OBJECT_to_QoreString(priv->cert->sig_alg->algorithm);
 }
 
 class BinaryObject *QoreSSLCertificate::getSignature() const
 {
-   int len = cert->signature->length;
+   int len = priv->cert->signature->length;
    char *buf = (char *)malloc(len);
    if (!buf)
       return NULL;
-   memcpy(buf, cert->signature->data, len);
+   memcpy(buf, priv->cert->signature->data, len);
    return new BinaryObject(buf, len);
 }
 
 class QoreString *QoreSSLCertificate::getPublicKeyAlgorithm() const
 {
-   return ASN1_OBJECT_to_QoreString(cert->cert_info->key->algor->algorithm);
+   return ASN1_OBJECT_to_QoreString(priv->cert->cert_info->key->algor->algorithm);
 }
 
 class BinaryObject *QoreSSLCertificate::getPublicKey() const
 {
-   int len = cert->cert_info->key->public_key->length;
+   int len = priv->cert->cert_info->key->public_key->length;
    char *buf = (char *)malloc(len);
    if (!buf)
       return NULL;
-   memcpy(buf, cert->cert_info->key->public_key->data, len);
+   memcpy(buf, priv->cert->cert_info->key->public_key->data, len);
    return new BinaryObject(buf, len);
 }
 

@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_list.h>
+#include <qore/intern/QT_list.h>
 
 class QoreNode *list_DefaultValue()
 {

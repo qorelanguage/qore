@@ -41,7 +41,7 @@ class QoreQValidatorExtension : public QoreQObjectExtension
 {
    protected:
       // event methods
-      Method *m_fixup, *m_validate;
+      QoreMethod *m_fixup, *m_validate;
 
    public:
       DLLLOCAL QoreQValidatorExtension(QoreClass *qc) : QoreQObjectExtension(qc)

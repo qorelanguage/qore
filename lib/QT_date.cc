@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_date.h>
+#include <qore/intern/QT_date.h>
 
 class QoreNode *date_DefaultValue()
 {

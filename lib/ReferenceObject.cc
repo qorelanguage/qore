@@ -22,13 +22,26 @@
 
 #include <qore/Qore.h>
 
+struct qore_ro_private {
+#if !defined(HAVE_ATOMIC_MACROS)
+// for atomic reference updates
+      class LockedObject mRO;
+#endif
+};
+
 ReferenceObject::ReferenceObject()
 {
    references = 1;
+#if !defined(HAVE_ATOMIC_MACROS)
+   priv = new qore_ro_private;
+#endif
 }
 
 ReferenceObject::~ReferenceObject()
 {
+#if !defined(HAVE_ATOMIC_MACROS)
+   delete priv;
+#endif
 }
 
 void ReferenceObject::ROreference()
@@ -36,9 +49,9 @@ void ReferenceObject::ROreference()
 #ifdef HAVE_ATOMIC_MACROS
    atomic_inc(&references);
 #else
-   mRO.lock();
+   priv->mRO.lock();
    ++references; 
-   mRO.unlock();
+   priv->mRO.unlock();
 #endif
 }
 
@@ -52,14 +65,14 @@ bool ReferenceObject::ROdereference()
    // the lock is released, the caches are synced with another CPU that sees reference count = 1
    // and deletes the object, then the first thread tries to unlock the mutex, but it's already
    // been deleted...  therefore this optimization cannot be used where atomic reference counting
-   // is enforced with a mutex
+   // is enforced with a mutex, but only here when the operation is atomic without a mutex
    if (references == 1)
       return true;
    return atomic_dec(&references);
 #else
-   mRO.lock();
+   priv->mRO.lock();
    int rc = --references;
-   mRO.unlock();
+   priv->mRO.unlock();
    return !rc;
 #endif
 }

@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ConstantList.h>
+#include <qore/intern/ConstantList.h>
 
 #include <string.h>
 #include <stdlib.h>

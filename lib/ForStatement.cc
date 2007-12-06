@@ -21,8 +21,8 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ForStatement.h>
-#include <qore/StatementBlock.h>
+#include <qore/intern/ForStatement.h>
+#include <qore/intern/StatementBlock.h>
 #include <qore/Variable.h>
 #include <qore/Tree.h>
 

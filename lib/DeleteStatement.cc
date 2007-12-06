@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/DeleteStatement.h>
+#include <qore/intern/DeleteStatement.h>
 
 DeleteStatement::DeleteStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
 {

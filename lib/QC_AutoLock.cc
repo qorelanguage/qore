@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/QC_AutoLock.h>
+#include <qore/intern/QC_AutoLock.h>
 
 int CID_AUTOLOCK;
 

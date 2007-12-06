@@ -21,8 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/AbstractSmartLock.h>
-#include <qore/VLock.h>
+#include <qore/intern/AbstractSmartLock.h>
 
 void AbstractSmartLock::cleanupImpl()
 {

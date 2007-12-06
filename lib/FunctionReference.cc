@@ -166,7 +166,7 @@ int ParseScopedSelfMethodReference::parseInit(lvh_t oflag, int pflag)
    return 0;
 }
 
-RunTimeObjectScopedMethodReference::RunTimeObjectScopedMethodReference(class QoreObject *n_obj, class Method *n_method) : obj(n_obj), method(n_method)
+RunTimeObjectScopedMethodReference::RunTimeObjectScopedMethodReference(class QoreObject *n_obj, class QoreMethod *n_method) : obj(n_obj), method(n_method)
 {
    obj->tRef();
 }

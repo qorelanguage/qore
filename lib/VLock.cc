@@ -21,11 +21,16 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/VLock.h>
+#include <qore/intern/VLock.h>
+#include <qore/AutoVLock.h>
 
 #include <assert.h>
 
-AutoVLock::AutoVLock()
+struct qore_avl_private {
+      abstract_lock_list_t l;
+};
+
+AutoVLock::AutoVLock() : priv(new qore_avl_private)
 {
    //printd(5, "AutoVLock::AutoVLock() this=%08p\n", this);
 }
@@ -34,6 +39,7 @@ AutoVLock::~AutoVLock()
 {
    //printd(5, "AutoVLock::~AutoVLock() this=%08p size=%d\n", this, size());
    del();
+   delete priv;
 }
 
 void AutoVLock::del()
@@ -41,18 +47,18 @@ void AutoVLock::del()
    //printd(5, "AutoVLock::del() this=%08p size=%d\n", this, size());
 
    abstract_lock_list_t::iterator i;
-   while ((i = begin()) != end())
+   while ((i = priv->l.begin()) != priv->l.end())
    {
       //printd(5, "AutoVLock::del() this=%08p releasing=%08p\n", this, *i);
       (*i)->release();
-      erase(i);
+      priv->l.erase(i);
    }
 }
 
 void AutoVLock::push(class AbstractSmartLock *p)
 {
    //printd(5, "AutoVLock::push(%08p) this=%08p\n", p, this);
-   push_back(p);
+   priv->l.push_back(p);
 }
 
 int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink, int timeout_ms)

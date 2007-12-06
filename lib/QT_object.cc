@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_object.h>
+#include <qore/intern/QT_object.h>
 
 // there is no object_DeleteContents, because they will be taken care of by QoreNode::~QoreNode
 

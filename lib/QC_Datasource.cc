@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Datasource.h>
+#include <qore/intern/QC_Datasource.h>
 
 int CID_DATASOURCE;
 

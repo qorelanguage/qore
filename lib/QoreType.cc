@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/Find.h>
+#include <qore/intern/Find.h>
 #include <qore/RegexSubst.h>
 #include <qore/RegexTrans.h>
 #include <qore/QoreRegex.h>
@@ -29,20 +29,20 @@
 #include <qore/FunctionReference.h>
 
 // get type functions
-#include <qore/QT_NOTHING.h>
-#include <qore/QT_bigint.h>
-#include <qore/QT_float.h>
-#include <qore/QT_string.h>
-#include <qore/QT_date.h>
-#include <qore/QT_boolean.h>
-#include <qore/QT_NULL.h>
-#include <qore/QT_binary.h>
-#include <qore/QT_list.h>
-#include <qore/QT_hash.h>
-#include <qore/QT_object.h>
-#include <qore/QT_backquote.h>
-#include <qore/QT_context.h>
-#include <qore/QT_varref.h>
+#include <qore/intern/QT_NOTHING.h>
+#include <qore/intern/QT_bigint.h>
+#include <qore/intern/QT_float.h>
+#include <qore/intern/QT_string.h>
+#include <qore/intern/QT_date.h>
+#include <qore/intern/QT_boolean.h>
+#include <qore/intern/QT_NULL.h>
+#include <qore/intern/QT_binary.h>
+#include <qore/intern/QT_list.h>
+#include <qore/intern/QT_hash.h>
+#include <qore/intern/QT_object.h>
+#include <qore/intern/QT_backquote.h>
+#include <qore/intern/QT_context.h>
+#include <qore/intern/QT_varref.h>
 
 #include <qore/support.h>
 #include <qore/QoreList.h>

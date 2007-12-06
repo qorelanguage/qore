@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/TryStatement.h>
+#include <qore/intern/TryStatement.h>
 
 TryStatement::TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p) : AbstractStatement(start_line, end_line)
 {

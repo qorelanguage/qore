@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_string.h>
+#include <qore/intern/ql_string.h>
 #include <qore/QoreRegex.h>
 #include <qore/RegexSubst.h>
 

@@ -36,7 +36,7 @@ DLLLOCAL class QoreClass *initQIntValidatorClass(QoreClass *);
 class myQIntValidator : public QIntValidator, public QoreQValidatorExtension
 {
   private:
-      Method *m_setRange;
+      QoreMethod *m_setRange;
 
       void qdv_init(QoreClass *qc)
       {

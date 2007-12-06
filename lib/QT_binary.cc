@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_binary.h>
+#include <qore/intern/QT_binary.h>
 
 bool binary_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
 {

@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/ssl_constants.h>
 
-#include "QC_FtpClient.h"
+#include <qore/intern/QC_FtpClient.h>
 
 int CID_FTPCLIENT;
 

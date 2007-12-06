@@ -23,7 +23,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_thread.h>
+#include <qore/intern/ql_thread.h>
 
 #include <pthread.h>
 

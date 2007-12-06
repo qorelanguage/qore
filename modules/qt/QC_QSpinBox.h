@@ -41,7 +41,7 @@ class myQSpinBox : public QSpinBox, public QoreQWidgetExtension
 #undef QOREQTYPE
 
    private:
-      Method *m_textFromValue, *m_valueFromText;
+      QoreMethod *m_textFromValue, *m_valueFromText;
 
       void qspinbox_init(QoreClass *qc) 
       {

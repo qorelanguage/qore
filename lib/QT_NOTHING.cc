@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_NOTHING.h>
+#include <qore/intern/QT_NOTHING.h>
 
 class QoreNode *NOTHING_DefaultValue()
 {

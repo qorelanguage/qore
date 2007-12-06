@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_SSLCertificate.h>
+#include <qore/intern/QC_SSLCertificate.h>
 
 DLLEXPORT int CID_SSLCERTIFICATE;
 

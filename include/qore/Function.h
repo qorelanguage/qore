@@ -59,11 +59,11 @@ class SelfFunctionCall {
   public:
       char *name;
       class NamedScope *ns;
-      class Method *func;
+      class QoreMethod *func;
 
       DLLLOCAL SelfFunctionCall(char *n);
       DLLLOCAL SelfFunctionCall(class NamedScope *n);
-      DLLLOCAL SelfFunctionCall(class Method *f);
+      DLLLOCAL SelfFunctionCall(class QoreMethod *f);
       DLLLOCAL ~SelfFunctionCall();
       DLLLOCAL class QoreNode *eval(class QoreNode *args, class ExceptionSink *xsink);
       DLLLOCAL void resolve();
@@ -89,7 +89,7 @@ class FunctionCall {
       // "self" in-object function call constructors
       DLLLOCAL FunctionCall(class QoreNode *a, char *name);
       DLLLOCAL FunctionCall(class QoreNode *a, class NamedScope *n);
-      DLLLOCAL FunctionCall(class Method *func, class QoreNode *a);
+      DLLLOCAL FunctionCall(class QoreMethod *func, class QoreNode *a);
 
       // normal function call constructor
       DLLLOCAL FunctionCall(char *name, class QoreNode *a);

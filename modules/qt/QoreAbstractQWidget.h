@@ -35,7 +35,7 @@ class QoreQWidgetExtension : public QoreQObjectExtension
 {
    protected:
       // event methods
-      Method *e_changeEvent, *e_enterEvent, *e_event, *e_leaveEvent,
+      QoreMethod *e_changeEvent, *e_enterEvent, *e_event, *e_leaveEvent,
          *e_paintEvent, 
          *e_mouseMoveEvent, *e_mousePressEvent, 
          *e_mouseReleaseEvent, *e_mouseDoubleClickEvent,

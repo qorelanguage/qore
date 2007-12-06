@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/QC_AutoGate.h>
+#include <qore/intern/QC_AutoGate.h>
 
 int CID_AUTOGATE;
 

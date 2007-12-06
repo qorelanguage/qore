@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_bigint.h>
+#include <qore/intern/QT_bigint.h>
 
 class QoreNode *bigint_DefaultValue()
 {

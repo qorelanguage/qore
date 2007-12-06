@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Program.h>
+#include <qore/intern/QC_Program.h>
 
 int CID_PROGRAM;
 

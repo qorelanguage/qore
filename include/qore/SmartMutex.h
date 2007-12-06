@@ -25,7 +25,7 @@
 #define _QORE_SMARTMUTEX
 
 #include <qore/Qore.h>
-#include <qore/AbstractSmartLock.h>
+#include <qore/intern/AbstractSmartLock.h>
 #include <qore/QoreCondition.h>
 
 #include <map>

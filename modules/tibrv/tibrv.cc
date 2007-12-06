@@ -21,8 +21,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_SSLCertificate.h>
-#include <qore/QC_SSLPrivateKey.h>
+#include <qore/QoreSSLCertificate.h>
+#include <qore/QoreSSLPrivateKey.h>
 
 #include <tibrv/tibrvcpp.h>
 

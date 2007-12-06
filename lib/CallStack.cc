@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/CallStack.h>
+#include <qore/intern/CallStack.h>
 
 CallNode::CallNode(const char *f, int t, class QoreObject *o)
 {

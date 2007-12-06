@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/Function.h>
 #include <qore/Operator.h>
-#include <qore/StatementBlock.h>
+#include <qore/intern/StatementBlock.h>
 
 #include <stdio.h>
 #include <ctype.h>
@@ -48,7 +48,7 @@ SelfFunctionCall::SelfFunctionCall(class NamedScope *n)
    func = NULL; 
 }
 
-SelfFunctionCall::SelfFunctionCall(class Method *f) 
+SelfFunctionCall::SelfFunctionCall(class QoreMethod *f) 
 { 
    ns = NULL;
    name = NULL;
@@ -174,7 +174,7 @@ FunctionCall::FunctionCall(class QoreNode *a, class NamedScope *n)
    args = a;
 }
 
-FunctionCall::FunctionCall(class Method *m, class QoreNode *a)
+FunctionCall::FunctionCall(class QoreMethod *m, class QoreNode *a)
 {
    printd(5, "FunctionCall::FunctionCall(a=%08p, method=%08p %s) FC_SELF this=%08p\n", a, m, m->getName(), this);
    type = FC_SELF;

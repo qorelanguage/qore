@@ -21,11 +21,11 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_XmlRpcClient.h>
-#include <qore/QC_HTTPClient.h>
+#include <qore/intern/QC_XmlRpcClient.h>
+#include <qore/intern/QC_HTTPClient.h>
 #include <qore/QoreHTTPClient.h>
 #include <qore/ReferenceHolder.h>
-#include <qore/ql_xml.h>
+#include <qore/intern/ql_xml.h>
 
 int CID_XMLRPCCLIENT;
 

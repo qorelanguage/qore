@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_crypto.h>
+#include <qore/intern/ql_crypto.h>
 
 #include <openssl/evp.h>
 #include <openssl/des.h>

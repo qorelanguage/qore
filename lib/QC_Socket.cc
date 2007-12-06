@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_Socket.h>
+#include <qore/intern/QC_Socket.h>
 #include <qore/ssl_constants.h>
 
 #include <errno.h>

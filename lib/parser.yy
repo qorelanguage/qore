@@ -22,37 +22,39 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/BreakStatement.h>
-#include <qore/ContinueStatement.h>
-#include <qore/ReturnStatement.h>
-#include <qore/RethrowStatement.h>
-#include <qore/ThreadExitStatement.h>
-#include <qore/ExpressionStatement.h>
-#include <qore/DoWhileStatement.h>
-#include <qore/SummarizeStatement.h>
-#include <qore/ContextStatement.h>
-#include <qore/IfStatement.h>
-#include <qore/WhileStatement.h>
-#include <qore/ForStatement.h>
-#include <qore/ForEachStatement.h>
-#include <qore/DeleteStatement.h>
-#include <qore/TryStatement.h>
-#include <qore/ThrowStatement.h>
-#include <qore/StatementBlock.h>
-#include <qore/Find.h>
+#include <qore/intern/BreakStatement.h>
+#include <qore/intern/ContinueStatement.h>
+#include <qore/intern/ReturnStatement.h>
+#include <qore/intern/RethrowStatement.h>
+#include <qore/intern/ThreadExitStatement.h>
+#include <qore/intern/ExpressionStatement.h>
+#include <qore/intern/DoWhileStatement.h>
+#include <qore/intern/SummarizeStatement.h>
+#include <qore/intern/ContextStatement.h>
+#include <qore/intern/IfStatement.h>
+#include <qore/intern/WhileStatement.h>
+#include <qore/intern/ForStatement.h>
+#include <qore/intern/ForEachStatement.h>
+#include <qore/intern/DeleteStatement.h>
+#include <qore/intern/TryStatement.h>
+#include <qore/intern/ThrowStatement.h>
+#include <qore/intern/StatementBlock.h>
+#include <qore/intern/Find.h>
 #include <qore/ParserSupport.h>
 #include <qore/RegexSubst.h>
 #include <qore/QoreRegex.h>
 #include <qore/RegexTrans.h>
-#include <qore/SwitchStatement.h>
-#include <qore/CaseNodeWithOperator.h>
-#include <qore/CaseNodeRegex.h>
-#include <qore/OnBlockExitStatement.h>
+#include <qore/intern/SwitchStatement.h>
+#include <qore/intern/CaseNodeWithOperator.h>
+#include <qore/intern/CaseNodeRegex.h>
+#include <qore/intern/OnBlockExitStatement.h>
 #include <qore/Tree.h>
 #include <qore/FunctionReference.h>
 #include <qore/ObjectMethodReference.h>
 
 #include "parser.h"
+
+#include <qore/intern/QoreClassIntern.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -423,7 +425,7 @@ static inline void tryAddMethod(int mod, char *n, QoreNode *params, BCAList *bca
    }
    else
    {
-      class Method *method = new Method(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE);
+      class QoreMethod *method = new QoreMethod(new UserFunction(strdup(name->getIdentifier()), new Paramlist(params), b, mod & OFM_SYNCED), mod & OFM_PRIVATE);
       
       if (getRootNS()->addMethodToClass(name, method, bcal))
       {
@@ -438,13 +440,13 @@ static inline void tryAddMethod(int mod, char *n, QoreNode *params, BCAList *bca
 struct MethodNode {
    public:
       // method to add to class
-      class Method *m;
+      class QoreMethod *m;
       // base class argument list for constructors
       class BCAList *bcal;
 
       DLLLOCAL inline MethodNode(class UserFunction *f, int p, class BCAList *bl) : bcal(bl)
       {
-	 m = new Method(f, p);
+	 m = new QoreMethod(f, p);
       }
       DLLLOCAL inline ~MethodNode()
       {

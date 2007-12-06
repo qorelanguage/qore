@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QT_varref.h>
+#include <qore/intern/QT_varref.h>
 
 class QoreNode *varref_Eval(class QoreNode *n, class ExceptionSink *xsink)
 {

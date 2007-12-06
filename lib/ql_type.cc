@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_type.h>
+#include <qore/intern/ql_type.h>
 
 static class QoreNode *f_boolean(class QoreNode *params, ExceptionSink *xsink)
 {

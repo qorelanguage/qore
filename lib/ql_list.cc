@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ql_list.h>
+#include <qore/intern/ql_list.h>
 
 static class QoreNode *f_sort(class QoreNode *params, ExceptionSink *xsink)
 {

@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QC_RWLock.h>
+#include <qore/intern/QC_RWLock.h>
 
 int CID_RWLOCK;
 

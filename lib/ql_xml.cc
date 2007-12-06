@@ -23,7 +23,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_xml.h>
+#include <qore/intern/ql_xml.h>
 
 #include <libxml/xmlreader.h>
 #include <libxml/xmlwriter.h>

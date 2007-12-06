@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ExpressionStatement.h>
+#include <qore/intern/ExpressionStatement.h>
 
 ExpressionStatement::ExpressionStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
 {

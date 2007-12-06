@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_time.h>
+#include <qore/intern/ql_time.h>
 
 #include <stdio.h>
 #include <time.h>

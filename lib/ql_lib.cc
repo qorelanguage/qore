@@ -21,8 +21,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_lib.h>
-#include <qore/ExecArgList.h>
+#include <qore/intern/ql_lib.h>
+#include <qore/intern/ExecArgList.h>
 #include <qore/minitest.hpp>
 
 #include <errno.h>

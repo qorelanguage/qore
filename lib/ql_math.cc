@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_math.h>
+#include <qore/intern/ql_math.h>
 
 #include <math.h>
 #include <stdlib.h>

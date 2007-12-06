@@ -21,8 +21,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ql_misc.h>
-#include <qore/QT_backquote.h>
+#include <qore/intern/ql_misc.h>
+#include <qore/intern/QT_backquote.h>
 #include <qore/ssl_constants.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreSignal.h>
