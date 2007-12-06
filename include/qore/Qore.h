@@ -31,6 +31,7 @@
 #include <qore/QoreLib.h>
 #include <qore/QoreNode.h>
 #include <qore/QoreNet.h>
+#include <qore/QoreSocket.h>
 #include <qore/QoreHash.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreObject.h>
@@ -55,7 +56,7 @@
 
 // include private definitions if compiling the library
 #ifdef _QORE_LIB_INTERN
-#include <qore/Function.h>
+#include <qore/intern/Function.h>
 #include <qore/intern/AbstractStatement.h>
 #include <qore/Variable.h>
 #include <qore/NamedScope.h>

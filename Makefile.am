@@ -25,7 +25,6 @@ noinst_HEADERS = \
 	include/qore/QoreList.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
-	include/qore/Function.h \
 	include/qore/BuiltinFunctionList.h \
 	include/qore/UserFunctionList.h \
 	include/qore/QoreClassList.h \
@@ -78,7 +77,7 @@ noinst_HEADERS = \
 	include/qore/QoreRegex.h \
 	include/qore/QoreRegexBase.h \
 	include/qore/QoreGetOpt.h \
-	include/qore/FtpClient.h \
+	include/qore/QoreFtpClient.h \
 	include/qore/StringList.h \
 	include/qore/safe_dslist \
 	include/qore/qore_bitopts.h \
@@ -88,7 +87,6 @@ noinst_HEADERS = \
 	include/qore/QoreSSLBase.h \
 	include/qore/QoreWarnings.h \
 	include/qore/Datasource.h \
-	include/qore/DatasourcePool.h \
 	include/qore/ManagedDatasource.h \
 	include/qore/Environment.h \
 	include/qore/ParseOptionMap.h \
@@ -102,6 +100,8 @@ noinst_HEADERS = \
 	include/qore/QoreSSLCertificate.h \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
+	include/qore/intern/DatasourcePool.h \
+	include/qore/intern/Function.h \
 	include/qore/intern/Find.h \
 	include/qore/intern/ExecArgList.h \
 	include/qore/intern/ErrnoConstants.h \

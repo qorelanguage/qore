@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/UserFunctionList.h>
-#include <qore/Function.h>
+#include <qore/intern/Function.h>
 
 UserFunctionList::~UserFunctionList()
 {

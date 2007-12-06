@@ -21,7 +21,6 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/intern/VLock.h>
 #include <qore/AutoVLock.h>
 
 #include <assert.h>

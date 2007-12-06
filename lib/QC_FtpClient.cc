@@ -36,22 +36,22 @@ static void FC_constructor(class QoreObject *self, class QoreNode *params, Excep
    else
       url = NULL;
 
-   class QoreFtpClient *f = new QoreFtpClient(url, xsink);
+   class QoreFtpClientClass *f = new QoreFtpClientClass(url, xsink);
    if (xsink->isException())
    {
       f->deref();
       return;
    }
 
-   self->setPrivate(CID_FTPCLIENT, f = new QoreFtpClient(url, xsink));
+   self->setPrivate(CID_FTPCLIENT, f = new QoreFtpClientClass(url, xsink));
 }
 
-static void FC_copy(class QoreObject *self, class QoreObject *old, class QoreFtpClient *f, class ExceptionSink *xsink)
+static void FC_copy(class QoreObject *self, class QoreObject *old, class QoreFtpClientClass *f, class ExceptionSink *xsink)
 {
    xsink->raiseException("FTPCLIENT-COPY-ERROR", "FtpClient objects cannot be copied.");
 }
 
-static class QoreNode *FC_connect(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_connect(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    int rc = f->connect(xsink);
 
@@ -61,7 +61,7 @@ static class QoreNode *FC_connect(class QoreObject *self, class QoreFtpClient *f
    return new QoreNode((int64)rc);
 }
 
-static class QoreNode *FC_disconnect(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_disconnect(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    int rc = f->disconnect();
 
@@ -71,7 +71,7 @@ static class QoreNode *FC_disconnect(class QoreObject *self, class QoreFtpClient
    return new QoreNode((int64)rc);
 }
 
-static class QoreNode *FC_list(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_list(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    const char *path;
    QoreNode *p0 = test_param(params, NT_STRING, 0);
@@ -87,7 +87,7 @@ static class QoreNode *FC_list(class QoreObject *self, class QoreFtpClient *f, c
    return NULL;
 }
 
-static class QoreNode *FC_nlst(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_nlst(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    const char *path;
    QoreNode *p0 = test_param(params, NT_STRING, 0);
@@ -103,7 +103,7 @@ static class QoreNode *FC_nlst(class QoreObject *self, class QoreFtpClient *f, c
    return NULL;
 }
 
-static class QoreNode *FC_pwd(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_pwd(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *l = f->pwd(xsink);
    if (l)
@@ -112,7 +112,7 @@ static class QoreNode *FC_pwd(class QoreObject *self, class QoreFtpClient *f, cl
    return NULL;
 }
 
-static class QoreNode *FC_cwd(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_cwd(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0 || !p0->val.String->strlen())
@@ -128,7 +128,7 @@ static class QoreNode *FC_cwd(class QoreObject *self, class QoreFtpClient *f, cl
    return new QoreNode((int64)rc);
 }
 
-static class QoreNode *FC_put(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_put(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0 || !p0->val.String->strlen())
@@ -150,7 +150,7 @@ static class QoreNode *FC_put(class QoreObject *self, class QoreFtpClient *f, cl
    return new QoreNode((int64)rc);
 }
 
-static class QoreNode *FC_get(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_get(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0 || !p0->val.String->strlen())
@@ -172,7 +172,7 @@ static class QoreNode *FC_get(class QoreObject *self, class QoreFtpClient *f, cl
    return new QoreNode((int64)rc);
 }
 
-static class QoreNode *FC_del(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_del(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0 || !p0->val.String->strlen())
@@ -188,7 +188,7 @@ static class QoreNode *FC_del(class QoreObject *self, class QoreFtpClient *f, cl
    return new QoreNode((int64)rc);
 }
 
-static class QoreNode *FC_setUserName(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setUserName(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -201,7 +201,7 @@ static class QoreNode *FC_setUserName(class QoreObject *self, class QoreFtpClien
    return NULL;
 }
 
-static class QoreNode *FC_setPassword(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setPassword(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -214,7 +214,7 @@ static class QoreNode *FC_setPassword(class QoreObject *self, class QoreFtpClien
    return NULL;
 }
 
-static class QoreNode *FC_setHostName(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setHostName(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -227,7 +227,7 @@ static class QoreNode *FC_setHostName(class QoreObject *self, class QoreFtpClien
    return NULL;
 }
 
-static class QoreNode *FC_setPort(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setPort(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    int port;
@@ -245,7 +245,7 @@ static class QoreNode *FC_setPort(class QoreObject *self, class QoreFtpClient *f
    return NULL;
 }
 
-static class QoreNode *FC_setURL(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setURL(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -258,7 +258,7 @@ static class QoreNode *FC_setURL(class QoreObject *self, class QoreFtpClient *f,
    return NULL;
 }
 
-static class QoreNode *FC_getUserName(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getUserName(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    const char *u = f->getUserName();
    if (u)
@@ -267,7 +267,7 @@ static class QoreNode *FC_getUserName(class QoreObject *self, class QoreFtpClien
    return NULL;
 }
 
-static class QoreNode *FC_getPassword(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getPassword(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    const char *p = f->getPassword();
    if (p)
@@ -276,7 +276,7 @@ static class QoreNode *FC_getPassword(class QoreObject *self, class QoreFtpClien
    return NULL;
 }
 
-static class QoreNode *FC_getHostName(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getHostName(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    const char *h = f->getHostName();
    if (h)
@@ -285,12 +285,12 @@ static class QoreNode *FC_getHostName(class QoreObject *self, class QoreFtpClien
    return NULL;
 }
 
-static class QoreNode *FC_getPort(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getPort(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)f->getPort());
 }
 
-static class QoreNode *FC_getURL(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getURL(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    class QoreString *u = f->getURL();
    if (u)
@@ -299,7 +299,7 @@ static class QoreNode *FC_getURL(class QoreObject *self, class QoreFtpClient *f,
    return NULL;
 }
 
-static class QoreNode *FC_setSecure(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setSecure(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    if (f->setSecure())
       xsink->raiseException("SET-SECURE-ERROR", "this method cannot be called while the control connection is established");
@@ -307,7 +307,7 @@ static class QoreNode *FC_setSecure(class QoreObject *self, class QoreFtpClient 
    return NULL;
 }
 
-static class QoreNode *FC_setInsecure(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setInsecure(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    if (f->setInsecure())
       xsink->raiseException("SET-INSECURE-ERROR", "this method cannot be called while the control connection is established");
@@ -315,7 +315,7 @@ static class QoreNode *FC_setInsecure(class QoreObject *self, class QoreFtpClien
    return NULL;
 }
 
-static class QoreNode *FC_setInsecureData(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setInsecureData(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    if (f->setInsecureData())
       xsink->raiseException("SET-INSECUREDATA-ERROR", "this method cannot be called while the control connection is established");
@@ -323,17 +323,17 @@ static class QoreNode *FC_setInsecureData(class QoreObject *self, class QoreFtpC
    return NULL;
 }
 
-static class QoreNode *FC_isSecure(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_isSecure(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(f->isSecure());
 }
 
-static class QoreNode *FC_isDataSecure(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_isDataSecure(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(f->isDataSecure());
 }
 
-static class QoreNode *FC_getSSLCipherName(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getSSLCipherName(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    const char *str = f->getSSLCipherName();
    if (str)
@@ -342,7 +342,7 @@ static class QoreNode *FC_getSSLCipherName(class QoreObject *self, class QoreFtp
    return NULL;
 }
 
-static class QoreNode *FC_getSSLCipherVersion(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_getSSLCipherVersion(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    const char *str = f->getSSLCipherVersion();
    if (str)
@@ -351,31 +351,31 @@ static class QoreNode *FC_getSSLCipherVersion(class QoreObject *self, class Qore
    return NULL;
 }
 
-static class QoreNode *FC_verifyPeerCertificate(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_verifyPeerCertificate(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    const char *c = getSSLCVCode(f->verifyPeerCertificate());
    return c ? new QoreNode(c) : NULL;
 }
 
-static class QoreNode *FC_setModeAuto(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setModeAuto(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    f->setModeAuto();
    return NULL;
 }
 
-static class QoreNode *FC_setModeEPSV(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setModeEPSV(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    f->setModeEPSV();
    return NULL;
 }
 
-static class QoreNode *FC_setModePASV(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setModePASV(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    f->setModePASV();
    return NULL;
 }
 
-static class QoreNode *FC_setModePORT(class QoreObject *self, class QoreFtpClient *f, class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *FC_setModePORT(class QoreObject *self, class QoreFtpClientClass *f, class QoreNode *params, ExceptionSink *xsink)
 {
    f->setModePORT();
    return NULL;

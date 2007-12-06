@@ -24,7 +24,7 @@
 
 #define _QORE_BUILTINMETHOD_H
 
-#include <qore/Function.h>
+#include <qore/intern/Function.h>
 #include <qore/ReferenceObject.h>
 
 class BuiltinMethod : public BuiltinFunction, public ReferenceObject

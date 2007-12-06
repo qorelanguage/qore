@@ -70,7 +70,7 @@ libqore_la_SOURCES = \
 	QoreList.cc \
 	qore-main.cc \
 	QoreGetOpt.cc \
-	FtpClient.cc \
+	QoreFtpClient.cc \
 	DBI.cc \
 	Datasource.cc \
 	DatasourcePool.cc \

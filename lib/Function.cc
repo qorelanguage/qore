@@ -21,8 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/Function.h>
-#include <qore/Operator.h>
+#include <qore/intern/Function.h>
 #include <qore/intern/StatementBlock.h>
 
 #include <stdio.h>

@@ -1,7 +1,7 @@
 /*
   QC_FtpClient.h
 
-  FtpClient class
+  QoreFtpClient class
 
   Qore Programming Language
 
@@ -27,19 +27,19 @@
 #define _QORE_CLASS_FTPCLIENT_H
 
 #include <qore/AbstractPrivateData.h>
-#include <qore/FtpClient.h>
+#include <qore/QoreFtpClient.h>
 
 DLLEXPORT extern int CID_FTPCLIENT;
 
 DLLLOCAL class QoreClass *initFtpClientClass();
 
-class QoreFtpClient : public AbstractPrivateData, public FtpClient
+class QoreFtpClientClass : public AbstractPrivateData, public QoreFtpClient
 {
    protected:
-      DLLLOCAL virtual ~QoreFtpClient() {}
+      DLLLOCAL virtual ~QoreFtpClientClass() {}
 
    public:
-      DLLLOCAL inline QoreFtpClient(class QoreString *url, class ExceptionSink *xsink) : FtpClient(url, xsink) {}
+      DLLLOCAL inline QoreFtpClientClass(class QoreString *url, class ExceptionSink *xsink) : QoreFtpClient(url, xsink) {}
 };
 
 #endif // _QORE_CLASS_FTPCLIENT_H

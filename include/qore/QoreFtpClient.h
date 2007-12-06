@@ -1,7 +1,7 @@
 /*
-  FtpClient.h
+  QoreFtpClient.h
   
-  thread-safe Qore FtpClient object
+  thread-safe Qore QoreFtpClient object
   
   Qore Programming Language
   
@@ -41,31 +41,14 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_FTPCLIENT_H
+#ifndef _QORE_QOREFTPCLIENT_H
 
-#define _QORE_FTPCLIENT_H
+#define _QORE_QOREFTPCLIENT_H
 
 #define DEFAULT_FTP_CONTROL_PORT  21
 #define DEFAULT_FTP_DATA_PORT     20
 
 #define FTPDEBUG 5
-
-#include <qore/QoreSocket.h>
-#include <qore/QoreString.h>
-#include <qore/QoreException.h>
-#include <qore/QoreNet.h>
-#include <qore/LockedObject.h>
-
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 #define FTP_MODE_UNKNOWN 0
 #define FTP_MODE_PORT    1
@@ -76,21 +59,17 @@
 #define DEFAULT_USERNAME "anonymous"
 #define DEFAULT_PASSWORD "qore@nohost.com"
 
-class FtpClient : public LockedObject
+struct qore_ftp_private;
+
+class QoreFtpClient : public LockedObject
 {
    private:
-      // for when we read too much data on control connection
-      class QoreString buffer;
-      class QoreSocket control, data;
-      char *host, *user, *pass, *transfer_mode;
-      bool control_connected, loggedin;
-      int mode, port;
-      bool secure, secure_data;
+      struct qore_ftp_private *priv;
 
       DLLLOCAL class QoreString *getResponse(class ExceptionSink *xsink);
       DLLLOCAL class QoreString *sendMsg(const char *cmd, const char *arg, class ExceptionSink *xsink);
       DLLLOCAL void stripEOL(class QoreString *str);
-      //int connectDataLongPassive(class ExceptionSink *xsink);
+      //DLLLOCAL int connectDataLongPassive(class ExceptionSink *xsink);
       DLLLOCAL int connectDataExtendedPassive(class ExceptionSink *xsink);
       DLLLOCAL int connectDataPassive(class ExceptionSink *xsink);
       DLLLOCAL int connectDataPort(class ExceptionSink *xsink);
@@ -98,14 +77,13 @@ class FtpClient : public LockedObject
       DLLLOCAL int acceptDataConnection(class ExceptionSink *xsink);
       DLLLOCAL int setBinaryMode(bool t, class ExceptionSink *xsink);
       DLLLOCAL int disconnectInternal();
-      DLLLOCAL void setURLInternal(class QoreString *url, class ExceptionSink *xsink);
       DLLLOCAL int connectIntern(class FtpResp *resp, class ExceptionSink *xsink);
       DLLLOCAL int doAuth(class FtpResp *resp, class ExceptionSink *xsink);
       DLLLOCAL int doProt(class FtpResp *resp, class ExceptionSink *xsink);
 
    public:
-      DLLEXPORT FtpClient(class QoreString *url, class ExceptionSink *xsink);
-      DLLEXPORT ~FtpClient();
+      DLLEXPORT QoreFtpClient(class QoreString *url, class ExceptionSink *xsink);
+      DLLEXPORT ~QoreFtpClient();
       DLLEXPORT int connect(class ExceptionSink *xsink);
       DLLEXPORT int disconnect();
       DLLEXPORT int cwd(const char *dir, class ExceptionSink *xsink);

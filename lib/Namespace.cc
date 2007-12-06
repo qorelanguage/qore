@@ -24,12 +24,10 @@
 #include <qore/intern/ErrnoConstants.h>
 #include <qore/TypeConstants.h>
 #include <qore/ParserSupport.h>
-#include <qore/Function.h>
 #include <qore/intern/CallStack.h>
 #include <qore/QoreRegexBase.h>
 #include <qore/intern/AutoNamespaceList.h>
 #include <qore/ssl_constants.h>
-#include <qore/NamedScope.h>
 #include <qore/QoreFile.h>
 #include <qore/minitest.hpp>
 #include <qore/intern/ConstantList.h>

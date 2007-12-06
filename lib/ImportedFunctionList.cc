@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 #include <qore/ImportedFunctionList.h>
-#include <qore/Function.h>
 
 #include <string.h>
 

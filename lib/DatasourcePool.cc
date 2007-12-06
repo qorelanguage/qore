@@ -30,7 +30,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/DatasourcePool.h>
+#include <qore/intern/DatasourcePool.h>
 
 DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, class ExceptionSink *xsink)
 {

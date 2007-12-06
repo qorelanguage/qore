@@ -50,7 +50,7 @@
 #include "QoreList.cc"
 #include "qore-main.cc"
 #include "QoreGetOpt.cc"
-#include "FtpClient.cc"
+#include "QoreFtpClient.cc"
 #include "DBI.cc"
 #include "StringList.cc"
 #include "ConstantList.cc"

@@ -37,83 +37,69 @@
 
 #include <string>
 
+struct qore_ds_private;
+
 class Datasource
 {
+   private:
+      struct qore_ds_private *priv; // private implementation
+      
    protected:
-      bool in_transaction;
-      bool isopen;
-      bool autocommit;
-      class DBIDriver *dsl;
-      class QoreEncoding *qorecharset;
-      void *private_data;               // driver private data per connection
-      
-      // for pending connection values
-      std::string p_username,  // for Oracle, MySQL
-	 p_password,    // for Oracle, MySQL
-	 p_dbname,      // for Oracle, MySQL
-	 p_db_encoding, // for Oracle, MySQL - database-specific name for the encoding for the connection
-	 p_hostname;    // for MySQL
-
-      // actual connection values set by init() before the datasource is opened
-      std::string username,    // for Oracle, MySQL
-	 password,      // for Oracle, MySQL
-	 db_encoding,   // for ORacle, MySQL - database-specific name for the encoding for the connection
-	 dbname,        // for Oracle, MySQL
-	 hostname;      // for MySQL
-      
-      DLLLOCAL void freeConnectionValues();
-      DLLLOCAL void setConnectionValues();
+      DLLEXPORT void freeConnectionValues();
+      DLLEXPORT void setConnectionValues();
+      DLLEXPORT void setTransactionStatus(bool);
+      DLLEXPORT void setPendingConnectionValues(const Datasource *other);
 
    public:
-      DLLLOCAL Datasource(DBIDriver *);
-      DLLLOCAL virtual ~Datasource();
-      DLLLOCAL bool getAutoCommit() const;
-      DLLLOCAL const char *getUsername() const;
-      DLLLOCAL const char *getPassword() const;
-      DLLLOCAL const char *getDBName() const;
-      DLLLOCAL const char *getDBEncoding() const;
-      DLLLOCAL const char *getOSEncoding() const;
-      DLLLOCAL const char *getHostName() const;
-      DLLLOCAL void *getPrivateData() const;
-      DLLLOCAL void setPrivateData(void *data);
-      DLLLOCAL void setDBEncoding(const char *name);
-      DLLLOCAL class QoreEncoding *getQoreEncoding() const;
-      DLLLOCAL void setQoreEncoding(class QoreEncoding *enc);
-      DLLLOCAL void setQoreEncoding(const char *name);
-      DLLLOCAL void setPendingUsername(const char *u);
-      DLLLOCAL void setPendingPassword(const char *p);
-      DLLLOCAL void setPendingDBName(const char *d);
-      DLLLOCAL void setPendingDBEncoding(const char *c);
-      DLLLOCAL void setPendingHostName(const char *h);
-      DLLLOCAL void setAutoCommit(bool ac);
-      DLLLOCAL int open(ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *select(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRows(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *exec(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
-      //DLLLOCAL class QoreHash *describe(char *table_name, ExceptionSink *xsink);
-      DLLLOCAL int commit(ExceptionSink *xsink);
-      DLLLOCAL int rollback(ExceptionSink *xsink);
-      DLLLOCAL int close();
-      DLLLOCAL void reset(ExceptionSink *xsink);
-      DLLLOCAL QoreList *getCapabilityList() const;
-      DLLLOCAL int getCapabilities() const;
-      DLLLOCAL QoreNode *getPendingUsername() const;
-      DLLLOCAL QoreNode *getPendingPassword() const;
-      DLLLOCAL QoreNode *getPendingDBName() const;
-      DLLLOCAL QoreNode *getPendingDBEncoding() const;
-      DLLLOCAL QoreNode *getPendingHostName() const;
-      DLLLOCAL void setTransactionLockTimeout(int t);
-      DLLLOCAL int getTransactionLockTimeout() const;
+      DLLEXPORT Datasource(class DBIDriver *);
+      DLLEXPORT virtual ~Datasource();
+      DLLEXPORT bool getAutoCommit() const;
+      DLLEXPORT const char *getUsername() const;
+      DLLEXPORT const char *getPassword() const;
+      DLLEXPORT const char *getDBName() const;
+      DLLEXPORT const char *getDBEncoding() const;
+      DLLEXPORT const char *getOSEncoding() const;
+      DLLEXPORT const char *getHostName() const;
+      DLLEXPORT void *getPrivateData() const;
+      DLLEXPORT void setPrivateData(void *data);
+      DLLEXPORT void setDBEncoding(const char *name);
+      DLLEXPORT class QoreEncoding *getQoreEncoding() const;
+      DLLEXPORT void setQoreEncoding(class QoreEncoding *enc);
+      DLLEXPORT void setQoreEncoding(const char *name);
+      DLLEXPORT void setPendingUsername(const char *u);
+      DLLEXPORT void setPendingPassword(const char *p);
+      DLLEXPORT void setPendingDBName(const char *d);
+      DLLEXPORT void setPendingDBEncoding(const char *c);
+      DLLEXPORT void setPendingHostName(const char *h);
+      DLLEXPORT void setAutoCommit(bool ac);
+      DLLEXPORT int open(ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *select(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *selectRows(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *exec(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
+      //DLLEXPORT class QoreHash *describe(char *table_name, ExceptionSink *xsink);
+      DLLEXPORT int commit(ExceptionSink *xsink);
+      DLLEXPORT int rollback(ExceptionSink *xsink);
+      DLLEXPORT int close();
+      DLLEXPORT void reset(ExceptionSink *xsink);
+      DLLEXPORT QoreList *getCapabilityList() const;
+      DLLEXPORT int getCapabilities() const;
+      DLLEXPORT QoreNode *getPendingUsername() const;
+      DLLEXPORT QoreNode *getPendingPassword() const;
+      DLLEXPORT QoreNode *getPendingDBName() const;
+      DLLEXPORT QoreNode *getPendingDBEncoding() const;
+      DLLEXPORT QoreNode *getPendingHostName() const;
+      DLLEXPORT void setTransactionLockTimeout(int t);
+      DLLEXPORT int getTransactionLockTimeout() const;
       // returns -1 for error, 0 for OK
-      DLLLOCAL int beginTransaction(class ExceptionSink *xsink);
-      DLLLOCAL bool isInTransaction() const;
-      DLLLOCAL bool isOpen() const;
-      DLLLOCAL Datasource *copy() const;
-      DLLLOCAL const char *getDriverName() const;
-      DLLLOCAL class QoreNode *getServerVersion(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *getClientVersion(class ExceptionSink *xsink);
+      DLLEXPORT int beginTransaction(class ExceptionSink *xsink);
+      DLLEXPORT bool isInTransaction() const;
+      DLLEXPORT bool isOpen() const;
+      DLLEXPORT Datasource *copy() const;
+      DLLEXPORT const char *getDriverName() const;
+      DLLEXPORT class QoreNode *getServerVersion(class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *getClientVersion(class ExceptionSink *xsink);
 
-      DLLLOCAL class DBIDriver *getDriver() const;
+      DLLEXPORT class DBIDriver *getDriver() const;
 };
 
 #endif // _QORE_DATASOURCE_H

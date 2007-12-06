@@ -34,6 +34,8 @@ struct date_s {
    char *abbr;
 };
 
+struct qore_dt_private;
+
 class DateTime {
    private:
       // static constants
@@ -46,14 +48,7 @@ class DateTime {
       static const struct date_s days[];
 
       // private date data - most are ints so relative dates can hold a lot of data
-      int year;
-      int month;
-      int day;
-      int hour;
-      int minute;
-      int second;
-      int millisecond;
-      bool relative;
+      struct qore_dt_private *priv;
       
       DLLLOCAL class DateTime *addAbsoluteToRelative(const class DateTime *dt) const;
       DLLLOCAL class DateTime *addRelativeToRelative(const class DateTime *dt) const;
@@ -80,6 +75,8 @@ class DateTime {
       DLLEXPORT DateTime(int64 seconds, int ms);
       DLLEXPORT DateTime(const char *date);
       DLLEXPORT DateTime(struct tm *tms);
+      DLLEXPORT ~DateTime();
+      DLLEXPORT DateTime(const DateTime &dt);
 
       DLLEXPORT void getTM(struct tm *tms) const;
       DLLEXPORT void setDate(int64 seconds);
@@ -120,7 +117,7 @@ class DateTime {
       // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
       // a NULL return value means an exception was raised
       DLLEXPORT static class DateTime *getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink);
-      DLLEXPORT static int compareDates(class DateTime *left, class DateTime *right);
+      DLLEXPORT static int compareDates(const class DateTime *left, const class DateTime *right);
 };
 
 #endif
