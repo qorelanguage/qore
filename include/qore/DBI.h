@@ -24,16 +24,6 @@
 
 #define _QORE_DBI_H
 
-#include <qore/common.h>
-#include <qore/support.h>
-#include <qore/qore_thread.h>
-#include <qore/QoreList.h>
-#include <qore/safe_dslist>
-#include <qore/Datasource.h>
-
-#include <stdlib.h>
-#include <string.h>
-
 // DBI Driver capabilities
 #define DBI_CAP_NONE                     0
 #define DBI_CAP_CHARSET_SUPPORT          (1 << 1)
@@ -82,29 +72,28 @@ typedef std::pair<int, void *> qore_dbi_method_t;
 
 typedef safe_dslist<qore_dbi_method_t> dbi_method_list_t;
 
-class qore_dbi_method_list : public dbi_method_list_t
+struct qore_dbi_mlist_private;
+
+class qore_dbi_method_list
 {
-public:
-   // covers open, commit, rollback, and begin transaction
-   DLLEXPORT void add(int code, q_dbi_open_t method)
-   {
-      push_back(std::make_pair(code, (void *)method));
-   }
-   // for close
-   DLLEXPORT void add(int code, q_dbi_close_t method)
-   {
-      push_back(std::make_pair(code, (void *)method));
-   }
-   // covers select, select_rows. and exec
-   DLLEXPORT void add(int code, q_dbi_select_t method)
-   {
-      push_back(std::make_pair(code, (void *)method));
-   }
-   // covers get_server_version and get_client_version
-   DLLEXPORT void add(int code, q_dbi_get_server_version_t method)
-   {
-      push_back(std::make_pair(code, (void *)method));
-   }
+   private:
+      struct qore_dbi_mlist_private *priv; // private implementation
+
+   public:
+      DLLEXPORT qore_dbi_method_list();
+      DLLEXPORT ~qore_dbi_method_list();
+
+      // covers open, commit, rollback, and begin transaction
+      DLLEXPORT void add(int code, q_dbi_open_t method);
+      // for close
+      DLLEXPORT void add(int code, q_dbi_close_t method);
+      // covers select, select_rows. and exec
+      DLLEXPORT void add(int code, q_dbi_select_t method);
+      // covers get_server_version and get_client_version
+      DLLEXPORT void add(int code, q_dbi_get_server_version_t method);
+
+      // internal interface
+      DLLLOCAL dbi_method_list_t *getMethods() const;
 };
 
 class DBIDriverFunctions {
@@ -141,14 +130,14 @@ class DBIDriverFunctions {
       }
 };
 
+struct qore_dbi_private;
+
 class DBIDriver {
    private:
-      DBIDriverFunctions f;
-      int caps;
-      const char *name;
+      struct qore_dbi_private *priv;
 
    public:
-      DLLLOCAL DBIDriver(const char *name, dbi_method_list_t &methods, int cps);
+      DLLLOCAL DBIDriver(const char *name, const dbi_method_list_t &methods, int cps);
       DLLLOCAL ~DBIDriver();
       DLLLOCAL int init(class Datasource *ds, class ExceptionSink *xsink);
       DLLLOCAL int close(class Datasource *ds);
@@ -168,23 +157,27 @@ class DBIDriver {
       DLLEXPORT const char *getName() const;
 };
 
-typedef safe_dslist<class DBIDriver *> dbi_list_t;
+struct qore_dbi_dlist_private;
 
 // it's not necessary to lock this object because it will only be written to in one thread at a time
 // note that a safe_dslist is used because it can be safely read in multiple threads while
 // being written to (in the lock).  The list should never be that long so the penalty for searching
 // a linked list with strcmp() against using a hash with explicit locking around all searches
 // should be acceptable...
-class DBIDriverList : public dbi_list_t
+class DBIDriverList
 {
-   DLLEXPORT DBIDriver *find_intern(const char *name) const;
+   private:
+      struct qore_dbi_dlist_private *priv;
+
+      DLLEXPORT DBIDriver *find_intern(const char *name) const;
 
 public:
-   DLLEXPORT class DBIDriver *registerDriver(const char *name, dbi_method_list_t &methods, int caps);
-   DLLEXPORT DBIDriver *find(const char *name) const;
+      DLLEXPORT class DBIDriver *registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps);
+      DLLEXPORT DBIDriver *find(const char *name) const;
 
-   DLLLOCAL ~DBIDriverList();
-   DLLLOCAL class QoreList *getDriverList() const;
+      DLLLOCAL DBIDriverList();
+      DLLLOCAL ~DBIDriverList();
+      DLLLOCAL class QoreList *getDriverList() const;
 };
 
 DLLEXPORT extern class DBIDriverList DBI;

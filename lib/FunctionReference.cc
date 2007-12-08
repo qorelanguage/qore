@@ -21,8 +21,8 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/FunctionReference.h>
-#include <qore/ObjectMethodReference.h>
+#include <qore/intern/FunctionReference.h>
+#include <qore/intern/ObjectMethodReference.h>
 
 #include <stdlib.h>
 #include <string.h>

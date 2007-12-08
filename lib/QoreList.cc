@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/FunctionReference.h>
+#include <qore/intern/FunctionReference.h>
 
 #include <stdlib.h>
 #include <string.h>

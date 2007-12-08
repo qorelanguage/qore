@@ -26,19 +26,7 @@
 
 #define _QORE_QOREPROGRAM_H
 
-#include <qore/common.h>
 #include <qore/AbstractPrivateData.h>
-#include <qore/LockedObject.h>
-#include <qore/Restrictions.h>
-#include <qore/QoreCounter.h>
-#include <qore/StringList.h>
-#include <qore/QoreWarnings.h>
-#include <qore/UserFunctionList.h>
-#include <qore/GlobalVariableList.h>
-#include <qore/ImportedFunctionList.h>
-
-#include <string>
-#include <set>
 
 // the two-layered reference counting is to eliminate problems from circular references
 // when a program has a global variable that contains an object that references the program...
@@ -46,33 +34,13 @@
 // the global variable list is deleted, then the variables will in turn dereference the program
 // so it can be deleted...
 
+struct qore_program_private;
+
 class QoreProgram : public AbstractPrivateData
 {
    private:
-      class UserFunctionList user_func_list;
-      class ImportedFunctionList imported_func_list;
-      class GlobalVariableList global_var_list;
-
-      // for the thread counter
-      class QoreCounter tcount;
-      class StringList fileList;
-      class charPtrList featureList;
+      struct qore_program_private *priv;
       
-      // parse lock, making parsing actions atomic and thread-safe
-      class LockedObject plock;
-      // depedency counter, when this hits zero, the object is deleted
-      class ReferenceObject dc;
-      class SBNode *sb_head, *sb_tail;
-      class ExceptionSink *parseSink, *warnSink;
-      class RootNamespace *RootNS;
-      class Namespace *QoreNS;
-
-      int parse_options, warn_mask;
-      bool po_locked, exec_class, base_object, requires_exception;
-      std::string exec_class_name;
-      pthread_key_t thread_local_storage;
-      
-      DLLLOCAL void init();
       DLLLOCAL void nextSB();
       DLLLOCAL void deleteSBList();
       DLLLOCAL void internParseCommit();
@@ -166,10 +134,7 @@ class QoreProgram : public AbstractPrivateData
       // for run-time module loading; the parse lock must be grabbed
       // before loading new modules - note this should only be assigned
       // to a AutoLock or SafeLocker object!
-      DLLLOCAL class LockedObject *getParseLock()
-      {
-	 return &plock;
-      }
+      DLLLOCAL class LockedObject *getParseLock();
 };
 
 DLLLOCAL void addProgramConstants(class Namespace *ns);

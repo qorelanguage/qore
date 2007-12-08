@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/ImportedFunctionList.h>
+#include <qore/intern/ImportedFunctionList.h>
 
 #include <string.h>
 

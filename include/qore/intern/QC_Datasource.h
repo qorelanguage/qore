@@ -35,8 +35,7 @@
 #define _QORE_QC_DATASOURCE_H
 
 #ifdef _QORE_LIB_INTERN
-#include <qore/common.h>
-#include <qore/ManagedDatasource.h>
+#include <qore/intern/ManagedDatasource.h>
 
 extern int CID_DATASOURCE;
 

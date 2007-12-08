@@ -34,38 +34,34 @@ class LockedObject {
 
       LockedObject(const LockedObject&); // not implemented
       LockedObject& operator=(const LockedObject&); // not implemented
-   public:
       pthread_mutex_t ptm_lock;
 
-      inline LockedObject()
+   public:
+      DLLEXPORT LockedObject()
       {
 	 pthread_mutex_init(&ptm_lock, NULL);
       }
 
-      inline ~LockedObject()
+      DLLEXPORT ~LockedObject()
       {
 	 pthread_mutex_destroy(&ptm_lock);
       }
 
-      inline void lock();
-
-      inline void unlock();
-
-      inline int trylock()
+      DLLEXPORT void lock()
+      {
+	 pthread_mutex_lock(&ptm_lock);
+      }
+      
+      DLLEXPORT void unlock()
+      {
+	 pthread_mutex_unlock(&ptm_lock);
+      }
+      
+      DLLEXPORT int trylock()
       {
 	 return pthread_mutex_trylock(&ptm_lock);
       }
 };
-
-inline void LockedObject::lock()
-{
-   pthread_mutex_lock(&ptm_lock);
-}
-
-inline void LockedObject::unlock()
-{
-   pthread_mutex_unlock(&ptm_lock);
-}
 
 // to be used as a stack object (not on the heap) as an exception-safe way to ensure that locks are released
 // this object does not allow the lock to be released earlier than the object's scope
@@ -79,12 +75,12 @@ private:
    LockedObject *lck;
 
 public:
-   AutoLocker(LockedObject *l)
+   DLLEXPORT AutoLocker(LockedObject *l)
    {
       lck = l;
       lck->lock();
    }
-   ~AutoLocker()
+   DLLEXPORT ~AutoLocker()
    {
       lck->unlock();
    }
@@ -104,24 +100,24 @@ private:
    bool locked;
 
 public:
-   SafeLocker(LockedObject *l)
+   DLLEXPORT SafeLocker(LockedObject *l)
    {
       lck = l;
       lck->lock();
       locked = true;
    }
-   ~SafeLocker()
+   DLLEXPORT ~SafeLocker()
    {
       if (locked)
 	 lck->unlock();
    }
-   void lock()
+   DLLEXPORT void lock()
    {
       assert(!locked);
       lck->lock();
       locked = true;
    }
-   void unlock()
+   DLLEXPORT void unlock()
    {
       assert(locked);
       locked = false;

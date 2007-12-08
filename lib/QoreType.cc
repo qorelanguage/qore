@@ -25,8 +25,8 @@
 #include <qore/RegexSubst.h>
 #include <qore/RegexTrans.h>
 #include <qore/QoreRegex.h>
-#include <qore/ObjectMethodReference.h>
-#include <qore/FunctionReference.h>
+#include <qore/intern/ObjectMethodReference.h>
+#include <qore/intern/FunctionReference.h>
 
 // get type functions
 #include <qore/intern/QT_NOTHING.h>

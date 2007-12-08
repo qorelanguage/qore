@@ -23,7 +23,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/GlobalVariableList.h>
+#include <qore/intern/GlobalVariableList.h>
 #include <qore/Variable.h>
 
 #include <assert.h>

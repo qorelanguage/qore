@@ -47,7 +47,9 @@
 #include <qore/BuiltinFunctionList.h>
 #include <qore/qore_thread.h>
 #include <qore/LockedObject.h>
+#include <qore/QoreCondition.h>
 #include <qore/DBI.h>
+#include <qore/Datasource.h>
 #include <qore/QoreClass.h>
 #include <qore/ScopeGuard.h>
 #include <qore/ReferenceHolder.h>
@@ -59,7 +61,7 @@
 #include <qore/intern/Function.h>
 #include <qore/intern/AbstractStatement.h>
 #include <qore/Variable.h>
-#include <qore/NamedScope.h>
+#include <qore/intern/NamedScope.h>
 #include <qore/ScopedObjectCall.h>
 #include <qore/intern/ClassRef.h>
 #include <qore/intern/Context.h>

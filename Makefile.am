@@ -10,8 +10,6 @@ SUBDIRS = modules lib
 INCLUDES = -I$(top_srcdir)/include
 
 noinst_HEADERS = \
-	include/qore/ObjectMethodReference.h \
-	include/qore/FunctionReference.h \
 	include/qore/LVarInstantiatorHelper.h \
 	include/qore/types/Number.h \
 	include/qore/qore_thread.h \
@@ -28,8 +26,6 @@ noinst_HEADERS = \
 	include/qore/BuiltinFunctionList.h \
 	include/qore/UserFunctionList.h \
 	include/qore/QoreClassList.h \
-	include/qore/GlobalVariableList.h \
-	include/qore/ImportedFunctionList.h \
 	include/qore/Variable.h \
 	include/qore/TypeConstants.h \
 	include/qore/Sequence.h \
@@ -56,7 +52,6 @@ noinst_HEADERS = \
 	include/qore/QoreNode.h \
 	include/qore/ModuleManager.h \
 	include/qore/Namespace.h \
-	include/qore/NamedScope.h \
 	include/qore/QoreObject.h \
 	include/qore/macros-i386.h \
 	include/qore/macros-powerpc.h \
@@ -87,7 +82,6 @@ noinst_HEADERS = \
 	include/qore/QoreSSLBase.h \
 	include/qore/QoreWarnings.h \
 	include/qore/Datasource.h \
-	include/qore/ManagedDatasource.h \
 	include/qore/Environment.h \
 	include/qore/ParseOptionMap.h \
 	include/qore/QoreHTTPClient.h \
@@ -100,6 +94,13 @@ noinst_HEADERS = \
 	include/qore/QoreSSLCertificate.h \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
+	include/qore/intern/ObjectMethodReference.h \
+	include/qore/intern/NamedScope.h \
+	include/qore/intern/NamespaceList.h \
+	include/qore/intern/ManagedDatasource.h \
+	include/qore/intern/ImportedFunctionList.h \
+	include/qore/intern/GlobalVariableList.h \
+	include/qore/intern/FunctionReference.h \
 	include/qore/intern/DatasourcePool.h \
 	include/qore/intern/Function.h \
 	include/qore/intern/Find.h \

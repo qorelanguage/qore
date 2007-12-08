@@ -37,7 +37,6 @@
 #include <qore/RegexTrans.h>
 #include <qore/QoreRegex.h>
 #include <qore/QoreWarnings.h>
-#include <qore/NamedScope.h>
 
 #include "parser.h"
 
