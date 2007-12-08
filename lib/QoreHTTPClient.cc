@@ -459,8 +459,8 @@ class QoreString *QoreHTTPClient::getProxyURL()
       pstr->sprintf("%s:%s@", proxy_username.c_str(), proxy_password.c_str());
 
    pstr->concat(proxy_host.c_str());
-   if (port != 80)
-      pstr->sprintf(":%d", port);
+   if (proxy_port != 80)
+      pstr->sprintf(":%d", proxy_port);
    pstr->concat(proxy_path.c_str());
    return pstr;
 }

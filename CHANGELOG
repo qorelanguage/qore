@@ -1,3 +1,7 @@
+2007.12.08: David Nichols
+	* fixed proxy URL reporting in Qore HTTPClient::getProxyURL() (was
+	  reporting the target port instead of the proxy port)
+
 2007.11.25: David Nichols
         * fixed local and global variable destruction order (backported from 
 	  0.7.0)
