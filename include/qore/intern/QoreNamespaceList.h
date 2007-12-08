@@ -32,26 +32,26 @@
 
 #define _QORE_NAMESPACELIST_H
 
-class NamespaceList
+class QoreNamespaceList
 {
    private:
       DLLLOCAL void deleteAll();
       
    public:
-      class Namespace *head, *tail;
+      class QoreNamespace *head, *tail;
 
-      DLLLOCAL NamespaceList();
-      DLLLOCAL ~NamespaceList();
-      DLLLOCAL class Namespace *find(const char *name);
-      DLLLOCAL void add(class Namespace *ot);
-      DLLLOCAL class NamespaceList *copy(int po);
+      DLLLOCAL QoreNamespaceList();
+      DLLLOCAL ~QoreNamespaceList();
+      DLLLOCAL class QoreNamespace *find(const char *name);
+      DLLLOCAL void add(class QoreNamespace *ot);
+      DLLLOCAL class QoreNamespaceList *copy(int po);
       DLLLOCAL void parseInitConstants();
       DLLLOCAL void parseInit();
-      DLLLOCAL void parseCommit(class NamespaceList *n);
+      DLLLOCAL void parseCommit(class QoreNamespaceList *n);
       DLLLOCAL void parseRollback();
       DLLLOCAL void reset();
-      DLLLOCAL void assimilate(class NamespaceList *n);
-      DLLLOCAL class Namespace *parseResolveNamespace(class NamedScope *name, int *matched);
+      DLLLOCAL void assimilate(class QoreNamespaceList *n);
+      DLLLOCAL class QoreNamespace *parseResolveNamespace(class NamedScope *name, int *matched);
       DLLLOCAL class QoreNode *parseFindConstantValue(const char *cname);
       DLLLOCAL class QoreNode *parseFindScopedConstantValue(class NamedScope *name, int *matched);
       DLLLOCAL class QoreClass *parseFindScopedClassWithMethod(class NamedScope *name, int *matched) const;

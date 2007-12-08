@@ -878,9 +878,9 @@ static QoreClass *initQTextEditClass(QoreClass *qabstractscrollarea)
    return QC_QTextEdit;
 }
 
-Namespace *initQTextEditNS(QoreClass *qabstractscrollarea)
+QoreNamespace *initQTextEditNS(QoreClass *qabstractscrollarea)
 {
-   Namespace *ns = new Namespace("QTextEdit");
+   QoreNamespace *ns = new QoreNamespace("QTextEdit");
    ns->addSystemClass(initQTextEditClass(qabstractscrollarea));
 
    // LineWrapMode enum

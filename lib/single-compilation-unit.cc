@@ -37,7 +37,7 @@
 #include "Find.cc"
 #include "charset.cc"
 #include "QoreProgram.cc"
-#include "Namespace.cc"
+#include "QoreNamespace.cc"
 #include "QoreNet.cc"
 #include "QoreURL.cc"
 #include "QoreFile.cc"

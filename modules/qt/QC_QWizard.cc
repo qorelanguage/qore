@@ -462,9 +462,9 @@ static QoreClass *initQWizardClass(QoreClass *qdialog)
    return QC_QWizard;
 }
 
-Namespace *initQWizardNS(class QoreClass *qdialog)
+QoreNamespace *initQWizardNS(class QoreClass *qdialog)
 {
-   Namespace *ns = new Namespace("QWizard");
+   QoreNamespace *ns = new QoreNamespace("QWizard");
 
    ns->addSystemClass(initQWizardClass(qdialog));
 

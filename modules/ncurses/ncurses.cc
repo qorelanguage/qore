@@ -52,7 +52,7 @@ static inline void init_colors()
 	 init_pair(i * COLORS + j, i, j);
 }
 
-static inline void init_constants(class Namespace *ns)
+static inline void init_constants(class QoreNamespace *ns)
 {
    // colors
    ns->addConstant("COLOR_BLACK", new QoreNode((int64)COLOR_BLACK));
@@ -709,9 +709,9 @@ class QoreString *ncurses_module_init()
    return NULL;
 }
 
-void ncurses_module_ns_init(class Namespace *rns, class Namespace *qns)
+void ncurses_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
-   class Namespace *NCNS = new Namespace("NCurses");
+   class QoreNamespace *NCNS = new QoreNamespace("NCurses");
    NCNS->addSystemClass(initWindowClass());
    NCNS->addSystemClass(initPanelClass());
    init_constants(NCNS);

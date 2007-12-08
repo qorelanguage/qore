@@ -35,7 +35,7 @@
 #include <qore/QoreHash.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreObject.h>
-#include <qore/Namespace.h>
+#include <qore/QoreNamespace.h>
 #include <qore/QoreException.h>
 #include <qore/BinaryObject.h>
 #include <qore/support.h>

@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreClassList.h>
-#include <qore/intern/NamespaceList.h>
+#include <qore/intern/QoreNamespaceList.h>
 #include <qore/minitest.hpp>
 
 #include <assert.h>
@@ -131,7 +131,7 @@ void QoreClassList::assimilate(class QoreClassList *n)
    }
 }
 
-void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, const char *nsname)
+void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class QoreNamespaceList *nsl, class QoreNamespaceList *pendNSL, const char *nsname)
 {
    hm_qc_t::iterator i;
    while ((i = n->hm.begin()) != n->hm.end())

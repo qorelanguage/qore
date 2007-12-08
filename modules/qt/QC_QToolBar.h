@@ -30,7 +30,7 @@
 
 DLLLOCAL extern int CID_QTOOLBAR;
 DLLLOCAL extern QoreClass *QC_QToolBar;
-DLLLOCAL Namespace *initQToolBarNS(QoreClass *);
+DLLLOCAL QoreNamespace *initQToolBarNS(QoreClass *);
 
 class myQToolBar : public QToolBar, public QoreQWidgetExtension
 {

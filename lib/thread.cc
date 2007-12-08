@@ -771,7 +771,7 @@ class QoreProgram *getProgram()
    //return ((ThreadData *)pthread_getspecific(thread_data_key))->pgmStack->getProgram();
 }
 
-class RootNamespace *getRootNS()
+class RootQoreNamespace *getRootNS()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->current_pgm->getRootNS();
    //return ((ThreadData *)pthread_getspecific(thread_data_key))->pgmStack->getProgram()->getRootNS();
@@ -1077,10 +1077,10 @@ void init_qore_threads()
    traceout("qore_init_threads()");
 }
 
-class Namespace *get_thread_ns()
+class QoreNamespace *get_thread_ns()
 {
    // create Qore::Thread namespace
-   class Namespace *Thread = new Namespace("Thread");
+   class QoreNamespace *Thread = new QoreNamespace("Thread");
 
    Thread->addSystemClass(initQueueClass());
    Thread->addSystemClass(initMutexClass());

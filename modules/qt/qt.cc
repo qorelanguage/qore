@@ -187,7 +187,7 @@ QoreType *NT_BRUSHSTYLE = 0, *NT_PENSTYLE = 0;
 QoreNode *C_Clipboard = 0;
 
 static class QoreString *qt_module_init();
-static void qt_module_ns_init(class Namespace *rns, class Namespace *qns);
+static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);
 static void qt_module_delete();
 
 #ifndef QORE_MONOLITHIC
@@ -1361,9 +1361,9 @@ static class QoreString *qt_module_init()
    return 0;
 }
 
-static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
+static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
-   class Namespace *qt = new Namespace("Qt");
+   class QoreNamespace *qt = new QoreNamespace("Qt");
 
     // the order is sensitive here as child classes need the parent IDs
    class QoreClass *qobject, *qcoreapplication, *qwidget, *qlayout, *qframe, 
@@ -1409,7 +1409,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(initQEventNS());
 
-   Namespace *qimage = new Namespace("QImage");
+   QoreNamespace *qimage = new QoreNamespace("QImage");
 
    // InvertMode enum
    qimage->addConstant("InvertRgb",                new QoreNode((int64)QImage::InvertRgb));
@@ -1429,7 +1429,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qimage);
 
-   Namespace *qregion = new Namespace("QRegion");
+   QoreNamespace *qregion = new QoreNamespace("QRegion");
    
    // RegionType enum
    qregion->addConstant("Rectangle",                new QoreNode((int64)QRegion::Rectangle));
@@ -1439,7 +1439,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qregion);
 
-   Namespace *qlayout_ns = new Namespace("QLayout");
+   QoreNamespace *qlayout_ns = new QoreNamespace("QLayout");
 
    qlayout_ns->addSystemClass((qlayout = initQLayoutClass(qobject)));
    qlayout_ns->addSystemClass(initQGridLayoutClass(qlayout));
@@ -1456,7 +1456,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qlayout_ns);
 
-   Namespace *qmovie = new Namespace("QMovie");
+   QoreNamespace *qmovie = new QoreNamespace("QMovie");
 
    // MovieState enum
    qmovie->addConstant("NotRunning",               new QoreNode((int64)QMovie::NotRunning));
@@ -1471,7 +1471,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qmovie);
 
-   Namespace *qslider = new Namespace("QSlider");
+   QoreNamespace *qslider = new QoreNamespace("QSlider");
 
    // TickPosition enum
    qslider->addConstant("NoTicks",                  new QoreNode((int64)QSlider::NoTicks));
@@ -1485,7 +1485,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qslider);
 
-   Namespace *qsizepolicy = new Namespace("QSizePolicy");
+   QoreNamespace *qsizepolicy = new QoreNamespace("QSizePolicy");
 
    // PolicyFlag enum
    qsizepolicy->addConstant("GrowFlag",                 new QoreNode((int64)QSizePolicy::GrowFlag));
@@ -1523,7 +1523,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(initQLibraryInfoNS());
 
-   Namespace *qicon = new Namespace("QIcon");
+   QoreNamespace *qicon = new QoreNamespace("QIcon");
 
    // Mode enum
    qicon->addConstant("Normal",                   new QoreNode((int64)QIcon::Normal));
@@ -1540,7 +1540,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(initQPaletteNS());
 
-   Namespace *qpainter_ns = new Namespace("QPainter");
+   QoreNamespace *qpainter_ns = new QoreNamespace("QPainter");
    
    // RenderHint enum
    qpainter_ns->addConstant("Antialiasing",             new QoreNode((int64)QPainter::Antialiasing));
@@ -1673,7 +1673,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addInitialNamespace(initQToolBarNS(qwidget));
 
    // add QBoxLayout namespace and constants
-   class Namespace *qbl = new Namespace("QBoxLayout");
+   class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");
 
    // Direction enum
    qbl->addConstant("LeftToRight",    new QoreNode((int64)QBoxLayout::LeftToRight));
@@ -1685,7 +1685,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(initQSystemTrayIconNS(qobject));
 
-   Namespace *qdatetimeedit_ns = new Namespace("QDateTimeEdit");
+   QoreNamespace *qdatetimeedit_ns = new QoreNamespace("QDateTimeEdit");
    
    // Section enum
    qdatetimeedit_ns->addConstant("NoSection",                new QoreNode((int64)QDateTimeEdit::NoSection));
@@ -1706,7 +1706,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qdatetimeedit_ns);
 
-   Namespace *qdialog_ns = new Namespace("QDialog");
+   QoreNamespace *qdialog_ns = new QoreNamespace("QDialog");
 
    qdialog_ns->addSystemClass((qdialog = initQDialogClass(qwidget)));
    qdialog_ns->addSystemClass(initQFileDialogClass(qdialog));
@@ -1717,7 +1717,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qdialog_ns->addInitialNamespace(initQWizardNS(qdialog));
 
-   Namespace *qmessagebox = new Namespace("QMessageBox");
+   QoreNamespace *qmessagebox = new QoreNamespace("QMessageBox");
    qmessagebox->addSystemClass(initQMessageBoxClass(qdialog));
 
    // Icon enum
@@ -1772,7 +1772,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qdialog_ns);
 
-   Namespace *qprinter = new Namespace("QPrinter");
+   QoreNamespace *qprinter = new QoreNamespace("QPrinter");
 
    qprinter->addSystemClass(initQPrinterClass(qpaintdevice));
 
@@ -1860,7 +1860,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qprinter);
 
-   Namespace *qlineedit = new Namespace("QLineEdit");
+   QoreNamespace *qlineedit = new QoreNamespace("QLineEdit");
 
    // EchoMode enum
    qlineedit->addConstant("Normal",                   new QoreNode((int64)QLineEdit::Normal));
@@ -1872,7 +1872,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qlineedit);
 
-   Namespace *qabstractitemview_ns = new Namespace("QAbstractItemView");
+   QoreNamespace *qabstractitemview_ns = new QoreNamespace("QAbstractItemView");
    
    // SelectionMode enum
    qabstractitemview_ns->addConstant("NoSelection",              new QoreNode((int64)QAbstractItemView::NoSelection));
@@ -1913,7 +1913,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    
    qt->addInitialNamespace(qabstractitemview_ns);
 
-   Namespace *qheaderview = new Namespace("QHeaderView");
+   QoreNamespace *qheaderview = new QoreNamespace("QHeaderView");
 
    // ResizeMode enum
    qheaderview->addConstant("Interactive",              new QoreNode((int64)QHeaderView::Interactive));
@@ -1927,7 +1927,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addInitialNamespace(qheaderview);
 
 
-   Namespace *qclipboard = new Namespace("QClipboard");
+   QoreNamespace *qclipboard = new QoreNamespace("QClipboard");
    
    // Mode enum
    qclipboard->addConstant("Clipboard",                new QoreNode((int64)QClipboard::Clipboard));
@@ -1939,7 +1939,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qclipboard);
 
-   Namespace *qchar = new Namespace("QChar");
+   QoreNamespace *qchar = new QoreNamespace("QChar");
    qchar->addSystemClass(initQCharClass());
 
    // SpecialCharacter enum
@@ -2068,7 +2068,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qchar);
 
-   Namespace *qcalendarwidget = new Namespace("QCalendarWidget");
+   QoreNamespace *qcalendarwidget = new QoreNamespace("QCalendarWidget");
 
    qcalendarwidget->addSystemClass(initQCalendarWidgetClass(qwidget));
 
@@ -2088,7 +2088,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
 
    qt->addInitialNamespace(qcalendarwidget);
 
-   Namespace *qlocale = new Namespace("QLocale");
+   QoreNamespace *qlocale = new QoreNamespace("QLocale");
    qlocale->addSystemClass(initQLocaleClass());
 
    // Language enum
@@ -2509,7 +2509,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addInitialNamespace(qlocale);
 
    // add QFont namespaces and constants
-   class Namespace *qframens = new Namespace("QFrame");
+   class QoreNamespace *qframens = new QoreNamespace("QFrame");
    // Shadow enum
    qframens->addConstant("Plain",    new QoreNode((int64)QFrame::Plain));
    qframens->addConstant("Raised",   new QoreNode((int64)QFrame::Raised));
@@ -2531,7 +2531,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addInitialNamespace(qframens);
 
    // add QFont namespaces and constants
-   class Namespace *qf = new Namespace("QFont");
+   class QoreNamespace *qf = new QoreNamespace("QFont");
    // Weight enum
    qf->addConstant("Light",    new QoreNode((int64)QFont::Light));
    qf->addConstant("Normal",   new QoreNode((int64)QFont::Normal));
@@ -2583,7 +2583,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addInitialNamespace(qf);
 
    // add QLCDNumber namespace and constants
-   class Namespace *qlcdn = new Namespace("QLCDNumber");
+   class QoreNamespace *qlcdn = new QoreNamespace("QLCDNumber");
    qlcdn->addConstant("Outline",   new QoreNode((int64)QLCDNumber::Outline));
    qlcdn->addConstant("Filled",    new QoreNode((int64)QLCDNumber::Filled));
    qlcdn->addConstant("Flat",      new QoreNode((int64)QLCDNumber::Flat));
@@ -2594,7 +2594,7 @@ static void qt_module_ns_init(class Namespace *rns, class Namespace *qns)
    qt->addInitialNamespace(qlcdn);
 
    // add QAbstractSlider namespace and constants
-   class Namespace *qas = new Namespace("QAbstractSlider");
+   class QoreNamespace *qas = new QoreNamespace("QAbstractSlider");
    qas->addConstant("SliderNoAction",        new QoreNode((int64)QAbstractSlider::SliderNoAction));
    qas->addConstant("SliderSingleStepAdd",   new QoreNode((int64)QAbstractSlider::SliderSingleStepAdd));
    qas->addConstant("SliderSingleStepSub",   new QoreNode((int64)QAbstractSlider::SliderSingleStepSub));

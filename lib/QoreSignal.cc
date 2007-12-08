@@ -447,7 +447,7 @@ int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
 #define CPP_MAKE_STRING1(x) #x
 #define CPP_MAKE_STRING_FROM_SYMBOL(x) CPP_MAKE_STRING1(x)
 
-void QoreSignalManager::addSignalConstants(class Namespace *ns)
+void QoreSignalManager::addSignalConstants(class QoreNamespace *ns)
 {
    class QoreHash *nh = new QoreHash();
    class QoreHash *sh = new QoreHash();

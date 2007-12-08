@@ -31,7 +31,7 @@
 DLLLOCAL extern int CID_QWIZARD;
 DLLLOCAL extern class QoreClass *QC_QWizard;
 
-DLLLOCAL Namespace *initQWizardNS(QoreClass *);
+DLLLOCAL QoreNamespace *initQWizardNS(QoreClass *);
 
 class myQWizard : public QWizard, public QoreQDialogExtension
 {

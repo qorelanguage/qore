@@ -58,7 +58,7 @@ class QoreClassList
       DLLLOCAL void parseRollback();
       DLLLOCAL void parseCommit(QoreClassList *n);
       DLLLOCAL void reset();
-      DLLLOCAL void assimilate(QoreClassList *n, QoreClassList *otherlist, class NamespaceList *nsl, class NamespaceList *pendNSL, const char *nsname);
+      DLLLOCAL void assimilate(QoreClassList *n, QoreClassList *otherlist, class QoreNamespaceList *nsl, class QoreNamespaceList *pendNSL, const char *nsname);
       DLLLOCAL class QoreHash *getInfo();
 };
 

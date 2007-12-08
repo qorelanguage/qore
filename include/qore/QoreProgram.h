@@ -83,8 +83,8 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT void parseSetParseOptions(int po);
       DLLEXPORT void waitForTermination();
       DLLEXPORT void waitForTerminationAndDeref(class ExceptionSink *xsink);
-      DLLEXPORT class Namespace *getQoreNS() const;
-      DLLEXPORT class RootNamespace *getRootNS() const;
+      DLLEXPORT class QoreNamespace *getQoreNS() const;
+      DLLEXPORT class RootQoreNamespace *getRootNS() const;
       // returns 0 for success, -1 for error
       DLLEXPORT int setWarningMask(int wm);
       // returns 0 for success, -1 for error
@@ -137,6 +137,6 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL class LockedObject *getParseLock();
 };
 
-DLLLOCAL void addProgramConstants(class Namespace *ns);
+DLLLOCAL void addProgramConstants(class QoreNamespace *ns);
 
 #endif // _QORE_QOREPROGRAM_H

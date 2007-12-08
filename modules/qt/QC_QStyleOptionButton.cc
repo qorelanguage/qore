@@ -141,9 +141,9 @@ static QoreClass *initQStyleOptionButtonClass(QoreClass *qstyleoption)
    return QC_QStyleOptionButton;
 }
 
-Namespace *initQStyleOptionButtonNS(QoreClass *qstyleoption)
+QoreNamespace *initQStyleOptionButtonNS(QoreClass *qstyleoption)
 {
-   Namespace *ns = new Namespace("QStyleOptionButton");
+   QoreNamespace *ns = new QoreNamespace("QStyleOptionButton");
 
    ns->addSystemClass(initQStyleOptionButtonClass(qstyleoption));
 

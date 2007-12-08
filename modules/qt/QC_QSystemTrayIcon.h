@@ -31,7 +31,7 @@
 DLLLOCAL extern int CID_QSYSTEMTRAYICON;
 DLLLOCAL extern class QoreClass *QC_QSystemTrayIcon;
 
-DLLLOCAL Namespace *initQSystemTrayIconNS(QoreClass *);
+DLLLOCAL QoreNamespace *initQSystemTrayIconNS(QoreClass *);
 DLLLOCAL void initQSystemTrayIconStaticFunctions();
 
 class myQSystemTrayIcon : public QSystemTrayIcon, public QoreQObjectExtension

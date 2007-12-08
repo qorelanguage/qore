@@ -284,9 +284,9 @@ static QoreClass *initQDialogButtonBoxClass(QoreClass *qwidget)
    return QC_QDialogButtonBox;
 }
 
-Namespace *initQDialogButtonBoxNS(QoreClass *qwidget)
+QoreNamespace *initQDialogButtonBoxNS(QoreClass *qwidget)
 {
-   Namespace *ns = new Namespace("QDialogButtonBox");
+   QoreNamespace *ns = new QoreNamespace("QDialogButtonBox");
    ns->addSystemClass(initQDialogButtonBoxClass(qwidget));
 
    // ButtonRole enum

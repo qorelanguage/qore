@@ -141,7 +141,7 @@ void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherli
 
 void ConstantList::parseInit()
 {
-   class RootNamespace *rns = getRootNS();
+   class RootQoreNamespace *rns = getRootNS();
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
    {
       printd(5, "ConstantList::parseInit() %s\n", i->first);

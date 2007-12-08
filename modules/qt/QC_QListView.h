@@ -30,7 +30,7 @@
 
 DLLLOCAL extern int CID_QLISTVIEW;
 DLLLOCAL extern QoreClass *QC_QListView;
-DLLLOCAL Namespace *initQListViewNS(QoreClass *);
+DLLLOCAL QoreNamespace *initQListViewNS(QoreClass *);
 
 class myQListView : public QListView, public QoreQWidgetExtension
 {

@@ -67,8 +67,8 @@ struct qore_program_private {
       class ReferenceObject dc;
       class SBNode *sb_head, *sb_tail;
       class ExceptionSink *parseSink, *warnSink;
-      class RootNamespace *RootNS;
-      class Namespace *QoreNS;
+      class RootQoreNamespace *RootNS;
+      class QoreNamespace *QoreNS;
 
       int parse_options, warn_mask;
       bool po_locked, exec_class, base_object, requires_exception;
@@ -166,7 +166,7 @@ int get_warning_code(const char *str)
    return 0;
 }
 
-DLLLOCAL void addProgramConstants(class Namespace *ns)
+DLLLOCAL void addProgramConstants(class QoreNamespace *ns)
 {
    ns->addConstant("PO_DEFAULT",                  new QoreNode((int64)PO_DEFAULT));
    ns->addConstant("PO_NO_GLOBAL_VARS",           new QoreNode((int64)PO_NO_GLOBAL_VARS));
@@ -225,7 +225,7 @@ QoreProgram::QoreProgram() : priv(new qore_program_private)
    qoreFeatureList.populate(&priv->featureList);
 
    // setup namespaces
-   priv->RootNS = new RootNamespace(&priv->QoreNS);
+   priv->RootNS = new RootQoreNamespace(&priv->QoreNS);
 }
 
 QoreProgram::QoreProgram(class QoreProgram *pgm, int po, bool ec, const char *ecn) : priv(new qore_program_private)
@@ -552,7 +552,7 @@ int QoreProgram::disableWarning(int code)
    return -1; 
 }
 
-class RootNamespace *QoreProgram::getRootNS() const
+class RootQoreNamespace *QoreProgram::getRootNS() const
 {
    return priv->RootNS; 
 }
@@ -594,7 +594,7 @@ void QoreProgram::setExecClass(const char *ecn)
       priv->exec_class_name.clear();
 }
 
-class Namespace *QoreProgram::getQoreNS() const
+class QoreNamespace *QoreProgram::getQoreNS() const
 {
    return priv->QoreNS;
 }

@@ -28,7 +28,7 @@
 
 DLLLOCAL extern int CID_QLISTWIDGETITEM;
 DLLLOCAL extern QoreClass *QC_QListWidgetItem;
-DLLLOCAL Namespace *initQListWidgetItemNS();
+DLLLOCAL QoreNamespace *initQListWidgetItemNS();
 
 class QoreQListWidgetItem : public AbstractPrivateData
 {

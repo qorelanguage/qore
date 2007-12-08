@@ -142,7 +142,7 @@ int ModuleInfo::getAPIMinor() const
    return api_minor;
 }
 
-void ModuleInfo::ns_init(class Namespace *rns, class Namespace *qns) const
+void ModuleInfo::ns_init(class QoreNamespace *rns, class QoreNamespace *qns) const
 {
    module_ns_init(rns, qns);
 }

@@ -57,7 +57,7 @@ libqore_la_SOURCES = \
 	Find.cc \
 	charset.cc \
 	QoreProgram.cc \
-	Namespace.cc \
+	QoreNamespace.cc \
 	QoreNet.cc \
 	QoreURL.cc \
 	QoreFile.cc \

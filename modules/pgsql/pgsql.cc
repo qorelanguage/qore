@@ -28,7 +28,7 @@
 #include <libpq-fe.h>
 
 static class QoreString *pgsql_module_init();
-static void pgsql_module_ns_init(class Namespace *rns, class Namespace *qns);
+static void pgsql_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);
 static void pgsql_module_delete();
 
 #ifndef QORE_MONOLITHIC
@@ -206,9 +206,9 @@ static class QoreString *pgsql_module_init()
    return NULL;
 }
 
-static void pgsql_module_ns_init(class Namespace *rns, class Namespace *qns)
+static void pgsql_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
-   class Namespace *pgsql = new Namespace("PGSQL");
+   class QoreNamespace *pgsql = new QoreNamespace("PGSQL");
    pgsql->addConstant("PG_TYPE_BOOL",                new QoreNode((int64)BOOLOID));
    pgsql->addConstant("PG_TYPE_BYTEA",               new QoreNode((int64)BYTEAOID));
    pgsql->addConstant("PG_TYPE_CHAR",                new QoreNode((int64)CHAROID));

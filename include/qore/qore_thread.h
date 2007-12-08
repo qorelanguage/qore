@@ -72,7 +72,7 @@ DLLLOCAL void update_parse_location(int start_line, int end_line, const char *f)
 DLLLOCAL bool inMethod(const char *name, class QoreObject *o);
 DLLLOCAL void pushProgram(class QoreProgram *pgm);
 DLLLOCAL void popProgram();
-DLLLOCAL class RootNamespace *getRootNS();
+DLLLOCAL class RootQoreNamespace *getRootNS();
 DLLLOCAL int getParseOptions();
 DLLLOCAL void updateCVarStack(class CVNode *ncvs);
 DLLLOCAL class CVNode *getCVarStack();
@@ -181,7 +181,7 @@ class ArgvContextHelper {
 };
 
 DLLLOCAL void init_qore_threads();
-DLLLOCAL class Namespace *get_thread_ns();
+DLLLOCAL class QoreNamespace *get_thread_ns();
 DLLLOCAL void delete_qore_threads();
 DLLLOCAL class QoreList *get_thread_list();
 DLLLOCAL class QoreHash *getAllCallStacks();

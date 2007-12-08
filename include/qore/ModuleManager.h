@@ -37,7 +37,7 @@
 #define QORE_MODULE_API_MINOR 4
 
 typedef class QoreString *(*qore_module_init_t)();
-typedef void (*qore_module_ns_init_t)(class Namespace *, class Namespace *);
+typedef void (*qore_module_ns_init_t)(class QoreNamespace *, class QoreNamespace *);
 typedef void (*qore_module_delete_t)();
 
 class ModuleInfo {
@@ -62,7 +62,7 @@ class ModuleInfo {
       DLLLOCAL const char *getURL() const;
       DLLLOCAL int getAPIMajor() const;
       DLLLOCAL int getAPIMinor() const;
-      DLLLOCAL void ns_init(class Namespace *rns, class Namespace *qns) const;
+      DLLLOCAL void ns_init(class QoreNamespace *rns, class QoreNamespace *qns) const;
       DLLLOCAL bool isBuiltin() const;
       DLLLOCAL class QoreHash *getHash() const;
 };

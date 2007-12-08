@@ -1145,7 +1145,7 @@ class QoreString *qore_mysql_module_init()
    return NULL;
 }
 
-void qore_mysql_module_ns_init(class Namespace *rns, class Namespace *qns)
+void qore_mysql_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
    tracein("qore_mysql_module_ns_init()");
    // nothing to do at the moment

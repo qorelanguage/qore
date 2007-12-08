@@ -576,9 +576,9 @@ static class QoreClass *initQPaletteClass()
    return QC_QPalette;
 }
 
-Namespace *initQPaletteNS()
+QoreNamespace *initQPaletteNS()
 {   
-   Namespace *qpalette = new Namespace("QPalette");
+   QoreNamespace *qpalette = new QoreNamespace("QPalette");
 
    qpalette->addSystemClass(initQPaletteClass());
 

@@ -360,9 +360,9 @@ static QoreClass *initQToolBarClass(QoreClass *qwidget)
    return QC_QToolBar;
 }
 
-Namespace *initQToolBarNS(QoreClass *qwidget)
+QoreNamespace *initQToolBarNS(QoreClass *qwidget)
 {
-   Namespace *ns = new Namespace("QToolBar");
+   QoreNamespace *ns = new QoreNamespace("QToolBar");
    ns->addSystemClass(initQToolBarClass(qwidget));
 
    return ns;

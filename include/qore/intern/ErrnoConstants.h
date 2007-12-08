@@ -25,11 +25,11 @@
 #define _QORE_ERRNOCONSTANTS_H
 
 // this function will set up the Qore system namespace
-static inline class Namespace *get_errno_ns()
+static inline class QoreNamespace *get_errno_ns()
 {
    tracein("get_errno_ns()");
 
-   class Namespace *Err = new Namespace("Err");
+   class QoreNamespace *Err = new QoreNamespace("Err");
 
 #ifdef EPERM
    Err->addConstant("EPERM", new QoreNode((int64)EPERM));

@@ -24,12 +24,9 @@
 
 #define _QORE_TYPECONSTANTS_H
 
-#include <qore/Namespace.h>
-#include <qore/QoreType.h>
-
-static inline class Namespace *get_type_ns()
+static inline class QoreNamespace *get_type_ns()
 {
-   class Namespace *Type = new Namespace("Type");
+   class QoreNamespace *Type = new QoreNamespace("Type");
 
    Type->addConstant("Boolean",        new QoreNode(NT_BOOLEAN->getName()));
    Type->addConstant("Int",            new QoreNode(NT_INT->getName()));

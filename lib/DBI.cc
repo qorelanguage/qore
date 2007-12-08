@@ -535,10 +535,10 @@ void init_dbi_functions()
    builtinFunctions.add("parseDatasource", f_parseDatasource);
 }
 
-class Namespace *getSQLNamespace()
+class QoreNamespace *getSQLNamespace()
 {
    // create Qore::SQL namespace
-   class Namespace *SQLNS = new Namespace("SQL");
+   class QoreNamespace *SQLNS = new QoreNamespace("SQL");
 
    SQLNS->addSystemClass(initDatasourceClass());
    SQLNS->addSystemClass(initDatasourcePoolClass());

@@ -238,7 +238,7 @@ QoreString* sybase_module_init()
 
 /*
 // constants are not needed now as specifying placeholder buffer types is not necessary
-static void add_constants(Namespace* ns)
+static void add_constants(QoreNamespace* ns)
 {
    ns->addConstant("CS_CHAR_TYPE", new QoreNode((int64)CS_CHAR_TYPE));
    ns->addConstant("CS_BINARY_TYPE", new QoreNode((int64)CS_BINARY_TYPE));
@@ -296,17 +296,17 @@ static void add_constants(Namespace* ns)
 }
 */
 
-void sybase_module_ns_init(Namespace *rns, Namespace *qns)
+void sybase_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
 {
 /*
   // this is commented out because the constants are not needed (or documented) at the moment
   // maybe later we can use them
    tracein("sybase_module_ns_init()");
-   Namespace *sybase = 
+   QoreNamespace *sybase = 
 #ifdef SYBASE
-      new Namespace("Sybase");
+      new QoreNamespace("Sybase");
 #else
-      new Namespace("MSSQL");
+      new QoreNamespace("MSSQL");
 #endif
    add_constants(sybase);
 

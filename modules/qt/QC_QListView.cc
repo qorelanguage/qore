@@ -362,9 +362,9 @@ static QoreClass *initQListViewClass(QoreClass *qabstractitemview)
    return QC_QListView;
 }
 
-Namespace *initQListViewNS(QoreClass *qabstractitemview)
+QoreNamespace *initQListViewNS(QoreClass *qabstractitemview)
 {
-   Namespace *ns = new Namespace("QListView");
+   QoreNamespace *ns = new QoreNamespace("QListView");
    ns->addSystemClass(initQListViewClass(qabstractitemview));
 
    ns->addSystemClass(initQListWidgetClass(QC_QListView));

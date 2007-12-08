@@ -26,7 +26,7 @@
 
 #include <QLibraryInfo>
 
-DLLLOCAL Namespace *initQLibraryInfoNS();
+DLLLOCAL QoreNamespace *initQLibraryInfoNS();
 DLLLOCAL void initQLibraryInfoStaticFunctions();
 
 #endif // _QORE_QT_QC_QLIBRARYINFO_H

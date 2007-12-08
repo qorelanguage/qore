@@ -28,7 +28,7 @@
 #include <qore/QoreNode.h>
 
 class QoreString *tibrv_module_init();
-void tibrv_module_ns_init(class Namespace *rns, class Namespace *qns);
+void tibrv_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);
 void tibrv_module_delete();
 
 #endif

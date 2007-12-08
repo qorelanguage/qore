@@ -90,7 +90,7 @@ QoreString* tuxedo_module_init()
 }
 
 //------------------------------------------------------------------------------
-static void add_constants(Namespace* ns)
+static void add_constants(QoreNamespace* ns)
 {
   // Queueing errors and constants
   ns->addConstant("QMEABORTED", new QoreNode((int64)QMEABORTED));
@@ -244,11 +244,11 @@ static void add_constants(Namespace* ns)
 }
 
 //------------------------------------------------------------------------------
-void tuxedo_module_ns_init(Namespace* rns, Namespace* qns)
+void tuxedo_module_ns_init(QoreNamespace* rns, QoreNamespace* qns)
 {
   tracein("tuxedo_module_ns_init");
 
-  Namespace* tuxedons = new Namespace("Tuxedo");
+  QoreNamespace* tuxedons = new QoreNamespace("Tuxedo");
 
   add_constants(tuxedons);
   tuxedons->addSystemClass(initTuxedoAdapterClass());

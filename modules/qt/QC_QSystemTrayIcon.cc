@@ -219,9 +219,9 @@ static QoreClass *initQSystemTrayIconClass(QoreClass *qobject)
    return QC_QSystemTrayIcon;
 }
 
-Namespace *initQSystemTrayIconNS(QoreClass *qobject)
+QoreNamespace *initQSystemTrayIconNS(QoreClass *qobject)
 {
-   Namespace *ns = new Namespace("QSystemTrayIcon");
+   QoreNamespace *ns = new QoreNamespace("QSystemTrayIcon");
 
    ns->addSystemClass(initQSystemTrayIconClass(qobject));
 

@@ -29,7 +29,7 @@
 DLLLOCAL extern int CID_QSTYLEOPTIONBUTTON;
 DLLLOCAL extern class QoreClass *QC_QStyleOptionButton;
 
-DLLLOCAL Namespace *initQStyleOptionButtonNS(QoreClass *);
+DLLLOCAL QoreNamespace *initQStyleOptionButtonNS(QoreClass *);
 
 class QoreQStyleOptionButton : public AbstractPrivateData, public QStyleOptionButton
 {

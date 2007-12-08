@@ -186,14 +186,14 @@ struct NSNode
       union {
 	    class ObjClassDef *ocd;
 	    class ConstNode  *cn;
-	    class Namespace  *ns;
+	    class QoreNamespace  *ns;
       } n;
       DLLLOCAL NSNode(class ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
       DLLLOCAL NSNode(class ConstNode  *c) { type = NSN_CONST; n.cn = c; }
-      DLLLOCAL NSNode(class Namespace  *s) { type = NSN_NS; n.ns = s; }
+      DLLLOCAL NSNode(class QoreNamespace  *s) { type = NSN_NS; n.ns = s; }
 };
 
-static inline void addNSNode(class Namespace *ns, struct NSNode *n)
+static inline void addNSNode(class QoreNamespace *ns, struct NSNode *n)
 {
    switch (n->type)
    {
@@ -495,7 +495,7 @@ struct MethodNode {
       class MemberList *privlist;
       class QoreClass *qoreclass;
       class ConstNode *constnode;
-      class Namespace *ns;
+      class QoreNamespace *ns;
       class NSNode *nsn;
       class ObjClassDef *objdef;
       class DateTime *datetime;
@@ -771,13 +771,13 @@ top_namespace_decl:
 	TOK_NAMESPACE IDENTIFIER '{' namespace_decls '}'
 	{ $4->setName($2); $$ = $4; free($2); }
         | TOK_NAMESPACE IDENTIFIER ';'
-        { $$ = new Namespace($2); free($2); }
+        { $$ = new QoreNamespace($2); free($2); }
 	;
 
 namespace_decls:
 	namespace_decl
         {
-	   class Namespace *ns = new Namespace();
+	   class QoreNamespace *ns = new QoreNamespace();
 	   addNSNode(ns, $1);
 	   $$ = ns;
         }

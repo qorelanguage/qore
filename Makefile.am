@@ -51,7 +51,7 @@ noinst_HEADERS = \
 	include/qore/ScopedObjectCall.h \
 	include/qore/QoreNode.h \
 	include/qore/ModuleManager.h \
-	include/qore/Namespace.h \
+	include/qore/QoreNamespace.h \
 	include/qore/QoreObject.h \
 	include/qore/macros-i386.h \
 	include/qore/macros-powerpc.h \
@@ -96,7 +96,7 @@ noinst_HEADERS = \
 	include/qore/AutoVLock.h \
 	include/qore/intern/ObjectMethodReference.h \
 	include/qore/intern/NamedScope.h \
-	include/qore/intern/NamespaceList.h \
+	include/qore/intern/QoreNamespaceList.h \
 	include/qore/intern/ManagedDatasource.h \
 	include/qore/intern/ImportedFunctionList.h \
 	include/qore/intern/GlobalVariableList.h \

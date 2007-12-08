@@ -29,7 +29,7 @@
 extern int CID_QPALETTE;
 extern QoreClass *QC_QPalette;
 
-DLLLOCAL Namespace *initQPaletteNS();
+DLLLOCAL QoreNamespace *initQPaletteNS();
 
 class QoreQPalette : public AbstractPrivateData
 {

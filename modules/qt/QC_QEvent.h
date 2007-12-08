@@ -31,7 +31,7 @@
 DLLLOCAL extern int CID_QEVENT;
 DLLLOCAL extern class QoreClass *QC_QEvent;
 
-DLLLOCAL Namespace *initQEventNS();
+DLLLOCAL QoreNamespace *initQEventNS();
 
 class QoreQEvent : public AbstractPrivateData, public QEvent
 {

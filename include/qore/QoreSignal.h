@@ -98,7 +98,7 @@ class QoreSignalManager
       DLLLOCAL static void del();
       DLLLOCAL static int setHandler(int sig, class AbstractFunctionReference *fr, class ExceptionSink *xsink);
       DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);
-      DLLLOCAL static void addSignalConstants(class Namespace *ns);
+      DLLLOCAL static void addSignalConstants(class QoreNamespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);
       DLLLOCAL static void signal_handler_thread();
       DLLLOCAL static void lock_idle();

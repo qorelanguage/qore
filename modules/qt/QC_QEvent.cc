@@ -105,9 +105,9 @@ static class QoreClass *initQEventClass()
    return QC_QEvent;
 }
 
-Namespace *initQEventNS()
+QoreNamespace *initQEventNS()
 {
-   Namespace *ns = new Namespace("QEvent");
+   QoreNamespace *ns = new QoreNamespace("QEvent");
 
    class QoreClass *qevent, *qinputevent, *qdropevent, *qdragmoveevent;
    ns->addSystemClass((qevent = initQEventClass()));

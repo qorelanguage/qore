@@ -24,9 +24,9 @@
 
 #include "QC_QLibraryInfo.h"
 
-Namespace *initQLibraryInfoNS()
+QoreNamespace *initQLibraryInfoNS()
 {
-   Namespace *ns = new Namespace("QLibraryInfo");
+   QoreNamespace *ns = new QoreNamespace("QLibraryInfo");
 
    // LibraryLocation enum
    ns->addConstant("PrefixPath",               new QoreNode((int64)QLibraryInfo::PrefixPath));

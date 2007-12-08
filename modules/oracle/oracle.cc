@@ -1394,7 +1394,7 @@ class QoreString *oracle_module_init()
    return NULL;
 }
 
-void oracle_module_ns_init(class Namespace *rns, class Namespace *qns)
+void oracle_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
    tracein("oracle_module_ns_init()");
    // nothing to do at the moment

@@ -30,7 +30,7 @@
 
 DLLLOCAL extern int CID_QDIALOGBUTTONBOX;
 DLLLOCAL extern QoreClass *QC_QDialogButtonBox;
-DLLLOCAL Namespace *initQDialogButtonBoxNS(QoreClass *);
+DLLLOCAL QoreNamespace *initQDialogButtonBoxNS(QoreClass *);
 
 class myQDialogButtonBox : public QDialogButtonBox, public QoreQWidgetExtension
 {

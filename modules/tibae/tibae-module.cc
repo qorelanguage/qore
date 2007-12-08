@@ -66,10 +66,10 @@ class QoreString *tibae_module_init()
    return NULL;
 }
 
-void tibae_module_ns_init(class Namespace *rns, class Namespace *qns)
+void tibae_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
    tracein("tibae_module_ns_init()");
-   class Namespace *tibns = new Namespace("Tibae");
+   class QoreNamespace *tibns = new QoreNamespace("Tibae");
    tibns->addSystemClass(initTibcoAdapterClass());
 
    // add constants

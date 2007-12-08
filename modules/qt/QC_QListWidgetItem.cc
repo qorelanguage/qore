@@ -468,9 +468,9 @@ static QoreClass *initQListWidgetItemClass()
    return QC_QListWidgetItem;
 }
 
-Namespace *initQListWidgetItemNS()
+QoreNamespace *initQListWidgetItemNS()
 {
-   Namespace *ns = new Namespace("QListWidgetItem");
+   QoreNamespace *ns = new QoreNamespace("QListWidgetItem");
    ns->addSystemClass(initQListWidgetItemClass());
 
    // ItemType enum

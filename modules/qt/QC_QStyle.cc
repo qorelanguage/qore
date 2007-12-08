@@ -654,9 +654,9 @@ static QoreClass *initQStyleClass(QoreClass *qobject)
    return QC_QStyle;
 }
 
-Namespace *initQStyleNS(QoreClass *qobject)
+QoreNamespace *initQStyleNS(QoreClass *qobject)
 { 
-   Namespace *qstyle_ns = new Namespace("QStyle");
+   QoreNamespace *qstyle_ns = new QoreNamespace("QStyle");
 
    QoreClass *qstyle, *qmotifstyle, *qwindowsstyle;
 

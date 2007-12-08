@@ -65,10 +65,10 @@ class QoreString *tibrv_module_init()
    return NULL;
 }
 
-void tibrv_module_ns_init(class Namespace *rns, class Namespace *qns)
+void tibrv_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
    tracein("tibrv_module_ns_init()");
-   class Namespace *tibns = new Namespace("Tibrv");
+   class QoreNamespace *tibns = new QoreNamespace("Tibrv");
    tibns->addSystemClass(initTibrvListenerClass());
    tibns->addSystemClass(initTibrvSenderClass());
    tibns->addSystemClass(initTibrvFtMemberClass());

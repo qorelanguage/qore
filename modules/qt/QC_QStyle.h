@@ -45,7 +45,7 @@
 DLLLOCAL extern int CID_QSTYLE;
 DLLLOCAL extern class QoreClass *QC_QStyle;
 
-DLLLOCAL class Namespace *initQStyleNS(QoreClass *);
+DLLLOCAL class QoreNamespace *initQStyleNS(QoreClass *);
 
 class myQStyle : public QStyle, public QoreQStyleExtension 
 {

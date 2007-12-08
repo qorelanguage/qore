@@ -49,7 +49,7 @@ class AutoNamespaceList : public LockedObject, public anslist_t
 	 unlock();
       }
       
-      DLLLOCAL inline void init(class Namespace *rns, class Namespace *qns)
+      DLLLOCAL inline void init(class QoreNamespace *rns, class QoreNamespace *qns)
       {
 	 for (anslist_t::iterator i = begin(); i != end(); i++)
 	    (*i)(rns, qns);
