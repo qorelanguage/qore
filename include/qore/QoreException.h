@@ -33,8 +33,7 @@
 
 class ExceptionSink {
    private:
-      bool thread_exit;
-      class QoreException *head, *tail;
+      struct qore_es_private *priv; // private implementation
 
       DLLLOCAL void insert(class QoreException *e);
       DLLLOCAL void clearIntern();
@@ -80,11 +79,7 @@ class QoreException {
    private:
    
    protected:
-      int type;
-      int start_line, end_line;
-      char *file;
-      class QoreNode *callStack, *err, *desc, *arg;
-      class QoreException *next;
+      struct qore_ex_private *priv;
 
       DLLLOCAL ~QoreException();
       DLLLOCAL void addStackInfo(class QoreNode *n);

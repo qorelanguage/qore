@@ -25,7 +25,6 @@ noinst_HEADERS = \
 	include/qore/node_types.h \
 	include/qore/BuiltinFunctionList.h \
 	include/qore/UserFunctionList.h \
-	include/qore/QoreClassList.h \
 	include/qore/Variable.h \
 	include/qore/TypeConstants.h \
 	include/qore/Sequence.h \
@@ -34,14 +33,12 @@ noinst_HEADERS = \
 	include/qore/RMutex.h \
 	include/qore/VRMutex.h \
 	include/qore/QoreClass.h \
-	include/qore/Operator.h \
 	include/qore/QoreString.h \
 	include/qore/Reference.h \
 	include/qore/common.h \
 	include/qore/config.h \
 	include/qore/proto.h \
 	include/qore/charset.h \
-	include/qore/ParserSupport.h \
 	include/qore/DateTime.h \
 	include/qore/support.h \
 	include/qore/QoreException.h \
@@ -89,11 +86,14 @@ noinst_HEADERS = \
 	include/qore/ScopeGuard.h \
 	include/qore/minitest.hpp \
 	include/qore/inline_printf.h \
-	include/qore/QException.h \
 	include/qore/ReferenceHolder.h \
 	include/qore/QoreSSLCertificate.h \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
+	include/qore/intern/QoreClassList.h \
+	include/qore/intern/QException.h \
+	include/qore/intern/ParserSupport.h \
+	include/qore/intern/Operator.h \
 	include/qore/intern/ObjectMethodReference.h \
 	include/qore/intern/NamedScope.h \
 	include/qore/intern/QoreNamespaceList.h \

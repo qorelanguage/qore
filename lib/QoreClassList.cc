@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QoreClassList.h>
+#include <qore/intern/QoreClassList.h>
 #include <qore/intern/QoreNamespaceList.h>
 #include <qore/minitest.hpp>
 

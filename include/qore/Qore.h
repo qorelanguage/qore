@@ -33,6 +33,7 @@
 #include <qore/QoreNet.h>
 #include <qore/QoreSocket.h>
 #include <qore/QoreHash.h>
+#include <qore/QoreFile.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreObject.h>
 #include <qore/QoreNamespace.h>
@@ -65,7 +66,7 @@
 #include <qore/ScopedObjectCall.h>
 #include <qore/intern/ClassRef.h>
 #include <qore/intern/Context.h>
-#include <qore/Operator.h>
+#include <qore/intern/Operator.h>
 #include <qore/Tree.h>
 #include <qore/Datasource.h>
 #include <qore/VRMutex.h>

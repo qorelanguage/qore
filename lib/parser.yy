@@ -40,7 +40,7 @@
 #include <qore/intern/ThrowStatement.h>
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/Find.h>
-#include <qore/ParserSupport.h>
+#include <qore/intern/ParserSupport.h>
 #include <qore/RegexSubst.h>
 #include <qore/QoreRegex.h>
 #include <qore/RegexTrans.h>

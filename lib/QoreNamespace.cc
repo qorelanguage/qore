@@ -23,16 +23,15 @@
 #include <qore/Qore.h>
 #include <qore/intern/ErrnoConstants.h>
 #include <qore/TypeConstants.h>
-#include <qore/ParserSupport.h>
+#include <qore/intern/ParserSupport.h>
 #include <qore/intern/CallStack.h>
 #include <qore/QoreRegexBase.h>
 #include <qore/intern/QoreNamespaceList.h>
 #include <qore/intern/AutoNamespaceList.h>
 #include <qore/ssl_constants.h>
-#include <qore/QoreFile.h>
 #include <qore/minitest.hpp>
 #include <qore/intern/ConstantList.h>
-#include <qore/QoreClassList.h>
+#include <qore/intern/QoreClassList.h>
 #include <qore/QoreSignal.h>
 
 // include files for default object classes

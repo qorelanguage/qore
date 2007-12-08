@@ -23,7 +23,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ParserSupport.h>
+#include <qore/intern/ParserSupport.h>
 #include <qore/Restrictions.h>
 #include <qore/QoreCounter.h>
 #include <qore/StringList.h>

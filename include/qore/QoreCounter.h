@@ -30,12 +30,7 @@
 class QoreCounter
 {
    private:
-      enum cond_status_e { Cond_Deleted = -1 };
-
-      LockedObject l;
-      QoreCondition cond;
-      int cnt;
-      int waiting;
+      struct qore_counter_private *priv;
 
    public:
       DLLEXPORT QoreCounter(int nc = 0);
@@ -44,14 +39,8 @@ class QoreCounter
       DLLEXPORT void inc();
       DLLEXPORT void dec(class ExceptionSink *xsink);
       DLLEXPORT int waitForZero(class ExceptionSink *xsink, int timeout_ms = 0);
-      DLLEXPORT int getCount() const
-      {
-	 return cnt;
-      }
-      DLLEXPORT int getWaiting() const
-      {
-	 return waiting;
-      }
+      DLLEXPORT int getCount() const;
+      DLLEXPORT int getWaiting() const;
 
       // internal use only - for internal counters
       DLLLOCAL void waitForZero();

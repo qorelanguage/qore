@@ -3,6 +3,7 @@
 	* made Namespace implmentation private 
 	* renamed Namespace, RootNamespace, and NamespaceList to QoreNamespace,
 	  RootQoreNamespace, and QoreNamespaceList to avoid name clashes
+	* made QoreException and ExceptionSink implementations private
 
 2007.12.07: David Nichols
 	* made DBI class and structure implementations private

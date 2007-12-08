@@ -44,12 +44,6 @@
 #include <qore/intern/QT_context.h>
 #include <qore/intern/QT_varref.h>
 
-#include <qore/support.h>
-#include <qore/QoreList.h>
-#include <qore/QoreNode.h>
-#include <qore/QoreString.h>
-#include <qore/Operator.h>
-
 #include <string.h>
 #include <assert.h>
 
