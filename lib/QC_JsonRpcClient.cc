@@ -41,9 +41,9 @@ static void JRC_constructor(class QoreObject *self, class QoreNode *params, Exce
 
    // set options for JSON-RPC communication
    client->setDefaultPath("JSON");
-   client->default_headers["Content-Type"] = "application/json";
-   client->default_headers["Accept"] = "application/json";
-   client->default_headers["User-Agent"] = "Qore JSON-RPC Client v" PACKAGE_VERSION;
+   client->setDefaultHeaderValue("Content-Type", "application/json");
+   client->setDefaultHeaderValue("Accept", "application/json");
+   client->setDefaultHeaderValue("User-Agent", "Qore JSON-RPC Client v" PACKAGE_VERSION);
 
    client->addProtocol("jsonrpc", 80, false);
    client->addProtocol("jsonrpcs", 443, true);

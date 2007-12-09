@@ -58,7 +58,6 @@ noinst_HEADERS = \
 	include/qore/QoreNet.h \
 	include/qore/QoreURL.h \
 	include/qore/Restrictions.h \
-	include/qore/QoreFile.h \
 	include/qore/QoreLib.h \
 	include/qore/QoreCondition.h \
 	include/qore/QoreCounter.h \
@@ -68,7 +67,6 @@ noinst_HEADERS = \
 	include/qore/hash_map.h \
 	include/qore/QoreRegex.h \
 	include/qore/QoreRegexBase.h \
-	include/qore/QoreGetOpt.h \
 	include/qore/QoreFtpClient.h \
 	include/qore/StringList.h \
 	include/qore/safe_dslist \
@@ -90,6 +88,8 @@ noinst_HEADERS = \
 	include/qore/QoreSSLCertificate.h \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
+	include/qore/intern/QoreGetOpt.h \
+	include/qore/intern/QoreFile.h \
 	include/qore/intern/QoreClassList.h \
 	include/qore/intern/QException.h \
 	include/qore/intern/ParserSupport.h \

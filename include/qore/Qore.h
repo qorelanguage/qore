@@ -33,7 +33,6 @@
 #include <qore/QoreNet.h>
 #include <qore/QoreSocket.h>
 #include <qore/QoreHash.h>
-#include <qore/QoreFile.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreObject.h>
 #include <qore/QoreNamespace.h>
@@ -71,6 +70,7 @@
 #include <qore/Datasource.h>
 #include <qore/VRMutex.h>
 #include <qore/intern/VLock.h>
+#include <qore/intern/QoreFile.h>
 
 DLLLOCAL extern int qore_library_options;
 #endif

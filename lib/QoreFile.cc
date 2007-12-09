@@ -23,7 +23,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QoreFile.h>
+#include <qore/intern/QoreFile.h>
 
 #include <stdio.h>
 #include <errno.h>

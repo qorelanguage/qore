@@ -24,7 +24,7 @@
 
 #define _QORE_CLASS_GETOPT_H
 
-#include <qore/QoreGetOpt.h>
+#include <qore/intern/QoreGetOpt.h>
 #include <qore/AbstractPrivateData.h>
 
 DLLEXPORT extern int CID_GETOPT;

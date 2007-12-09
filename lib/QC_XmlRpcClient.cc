@@ -40,9 +40,9 @@ static void XRC_constructor(class QoreObject *self, class QoreNode *params, Exce
 
    // set options for XML-RPC communication
    client->setDefaultPath("RPC2");
-   client->default_headers["Content-Type"] = "text/xml";
-   client->default_headers["Accept"] = "text/xml";
-   client->default_headers["User-Agent"] = "Qore XML-RPC Client v" PACKAGE_VERSION;
+   client->setDefaultHeaderValue("Content-Type", "text/xml");
+   client->setDefaultHeaderValue("Accept", "text/xml");
+   client->setDefaultHeaderValue("User-Agent", "Qore XML-RPC Client v" PACKAGE_VERSION);
 
    client->addProtocol("xmlrpc", 80, false);
    client->addProtocol("xmlrpcs", 443, true);
