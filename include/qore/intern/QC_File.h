@@ -28,7 +28,7 @@ DLLEXPORT extern int CID_FILE;
 DLLLOCAL class QoreClass *initFileClass();
 static inline void addFileConstants(class QoreNamespace *ns);
 
-#include <qore/intern/QoreFile.h>
+#include <qore/QoreFile.h>
 #include <qore/AbstractPrivateData.h>
 
 class File : public AbstractPrivateData, public QoreFile

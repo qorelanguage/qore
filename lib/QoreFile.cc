@@ -23,15 +23,36 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreFile.h>
+#include <qore/QoreFile.h>
 
 #include <stdio.h>
 #include <errno.h>
 
+#include <string>
+
+struct qore_qf_private {
+      int fd;
+      bool is_open;
+      bool special_file;
+      class QoreEncoding *charset;
+      std::string filename;
+
+      DLLLOCAL qore_qf_private(class QoreEncoding *cs)
+      {
+	 is_open = false;
+	 charset = cs;
+	 special_file = false;
+      }
+
+      DLLLOCAL ~qore_qf_private()
+      {
+      }
+};
+
 // returns -1 for exception
 int QoreFile::check_read_open(class ExceptionSink *xsink)
 {
-   if (is_open)
+   if (priv->is_open)
       return 0;
    
    xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
@@ -41,48 +62,41 @@ int QoreFile::check_read_open(class ExceptionSink *xsink)
 // returns -1 for exception
 int QoreFile::check_write_open(class ExceptionSink *xsink)
 {
-   if (is_open)
+   if (priv->is_open)
       return 0;
    
    xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
    return -1;
 }
 
-QoreFile::QoreFile(class QoreEncoding *cs)
+QoreFile::QoreFile(class QoreEncoding *cs) : priv(new qore_qf_private(cs))
 {
-   is_open = false;
-   filename = NULL;
-   charset = cs;
-   special_file = false;
 }
 
 QoreFile::~QoreFile()
 {
    close();
+   delete priv;
 }
 
 const char *QoreFile::getFileName() const
 { 
-   return filename; 
+   return priv->filename.c_str(); 
 }
 
 int QoreFile::close()
 {
-   if (filename)
-   {
-      free(filename);
-      filename = NULL;
-   }
-   
+   priv->filename.clear();
+
    int rc;
-   if (is_open)
+   if (priv->is_open)
    {
-      if (special_file)
+      if (priv->special_file)
 	 rc = -1;
       else
       {
-	 rc = ::close(fd);
-	 is_open = false;
+	 rc = ::close(priv->fd);
+	 priv->is_open = false;
       }
    }
    else
@@ -92,19 +106,19 @@ int QoreFile::close()
 
 void QoreFile::setEncoding(class QoreEncoding *cs)
 {
-   charset = cs;
+   priv->charset = cs;
 }
 
 class QoreEncoding *QoreFile::getEncoding() const
 {
-   return charset;
+   return priv->charset;
 }
 
 int QoreFile::sync()
 {
    int rc;
-   if (is_open)
-      rc = ::fsync(fd);
+   if (priv->is_open)
+      rc = ::fsync(priv->fd);
    else
       rc = -1;
    return rc;
@@ -112,27 +126,27 @@ int QoreFile::sync()
 
 void QoreFile::makeSpecial(int sfd)
 {
-   is_open = true;
-   filename = NULL;
-   charset = QCS_DEFAULT;
-   special_file = true;
-   fd = sfd;
+   priv->is_open = true;
+   priv->filename.clear();
+   priv->charset = QCS_DEFAULT;
+   priv->special_file = true;
+   priv->fd = sfd;
 }
 
 int QoreFile::open(const char *fn, int flags, int mode, class QoreEncoding *cs)
 {
-   if (!fn || special_file)
+   if (!fn || priv->special_file)
       return -1;
    close();
    if (!flags)
       flags = O_RDONLY;
-   fd = ::open(fn, flags, mode);
-   if (fd < 0)
-      return fd;
-   filename = strdup(fn);
+   priv->fd = ::open(fn, flags, mode);
+   if (priv->fd < 0)
+      return priv->fd;
+   priv->filename = fn;
    if (cs)
-      charset = cs;
-   is_open = true;
+      priv->charset = cs;
+   priv->is_open = true;
    return 0;
 }
 
@@ -143,7 +157,7 @@ int QoreFile::open2(class ExceptionSink *xsink, const char *fn, int flags, int m
       xsink->raiseException("FILE-OPEN2-ERROR", "no file name given");
       return -1;
    }
-   if (special_file)
+   if (priv->special_file)
    {
       xsink->raiseException("FILE-OPEN2-ERROR", "system files cannot be reopened");
       return -1;
@@ -151,15 +165,15 @@ int QoreFile::open2(class ExceptionSink *xsink, const char *fn, int flags, int m
    close();
    if (!flags)
       flags = O_RDONLY;
-   fd = ::open(fn, flags, mode);
-   if (fd < 0) {
+   priv->fd = ::open(fn, flags, mode);
+   if (priv->fd < 0) {
       xsink->raiseException("FILE-OPEN2-ERROR", "cannot open '%s': %s", fn, strerror(errno));
       return -1;
    }
-   filename = strdup(fn);
+   priv->filename = fn;
    if (cs)
-      charset = cs;
-   is_open = true;
+      priv->charset = cs;
+   priv->is_open = true;
    return 0;
 }
 
@@ -167,21 +181,21 @@ int QoreFile::open2(class ExceptionSink *xsink, const char *fn, int flags, int m
 int QoreFile::readChar()
 {
    unsigned char ch = 0;
-   if (::read(fd, &ch, 1) != 1)
+   if (::read(priv->fd, &ch, 1) != 1)
       return -1;
    return (int)ch;
 }
 
 class QoreString *QoreFile::readLine(class ExceptionSink *xsink)
 {
-   if (!is_open)
+   if (!priv->is_open)
    {
       xsink->raiseException("FILE-READLINE-ERROR", "file has not been opened");
       return NULL;
    }
    
    int ch;
-   class QoreString *str = new QoreString(charset);
+   class QoreString *str = new QoreString(priv->charset);
    while ((ch = readChar()) >= 0)
    {
       char c = ch;
@@ -199,29 +213,29 @@ class QoreString *QoreFile::readLine(class ExceptionSink *xsink)
 
 int QoreFile::setPos(int pos)
 {
-   if (!is_open)
+   if (!priv->is_open)
       return -1;
    
-   return lseek(fd, pos, SEEK_SET);
+   return lseek(priv->fd, pos, SEEK_SET);
 }
 
 int QoreFile::getPos()
 {
-   if (!is_open)
+   if (!priv->is_open)
       return -1;
    
-   return lseek(fd, 0, SEEK_CUR);
+   return lseek(priv->fd, 0, SEEK_CUR);
 }
 
 class QoreString *QoreFile::getchar()
 {
-   if (!is_open)
+   if (!priv->is_open)
       return NULL;
    
    int c = readChar();
    if (c < 0)
       return NULL;
-   QoreString *str = new QoreString(charset);
+   QoreString *str = new QoreString(priv->charset);
    str->concat((char)c);
    return str;
 }
@@ -235,17 +249,17 @@ int QoreFile::write(class QoreString *str, class ExceptionSink *xsink)
       return 0;
    
    QoreString *wstr;
-   if (str->getEncoding() != charset)
+   if (str->getEncoding() != priv->charset)
    {
-      wstr = str->convertEncoding(charset, xsink);
+      wstr = str->convertEncoding(priv->charset, xsink);
       if (xsink->isEvent())
 	 return -1;
    }
    else 
       wstr = str;
-   //printd(0, "QoreFile::write() str charset=%s, charset=%s\n", str->getEncoding()->code, charset->code);
+   //printd(0, "QoreFile::write() str priv->charset=%s, priv->charset=%s\n", str->getEncoding()->code, priv->charset->code);
    
-   int rc = ::write(fd, wstr->getBuffer(), wstr->strlen());
+   int rc = ::write(priv->fd, wstr->getBuffer(), wstr->strlen());
    if (str != wstr)
       delete wstr;
    return rc;
@@ -259,7 +273,7 @@ int QoreFile::write(class BinaryObject *b, class ExceptionSink *xsink)
    if (!b)
       return 0;
    
-   return ::write(fd, b->getPtr(), b->size());
+   return ::write(priv->fd, b->getPtr(), b->size());
 }
 
 #ifndef DEFAULT_FILE_BUFSIZE
@@ -278,7 +292,7 @@ class QoreString *QoreFile::read(int size, class ExceptionSink *xsink)
    if (!buf)
       return NULL;
    
-   class QoreString *str = new QoreString(charset);
+   class QoreString *str = new QoreString(priv->charset);
    if (buf[size - 1] == '\0')
       str->take(buf, size - 1);
    else
@@ -310,7 +324,7 @@ int QoreFile::writei1(char i, class ExceptionSink *xsink)
    if (check_write_open(xsink))
       return -1;
 
-   return ::write(fd, (char *)&i, 1);   
+   return ::write(priv->fd, (char *)&i, 1);   
 }
 
 int QoreFile::writei2(short i, class ExceptionSink *xsink)
@@ -319,7 +333,7 @@ int QoreFile::writei2(short i, class ExceptionSink *xsink)
       return -1;
 
    i = htons(i);
-   return ::write(fd, (char *)&i, 2);   
+   return ::write(priv->fd, (char *)&i, 2);   
 }
 
 int QoreFile::writei4(int i, class ExceptionSink *xsink)
@@ -328,7 +342,7 @@ int QoreFile::writei4(int i, class ExceptionSink *xsink)
       return -1;
    
    i = htonl(i);
-   return ::write(fd, (char *)&i, 4);
+   return ::write(priv->fd, (char *)&i, 4);
 }
 
 int QoreFile::writei8(int64 i, class ExceptionSink *xsink)
@@ -337,7 +351,7 @@ int QoreFile::writei8(int64 i, class ExceptionSink *xsink)
       return -1;
    
    i = i8MSB(i);
-   return ::write(fd, (char *)&i, 4);
+   return ::write(priv->fd, (char *)&i, 4);
 }
 
 int QoreFile::writei2LSB(short i, class ExceptionSink *xsink)
@@ -346,7 +360,7 @@ int QoreFile::writei2LSB(short i, class ExceptionSink *xsink)
       return -1;
    
    i = i2LSB(i);
-   return ::write(fd, (char *)&i, 2);   
+   return ::write(priv->fd, (char *)&i, 2);   
 }
 
 int QoreFile::writei4LSB(int i, class ExceptionSink *xsink)
@@ -355,7 +369,7 @@ int QoreFile::writei4LSB(int i, class ExceptionSink *xsink)
       return -1;
    
    i = i4LSB(i);
-   return ::write(fd, (char *)&i, 4);
+   return ::write(priv->fd, (char *)&i, 4);
 }
 
 int QoreFile::writei8LSB(int64 i, class ExceptionSink *xsink)
@@ -364,7 +378,7 @@ int QoreFile::writei8LSB(int64 i, class ExceptionSink *xsink)
       return -1;
    
    i = i8LSB(i);
-   return ::write(fd, (char *)&i, 4);
+   return ::write(priv->fd, (char *)&i, 4);
 }
 
 int QoreFile::readu1(unsigned char *val, class ExceptionSink *xsink)
@@ -372,7 +386,7 @@ int QoreFile::readu1(unsigned char *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
    
-   int rc = ::read(fd, val, 1);
+   int rc = ::read(priv->fd, val, 1);
    if (rc <= 0)
       return -1;
    return 0;
@@ -383,7 +397,7 @@ int QoreFile::readu2(unsigned short *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
    
-   int rc = ::read(fd, val, 2);
+   int rc = ::read(priv->fd, val, 2);
    if (rc <= 0)
       return -1;
    
@@ -396,7 +410,7 @@ int QoreFile::readu4(unsigned int *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
    
-   int rc = ::read(fd, val, 4);
+   int rc = ::read(priv->fd, val, 4);
    if (rc <= 0)
       return -1;
    
@@ -409,7 +423,7 @@ int QoreFile::readu2LSB(unsigned short *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
    
-   int rc = ::read(fd, val, 2);
+   int rc = ::read(priv->fd, val, 2);
    if (rc <= 0)
       return -1;
    
@@ -422,7 +436,7 @@ int QoreFile::readu4LSB(unsigned int *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
    
-   int rc = ::read(fd, val, 4);
+   int rc = ::read(priv->fd, val, 4);
    if (rc <= 0)
       return -1;
    
@@ -435,7 +449,7 @@ int QoreFile::readi1(char *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
       
-   int rc = ::read(fd, val, 1);
+   int rc = ::read(priv->fd, val, 1);
    if (rc <= 0)
       return -1;
    return 0;
@@ -446,7 +460,7 @@ int QoreFile::readi2(short *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
       
-   int rc = ::read(fd, val, 2);
+   int rc = ::read(priv->fd, val, 2);
    if (rc <= 0)
       return -1;
    
@@ -459,7 +473,7 @@ int QoreFile::readi4(int *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
    
-   int rc = ::read(fd, val, 4);
+   int rc = ::read(priv->fd, val, 4);
    if (rc <= 0)
       return -1;
    
@@ -472,7 +486,7 @@ int QoreFile::readi8(int64 *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
    
-   int rc = ::read(fd, val, 8);
+   int rc = ::read(priv->fd, val, 8);
    if (rc <= 0)
       return -1;
    
@@ -485,7 +499,7 @@ int QoreFile::readi2LSB(short *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
    
-   int rc = ::read(fd, val, 2);
+   int rc = ::read(priv->fd, val, 2);
    if (rc <= 0)
       return -1;
    
@@ -498,7 +512,7 @@ int QoreFile::readi4LSB(int *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
    
-   int rc = ::read(fd, val, 4);
+   int rc = ::read(priv->fd, val, 4);
    if (rc <= 0)
       return -1;
    
@@ -511,7 +525,7 @@ int QoreFile::readi8LSB(int64 *val, class ExceptionSink *xsink)
    if (check_read_open(xsink))
       return -1;
    
-   int rc = ::read(fd, val, 8);
+   int rc = ::read(priv->fd, val, 8);
    if (rc <= 0)
       return -1;
    
@@ -528,7 +542,7 @@ char *QoreFile::readBlock(int &size)
 
    while (true)
    {
-      int rc = ::read(fd, buf, bs);
+      int rc = ::read(priv->fd, buf, bs);
       if (rc <= 0)
 	 break;
       // enlarge bbuf (ensure buffer is 1 byte bigger than needed)

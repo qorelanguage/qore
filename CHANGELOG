@@ -1,5 +1,6 @@
 2007.12.09: David Nichols
 	* made QoreHTTPClient implementation private
+	* made QoreFile.h a public header file, made implementation private
 
 2007.12.08: David Nichols
 	* more header file cleanups

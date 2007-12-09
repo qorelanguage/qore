@@ -88,8 +88,8 @@ noinst_HEADERS = \
 	include/qore/QoreSSLCertificate.h \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
+	include/qore/QoreFile.h \
 	include/qore/intern/QoreGetOpt.h \
-	include/qore/intern/QoreFile.h \
 	include/qore/intern/QoreClassList.h \
 	include/qore/intern/QException.h \
 	include/qore/intern/ParserSupport.h \

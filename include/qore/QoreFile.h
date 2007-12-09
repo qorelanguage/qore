@@ -41,11 +41,7 @@ extern class QoreEncoding *QCS_DEFAULT;
 
 class QoreFile {
    private:
-      int fd;
-      bool is_open;
-      bool special_file;
-      class QoreEncoding *charset;
-      char *filename;
+      struct qore_qf_private *priv;
 
       DLLLOCAL int readChar();
       // reads a buffer of the given size
