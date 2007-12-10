@@ -22,16 +22,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/support.h>
-#include <qore/QoreString.h>
-#include <qore/QoreException.h>
-#include <qore/Namespace.h>
-#include <qore/ModuleManager.h>
-#include <qore/QoreObject.h>
+#include <qore/Qore.h>
 #include <qore/minitest.hpp>
-#include <qore/BuiltinFunctionList.h>
-#include <qore/QoreNode.h>
 
 #include "tuxedo_module.h"
 #include <atmi.h>
