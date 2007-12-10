@@ -67,6 +67,10 @@ class QoreMethod {
 
    public:
       DLLEXPORT class QoreNode *eval(class QoreObject *self, class QoreNode *args, class ExceptionSink *xsink);
+      DLLEXPORT bool isSynchronized() const;
+      DLLEXPORT int getType() const;
+      DLLEXPORT bool isPrivate() const;
+      DLLEXPORT const char *getName() const;
 
       DLLLOCAL QoreMethod(class UserFunction *u, int p);
       DLLLOCAL QoreMethod(class QoreClass *p_class, class BuiltinMethod *b, bool n_priv = false);
@@ -81,10 +85,6 @@ class QoreMethod {
       DLLLOCAL void parseInit();
       DLLLOCAL void parseInitConstructor(class BCList *bcl);
       // only called when method is user
-      DLLLOCAL bool isSynchronized() const;
-      DLLLOCAL int getType() const;
-      DLLLOCAL bool isPrivate() const;
-      DLLLOCAL const char *getName() const;
       DLLLOCAL class QoreClass *get_class();
       DLLLOCAL void assign_class(class QoreClass *p_class);
 };
