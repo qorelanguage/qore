@@ -26,17 +26,17 @@
 
 #include <string.h>
 
-DLLEXPORT class featureList qoreFeatureList;
+class FeatureList qoreFeatureList;
 
 // global library variables
-DLLEXPORT char qore_version_string[] = VERSION_STRING;
-DLLEXPORT int qore_version_major     = VERSION_MAJOR;
-DLLEXPORT int qore_version_minor     = VERSION_MINOR;
-DLLEXPORT int qore_version_sub       = VERSION_SUB;
-DLLEXPORT int qore_build_number      = BUILD;
-DLLEXPORT int qore_target_bits       = TARGET_BITS;
-DLLEXPORT char qore_target_os[]      = TARGET_OS;
-DLLEXPORT char qore_target_arch[]    = TARGET_ARCH;
+char qore_version_string[] = VERSION_STRING;
+int qore_version_major     = VERSION_MAJOR;
+int qore_version_minor     = VERSION_MINOR;
+int qore_version_sub       = VERSION_SUB;
+int qore_build_number      = BUILD;
+int qore_target_bits       = TARGET_BITS;
+char qore_target_os[]      = TARGET_OS;
+char qore_target_arch[]    = TARGET_ARCH;
 
 DLLLOCAL class QoreList *ARGV = NULL;
 DLLLOCAL class QoreList *QORE_ARGV = NULL;
@@ -49,7 +49,7 @@ DLLLOCAL class LockedObject lck_localtime;
 DLLLOCAL class LockedObject lck_gmtime;
 #endif
 
-DLLLOCAL char table64[64] = {
+char table64[64] = {
    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
    'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
    'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 
@@ -75,51 +75,45 @@ static inline int get_number(char **param)
 #define P_SPACE_FILL        4
 #define P_ZERO_FILL         8
 
-featureList::featureList()
+FeatureList::FeatureList()
 {
    // register default features
-   push_back(strdup("sql"));
-   push_back(strdup("threads"));
-   push_back(strdup("xml"));
+   push_back("sql");
+   push_back("threads");
+   push_back("xml");
 #ifdef DEBUG
-   push_back(strdup("debug"));
+   push_back("debug");
 #endif
 #ifdef QORE_MONOLITHIC
 # ifdef NCURSES
-   push_back(strdup("ncurses"));
+   push_back("ncurses");
 # endif
 # ifdef ORACLE
-   push_back(strdup("oracle"));
+   push_back("oracle");
 # endif
 # ifdef QORE_MYSQL
-   push_back(strdup("mysql"));
+   push_back("mysql");
 # endif
 # ifdef TIBRV
-   push_back(strdup("tibrv"));
+   push_back("tibrv");
 # endif
 # ifdef TIBAE
-   push_back(strdup("tibae"));
+   push_back("tibae");
 # endif
 # ifdef TUXEDO
-   push_back(strdup("tuxedo"));
+   push_back("tuxedo");
 # endif
 # ifdef SYBASE
-   push_back(strdup("sybase"));
+   push_back("sybase");
 # endif
 # ifdef FREETDS
-   push_back(strdup("freetds"));
+   push_back("freetds");
 # endif
 #endif
 }
 
-featureList::~featureList()
+FeatureList::~FeatureList()
 {
-   featureList::iterator i;
-   while ((i = begin()) != end())
-   {
-      free((char *)*i);
-      erase(i);
-   }
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard

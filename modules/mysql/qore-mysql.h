@@ -148,7 +148,7 @@ class MyBindGroup {
       Datasource *ds;
       class MySQLConnection *mydata;
       int len;
-      class StringList phl;
+      class TempCharPtrStore phl;
       //bool locked;
 
       // returns -1 for error, 0 for OK

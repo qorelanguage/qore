@@ -28,6 +28,7 @@
 #include <qore/LockedObject.h>
 #include <qore/StringList.h>
 #include <qore/qore_bitopts.h>
+#include <qore/safe_dslist>
 
 #include <time.h>
 #include <string.h>
@@ -35,10 +36,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-
-#ifndef HOSTNAMEBUFSIZE
-#define HOSTNAMEBUFSIZE 512
-#endif
 
 // function to try and make a class name out of a file path, returns a new string that must be free()ed
 DLLEXPORT char *make_class_name(const char *fn);
@@ -100,36 +97,15 @@ static inline char *strtoupper(char *str)
    return str;
 }
 
-class featureList : public charPtrList
+// this list must be thread-safe for reading, writing under a lock
+class FeatureList : public safe_dslist<std::string>
 {
    public:
-      DLLLOCAL featureList();
-      DLLLOCAL ~featureList();
+      DLLLOCAL FeatureList();
+      DLLLOCAL ~FeatureList();
 };
 
 // list of qore features
-DLLEXPORT extern featureList qoreFeatureList;
-
-#ifdef _QORE_LIB_INTERN
-#ifndef HAVE_LOCALTIME_R
-DLLLOCAL extern class LockedObject lck_localtime;
-#endif
-
-#ifndef HAVE_GMTIME_R
-DLLLOCAL extern class LockedObject lck_gmtime;
-#endif
-
-DLLLOCAL extern char table64[64];
-
-DLLLOCAL int get_nibble(char c, class ExceptionSink *xsink);
-DLLLOCAL class BinaryObject *parseBase64(const char *buf, int len, class ExceptionSink *xsink);
-DLLLOCAL class BinaryObject *parseHex(const char *buf, int len, class ExceptionSink *xsink);
-DLLLOCAL class BinaryObject *parseHex(const char *buf, int len);
-DLLLOCAL void print_node(FILE *fp, class QoreNode *node);
-DLLLOCAL void delete_global_variables();
-DLLLOCAL void initENV(char *env[]);
-DLLLOCAL class FunctionReference *getFunctionReference(class QoreString *str, class ExceptionSink *xsink);
-
-#endif
+DLLEXPORT extern FeatureList qoreFeatureList;
 
 #endif // _QORE_QORELIB_H

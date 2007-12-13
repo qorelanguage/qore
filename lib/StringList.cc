@@ -40,12 +40,12 @@ void StringList::addDirList(const char *str)
       {
 	 *p = '\0';
 	 // add string to list
-	 push_back(strdup(str));
+	 push_back(str);
       }
       str = p + 1;
    }
 
    // add last directory
    if (*str)
-      push_back(strdup(str));
+      push_back(str);
 }

@@ -122,7 +122,7 @@ static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, 
 
 static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, const char *cname)
 {
-   xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to an already-deleted object of class '%s'", cname);
+   xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to access an already-deleted object of class '%s'", cname);
 }
 
 #endif

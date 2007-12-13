@@ -209,13 +209,13 @@ void ModuleManager::addBuiltin(const char *fn, qore_module_init_t init, qore_mod
 // to add a directory to the module directory search list, can only be called before init()
 void ModuleManager::addModuleDir(const char *dir)
 {
-   moduleDirList.push_back(strdup(dir));
+   moduleDirList.push_back(dir);
 }
 
 // to add a directory to the auto module directory search list, can only be called before init()
 void ModuleManager::addAutoModuleDir(const char *dir)
 {
-   autoDirList.push_back(strdup(dir));
+   autoDirList.push_back(dir);
 }
 
 // to add a list of directories to the module directory search list, can only be called before init()
@@ -239,7 +239,7 @@ void ModuleManager::init(bool se)
    {
       autoDirList.addDirList(getenv("QORE_AUTO_MODULE_DIR"));
       // append standard directories to the end of the list
-      autoDirList.push_back(strdup(AUTO_MODULE_DIR));
+      autoDirList.push_back(AUTO_MODULE_DIR);
    }
 
    // setup module directory list from QORE_MODULE_DIR (if it hasn't already been manually set up)
@@ -247,7 +247,7 @@ void ModuleManager::init(bool se)
    {
       moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
       // append standard directories to the end of the list
-      moduleDirList.push_back(strdup(MODULE_DIR));
+      moduleDirList.push_back(MODULE_DIR);
    }
 
 #ifdef QORE_MONOLITHIC
@@ -276,7 +276,7 @@ void ModuleManager::init(bool se)
    {
       // make new string for glob
       gstr.clear();
-      gstr.concat(*w);
+      gstr.concat((*w).c_str());
       gstr.concat("/*.qmod");
 
       glob_t globbuf;
@@ -367,7 +367,7 @@ class QoreString *ModuleManager::parseLoadModule(const char *name, class QorePro
    while (w != moduleDirList.end())
    {
       str.clear();
-      str.sprintf("%s/%s.qmod", *w, name);
+      str.sprintf("%s/%s.qmod", (*w).c_str(), name);
       //printd(5, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
 
       if (!stat(str.getBuffer(), &sb))
@@ -558,7 +558,7 @@ class QoreString *ModuleManager::loadModuleFromPath(const char *path, const char
    mi = MM.add(path, name, *api_major, *api_minor, *module_init, *module_ns_init, *module_delete, desc, version, author, url, ptr);
    // add to auto namespace list
    ANSL.add(*module_ns_init);
-   qoreFeatureList.push_back(strdup(name));
+   qoreFeatureList.push_back(name);
    printd(5, "ModuleManager::loadModuleFromPath(%s) registered '%s'\n", path, name);
    if (mip)
       *mip = mi;

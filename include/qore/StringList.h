@@ -33,10 +33,13 @@
 #include <functional>
 #include <list>
 #include <deque>
+#include <string>
+#include <vector>
 
 typedef std::list<char *> strlist_t;
 
-typedef std::deque<char *> strdeque_t;
+typedef std::deque<char *> charptrdeque_t;
+typedef std::deque<std::string> strdeque_t;
 
 // non-thread-safe list
 // a deque should require fewer memory allocations compared to a linked list, so we'll go with the
@@ -44,14 +47,20 @@ typedef std::deque<char *> strdeque_t;
 class StringList : public strdeque_t
 {
    public:
-      DLLLOCAL ~StringList()
-      {
-	 std::for_each(begin(), end(), free_ptr<char>());
-      }
       DLLLOCAL void addDirList(const char *str);
 };
 
-class charPtrList : public safe_dslist<const char *>
+// non-thread-safe list for storing "char *" that you want to delete
+class TempCharPtrStore : public std::vector<char *>
+{
+  public:
+   DLLLOCAL ~TempCharPtrStore()
+   {
+      std::for_each(begin(), end(), free_ptr<char>());
+   }
+};
+
+class CharPtrList : public safe_dslist<const char *>
 {
    public:
       // returns 0 for found, -1 for not found

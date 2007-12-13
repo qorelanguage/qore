@@ -58,8 +58,10 @@ struct qore_program_private {
 
       // for the thread counter
       class QoreCounter tcount;
-      class StringList fileList;
-      class charPtrList featureList;
+      // to save file names for later deleting
+      class TempCharPtrStore fileList;
+      // features present in this Program object
+      class CharPtrList featureList;
       
       // parse lock, making parsing actions atomic and thread-safe
       class LockedObject plock;
@@ -98,6 +100,7 @@ struct qore_program_private {
 	 var = global_var_list.newVar("ENV");
 	 var->setValue(new QoreNode(ENV->copy()), NULL);
       }
+
       DLLLOCAL ~qore_program_private()
       {
       }
@@ -137,7 +140,7 @@ struct qore_program_private {
       {
 	 class QoreList *l = new QoreList();
 	 
-	 for (charPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
+	 for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
 	    l->push(new QoreNode(*i));
 	 
 	 return l;
@@ -221,8 +224,9 @@ QoreProgram::QoreProgram() : priv(new qore_program_private)
    // save thread local storage hash
    startThread();
 
-   // copy global feature list
-   qoreFeatureList.populate(&priv->featureList);
+   // copy global feature list to local list
+   for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
+      priv->featureList.push_back((*i).c_str());
 
    // setup namespaces
    priv->RootNS = new RootQoreNamespace(&priv->QoreNS);
@@ -859,7 +863,7 @@ void QoreProgram::parse(FILE *fp, const char *name, class ExceptionSink *xsink, 
    // save this file name for storage in the parse tree and deletion
    // when the QoreProgram object is deleted
    char *sname = strdup(name);
-   priv->fileList.push_front(sname);
+   priv->fileList.push_back(sname);
    beginParsing(sname);
 
    ProgramContextHelper pch(this);
@@ -978,7 +982,7 @@ int QoreProgram::internParsePending(const char *code, const char *label)
    // save this file name for storage in the parse tree and deletion
    // when the QoreProgram object is deleted
    char *sname = strdup(s.getBuffer());
-   priv->fileList.push_front(sname);
+   priv->fileList.push_back(sname);
    beginParsing(sname);
 
    // no need to save buffer, because it's deleted automatically in lexer
@@ -1350,7 +1354,7 @@ void QoreProgram::addFeature(const char *f)
 
 void QoreProgram::addFile(char *f)
 {
-   priv->fileList.push_front(f);
+   priv->fileList.push_back(f);
 }
 
 class QoreList *QoreProgram::getFeatureList() const

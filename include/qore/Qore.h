@@ -61,6 +61,7 @@
 #ifdef _QORE_LIB_INTERN
 #include <qore/intern/Function.h>
 #include <qore/intern/AbstractStatement.h>
+#include <qore/intern/QoreLibIntern.h>
 #include <qore/Variable.h>
 #include <qore/intern/NamedScope.h>
 #include <qore/ScopedObjectCall.h>
