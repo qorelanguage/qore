@@ -1275,6 +1275,7 @@ bool QoreClass::isPrivateMember(const char *str) const
 class QoreNode *QoreClass::evalMemberGate(class QoreObject *self, class QoreNode *nme, class ExceptionSink *xsink)
 {
    tracein("QoreClass::evalMembeGatre()");
+   assert(nme && nme->type == NT_STRING);
    printd(5, "QoreClass::evalMemberGate() member=%s\n", nme->val.String->getBuffer());
    // do not run memberGate method if we are already in it...
    if (!priv->memberGate || priv->memberGate->inMethod(self))

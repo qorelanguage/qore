@@ -72,7 +72,6 @@ class QoreObject : public ReferenceObject
       DLLEXPORT bool compareSoft(class QoreObject *obj, class ExceptionSink *xsink);
       DLLEXPORT bool compareHard(class QoreObject *obj, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *evalMember(class QoreNode *member, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMemberNoMethod(const char *mem, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMemberExistence(const char *mem, class ExceptionSink *xsink);
       DLLEXPORT class QoreHash *evalData(class ExceptionSink *xsink);
@@ -90,6 +89,7 @@ class QoreObject : public ReferenceObject
       DLLEXPORT void ref();
       DLLEXPORT void dereference(class ExceptionSink *xsink);
 
+      DLLLOCAL class QoreNode *evalMember(class QoreNode *member, class ExceptionSink *xsink);
       DLLLOCAL void instantiateLVar(lvh_t id);
       DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
       DLLLOCAL void merge(class QoreHash *h, class ExceptionSink *xsink);
