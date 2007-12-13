@@ -1,3 +1,7 @@
+2007.12.13: David Nichols
+        * fixed tibae namespace handling for subprogram objects (backported from
+	  trunk/0.7.0)
+
 2007.09.25: David Nichols
 	* fixed a memory bug in QoreString::parseBase64ToString()
 

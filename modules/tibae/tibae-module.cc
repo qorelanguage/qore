@@ -46,17 +46,20 @@ DLLEXPORT qore_module_ns_init_t qore_module_ns_init = tibae_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = tibae_module_delete;
 #endif
 
+static class Namespace *tibns;
+
 class QoreString *tibae_module_init()
 {
-   return NULL;
+   tibns = new Namespace("Tibae");
+   tibns->addSystemClass(initTibcoAdapterClass());
+
+   return 0;
 }
 
 void tibae_module_ns_init(class Namespace *rns, class Namespace *qns)
 {
    tracein("tibae_module_ns_init()");
-   class Namespace *tibns = new Namespace("Tibae");
-   tibns->addSystemClass(initTibcoAdapterClass());
-   qns->addInitialNamespace(tibns);
+   qns->addInitialNamespace(tibns->copy());
 
    traceout("tibae_module_nsinit()");
 }
