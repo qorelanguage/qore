@@ -93,6 +93,9 @@ union node_u {
 class QoreNode : public ReferenceObject
 {
    private:
+      // not implemented
+      DLLLOCAL QoreNode(const QoreNode&);
+      DLLLOCAL QoreNode& operator=(const QoreNode&);
 
    protected:
       inline ~QoreNode();

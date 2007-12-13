@@ -32,9 +32,11 @@
 class LockedObject {
       friend class QoreCondition;
 
-      LockedObject(const LockedObject&); // not implemented
-      LockedObject& operator=(const LockedObject&); // not implemented
+   private:
       pthread_mutex_t ptm_lock;
+
+      DLLLOCAL LockedObject(const LockedObject&); // not implemented
+      DLLLOCAL LockedObject& operator=(const LockedObject&); // not implemented
 
    public:
       DLLEXPORT LockedObject()
@@ -67,62 +69,62 @@ class LockedObject {
 // this object does not allow the lock to be released earlier than the object's scope
 class AutoLocker {
    // not implemented
-   AutoLocker(const AutoLocker&);
-   AutoLocker& operator=(const AutoLocker&);
-   void *operator new(size_t);
+      DLLLOCAL AutoLocker(const AutoLocker&);
+      DLLLOCAL AutoLocker& operator=(const AutoLocker&);
+      DLLLOCAL void *operator new(size_t);
 
-private:
-   LockedObject *lck;
+   private:
+      LockedObject *lck;
 
-public:
-   DLLEXPORT AutoLocker(LockedObject *l)
-   {
-      lck = l;
-      lck->lock();
-   }
-   DLLEXPORT ~AutoLocker()
-   {
-      lck->unlock();
-   }
+   public:
+      DLLEXPORT AutoLocker(LockedObject *l)
+      {
+	 lck = l;
+	 lck->lock();
+      }
+      DLLEXPORT ~AutoLocker()
+      {
+	 lck->unlock();
+      }
 };
 
 // to be used as a stack object (not on the heap) as an exception-safe way to ensure that locks are released
 // this object allows the lock to be released earlier than the SafeLocker's scope
 class SafeLocker
 {
-   // not implemented
-   SafeLocker(const SafeLocker&);
-   SafeLocker& operator=(const SafeLocker&);
-   void *operator new(size_t);
-
-private:
-   LockedObject *lck;
-   bool locked;
-
-public:
-   DLLEXPORT SafeLocker(LockedObject *l)
-   {
-      lck = l;
-      lck->lock();
-      locked = true;
-   }
-   DLLEXPORT ~SafeLocker()
-   {
-      if (locked)
+      // not implemented
+      DLLLOCAL SafeLocker(const SafeLocker&);
+      DLLLOCAL SafeLocker& operator=(const SafeLocker&);
+      DLLLOCAL void *operator new(size_t);
+      
+   private:
+      LockedObject *lck;
+      bool locked;
+      
+   public:
+      DLLEXPORT SafeLocker(LockedObject *l)
+      {
+	 lck = l;
+	 lck->lock();
+	 locked = true;
+      }
+      DLLEXPORT ~SafeLocker()
+      {
+	 if (locked)
+	    lck->unlock();
+      }
+      DLLEXPORT void lock()
+      {
+	 assert(!locked);
+	 lck->lock();
+	 locked = true;
+      }
+      DLLEXPORT void unlock()
+      {
+	 assert(locked);
+	 locked = false;
 	 lck->unlock();
-   }
-   DLLEXPORT void lock()
-   {
-      assert(!locked);
-      lck->lock();
-      locked = true;
-   }
-   DLLEXPORT void unlock()
-   {
-      assert(locked);
-      locked = false;
-      lck->unlock();
-   }
+      }
 };
 
 #endif // _QORE_LOCKEDOBJECT_H

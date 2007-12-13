@@ -58,6 +58,10 @@ class QoreNamespace
       DLLLOCAL QoreNamespace(const char *n, class QoreClassList *ocl, class ConstantList *cl, class QoreNamespaceList *nnsl);
       DLLLOCAL QoreNamespace(class QoreClassList *ocl, class ConstantList *cl, class QoreNamespaceList *nnsl);
 
+      // not implemented
+      DLLLOCAL QoreNamespace(const QoreNamespace&);
+      DLLLOCAL QoreNamespace& operator=(const QoreNamespace&);
+
    public:
       DLLEXPORT QoreNamespace(const char *n);
       DLLEXPORT ~QoreNamespace();

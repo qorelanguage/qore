@@ -62,8 +62,9 @@ class QoreMethod {
       DLLLOCAL QoreMethod(class QoreClass *p_class);
       DLLLOCAL void userInit(UserFunction *u, int p);
 
-      DLLLOCAL QoreMethod(const QoreMethod&); // not implemented
-      DLLLOCAL QoreMethod& operator=(const QoreMethod&); // not implemented
+      // not implemented
+      DLLLOCAL QoreMethod(const QoreMethod&);
+      DLLLOCAL QoreMethod& operator=(const QoreMethod&);
 
    public:
       DLLEXPORT class QoreNode *eval(class QoreObject *self, class QoreNode *args, class ExceptionSink *xsink);

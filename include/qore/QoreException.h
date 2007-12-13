@@ -37,6 +37,10 @@ class ExceptionSink {
 
       DLLLOCAL void insert(class QoreException *e);
       DLLLOCAL void clearIntern();
+
+      // not implemented
+      DLLLOCAL ExceptionSink(const ExceptionSink&);
+      DLLLOCAL ExceptionSink& operator=(const ExceptionSink&);
       
    public:
       DLLEXPORT ExceptionSink();
@@ -77,14 +81,17 @@ class QoreException {
    friend class ExceptionSink;
 
    private:
-   
+      // not implemented
+      DLLLOCAL QoreException(const QoreException&);
+      DLLLOCAL QoreException& operator=(const QoreException&);
+
    protected:
       struct qore_ex_private *priv;
 
       DLLLOCAL ~QoreException();
       DLLLOCAL void addStackInfo(class QoreNode *n);
       DLLLOCAL static class QoreHash *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
-      
+
    public:
       // called for generic exceptions
       DLLEXPORT class QoreNode *makeExceptionObjectAndDelete(class ExceptionSink *xsink);

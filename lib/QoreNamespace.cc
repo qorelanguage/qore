@@ -25,14 +25,14 @@
 #include <qore/TypeConstants.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/CallStack.h>
-#include <qore/QoreRegexBase.h>
+#include <qore/intern/QoreRegexBase.h>
 #include <qore/intern/QoreNamespaceList.h>
 #include <qore/intern/AutoNamespaceList.h>
 #include <qore/ssl_constants.h>
 #include <qore/minitest.hpp>
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/QoreClassList.h>
-#include <qore/QoreSignal.h>
+#include <qore/intern/QoreSignal.h>
 
 // include files for default object classes
 #include <qore/intern/QC_Socket.h>

@@ -90,6 +90,10 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLLOCAL class QoreNode *getResponseHeader(const char *meth, const char *mpath, class QoreHash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getHostHeaderValue();
 
+      // not implemented
+      DLLLOCAL QoreHTTPClient(const QoreHTTPClient&);
+      DLLLOCAL QoreHTTPClient& operator=(const QoreHTTPClient&);
+
    public:
       DLLLOCAL static void static_init();
 

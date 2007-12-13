@@ -30,6 +30,11 @@
 
 #include <map>
 
+#define OS_OK            0
+#define OS_DELETED       1
+#define OS_BEING_DELETED 2
+//#define OS_IN_COPY       4
+
 // if the second part of the pair is true, then the data is virtual
 typedef std::pair<AbstractPrivateData *, bool> private_pair_t;
 // mapping from qore class ID to the object data

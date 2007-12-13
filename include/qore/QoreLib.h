@@ -100,6 +100,11 @@ static inline char *strtoupper(char *str)
 // this list must be thread-safe for reading, writing under a lock
 class FeatureList : public safe_dslist<std::string>
 {
+   private:
+      // not implemented
+      DLLLOCAL FeatureList(const FeatureList&);
+      DLLLOCAL FeatureList& operator=(const FeatureList&);
+
    public:
       DLLLOCAL FeatureList();
       DLLLOCAL ~FeatureList();

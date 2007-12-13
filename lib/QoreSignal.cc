@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QoreSignal.h>
+#include <qore/intern/QoreSignal.h>
 
 #include <stdlib.h>
 

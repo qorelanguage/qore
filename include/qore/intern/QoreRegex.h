@@ -30,7 +30,7 @@
 
 #define _QORE_QOREREGEX_H
 
-#include <qore/QoreRegexBase.h>
+#include <qore/intern/QoreRegexBase.h>
 
 class QoreRegex : public QoreRegexBase 
 {

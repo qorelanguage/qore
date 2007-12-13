@@ -22,9 +22,9 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/Find.h>
-#include <qore/RegexSubst.h>
-#include <qore/RegexTrans.h>
-#include <qore/QoreRegex.h>
+#include <qore/intern/RegexSubst.h>
+#include <qore/intern/RegexTrans.h>
+#include <qore/intern/QoreRegex.h>
 #include <qore/intern/ObjectMethodReference.h>
 #include <qore/intern/FunctionReference.h>
 

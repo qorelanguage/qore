@@ -23,7 +23,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/RegexTrans.h>
+#include <qore/intern/RegexTrans.h>
 
 #include <stdlib.h>
 #include <strings.h>

@@ -38,6 +38,10 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
 
       DLLLOCAL class QoreNode *doPurposeValue(int id, int ca) const;
 
+      // not implemented
+      DLLLOCAL QoreSSLCertificate(const QoreSSLCertificate&);
+      DLLLOCAL QoreSSLCertificate& operator=(const QoreSSLCertificate&);
+
    protected:
       DLLLOCAL virtual ~QoreSSLCertificate();
 

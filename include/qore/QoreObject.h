@@ -28,18 +28,11 @@
 
 #define _QORE_QOREOBJECT_H
 
-#define OS_OK            0
-#define OS_DELETED       1
-#define OS_BEING_DELETED 2
-//#define OS_IN_COPY       4
-
 // objects have two levels of reference counts - one is for the existence of the c++ object (tRefs below)
 // the other is for the scope of the object (the parent ReferenceObject) - when this reaches 0 the
 // object will have its destructor run (if it hasn't already been deleted)
 // only when tRefs reaches 0, meaning that no more pointers are pointing to this object will the object
 // actually be deleted
-
-struct qore_object_private;
 
 // note that any of the methods below that involve locking cannot be const methods
 class QoreObject : public ReferenceObject
@@ -52,6 +45,10 @@ class QoreObject : public ReferenceObject
       DLLLOCAL inline void doDeleteIntern(class ExceptionSink *xsink);
       DLLLOCAL void cleanup(class ExceptionSink *xsink, class QoreHash *td);
       DLLLOCAL void addVirtualPrivateData(AbstractPrivateData *apd);
+
+      // not implemented
+      DLLLOCAL QoreObject(const QoreObject&);
+      DLLLOCAL QoreObject& operator=(const QoreObject&);
       
    protected:
       DLLLOCAL ~QoreObject();

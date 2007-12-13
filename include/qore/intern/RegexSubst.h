@@ -26,7 +26,7 @@
 
 #define _QORE_REGEXSUBST_H
 
-#include <qore/QoreRegexBase.h>
+#include <qore/intern/QoreRegexBase.h>
 #include <sys/types.h>
 
 class RegexSubst : public QoreRegexBase

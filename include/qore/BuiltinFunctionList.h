@@ -38,7 +38,12 @@ class BuiltinFunctionList
       DLLLOCAL static bool init_done;
       DLLLOCAL static hm_bf_t hm;
       DLLLOCAL static class LockedObject mutex;
-   
+
+      // not implemented
+      DLLLOCAL BuiltinFunctionList(const BuiltinFunctionList&);
+      DLLLOCAL BuiltinFunctionList& operator=(const BuiltinFunctionList&);
+      DLLLOCAL void *operator new(size_t);
+
    public:
       DLLLOCAL BuiltinFunctionList();
       DLLLOCAL ~BuiltinFunctionList();

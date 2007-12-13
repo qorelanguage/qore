@@ -66,6 +66,9 @@ class DateTime {
       // returns 0 - 6, 0 = Sunday
       DLLLOCAL static int getDayOfWeek(int year, int month, int day);
       DLLLOCAL static int64 getEpochSeconds(int year, int month, int day);
+
+      // not implemented
+      DLLLOCAL DateTime& operator=(const DateTime&);
       
    public:
 
@@ -75,8 +78,8 @@ class DateTime {
       DLLEXPORT DateTime(int64 seconds, int ms);
       DLLEXPORT DateTime(const char *date);
       DLLEXPORT DateTime(struct tm *tms);
-      DLLEXPORT ~DateTime();
       DLLEXPORT DateTime(const DateTime &dt);
+      DLLEXPORT ~DateTime();
 
       DLLEXPORT void getTM(struct tm *tms) const;
       DLLEXPORT void setDate(int64 seconds);

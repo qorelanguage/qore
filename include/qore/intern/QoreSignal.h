@@ -57,12 +57,12 @@ class QoreSignalHandler {
       DLLLOCAL void init();
       DLLLOCAL void set(int sig, class AbstractFunctionReference *n_funcref);
       DLLLOCAL void del(int sig, class ExceptionSink *xsink);
-      void runHandler(int sig, class ExceptionSink *xsink);
-      bool isSet() const
+      DLLLOCAL void runHandler(int sig, class ExceptionSink *xsink);
+      DLLLOCAL bool isSet() const
       {
 	 return (bool)funcref;
       }
-      class QoreProgram *getProgram() const
+      DLLLOCAL class QoreProgram *getProgram() const
       {
 	 return funcref->getProgram();
       }

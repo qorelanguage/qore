@@ -31,6 +31,10 @@ class ParseOptionMap {
       DLLLOCAL static opt_map_t map;
       DLLLOCAL static rev_opt_map_t rmap;
 
+      // not implemented
+      DLLLOCAL ParseOptionMap(const ParseOptionMap&);
+      DLLLOCAL ParseOptionMap& operator=(const ParseOptionMap&);
+      
    public:
       DLLLOCAL ParseOptionMap();
       DLLLOCAL static void static_init();

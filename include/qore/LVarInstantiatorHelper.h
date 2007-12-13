@@ -28,6 +28,10 @@ class LVarInstantiatorHelper {
    private:
       struct lvih_intern *priv;
 
+      // not implemented
+      DLLLOCAL LVarInstantiatorHelper(const LVarInstantiatorHelper&);
+      DLLLOCAL LVarInstantiatorHelper& operator=(const LVarInstantiatorHelper&);
+
    public:
       DLLEXPORT LVarInstantiatorHelper(const char *name, QoreNode *val, ExceptionSink *xsink);
       DLLEXPORT QoreNode *getArg() const;

@@ -34,6 +34,10 @@ class QoreSSLPrivateKey : public AbstractPrivateData
    private:
       struct qore_sslpk_private *priv; // for private implementation
 
+      // not implemented
+      DLLLOCAL QoreSSLPrivateKey(const QoreSSLPrivateKey&);
+      DLLLOCAL QoreSSLPrivateKey& operator=(const QoreSSLPrivateKey&);
+
    protected:
       DLLLOCAL virtual ~QoreSSLPrivateKey();
 

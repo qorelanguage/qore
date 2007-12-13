@@ -1,5 +1,5 @@
 /*
- QoreRegexBase.h
+ QoreRegexBase.cc
  
  regular expression substitution node definition
  
@@ -23,7 +23,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/QoreRegexBase.h>
+#include <qore/intern/QoreRegexBase.h>
 
 void QoreRegexBase::setCaseInsensitive()
 {

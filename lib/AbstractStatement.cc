@@ -23,8 +23,6 @@
 #include <qore/Qore.h>
 #include <qore/intern/AbstractStatement.h>
 
-#include <qore/QoreSignal.h>
-
 #include <typeinfo>
 
 AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(start_line), EndLineNumber(end_line)

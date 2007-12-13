@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreCounter.h>
-#include <qore/QoreSignal.h>
 
 struct qore_counter_private {
       enum cond_status_e { Cond_Deleted = -1 };

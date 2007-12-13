@@ -46,6 +46,10 @@ class HashIterator
       class QoreHash *h;
       class HashMember *ptr;
 
+      // not implemented
+      DLLLOCAL HashIterator(const HashIterator&);
+      DLLLOCAL HashIterator& operator=(const HashIterator&);
+
    public:
       DLLEXPORT HashIterator(class QoreHash *h);
       DLLEXPORT HashIterator(class QoreHash &h);
@@ -74,6 +78,10 @@ class QoreHash
       DLLLOCAL class QoreNode **newKeyValue(const char *key, class QoreNode *value);
       DLLLOCAL void internDeleteKey(class HashMember *m);
       DLLLOCAL void deref_intern(class ExceptionSink *xsink);
+
+      // not implemented
+      DLLLOCAL QoreHash(const QoreHash&);
+      DLLLOCAL QoreHash& operator=(const QoreHash&);
 
   protected:
       DLLEXPORT ~QoreHash();

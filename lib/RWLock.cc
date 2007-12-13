@@ -27,7 +27,6 @@
 
 #include <qore/Qore.h>
 #include <qore/RWLock.h>
-#include <qore/QoreSignal.h>
 
 #include <assert.h>
 

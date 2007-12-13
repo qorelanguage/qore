@@ -50,6 +50,10 @@ class QoreFile {
       DLLLOCAL int check_read_open(class ExceptionSink *xsink);
       // returns -1 for error
       DLLLOCAL int check_write_open(class ExceptionSink *xsink);
+
+      // not implemented
+      DLLLOCAL QoreFile(const QoreFile&);
+      DLLLOCAL QoreFile& operator=(const QoreFile&);
       
    public:
       DLLEXPORT QoreFile(class QoreEncoding *cs = QCS_DEFAULT);

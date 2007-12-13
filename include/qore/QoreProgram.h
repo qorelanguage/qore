@@ -50,6 +50,10 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL int internParsePending(const char *code, const char *label);
       DLLLOCAL class QoreHash *clearThreadData(class ExceptionSink *xsink);
       DLLLOCAL void del(class ExceptionSink *xsink);
+
+      // not implemented
+      DLLLOCAL QoreProgram(const QoreProgram&);
+      DLLLOCAL QoreProgram& operator=(const QoreProgram&);
       
    protected:
       DLLLOCAL virtual ~QoreProgram();

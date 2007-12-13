@@ -33,9 +33,9 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ParserSupport.h>
-#include <qore/RegexSubst.h>
-#include <qore/RegexTrans.h>
-#include <qore/QoreRegex.h>
+#include <qore/intern/RegexSubst.h>
+#include <qore/intern/RegexTrans.h>
+#include <qore/intern/QoreRegex.h>
 #include <qore/QoreWarnings.h>
 
 #include "parser.h"

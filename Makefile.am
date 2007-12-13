@@ -43,7 +43,6 @@ noinst_HEADERS = \
 	include/qore/support.h \
 	include/qore/QoreException.h \
 	include/qore/QoreHash.h \
-	include/qore/QoreNumber.h \
 	include/qore/Tree.h \
 	include/qore/ScopedObjectCall.h \
 	include/qore/QoreNode.h \
@@ -62,18 +61,12 @@ noinst_HEADERS = \
 	include/qore/QoreCondition.h \
 	include/qore/QoreCounter.h \
 	include/qore/BinaryObject.h \
-	include/qore/RegexSubst.h \
-	include/qore/RegexTrans.h \
 	include/qore/hash_map.h \
-	include/qore/QoreRegex.h \
-	include/qore/QoreRegexBase.h \
 	include/qore/QoreFtpClient.h \
 	include/qore/StringList.h \
 	include/qore/safe_dslist \
 	include/qore/qore_bitopts.h \
-	include/qore/QoreSignal.h \
 	include/qore/ssl_constants.h \
-	include/qore/QoreQueue.h \
 	include/qore/QoreSSLBase.h \
 	include/qore/QoreWarnings.h \
 	include/qore/Datasource.h \
@@ -89,6 +82,13 @@ noinst_HEADERS = \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
+	include/qore/intern/QoreSignal.h \
+	include/qore/intern/RegexSubst.h \
+	include/qore/intern/RegexTrans.h \
+	include/qore/intern/QoreRegex.h \
+	include/qore/intern/QoreRegexBase.h \
+	include/qore/intern/QoreQueue.h \
+	include/qore/intern/QoreNumber.h \
 	include/qore/intern/QoreLibIntern.h \
 	include/qore/intern/QoreGetOpt.h \
 	include/qore/intern/QoreClassList.h \

@@ -19,7 +19,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/QoreRegex.h>
+#include <qore/intern/QoreRegex.h>
 
 QoreRegex::QoreRegex()
 {

@@ -32,6 +32,10 @@ class QoreCounter
    private:
       struct qore_counter_private *priv;
 
+      // not implemented
+      DLLLOCAL QoreCounter(const QoreCounter&);
+      DLLLOCAL QoreCounter& operator=(const QoreCounter&);
+
    public:
       DLLEXPORT QoreCounter(int nc = 0);
       DLLEXPORT ~QoreCounter();

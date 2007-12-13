@@ -26,6 +26,9 @@
 
 class Environment {
    private:
+      // not implemented
+      DLLLOCAL Environment(const Environment&);
+      DLLLOCAL Environment& operator=(const Environment&);
 
    public:
       DLLEXPORT Environment();

@@ -50,6 +50,10 @@ class ModuleInfo {
       qore_module_delete_t module_delete;
       const void *dlptr;
 
+      // not implemented
+      DLLLOCAL ModuleInfo(const ModuleInfo&);
+      DLLLOCAL ModuleInfo& operator=(const ModuleInfo&);
+
    public:
       DLLLOCAL ModuleInfo(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, const char *d, const char *v, const char *a, const char *u, const void *p);
       // for "builtin" modules
@@ -83,6 +87,10 @@ class ModuleManager
       DLLLOCAL static class ModuleInfo *add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
       DLLLOCAL static class QoreString *loadModuleFromPath(const char *path, const char *feature = NULL, class ModuleInfo **mi = NULL);
       DLLLOCAL static class ModuleInfo *find(const char *name);
+
+      // not implemented
+      DLLLOCAL ModuleManager(const ModuleManager&);
+      DLLLOCAL ModuleManager& operator=(const ModuleManager&);
 
    public:
       // to add a directory to the QORE_MODULE_DIR list, can only be called before init()

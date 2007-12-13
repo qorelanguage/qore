@@ -32,6 +32,10 @@ class BinaryObject {
       void *ptr;
       unsigned len;
 
+      // not yet implemented
+      DLLLOCAL BinaryObject(const BinaryObject&);
+      DLLLOCAL BinaryObject& operator=(const BinaryObject&);
+
    public:
       DLLEXPORT BinaryObject(void *p = NULL, unsigned size = 0)
       {

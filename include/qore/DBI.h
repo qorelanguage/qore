@@ -79,6 +79,10 @@ class qore_dbi_method_list
    private:
       struct qore_dbi_mlist_private *priv; // private implementation
 
+      // not implemented
+      DLLLOCAL qore_dbi_method_list(const qore_dbi_method_list&);
+      DLLLOCAL qore_dbi_method_list& operator=(const qore_dbi_method_list&);
+
    public:
       DLLEXPORT qore_dbi_method_list();
       DLLEXPORT ~qore_dbi_method_list();
@@ -135,6 +139,10 @@ struct qore_dbi_private;
 class DBIDriver {
    private:
       struct qore_dbi_private *priv;
+
+      // not implemented
+      DLLLOCAL DBIDriver(const DBIDriver&);
+      DLLLOCAL DBIDriver& operator=(const DBIDriver&);
 
    public:
       DLLLOCAL DBIDriver(const char *name, const dbi_method_list_t &methods, int cps);

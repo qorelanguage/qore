@@ -81,6 +81,10 @@ class QoreFtpClient : public LockedObject
       DLLLOCAL int doAuth(class FtpResp *resp, class ExceptionSink *xsink);
       DLLLOCAL int doProt(class FtpResp *resp, class ExceptionSink *xsink);
 
+      // not implemented
+      DLLLOCAL QoreFtpClient(const QoreFtpClient&);
+      DLLLOCAL QoreFtpClient& operator=(const QoreFtpClient&);
+
    public:
       DLLEXPORT QoreFtpClient(class QoreString *url, class ExceptionSink *xsink);
       DLLEXPORT ~QoreFtpClient();

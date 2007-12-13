@@ -43,6 +43,10 @@ class Datasource
 {
    private:
       struct qore_ds_private *priv; // private implementation
+
+      // not implemented
+      DLLLOCAL Datasource(const Datasource&);
+      DLLLOCAL Datasource& operator=(const Datasource&);
       
    protected:
       DLLEXPORT void freeConnectionValues();

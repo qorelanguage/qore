@@ -4,6 +4,7 @@
 	  for subprogram objects
 	* updated feature list handling, streamlined data structures
 	* made QoreList implementation private
+	* more header file cleanups
 
 2007.12.10: David Nichols
 	* made some more QoreMethod functions public

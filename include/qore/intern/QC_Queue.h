@@ -24,12 +24,7 @@
 
 #define _QORE_CLASS_QUEUE
 
-#include <qore/common.h>
-#include <qore/qore_thread.h>
-#include <qore/support.h>
-#include <qore/QoreQueue.h>
-#include <qore/AbstractPrivateData.h>
-#include <qore/QoreException.h>
+#include <qore/intern/QoreQueue.h>
 
 DLLEXPORT extern int CID_QUEUE;
 DLLLOCAL class QoreClass *initQueueClass();

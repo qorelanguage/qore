@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 #include <qore/SmartMutex.h>
-#include <qore/QoreSignal.h>
 
 #include <assert.h>
 

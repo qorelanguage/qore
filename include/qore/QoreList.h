@@ -27,6 +27,11 @@
 #define _QORE_LIST_H
 
 class QoreList {   
+   private:
+      // not implemented
+      DLLLOCAL QoreList(const QoreList&);
+      DLLLOCAL QoreList& operator=(const QoreList&);
+
    protected:
       struct qore_list_private *priv;
 

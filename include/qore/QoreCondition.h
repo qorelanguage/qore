@@ -34,6 +34,10 @@ class QoreCondition
    private:
       pthread_cond_t c;
 
+      // not implemented
+      DLLLOCAL QoreCondition(const QoreCondition&);
+      DLLLOCAL QoreCondition& operator=(const QoreCondition&);
+
    public:
       DLLEXPORT QoreCondition();
       DLLEXPORT ~QoreCondition();
