@@ -26,8 +26,6 @@
 
 #define _QORE_QORESTRING_H
 
-#include <qore/common.h>
-
 #include <stdarg.h>
 
 #include <string>
@@ -44,15 +42,12 @@ extern class code_table html_codes[];
 
 class QoreString {
    private:
+      struct qore_string_private *priv;
+
       // the following two functions are not implemented - 
       // QoreStrings must be explicitly copied with QoreString::copy()
       QoreString(const QoreString &);
       QoreString & operator=(const QoreString &);
-
-      int len;
-      unsigned allocated;
-      char *buf;
-      class QoreEncoding *charset;
 
       DLLLOCAL inline void check_char(unsigned i);
       DLLLOCAL inline void check_offset(int &offset);
