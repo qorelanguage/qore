@@ -40,16 +40,37 @@
 
 typedef ReferenceHolder<QoreNode> safe_qorenode_t;
 
+struct qore_list_private {
+      class QoreNode **entry;
+      int length;
+      int allocated;
+      bool needs_eval;
+
+      DLLLOCAL qore_list_private()
+      {
+	 length = 0;
+	 allocated = 0;
+	 entry = 0;
+      }
+      DLLLOCAL ~qore_list_private()
+      {
+	 assert(!length);
+
+	 if (entry)
+	    free(entry);
+      }
+};
+
 void QoreList::check_offset(int &offset)
 {
    if (offset < 0)
    {
-      offset = length + offset;
+      offset = priv->length + offset;
       if (offset < 0)
 	 offset = 0;
    }
-   else if (offset > length)
-      offset = length;
+   else if (offset > priv->length)
+      offset = priv->length;
 }
 
 void QoreList::check_offset(int &offset, int &len)
@@ -57,62 +78,53 @@ void QoreList::check_offset(int &offset, int &len)
    check_offset(offset);
    if (len < 0)
    {
-      len = length + len - offset;
+      len = priv->length + len - offset;
       if (len < 0)
 	 len = 0;
    }
 }
 
-QoreList::QoreList()
+QoreList::QoreList() : priv(new qore_list_private)
 {
-   length = 0;
-   allocated = 0;
-   entry = NULL;
-   needs_eval = 0;
+   priv->needs_eval = 0;
 }
 
-QoreList::QoreList(bool i)
+QoreList::QoreList(bool i) : priv(new qore_list_private)
 {
-   length = 0;
-   allocated = 0;
-   entry = NULL;
-   needs_eval = i;
+   priv->needs_eval = i;
 }
 
 QoreList::~QoreList()
 {
-   assert(!length);
-
-   if (entry)
-      free(entry);
+   delete priv;
 }
 
 class QoreNode *QoreList::retrieve_entry(int num) const
 {
-   if (num >= length || num < 0)
+   if (num >= priv->length || num < 0)
       return NULL;
-   return entry[num];
+   return priv->entry[num];
 }
 
 int QoreList::getEntryAsInt(int num) const
 {
-   if (num >= length || num < 0 || !entry[num])
+   if (num >= priv->length || num < 0 || !priv->entry[num])
       return 0;
-   return entry[num]->getAsInt();
+   return priv->entry[num]->getAsInt();
 }
 
 QoreNode **QoreList::get_entry_ptr(int num)
 {
-   if (num >= length)
+   if (num >= priv->length)
       resize(num + 1);
-   return &entry[num];
+   return &priv->entry[num];
 }
 
 QoreNode **QoreList::getExistingEntryPtr(int num)
 {
-   if (num >= length || num < 0)
+   if (num >= priv->length || num < 0)
       return NULL;
-   return &entry[num];
+   return &priv->entry[num];
 }
 
 void QoreList::set_entry(int index, class QoreNode *val, ExceptionSink *xsink)
@@ -125,9 +137,9 @@ void QoreList::set_entry(int index, class QoreNode *val, ExceptionSink *xsink)
 
 class QoreNode *QoreList::eval_entry(int num, class ExceptionSink *xsink) const
 {
-   if (num >= length || num < 0)
+   if (num >= priv->length || num < 0)
       return NULL;
-   class QoreNode *rv = entry[num];
+   class QoreNode *rv = priv->entry[num];
    if (rv)
       rv = rv->eval(xsink);
    return rv;
@@ -135,91 +147,91 @@ class QoreNode *QoreList::eval_entry(int num, class ExceptionSink *xsink) const
 
 void QoreList::push(class QoreNode *val)
 {
-   class QoreNode **v = get_entry_ptr(length);
+   class QoreNode **v = get_entry_ptr(priv->length);
    *v = val;
 }
 
 void QoreList::merge(class QoreList *list)
 {
-   int start = length;
-   resize(length + list->length);
-   for (int i = 0; i < list->length; i++)
+   int start = priv->length;
+   resize(priv->length + list->priv->length);
+   for (int i = 0; i < list->priv->length; i++)
    {
-      if (list->entry[i])
-	 entry[start + i] = list->entry[i]->RefSelf();
+      if (list->priv->entry[i])
+	 priv->entry[start + i] = list->priv->entry[i]->RefSelf();
       else
-	 entry[start + i] = NULL;
+	 priv->entry[start + i] = NULL;
    }
 }
 
 int QoreList::delete_entry(int ind, ExceptionSink *xsink)
 {
-   if (ind >= length || ind < 0)
+   if (ind >= priv->length || ind < 0)
       return 1;
 
-   if (entry[ind] && entry[ind]->type == NT_OBJECT)
-      entry[ind]->val.object->doDelete(xsink);
+   if (priv->entry[ind] && priv->entry[ind]->type == NT_OBJECT)
+      priv->entry[ind]->val.object->doDelete(xsink);
 
-   if (entry[ind])
+   if (priv->entry[ind])
    {
-      entry[ind]->deref(xsink);
-      entry[ind] = NULL;
+      priv->entry[ind]->deref(xsink);
+      priv->entry[ind] = NULL;
    }
 
    // resize list if deleting last element
-   if (ind == (length - 1))
+   if (ind == (priv->length - 1))
       resize(ind);
 
    return 0;
 }
 
-// delete an entry and move down the rest of the entries
+// delete an priv->entry and move down the rest of the entries
 void QoreList::pop_entry(int ind, ExceptionSink *xsink)
 {
-   if (ind >= length || ind < 0)
+   if (ind >= priv->length || ind < 0)
       return;
 
-   if (entry[ind] && entry[ind]->type == NT_OBJECT)
-      entry[ind]->val.object->doDelete(xsink);
+   if (priv->entry[ind] && priv->entry[ind]->type == NT_OBJECT)
+      priv->entry[ind]->val.object->doDelete(xsink);
 
-   if (entry[ind])
+   if (priv->entry[ind])
    {
-      entry[ind]->deref(xsink);
-      entry[ind] = NULL;
+      priv->entry[ind]->deref(xsink);
+      priv->entry[ind] = NULL;
    }
 
    // resize list
-   length--;
-   if (ind < length)
-      memmove(entry + ind, entry + ind + 1, sizeof(entry) * (length - ind));
-   resize(length);
+   priv->length--;
+   if (ind < priv->length)
+      memmove(priv->entry + ind, priv->entry + ind + 1, sizeof(priv->entry) * (priv->length - ind));
+   resize(priv->length);
 }
 
 void QoreList::insert(class QoreNode *val)
 {
-   resize(length + 1);
-   memmove(entry + 1, entry, sizeof(QoreNode *) * (length - 1));
-   entry[0] = val;
+   resize(priv->length + 1);
+   memmove(priv->entry + 1, priv->entry, sizeof(QoreNode *) * (priv->length - 1));
+   priv->entry[0] = val;
 }
 
 QoreNode *QoreList::shift()
 {
-   if (!length)
+   if (!priv->length)
       return NULL;
-   QoreNode *rv = entry[0];
-   memmove(entry, entry + 1, sizeof(QoreNode *) * (length - 1));
-   entry[length - 1] = NULL;
-   resize(length - 1);
+   QoreNode *rv = priv->entry[0];
+   memmove(priv->entry, priv->entry + 1, sizeof(QoreNode *) * (priv->length - 1));
+   priv->entry[priv->length - 1] = NULL;
+   resize(priv->length - 1);
    return rv;
 }
 
 QoreNode *QoreList::pop()
 {
-   if (!length)
+   if (!priv->length)
       return NULL;
-   QoreNode *rv = entry[length - 1];
-   entry[length - 1] = NULL;
-   resize(length - 1);
+   QoreNode *rv = priv->entry[priv->length - 1];
+   priv->entry[priv->length - 1] = NULL;
+   resize(priv->length - 1);
    return rv;
 }
 
@@ -227,9 +239,9 @@ class QoreList *QoreList::evalList(ExceptionSink *xsink) const
 {
    tracein("QoreList::eval()");
    class QoreList *nl = new QoreList();
-   for (int i = 0; i < length; i++)
+   for (int i = 0; i < priv->length; i++)
    {
-      nl->push(entry[i] ? entry[i]->eval(xsink) : NULL);
+      nl->push(priv->entry[i] ? priv->entry[i]->eval(xsink) : NULL);
       if (xsink->isEvent())
       {
 	 nl->dereference(xsink);
@@ -246,9 +258,9 @@ class QoreNode *QoreList::eval(ExceptionSink *xsink) const
 {
    tracein("QoreList::eval()");
    class QoreList *nl = new QoreList();
-   for (int i = 0; i < length; i++)
+   for (int i = 0; i < priv->length; i++)
    {
-      nl->push(entry[i] ? entry[i]->eval(xsink) : NULL);
+      nl->push(priv->entry[i] ? priv->entry[i]->eval(xsink) : NULL);
       if (xsink->isEvent())
       {
 	 nl->dereference(xsink);
@@ -265,9 +277,9 @@ class QoreNode *QoreList::evalFrom(int offset, ExceptionSink *xsink) const
 {
    tracein("List::eval()");
    class QoreList *nl = new QoreList();
-   for (int i = offset; i < length; i++)
+   for (int i = offset; i < priv->length; i++)
    {
-      nl->push(entry[i] ? entry[i]->eval(xsink) : NULL);
+      nl->push(priv->entry[i] ? priv->entry[i]->eval(xsink) : NULL);
       if (xsink->isEvent())
       {
 	 nl->dereference(xsink);
@@ -283,8 +295,8 @@ class QoreNode *QoreList::evalFrom(int offset, ExceptionSink *xsink) const
 class QoreNode *QoreList::copy() const
 {
    class QoreList *nl = new QoreList();
-   for (int i = 0; i < length; i++)
-      nl->push(entry[i] ? entry[i]->RefSelf() : NULL);
+   for (int i = 0; i < priv->length; i++)
+      nl->push(priv->entry[i] ? priv->entry[i]->RefSelf() : NULL);
 
    return new QoreNode(nl);
 }
@@ -292,8 +304,8 @@ class QoreNode *QoreList::copy() const
 class QoreList *QoreList::copyListFrom(int offset) const
 {
    class QoreList *nl = new QoreList();
-   for (int i = offset; i < length; i++)
-      nl->push(entry[i] ? entry[i]->RefSelf() : NULL);
+   for (int i = offset; i < priv->length; i++)
+      nl->push(priv->entry[i] ? priv->entry[i]->RefSelf() : NULL);
 
    return nl;
 }
@@ -301,8 +313,8 @@ class QoreList *QoreList::copyListFrom(int offset) const
 class QoreList *QoreList::copyList() const
 {
    class QoreList *nl = new QoreList();
-   for (int i = 0; i < length; i++)
-      nl->push(entry[i] ? entry[i]->RefSelf() : NULL);
+   for (int i = 0; i < priv->length; i++)
+      nl->push(priv->entry[i] ? priv->entry[i]->RefSelf() : NULL);
 
    return nl;
 }
@@ -310,16 +322,16 @@ class QoreList *QoreList::copyList() const
 void QoreList::splice(int offset, class ExceptionSink *xsink)
 {
    check_offset(offset);
-   if (offset == length)
+   if (offset == priv->length)
       return;
 
-   splice_intern(offset, length - offset, xsink);
+   splice_intern(offset, priv->length - offset, xsink);
 }
 
 void QoreList::splice(int offset, int len, class ExceptionSink *xsink)
 {
    check_offset(offset, len);
-   if (offset == length)
+   if (offset == priv->length)
       return;
    splice_intern(offset, len, xsink);
 }
@@ -360,24 +372,24 @@ static int compareListEntriesDescending(class QoreNode *l, class QoreNode *r)
 class QoreNode *QoreList::sort() const
 {
    class QoreNode *rv = copy();
-   //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
-   std::sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntries);
+   //printd(5, "List::sort() priv->entry=%08p priv->length=%d\n", rv->val.list->priv->entry, priv->length);
+   std::sort(rv->val.list->priv->entry, rv->val.list->priv->entry + priv->length, compareListEntries);
    return rv;
 }
 
 class QoreNode *QoreList::sortDescending() const
 {
    class QoreNode *rv = copy();
-   //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
-   std::sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntriesDescending);
+   //printd(5, "List::sort() priv->entry=%08p priv->length=%d\n", rv->val.list->priv->entry, priv->length);
+   std::sort(rv->val.list->priv->entry, rv->val.list->priv->entry + priv->length, compareListEntriesDescending);
    return rv;
 }
 
 class QoreNode *QoreList::sortDescending(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
 {   
    QoreNode *rv = copy();
-   if (length)
-      if (rv->val.list->qsort(fr, 0, length - 1, false, xsink))
+   if (priv->length)
+      if (rv->val.list->qsort(fr, 0, priv->length - 1, false, xsink))
       {
 	 rv->deref(xsink);
 	 rv = NULL;
@@ -387,10 +399,10 @@ class QoreNode *QoreList::sortDescending(const class AbstractFunctionReference *
 
 class QoreNode *StackList::getAndClear(int i)
 {
-   if (i < 0 || i >= length)
+   if (i < 0 || i >= priv->length)
       return NULL;
-   class QoreNode *rv = entry[i];
-   entry[i] = NULL;
+   class QoreNode *rv = priv->entry[i];
+   priv->entry[i] = NULL;
    return rv;
 }
 
@@ -407,24 +419,24 @@ static inline class QoreNode *do_args(QoreNode *e1, QoreNode *e2)
 // mergesort for controlled and interruptible sorts (stable)
 int QoreList::mergesort(const class AbstractFunctionReference *fr, bool ascending, class ExceptionSink *xsink)
 {
-   //printd(5, "List::mergesort() ENTER this=%08p, pgm=%08p, f=%08p length=%d\n", this, pgm, f, length);
+   //printd(5, "List::mergesort() ENTER this=%08p, pgm=%08p, f=%08p priv->length=%d\n", this, pgm, f, priv->length);
    
-   if (length <= 1)
+   if (priv->length <= 1)
       return 0;
 
    // separate list into two equal-sized lists
    StackList left(xsink), right(xsink);
-   int mid = length / 2;
+   int mid = priv->length / 2;
    {
       int i;
       for (i = 0; i < mid; i++)
-	 left.push(entry[i]);
-      for (; i < length; i++)
-	 right.push(entry[i]);
+	 left.push(priv->entry[i]);
+      for (; i < priv->length; i++)
+	 right.push(priv->entry[i]);
    }
 
-   // set length to 0 - the temporary lists own the entry references now
-   length = 0;
+   // set priv->length to 0 - the temporary lists own the priv->entry references now
+   priv->length = 0;
 
    // mergesort the two lists
    if (left.mergesort(fr, ascending, xsink) || right.mergesort(fr, ascending, xsink))
@@ -433,10 +445,10 @@ int QoreList::mergesort(const class AbstractFunctionReference *fr, bool ascendin
    // merge the resulting lists
    // use offsets and StackList::getAndClear() to avoid moving a lot of memory around
    int li = 0, ri = 0;
-   while ((li < left.length) && (ri < right.length))
+   while ((li < left.priv->length) && (ri < right.priv->length))
    {
-      class QoreNode *l = left.entry[li];
-      class QoreNode *r = right.entry[ri];
+      class QoreNode *l = left.priv->entry[li];
+      class QoreNode *r = right.priv->entry[ri];
       safe_qorenode_t args(do_args(l, r), xsink);
       safe_qorenode_t rv(fr->exec(*args, xsink), xsink);
       if (xsink->isEvent())
@@ -450,12 +462,12 @@ int QoreList::mergesort(const class AbstractFunctionReference *fr, bool ascendin
    }
 
    // only one list will have entries left...
-   while (li < left.length)
+   while (li < left.priv->length)
       push(left.getAndClear(li++));
-   while (ri < right.length)
+   while (ri < right.priv->length)
       push(right.getAndClear(ri++));
 
-   //printd(5, "List::mergesort() EXIT this=%08p, length=%d\n", this, length);
+   //printd(5, "List::mergesort() EXIT this=%08p, priv->length=%d\n", this, priv->length);
 
    return 0;
 }
@@ -466,13 +478,13 @@ int QoreList::qsort(const class AbstractFunctionReference *fr, int left, int rig
 {
    int l_hold = left;
    int r_hold = right;
-   class QoreNode *pivot = entry[left];
+   class QoreNode *pivot = priv->entry[left];
 
    while (left < right)
    {
       while (true)
       {
-	 safe_qorenode_t args(do_args(entry[right], pivot), xsink);
+	 safe_qorenode_t args(do_args(priv->entry[right], pivot), xsink);
 	 safe_qorenode_t rv(fr->exec(*args, xsink), xsink);
 	 if (xsink->isEvent())
 	    return -1;
@@ -487,13 +499,13 @@ int QoreList::qsort(const class AbstractFunctionReference *fr, int left, int rig
 
       if (left != right)
       {
-	 entry[left] = entry[right];
+	 priv->entry[left] = priv->entry[right];
 	 left++;
       }
 
       while (true)
       {
-	 safe_qorenode_t args(do_args(entry[left], pivot), xsink);
+	 safe_qorenode_t args(do_args(priv->entry[left], pivot), xsink);
 	 safe_qorenode_t rv(fr->exec(*args, xsink), xsink);
 	 if (xsink->isEvent())
 	    return -1;
@@ -508,11 +520,11 @@ int QoreList::qsort(const class AbstractFunctionReference *fr, int left, int rig
       
       if (left != right)
       {
-	 entry[right] = entry[left];
+	 priv->entry[right] = priv->entry[left];
 	 right--;
       }
    }
-   entry[left] = pivot;
+   priv->entry[left] = pivot;
    int t_left = left;
    left = l_hold;
    right = r_hold;
@@ -527,8 +539,8 @@ int QoreList::qsort(const class AbstractFunctionReference *fr, int left, int rig
 class QoreNode *QoreList::sort(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
 {   
    QoreNode *rv = copy();
-   if (length)
-      if (rv->val.list->qsort(fr, 0, length - 1, true, xsink))
+   if (priv->length)
+      if (rv->val.list->qsort(fr, 0, priv->length - 1, true, xsink))
       {
 	 rv->deref(xsink);
 	 rv = NULL;
@@ -539,23 +551,23 @@ class QoreNode *QoreList::sort(const class AbstractFunctionReference *fr, class 
 class QoreNode *QoreList::sortStable() const
 {
    class QoreNode *rv = copy();
-   //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
-   std::stable_sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntries);
+   //printd(5, "List::sort() priv->entry=%08p priv->length=%d\n", rv->val.list->priv->entry, priv->length);
+   std::stable_sort(rv->val.list->priv->entry, rv->val.list->priv->entry + priv->length, compareListEntries);
    return rv;
 }
 
 class QoreNode *QoreList::sortDescendingStable() const
 {
    class QoreNode *rv = copy();
-   //printd(5, "List::sort() entry=%08p length=%d\n", rv->val.list->entry, length);
-   std::stable_sort(rv->val.list->entry, rv->val.list->entry + length, compareListEntriesDescending);
+   //printd(5, "List::sort() priv->entry=%08p priv->length=%d\n", rv->val.list->priv->entry, priv->length);
+   std::stable_sort(rv->val.list->priv->entry, rv->val.list->priv->entry + priv->length, compareListEntriesDescending);
    return rv;
 }
 
 class QoreNode *QoreList::sortDescendingStable(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
 {   
    QoreNode *rv = copy();
-   if (length)
+   if (priv->length)
       if (rv->val.list->mergesort(fr, false, xsink))
       {
 	 rv->deref(xsink);
@@ -567,7 +579,7 @@ class QoreNode *QoreList::sortDescendingStable(const class AbstractFunctionRefer
 class QoreNode *QoreList::sortStable(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
 {   
    QoreNode *rv = copy();
-   if (length)
+   if (priv->length)
       if (rv->val.list->mergesort(fr, true, xsink))
       {
 	 rv->deref(xsink);
@@ -580,104 +592,104 @@ class QoreNode *QoreList::sortStable(const class AbstractFunctionReference *fr, 
 void QoreList::deref_intern(ExceptionSink *xsink)
 {
 //   tracein("List::dereference()");
-   for (int i = 0; i < length; i++)
-      if (entry[i])
-         entry[i]->deref(xsink);
+   for (int i = 0; i < priv->length; i++)
+      if (priv->entry[i])
+         priv->entry[i]->deref(xsink);
 //   traceout("List::dereference()");
 }
 
 void QoreList::dereference(ExceptionSink *xsink)
 {
    deref_intern(xsink);
-   length = 0;
+   priv->length = 0;
 }
 
 void QoreList::derefAndDelete(class ExceptionSink *xsink)
 {
    deref_intern(xsink);
 #ifdef DEBUG
-   length = 0;
+   priv->length = 0;
 #endif
    delete this;
 }
 
 void QoreList::resize(int num)
 {
-   if (num < length) // make smaller
+   if (num < priv->length) // make smaller
    {
       ExceptionSink xsink;
-      for (int i = length - 1; i >= num; i--)
-	 if (entry[i])
+      for (int i = priv->length - 1; i >= num; i--)
+	 if (priv->entry[i])
 	 {
 	    // resize should only be called when the missing
 	    // entries are already NULL
-	    entry[i]->deref(&xsink);
-	    entry[i] = NULL;
+	    priv->entry[i]->deref(&xsink);
+	    priv->entry[i] = NULL;
 	 }
-      //entry = (class QoreNode **)realloc(entry, sizeof (QoreNode **) * num);
-      length = num;
+      //priv->entry = (class QoreNode **)realloc(priv->entry, sizeof (QoreNode **) * num);
+      priv->length = num;
       return;
    }
    // make larger
-   if (num >= allocated)
+   if (num >= priv->allocated)
    {
       int d = num >> 2;
-      allocated = num + (d < LIST_PAD ? LIST_PAD : d);
-      //allocated = num + LIST_PAD;
-      entry = (class QoreNode **)realloc(entry, sizeof (QoreNode *) * allocated);
-      for (int i = length; i < allocated; i++)
-	 entry[i] = NULL;
+      priv->allocated = num + (d < LIST_PAD ? LIST_PAD : d);
+      //priv->allocated = num + LIST_PAD;
+      priv->entry = (class QoreNode **)realloc(priv->entry, sizeof (QoreNode *) * priv->allocated);
+      for (int i = priv->length; i < priv->allocated; i++)
+	 priv->entry[i] = NULL;
    }
-   length = num;
+   priv->length = num;
 }
 
 void QoreList::splice_intern(int offset, int len, class ExceptionSink *xsink)
 {
-   //printd(5, "splice_intern(offset=%d, len=%d, length=%d)\n", offset, len, length);
+   //printd(5, "splice_intern(offset=%d, len=%d, priv->length=%d)\n", offset, len, priv->length);
    int end;
-   if (len > (length - offset))
+   if (len > (priv->length - offset))
    {
-      end = length;
-      len = length - offset;
+      end = priv->length;
+      len = priv->length - offset;
    }
    else
       end = offset + len;
 
    // dereference all entries that will be removed
    for (int i = offset; i < end; i++)
-      if (entry[i])
-	 entry[i]->deref(xsink);
+      if (priv->entry[i])
+	 priv->entry[i]->deref(xsink);
 
    // move down entries if necessary
-   if (end != length)
+   if (end != priv->length)
    {
-      memmove(entry + offset, entry + end, sizeof(entry) * (length - end));
+      memmove(priv->entry + offset, priv->entry + end, sizeof(priv->entry) * (priv->length - end));
       // zero out trailing entries
-      for (int i = length - len; i < length; i++)
-	 entry[i] = NULL;
+      for (int i = priv->length - len; i < priv->length; i++)
+	 priv->entry[i] = NULL;
    }
-   else // set last entry to NULL
-      entry[end - 1] = NULL;
+   else // set last priv->entry to NULL
+      priv->entry[end - 1] = NULL;
       
-   resize(length - len);
+   resize(priv->length - len);
 }
 
 void QoreList::splice_intern(int offset, int len, class QoreNode *l, class ExceptionSink *xsink)
 {
-   //printd(5, "splice_intern(offset=%d, len=%d, length=%d)\n", offset, len, length);
+   //printd(5, "splice_intern(offset=%d, len=%d, priv->length=%d)\n", offset, len, priv->length);
    int end;
-   if (len > (length - offset))
+   if (len > (priv->length - offset))
    {
-      end = length;
-      len = length - offset;
+      end = priv->length;
+      len = priv->length - offset;
    }
    else
       end = offset + len;
 
    // dereference all entries that will be removed
    for (int i = offset; i < end; i++)
-      if (entry[i])
-	 entry[i]->deref(xsink);
+      if (priv->entry[i])
+	 priv->entry[i]->deref(xsink);
 
    // get number of entries to insert
    int n;
@@ -690,20 +702,20 @@ void QoreList::splice_intern(int offset, int len, class QoreNode *l, class Excep
    // difference
    if (n > len) // make bigger
    {
-      int ol = length;
-      resize(length - len + n);
+      int ol = priv->length;
+      resize(priv->length - len + n);
       // move trailing entries forward if necessary
       if (end != ol)
-	 memmove(entry + (end - len + n), entry + end, sizeof(entry) * (ol - end));
+	 memmove(priv->entry + (end - len + n), priv->entry + end, sizeof(priv->entry) * (ol - end));
    }
    else if (len > n) // make list smaller
    {
-      memmove(entry + offset + n, entry + offset + len, sizeof(entry) * (length - offset - n));
+      memmove(priv->entry + offset + n, priv->entry + offset + len, sizeof(priv->entry) * (priv->length - offset - n));
       // zero out trailing entries
-      for (int i = length - (len - n); i < length; i++)
-	 entry[i] = NULL;
+      for (int i = priv->length - (len - n); i < priv->length; i++)
+	 priv->entry[i] = NULL;
       // resize list
-      resize(length - (len - n));
+      resize(priv->length - (len - n));
    }
 
    // add in new entries
@@ -711,26 +723,26 @@ void QoreList::splice_intern(int offset, int len, class QoreNode *l, class Excep
    {
       if (l)
 	 l->ref();
-      entry[offset] = l;
+      priv->entry[offset] = l;
    }
    else
       for (int i = 0; i < n; i++)
-	 entry[offset + i] = l->val.list->retrieve_entry(i) ? l->val.list->retrieve_entry(i)->RefSelf() : NULL;
+	 priv->entry[offset + i] = l->val.list->retrieve_entry(i) ? l->val.list->retrieve_entry(i)->RefSelf() : NULL;
 }
 
 int QoreList::size() const
 {
-   return length;
+   return priv->length;
 }
 
 bool QoreList::needsEval() const
 {
-   return needs_eval;
+   return priv->needs_eval;
 }
 
 void QoreList::clearNeedsEval()
 {
-   needs_eval = false;
+   priv->needs_eval = false;
 }
 
 class QoreNode *QoreList::min() const
@@ -740,9 +752,9 @@ class QoreNode *QoreList::min() const
    // we need an exception sink anyway
    class ExceptionSink xsink;
 
-   for (int i = 0; i < length; i++)
+   for (int i = 0; i < priv->length; i++)
    {
-      class QoreNode *v = entry[i];
+      class QoreNode *v = priv->entry[i];
 
       if (!rv)
 	 rv = v;
@@ -763,9 +775,9 @@ class QoreNode *QoreList::max() const
    // we need an exception sink anyway
    class ExceptionSink xsink;
 
-   for (int i = 0; i < length; i++)
+   for (int i = 0; i < priv->length; i++)
    {
-      class QoreNode *v = entry[i];
+      class QoreNode *v = priv->entry[i];
 
       if (!rv)
 	 rv = v;
@@ -783,9 +795,9 @@ class QoreNode *QoreList::min(const class AbstractFunctionReference *fr, class E
 {
    class QoreNode *rv = NULL;
 
-   for (int i = 0; i < length; i++)
+   for (int i = 0; i < priv->length; i++)
    {
-      class QoreNode *v = entry[i];
+      class QoreNode *v = priv->entry[i];
 
       if (!rv)
 	 rv = v;
@@ -806,9 +818,9 @@ class QoreNode *QoreList::max(const class AbstractFunctionReference *fr, class E
 {
    class QoreNode *rv = NULL;
 
-   for (int i = 0; i < length; i++)
+   for (int i = 0; i < priv->length; i++)
    {
-      class QoreNode *v = entry[i];
+      class QoreNode *v = priv->entry[i];
 
       if (!rv)
 	 rv = v;
@@ -828,11 +840,11 @@ class QoreNode *QoreList::max(const class AbstractFunctionReference *fr, class E
 class QoreList *QoreList::reverse() const
 {
    class QoreList *l = new QoreList();
-   l->resize(length);
-   for (int i = 0; i < length; ++i)
+   l->resize(priv->length);
+   for (int i = 0; i < priv->length; ++i)
    {
-      class QoreNode *n = entry[length - i - 1];
-      l->entry[i] = n ? n->RefSelf() : NULL;
+      class QoreNode *n = priv->entry[priv->length - i - 1];
+      l->priv->entry[i] = n ? n->RefSelf() : NULL;
    }
    return l;
 }

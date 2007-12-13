@@ -28,10 +28,7 @@
 
 class QoreList {   
    protected:
-      class QoreNode **entry;
-      int length;
-      int allocated;
-      bool needs_eval;
+      struct qore_list_private *priv;
 
       DLLLOCAL void resize(int num);
       DLLLOCAL void splice_intern(int offset, int length, class ExceptionSink *xsink);

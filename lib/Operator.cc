@@ -2079,7 +2079,12 @@ static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, bool ref_rv,
    int size = l->val.list->size();
    int offset = l->val.list->getEntryAsInt(0);
 
-   printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.list->size(), l, size, offset);
+#ifdef DEBUG
+   if ((*val)->type == NT_LIST)
+      printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.list->size(), l, size, offset);
+   else
+      printd(5, "op_splice() val=%08p (strlen=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.String->strlen(), l, size, offset);
+#endif
 
    if ((*val)->type == NT_LIST)
    {
