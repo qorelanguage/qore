@@ -3,6 +3,8 @@
 	  trunk/0.7.0)
 	* fixed ncurses, pgsql, tibrv, and tuxedo module namespace handling for 
 	  subprogram objects (backported from trunk/0.7.0)
+	* corrected erroneous printd() debugging statement in Operator.cc
+	  (backported from trunk/0.7.0)
 
 2007.12.08: David Nichols
 	* fixed proxy URL reporting in Qore HTTPClient::getProxyURL() (was
