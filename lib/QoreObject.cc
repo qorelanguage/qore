@@ -189,6 +189,7 @@ class QoreNode *QoreObject::evalBuiltinMethodWithPrivateData(class BuiltinMethod
       return rv;
    }
 
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%08p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, meth->myclass->getName(), meth->getName(), meth->myclass->getID(), meth->myclass->getIDForMethod());
    if (xsink->isException())
       return NULL;
    if (priv->myclass == meth->myclass)
