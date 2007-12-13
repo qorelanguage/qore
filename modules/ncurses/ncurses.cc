@@ -255,7 +255,8 @@ static class QoreNode *f_printw(class QoreNode *params, class ExceptionSink *xsi
 
    QoreString *str = q_sprintf(params, 0, 0, xsink); 
 
-   int rc = printw(str->getBuffer());
+   // note: need cast for solaris curses
+   int rc = printw((char *)str->getBuffer());
    delete str;
    return new QoreNode((int64)rc);
 }
@@ -638,9 +639,21 @@ static class QoreNode *f_getmouse(class QoreNode *params, class ExceptionSink *x
 }
 #endif // NCURSES_MOUSE_VERSION
 
+static class Namespace *NCNS;
+
+static void init_namespace()
+{
+   NCNS = new Namespace("NCurses");
+   NCNS->addSystemClass(initWindowClass());
+   NCNS->addSystemClass(initPanelClass());
+   init_constants(NCNS);
+}
+
 class QoreString *ncurses_module_init()
 {
    tracein("ncurses_module_init()");
+
+   init_namespace();
 
    builtinFunctions.add("initscr",          f_initscr);
    builtinFunctions.add("printw",           f_printw);
@@ -710,17 +723,13 @@ class QoreString *ncurses_module_init()
 
 void ncurses_module_ns_init(class Namespace *rns, class Namespace *qns)
 {
-   class Namespace *NCNS = new Namespace("NCurses");
-   NCNS->addSystemClass(initWindowClass());
-   NCNS->addSystemClass(initPanelClass());
-   init_constants(NCNS);
-
-   qns->addInitialNamespace(NCNS);
+   qns->addInitialNamespace(NCNS->copy());
 }
 
 void ncurses_module_delete()
 {
    tracein("ncurses_module_delete()");
    q_nc_init.close();
+   delete NCNS;
    traceout("ncurses_module_delete()");
 }

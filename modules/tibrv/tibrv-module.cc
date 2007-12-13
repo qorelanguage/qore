@@ -51,24 +51,11 @@ DLLEXPORT qore_module_ns_init_t qore_module_ns_init = tibrv_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = tibrv_module_delete;
 #endif
 
-class QoreString *tibrv_module_init()
-{
-   // initialize rendezvous
-   TibrvStatus status = Tibrv::open();
-   if (status != TIBRV_OK)
-   {
-      class QoreString *err = new QoreString;
-      err->sprintf("cannot initialize TIB/RV library: status=%d: %s\n", (int)status, status.getText());
-      return err;
-   }
-   init_tibrv_functions();
-   return NULL;
-}
+static Namespace *tibns;
 
-void tibrv_module_ns_init(class Namespace *rns, class Namespace *qns)
+static void init_namespace()
 {
-   tracein("tibrv_module_ns_init()");
-   class Namespace *tibns = new Namespace("Tibrv");
+   tibns = new Namespace("Tibrv");
    tibns->addSystemClass(initTibrvListenerClass());
    tibns->addSystemClass(initTibrvSenderClass());
    tibns->addSystemClass(initTibrvFtMemberClass());
@@ -82,9 +69,29 @@ void tibrv_module_ns_init(class Namespace *rns, class Namespace *qns)
    tibns->addConstant("TIBRVFT_ACTIVATE", new QoreNode((int64)TIBRVFT_ACTIVATE));
    tibns->addConstant("TIBRVFT_DEACTIVATE", new QoreNode((int64)TIBRVFT_DEACTIVATE));
    tibns->addConstant("TIBRVFT_QORE_STOP", new QoreNode((int64)-1));
+}
 
-   qns->addInitialNamespace(tibns);
+class QoreString *tibrv_module_init()
+{
+   // initialize rendezvous
+   TibrvStatus status = Tibrv::open();
+   if (status != TIBRV_OK)
+   {
+      class QoreString *err = new QoreString;
+      err->sprintf("cannot initialize TIB/RV library: status=%d: %s\n", (int)status, status.getText());
+      return err;
+   }
+   
+   init_namespace();
 
+   init_tibrv_functions();
+   return NULL;
+}
+
+void tibrv_module_ns_init(class Namespace *rns, class Namespace *qns)
+{
+   tracein("tibrv_module_ns_init()");
+   qns->addInitialNamespace(tibns->copy());
    traceout("tibrv_module_nsinit()");
 }
 
@@ -92,5 +99,6 @@ void tibrv_module_delete()
 {
    tracein("tibrv_module_delete()");
    Tibrv::close();
+   delete tibns;
    traceout("tibrv_module_delete()");
 }
