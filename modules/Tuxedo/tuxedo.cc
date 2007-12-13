@@ -22,16 +22,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/config.h>
-#include <qore/support.h>
-#include <qore/QoreString.h>
-#include <qore/Exception.h>
-#include <qore/Namespace.h>
-#include <qore/ModuleManager.h>
-#include <qore/Object.h>
+#include <qore/Qore.h>
 #include <qore/minitest.hpp>
-#include <qore/BuiltinFunctionList.h>
-#include <qore/QoreNode.h>
 
 #include "tuxedo_module.h"
 #include <atmi.h>
@@ -76,20 +68,6 @@ TEST()
 }
 #endif
 
-//------------------------------------------------------------------------------
-QoreString* tuxedo_module_init()
-{
-  tracein("tuxedo_module_init");
-
-#ifdef DEBUG
-  builtinFunctions.add("runTuxedoTests", runTuxedoTests, QDOM_NETWORK);
-#endif
-
-  traceout("tuxedo_module_init");
-  return NULL;
-}
-
-//------------------------------------------------------------------------------
 static void add_constants(Namespace* ns)
 {
   // Queueing errors and constants
@@ -243,21 +221,39 @@ static void add_constants(Namespace* ns)
 #endif
 }
 
+static Namespace* tuxedons;
+static void init_namespace()
+{
+   tuxedons = new Namespace("Tuxedo");
+
+   add_constants(tuxedons);
+   tuxedons->addSystemClass(initTuxedoAdapterClass());
+
+#ifdef DEBUG
+   tuxedons->addSystemClass(initDummyTestClass());
+#endif
+}
+
+//------------------------------------------------------------------------------
+QoreString* tuxedo_module_init()
+{
+  tracein("tuxedo_module_init");
+
+  init_namespace();
+
+#ifdef DEBUG
+  builtinFunctions.add("runTuxedoTests", runTuxedoTests, QDOM_NETWORK);
+#endif
+
+  traceout("tuxedo_module_init");
+  return NULL;
+}
+
 //------------------------------------------------------------------------------
 void tuxedo_module_ns_init(Namespace* rns, Namespace* qns)
 {
   tracein("tuxedo_module_ns_init");
-
-  Namespace* tuxedons = new Namespace("Tuxedo");
-
-  add_constants(tuxedons);
-  tuxedons->addSystemClass(initTuxedoAdapterClass());
-
-#ifdef DEBUG
-  tuxedons->addSystemClass(initDummyTestClass());
-#endif
-
-  qns->addInitialNamespace(tuxedons);
+  qns->addInitialNamespace(tuxedons->copy());
   traceout("tuxedo_module_ns_init");
 }
 
@@ -265,6 +261,7 @@ void tuxedo_module_ns_init(Namespace* rns, Namespace* qns)
 void tuxedo_module_delete()
 {
   tracein("tuxedo_module_delete");
+  delete tuxedons;
   traceout("tuxedo_module_delete");
 }
 
