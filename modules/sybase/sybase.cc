@@ -204,38 +204,6 @@ static class QoreNode *sybase_get_server_version(Datasource *ds, ExceptionSink *
    return conn->get_server_version(xsink);
 }
 
-QoreString* sybase_module_init()
-{
-   tracein("sybase_module_init()");
-   
-#ifdef DEBUG
-   builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
-   builtinFunctions.add("runRecentSybaseTests", runRecentSybaseTests, QDOM_DATABASE);
-#endif
-   
-   // register driver with DBI subsystem
-   class qore_dbi_method_list methods;
-   methods.add(QDBI_METHOD_OPEN, sybase_open);
-   methods.add(QDBI_METHOD_CLOSE, sybase_close);
-   methods.add(QDBI_METHOD_SELECT, sybase_select);
-   methods.add(QDBI_METHOD_SELECT_ROWS, sybase_select_rows);
-   methods.add(QDBI_METHOD_EXEC, sybase_exec);
-   methods.add(QDBI_METHOD_COMMIT, sybase_commit);
-   methods.add(QDBI_METHOD_ROLLBACK, sybase_rollback);
-   methods.add(QDBI_METHOD_AUTO_COMMIT, sybase_commit);
-   methods.add(QDBI_METHOD_GET_CLIENT_VERSION, sybase_get_client_version);
-   methods.add(QDBI_METHOD_GET_SERVER_VERSION, sybase_get_server_version);
-   
-#ifdef SYBASE
-   DBID_SYBASE = DBI.registerDriver("sybase", methods, DBI_SYBASE_CAPS);
-#else
-   DBID_SYBASE = DBI.registerDriver("mssql", methods, DBI_SYBASE_CAPS);
-#endif
-
-   traceout("sybase_module_init()");
-   return NULL;
-}
-
 /*
 // constants are not needed now as specifying placeholder buffer types is not necessary
 static void add_constants(QoreNamespace* ns)
@@ -294,14 +262,11 @@ static void add_constants(QoreNamespace* ns)
    ns->addConstant("CS_XML_TYPE", new QoreNode((int64)CS_XML_TYPE));
 #endif
 }
-*/
 
-void sybase_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
+static QoreNamespace *sybase;
+ 
+static void init_namespace()
 {
-/*
-  // this is commented out because the constants are not needed (or documented) at the moment
-  // maybe later we can use them
-   tracein("sybase_module_ns_init()");
    QoreNamespace *sybase = 
 #ifdef SYBASE
       new QoreNamespace("Sybase");
@@ -309,8 +274,50 @@ void sybase_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
       new QoreNamespace("MSSQL");
 #endif
    add_constants(sybase);
+}
+ */
 
-   qns->addInitialNamespace(sybase);
+QoreString* sybase_module_init()
+{
+   tracein("sybase_module_init()");
+
+   // init_namespace();
+   
+#ifdef DEBUG
+   builtinFunctions.add("runSybaseTests", runSybaseTests, QDOM_DATABASE);
+   builtinFunctions.add("runRecentSybaseTests", runRecentSybaseTests, QDOM_DATABASE);
+#endif
+   
+   // register driver with DBI subsystem
+   class qore_dbi_method_list methods;
+   methods.add(QDBI_METHOD_OPEN, sybase_open);
+   methods.add(QDBI_METHOD_CLOSE, sybase_close);
+   methods.add(QDBI_METHOD_SELECT, sybase_select);
+   methods.add(QDBI_METHOD_SELECT_ROWS, sybase_select_rows);
+   methods.add(QDBI_METHOD_EXEC, sybase_exec);
+   methods.add(QDBI_METHOD_COMMIT, sybase_commit);
+   methods.add(QDBI_METHOD_ROLLBACK, sybase_rollback);
+   methods.add(QDBI_METHOD_AUTO_COMMIT, sybase_commit);
+   methods.add(QDBI_METHOD_GET_CLIENT_VERSION, sybase_get_client_version);
+   methods.add(QDBI_METHOD_GET_SERVER_VERSION, sybase_get_server_version);
+   
+#ifdef SYBASE
+   DBID_SYBASE = DBI.registerDriver("sybase", methods, DBI_SYBASE_CAPS);
+#else
+   DBID_SYBASE = DBI.registerDriver("mssql", methods, DBI_SYBASE_CAPS);
+#endif
+
+   traceout("sybase_module_init()");
+   return NULL;
+}
+
+void sybase_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
+{
+/*
+  // this is commented out because the constants are not needed (or documented) at the moment
+  // maybe later we can use them
+   tracein("sybase_module_ns_init()");
+   qns->addInitialNamespace(sybase->copy());
    traceout("sybase_module_ns_init()");
 */
 }

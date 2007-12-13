@@ -68,20 +68,6 @@ TEST()
 }
 #endif
 
-//------------------------------------------------------------------------------
-QoreString* tuxedo_module_init()
-{
-  tracein("tuxedo_module_init");
-
-#ifdef DEBUG
-  builtinFunctions.add("runTuxedoTests", runTuxedoTests, QDOM_NETWORK);
-#endif
-
-  traceout("tuxedo_module_init");
-  return NULL;
-}
-
-//------------------------------------------------------------------------------
 static void add_constants(QoreNamespace* ns)
 {
   // Queueing errors and constants
@@ -235,21 +221,39 @@ static void add_constants(QoreNamespace* ns)
 #endif
 }
 
+static QoreNamespace* tuxedons;
+static void init_namespace()
+{
+   tuxedons = new QoreNamespace("Tuxedo");
+
+   add_constants(tuxedons);
+   tuxedons->addSystemClass(initTuxedoAdapterClass());
+
+#ifdef DEBUG
+   tuxedons->addSystemClass(initDummyTestClass());
+#endif
+}
+
+//------------------------------------------------------------------------------
+QoreString* tuxedo_module_init()
+{
+  tracein("tuxedo_module_init");
+
+  init_namespace();
+
+#ifdef DEBUG
+  builtinFunctions.add("runTuxedoTests", runTuxedoTests, QDOM_NETWORK);
+#endif
+
+  traceout("tuxedo_module_init");
+  return NULL;
+}
+
 //------------------------------------------------------------------------------
 void tuxedo_module_ns_init(QoreNamespace* rns, QoreNamespace* qns)
 {
   tracein("tuxedo_module_ns_init");
-
-  QoreNamespace* tuxedons = new QoreNamespace("Tuxedo");
-
-  add_constants(tuxedons);
-  tuxedons->addSystemClass(initTuxedoAdapterClass());
-
-#ifdef DEBUG
-  tuxedons->addSystemClass(initDummyTestClass());
-#endif
-
-  qns->addInitialNamespace(tuxedons);
+  qns->addInitialNamespace(tuxedons->copy());
   traceout("tuxedo_module_ns_init");
 }
 
@@ -257,6 +261,7 @@ void tuxedo_module_ns_init(QoreNamespace* rns, QoreNamespace* qns)
 void tuxedo_module_delete()
 {
   tracein("tuxedo_module_delete");
+  delete tuxedons;
   traceout("tuxedo_module_delete");
 }
 

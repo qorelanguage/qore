@@ -1309,105 +1309,55 @@ static QoreNode *f_QStyleFactory_keys(QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(l);
 }
 
+static QoreNamespace *qt_ns = new QoreNamespace("Qt");
 
-static class QoreString *qt_module_init()
+static void init_namespace()
 {
-   builtinFunctions.add("QObject_connect",            f_QObject_connect);
-   builtinFunctions.add("SLOT",                       f_SLOT);
-   builtinFunctions.add("SIGNAL",                     f_SIGNAL);
-   builtinFunctions.add("TR",                         f_TR);
-   builtinFunctions.add("QAPP",                       f_QAPP);
-   builtinFunctions.add("qDebug",                     f_qDebug);
-   builtinFunctions.add("qWarning",                   f_qWarning);
-   builtinFunctions.add("qCritical",                  f_qCritical);
-   builtinFunctions.add("qFatal",                     f_qFatal);
-   builtinFunctions.add("qRound",                     f_qRound);
-   builtinFunctions.add("qsrand",                     f_qsrand);
-   builtinFunctions.add("qrand",                      f_qrand);
-
-   // QToolTip static functions
-   builtinFunctions.add("QToolTip_font",              f_QToolTip_font);
-   builtinFunctions.add("QToolTip_hideText",          f_QToolTip_hideText);
-   builtinFunctions.add("QToolTip_palette",           f_QToolTip_palette);
-   builtinFunctions.add("QToolTip_setFont",           f_QToolTip_setFont);
-   builtinFunctions.add("QToolTip_setPalette",        f_QToolTip_setPalette);
-   builtinFunctions.add("QToolTip_showText",          f_QToolTip_showText);
-
-   // QStyleFactory static functions
-   builtinFunctions.add("QStyleFactory_create",       f_QStyleFactory_create);
-   builtinFunctions.add("QStyleFactory_keys",         f_QStyleFactory_keys);
-
-   // add static class functions as builtin functions
-   initQCoreApplicationStaticFunctions();
-   initQApplicationStaticFunctions();
-   initQLocaleStaticFunctions();
-   initQFontDatabaseStaticFunctions();
-   initQMessageBoxStaticFunctions();
-   initQPixmapStaticFunctions();
-   initQFileDialogStaticFunctions();
-   initQDirStaticFunctions();
-   initQMovieStaticFunctions();
-   initQColorDialogStaticFunctions();
-   initQInputDialogStaticFunctions();
-   initQImageWriterStaticFunctions();
-   initQColorStaticFunctions();
-   initQTimerStaticFunctions();
-   initQSystemTrayIconStaticFunctions();
-   initQLibraryInfoStaticFunctions();
-
-   addBrushStyleType();
-   addPenStyleType();
-
-   return 0;
-}
-
-static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
-{
-   class QoreNamespace *qt = new QoreNamespace("Qt");
+   qt_ns = new QoreNamespace("Qt");
 
     // the order is sensitive here as child classes need the parent IDs
    class QoreClass *qobject, *qcoreapplication, *qwidget, *qlayout, *qframe, 
       *qboxlayout, *qpaintdevice, *qpixmap, *qabstractslider;
 
-   qt->addSystemClass((qobject = initQObjectClass()));
-   qt->addSystemClass((qcoreapplication = initQCoreApplicationClass(qobject)));
-   qt->addSystemClass(initQApplicationClass(qcoreapplication));
-   qt->addSystemClass(initQActionClass(qobject));
-   qt->addSystemClass(initQActionGroupClass(qobject));
-   qt->addSystemClass(initQShortcutClass(qobject));
+   qt_ns->addSystemClass((qobject = initQObjectClass()));
+   qt_ns->addSystemClass((qcoreapplication = initQCoreApplicationClass(qobject)));
+   qt_ns->addSystemClass(initQApplicationClass(qcoreapplication));
+   qt_ns->addSystemClass(initQActionClass(qobject));
+   qt_ns->addSystemClass(initQActionGroupClass(qobject));
+   qt_ns->addSystemClass(initQShortcutClass(qobject));
 
-   qt->addSystemClass((qpaintdevice = initQPaintDeviceClass()));
-   qt->addSystemClass(initQPictureClass(qpaintdevice));
+   qt_ns->addSystemClass((qpaintdevice = initQPaintDeviceClass()));
+   qt_ns->addSystemClass(initQPictureClass(qpaintdevice));
 
-   qt->addSystemClass((qpixmap = initQPixmapClass(qpaintdevice)));
-   qt->addSystemClass(initQBitmapClass(qpixmap));
+   qt_ns->addSystemClass((qpixmap = initQPixmapClass(qpaintdevice)));
+   qt_ns->addSystemClass(initQBitmapClass(qpixmap));
 
-   qt->addSystemClass((qwidget = initQWidgetClass(qobject, qpaintdevice)));
+   qt_ns->addSystemClass((qwidget = initQWidgetClass(qobject, qpaintdevice)));
 
-   qt->addSystemClass((qabstractslider = initQAbstractSliderClass(qwidget)));
+   qt_ns->addSystemClass((qabstractslider = initQAbstractSliderClass(qwidget)));
 
-   qt->addSystemClass((qframe = initQFrameClass(qwidget)));
-   qt->addSystemClass(initQLCDNumberClass(qframe));
-   qt->addSystemClass(initQLabelClass(qframe));
+   qt_ns->addSystemClass((qframe = initQFrameClass(qwidget)));
+   qt_ns->addSystemClass(initQLCDNumberClass(qframe));
+   qt_ns->addSystemClass(initQLabelClass(qframe));
 
-   qt->addSystemClass(initQTimerClass(qobject));
+   qt_ns->addSystemClass(initQTimerClass(qobject));
 
-   qt->addSystemClass(initQRectClass());
-   qt->addSystemClass(initQRectFClass());
-   qt->addSystemClass(initQBrushClass());
-   qt->addSystemClass(initQColorClass());
-   qt->addSystemClass(initQPointClass());
-   qt->addSystemClass(initQSizeClass());
+   qt_ns->addSystemClass(initQRectClass());
+   qt_ns->addSystemClass(initQRectFClass());
+   qt_ns->addSystemClass(initQBrushClass());
+   qt_ns->addSystemClass(initQColorClass());
+   qt_ns->addSystemClass(initQPointClass());
+   qt_ns->addSystemClass(initQSizeClass());
 
-   qt->addSystemClass(initQDateTimeClass());
-   qt->addSystemClass(initQDateClass());
-   qt->addSystemClass(initQTimeClass());
+   qt_ns->addSystemClass(initQDateTimeClass());
+   qt_ns->addSystemClass(initQDateClass());
+   qt_ns->addSystemClass(initQTimeClass());
 
-   qt->addSystemClass(initQKeySequenceClass());
-   qt->addSystemClass(initQFontClass());
-   qt->addSystemClass(initQMatrixClass());
+   qt_ns->addSystemClass(initQKeySequenceClass());
+   qt_ns->addSystemClass(initQFontClass());
+   qt_ns->addSystemClass(initQMatrixClass());
 
-   qt->addInitialNamespace(initQEventNS());
+   qt_ns->addInitialNamespace(initQEventNS());
 
    QoreNamespace *qimage = new QoreNamespace("QImage");
 
@@ -1427,7 +1377,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
 
    qimage->addSystemClass(initQImageClass(qpaintdevice));
 
-   qt->addInitialNamespace(qimage);
+   qt_ns->addInitialNamespace(qimage);
 
    QoreNamespace *qregion = new QoreNamespace("QRegion");
    
@@ -1437,7 +1387,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
 
    qregion->addSystemClass(initQRegionClass());
 
-   qt->addInitialNamespace(qregion);
+   qt_ns->addInitialNamespace(qregion);
 
    QoreNamespace *qlayout_ns = new QoreNamespace("QLayout");
 
@@ -1454,7 +1404,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qlayout_ns->addConstant("SetMaximumSize",           new QoreNode((int64)QLayout::SetMaximumSize));
    qlayout_ns->addConstant("SetMinAndMaxSize",         new QoreNode((int64)QLayout::SetMinAndMaxSize));
 
-   qt->addInitialNamespace(qlayout_ns);
+   qt_ns->addInitialNamespace(qlayout_ns);
 
    QoreNamespace *qmovie = new QoreNamespace("QMovie");
 
@@ -1469,7 +1419,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
 
    qmovie->addSystemClass(initQMovieClass(qobject));
 
-   qt->addInitialNamespace(qmovie);
+   qt_ns->addInitialNamespace(qmovie);
 
    QoreNamespace *qslider = new QoreNamespace("QSlider");
 
@@ -1483,7 +1433,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
 
    qslider->addSystemClass(initQSliderClass(qabstractslider));
 
-   qt->addInitialNamespace(qslider);
+   qt_ns->addInitialNamespace(qslider);
 
    QoreNamespace *qsizepolicy = new QoreNamespace("QSizePolicy");
 
@@ -1519,9 +1469,9 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qsizepolicy->addConstant("TabWidget",                new QoreNode((int64)QSizePolicy::TabWidget));
    qsizepolicy->addConstant("ToolButton",               new QoreNode((int64)QSizePolicy::ToolButton));
 
-   qt->addInitialNamespace(qsizepolicy);
+   qt_ns->addInitialNamespace(qsizepolicy);
 
-   qt->addInitialNamespace(initQLibraryInfoNS());
+   qt_ns->addInitialNamespace(initQLibraryInfoNS());
 
    QoreNamespace *qicon = new QoreNamespace("QIcon");
 
@@ -1536,9 +1486,9 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qicon->addConstant("Off",                      new QoreNode((int64)QIcon::Off));
 
    qicon->addSystemClass(initQIconClass());
-   qt->addInitialNamespace(qicon);
+   qt_ns->addInitialNamespace(qicon);
 
-   qt->addInitialNamespace(initQPaletteNS());
+   qt_ns->addInitialNamespace(initQPaletteNS());
 
    QoreNamespace *qpainter_ns = new QoreNamespace("QPainter");
    
@@ -1576,7 +1526,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
 
    qpainter_ns->addSystemClass(initQPainterClass());
 
-   qt->addInitialNamespace(qpainter_ns);
+   qt_ns->addInitialNamespace(qpainter_ns);
 
    QoreClass *qabstractbutton, *qtextformat, *qtextframeformat, *qtextcharformat,
       *qstyleoption, *qstyleoptionviewitem, *qabstractitemdelegate,
@@ -1584,93 +1534,93 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
       *qcombobox, *qstyleoptioncomplex, *qabstractitemview, 
       *qtableview, *qdialog, *qvalidator;
  
-   qt->addInitialNamespace(initQStyleNS(qobject));
+   qt_ns->addInitialNamespace(initQStyleNS(qobject));
 
    // automatically added classes
-   qt->addSystemClass(initQPointFClass());
-   qt->addSystemClass(initQPolygonClass());
-   qt->addSystemClass(initQPolygonFClass());
-   qt->addSystemClass(initQLineClass());
-   qt->addSystemClass(initQLineFClass());
-   qt->addSystemClass((qabstractbutton = initQAbstractButtonClass(qwidget)));
-   qt->addSystemClass(initQPushButtonClass(qabstractbutton));
-   qt->addSystemClass(initQMenuClass(qwidget));
-   qt->addSystemClass(initQToolButtonClass(qabstractbutton));
-   qt->addSystemClass(initQTextLengthClass());
-   qt->addSystemClass((qtextformat = initQTextFormatClass()));
-   qt->addSystemClass(initQTextBlockFormatClass(qtextformat));
-   qt->addSystemClass((qtextcharformat = initQTextCharFormatClass(qtextformat)));
-   qt->addSystemClass(initQPenClass());
-   qt->addSystemClass((qtextframeformat = initQTextFrameFormatClass(qtextformat)));
-   qt->addSystemClass(initQTextTableFormatClass(qtextframeformat));
-   qt->addSystemClass(initQTextListFormatClass(qtextformat));
-   qt->addSystemClass(initQTextImageFormatClass(qtextcharformat));
-   qt->addSystemClass((qstyleoption = initQStyleOptionClass()));
-   qt->addSystemClass((qstyleoptioncomplex = initQStyleOptionComplexClass(qstyleoption)));
-   qt->addSystemClass(initQStyleOptionComboBoxClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionGroupBoxClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionSizeGripClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionSliderClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionSpinBoxClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionTitleBarClass(qstyleoptioncomplex));
-   qt->addSystemClass(initQStyleOptionToolButtonClass(qstyleoptioncomplex));
-   qt->addInitialNamespace(initQStyleOptionButtonNS(qstyleoption));
-   qt->addSystemClass(initQModelIndexClass());
-   qt->addSystemClass((qstyleoptionviewitem = initQStyleOptionViewItemClass(qstyleoption)));
-   qt->addSystemClass(initQStyleOptionViewItemV2Class(qstyleoptionviewitem));
-   qt->addSystemClass(initQAbstractItemModelClass(qobject));
-   qt->addSystemClass((qabstractitemdelegate = initQAbstractItemDelegateClass(qobject)));
-   qt->addSystemClass(initQItemDelegateClass(qabstractitemdelegate));
-   qt->addSystemClass((qcombobox = initQComboBoxClass(qwidget)));
-   qt->addSystemClass(initQCheckBoxClass(qabstractbutton));
-   qt->addSystemClass((qabstractspinbox = initQAbstractSpinBoxClass(qwidget)));
-   qt->addSystemClass(initQByteArrayClass());
-   qt->addSystemClass(initQUrlClass());
-   qt->addSystemClass(initQVariantClass());
-   qt->addSystemClass(initQGroupBoxClass(qwidget));
-   qt->addSystemClass(initQFontMetricsClass());
-   qt->addSystemClass(initQFontDatabaseClass());
-   qt->addSystemClass(initQFontInfoClass());
-   qt->addSystemClass(initQScrollBarClass(qabstractslider));
-   qt->addSystemClass((qabstractscrollarea = initQAbstractScrollAreaClass(qframe)));
-   qt->addSystemClass(initQScrollAreaClass(qabstractscrollarea));
-   qt->addSystemClass(initQMimeDataClass(qobject));
-   qt->addSystemClass(initQFontComboBoxClass(qcombobox));
-   qt->addSystemClass(initQMainWindowClass(qwidget));
-   qt->addSystemClass(initQRadioButtonClass(qabstractbutton));
-   qt->addSystemClass(initQSpinBoxClass(qabstractspinbox));
-   qt->addSystemClass(initQTableWidgetItemClass());
-   qt->addSystemClass(initQStyleOptionMenuItemClass(qstyleoption));
-   qt->addSystemClass(initQDirClass());
-   qt->addSystemClass(initQMetaObjectClass());
-   qt->addSystemClass(initQMenuBarClass(qwidget));
-   qt->addSystemClass(initQRegExpClass());
-   qt->addSystemClass((qvalidator = initQValidatorClass(qobject)));
-   qt->addSystemClass(initQDoubleValidatorClass(qvalidator));
-   qt->addSystemClass(initQIntValidatorClass(qvalidator));
-   qt->addSystemClass(initQRegExpValidatorClass(qvalidator));
-   qt->addSystemClass(initQFileInfoClass());
-   qt->addSystemClass(initQIODeviceClass(qobject));
-   qt->addSystemClass(initQImageWriterClass());
-   qt->addSystemClass(initQDialClass(qabstractslider));
-   qt->addSystemClass(initQStackedWidgetClass(qframe));
-   qt->addSystemClass(initQDoubleSpinBoxClass(qabstractspinbox));
-   qt->addSystemClass(initQProgressBarClass(qwidget));
-   qt->addSystemClass(initQPainterPathClass());
-   qt->addSystemClass(initQPaintEngineClass());
-   qt->addSystemClass(initQBasicTimerClass());
-   qt->addSystemClass(initQTabBarClass(qwidget));
-   qt->addSystemClass(initQStyleOptionTabClass(qstyleoption));
-   qt->addSystemClass(initQStyleOptionTabWidgetFrameClass(qstyleoption));
-   qt->addSystemClass(initQTabWidgetClass(qwidget));
+   qt_ns->addSystemClass(initQPointFClass());
+   qt_ns->addSystemClass(initQPolygonClass());
+   qt_ns->addSystemClass(initQPolygonFClass());
+   qt_ns->addSystemClass(initQLineClass());
+   qt_ns->addSystemClass(initQLineFClass());
+   qt_ns->addSystemClass((qabstractbutton = initQAbstractButtonClass(qwidget)));
+   qt_ns->addSystemClass(initQPushButtonClass(qabstractbutton));
+   qt_ns->addSystemClass(initQMenuClass(qwidget));
+   qt_ns->addSystemClass(initQToolButtonClass(qabstractbutton));
+   qt_ns->addSystemClass(initQTextLengthClass());
+   qt_ns->addSystemClass((qtextformat = initQTextFormatClass()));
+   qt_ns->addSystemClass(initQTextBlockFormatClass(qtextformat));
+   qt_ns->addSystemClass((qtextcharformat = initQTextCharFormatClass(qtextformat)));
+   qt_ns->addSystemClass(initQPenClass());
+   qt_ns->addSystemClass((qtextframeformat = initQTextFrameFormatClass(qtextformat)));
+   qt_ns->addSystemClass(initQTextTableFormatClass(qtextframeformat));
+   qt_ns->addSystemClass(initQTextListFormatClass(qtextformat));
+   qt_ns->addSystemClass(initQTextImageFormatClass(qtextcharformat));
+   qt_ns->addSystemClass((qstyleoption = initQStyleOptionClass()));
+   qt_ns->addSystemClass((qstyleoptioncomplex = initQStyleOptionComplexClass(qstyleoption)));
+   qt_ns->addSystemClass(initQStyleOptionComboBoxClass(qstyleoptioncomplex));
+   qt_ns->addSystemClass(initQStyleOptionGroupBoxClass(qstyleoptioncomplex));
+   qt_ns->addSystemClass(initQStyleOptionSizeGripClass(qstyleoptioncomplex));
+   qt_ns->addSystemClass(initQStyleOptionSliderClass(qstyleoptioncomplex));
+   qt_ns->addSystemClass(initQStyleOptionSpinBoxClass(qstyleoptioncomplex));
+   qt_ns->addSystemClass(initQStyleOptionTitleBarClass(qstyleoptioncomplex));
+   qt_ns->addSystemClass(initQStyleOptionToolButtonClass(qstyleoptioncomplex));
+   qt_ns->addInitialNamespace(initQStyleOptionButtonNS(qstyleoption));
+   qt_ns->addSystemClass(initQModelIndexClass());
+   qt_ns->addSystemClass((qstyleoptionviewitem = initQStyleOptionViewItemClass(qstyleoption)));
+   qt_ns->addSystemClass(initQStyleOptionViewItemV2Class(qstyleoptionviewitem));
+   qt_ns->addSystemClass(initQAbstractItemModelClass(qobject));
+   qt_ns->addSystemClass((qabstractitemdelegate = initQAbstractItemDelegateClass(qobject)));
+   qt_ns->addSystemClass(initQItemDelegateClass(qabstractitemdelegate));
+   qt_ns->addSystemClass((qcombobox = initQComboBoxClass(qwidget)));
+   qt_ns->addSystemClass(initQCheckBoxClass(qabstractbutton));
+   qt_ns->addSystemClass((qabstractspinbox = initQAbstractSpinBoxClass(qwidget)));
+   qt_ns->addSystemClass(initQByteArrayClass());
+   qt_ns->addSystemClass(initQUrlClass());
+   qt_ns->addSystemClass(initQVariantClass());
+   qt_ns->addSystemClass(initQGroupBoxClass(qwidget));
+   qt_ns->addSystemClass(initQFontMetricsClass());
+   qt_ns->addSystemClass(initQFontDatabaseClass());
+   qt_ns->addSystemClass(initQFontInfoClass());
+   qt_ns->addSystemClass(initQScrollBarClass(qabstractslider));
+   qt_ns->addSystemClass((qabstractscrollarea = initQAbstractScrollAreaClass(qframe)));
+   qt_ns->addSystemClass(initQScrollAreaClass(qabstractscrollarea));
+   qt_ns->addSystemClass(initQMimeDataClass(qobject));
+   qt_ns->addSystemClass(initQFontComboBoxClass(qcombobox));
+   qt_ns->addSystemClass(initQMainWindowClass(qwidget));
+   qt_ns->addSystemClass(initQRadioButtonClass(qabstractbutton));
+   qt_ns->addSystemClass(initQSpinBoxClass(qabstractspinbox));
+   qt_ns->addSystemClass(initQTableWidgetItemClass());
+   qt_ns->addSystemClass(initQStyleOptionMenuItemClass(qstyleoption));
+   qt_ns->addSystemClass(initQDirClass());
+   qt_ns->addSystemClass(initQMetaObjectClass());
+   qt_ns->addSystemClass(initQMenuBarClass(qwidget));
+   qt_ns->addSystemClass(initQRegExpClass());
+   qt_ns->addSystemClass((qvalidator = initQValidatorClass(qobject)));
+   qt_ns->addSystemClass(initQDoubleValidatorClass(qvalidator));
+   qt_ns->addSystemClass(initQIntValidatorClass(qvalidator));
+   qt_ns->addSystemClass(initQRegExpValidatorClass(qvalidator));
+   qt_ns->addSystemClass(initQFileInfoClass());
+   qt_ns->addSystemClass(initQIODeviceClass(qobject));
+   qt_ns->addSystemClass(initQImageWriterClass());
+   qt_ns->addSystemClass(initQDialClass(qabstractslider));
+   qt_ns->addSystemClass(initQStackedWidgetClass(qframe));
+   qt_ns->addSystemClass(initQDoubleSpinBoxClass(qabstractspinbox));
+   qt_ns->addSystemClass(initQProgressBarClass(qwidget));
+   qt_ns->addSystemClass(initQPainterPathClass());
+   qt_ns->addSystemClass(initQPaintEngineClass());
+   qt_ns->addSystemClass(initQBasicTimerClass());
+   qt_ns->addSystemClass(initQTabBarClass(qwidget));
+   qt_ns->addSystemClass(initQStyleOptionTabClass(qstyleoption));
+   qt_ns->addSystemClass(initQStyleOptionTabWidgetFrameClass(qstyleoption));
+   qt_ns->addSystemClass(initQTabWidgetClass(qwidget));
 
-   qt->addInitialNamespace(initQTextEditNS(qabstractscrollarea));
-   qt->addSystemClass(initQDesktopWidgetClass(qwidget));
-   qt->addSystemClass(initQWizardPageClass(qwidget));
-   qt->addSystemClass(initQTranslatorClass(qobject));
-   qt->addInitialNamespace(initQListWidgetItemNS());
-   qt->addInitialNamespace(initQDialogButtonBoxNS(qwidget));
-   qt->addInitialNamespace(initQToolBarNS(qwidget));
+   qt_ns->addInitialNamespace(initQTextEditNS(qabstractscrollarea));
+   qt_ns->addSystemClass(initQDesktopWidgetClass(qwidget));
+   qt_ns->addSystemClass(initQWizardPageClass(qwidget));
+   qt_ns->addSystemClass(initQTranslatorClass(qobject));
+   qt_ns->addInitialNamespace(initQListWidgetItemNS());
+   qt_ns->addInitialNamespace(initQDialogButtonBoxNS(qwidget));
+   qt_ns->addInitialNamespace(initQToolBarNS(qwidget));
 
    // add QBoxLayout namespace and constants
    class QoreNamespace *qbl = new QoreNamespace("QBoxLayout");
@@ -1681,9 +1631,9 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qbl->addConstant("TopToBottom",    new QoreNode((int64)QBoxLayout::TopToBottom));
    qbl->addConstant("BottomToTop",    new QoreNode((int64)QBoxLayout::BottomToTop));
 
-   qt->addInitialNamespace(qbl);
+   qt_ns->addInitialNamespace(qbl);
 
-   qt->addInitialNamespace(initQSystemTrayIconNS(qobject));
+   qt_ns->addInitialNamespace(initQSystemTrayIconNS(qobject));
 
    QoreNamespace *qdatetimeedit_ns = new QoreNamespace("QDateTimeEdit");
    
@@ -1704,7 +1654,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qdatetimeedit_ns->addSystemClass(initQDateEditClass(qdatetimeedit));
    qdatetimeedit_ns->addSystemClass(initQTimeEditClass(qdatetimeedit));
 
-   qt->addInitialNamespace(qdatetimeedit_ns);
+   qt_ns->addInitialNamespace(qdatetimeedit_ns);
 
    QoreNamespace *qdialog_ns = new QoreNamespace("QDialog");
 
@@ -1770,7 +1720,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
 
    qdialog_ns->addInitialNamespace(qmessagebox);
 
-   qt->addInitialNamespace(qdialog_ns);
+   qt_ns->addInitialNamespace(qdialog_ns);
 
    QoreNamespace *qprinter = new QoreNamespace("QPrinter");
 
@@ -1858,7 +1808,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qprinter->addConstant("Selection",                new QoreNode((int64)QPrinter::Selection));
    qprinter->addConstant("PageRange",                new QoreNode((int64)QPrinter::PageRange));
 
-   qt->addInitialNamespace(qprinter);
+   qt_ns->addInitialNamespace(qprinter);
 
    QoreNamespace *qlineedit = new QoreNamespace("QLineEdit");
 
@@ -1870,7 +1820,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
 
    qlineedit->addSystemClass(initQLineEditClass(qwidget));
 
-   qt->addInitialNamespace(qlineedit);
+   qt_ns->addInitialNamespace(qlineedit);
 
    QoreNamespace *qabstractitemview_ns = new QoreNamespace("QAbstractItemView");
    
@@ -1911,7 +1861,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
 
    qabstractitemview_ns->addInitialNamespace(initQListViewNS(qabstractitemview));
    
-   qt->addInitialNamespace(qabstractitemview_ns);
+   qt_ns->addInitialNamespace(qabstractitemview_ns);
 
    QoreNamespace *qheaderview = new QoreNamespace("QHeaderView");
 
@@ -1924,7 +1874,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
 
    qheaderview->addSystemClass(initQHeaderViewClass(qabstractitemview));
 
-   qt->addInitialNamespace(qheaderview);
+   qt_ns->addInitialNamespace(qheaderview);
 
 
    QoreNamespace *qclipboard = new QoreNamespace("QClipboard");
@@ -1937,7 +1887,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
 
    qclipboard->addSystemClass(initQClipboardClass(qobject));
 
-   qt->addInitialNamespace(qclipboard);
+   qt_ns->addInitialNamespace(qclipboard);
 
    QoreNamespace *qchar = new QoreNamespace("QChar");
    qchar->addSystemClass(initQCharClass());
@@ -2066,7 +2016,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qchar->addConstant("Unicode_4_1",              new QoreNode((int64)QChar::Unicode_4_1));
    qchar->addConstant("Unicode_5_0",              new QoreNode((int64)QChar::Unicode_5_0));
 
-   qt->addInitialNamespace(qchar);
+   qt_ns->addInitialNamespace(qchar);
 
    QoreNamespace *qcalendarwidget = new QoreNamespace("QCalendarWidget");
 
@@ -2086,7 +2036,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qcalendarwidget->addConstant("NoVerticalHeader",         new QoreNode((int64)QCalendarWidget::NoVerticalHeader));
    qcalendarwidget->addConstant("ISOWeekNumbers",           new QoreNode((int64)QCalendarWidget::ISOWeekNumbers));
 
-   qt->addInitialNamespace(qcalendarwidget);
+   qt_ns->addInitialNamespace(qcalendarwidget);
 
    QoreNamespace *qlocale = new QoreNamespace("QLocale");
    qlocale->addSystemClass(initQLocaleClass());
@@ -2506,7 +2456,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qlocale->addConstant("SerbiaAndMontenegro",      new QoreNode((int64)QLocale::SerbiaAndMontenegro));
    qlocale->addConstant("LastCountry",              new QoreNode((int64)QLocale::LastCountry));
 
-   qt->addInitialNamespace(qlocale);
+   qt_ns->addInitialNamespace(qlocale);
 
    // add QFont namespaces and constants
    class QoreNamespace *qframens = new QoreNamespace("QFrame");
@@ -2528,7 +2478,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qframens->addConstant("Shadow_Mask",  new QoreNode((int64)QFrame::Shadow_Mask));
    qframens->addConstant("Shape_Mask",   new QoreNode((int64)QFrame::Shape_Mask));
 
-   qt->addInitialNamespace(qframens);
+   qt_ns->addInitialNamespace(qframens);
 
    // add QFont namespaces and constants
    class QoreNamespace *qf = new QoreNamespace("QFont");
@@ -2580,7 +2530,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qf->addConstant("ExtraExpanded",   new QoreNode((int64)QFont::ExtraExpanded));
    qf->addConstant("UltraExpanded",   new QoreNode((int64)QFont::UltraExpanded));
 
-   qt->addInitialNamespace(qf);
+   qt_ns->addInitialNamespace(qf);
 
    // add QLCDNumber namespace and constants
    class QoreNamespace *qlcdn = new QoreNamespace("QLCDNumber");
@@ -2591,7 +2541,7 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qlcdn->addConstant("Dec",       new QoreNode((int64)QLCDNumber::Dec));
    qlcdn->addConstant("Oct",       new QoreNode((int64)QLCDNumber::Oct));
    qlcdn->addConstant("Bin",       new QoreNode((int64)QLCDNumber::Bin));
-   qt->addInitialNamespace(qlcdn);
+   qt_ns->addInitialNamespace(qlcdn);
 
    // add QAbstractSlider namespace and constants
    class QoreNamespace *qas = new QoreNamespace("QAbstractSlider");
@@ -2603,744 +2553,803 @@ static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns
    qas->addConstant("SliderToMinimum",       new QoreNode((int64)QAbstractSlider::SliderToMinimum));
    qas->addConstant("SliderToMaximum",       new QoreNode((int64)QAbstractSlider::SliderToMaximum));
    qas->addConstant("SliderMove",            new QoreNode((int64)QAbstractSlider::SliderMove));
-   qt->addInitialNamespace(qas);
+   qt_ns->addInitialNamespace(qas);
 
    // CheckState enum
-   qt->addConstant("Unchecked",                new QoreNode((int64)Qt::Unchecked));
-   qt->addConstant("PartiallyChecked",         new QoreNode((int64)Qt::PartiallyChecked));
-   qt->addConstant("Checked",                  new QoreNode((int64)Qt::Checked));
+   qt_ns->addConstant("Unchecked",                new QoreNode((int64)Qt::Unchecked));
+   qt_ns->addConstant("PartiallyChecked",         new QoreNode((int64)Qt::PartiallyChecked));
+   qt_ns->addConstant("Checked",                  new QoreNode((int64)Qt::Checked));
 
    // orientation enum values
-   qt->addConstant("Vertical",        new QoreNode((int64)Qt::Vertical));
-   qt->addConstant("Horizontal",      new QoreNode((int64)Qt::Horizontal));
+   qt_ns->addConstant("Vertical",        new QoreNode((int64)Qt::Vertical));
+   qt_ns->addConstant("Horizontal",      new QoreNode((int64)Qt::Horizontal));
 
    // GlobalColor enum
-   qt->addConstant("color0",            new QoreNode((int64)Qt::color0));
-   qt->addConstant("color1",            new QoreNode((int64)Qt::color1));
-   qt->addConstant("black",             new QoreNode((int64)Qt::black));
-   qt->addConstant("white",             new QoreNode((int64)Qt::white));
-   qt->addConstant("darkGray",          new QoreNode((int64)Qt::darkGray));
-   qt->addConstant("gray",              new QoreNode((int64)Qt::gray));
-   qt->addConstant("lightGray",         new QoreNode((int64)Qt::lightGray));
-   qt->addConstant("red",               new QoreNode((int64)Qt::red));
-   qt->addConstant("green",             new QoreNode((int64)Qt::green));
-   qt->addConstant("blue",              new QoreNode((int64)Qt::blue));
-   qt->addConstant("cyan",              new QoreNode((int64)Qt::cyan));
-   qt->addConstant("magenta",           new QoreNode((int64)Qt::magenta));
-   qt->addConstant("yellow",            new QoreNode((int64)Qt::yellow));
-   qt->addConstant("darkRed",           new QoreNode((int64)Qt::darkRed));
-   qt->addConstant("darkGreen",         new QoreNode((int64)Qt::darkGreen));
-   qt->addConstant("darkBlue",          new QoreNode((int64)Qt::darkBlue));
-   qt->addConstant("darkCyan",          new QoreNode((int64)Qt::darkCyan));
-   qt->addConstant("darkMagenta",       new QoreNode((int64)Qt::darkMagenta));
-   qt->addConstant("darkYellow",        new QoreNode((int64)Qt::darkYellow));
-   qt->addConstant("transparent",       new QoreNode((int64)Qt::transparent));
+   qt_ns->addConstant("color0",            new QoreNode((int64)Qt::color0));
+   qt_ns->addConstant("color1",            new QoreNode((int64)Qt::color1));
+   qt_ns->addConstant("black",             new QoreNode((int64)Qt::black));
+   qt_ns->addConstant("white",             new QoreNode((int64)Qt::white));
+   qt_ns->addConstant("darkGray",          new QoreNode((int64)Qt::darkGray));
+   qt_ns->addConstant("gray",              new QoreNode((int64)Qt::gray));
+   qt_ns->addConstant("lightGray",         new QoreNode((int64)Qt::lightGray));
+   qt_ns->addConstant("red",               new QoreNode((int64)Qt::red));
+   qt_ns->addConstant("green",             new QoreNode((int64)Qt::green));
+   qt_ns->addConstant("blue",              new QoreNode((int64)Qt::blue));
+   qt_ns->addConstant("cyan",              new QoreNode((int64)Qt::cyan));
+   qt_ns->addConstant("magenta",           new QoreNode((int64)Qt::magenta));
+   qt_ns->addConstant("yellow",            new QoreNode((int64)Qt::yellow));
+   qt_ns->addConstant("darkRed",           new QoreNode((int64)Qt::darkRed));
+   qt_ns->addConstant("darkGreen",         new QoreNode((int64)Qt::darkGreen));
+   qt_ns->addConstant("darkBlue",          new QoreNode((int64)Qt::darkBlue));
+   qt_ns->addConstant("darkCyan",          new QoreNode((int64)Qt::darkCyan));
+   qt_ns->addConstant("darkMagenta",       new QoreNode((int64)Qt::darkMagenta));
+   qt_ns->addConstant("darkYellow",        new QoreNode((int64)Qt::darkYellow));
+   qt_ns->addConstant("transparent",       new QoreNode((int64)Qt::transparent));
 
    // BrushStyle enum
-   qt->addConstant("NoBrush",                  make_enum(NT_BRUSHSTYLE, (int)Qt::NoBrush));
-   qt->addConstant("SolidPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::SolidPattern));
-   qt->addConstant("Dense1Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense1Pattern));
-   qt->addConstant("Dense2Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense2Pattern));
-   qt->addConstant("Dense3Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense3Pattern));
-   qt->addConstant("Dense4Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense4Pattern));
-   qt->addConstant("Dense5Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense5Pattern));
-   qt->addConstant("Dense6Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense6Pattern));
-   qt->addConstant("Dense7Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense7Pattern));
-   qt->addConstant("HorPattern",               make_enum(NT_BRUSHSTYLE, (int)Qt::HorPattern));
-   qt->addConstant("VerPattern",               make_enum(NT_BRUSHSTYLE, (int)Qt::VerPattern));
-   qt->addConstant("CrossPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::CrossPattern));
-   qt->addConstant("BDiagPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::BDiagPattern));
-   qt->addConstant("FDiagPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::FDiagPattern));
-   qt->addConstant("DiagCrossPattern",         make_enum(NT_BRUSHSTYLE, (int)Qt::DiagCrossPattern));
-   qt->addConstant("LinearGradientPattern",    make_enum(NT_BRUSHSTYLE, (int)Qt::LinearGradientPattern));
-   qt->addConstant("RadialGradientPattern",    make_enum(NT_BRUSHSTYLE, (int)Qt::RadialGradientPattern));
-   qt->addConstant("ConicalGradientPattern",   make_enum(NT_BRUSHSTYLE, (int)Qt::ConicalGradientPattern));
-   qt->addConstant("TexturePattern",           make_enum(NT_BRUSHSTYLE, (int)Qt::TexturePattern));
+   qt_ns->addConstant("NoBrush",                  make_enum(NT_BRUSHSTYLE, (int)Qt::NoBrush));
+   qt_ns->addConstant("SolidPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::SolidPattern));
+   qt_ns->addConstant("Dense1Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense1Pattern));
+   qt_ns->addConstant("Dense2Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense2Pattern));
+   qt_ns->addConstant("Dense3Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense3Pattern));
+   qt_ns->addConstant("Dense4Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense4Pattern));
+   qt_ns->addConstant("Dense5Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense5Pattern));
+   qt_ns->addConstant("Dense6Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense6Pattern));
+   qt_ns->addConstant("Dense7Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense7Pattern));
+   qt_ns->addConstant("HorPattern",               make_enum(NT_BRUSHSTYLE, (int)Qt::HorPattern));
+   qt_ns->addConstant("VerPattern",               make_enum(NT_BRUSHSTYLE, (int)Qt::VerPattern));
+   qt_ns->addConstant("CrossPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::CrossPattern));
+   qt_ns->addConstant("BDiagPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::BDiagPattern));
+   qt_ns->addConstant("FDiagPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::FDiagPattern));
+   qt_ns->addConstant("DiagCrossPattern",         make_enum(NT_BRUSHSTYLE, (int)Qt::DiagCrossPattern));
+   qt_ns->addConstant("LinearGradientPattern",    make_enum(NT_BRUSHSTYLE, (int)Qt::LinearGradientPattern));
+   qt_ns->addConstant("RadialGradientPattern",    make_enum(NT_BRUSHSTYLE, (int)Qt::RadialGradientPattern));
+   qt_ns->addConstant("ConicalGradientPattern",   make_enum(NT_BRUSHSTYLE, (int)Qt::ConicalGradientPattern));
+   qt_ns->addConstant("TexturePattern",           make_enum(NT_BRUSHSTYLE, (int)Qt::TexturePattern));
 
    // PenStyle enum
-   qt->addConstant("NoPen",             make_enum(NT_PENSTYLE, (int)Qt::NoPen));
-   qt->addConstant("SolidLine",         make_enum(NT_PENSTYLE, (int)Qt::SolidLine));
-   qt->addConstant("DashLine",          make_enum(NT_PENSTYLE, (int)Qt::DashLine));
-   qt->addConstant("DotLine",           make_enum(NT_PENSTYLE, (int)Qt::DotLine));
-   qt->addConstant("DashDotLine",       make_enum(NT_PENSTYLE, (int)Qt::DashDotLine));
-   qt->addConstant("DashDotDotLine",    make_enum(NT_PENSTYLE, (int)Qt::DashDotDotLine));
-   qt->addConstant("CustomDashLine",    make_enum(NT_PENSTYLE, (int)Qt::CustomDashLine));
+   qt_ns->addConstant("NoPen",             make_enum(NT_PENSTYLE, (int)Qt::NoPen));
+   qt_ns->addConstant("SolidLine",         make_enum(NT_PENSTYLE, (int)Qt::SolidLine));
+   qt_ns->addConstant("DashLine",          make_enum(NT_PENSTYLE, (int)Qt::DashLine));
+   qt_ns->addConstant("DotLine",           make_enum(NT_PENSTYLE, (int)Qt::DotLine));
+   qt_ns->addConstant("DashDotLine",       make_enum(NT_PENSTYLE, (int)Qt::DashDotLine));
+   qt_ns->addConstant("DashDotDotLine",    make_enum(NT_PENSTYLE, (int)Qt::DashDotDotLine));
+   qt_ns->addConstant("CustomDashLine",    make_enum(NT_PENSTYLE, (int)Qt::CustomDashLine));
 
    // AlignmentFlag enum
-   qt->addConstant("AlignLeft",                new QoreNode((int64)Qt::AlignLeft));
-   qt->addConstant("AlignLeading",             new QoreNode((int64)Qt::AlignLeading));
-   qt->addConstant("AlignRight",               new QoreNode((int64)Qt::AlignRight));
-   qt->addConstant("AlignTrailing",            new QoreNode((int64)Qt::AlignTrailing));
-   qt->addConstant("AlignHCenter",             new QoreNode((int64)Qt::AlignHCenter));
-   qt->addConstant("AlignJustify",             new QoreNode((int64)Qt::AlignJustify));
-   qt->addConstant("AlignAbsolute",            new QoreNode((int64)Qt::AlignAbsolute));
-   qt->addConstant("AlignHorizontal_Mask",     new QoreNode((int64)Qt::AlignHorizontal_Mask));
-   qt->addConstant("AlignTop",                 new QoreNode((int64)Qt::AlignTop));
-   qt->addConstant("AlignBottom",              new QoreNode((int64)Qt::AlignBottom));
-   qt->addConstant("AlignVCenter",             new QoreNode((int64)Qt::AlignVCenter));
-   qt->addConstant("AlignVertical_Mask",       new QoreNode((int64)Qt::AlignVertical_Mask));
-   qt->addConstant("AlignCenter",              new QoreNode((int64)Qt::AlignCenter));
+   qt_ns->addConstant("AlignLeft",                new QoreNode((int64)Qt::AlignLeft));
+   qt_ns->addConstant("AlignLeading",             new QoreNode((int64)Qt::AlignLeading));
+   qt_ns->addConstant("AlignRight",               new QoreNode((int64)Qt::AlignRight));
+   qt_ns->addConstant("AlignTrailing",            new QoreNode((int64)Qt::AlignTrailing));
+   qt_ns->addConstant("AlignHCenter",             new QoreNode((int64)Qt::AlignHCenter));
+   qt_ns->addConstant("AlignJustify",             new QoreNode((int64)Qt::AlignJustify));
+   qt_ns->addConstant("AlignAbsolute",            new QoreNode((int64)Qt::AlignAbsolute));
+   qt_ns->addConstant("AlignHorizontal_Mask",     new QoreNode((int64)Qt::AlignHorizontal_Mask));
+   qt_ns->addConstant("AlignTop",                 new QoreNode((int64)Qt::AlignTop));
+   qt_ns->addConstant("AlignBottom",              new QoreNode((int64)Qt::AlignBottom));
+   qt_ns->addConstant("AlignVCenter",             new QoreNode((int64)Qt::AlignVCenter));
+   qt_ns->addConstant("AlignVertical_Mask",       new QoreNode((int64)Qt::AlignVertical_Mask));
+   qt_ns->addConstant("AlignCenter",              new QoreNode((int64)Qt::AlignCenter));
 
    // MouseButton enum
-   qt->addConstant("NoButton",                 new QoreNode((int64)Qt::NoButton));
-   qt->addConstant("LeftButton",               new QoreNode((int64)Qt::LeftButton));
-   qt->addConstant("RightButton",              new QoreNode((int64)Qt::RightButton));
-   qt->addConstant("MidButton",                new QoreNode((int64)Qt::MidButton));
-   qt->addConstant("XButton1",                 new QoreNode((int64)Qt::XButton1));
-   qt->addConstant("XButton2",                 new QoreNode((int64)Qt::XButton2));
-   qt->addConstant("MouseButtonMask",          new QoreNode((int64)Qt::MouseButtonMask));
+   qt_ns->addConstant("NoButton",                 new QoreNode((int64)Qt::NoButton));
+   qt_ns->addConstant("LeftButton",               new QoreNode((int64)Qt::LeftButton));
+   qt_ns->addConstant("RightButton",              new QoreNode((int64)Qt::RightButton));
+   qt_ns->addConstant("MidButton",                new QoreNode((int64)Qt::MidButton));
+   qt_ns->addConstant("XButton1",                 new QoreNode((int64)Qt::XButton1));
+   qt_ns->addConstant("XButton2",                 new QoreNode((int64)Qt::XButton2));
+   qt_ns->addConstant("MouseButtonMask",          new QoreNode((int64)Qt::MouseButtonMask));
 
    // Modifier enum
-   qt->addConstant("META",                     new QoreNode((int64)Qt::META));
-   qt->addConstant("SHIFT",                    new QoreNode((int64)Qt::SHIFT));
-   qt->addConstant("CTRL",                     new QoreNode((int64)Qt::CTRL));
-   qt->addConstant("ALT",                      new QoreNode((int64)Qt::ALT));
-   qt->addConstant("MODIFIER_MASK",            new QoreNode((int64)Qt::MODIFIER_MASK));
-   qt->addConstant("UNICODE_ACCEL",            new QoreNode((int64)Qt::UNICODE_ACCEL));
+   qt_ns->addConstant("META",                     new QoreNode((int64)Qt::META));
+   qt_ns->addConstant("SHIFT",                    new QoreNode((int64)Qt::SHIFT));
+   qt_ns->addConstant("CTRL",                     new QoreNode((int64)Qt::CTRL));
+   qt_ns->addConstant("ALT",                      new QoreNode((int64)Qt::ALT));
+   qt_ns->addConstant("MODIFIER_MASK",            new QoreNode((int64)Qt::MODIFIER_MASK));
+   qt_ns->addConstant("UNICODE_ACCEL",            new QoreNode((int64)Qt::UNICODE_ACCEL));
 
    // DayOfWeek
-   qt->addConstant("Monday",                   new QoreNode((int64)Qt::Monday));
-   qt->addConstant("Tuesday",                  new QoreNode((int64)Qt::Tuesday));
-   qt->addConstant("Wednesday",                new QoreNode((int64)Qt::Wednesday));
-   qt->addConstant("Thursday",                 new QoreNode((int64)Qt::Thursday));
-   qt->addConstant("Friday",                   new QoreNode((int64)Qt::Friday));
-   qt->addConstant("Saturday",                 new QoreNode((int64)Qt::Saturday));
-   qt->addConstant("Sunday",                   new QoreNode((int64)Qt::Sunday));
+   qt_ns->addConstant("Monday",                   new QoreNode((int64)Qt::Monday));
+   qt_ns->addConstant("Tuesday",                  new QoreNode((int64)Qt::Tuesday));
+   qt_ns->addConstant("Wednesday",                new QoreNode((int64)Qt::Wednesday));
+   qt_ns->addConstant("Thursday",                 new QoreNode((int64)Qt::Thursday));
+   qt_ns->addConstant("Friday",                   new QoreNode((int64)Qt::Friday));
+   qt_ns->addConstant("Saturday",                 new QoreNode((int64)Qt::Saturday));
+   qt_ns->addConstant("Sunday",                   new QoreNode((int64)Qt::Sunday));
 
    // ContextMenuPolicy enum
-   qt->addConstant("NoContextMenu",            new QoreNode((int64)Qt::NoContextMenu));
-   qt->addConstant("DefaultContextMenu",       new QoreNode((int64)Qt::DefaultContextMenu));
-   qt->addConstant("ActionsContextMenu",       new QoreNode((int64)Qt::ActionsContextMenu));
-   qt->addConstant("CustomContextMenu",        new QoreNode((int64)Qt::CustomContextMenu));
-   qt->addConstant("PreventContextMenu",       new QoreNode((int64)Qt::PreventContextMenu));
+   qt_ns->addConstant("NoContextMenu",            new QoreNode((int64)Qt::NoContextMenu));
+   qt_ns->addConstant("DefaultContextMenu",       new QoreNode((int64)Qt::DefaultContextMenu));
+   qt_ns->addConstant("ActionsContextMenu",       new QoreNode((int64)Qt::ActionsContextMenu));
+   qt_ns->addConstant("CustomContextMenu",        new QoreNode((int64)Qt::CustomContextMenu));
+   qt_ns->addConstant("PreventContextMenu",       new QoreNode((int64)Qt::PreventContextMenu));
 
    // Key enum
-   qt->addConstant("Key_Escape",               new QoreNode((int64)Qt::Key_Escape));
-   qt->addConstant("Key_Tab",                  new QoreNode((int64)Qt::Key_Tab));
-   qt->addConstant("Key_Backtab",              new QoreNode((int64)Qt::Key_Backtab));
-   qt->addConstant("Key_Backspace",            new QoreNode((int64)Qt::Key_Backspace));
-   qt->addConstant("Key_Return",               new QoreNode((int64)Qt::Key_Return));
-   qt->addConstant("Key_Enter",                new QoreNode((int64)Qt::Key_Enter));
-   qt->addConstant("Key_Insert",               new QoreNode((int64)Qt::Key_Insert));
-   qt->addConstant("Key_Delete",               new QoreNode((int64)Qt::Key_Delete));
-   qt->addConstant("Key_Pause",                new QoreNode((int64)Qt::Key_Pause));
-   qt->addConstant("Key_Print",                new QoreNode((int64)Qt::Key_Print));
-   qt->addConstant("Key_SysReq",               new QoreNode((int64)Qt::Key_SysReq));
-   qt->addConstant("Key_Clear",                new QoreNode((int64)Qt::Key_Clear));
-   qt->addConstant("Key_Home",                 new QoreNode((int64)Qt::Key_Home));
-   qt->addConstant("Key_End",                  new QoreNode((int64)Qt::Key_End));
-   qt->addConstant("Key_Left",                 new QoreNode((int64)Qt::Key_Left));
-   qt->addConstant("Key_Up",                   new QoreNode((int64)Qt::Key_Up));
-   qt->addConstant("Key_Right",                new QoreNode((int64)Qt::Key_Right));
-   qt->addConstant("Key_Down",                 new QoreNode((int64)Qt::Key_Down));
-   qt->addConstant("Key_PageUp",               new QoreNode((int64)Qt::Key_PageUp));
-   qt->addConstant("Key_PageDown",             new QoreNode((int64)Qt::Key_PageDown));
-   qt->addConstant("Key_Shift",                new QoreNode((int64)Qt::Key_Shift));
-   qt->addConstant("Key_Control",              new QoreNode((int64)Qt::Key_Control));
-   qt->addConstant("Key_Meta",                 new QoreNode((int64)Qt::Key_Meta));
-   qt->addConstant("Key_Alt",                  new QoreNode((int64)Qt::Key_Alt));
-   qt->addConstant("Key_CapsLock",             new QoreNode((int64)Qt::Key_CapsLock));
-   qt->addConstant("Key_NumLock",              new QoreNode((int64)Qt::Key_NumLock));
-   qt->addConstant("Key_ScrollLock",           new QoreNode((int64)Qt::Key_ScrollLock));
-   qt->addConstant("Key_F1",                   new QoreNode((int64)Qt::Key_F1));
-   qt->addConstant("Key_F2",                   new QoreNode((int64)Qt::Key_F2));
-   qt->addConstant("Key_F3",                   new QoreNode((int64)Qt::Key_F3));
-   qt->addConstant("Key_F4",                   new QoreNode((int64)Qt::Key_F4));
-   qt->addConstant("Key_F5",                   new QoreNode((int64)Qt::Key_F5));
-   qt->addConstant("Key_F6",                   new QoreNode((int64)Qt::Key_F6));
-   qt->addConstant("Key_F7",                   new QoreNode((int64)Qt::Key_F7));
-   qt->addConstant("Key_F8",                   new QoreNode((int64)Qt::Key_F8));
-   qt->addConstant("Key_F9",                   new QoreNode((int64)Qt::Key_F9));
-   qt->addConstant("Key_F10",                  new QoreNode((int64)Qt::Key_F10));
-   qt->addConstant("Key_F11",                  new QoreNode((int64)Qt::Key_F11));
-   qt->addConstant("Key_F12",                  new QoreNode((int64)Qt::Key_F12));
-   qt->addConstant("Key_F13",                  new QoreNode((int64)Qt::Key_F13));
-   qt->addConstant("Key_F14",                  new QoreNode((int64)Qt::Key_F14));
-   qt->addConstant("Key_F15",                  new QoreNode((int64)Qt::Key_F15));
-   qt->addConstant("Key_F16",                  new QoreNode((int64)Qt::Key_F16));
-   qt->addConstant("Key_F17",                  new QoreNode((int64)Qt::Key_F17));
-   qt->addConstant("Key_F18",                  new QoreNode((int64)Qt::Key_F18));
-   qt->addConstant("Key_F19",                  new QoreNode((int64)Qt::Key_F19));
-   qt->addConstant("Key_F20",                  new QoreNode((int64)Qt::Key_F20));
-   qt->addConstant("Key_F21",                  new QoreNode((int64)Qt::Key_F21));
-   qt->addConstant("Key_F22",                  new QoreNode((int64)Qt::Key_F22));
-   qt->addConstant("Key_F23",                  new QoreNode((int64)Qt::Key_F23));
-   qt->addConstant("Key_F24",                  new QoreNode((int64)Qt::Key_F24));
-   qt->addConstant("Key_F25",                  new QoreNode((int64)Qt::Key_F25));
-   qt->addConstant("Key_F26",                  new QoreNode((int64)Qt::Key_F26));
-   qt->addConstant("Key_F27",                  new QoreNode((int64)Qt::Key_F27));
-   qt->addConstant("Key_F28",                  new QoreNode((int64)Qt::Key_F28));
-   qt->addConstant("Key_F29",                  new QoreNode((int64)Qt::Key_F29));
-   qt->addConstant("Key_F30",                  new QoreNode((int64)Qt::Key_F30));
-   qt->addConstant("Key_F31",                  new QoreNode((int64)Qt::Key_F31));
-   qt->addConstant("Key_F32",                  new QoreNode((int64)Qt::Key_F32));
-   qt->addConstant("Key_F33",                  new QoreNode((int64)Qt::Key_F33));
-   qt->addConstant("Key_F34",                  new QoreNode((int64)Qt::Key_F34));
-   qt->addConstant("Key_F35",                  new QoreNode((int64)Qt::Key_F35));
-   qt->addConstant("Key_Super_L",              new QoreNode((int64)Qt::Key_Super_L));
-   qt->addConstant("Key_Super_R",              new QoreNode((int64)Qt::Key_Super_R));
-   qt->addConstant("Key_Menu",                 new QoreNode((int64)Qt::Key_Menu));
-   qt->addConstant("Key_Hyper_L",              new QoreNode((int64)Qt::Key_Hyper_L));
-   qt->addConstant("Key_Hyper_R",              new QoreNode((int64)Qt::Key_Hyper_R));
-   qt->addConstant("Key_Help",                 new QoreNode((int64)Qt::Key_Help));
-   qt->addConstant("Key_Direction_L",          new QoreNode((int64)Qt::Key_Direction_L));
-   qt->addConstant("Key_Direction_R",          new QoreNode((int64)Qt::Key_Direction_R));
-   qt->addConstant("Key_Space",                new QoreNode((int64)Qt::Key_Space));
-   qt->addConstant("Key_Any",                  new QoreNode((int64)Qt::Key_Any));
-   qt->addConstant("Key_Exclam",               new QoreNode((int64)Qt::Key_Exclam));
-   qt->addConstant("Key_QuoteDbl",             new QoreNode((int64)Qt::Key_QuoteDbl));
-   qt->addConstant("Key_NumberSign",           new QoreNode((int64)Qt::Key_NumberSign));
-   qt->addConstant("Key_Dollar",               new QoreNode((int64)Qt::Key_Dollar));
-   qt->addConstant("Key_Percent",              new QoreNode((int64)Qt::Key_Percent));
-   qt->addConstant("Key_Ampersand",            new QoreNode((int64)Qt::Key_Ampersand));
-   qt->addConstant("Key_Apostrophe",           new QoreNode((int64)Qt::Key_Apostrophe));
-   qt->addConstant("Key_ParenLeft",            new QoreNode((int64)Qt::Key_ParenLeft));
-   qt->addConstant("Key_ParenRight",           new QoreNode((int64)Qt::Key_ParenRight));
-   qt->addConstant("Key_Asterisk",             new QoreNode((int64)Qt::Key_Asterisk));
-   qt->addConstant("Key_Plus",                 new QoreNode((int64)Qt::Key_Plus));
-   qt->addConstant("Key_Comma",                new QoreNode((int64)Qt::Key_Comma));
-   qt->addConstant("Key_Minus",                new QoreNode((int64)Qt::Key_Minus));
-   qt->addConstant("Key_Period",               new QoreNode((int64)Qt::Key_Period));
-   qt->addConstant("Key_Slash",                new QoreNode((int64)Qt::Key_Slash));
-   qt->addConstant("Key_0",                    new QoreNode((int64)Qt::Key_0));
-   qt->addConstant("Key_1",                    new QoreNode((int64)Qt::Key_1));
-   qt->addConstant("Key_2",                    new QoreNode((int64)Qt::Key_2));
-   qt->addConstant("Key_3",                    new QoreNode((int64)Qt::Key_3));
-   qt->addConstant("Key_4",                    new QoreNode((int64)Qt::Key_4));
-   qt->addConstant("Key_5",                    new QoreNode((int64)Qt::Key_5));
-   qt->addConstant("Key_6",                    new QoreNode((int64)Qt::Key_6));
-   qt->addConstant("Key_7",                    new QoreNode((int64)Qt::Key_7));
-   qt->addConstant("Key_8",                    new QoreNode((int64)Qt::Key_8));
-   qt->addConstant("Key_9",                    new QoreNode((int64)Qt::Key_9));
-   qt->addConstant("Key_Colon",                new QoreNode((int64)Qt::Key_Colon));
-   qt->addConstant("Key_Semicolon",            new QoreNode((int64)Qt::Key_Semicolon));
-   qt->addConstant("Key_Less",                 new QoreNode((int64)Qt::Key_Less));
-   qt->addConstant("Key_Equal",                new QoreNode((int64)Qt::Key_Equal));
-   qt->addConstant("Key_Greater",              new QoreNode((int64)Qt::Key_Greater));
-   qt->addConstant("Key_Question",             new QoreNode((int64)Qt::Key_Question));
-   qt->addConstant("Key_At",                   new QoreNode((int64)Qt::Key_At));
-   qt->addConstant("Key_A",                    new QoreNode((int64)Qt::Key_A));
-   qt->addConstant("Key_B",                    new QoreNode((int64)Qt::Key_B));
-   qt->addConstant("Key_C",                    new QoreNode((int64)Qt::Key_C));
-   qt->addConstant("Key_D",                    new QoreNode((int64)Qt::Key_D));
-   qt->addConstant("Key_E",                    new QoreNode((int64)Qt::Key_E));
-   qt->addConstant("Key_F",                    new QoreNode((int64)Qt::Key_F));
-   qt->addConstant("Key_G",                    new QoreNode((int64)Qt::Key_G));
-   qt->addConstant("Key_H",                    new QoreNode((int64)Qt::Key_H));
-   qt->addConstant("Key_I",                    new QoreNode((int64)Qt::Key_I));
-   qt->addConstant("Key_J",                    new QoreNode((int64)Qt::Key_J));
-   qt->addConstant("Key_K",                    new QoreNode((int64)Qt::Key_K));
-   qt->addConstant("Key_L",                    new QoreNode((int64)Qt::Key_L));
-   qt->addConstant("Key_M",                    new QoreNode((int64)Qt::Key_M));
-   qt->addConstant("Key_N",                    new QoreNode((int64)Qt::Key_N));
-   qt->addConstant("Key_O",                    new QoreNode((int64)Qt::Key_O));
-   qt->addConstant("Key_P",                    new QoreNode((int64)Qt::Key_P));
-   qt->addConstant("Key_Q",                    new QoreNode((int64)Qt::Key_Q));
-   qt->addConstant("Key_R",                    new QoreNode((int64)Qt::Key_R));
-   qt->addConstant("Key_S",                    new QoreNode((int64)Qt::Key_S));
-   qt->addConstant("Key_T",                    new QoreNode((int64)Qt::Key_T));
-   qt->addConstant("Key_U",                    new QoreNode((int64)Qt::Key_U));
-   qt->addConstant("Key_V",                    new QoreNode((int64)Qt::Key_V));
-   qt->addConstant("Key_W",                    new QoreNode((int64)Qt::Key_W));
-   qt->addConstant("Key_X",                    new QoreNode((int64)Qt::Key_X));
-   qt->addConstant("Key_Y",                    new QoreNode((int64)Qt::Key_Y));
-   qt->addConstant("Key_Z",                    new QoreNode((int64)Qt::Key_Z));
-   qt->addConstant("Key_BracketLeft",          new QoreNode((int64)Qt::Key_BracketLeft));
-   qt->addConstant("Key_Backslash",            new QoreNode((int64)Qt::Key_Backslash));
-   qt->addConstant("Key_BracketRight",         new QoreNode((int64)Qt::Key_BracketRight));
-   qt->addConstant("Key_AsciiCircum",          new QoreNode((int64)Qt::Key_AsciiCircum));
-   qt->addConstant("Key_Underscore",           new QoreNode((int64)Qt::Key_Underscore));
-   qt->addConstant("Key_QuoteLeft",            new QoreNode((int64)Qt::Key_QuoteLeft));
-   qt->addConstant("Key_BraceLeft",            new QoreNode((int64)Qt::Key_BraceLeft));
-   qt->addConstant("Key_Bar",                  new QoreNode((int64)Qt::Key_Bar));
-   qt->addConstant("Key_BraceRight",           new QoreNode((int64)Qt::Key_BraceRight));
-   qt->addConstant("Key_AsciiTilde",           new QoreNode((int64)Qt::Key_AsciiTilde));
-   qt->addConstant("Key_nobreakspace",         new QoreNode((int64)Qt::Key_nobreakspace));
-   qt->addConstant("Key_exclamdown",           new QoreNode((int64)Qt::Key_exclamdown));
-   qt->addConstant("Key_cent",                 new QoreNode((int64)Qt::Key_cent));
-   qt->addConstant("Key_sterling",             new QoreNode((int64)Qt::Key_sterling));
-   qt->addConstant("Key_currency",             new QoreNode((int64)Qt::Key_currency));
-   qt->addConstant("Key_yen",                  new QoreNode((int64)Qt::Key_yen));
-   qt->addConstant("Key_brokenbar",            new QoreNode((int64)Qt::Key_brokenbar));
-   qt->addConstant("Key_section",              new QoreNode((int64)Qt::Key_section));
-   qt->addConstant("Key_diaeresis",            new QoreNode((int64)Qt::Key_diaeresis));
-   qt->addConstant("Key_copyright",            new QoreNode((int64)Qt::Key_copyright));
-   qt->addConstant("Key_ordfeminine",          new QoreNode((int64)Qt::Key_ordfeminine));
-   qt->addConstant("Key_guillemotleft",        new QoreNode((int64)Qt::Key_guillemotleft));
-   qt->addConstant("Key_notsign",              new QoreNode((int64)Qt::Key_notsign));
-   qt->addConstant("Key_hyphen",               new QoreNode((int64)Qt::Key_hyphen));
-   qt->addConstant("Key_registered",           new QoreNode((int64)Qt::Key_registered));
-   qt->addConstant("Key_macron",               new QoreNode((int64)Qt::Key_macron));
-   qt->addConstant("Key_degree",               new QoreNode((int64)Qt::Key_degree));
-   qt->addConstant("Key_plusminus",            new QoreNode((int64)Qt::Key_plusminus));
-   qt->addConstant("Key_twosuperior",          new QoreNode((int64)Qt::Key_twosuperior));
-   qt->addConstant("Key_threesuperior",        new QoreNode((int64)Qt::Key_threesuperior));
-   qt->addConstant("Key_acute",                new QoreNode((int64)Qt::Key_acute));
-   qt->addConstant("Key_mu",                   new QoreNode((int64)Qt::Key_mu));
-   qt->addConstant("Key_paragraph",            new QoreNode((int64)Qt::Key_paragraph));
-   qt->addConstant("Key_periodcentered",       new QoreNode((int64)Qt::Key_periodcentered));
-   qt->addConstant("Key_cedilla",              new QoreNode((int64)Qt::Key_cedilla));
-   qt->addConstant("Key_onesuperior",          new QoreNode((int64)Qt::Key_onesuperior));
-   qt->addConstant("Key_masculine",            new QoreNode((int64)Qt::Key_masculine));
-   qt->addConstant("Key_guillemotright",       new QoreNode((int64)Qt::Key_guillemotright));
-   qt->addConstant("Key_onequarter",           new QoreNode((int64)Qt::Key_onequarter));
-   qt->addConstant("Key_onehalf",              new QoreNode((int64)Qt::Key_onehalf));
-   qt->addConstant("Key_threequarters",        new QoreNode((int64)Qt::Key_threequarters));
-   qt->addConstant("Key_questiondown",         new QoreNode((int64)Qt::Key_questiondown));
-   qt->addConstant("Key_Agrave",               new QoreNode((int64)Qt::Key_Agrave));
-   qt->addConstant("Key_Aacute",               new QoreNode((int64)Qt::Key_Aacute));
-   qt->addConstant("Key_Acircumflex",          new QoreNode((int64)Qt::Key_Acircumflex));
-   qt->addConstant("Key_Atilde",               new QoreNode((int64)Qt::Key_Atilde));
-   qt->addConstant("Key_Adiaeresis",           new QoreNode((int64)Qt::Key_Adiaeresis));
-   qt->addConstant("Key_Aring",                new QoreNode((int64)Qt::Key_Aring));
-   qt->addConstant("Key_AE",                   new QoreNode((int64)Qt::Key_AE));
-   qt->addConstant("Key_Ccedilla",             new QoreNode((int64)Qt::Key_Ccedilla));
-   qt->addConstant("Key_Egrave",               new QoreNode((int64)Qt::Key_Egrave));
-   qt->addConstant("Key_Eacute",               new QoreNode((int64)Qt::Key_Eacute));
-   qt->addConstant("Key_Ecircumflex",          new QoreNode((int64)Qt::Key_Ecircumflex));
-   qt->addConstant("Key_Ediaeresis",           new QoreNode((int64)Qt::Key_Ediaeresis));
-   qt->addConstant("Key_Igrave",               new QoreNode((int64)Qt::Key_Igrave));
-   qt->addConstant("Key_Iacute",               new QoreNode((int64)Qt::Key_Iacute));
-   qt->addConstant("Key_Icircumflex",          new QoreNode((int64)Qt::Key_Icircumflex));
-   qt->addConstant("Key_Idiaeresis",           new QoreNode((int64)Qt::Key_Idiaeresis));
-   qt->addConstant("Key_ETH",                  new QoreNode((int64)Qt::Key_ETH));
-   qt->addConstant("Key_Ntilde",               new QoreNode((int64)Qt::Key_Ntilde));
-   qt->addConstant("Key_Ograve",               new QoreNode((int64)Qt::Key_Ograve));
-   qt->addConstant("Key_Oacute",               new QoreNode((int64)Qt::Key_Oacute));
-   qt->addConstant("Key_Ocircumflex",          new QoreNode((int64)Qt::Key_Ocircumflex));
-   qt->addConstant("Key_Otilde",               new QoreNode((int64)Qt::Key_Otilde));
-   qt->addConstant("Key_Odiaeresis",           new QoreNode((int64)Qt::Key_Odiaeresis));
-   qt->addConstant("Key_multiply",             new QoreNode((int64)Qt::Key_multiply));
-   qt->addConstant("Key_Ooblique",             new QoreNode((int64)Qt::Key_Ooblique));
-   qt->addConstant("Key_Ugrave",               new QoreNode((int64)Qt::Key_Ugrave));
-   qt->addConstant("Key_Uacute",               new QoreNode((int64)Qt::Key_Uacute));
-   qt->addConstant("Key_Ucircumflex",          new QoreNode((int64)Qt::Key_Ucircumflex));
-   qt->addConstant("Key_Udiaeresis",           new QoreNode((int64)Qt::Key_Udiaeresis));
-   qt->addConstant("Key_Yacute",               new QoreNode((int64)Qt::Key_Yacute));
-   qt->addConstant("Key_THORN",                new QoreNode((int64)Qt::Key_THORN));
-   qt->addConstant("Key_ssharp",               new QoreNode((int64)Qt::Key_ssharp));
-   qt->addConstant("Key_division",             new QoreNode((int64)Qt::Key_division));
-   qt->addConstant("Key_ydiaeresis",           new QoreNode((int64)Qt::Key_ydiaeresis));
-   qt->addConstant("Key_AltGr",                new QoreNode((int64)Qt::Key_AltGr));
-   qt->addConstant("Key_Multi_key",            new QoreNode((int64)Qt::Key_Multi_key));
-   qt->addConstant("Key_Codeinput",            new QoreNode((int64)Qt::Key_Codeinput));
-   qt->addConstant("Key_SingleCandidate",      new QoreNode((int64)Qt::Key_SingleCandidate));
-   qt->addConstant("Key_MultipleCandidate",    new QoreNode((int64)Qt::Key_MultipleCandidate));
-   qt->addConstant("Key_PreviousCandidate",    new QoreNode((int64)Qt::Key_PreviousCandidate));
-   qt->addConstant("Key_Mode_switch",          new QoreNode((int64)Qt::Key_Mode_switch));
-   qt->addConstant("Key_Kanji",                new QoreNode((int64)Qt::Key_Kanji));
-   qt->addConstant("Key_Muhenkan",             new QoreNode((int64)Qt::Key_Muhenkan));
-   qt->addConstant("Key_Henkan",               new QoreNode((int64)Qt::Key_Henkan));
-   qt->addConstant("Key_Romaji",               new QoreNode((int64)Qt::Key_Romaji));
-   qt->addConstant("Key_Hiragana",             new QoreNode((int64)Qt::Key_Hiragana));
-   qt->addConstant("Key_Katakana",             new QoreNode((int64)Qt::Key_Katakana));
-   qt->addConstant("Key_Hiragana_Katakana",    new QoreNode((int64)Qt::Key_Hiragana_Katakana));
-   qt->addConstant("Key_Zenkaku",              new QoreNode((int64)Qt::Key_Zenkaku));
-   qt->addConstant("Key_Hankaku",              new QoreNode((int64)Qt::Key_Hankaku));
-   qt->addConstant("Key_Zenkaku_Hankaku",      new QoreNode((int64)Qt::Key_Zenkaku_Hankaku));
-   qt->addConstant("Key_Touroku",              new QoreNode((int64)Qt::Key_Touroku));
-   qt->addConstant("Key_Massyo",               new QoreNode((int64)Qt::Key_Massyo));
-   qt->addConstant("Key_Kana_Lock",            new QoreNode((int64)Qt::Key_Kana_Lock));
-   qt->addConstant("Key_Kana_Shift",           new QoreNode((int64)Qt::Key_Kana_Shift));
-   qt->addConstant("Key_Eisu_Shift",           new QoreNode((int64)Qt::Key_Eisu_Shift));
-   qt->addConstant("Key_Eisu_toggle",          new QoreNode((int64)Qt::Key_Eisu_toggle));
-   qt->addConstant("Key_Hangul",               new QoreNode((int64)Qt::Key_Hangul));
-   qt->addConstant("Key_Hangul_Start",         new QoreNode((int64)Qt::Key_Hangul_Start));
-   qt->addConstant("Key_Hangul_End",           new QoreNode((int64)Qt::Key_Hangul_End));
-   qt->addConstant("Key_Hangul_Hanja",         new QoreNode((int64)Qt::Key_Hangul_Hanja));
-   qt->addConstant("Key_Hangul_Jamo",          new QoreNode((int64)Qt::Key_Hangul_Jamo));
-   qt->addConstant("Key_Hangul_Romaja",        new QoreNode((int64)Qt::Key_Hangul_Romaja));
-   qt->addConstant("Key_Hangul_Jeonja",        new QoreNode((int64)Qt::Key_Hangul_Jeonja));
-   qt->addConstant("Key_Hangul_Banja",         new QoreNode((int64)Qt::Key_Hangul_Banja));
-   qt->addConstant("Key_Hangul_PreHanja",      new QoreNode((int64)Qt::Key_Hangul_PreHanja));
-   qt->addConstant("Key_Hangul_PostHanja",     new QoreNode((int64)Qt::Key_Hangul_PostHanja));
-   qt->addConstant("Key_Hangul_Special",       new QoreNode((int64)Qt::Key_Hangul_Special));
-   qt->addConstant("Key_Dead_Grave",           new QoreNode((int64)Qt::Key_Dead_Grave));
-   qt->addConstant("Key_Dead_Acute",           new QoreNode((int64)Qt::Key_Dead_Acute));
-   qt->addConstant("Key_Dead_Circumflex",      new QoreNode((int64)Qt::Key_Dead_Circumflex));
-   qt->addConstant("Key_Dead_Tilde",           new QoreNode((int64)Qt::Key_Dead_Tilde));
-   qt->addConstant("Key_Dead_Macron",          new QoreNode((int64)Qt::Key_Dead_Macron));
-   qt->addConstant("Key_Dead_Breve",           new QoreNode((int64)Qt::Key_Dead_Breve));
-   qt->addConstant("Key_Dead_Abovedot",        new QoreNode((int64)Qt::Key_Dead_Abovedot));
-   qt->addConstant("Key_Dead_Diaeresis",       new QoreNode((int64)Qt::Key_Dead_Diaeresis));
-   qt->addConstant("Key_Dead_Abovering",       new QoreNode((int64)Qt::Key_Dead_Abovering));
-   qt->addConstant("Key_Dead_Doubleacute",     new QoreNode((int64)Qt::Key_Dead_Doubleacute));
-   qt->addConstant("Key_Dead_Caron",           new QoreNode((int64)Qt::Key_Dead_Caron));
-   qt->addConstant("Key_Dead_Cedilla",         new QoreNode((int64)Qt::Key_Dead_Cedilla));
-   qt->addConstant("Key_Dead_Ogonek",          new QoreNode((int64)Qt::Key_Dead_Ogonek));
-   qt->addConstant("Key_Dead_Iota",            new QoreNode((int64)Qt::Key_Dead_Iota));
-   qt->addConstant("Key_Dead_Voiced_Sound",    new QoreNode((int64)Qt::Key_Dead_Voiced_Sound));
-   qt->addConstant("Key_Dead_Semivoiced_Sound", new QoreNode((int64)Qt::Key_Dead_Semivoiced_Sound));
-   qt->addConstant("Key_Dead_Belowdot",        new QoreNode((int64)Qt::Key_Dead_Belowdot));
-   qt->addConstant("Key_Dead_Hook",            new QoreNode((int64)Qt::Key_Dead_Hook));
-   qt->addConstant("Key_Dead_Horn",            new QoreNode((int64)Qt::Key_Dead_Horn));
-   qt->addConstant("Key_Back",                 new QoreNode((int64)Qt::Key_Back));
-   qt->addConstant("Key_Forward",              new QoreNode((int64)Qt::Key_Forward));
-   qt->addConstant("Key_Stop",                 new QoreNode((int64)Qt::Key_Stop));
-   qt->addConstant("Key_Refresh",              new QoreNode((int64)Qt::Key_Refresh));
-   qt->addConstant("Key_VolumeDown",           new QoreNode((int64)Qt::Key_VolumeDown));
-   qt->addConstant("Key_VolumeMute",           new QoreNode((int64)Qt::Key_VolumeMute));
-   qt->addConstant("Key_VolumeUp",             new QoreNode((int64)Qt::Key_VolumeUp));
-   qt->addConstant("Key_BassBoost",            new QoreNode((int64)Qt::Key_BassBoost));
-   qt->addConstant("Key_BassUp",               new QoreNode((int64)Qt::Key_BassUp));
-   qt->addConstant("Key_BassDown",             new QoreNode((int64)Qt::Key_BassDown));
-   qt->addConstant("Key_TrebleUp",             new QoreNode((int64)Qt::Key_TrebleUp));
-   qt->addConstant("Key_TrebleDown",           new QoreNode((int64)Qt::Key_TrebleDown));
-   qt->addConstant("Key_MediaPlay",            new QoreNode((int64)Qt::Key_MediaPlay));
-   qt->addConstant("Key_MediaStop",            new QoreNode((int64)Qt::Key_MediaStop));
-   qt->addConstant("Key_MediaPrevious",        new QoreNode((int64)Qt::Key_MediaPrevious));
-   qt->addConstant("Key_MediaNext",            new QoreNode((int64)Qt::Key_MediaNext));
-   qt->addConstant("Key_MediaRecord",          new QoreNode((int64)Qt::Key_MediaRecord));
-   qt->addConstant("Key_HomePage",             new QoreNode((int64)Qt::Key_HomePage));
-   qt->addConstant("Key_Favorites",            new QoreNode((int64)Qt::Key_Favorites));
-   qt->addConstant("Key_Search",               new QoreNode((int64)Qt::Key_Search));
-   qt->addConstant("Key_Standby",              new QoreNode((int64)Qt::Key_Standby));
-   qt->addConstant("Key_OpenUrl",              new QoreNode((int64)Qt::Key_OpenUrl));
-   qt->addConstant("Key_LaunchMail",           new QoreNode((int64)Qt::Key_LaunchMail));
-   qt->addConstant("Key_LaunchMedia",          new QoreNode((int64)Qt::Key_LaunchMedia));
-   qt->addConstant("Key_Launch0",              new QoreNode((int64)Qt::Key_Launch0));
-   qt->addConstant("Key_Launch1",              new QoreNode((int64)Qt::Key_Launch1));
-   qt->addConstant("Key_Launch2",              new QoreNode((int64)Qt::Key_Launch2));
-   qt->addConstant("Key_Launch3",              new QoreNode((int64)Qt::Key_Launch3));
-   qt->addConstant("Key_Launch4",              new QoreNode((int64)Qt::Key_Launch4));
-   qt->addConstant("Key_Launch5",              new QoreNode((int64)Qt::Key_Launch5));
-   qt->addConstant("Key_Launch6",              new QoreNode((int64)Qt::Key_Launch6));
-   qt->addConstant("Key_Launch7",              new QoreNode((int64)Qt::Key_Launch7));
-   qt->addConstant("Key_Launch8",              new QoreNode((int64)Qt::Key_Launch8));
-   qt->addConstant("Key_Launch9",              new QoreNode((int64)Qt::Key_Launch9));
-   qt->addConstant("Key_LaunchA",              new QoreNode((int64)Qt::Key_LaunchA));
-   qt->addConstant("Key_LaunchB",              new QoreNode((int64)Qt::Key_LaunchB));
-   qt->addConstant("Key_LaunchC",              new QoreNode((int64)Qt::Key_LaunchC));
-   qt->addConstant("Key_LaunchD",              new QoreNode((int64)Qt::Key_LaunchD));
-   qt->addConstant("Key_LaunchE",              new QoreNode((int64)Qt::Key_LaunchE));
-   qt->addConstant("Key_LaunchF",              new QoreNode((int64)Qt::Key_LaunchF));
-   qt->addConstant("Key_MediaLast",            new QoreNode((int64)Qt::Key_MediaLast));
-   qt->addConstant("Key_Select",               new QoreNode((int64)Qt::Key_Select));
-   qt->addConstant("Key_Yes",                  new QoreNode((int64)Qt::Key_Yes));
-   qt->addConstant("Key_No",                   new QoreNode((int64)Qt::Key_No));
-   qt->addConstant("Key_Cancel",               new QoreNode((int64)Qt::Key_Cancel));
-   qt->addConstant("Key_Printer",              new QoreNode((int64)Qt::Key_Printer));
-   qt->addConstant("Key_Execute",              new QoreNode((int64)Qt::Key_Execute));
-   qt->addConstant("Key_Sleep",                new QoreNode((int64)Qt::Key_Sleep));
-   qt->addConstant("Key_Play",                 new QoreNode((int64)Qt::Key_Play));
-   qt->addConstant("Key_Zoom",                 new QoreNode((int64)Qt::Key_Zoom));
-   qt->addConstant("Key_Context1",             new QoreNode((int64)Qt::Key_Context1));
-   qt->addConstant("Key_Context2",             new QoreNode((int64)Qt::Key_Context2));
-   qt->addConstant("Key_Context3",             new QoreNode((int64)Qt::Key_Context3));
-   qt->addConstant("Key_Context4",             new QoreNode((int64)Qt::Key_Context4));
-   qt->addConstant("Key_Call",                 new QoreNode((int64)Qt::Key_Call));
-   qt->addConstant("Key_Hangup",               new QoreNode((int64)Qt::Key_Hangup));
-   qt->addConstant("Key_Flip",                 new QoreNode((int64)Qt::Key_Flip));
-   qt->addConstant("Key_unknown",              new QoreNode((int64)Qt::Key_unknown));
+   qt_ns->addConstant("Key_Escape",               new QoreNode((int64)Qt::Key_Escape));
+   qt_ns->addConstant("Key_Tab",                  new QoreNode((int64)Qt::Key_Tab));
+   qt_ns->addConstant("Key_Backtab",              new QoreNode((int64)Qt::Key_Backtab));
+   qt_ns->addConstant("Key_Backspace",            new QoreNode((int64)Qt::Key_Backspace));
+   qt_ns->addConstant("Key_Return",               new QoreNode((int64)Qt::Key_Return));
+   qt_ns->addConstant("Key_Enter",                new QoreNode((int64)Qt::Key_Enter));
+   qt_ns->addConstant("Key_Insert",               new QoreNode((int64)Qt::Key_Insert));
+   qt_ns->addConstant("Key_Delete",               new QoreNode((int64)Qt::Key_Delete));
+   qt_ns->addConstant("Key_Pause",                new QoreNode((int64)Qt::Key_Pause));
+   qt_ns->addConstant("Key_Print",                new QoreNode((int64)Qt::Key_Print));
+   qt_ns->addConstant("Key_SysReq",               new QoreNode((int64)Qt::Key_SysReq));
+   qt_ns->addConstant("Key_Clear",                new QoreNode((int64)Qt::Key_Clear));
+   qt_ns->addConstant("Key_Home",                 new QoreNode((int64)Qt::Key_Home));
+   qt_ns->addConstant("Key_End",                  new QoreNode((int64)Qt::Key_End));
+   qt_ns->addConstant("Key_Left",                 new QoreNode((int64)Qt::Key_Left));
+   qt_ns->addConstant("Key_Up",                   new QoreNode((int64)Qt::Key_Up));
+   qt_ns->addConstant("Key_Right",                new QoreNode((int64)Qt::Key_Right));
+   qt_ns->addConstant("Key_Down",                 new QoreNode((int64)Qt::Key_Down));
+   qt_ns->addConstant("Key_PageUp",               new QoreNode((int64)Qt::Key_PageUp));
+   qt_ns->addConstant("Key_PageDown",             new QoreNode((int64)Qt::Key_PageDown));
+   qt_ns->addConstant("Key_Shift",                new QoreNode((int64)Qt::Key_Shift));
+   qt_ns->addConstant("Key_Control",              new QoreNode((int64)Qt::Key_Control));
+   qt_ns->addConstant("Key_Meta",                 new QoreNode((int64)Qt::Key_Meta));
+   qt_ns->addConstant("Key_Alt",                  new QoreNode((int64)Qt::Key_Alt));
+   qt_ns->addConstant("Key_CapsLock",             new QoreNode((int64)Qt::Key_CapsLock));
+   qt_ns->addConstant("Key_NumLock",              new QoreNode((int64)Qt::Key_NumLock));
+   qt_ns->addConstant("Key_ScrollLock",           new QoreNode((int64)Qt::Key_ScrollLock));
+   qt_ns->addConstant("Key_F1",                   new QoreNode((int64)Qt::Key_F1));
+   qt_ns->addConstant("Key_F2",                   new QoreNode((int64)Qt::Key_F2));
+   qt_ns->addConstant("Key_F3",                   new QoreNode((int64)Qt::Key_F3));
+   qt_ns->addConstant("Key_F4",                   new QoreNode((int64)Qt::Key_F4));
+   qt_ns->addConstant("Key_F5",                   new QoreNode((int64)Qt::Key_F5));
+   qt_ns->addConstant("Key_F6",                   new QoreNode((int64)Qt::Key_F6));
+   qt_ns->addConstant("Key_F7",                   new QoreNode((int64)Qt::Key_F7));
+   qt_ns->addConstant("Key_F8",                   new QoreNode((int64)Qt::Key_F8));
+   qt_ns->addConstant("Key_F9",                   new QoreNode((int64)Qt::Key_F9));
+   qt_ns->addConstant("Key_F10",                  new QoreNode((int64)Qt::Key_F10));
+   qt_ns->addConstant("Key_F11",                  new QoreNode((int64)Qt::Key_F11));
+   qt_ns->addConstant("Key_F12",                  new QoreNode((int64)Qt::Key_F12));
+   qt_ns->addConstant("Key_F13",                  new QoreNode((int64)Qt::Key_F13));
+   qt_ns->addConstant("Key_F14",                  new QoreNode((int64)Qt::Key_F14));
+   qt_ns->addConstant("Key_F15",                  new QoreNode((int64)Qt::Key_F15));
+   qt_ns->addConstant("Key_F16",                  new QoreNode((int64)Qt::Key_F16));
+   qt_ns->addConstant("Key_F17",                  new QoreNode((int64)Qt::Key_F17));
+   qt_ns->addConstant("Key_F18",                  new QoreNode((int64)Qt::Key_F18));
+   qt_ns->addConstant("Key_F19",                  new QoreNode((int64)Qt::Key_F19));
+   qt_ns->addConstant("Key_F20",                  new QoreNode((int64)Qt::Key_F20));
+   qt_ns->addConstant("Key_F21",                  new QoreNode((int64)Qt::Key_F21));
+   qt_ns->addConstant("Key_F22",                  new QoreNode((int64)Qt::Key_F22));
+   qt_ns->addConstant("Key_F23",                  new QoreNode((int64)Qt::Key_F23));
+   qt_ns->addConstant("Key_F24",                  new QoreNode((int64)Qt::Key_F24));
+   qt_ns->addConstant("Key_F25",                  new QoreNode((int64)Qt::Key_F25));
+   qt_ns->addConstant("Key_F26",                  new QoreNode((int64)Qt::Key_F26));
+   qt_ns->addConstant("Key_F27",                  new QoreNode((int64)Qt::Key_F27));
+   qt_ns->addConstant("Key_F28",                  new QoreNode((int64)Qt::Key_F28));
+   qt_ns->addConstant("Key_F29",                  new QoreNode((int64)Qt::Key_F29));
+   qt_ns->addConstant("Key_F30",                  new QoreNode((int64)Qt::Key_F30));
+   qt_ns->addConstant("Key_F31",                  new QoreNode((int64)Qt::Key_F31));
+   qt_ns->addConstant("Key_F32",                  new QoreNode((int64)Qt::Key_F32));
+   qt_ns->addConstant("Key_F33",                  new QoreNode((int64)Qt::Key_F33));
+   qt_ns->addConstant("Key_F34",                  new QoreNode((int64)Qt::Key_F34));
+   qt_ns->addConstant("Key_F35",                  new QoreNode((int64)Qt::Key_F35));
+   qt_ns->addConstant("Key_Super_L",              new QoreNode((int64)Qt::Key_Super_L));
+   qt_ns->addConstant("Key_Super_R",              new QoreNode((int64)Qt::Key_Super_R));
+   qt_ns->addConstant("Key_Menu",                 new QoreNode((int64)Qt::Key_Menu));
+   qt_ns->addConstant("Key_Hyper_L",              new QoreNode((int64)Qt::Key_Hyper_L));
+   qt_ns->addConstant("Key_Hyper_R",              new QoreNode((int64)Qt::Key_Hyper_R));
+   qt_ns->addConstant("Key_Help",                 new QoreNode((int64)Qt::Key_Help));
+   qt_ns->addConstant("Key_Direction_L",          new QoreNode((int64)Qt::Key_Direction_L));
+   qt_ns->addConstant("Key_Direction_R",          new QoreNode((int64)Qt::Key_Direction_R));
+   qt_ns->addConstant("Key_Space",                new QoreNode((int64)Qt::Key_Space));
+   qt_ns->addConstant("Key_Any",                  new QoreNode((int64)Qt::Key_Any));
+   qt_ns->addConstant("Key_Exclam",               new QoreNode((int64)Qt::Key_Exclam));
+   qt_ns->addConstant("Key_QuoteDbl",             new QoreNode((int64)Qt::Key_QuoteDbl));
+   qt_ns->addConstant("Key_NumberSign",           new QoreNode((int64)Qt::Key_NumberSign));
+   qt_ns->addConstant("Key_Dollar",               new QoreNode((int64)Qt::Key_Dollar));
+   qt_ns->addConstant("Key_Percent",              new QoreNode((int64)Qt::Key_Percent));
+   qt_ns->addConstant("Key_Ampersand",            new QoreNode((int64)Qt::Key_Ampersand));
+   qt_ns->addConstant("Key_Apostrophe",           new QoreNode((int64)Qt::Key_Apostrophe));
+   qt_ns->addConstant("Key_ParenLeft",            new QoreNode((int64)Qt::Key_ParenLeft));
+   qt_ns->addConstant("Key_ParenRight",           new QoreNode((int64)Qt::Key_ParenRight));
+   qt_ns->addConstant("Key_Asterisk",             new QoreNode((int64)Qt::Key_Asterisk));
+   qt_ns->addConstant("Key_Plus",                 new QoreNode((int64)Qt::Key_Plus));
+   qt_ns->addConstant("Key_Comma",                new QoreNode((int64)Qt::Key_Comma));
+   qt_ns->addConstant("Key_Minus",                new QoreNode((int64)Qt::Key_Minus));
+   qt_ns->addConstant("Key_Period",               new QoreNode((int64)Qt::Key_Period));
+   qt_ns->addConstant("Key_Slash",                new QoreNode((int64)Qt::Key_Slash));
+   qt_ns->addConstant("Key_0",                    new QoreNode((int64)Qt::Key_0));
+   qt_ns->addConstant("Key_1",                    new QoreNode((int64)Qt::Key_1));
+   qt_ns->addConstant("Key_2",                    new QoreNode((int64)Qt::Key_2));
+   qt_ns->addConstant("Key_3",                    new QoreNode((int64)Qt::Key_3));
+   qt_ns->addConstant("Key_4",                    new QoreNode((int64)Qt::Key_4));
+   qt_ns->addConstant("Key_5",                    new QoreNode((int64)Qt::Key_5));
+   qt_ns->addConstant("Key_6",                    new QoreNode((int64)Qt::Key_6));
+   qt_ns->addConstant("Key_7",                    new QoreNode((int64)Qt::Key_7));
+   qt_ns->addConstant("Key_8",                    new QoreNode((int64)Qt::Key_8));
+   qt_ns->addConstant("Key_9",                    new QoreNode((int64)Qt::Key_9));
+   qt_ns->addConstant("Key_Colon",                new QoreNode((int64)Qt::Key_Colon));
+   qt_ns->addConstant("Key_Semicolon",            new QoreNode((int64)Qt::Key_Semicolon));
+   qt_ns->addConstant("Key_Less",                 new QoreNode((int64)Qt::Key_Less));
+   qt_ns->addConstant("Key_Equal",                new QoreNode((int64)Qt::Key_Equal));
+   qt_ns->addConstant("Key_Greater",              new QoreNode((int64)Qt::Key_Greater));
+   qt_ns->addConstant("Key_Question",             new QoreNode((int64)Qt::Key_Question));
+   qt_ns->addConstant("Key_At",                   new QoreNode((int64)Qt::Key_At));
+   qt_ns->addConstant("Key_A",                    new QoreNode((int64)Qt::Key_A));
+   qt_ns->addConstant("Key_B",                    new QoreNode((int64)Qt::Key_B));
+   qt_ns->addConstant("Key_C",                    new QoreNode((int64)Qt::Key_C));
+   qt_ns->addConstant("Key_D",                    new QoreNode((int64)Qt::Key_D));
+   qt_ns->addConstant("Key_E",                    new QoreNode((int64)Qt::Key_E));
+   qt_ns->addConstant("Key_F",                    new QoreNode((int64)Qt::Key_F));
+   qt_ns->addConstant("Key_G",                    new QoreNode((int64)Qt::Key_G));
+   qt_ns->addConstant("Key_H",                    new QoreNode((int64)Qt::Key_H));
+   qt_ns->addConstant("Key_I",                    new QoreNode((int64)Qt::Key_I));
+   qt_ns->addConstant("Key_J",                    new QoreNode((int64)Qt::Key_J));
+   qt_ns->addConstant("Key_K",                    new QoreNode((int64)Qt::Key_K));
+   qt_ns->addConstant("Key_L",                    new QoreNode((int64)Qt::Key_L));
+   qt_ns->addConstant("Key_M",                    new QoreNode((int64)Qt::Key_M));
+   qt_ns->addConstant("Key_N",                    new QoreNode((int64)Qt::Key_N));
+   qt_ns->addConstant("Key_O",                    new QoreNode((int64)Qt::Key_O));
+   qt_ns->addConstant("Key_P",                    new QoreNode((int64)Qt::Key_P));
+   qt_ns->addConstant("Key_Q",                    new QoreNode((int64)Qt::Key_Q));
+   qt_ns->addConstant("Key_R",                    new QoreNode((int64)Qt::Key_R));
+   qt_ns->addConstant("Key_S",                    new QoreNode((int64)Qt::Key_S));
+   qt_ns->addConstant("Key_T",                    new QoreNode((int64)Qt::Key_T));
+   qt_ns->addConstant("Key_U",                    new QoreNode((int64)Qt::Key_U));
+   qt_ns->addConstant("Key_V",                    new QoreNode((int64)Qt::Key_V));
+   qt_ns->addConstant("Key_W",                    new QoreNode((int64)Qt::Key_W));
+   qt_ns->addConstant("Key_X",                    new QoreNode((int64)Qt::Key_X));
+   qt_ns->addConstant("Key_Y",                    new QoreNode((int64)Qt::Key_Y));
+   qt_ns->addConstant("Key_Z",                    new QoreNode((int64)Qt::Key_Z));
+   qt_ns->addConstant("Key_BracketLeft",          new QoreNode((int64)Qt::Key_BracketLeft));
+   qt_ns->addConstant("Key_Backslash",            new QoreNode((int64)Qt::Key_Backslash));
+   qt_ns->addConstant("Key_BracketRight",         new QoreNode((int64)Qt::Key_BracketRight));
+   qt_ns->addConstant("Key_AsciiCircum",          new QoreNode((int64)Qt::Key_AsciiCircum));
+   qt_ns->addConstant("Key_Underscore",           new QoreNode((int64)Qt::Key_Underscore));
+   qt_ns->addConstant("Key_QuoteLeft",            new QoreNode((int64)Qt::Key_QuoteLeft));
+   qt_ns->addConstant("Key_BraceLeft",            new QoreNode((int64)Qt::Key_BraceLeft));
+   qt_ns->addConstant("Key_Bar",                  new QoreNode((int64)Qt::Key_Bar));
+   qt_ns->addConstant("Key_BraceRight",           new QoreNode((int64)Qt::Key_BraceRight));
+   qt_ns->addConstant("Key_AsciiTilde",           new QoreNode((int64)Qt::Key_AsciiTilde));
+   qt_ns->addConstant("Key_nobreakspace",         new QoreNode((int64)Qt::Key_nobreakspace));
+   qt_ns->addConstant("Key_exclamdown",           new QoreNode((int64)Qt::Key_exclamdown));
+   qt_ns->addConstant("Key_cent",                 new QoreNode((int64)Qt::Key_cent));
+   qt_ns->addConstant("Key_sterling",             new QoreNode((int64)Qt::Key_sterling));
+   qt_ns->addConstant("Key_currency",             new QoreNode((int64)Qt::Key_currency));
+   qt_ns->addConstant("Key_yen",                  new QoreNode((int64)Qt::Key_yen));
+   qt_ns->addConstant("Key_brokenbar",            new QoreNode((int64)Qt::Key_brokenbar));
+   qt_ns->addConstant("Key_section",              new QoreNode((int64)Qt::Key_section));
+   qt_ns->addConstant("Key_diaeresis",            new QoreNode((int64)Qt::Key_diaeresis));
+   qt_ns->addConstant("Key_copyright",            new QoreNode((int64)Qt::Key_copyright));
+   qt_ns->addConstant("Key_ordfeminine",          new QoreNode((int64)Qt::Key_ordfeminine));
+   qt_ns->addConstant("Key_guillemotleft",        new QoreNode((int64)Qt::Key_guillemotleft));
+   qt_ns->addConstant("Key_notsign",              new QoreNode((int64)Qt::Key_notsign));
+   qt_ns->addConstant("Key_hyphen",               new QoreNode((int64)Qt::Key_hyphen));
+   qt_ns->addConstant("Key_registered",           new QoreNode((int64)Qt::Key_registered));
+   qt_ns->addConstant("Key_macron",               new QoreNode((int64)Qt::Key_macron));
+   qt_ns->addConstant("Key_degree",               new QoreNode((int64)Qt::Key_degree));
+   qt_ns->addConstant("Key_plusminus",            new QoreNode((int64)Qt::Key_plusminus));
+   qt_ns->addConstant("Key_twosuperior",          new QoreNode((int64)Qt::Key_twosuperior));
+   qt_ns->addConstant("Key_threesuperior",        new QoreNode((int64)Qt::Key_threesuperior));
+   qt_ns->addConstant("Key_acute",                new QoreNode((int64)Qt::Key_acute));
+   qt_ns->addConstant("Key_mu",                   new QoreNode((int64)Qt::Key_mu));
+   qt_ns->addConstant("Key_paragraph",            new QoreNode((int64)Qt::Key_paragraph));
+   qt_ns->addConstant("Key_periodcentered",       new QoreNode((int64)Qt::Key_periodcentered));
+   qt_ns->addConstant("Key_cedilla",              new QoreNode((int64)Qt::Key_cedilla));
+   qt_ns->addConstant("Key_onesuperior",          new QoreNode((int64)Qt::Key_onesuperior));
+   qt_ns->addConstant("Key_masculine",            new QoreNode((int64)Qt::Key_masculine));
+   qt_ns->addConstant("Key_guillemotright",       new QoreNode((int64)Qt::Key_guillemotright));
+   qt_ns->addConstant("Key_onequarter",           new QoreNode((int64)Qt::Key_onequarter));
+   qt_ns->addConstant("Key_onehalf",              new QoreNode((int64)Qt::Key_onehalf));
+   qt_ns->addConstant("Key_threequarters",        new QoreNode((int64)Qt::Key_threequarters));
+   qt_ns->addConstant("Key_questiondown",         new QoreNode((int64)Qt::Key_questiondown));
+   qt_ns->addConstant("Key_Agrave",               new QoreNode((int64)Qt::Key_Agrave));
+   qt_ns->addConstant("Key_Aacute",               new QoreNode((int64)Qt::Key_Aacute));
+   qt_ns->addConstant("Key_Acircumflex",          new QoreNode((int64)Qt::Key_Acircumflex));
+   qt_ns->addConstant("Key_Atilde",               new QoreNode((int64)Qt::Key_Atilde));
+   qt_ns->addConstant("Key_Adiaeresis",           new QoreNode((int64)Qt::Key_Adiaeresis));
+   qt_ns->addConstant("Key_Aring",                new QoreNode((int64)Qt::Key_Aring));
+   qt_ns->addConstant("Key_AE",                   new QoreNode((int64)Qt::Key_AE));
+   qt_ns->addConstant("Key_Ccedilla",             new QoreNode((int64)Qt::Key_Ccedilla));
+   qt_ns->addConstant("Key_Egrave",               new QoreNode((int64)Qt::Key_Egrave));
+   qt_ns->addConstant("Key_Eacute",               new QoreNode((int64)Qt::Key_Eacute));
+   qt_ns->addConstant("Key_Ecircumflex",          new QoreNode((int64)Qt::Key_Ecircumflex));
+   qt_ns->addConstant("Key_Ediaeresis",           new QoreNode((int64)Qt::Key_Ediaeresis));
+   qt_ns->addConstant("Key_Igrave",               new QoreNode((int64)Qt::Key_Igrave));
+   qt_ns->addConstant("Key_Iacute",               new QoreNode((int64)Qt::Key_Iacute));
+   qt_ns->addConstant("Key_Icircumflex",          new QoreNode((int64)Qt::Key_Icircumflex));
+   qt_ns->addConstant("Key_Idiaeresis",           new QoreNode((int64)Qt::Key_Idiaeresis));
+   qt_ns->addConstant("Key_ETH",                  new QoreNode((int64)Qt::Key_ETH));
+   qt_ns->addConstant("Key_Ntilde",               new QoreNode((int64)Qt::Key_Ntilde));
+   qt_ns->addConstant("Key_Ograve",               new QoreNode((int64)Qt::Key_Ograve));
+   qt_ns->addConstant("Key_Oacute",               new QoreNode((int64)Qt::Key_Oacute));
+   qt_ns->addConstant("Key_Ocircumflex",          new QoreNode((int64)Qt::Key_Ocircumflex));
+   qt_ns->addConstant("Key_Otilde",               new QoreNode((int64)Qt::Key_Otilde));
+   qt_ns->addConstant("Key_Odiaeresis",           new QoreNode((int64)Qt::Key_Odiaeresis));
+   qt_ns->addConstant("Key_multiply",             new QoreNode((int64)Qt::Key_multiply));
+   qt_ns->addConstant("Key_Ooblique",             new QoreNode((int64)Qt::Key_Ooblique));
+   qt_ns->addConstant("Key_Ugrave",               new QoreNode((int64)Qt::Key_Ugrave));
+   qt_ns->addConstant("Key_Uacute",               new QoreNode((int64)Qt::Key_Uacute));
+   qt_ns->addConstant("Key_Ucircumflex",          new QoreNode((int64)Qt::Key_Ucircumflex));
+   qt_ns->addConstant("Key_Udiaeresis",           new QoreNode((int64)Qt::Key_Udiaeresis));
+   qt_ns->addConstant("Key_Yacute",               new QoreNode((int64)Qt::Key_Yacute));
+   qt_ns->addConstant("Key_THORN",                new QoreNode((int64)Qt::Key_THORN));
+   qt_ns->addConstant("Key_ssharp",               new QoreNode((int64)Qt::Key_ssharp));
+   qt_ns->addConstant("Key_division",             new QoreNode((int64)Qt::Key_division));
+   qt_ns->addConstant("Key_ydiaeresis",           new QoreNode((int64)Qt::Key_ydiaeresis));
+   qt_ns->addConstant("Key_AltGr",                new QoreNode((int64)Qt::Key_AltGr));
+   qt_ns->addConstant("Key_Multi_key",            new QoreNode((int64)Qt::Key_Multi_key));
+   qt_ns->addConstant("Key_Codeinput",            new QoreNode((int64)Qt::Key_Codeinput));
+   qt_ns->addConstant("Key_SingleCandidate",      new QoreNode((int64)Qt::Key_SingleCandidate));
+   qt_ns->addConstant("Key_MultipleCandidate",    new QoreNode((int64)Qt::Key_MultipleCandidate));
+   qt_ns->addConstant("Key_PreviousCandidate",    new QoreNode((int64)Qt::Key_PreviousCandidate));
+   qt_ns->addConstant("Key_Mode_switch",          new QoreNode((int64)Qt::Key_Mode_switch));
+   qt_ns->addConstant("Key_Kanji",                new QoreNode((int64)Qt::Key_Kanji));
+   qt_ns->addConstant("Key_Muhenkan",             new QoreNode((int64)Qt::Key_Muhenkan));
+   qt_ns->addConstant("Key_Henkan",               new QoreNode((int64)Qt::Key_Henkan));
+   qt_ns->addConstant("Key_Romaji",               new QoreNode((int64)Qt::Key_Romaji));
+   qt_ns->addConstant("Key_Hiragana",             new QoreNode((int64)Qt::Key_Hiragana));
+   qt_ns->addConstant("Key_Katakana",             new QoreNode((int64)Qt::Key_Katakana));
+   qt_ns->addConstant("Key_Hiragana_Katakana",    new QoreNode((int64)Qt::Key_Hiragana_Katakana));
+   qt_ns->addConstant("Key_Zenkaku",              new QoreNode((int64)Qt::Key_Zenkaku));
+   qt_ns->addConstant("Key_Hankaku",              new QoreNode((int64)Qt::Key_Hankaku));
+   qt_ns->addConstant("Key_Zenkaku_Hankaku",      new QoreNode((int64)Qt::Key_Zenkaku_Hankaku));
+   qt_ns->addConstant("Key_Touroku",              new QoreNode((int64)Qt::Key_Touroku));
+   qt_ns->addConstant("Key_Massyo",               new QoreNode((int64)Qt::Key_Massyo));
+   qt_ns->addConstant("Key_Kana_Lock",            new QoreNode((int64)Qt::Key_Kana_Lock));
+   qt_ns->addConstant("Key_Kana_Shift",           new QoreNode((int64)Qt::Key_Kana_Shift));
+   qt_ns->addConstant("Key_Eisu_Shift",           new QoreNode((int64)Qt::Key_Eisu_Shift));
+   qt_ns->addConstant("Key_Eisu_toggle",          new QoreNode((int64)Qt::Key_Eisu_toggle));
+   qt_ns->addConstant("Key_Hangul",               new QoreNode((int64)Qt::Key_Hangul));
+   qt_ns->addConstant("Key_Hangul_Start",         new QoreNode((int64)Qt::Key_Hangul_Start));
+   qt_ns->addConstant("Key_Hangul_End",           new QoreNode((int64)Qt::Key_Hangul_End));
+   qt_ns->addConstant("Key_Hangul_Hanja",         new QoreNode((int64)Qt::Key_Hangul_Hanja));
+   qt_ns->addConstant("Key_Hangul_Jamo",          new QoreNode((int64)Qt::Key_Hangul_Jamo));
+   qt_ns->addConstant("Key_Hangul_Romaja",        new QoreNode((int64)Qt::Key_Hangul_Romaja));
+   qt_ns->addConstant("Key_Hangul_Jeonja",        new QoreNode((int64)Qt::Key_Hangul_Jeonja));
+   qt_ns->addConstant("Key_Hangul_Banja",         new QoreNode((int64)Qt::Key_Hangul_Banja));
+   qt_ns->addConstant("Key_Hangul_PreHanja",      new QoreNode((int64)Qt::Key_Hangul_PreHanja));
+   qt_ns->addConstant("Key_Hangul_PostHanja",     new QoreNode((int64)Qt::Key_Hangul_PostHanja));
+   qt_ns->addConstant("Key_Hangul_Special",       new QoreNode((int64)Qt::Key_Hangul_Special));
+   qt_ns->addConstant("Key_Dead_Grave",           new QoreNode((int64)Qt::Key_Dead_Grave));
+   qt_ns->addConstant("Key_Dead_Acute",           new QoreNode((int64)Qt::Key_Dead_Acute));
+   qt_ns->addConstant("Key_Dead_Circumflex",      new QoreNode((int64)Qt::Key_Dead_Circumflex));
+   qt_ns->addConstant("Key_Dead_Tilde",           new QoreNode((int64)Qt::Key_Dead_Tilde));
+   qt_ns->addConstant("Key_Dead_Macron",          new QoreNode((int64)Qt::Key_Dead_Macron));
+   qt_ns->addConstant("Key_Dead_Breve",           new QoreNode((int64)Qt::Key_Dead_Breve));
+   qt_ns->addConstant("Key_Dead_Abovedot",        new QoreNode((int64)Qt::Key_Dead_Abovedot));
+   qt_ns->addConstant("Key_Dead_Diaeresis",       new QoreNode((int64)Qt::Key_Dead_Diaeresis));
+   qt_ns->addConstant("Key_Dead_Abovering",       new QoreNode((int64)Qt::Key_Dead_Abovering));
+   qt_ns->addConstant("Key_Dead_Doubleacute",     new QoreNode((int64)Qt::Key_Dead_Doubleacute));
+   qt_ns->addConstant("Key_Dead_Caron",           new QoreNode((int64)Qt::Key_Dead_Caron));
+   qt_ns->addConstant("Key_Dead_Cedilla",         new QoreNode((int64)Qt::Key_Dead_Cedilla));
+   qt_ns->addConstant("Key_Dead_Ogonek",          new QoreNode((int64)Qt::Key_Dead_Ogonek));
+   qt_ns->addConstant("Key_Dead_Iota",            new QoreNode((int64)Qt::Key_Dead_Iota));
+   qt_ns->addConstant("Key_Dead_Voiced_Sound",    new QoreNode((int64)Qt::Key_Dead_Voiced_Sound));
+   qt_ns->addConstant("Key_Dead_Semivoiced_Sound", new QoreNode((int64)Qt::Key_Dead_Semivoiced_Sound));
+   qt_ns->addConstant("Key_Dead_Belowdot",        new QoreNode((int64)Qt::Key_Dead_Belowdot));
+   qt_ns->addConstant("Key_Dead_Hook",            new QoreNode((int64)Qt::Key_Dead_Hook));
+   qt_ns->addConstant("Key_Dead_Horn",            new QoreNode((int64)Qt::Key_Dead_Horn));
+   qt_ns->addConstant("Key_Back",                 new QoreNode((int64)Qt::Key_Back));
+   qt_ns->addConstant("Key_Forward",              new QoreNode((int64)Qt::Key_Forward));
+   qt_ns->addConstant("Key_Stop",                 new QoreNode((int64)Qt::Key_Stop));
+   qt_ns->addConstant("Key_Refresh",              new QoreNode((int64)Qt::Key_Refresh));
+   qt_ns->addConstant("Key_VolumeDown",           new QoreNode((int64)Qt::Key_VolumeDown));
+   qt_ns->addConstant("Key_VolumeMute",           new QoreNode((int64)Qt::Key_VolumeMute));
+   qt_ns->addConstant("Key_VolumeUp",             new QoreNode((int64)Qt::Key_VolumeUp));
+   qt_ns->addConstant("Key_BassBoost",            new QoreNode((int64)Qt::Key_BassBoost));
+   qt_ns->addConstant("Key_BassUp",               new QoreNode((int64)Qt::Key_BassUp));
+   qt_ns->addConstant("Key_BassDown",             new QoreNode((int64)Qt::Key_BassDown));
+   qt_ns->addConstant("Key_TrebleUp",             new QoreNode((int64)Qt::Key_TrebleUp));
+   qt_ns->addConstant("Key_TrebleDown",           new QoreNode((int64)Qt::Key_TrebleDown));
+   qt_ns->addConstant("Key_MediaPlay",            new QoreNode((int64)Qt::Key_MediaPlay));
+   qt_ns->addConstant("Key_MediaStop",            new QoreNode((int64)Qt::Key_MediaStop));
+   qt_ns->addConstant("Key_MediaPrevious",        new QoreNode((int64)Qt::Key_MediaPrevious));
+   qt_ns->addConstant("Key_MediaNext",            new QoreNode((int64)Qt::Key_MediaNext));
+   qt_ns->addConstant("Key_MediaRecord",          new QoreNode((int64)Qt::Key_MediaRecord));
+   qt_ns->addConstant("Key_HomePage",             new QoreNode((int64)Qt::Key_HomePage));
+   qt_ns->addConstant("Key_Favorites",            new QoreNode((int64)Qt::Key_Favorites));
+   qt_ns->addConstant("Key_Search",               new QoreNode((int64)Qt::Key_Search));
+   qt_ns->addConstant("Key_Standby",              new QoreNode((int64)Qt::Key_Standby));
+   qt_ns->addConstant("Key_OpenUrl",              new QoreNode((int64)Qt::Key_OpenUrl));
+   qt_ns->addConstant("Key_LaunchMail",           new QoreNode((int64)Qt::Key_LaunchMail));
+   qt_ns->addConstant("Key_LaunchMedia",          new QoreNode((int64)Qt::Key_LaunchMedia));
+   qt_ns->addConstant("Key_Launch0",              new QoreNode((int64)Qt::Key_Launch0));
+   qt_ns->addConstant("Key_Launch1",              new QoreNode((int64)Qt::Key_Launch1));
+   qt_ns->addConstant("Key_Launch2",              new QoreNode((int64)Qt::Key_Launch2));
+   qt_ns->addConstant("Key_Launch3",              new QoreNode((int64)Qt::Key_Launch3));
+   qt_ns->addConstant("Key_Launch4",              new QoreNode((int64)Qt::Key_Launch4));
+   qt_ns->addConstant("Key_Launch5",              new QoreNode((int64)Qt::Key_Launch5));
+   qt_ns->addConstant("Key_Launch6",              new QoreNode((int64)Qt::Key_Launch6));
+   qt_ns->addConstant("Key_Launch7",              new QoreNode((int64)Qt::Key_Launch7));
+   qt_ns->addConstant("Key_Launch8",              new QoreNode((int64)Qt::Key_Launch8));
+   qt_ns->addConstant("Key_Launch9",              new QoreNode((int64)Qt::Key_Launch9));
+   qt_ns->addConstant("Key_LaunchA",              new QoreNode((int64)Qt::Key_LaunchA));
+   qt_ns->addConstant("Key_LaunchB",              new QoreNode((int64)Qt::Key_LaunchB));
+   qt_ns->addConstant("Key_LaunchC",              new QoreNode((int64)Qt::Key_LaunchC));
+   qt_ns->addConstant("Key_LaunchD",              new QoreNode((int64)Qt::Key_LaunchD));
+   qt_ns->addConstant("Key_LaunchE",              new QoreNode((int64)Qt::Key_LaunchE));
+   qt_ns->addConstant("Key_LaunchF",              new QoreNode((int64)Qt::Key_LaunchF));
+   qt_ns->addConstant("Key_MediaLast",            new QoreNode((int64)Qt::Key_MediaLast));
+   qt_ns->addConstant("Key_Select",               new QoreNode((int64)Qt::Key_Select));
+   qt_ns->addConstant("Key_Yes",                  new QoreNode((int64)Qt::Key_Yes));
+   qt_ns->addConstant("Key_No",                   new QoreNode((int64)Qt::Key_No));
+   qt_ns->addConstant("Key_Cancel",               new QoreNode((int64)Qt::Key_Cancel));
+   qt_ns->addConstant("Key_Printer",              new QoreNode((int64)Qt::Key_Printer));
+   qt_ns->addConstant("Key_Execute",              new QoreNode((int64)Qt::Key_Execute));
+   qt_ns->addConstant("Key_Sleep",                new QoreNode((int64)Qt::Key_Sleep));
+   qt_ns->addConstant("Key_Play",                 new QoreNode((int64)Qt::Key_Play));
+   qt_ns->addConstant("Key_Zoom",                 new QoreNode((int64)Qt::Key_Zoom));
+   qt_ns->addConstant("Key_Context1",             new QoreNode((int64)Qt::Key_Context1));
+   qt_ns->addConstant("Key_Context2",             new QoreNode((int64)Qt::Key_Context2));
+   qt_ns->addConstant("Key_Context3",             new QoreNode((int64)Qt::Key_Context3));
+   qt_ns->addConstant("Key_Context4",             new QoreNode((int64)Qt::Key_Context4));
+   qt_ns->addConstant("Key_Call",                 new QoreNode((int64)Qt::Key_Call));
+   qt_ns->addConstant("Key_Hangup",               new QoreNode((int64)Qt::Key_Hangup));
+   qt_ns->addConstant("Key_Flip",                 new QoreNode((int64)Qt::Key_Flip));
+   qt_ns->addConstant("Key_unknown",              new QoreNode((int64)Qt::Key_unknown));
 
    // MatchFlag enum
-   qt->addConstant("MatchExactly",             new QoreNode((int64)Qt::MatchExactly));
-   qt->addConstant("MatchContains",            new QoreNode((int64)Qt::MatchContains));
-   qt->addConstant("MatchStartsWith",          new QoreNode((int64)Qt::MatchStartsWith));
-   qt->addConstant("MatchEndsWith",            new QoreNode((int64)Qt::MatchEndsWith));
-   qt->addConstant("MatchRegExp",              new QoreNode((int64)Qt::MatchRegExp));
-   qt->addConstant("MatchWildcard",            new QoreNode((int64)Qt::MatchWildcard));
-   qt->addConstant("MatchFixedString",         new QoreNode((int64)Qt::MatchFixedString));
-   qt->addConstant("MatchCaseSensitive",       new QoreNode((int64)Qt::MatchCaseSensitive));
-   qt->addConstant("MatchWrap",                new QoreNode((int64)Qt::MatchWrap));
-   qt->addConstant("MatchRecursive",           new QoreNode((int64)Qt::MatchRecursive));
+   qt_ns->addConstant("MatchExactly",             new QoreNode((int64)Qt::MatchExactly));
+   qt_ns->addConstant("MatchContains",            new QoreNode((int64)Qt::MatchContains));
+   qt_ns->addConstant("MatchStartsWith",          new QoreNode((int64)Qt::MatchStartsWith));
+   qt_ns->addConstant("MatchEndsWith",            new QoreNode((int64)Qt::MatchEndsWith));
+   qt_ns->addConstant("MatchRegExp",              new QoreNode((int64)Qt::MatchRegExp));
+   qt_ns->addConstant("MatchWildcard",            new QoreNode((int64)Qt::MatchWildcard));
+   qt_ns->addConstant("MatchFixedString",         new QoreNode((int64)Qt::MatchFixedString));
+   qt_ns->addConstant("MatchCaseSensitive",       new QoreNode((int64)Qt::MatchCaseSensitive));
+   qt_ns->addConstant("MatchWrap",                new QoreNode((int64)Qt::MatchWrap));
+   qt_ns->addConstant("MatchRecursive",           new QoreNode((int64)Qt::MatchRecursive));
 
    // ItemDataRole enum
-   qt->addConstant("DisplayRole",              new QoreNode((int64)Qt::DisplayRole));
-   qt->addConstant("DecorationRole",           new QoreNode((int64)Qt::DecorationRole));
-   qt->addConstant("EditRole",                 new QoreNode((int64)Qt::EditRole));
-   qt->addConstant("ToolTipRole",              new QoreNode((int64)Qt::ToolTipRole));
-   qt->addConstant("StatusTipRole",            new QoreNode((int64)Qt::StatusTipRole));
-   qt->addConstant("WhatsThisRole",            new QoreNode((int64)Qt::WhatsThisRole));
-   qt->addConstant("FontRole",                 new QoreNode((int64)Qt::FontRole));
-   qt->addConstant("TextAlignmentRole",        new QoreNode((int64)Qt::TextAlignmentRole));
-   qt->addConstant("BackgroundColorRole",      new QoreNode((int64)Qt::BackgroundColorRole));
-   qt->addConstant("BackgroundRole",           new QoreNode((int64)Qt::BackgroundRole));
-   qt->addConstant("TextColorRole",            new QoreNode((int64)Qt::TextColorRole));
-   qt->addConstant("ForegroundRole",           new QoreNode((int64)Qt::ForegroundRole));
-   qt->addConstant("CheckStateRole",           new QoreNode((int64)Qt::CheckStateRole));
-   qt->addConstant("AccessibleTextRole",       new QoreNode((int64)Qt::AccessibleTextRole));
-   qt->addConstant("AccessibleDescriptionRole", new QoreNode((int64)Qt::AccessibleDescriptionRole));
-   qt->addConstant("SizeHintRole",             new QoreNode((int64)Qt::SizeHintRole));
-   qt->addConstant("UserRole",                 new QoreNode((int64)Qt::UserRole));
+   qt_ns->addConstant("DisplayRole",              new QoreNode((int64)Qt::DisplayRole));
+   qt_ns->addConstant("DecorationRole",           new QoreNode((int64)Qt::DecorationRole));
+   qt_ns->addConstant("EditRole",                 new QoreNode((int64)Qt::EditRole));
+   qt_ns->addConstant("ToolTipRole",              new QoreNode((int64)Qt::ToolTipRole));
+   qt_ns->addConstant("StatusTipRole",            new QoreNode((int64)Qt::StatusTipRole));
+   qt_ns->addConstant("WhatsThisRole",            new QoreNode((int64)Qt::WhatsThisRole));
+   qt_ns->addConstant("FontRole",                 new QoreNode((int64)Qt::FontRole));
+   qt_ns->addConstant("TextAlignmentRole",        new QoreNode((int64)Qt::TextAlignmentRole));
+   qt_ns->addConstant("BackgroundColorRole",      new QoreNode((int64)Qt::BackgroundColorRole));
+   qt_ns->addConstant("BackgroundRole",           new QoreNode((int64)Qt::BackgroundRole));
+   qt_ns->addConstant("TextColorRole",            new QoreNode((int64)Qt::TextColorRole));
+   qt_ns->addConstant("ForegroundRole",           new QoreNode((int64)Qt::ForegroundRole));
+   qt_ns->addConstant("CheckStateRole",           new QoreNode((int64)Qt::CheckStateRole));
+   qt_ns->addConstant("AccessibleTextRole",       new QoreNode((int64)Qt::AccessibleTextRole));
+   qt_ns->addConstant("AccessibleDescriptionRole", new QoreNode((int64)Qt::AccessibleDescriptionRole));
+   qt_ns->addConstant("SizeHintRole",             new QoreNode((int64)Qt::SizeHintRole));
+   qt_ns->addConstant("UserRole",                 new QoreNode((int64)Qt::UserRole));
 
    // ItemFlag enum
-   qt->addConstant("ItemIsSelectable",         new QoreNode((int64)Qt::ItemIsSelectable));
-   qt->addConstant("ItemIsEditable",           new QoreNode((int64)Qt::ItemIsEditable));
-   qt->addConstant("ItemIsDragEnabled",        new QoreNode((int64)Qt::ItemIsDragEnabled));
-   qt->addConstant("ItemIsDropEnabled",        new QoreNode((int64)Qt::ItemIsDropEnabled));
-   qt->addConstant("ItemIsUserCheckable",      new QoreNode((int64)Qt::ItemIsUserCheckable));
-   qt->addConstant("ItemIsEnabled",            new QoreNode((int64)Qt::ItemIsEnabled));
-   qt->addConstant("ItemIsTristate",           new QoreNode((int64)Qt::ItemIsTristate));
+   qt_ns->addConstant("ItemIsSelectable",         new QoreNode((int64)Qt::ItemIsSelectable));
+   qt_ns->addConstant("ItemIsEditable",           new QoreNode((int64)Qt::ItemIsEditable));
+   qt_ns->addConstant("ItemIsDragEnabled",        new QoreNode((int64)Qt::ItemIsDragEnabled));
+   qt_ns->addConstant("ItemIsDropEnabled",        new QoreNode((int64)Qt::ItemIsDropEnabled));
+   qt_ns->addConstant("ItemIsUserCheckable",      new QoreNode((int64)Qt::ItemIsUserCheckable));
+   qt_ns->addConstant("ItemIsEnabled",            new QoreNode((int64)Qt::ItemIsEnabled));
+   qt_ns->addConstant("ItemIsTristate",           new QoreNode((int64)Qt::ItemIsTristate));
 	
    // AspectRatioMode enum
-   qt->addConstant("IgnoreAspectRatio",        new QoreNode((int64)Qt::IgnoreAspectRatio));
-   qt->addConstant("KeepAspectRatio",          new QoreNode((int64)Qt::KeepAspectRatio));
-   qt->addConstant("KeepAspectRatioByExpanding", new QoreNode((int64)Qt::KeepAspectRatioByExpanding));
+   qt_ns->addConstant("IgnoreAspectRatio",        new QoreNode((int64)Qt::IgnoreAspectRatio));
+   qt_ns->addConstant("KeepAspectRatio",          new QoreNode((int64)Qt::KeepAspectRatio));
+   qt_ns->addConstant("KeepAspectRatioByExpanding", new QoreNode((int64)Qt::KeepAspectRatioByExpanding));
 
    // TextFormat enum
-   qt->addConstant("PlainText",                new QoreNode((int64)Qt::PlainText));
-   qt->addConstant("RichText",                 new QoreNode((int64)Qt::RichText));
-   qt->addConstant("AutoText",                 new QoreNode((int64)Qt::AutoText));
-   qt->addConstant("LogText",                  new QoreNode((int64)Qt::LogText));
+   qt_ns->addConstant("PlainText",                new QoreNode((int64)Qt::PlainText));
+   qt_ns->addConstant("RichText",                 new QoreNode((int64)Qt::RichText));
+   qt_ns->addConstant("AutoText",                 new QoreNode((int64)Qt::AutoText));
+   qt_ns->addConstant("LogText",                  new QoreNode((int64)Qt::LogText));
 
    // CursorShape enum
-   qt->addConstant("ArrowCursor",              new QoreNode((int64)Qt::ArrowCursor));
-   qt->addConstant("UpArrowCursor",            new QoreNode((int64)Qt::UpArrowCursor));
-   qt->addConstant("CrossCursor",              new QoreNode((int64)Qt::CrossCursor));
-   qt->addConstant("WaitCursor",               new QoreNode((int64)Qt::WaitCursor));
-   qt->addConstant("IBeamCursor",              new QoreNode((int64)Qt::IBeamCursor));
-   qt->addConstant("SizeVerCursor",            new QoreNode((int64)Qt::SizeVerCursor));
-   qt->addConstant("SizeHorCursor",            new QoreNode((int64)Qt::SizeHorCursor));
-   qt->addConstant("SizeBDiagCursor",          new QoreNode((int64)Qt::SizeBDiagCursor));
-   qt->addConstant("SizeFDiagCursor",          new QoreNode((int64)Qt::SizeFDiagCursor));
-   qt->addConstant("SizeAllCursor",            new QoreNode((int64)Qt::SizeAllCursor));
-   qt->addConstant("BlankCursor",              new QoreNode((int64)Qt::BlankCursor));
-   qt->addConstant("SplitVCursor",             new QoreNode((int64)Qt::SplitVCursor));
-   qt->addConstant("SplitHCursor",             new QoreNode((int64)Qt::SplitHCursor));
-   qt->addConstant("PointingHandCursor",       new QoreNode((int64)Qt::PointingHandCursor));
-   qt->addConstant("ForbiddenCursor",          new QoreNode((int64)Qt::ForbiddenCursor));
-   qt->addConstant("WhatsThisCursor",          new QoreNode((int64)Qt::WhatsThisCursor));
-   qt->addConstant("BusyCursor",               new QoreNode((int64)Qt::BusyCursor));
-   qt->addConstant("OpenHandCursor",           new QoreNode((int64)Qt::OpenHandCursor));
-   qt->addConstant("ClosedHandCursor",         new QoreNode((int64)Qt::ClosedHandCursor));
-   qt->addConstant("LastCursor",               new QoreNode((int64)Qt::LastCursor));
-   qt->addConstant("BitmapCursor",             new QoreNode((int64)Qt::BitmapCursor));
-   qt->addConstant("CustomCursor",             new QoreNode((int64)Qt::CustomCursor));
+   qt_ns->addConstant("ArrowCursor",              new QoreNode((int64)Qt::ArrowCursor));
+   qt_ns->addConstant("UpArrowCursor",            new QoreNode((int64)Qt::UpArrowCursor));
+   qt_ns->addConstant("CrossCursor",              new QoreNode((int64)Qt::CrossCursor));
+   qt_ns->addConstant("WaitCursor",               new QoreNode((int64)Qt::WaitCursor));
+   qt_ns->addConstant("IBeamCursor",              new QoreNode((int64)Qt::IBeamCursor));
+   qt_ns->addConstant("SizeVerCursor",            new QoreNode((int64)Qt::SizeVerCursor));
+   qt_ns->addConstant("SizeHorCursor",            new QoreNode((int64)Qt::SizeHorCursor));
+   qt_ns->addConstant("SizeBDiagCursor",          new QoreNode((int64)Qt::SizeBDiagCursor));
+   qt_ns->addConstant("SizeFDiagCursor",          new QoreNode((int64)Qt::SizeFDiagCursor));
+   qt_ns->addConstant("SizeAllCursor",            new QoreNode((int64)Qt::SizeAllCursor));
+   qt_ns->addConstant("BlankCursor",              new QoreNode((int64)Qt::BlankCursor));
+   qt_ns->addConstant("SplitVCursor",             new QoreNode((int64)Qt::SplitVCursor));
+   qt_ns->addConstant("SplitHCursor",             new QoreNode((int64)Qt::SplitHCursor));
+   qt_ns->addConstant("PointingHandCursor",       new QoreNode((int64)Qt::PointingHandCursor));
+   qt_ns->addConstant("ForbiddenCursor",          new QoreNode((int64)Qt::ForbiddenCursor));
+   qt_ns->addConstant("WhatsThisCursor",          new QoreNode((int64)Qt::WhatsThisCursor));
+   qt_ns->addConstant("BusyCursor",               new QoreNode((int64)Qt::BusyCursor));
+   qt_ns->addConstant("OpenHandCursor",           new QoreNode((int64)Qt::OpenHandCursor));
+   qt_ns->addConstant("ClosedHandCursor",         new QoreNode((int64)Qt::ClosedHandCursor));
+   qt_ns->addConstant("LastCursor",               new QoreNode((int64)Qt::LastCursor));
+   qt_ns->addConstant("BitmapCursor",             new QoreNode((int64)Qt::BitmapCursor));
+   qt_ns->addConstant("CustomCursor",             new QoreNode((int64)Qt::CustomCursor));
 
    // AnchorAttribute enum
-   qt->addConstant("AnchorName",               new QoreNode((int64)Qt::AnchorName));
-   qt->addConstant("AnchorHref",               new QoreNode((int64)Qt::AnchorHref));
+   qt_ns->addConstant("AnchorName",               new QoreNode((int64)Qt::AnchorName));
+   qt_ns->addConstant("AnchorHref",               new QoreNode((int64)Qt::AnchorHref));
 
    // DockWidgetArea enum
-   qt->addConstant("LeftDockWidgetArea",       new QoreNode((int64)Qt::LeftDockWidgetArea));
-   qt->addConstant("RightDockWidgetArea",      new QoreNode((int64)Qt::RightDockWidgetArea));
-   qt->addConstant("TopDockWidgetArea",        new QoreNode((int64)Qt::TopDockWidgetArea));
-   qt->addConstant("BottomDockWidgetArea",     new QoreNode((int64)Qt::BottomDockWidgetArea));
-   qt->addConstant("DockWidgetArea_Mask",      new QoreNode((int64)Qt::DockWidgetArea_Mask));
-   qt->addConstant("AllDockWidgetAreas",       new QoreNode((int64)Qt::AllDockWidgetAreas));
-   qt->addConstant("NoDockWidgetArea",         new QoreNode((int64)Qt::NoDockWidgetArea));
+   qt_ns->addConstant("LeftDockWidgetArea",       new QoreNode((int64)Qt::LeftDockWidgetArea));
+   qt_ns->addConstant("RightDockWidgetArea",      new QoreNode((int64)Qt::RightDockWidgetArea));
+   qt_ns->addConstant("TopDockWidgetArea",        new QoreNode((int64)Qt::TopDockWidgetArea));
+   qt_ns->addConstant("BottomDockWidgetArea",     new QoreNode((int64)Qt::BottomDockWidgetArea));
+   qt_ns->addConstant("DockWidgetArea_Mask",      new QoreNode((int64)Qt::DockWidgetArea_Mask));
+   qt_ns->addConstant("AllDockWidgetAreas",       new QoreNode((int64)Qt::AllDockWidgetAreas));
+   qt_ns->addConstant("NoDockWidgetArea",         new QoreNode((int64)Qt::NoDockWidgetArea));
 
    // DockWidgetAreaSizes enum
-   qt->addConstant("NDockWidgetAreas",         new QoreNode((int64)Qt::NDockWidgetAreas));
+   qt_ns->addConstant("NDockWidgetAreas",         new QoreNode((int64)Qt::NDockWidgetAreas));
 
    // ToolBarArea enum
-   qt->addConstant("LeftToolBarArea",          new QoreNode((int64)Qt::LeftToolBarArea));
-   qt->addConstant("RightToolBarArea",         new QoreNode((int64)Qt::RightToolBarArea));
-   qt->addConstant("TopToolBarArea",           new QoreNode((int64)Qt::TopToolBarArea));
-   qt->addConstant("BottomToolBarArea",        new QoreNode((int64)Qt::BottomToolBarArea));
-   qt->addConstant("ToolBarArea_Mask",         new QoreNode((int64)Qt::ToolBarArea_Mask));
-   qt->addConstant("AllToolBarAreas",          new QoreNode((int64)Qt::AllToolBarAreas));
-   qt->addConstant("NoToolBarArea",            new QoreNode((int64)Qt::NoToolBarArea));
+   qt_ns->addConstant("LeftToolBarArea",          new QoreNode((int64)Qt::LeftToolBarArea));
+   qt_ns->addConstant("RightToolBarArea",         new QoreNode((int64)Qt::RightToolBarArea));
+   qt_ns->addConstant("TopToolBarArea",           new QoreNode((int64)Qt::TopToolBarArea));
+   qt_ns->addConstant("BottomToolBarArea",        new QoreNode((int64)Qt::BottomToolBarArea));
+   qt_ns->addConstant("ToolBarArea_Mask",         new QoreNode((int64)Qt::ToolBarArea_Mask));
+   qt_ns->addConstant("AllToolBarAreas",          new QoreNode((int64)Qt::AllToolBarAreas));
+   qt_ns->addConstant("NoToolBarArea",            new QoreNode((int64)Qt::NoToolBarArea));
 
    // ToolBarSizes enum
-   qt->addConstant("NToolBarAreas",            new QoreNode((int64)Qt::NToolBarAreas));
+   qt_ns->addConstant("NToolBarAreas",            new QoreNode((int64)Qt::NToolBarAreas));
 
    // PenCapStyle enum
-   qt->addConstant("FlatCap",                  new QoreNode((int64)Qt::FlatCap));
-   qt->addConstant("SquareCap",                new QoreNode((int64)Qt::SquareCap));
-   qt->addConstant("RoundCap",                 new QoreNode((int64)Qt::RoundCap));
-   qt->addConstant("MPenCapStyle",             new QoreNode((int64)Qt::MPenCapStyle));
+   qt_ns->addConstant("FlatCap",                  new QoreNode((int64)Qt::FlatCap));
+   qt_ns->addConstant("SquareCap",                new QoreNode((int64)Qt::SquareCap));
+   qt_ns->addConstant("RoundCap",                 new QoreNode((int64)Qt::RoundCap));
+   qt_ns->addConstant("MPenCapStyle",             new QoreNode((int64)Qt::MPenCapStyle));
 
    // PenJoinStyle enum
-   qt->addConstant("MiterJoin",                new QoreNode((int64)Qt::MiterJoin));
-   qt->addConstant("BevelJoin",                new QoreNode((int64)Qt::BevelJoin));
-   qt->addConstant("RoundJoin",                new QoreNode((int64)Qt::RoundJoin));
-   qt->addConstant("SvgMiterJoin",             new QoreNode((int64)Qt::SvgMiterJoin));
-   qt->addConstant("MPenJoinStyle",            new QoreNode((int64)Qt::MPenJoinStyle));
+   qt_ns->addConstant("MiterJoin",                new QoreNode((int64)Qt::MiterJoin));
+   qt_ns->addConstant("BevelJoin",                new QoreNode((int64)Qt::BevelJoin));
+   qt_ns->addConstant("RoundJoin",                new QoreNode((int64)Qt::RoundJoin));
+   qt_ns->addConstant("SvgMiterJoin",             new QoreNode((int64)Qt::SvgMiterJoin));
+   qt_ns->addConstant("MPenJoinStyle",            new QoreNode((int64)Qt::MPenJoinStyle));
 
    // WidgetAttribute enum
-   qt->addConstant("WA_Disabled",              new QoreNode((int64)Qt::WA_Disabled));
-   qt->addConstant("WA_UnderMouse",            new QoreNode((int64)Qt::WA_UnderMouse));
-   qt->addConstant("WA_MouseTracking",         new QoreNode((int64)Qt::WA_MouseTracking));
-   qt->addConstant("WA_ContentsPropagated",    new QoreNode((int64)Qt::WA_ContentsPropagated));
-   qt->addConstant("WA_OpaquePaintEvent",      new QoreNode((int64)Qt::WA_OpaquePaintEvent));
-   qt->addConstant("WA_NoBackground",          new QoreNode((int64)Qt::WA_NoBackground));
-   qt->addConstant("WA_StaticContents",        new QoreNode((int64)Qt::WA_StaticContents));
-   qt->addConstant("WA_LaidOut",               new QoreNode((int64)Qt::WA_LaidOut));
-   qt->addConstant("WA_PaintOnScreen",         new QoreNode((int64)Qt::WA_PaintOnScreen));
-   qt->addConstant("WA_NoSystemBackground",    new QoreNode((int64)Qt::WA_NoSystemBackground));
-   qt->addConstant("WA_UpdatesDisabled",       new QoreNode((int64)Qt::WA_UpdatesDisabled));
-   qt->addConstant("WA_Mapped",                new QoreNode((int64)Qt::WA_Mapped));
-   qt->addConstant("WA_MacNoClickThrough",     new QoreNode((int64)Qt::WA_MacNoClickThrough));
-   qt->addConstant("WA_PaintOutsidePaintEvent", new QoreNode((int64)Qt::WA_PaintOutsidePaintEvent));
-   qt->addConstant("WA_InputMethodEnabled",    new QoreNode((int64)Qt::WA_InputMethodEnabled));
-   qt->addConstant("WA_WState_Visible",        new QoreNode((int64)Qt::WA_WState_Visible));
-   qt->addConstant("WA_WState_Hidden",         new QoreNode((int64)Qt::WA_WState_Hidden));
-   qt->addConstant("WA_ForceDisabled",         new QoreNode((int64)Qt::WA_ForceDisabled));
-   qt->addConstant("WA_KeyCompression",        new QoreNode((int64)Qt::WA_KeyCompression));
-   qt->addConstant("WA_PendingMoveEvent",      new QoreNode((int64)Qt::WA_PendingMoveEvent));
-   qt->addConstant("WA_PendingResizeEvent",    new QoreNode((int64)Qt::WA_PendingResizeEvent));
-   qt->addConstant("WA_SetPalette",            new QoreNode((int64)Qt::WA_SetPalette));
-   qt->addConstant("WA_SetFont",               new QoreNode((int64)Qt::WA_SetFont));
-   qt->addConstant("WA_SetCursor",             new QoreNode((int64)Qt::WA_SetCursor));
-   qt->addConstant("WA_NoChildEventsFromChildren", new QoreNode((int64)Qt::WA_NoChildEventsFromChildren));
-   qt->addConstant("WA_WindowModified",        new QoreNode((int64)Qt::WA_WindowModified));
-   qt->addConstant("WA_Resized",               new QoreNode((int64)Qt::WA_Resized));
-   qt->addConstant("WA_Moved",                 new QoreNode((int64)Qt::WA_Moved));
-   qt->addConstant("WA_PendingUpdate",         new QoreNode((int64)Qt::WA_PendingUpdate));
-   qt->addConstant("WA_InvalidSize",           new QoreNode((int64)Qt::WA_InvalidSize));
-   qt->addConstant("WA_MacBrushedMetal",       new QoreNode((int64)Qt::WA_MacBrushedMetal));
-   qt->addConstant("WA_MacMetalStyle",         new QoreNode((int64)Qt::WA_MacMetalStyle));
-   qt->addConstant("WA_CustomWhatsThis",       new QoreNode((int64)Qt::WA_CustomWhatsThis));
-   qt->addConstant("WA_LayoutOnEntireRect",    new QoreNode((int64)Qt::WA_LayoutOnEntireRect));
-   qt->addConstant("WA_OutsideWSRange",        new QoreNode((int64)Qt::WA_OutsideWSRange));
-   qt->addConstant("WA_GrabbedShortcut",       new QoreNode((int64)Qt::WA_GrabbedShortcut));
-   qt->addConstant("WA_TransparentForMouseEvents", new QoreNode((int64)Qt::WA_TransparentForMouseEvents));
-   qt->addConstant("WA_PaintUnclipped",        new QoreNode((int64)Qt::WA_PaintUnclipped));
-   qt->addConstant("WA_SetWindowIcon",         new QoreNode((int64)Qt::WA_SetWindowIcon));
-   qt->addConstant("WA_NoMouseReplay",         new QoreNode((int64)Qt::WA_NoMouseReplay));
-   qt->addConstant("WA_DeleteOnClose",         new QoreNode((int64)Qt::WA_DeleteOnClose));
-   qt->addConstant("WA_RightToLeft",           new QoreNode((int64)Qt::WA_RightToLeft));
-   qt->addConstant("WA_SetLayoutDirection",    new QoreNode((int64)Qt::WA_SetLayoutDirection));
-   qt->addConstant("WA_NoChildEventsForParent", new QoreNode((int64)Qt::WA_NoChildEventsForParent));
-   qt->addConstant("WA_ForceUpdatesDisabled",  new QoreNode((int64)Qt::WA_ForceUpdatesDisabled));
-   qt->addConstant("WA_WState_Created",        new QoreNode((int64)Qt::WA_WState_Created));
-   qt->addConstant("WA_WState_CompressKeys",   new QoreNode((int64)Qt::WA_WState_CompressKeys));
-   qt->addConstant("WA_WState_InPaintEvent",   new QoreNode((int64)Qt::WA_WState_InPaintEvent));
-   qt->addConstant("WA_WState_Reparented",     new QoreNode((int64)Qt::WA_WState_Reparented));
-   qt->addConstant("WA_WState_ConfigPending",  new QoreNode((int64)Qt::WA_WState_ConfigPending));
-   qt->addConstant("WA_WState_Polished",       new QoreNode((int64)Qt::WA_WState_Polished));
-   qt->addConstant("WA_WState_DND",            new QoreNode((int64)Qt::WA_WState_DND));
-   qt->addConstant("WA_WState_OwnSizePolicy",  new QoreNode((int64)Qt::WA_WState_OwnSizePolicy));
-   qt->addConstant("WA_WState_ExplicitShowHide", new QoreNode((int64)Qt::WA_WState_ExplicitShowHide));
-   qt->addConstant("WA_ShowModal",             new QoreNode((int64)Qt::WA_ShowModal));
-   qt->addConstant("WA_MouseNoMask",           new QoreNode((int64)Qt::WA_MouseNoMask));
-   qt->addConstant("WA_GroupLeader",           new QoreNode((int64)Qt::WA_GroupLeader));
-   qt->addConstant("WA_NoMousePropagation",    new QoreNode((int64)Qt::WA_NoMousePropagation));
-   qt->addConstant("WA_Hover",                 new QoreNode((int64)Qt::WA_Hover));
-   qt->addConstant("WA_InputMethodTransparent", new QoreNode((int64)Qt::WA_InputMethodTransparent));
-   qt->addConstant("WA_QuitOnClose",           new QoreNode((int64)Qt::WA_QuitOnClose));
-   qt->addConstant("WA_KeyboardFocusChange",   new QoreNode((int64)Qt::WA_KeyboardFocusChange));
-   qt->addConstant("WA_AcceptDrops",           new QoreNode((int64)Qt::WA_AcceptDrops));
-   qt->addConstant("WA_DropSiteRegistered",    new QoreNode((int64)Qt::WA_DropSiteRegistered));
-   qt->addConstant("WA_ForceAcceptDrops",      new QoreNode((int64)Qt::WA_ForceAcceptDrops));
-   qt->addConstant("WA_WindowPropagation",     new QoreNode((int64)Qt::WA_WindowPropagation));
-   qt->addConstant("WA_NoX11EventCompression", new QoreNode((int64)Qt::WA_NoX11EventCompression));
-   qt->addConstant("WA_TintedBackground",      new QoreNode((int64)Qt::WA_TintedBackground));
-   qt->addConstant("WA_X11OpenGLOverlay",      new QoreNode((int64)Qt::WA_X11OpenGLOverlay));
-   qt->addConstant("WA_AlwaysShowToolTips",    new QoreNode((int64)Qt::WA_AlwaysShowToolTips));
-   qt->addConstant("WA_MacOpaqueSizeGrip",     new QoreNode((int64)Qt::WA_MacOpaqueSizeGrip));
-   qt->addConstant("WA_SetStyle",              new QoreNode((int64)Qt::WA_SetStyle));
-   qt->addConstant("WA_SetLocale",             new QoreNode((int64)Qt::WA_SetLocale));
-   qt->addConstant("WA_MacShowFocusRect",      new QoreNode((int64)Qt::WA_MacShowFocusRect));
-   qt->addConstant("WA_MacNormalSize",         new QoreNode((int64)Qt::WA_MacNormalSize));
-   qt->addConstant("WA_MacSmallSize",          new QoreNode((int64)Qt::WA_MacSmallSize));
-   qt->addConstant("WA_MacMiniSize",           new QoreNode((int64)Qt::WA_MacMiniSize));
-   qt->addConstant("WA_LayoutUsesWidgetRect",  new QoreNode((int64)Qt::WA_LayoutUsesWidgetRect));
-   qt->addConstant("WA_StyledBackground",      new QoreNode((int64)Qt::WA_StyledBackground));
-   qt->addConstant("WA_MSWindowsUseDirect3D",  new QoreNode((int64)Qt::WA_MSWindowsUseDirect3D));
-   qt->addConstant("WA_CanHostQMdiSubWindowTitleBar", new QoreNode((int64)Qt::WA_CanHostQMdiSubWindowTitleBar));
-   qt->addConstant("WA_MacAlwaysShowToolWindow", new QoreNode((int64)Qt::WA_MacAlwaysShowToolWindow));
-   qt->addConstant("WA_StyleSheet",            new QoreNode((int64)Qt::WA_StyleSheet));
-   qt->addConstant("WA_AttributeCount",        new QoreNode((int64)Qt::WA_AttributeCount));
+   qt_ns->addConstant("WA_Disabled",              new QoreNode((int64)Qt::WA_Disabled));
+   qt_ns->addConstant("WA_UnderMouse",            new QoreNode((int64)Qt::WA_UnderMouse));
+   qt_ns->addConstant("WA_MouseTracking",         new QoreNode((int64)Qt::WA_MouseTracking));
+   qt_ns->addConstant("WA_ContentsPropagated",    new QoreNode((int64)Qt::WA_ContentsPropagated));
+   qt_ns->addConstant("WA_OpaquePaintEvent",      new QoreNode((int64)Qt::WA_OpaquePaintEvent));
+   qt_ns->addConstant("WA_NoBackground",          new QoreNode((int64)Qt::WA_NoBackground));
+   qt_ns->addConstant("WA_StaticContents",        new QoreNode((int64)Qt::WA_StaticContents));
+   qt_ns->addConstant("WA_LaidOut",               new QoreNode((int64)Qt::WA_LaidOut));
+   qt_ns->addConstant("WA_PaintOnScreen",         new QoreNode((int64)Qt::WA_PaintOnScreen));
+   qt_ns->addConstant("WA_NoSystemBackground",    new QoreNode((int64)Qt::WA_NoSystemBackground));
+   qt_ns->addConstant("WA_UpdatesDisabled",       new QoreNode((int64)Qt::WA_UpdatesDisabled));
+   qt_ns->addConstant("WA_Mapped",                new QoreNode((int64)Qt::WA_Mapped));
+   qt_ns->addConstant("WA_MacNoClickThrough",     new QoreNode((int64)Qt::WA_MacNoClickThrough));
+   qt_ns->addConstant("WA_PaintOutsidePaintEvent", new QoreNode((int64)Qt::WA_PaintOutsidePaintEvent));
+   qt_ns->addConstant("WA_InputMethodEnabled",    new QoreNode((int64)Qt::WA_InputMethodEnabled));
+   qt_ns->addConstant("WA_WState_Visible",        new QoreNode((int64)Qt::WA_WState_Visible));
+   qt_ns->addConstant("WA_WState_Hidden",         new QoreNode((int64)Qt::WA_WState_Hidden));
+   qt_ns->addConstant("WA_ForceDisabled",         new QoreNode((int64)Qt::WA_ForceDisabled));
+   qt_ns->addConstant("WA_KeyCompression",        new QoreNode((int64)Qt::WA_KeyCompression));
+   qt_ns->addConstant("WA_PendingMoveEvent",      new QoreNode((int64)Qt::WA_PendingMoveEvent));
+   qt_ns->addConstant("WA_PendingResizeEvent",    new QoreNode((int64)Qt::WA_PendingResizeEvent));
+   qt_ns->addConstant("WA_SetPalette",            new QoreNode((int64)Qt::WA_SetPalette));
+   qt_ns->addConstant("WA_SetFont",               new QoreNode((int64)Qt::WA_SetFont));
+   qt_ns->addConstant("WA_SetCursor",             new QoreNode((int64)Qt::WA_SetCursor));
+   qt_ns->addConstant("WA_NoChildEventsFromChildren", new QoreNode((int64)Qt::WA_NoChildEventsFromChildren));
+   qt_ns->addConstant("WA_WindowModified",        new QoreNode((int64)Qt::WA_WindowModified));
+   qt_ns->addConstant("WA_Resized",               new QoreNode((int64)Qt::WA_Resized));
+   qt_ns->addConstant("WA_Moved",                 new QoreNode((int64)Qt::WA_Moved));
+   qt_ns->addConstant("WA_PendingUpdate",         new QoreNode((int64)Qt::WA_PendingUpdate));
+   qt_ns->addConstant("WA_InvalidSize",           new QoreNode((int64)Qt::WA_InvalidSize));
+   qt_ns->addConstant("WA_MacBrushedMetal",       new QoreNode((int64)Qt::WA_MacBrushedMetal));
+   qt_ns->addConstant("WA_MacMetalStyle",         new QoreNode((int64)Qt::WA_MacMetalStyle));
+   qt_ns->addConstant("WA_CustomWhatsThis",       new QoreNode((int64)Qt::WA_CustomWhatsThis));
+   qt_ns->addConstant("WA_LayoutOnEntireRect",    new QoreNode((int64)Qt::WA_LayoutOnEntireRect));
+   qt_ns->addConstant("WA_OutsideWSRange",        new QoreNode((int64)Qt::WA_OutsideWSRange));
+   qt_ns->addConstant("WA_GrabbedShortcut",       new QoreNode((int64)Qt::WA_GrabbedShortcut));
+   qt_ns->addConstant("WA_TransparentForMouseEvents", new QoreNode((int64)Qt::WA_TransparentForMouseEvents));
+   qt_ns->addConstant("WA_PaintUnclipped",        new QoreNode((int64)Qt::WA_PaintUnclipped));
+   qt_ns->addConstant("WA_SetWindowIcon",         new QoreNode((int64)Qt::WA_SetWindowIcon));
+   qt_ns->addConstant("WA_NoMouseReplay",         new QoreNode((int64)Qt::WA_NoMouseReplay));
+   qt_ns->addConstant("WA_DeleteOnClose",         new QoreNode((int64)Qt::WA_DeleteOnClose));
+   qt_ns->addConstant("WA_RightToLeft",           new QoreNode((int64)Qt::WA_RightToLeft));
+   qt_ns->addConstant("WA_SetLayoutDirection",    new QoreNode((int64)Qt::WA_SetLayoutDirection));
+   qt_ns->addConstant("WA_NoChildEventsForParent", new QoreNode((int64)Qt::WA_NoChildEventsForParent));
+   qt_ns->addConstant("WA_ForceUpdatesDisabled",  new QoreNode((int64)Qt::WA_ForceUpdatesDisabled));
+   qt_ns->addConstant("WA_WState_Created",        new QoreNode((int64)Qt::WA_WState_Created));
+   qt_ns->addConstant("WA_WState_CompressKeys",   new QoreNode((int64)Qt::WA_WState_CompressKeys));
+   qt_ns->addConstant("WA_WState_InPaintEvent",   new QoreNode((int64)Qt::WA_WState_InPaintEvent));
+   qt_ns->addConstant("WA_WState_Reparented",     new QoreNode((int64)Qt::WA_WState_Reparented));
+   qt_ns->addConstant("WA_WState_ConfigPending",  new QoreNode((int64)Qt::WA_WState_ConfigPending));
+   qt_ns->addConstant("WA_WState_Polished",       new QoreNode((int64)Qt::WA_WState_Polished));
+   qt_ns->addConstant("WA_WState_DND",            new QoreNode((int64)Qt::WA_WState_DND));
+   qt_ns->addConstant("WA_WState_OwnSizePolicy",  new QoreNode((int64)Qt::WA_WState_OwnSizePolicy));
+   qt_ns->addConstant("WA_WState_ExplicitShowHide", new QoreNode((int64)Qt::WA_WState_ExplicitShowHide));
+   qt_ns->addConstant("WA_ShowModal",             new QoreNode((int64)Qt::WA_ShowModal));
+   qt_ns->addConstant("WA_MouseNoMask",           new QoreNode((int64)Qt::WA_MouseNoMask));
+   qt_ns->addConstant("WA_GroupLeader",           new QoreNode((int64)Qt::WA_GroupLeader));
+   qt_ns->addConstant("WA_NoMousePropagation",    new QoreNode((int64)Qt::WA_NoMousePropagation));
+   qt_ns->addConstant("WA_Hover",                 new QoreNode((int64)Qt::WA_Hover));
+   qt_ns->addConstant("WA_InputMethodTransparent", new QoreNode((int64)Qt::WA_InputMethodTransparent));
+   qt_ns->addConstant("WA_QuitOnClose",           new QoreNode((int64)Qt::WA_QuitOnClose));
+   qt_ns->addConstant("WA_KeyboardFocusChange",   new QoreNode((int64)Qt::WA_KeyboardFocusChange));
+   qt_ns->addConstant("WA_AcceptDrops",           new QoreNode((int64)Qt::WA_AcceptDrops));
+   qt_ns->addConstant("WA_DropSiteRegistered",    new QoreNode((int64)Qt::WA_DropSiteRegistered));
+   qt_ns->addConstant("WA_ForceAcceptDrops",      new QoreNode((int64)Qt::WA_ForceAcceptDrops));
+   qt_ns->addConstant("WA_WindowPropagation",     new QoreNode((int64)Qt::WA_WindowPropagation));
+   qt_ns->addConstant("WA_NoX11EventCompression", new QoreNode((int64)Qt::WA_NoX11EventCompression));
+   qt_ns->addConstant("WA_TintedBackground",      new QoreNode((int64)Qt::WA_TintedBackground));
+   qt_ns->addConstant("WA_X11OpenGLOverlay",      new QoreNode((int64)Qt::WA_X11OpenGLOverlay));
+   qt_ns->addConstant("WA_AlwaysShowToolTips",    new QoreNode((int64)Qt::WA_AlwaysShowToolTips));
+   qt_ns->addConstant("WA_MacOpaqueSizeGrip",     new QoreNode((int64)Qt::WA_MacOpaqueSizeGrip));
+   qt_ns->addConstant("WA_SetStyle",              new QoreNode((int64)Qt::WA_SetStyle));
+   qt_ns->addConstant("WA_SetLocale",             new QoreNode((int64)Qt::WA_SetLocale));
+   qt_ns->addConstant("WA_MacShowFocusRect",      new QoreNode((int64)Qt::WA_MacShowFocusRect));
+   qt_ns->addConstant("WA_MacNormalSize",         new QoreNode((int64)Qt::WA_MacNormalSize));
+   qt_ns->addConstant("WA_MacSmallSize",          new QoreNode((int64)Qt::WA_MacSmallSize));
+   qt_ns->addConstant("WA_MacMiniSize",           new QoreNode((int64)Qt::WA_MacMiniSize));
+   qt_ns->addConstant("WA_LayoutUsesWidgetRect",  new QoreNode((int64)Qt::WA_LayoutUsesWidgetRect));
+   qt_ns->addConstant("WA_StyledBackground",      new QoreNode((int64)Qt::WA_StyledBackground));
+   qt_ns->addConstant("WA_MSWindowsUseDirect3D",  new QoreNode((int64)Qt::WA_MSWindowsUseDirect3D));
+   qt_ns->addConstant("WA_CanHostQMdiSubWindowTitleBar", new QoreNode((int64)Qt::WA_CanHostQMdiSubWindowTitleBar));
+   qt_ns->addConstant("WA_MacAlwaysShowToolWindow", new QoreNode((int64)Qt::WA_MacAlwaysShowToolWindow));
+   qt_ns->addConstant("WA_StyleSheet",            new QoreNode((int64)Qt::WA_StyleSheet));
+   qt_ns->addConstant("WA_AttributeCount",        new QoreNode((int64)Qt::WA_AttributeCount));
    
    // WindowType enum
-   qt->addConstant("Widget",                   new QoreNode((int64)Qt::Widget));
-   qt->addConstant("Window",                   new QoreNode((int64)Qt::Window));
-   qt->addConstant("Dialog",                   new QoreNode((int64)Qt::Dialog));
-   qt->addConstant("Sheet",                    new QoreNode((int64)Qt::Sheet));
-   qt->addConstant("Drawer",                   new QoreNode((int64)Qt::Drawer));
-   qt->addConstant("Popup",                    new QoreNode((int64)Qt::Popup));
-   qt->addConstant("Tool",                     new QoreNode((int64)Qt::Tool));
-   qt->addConstant("ToolTip",                  new QoreNode((int64)Qt::ToolTip));
-   qt->addConstant("SplashScreen",             new QoreNode((int64)Qt::SplashScreen));
-   qt->addConstant("Desktop",                  new QoreNode((int64)Qt::Desktop));
-   qt->addConstant("SubWindow",                new QoreNode((int64)Qt::SubWindow));
-   qt->addConstant("WindowType_Mask",          new QoreNode((int64)Qt::WindowType_Mask));
-   qt->addConstant("MSWindowsFixedSizeDialogHint", new QoreNode((int64)Qt::MSWindowsFixedSizeDialogHint));
-   qt->addConstant("MSWindowsOwnDC",           new QoreNode((int64)Qt::MSWindowsOwnDC));
-   qt->addConstant("X11BypassWindowManagerHint", new QoreNode((int64)Qt::X11BypassWindowManagerHint));
-   qt->addConstant("FramelessWindowHint",      new QoreNode((int64)Qt::FramelessWindowHint));
-   qt->addConstant("WindowTitleHint",          new QoreNode((int64)Qt::WindowTitleHint));
-   qt->addConstant("WindowSystemMenuHint",     new QoreNode((int64)Qt::WindowSystemMenuHint));
-   qt->addConstant("WindowMinimizeButtonHint", new QoreNode((int64)Qt::WindowMinimizeButtonHint));
-   qt->addConstant("WindowMaximizeButtonHint", new QoreNode((int64)Qt::WindowMaximizeButtonHint));
-   qt->addConstant("WindowMinMaxButtonsHint",  new QoreNode((int64)Qt::WindowMinMaxButtonsHint));
-   qt->addConstant("WindowContextHelpButtonHint", new QoreNode((int64)Qt::WindowContextHelpButtonHint));
-   qt->addConstant("WindowShadeButtonHint",    new QoreNode((int64)Qt::WindowShadeButtonHint));
-   qt->addConstant("WindowStaysOnTopHint",     new QoreNode((int64)Qt::WindowStaysOnTopHint));
-   qt->addConstant("CustomizeWindowHint",      new QoreNode((int64)Qt::CustomizeWindowHint));
+   qt_ns->addConstant("Widget",                   new QoreNode((int64)Qt::Widget));
+   qt_ns->addConstant("Window",                   new QoreNode((int64)Qt::Window));
+   qt_ns->addConstant("Dialog",                   new QoreNode((int64)Qt::Dialog));
+   qt_ns->addConstant("Sheet",                    new QoreNode((int64)Qt::Sheet));
+   qt_ns->addConstant("Drawer",                   new QoreNode((int64)Qt::Drawer));
+   qt_ns->addConstant("Popup",                    new QoreNode((int64)Qt::Popup));
+   qt_ns->addConstant("Tool",                     new QoreNode((int64)Qt::Tool));
+   qt_ns->addConstant("ToolTip",                  new QoreNode((int64)Qt::ToolTip));
+   qt_ns->addConstant("SplashScreen",             new QoreNode((int64)Qt::SplashScreen));
+   qt_ns->addConstant("Desktop",                  new QoreNode((int64)Qt::Desktop));
+   qt_ns->addConstant("SubWindow",                new QoreNode((int64)Qt::SubWindow));
+   qt_ns->addConstant("WindowType_Mask",          new QoreNode((int64)Qt::WindowType_Mask));
+   qt_ns->addConstant("MSWindowsFixedSizeDialogHint", new QoreNode((int64)Qt::MSWindowsFixedSizeDialogHint));
+   qt_ns->addConstant("MSWindowsOwnDC",           new QoreNode((int64)Qt::MSWindowsOwnDC));
+   qt_ns->addConstant("X11BypassWindowManagerHint", new QoreNode((int64)Qt::X11BypassWindowManagerHint));
+   qt_ns->addConstant("FramelessWindowHint",      new QoreNode((int64)Qt::FramelessWindowHint));
+   qt_ns->addConstant("WindowTitleHint",          new QoreNode((int64)Qt::WindowTitleHint));
+   qt_ns->addConstant("WindowSystemMenuHint",     new QoreNode((int64)Qt::WindowSystemMenuHint));
+   qt_ns->addConstant("WindowMinimizeButtonHint", new QoreNode((int64)Qt::WindowMinimizeButtonHint));
+   qt_ns->addConstant("WindowMaximizeButtonHint", new QoreNode((int64)Qt::WindowMaximizeButtonHint));
+   qt_ns->addConstant("WindowMinMaxButtonsHint",  new QoreNode((int64)Qt::WindowMinMaxButtonsHint));
+   qt_ns->addConstant("WindowContextHelpButtonHint", new QoreNode((int64)Qt::WindowContextHelpButtonHint));
+   qt_ns->addConstant("WindowShadeButtonHint",    new QoreNode((int64)Qt::WindowShadeButtonHint));
+   qt_ns->addConstant("WindowStaysOnTopHint",     new QoreNode((int64)Qt::WindowStaysOnTopHint));
+   qt_ns->addConstant("CustomizeWindowHint",      new QoreNode((int64)Qt::CustomizeWindowHint));
 
    // FocusPolicy enum
-   qt->addConstant("NoFocus",                  new QoreNode((int64)Qt::NoFocus));
-   qt->addConstant("TabFocus",                 new QoreNode((int64)Qt::TabFocus));
-   qt->addConstant("ClickFocus",               new QoreNode((int64)Qt::ClickFocus));
-   qt->addConstant("StrongFocus",              new QoreNode((int64)Qt::StrongFocus));
-   qt->addConstant("WheelFocus",               new QoreNode((int64)Qt::WheelFocus));
+   qt_ns->addConstant("NoFocus",                  new QoreNode((int64)Qt::NoFocus));
+   qt_ns->addConstant("TabFocus",                 new QoreNode((int64)Qt::TabFocus));
+   qt_ns->addConstant("ClickFocus",               new QoreNode((int64)Qt::ClickFocus));
+   qt_ns->addConstant("StrongFocus",              new QoreNode((int64)Qt::StrongFocus));
+   qt_ns->addConstant("WheelFocus",               new QoreNode((int64)Qt::WheelFocus));
 
    // ConnectionType enum
-   qt->addConstant("AutoConnection",           new QoreNode((int64)Qt::AutoConnection));
-   qt->addConstant("DirectConnection",         new QoreNode((int64)Qt::DirectConnection));
-   qt->addConstant("QueuedConnection",         new QoreNode((int64)Qt::QueuedConnection));
-   qt->addConstant("AutoCompatConnection",     new QoreNode((int64)Qt::AutoCompatConnection));
-   qt->addConstant("BlockingQueuedConnection", new QoreNode((int64)Qt::BlockingQueuedConnection));
+   qt_ns->addConstant("AutoConnection",           new QoreNode((int64)Qt::AutoConnection));
+   qt_ns->addConstant("DirectConnection",         new QoreNode((int64)Qt::DirectConnection));
+   qt_ns->addConstant("QueuedConnection",         new QoreNode((int64)Qt::QueuedConnection));
+   qt_ns->addConstant("AutoCompatConnection",     new QoreNode((int64)Qt::AutoCompatConnection));
+   qt_ns->addConstant("BlockingQueuedConnection", new QoreNode((int64)Qt::BlockingQueuedConnection));
 
    // DateFormat enum
-   qt->addConstant("TextDate",                 new QoreNode((int64)Qt::TextDate));
-   qt->addConstant("ISODate",                  new QoreNode((int64)Qt::ISODate));
-   qt->addConstant("SystemLocaleDate",         new QoreNode((int64)Qt::SystemLocaleDate));
-   qt->addConstant("LocalDate",                new QoreNode((int64)Qt::LocalDate));
-   qt->addConstant("LocaleDate",               new QoreNode((int64)Qt::LocaleDate));
+   qt_ns->addConstant("TextDate",                 new QoreNode((int64)Qt::TextDate));
+   qt_ns->addConstant("ISODate",                  new QoreNode((int64)Qt::ISODate));
+   qt_ns->addConstant("SystemLocaleDate",         new QoreNode((int64)Qt::SystemLocaleDate));
+   qt_ns->addConstant("LocalDate",                new QoreNode((int64)Qt::LocalDate));
+   qt_ns->addConstant("LocaleDate",               new QoreNode((int64)Qt::LocaleDate));
 
    // TimeSpec enum
-   qt->addConstant("LocalTime",                new QoreNode((int64)Qt::LocalTime));
-   qt->addConstant("UTC",                      new QoreNode((int64)Qt::UTC));
+   qt_ns->addConstant("LocalTime",                new QoreNode((int64)Qt::LocalTime));
+   qt_ns->addConstant("UTC",                      new QoreNode((int64)Qt::UTC));
 
    // ScrollBarPolicy enum
-   qt->addConstant("ScrollBarAsNeeded",        new QoreNode((int64)Qt::ScrollBarAsNeeded));
-   qt->addConstant("ScrollBarAlwaysOff",       new QoreNode((int64)Qt::ScrollBarAlwaysOff));
-   qt->addConstant("ScrollBarAlwaysOn",        new QoreNode((int64)Qt::ScrollBarAlwaysOn));
+   qt_ns->addConstant("ScrollBarAsNeeded",        new QoreNode((int64)Qt::ScrollBarAsNeeded));
+   qt_ns->addConstant("ScrollBarAlwaysOff",       new QoreNode((int64)Qt::ScrollBarAlwaysOff));
+   qt_ns->addConstant("ScrollBarAlwaysOn",        new QoreNode((int64)Qt::ScrollBarAlwaysOn));
 
    // CaseSensitivity enum
-   qt->addConstant("CaseInsensitive",          new QoreNode((int64)Qt::CaseInsensitive));
-   qt->addConstant("CaseSensitive",            new QoreNode((int64)Qt::CaseSensitive));
+   qt_ns->addConstant("CaseInsensitive",          new QoreNode((int64)Qt::CaseInsensitive));
+   qt_ns->addConstant("CaseSensitive",            new QoreNode((int64)Qt::CaseSensitive));
 
    // Corner enum
-   qt->addConstant("TopLeftCorner",            new QoreNode((int64)Qt::TopLeftCorner));
-   qt->addConstant("TopRightCorner",           new QoreNode((int64)Qt::TopRightCorner));
-   qt->addConstant("BottomLeftCorner",         new QoreNode((int64)Qt::BottomLeftCorner));
-   qt->addConstant("BottomRightCorner",        new QoreNode((int64)Qt::BottomRightCorner));
+   qt_ns->addConstant("TopLeftCorner",            new QoreNode((int64)Qt::TopLeftCorner));
+   qt_ns->addConstant("TopRightCorner",           new QoreNode((int64)Qt::TopRightCorner));
+   qt_ns->addConstant("BottomLeftCorner",         new QoreNode((int64)Qt::BottomLeftCorner));
+   qt_ns->addConstant("BottomRightCorner",        new QoreNode((int64)Qt::BottomRightCorner));
 
    // ShortcutContext enum
-   qt->addConstant("WidgetShortcut",           new QoreNode((int64)Qt::WidgetShortcut));
-   qt->addConstant("WindowShortcut",           new QoreNode((int64)Qt::WindowShortcut));
-   qt->addConstant("ApplicationShortcut",      new QoreNode((int64)Qt::ApplicationShortcut));
+   qt_ns->addConstant("WidgetShortcut",           new QoreNode((int64)Qt::WidgetShortcut));
+   qt_ns->addConstant("WindowShortcut",           new QoreNode((int64)Qt::WindowShortcut));
+   qt_ns->addConstant("ApplicationShortcut",      new QoreNode((int64)Qt::ApplicationShortcut));
 
    // FillRule enum
-   qt->addConstant("OddEvenFill",              new QoreNode((int64)Qt::OddEvenFill));
-   qt->addConstant("WindingFill",              new QoreNode((int64)Qt::WindingFill));
+   qt_ns->addConstant("OddEvenFill",              new QoreNode((int64)Qt::OddEvenFill));
+   qt_ns->addConstant("WindingFill",              new QoreNode((int64)Qt::WindingFill));
 
    // MaskMode enum
-   qt->addConstant("MaskInColor",              new QoreNode((int64)Qt::MaskInColor));
-   qt->addConstant("MaskOutColor",             new QoreNode((int64)Qt::MaskOutColor));
+   qt_ns->addConstant("MaskInColor",              new QoreNode((int64)Qt::MaskInColor));
+   qt_ns->addConstant("MaskOutColor",             new QoreNode((int64)Qt::MaskOutColor));
 
    // ClipOperation enum
-   qt->addConstant("NoClip",                   new QoreNode((int64)Qt::NoClip));
-   qt->addConstant("ReplaceClip",              new QoreNode((int64)Qt::ReplaceClip));
-   qt->addConstant("IntersectClip",            new QoreNode((int64)Qt::IntersectClip));
-   qt->addConstant("UniteClip",                new QoreNode((int64)Qt::UniteClip));
+   qt_ns->addConstant("NoClip",                   new QoreNode((int64)Qt::NoClip));
+   qt_ns->addConstant("ReplaceClip",              new QoreNode((int64)Qt::ReplaceClip));
+   qt_ns->addConstant("IntersectClip",            new QoreNode((int64)Qt::IntersectClip));
+   qt_ns->addConstant("UniteClip",                new QoreNode((int64)Qt::UniteClip));
 
    // LayoutDirection enum
-   qt->addConstant("LeftToRight",              new QoreNode((int64)Qt::LeftToRight));
-   qt->addConstant("RightToLeft",              new QoreNode((int64)Qt::RightToLeft));
+   qt_ns->addConstant("LeftToRight",              new QoreNode((int64)Qt::LeftToRight));
+   qt_ns->addConstant("RightToLeft",              new QoreNode((int64)Qt::RightToLeft));
 
    // ItemSelectionMode
-   qt->addConstant("ContainsItemShape",        new QoreNode((int64)Qt::ContainsItemShape));
-   qt->addConstant("IntersectsItemShape",      new QoreNode((int64)Qt::IntersectsItemShape));
-   qt->addConstant("ContainsItemBoundingRect", new QoreNode((int64)Qt::ContainsItemBoundingRect));
-   qt->addConstant("IntersectsItemBoundingRect", new QoreNode((int64)Qt::IntersectsItemBoundingRect));
+   qt_ns->addConstant("ContainsItemShape",        new QoreNode((int64)Qt::ContainsItemShape));
+   qt_ns->addConstant("IntersectsItemShape",      new QoreNode((int64)Qt::IntersectsItemShape));
+   qt_ns->addConstant("ContainsItemBoundingRect", new QoreNode((int64)Qt::ContainsItemBoundingRect));
+   qt_ns->addConstant("IntersectsItemBoundingRect", new QoreNode((int64)Qt::IntersectsItemBoundingRect));
 
    // TransformationMode enum
-   qt->addConstant("FastTransformation",       new QoreNode((int64)Qt::FastTransformation));
-   qt->addConstant("SmoothTransformation",     new QoreNode((int64)Qt::SmoothTransformation));
+   qt_ns->addConstant("FastTransformation",       new QoreNode((int64)Qt::FastTransformation));
+   qt_ns->addConstant("SmoothTransformation",     new QoreNode((int64)Qt::SmoothTransformation));
 
    // Axis enum
-   qt->addConstant("XAxis",                    new QoreNode((int64)Qt::XAxis));
-   qt->addConstant("YAxis",                    new QoreNode((int64)Qt::YAxis));
-   qt->addConstant("ZAxis",                    new QoreNode((int64)Qt::ZAxis));
+   qt_ns->addConstant("XAxis",                    new QoreNode((int64)Qt::XAxis));
+   qt_ns->addConstant("YAxis",                    new QoreNode((int64)Qt::YAxis));
+   qt_ns->addConstant("ZAxis",                    new QoreNode((int64)Qt::ZAxis));
 
-   qns->addInitialNamespace(qt);
+}
+
+static class QoreString *qt_module_init()
+{
+   // add new types
+   addBrushStyleType();
+   addPenStyleType();
+   
+   // initialize namespace (must come after type initialization)
+   init_namespace();
+
+   builtinFunctions.add("QObject_connect",            f_QObject_connect);
+   builtinFunctions.add("SLOT",                       f_SLOT);
+   builtinFunctions.add("SIGNAL",                     f_SIGNAL);
+   builtinFunctions.add("TR",                         f_TR);
+   builtinFunctions.add("QAPP",                       f_QAPP);
+   builtinFunctions.add("qDebug",                     f_qDebug);
+   builtinFunctions.add("qWarning",                   f_qWarning);
+   builtinFunctions.add("qCritical",                  f_qCritical);
+   builtinFunctions.add("qFatal",                     f_qFatal);
+   builtinFunctions.add("qRound",                     f_qRound);
+   builtinFunctions.add("qsrand",                     f_qsrand);
+   builtinFunctions.add("qrand",                      f_qrand);
+
+   // QToolTip static functions
+   builtinFunctions.add("QToolTip_font",              f_QToolTip_font);
+   builtinFunctions.add("QToolTip_hideText",          f_QToolTip_hideText);
+   builtinFunctions.add("QToolTip_palette",           f_QToolTip_palette);
+   builtinFunctions.add("QToolTip_setFont",           f_QToolTip_setFont);
+   builtinFunctions.add("QToolTip_setPalette",        f_QToolTip_setPalette);
+   builtinFunctions.add("QToolTip_showText",          f_QToolTip_showText);
+
+   // QStyleFactory static functions
+   builtinFunctions.add("QStyleFactory_create",       f_QStyleFactory_create);
+   builtinFunctions.add("QStyleFactory_keys",         f_QStyleFactory_keys);
+
+   // add static class functions as builtin functions
+   initQCoreApplicationStaticFunctions();
+   initQApplicationStaticFunctions();
+   initQLocaleStaticFunctions();
+   initQFontDatabaseStaticFunctions();
+   initQMessageBoxStaticFunctions();
+   initQPixmapStaticFunctions();
+   initQFileDialogStaticFunctions();
+   initQDirStaticFunctions();
+   initQMovieStaticFunctions();
+   initQColorDialogStaticFunctions();
+   initQInputDialogStaticFunctions();
+   initQImageWriterStaticFunctions();
+   initQColorStaticFunctions();
+   initQTimerStaticFunctions();
+   initQSystemTrayIconStaticFunctions();
+   initQLibraryInfoStaticFunctions();
+
+   return 0;
+}
+
+static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
+{
+   qns->addInitialNamespace(qt_ns->copy());
 }
 
 static void qt_module_delete()
@@ -3349,4 +3358,5 @@ static void qt_module_delete()
       ExceptionSink xsink;
       C_Clipboard->deref(&xsink);
    }
+   delete qt_ns;
 }

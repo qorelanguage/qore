@@ -1,5 +1,7 @@
 2007.12.13: David Nichols
 	* fixed tibae namespace handling for subprogram objects
+	* fixed ncurses, pgsql, tibrv, tuxedo, and qt module namespace handling
+	  for subprogram objects
 
 2007.12.10: David Nichols
 	* made some more QoreMethod functions public
