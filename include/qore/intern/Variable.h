@@ -32,9 +32,7 @@
 #define GV_VALUE  1
 #define GV_IMPORT 2
 
-#include <qore/common.h>
-#include <qore/ReferenceObject.h>
-#include <qore/VRMutex.h>
+#include <qore/intern/VRMutex.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -147,7 +145,5 @@ DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
 DLLLOCAL class LVar *find_lvar(lvh_t id);
 
 DLLLOCAL extern class QoreHash *ENV;
-
-DLLEXPORT class QoreNode **get_var_value_ptr(class QoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
 
 #endif // _QORE_VARIABLE_H

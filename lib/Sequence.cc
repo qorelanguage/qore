@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/Sequence.h>
+#include <qore/intern/Sequence.h>
 
 Sequence::Sequence(int start)
 {

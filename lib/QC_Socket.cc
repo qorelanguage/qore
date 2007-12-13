@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QC_Socket.h>
-#include <qore/ssl_constants.h>
+#include <qore/intern/ssl_constants.h>
 
 #include <errno.h>
 #include <string.h>

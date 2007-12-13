@@ -26,8 +26,7 @@
 
 #define _QORE_CLASS_GATE_H
 
-#include <qore/VRMutex.h>
-#include <qore/AbstractPrivateData.h>
+#include <qore/intern/VRMutex.h>
 
 DLLEXPORT extern int CID_GATE;
 

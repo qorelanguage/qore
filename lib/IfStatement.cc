@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/IfStatement.h>
-#include <qore/Variable.h>
 
 IfStatement::IfStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *i, class StatementBlock *e) : AbstractStatement(start_line, end_line)
 {

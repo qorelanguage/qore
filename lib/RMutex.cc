@@ -23,7 +23,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/RMutex.h>
+#include <qore/intern/RMutex.h>
 
 extern pthread_mutexattr_t ma_recursive;
 

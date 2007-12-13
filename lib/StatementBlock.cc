@@ -23,9 +23,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/ParserSupport.h>
-#include <qore/QoreWarnings.h>
-#include <qore/minitest.hpp>
 #include <qore/intern/Find.h>
+#include <qore/minitest.hpp>
 
 #include <stdio.h>
 #include <stdlib.h>

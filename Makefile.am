@@ -18,33 +18,21 @@ noinst_HEADERS = \
 	include/qore/QoreProgram.h \
 	include/qore/ReferenceObject.h \
 	include/qore/AbstractPrivateData.h \
-	include/qore/SmartMutex.h \
 	include/qore/QoreType.h \
 	include/qore/QoreList.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
 	include/qore/BuiltinFunctionList.h \
-	include/qore/UserFunctionList.h \
-	include/qore/Variable.h \
-	include/qore/TypeConstants.h \
-	include/qore/Sequence.h \
 	include/qore/LockedObject.h \
-	include/qore/RWLock.h \
-	include/qore/RMutex.h \
-	include/qore/VRMutex.h \
 	include/qore/QoreClass.h \
 	include/qore/QoreString.h \
-	include/qore/Reference.h \
 	include/qore/common.h \
 	include/qore/config.h \
-	include/qore/proto.h \
 	include/qore/charset.h \
 	include/qore/DateTime.h \
 	include/qore/support.h \
 	include/qore/QoreException.h \
 	include/qore/QoreHash.h \
-	include/qore/Tree.h \
-	include/qore/ScopedObjectCall.h \
 	include/qore/QoreNode.h \
 	include/qore/ModuleManager.h \
 	include/qore/QoreNamespace.h \
@@ -66,9 +54,7 @@ noinst_HEADERS = \
 	include/qore/StringList.h \
 	include/qore/safe_dslist \
 	include/qore/qore_bitopts.h \
-	include/qore/ssl_constants.h \
 	include/qore/QoreSSLBase.h \
-	include/qore/QoreWarnings.h \
 	include/qore/Datasource.h \
 	include/qore/Environment.h \
 	include/qore/ParseOptionMap.h \
@@ -76,12 +62,24 @@ noinst_HEADERS = \
 	include/qore/DBI.h \
 	include/qore/ScopeGuard.h \
 	include/qore/minitest.hpp \
-	include/qore/inline_printf.h \
 	include/qore/ReferenceHolder.h \
 	include/qore/QoreSSLCertificate.h \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
+	include/qore/intern/ssl_constants.h \
+	include/qore/intern/qore_thread_intern.h \
+	include/qore/intern/inline_printf.h \
+	include/qore/intern/VRMutex.h \
+	include/qore/intern/Variable.h \
+	include/qore/intern/UserFunctionList.h \
+	include/qore/intern/TypeConstants.h \
+	include/qore/intern/Tree.h \
+	include/qore/intern/SmartMutex.h \
+	include/qore/intern/Sequence.h \
+	include/qore/intern/ScopedObjectCall.h \
+	include/qore/intern/RWLock.h \
+	include/qore/intern/RMutex.h \
 	include/qore/intern/SSLSocketHelper.h \
 	include/qore/intern/QoreSignal.h \
 	include/qore/intern/RegexSubst.h \

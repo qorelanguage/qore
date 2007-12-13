@@ -23,8 +23,6 @@
 #include <qore/Qore.h>
 #include <qore/intern/ForStatement.h>
 #include <qore/intern/StatementBlock.h>
-#include <qore/Variable.h>
-#include <qore/Tree.h>
 
 ForStatement::ForStatement(int start_line, int end_line, class QoreNode *a, class QoreNode *c, class QoreNode *i, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
 {

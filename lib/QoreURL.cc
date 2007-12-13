@@ -27,223 +27,235 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-void QoreURL::zero()
-{
-   protocol = path = username = password = host = NULL;
-   port = 0;
-}
+struct qore_url_private {
+      class QoreString *protocol, *path, *username, *password, *host;
+      int port;
 
-void QoreURL::reset()
-{
-   if (protocol)
-      delete protocol;
-   if (path)
-      delete path;
-   if (username)
-      delete username;
-   if (password)
-      delete password;
-   if (host)
-      delete host;
-}
-
-void QoreURL::parseIntern(const char *buf)
-{
-   if (!buf || !buf[0])
-      return;
-   
-   printd(5, "QoreURL::parseIntern(%s)\n", buf);
-   
-   char *p = (char *)strstr(buf, "://");
-   const char *pos;
-   
-   // get protocol
-   if (p)
-   {
-      protocol = new QoreString(buf, p - buf);
-      // convert to lower case
-      protocol->tolwr();
-      printd(5, "QoreURL::parseIntern protocol=%s\n", protocol->getBuffer());
-      pos = p + 3;
-   }
-   else
-      pos = buf;
-   
-   char *nbuf;
-   
-   // find end of hostname
-   if ((p = (char *)strchr(pos, '/')))
-   {
-      // get pathname if not at EOS
-      if (p[1] != '\0')
+      DLLLOCAL qore_url_private()
       {
-	 path = new QoreString(p);
-	 printd(5, "QoreURL::parseIntern path=%s\n", path->getBuffer());
+	 zero();
       }
-      // get copy of hostname string for localized searching and invasive parsing
-      nbuf = (char *)malloc(sizeof(char) * (p - pos + 1));
-      strncpy(nbuf, pos, p - pos);
-      nbuf[p - pos] = '\0';
-   }
-   else
-      nbuf = strdup(pos);
-   
-   // see if there's a username
-   // note that nbuf here has already had the path removed so we can safely do a reverse search for the '@' sign
-   if ((p = strrchr(nbuf, '@')))
-   {
-      pos = p + 1;
-      *p = '\0';
-      // see if there's a password
-      if ((p = strchr(nbuf, ':')))
+
+      DLLLOCAL ~qore_url_private()
       {
-	 printd(5, "QoreURL::parseIntern password=%s\n", p + 1);
-	 password = new QoreString(p + 1);
-	 *p = '\0';
+	 reset();
       }
-      // set username
-      printd(5, "QoreURL::parseIntern username=%s\n", nbuf);
-      username = new QoreString(nbuf);
-   }
-   else
-      pos = nbuf;
+
+      DLLLOCAL void zero()
+      {
+	 protocol = path = username = password = host = NULL;
+	 port = 0;
+      }
+      
+      DLLLOCAL void reset()
+      {
+	 if (protocol)
+	    delete protocol;
+	 if (path)
+	    delete path;
+	 if (username)
+	    delete username;
+	 if (password)
+	    delete password;
+	 if (host)
+	    delete host;
+      }
+
+      DLLLOCAL void parseIntern(const char *buf)
+      {
+	 if (!buf || !buf[0])
+	    return;
    
-   // see if there's a port
-   if ((p = (char *)strchr(pos, ':')))
-   {
-      *p = '\0';
-      port = atoi(p + 1);
-      printd(5, "QoreURL::parseIntern port=%d\n", port);
-   }
-   // set hostname
-   printd(5, "QoreURL::parseIntern host=%s\n", pos);
-   host = new QoreString(pos);
-   free(nbuf);
+	 printd(5, "QoreURL::parseIntern(%s)\n", buf);
+   
+	 char *p = (char *)strstr(buf, "://");
+	 const char *pos;
+   
+	 // get protocol
+	 if (p)
+	 {
+	    protocol = new QoreString(buf, p - buf);
+	    // convert to lower case
+	    protocol->tolwr();
+	    printd(5, "QoreURL::parseIntern protocol=%s\n", protocol->getBuffer());
+	    pos = p + 3;
+	 }
+	 else
+	    pos = buf;
+   
+	 char *nbuf;
+   
+	 // find end of hostname
+	 if ((p = (char *)strchr(pos, '/')))
+	 {
+	    // get pathname if not at EOS
+	    if (p[1] != '\0')
+	    {
+	       path = new QoreString(p);
+	       printd(5, "QoreURL::parseIntern path=%s\n", path->getBuffer());
+	    }
+	    // get copy of hostname string for localized searching and invasive parsing
+	    nbuf = (char *)malloc(sizeof(char) * (p - pos + 1));
+	    strncpy(nbuf, pos, p - pos);
+	    nbuf[p - pos] = '\0';
+	 }
+	 else
+	    nbuf = strdup(pos);
+   
+	 // see if there's a username
+	 // note that nbuf here has already had the path removed so we can safely do a reverse search for the '@' sign
+	 if ((p = strrchr(nbuf, '@')))
+	 {
+	    pos = p + 1;
+	    *p = '\0';
+	    // see if there's a password
+	    if ((p = strchr(nbuf, ':')))
+	    {
+	       printd(5, "QoreURL::parseIntern password=%s\n", p + 1);
+	       password = new QoreString(p + 1);
+	       *p = '\0';
+	    }
+	    // set username
+	    printd(5, "QoreURL::parseIntern username=%s\n", nbuf);
+	    username = new QoreString(nbuf);
+	 }
+	 else
+	    pos = nbuf;
+   
+	 // see if there's a port
+	 if ((p = (char *)strchr(pos, ':')))
+	 {
+	    *p = '\0';
+	    port = atoi(p + 1);
+	    printd(5, "QoreURL::parseIntern port=%d\n", port);
+	 }
+	 // set hostname
+	 printd(5, "QoreURL::parseIntern host=%s\n", pos);
+	 host = new QoreString(pos);
+	 free(nbuf);
+      }
+};
+
+QoreURL::QoreURL() : priv(new qore_url_private)
+{
 }
 
-QoreURL::QoreURL() 
+QoreURL::QoreURL(const char *url) : priv(new qore_url_private)
 {
-   zero();
-}
-
-QoreURL::QoreURL(const char *url)
-{
-   zero();
    parse(url);
 }
 
-QoreURL::QoreURL(class QoreString *url)
+QoreURL::QoreURL(class QoreString *url) : priv(new qore_url_private)
 {
-   zero();
    parse(url->getBuffer());
 }
 
 QoreURL::~QoreURL()
 {
-   reset();
+   delete priv;
 }
 
 int QoreURL::parse(const char *url)
 {
-   reset();
-   zero();
-   parseIntern(url);
+   priv->reset();
+   priv->zero();
+   priv->parseIntern(url);
    return isValid() ? 0 : -1;
 }
 
 int QoreURL::parse(class QoreString *url)
 {
-   reset();
-   zero();
-   parseIntern(url->getBuffer());
+   priv->reset();
+   priv->zero();
+   priv->parseIntern(url->getBuffer());
    return isValid() ? 0 : -1;
 }
 
 bool QoreURL::isValid() const
 {
-   return host && host->strlen();
+   return priv->host && priv->host->strlen();
 }
 
 class QoreString *QoreURL::getProtocol() const
 {
-   return protocol;
+   return priv->protocol;
 }
 
 class QoreString *QoreURL::getUserName() const
 {
-   return username;
+   return priv->username;
 }
 
 class QoreString *QoreURL::getPassword() const
 {
-   return password;
+   return priv->password;
 }
 
 class QoreString *QoreURL::getPath() const
 {
-   return path;
+   return priv->path;
 }
 
 class QoreString *QoreURL::getHost() const
 {
-   return host;
+   return priv->host;
 }
 
 int QoreURL::getPort() const
 {
-   return port;
+   return priv->port;
 }
 
 class QoreHash *QoreURL::getHash()
 {
    class QoreHash *h = new QoreHash();
-   if (protocol)
+   if (priv->protocol)
    {
-      h->setKeyValue("protocol", new QoreNode(protocol), NULL);
-      protocol = NULL;
+      h->setKeyValue("protocol", new QoreNode(priv->protocol), NULL);
+      priv->protocol = NULL;
    }
-   if (path)
+   if (priv->path)
    {
-      h->setKeyValue("path", new QoreNode(path), NULL);
-      path = NULL;
+      h->setKeyValue("path", new QoreNode(priv->path), NULL);
+      priv->path = NULL;
    }
-   if (username)
+   if (priv->username)
    {
-      h->setKeyValue("username", new QoreNode(username), NULL);
-      username = NULL;
+      h->setKeyValue("username", new QoreNode(priv->username), NULL);
+      priv->username = NULL;
    }
-   if (password)
+   if (priv->password)
    {
-      h->setKeyValue("password", new QoreNode(password), NULL);
-      password = NULL;
+      h->setKeyValue("password", new QoreNode(priv->password), NULL);
+      priv->password = NULL;
    }
-   if (host)
+   if (priv->host)
    {
-      h->setKeyValue("host", new QoreNode(host), NULL);
-      host = NULL;
+      h->setKeyValue("host", new QoreNode(priv->host), NULL);
+      priv->host = NULL;
    }
-   if (port)
-      h->setKeyValue("port", new QoreNode((int64)port), NULL);
+   if (priv->port)
+      h->setKeyValue("port", new QoreNode((int64)priv->port), NULL);
    
    return h;
 }
 
 char *QoreURL::take_path()
 {
-   return path ? path->giveBuffer() : NULL;
+   return priv->path ? priv->path->giveBuffer() : NULL;
 }
 
 char *QoreURL::take_username()
 {
-   return username ? username->giveBuffer() : NULL;
+   return priv->username ? priv->username->giveBuffer() : NULL;
 }
 
 char *QoreURL::take_password()
 {
-   return password ? password->giveBuffer() : NULL;
+   return priv->password ? priv->password->giveBuffer() : NULL;
 }
 
 char *QoreURL::take_host()
 {
-   return host ? host->giveBuffer() : NULL;
+   return priv->host ? priv->host->giveBuffer() : NULL;
 }

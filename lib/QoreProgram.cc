@@ -27,8 +27,7 @@
 #include <qore/Restrictions.h>
 #include <qore/QoreCounter.h>
 #include <qore/StringList.h>
-#include <qore/QoreWarnings.h>
-#include <qore/UserFunctionList.h>
+#include <qore/intern/UserFunctionList.h>
 #include <qore/intern/GlobalVariableList.h>
 #include <qore/intern/ImportedFunctionList.h>
 

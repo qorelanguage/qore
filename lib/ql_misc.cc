@@ -23,8 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_misc.h>
 #include <qore/intern/QT_backquote.h>
-#include <qore/ssl_constants.h>
-#include <qore/QoreURL.h>
+#include <qore/intern/ssl_constants.h>
 #include <qore/intern/QoreSignal.h>
 
 #include <string.h>

@@ -7,6 +7,7 @@
 	* more header file cleanups
 	* made QoreSocket implementation private
 	* made QoreString implementation private
+	* made QoreURL implemenation private
 
 2007.12.10: David Nichols
 	* made some more QoreMethod functions public

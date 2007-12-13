@@ -21,7 +21,6 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/Variable.h>
 
 #include "QC_QValidator.h"
 

@@ -11,7 +11,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/QoreWarnings.h>
 #include <qore/ParseOptionMap.h>
 
 #include "command-line.h"

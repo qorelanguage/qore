@@ -36,7 +36,6 @@
 #include <qore/intern/RegexSubst.h>
 #include <qore/intern/RegexTrans.h>
 #include <qore/intern/QoreRegex.h>
-#include <qore/QoreWarnings.h>
 
 #include "parser.h"
 

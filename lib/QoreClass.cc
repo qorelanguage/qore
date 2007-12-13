@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/Sequence.h>
+#include <qore/intern/Sequence.h>
 #include <qore/intern/BuiltinMethod.h>
 
 #include <qore/intern/QoreClassIntern.h>

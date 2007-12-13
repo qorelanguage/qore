@@ -11,15 +11,8 @@
 #define _QORE_SQL_OBJECTS_QUERY_H
 
 #include <qore/support.h>
-#include <qore/ReferenceObject.h>
-#include <qore/QoreString.h>
-#include <qore/Variable.h>
-#include <qore/QoreNode.h>
+#include <qore/intern/Variable.h>
 #include <qore/intern/Context.h>
-#include <qore/LockedObject.h>
-#include <qore/QoreException.h>
-
-#include <qore/SQL/Objects/Datasource.h>
 
 #include <string.h>
 #include <ctype.h>

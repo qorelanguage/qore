@@ -63,14 +63,4 @@ DLLEXPORT extern int debug;
 #define isblank(a) ((a) == ' ' || (a) == '\t')
 #endif
 
-#ifdef _QORE_LIB_INTERN
-
-// the following functions are only referenced from C++ source
-DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
-DLLLOCAL void parse_error(const char *fmt, ...);
-DLLLOCAL void parseException(const char *err, const char *fmt, ...);
-DLLLOCAL class QoreString *findFileInEnvPath(const char *file, const char *varname);
-
-#endif // _QORE_LIB_INTERN
-
 #endif

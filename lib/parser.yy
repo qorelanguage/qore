@@ -48,7 +48,7 @@
 #include <qore/intern/CaseNodeWithOperator.h>
 #include <qore/intern/CaseNodeRegex.h>
 #include <qore/intern/OnBlockExitStatement.h>
-#include <qore/Tree.h>
+#include <qore/intern/Tree.h>
 #include <qore/intern/FunctionReference.h>
 #include <qore/intern/ObjectMethodReference.h>
 

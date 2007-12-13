@@ -21,7 +21,7 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/UserFunctionList.h>
+#include <qore/intern/UserFunctionList.h>
 #include <qore/intern/Function.h>
 
 UserFunctionList::~UserFunctionList()

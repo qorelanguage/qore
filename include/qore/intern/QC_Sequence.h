@@ -26,8 +26,7 @@
 
 #define _QORE_CLASS_SEQUENCE_H
 
-#include <qore/Sequence.h>
-#include <qore/AbstractPrivateData.h>
+#include <qore/intern/Sequence.h>
 
 DLLEXPORT extern int CID_SEQUENCE;
 

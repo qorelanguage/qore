@@ -21,7 +21,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ssl_constants.h>
+#include <qore/intern/ssl_constants.h>
 
 #include <qore/intern/QC_FtpClient.h>
 

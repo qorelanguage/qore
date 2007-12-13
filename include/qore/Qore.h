@@ -31,6 +31,7 @@
 #include <qore/QoreLib.h>
 #include <qore/QoreNode.h>
 #include <qore/QoreNet.h>
+#include <qore/QoreURL.h>
 #include <qore/QoreFile.h>
 #include <qore/QoreSocket.h>
 #include <qore/QoreHash.h>
@@ -62,16 +63,16 @@
 #include <qore/intern/Function.h>
 #include <qore/intern/AbstractStatement.h>
 #include <qore/intern/QoreLibIntern.h>
-#include <qore/Variable.h>
+#include <qore/intern/Variable.h>
 #include <qore/intern/NamedScope.h>
-#include <qore/ScopedObjectCall.h>
+#include <qore/intern/ScopedObjectCall.h>
 #include <qore/intern/ClassRef.h>
 #include <qore/intern/Context.h>
 #include <qore/intern/Operator.h>
-#include <qore/Tree.h>
-#include <qore/Datasource.h>
-#include <qore/VRMutex.h>
+#include <qore/intern/Tree.h>
+#include <qore/intern/VRMutex.h>
 #include <qore/intern/VLock.h>
+#include <qore/intern/qore_thread_intern.h>
 
 DLLLOCAL extern int qore_library_options;
 #endif

@@ -21,9 +21,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_HTTPClient.h>
 #include <qore/QoreHTTPClient.h>
-#include <qore/ssl_constants.h>
+#include <qore/intern/QC_HTTPClient.h>
+#include <qore/intern/ssl_constants.h>
 #include <qore/minitest.hpp>
 
 #ifdef DEBUG_TESTS

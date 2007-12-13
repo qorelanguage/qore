@@ -34,7 +34,18 @@
 // the global variable list is deleted, then the variables will in turn dereference the program
 // so it can be deleted...
 
-struct qore_program_private;
+// warnings - must correspond with the string order in QoreProgram.cc
+#define QP_WARN_WARNING_MASK_UNCHANGED   (1 << 0)
+#define QP_WARN_DUPLICATE_LOCAL_VARS     (1 << 1)
+#define QP_WARN_UNKNOWN_WARNING          (1 << 2)
+#define QP_WARN_UNDECLARED_VAR           (1 << 3)
+#define QP_WARN_DUPLICATE_GLOBAL_VARS    (1 << 4)
+#define QP_WARN_UNREACHABLE_CODE         (1 << 5)
+
+// defined in QoreProgram.cc
+DLLEXPORT extern const char *qore_warnings[];
+DLLEXPORT int get_warning_code(const char *str);
+DLLEXPORT extern unsigned qore_num_warnings;
 
 class QoreProgram : public AbstractPrivateData
 {
