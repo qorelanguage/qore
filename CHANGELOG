@@ -1,3 +1,7 @@
+2007.12.13: David Nichols
+	* fixed tibae namespace handling for subprogram objects (backported from
+	  trunk)
+
 2007.12.08: David Nichols
 	* fixed proxy URL reporting in Qore HTTPClient::getProxyURL() (was
 	  reporting the target port instead of the proxy port)
