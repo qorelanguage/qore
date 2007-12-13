@@ -28,14 +28,7 @@
 
 #define _QORE_QORESOCKET_H
 
-#ifndef DEFAULT_SOCKET_BUFSIZE
-#define DEFAULT_SOCKET_BUFSIZE 4096
-#endif
-
 #include <qore/Qore.h>
-
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -50,45 +43,17 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-class SSLSocketHelper
-{
-   private:
-      SSL_METHOD *meth;
-      SSL_CTX *ctx;
-      SSL *ssl;
-
-      DLLLOCAL int setIntern(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink);
-
-   public:
-      DLLLOCAL SSLSocketHelper();
-      DLLLOCAL ~SSLSocketHelper();
-      DLLLOCAL void sslError(class ExceptionSink *xsink);
-      DLLLOCAL int setClient(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink);
-      DLLLOCAL int setServer(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink);
-      // returns 0 for success
-      DLLLOCAL int connect(class ExceptionSink *xsink);
-      // returns 0 for success
-      DLLLOCAL int accept(class ExceptionSink *xsink);
-      // returns 0 for success
-      DLLLOCAL int shutdown();
-      // returns 0 for success
-      DLLLOCAL int shutdown(class ExceptionSink *xsink);
-      // returns 0 for success
-      DLLLOCAL int read(char *buf, int size);
-      // returns 0 for success
-      DLLLOCAL int write(const void *buf, int size, class ExceptionSink *xsink);
-      DLLLOCAL int write(const void *buf, int size);
-      DLLLOCAL const char *getCipherName() const;
-      DLLLOCAL const char *getCipherVersion() const;
-      DLLLOCAL X509 *getPeerCertificate() const;
-      DLLLOCAL long verifyPeerCertificate() const;
-};
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 // another helper class
 class SocketSource {
    private:
-      class QoreString *address;
-      class QoreString *hostname;      
+      struct qore_socketsource_private *priv; // private implementation
+
+      // not implemented
+      DLLLOCAL SocketSource(const SocketSource&);
+      DLLLOCAL SocketSource& operator=(const SocketSource&);
 
    public:
       DLLEXPORT SocketSource();
@@ -105,15 +70,9 @@ class SocketSource {
 class QoreSocket 
 {
    private:
-      int sock, type, port, sendTimeout, recvTimeout;
-      class QoreEncoding *charsetid;
-      bool del;
-      char *socketname;
-      class SSLSocketHelper *ssl;
+      struct qore_socket_private *priv; // private implementation
 
       DLLLOCAL QoreSocket(int s, int t, class QoreEncoding *csid);
-      // code common to all constructors
-      DLLLOCAL void init();
       // opens an INET socket
       DLLLOCAL int openINET();
       // opens a UNIX socket
@@ -130,6 +89,10 @@ class QoreSocket
       DLLLOCAL class QoreString *readHTTPData(int timeout, int *rc, int state = -1);
       DLLLOCAL static void convertHeaderToHash(class QoreHash *h, char *p);
       
+      // not implemented
+      DLLLOCAL QoreSocket(const QoreSocket&);
+      DLLLOCAL QoreSocket& operator=(const QoreSocket&);
+
    public:
       DLLEXPORT QoreSocket();
       DLLEXPORT ~QoreSocket();

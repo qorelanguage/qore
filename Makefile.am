@@ -82,6 +82,7 @@ noinst_HEADERS = \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
+	include/qore/intern/SSLSocketHelper.h \
 	include/qore/intern/QoreSignal.h \
 	include/qore/intern/RegexSubst.h \
 	include/qore/intern/RegexTrans.h \
