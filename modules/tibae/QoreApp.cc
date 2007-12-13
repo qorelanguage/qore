@@ -63,11 +63,13 @@ QoreApp::QoreApp(MAppProperties *pMAP, const char *name, QoreHash *clh,
    mySubscriber = NULL;
    myEventHandler = NULL;
    mySession = NULL;
+   printd(5, "QoreApp::QoreApp() this=%08p session=%s\n", this, session_name);
 }
 
 QoreApp::~QoreApp()
 {
    tracein("QoreApp::~QoreApp()");
+   printd(5, "QoreApp::~QoreApp() this=%08p session=%s\n", this, session_name);
 
    remove_pending_calls(this); // pending operations async calls
 
@@ -102,6 +104,7 @@ QoreApp::~QoreApp()
 
 void QoreApp::deref(ExceptionSink *xsink)
 {
+   printd(0, "QoreApp::deref() this=%08p session=%s, refs=%d -> %d\n", this, session_name, reference_count(), reference_count() - 1);
    //tracein("QoreApp::deref()");
    if (ROdereference())
    {

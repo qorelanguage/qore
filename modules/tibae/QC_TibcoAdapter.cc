@@ -408,6 +408,7 @@ class QoreClass *initTibcoAdapterClass()
 
    class QoreClass *QC_TIBAE = new QoreClass("TibcoAdapter", QDOM_NETWORK);
    CID_TIBAE = QC_TIBAE->getID();
+   //printd(5, "initTibcoAdapterClass() CID_TIBAE=%d\n", CID_TIBAE);
    QC_TIBAE->setConstructor(TIBAE_constructor);
    QC_TIBAE->setCopy((q_copy_t)TIBAE_copy);
    QC_TIBAE->addMethod("receive",                  (q_method_t)TIBAE_receive);

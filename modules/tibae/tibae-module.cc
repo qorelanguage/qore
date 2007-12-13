@@ -29,6 +29,8 @@
 
 #include <string.h>
 
+static class QoreNamespace *tibns; // Tibae namespace
+
 #ifndef QORE_MONOLITHIC
 DLLEXPORT char qore_module_name[] = "tibae";
 DLLEXPORT char qore_module_version[] = "0.2";
@@ -60,16 +62,10 @@ static class QoreNode *f_tibae_type(class QoreNode *params, class ExceptionSink 
    return new QoreNode(h);
 }
 
-class QoreString *tibae_module_init()
+static void setup_namespace()
 {
-   builtinFunctions.add("tibae_type", f_tibae_type);
-   return NULL;
-}
-
-void tibae_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
-{
-   tracein("tibae_module_ns_init()");
-   class QoreNamespace *tibns = new QoreNamespace("Tibae");
+   // setup static "master" namespace
+   tibns = new QoreNamespace("Tibae");
    tibns->addSystemClass(initTibcoAdapterClass());
 
    // add constants
@@ -93,8 +89,22 @@ void tibae_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
    tibns->addConstant("TIBAE_U2",          new QoreNode((int64)TIBAE_U2));
    tibns->addConstant("TIBAE_U4",          new QoreNode((int64)TIBAE_U4));
    tibns->addConstant("TIBAE_U8",          new QoreNode((int64)TIBAE_U8));
+}
 
-   qns->addInitialNamespace(tibns);
+class QoreString *tibae_module_init()
+{
+   setup_namespace();
+
+   // add builtin functions
+   builtinFunctions.add("tibae_type", f_tibae_type);
+   return NULL;
+}
+
+void tibae_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
+{
+   tracein("tibae_module_ns_init()");
+
+   qns->addInitialNamespace(tibns->copy());
 
    traceout("tibae_module_nsinit()");
 }
@@ -102,6 +112,7 @@ void tibae_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 void tibae_module_delete()
 {
    tracein("tibae_module_delete()");
+   delete tibns;
    traceout("tibae_module_delete()");
 }
 
