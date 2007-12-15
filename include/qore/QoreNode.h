@@ -257,4 +257,59 @@ class QoreNodeCStringHelper {
       DLLEXPORT int strlen() const;
 };
 
+class QoreNodeEvalOptionalRefHolder {
+   private:
+      QoreNode *val;
+      ExceptionSink *xsink;
+      bool needs_deref;
+
+      DLLLOCAL void discard_intern()
+      {
+	 if (needs_deref && val)
+	    val->deref(xsink);
+      }
+
+      // not implemented
+      DLLLOCAL QoreNodeEvalOptionalRefHolder(const QoreNodeEvalOptionalRefHolder&);
+      DLLLOCAL QoreNodeEvalOptionalRefHolder& operator=(const QoreNodeEvalOptionalRefHolder&);
+      DLLLOCAL void *operator new(size_t);
+
+   public:
+      DLLLOCAL QoreNodeEvalOptionalRefHolder(ExceptionSink *n_xsink) : xsink(n_xsink)
+      {
+	 needs_deref = false;
+	 val = 0;
+      }
+      DLLLOCAL QoreNodeEvalOptionalRefHolder(QoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink)
+      {
+	 val = exp ? exp->eval(needs_deref, xsink) : 0;
+      }
+      DLLLOCAL ~QoreNodeEvalOptionalRefHolder()
+      {
+	 discard_intern();
+      }
+      DLLLOCAL void discard()
+      {
+	 discard_intern();
+	 needs_deref = false;
+	 val = 0;
+      }
+      DLLLOCAL void assign(bool n_needs_deref, QoreNode *n_val)
+      {
+	 discard_intern();
+	 needs_deref = n_needs_deref;
+	 val = n_val;
+      }
+      DLLLOCAL QoreNode *takeReferencedValue()
+      {
+	 QoreNode *rv = val && !needs_deref ? val->RefSelf() : val;
+	 val = 0;
+	 needs_deref = false;
+	 return rv;
+      }
+      DLLLOCAL QoreNode* operator->() { return val; }
+      DLLLOCAL QoreNode* operator*() { return val; }
+      DLLLOCAL operator bool() const { return val != 0; }
+};
+
 #endif

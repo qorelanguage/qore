@@ -32,8 +32,8 @@ struct qore_ro_private;
 class ReferenceObject 
 {
    protected:
-      int references;
-      struct qore_ro_private *priv;
+      mutable int references;
+      mutable struct qore_ro_private *priv;
 
    public:
       DLLEXPORT ReferenceObject();
@@ -46,8 +46,8 @@ class ReferenceObject
       { 
 	 return references == 1; 
       }
-      DLLEXPORT void ROreference();
-      DLLEXPORT bool ROdereference();
+      DLLEXPORT void ROreference() const;
+      DLLEXPORT bool ROdereference() const;
 };
 
 #endif // _QORE_REFERENCE_OBJECT_H

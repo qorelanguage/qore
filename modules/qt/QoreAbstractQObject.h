@@ -40,10 +40,10 @@
 class QoreQObjectExtension : public QoreQtEventDispatcher
 {
    protected:
-      QoreMethod *e_timerEvent, *e_childEvent;
+      const QoreMethod *e_timerEvent, *e_childEvent;
 
    public:
-      DLLLOCAL QoreQObjectExtension(QoreClass *qc)
+      DLLLOCAL QoreQObjectExtension(const QoreClass *qc)
       {
          e_timerEvent = findMethod(qc, "timerEvent");
          e_childEvent = findMethod(qc, "childEvent");

@@ -489,15 +489,11 @@ static inline class QoreNode **do_list_val_ptr(Tree *tree, class AutoVLock *vlp,
    // if the variable's value is not already a list, then make it one
    // printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->getName() : "(null)");
    if (!(*val))
-   {
-      (*val) = new QoreNode(NT_LIST);
-      (*val)->val.list = new QoreList();
-   }
+      (*val) = new QoreNode(new QoreList());
    else if ((*val)->type != NT_LIST)
    {
       (*val)->deref(xsink);
-      (*val) = new QoreNode(NT_LIST);
-      (*val)->val.list = new QoreList();
+      (*val) = new QoreNode(new QoreList());
    }
    else if ((*val)->reference_count() > 1) // otherwise if it's a list and the reference_count > 1, then duplicate it
    {
@@ -512,23 +508,18 @@ static inline class QoreNode **do_list_val_ptr(Tree *tree, class AutoVLock *vlp,
 // for objects and hashes
 static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vlp, ExceptionSink *xsink)
 {
-   class QoreNode *member;
+   QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
+   if (*xsink)
+      return 0;
 
-   if (!(member = tree->right->eval(xsink)))
-      member = null_string();
+   if (!member)
+      member.assign(false, NullString);
    else if (member->type != NT_STRING)
-   {
-      class QoreNode *nm = member->convert(NT_STRING);
-      member->deref(xsink);
-      member = nm;
-   }
+      member.assign(true, member->convert(NT_STRING));
 
    QoreNode **val = get_var_value_ptr(tree->left, vlp, xsink);
-   if (xsink->isEvent())
-   {
-      member->deref(xsink);
-      return NULL;
-   }
+   if (*xsink)
+      return 0;
 
    // if the variable's value is not already a hash or an object, then make it a hash
    //printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->type->getName() : "(null)");
@@ -569,7 +560,6 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vl
       }
    }
    //printd(5, "do_object_val_ptr() member=%s\n", member->val.String->getBuffer());
-   member->deref(xsink);
 
    return rv;
 }
@@ -701,22 +691,20 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
 	    return NULL;
 	 
 	 // otherwise evaluate member
-	 class QoreNode *member;
-	 if (!(member = n->val.tree->right->eval(xsink)))
-	    member = null_string();
-	 else if (member->type != NT_STRING)
-	 {
-	    class QoreNode *nm = member->convert(NT_STRING);
-	    member->deref(xsink);
-	    member = nm;
-	 }
+	 QoreNodeEvalOptionalRefHolder member(n->val.tree->right, xsink);
+	 if (*xsink)
+	    return 0;
+
+	 if (!member)
+	    member.assign(false, NullString);
+	 else
+	    member.assign(true, member->convert(NT_STRING));
 	 
 	 class QoreNode *rv;
 	 if (val->type == NT_HASH)
 	    rv = val->val.hash->getKeyValue(member->val.String, xsink);
 	 else
 	    rv = val->val.object->getMemberValueNoMethod(member->val.String, vl, xsink);
-	 member->deref(xsink);
 	 
 	 //traceout("getExistingVarValue()");
 	 return rv;
@@ -743,7 +731,7 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
    if (n->type == NT_VARREF)
       return n->val.vref->getValuePtr(vl, xsink);
 
-   // getStackObjecT() will always return a value here (self refs are only legal in methods)
+   // getStackObject() will always return a value here (self refs are only legal in methods)
    if (n->type == NT_SELF_VARREF)
       return getStackObject()->getExistingValuePtr(n->val.c_str, vl, xsink);
 
@@ -783,22 +771,20 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
             return NULL;
          
          // otherwise evaluate member
-         class QoreNode *member;
-         if (!(member = n->val.tree->right->eval(xsink)))
-            member = null_string();
-         else if (member->type != NT_STRING)
-         {
-            class QoreNode *nm = member->convert(NT_STRING);
-            member->deref(xsink);
-            member = nm;
-         }
+	 QoreNodeEvalOptionalRefHolder member(n->val.tree->right, xsink);
+	 if (*xsink)
+	    return 0;
+
+	 if (!member)
+	    member.assign(false, NullString);
+	 else
+	    member.assign(true, member->convert(NT_STRING));
          
          class QoreNode **rv;
          if ((*val)->type == NT_HASH)
             rv = (*val)->val.hash->getExistingValuePtr(member->val.String, xsink);
          else
             rv = (*val)->val.object->getExistingValuePtr(member->val.String, vl, xsink);
-         member->deref(xsink);
          
          //traceout("getUniqueExistingVarValuePtr()");
          return rv;
@@ -894,15 +880,14 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
       return;
 
    // otherwise get the member name
-   class QoreNode *member;
-   if (!(member = lvalue->val.tree->right->eval(xsink)))
-      member = null_string();
-   else if (member->type != NT_STRING)
-   {
-      class QoreNode *nm = member->convert(NT_STRING);
-      member->deref(xsink);
-      member = nm;
-   }
+   QoreNodeEvalOptionalRefHolder member(lvalue->val.tree->right, xsink);
+   if (*xsink)
+      return;
+
+   if (!member)
+      member.assign(false, NullString);
+   else
+      member.assign(true, member->convert(NT_STRING));
 
    // get unique value if necessary
    if ((*val)->reference_count() > 1)
@@ -921,9 +906,6 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
    // release lock(s)
    vl.del();
 
-   // dereference member node
-   member->deref(xsink);
-   
    // traceout("delete_var_node()");
 }
 

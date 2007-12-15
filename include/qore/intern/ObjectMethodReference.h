@@ -64,7 +64,7 @@ class ParseScopedSelfMethodReference : public AbstractParseObjectMethodReference
 {
 private:
    class NamedScope *nscope;
-   class QoreMethod *method;
+   const class QoreMethod *method;
    
 public:
    DLLLOCAL ParseScopedSelfMethodReference(class NamedScope *n_nscope);

@@ -35,7 +35,7 @@ class QoreQWidgetExtension : public QoreQObjectExtension
 {
    protected:
       // event methods
-      QoreMethod *e_changeEvent, *e_enterEvent, *e_event, *e_leaveEvent,
+      const QoreMethod *e_changeEvent, *e_enterEvent, *e_event, *e_leaveEvent,
          *e_paintEvent, 
          *e_mouseMoveEvent, *e_mousePressEvent, 
          *e_mouseReleaseEvent, *e_mouseDoubleClickEvent,
@@ -68,7 +68,7 @@ class QoreQWidgetExtension : public QoreQObjectExtension
 	 ;
 
    public:
-      DLLLOCAL QoreQWidgetExtension(QoreClass *qc) : QoreQObjectExtension(qc)
+      DLLLOCAL QoreQWidgetExtension(const QoreClass *qc) : QoreQObjectExtension(qc)
       {
          e_paintEvent             = findMethod(qc, "paintEvent");
          e_mouseMoveEvent         = findMethod(qc, "mouseMoveEvent");

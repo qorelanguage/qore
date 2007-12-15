@@ -44,7 +44,7 @@ ReferenceObject::~ReferenceObject()
 #endif
 }
 
-void ReferenceObject::ROreference()
+void ReferenceObject::ROreference() const
 {
 #ifdef HAVE_ATOMIC_MACROS
    atomic_inc(&references);
@@ -56,7 +56,7 @@ void ReferenceObject::ROreference()
 }
 
 // returns true when references reach zero
-bool ReferenceObject::ROdereference()
+bool ReferenceObject::ROdereference() const
 {
 #ifdef HAVE_ATOMIC_MACROS
    // do not do a cache sync if references == 1

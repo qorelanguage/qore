@@ -105,10 +105,10 @@ class RunTimeObjectScopedMethodReference : public AbstractFunctionReference
 {
    private:
       class QoreObject *obj;
-      class QoreMethod *method;
+      const class QoreMethod *method;
 
    public:
-      DLLLOCAL RunTimeObjectScopedMethodReference(class QoreObject *n_obj, class QoreMethod *n_method);
+      DLLLOCAL RunTimeObjectScopedMethodReference(class QoreObject *n_obj, const class QoreMethod *n_method);
       DLLLOCAL virtual ~RunTimeObjectScopedMethodReference();
       DLLLOCAL virtual class QoreNode *exec(class QoreNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual AbstractFunctionReference *copy();

@@ -92,9 +92,9 @@ int QoreQtDynamicMethod::get_type(const char *&p)
    return rt;
 }
 
-QoreMethod *QoreQtDynamicSlot::resolveMethod(QoreObject *n_qore_obj, const char *name, class ExceptionSink *xsink)
+const QoreMethod *QoreQtDynamicSlot::resolveMethod(QoreObject *n_qore_obj, const char *name, class ExceptionSink *xsink)
 {
-   QoreClass *qc = n_qore_obj->getClass();
+   const QoreClass *qc = n_qore_obj->getClass();
    const char *c = strchr(name, '(');
    QoreString tmp;
    if (c)
@@ -107,7 +107,7 @@ QoreMethod *QoreQtDynamicSlot::resolveMethod(QoreObject *n_qore_obj, const char 
       return 0;
    }
 
-   QoreMethod *meth = qc->findMethod(tmp.getBuffer());
+   const QoreMethod *meth = qc->findMethod(tmp.getBuffer());
    if (!meth)
       xsink->raiseException("DYNAMIC-SLOT-ERROR", "method %s::%s() does not exist", qc->getName(), tmp.getBuffer());
 	 

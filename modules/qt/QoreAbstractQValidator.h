@@ -41,10 +41,10 @@ class QoreQValidatorExtension : public QoreQObjectExtension
 {
    protected:
       // event methods
-      QoreMethod *m_fixup, *m_validate;
+      const QoreMethod *m_fixup, *m_validate;
 
    public:
-      DLLLOCAL QoreQValidatorExtension(QoreClass *qc) : QoreQObjectExtension(qc)
+      DLLLOCAL QoreQValidatorExtension(const QoreClass *qc) : QoreQObjectExtension(qc)
       {
          m_fixup        = findMethod(qc, "fixup");
          m_validate     = findMethod(qc, "validate");

@@ -41,7 +41,7 @@ typedef std::pair<AbstractPrivateData *, bool> private_pair_t;
 typedef std::map<int, private_pair_t> keymap_t;
 
 struct qore_object_private {
-      class QoreClass *myclass;
+      const QoreClass *myclass;
       int status;
       bool system_object;
       class VRMutex g;
@@ -50,7 +50,7 @@ struct qore_object_private {
       class QoreHash *data;
       class QoreProgram *pgm;
 
-      DLLLOCAL qore_object_private(class QoreClass *oc, class QoreProgram *p, QoreHash *n_data) : 
+      DLLLOCAL qore_object_private(const QoreClass *oc, class QoreProgram *p, QoreHash *n_data) : 
 	 myclass(oc), status(OS_OK), system_object(!p), privateData(0), data(n_data), pgm(p)
       {
 	 printd(5, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, refs 0->1\n", this, p, oc->getName());
@@ -128,11 +128,11 @@ class KeyList
 
 };
 
-QoreObject::QoreObject(class QoreClass *oc, class QoreProgram *p) : priv(new qore_object_private(oc, p, new QoreHash()))
+QoreObject::QoreObject(const QoreClass *oc, class QoreProgram *p) : priv(new qore_object_private(oc, p, new QoreHash()))
 {
 }
 
-QoreObject::QoreObject(class QoreClass *oc, class QoreProgram *p, class QoreHash *h) : priv(new qore_object_private(oc, p, h))
+QoreObject::QoreObject(const QoreClass *oc, class QoreProgram *p, class QoreHash *h) : priv(new qore_object_private(oc, p, h))
 {
 }
 
@@ -144,7 +144,7 @@ QoreObject::~QoreObject()
    //traceout("QoreObject::~QoreObject()");
 }
 
-class QoreClass *QoreObject::getClass() const 
+const QoreClass *QoreObject::getClass() const 
 { 
    return priv->myclass; 
 }
@@ -254,7 +254,7 @@ class QoreNode *QoreObject::evalMethod(class QoreString *name, class QoreNode *a
    return priv->myclass->evalMethod(this, name->getBuffer(), args, xsink);
 }
 
-class QoreClass *QoreObject::getClass(int cid) const
+const QoreClass *QoreObject::getClass(int cid) const
 {
    if (cid == priv->myclass->getID())
       return priv->myclass;

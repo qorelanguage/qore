@@ -60,7 +60,7 @@ typedef hash_map<const char*, class UserFunction *, hash<const char *>, class eq
 
 typedef std::map<const char*, class QoreNode *, class ltstr> hm_qn_t;
 typedef std::map<const char*, class HashMember *, class ltstr> hm_hm_t;
-typedef std::map<const char*, class QoreMethod *, class ltstr> hm_method_t;
+typedef std::map<const char*, const class QoreMethod *, class ltstr> hm_method_t;
 typedef std::map<const char*, class BuiltinFunction *, class ltstr> hm_bf_t;
 typedef std::map<const char*, class QoreClass *, class ltstr> hm_qc_t;
 typedef std::map<const char*, class UserFunction *, class ltstr> hm_uf_t;

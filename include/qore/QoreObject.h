@@ -40,7 +40,6 @@ class QoreObject : public ReferenceObject
    private:
       struct qore_object_private *priv;
 
-      DLLLOCAL inline void init(class QoreClass *oc, class QoreProgram *p);
       // must only be called when inside the gate
       DLLLOCAL inline void doDeleteIntern(class ExceptionSink *xsink);
       DLLLOCAL void cleanup(class ExceptionSink *xsink, class QoreHash *td);
@@ -54,8 +53,8 @@ class QoreObject : public ReferenceObject
       DLLLOCAL ~QoreObject();
 
    public:
-      DLLEXPORT QoreObject(class QoreClass *oc, class QoreProgram *p);
-      DLLEXPORT QoreObject(class QoreClass *oc, class QoreProgram *p, class QoreHash *d);
+      DLLEXPORT QoreObject(const QoreClass *oc, class QoreProgram *p);
+      DLLEXPORT QoreObject(const QoreClass *oc, class QoreProgram *p, class QoreHash *d);
 
       DLLEXPORT class QoreNode **getMemberValuePtr(class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getMemberValuePtr(const char *key, class AutoVLock *vl, class ExceptionSink *xsink);
@@ -78,8 +77,8 @@ class QoreObject : public ReferenceObject
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
       DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink);
-      DLLEXPORT class QoreClass *getClass(int cid) const;
-      DLLEXPORT class QoreClass *getClass() const;
+      DLLEXPORT const QoreClass *getClass(int cid) const;
+      DLLEXPORT const QoreClass *getClass() const;
       DLLEXPORT int getStatus() const;
       DLLEXPORT int isValid() const;
       DLLEXPORT class QoreProgram *getProgram() const;

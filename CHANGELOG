@@ -1,3 +1,9 @@
+2007.12.15: David Nichols
+	* implemented QoreNodeEvalOptionalRefHolder class as an exception-safe
+	  and memory-clean way to handle QoreNode evaluations with optional 
+	  derefs
+	* API updates
+
 2007.12.13: David Nichols
 	* fixed tibae namespace handling for subprogram objects
 	* fixed ncurses, pgsql, tibrv, tuxedo, and qt module namespace handling

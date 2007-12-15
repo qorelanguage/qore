@@ -29,10 +29,10 @@
 class QoreQDialogExtension : public QoreQWidgetExtension
 {
    protected:
-      QoreMethod *m_accept, *m_done, *m_reject;
+      const QoreMethod *m_accept, *m_done, *m_reject;
 
    public:
-      DLLLOCAL QoreQDialogExtension(QoreClass *qc) : QoreQWidgetExtension(qc)
+      DLLLOCAL QoreQDialogExtension(const QoreClass *qc) : QoreQWidgetExtension(qc)
       {
          m_accept = findMethod(qc, "accept");
          m_done   = findMethod(qc, "done");

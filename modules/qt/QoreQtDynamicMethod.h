@@ -133,10 +133,10 @@ class QoreQtDynamicSlot : public QoreQtDynamicMethod
 {
    private:
       QoreObject *qore_obj;
-      QoreMethod *method;
+      const QoreMethod *method;
       int return_type;
 
-      DLLLOCAL static QoreMethod *resolveMethod(QoreObject *n_qore_obj, const char *name, class ExceptionSink *xsink);
+      DLLLOCAL static const QoreMethod *resolveMethod(QoreObject *n_qore_obj, const char *name, class ExceptionSink *xsink);
 
    public:
       DLLLOCAL QoreQtDynamicSlot(QoreObject *n_qore_obj, const char *sig, ExceptionSink *xsink);

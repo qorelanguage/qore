@@ -228,48 +228,28 @@ static bool op_log_ne_string(class QoreNode *left, class QoreNode *right, Except
 
 static bool op_absolute_log_eq(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
 {
-   bool ld;
-   QoreNode *lnp = left->eval(ld, xsink);
-   if (xsink->isEvent())
-   {
-      if (lnp && ld) lnp->deref(xsink);
+   QoreNodeEvalOptionalRefHolder lnp(left, xsink);
+   if (*xsink)
       return false;
-   }
 
-   bool rd, rv;
-   QoreNode *rnp = right->eval(rd, xsink);
+   QoreNodeEvalOptionalRefHolder rnp(right, xsink);
+   if (*xsink)
+      return false;
    
-   if (!xsink->isEvent())
-      rv = !compareHard(lnp, rnp, xsink);
-   else
-      rv = false;
-   
-   if (lnp && ld) lnp->deref(xsink);      
-   if (rnp && rd) rnp->deref(xsink);
-   return rv;
+   return !compareHard(*lnp, *rnp, xsink);
 }
 
 static bool op_absolute_log_neq(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
 {
-   bool ld;
-   QoreNode *lnp = left->eval(ld, xsink);
-   if (xsink->isEvent())
-   {
-      if (lnp && ld) lnp->deref(xsink);
+   QoreNodeEvalOptionalRefHolder lnp(left, xsink);
+   if (*xsink)
       return false;
-   }
-   
-   bool rd, rv;
-   QoreNode *rnp = right->eval(rd, xsink);
-   
-   if (!xsink->isEvent())
-      rv = compareHard(lnp, rnp, xsink);
-   else
-      rv = false;
-   
-   if (lnp && ld) lnp->deref(xsink);      
-   if (rnp && rd) rnp->deref(xsink);
-   return rv;
+
+   QoreNodeEvalOptionalRefHolder rnp(right, xsink);
+   if (*xsink)
+      return false;
+
+   return compareHard(*lnp, *rnp, xsink);
 }
 
 static bool op_regex_match(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
@@ -431,25 +411,14 @@ static bool op_exists(class QoreNode *left, class QoreNode *x, ExceptionSink *xs
 
 static bool op_instanceof(class QoreNode *l, class QoreNode *r, ExceptionSink *xsink)
 {
-   bool ld;
-   l = l->eval(ld, xsink);
-   if (xsink->isEvent())
-   {
-      if (l && ld)
-	 l->deref(xsink);
+   QoreNodeEvalOptionalRefHolder nl(l, xsink);
+   if (*xsink || !nl)
       return false;
-   }
-   if (!l)
-      return false;
-   
-   bool rv;
-   if (l->type != NT_OBJECT || !l->val.object->validInstanceOf(r->val.classref->getID()))
-      rv = false;
-   else
-      rv = true;
-   
-   if (ld) l->deref(xsink);
-   return rv;
+
+   if (nl->type == NT_OBJECT && nl->val.object->validInstanceOf(r->val.classref->getID()))
+      return true;
+
+   return false;  
 }
 
 // takes all arguments unevaluated so logic short-circuiting can happen
@@ -535,7 +504,6 @@ static double op_multiply_float(class QoreNode *left, class QoreNode *right, Exc
 
 static double op_divide_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
 {
-
    if (!right->val.floatval)
    {
       xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression!");
@@ -551,20 +519,12 @@ static double op_unary_minus_float(class QoreNode *left, class QoreNode *right, 
 
 static class QoreNode *op_plus_string(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class QoreNode *node;
+   //printd(5, "op_plus_string() (%d) \"%s\" + (%d) \"%s\"\n", left->val.String->strlen(), left->val.String->getBuffer(), right->val.String->strlen(), right->val.String->getBuffer());
 
-   printd(5, "op_plus_string() (%d) \"%s\" + (%d) \"%s\"\n", 
-	  left->val.String->strlen(),
-	  left->val.String->getBuffer(),
-	  right->val.String->strlen(),
-	  right->val.String->getBuffer());
-
-   node = new QoreNode(NT_STRING);
-   node->val.String = new QoreString(left->val.String);
-
-   node->val.String->concat(right->val.String, xsink);
-   printd(5, "op_plus_string() result=\"%s\"\n", node->val.String->getBuffer());
-   return node;
+   QoreString *str = new QoreString(left->val.String);
+   str->concat(right->val.String, xsink);
+   printd(5, "op_plus_string() result=\"%s\"\n", str->getBuffer());
+   return new QoreNode(str);
 }
 
 static int64 op_cmp_string(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
@@ -574,21 +534,9 @@ static int64 op_cmp_string(class QoreNode *left, class QoreNode *right, Exceptio
 
 static int64 op_elements(class QoreNode *left, class QoreNode *null, ExceptionSink *xsink)
 {
-   tracein("op_elements()");
-   if (!left)
+   QoreNodeEvalOptionalRefHolder np(left, xsink);
+   if (*xsink || !np)
       return 0;
-
-   bool ld;
-   QoreNode *np = left->eval(ld, xsink);
-
-   if (!np)
-      return 0;
-
-   if (xsink->isEvent())
-   {
-      if (ld) np->deref(xsink);
-      return 0;
-   }
 
    int size;
 
@@ -603,36 +551,23 @@ static int64 op_elements(class QoreNode *left, class QoreNode *null, ExceptionSi
    else if (np->type == NT_STRING)
       size = np->val.String->length();
    else
-   {
-      if (ld) np->deref(xsink);
       return 0;
-   }
 
-   if (ld) np->deref(xsink);
-   traceout("op_elements()");
    return (int64)size;
 }
 
 static class QoreNode *op_keys(class QoreNode *left, class QoreNode *null, bool ref_rv, ExceptionSink *xsink)
 {
-   if (!left)
-      return NULL;
+   QoreNodeEvalOptionalRefHolder np(left, xsink);
+   if (*xsink || !np || (np->type != NT_OBJECT && np->type != NT_HASH))
+      return 0;
 
-   bool ld;
-   QoreNode *np = left->eval(ld, xsink);
-
-   if (xsink->isEvent() || !np || (np->type != NT_OBJECT && np->type != NT_HASH))
-   {
-      if (np && ld) np->deref(xsink);
-      return NULL;
-   }
-   
    class QoreList *l;
    if (np->type == NT_OBJECT)
       l = np->val.object->getMemberList(xsink);
    else
       l = np->val.hash->getKeys();
-   if (ld) np->deref(xsink);
+
    return l ? new QoreNode(l) : NULL;
 }
 
@@ -641,10 +576,10 @@ static class QoreNode *op_question_mark(class QoreNode *left, class QoreNode *li
    bool b = left->boolEval(xsink);
    if (xsink->isEvent())
       return NULL;
+
    if (b)
       return list->val.list->retrieve_entry(0)->eval(xsink);
-   else
-      return list->val.list->retrieve_entry(1)->eval(xsink);
+   return list->val.list->retrieve_entry(1)->eval(xsink);
 }
 
 static class QoreNode *op_regex_subst(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -697,15 +632,11 @@ static class QoreNode *op_regex_trans(class QoreNode *left, class QoreNode *righ
 
 static class QoreNode *op_list_ref(class QoreNode *left, class QoreNode *index, bool ref_rv, ExceptionSink *xsink)
 {
-   bool ld;
-   QoreNode *lp = left->eval(ld, xsink);
+   QoreNodeEvalOptionalRefHolder lp(left, xsink);
 
    // return NULL if left side is not a list (or exception)
    if (!lp || *xsink || (lp->type != NT_LIST && lp->type != NT_STRING))
-   {
-      if (lp && ld) lp->deref(xsink);
-      return NULL;
-   }
+      return 0;
 
    class QoreNode *rv = 0;
    int ind = index->integerEval(xsink);
@@ -724,7 +655,6 @@ static class QoreNode *op_list_ref(class QoreNode *left, class QoreNode *index, 
       }
       //printd(5, "op_list_ref() index=%d, rv=%08p\n", ind, rv);
    }
-   if (ld) lp->deref(xsink);
    return rv;
 }
 
@@ -732,89 +662,56 @@ static class QoreNode *op_list_ref(class QoreNode *left, class QoreNode *index, 
 // be converted.  The null string can also be used
 static class QoreNode *op_object_ref(class QoreNode *left, class QoreNode *member, bool ref_rv, ExceptionSink *xsink)
 {
-   bool ld;
-   QoreNode *op = left->eval(ld, xsink);
+   QoreNodeEvalOptionalRefHolder op(left, xsink);
 
    // return NULL if left side is not an object (or exception)
-   if (!op)
+   if (!op || *xsink || (op->type != NT_OBJECT && op->type != NT_HASH))
       return NULL;
-
-   if (xsink->isEvent() || (op->type != NT_OBJECT && op->type != NT_HASH))
-   {
-      if (ld) op->deref(xsink);
-      return NULL;
-   }
 
    // evaluate member expression
-   if (!member || (!(member = member->eval(xsink))))
-   {
-      if (xsink->isEvent())
-      {
-	 if (ld) op->deref(xsink);
-	 return NULL;
-      }
-      member = null_string();
-   }
-   else if (member->type != NT_STRING)
-   {
-      class QoreNode *nm = member->convert(NT_STRING);
-      member->deref(xsink);
-      member = nm;
-   }
+   QoreNodeEvalOptionalRefHolder mem(member, xsink);
+   if (*xsink)
+      return 0;
+
+   // assign NullString without needing deref to mem if mem is null
+   if (!mem) 
+      mem.assign(false, NullString);
+   else if (mem->type != NT_STRING)
+      mem.assign(true, mem->convert(NT_STRING));
 
    class QoreNode *rv;
 
    if (op->type == NT_HASH)
-      rv = op->val.hash->evalKey(member->val.String->getBuffer(), xsink);
+      rv = op->val.hash->evalKey(mem->val.String->getBuffer(), xsink);
    else
-      rv = op->val.object->evalMember(member, xsink);
+      rv = op->val.object->evalMember(*mem, xsink);
 
-   if (ld) op->deref(xsink);
-   member->deref(xsink);
    return rv;
 }
 
 static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNode *func, bool ref_rv, ExceptionSink *xsink)
 {
-   tracein("op_object_method_call()");
+   QoreNodeEvalOptionalRefHolder op(left, xsink);
 
-   bool ld;
-   // FIXME: implement a class to hold conditional dereferenced QoreNodes
-   QoreNode *op = left->eval(ld, xsink);
-
-   if (xsink->isEvent())
-   {
-      if (op && ld)
-	 op->deref(xsink);
-      traceout("op_object_method_call()");
-      return NULL;
-   }
+   if (*xsink)
+      return 0;
 
    // FIXME: this is an ugly hack!
    if (op && op->type == NT_HASH) {
       // see if the hash member is a call reference
       QoreNode *c = op->val.hash->getKeyValue(func->val.fcall->f.c_str);
-      if (c && c->type == NT_FUNCREF) {
-	 QoreNode *rv = c->val.funcref->exec(func->val.fcall->args, xsink);
-	 if (ld) op->deref(xsink);
-	 return rv;
-      }
+      if (c && c->type == NT_FUNCREF)
+	 return c->val.funcref->exec(func->val.fcall->args, xsink);
    }
    if (!op || op->type != NT_OBJECT)
    {
       //printd(5, "op=%08p (%s) func=%08p (%s)\n", op, op ? op->type->getName() : "n/a", func, func ? func->type->getName() : "n/a");
       xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
 			    func->val.fcall->f.c_str, op ? op->type->getName() : "NOTHING" );
-      if (op && ld) op->deref(xsink);
-      traceout("op_object_method_call()");
-      return NULL;
+      return 0;
    }
 
-   QoreNode *rv = op->val.object->getClass()->evalMethod(op->val.object, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
-   if (ld) op->deref(xsink);
-
-   traceout("op_object_method_call()");
-   return rv;
+   return op->val.object->getClass()->evalMethod(op->val.object, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
 }
 
 static class QoreNode *op_new_object(class QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
@@ -956,30 +853,18 @@ static class QoreNode *op_list_assignment(class QoreNode *left, class QoreNode *
 
 static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class QoreNode **v, *new_right;
+   class QoreNode **v;
 
    // tracein("op_plus_equals()");
-   bool rd;
-   new_right = right->eval(rd, xsink);
-   if (!new_right)
-      return NULL;
-   if (xsink->isEvent())
-   {
-      if (rd)
-	 new_right->deref(xsink);
-      return NULL;
-   }
+   QoreNodeEvalOptionalRefHolder new_right(right, xsink);
+   if (*xsink)
+      return 0;
 
    // get ptr to current value
    class AutoVLock vl;
    v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
-   {
-      vl.del();
-      if (rd)
-	 new_right->deref(xsink);
-      return NULL;
-   }
+      return 0;
    
    // dereferences happen in each section so that the
    // already referenced value can be passed to list->push()
@@ -989,17 +874,9 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
    {
       ensure_unique(v, xsink);
       if (new_right->type == NT_LIST)
-      {
 	 (*v)->val.list->merge(new_right->val.list);
-	 if (rd)
-	    new_right->deref(xsink);
-      }
       else
-      {
-	 if (!rd)
-	    new_right->ref();
-	 (*v)->val.list->push(new_right);
-      }
+	 (*v)->val.list->push(new_right.takeReferencedValue());
    }
    // do hash plus-equals if left side is a hash
    else if (*v && ((*v)->type == NT_HASH))
@@ -1016,8 +893,6 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
 	 if (h)
 	    (*v)->val.hash->assimilate(h, xsink);
       }
-      if (rd)
-	 new_right->deref(xsink);
    }
    // do hash/object plus-equals if left side is an object
    else if (*v && ((*v)->type == NT_OBJECT))
@@ -1030,70 +905,42 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
       }
       else if (new_right->type == NT_HASH)
 	 (*v)->val.object->merge(new_right->val.hash, xsink);
-      if (rd)
-	 new_right->deref(xsink);
    }
    // do string plus-equals if left-hand side is a string
    else if ((*v) && ((*v)->type == NT_STRING))
    {
       if (new_right->type != NT_STRING)
-      {
-	 class QoreNode *n = new_right->convert(NT_STRING);
-	 if (rd)
-	    new_right->deref(xsink);
-	 new_right = n;
-	 rd = true;
-      }
+	 new_right.assign(true, new_right->convert(NT_STRING));
+
       ensure_unique(v, xsink);
       (*v)->val.String->concat(new_right->val.String, xsink);
-      if (rd)
-	 new_right->deref(xsink);
    }
    else if ((*v) && ((*v)->type == NT_FLOAT))
    {
       if (new_right->type != NT_FLOAT)
-      {
-	 class QoreNode *n = new_right->convert(NT_FLOAT);
-	 if (rd)
-	    new_right->deref(xsink);
-	 new_right = n;
-	 rd = true;
-      }
+	 new_right.assign(true, new_right->convert(NT_FLOAT));
+
       ensure_unique(v, xsink);
       (*v)->val.floatval += new_right->val.floatval;
-      if (rd)
-	 new_right->deref(xsink);
    }
    else if ((*v) && ((*v)->type == NT_DATE))
    {
       if (new_right->type != NT_DATE)
-      {
-	 class QoreNode *n = new_right->convert(NT_DATE);
-	 if (rd)
-	    new_right->deref(xsink);
-	 new_right = n;
-	 rd = true;
-      }
+	 new_right.assign(true, new_right->convert(NT_DATE));
+
       // get new date value
       class DateTime *nd = (*v)->val.date_time->add(new_right->val.date_time);
       // dereference old value
       (*v)->deref(NULL);
       // assign new value
       (*v) = new QoreNode(nd);
-      // dereference evaluated expression
-      if (rd)
-	 new_right->deref(xsink);
    }
    else if (is_nothing(*v))
    {
       if (*v)
 	 (*v)->deref(xsink); // exception not possible here
       // assign rhs to lhs (take reference for assignment)
-      *v = new_right;
-      if (rd)
-	 rd = false;
-      else
-	 new_right->ref();
+      *v = new_right.takeReferencedValue();
    }
    else // do integer plus-equals
    {
@@ -1113,8 +960,6 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
 
       // increment current value
       (*v)->val.intval += new_right->getAsBigInt();
-      if (rd)
-	 new_right->deref(xsink);
    }
 
    // reference return value
@@ -2064,26 +1909,22 @@ static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, bool ref_rv,
    }
    
    // evaluate list
-   bool ld;
-   l = l->eval(ld, xsink);
-   if (xsink->isEvent())
-   {
-      if (l && ld)
-	 l->deref(xsink);
-      return NULL;
-   }
+   QoreNodeEvalOptionalRefHolder nl(l, xsink);
+   if (*xsink)
+      return 0;
 
    ensure_unique(val, xsink);
 
    // evaluating a list must give another list
-   int size = l->val.list->size();
-   int offset = l->val.list->getEntryAsInt(0);
+   assert(nl->type == NT_LIST);
+   int size = nl->val.list->size();
+   int offset = nl->val.list->getEntryAsInt(0);
 
 #ifdef DEBUG
    if ((*val)->type == NT_LIST)
-      printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.list->size(), l, size, offset);
+      printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.list->size(), *nl, size, offset);
    else
-      printd(5, "op_splice() val=%08p (strlen=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.String->strlen(), l, size, offset);
+      printd(5, "op_splice() val=%08p (strlen=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.String->strlen(), *nl, size, offset);
 #endif
 
    if ((*val)->type == NT_LIST)
@@ -2092,11 +1933,11 @@ static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, bool ref_rv,
 	 (*val)->val.list->splice(offset, xsink);
       else
       {
-	 int length = l->val.list->getEntryAsInt(1);
+	 int length = nl->val.list->getEntryAsInt(1);
 	 if (size == 2)
 	    (*val)->val.list->splice(offset, length, xsink);
 	 else
-	    (*val)->val.list->splice(offset, length, l->val.list->retrieve_entry(2), xsink);
+	    (*val)->val.list->splice(offset, length, nl->val.list->retrieve_entry(2), xsink);
       }
    }
    else // must be a string
@@ -2105,22 +1946,16 @@ static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, bool ref_rv,
 	 (*val)->val.String->splice(offset, xsink);
       else
       {
-	 int length = l->val.list->getEntryAsInt(1);
+	 int length = nl->val.list->getEntryAsInt(1);
 	 if (size == 2)
 	    (*val)->val.String->splice(offset, length, xsink);
 	 else
-	    (*val)->val.String->splice(offset, length, l->val.list->retrieve_entry(2), xsink);
+	    (*val)->val.String->splice(offset, length, nl->val.list->retrieve_entry(2), xsink);
       }
    }
-   if (ld)
-      l->deref(xsink);
 
    // reference for return value
-   if (ref_rv)
-      return (*val)->RefSelf();
-
-   //traceout("op_splice()");
-   return NULL;
+   return ref_rv ? (*val)->RefSelf() : 0;
 }
 
 static int64 op_chomp(class QoreNode *arg, class QoreNode *x, ExceptionSink *xsink)
@@ -2433,26 +2268,19 @@ int Operator::match(class QoreType *ntype, class QoreType *rtype)
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink) const
+class QoreNode *Operator::eval(class QoreNode *left_side, class QoreNode *right_side, bool ref_rv, ExceptionSink *xsink) const
 {
    class QoreNode *result;
    
    tracein("Operator::eval()");
-   printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
+   printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left_side, right_side);
    if (evalArgs)
    {
-      bool ld = false; // dereference left
-      if (left)
-      {
-	 left = left->eval(ld, xsink);
-	 if (xsink->isEvent())
-	 {
-	    if (left && ld) left->deref(xsink);
-	    return NULL;
-	 }
-      }
-      if (!left)
-	 left = Nothing;
+      QoreNodeEvalOptionalRefHolder nleft(left_side, xsink);
+      if (*xsink)
+	 return 0;
+      if (!nleft)
+	 nleft.assign(false, Nothing);
 	 
       int t;
 
@@ -2461,97 +2289,62 @@ class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, bool
 	 // find operator function
 	 if (functions.size() == 1)
 	    t = 0;
-	 else if (left->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[left->type->getID()][NT_NOTHING->getID()];
+	 else if (nleft->type->getID() < NUM_VALUE_TYPES)
+	    t = opMatrix[nleft->type->getID()][NT_NOTHING->getID()];
 	 else
-	    t = findFunction(left->type, NT_NOTHING);
+	    t = findFunction(nleft->type, NT_NOTHING);
 	 
 	 printd(5, "Operator::eval() found function %d\n", t);	 
 	 // convert node type to required argument types for operator if necessary
-	 if ((left->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
+	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
 	 {
-	    QoreNode *nl = functions[t]->ltype->convertTo(left, xsink);
-	    if (ld) left->deref(xsink);
-	    else ld = true;
-	    if (xsink->isEvent())
-	    {
-	       if (nl) nl->deref(xsink);
-	       return NULL;
-	    }
-	    left = nl;
+	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
+	    if (*xsink)
+	       return 0;
 	 }
-	 result = functions[t]->eval(left, NULL, ref_rv, xsink);
-	 // dereference converted argument
-	 if (ld)
-	    left->deref(xsink);
+	 result = functions[t]->eval(*nleft, 0, ref_rv, xsink);
       }
       else // 2 arguments
       {
-	 bool rd = false; // dereference right
-	 if (right)
-	 {
-	    right = right->eval(rd, xsink);
-	    if (xsink->isEvent())
-	    {
-	       if (ld) left->deref(xsink);
-	       if (right && rd) right->deref(xsink);
-	       return NULL;
-	    }
-	 }
-	 // also catches the case where right was evaluated to NULL
-	 if (!right)
-	    right = Nothing;
+	 QoreNodeEvalOptionalRefHolder nright(right_side, xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!nright)
+	    nright.assign(false, Nothing);
 	 
 	 // find operator function
 	 if (functions.size() == 1)
 	    t = 0;
-	 else if (left->type->getID() < NUM_VALUE_TYPES && right->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[left->type->getID()][right->type->getID()];
+	 else if (nleft->type->getID() < NUM_VALUE_TYPES && nright->type->getID() < NUM_VALUE_TYPES)
+	    t = opMatrix[nleft->type->getID()][nright->type->getID()];
 	 else
-	    t = findFunction(left->type, right->type);
+	    t = findFunction(nleft->type, nright->type);
 	 
 	 printd(5, "Operator::eval() found function %d\n", t);
 	 
 	 // convert node type to required argument types for operator if necessary
 	 // convert left node
-	 if ((left->type != functions[t]->ltype) && 
-	     (functions[t]->ltype != NT_ALL))
+	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
 	 {
-	    QoreNode *nl = functions[t]->ltype->convertTo(left, xsink);
-	    if (ld) left->deref(xsink);
-	    else ld = true;
-	    if (xsink->isEvent())
-	    {
-	       if (nl) nl->deref(xsink);
-	       return NULL;
-	    }
-	    left = nl;
+	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
+	    if (*xsink)
+	       return 0;
 	 }
 	 // convert right node if necessary
-	 if ((right->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
+	 if ((nright->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
 	 {
-	    QoreNode *nr = functions[t]->rtype->convertTo(right, xsink);
-	    if (rd) right->deref(xsink);
-	    else rd = true;
-	    if (xsink->isEvent())
-	    {
-	       if (ld) left->deref(xsink);
-	       if (nr) nr->deref(xsink);
-	       return NULL;
-	    }
-	    right = nr;
+	    nright.assign(true, functions[t]->rtype->convertTo(*nright, xsink));
+	    if (*xsink)
+	       return 0;
 	 }
-	 result = functions[t]->eval(left, right, ref_rv, xsink);
-	 // dereference converted arguments
-	 if (ld) left->deref(xsink);
-	 if (rd) right->deref(xsink);
+	 result = functions[t]->eval(*nleft, *nright, ref_rv, xsink);
       }
    }
    else
    {
       // in this case there will only be one entry (0)
       printd(5, "Operator::eval() evaluating function 0\n");
-      result = functions[0]->eval(left, right, ref_rv, xsink);
+      result = functions[0]->eval(left_side, right_side, ref_rv, xsink);
    }
    traceout("Operator::eval()");
    return result;
@@ -2562,29 +2355,19 @@ class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, bool
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-bool Operator::bool_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+bool Operator::bool_eval(class QoreNode *left_side, class QoreNode *right_side, ExceptionSink *xsink) const
 {
    bool result;
    
    tracein("Operator::bool_eval()");
-   printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
+   printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left_side, right_side);
    if (evalArgs)
    {
-      bool ld = false; // dereference left
-      if (left)
-      {
-	 printd(5, "O:be() %s left=%08p %s\n", description, left, left->type->getName());
-	 left = left->eval(ld, xsink);
-	 if (xsink->isEvent())
-	 {
-	    if (left && ld) left->deref(xsink);
-	    return false;
-	 }
-	 printd(5, "O:be() %s left=%08p ld=%d\n", description, left, ld);
-      }
-      // also catches the case where left was evaluated to NULL
-      if (!left)
-	 left = Nothing;
+      QoreNodeEvalOptionalRefHolder nleft(left_side, xsink);
+      if (*xsink)
+	 return 0;
+      if (!nleft)
+	 nleft.assign(false, Nothing);
       
       int t;
       if (args == 1)
@@ -2592,98 +2375,63 @@ bool Operator::bool_eval(class QoreNode *left, class QoreNode *right, ExceptionS
 	 // find operator function
 	 if (functions.size() == 1)
 	    t = 0;
-	 else if (left->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[left->type->getID()][NT_NOTHING->getID()];
+	 else if (nleft->type->getID() < NUM_VALUE_TYPES)
+	    t = opMatrix[nleft->type->getID()][NT_NOTHING->getID()];
 	 else
-	    t = findFunction(left->type, NT_NOTHING);
+	    t = findFunction(nleft->type, NT_NOTHING);
 	 
 	 printd(5, "Operator::bool_eval() 1 arg: found function %d\n", t);	 
 	 // convert node type to required argument types for operator if necessary
-	 if ((left->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
+	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
 	 {
-	    QoreNode *nl = functions[t]->ltype->convertTo(left, xsink);
-	    if (ld) left->deref(xsink);
-	    else ld = true;
-	    if (xsink->isEvent())
-	    {
-	       if (nl) nl->deref(xsink);
-	       return false;
-	    }
-	    left = nl;
+	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
+	    if (*xsink)
+	       return 0;
 	 }
-	 result = functions[t]->bool_eval(left, NULL, xsink);
-	 // dereference converted argument
-	 if (ld)
-	    left->deref(xsink);
+	 result = functions[t]->bool_eval(*nleft, NULL, xsink);
       }
       else // 2 arguments
       {
-	 bool rd = false; // dereference right
-	 
-	 if (right)
-	 {
-	    right = right->eval(rd, xsink);
-	    if (xsink->isEvent())
-	    {
-	       if (ld) left->deref(xsink);
-	       if (right && rd) right->deref(xsink);
-	       return false;
-	    }
-	 }
-	 // also catches the case where right was evaluated to NULL
-	 if (!right)
-	    right = Nothing;
+	 QoreNodeEvalOptionalRefHolder nright(right_side, xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!nright)
+	    nright.assign(false, Nothing);
 
 	 // find operator function
 	 if (functions.size() == 1)
 	    t = 0;
-	 else if (left->type->getID() < NUM_VALUE_TYPES && right->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[left->type->getID()][right->type->getID()];
+	 else if (nleft->type->getID() < NUM_VALUE_TYPES && nright->type->getID() < NUM_VALUE_TYPES)
+	    t = opMatrix[nleft->type->getID()][nright->type->getID()];
 	 else
-	    t = findFunction(left->type, right->type);
+	    t = findFunction(nleft->type, nright->type);
 	 
 	 printd(5, "Operator::bool_eval() 2 args: found function %d\n", t);
 
 	 // convert node type to required argument types for operator if necessary
 	 // convert left node
-	 if ((left->type != functions[t]->ltype) && 
+	 if ((nleft->type != functions[t]->ltype) && 
 	     (functions[t]->ltype != NT_ALL))
 	 {
-	    QoreNode *nl = functions[t]->ltype->convertTo(left, xsink);
-	    if (ld) left->deref(xsink);
-	    else ld = true;
-	    if (xsink->isEvent())
-	    {
-	       if (nl) nl->deref(xsink);
-	       return false;
-	    }
-	    left = nl;
+	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
+	    if (*xsink)
+	       return 0;
 	 }
 	 // convert right node if necessary
-	 if ((right->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
+	 if ((nright->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
 	 {
-	    QoreNode *nr = functions[t]->rtype->convertTo(right, xsink);
-	    if (rd) right->deref(xsink);
-	    else rd = true;
-	    if (xsink->isEvent())
-	    {
-	       if (ld) left->deref(xsink);
-	       if (nr) nr->deref(xsink);
-	       return false;
-	    }
-	    right = nr;
+	    nright.assign(true, functions[t]->rtype->convertTo(*nright, xsink));
+	    if (*xsink)
+	       return 0;
 	 }
-	 result = functions[t]->bool_eval(left, right, xsink);
-	 // dereference converted arguments
-	 if (ld) left->deref(xsink);
-	 if (rd) right->deref(xsink);
+	 result = functions[t]->bool_eval(*nleft, *nright, xsink);
       }
    }
    else
    {
       // in this case there will only be one entry (0)
       printd(5, "Operator::bool_eval() evaluating function 0\n");
-      result = functions[0]->bool_eval(left, right, xsink);
+      result = functions[0]->bool_eval(left_side, right_side, xsink);
    }
    traceout("Operator::bool_eval()");
    return result;
@@ -2702,19 +2450,11 @@ int64 Operator::bigint_eval(class QoreNode *left, class QoreNode *right, Excepti
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
    if (evalArgs)
    {
-      bool ld = true; // dereference left
-      if (left)
-      {
-	 left = left->eval(ld, xsink);
-	 if (xsink->isEvent())
-	 {
-	    if (left && ld) left->deref(xsink);
-	    return 0;
-	 }
-      }
-      // also catches the case where left was evaluated to NULL
-      if (!left)
-	 left = Nothing;
+      QoreNodeEvalOptionalRefHolder nleft(left, xsink);
+      if (*xsink)
+	 return 0;
+      if (!nleft)
+	 nleft.assign(false, Nothing);
 
       int t;
 
@@ -2723,91 +2463,55 @@ int64 Operator::bigint_eval(class QoreNode *left, class QoreNode *right, Excepti
 	 // find operator function
 	 if (functions.size() == 1)
 	    t = 0;
-	 else if (left->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[left->type->getID()][NT_NOTHING->getID()];
+	 else if (nleft->type->getID() < NUM_VALUE_TYPES)
+	    t = opMatrix[nleft->type->getID()][NT_NOTHING->getID()];
 	 else
-	    t = findFunction(left->type, NT_NOTHING);
+	    t = findFunction(nleft->type, NT_NOTHING);
 	 
 	 printd(5, "Operator::bigint_eval() found function %d\n", t);	 
 	 // convert node type to required argument types for operator if necessary
-	 if ((left->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
+	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
 	 {
-	    QoreNode *nl = functions[t]->ltype->convertTo(left, xsink);
-	    if (ld) left->deref(xsink);
-	    else ld = true;
-	    if (xsink->isEvent())
-	    {
-	       if (nl) nl->deref(xsink);
+	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
+	    if (*xsink)
 	       return 0;
-	    }
-	    left = nl;
 	 }
-	 result = functions[t]->bigint_eval(left, NULL, xsink);
-	 // dereference converted argument
-	 if (ld)
-	    left->deref(xsink);
+	 result = functions[t]->bigint_eval(*nleft, NULL, xsink);
       }
       else // 2 arguments
       {
-	 bool rd = false; // dereference right
-	 
-	 if (right) 
-	 {
-	    right = right->eval(rd, xsink);
-	    if (xsink->isEvent())
-	    {
-	       if (ld) left->deref(xsink);
-	       if (right && rd) right->deref(xsink);
-	       return 0;
-	    }
-	 }
-	 // also catches the case where right was evaluated to NULL
-	 if (!right)
-	    right = Nothing;
+	 QoreNodeEvalOptionalRefHolder nright(right, xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!nright)
+	    nright.assign(false, Nothing);
 	 
 	 // find operator function
 	 if (functions.size() == 1)
 	    t = 0;
-	 else if (left->type->getID() < NUM_VALUE_TYPES && right->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[left->type->getID()][right->type->getID()];
+	 else if (nleft->type->getID() < NUM_VALUE_TYPES && nright->type->getID() < NUM_VALUE_TYPES)
+	    t = opMatrix[nleft->type->getID()][nright->type->getID()];
 	 else
-	    t = findFunction(left->type, right->type);
+	    t = findFunction(nleft->type, nright->type);
 	 
 	 printd(5, "Operator::bigint_eval() found function %d\n", t);
 	 
 	 // convert node type to required argument types for operator if necessary
 	 // convert left node
-	 if ((left->type != functions[t]->ltype) && 
-	     (functions[t]->ltype != NT_ALL))
+	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
 	 {
-	    QoreNode *nl = functions[t]->ltype->convertTo(left, xsink);
-	    if (ld) left->deref(xsink);
-	    else ld = true;
-	    if (xsink->isEvent())
-	    {
-	       if (nl) nl->deref(xsink);
+	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
+	    if (*xsink)
 	       return 0;
-	    }
-	    left = nl;
 	 }
 	 // convert right node if necessary
-	 if ((right->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
+	 if ((nright->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
 	 {
-	    QoreNode *nr = functions[t]->rtype->convertTo(right, xsink);
-	    if (rd) right->deref(xsink);
-	    else rd = true;
-	    if (xsink->isEvent())
-	    {
-	       if (ld) left->deref(xsink);
-	       if (nr) nr->deref(xsink);
+	    nright.assign(true, functions[t]->rtype->convertTo(*nright, xsink));
+	    if (*xsink)
 	       return 0;
-	    }
-	    right = nr;
 	 }
-	 result = functions[t]->bigint_eval(left, right, xsink);
-	 // dereference converted arguments
-	 if (ld) left->deref(xsink);
-	 if (rd) right->deref(xsink);
+	 result = functions[t]->bigint_eval(*nleft, *nright, xsink);
       }
    }
    else
@@ -2833,19 +2537,11 @@ double Operator::float_eval(class QoreNode *left, class QoreNode *right, Excepti
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
    if (evalArgs)
    {
-      bool ld = true; // dereference left
-      if (left)
-      {
-	 left = left->eval(ld, xsink);
-	 if (xsink->isEvent())
-	 {
-	    if (left && ld) left->deref(xsink);
-	    return 0.0;
-	 }
-      }
-      // also catches the case where left was evaluated to NULL
-      if (!left)
-	 left = Nothing;
+      QoreNodeEvalOptionalRefHolder nleft(left, xsink);
+      if (*xsink)
+	 return 0;
+      if (!nleft)
+	 nleft.assign(false, Nothing);
 
       int t;
 
@@ -2854,91 +2550,55 @@ double Operator::float_eval(class QoreNode *left, class QoreNode *right, Excepti
 	 // find operator function
 	 if (functions.size() == 1)
 	    t = 0;
-	 else if (left->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[left->type->getID()][NT_NOTHING->getID()];
+	 else if (nleft->type->getID() < NUM_VALUE_TYPES)
+	    t = opMatrix[nleft->type->getID()][NT_NOTHING->getID()];
 	 else
-	    t = findFunction(left->type, NT_NOTHING);
+	    t = findFunction(nleft->type, NT_NOTHING);
 	 
 	 printd(5, "Operator::float_eval() found function %d\n", t);	 
 	 // convert node type to required argument types for operator if necessary
-	 if ((left->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
+	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
 	 {
-	    QoreNode *nl = functions[t]->ltype->convertTo(left, xsink);
-	    if (ld) left->deref(xsink);
-	    else ld = true;
-	    if (xsink->isEvent())
-	    {
-	       if (nl) nl->deref(xsink);
-	       return 0.0;
-	    }
-	    left = nl;
+	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
+	    if (*xsink)
+	       return 0;
 	 }
-	 result = functions[t]->float_eval(left, NULL, xsink);
-	 // dereference converted argument
-	 if (ld)
-	    left->deref(xsink);
+	 result = functions[t]->float_eval(*nleft, NULL, xsink);
       }
       else // 2 arguments
       {
-	 bool rd = false; // dereference right
-	 
-	 if (right) 
-	 {
-	    right = right->eval(rd, xsink);
-	    if (xsink->isEvent())
-	    {
-	       if (ld) left->deref(xsink);
-	       if (right && rd) right->deref(xsink);
-	       return 0.0;
-	    }
-	 }
-	 // also catches the case where right was evaluated to NULL
-	 if (!right)
-	    right = Nothing;
+	 QoreNodeEvalOptionalRefHolder nright(right, xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!nright)
+	    nright.assign(false, Nothing);
 	 
 	 // find operator function
 	 if (functions.size() == 1)
 	    t = 0;
-	 else if (left->type->getID() < NUM_VALUE_TYPES && right->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[left->type->getID()][right->type->getID()];
+	 else if (nleft->type->getID() < NUM_VALUE_TYPES && nright->type->getID() < NUM_VALUE_TYPES)
+	    t = opMatrix[nleft->type->getID()][nright->type->getID()];
 	 else
-	    t = findFunction(left->type, right->type);
+	    t = findFunction(nleft->type, nright->type);
 	 
 	 printd(5, "Operator::float_eval() found function %d\n", t);
 	 
 	 // convert node type to required argument types for operator if necessary
 	 // convert left node
-	 if ((left->type != functions[t]->ltype) && 
-	     (functions[t]->ltype != NT_ALL))
+	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
 	 {
-	    QoreNode *nl = functions[t]->ltype->convertTo(left, xsink);
-	    if (ld) left->deref(xsink);
-	    else ld = true;
-	    if (xsink->isEvent())
-	    {
-	       if (nl) nl->deref(xsink);
-	       return 0.0;
-	    }
-	    left = nl;
+	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
+	    if (*xsink)
+	       return 0;
 	 }
 	 // convert right node if necessary
-	 if ((right->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
+	 if ((nright->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
 	 {
-	    QoreNode *nr = functions[t]->rtype->convertTo(right, xsink);
-	    if (rd) right->deref(xsink);
-	    else rd = true;
-	    if (xsink->isEvent())
-	    {
-	       if (ld) left->deref(xsink);
-	       if (nr) nr->deref(xsink);
-	       return 0.0;
-	    }
-	    right = nr;
+	    nright.assign(true, functions[t]->rtype->convertTo(*nright, xsink));
+	    if (*xsink)
+	       return 0;
 	 }
-	 result = functions[t]->float_eval(left, right, xsink);
-	 // dereference converted arguments
-	 if (ld) left->deref(xsink);
-	 if (rd) right->deref(xsink);
+	 result = functions[t]->float_eval(*nleft, *nright, xsink);
       }
    }
    else

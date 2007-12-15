@@ -50,10 +50,10 @@ class QoreAbstractQAbstractItemDelegate : public QoreAbstractQObject
 class QoreQAbstractItemDelegateExtension : public QoreQObjectExtension
 {
    protected:
-      QoreMethod *m_createEditor, *m_editorEvent, *m_paint, *m_setEditorData, 
+      const QoreMethod *m_createEditor, *m_editorEvent, *m_paint, *m_setEditorData, 
 	 *m_setModelData, *m_sizeHint, *m_updateEditorGeometry;
 
-      DLLLOCAL QoreQAbstractItemDelegateExtension(QoreClass *qc) : QoreQObjectExtension(qc)
+      DLLLOCAL QoreQAbstractItemDelegateExtension(const QoreClass *qc) : QoreQObjectExtension(qc)
       {
          m_createEditor           = findMethod(qc, "createEditor");
          m_editorEvent            = findMethod(qc, "editorEvent");

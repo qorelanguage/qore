@@ -53,5 +53,4 @@ DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(const char *err, const char *fmt, ...);
 DLLLOCAL class QoreString *findFileInEnvPath(const char *file, const char *varname);
 
-
 #endif

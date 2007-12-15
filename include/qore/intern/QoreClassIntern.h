@@ -87,10 +87,10 @@ class BCSMList : public class_list_t
       DLLLOCAL inline void addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc, bool is_virtual);
       DLLLOCAL inline bool isBaseClass(class QoreClass *qc) const;
       DLLLOCAL inline class QoreClass *getClass(int cid) const;
-      //inline void execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink);
-      DLLLOCAL inline void execDestructors(class QoreObject *o, class ExceptionSink *xsink);
-      DLLLOCAL inline void execSystemDestructors(class QoreObject *o, class ExceptionSink *xsink);
-      DLLLOCAL inline void execCopyMethods(class QoreObject *self, class QoreObject *old, class ExceptionSink *xsink);
+      //DLLLOCAL inline void execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL inline void execDestructors(class QoreObject *o, class ExceptionSink *xsink) const;
+      DLLLOCAL inline void execSystemDestructors(class QoreObject *o, class ExceptionSink *xsink) const;
+      DLLLOCAL inline void execCopyMethods(class QoreObject *self, class QoreObject *old, class ExceptionSink *xsink) const;
 };
 
 // BCNode 
@@ -144,15 +144,16 @@ class BCList : public ReferenceObject, public bclist_t
       DLLLOCAL BCList(class BCNode *n);
       DLLLOCAL inline BCList();
       DLLLOCAL inline void parseInit(class QoreClass *thisclass, class BCAList *bcal);
-      DLLLOCAL inline class QoreMethod *resolveSelfMethod(const char *name);
-      DLLLOCAL inline class QoreMethod *findMethod(const char *name);
-      DLLLOCAL inline class QoreMethod *findMethod(const char *name, bool *p);
+      DLLLOCAL inline const QoreMethod *resolveSelfMethod(const char *name);
+      DLLLOCAL inline const QoreMethod *findParseMethod(const char *name);
+      DLLLOCAL inline const QoreMethod *findMethod(const char *name) const;
+      DLLLOCAL inline const QoreMethod *findMethod(const char *name, bool *p) const;
       DLLLOCAL inline bool match(class BCANode *bca);
-      DLLLOCAL inline void execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink);
-      DLLLOCAL void execConstructorsWithArgs(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink);
-      DLLLOCAL inline void execSystemConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink);
+      DLLLOCAL inline void execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL void execConstructorsWithArgs(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL inline void execSystemConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL inline bool isPrivateMember(const char *str) const;
-      DLLLOCAL inline void ref();
+      DLLLOCAL inline void ref() const;
       DLLLOCAL void deref();
 };
 
