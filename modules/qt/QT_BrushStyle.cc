@@ -29,12 +29,12 @@
 
 static qt_enum_map_t bsmap;
 
-bool BrushStyle_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool BrushStyle_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)(l->val.intval != r->val.intval);
 }
 
-class QoreString *BrushStyle_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
+class QoreString *BrushStyle_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
 {
    qt_enum_map_t::iterator i = bsmap.find((int)n->val.intval);
    if (i == bsmap.end()) {

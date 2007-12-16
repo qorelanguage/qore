@@ -28,7 +28,7 @@ int CID_QCOREAPPLICATION;
 class QoreClass *QC_QCoreApplication = 0;
 
 //QCoreApplication ( int & argc, char ** argv )
-static void QCOREAPPLICATION_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QCOREAPPLICATION_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QCOREAPPLICATION, new QoreQCoreApplication(self));
 }
@@ -40,7 +40,7 @@ static void QCOREAPPLICATION_copy(class QoreObject *self, class QoreObject *old,
 
 /*
 //bool filterEvent ( void * message, long * result )
-static QoreNode *QCOREAPPLICATION_filterEvent(QoreObject *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOREAPPLICATION_filterEvent(QoreObject *self, QoreAbstractQCoreApplication *qca, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? void* message = p;
@@ -51,7 +51,7 @@ static QoreNode *QCOREAPPLICATION_filterEvent(QoreObject *self, QoreAbstractQCor
 */
 
 //virtual bool notify ( QObject * receiver, QEvent * event )
-static QoreNode *QCOREAPPLICATION_notify(QoreObject *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOREAPPLICATION_notify(QoreObject *self, QoreAbstractQCoreApplication *qca, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -73,7 +73,7 @@ static QoreNode *QCOREAPPLICATION_notify(QoreObject *self, QoreAbstractQCoreAppl
 }
 
 //EventFilter setEventFilter ( EventFilter filter )
-static QoreNode *QCOREAPPLICATION_setEventFilter(QoreObject *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOREAPPLICATION_setEventFilter(QoreObject *self, QoreAbstractQCoreApplication *qca, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QCoreApplication::EventFilter filter = (QCoreApplication::EventFilter)(p ? p->getAsInt() : 0);
@@ -82,7 +82,7 @@ static QoreNode *QCOREAPPLICATION_setEventFilter(QoreObject *self, QoreAbstractQ
 
 /*
 //virtual bool winEventFilter ( MSG * msg, long * result )
-static QoreNode *QCOREAPPLICATION_winEventFilter(QoreObject *self, QoreAbstractQCoreApplication *qca, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOREAPPLICATION_winEventFilter(QoreObject *self, QoreAbstractQCoreApplication *qca, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? MSG* msg = p;
@@ -111,7 +111,7 @@ QoreClass *initQCoreApplicationClass(QoreClass *qobject)
 }
 
 //void addLibraryPath ( const QString & path )
-static QoreNode *f_QCoreApplication_addLibraryPath(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_addLibraryPath(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString path;
@@ -122,25 +122,25 @@ static QoreNode *f_QCoreApplication_addLibraryPath(QoreNode *params, ExceptionSi
 }
 
 //QString applicationDirPath ()
-static QoreNode *f_QCoreApplication_applicationDirPath(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_applicationDirPath(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(QCoreApplication::applicationDirPath().toUtf8().data(), QCS_UTF8));
 }
 
 //QString applicationFilePath ()
-static QoreNode *f_QCoreApplication_applicationFilePath(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_applicationFilePath(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(QCoreApplication::applicationFilePath().toUtf8().data(), QCS_UTF8));
 }
 
 //QString applicationName ()
-static QoreNode *f_QCoreApplication_applicationName(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_applicationName(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(QCoreApplication::applicationName().toUtf8().data(), QCS_UTF8));
 }
 
 //QStringList arguments ()
-static QoreNode *f_QCoreApplication_arguments(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_arguments(const QoreNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = QCoreApplication::arguments();
    QoreList *l = new QoreList();
@@ -150,19 +150,19 @@ static QoreNode *f_QCoreApplication_arguments(QoreNode *params, ExceptionSink *x
 }
 
 //bool closingDown ()
-static QoreNode *f_QCoreApplication_closingDown(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_closingDown(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(QCoreApplication::closingDown());
 }
 
 //int exec ()
-static QoreNode *f_QCoreApplication_exec(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_exec(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)QCoreApplication::exec());
 }
 
 //void exit ( int returnCode = 0 )
-static QoreNode *f_QCoreApplication_exit(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_exit(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int returnCode = !is_nothing(p) ? p->getAsInt() : 0;
@@ -171,20 +171,20 @@ static QoreNode *f_QCoreApplication_exit(QoreNode *params, ExceptionSink *xsink)
 }
 
 //void flush ()
-static QoreNode *f_QCoreApplication_flush(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_flush(const QoreNode *params, ExceptionSink *xsink)
 {
    QCoreApplication::flush();
    return 0;
 }
 
 //bool hasPendingEvents ()
-static QoreNode *f_QCoreApplication_hasPendingEvents(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_hasPendingEvents(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(QCoreApplication::hasPendingEvents());
 }
 
 //void installTranslator ( QTranslator * translationFile )
-static QoreNode *f_QCoreApplication_installTranslator(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_installTranslator(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQTranslator *translationFile = (p && p->type == NT_OBJECT) ? (QoreQTranslator *)p->val.object->getReferencedPrivateData(CID_QTRANSLATOR, xsink) : 0;
@@ -199,7 +199,7 @@ static QoreNode *f_QCoreApplication_installTranslator(QoreNode *params, Exceptio
 }
 
 //QCoreApplication * instance ()
-static QoreNode *f_QCoreApplication_instance(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_instance(const QoreNode *params, ExceptionSink *xsink)
 {
    QCoreApplication *qt_qobj = QCoreApplication::instance();
    if (!qt_qobj)
@@ -217,7 +217,7 @@ static QoreNode *f_QCoreApplication_instance(QoreNode *params, ExceptionSink *xs
 }
 
 //QStringList libraryPaths ()
-static QoreNode *f_QCoreApplication_libraryPaths(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_libraryPaths(const QoreNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = QCoreApplication::libraryPaths();
    QoreList *l = new QoreList();
@@ -227,20 +227,20 @@ static QoreNode *f_QCoreApplication_libraryPaths(QoreNode *params, ExceptionSink
 }
 
 //QString organizationDomain ()
-static QoreNode *f_QCoreApplication_organizationDomain(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_organizationDomain(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(QCoreApplication::organizationDomain().toUtf8().data(), QCS_UTF8));
 }
 
 //QString organizationName ()
-static QoreNode *f_QCoreApplication_organizationName(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_organizationName(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(QCoreApplication::organizationName().toUtf8().data(), QCS_UTF8));
 }
 
 //void postEvent ( QObject * receiver, QEvent * event )
 //void postEvent ( QObject * receiver, QEvent * event, int priority )
-static QoreNode *f_QCoreApplication_postEvent(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_postEvent(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreAbstractQObject *receiver = p ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -270,7 +270,7 @@ static QoreNode *f_QCoreApplication_postEvent(QoreNode *params, ExceptionSink *x
 
 //void processEvents ( QEventLoop::ProcessEventsFlags flags = QEventLoop::AllEvents )
 //void processEvents ( QEventLoop::ProcessEventsFlags flags, int maxtime )
-static QoreNode *f_QCoreApplication_processEvents(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_processEvents(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -289,7 +289,7 @@ static QoreNode *f_QCoreApplication_processEvents(QoreNode *params, ExceptionSin
 }
 
 //void removeLibraryPath ( const QString & path )
-static QoreNode *f_QCoreApplication_removeLibraryPath(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_removeLibraryPath(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString path;
@@ -301,7 +301,7 @@ static QoreNode *f_QCoreApplication_removeLibraryPath(QoreNode *params, Exceptio
 
 //void removePostedEvents ( QObject * receiver )
 //void removePostedEvents ( QObject * receiver, int eventType )
-static QoreNode *f_QCoreApplication_removePostedEvents(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_removePostedEvents(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreAbstractQObject *receiver = p ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -322,7 +322,7 @@ static QoreNode *f_QCoreApplication_removePostedEvents(QoreNode *params, Excepti
 }
 
 //void removeTranslator ( QTranslator * translationFile )
-static QoreNode *f_QCoreApplication_removeTranslator(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_removeTranslator(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQTranslator *translationFile = (p && p->type == NT_OBJECT) ? (QoreQTranslator *)p->val.object->getReferencedPrivateData(CID_QTRANSLATOR, xsink) : 0;
@@ -337,7 +337,7 @@ static QoreNode *f_QCoreApplication_removeTranslator(QoreNode *params, Exception
 }
 
 //bool sendEvent ( QObject * receiver, QEvent * event )
-static QoreNode *f_QCoreApplication_sendEvent(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_sendEvent(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -360,7 +360,7 @@ static QoreNode *f_QCoreApplication_sendEvent(QoreNode *params, ExceptionSink *x
 
 //void sendPostedEvents ( QObject * receiver, int event_type )
 //void sendPostedEvents ()
-static QoreNode *f_QCoreApplication_sendPostedEvents(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_sendPostedEvents(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -381,7 +381,7 @@ static QoreNode *f_QCoreApplication_sendPostedEvents(QoreNode *params, Exception
 }
 
 //void setApplicationName ( const QString & application )
-static QoreNode *f_QCoreApplication_setApplicationName(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_setApplicationName(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString application;
@@ -392,7 +392,7 @@ static QoreNode *f_QCoreApplication_setApplicationName(QoreNode *params, Excepti
 }
 
 //void setAttribute ( Qt::ApplicationAttribute attribute, bool on = true )
-static QoreNode *f_QCoreApplication_setAttribute(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_setAttribute(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::ApplicationAttribute attribute = (Qt::ApplicationAttribute)(p ? p->getAsInt() : 0);
@@ -403,7 +403,7 @@ static QoreNode *f_QCoreApplication_setAttribute(QoreNode *params, ExceptionSink
 }
 
 //void setLibraryPaths ( const QStringList & paths )
-static QoreNode *f_QCoreApplication_setLibraryPaths(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_setLibraryPaths(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_LIST) {
@@ -427,7 +427,7 @@ static QoreNode *f_QCoreApplication_setLibraryPaths(QoreNode *params, ExceptionS
 }
 
 //void setOrganizationDomain ( const QString & orgDomain )
-static QoreNode *f_QCoreApplication_setOrganizationDomain(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_setOrganizationDomain(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString orgDomain;
@@ -438,7 +438,7 @@ static QoreNode *f_QCoreApplication_setOrganizationDomain(QoreNode *params, Exce
 }
 
 //void setOrganizationName ( const QString & orgName )
-static QoreNode *f_QCoreApplication_setOrganizationName(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_setOrganizationName(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString orgName;
@@ -449,13 +449,13 @@ static QoreNode *f_QCoreApplication_setOrganizationName(QoreNode *params, Except
 }
 
 //bool startingUp ()
-static QoreNode *f_QCoreApplication_startingUp(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_startingUp(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(QCoreApplication::startingUp());
 }
 
 //bool testAttribute ( Qt::ApplicationAttribute attribute )
-static QoreNode *f_QCoreApplication_testAttribute(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_testAttribute(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::ApplicationAttribute attribute = (Qt::ApplicationAttribute)(p ? p->getAsInt() : 0);
@@ -464,7 +464,7 @@ static QoreNode *f_QCoreApplication_testAttribute(QoreNode *params, ExceptionSin
 
 //QString translate ( const char * context, const char * sourceText, const char * comment, Encoding encoding, int n )
 //QString translate ( const char * context, const char * sourceText, const char * comment = 0, Encoding encoding = CodecForTr )
-static QoreNode *f_QCoreApplication_translate(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QCoreApplication_translate(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {

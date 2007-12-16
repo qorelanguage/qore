@@ -25,10 +25,10 @@
 #define _QORE_QT_STRING_H
 
 DLLLOCAL class QoreNode *string_DefaultValue();
-DLLLOCAL class QoreNode *string_Copy(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *string_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool string_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
-DLLLOCAL class QoreString *string_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *string_Copy(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *string_ConvertTo(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool string_Compare(const class QoreNode *l, const class QoreNode *r, class ExceptionSink *xsink);
+DLLLOCAL class QoreString *string_MakeString(const class QoreNode *n, int format, class ExceptionSink *xsink);
 DLLLOCAL void string_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_STRING_H

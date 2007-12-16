@@ -121,13 +121,13 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(class QoreHash *h);
       DLLEXPORT QoreNode(class QoreList *l);
 
-      DLLEXPORT class QoreNode *convert(class QoreType *new_type);
-      DLLEXPORT class QoreNode *convert(class QoreType *new_type, class ExceptionSink *xsink);
-      DLLEXPORT bool getAsBool();
-      DLLEXPORT int getAsInt();
-      DLLEXPORT int64 getAsBigInt();
-      DLLEXPORT double getAsFloat();
-      DLLEXPORT class QoreString *getAsString(int foff, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *convert(const class QoreType *new_type) const;
+      DLLEXPORT class QoreNode *convert(const class QoreType *new_type, class ExceptionSink *xsink) const;
+      DLLEXPORT bool getAsBool() const;
+      DLLEXPORT int getAsInt() const;
+      DLLEXPORT int64 getAsBigInt() const;
+      DLLEXPORT double getAsFloat() const;
+      DLLEXPORT class QoreString *getAsString(int foff, class ExceptionSink *xsink) const;
       
       DLLLOCAL QoreNode(char *fn, class QoreNode *a);
       DLLLOCAL QoreNode(class QoreNode *a, char *fn);
@@ -150,33 +150,33 @@ class QoreNode : public ReferenceObject
       DLLLOCAL QoreNode(class AbstractParseObjectMethodReference *objmethref);
       DLLLOCAL QoreNode(class FunctionCall *fc);
       
-      DLLLOCAL bool needs_eval();
-      DLLLOCAL class QoreNode *realCopy(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink);
-      DLLLOCAL int64 bigIntEval(class ExceptionSink *xsink);
-      DLLLOCAL int integerEval(class ExceptionSink *xsink);
-      DLLLOCAL bool boolEval(class ExceptionSink *xsink);
+      DLLLOCAL bool needs_eval() const;
+      DLLLOCAL class QoreNode *realCopy(class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
+      DLLLOCAL int64 bigIntEval(class ExceptionSink *xsink) const;
+      DLLLOCAL int integerEval(class ExceptionSink *xsink) const;
+      DLLLOCAL bool boolEval(class ExceptionSink *xsink) const;
 
-      DLLEXPORT class QoreNode *RefSelf();
-      DLLEXPORT void ref();
+      DLLEXPORT class QoreNode *RefSelf() const;
+      DLLEXPORT void ref() const;
       DLLEXPORT void deref(class ExceptionSink *xsink);
 };
 
 // for getting relative time values or integer values
-DLLEXPORT int getSecZeroInt(class QoreNode *a);
-DLLEXPORT int getSecZeroBigInt(class QoreNode *a);
-DLLEXPORT int getSecMinusOneInt(class QoreNode *a);
-DLLEXPORT int getSecMinusOneBigInt(class QoreNode *a);
-DLLEXPORT int getMsZeroInt(class QoreNode *a);
-DLLEXPORT int getMsZeroBigInt(class QoreNode *a);
-DLLEXPORT int getMsMinusOneInt(class QoreNode *a);
-DLLEXPORT int getMsMinusOneBigInt(class QoreNode *a);
-DLLEXPORT int getMicroSecZeroInt(class QoreNode *a);
-DLLEXPORT bool is_nothing(class QoreNode *n);
-DLLEXPORT bool is_value(class QoreNode *node);
+DLLEXPORT int getSecZeroInt(const QoreNode *a);
+DLLEXPORT int getSecZeroBigInt(const QoreNode *a);
+DLLEXPORT int getSecMinusOneInt(const QoreNode *a);
+DLLEXPORT int getSecMinusOneBigInt(const QoreNode *a);
+DLLEXPORT int getMsZeroInt(const QoreNode *a);
+DLLEXPORT int getMsZeroBigInt(const QoreNode *a);
+DLLEXPORT int getMsMinusOneInt(const QoreNode *a);
+DLLEXPORT int getMsMinusOneBigInt(const QoreNode *a);
+DLLEXPORT int getMicroSecZeroInt(const QoreNode *a);
+DLLEXPORT bool is_nothing(const QoreNode *n);
+DLLEXPORT bool is_value(const QoreNode *node);
 
-DLLLOCAL class QoreNode *copy_and_resolve_lvar_refs(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *copy_and_resolve_lvar_refs(const class QoreNode *n, class ExceptionSink *xsink);
 
 static inline void discard(class QoreNode *n, ExceptionSink *xsink)
 {
@@ -184,7 +184,7 @@ static inline void discard(class QoreNode *n, ExceptionSink *xsink)
       n->deref(xsink);
 }
 
-static inline bool is_null(class QoreNode *n)
+static inline bool is_null(const class QoreNode *n)
 {
    if (n && (n->type == NT_NULL))
       return true;
@@ -202,7 +202,7 @@ class QoreNodeTypeHelper {
       DLLLOCAL void *operator new(size_t);
 
    public:
-      DLLEXPORT QoreNodeTypeHelper(QoreNode *n, class QoreType *t, class ExceptionSink *xsink);
+      DLLEXPORT QoreNodeTypeHelper(QoreNode *n, const QoreType *t, class ExceptionSink *xsink);
       DLLEXPORT ~QoreNodeTypeHelper()
       {
          if (node && temp)
@@ -238,7 +238,7 @@ class QoreNodeCStringHelper {
       DLLLOCAL void *operator new(size_t);
 
    public:
-      DLLEXPORT QoreNodeCStringHelper(QoreNode *n, class QoreEncoding *enc, class ExceptionSink *xsink);
+      DLLEXPORT QoreNodeCStringHelper(const QoreNode *n, class QoreEncoding *enc, class ExceptionSink *xsink);
       DLLEXPORT ~QoreNodeCStringHelper()
       {
 	 if (node && temp)
@@ -280,7 +280,7 @@ class QoreNodeEvalOptionalRefHolder {
 	 needs_deref = false;
 	 val = 0;
       }
-      DLLLOCAL QoreNodeEvalOptionalRefHolder(QoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink)
+      DLLLOCAL QoreNodeEvalOptionalRefHolder(const QoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink)
       {
 	 val = exp ? exp->eval(needs_deref, xsink) : 0;
       }

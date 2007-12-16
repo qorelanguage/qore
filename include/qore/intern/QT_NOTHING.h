@@ -25,6 +25,6 @@
 #define _QORE_QT_NOTHING_H
 
 DLLLOCAL class QoreNode *NOTHING_DefaultValue();
-DLLLOCAL class QoreString *NOTHING_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL class QoreString *NOTHING_MakeString(const class QoreNode *n, int format, class ExceptionSink *xsink);
 
 #endif

@@ -26,21 +26,21 @@
 
 #include <qore/QoreNode.h>
 
-static inline int num_params(QoreNode *n)
+static inline int num_params(const QoreNode *n)
 {
    if (!n)
       return 0;
    return n->val.list->size();
 }
 
-static inline QoreNode *get_param(QoreNode *n, int i)
+static inline QoreNode *get_param(const QoreNode *n, int i)
 {
    if (!n) return NULL;
    class QoreNode *p = n->val.list->retrieve_entry(i);
    return is_nothing(p) ? NULL : p;
 }
 
-static inline QoreNode *test_param(QoreNode *n, class QoreType *type, int i)
+static inline QoreNode *test_param(const QoreNode *n, class QoreType *type, int i)
 {
    if (!n) return NULL;
    QoreNode *p = n->val.list->retrieve_entry(i);
@@ -52,7 +52,7 @@ static inline QoreNode *test_param(QoreNode *n, class QoreType *type, int i)
 // this will return only valid objects of the passed class ID
 // if an object is returned it will be locked and the caller
 // is reponsible for releasing the lock (exiting the gate)
-static inline QoreNode *test_object_param(QoreNode *n, int cid, int i, class RMutex **gp)
+static inline QoreNode *test_object_param(const QoreNode *n, int cid, int i, class RMutex **gp)
 {
    if (!n) return NULL;
    QoreNode *p = n->val.list->retrieve_entry(i);
@@ -61,7 +61,7 @@ static inline QoreNode *test_object_param(QoreNode *n, int cid, int i, class RMu
 }
 */
 
-static inline int test_nothing_param(QoreNode *n, int i)
+static inline int test_nothing_param(const QoreNode *n, int i)
 {
    if (!n) return 1;
    return is_nothing(n->val.list->retrieve_entry(i));

@@ -151,7 +151,7 @@ void QoreList::push(class QoreNode *val)
    *v = val;
 }
 
-void QoreList::merge(class QoreList *list)
+void QoreList::merge(const QoreList *list)
 {
    int start = priv->length;
    resize(priv->length + list->priv->length);

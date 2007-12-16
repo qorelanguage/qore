@@ -28,7 +28,7 @@
 int CID_QBITMAP;
 QoreClass *QC_QBitmap = 0;
 
-static void QBITMAP_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static void QBITMAP_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreQBitmap *qp;
    QoreNode *p = get_param(params, 0);
@@ -71,7 +71,7 @@ static void QBITMAP_copy(class QoreObject *self, class QoreObject *old, class Qo
 }
 
 //void clear ()
-static QoreNode *QBITMAP_clear(QoreObject *self, QoreQBitmap *qb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QBITMAP_clear(QoreObject *self, QoreQBitmap *qb, const QoreNode *params, ExceptionSink *xsink)
 {
    qb->clear();
    return 0;
@@ -79,7 +79,7 @@ static QoreNode *QBITMAP_clear(QoreObject *self, QoreQBitmap *qb, QoreNode *para
 
 //QBitmap transformed ( const QMatrix & matrix ) const
 //QBitmap transformed ( const QTransform & matrix ) const
-//static QoreNode *QBITMAP_transformed(QoreObject *self, QoreQBitmap *qb, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QBITMAP_transformed(QoreObject *self, QoreQBitmap *qb, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QMatrix matrix = p;

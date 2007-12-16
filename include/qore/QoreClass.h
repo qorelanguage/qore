@@ -67,7 +67,7 @@ class QoreMethod {
       DLLLOCAL QoreMethod& operator=(const QoreMethod&);
 
    public:
-      DLLEXPORT class QoreNode *eval(class QoreObject *self, class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *eval(class QoreObject *self, const class QoreNode *args, class ExceptionSink *xsink) const;
       DLLEXPORT bool isSynchronized() const;
       DLLEXPORT int getType() const;
       DLLEXPORT bool isPrivate() const;
@@ -76,7 +76,7 @@ class QoreMethod {
       DLLLOCAL QoreMethod(class UserFunction *u, int p);
       DLLLOCAL QoreMethod(class QoreClass *p_class, class BuiltinMethod *b, bool n_priv = false);
       DLLLOCAL ~QoreMethod();
-      DLLLOCAL bool inMethod(class QoreObject *self) const;
+      DLLLOCAL bool inMethod(const class QoreObject *self) const;
       DLLLOCAL void evalConstructor(class QoreObject *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL void evalDestructor(class QoreObject *self, class ExceptionSink *xsink) const;
       DLLLOCAL void evalSystemConstructor(class QoreObject *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
@@ -111,7 +111,7 @@ class QoreClass{
       DLLLOCAL void checkSpecialIntern(const QoreMethod *m);
       // checks for all special methods
       DLLLOCAL void checkSpecial(const QoreMethod *m);
-      DLLLOCAL class QoreNode *evalMethodGate(class QoreObject *self, const char *nme, class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *evalMethodGate(class QoreObject *self, const char *nme, const class QoreNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL const QoreMethod *resolveSelfMethodIntern(const char *nme);
       DLLLOCAL void delete_pending_methods();
       DLLLOCAL BCAList *getBaseClassConstructorArgumentList() const;
@@ -131,9 +131,9 @@ class QoreClass{
       // this method takes ownership of *name
       DLLEXPORT void addPrivateMember(char *name);
       DLLEXPORT bool isPrivateMember(const char *str) const;
-      DLLEXPORT class QoreNode *evalMethod(class QoreObject *self, const char *nme, class QoreNode *args, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *execConstructor(class QoreNode *args, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *execSystemConstructor(class QoreNode *args, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *evalMethod(class QoreObject *self, const char *nme, const class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *execConstructor(class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *execSystemConstructor(class QoreNode *args, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *execCopy(class QoreObject *old, class ExceptionSink *xsink) const;
       DLLEXPORT const QoreMethod *findLocalMethod(const char *name) const;
       DLLEXPORT class QoreList *getMethodList() const;
@@ -177,8 +177,6 @@ class QoreClass{
       DLLLOCAL void addBaseClassesToSubclass(class QoreClass *sc, bool is_virtual);
       // used when parsing
       DLLLOCAL const QoreMethod *findParseMethod(const char *nme);
-      // used when parsing
-      //DLLLOCAL const QoreMethod *findParseMethod(const char *nme, bool *priv);
       // returns 0 for success, -1 for error
       DLLLOCAL int parseAddBaseClassArgumentList(class BCAList *bcal);
       // only called when parsing, sets the name of the class

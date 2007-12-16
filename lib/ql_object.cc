@@ -24,7 +24,7 @@
 #include <qore/intern/ql_object.h>
 
 // returns a list of method names for the object passed as a parameter
-static QoreNode *f_getMethodList(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_getMethodList(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
    if (!p0)
@@ -33,7 +33,7 @@ static QoreNode *f_getMethodList(QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(p0->val.object->getClass()->getMethodList());
 }
 
-static QoreNode *f_callObjectMethod(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_callObjectMethod(const QoreNode *params, ExceptionSink *xsink)
 {
    // get object
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
@@ -75,7 +75,7 @@ static QoreNode *f_callObjectMethod(QoreNode *params, ExceptionSink *xsink)
    return rv;
 }
 
-static QoreNode *f_callObjectMethodArgs(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_callObjectMethodArgs(const QoreNode *params, ExceptionSink *xsink)
 {
    // get object
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);

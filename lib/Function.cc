@@ -76,7 +76,7 @@ class NamedScope *SelfFunctionCall::takeNScope()
    return rns;
 }
 
-class QoreNode *SelfFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink) const
+class QoreNode *SelfFunctionCall::eval(const QoreNode *args, class ExceptionSink *xsink) const
 {
    class QoreObject *self = getStackObject();
    
@@ -128,7 +128,7 @@ void SelfFunctionCall::resolve()
    }
 }
 
-class QoreNode *ImportedFunctionCall::eval(class QoreNode *args, class ExceptionSink *xsink) const
+class QoreNode *ImportedFunctionCall::eval(const QoreNode *args, class ExceptionSink *xsink) const
 {
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -305,7 +305,7 @@ const char *FunctionCall::getName() const
    return NULL;   
 }
 
-Paramlist::Paramlist(class QoreNode *params)
+Paramlist::Paramlist(QoreNode *params)
 {
    ids = NULL;
    if (!params)
@@ -428,7 +428,7 @@ BuiltinFunction::BuiltinFunction(q_copy_t m, int typ)
    next = NULL;
 }
 
-void BuiltinFunction::evalConstructor(class QoreObject *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const
+void BuiltinFunction::evalConstructor(class QoreObject *self, const QoreNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalConstructor()");
 
@@ -456,7 +456,7 @@ void BuiltinFunction::evalConstructor(class QoreObject *self, class QoreNode *ar
    traceout("BuiltinFunction::evalConstructor()");
 }
 
-void BuiltinFunction::evalSystemConstructor(class QoreObject *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const
+void BuiltinFunction::evalSystemConstructor(class QoreObject *self, const QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const
 {
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
@@ -464,7 +464,7 @@ void BuiltinFunction::evalSystemConstructor(class QoreObject *self, class QoreNo
    code.constructor(self, args, xsink);
 }
 
-QoreNode *BuiltinFunction::evalWithArgs(class QoreObject *self, class QoreNode *args, class ExceptionSink *xsink) const
+QoreNode *BuiltinFunction::evalWithArgs(class QoreObject *self, const QoreNode *args, class ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalWithArgs()");
    printd(2, "BuiltinFunction::evalWithArgs() calling builtin function \"%s\"\n", name);
@@ -492,7 +492,7 @@ QoreNode *BuiltinFunction::evalWithArgs(class QoreObject *self, class QoreNode *
    return rv;
 }
 
-QoreNode *BuiltinFunction::evalMethod(class QoreObject *self, void *private_data, class QoreNode *args, class ExceptionSink *xsink) const
+QoreNode *BuiltinFunction::evalMethod(class QoreObject *self, void *private_data, const QoreNode *args, class ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalMethod()");
    printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
@@ -565,9 +565,9 @@ void BuiltinFunction::evalSystemDestructor(class QoreObject *self, void *private
    code.destructor(self, private_data, xsink);
 }
 
-QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink) const
+QoreNode *BuiltinFunction::eval(const QoreNode *args, ExceptionSink *xsink) const
 {
-   class QoreNode *tmp, *rv;
+   class QoreNode *rv;
    ExceptionSink newsink;
 
    tracein("BuiltinFunction::eval(Node)");
@@ -579,13 +579,10 @@ QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink) const
    const char *o_fn = get_pgm_file();
    int o_ln, o_eln;
    get_pgm_counter(o_ln, o_eln);
-   
-   if (args)
-      tmp = args->eval(&newsink);
-   else
-      tmp = NULL;
 
-   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", tmp, tmp ? tmp->type->getName() : "(null)");
+   QoreNodeEvalOptionalRefHolder tmp(args, xsink);
+
+   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->type->getName() : "(null)");
 
    {
       CodeContextHelper cch(name, NULL, xsink);
@@ -595,7 +592,7 @@ QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink) const
       // execute the function if no new exception has happened
       // necessary only in the case of a builtin object destructor
       if (!newsink.isEvent())
-	 rv = code.func(tmp, xsink);
+	 rv = code.func(*tmp, xsink);
       else
 	 rv = NULL;
 
@@ -605,8 +602,6 @@ QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink) const
       popCall(xsink);
    }
 
-   discard(tmp, xsink);
-
    if (xsink->isException())
       xsink->addStackInfo(CT_BUILTIN, NULL, name, o_fn, o_ln, o_eln);
    
@@ -615,7 +610,7 @@ QoreNode *BuiltinFunction::eval(QoreNode *args, ExceptionSink *xsink) const
 }
 
 // calls a user function
-class QoreNode *UserFunction::eval(QoreNode *args, QoreObject *self, class ExceptionSink *xsink, const char *class_name) const
+class QoreNode *UserFunction::eval(const QoreNode *args, QoreObject *self, class ExceptionSink *xsink, const char *class_name) const
 {
    tracein("UserFunction::eval()");
    printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", name, args, args ? args->val.list->size() : 0);
@@ -647,7 +642,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, QoreObject *self, class Excep
 	    bool is_self_ref = false;
             n = doPartialEval(n->val.lvexp, &is_self_ref, xsink);
 	    //printd(5, "UserFunction::eval() ref self_ref=%d, self=%08p (%s) so=%08p (%s)\n", is_self_ref, self, self ? self->getClass()->name : "NULL", getStackObject(), getStackObject() ? getStackObject()->getClass()->name : "NULL");
-            if (!xsink->isEvent())
+            if (!*xsink)
 	       instantiateLVar(params->ids[i], n, is_self_ref ? getStackObject() : NULL);
          }
          else
@@ -659,7 +654,7 @@ class QoreNode *UserFunction::eval(QoreNode *args, QoreObject *self, class Excep
 	 // the above if block will only instantiate the local variable if no
 	 // exceptions have occurred. therefore here we do the cleanup the rest
 	 // of any already instantiated local variables if an exception does occur
-         if (xsink->isEvent())
+         if (*xsink)
          {
             if (n)
                n->deref(xsink);
@@ -680,24 +675,19 @@ class QoreNode *UserFunction::eval(QoreNode *args, QoreObject *self, class Excep
    {
       QoreList *l = new QoreList();
       
-      for (i = 0; i < (num_args - num_params); i++)
-         if (args->val.list->retrieve_entry(i + num_params))
-         {
-            QoreNode *v = args->val.list->eval_entry(i + num_params, xsink);
-            if (xsink->isEvent())
-            {
-	       if (v)
-		  v->deref(xsink);
-               l->derefAndDelete(xsink);
-               // uninstantiate local vars from param list
-               for (int j = 0; j < num_params; j++)
-                  uninstantiateLVar(xsink);
-               return NULL;
-            }
-            l->push(v);
-         }
-         else
-            l->push(NULL);
+      for (i = 0; i < (num_args - num_params); i++) {
+	 QoreNode *v = args->val.list->eval_entry(i + num_params, xsink);
+	 if (*xsink) {
+	    if (v)
+	       v->deref(xsink);
+	    l->derefAndDelete(xsink);
+	    // uninstantiate local vars from param list
+	    for (int j = 0; j < num_params; j++)
+	       uninstantiateLVar(xsink);
+	    return 0;
+	 }
+	 l->push(v);
+      }
       argv = new QoreNode(l);
    }
    else
@@ -833,7 +823,7 @@ void UserFunction::evalCopy(QoreObject *oold, QoreObject *self, const char *clas
 }
 
 // calls a user constructor method
-class QoreNode *UserFunction::evalConstructor(QoreNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const
+class QoreNode *UserFunction::evalConstructor(const QoreNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const
 {
    tracein("UserFunction::evalConstructor()");
    printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", 

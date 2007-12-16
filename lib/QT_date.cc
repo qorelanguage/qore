@@ -29,7 +29,7 @@ class QoreNode *date_DefaultValue()
    return ZeroDate;
 }
 
-class QoreNode *date_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *date_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
 {
    if (n->type == NT_INT)
       return new QoreNode(new DateTime(n->val.intval));
@@ -47,17 +47,17 @@ class QoreNode *date_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return ZeroDate;
 }
 
-class QoreNode *date_Copy(class QoreNode *l, class ExceptionSink *xsink)
+class QoreNode *date_Copy(const QoreNode *l, class ExceptionSink *xsink)
 {
    return new QoreNode(new DateTime(*(l->val.date_time)));
 }
 
-bool date_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool date_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)!l->val.date_time->isEqual(r->val.date_time);
 }
 
-class QoreString *date_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
+class QoreString *date_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
 {
    class QoreString *str = new QoreString();
    n->val.date_time->getString(str);

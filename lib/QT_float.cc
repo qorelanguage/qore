@@ -29,7 +29,7 @@ class QoreNode *float_DefaultValue()
    return ZeroFloat;
 }
 
-class QoreNode *float_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *float_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
 {
    double f;
 
@@ -47,12 +47,12 @@ class QoreNode *float_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return new QoreNode(f);
 }
 
-bool float_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool float_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)(l->val.floatval != r->val.floatval);
 }
 
-class QoreString *float_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
+class QoreString *float_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
 {
    return new QoreString(n->val.floatval);
 }

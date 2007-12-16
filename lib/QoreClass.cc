@@ -794,7 +794,7 @@ bool QoreMethod::isSynchronized() const
    return priv->func.userFunc->isSynchronized();
 }
 
-bool QoreMethod::inMethod(class QoreObject *self) const
+bool QoreMethod::inMethod(const QoreObject *self) const
 {
    if (priv->type == OTF_USER)
       return ::inMethod(priv->func.userFunc->getName(), self);
@@ -1019,7 +1019,7 @@ QoreClass *QoreClass::getClass(int cid) const
    return priv->scl ? priv->scl->sml.getClass(cid) : NULL;
 }
 
-class QoreNode *QoreMethod::eval(QoreObject *self, QoreNode *args, ExceptionSink *xsink) const
+class QoreNode *QoreMethod::eval(QoreObject *self, const QoreNode *args, ExceptionSink *xsink) const
 {
    QoreNode *rv = NULL;
 
@@ -1029,53 +1029,30 @@ class QoreNode *QoreMethod::eval(QoreObject *self, QoreNode *args, ExceptionSink
    printd(5, "QoreMethod::eval() %s::%s() (object=%08p, pgm=%08p)\n", oname, priv->name, self, self->getProgram());
 #endif
 
-   int need_deref = 0;
-
-   // need to evaluate arguments before pushing object context
-   QoreNode *new_args;
-   if (args)
-   {
-      if (args->val.list->needsEval())
-      {
-	 printd(5, "QoreMethod::eval() about to evaluate args=%08p (%s)\n", args, args->type->getName());
-	 new_args = args->eval(xsink);
-	 printd(5, "QoreMethod::eval() args=%08p (%s) new_args=%08p (%s)\n", args, args->type->getName(), new_args, new_args ? new_args->type->getName() : "NONE");
-	 if (xsink->isEvent())
-	 {
-	    if (new_args)
-	       new_args->deref(xsink);
-	    traceout("QoreMethod::eval()");
-	    return NULL;
-	 }
-	 need_deref = 1;
-      }
-      else
-	 new_args = args;
-   }
-   else
-      new_args = NULL;
-
    {
       // switch to new program for imported objects
       ProgramContextHelper pch(self->getProgram());
       
       if (priv->type == OTF_USER)
-	 rv = priv->func.userFunc->eval(new_args, self, xsink, priv->parent_class->getName());
+	 rv = priv->func.userFunc->eval(args, self, xsink, priv->parent_class->getName());
       else
       {
+	 // evalute arguments before calling builtin method
+	 QoreNodeEvalOptionalRefHolder new_args(args, xsink);
+	 if (*xsink)
+	    return 0;
+
 	 // save current program location in case there's an exception
 	 const char *o_fn = get_pgm_file();
 	 int o_ln, o_eln;
 	 get_pgm_counter(o_ln, o_eln);
 	 
-	 rv = self->evalBuiltinMethodWithPrivateData(priv->func.builtin, new_args, xsink);      
+	 rv = self->evalBuiltinMethodWithPrivateData(priv->func.builtin, *new_args, xsink);      
 	 if (xsink->isException())
 	    xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), priv->name, o_fn, o_ln, o_eln);
       }
    }
    
-   if (new_args && need_deref)
-      new_args->deref(xsink);
 #ifdef DEBUG
    printd(5, "QoreMethod::eval() %s::%s() returning %08p (type=%s, refs=%d)\n",
 	  oname, priv->name, rv, rv ? rv->type->getName() : "(null)", rv ? rv->reference_count() : 0);
@@ -1092,51 +1069,19 @@ void QoreMethod::evalConstructor(QoreObject *self, QoreNode *args, class BCList 
    printd(5, "QoreMethod::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", oname, priv->name, self, self->getProgram());
 #endif
 
-   int need_deref = 0;
+   QoreNodeEvalOptionalRefHolder new_args(args, xsink);
+   if (*xsink)
+      return;
 
-   // need to evaluate arguments before pushing object context
-   QoreNode *new_args;
-   if (args)
-   {
-      if (args->val.list->needsEval())
-      {
-	 printd(5, "QoreMethod::evalConstructor() about to evaluate args=%08p (%s)\n", args, args->type->getName());
-	 new_args = args->eval(xsink);
-	 printd(5, "QoreMethod::evalConstructor() args=%08p (%s) new_args=%08p (%s)\n",
-		args, args->type->getName(), new_args, new_args ? new_args->type->getName() : "NONE");
-	 if (xsink->isEvent())
-	 {
-	    if (new_args)
-	       new_args->deref(xsink);
-	    traceout("QoreMethod::evalConstructor()");
-	    return;
-	 }
-	 need_deref = 1;
-      }
-      else
-	 new_args = args;
-   }
+   if (priv->type == OTF_USER)
+      discard(priv->func.userFunc->evalConstructor(*new_args, self, bcl, bceal, priv->parent_class->getName(), xsink), xsink);
    else
-      new_args = NULL;
-
-   if (!xsink->isEvent())
    {
-      if (priv->type == OTF_USER)
-      {
-	 class QoreNode *rv = priv->func.userFunc->evalConstructor(new_args, self, bcl, bceal, priv->parent_class->getName(), xsink);
-	 if (rv)
-	    rv->deref(xsink);
-      }
-      else
-      {
-	 // switch to new program for imported objects
-	 ProgramContextHelper pch(self->getProgram());
-	 priv->func.builtin->evalConstructor(self, new_args, bcl, bceal, priv->parent_class->getName(), xsink);
-      }
+      // switch to new program for imported objects
+      ProgramContextHelper pch(self->getProgram());
+      priv->func.builtin->evalConstructor(self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
    }
 
-   if (new_args && need_deref)
-      new_args->deref(xsink);
 #ifdef DEBUG
    printd(5, "QoreMethod::evalConstructor() %s::%s() done\n", oname, priv->name);
 #endif
@@ -1228,7 +1173,7 @@ inline void QoreClass::addDomain(int dom)
    priv->domain |= dom;
 }
 
-class QoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, QoreNode *args, class ExceptionSink *xsink) const
+class QoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreNode *args, class ExceptionSink *xsink) const
 {
    tracein("QoreClass::evalMethod()");
    const QoreMethod *w;
@@ -1252,8 +1197,7 @@ class QoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, QoreNod
       return NULL;
    }
    // check for illegal explicit call
-   if (//w == priv->copyMethod || 
-       w == priv->constructor || w == priv->destructor)
+   if (w == priv->constructor || w == priv->destructor)
    {
       xsink->raiseException("ILLEGAL-EXPLICIT-METHOD-CALL", "explicit calls to ::%s() methods are not allowed", nme);
       traceout("QoreClass::evalMethod()");
@@ -1277,32 +1221,28 @@ class QoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, QoreNod
    return w->eval(self, args, xsink);
 }
 
-class QoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, QoreNode *args, ExceptionSink *xsink) const
+class QoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, const QoreNode *args, ExceptionSink *xsink) const
 {
-   tracein("QoreClass::evalMethodGate()");
    printd(5, "QoreClass::evalMethodGate() method=%s args=%08p\n", nme, args);
+
+   ReferenceHolder<QoreNode> args_holder(xsink);
+
    // build new argument list
    if (args)
    {
-      args = args->eval(xsink);
-      if (xsink->isEvent())
-      {
-	 args->deref(xsink);
-	 traceout("QoreClass::evalMethodGate()");
-	 return NULL;
-      }
-      args->val.list->insert(new QoreNode(nme));
+      args_holder = args->eval(xsink);
+      if (*xsink)
+	 return 0;
+      args_holder->val.list->insert(new QoreNode(nme));
    }
    else
    {
-      args = new QoreNode(new QoreList());
-      args->val.list->push(new QoreNode(nme));
+      QoreList *l = new QoreList();
+      l->push(new QoreNode(nme));
+      args_holder = new QoreNode(l);
    }
-   QoreNode *rv = priv->methodGate->eval(self, args, xsink);
-   args->deref(xsink);
-   
-   traceout("QoreClass::evalMethodGate()");
-   return rv;
+
+   return priv->methodGate->eval(self, *args_holder, xsink);
 }
 
 bool QoreClass::isPrivateMember(const char *str) const
@@ -1335,7 +1275,7 @@ class QoreNode *QoreClass::evalMemberGate(class QoreObject *self, class QoreNode
    return rv;
 }
 
-class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink *xsink)
+class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink *xsink) const
 {
    // create new object
    class QoreObject *o = new QoreObject(this, getProgram());
@@ -1372,7 +1312,7 @@ class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *QoreClass::execSystemConstructor(QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreClass::execSystemConstructor(QoreNode *args, class ExceptionSink *xsink) const
 {
    // create new object
    class QoreObject *o = new QoreObject(this, NULL);
@@ -1572,16 +1512,14 @@ const QoreMethod *QoreClass::resolveSelfMethod(const char *nme)
       printd(5, "QoreClass::resolveSelfMethod(%s) resolved to %s::%s() %08p\n", nme, priv->name, nme, m);
 #endif
    bool err = false;
-   if (m && (//m == priv->copyMethod || 
-	  m == priv->constructor || m == priv->destructor))
+   if (m && (m == priv->constructor || m == priv->destructor))
       err = true;
 
    // look in pending methods
    if (!m)
    {
       // pending methods are not set to the quick pointers, so we have to compare the strings...
-      if (//!!strcmp(nme, "copy") || 
-	 !strcmp(nme, "constructor") || !strcmp(nme, "destructor"))
+      if (!strcmp(nme, "constructor") || !strcmp(nme, "destructor"))
 	 err = true;
       else
       {
@@ -1632,16 +1570,14 @@ const QoreMethod *QoreClass::resolveSelfMethod(class NamedScope *nme)
    const char *nstr = nme->getIdentifier();
    const QoreMethod *m = qc->findParseMethod(nstr);
    bool err = false;
-   if (m && (//m == priv->copyMethod || 
-	     m == priv->constructor || m == priv->destructor))
+   if (m && (m == priv->constructor || m == priv->destructor))
       err = true;
 
    // look in pending methods
    if (!m)
    {
       // pending methods are not set to the quick pointers, so we have to compare the strings...
-      if (//!strcmp(nstr, "copy") || 
-	  !strcmp(nstr, "constructor") || !strcmp(nstr, "destructor"))
+      if (!strcmp(nstr, "constructor") || !strcmp(nstr, "destructor"))
 	 err = true;
       else
       {

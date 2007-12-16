@@ -25,8 +25,8 @@
 #define _QORE_QT_FLOAT_H
 
 DLLLOCAL class QoreNode *float_DefaultValue();
-DLLLOCAL class QoreNode *float_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool float_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
-DLLLOCAL class QoreString *float_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *float_ConvertTo(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool float_Compare(const class QoreNode *l, const class QoreNode *r, class ExceptionSink *xsink);
+DLLLOCAL class QoreString *float_MakeString(const class QoreNode *n, int format, class ExceptionSink *xsink);
 
 #endif // _QORE_QT_FLOAT_H

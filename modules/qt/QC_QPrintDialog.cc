@@ -28,7 +28,7 @@ int CID_QPRINTDIALOG;
 class QoreClass *QC_QPrintDialog = 0;
 
 //QPrintDialog ( QPrinter * printer, QWidget * parent = 0 )
-static void QPRINTDIALOG_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QPRINTDIALOG_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPrinter *printer = (p && p->type == NT_OBJECT) ? (QoreQPrinter *)p->val.object->getReferencedPrivateData(CID_QPRINTER, xsink) : 0;

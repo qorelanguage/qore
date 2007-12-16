@@ -29,12 +29,12 @@
 
 static qt_enum_map_t psmap;
 
-bool PenStyle_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool PenStyle_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)(l->val.intval != r->val.intval);
 }
 
-class QoreString *PenStyle_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
+class QoreString *PenStyle_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
 {
    qt_enum_map_t::iterator i = psmap.find((int)n->val.intval);
    if (i == psmap.end()) {

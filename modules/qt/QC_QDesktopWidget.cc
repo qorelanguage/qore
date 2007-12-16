@@ -28,7 +28,7 @@ int CID_QDESKTOPWIDGET;
 class QoreClass *QC_QDesktopWidget = 0;
 
 //QDesktopWidget ()
-static void QDESKTOPWIDGET_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QDESKTOPWIDGET_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QDESKTOPWIDGET, new QoreQDesktopWidget(self));
 }
@@ -41,7 +41,7 @@ static void QDESKTOPWIDGET_copy(class QoreObject *self, class QoreObject *old, c
 //const QRect availableGeometry ( int screen = -1 ) const
 //const QRect availableGeometry ( const QWidget * widget ) const
 //const QRect availableGeometry ( const QPoint & p ) const
-static QoreNode *QDESKTOPWIDGET_availableGeometry(QoreObject *self, QoreQDesktopWidget *qdw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDESKTOPWIDGET_availableGeometry(QoreObject *self, QoreQDesktopWidget *qdw, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -73,25 +73,25 @@ static QoreNode *QDESKTOPWIDGET_availableGeometry(QoreObject *self, QoreQDesktop
 }
 
 //bool isVirtualDesktop () const
-static QoreNode *QDESKTOPWIDGET_isVirtualDesktop(QoreObject *self, QoreQDesktopWidget *qdw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDESKTOPWIDGET_isVirtualDesktop(QoreObject *self, QoreQDesktopWidget *qdw, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qdw->qobj->isVirtualDesktop());
 }
 
 //int numScreens () const
-static QoreNode *QDESKTOPWIDGET_numScreens(QoreObject *self, QoreQDesktopWidget *qdw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDESKTOPWIDGET_numScreens(QoreObject *self, QoreQDesktopWidget *qdw, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qdw->qobj->numScreens());
 }
 
 //int primaryScreen () const
-static QoreNode *QDESKTOPWIDGET_primaryScreen(QoreObject *self, QoreQDesktopWidget *qdw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDESKTOPWIDGET_primaryScreen(QoreObject *self, QoreQDesktopWidget *qdw, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qdw->qobj->primaryScreen());
 }
 
 //QWidget * screen ( int screen = -1 )
-static QoreNode *QDESKTOPWIDGET_screen(QoreObject *self, QoreQDesktopWidget *qdw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDESKTOPWIDGET_screen(QoreObject *self, QoreQDesktopWidget *qdw, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int screen = !is_nothing(p) ? p->getAsInt() : -1;
@@ -113,7 +113,7 @@ static QoreNode *QDESKTOPWIDGET_screen(QoreObject *self, QoreQDesktopWidget *qdw
 //const QRect screenGeometry ( int screen = -1 ) const
 //const QRect screenGeometry ( const QWidget * widget ) const
 //const QRect screenGeometry ( const QPoint & p ) const
-static QoreNode *QDESKTOPWIDGET_screenGeometry(QoreObject *self, QoreQDesktopWidget *qdw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDESKTOPWIDGET_screenGeometry(QoreObject *self, QoreQDesktopWidget *qdw, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -146,7 +146,7 @@ static QoreNode *QDESKTOPWIDGET_screenGeometry(QoreObject *self, QoreQDesktopWid
 
 //int screenNumber ( const QWidget * widget = 0 ) const
 //int screenNumber ( const QPoint & point ) const
-static QoreNode *QDESKTOPWIDGET_screenNumber(QoreObject *self, QoreQDesktopWidget *qdw, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDESKTOPWIDGET_screenNumber(QoreObject *self, QoreQDesktopWidget *qdw, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {

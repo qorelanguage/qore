@@ -34,7 +34,7 @@ QoreClass *QC_QPixmap = 0;
 //QPixmap ( const char * const[] xpm ) 
 //QPixmap ( const QPixmap & pixmap ) 
 //QPixmap ( const QSize & size )
-static void QPIXMAP_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static void QPIXMAP_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreQPixmap *qp;
    QoreNode *p = get_param(params, 0);
@@ -81,7 +81,7 @@ static void QPIXMAP_copy(class QoreObject *self, class QoreObject *old, class Qo
 }
 
 //QPixmap alphaChannel () const
-static QoreNode *QPIXMAP_alphaChannel(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_alphaChannel(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(self->getClass(CID_QPIXMAP), getProgram());
    QoreQPixmap *q_qp = new QoreQPixmap(qp->getQPixmap()->alphaChannel());
@@ -90,14 +90,14 @@ static QoreNode *QPIXMAP_alphaChannel(QoreObject *self, QoreAbstractQPixmap *qp,
 }
 
 //qint64 cacheKey () const
-static QoreNode *QPIXMAP_cacheKey(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_cacheKey(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->getQPixmap()->cacheKey());
 }
 
 //QPixmap copy ( const QRect & rectangle = QRect() ) const
 //QPixmap copy ( int x, int y, int width, int height ) const
-static QoreNode *QPIXMAP_QT_copy(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_QT_copy(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -127,7 +127,7 @@ static QoreNode *QPIXMAP_QT_copy(QoreObject *self, QoreAbstractQPixmap *qp, Qore
 }
 
 //QBitmap createHeuristicMask ( bool clipTight = true ) const
-static QoreNode *QPIXMAP_createHeuristicMask(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_createHeuristicMask(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool clipTight = !is_nothing(p) ? p->getAsBool() : true;
@@ -139,7 +139,7 @@ static QoreNode *QPIXMAP_createHeuristicMask(QoreObject *self, QoreAbstractQPixm
 
 //QBitmap createMaskFromColor ( const QColor & maskColor, Qt::MaskMode mode ) const
 //QBitmap createMaskFromColor ( const QColor & maskColor ) const
-static QoreNode *QPIXMAP_createMaskFromColor(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_createMaskFromColor(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQColor *maskColor = p ? (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
@@ -166,19 +166,19 @@ static QoreNode *QPIXMAP_createMaskFromColor(QoreObject *self, QoreAbstractQPixm
 }
 
 //DataPtr & data_ptr ()
-//static QoreNode *QPIXMAP_data_ptr(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPIXMAP_data_ptr(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->getQPixmap()->data_ptr());
 //}
 
 //int depth () const
-static QoreNode *QPIXMAP_depth(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_depth(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->getQPixmap()->depth());
 }
 
 //void detach ()
-static QoreNode *QPIXMAP_detach(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_detach(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    qp->getQPixmap()->detach();
    return 0;
@@ -187,7 +187,7 @@ static QoreNode *QPIXMAP_detach(QoreObject *self, QoreAbstractQPixmap *qp, QoreN
 //void fill ( const QColor & fillColor = Qt::white )
 //void fill ( const QWidget * widget, const QPoint & offset )
 //void fill ( const QWidget * widget, int x, int y )
-static QoreNode *QPIXMAP_fill(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_fill(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -235,43 +235,43 @@ static QoreNode *QPIXMAP_fill(QoreObject *self, QoreAbstractQPixmap *qp, QoreNod
 }
 
 //Qt::HANDLE handle () const
-//static QoreNode *QPIXMAP_handle(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPIXMAP_handle(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   return new QoreNode((int64)qp->getQPixmap()->handle());
 //}
 
 //bool hasAlpha () const
-static QoreNode *QPIXMAP_hasAlpha(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_hasAlpha(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->getQPixmap()->hasAlpha());
 }
 
 //bool hasAlphaChannel () const
-static QoreNode *QPIXMAP_hasAlphaChannel(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_hasAlphaChannel(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->getQPixmap()->hasAlphaChannel());
 }
 
 //int height () const
-static QoreNode *QPIXMAP_height(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_height(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->getQPixmap()->height());
 }
 
 //bool isNull () const
-static QoreNode *QPIXMAP_isNull(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_isNull(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->getQPixmap()->isNull());
 }
 
 //bool isQBitmap () const
-static QoreNode *QPIXMAP_isQBitmap(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_isQBitmap(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->getQPixmap()->isQBitmap());
 }
 
 //bool load ( const QString & fileName, const char * format = 0, Qt::ImageConversionFlags flags = Qt::AutoColor )
-static QoreNode *QPIXMAP_load(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_load(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString fileName;
@@ -286,7 +286,7 @@ static QoreNode *QPIXMAP_load(QoreObject *self, QoreAbstractQPixmap *qp, QoreNod
 
 //bool loadFromData ( const uchar * data, uint len, const char * format = 0, Qt::ImageConversionFlags flags = Qt::AutoColor )
 //bool loadFromData ( const QByteArray & data, const char * format = 0, Qt::ImageConversionFlags flags = Qt::AutoColor )
-//static QoreNode *QPIXMAP_loadFromData(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPIXMAP_loadFromData(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? uchar* data = p;
@@ -308,7 +308,7 @@ static QoreNode *QPIXMAP_load(QoreObject *self, QoreAbstractQPixmap *qp, QoreNod
 //}
 
 //QBitmap mask () const
-static QoreNode *QPIXMAP_mask(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_mask(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBitmap, getProgram());
    QoreQBitmap *q_qb = new QoreQBitmap(qp->getQPixmap()->mask());
@@ -317,7 +317,7 @@ static QoreNode *QPIXMAP_mask(QoreObject *self, QoreAbstractQPixmap *qp, QoreNod
 }
 
 //QRect rect () const
-static QoreNode *QPIXMAP_rect(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_rect(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qp->getQPixmap()->rect());
@@ -327,7 +327,7 @@ static QoreNode *QPIXMAP_rect(QoreObject *self, QoreAbstractQPixmap *qp, QoreNod
 
 //bool save ( const QString & fileName, const char * format = 0, int quality = -1 ) const
 //bool save ( QIODevice * device, const char * format = 0, int quality = -1 ) const
-static QoreNode *QPIXMAP_save(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_save(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_STRING) {
@@ -344,7 +344,7 @@ static QoreNode *QPIXMAP_save(QoreObject *self, QoreAbstractQPixmap *qp, QoreNod
 
 //QPixmap scaled ( const QSize & size, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio, Qt::TransformationMode transformMode = Qt::FastTransformation ) const
 //QPixmap scaled ( int width, int height, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio, Qt::TransformationMode transformMode = Qt::FastTransformation ) const
-static QoreNode *QPIXMAP_scaled(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_scaled(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQSize *size = 0;
@@ -378,7 +378,7 @@ static QoreNode *QPIXMAP_scaled(QoreObject *self, QoreAbstractQPixmap *qp, QoreN
 }
 
 //QPixmap scaledToHeight ( int height, Qt::TransformationMode mode = Qt::FastTransformation ) const
-static QoreNode *QPIXMAP_scaledToHeight(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_scaledToHeight(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int height = p ? p->getAsInt() : 0;
@@ -391,7 +391,7 @@ static QoreNode *QPIXMAP_scaledToHeight(QoreObject *self, QoreAbstractQPixmap *q
 }
 
 //QPixmap scaledToWidth ( int width, Qt::TransformationMode mode = Qt::FastTransformation ) const
-static QoreNode *QPIXMAP_scaledToWidth(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_scaledToWidth(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
@@ -404,7 +404,7 @@ static QoreNode *QPIXMAP_scaledToWidth(QoreObject *self, QoreAbstractQPixmap *qp
 }
 
 //void setAlphaChannel ( const QPixmap & alphaChannel )
-static QoreNode *QPIXMAP_setAlphaChannel(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_setAlphaChannel(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    AbstractPrivateData *apd_alphaChannel = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
@@ -421,7 +421,7 @@ static QoreNode *QPIXMAP_setAlphaChannel(QoreObject *self, QoreAbstractQPixmap *
 }
 
 //void setMask ( const QBitmap & newmask )
-static QoreNode *QPIXMAP_setMask(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_setMask(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQBitmap *newmask = (p && p->type == NT_OBJECT) ? (QoreQBitmap *)p->val.object->getReferencedPrivateData(CID_QBITMAP, xsink) : 0;
@@ -436,7 +436,7 @@ static QoreNode *QPIXMAP_setMask(QoreObject *self, QoreAbstractQPixmap *qp, Qore
 }
 
 //QSize size () const
-static QoreNode *QPIXMAP_size(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_size(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qp->getQPixmap()->size());
@@ -445,7 +445,7 @@ static QoreNode *QPIXMAP_size(QoreObject *self, QoreAbstractQPixmap *qp, QoreNod
 }
 
 //QImage toImage () const
-static QoreNode *QPIXMAP_toImage(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_toImage(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qi = new QoreObject(QC_QImage, getProgram());
    QoreQImage *q_qi = new QoreQImage(qp->getQPixmap()->toImage());
@@ -454,13 +454,13 @@ static QoreNode *QPIXMAP_toImage(QoreObject *self, QoreAbstractQPixmap *qp, Qore
 }
 
 //CGImageRef toMacCGImageRef () const
-//static QoreNode *QPIXMAP_toMacCGImageRef(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPIXMAP_toMacCGImageRef(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->getQPixmap()->toMacCGImageRef());
 //}
 
 //HBITMAP toWinHBITMAP ( HBitmapFormat format = NoAlpha ) const
-//static QoreNode *QPIXMAP_toWinHBITMAP(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPIXMAP_toWinHBITMAP(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QPixmap::HBitmapFormat format = (QPixmap::HBitmapFormat)(p ? p->getAsInt() : 0);
@@ -469,7 +469,7 @@ static QoreNode *QPIXMAP_toImage(QoreObject *self, QoreAbstractQPixmap *qp, Qore
 
 //QPixmap transformed ( const QMatrix & matrix, Qt::TransformationMode mode = Qt::FastTransformation ) const
 //QPixmap transformed ( const QTransform &, Qt::TransformationMode mode = Qt::FastTransformation ) const
-//static QoreNode *QPIXMAP_transformed(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPIXMAP_transformed(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QMatrix matrix = p;
@@ -482,19 +482,19 @@ static QoreNode *QPIXMAP_toImage(QoreObject *self, QoreAbstractQPixmap *qp, Qore
 //}
 
 //int width () const
-static QoreNode *QPIXMAP_width(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPIXMAP_width(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->getQPixmap()->width());
 }
 
 //const QX11Info & x11Info () const
-//static QoreNode *QPIXMAP_x11Info(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPIXMAP_x11Info(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->getQPixmap()->x11Info());
 //}
 
 //Qt::HANDLE x11PictureHandle () const
-//static QoreNode *QPIXMAP_x11PictureHandle(QoreObject *self, QoreAbstractQPixmap *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPIXMAP_x11PictureHandle(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   return new QoreNode((int64)qp->getQPixmap()->x11PictureHandle());
 //}
@@ -551,13 +551,13 @@ class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice)
 }
 
 //int defaultDepth ()
-static QoreNode *f_QPixmap_defaultDepth(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QPixmap_defaultDepth(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)QPixmap::defaultDepth());
 }
 
 //QPixmap fromImage ( const QImage & image, Qt::ImageConversionFlags flags = Qt::AutoColor )
-static QoreNode *f_QPixmap_fromImage(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QPixmap_fromImage(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)p->val.object->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
@@ -577,7 +577,7 @@ static QoreNode *f_QPixmap_fromImage(QoreNode *params, ExceptionSink *xsink)
 
 //QPixmap grabWidget ( QWidget * widget, const QRect & rectangle )
 //QPixmap grabWidget ( QWidget * widget, int x = 0, int y = 0, int width = -1, int height = -1 )
-static QoreNode *f_QPixmap_grabWidget(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QPixmap_grabWidget(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -620,7 +620,7 @@ static QoreNode *f_QPixmap_grabWidget(QoreNode *params, ExceptionSink *xsink)
 }
 
 //QPixmap grabWindow ( WId window, int x = 0, int y = 0, int width = -1, int height = -1 )
-static QoreNode *f_QPixmap_grabWindow(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QPixmap_grabWindow(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    WId window = (WId)(p ? p->getAsBigInt() : 0);

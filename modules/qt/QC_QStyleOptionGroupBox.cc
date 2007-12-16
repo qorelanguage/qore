@@ -29,7 +29,7 @@ class QoreClass *QC_QStyleOptionGroupBox = 0;
 
 //QStyleOptionGroupBox ()
 //QStyleOptionGroupBox ( const QStyleOptionGroupBox & other )
-static void QSTYLEOPTIONGROUPBOX_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONGROUPBOX_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONGROUPBOX, new QoreQStyleOptionGroupBox());
 }

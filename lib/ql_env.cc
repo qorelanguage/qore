@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static class QoreNode *f_getenv(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_getenv(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -37,7 +37,7 @@ static class QoreNode *f_getenv(class QoreNode *params, ExceptionSink *xsink)
    return str ? new QoreNode(str) : NULL;
 }
 
-static class QoreNode *f_setenv(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_setenv(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *t;
    
@@ -55,7 +55,7 @@ static class QoreNode *f_setenv(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode((int64)rc);
 }
 
-static class QoreNode *f_unsetenv(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_unsetenv(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))

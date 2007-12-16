@@ -44,7 +44,7 @@ struct qore_object_private {
       const QoreClass *myclass;
       int status;
       bool system_object;
-      class VRMutex g;
+      mutable class VRMutex g;
       class KeyList *privateData;
       class ReferenceObject tRefs;  // reference-references
       class QoreHash *data;
@@ -249,7 +249,7 @@ bool QoreObject::validInstanceOf(int cid) const
    return priv->myclass->getClass(cid);
 }
 
-class QoreNode *QoreObject::evalMethod(class QoreString *name, class QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalMethod(const QoreString *name, class QoreNode *args, class ExceptionSink *xsink)
 {
    return priv->myclass->evalMethod(this, name->getBuffer(), args, xsink);
 }
@@ -306,7 +306,7 @@ class QoreNode *QoreObject::evalMember(class QoreNode *member, class ExceptionSi
 }
 
 // 0 = equal, 1 = not equal
-bool QoreObject::compareSoft(class QoreObject *obj, class ExceptionSink *xsink)
+bool QoreObject::compareSoft(class QoreObject *obj, class ExceptionSink *xsink) const
 {
    if (obj->priv->myclass != priv->myclass)
       return 1;
@@ -348,7 +348,7 @@ bool QoreObject::compareSoft(class QoreObject *obj, class ExceptionSink *xsink)
 }
 
 // 0 = equal, 1 = not equal
-bool QoreObject::compareHard(class QoreObject *obj, class ExceptionSink *xsink)
+bool QoreObject::compareHard(class QoreObject *obj, class ExceptionSink *xsink) const
 {
    if (obj->priv->myclass != priv->myclass)
       return 1;
@@ -488,7 +488,7 @@ void QoreObject::doDelete(class ExceptionSink *xsink)
 }
 
 // NOTE: caller must unlock
-class QoreNode **QoreObject::getMemberValuePtr(const char *key, class AutoVLock *vl, class ExceptionSink *xsink)
+class QoreNode **QoreObject::getMemberValuePtr(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -504,7 +504,7 @@ class QoreNode **QoreObject::getMemberValuePtr(const char *key, class AutoVLock 
 }
 
 // NOTE: caller must unlock
-class QoreNode **QoreObject::getMemberValuePtr(QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink)
+class QoreNode **QoreObject::getMemberValuePtr(const QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -520,7 +520,7 @@ class QoreNode **QoreObject::getMemberValuePtr(QoreString *key, class AutoVLock 
 }
 
 // NOTE: caller must unlock
-class QoreNode *QoreObject::getMemberValueNoMethod(QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink)
+class QoreNode *QoreObject::getMemberValueNoMethod(const QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -540,8 +540,8 @@ class QoreNode *QoreObject::getMemberValueNoMethod(QoreString *key, class AutoVL
    return rv;
 }
 
-// NOTE: caller must unlock
-class QoreNode *QoreObject::getMemberValueNoMethod(const char *key, class AutoVLock *vl, class ExceptionSink *xsink)
+// NOTE: caller must unlock (with AutoVLock)
+class QoreNode *QoreObject::getMemberValueNoMethod(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -561,7 +561,7 @@ class QoreNode *QoreObject::getMemberValueNoMethod(const char *key, class AutoVL
    return rv;
 }
 
-void QoreObject::deleteMemberValue(QoreString *key, ExceptionSink *xsink)
+void QoreObject::deleteMemberValue(const QoreString *key, ExceptionSink *xsink)
 {
    if (priv->g.enter(xsink) < 0)
       return;
@@ -587,12 +587,12 @@ void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink)
       makeAccessDeletedObjectException(xsink, key, priv->myclass->getName());
       return;
    }
-
+   
    priv->data->deleteKey(key, xsink);
    priv->g.exit();
 }
 
-class QoreList *QoreObject::getMemberList(class ExceptionSink *xsink)
+class QoreList *QoreObject::getMemberList(class ExceptionSink *xsink) const
 {
    class QoreList *lst;
    if (priv->g.enter(xsink) < 0)
@@ -622,7 +622,7 @@ void QoreObject::setValue(const char *key, class QoreNode *value, ExceptionSink 
    priv->g.exit();
 }
 
-int QoreObject::size(class ExceptionSink *xsink)
+int QoreObject::size(class ExceptionSink *xsink) const
 {
    int rc;
 
@@ -677,7 +677,7 @@ inline void QoreObject::doDeleteNoDestructor(class ExceptionSink *xsink)
 }
 */
 
-class QoreNode *QoreObject::evalFirstKeyValue(class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalFirstKeyValue(class ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -692,7 +692,7 @@ class QoreNode *QoreObject::evalFirstKeyValue(class ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *QoreObject::evalMemberNoMethod(const char *mem, class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalMemberNoMethod(const char *mem, class ExceptionSink *xsink) const
 {
    printd(5, "QoreObject::evalMemberNoMethod(this=%08p, mem=%08p (%s), xsink=%08p, data->size()=%d)\n",
 	  this, mem, mem, xsink, priv->data ? priv->data->size() : -1);
@@ -710,7 +710,7 @@ class QoreNode *QoreObject::evalMemberNoMethod(const char *mem, class ExceptionS
 }
 
 // it's OK to return NULL here to duplicate the behaviour of NOTHING
-class QoreNode *QoreObject::evalMemberExistence(const char *mem, class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalMemberExistence(const char *mem, class ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -725,7 +725,7 @@ class QoreNode *QoreObject::evalMemberExistence(const char *mem, class Exception
    return rv;
 }
 
-class QoreHash *QoreObject::evalData(class ExceptionSink *xsink)
+class QoreHash *QoreObject::evalData(class ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -742,7 +742,7 @@ class QoreHash *QoreObject::evalData(class ExceptionSink *xsink)
 
 // NOTE: caller must unlock lock
 // we check if the object is already locked
-class QoreNode **QoreObject::getExistingValuePtr(class QoreString *mem, class AutoVLock *vl, class ExceptionSink *xsink)
+class QoreNode **QoreObject::getExistingValuePtr(const QoreString *mem, class AutoVLock *vl, class ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -763,7 +763,7 @@ class QoreNode **QoreObject::getExistingValuePtr(class QoreString *mem, class Au
 
 // NOTE: caller must unlock lock
 // we check if the object is already locked
-class QoreNode **QoreObject::getExistingValuePtr(const char *mem, class AutoVLock *vl, class ExceptionSink *xsink)
+class QoreNode **QoreObject::getExistingValuePtr(const char *mem, class AutoVLock *vl, class ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;

@@ -138,7 +138,7 @@ void ExceptionSink::addStackInfo(int type, const char *class_name, const char *c
 // if (xsink) { .. }
 ExceptionSink::operator bool () const
 {
-   return priv->head;
+   return priv->head || priv->thread_exit;
 }
 
 void ExceptionSink::overrideLocation(int sline, int eline, const char *file)

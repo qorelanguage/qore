@@ -156,7 +156,7 @@ static class QoreNode *qore_pgsql_get_server_version(class Datasource *ds, class
    return new QoreNode((int64)pc->get_server_version());
 }
 
-static class QoreNode *f_pgsql_bind(class QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_pgsql_bind(const QoreNode *params, class ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
    int type = p? p->getAsInt() : 0;

@@ -1114,7 +1114,7 @@ class QoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *QoreProgram::callFunction(const char *name, class QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreProgram::callFunction(const char *name, const QoreNode *args, class ExceptionSink *xsink)
 {
    class UserFunction *ufc;
    QoreNode *fc;
@@ -1127,8 +1127,8 @@ class QoreNode *QoreProgram::callFunction(const char *name, class QoreNode *args
       ufc = priv->imported_func_list.find(name);
    priv->plock.unlock();
 
-   if (ufc)
-      fc = new QoreNode(ufc, args);
+   if (ufc) // we assign the args to NULL below so that the caller will delete
+      fc = new QoreNode(ufc, const_cast<QoreNode *>(args));
    else
    {
       class BuiltinFunction *bfc;
@@ -1140,7 +1140,8 @@ class QoreNode *QoreProgram::callFunction(const char *name, class QoreNode *args
 	    xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s'", name);
 	    return NULL;
 	 }
-	 fc = new QoreNode(bfc, args);
+	 // we assign the args to NULL below so that the caller will delete
+	 fc = new QoreNode(bfc, const_cast<QoreNode *>(args));
       }
       else
       {
@@ -1162,9 +1163,10 @@ class QoreNode *QoreProgram::callFunction(const char *name, class QoreNode *args
    return rv;
 }
 
-class QoreNode *QoreProgram::callFunction(class UserFunction *ufc, class QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreNode *args, class ExceptionSink *xsink)
 {
-   QoreNode *fc = new QoreNode(ufc, args);
+   // we assign the args to NULL below so that the caller will delete
+   QoreNode *fc = new QoreNode(ufc, const_cast<QoreNode *>(args));
 
    QoreNode *rv;
    {

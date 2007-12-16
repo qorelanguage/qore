@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-class QoreNode *AbstractFunctionReference::eval(class QoreNode *n)
+class QoreNode *AbstractFunctionReference::eval(const QoreNode *n)
 {
    return n->RefSelf();
 }
@@ -176,7 +176,7 @@ RunTimeObjectScopedMethodReference::~RunTimeObjectScopedMethodReference()
    obj->tDeref();
 }
 
-class QoreNode *RunTimeObjectScopedMethodReference::exec(class QoreNode *args, class ExceptionSink *xsink) const
+class QoreNode *RunTimeObjectScopedMethodReference::exec(const QoreNode *args, class ExceptionSink *xsink) const
 {
    return method->eval(obj, args, xsink);
 }
@@ -205,7 +205,7 @@ RunTimeObjectMethodReference::~RunTimeObjectMethodReference()
    free(method);
 }
 
-class QoreNode *RunTimeObjectMethodReference::exec(class QoreNode *args, class ExceptionSink *xsink) const
+class QoreNode *RunTimeObjectMethodReference::exec(const QoreNode *args, class ExceptionSink *xsink) const
 {
    return obj->getClass()->evalMethod(obj, method, args, xsink);
 }
@@ -267,14 +267,14 @@ void FunctionReference::del(class ExceptionSink *xsink)
     delete this;
 }
 
-class QoreNode *fr_user_s::eval(class QoreNode *args, class ExceptionSink *xsink) const
+class QoreNode *fr_user_s::eval(const QoreNode *args, class ExceptionSink *xsink) const
 {
    ProgramContextHelper pch(pgm);
    class QoreNode *rv = uf->eval(args, NULL, xsink);
    return rv;
 }
 
-class QoreNode *FunctionReference::exec(class QoreNode *args, class ExceptionSink *xsink) const
+class QoreNode *FunctionReference::exec(const QoreNode *args, class ExceptionSink *xsink) const
 {
    if (type == FC_USER)
       return f.user.eval(args, xsink);
@@ -295,7 +295,7 @@ AbstractFunctionReference *FunctionReference::copy()
    return new FunctionReference(f.user.uf, f.user.pgm);
 }
 
-class QoreNode *FunctionReference::eval(class QoreNode *n)
+class QoreNode *FunctionReference::eval(const QoreNode *n)
 {
    if (type == FC_STATICUSERREF)
       return new QoreNode(new FunctionReference(f.user.uf, f.user.pgm));

@@ -45,25 +45,25 @@ QoreNamespace *initQLibraryInfoNS()
 }
 
 //QString buildKey ()
-static QoreNode *f_QLibraryInfo_buildKey(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QLibraryInfo_buildKey(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(QLibraryInfo::buildKey().toUtf8().data(), QCS_UTF8));
 }
 
 //QString licensedProducts ()
-static QoreNode *f_QLibraryInfo_licensedProducts(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QLibraryInfo_licensedProducts(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(QLibraryInfo::licensedProducts().toUtf8().data(), QCS_UTF8));
 }
 
 //QString licensee ()
-static QoreNode *f_QLibraryInfo_licensee(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QLibraryInfo_licensee(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(QLibraryInfo::licensee().toUtf8().data(), QCS_UTF8));
 }
 
 //QString location ( LibraryLocation loc )
-static QoreNode *f_QLibraryInfo_location(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QLibraryInfo_location(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QLibraryInfo::LibraryLocation loc = (QLibraryInfo::LibraryLocation)(p ? p->getAsInt() : 0);

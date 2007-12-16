@@ -141,7 +141,7 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
 }
 
 //static 
-class QoreNode *f_dbg_node_info(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_dbg_node_info(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *s = new QoreString();
 
@@ -149,12 +149,12 @@ class QoreNode *f_dbg_node_info(class QoreNode *params, ExceptionSink *xsink)
 }
 
 // returns a hash of all namespace information
-static class QoreNode *f_dbg_get_ns_info(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_dbg_get_ns_info(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(getRootNS()->getInfo());
 }
 
-static class QoreNode *f_dbg_global_vars(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_dbg_global_vars(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(getProgram()->getVarList());   
 }

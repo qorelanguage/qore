@@ -25,13 +25,13 @@
 #define _QORE_QT_HASH_H
 
 DLLLOCAL class QoreNode *hash_DefaultValue();
-DLLLOCAL class QoreNode *hash_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool hash_needs_eval(class QoreNode *n);
-DLLLOCAL class QoreNode *hash_Eval(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *hash_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *hash_Copy(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool hash_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
-DLLLOCAL class QoreString *hash_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *hash_ConvertTo(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool hash_needs_eval(const class QoreNode *n);
+DLLLOCAL class QoreNode *hash_Eval(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *hash_eval_opt_deref(bool &needs_deref, const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *hash_Copy(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool hash_Compare(const class QoreNode *l, const class QoreNode *r, class ExceptionSink *xsink);
+DLLLOCAL class QoreString *hash_MakeString(const class QoreNode *n, int format, class ExceptionSink *xsink);
 DLLLOCAL void hash_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_HASH_H

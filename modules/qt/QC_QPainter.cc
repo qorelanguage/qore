@@ -29,7 +29,7 @@
 DLLLOCAL int CID_QPAINTER;
 DLLLOCAL QoreClass *QC_QPainter = 0;
 
-static void QPAINTER_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static void QPAINTER_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreQPainter *qp;
 
@@ -61,7 +61,7 @@ static void QPAINTER_copy(class QoreObject *self, class QoreObject *old, class Q
 }
 
 //const QBrush & background () const
-static QoreNode *QPAINTER_background(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_background(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreQBrush *q_qr = new QoreQBrush(qp->getQPainter()->background());
    QoreObject *o_qr = new QoreObject(QC_QBrush, getProgram());
@@ -70,13 +70,13 @@ static QoreNode *QPAINTER_background(QoreObject *self, QoreQPainter *qp, QoreNod
 }
 
 //Qt::BGMode backgroundMode () const
-static QoreNode *QPAINTER_backgroundMode(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_backgroundMode(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->getQPainter()->backgroundMode());
 }
 
 //bool begin ( QPaintDevice * device )
-static QoreNode *QPAINTER_begin(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_begin(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -98,7 +98,7 @@ static QoreNode *QPAINTER_begin(QoreObject *self, QoreQPainter *qp, QoreNode *pa
 ////QRectF boundingRect ( const QRectF & rectangle, const QString & text, const QTextOption & option = QTextOption() )
 //QRect boundingRect ( const QRect & rectangle, int flags, const QString & text )
 //QRect boundingRect ( int x, int y, int w, int h, int flags, const QString & text )
-static QoreNode *QPAINTER_boundingRect(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_boundingRect(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -165,7 +165,7 @@ static QoreNode *QPAINTER_boundingRect(QoreObject *self, QoreQPainter *qp, QoreN
 }
 
 //const QBrush & brush () const
-static QoreNode *QPAINTER_brush(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_brush(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreQBrush *q_qr = new QoreQBrush(qp->getQPainter()->brush());
    QoreObject *o_qr = new QoreObject(QC_QBrush, getProgram());
@@ -174,7 +174,7 @@ static QoreNode *QPAINTER_brush(QoreObject *self, QoreQPainter *qp, QoreNode *pa
 }
 
 //QPoint brushOrigin () const
-static QoreNode *QPAINTER_brushOrigin(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_brushOrigin(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qp->getQPainter()->brushOrigin());
@@ -183,13 +183,13 @@ static QoreNode *QPAINTER_brushOrigin(QoreObject *self, QoreQPainter *qp, QoreNo
 }
 
 //QPainterPath clipPath () const
-//static QoreNode *QPAINTER_clipPath(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_clipPath(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->getQPainter()->clipPath());
 //}
 
 //QRegion clipRegion () const
-static QoreNode *QPAINTER_clipRegion(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_clipRegion(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRegion, getProgram());
    QoreQRegion *q_qr = new QoreQRegion(qp->getQPainter()->clipRegion());
@@ -198,7 +198,7 @@ static QoreNode *QPAINTER_clipRegion(QoreObject *self, QoreQPainter *qp, QoreNod
 }
 
 //QMatrix combinedMatrix () const
-static QoreNode *QPAINTER_combinedMatrix(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_combinedMatrix(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qm = new QoreObject(QC_QMatrix, getProgram());
    QoreQMatrix *q_qm = new QoreQMatrix(qp->getQPainter()->combinedMatrix());
@@ -207,25 +207,25 @@ static QoreNode *QPAINTER_combinedMatrix(QoreObject *self, QoreQPainter *qp, Qor
 }
 
 //QTransform combinedTransform () const
-//static QoreNode *QPAINTER_combinedTransform(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_combinedTransform(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->getQPainter()->combinedTransform());
 //}
 
 //CompositionMode compositionMode () const
-static QoreNode *QPAINTER_compositionMode(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_compositionMode(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->getQPainter()->compositionMode());
 }
 
 //QPaintDevice * device () const
-//static QoreNode *QPAINTER_device(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_device(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return qp->getQPainter()->device();
 //}
 
 //const QMatrix & deviceMatrix () const
-static QoreNode *QPAINTER_deviceMatrix(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_deviceMatrix(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qm = new QoreObject(QC_QMatrix, getProgram());
    QoreQMatrix *q_qm = new QoreQMatrix(qp->getQPainter()->deviceMatrix());
@@ -234,7 +234,7 @@ static QoreNode *QPAINTER_deviceMatrix(QoreObject *self, QoreQPainter *qp, QoreN
 }
 
 //const QTransform & deviceTransform () const
-//static QoreNode *QPAINTER_deviceTransform(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_deviceTransform(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->getQPainter()->deviceTransform());
 //}
@@ -242,7 +242,7 @@ static QoreNode *QPAINTER_deviceMatrix(QoreObject *self, QoreQPainter *qp, QoreN
 //void drawArc ( const QRectF & rectangle, int startAngle, int spanAngle )
 //void drawArc ( const QRect & rectangle, int startAngle, int spanAngle )
 //void drawArc ( int x, int y, int width, int height, int startAngle, int spanAngle )
-static QoreNode *QPAINTER_drawArc(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawArc(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -291,7 +291,7 @@ static QoreNode *QPAINTER_drawArc(QoreObject *self, QoreQPainter *qp, QoreNode *
 //void drawChord ( const QRectF & rectangle, int startAngle, int spanAngle )
 //void drawChord ( const QRect & rectangle, int startAngle, int spanAngle )
 //void drawChord ( int x, int y, int width, int height, int startAngle, int spanAngle )
-static QoreNode *QPAINTER_drawChord(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawChord(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -341,7 +341,7 @@ static QoreNode *QPAINTER_drawChord(QoreObject *self, QoreQPainter *qp, QoreNode
 //void drawConvexPolygon ( const QPoint * points, int pointCount )
 //void drawConvexPolygon ( const QPolygonF & polygon )
 //void drawConvexPolygon ( const QPolygon & polygon )
-static QoreNode *QPAINTER_drawConvexPolygon(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawConvexPolygon(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -376,7 +376,7 @@ static QoreNode *QPAINTER_drawConvexPolygon(QoreObject *self, QoreQPainter *qp, 
 //void drawEllipse ( const QRectF & rectangle )
 //void drawEllipse ( const QRect & rectangle )
 //void drawEllipse ( int x, int y, int width, int height )
-static QoreNode *QPAINTER_drawEllipse(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawEllipse(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -413,7 +413,7 @@ static QoreNode *QPAINTER_drawEllipse(QoreObject *self, QoreQPainter *qp, QoreNo
 //void drawImage ( const QRectF & target, const QImage & image, const QRectF & source, Qt::ImageConversionFlags flags = Qt::AutoColor )
 //void drawImage ( const QPoint & point, const QImage & image )
 //void drawImage ( int x, int y, const QImage & image, int sx = 0, int sy = 0, int sw = -1, int sh = -1, Qt::ImageConversionFlags flags = Qt::AutoColor )
-static QoreNode *QPAINTER_drawImage(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawImage(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -489,7 +489,7 @@ static QoreNode *QPAINTER_drawImage(QoreObject *self, QoreQPainter *qp, QoreNode
 //void drawLine ( const QPoint & p1, const QPoint & p2 )
 //void drawLine ( const QPointF & p1, const QPointF & p2 )
 //void drawLine ( int x1, int y1, int x2, int y2 )
-static QoreNode *QPAINTER_drawLine(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawLine(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -556,7 +556,7 @@ static QoreNode *QPAINTER_drawLine(QoreObject *self, QoreQPainter *qp, QoreNode 
 //void drawLines ( const QVector<QPoint> & pointPairs )
 //void drawLines ( const QVector<QLineF> & lines )
 //void drawLines ( const QVector<QLine> & lines )
-//static QoreNode *QPAINTER_drawLines(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_drawLines(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QVector<QLine> lines = p;
@@ -565,7 +565,7 @@ static QoreNode *QPAINTER_drawLine(QoreObject *self, QoreQPainter *qp, QoreNode 
 //}
 
 //void drawPath ( const QPainterPath & path )
-static QoreNode *QPAINTER_drawPath(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawPath(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -582,7 +582,7 @@ static QoreNode *QPAINTER_drawPath(QoreObject *self, QoreQPainter *qp, QoreNode 
 //void drawPicture ( const QPointF & point, const QPicture & picture )
 //void drawPicture ( const QPoint & point, const QPicture & picture )
 //void drawPicture ( int x, int y, const QPicture & picture )
-static QoreNode *QPAINTER_drawPicture(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawPicture(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -636,7 +636,7 @@ static QoreNode *QPAINTER_drawPicture(QoreObject *self, QoreQPainter *qp, QoreNo
 //void drawPie ( const QRectF & rectangle, int startAngle, int spanAngle )
 //void drawPie ( const QRect & rectangle, int startAngle, int spanAngle )
 //void drawPie ( int x, int y, int width, int height, int startAngle, int spanAngle )
-static QoreNode *QPAINTER_drawPie(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawPie(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -685,7 +685,7 @@ static QoreNode *QPAINTER_drawPie(QoreObject *self, QoreQPainter *qp, QoreNode *
 //void drawPoint ( const QPointF & position )
 //void drawPoint ( const QPoint & position )
 //void drawPoint ( int x, int y )
-static QoreNode *QPAINTER_drawPoint(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawPoint(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -717,7 +717,7 @@ p->val.object->getClass()->getName());
 //void drawPoints ( const QPoint * points, int pointCount )
 //void drawPoints ( const QPolygonF & points )
 //void drawPoints ( const QPolygon & points )
-//static QoreNode *QPAINTER_drawPoints(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_drawPoints(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QPolygon points = p;
@@ -729,7 +729,7 @@ p->val.object->getClass()->getName());
 //void drawPolygon ( const QPoint * points, int pointCount, Qt::FillRule fillRule = Qt::OddEvenFill )
 //void drawPolygon ( const QPolygonF & points, Qt::FillRule fillRule = Qt::OddEvenFill )
 //void drawPolygon ( const QPolygon & points, Qt::FillRule fillRule = Qt::OddEvenFill )
-static QoreNode *QPAINTER_drawPolygon(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawPolygon(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQPolygonF *pointsf = p ? (QoreQPolygonF *)p->val.object->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
@@ -757,7 +757,7 @@ static QoreNode *QPAINTER_drawPolygon(QoreObject *self, QoreQPainter *qp, QoreNo
 //void drawPolyline ( const QPoint * points, int pointCount )
 //void drawPolyline ( const QPolygonF & points )
 //void drawPolyline ( const QPolygon & points )
-static QoreNode *QPAINTER_drawPolyline(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawPolyline(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQPolygonF *pointsf = p ? (QoreQPolygonF *)p->val.object->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
@@ -780,7 +780,7 @@ static QoreNode *QPAINTER_drawPolyline(QoreObject *self, QoreQPainter *qp, QoreN
 //void drawRect ( const QRectF & rectangle )
 //void drawRect ( const QRect & rectangle )
 //void drawRect ( int x, int y, int width, int height )
-static QoreNode *QPAINTER_drawRect(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawRect(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -819,7 +819,7 @@ static QoreNode *QPAINTER_drawRect(QoreObject *self, QoreQPainter *qp, QoreNode 
 //void drawRects ( const QRect * rectangles, int rectCount )
 //void drawRects ( const QVector<QRectF> & rectangles )
 //void drawRects ( const QVector<QRect> & rectangles )
-static QoreNode *QPAINTER_drawRects(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawRects(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
 }
 */
@@ -827,7 +827,7 @@ static QoreNode *QPAINTER_drawRects(QoreObject *self, QoreQPainter *qp, QoreNode
 //void drawRoundRect ( const QRectF & r, int xRnd = 25, int yRnd = 25 )
 //void drawRoundRect ( const QRect & r, int xRnd = 25, int yRnd = 25 )
 //void drawRoundRect ( int x, int y, int w, int h, int xRnd = 25, int yRnd = 25 )
-static QoreNode *QPAINTER_drawRoundRect(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawRoundRect(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -879,7 +879,7 @@ static QoreNode *QPAINTER_drawRoundRect(QoreObject *self, QoreQPainter *qp, Qore
 //void drawText ( const QRect & rectangle, int flags, const QString & text, QRect * boundingRect = 0 )
 //void drawText ( int x, int y, const QString & text )
 //void drawText ( int x, int y, int width, int height, int flags, const QString & text, QRect * boundingRect = 0 )
-static QoreNode *QPAINTER_drawText(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawText(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -967,7 +967,7 @@ static QoreNode *QPAINTER_drawText(QoreObject *self, QoreQPainter *qp, QoreNode 
 }
 
 //void drawText ( const QRectF & rectangle, const QString & text, const QTextOption & option = QTextOption() )
-//static QoreNode *QPAINTER_drawText(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_drawText(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
@@ -989,7 +989,7 @@ static QoreNode *QPAINTER_drawText(QoreObject *self, QoreQPainter *qp, QoreNode 
 //void drawTiledPixmap ( const QRectF & rectangle, const QPixmap & pixmap, const QPointF & position = QPointF() )
 //void drawTiledPixmap ( const QRect & rectangle, const QPixmap & pixmap, const QPoint & position = QPoint() )
 //void drawTiledPixmap ( int x, int y, int width, int height, const QPixmap & pixmap, int sx = 0, int sy = 0 )
-static QoreNode *QPAINTER_drawTiledPixmap(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_drawTiledPixmap(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -1059,7 +1059,7 @@ static QoreNode *QPAINTER_drawTiledPixmap(QoreObject *self, QoreQPainter *qp, Qo
 }
 
 //bool end ()
-static QoreNode *QPAINTER_end(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_end(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->getQPainter()->end());
 }
@@ -1067,7 +1067,7 @@ static QoreNode *QPAINTER_end(QoreObject *self, QoreQPainter *qp, QoreNode *para
 //void eraseRect ( const QRectF & rectangle )
 //void eraseRect ( const QRect & rectangle )
 //void eraseRect ( int x, int y, int width, int height )
-static QoreNode *QPAINTER_eraseRect(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_eraseRect(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -1102,7 +1102,7 @@ static QoreNode *QPAINTER_eraseRect(QoreObject *self, QoreQPainter *qp, QoreNode
 }
 
 //void fillPath ( const QPainterPath & path, const QBrush & brush )
-static QoreNode *QPAINTER_fillPath(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_fillPath(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -1122,7 +1122,7 @@ static QoreNode *QPAINTER_fillPath(QoreObject *self, QoreQPainter *qp, QoreNode 
 
 //void fillRect ( const QRect & rectangle, const QBrush & brush )
 //void fillRect ( int x, int y, int width, int height, const QBrush & brush )
-static QoreNode *QPAINTER_fillRect(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_fillRect(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -1169,7 +1169,7 @@ static QoreNode *QPAINTER_fillRect(QoreObject *self, QoreQPainter *qp, QoreNode 
 }
 
 //const QFont & font () const
-static QoreNode *QPAINTER_font(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_font(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qp->getQPainter()->font());
@@ -1178,7 +1178,7 @@ static QoreNode *QPAINTER_font(QoreObject *self, QoreQPainter *qp, QoreNode *par
 }
 
 //QFontInfo fontInfo () const
-static QoreNode *QPAINTER_fontInfo(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_fontInfo(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qfi = new QoreObject(QC_QFontInfo, getProgram());
    QoreQFontInfo *q_qfi = new QoreQFontInfo(qp->getQPainter()->fontInfo());
@@ -1187,7 +1187,7 @@ static QoreNode *QPAINTER_fontInfo(QoreObject *self, QoreQPainter *qp, QoreNode 
 }
 
 //QFontMetrics fontMetrics () const
-static QoreNode *QPAINTER_fontMetrics(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_fontMetrics(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qfm = new QoreObject(QC_QFontMetrics, getProgram());
    QoreQFontMetrics *q_qfm = new QoreQFontMetrics(qp->getQPainter()->fontMetrics());
@@ -1196,13 +1196,13 @@ static QoreNode *QPAINTER_fontMetrics(QoreObject *self, QoreQPainter *qp, QoreNo
 }
 
 //bool hasClipping () const
-static QoreNode *QPAINTER_hasClipping(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_hasClipping(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->getQPainter()->hasClipping());
 }
 
 //void initFrom ( const QWidget * widget )
-static QoreNode *QPAINTER_initFrom(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_initFrom(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -1218,31 +1218,31 @@ static QoreNode *QPAINTER_initFrom(QoreObject *self, QoreQPainter *qp, QoreNode 
 }
 
 //bool isActive () const
-static QoreNode *QPAINTER_isActive(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_isActive(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->getQPainter()->isActive());
 }
 
 //Qt::LayoutDirection layoutDirection () const
-static QoreNode *QPAINTER_layoutDirection(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_layoutDirection(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->getQPainter()->layoutDirection());
 }
 
 //qreal opacity () const
-static QoreNode *QPAINTER_opacity(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_opacity(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->getQPainter()->opacity());
 }
 
 //QPaintEngine * paintEngine () const
-//static QoreNode *QPAINTER_paintEngine(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_paintEngine(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return qp->getQPainter()->paintEngine();
 //}
 
 //const QPen & pen () const
-static QoreNode *QPAINTER_pen(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_pen(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPen, getProgram());
    QoreQPen *q_qp = new QoreQPen(qp->getQPainter()->pen());
@@ -1251,34 +1251,34 @@ static QoreNode *QPAINTER_pen(QoreObject *self, QoreQPainter *qp, QoreNode *para
 }
 
 //RenderHints renderHints () const
-static QoreNode *QPAINTER_renderHints(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_renderHints(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->getQPainter()->renderHints());
 }
 
 //void resetMatrix ()
-static QoreNode *QPAINTER_resetMatrix(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_resetMatrix(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    qp->getQPainter()->resetMatrix();
    return 0;
 }
 
 //void resetTransform ()
-static QoreNode *QPAINTER_resetTransform(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_resetTransform(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    qp->getQPainter()->resetTransform();
    return 0;
 }
 
 //void restore ()
-static QoreNode *QPAINTER_restore(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_restore(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    qp->getQPainter()->restore();
    return 0;
 }
 
 //void rotate ( qreal angle )
-static QoreNode *QPAINTER_rotate(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_rotate(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float angle = p ? p->getAsFloat() : 0;
@@ -1287,14 +1287,14 @@ static QoreNode *QPAINTER_rotate(QoreObject *self, QoreQPainter *qp, QoreNode *p
 }
 
 //void save ()
-static QoreNode *QPAINTER_save(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_save(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    qp->getQPainter()->save();
    return 0;
 }
 
 //void scale ( qreal sx, qreal sy )
-static QoreNode *QPAINTER_scale(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_scale(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float sx = p ? p->getAsFloat() : 0;
@@ -1305,7 +1305,7 @@ static QoreNode *QPAINTER_scale(QoreObject *self, QoreQPainter *qp, QoreNode *pa
 }
 
 //void setBackground ( const QBrush & brush )
-static QoreNode *QPAINTER_setBackground(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setBackground(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QBrush brush;
@@ -1316,7 +1316,7 @@ static QoreNode *QPAINTER_setBackground(QoreObject *self, QoreQPainter *qp, Qore
 }
 
 //void setBackgroundMode ( Qt::BGMode mode )
-static QoreNode *QPAINTER_setBackgroundMode(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setBackgroundMode(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::BGMode mode = (Qt::BGMode)(p ? p->getAsInt() : 0);
@@ -1326,7 +1326,7 @@ static QoreNode *QPAINTER_setBackgroundMode(QoreObject *self, QoreQPainter *qp, 
 
 //void setBrush ( const QBrush & brush )
 //void setBrush ( Qt::BrushStyle style )
-static QoreNode *QPAINTER_setBrush(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setBrush(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_BRUSHSTYLE) {
@@ -1344,7 +1344,7 @@ static QoreNode *QPAINTER_setBrush(QoreObject *self, QoreQPainter *qp, QoreNode 
 //void setBrushOrigin ( const QPointF & position )
 //void setBrushOrigin ( const QPoint & position )
 //void setBrushOrigin ( int x, int y )
-static QoreNode *QPAINTER_setBrushOrigin(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setBrushOrigin(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -1372,7 +1372,7 @@ static QoreNode *QPAINTER_setBrushOrigin(QoreObject *self, QoreQPainter *qp, Qor
 }
 
 //void setClipPath ( const QPainterPath & path, Qt::ClipOperation operation = Qt::ReplaceClip )
-static QoreNode *QPAINTER_setClipPath(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setClipPath(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -1391,7 +1391,7 @@ static QoreNode *QPAINTER_setClipPath(QoreObject *self, QoreQPainter *qp, QoreNo
 //void setClipRect ( const QRectF & rectangle, Qt::ClipOperation operation = Qt::ReplaceClip )
 //void setClipRect ( int x, int y, int width, int height, Qt::ClipOperation operation = Qt::ReplaceClip )
 //void setClipRect ( const QRect & rectangle, Qt::ClipOperation operation = Qt::ReplaceClip )
-static QoreNode *QPAINTER_setClipRect(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setClipRect(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -1432,7 +1432,7 @@ static QoreNode *QPAINTER_setClipRect(QoreObject *self, QoreQPainter *qp, QoreNo
 }
 
 //void setClipRegion ( const QRegion & region, Qt::ClipOperation operation = Qt::ReplaceClip )
-static QoreNode *QPAINTER_setClipRegion(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setClipRegion(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQRegion *region = (p && p->type == NT_OBJECT) ? (QoreQRegion *)p->val.object->getReferencedPrivateData(CID_QREGION, xsink) : 0;
@@ -1449,7 +1449,7 @@ static QoreNode *QPAINTER_setClipRegion(QoreObject *self, QoreQPainter *qp, Qore
 }
 
 //void setClipping ( bool enable )
-static QoreNode *QPAINTER_setClipping(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setClipping(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
@@ -1458,7 +1458,7 @@ static QoreNode *QPAINTER_setClipping(QoreObject *self, QoreQPainter *qp, QoreNo
 }
 
 //void setCompositionMode ( CompositionMode mode )
-static QoreNode *QPAINTER_setCompositionMode(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setCompositionMode(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPainter::CompositionMode mode = (QPainter::CompositionMode)(p ? p->getAsInt() : 0);
@@ -1467,7 +1467,7 @@ static QoreNode *QPAINTER_setCompositionMode(QoreObject *self, QoreQPainter *qp,
 }
 
 //void setFont ( const QFont & font )
-static QoreNode *QPAINTER_setFont(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setFont(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
@@ -1483,7 +1483,7 @@ static QoreNode *QPAINTER_setFont(QoreObject *self, QoreQPainter *qp, QoreNode *
 }
 
 //void setLayoutDirection ( Qt::LayoutDirection direction )
-static QoreNode *QPAINTER_setLayoutDirection(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setLayoutDirection(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::LayoutDirection direction = (Qt::LayoutDirection)(p ? p->getAsInt() : 0);
@@ -1492,7 +1492,7 @@ static QoreNode *QPAINTER_setLayoutDirection(QoreObject *self, QoreQPainter *qp,
 }
 
 //void setOpacity ( qreal opacity )
-static QoreNode *QPAINTER_setOpacity(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setOpacity(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float opacity = p ? p->getAsFloat() : 0;
@@ -1501,7 +1501,7 @@ static QoreNode *QPAINTER_setOpacity(QoreObject *self, QoreQPainter *qp, QoreNod
 }
 
 //void setPen ( const QPen & pen )
-//static QoreNode *QPAINTER_setPen(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_setPen(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QPen pen = p;
@@ -1511,7 +1511,7 @@ static QoreNode *QPAINTER_setOpacity(QoreObject *self, QoreQPainter *qp, QoreNod
 
 //void setPen ( const QColor & color )
 //void setPen ( Qt::PenStyle style )
-static QoreNode *QPAINTER_setPen(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setPen(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -1542,7 +1542,7 @@ static QoreNode *QPAINTER_setPen(QoreObject *self, QoreQPainter *qp, QoreNode *p
 }
 
 //void setRenderHint ( RenderHint hint, bool on = true )
-static QoreNode *QPAINTER_setRenderHint(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setRenderHint(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPainter::RenderHint hint = (QPainter::RenderHint)(p ? p->getAsInt() : 0);
@@ -1553,7 +1553,7 @@ static QoreNode *QPAINTER_setRenderHint(QoreObject *self, QoreQPainter *qp, Qore
 }
 
 //void setRenderHints ( RenderHints hints, bool on = true )
-static QoreNode *QPAINTER_setRenderHints(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setRenderHints(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPainter::RenderHints hints = (QPainter::RenderHints)(p ? p->getAsInt() : 0);
@@ -1564,7 +1564,7 @@ static QoreNode *QPAINTER_setRenderHints(QoreObject *self, QoreQPainter *qp, Qor
 }
 
 //void setTransform ( const QTransform & transform, bool combine = false )
-//static QoreNode *QPAINTER_setTransform(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_setTransform(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QTransform transform = p;
@@ -1575,7 +1575,7 @@ static QoreNode *QPAINTER_setRenderHints(QoreObject *self, QoreQPainter *qp, Qor
 //}
 
 //void setViewTransformEnabled ( bool enable )
-static QoreNode *QPAINTER_setViewTransformEnabled(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setViewTransformEnabled(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
@@ -1585,7 +1585,7 @@ static QoreNode *QPAINTER_setViewTransformEnabled(QoreObject *self, QoreQPainter
 
 //void setViewport ( const QRect & rectangle )
 //void setViewport ( int x, int y, int width, int height )
-static QoreNode *QPAINTER_setViewport(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setViewport(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -1614,7 +1614,7 @@ static QoreNode *QPAINTER_setViewport(QoreObject *self, QoreQPainter *qp, QoreNo
 
 //void setWindow ( const QRect & rectangle )
 //void setWindow ( int x, int y, int width, int height )
-static QoreNode *QPAINTER_setWindow(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setWindow(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -1642,7 +1642,7 @@ static QoreNode *QPAINTER_setWindow(QoreObject *self, QoreQPainter *qp, QoreNode
 }
 
 //void setWorldMatrix ( const QMatrix & matrix, bool combine = false )
-static QoreNode *QPAINTER_setWorldMatrix(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setWorldMatrix(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQMatrix *matrix = (p && p->type == NT_OBJECT) ? (QoreQMatrix *)p->val.object->getReferencedPrivateData(CID_QMATRIX, xsink) : 0;
@@ -1659,7 +1659,7 @@ static QoreNode *QPAINTER_setWorldMatrix(QoreObject *self, QoreQPainter *qp, Qor
 }
 
 //void setWorldMatrixEnabled ( bool enable )
-static QoreNode *QPAINTER_setWorldMatrixEnabled(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_setWorldMatrixEnabled(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
@@ -1668,7 +1668,7 @@ static QoreNode *QPAINTER_setWorldMatrixEnabled(QoreObject *self, QoreQPainter *
 }
 
 //void setWorldTransform ( const QTransform & matrix, bool combine = false )
-//static QoreNode *QPAINTER_setWorldTransform(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_setWorldTransform(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QTransform matrix = p;
@@ -1679,7 +1679,7 @@ static QoreNode *QPAINTER_setWorldMatrixEnabled(QoreObject *self, QoreQPainter *
 //}
 
 //void shear ( qreal sh, qreal sv )
-static QoreNode *QPAINTER_shear(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_shear(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    float sh = p ? p->getAsFloat() : 0;
@@ -1690,7 +1690,7 @@ static QoreNode *QPAINTER_shear(QoreObject *self, QoreQPainter *qp, QoreNode *pa
 }
 
 //void strokePath ( const QPainterPath & path, const QPen & pen )
-static QoreNode *QPAINTER_strokePath(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_strokePath(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -1713,7 +1713,7 @@ static QoreNode *QPAINTER_strokePath(QoreObject *self, QoreQPainter *qp, QoreNod
 }
 
 //bool testRenderHint ( RenderHint hint ) const
-static QoreNode *QPAINTER_testRenderHint(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_testRenderHint(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPainter::RenderHint hint = (QPainter::RenderHint)(p ? p->getAsInt() : 0);
@@ -1721,7 +1721,7 @@ static QoreNode *QPAINTER_testRenderHint(QoreObject *self, QoreQPainter *qp, Qor
 }
 
 //const QTransform & transform () const
-//static QoreNode *QPAINTER_transform(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_transform(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->getQPainter()->transform());
 //}
@@ -1729,7 +1729,7 @@ static QoreNode *QPAINTER_testRenderHint(QoreObject *self, QoreQPainter *qp, Qor
 //void translate ( const QPointF & offset )
 //void translate ( const QPoint & offset )
 //void translate ( qreal dx, qreal dy )
-static QoreNode *QPAINTER_translate(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_translate(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -1758,13 +1758,13 @@ p->val.object->getClass()->getName());
 }
 
 //bool viewTransformEnabled () const
-static QoreNode *QPAINTER_viewTransformEnabled(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_viewTransformEnabled(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->getQPainter()->viewTransformEnabled());
 }
 
 //QRect viewport () const
-static QoreNode *QPAINTER_viewport(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_viewport(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
 
    QoreQRect *q_qr = new QoreQRect(qp->getQPainter()->viewport());
@@ -1774,7 +1774,7 @@ static QoreNode *QPAINTER_viewport(QoreObject *self, QoreQPainter *qp, QoreNode 
 }
 
 //QRect window () const
-static QoreNode *QPAINTER_window(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_window(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
 
    QoreQRect *q_qr = new QoreQRect(qp->getQPainter()->window());
@@ -1784,7 +1784,7 @@ static QoreNode *QPAINTER_window(QoreObject *self, QoreQPainter *qp, QoreNode *p
 }
 
 //const QMatrix & worldMatrix () const
-static QoreNode *QPAINTER_worldMatrix(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_worldMatrix(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qm = new QoreObject(QC_QMatrix, getProgram());
    QoreQMatrix *q_qm = new QoreQMatrix(qp->getQPainter()->worldMatrix());
@@ -1793,13 +1793,13 @@ static QoreNode *QPAINTER_worldMatrix(QoreObject *self, QoreQPainter *qp, QoreNo
 }
 
 //bool worldMatrixEnabled () const
-static QoreNode *QPAINTER_worldMatrixEnabled(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTER_worldMatrixEnabled(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->getQPainter()->worldMatrixEnabled());
 }
 
 //const QTransform & worldTransform () const
-//static QoreNode *QPAINTER_worldTransform(QoreObject *self, QoreQPainter *qp, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPAINTER_worldTransform(QoreObject *self, QoreQPainter *qp, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->getQPainter()->worldTransform());
 //}

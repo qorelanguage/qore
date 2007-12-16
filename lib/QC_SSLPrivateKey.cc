@@ -36,7 +36,7 @@ void createSSLPrivateKeyObject(class QoreObject *self, EVP_PKEY *cert)
 */
 
 // syntax: SSLPrivateKey(filename)
-static void SSLPKEY_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static void SSLPKEY_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -60,22 +60,22 @@ static void SSLPKEY_copy(class QoreObject *self, class QoreObject *old, class Qo
    xsink->raiseException("SSLPRIVATEKEY-COPY-ERROR", "SSLPrivateKey objects cannot be copied");
 }
 
-static QoreNode *SSLPKEY_getInfo(class QoreObject *self, class QoreSSLPrivateKey *pk, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *SSLPKEY_getInfo(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(pk->getInfo());
 }
 
-static QoreNode *SSLPKEY_getType(class QoreObject *self, class QoreSSLPrivateKey *pk, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *SSLPKEY_getType(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(pk->getType());
 }
 
-static QoreNode *SSLPKEY_getVersion(class QoreObject *self, class QoreSSLPrivateKey *pk, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *SSLPKEY_getVersion(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(pk->getVersion());
 }
 
-static QoreNode *SSLPKEY_getBitLength(class QoreObject *self, class QoreSSLPrivateKey *pk, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *SSLPKEY_getBitLength(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(pk->getBitLength());
 }

@@ -30,7 +30,7 @@
 
 #define TRACK_REFS 1
 
-QoreNodeCStringHelper::QoreNodeCStringHelper(QoreNode *n, class QoreEncoding *enc, class ExceptionSink *xsink) : temp(false)
+QoreNodeCStringHelper::QoreNodeCStringHelper(const QoreNode *n, class QoreEncoding *enc, class ExceptionSink *xsink) : temp(false)
 {
    if (is_nothing(n) || is_null(n))
    {
@@ -41,13 +41,13 @@ QoreNodeCStringHelper::QoreNodeCStringHelper(QoreNode *n, class QoreEncoding *en
    {
       if (n->val.String->getEncoding() == enc)
       {
-	 node = n;
+	 node = const_cast<QoreNode *>(n);
 	 return;
       }
       class QoreString *str = n->val.String->convertEncoding(enc, xsink);
       if (!str)
       {
-	 node = NULL;
+	 node = 0;
 	 return;
       }
       node = new QoreNode(str);
@@ -74,7 +74,7 @@ int QoreNodeCStringHelper::strlen() const
    return node ? node->val.String->strlen() : 0;
 }
 
-QoreNodeTypeHelper::QoreNodeTypeHelper(QoreNode *n, class QoreType *t, class ExceptionSink *xsink) : temp(false)
+QoreNodeTypeHelper::QoreNodeTypeHelper(QoreNode *n, const QoreType *t, class ExceptionSink *xsink) : temp(false)
 {
    if (!n)
    {
@@ -421,7 +421,7 @@ QoreNode::QoreNode(class FunctionCall *fc)
 #endif
 }
 
-class QoreNode *QoreNode::convert(class QoreType *new_type)
+class QoreNode *QoreNode::convert(const QoreType *new_type) const
 {
    if (type == new_type)
       return RefSelf();
@@ -429,7 +429,7 @@ class QoreNode *QoreNode::convert(class QoreType *new_type)
    return new_type->convertTo(this, NULL);
 }
 
-class QoreNode *QoreNode::convert(class QoreType *new_type, class ExceptionSink *xsink)
+class QoreNode *QoreNode::convert(const QoreType *new_type, class ExceptionSink *xsink) const
 {
    if (type == new_type)
       return RefSelf();
@@ -437,7 +437,7 @@ class QoreNode *QoreNode::convert(class QoreType *new_type, class ExceptionSink 
    return new_type->convertTo(this, xsink);
 }
 
-void QoreNode::ref()
+void QoreNode::ref() const
 {
 #ifdef DEBUG
 #if TRACK_REFS
@@ -450,10 +450,10 @@ void QoreNode::ref()
    ROreference();
 }
 
-class QoreNode *QoreNode::RefSelf()
+class QoreNode *QoreNode::RefSelf() const
 {
    ref();
-   return this;
+   return const_cast<QoreNode *>(this);
 }
 
 static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class ExceptionSink *xsink);
@@ -511,7 +511,7 @@ void QoreNode::deref(ExceptionSink *xsink)
    //traceout("QoreNode::deref()");
 }
 
-class QoreNode *QoreNode::realCopy(ExceptionSink *xsink)
+class QoreNode *QoreNode::realCopy(ExceptionSink *xsink) const
 {
    //tracein("QoreNode::realCopy()");
    assert(this);
@@ -520,7 +520,7 @@ class QoreNode *QoreNode::realCopy(ExceptionSink *xsink)
    return type->copy(this, xsink);
 }
 
-bool QoreNode::needs_eval()
+bool QoreNode::needs_eval() const
 {
    return type->needs_eval(this);
 }
@@ -528,7 +528,7 @@ bool QoreNode::needs_eval()
 /*
   QoreNode::eval(): return value requires a dereference
  */
-class QoreNode *QoreNode::eval(ExceptionSink *xsink)
+class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
 {
    return type->eval(this, xsink);
 }
@@ -536,32 +536,32 @@ class QoreNode *QoreNode::eval(ExceptionSink *xsink)
 /*
  QoreNode::eval(): return value requires a dereference if needs_deref is true
  */
-class QoreNode *QoreNode::eval(bool &needs_deref, ExceptionSink *xsink)
+class QoreNode *QoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const
 {
    if (is_value(this))
    {
       needs_deref = false;
-      return this;
+      return const_cast<QoreNode *>(this);
    }
    return type->eval(needs_deref, this, xsink);
 }
 
-int64 QoreNode::bigIntEval(ExceptionSink *xsink)
+int64 QoreNode::bigIntEval(ExceptionSink *xsink) const
 {
    return type->bigint_eval(this, xsink);
 }
 
-int QoreNode::integerEval(ExceptionSink *xsink)
+int QoreNode::integerEval(ExceptionSink *xsink) const
 {
    return (int)type->bigint_eval(this, xsink);
 }
 
-bool QoreNode::boolEval(ExceptionSink *xsink)
+bool QoreNode::boolEval(ExceptionSink *xsink) const
 {
    return type->bool_eval(this, xsink);
 }
 
-class QoreString *QoreNode::getAsString(int foff, class ExceptionSink *xsink)
+class QoreString *QoreNode::getAsString(int foff, class ExceptionSink *xsink) const
 {
    if (!this)
       return new QoreString("<NOTHING>");
@@ -569,7 +569,7 @@ class QoreString *QoreNode::getAsString(int foff, class ExceptionSink *xsink)
    return type->getAsString(this, foff, xsink);
 }
 
-bool QoreNode::getAsBool()
+bool QoreNode::getAsBool() const
 {
    if (type == NT_BOOLEAN)
       return val.boolval;
@@ -584,7 +584,7 @@ bool QoreNode::getAsBool()
    return rc;
 }
 
-int QoreNode::getAsInt()
+int QoreNode::getAsInt() const
 {
    if (type == NT_INT)
       return val.intval;
@@ -599,7 +599,7 @@ int QoreNode::getAsInt()
    return rc;
 }
 
-int64 QoreNode::getAsBigInt()
+int64 QoreNode::getAsBigInt() const
 {
    if (type == NT_INT)
       return val.intval;
@@ -614,7 +614,7 @@ int64 QoreNode::getAsBigInt()
    return rc;
 }
 
-double QoreNode::getAsFloat()
+double QoreNode::getAsFloat() const
 {
    if (type == NT_FLOAT)
       return val.floatval;
@@ -630,7 +630,7 @@ double QoreNode::getAsFloat()
 }
 
 // for getting relative time values or integer values
-int getSecZeroInt(class QoreNode *a)
+int getSecZeroInt(const class QoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -639,7 +639,7 @@ int getSecZeroInt(class QoreNode *a)
    return a->getAsInt();
 }
 
-int getSecZeroBigInt(class QoreNode *a)
+int getSecZeroBigInt(const class QoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -649,7 +649,7 @@ int getSecZeroBigInt(class QoreNode *a)
 }
 
 // for getting relative time values or integer values
-int getSecMinusOneInt(class QoreNode *a)
+int getSecMinusOneInt(const class QoreNode *a)
 {
    if (is_nothing(a))
       return -1;
@@ -658,7 +658,7 @@ int getSecMinusOneInt(class QoreNode *a)
    return a->getAsInt();
 }
 
-int getSecMinusOneBigInt(class QoreNode *a)
+int getSecMinusOneBigInt(const class QoreNode *a)
 {
    if (is_nothing(a))
       return -1;
@@ -667,7 +667,7 @@ int getSecMinusOneBigInt(class QoreNode *a)
    return a->getAsBigInt();
 }
 
-int getMsZeroInt(class QoreNode *a)
+int getMsZeroInt(const class QoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -676,7 +676,7 @@ int getMsZeroInt(class QoreNode *a)
    return a->getAsInt();
 }
 
-int getMsZeroBigInt(class QoreNode *a)
+int getMsZeroBigInt(const class QoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -686,7 +686,7 @@ int getMsZeroBigInt(class QoreNode *a)
 }
 
 // for getting relative time values or integer values
-int getMsMinusOneInt(class QoreNode *a)
+int getMsMinusOneInt(const class QoreNode *a)
 {
    if (is_nothing(a))
       return -1;
@@ -695,7 +695,7 @@ int getMsMinusOneInt(class QoreNode *a)
    return a->getAsInt();
 }
 
-int getMsMinusOneBigInt(class QoreNode *a)
+int getMsMinusOneBigInt(const class QoreNode *a)
 {
    if (is_nothing(a))
       return -1;
@@ -704,7 +704,7 @@ int getMsMinusOneBigInt(class QoreNode *a)
    return a->getAsBigInt();
 }
 
-int getMicroSecZeroInt(class QoreNode *a)
+int getMicroSecZeroInt(const class QoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -713,7 +713,7 @@ int getMicroSecZeroInt(class QoreNode *a)
    return a->getAsInt();
 }
 
-bool is_nothing(class QoreNode *n)
+bool is_nothing(const QoreNode *n)
 {
    if (!n || (n->type == NT_NOTHING))
       return true;
@@ -724,7 +724,7 @@ bool is_nothing(class QoreNode *n)
    return false;
 }
 
-bool is_value(class QoreNode *node)
+bool is_value(const class QoreNode *node)
 {
    // the only container types that can be created at parse time are lists and hashes
    
@@ -736,7 +736,7 @@ bool is_value(class QoreNode *node)
    return node->type->isValue();
 }
 
-static inline QoreNode *crlr_list_copy(QoreNode *n, ExceptionSink *xsink)
+static inline QoreNode *crlr_list_copy(const QoreNode *n, ExceptionSink *xsink)
 {
    // if it's not an immediate list, then there can't be any
    // variable references in it at any level, so return copy
@@ -750,7 +750,7 @@ static inline QoreNode *crlr_list_copy(QoreNode *n, ExceptionSink *xsink)
    return new QoreNode(l);   
 }
 
-static inline QoreNode *crlr_hash_copy(QoreNode *n, ExceptionSink *xsink)
+static inline QoreNode *crlr_hash_copy(const QoreNode *n, ExceptionSink *xsink)
 {
    // if it's not an immediate hash, then there can't be any
    // variable references in it at any level, so return copy
@@ -764,14 +764,14 @@ static inline QoreNode *crlr_hash_copy(QoreNode *n, ExceptionSink *xsink)
    return new QoreNode(h);
 }
 
-static inline QoreNode *crlr_tree_copy(QoreNode *n, ExceptionSink *xsink)
+static inline QoreNode *crlr_tree_copy(const QoreNode *n, ExceptionSink *xsink)
 {
    class Tree *t = new Tree(copy_and_resolve_lvar_refs(n->val.tree->left, xsink), n->val.tree->op, 
 			    n->val.tree->right ? copy_and_resolve_lvar_refs(n->val.tree->right, xsink) : NULL);
    return new QoreNode(t);
 }
 
-static inline QoreNode *crlr_fcall_copy(QoreNode *n, ExceptionSink *xsink)
+static inline QoreNode *crlr_fcall_copy(const QoreNode *n, ExceptionSink *xsink)
 {
    QoreNode *nn = new QoreNode(NT_FUNCTION_CALL);
    QoreNode *na;
@@ -805,15 +805,15 @@ static inline QoreNode *crlr_fcall_copy(QoreNode *n, ExceptionSink *xsink)
    return nn;
 }
 
-static inline class QoreNode *eval_notnull(class QoreNode *n, ExceptionSink *xsink)
+static inline class QoreNode *eval_notnull(const class QoreNode *n, ExceptionSink *xsink)
 {
    n = n->eval(xsink);
    if (!xsink->isEvent() && !n)
       return nothing();
-   return n;
+   return const_cast<QoreNode *>(n);
 }
 
-class QoreNode *copy_and_resolve_lvar_refs(class QoreNode *n, ExceptionSink *xsink)
+class QoreNode *copy_and_resolve_lvar_refs(const class QoreNode *n, ExceptionSink *xsink)
 {
    if (!n) return NULL;
 

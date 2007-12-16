@@ -31,7 +31,7 @@ class QoreClass *QC_QLocale = 0;
 //QLocale ( const QString & name )
 //QLocale ( Language language, Country country = AnyCountry )
 //QLocale ( const QLocale & other )
-static void QLOCALE_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QLOCALE_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -58,13 +58,13 @@ static void QLOCALE_copy(class QoreObject *self, class QoreObject *old, class Qo
 }
 
 //Country country () const
-static QoreNode *QLOCALE_country(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_country(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ql->country());
 }
 
 //QString dateFormat ( FormatType format = LongFormat ) const
-static QoreNode *QLOCALE_dateFormat(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_dateFormat(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QLocale::FormatType format = (QLocale::FormatType)(p ? p->getAsInt() : 0);
@@ -72,7 +72,7 @@ static QoreNode *QLOCALE_dateFormat(QoreObject *self, QoreQLocale *ql, QoreNode 
 }
 
 //QString dayName ( int day, FormatType type = LongFormat ) const
-static QoreNode *QLOCALE_dayName(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_dayName(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int day = p ? p->getAsInt() : 0;
@@ -82,7 +82,7 @@ static QoreNode *QLOCALE_dayName(QoreObject *self, QoreQLocale *ql, QoreNode *pa
 }
 
 //QChar decimalPoint () const
-static QoreNode *QLOCALE_decimalPoint(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_decimalPoint(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = ql->decimalPoint();
@@ -91,7 +91,7 @@ static QoreNode *QLOCALE_decimalPoint(QoreObject *self, QoreQLocale *ql, QoreNod
 }
 
 //QChar exponential () const
-static QoreNode *QLOCALE_exponential(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_exponential(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = ql->exponential();
@@ -100,7 +100,7 @@ static QoreNode *QLOCALE_exponential(QoreObject *self, QoreQLocale *ql, QoreNode
 }
 
 //QChar groupSeparator () const
-static QoreNode *QLOCALE_groupSeparator(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_groupSeparator(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = ql->groupSeparator();
@@ -109,13 +109,13 @@ static QoreNode *QLOCALE_groupSeparator(QoreObject *self, QoreQLocale *ql, QoreN
 }
 
 //Language language () const
-static QoreNode *QLOCALE_language(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_language(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ql->language());
 }
 
 //QString monthName ( int month, FormatType type = LongFormat ) const
-static QoreNode *QLOCALE_monthName(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_monthName(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int month = p ? p->getAsInt() : 0;
@@ -125,13 +125,13 @@ static QoreNode *QLOCALE_monthName(QoreObject *self, QoreQLocale *ql, QoreNode *
 }
 
 //QString name () const
-static QoreNode *QLOCALE_name(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_name(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(ql->name().toUtf8().data(), QCS_UTF8));
 }
 
 //QChar negativeSign () const
-static QoreNode *QLOCALE_negativeSign(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_negativeSign(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = ql->negativeSign();
@@ -140,13 +140,13 @@ static QoreNode *QLOCALE_negativeSign(QoreObject *self, QoreQLocale *ql, QoreNod
 }
 
 //NumberOptions numberOptions () const
-static QoreNode *QLOCALE_numberOptions(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_numberOptions(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)ql->numberOptions());
 }
 
 //QChar percent () const
-static QoreNode *QLOCALE_percent(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_percent(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = ql->percent();
@@ -155,7 +155,7 @@ static QoreNode *QLOCALE_percent(QoreObject *self, QoreQLocale *ql, QoreNode *pa
 }
 
 //void setNumberOptions ( NumberOptions options )
-static QoreNode *QLOCALE_setNumberOptions(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_setNumberOptions(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QLocale::NumberOptions options = (QLocale::NumberOptions)(p ? p->getAsInt() : 0);
@@ -164,7 +164,7 @@ static QoreNode *QLOCALE_setNumberOptions(QoreObject *self, QoreQLocale *ql, Qor
 }
 
 //QString timeFormat ( FormatType format = LongFormat ) const
-static QoreNode *QLOCALE_timeFormat(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_timeFormat(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QLocale::FormatType format = (QLocale::FormatType)(p ? p->getAsInt() : 0);
@@ -172,7 +172,7 @@ static QoreNode *QLOCALE_timeFormat(QoreObject *self, QoreQLocale *ql, QoreNode 
 }
 
 //double toDouble ( const QString & s, bool * ok = 0 ) const
-static QoreNode *QLOCALE_toDouble(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_toDouble(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString s;
@@ -189,7 +189,7 @@ static QoreNode *QLOCALE_toDouble(QoreObject *self, QoreQLocale *ql, QoreNode *p
 }
 
 //qlonglong toLongLong ( const QString & s, bool * ok = 0, int base = 0 ) const
-static QoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString s;
@@ -220,7 +220,7 @@ static QoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, QoreNode 
 ////QString toString ( int i ) const
 ////QString toString ( uint i ) const
 ////QString toString ( float i, char f = 'g', int prec = 6 ) const
-//static QoreNode *QLOCALE_toString(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QLOCALE_toString(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
@@ -296,7 +296,7 @@ static QoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, QoreNode 
 //}
 
 //QChar zeroDigit () const
-static QoreNode *QLOCALE_zeroDigit(QoreObject *self, QoreQLocale *ql, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLOCALE_zeroDigit(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreString *rv_str = new QoreString(QCS_UTF8);
    QChar rv_qc = ql->zeroDigit();
@@ -304,7 +304,7 @@ static QoreNode *QLOCALE_zeroDigit(QoreObject *self, QoreQLocale *ql, QoreNode *
    return new QoreNode(rv_str);
 }
 
-static QoreNode *f_QLocale_countriesForLanguage(class QoreNode *params, class ExceptionSink *xsink)
+static QoreNode *f_QLocale_countriesForLanguage(const QoreNode *params, class ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QLocale::Language language = (QLocale::Language)(p ? p->getAsInt() : 0);
@@ -318,14 +318,14 @@ static QoreNode *f_QLocale_countriesForLanguage(class QoreNode *params, class Ex
    return new QoreNode(l);
 }
 
-static QoreNode *f_QLocale_languageToString(class QoreNode *params, class ExceptionSink *xsink)
+static QoreNode *f_QLocale_languageToString(const QoreNode *params, class ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QLocale::Language language = (QLocale::Language)(p ? p->getAsInt() : 0);
    return new QoreNode(new QoreString(QLocale::languageToString(language).toUtf8().data(), QCS_UTF8));
 }
 
-static QoreNode *f_QLocale_countryToString(class QoreNode *params, class ExceptionSink *xsink)
+static QoreNode *f_QLocale_countryToString(const QoreNode *params, class ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QLocale::Country country = (QLocale::Country)(p ? p->getAsInt() : 0);
@@ -369,7 +369,7 @@ QoreClass *initQLocaleClass()
 }
 
 //QLocale c ()
-static QoreNode *f_QLocale_c(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QLocale_c(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    QoreQLocale *q_ql = new QoreQLocale(QLocale::c());
@@ -378,7 +378,7 @@ static QoreNode *f_QLocale_c(QoreNode *params, ExceptionSink *xsink)
 }
 
 //void setDefault ( const QLocale & locale )
-static QoreNode *f_QLocale_setDefault(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QLocale_setDefault(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)p->val.object->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
@@ -393,7 +393,7 @@ static QoreNode *f_QLocale_setDefault(QoreNode *params, ExceptionSink *xsink)
 }
 
 //QLocale system ()
-static QoreNode *f_QLocale_system(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QLocale_system(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    QoreQLocale *q_ql = new QoreQLocale(QLocale::system());

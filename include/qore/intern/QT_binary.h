@@ -24,9 +24,9 @@
 
 #define _QORE_QT_BINARY_H
 
-DLLLOCAL class QoreNode *binary_Copy(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool binary_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
-DLLLOCAL class QoreString *binary_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *binary_Copy(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool binary_Compare(const class QoreNode *l, const class QoreNode *r, class ExceptionSink *xsink);
+DLLLOCAL class QoreString *binary_MakeString(const class QoreNode *n, int format, class ExceptionSink *xsink);
 DLLLOCAL void binary_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_BINARY_H

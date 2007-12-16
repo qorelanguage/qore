@@ -28,7 +28,7 @@ int CID_QINPUTDIALOG;
 class QoreClass *QC_QInputDialog = 0;
 
 //double getDouble ( QWidget * parent, const QString & title, const QString & label, double value = 0, double minValue = -2147483647, double maxValue = 2147483647, int decimals = 1, bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getDouble(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QInputDialog_getDouble(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -78,7 +78,7 @@ static QoreNode *f_QInputDialog_getDouble(QoreNode *params, ExceptionSink *xsink
 }
 
 //int getInteger ( QWidget * parent, const QString & title, const QString & label, int value = 0, int minValue = -2147483647, int maxValue = 2147483647, int step = 1, bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getInteger(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QInputDialog_getInteger(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -128,7 +128,7 @@ static QoreNode *f_QInputDialog_getInteger(QoreNode *params, ExceptionSink *xsin
 }
 
 //QString getItem ( QWidget * parent, const QString & title, const QString & label, const QStringList & list, int current = 0, bool editable = true, bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getItem(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QInputDialog_getItem(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -191,7 +191,7 @@ static QoreNode *f_QInputDialog_getItem(QoreNode *params, ExceptionSink *xsink)
 }
 
 //QString getText ( QWidget * parent, const QString & title, const QString & label, QLineEdit::EchoMode mode = QLineEdit::Normal, const QString & text = QString(), bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getText(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QInputDialog_getText(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;

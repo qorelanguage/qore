@@ -29,7 +29,7 @@ class QoreNode *boolean_DefaultValue()
    return False;
 }
 
-class QoreNode *boolean_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *boolean_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
 {
    class QoreNode *rv;
 
@@ -47,12 +47,12 @@ class QoreNode *boolean_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return rv;
 }
 
-bool boolean_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool boolean_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)(l->val.boolval != r->val.boolval);
 }
 
-class QoreString *boolean_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
+class QoreString *boolean_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
 {
    return new QoreString((char *)(n->val.boolval ? "True" : "False"));
 }

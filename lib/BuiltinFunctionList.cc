@@ -60,7 +60,7 @@ BuiltinFunctionList::~BuiltinFunctionList()
 //   assert(hm.empty());
 }
 
-void BuiltinFunctionList::add(const char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ)
+void BuiltinFunctionList::add(const char *name, q_func_t f, int typ)
 {
    if (init_done)
    {

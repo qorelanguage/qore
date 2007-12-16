@@ -29,7 +29,7 @@ class QoreNode *bigint_DefaultValue()
    return Zero;
 }
 
-class QoreNode *bigint_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *bigint_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
 {
    int64 i;
 
@@ -47,12 +47,12 @@ class QoreNode *bigint_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return new QoreNode(i);
 }
 
-bool bigint_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool bigint_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)(l->val.intval != r->val.intval);
 }
 
-class QoreString *bigint_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
+class QoreString *bigint_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
 {
    return new QoreString(n->val.intval);
 }

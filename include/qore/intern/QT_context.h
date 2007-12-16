@@ -24,9 +24,9 @@
 
 #define _QORE_QT_CONTEXT_H
 
-DLLLOCAL class QoreNode *contextref_Eval(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *complexcontextref_Eval(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *complexcontextref_Copy(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *contextref_Eval(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *complexcontextref_Eval(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *complexcontextref_Copy(const class QoreNode *n, class ExceptionSink *xsink);
 DLLLOCAL void complexcontextref_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_CONTEXT_H

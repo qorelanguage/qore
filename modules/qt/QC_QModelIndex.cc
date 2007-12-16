@@ -29,7 +29,7 @@ class QoreClass *QC_QModelIndex = 0;
 
 //QModelIndex ()
 //QModelIndex ( const QModelIndex & other )
-static void QMODELINDEX_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QMODELINDEX_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QMODELINDEX, new QoreQModelIndex());
    return;
@@ -41,7 +41,7 @@ static void QMODELINDEX_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //QModelIndex child ( int row, int column ) const
-static QoreNode *QMODELINDEX_child(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMODELINDEX_child(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -54,13 +54,13 @@ static QoreNode *QMODELINDEX_child(QoreObject *self, QoreQModelIndex *qmi, QoreN
 }
 
 //int column () const
-static QoreNode *QMODELINDEX_column(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMODELINDEX_column(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qmi->column());
 }
 
 //QVariant data ( int role = Qt::DisplayRole ) const
-static QoreNode *QMODELINDEX_data(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMODELINDEX_data(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int role = !is_nothing(p) ? p->getAsInt() : Qt::DisplayRole;
@@ -68,32 +68,32 @@ static QoreNode *QMODELINDEX_data(QoreObject *self, QoreQModelIndex *qmi, QoreNo
 }
 
 //Qt::ItemFlags flags () const
-static QoreNode *QMODELINDEX_flags(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMODELINDEX_flags(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qmi->flags());
 }
 
 //qint64 internalId () const
-static QoreNode *QMODELINDEX_internalId(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMODELINDEX_internalId(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qmi->internalId());
 }
 
 //void * internalPointer () const
-//static QoreNode *QMODELINDEX_internalPointer(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QMODELINDEX_internalPointer(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   qmi->internalPointer();
 //   return 0;
 //}
 
 //bool isValid () const
-static QoreNode *QMODELINDEX_isValid(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMODELINDEX_isValid(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qmi->isValid());
 }
 
 //const QAbstractItemModel * model () const
-static QoreNode *QMODELINDEX_model(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMODELINDEX_model(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 {
    const QAbstractItemModel *qt_qobj = qmi->model();
    if (!qt_qobj)
@@ -111,7 +111,7 @@ static QoreNode *QMODELINDEX_model(QoreObject *self, QoreQModelIndex *qmi, QoreN
 }
 
 //QModelIndex parent () const
-static QoreNode *QMODELINDEX_parent(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMODELINDEX_parent(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qmi = new QoreObject(self->getClass(CID_QMODELINDEX), getProgram());
    QoreQModelIndex *q_qmi = new QoreQModelIndex(qmi->parent());
@@ -120,13 +120,13 @@ static QoreNode *QMODELINDEX_parent(QoreObject *self, QoreQModelIndex *qmi, Qore
 }
 
 //int row () const
-static QoreNode *QMODELINDEX_row(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMODELINDEX_row(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qmi->row());
 }
 
 //QModelIndex sibling ( int row, int column ) const
-static QoreNode *QMODELINDEX_sibling(QoreObject *self, QoreQModelIndex *qmi, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMODELINDEX_sibling(QoreObject *self, QoreQModelIndex *qmi, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;

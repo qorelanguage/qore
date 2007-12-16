@@ -28,7 +28,7 @@ int CID_QDRAGLEAVEEVENT;
 class QoreClass *QC_QDragLeaveEvent = 0;
 
 //QDragLeaveEvent ()
-static void QDRAGLEAVEEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QDRAGLEAVEEVENT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QDRAGLEAVEEVENT, new QoreQDragLeaveEvent());
    return;

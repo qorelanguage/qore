@@ -28,7 +28,7 @@ int CID_QMENUBAR;
 class QoreClass *QC_QMenuBar = 0;
 
 //QMenuBar ( QWidget * parent = 0 )
-static void QMENUBAR_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QMENUBAR_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -45,7 +45,7 @@ static void QMENUBAR_copy(class QoreObject *self, class QoreObject *old, class Q
 }
 
 //QAction * activeAction () const
-static QoreNode *QMENUBAR_activeAction(QoreObject *self, QoreAbstractQMenuBar *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMENUBAR_activeAction(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
    QAction *qt_qobj = qmb->getQMenuBar()->activeAction();
    if (!qt_qobj)
@@ -65,7 +65,7 @@ static QoreNode *QMENUBAR_activeAction(QoreObject *self, QoreAbstractQMenuBar *q
 
 //QAction * addAction ( const QString & text )
 //QAction * addAction ( const QString & text, const QObject * receiver, const char * member )
-static QoreNode *QMENUBAR_addAction(QoreObject *self, QoreAbstractQMenuBar *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMENUBAR_addAction(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -104,7 +104,7 @@ static QoreNode *QMENUBAR_addAction(QoreObject *self, QoreAbstractQMenuBar *qmb,
 //QAction * addMenu ( QMenu * menu )
 //QMenu * addMenu ( const QString & title )
 //QMenu * addMenu ( const QIcon & icon, const QString & title )
-static QoreNode *QMENUBAR_addMenu(QoreObject *self, QoreAbstractQMenuBar *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMENUBAR_addMenu(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -148,7 +148,7 @@ static QoreNode *QMENUBAR_addMenu(QoreObject *self, QoreAbstractQMenuBar *qmb, Q
 }
 
 //QAction * addSeparator ()
-static QoreNode *QMENUBAR_addSeparator(QoreObject *self, QoreAbstractQMenuBar *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMENUBAR_addSeparator(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
    QAction *qt_qobj = qmb->getQMenuBar()->addSeparator();
 
@@ -159,14 +159,14 @@ static QoreNode *QMENUBAR_addSeparator(QoreObject *self, QoreAbstractQMenuBar *q
 }
 
 //void clear ()
-static QoreNode *QMENUBAR_clear(QoreObject *self, QoreAbstractQMenuBar *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMENUBAR_clear(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
    qmb->getQMenuBar()->clear();
    return 0;
 }
 
 //QAction * insertMenu ( QAction * before, QMenu * menu )
-static QoreNode *QMENUBAR_insertMenu(QoreObject *self, QoreAbstractQMenuBar *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMENUBAR_insertMenu(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQAction *before = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
@@ -193,7 +193,7 @@ static QoreNode *QMENUBAR_insertMenu(QoreObject *self, QoreAbstractQMenuBar *qmb
 }
 
 //QAction * insertSeparator ( QAction * before )
-static QoreNode *QMENUBAR_insertSeparator(QoreObject *self, QoreAbstractQMenuBar *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMENUBAR_insertSeparator(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQAction *before = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
@@ -212,13 +212,13 @@ static QoreNode *QMENUBAR_insertSeparator(QoreObject *self, QoreAbstractQMenuBar
 }
 
 //bool isDefaultUp () const
-static QoreNode *QMENUBAR_isDefaultUp(QoreObject *self, QoreAbstractQMenuBar *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMENUBAR_isDefaultUp(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qmb->getQMenuBar()->isDefaultUp());
 }
 
 //void setActiveAction ( QAction * act )
-static QoreNode *QMENUBAR_setActiveAction(QoreObject *self, QoreAbstractQMenuBar *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMENUBAR_setActiveAction(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQAction *act = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
@@ -233,7 +233,7 @@ static QoreNode *QMENUBAR_setActiveAction(QoreObject *self, QoreAbstractQMenuBar
 }
 
 //void setDefaultUp ( bool )
-static QoreNode *QMENUBAR_setDefaultUp(QoreObject *self, QoreAbstractQMenuBar *qmb, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMENUBAR_setDefaultUp(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;

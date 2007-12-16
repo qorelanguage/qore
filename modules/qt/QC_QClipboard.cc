@@ -28,7 +28,7 @@ int CID_QCLIPBOARD;
 class QoreClass *QC_QClipboard = 0;
 
 //QClipboard ()
-static void QCLIPBOARD_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QCLIPBOARD_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    xsink->raiseException("QCLIPBOARD-CONSTRUCTOR-ERROR", "this class cannot be created directly (or subclassed); to get a QClipboard object call QApplication_clipboard()");
 }
@@ -39,7 +39,7 @@ static void QCLIPBOARD_copy(class QoreObject *self, class QoreObject *old, class
 }
 
 //void clear ( Mode mode = Clipboard )
-static QoreNode *QCLIPBOARD_clear(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_clear(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QClipboard::Mode mode = (QClipboard::Mode)(p ? p->getAsInt() : 0);
@@ -48,7 +48,7 @@ static QoreNode *QCLIPBOARD_clear(QoreObject *self, QoreQClipboard *qc, QoreNode
 }
 
 //QImage image ( Mode mode = Clipboard ) const
-static QoreNode *QCLIPBOARD_image(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_image(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QClipboard::Mode mode = (QClipboard::Mode)(p ? p->getAsInt() : 0);
@@ -59,7 +59,7 @@ static QoreNode *QCLIPBOARD_image(QoreObject *self, QoreQClipboard *qc, QoreNode
 }
 
 //const QMimeData * mimeData ( Mode mode = Clipboard ) const
-static QoreNode *QCLIPBOARD_mimeData(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_mimeData(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QClipboard::Mode mode = (QClipboard::Mode)(p ? p->getAsInt() : 0);
@@ -74,25 +74,25 @@ static QoreNode *QCLIPBOARD_mimeData(QoreObject *self, QoreQClipboard *qc, QoreN
 }
 
 //bool ownsClipboard () const
-static QoreNode *QCLIPBOARD_ownsClipboard(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_ownsClipboard(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->qobj->ownsClipboard());
 }
 
 //bool ownsFindBuffer () const
-static QoreNode *QCLIPBOARD_ownsFindBuffer(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_ownsFindBuffer(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->qobj->ownsFindBuffer());
 }
 
 //bool ownsSelection () const
-static QoreNode *QCLIPBOARD_ownsSelection(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_ownsSelection(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->qobj->ownsSelection());
 }
 
 //QPixmap pixmap ( Mode mode = Clipboard ) const
-static QoreNode *QCLIPBOARD_pixmap(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_pixmap(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QClipboard::Mode mode = (QClipboard::Mode)(p ? p->getAsInt() : 0);
@@ -103,7 +103,7 @@ static QoreNode *QCLIPBOARD_pixmap(QoreObject *self, QoreQClipboard *qc, QoreNod
 }
 
 //void setImage ( const QImage & image, Mode mode = Clipboard )
-static QoreNode *QCLIPBOARD_setImage(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_setImage(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)p->val.object->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
@@ -120,7 +120,7 @@ static QoreNode *QCLIPBOARD_setImage(QoreObject *self, QoreQClipboard *qc, QoreN
 }
 
 //void setMimeData ( QMimeData * src, Mode mode = Clipboard )
-static QoreNode *QCLIPBOARD_setMimeData(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_setMimeData(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQMimeData *src = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)p->val.object->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
@@ -137,7 +137,7 @@ static QoreNode *QCLIPBOARD_setMimeData(QoreObject *self, QoreQClipboard *qc, Qo
 }
 
 //void setPixmap ( const QPixmap & pixmap, Mode mode = Clipboard )
-static QoreNode *QCLIPBOARD_setPixmap(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_setPixmap(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
@@ -154,7 +154,7 @@ static QoreNode *QCLIPBOARD_setPixmap(QoreObject *self, QoreQClipboard *qc, Qore
 }
 
 //void setText ( const QString & text, Mode mode = Clipboard )
-static QoreNode *QCLIPBOARD_setText(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_setText(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -168,20 +168,20 @@ static QoreNode *QCLIPBOARD_setText(QoreObject *self, QoreQClipboard *qc, QoreNo
 }
 
 //bool supportsFindBuffer () const
-static QoreNode *QCLIPBOARD_supportsFindBuffer(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_supportsFindBuffer(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->qobj->supportsFindBuffer());
 }
 
 //bool supportsSelection () const
-static QoreNode *QCLIPBOARD_supportsSelection(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_supportsSelection(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qc->qobj->supportsSelection());
 }
 
 //QString text ( Mode mode = Clipboard ) const
 //QString text ( QString & subtype, Mode mode = Clipboard ) const
-static QoreNode *QCLIPBOARD_text(QoreObject *self, QoreQClipboard *qc, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCLIPBOARD_text(QoreObject *self, QoreQClipboard *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 

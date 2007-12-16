@@ -30,7 +30,7 @@ int CID_QMOVEEVENT;
 
 class QoreClass *QC_QMoveEvent = 0;
 
-static void QMOVEEVENT_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static void QMOVEEVENT_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -59,7 +59,7 @@ static void QMOVEEVENT_copy(class QoreObject *self, class QoreObject *old, class
 }
 
 //const QPoint & oldPos () const
-static QoreNode *QMOVEEVENT_oldPos(QoreObject *self, QoreQMoveEvent *qme, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOVEEVENT_oldPos(QoreObject *self, QoreQMoveEvent *qme, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qme->oldPos());
@@ -68,7 +68,7 @@ static QoreNode *QMOVEEVENT_oldPos(QoreObject *self, QoreQMoveEvent *qme, QoreNo
 }
 
 //const QPoint & pos () const
-static QoreNode *QMOVEEVENT_pos(QoreObject *self, QoreQMoveEvent *qme, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOVEEVENT_pos(QoreObject *self, QoreQMoveEvent *qme, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qme->pos());

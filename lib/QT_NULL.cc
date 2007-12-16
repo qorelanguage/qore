@@ -29,7 +29,7 @@ class QoreNode *NULL_DefaultValue()
    return Null;
 }
 
-class QoreString *NULL_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
+class QoreString *NULL_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
 {
    return new QoreString("<NULL>");
 }

@@ -89,30 +89,30 @@ class QoreHash
    public:
       DLLEXPORT QoreHash(bool ne = false);
 
-      DLLEXPORT const char *getFirstKey() const { return member_list ? member_list->key :NULL; }
-      DLLEXPORT const char *getLastKey() const { return tail ? tail->key : NULL; }
+      DLLEXPORT const char *getFirstKey() const;
+      DLLEXPORT const char *getLastKey() const;
       // returns (QoreNode *)-1 if the key doesn't exist
       DLLEXPORT class QoreNode *getKeyValueExistence(const char *key) const;
       // returns (QoreNode *)-1 if the key doesn't exist
-      DLLEXPORT class QoreNode *getKeyValueExistence(class QoreString *key, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *getKeyValue(class QoreString *key, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *getKeyValueExistence(const class QoreString *key, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *getKeyValue(const class QoreString *key, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *getKeyValue(const char *key) const;
       DLLEXPORT class QoreHash *copy() const;
-      DLLEXPORT class QoreNode **getKeyValuePtr(class QoreString *key, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getKeyValuePtr(const class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getKeyValuePtr(const char *key);
-      DLLEXPORT class QoreNode **getExistingValuePtr(class QoreString *key, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode **getExistingValuePtr(const class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getExistingValuePtr(const char *key);
-      DLLEXPORT void merge(class QoreHash *h, class ExceptionSink *xsink);
+      DLLEXPORT void merge(const class QoreHash *h, class ExceptionSink *xsink);
       DLLEXPORT void assimilate(class QoreHash *h, class ExceptionSink *xsink);
       DLLEXPORT class QoreHash *eval(class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *evalKey(const char *key, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *evalKeyExistence(const char *key, class ExceptionSink *xsink) const;
-      DLLEXPORT void setKeyValue(class QoreString *key, class QoreNode *value, class ExceptionSink *xsink);
+      DLLEXPORT void setKeyValue(const class QoreString *key, class QoreNode *value, class ExceptionSink *xsink);
       DLLEXPORT void setKeyValue(const char *key, class QoreNode *value, class ExceptionSink *xsink);
-      DLLEXPORT void deleteKey(class QoreString *key, class ExceptionSink *xsink);
+      DLLEXPORT void deleteKey(const class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT void deleteKey(const char *key, class ExceptionSink *xsink);
       // "takes" the value of the key from the hash and removes the key from the hash and returns the value
-      DLLEXPORT class QoreNode *takeKeyValue(class QoreString *key, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *takeKeyValue(const class QoreString *key, class ExceptionSink *xsink);
       // "takes" the value of the key from the hash and removes the key from the hash and returns the value
       DLLEXPORT class QoreNode *takeKeyValue(const char *key);
       DLLEXPORT class QoreList *getKeys() const;
@@ -123,7 +123,8 @@ class QoreHash
       DLLEXPORT void derefAndDelete(class ExceptionSink *xsink);
       DLLEXPORT int size() const;
       DLLEXPORT bool needsEval() const;
-      DLLEXPORT void clearNeedsEval();
+
+      DLLLOCAL void clearNeedsEval();
 };
 
 class StackHash : public QoreHash
@@ -135,7 +136,7 @@ class StackHash : public QoreHash
       DLLLOCAL void *operator new(size_t); 
       DLLLOCAL StackHash();
       DLLLOCAL StackHash(bool i);
-      DLLLOCAL void deleteAndDeref(class ExceptionSink *xsink);
+      DLLLOCAL void derefAndDelete(class ExceptionSink *xsink);
    
    public:
       DLLEXPORT StackHash(class ExceptionSink *xs)

@@ -24,9 +24,9 @@
 
 #define _QORE_QT_VARREF_H
 
-DLLLOCAL class QoreNode *varref_Eval(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *varref_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *varref_Copy(class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *varref_Eval(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *varref_eval_opt_deref(bool &needs_deref, const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *varref_Copy(const class QoreNode *n, class ExceptionSink *xsink);
 DLLLOCAL void varref_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_VARREF_H

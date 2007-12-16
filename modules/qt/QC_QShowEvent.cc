@@ -28,7 +28,7 @@ int CID_QSHOWEVENT;
 class QoreClass *QC_QShowEvent = 0;
 
 //QShowEvent ()
-static void QSHOWEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QSHOWEVENT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSHOWEVENT, new QoreQShowEvent());
    return;

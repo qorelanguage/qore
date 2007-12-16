@@ -52,7 +52,7 @@ class BuiltinFunctionList
       // The function assumes that the 'name' string is ALWAYS character literal (aka "my_foo") which stays
       // valid during the whole lifetime of the session. If this assumption is not true the name would
       // need to be cloned.
-      DLLEXPORT static void add(const char *name, class QoreNode *(*f)(class QoreNode *, class ExceptionSink *xsink), int typ = QDOM_DEFAULT);
+      DLLEXPORT static void add(const char *name, q_func_t f, int typ = QDOM_DEFAULT);
       DLLEXPORT static class BuiltinFunction *find(const char *name);
       DLLEXPORT static int size();
 

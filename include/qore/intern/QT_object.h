@@ -24,9 +24,9 @@
 
 #define _QORE_QT_OBJECT_H
 
-DLLLOCAL class QoreNode *object_Eval(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *object_Copy(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool object_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
-DLLLOCAL class QoreString *object_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *object_Eval(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *object_Copy(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool object_Compare(const class QoreNode *l, const class QoreNode *r, class ExceptionSink *xsink);
+DLLLOCAL class QoreString *object_MakeString(const class QoreNode *n, int format, class ExceptionSink *xsink);
 
 #endif // _QORE_QT_OBJECT_H

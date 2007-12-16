@@ -25,7 +25,7 @@
 #include "QC_QColorDialog.h"
 
 //QRgb customColor ( int i )
-static QoreNode *f_QColorDialog_customColor(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_customColor(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int i = p ? p->getAsInt() : 0;
@@ -33,13 +33,13 @@ static QoreNode *f_QColorDialog_customColor(QoreNode *params, ExceptionSink *xsi
 }
 
 //int customCount ()
-static QoreNode *f_QColorDialog_customCount(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_customCount(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)QColorDialog::customCount());
 }
 
 //QColor getColor ( const QColor & initial = Qt::white, QWidget * parent = 0 )
-static QoreNode *f_QColorDialog_getColor(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_getColor(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQColor *initial = (p && p->type == NT_OBJECT) ? (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
@@ -59,7 +59,7 @@ static QoreNode *f_QColorDialog_getColor(QoreNode *params, ExceptionSink *xsink)
 
 /*
 //QRgb getRgba ( QRgb initial = 0xffffffff, bool * ok = 0, QWidget * parent = 0 )
-static QoreNode *f_QColorDialog_getRgba(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_getRgba(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int64 initial = !is_nothing(p) ? p->getAsBigInt() : 0xffffffff;
@@ -75,7 +75,7 @@ static QoreNode *f_QColorDialog_getRgba(QoreNode *params, ExceptionSink *xsink)
 */
 
 //void setCustomColor ( int number, QRgb color )
-static QoreNode *f_QColorDialog_setCustomColor(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_setCustomColor(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int number = p ? p->getAsInt() : 0;
@@ -86,7 +86,7 @@ static QoreNode *f_QColorDialog_setCustomColor(QoreNode *params, ExceptionSink *
 }
 
 //void setStandardColor ( int number, QRgb color )
-static QoreNode *f_QColorDialog_setStandardColor(QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_setStandardColor(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int number = p ? p->getAsInt() : 0;

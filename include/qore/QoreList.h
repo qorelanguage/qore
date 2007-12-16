@@ -60,7 +60,7 @@ class QoreList {
       DLLEXPORT void insert(class QoreNode *val);
       DLLEXPORT class QoreNode *pop();
       DLLEXPORT class QoreNode *shift();
-      DLLEXPORT void merge(class QoreList *list);
+      DLLEXPORT void merge(const class QoreList *list);
       DLLEXPORT int delete_entry(int index, class ExceptionSink *xsink);
       DLLEXPORT void pop_entry(int index, class ExceptionSink *xsink);
       DLLEXPORT void dereference(class ExceptionSink *xsink);

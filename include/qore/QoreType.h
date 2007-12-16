@@ -34,16 +34,16 @@ DLLEXPORT extern class QoreNode *False, *True, *Nothing, *Null, *Zero, *ZeroFloa
    *ZeroDate, *emptyList, *emptyHash;
 
 typedef class QoreNode *(*no_arg_func_t)();
-typedef class QoreNode *(*single_arg_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef class QoreNode *(*eval_opt_deref_func_t)(bool &, class QoreNode *, class ExceptionSink *xsink);
-typedef bool (*needs_eval_func_t)(class QoreNode *);
-typedef bool (*bool_eval_type_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef int64 (*bigint_eval_type_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef double (*float_eval_type_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef class QoreNode *(*convert_func_t)(class QoreNode *, class ExceptionSink *xsink);
-typedef bool (*compare_func_t)(class QoreNode *, class QoreNode *, class ExceptionSink *xsink);
+typedef class QoreNode *(*single_arg_func_t)(const class QoreNode *, class ExceptionSink *xsink);
+typedef class QoreNode *(*eval_opt_deref_func_t)(bool &, const class QoreNode *, class ExceptionSink *xsink);
+typedef bool (*needs_eval_func_t)(const class QoreNode *);
+typedef bool (*bool_eval_type_func_t)(const class QoreNode *, class ExceptionSink *xsink);
+typedef int64 (*bigint_eval_type_func_t)(const class QoreNode *, class ExceptionSink *xsink);
+typedef double (*float_eval_type_func_t)(const class QoreNode *, class ExceptionSink *xsink);
+typedef class QoreNode *(*convert_func_t)(const class QoreNode *, class ExceptionSink *xsink);
+typedef bool (*compare_func_t)(const class QoreNode *, const class QoreNode *, class ExceptionSink *xsink);
 typedef void (*delete_func_t)(class QoreNode *);
-typedef class QoreString *(*string_func_t)(class QoreNode *, int format, class ExceptionSink *xsink);
+typedef class QoreString *(*string_func_t)(const class QoreNode *, int format, class ExceptionSink *xsink);
 
 #define QTM_USER_START   200
 
@@ -88,19 +88,19 @@ class QoreType {
       DLLEXPORT int getID() const;
       DLLEXPORT bool isValue() const;
       DLLEXPORT const char *getName() const;
-      DLLEXPORT bool needs_eval(class QoreNode *n) const;
-      DLLEXPORT class QoreNode *eval(class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *eval(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT bool bool_eval(class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT int64 bigint_eval(class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT double float_eval(class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *copy(class QoreNode *n, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *getDefaultValue();
-      DLLEXPORT class QoreNode *convertTo(class QoreNode *n, class ExceptionSink *xsink);
+      DLLEXPORT bool needs_eval(const class QoreNode *n) const;
+      DLLEXPORT class QoreNode *eval(const class QoreNode *n, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *eval(bool &needs_deref, const class QoreNode *n, class ExceptionSink *xsink) const;
+      DLLEXPORT bool bool_eval(const class QoreNode *n, class ExceptionSink *xsink) const;
+      DLLEXPORT int64 bigint_eval(const class QoreNode *n, class ExceptionSink *xsink) const;
+      DLLEXPORT double float_eval(const class QoreNode *n, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *copy(const class QoreNode *n, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *getDefaultValue() const;
+      DLLEXPORT class QoreNode *convertTo(const class QoreNode *n, class ExceptionSink *xsink) const;
       // compare = 0 means values are equal
-      DLLEXPORT bool compare(class QoreNode *n1, class QoreNode *n2, class ExceptionSink *xsink) const;
-      DLLEXPORT void deleteContents(class QoreNode *n);
-      DLLEXPORT class QoreString *getAsString(class QoreNode *n, int format, class ExceptionSink *xsink) const;
+      DLLEXPORT bool compare(const class QoreNode *n1, const class QoreNode *n2, class ExceptionSink *xsink) const;
+      DLLEXPORT void deleteContents(class QoreNode *n) const;
+      DLLEXPORT class QoreString *getAsString(const class QoreNode *n, int format, class ExceptionSink *xsink) const;
 };
 
 typedef std::map<int, class QoreType *> qore_type_map_t;
@@ -125,8 +125,8 @@ class QoreTypeManager : public qore_type_map_t
 
 DLLEXPORT extern class QoreTypeManager QTM;
 
-DLLEXPORT bool compareHard(QoreNode *l, QoreNode *r, class ExceptionSink *xsink);
-DLLEXPORT bool compareSoft(class QoreNode *node1, class QoreNode *node2, class ExceptionSink *xsink);
+DLLEXPORT bool compareHard(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink);
+DLLEXPORT bool compareSoft(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink);
 
 static inline class QoreNode *nothing()
 {

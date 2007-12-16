@@ -73,7 +73,7 @@ void Query::validate(int &stc, QList *&ql, ExceptionSink *xsink)
 	 return;
    }
 }
-class QoreNode *f_dbg_node_info(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink);
+class QoreNode *f_dbg_node_info(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink);
 
 static inline void getQ(void *obj)
 {
@@ -85,7 +85,7 @@ static inline void releaseQ(void *obj)
    ((Query *)obj)->deref();
 }
 
-static void Q_constructor(class QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static void Q_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    tracein("Q_constructor()");
 
@@ -170,7 +170,7 @@ static void Q_copy(class QoreObject *self, class QoreObject *old, class Query *q
    xsink->raiseException("COPY-ERROR", "cannot copy queue objects");
 }
 
-static QoreNode *Q_refresh(class QoreObject *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *Q_refresh(class QoreObject *self, class Query *q, const QoreNode *params, ExceptionSink *xsink)
 {
    Query *q = (Query *)self->getReferencedPrivateData(CID_QUERY);
    if (q)
@@ -185,7 +185,7 @@ static QoreNode *Q_refresh(class QoreObject *self, class Query *q, class QoreNod
    return NULL;
 }
 
-static QoreNode *Q_check(class QoreObject *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *Q_check(class QoreObject *self, class Query *q, const QoreNode *params, ExceptionSink *xsink)
 {
    Query *q = (Query *)self->getReferencedPrivateData(CID_QUERY);
 
@@ -202,7 +202,7 @@ static QoreNode *Q_check(class QoreObject *self, class Query *q, class QoreNode 
    return NULL;
 }
 
-static QoreNode *Q_key(class QoreObject *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *Q_key(class QoreObject *self, class Query *q, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1, *p2;
    if (!(p0 = test_param(params, NT_STRING, 0)) ||
@@ -227,7 +227,7 @@ static QoreNode *Q_key(class QoreObject *self, class Query *q, class QoreNode *p
    return NULL;
 }
 
-static QoreNode *Q_setSQL(class QoreObject *self, class Query *q, class QoreNode *params, ExceptionSink *xsink)
+static QoreNode *Q_setSQL(class QoreObject *self, class Query *q, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)

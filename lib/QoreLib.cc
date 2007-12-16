@@ -283,7 +283,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    return (int)(param - str);
 }
 
-class QoreString *q_sprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink)
+class QoreString *q_sprintf(const QoreNode *params, int field, int offset, class ExceptionSink *xsink)
 {
    int i, j, l;
    QoreNode *p;
@@ -313,7 +313,7 @@ class QoreString *q_sprintf(class QoreNode *params, int field, int offset, class
    return buf;
 }
 
-class QoreString *q_vsprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink)
+class QoreString *q_vsprintf(const QoreNode *params, int field, int offset, class ExceptionSink *xsink)
 {
    class QoreNode *fmt, *args;
 

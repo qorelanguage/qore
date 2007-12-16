@@ -29,7 +29,7 @@
 int CID_TIBRVDQ;
 
 // syntax: name, [desc, service, network, daemon] 
-void TIBRVDQ_constructor(class QoreObject *self, class QoreNode *params, class ExceptionSink *xsink)
+void TIBRVDQ_constructor(class QoreObject *self, const QoreNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVDQ_constructor");
 
@@ -118,7 +118,7 @@ void TIBRVDQ_copy(class QoreObject *self, class QoreObject *old, class QoreTibrv
    xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-COPY-ERROR", "copying TibrvDistributedQueue objects is curently not supported");
 }
 
-class QoreNode *TIBRVDQ_setWorkerWeight(class QoreObject *self, class QoreTibrvDistributedQueue *dq, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVDQ_setWorkerWeight(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = get_param(params, 0);
    int64 weight = pt ? pt->getAsBigInt() : 0;
@@ -130,7 +130,7 @@ class QoreNode *TIBRVDQ_setWorkerWeight(class QoreObject *self, class QoreTibrvD
    return NULL;
 }
 
-class QoreNode *TIBRVDQ_setWorkerTasks(class QoreObject *self, class QoreTibrvDistributedQueue *dq, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVDQ_setWorkerTasks(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = get_param(params, 0);
    int64 tasks = pt ? pt->getAsBigInt() : 0;
@@ -142,7 +142,7 @@ class QoreNode *TIBRVDQ_setWorkerTasks(class QoreObject *self, class QoreTibrvDi
    return NULL;
 }
 
-class QoreNode *TIBRVDQ_getWorkerWeight(class QoreObject *self, class QoreTibrvDistributedQueue *dq, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVDQ_getWorkerWeight(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreNode *params, ExceptionSink *xsink)
 {
    int64 weight = dq->getWorkerWeight(xsink);
    if (!xsink->isException())
@@ -151,7 +151,7 @@ class QoreNode *TIBRVDQ_getWorkerWeight(class QoreObject *self, class QoreTibrvD
    return NULL;
 }
 
-class QoreNode *TIBRVDQ_getWorkerTasks(class QoreObject *self, class QoreTibrvDistributedQueue *dq, QoreNode *params, ExceptionSink *xsink)
+class QoreNode *TIBRVDQ_getWorkerTasks(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreNode *params, ExceptionSink *xsink)
 {
    int64 tasks = dq->getWorkerTasks(xsink);
    if (!xsink->isException())

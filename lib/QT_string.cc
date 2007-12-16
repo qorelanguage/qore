@@ -29,12 +29,12 @@ class QoreNode *string_DefaultValue()
    return NullString;
 }
 
-class QoreNode *string_Copy(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *string_Copy(const QoreNode *n, class ExceptionSink *xsink)
 {
    return new QoreNode(n->val.String->copy());
 }
 
-class QoreNode *string_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *string_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
 {
    class QoreNode *rv;
    
@@ -55,12 +55,12 @@ class QoreNode *string_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return rv;
 }
 
-bool string_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool string_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return l->val.String->compare(r->val.String);
 }
 
-class QoreString *string_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
+class QoreString *string_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
 {
    QoreString *rv = new QoreString(n->val.String->getEncoding());
    rv->sprintf("\"%s\"", n->val.String->getBuffer());

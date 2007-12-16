@@ -23,17 +23,17 @@
 #include <qore/Qore.h>
 #include <qore/intern/QT_context.h>
 
-class QoreNode *contextref_Eval(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *contextref_Eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return evalContextRef(n->val.c_str, xsink);
 }
 
-class QoreNode *complexcontextref_Eval(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *complexcontextref_Eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return evalComplexContextRef(n->val.complex_cref, xsink);
 }
 
-class QoreNode *complexcontextref_Copy(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *complexcontextref_Copy(const QoreNode *n, class ExceptionSink *xsink)
 {
    return new QoreNode(n->val.complex_cref->copy());
 }

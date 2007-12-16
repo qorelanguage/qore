@@ -25,13 +25,13 @@
 #define _QORE_QT_LIST_H
 
 DLLLOCAL class QoreNode *list_DefaultValue();
-DLLLOCAL class QoreNode *list_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool list_needs_eval(class QoreNode *n);
-DLLLOCAL class QoreNode *list_Eval(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *list_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *list_Copy(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool list_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
-DLLLOCAL class QoreString *list_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *list_ConvertTo(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool list_needs_eval(const class QoreNode *n);
+DLLLOCAL class QoreNode *list_Eval(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *list_eval_opt_deref(bool &needs_deref, const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *list_Copy(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool list_Compare(const class QoreNode *l, const class QoreNode *r, class ExceptionSink *xsink);
+DLLLOCAL class QoreString *list_MakeString(const class QoreNode *n, int format, class ExceptionSink *xsink);
 DLLLOCAL void list_DeleteContents(class QoreNode *n);
 
 #endif // _QORE_QT_LIST_H

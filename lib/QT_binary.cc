@@ -23,12 +23,12 @@
 #include <qore/Qore.h>
 #include <qore/intern/QT_binary.h>
 
-bool binary_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool binary_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return (bool)l->val.bin->compare(r->val.bin);
 }
 
-class QoreString *binary_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
+class QoreString *binary_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
 {
    QoreString *rv = new QoreString();
    rv->sprintf("binary object %08p (%d byte%s)", n->val.bin->getPtr(), n->val.bin->size(), n->val.bin->size() == 1 ? "" : "s");
@@ -40,7 +40,7 @@ void binary_DeleteContents(class QoreNode *n)
    delete n->val.bin;
 }
 
-class QoreNode *binary_Copy(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *binary_Copy(const QoreNode *n, class ExceptionSink *xsink)
 {
    return new QoreNode(n->val.bin->copy());
 }

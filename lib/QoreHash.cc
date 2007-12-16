@@ -128,6 +128,16 @@ bool HashIterator::first() const
    return (bool)(ptr ? !ptr->prev : false); 
 } 
 
+const char *QoreHash::getFirstKey() const 
+{ 
+   return member_list ? member_list->key :NULL; 
+}
+
+const char *QoreHash::getLastKey() const 
+{
+   return tail ? tail->key : NULL; 
+}
+
 // NOTE: does not delete the value, this must be done by the called before this call
 void QoreHash::internDeleteKey(class HashMember *om)
 {
@@ -167,7 +177,7 @@ class QoreNode **QoreHash::newKeyValue(const char *key, class QoreNode *value)
    return &om->node;
 }
 
-class QoreNode **QoreHash::getKeyValuePtr(QoreString *key, class ExceptionSink *xsink)
+class QoreNode **QoreHash::getKeyValuePtr(const QoreString *key, class ExceptionSink *xsink)
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
@@ -181,7 +191,7 @@ class QoreNode **QoreHash::getKeyValuePtr(QoreString *key, class ExceptionSink *
    return getKeyValuePtr(key->getBuffer());
 }
 
-void QoreHash::deleteKey(QoreString *key, ExceptionSink *xsink)
+void QoreHash::deleteKey(const QoreString *key, ExceptionSink *xsink)
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
@@ -195,7 +205,7 @@ void QoreHash::deleteKey(QoreString *key, ExceptionSink *xsink)
       deleteKey(key->getBuffer(), xsink);
 }
 
-class QoreNode *QoreHash::takeKeyValue(QoreString *key, ExceptionSink *xsink)
+class QoreNode *QoreHash::takeKeyValue(const QoreString *key, ExceptionSink *xsink)
 {
    class QoreNode *rv;
    if (key->getEncoding() != QCS_DEFAULT)
@@ -211,7 +221,7 @@ class QoreNode *QoreHash::takeKeyValue(QoreString *key, ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *QoreHash::getKeyValueExistence(QoreString *key, class ExceptionSink *xsink) const
+class QoreNode *QoreHash::getKeyValueExistence(const QoreString *key, class ExceptionSink *xsink) const
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
@@ -225,7 +235,7 @@ class QoreNode *QoreHash::getKeyValueExistence(QoreString *key, class ExceptionS
    return getKeyValueExistence(key->getBuffer());
 }
 
-void QoreHash::setKeyValue(QoreString *key, class QoreNode *value, ExceptionSink *xsink)
+void QoreHash::setKeyValue(const QoreString *key, class QoreNode *value, ExceptionSink *xsink)
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
@@ -249,7 +259,7 @@ void QoreHash::setKeyValue(const char *key, class QoreNode *value, ExceptionSink
    *v = value;
 }
 
-class QoreNode **QoreHash::getExistingValuePtr(QoreString *key, class ExceptionSink *xsink)
+class QoreNode **QoreHash::getExistingValuePtr(const QoreString *key, class ExceptionSink *xsink)
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
@@ -263,7 +273,7 @@ class QoreNode **QoreHash::getExistingValuePtr(QoreString *key, class ExceptionS
    return getExistingValuePtr(key->getBuffer());
 }
 
-class QoreNode *QoreHash::getKeyValue(QoreString *key, class ExceptionSink *xsink) const
+class QoreNode *QoreHash::getKeyValue(const QoreString *key, class ExceptionSink *xsink) const
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
@@ -294,7 +304,7 @@ class QoreList *QoreHash::getKeys() const
 // adds all elements (and references them) from the hash passed, leaves the
 // hash passed alone
 // order is maintained
-void QoreHash::merge(class QoreHash *h, class ExceptionSink *xsink)
+void QoreHash::merge(const class QoreHash *h, class ExceptionSink *xsink)
 {
    class HashMember *where = h->member_list;
    
@@ -306,8 +316,7 @@ void QoreHash::merge(class QoreHash *h, class ExceptionSink *xsink)
 }
 
 // adds all elements (already referenecd) from the hash passed, deletes the
-// hased passed
-// order is maintained
+// hash passed; order is maintained
 void QoreHash::assimilate(class QoreHash *h, ExceptionSink *xsink)
 {
    class HashMember *where = h->member_list;

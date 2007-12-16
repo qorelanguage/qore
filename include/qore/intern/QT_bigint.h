@@ -25,8 +25,8 @@
 #define _QORE_QT_BIGINT_H
 
 DLLLOCAL class QoreNode *bigint_DefaultValue();
-DLLLOCAL class QoreNode *bigint_ConvertTo(class QoreNode *n, class ExceptionSink *xsink);
-DLLLOCAL bool bigint_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink);
-DLLLOCAL class QoreString *bigint_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink);
+DLLLOCAL class QoreNode *bigint_ConvertTo(const class QoreNode *n, class ExceptionSink *xsink);
+DLLLOCAL bool bigint_Compare(const class QoreNode *l, const class QoreNode *r, class ExceptionSink *xsink);
+DLLLOCAL class QoreString *bigint_MakeString(const class QoreNode *n, int format, class ExceptionSink *xsink);
 
 #endif // _QORE_QT_BIGINT_H

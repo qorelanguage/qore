@@ -473,7 +473,7 @@ class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
    return h;
 }
 
-class QoreNode *f_parseDatasource(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_parseDatasource(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -485,7 +485,7 @@ class QoreNode *f_parseDatasource(class QoreNode *params, ExceptionSink *xsink)
    return h ? new QoreNode(h) : NULL;
 }
 
-class QoreNode *f_getDBIDriverList(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_getDBIDriverList(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreList *l = DBI.getDriverList();
    if (l)
@@ -494,7 +494,7 @@ class QoreNode *f_getDBIDriverList(class QoreNode *params, ExceptionSink *xsink)
    return NULL;
 }
 
-class QoreNode *f_getDBIDriverCapabilityList(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_getDBIDriverCapabilityList(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -513,7 +513,7 @@ class QoreNode *f_getDBIDriverCapabilityList(class QoreNode *params, ExceptionSi
    return NULL;
 }
 
-class QoreNode *f_getDBIDriverCapabilities(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_getDBIDriverCapabilities(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 

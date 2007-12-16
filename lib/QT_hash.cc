@@ -29,7 +29,7 @@ class QoreNode *hash_DefaultValue()
    return emptyHash;
 }
 
-class QoreNode *hash_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *hash_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
 {
    if (n && n->type == NT_OBJECT)
    {
@@ -41,12 +41,12 @@ class QoreNode *hash_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
    return new QoreNode(new QoreHash());
 }
 
-bool hash_needs_eval(class QoreNode *n)
+bool hash_needs_eval(const QoreNode *n)
 {
    return n->val.hash->needsEval();
 }
 
-class QoreNode *hash_Eval(class QoreNode *l, class ExceptionSink *xsink)
+class QoreNode *hash_Eval(const QoreNode *l, class ExceptionSink *xsink)
 {
    if (!l->val.hash->needsEval())
       return l->RefSelf();
@@ -54,29 +54,29 @@ class QoreNode *hash_Eval(class QoreNode *l, class ExceptionSink *xsink)
    return new QoreNode(l->val.hash->eval(xsink));
 }
 
-class QoreNode *hash_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *hash_eval_opt_deref(bool &needs_deref, const QoreNode *n, class ExceptionSink *xsink)
 {
    if (!n->val.hash->needsEval())
    {
       needs_deref = false;
-      return n;
+      return const_cast<QoreNode *>(n);
    }
 
    needs_deref = true;
    return new QoreNode(n->val.hash->eval(xsink));
 }
 
-class QoreNode *hash_Copy(class QoreNode *l, class ExceptionSink *xsink)
+class QoreNode *hash_Copy(const QoreNode *l, class ExceptionSink *xsink)
 {
    return new QoreNode(l->val.hash->eval(xsink));
 }
 
-bool hash_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool hash_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return l->val.hash->compareHard(r->val.hash, xsink);
 }
 
-class QoreString *hash_MakeString(class QoreNode *n, int foff, class ExceptionSink *xsink)
+class QoreString *hash_MakeString(const QoreNode *n, int foff, class ExceptionSink *xsink)
 {
    QoreString *rv = new QoreString();
    if (!n->val.hash->size())

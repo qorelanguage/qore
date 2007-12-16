@@ -40,8 +40,8 @@
 // function to try and make a class name out of a file path, returns a new string that must be free()ed
 DLLEXPORT char *make_class_name(const char *fn);
 // some string formatting functions that work with Qore data structures
-DLLEXPORT class QoreString *q_sprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
-DLLEXPORT class QoreString *q_vsprintf(class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
+DLLEXPORT class QoreString *q_sprintf(const class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
+DLLEXPORT class QoreString *q_vsprintf(const class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
 DLLEXPORT struct tm *q_localtime(const time_t *clock, struct tm *tms);
 DLLEXPORT struct tm *q_gmtime(const time_t *clock, struct tm *tms);
 // thread-safe basename function (resulting pointer must be free()ed)

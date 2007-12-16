@@ -28,7 +28,7 @@ int CID_QDRAGMOVEEVENT;
 class QoreClass *QC_QDragMoveEvent = 0;
 
 //QDragMoveEvent ( const QPoint & pos, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Type type = DragMove )
-static void QDRAGMOVEEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QDRAGMOVEEVENT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -65,7 +65,7 @@ static void QDRAGMOVEEVENT_copy(class QoreObject *self, class QoreObject *old, c
 
 //void accept ( const QRect & rectangle )
 //void accept ()
-static QoreNode *QDRAGMOVEEVENT_accept(QoreObject *self, QoreQDragMoveEvent *qdme, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDRAGMOVEEVENT_accept(QoreObject *self, QoreQDragMoveEvent *qdme, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -84,7 +84,7 @@ static QoreNode *QDRAGMOVEEVENT_accept(QoreObject *self, QoreQDragMoveEvent *qdm
 }
 
 //QRect answerRect () const
-static QoreNode *QDRAGMOVEEVENT_answerRect(QoreObject *self, QoreQDragMoveEvent *qdme, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDRAGMOVEEVENT_answerRect(QoreObject *self, QoreQDragMoveEvent *qdme, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qdme->answerRect());
@@ -94,7 +94,7 @@ static QoreNode *QDRAGMOVEEVENT_answerRect(QoreObject *self, QoreQDragMoveEvent 
 
 //void ignore ( const QRect & rectangle )
 //void ignore ()
-static QoreNode *QDRAGMOVEEVENT_ignore(QoreObject *self, QoreQDragMoveEvent *qdme, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QDRAGMOVEEVENT_ignore(QoreObject *self, QoreQDragMoveEvent *qdme, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {

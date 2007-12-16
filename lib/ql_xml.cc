@@ -486,7 +486,7 @@ static void makeXMLString(QoreString *str, QoreHash *h, int indent, class QoreEn
 
 // usage: makeXMLString(object (with only one top-level element) [, encoding])
 // usage: makeXMLString(string (top-level-element), object [, encoding])
-static class QoreNode *f_makeXMLString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeXMLString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pstr, *pobj, *pcs;
    int i;
@@ -534,7 +534,7 @@ static class QoreNode *f_makeXMLString(class QoreNode *params, ExceptionSink *xs
 
 // usage: makeFormattedXMLString(object (with only one top-level element) [, encoding])
 // usage: makeFormattedXMLString(string (top-level-element), object [, encoding])
-static class QoreNode *f_makeFormattedXMLString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedXMLString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pstr, *pobj, *pcs;
    int i;
@@ -580,7 +580,7 @@ static class QoreNode *f_makeFormattedXMLString(class QoreNode *params, Exceptio
    return new QoreNode(str);
 }
 
-static class QoreNode *f_makeXMLFragment(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeXMLFragment(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *pobj, *pcs;
 
@@ -602,7 +602,7 @@ static class QoreNode *f_makeXMLFragment(class QoreNode *params, ExceptionSink *
    return rv;
 }
 
-static class QoreNode *f_makeFormattedXMLFragment(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedXMLFragment(const QoreNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeFormattedXMLFragment()");
 
@@ -800,7 +800,7 @@ static void addXMLRPCValue(QoreString *str, QoreNode *n, int indent, class QoreE
    traceout("addXMLRPCValue()");
 }
 
-class QoreString *makeXMLRPCCallString(class QoreEncoding *ccs, class QoreNode *params, ExceptionSink *xsink)
+class QoreString *makeXMLRPCCallString(class QoreEncoding *ccs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p;
 
@@ -856,14 +856,14 @@ class QoreString *makeXMLRPCCallString(class QoreEncoding *ccs, class QoreNode *
 }
 
 // makeXMLRPCCallString(string (function name), params, ...)
-static class QoreNode *f_makeXMLRPCCallString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeXMLRPCCallString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreString *str = makeXMLRPCCallString(QCS_DEFAULT, params, xsink);
    return str ? new QoreNode(str) : NULL;
 }
 
 // makeXMLRPCCallStringArgs(string (function name), list of params)
-class QoreString *makeXMLRPCCallStringArgs(class QoreEncoding *ccs, class QoreNode *params, ExceptionSink *xsink)
+class QoreString *makeXMLRPCCallStringArgs(class QoreEncoding *ccs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
 
@@ -933,7 +933,7 @@ class QoreString *makeXMLRPCCallStringArgs(class QoreEncoding *ccs, class QoreNo
 }
 
 // makeXMLRPCCallStringArgs(string (function name), list of params)
-static class QoreNode *f_makeXMLRPCCallStringArgs(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeXMLRPCCallStringArgs(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreString *str = makeXMLRPCCallStringArgs(QCS_DEFAULT, params, xsink);
    return str ? new QoreNode(str) : NULL;
@@ -2103,7 +2103,7 @@ static void makeXMLStringNew(xmlTextWriterPtr writer, QoreHash *h, class Excepti
 
 // NOTE: the libxml2 library requires all input to be in UTF-8 encoding
 // syntax: parseXML(xml string [, output encoding])
-static class QoreNode *f_parseXML(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_parseXML(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
 
@@ -2232,7 +2232,7 @@ class QoreString *makeXMLQoreString(QoreNode *pstr, QoreNode *pobj, int format, 
 
 // usage: makeXMLStringNew(object (with only one top-level element) [, encoding])
 // usage: makeXMLString(string (top-level-element), object [, encoding])
-static class QoreNode *f_makeXMLStringNew(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeXMLStringNew(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *pstr, *pobj, *pcs;
    int i;
@@ -2270,7 +2270,7 @@ static class QoreNode *f_makeXMLStringNew(class QoreNode *params, ExceptionSink 
 
 // usage: makeFormattedXMLStringNew(object (with only one top-level element) [, encoding])
 // usage: makeFormattedXMLStringNew(string (top-level-element), object [, encoding])
-static class QoreNode *f_makeFormattedXMLStringNew(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedXMLStringNew(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pstr, *pobj, *pcs;
    int i;
@@ -2512,7 +2512,7 @@ static void addXMLRPCValueNew(xmlTextWriterPtr writer, QoreNode *n, class Except
 }
 
 // makeXMLRPCCallString(string (function name), params, ...)
-static class QoreNode *f_makeXMLRPCCallStringNew(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeXMLRPCCallStringNew(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p;
 
@@ -2652,7 +2652,7 @@ static class QoreNode *f_makeXMLRPCCallStringNew(class QoreNode *params, Excepti
 }
 
 // makeXMLRPCFaultResponseString(param)
-static class QoreNode *f_makeXMLRPCFaultResponseString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeXMLRPCFaultResponseString(const QoreNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeXMLRPCFaultResponseString()");
 
@@ -2677,7 +2677,7 @@ static class QoreNode *f_makeXMLRPCFaultResponseString(class QoreNode *params, E
 }
 
 // makeXMLRPCFormattedFaultResponseString(param)
-static class QoreNode *f_makeFormattedXMLRPCFaultResponseString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedXMLRPCFaultResponseString(const QoreNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeFormattedXMLRPCFaultResponseString()");
 
@@ -2703,7 +2703,7 @@ static class QoreNode *f_makeFormattedXMLRPCFaultResponseString(class QoreNode *
 }
 
 // makeXMLRPCResponseString(params, ...)
-static class QoreNode *f_makeXMLRPCResponseString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeXMLRPCResponseString(const QoreNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeXMLRPCResponseString()");
 
@@ -2742,7 +2742,7 @@ static class QoreNode *f_makeXMLRPCResponseString(class QoreNode *params, Except
 }
 
 // makeXMLRPCResponseString(params, ...)
-static class QoreNode *f_makeXMLRPCValueString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeXMLRPCValueString(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p;
    class QoreEncoding *ccs = QCS_DEFAULT;
@@ -2762,7 +2762,7 @@ static class QoreNode *f_makeXMLRPCValueString(class QoreNode *params, Exception
 }
 
 // makeFormattedXMLRPCCallStringArgs(string (function name), params, ...)
-static class QoreNode *f_makeFormattedXMLRPCCallStringArgs(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
    class QoreEncoding *ccs = QCS_DEFAULT;
@@ -2827,7 +2827,7 @@ static class QoreNode *f_makeFormattedXMLRPCCallStringArgs(class QoreNode *param
 }
 
 // make_formatted_xml_rpc_call_string(string (function name), params, ...)
-static class QoreNode *f_makeFormattedXMLRPCCallString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedXMLRPCCallString(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p;
    class QoreEncoding *ccs = QCS_DEFAULT;
@@ -2870,7 +2870,7 @@ static class QoreNode *f_makeFormattedXMLRPCCallString(class QoreNode *params, E
 }
 
 // makeFormattedXMLRPCResponseString(params, ...)
-static class QoreNode *f_makeFormattedXMLRPCResponseString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedXMLRPCResponseString(const QoreNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeFormattedXMLRPCResponseString()");
 
@@ -2911,7 +2911,7 @@ static class QoreNode *f_makeFormattedXMLRPCResponseString(class QoreNode *param
 }
 
 // makeFormattedXMLRPCValueString(params, ...)
-static class QoreNode *f_makeFormattedXMLRPCValueString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedXMLRPCValueString(const QoreNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeFormattedXMLRPCValueString()");
 
@@ -2937,7 +2937,7 @@ static class QoreNode *f_makeFormattedXMLRPCValueString(class QoreNode *params, 
    return new QoreNode(str);
 }
 
-static class QoreNode *f_makeXMLFragmentNew(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeXMLFragmentNew(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *pobj, *pcs;
 
@@ -2957,7 +2957,7 @@ static class QoreNode *f_makeXMLFragmentNew(class QoreNode *params, ExceptionSin
    return new QoreNode(str);
 }
 
-static class QoreNode *f_makeFormattedXMLFragmentNew(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedXMLFragmentNew(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pobj, *pcs;
 
@@ -2977,7 +2977,7 @@ static class QoreNode *f_makeFormattedXMLFragmentNew(class QoreNode *params, Exc
    return new QoreNode(str);
 }
 
-static class QoreNode *f_parseXMLRPCValue(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_parseXMLRPCValue(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1;
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -3027,7 +3027,7 @@ static inline class QoreNode *qore_xml_exception(char *ex, class ExceptionSink *
    return NULL;
 }
 
-static class QoreNode *f_parseXMLRPCCall(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_parseXMLRPCCall(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -3322,7 +3322,7 @@ class QoreNode *parseXMLRPCResponse(class QoreString *msg, class QoreEncoding *c
    return new QoreNode(h);
 }
 
-static class QoreNode *f_parseXMLRPCResponse(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_parseXMLRPCResponse(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
    if (!(p0 = test_param(params, NT_STRING, 0)))

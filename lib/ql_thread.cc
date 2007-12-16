@@ -27,23 +27,23 @@
 
 #include <pthread.h>
 
-class QoreNode *f_gettid(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_gettid(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(NT_INT, gettid());
 }
 
 extern int num_threads;
-class QoreNode *f_num_threads(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_num_threads(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(NT_INT, num_threads);
 }
 
-class QoreNode *f_thread_list(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_thread_list(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(get_thread_list());
 }
 
-class QoreNode *f_save_thread_data(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_save_thread_data(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    if (!p0 || (p0->type != NT_HASH && p0->type != NT_STRING))
@@ -64,7 +64,7 @@ class QoreNode *f_save_thread_data(class QoreNode *params, ExceptionSink *xsink)
    return NULL;
 }
 
-class QoreNode *f_delete_thread_data(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_delete_thread_data(const QoreNode *params, ExceptionSink *xsink)
 {
    if (num_params(params))
    {
@@ -94,7 +94,7 @@ class QoreNode *f_delete_thread_data(class QoreNode *params, ExceptionSink *xsin
    return NULL;
 }
 
-class QoreNode *f_delete_all_thread_data(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_delete_all_thread_data(const QoreNode *params, ExceptionSink *xsink)
 {
    // get thread data hash
    QoreHash *data = getProgram()->getThreadData();
@@ -103,7 +103,7 @@ class QoreNode *f_delete_all_thread_data(class QoreNode *params, ExceptionSink *
    return NULL;
 }
 
-class QoreNode *f_get_thread_data(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_get_thread_data(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -124,12 +124,12 @@ class QoreNode *f_get_thread_data(class QoreNode *params, ExceptionSink *xsink)
    return v;
 }
 
-class QoreNode *f_get_all_thread_data(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_get_all_thread_data(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(getProgram()->getThreadData()->copy());
 }
 
-class QoreNode *f_getAllThreadCallStacks(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_getAllThreadCallStacks(const QoreNode *params, ExceptionSink *xsink)
 {
 #ifdef DEBUG
    return new QoreNode(getAllCallStacks());
@@ -138,7 +138,7 @@ class QoreNode *f_getAllThreadCallStacks(class QoreNode *params, ExceptionSink *
 #endif
 }
 
-class QoreNode *f_throwThreadResourceExceptions(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_throwThreadResourceExceptions(const QoreNode *params, ExceptionSink *xsink)
 {
    purge_thread_resources(xsink);
    return NULL;

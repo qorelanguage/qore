@@ -29,7 +29,7 @@ class QoreClass *QC_QStyleOptionSlider = 0;
 
 //QStyleOptionSlider ()
 //QStyleOptionSlider ( const QStyleOptionSlider & other )
-static void QSTYLEOPTIONSLIDER_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONSLIDER_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONSLIDER, new QoreQStyleOptionSlider());
 }

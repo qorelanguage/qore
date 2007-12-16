@@ -28,7 +28,7 @@ int CID_QACTIONEVENT;
 class QoreClass *QC_QActionEvent = 0;
 
 //QActionEvent ( int type, QAction * action, QAction * before = 0 )
-static void QACTIONEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QACTIONEVENT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int type = p ? p->getAsInt() : 0;
@@ -55,7 +55,7 @@ static void QACTIONEVENT_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //QAction * action () const
-static QoreNode *QACTIONEVENT_action(QoreObject *self, QoreQActionEvent *qae, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTIONEVENT_action(QoreObject *self, QoreQActionEvent *qae, const QoreNode *params, ExceptionSink *xsink)
 {
    QAction *qt_qobj = qae->action();
    if (!qt_qobj)
@@ -68,7 +68,7 @@ static QoreNode *QACTIONEVENT_action(QoreObject *self, QoreQActionEvent *qae, Qo
 }
 
 //QAction * before () const
-static QoreNode *QACTIONEVENT_before(QoreObject *self, QoreQActionEvent *qae, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QACTIONEVENT_before(QoreObject *self, QoreQActionEvent *qae, const QoreNode *params, ExceptionSink *xsink)
 {
    QAction *qt_qobj = qae->before();
    if (!qt_qobj)

@@ -52,7 +52,7 @@ class qore_gz_header : public gz_header
 };
 #endif
 
-static class QoreNode *f_call_function(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_call_function(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *args = NULL, *p0;
 
@@ -80,7 +80,7 @@ static class QoreNode *f_call_function(class QoreNode *params, ExceptionSink *xs
    return rv;
 }
 
-static class QoreNode *f_call_function_args(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_call_function_args(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *args;
 
@@ -120,7 +120,7 @@ static class QoreNode *f_call_function_args(class QoreNode *params, ExceptionSin
    return rv;
 }
 
-static class QoreNode *f_existsFunction(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_existsFunction(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    // always return true if the argument is a call reference
@@ -137,7 +137,7 @@ static class QoreNode *f_existsFunction(class QoreNode *params, ExceptionSink *x
 }
 
 // FIXME: should probably return constants
-static class QoreNode *f_functionType(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_functionType(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -150,7 +150,7 @@ static class QoreNode *f_functionType(class QoreNode *params, ExceptionSink *xsi
    return NULL;
 }
 
-static class QoreNode *f_html_encode(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_html_encode(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -162,7 +162,7 @@ static class QoreNode *f_html_encode(class QoreNode *params, ExceptionSink *xsin
    return new QoreNode(ns);
 }
 
-static class QoreNode *f_html_decode(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_html_decode(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -175,12 +175,12 @@ static class QoreNode *f_html_decode(class QoreNode *params, ExceptionSink *xsin
    return new QoreNode(ns);
 }
 
-static class QoreNode *f_get_default_encoding(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_get_default_encoding(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(QCS_DEFAULT->getCode());
 }
 
-class QoreNode *f_parse(class QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_parse(const QoreNode *params, ExceptionSink *xsink)
 {
    tracein("f_parse()");
 
@@ -200,7 +200,7 @@ class QoreNode *f_parse(class QoreNode *params, ExceptionSink *xsink)
    return NULL;
 }
 
-static class QoreNode *f_getClassName(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_getClassName(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
    if (!p0)
@@ -209,7 +209,7 @@ static class QoreNode *f_getClassName(class QoreNode *params, ExceptionSink *xsi
    return new QoreNode(p0->val.object->getClass()->getName());
 }
 
-static class QoreNode *f_parseURL(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_parseURL(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -222,7 +222,7 @@ static class QoreNode *f_parseURL(class QoreNode *params, ExceptionSink *xsink)
    return NULL;
 }
 
-static class QoreNode *f_backquote(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_backquote(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -231,7 +231,7 @@ static class QoreNode *f_backquote(class QoreNode *params, ExceptionSink *xsink)
    return backquoteEval(p0->val.String->getBuffer(), xsink);
 }
 
-static class QoreNode *f_makeBase64String(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeBase64String(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    if (!p0)
@@ -248,7 +248,7 @@ static class QoreNode *f_makeBase64String(class QoreNode *params, ExceptionSink 
    return new QoreNode(str);
 }
 
-static class QoreNode *f_parseBase64String(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_parseBase64String(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -260,7 +260,7 @@ static class QoreNode *f_parseBase64String(class QoreNode *params, ExceptionSink
    return new QoreNode(b);
 }
 
-static class QoreNode *f_parseBase64StringToString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_parseBase64StringToString(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -272,7 +272,7 @@ static class QoreNode *f_parseBase64StringToString(class QoreNode *params, Excep
    return new QoreNode(str);
 }
 
-static class QoreNode *f_getModuleList(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_getModuleList(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreList *l = MM.getModuleList();
    if (l)
@@ -280,12 +280,12 @@ static class QoreNode *f_getModuleList(class QoreNode *params, ExceptionSink *xs
    return NULL;
 }
 
-static class QoreNode *f_getFeatureList(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_getFeatureList(const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(getProgram()->getFeatureList());
 }
 
-static class QoreNode *f_hash_values(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_hash_values(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_HASH, 0);
    if (!p0)
@@ -724,7 +724,7 @@ class BinaryObject *qore_gunzip_to_binary(class BinaryObject *bin, ExceptionSink
    return new BinaryObject(buf, bsize - d_stream.avail_out);
 }
 
-static class QoreNode *f_compress(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_compress(const QoreNode *params, ExceptionSink *xsink)
 {
    // need a string or binary argument
    QoreNode *p0 = get_param(params, 0);
@@ -763,7 +763,7 @@ static class QoreNode *f_compress(class QoreNode *params, ExceptionSink *xsink)
 }
 
 // syntax: uncompress_to_string(binary object, [encoding of new string])
-static class QoreNode *f_uncompress_to_string(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_uncompress_to_string(const QoreNode *params, ExceptionSink *xsink)
 {
    // need binary argument
    QoreNode *p0 = test_param(params, NT_BINARY, 0);
@@ -779,7 +779,7 @@ static class QoreNode *f_uncompress_to_string(class QoreNode *params, ExceptionS
 }
 
 // syntax: uncompress_to_binary(binary object)
-static class QoreNode *f_uncompress_to_binary(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_uncompress_to_binary(const QoreNode *params, ExceptionSink *xsink)
 {
    // need binary argument
    QoreNode *p0 = test_param(params, NT_BINARY, 0);
@@ -790,7 +790,7 @@ static class QoreNode *f_uncompress_to_binary(class QoreNode *params, ExceptionS
    return b ? new QoreNode(b) : NULL;
 }
 
-static class QoreNode *f_gzip(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_gzip(const QoreNode *params, ExceptionSink *xsink)
 {
    // need a string or binary argument
    QoreNode *p0 = get_param(params, 0);
@@ -829,7 +829,7 @@ static class QoreNode *f_gzip(class QoreNode *params, ExceptionSink *xsink)
 }
 
 // syntax: gunzip_to_string(binary object, [encoding of new string])
-static class QoreNode *f_gunzip_to_string(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_gunzip_to_string(const QoreNode *params, ExceptionSink *xsink)
 {
    // need binary argument
    QoreNode *p0 = test_param(params, NT_BINARY, 0);
@@ -845,7 +845,7 @@ static class QoreNode *f_gunzip_to_string(class QoreNode *params, ExceptionSink 
 }
 
 // syntax: gunzip_to_binary(binary object)
-static class QoreNode *f_gunzip_to_binary(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_gunzip_to_binary(const QoreNode *params, ExceptionSink *xsink)
 {
    // need binary argument
    QoreNode *p0 = test_param(params, NT_BINARY, 0);
@@ -856,7 +856,7 @@ static class QoreNode *f_gunzip_to_binary(class QoreNode *params, ExceptionSink 
    return b ? new QoreNode(b) : NULL;
 }
 
-static class QoreNode *f_getByte(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_getByte(const QoreNode *params, ExceptionSink *xsink)
 {
    // need binary argument
    QoreNode *p0 = get_param(params, 0);
@@ -885,7 +885,7 @@ static class QoreNode *f_getByte(class QoreNode *params, ExceptionSink *xsink)
 }
 
 // same as splice operator, but operates on a copy of the list
-static class QoreNode *f_splice(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_splice(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    if (!p0)
@@ -932,7 +932,7 @@ static class QoreNode *f_splice(class QoreNode *params, ExceptionSink *xsink)
    return rv;
 }
 
-static class QoreNode *f_makeHexString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeHexString(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    if (!p0 || (p0->type != NT_BINARY && p0->type != NT_STRING))
@@ -946,7 +946,7 @@ static class QoreNode *f_makeHexString(class QoreNode *params, ExceptionSink *xs
    return new QoreNode(str);
 }
 
-static class QoreNode *f_parseHexString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_parseHexString(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -959,7 +959,7 @@ static class QoreNode *f_parseHexString(class QoreNode *params, ExceptionSink *x
 }
 
 // takes a hex string like "6d4f84e0" (with or without leading x or 0x) and returns the corresponding base-10 integer
-static class QoreNode *f_hextoint(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_hextoint(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -995,7 +995,7 @@ static class QoreNode *f_hextoint(class QoreNode *params, ExceptionSink *xsink)
 }
 
 // parses a string representing a number in a configurable base and returns the integer
-static class QoreNode *f_strtoint(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_strtoint(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -1007,7 +1007,7 @@ static class QoreNode *f_strtoint(class QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(strtoll(p0->val.String->getBuffer(), NULL, base));
 }
 
-static class QoreNode *f_load_module(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_load_module(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (!p0)
@@ -1017,7 +1017,7 @@ static class QoreNode *f_load_module(class QoreNode *params, ExceptionSink *xsin
    return NULL;
 }
 
-static class QoreNode *f_set_signal_handler(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_set_signal_handler(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    int signal = p0 ? p0->getAsInt() : 0;
@@ -1036,7 +1036,7 @@ static class QoreNode *f_set_signal_handler(class QoreNode *params, ExceptionSin
    return NULL;
 }
 
-static class QoreNode *f_remove_signal_handler(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_remove_signal_handler(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    int signal = p0 ? p0->getAsInt() : 0;
@@ -1050,7 +1050,7 @@ static class QoreNode *f_remove_signal_handler(class QoreNode *params, Exception
 }
 
 // returns a string with percent-encodings substituted for characters
-static class QoreNode *f_decode_url(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_decode_url(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p || !p->val.String->strlen())

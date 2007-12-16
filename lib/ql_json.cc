@@ -488,7 +488,7 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
    return -1;
 }
 
-static class QoreNode *f_makeJSONString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeJSONString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *val, *pcs;
 
@@ -505,7 +505,7 @@ static class QoreNode *f_makeJSONString(class QoreNode *params, ExceptionSink *x
    return doJSONValue(str, val, -1, xsink) ? NULL : new QoreNode(str);
 }
 
-static class QoreNode *f_makeFormattedJSONString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedJSONString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *val, *pcs;
 
@@ -541,7 +541,7 @@ class QoreNode *parseJSONValue(class QoreString *str, class ExceptionSink *xsink
    return rv;
 }
 
-static class QoreNode *f_parseJSON(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_parseJSON(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -551,7 +551,7 @@ static class QoreNode *f_parseJSON(class QoreNode *params, ExceptionSink *xsink)
    return parseJSONValue(p0->val.String, xsink);
 }
 
-class QoreString *makeJSONRPC11RequestStringArgs(class QoreNode *params, ExceptionSink *xsink)
+class QoreString *makeJSONRPC11RequestStringArgs(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -582,7 +582,7 @@ class QoreString *makeJSONRPC11RequestStringArgs(class QoreNode *params, Excepti
    return str;
 }
 
-class QoreString *makeJSONRPC11RequestString(class QoreNode *params, ExceptionSink *xsink)
+class QoreString *makeJSONRPC11RequestString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -614,7 +614,7 @@ class QoreString *makeJSONRPC11RequestString(class QoreNode *params, ExceptionSi
 }
 
 // syntax: makeJSONRPCRequestString(method, version, id, params)
-static class QoreNode *f_makeJSONRPCRequestString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeJSONRPCRequestString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -666,7 +666,7 @@ static class QoreNode *f_makeJSONRPCRequestString(class QoreNode *params, Except
 }
 
 // syntax: makeFormattedJSONRPCRequestString(method, version, id, params)
-static class QoreNode *f_makeFormattedJSONRPCRequestString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedJSONRPCRequestString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -718,7 +718,7 @@ static class QoreNode *f_makeFormattedJSONRPCRequestString(class QoreNode *param
 }
 
 // syntax: makeJSONRPCResponseString(version, id, response)
-static class QoreNode *f_makeJSONRPCResponseString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeJSONRPCResponseString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2;
    p0 = get_param(params, 0);
@@ -760,7 +760,7 @@ static class QoreNode *f_makeJSONRPCResponseString(class QoreNode *params, Excep
 }
 
 // syntax: makeFormattedJSONRPCResponseString(version, id, response)
-static class QoreNode *f_makeFormattedJSONRPCResponseString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedJSONRPCResponseString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2;
    p0 = get_param(params, 0);
@@ -802,7 +802,7 @@ static class QoreNode *f_makeFormattedJSONRPCResponseString(class QoreNode *para
 }
 
 // syntax: makeJSONRPCErrorString(version, id, response)
-static class QoreNode *f_makeJSONRPCErrorString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeJSONRPCErrorString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2;
    p0 = get_param(params, 0);
@@ -844,7 +844,7 @@ static class QoreNode *f_makeJSONRPCErrorString(class QoreNode *params, Exceptio
 }
 
 // syntax: makeFormattedJSONRPCErrorString(version, id, response)
-static class QoreNode *f_makeFormattedJSONRPCErrorString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedJSONRPCErrorString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2;
    p0 = get_param(params, 0);
@@ -886,7 +886,7 @@ static class QoreNode *f_makeFormattedJSONRPCErrorString(class QoreNode *params,
 }
 
 // syntax: makeJSONRPC11ErrorString(code, message, id, error)
-static class QoreNode *f_makeJSONRPC11ErrorString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeJSONRPC11ErrorString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p;
    p = get_param(params, 0);
@@ -942,7 +942,7 @@ static class QoreNode *f_makeJSONRPC11ErrorString(class QoreNode *params, Except
 }
 
 // syntax: makeFormattedJSONRPC11ErrorString(code, message, id, error)
-static class QoreNode *f_makeFormattedJSONRPC11ErrorString(class QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_makeFormattedJSONRPC11ErrorString(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p;
    p = get_param(params, 0);

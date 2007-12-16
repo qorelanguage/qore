@@ -30,7 +30,7 @@ class QoreClass *QC_QLineEdit = 0;
 
 //QLineEdit ( QWidget * parent = 0 )
 //QLineEdit ( const QString & contents, QWidget * parent = 0 )
-static void QLINEEDIT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QLINEEDIT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -66,26 +66,26 @@ static void QLINEEDIT_copy_method(class QoreObject *self, class QoreObject *old,
 }
 
 //Qt::Alignment alignment () const
-static QoreNode *QLINEEDIT_alignment(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_alignment(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qle->qobj->alignment());
 }
 
 //void backspace ()
-static QoreNode *QLINEEDIT_backspace(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_backspace(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    qle->qobj->backspace();
    return 0;
 }
 
 ////QCompleter * completer () const
-//static QoreNode *QLINEEDIT_completer(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QLINEEDIT_completer(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return qle->qobj->completer();
 //}
 
 //QMenu * createStandardContextMenu ()
-static QoreNode *QLINEEDIT_createStandardContextMenu(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_createStandardContextMenu(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qm = new QoreObject(QC_QMenu, getProgram());
    QoreQMenu *q_qm = new QoreQMenu(o_qm, qle->qobj->createStandardContextMenu());
@@ -94,7 +94,7 @@ static QoreNode *QLINEEDIT_createStandardContextMenu(QoreObject *self, QoreQLine
 }
 
 //void cursorBackward ( bool mark, int steps = 1 )
-static QoreNode *QLINEEDIT_cursorBackward(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_cursorBackward(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
@@ -105,7 +105,7 @@ static QoreNode *QLINEEDIT_cursorBackward(QoreObject *self, QoreQLineEdit *qle, 
 }
 
 //void cursorForward ( bool mark, int steps = 1 )
-static QoreNode *QLINEEDIT_cursorForward(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_cursorForward(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
@@ -116,13 +116,13 @@ static QoreNode *QLINEEDIT_cursorForward(QoreObject *self, QoreQLineEdit *qle, Q
 }
 
 //int cursorPosition () const
-static QoreNode *QLINEEDIT_cursorPosition(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_cursorPosition(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qle->qobj->cursorPosition());
 }
 
 //int cursorPositionAt ( const QPoint & pos )
-static QoreNode *QLINEEDIT_cursorPositionAt(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_cursorPositionAt(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -136,7 +136,7 @@ static QoreNode *QLINEEDIT_cursorPositionAt(QoreObject *self, QoreQLineEdit *qle
 }
 
 //void cursorWordBackward ( bool mark )
-static QoreNode *QLINEEDIT_cursorWordBackward(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_cursorWordBackward(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
@@ -145,7 +145,7 @@ static QoreNode *QLINEEDIT_cursorWordBackward(QoreObject *self, QoreQLineEdit *q
 }
 
 //void cursorWordForward ( bool mark )
-static QoreNode *QLINEEDIT_cursorWordForward(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_cursorWordForward(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
@@ -154,39 +154,39 @@ static QoreNode *QLINEEDIT_cursorWordForward(QoreObject *self, QoreQLineEdit *ql
 }
 
 //void del ()
-static QoreNode *QLINEEDIT_del(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_del(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    qle->qobj->del();
    return 0;
 }
 
 //void deselect ()
-static QoreNode *QLINEEDIT_deselect(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_deselect(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    qle->qobj->deselect();
    return 0;
 }
 
 //QString displayText () const
-static QoreNode *QLINEEDIT_displayText(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_displayText(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qle->qobj->displayText().toUtf8().data(), QCS_UTF8));
 }
 
 //bool dragEnabled () const
-static QoreNode *QLINEEDIT_dragEnabled(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_dragEnabled(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qle->qobj->dragEnabled());
 }
 
 ////EchoMode echoMode () const
-//static QoreNode *QLINEEDIT_echoMode(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QLINEEDIT_echoMode(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qle->qobj->echoMode());
 //}
 
 //void end ( bool mark )
-static QoreNode *QLINEEDIT_end(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_end(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
@@ -195,25 +195,25 @@ static QoreNode *QLINEEDIT_end(QoreObject *self, QoreQLineEdit *qle, QoreNode *p
 }
 
 //bool hasAcceptableInput () const
-static QoreNode *QLINEEDIT_hasAcceptableInput(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_hasAcceptableInput(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qle->qobj->hasAcceptableInput());
 }
 
 //bool hasFrame () const
-static QoreNode *QLINEEDIT_hasFrame(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_hasFrame(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qle->qobj->hasFrame());
 }
 
 //bool hasSelectedText () const
-static QoreNode *QLINEEDIT_hasSelectedText(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_hasSelectedText(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qle->qobj->hasSelectedText());
 }
 
 //void home ( bool mark )
-static QoreNode *QLINEEDIT_home(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_home(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
@@ -222,13 +222,13 @@ static QoreNode *QLINEEDIT_home(QoreObject *self, QoreQLineEdit *qle, QoreNode *
 }
 
 //QString inputMask () const
-static QoreNode *QLINEEDIT_inputMask(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_inputMask(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qle->qobj->inputMask().toUtf8().data(), QCS_UTF8));
 }
 
 //void insert ( const QString & newText )
-static QoreNode *QLINEEDIT_insert(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_insert(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -241,38 +241,38 @@ static QoreNode *QLINEEDIT_insert(QoreObject *self, QoreQLineEdit *qle, QoreNode
 }
 
 //bool isModified () const
-static QoreNode *QLINEEDIT_isModified(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_isModified(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qle->qobj->isModified());
 }
 
 //bool isReadOnly () const
-static QoreNode *QLINEEDIT_isReadOnly(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_isReadOnly(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qle->qobj->isReadOnly());
 }
 
 //bool isRedoAvailable () const
-static QoreNode *QLINEEDIT_isRedoAvailable(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_isRedoAvailable(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qle->qobj->isRedoAvailable());
 }
 
 //bool isUndoAvailable () const
-static QoreNode *QLINEEDIT_isUndoAvailable(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_isUndoAvailable(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(qle->qobj->isUndoAvailable());
 }
 
 //int maxLength () const
-static QoreNode *QLINEEDIT_maxLength(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_maxLength(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qle->qobj->maxLength());
 }
 
 /*
 //virtual QSize minimumSizeHint () const
-static QoreNode *QLINEEDIT_minimumSizeHint(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_minimumSizeHint(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qle->qobj->minimumSizeHint());
@@ -282,19 +282,19 @@ static QoreNode *QLINEEDIT_minimumSizeHint(QoreObject *self, QoreQLineEdit *qle,
 */
 
 //QString selectedText () const
-static QoreNode *QLINEEDIT_selectedText(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_selectedText(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qle->qobj->selectedText().toUtf8().data(), QCS_UTF8));
 }
 
 //int selectionStart () const
-static QoreNode *QLINEEDIT_selectionStart(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_selectionStart(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qle->qobj->selectionStart());
 }
 
 //void setAlignment ( Qt::Alignment flag )
-static QoreNode *QLINEEDIT_setAlignment(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setAlignment(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Alignment flag = (Qt::Alignment)(p ? p->getAsInt() : 0);
@@ -303,7 +303,7 @@ static QoreNode *QLINEEDIT_setAlignment(QoreObject *self, QoreQLineEdit *qle, Qo
 }
 
 ////void setCompleter ( QCompleter * c )
-//static QoreNode *QLINEEDIT_setCompleter(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QLINEEDIT_setCompleter(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QCompleter* c = p;
@@ -312,7 +312,7 @@ static QoreNode *QLINEEDIT_setAlignment(QoreObject *self, QoreQLineEdit *qle, Qo
 //}
 
 //void setCursorPosition ( int )
-static QoreNode *QLINEEDIT_setCursorPosition(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setCursorPosition(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -321,7 +321,7 @@ static QoreNode *QLINEEDIT_setCursorPosition(QoreObject *self, QoreQLineEdit *ql
 }
 
 //void setDragEnabled ( bool b )
-static QoreNode *QLINEEDIT_setDragEnabled(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setDragEnabled(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -330,7 +330,7 @@ static QoreNode *QLINEEDIT_setDragEnabled(QoreObject *self, QoreQLineEdit *qle, 
 }
 
 //void setEchoMode ( EchoMode )
-static QoreNode *QLINEEDIT_setEchoMode(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setEchoMode(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QLineEdit::EchoMode echomode = (QLineEdit::EchoMode)(p ? p->getAsInt() : 0);
@@ -339,7 +339,7 @@ static QoreNode *QLINEEDIT_setEchoMode(QoreObject *self, QoreQLineEdit *qle, Qor
 }
 
 //void setFrame ( bool )
-static QoreNode *QLINEEDIT_setFrame(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setFrame(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -348,7 +348,7 @@ static QoreNode *QLINEEDIT_setFrame(QoreObject *self, QoreQLineEdit *qle, QoreNo
 }
 
 //void setInputMask ( const QString & inputMask )
-static QoreNode *QLINEEDIT_setInputMask(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setInputMask(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString inputMask;
@@ -361,7 +361,7 @@ static QoreNode *QLINEEDIT_setInputMask(QoreObject *self, QoreQLineEdit *qle, Qo
 }
 
 //void setMaxLength ( int )
-static QoreNode *QLINEEDIT_setMaxLength(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setMaxLength(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -370,7 +370,7 @@ static QoreNode *QLINEEDIT_setMaxLength(QoreObject *self, QoreQLineEdit *qle, Qo
 }
 
 //void setModified ( bool )
-static QoreNode *QLINEEDIT_setModified(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setModified(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -379,7 +379,7 @@ static QoreNode *QLINEEDIT_setModified(QoreObject *self, QoreQLineEdit *qle, Qor
 }
 
 //void setReadOnly ( bool )
-static QoreNode *QLINEEDIT_setReadOnly(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setReadOnly(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -388,7 +388,7 @@ static QoreNode *QLINEEDIT_setReadOnly(QoreObject *self, QoreQLineEdit *qle, Qor
 }
 
 //void setSelection ( int start, int length )
-static QoreNode *QLINEEDIT_setSelection(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setSelection(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int start = p ? p->getAsInt() : 0;
@@ -399,7 +399,7 @@ static QoreNode *QLINEEDIT_setSelection(QoreObject *self, QoreQLineEdit *qle, Qo
 }
 
 //void setValidator ( const QValidator * v )
-static QoreNode *QLINEEDIT_setValidator(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setValidator(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQValidator *v = (p && p->type == NT_OBJECT) ? (QoreQValidator *)p->val.object->getReferencedPrivateData(CID_QVALIDATOR, xsink) : 0;
@@ -411,7 +411,7 @@ static QoreNode *QLINEEDIT_setValidator(QoreObject *self, QoreQLineEdit *qle, Qo
 }
 
 //virtual QSize sizeHint () const
-static QoreNode *QLINEEDIT_sizeHint(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_sizeHint(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qle->sizeHint());
@@ -420,13 +420,13 @@ static QoreNode *QLINEEDIT_sizeHint(QoreObject *self, QoreQLineEdit *qle, QoreNo
 }
 
 //QString text () const
-static QoreNode *QLINEEDIT_text(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_text(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode(new QoreString(qle->qobj->text().toUtf8().data(), QCS_UTF8));
 }
 
 //const QValidator * validator () const
-static QoreNode *QLINEEDIT_validator(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_validator(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    const QValidator *qt_qobj = qle->qobj->validator();
    if (!qt_qobj)
@@ -443,49 +443,49 @@ static QoreNode *QLINEEDIT_validator(QoreObject *self, QoreQLineEdit *qle, QoreN
    return new QoreNode(rv_obj);
 }
 
-static QoreNode *QLINEEDIT_clear(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_clear(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    qle->qobj->clear();
    return 0;
 }
 
 //void copy () const
-static QoreNode *QLINEEDIT_copy(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_copy(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    qle->qobj->copy();
    return 0;
 }
 
 //void cut ()
-static QoreNode *QLINEEDIT_cut(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_cut(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    qle->qobj->cut();
    return 0;
 }
 
 //void paste ()
-static QoreNode *QLINEEDIT_paste(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_paste(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    qle->qobj->paste();
    return 0;
 }
 
 //void redo ()
-static QoreNode *QLINEEDIT_redo(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_redo(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    qle->qobj->redo();
    return 0;
 }
 
 //void selectAll ()
-static QoreNode *QLINEEDIT_selectAll(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_selectAll(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    qle->qobj->selectAll();
    return 0;
 }
 
 //void setText ( const QString & )
-static QoreNode *QLINEEDIT_setText(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_setText(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    
@@ -498,7 +498,7 @@ static QoreNode *QLINEEDIT_setText(QoreObject *self, QoreQLineEdit *qle, QoreNod
 }
 
 //void undo ()
-static QoreNode *QLINEEDIT_undo(QoreObject *self, QoreQLineEdit *qle, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLINEEDIT_undo(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
    qle->qobj->undo();
    return 0;

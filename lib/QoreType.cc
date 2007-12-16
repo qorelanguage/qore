@@ -105,14 +105,14 @@ QoreType::QoreType(const char *            p_name,
    id = QoreTypeManager::lastid++;
 }
 
-class QoreNode *QoreType::eval(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *QoreType::eval(const QoreNode *n, class ExceptionSink *xsink) const
 {
    if (!f_eval)
       return n->RefSelf();
    return f_eval(n, xsink);
 }
 
-bool QoreType::needs_eval(class QoreNode *n) const
+bool QoreType::needs_eval(const QoreNode *n) const
 {
    if (f_needs_eval)
       return f_needs_eval(n);
@@ -121,14 +121,15 @@ bool QoreType::needs_eval(class QoreNode *n) const
    return true;
 }
 
-class QoreNode *QoreType::eval(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink)
+// evaluate QoreNode and return dereferencing status (to avoid SMP cache syncs)
+class QoreNode *QoreType::eval(bool &needs_deref, const QoreNode *n, class ExceptionSink *xsink) const
 {
    if (!f_eval_opt_deref)
    {
       if (is_value)
       {
 	 needs_deref = false;
-	 return n;
+	 return const_cast<QoreNode *>(n);
       }
       class QoreNode *rv = eval(n, xsink);
       if (!rv)
@@ -143,7 +144,7 @@ class QoreNode *QoreType::eval(bool &needs_deref, class QoreNode *n, class Excep
    return rv;
 }
 
-bool QoreType::bool_eval(class QoreNode *n, class ExceptionSink *xsink)
+bool QoreType::bool_eval(const QoreNode *n, class ExceptionSink *xsink) const
 {
    if (!f_bool_eval)
    {
@@ -158,7 +159,7 @@ bool QoreType::bool_eval(class QoreNode *n, class ExceptionSink *xsink)
    return f_bool_eval(n, xsink);
 }
 
-int64 QoreType::bigint_eval(class QoreNode *n, class ExceptionSink *xsink)
+int64 QoreType::bigint_eval(const QoreNode *n, class ExceptionSink *xsink) const
 {
    if (!f_bigint_eval)
    {
@@ -173,7 +174,7 @@ int64 QoreType::bigint_eval(class QoreNode *n, class ExceptionSink *xsink)
    return f_bigint_eval(n, xsink);
 }
 
-double QoreType::float_eval(class QoreNode *n, class ExceptionSink *xsink)
+double QoreType::float_eval(const QoreNode *n, class ExceptionSink *xsink) const
 {
    if (!f_float_eval)
    {
@@ -188,19 +189,19 @@ double QoreType::float_eval(class QoreNode *n, class ExceptionSink *xsink)
    return f_float_eval(n, xsink);
 }
 
-class QoreNode *QoreType::getDefaultValue()
+class QoreNode *QoreType::getDefaultValue() const
 {
    assert(f_default_value);
    return f_default_value();
 }
 
-class QoreNode *QoreType::convertTo(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *QoreType::convertTo(const QoreNode *n, class ExceptionSink *xsink) const
 {
    assert(f_convert_to);
    return f_convert_to(n, xsink);
 }
 
-class QoreNode *QoreType::copy(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *QoreType::copy(const QoreNode *n, class ExceptionSink *xsink) const
 {
    if (!f_copy)
    {
@@ -219,20 +220,20 @@ void QoreTypeManager::add(class QoreType *t)
    insert(std::make_pair(t->getID(), t));
 }
 
-bool QoreType::compare(class QoreNode *n1, class QoreNode *n2, class ExceptionSink *xsink) const
+bool QoreType::compare(const QoreNode *n1, const QoreNode *n2, class ExceptionSink *xsink) const
 {
    if (!f_compare)
       return 0;
    return f_compare(n1, n2, xsink);
 }
 
-void QoreType::deleteContents(class QoreNode *n)
+void QoreType::deleteContents(class QoreNode *n) const
 {
    if (f_delete_contents)
       f_delete_contents(n);
 }
 
-class QoreString *QoreType::getAsString(class QoreNode *n, int format, class ExceptionSink *xsink) const
+class QoreString *QoreType::getAsString(const QoreNode *n, int format, class ExceptionSink *xsink) const
 {
    if (f_make_string)
       return f_make_string(n, format, xsink);
@@ -257,7 +258,7 @@ const char *QoreType::getName() const
    return name;
 }
 
-static class QoreNode *simpleStringCopy(class QoreNode *orig, class ExceptionSink *xsink)
+static class QoreNode *simpleStringCopy(const QoreNode *orig, class ExceptionSink *xsink)
 {
    QoreNode *n = new QoreNode(orig->type);
    if (orig->val.c_str)
@@ -280,12 +281,12 @@ static void temp_crefDelete(class QoreNode *n)
       free(n->val.c_str);
 }
 
-static class QoreNode *tree_Eval(class QoreNode *n, class ExceptionSink *xsink)
+static class QoreNode *tree_Eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return n->val.tree->eval(xsink);
 }
 
-static bool tree_bool_eval(class QoreNode *n, class ExceptionSink *xsink)
+static bool tree_bool_eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return n->val.tree->bool_eval(xsink);
 }
@@ -296,13 +297,13 @@ static void tree_DeleteContents(class QoreNode *n)
 }
 
 // this should never be executed
-static class QoreNode *INVALID_COPY(class QoreNode *n, class ExceptionSink *xsink)
+static class QoreNode *INVALID_COPY(const QoreNode *n, class ExceptionSink *xsink)
 {
    assert(false);
    return NULL;
 }
 
-static class QoreNode *find_Eval(class QoreNode *n, class ExceptionSink *xsink)
+static class QoreNode *find_Eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return n->val.find->eval(xsink);
 }
@@ -312,7 +313,7 @@ static void find_DeleteContents(class QoreNode *n)
    delete n->val.find;
 }
 
-static class QoreNode *fcall_Eval(class QoreNode *n, class ExceptionSink *xsink)
+static class QoreNode *fcall_Eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return n->val.fcall->eval(xsink);
 }
@@ -322,7 +323,7 @@ static void fcall_DeleteContents(class QoreNode *n)
    delete n->val.fcall;
 }
 
-static class QoreNode *selfref_Eval(class QoreNode *n, class ExceptionSink *xsink)
+static class QoreNode *selfref_Eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    assert(getStackObject());
    return getStackObject()->evalMemberNoMethod(n->val.c_str, xsink);
@@ -349,7 +350,7 @@ static void ref_DeleteContents(class QoreNode *n)
    n->val.lvexp->deref(NULL);
 }
 
-static class QoreNode *contextrow_Eval(class QoreNode *n, class ExceptionSink *xsink)
+static class QoreNode *contextrow_Eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return evalContextRow(xsink);
 }
@@ -369,7 +370,7 @@ static void regex_DeleteContents(class QoreNode *n)
    delete n->val.regex;
 }
 
-static class QoreNode *objmethref_eval(class QoreNode *n, class ExceptionSink *xsink)
+static class QoreNode *objmethref_eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return n->val.objmethref->eval(xsink);
 }
@@ -379,12 +380,12 @@ static void objmethref_del(class QoreNode *n)
    delete n->val.objmethref;
 }
 
-static class QoreNode *funcref_eval(class QoreNode *n, class ExceptionSink *xsink)
+static class QoreNode *funcref_eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return n->val.funcref->eval(n);
 }
 
-static class QoreNode *funcrefcall_eval(class QoreNode *n, class ExceptionSink *xsink)
+static class QoreNode *funcrefcall_eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return n->val.funcrefcall->eval(xsink);
 }
@@ -501,7 +502,7 @@ class QoreType *QoreTypeManager::find(int id)
    return i->second;
 }
 
-bool compareHard(QoreNode *l, QoreNode *r, class ExceptionSink *xsink)
+bool compareHard(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    if (is_nothing(l))
       if (is_nothing(r))
@@ -516,10 +517,11 @@ bool compareHard(QoreNode *l, QoreNode *r, class ExceptionSink *xsink)
    return l->type->compare(l, r, xsink);
 }
 
-// this function calls the operator function that will                                                                                                                      
-// convert values to do the conversion                                                                                                                                      
-bool compareSoft(class QoreNode *node1, class QoreNode *node2, class ExceptionSink *xsink)
+// this function calls the operator function that will
+// convert values to do the conversion
+bool compareSoft(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
-   // logical equals always returns an integer result                                                                                                                       
-   return !OP_LOG_EQ->bool_eval(node1, node2, xsink);
+   // logical equals always returns an integer result
+   // FIXME: fix Operator.h and cc instead of using const_cast<>!
+   return !OP_LOG_EQ->bool_eval(const_cast<QoreNode *>(l), const_cast<QoreNode *>(r), xsink);
 }

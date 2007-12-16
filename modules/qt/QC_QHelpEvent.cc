@@ -28,7 +28,7 @@ int CID_QHELPEVENT;
 class QoreClass *QC_QHelpEvent = 0;
 
 //QHelpEvent ( Type type, const QPoint & pos, const QPoint & globalPos )
-static void QHELPEVENT_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QHELPEVENT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QHelpEvent::Type type = (QHelpEvent::Type)(p ? p->getAsInt() : 0);
@@ -58,7 +58,7 @@ static void QHELPEVENT_copy(class QoreObject *self, class QoreObject *old, class
 }
 
 //const QPoint & globalPos () const
-static QoreNode *QHELPEVENT_globalPos(QoreObject *self, QoreQHelpEvent *qhe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QHELPEVENT_globalPos(QoreObject *self, QoreQHelpEvent *qhe, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qhe->globalPos());
@@ -67,19 +67,19 @@ static QoreNode *QHELPEVENT_globalPos(QoreObject *self, QoreQHelpEvent *qhe, Qor
 }
 
 //int globalX () const
-static QoreNode *QHELPEVENT_globalX(QoreObject *self, QoreQHelpEvent *qhe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QHELPEVENT_globalX(QoreObject *self, QoreQHelpEvent *qhe, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qhe->globalX());
 }
 
 //int globalY () const
-static QoreNode *QHELPEVENT_globalY(QoreObject *self, QoreQHelpEvent *qhe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QHELPEVENT_globalY(QoreObject *self, QoreQHelpEvent *qhe, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qhe->globalY());
 }
 
 //const QPoint & pos () const
-static QoreNode *QHELPEVENT_pos(QoreObject *self, QoreQHelpEvent *qhe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QHELPEVENT_pos(QoreObject *self, QoreQHelpEvent *qhe, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qhe->pos());
@@ -88,13 +88,13 @@ static QoreNode *QHELPEVENT_pos(QoreObject *self, QoreQHelpEvent *qhe, QoreNode 
 }
 
 //int x () const
-static QoreNode *QHELPEVENT_x(QoreObject *self, QoreQHelpEvent *qhe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QHELPEVENT_x(QoreObject *self, QoreQHelpEvent *qhe, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qhe->x());
 }
 
 //int y () const
-static QoreNode *QHELPEVENT_y(QoreObject *self, QoreQHelpEvent *qhe, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QHELPEVENT_y(QoreObject *self, QoreQHelpEvent *qhe, const QoreNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qhe->y());
 }

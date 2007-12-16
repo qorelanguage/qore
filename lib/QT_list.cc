@@ -29,19 +29,19 @@ class QoreNode *list_DefaultValue()
    return emptyList;
 }
 
-class QoreNode *list_ConvertTo(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *list_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
 {
    QoreList *l = new QoreList();
    l->push(n ? n->eval(xsink) : NULL);
    return new QoreNode(l);
 }
 
-bool list_needs_eval(class QoreNode *n)
+bool list_needs_eval(const QoreNode *n)
 {
    return n->val.list->needsEval();
 }
 
-class QoreNode *list_Eval(class QoreNode *l, class ExceptionSink *xsink)
+class QoreNode *list_Eval(const QoreNode *l, class ExceptionSink *xsink)
 {
    if (!l->val.list->needsEval())
       return l->RefSelf();
@@ -49,24 +49,24 @@ class QoreNode *list_Eval(class QoreNode *l, class ExceptionSink *xsink)
    return l->val.list->eval(xsink);
 }
 
-class QoreNode *list_eval_opt_deref(bool &needs_deref, class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *list_eval_opt_deref(bool &needs_deref, const QoreNode *n, class ExceptionSink *xsink)
 {
    if (!n->val.list->needsEval())
    {
       needs_deref = false;
-      return n;
+      return const_cast<QoreNode *>(n);
    }
 
    needs_deref = true;
    return n->val.list->eval(xsink);
 }
 
-class QoreNode *list_Copy(class QoreNode *l, class ExceptionSink *xsink)
+class QoreNode *list_Copy(const QoreNode *l, class ExceptionSink *xsink)
 {
    return l->val.list->eval(xsink);
 }
 
-bool list_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool list_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    if (l->val.list->size() != r->val.list->size())
       return 1;
@@ -76,7 +76,7 @@ bool list_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsi
    return 0;
 }
 
-class QoreString *list_MakeString(class QoreNode *n, int foff, class ExceptionSink *xsink)
+class QoreString *list_MakeString(const QoreNode *n, int foff, class ExceptionSink *xsink)
 {
    QoreString *rv = new QoreString();
    if (!n->val.list->size())

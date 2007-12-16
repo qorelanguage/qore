@@ -728,7 +728,7 @@ class CallStack *getCallStack()
 }
 #endif
 
-bool inMethod(const char *name, class QoreObject *o)
+bool inMethod(const char *name, const QoreObject *o)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    if (td->current_obj == o && td->current_code == name)

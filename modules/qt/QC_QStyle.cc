@@ -28,7 +28,7 @@ int CID_QSTYLE;
 class QoreClass *QC_QStyle = 0;
 
 //QStyle ()
-static void QSTYLE_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void QSTYLE_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLE, new QoreQStyle(self));
    return;
@@ -40,7 +40,7 @@ static void QSTYLE_copy(class QoreObject *self, class QoreObject *old, class Qor
 }
 
 //int combinedLayoutSpacing ( QSizePolicy::ControlTypes controls1, QSizePolicy::ControlTypes controls2, Qt::Orientation orientation, QStyleOption * option = 0, QWidget * widget = 0 ) const
-static QoreNode *QSTYLE_combinedLayoutSpacing(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_combinedLayoutSpacing(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QSizePolicy::ControlTypes controls1 = (QSizePolicy::ControlTypes)(p ? p->getAsInt() : 0);
@@ -62,7 +62,7 @@ static QoreNode *QSTYLE_combinedLayoutSpacing(QoreObject *self, QoreAbstractQSty
 }
 
 //virtual void drawComplexControl ( ComplexControl control, const QStyleOptionComplex * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
-static QoreNode *QSTYLE_drawComplexControl(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_drawComplexControl(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::ComplexControl control = (QStyle::ComplexControl)(p ? p->getAsInt() : 0);
@@ -92,7 +92,7 @@ static QoreNode *QSTYLE_drawComplexControl(QoreObject *self, QoreAbstractQStyle 
 }
 
 //virtual void drawControl ( ControlElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
-static QoreNode *QSTYLE_drawControl(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_drawControl(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::ControlElement element = (QStyle::ControlElement)(p ? p->getAsInt() : 0);
@@ -122,7 +122,7 @@ static QoreNode *QSTYLE_drawControl(QoreObject *self, QoreAbstractQStyle *qs, Qo
 }
 
 //virtual void drawItemPixmap ( QPainter * painter, const QRect & rectangle, int alignment, const QPixmap & pixmap ) const
-static QoreNode *QSTYLE_drawItemPixmap(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_drawItemPixmap(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)p->val.object->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
@@ -155,7 +155,7 @@ static QoreNode *QSTYLE_drawItemPixmap(QoreObject *self, QoreAbstractQStyle *qs,
 }
 
 //virtual void drawItemText ( QPainter * painter, const QRect & rectangle, int alignment, const QPalette & palette, bool enabled, const QString & text, QPalette::ColorRole textRole = QPalette::NoRole ) const
-static QoreNode *QSTYLE_drawItemText(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_drawItemText(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)p->val.object->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
@@ -196,7 +196,7 @@ static QoreNode *QSTYLE_drawItemText(QoreObject *self, QoreAbstractQStyle *qs, Q
 }
 
 //virtual void drawPrimitive ( PrimitiveElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
-static QoreNode *QSTYLE_drawPrimitive(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_drawPrimitive(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::PrimitiveElement element = (QStyle::PrimitiveElement)(p ? p->getAsInt() : 0);
@@ -226,7 +226,7 @@ static QoreNode *QSTYLE_drawPrimitive(QoreObject *self, QoreAbstractQStyle *qs, 
 }
 
 //virtual QPixmap generatedIconPixmap ( QIcon::Mode iconMode, const QPixmap & pixmap, const QStyleOption * option ) const = 0
-static QoreNode *QSTYLE_generatedIconPixmap(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_generatedIconPixmap(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QIcon::Mode iconMode = (QIcon::Mode)(p ? p->getAsInt() : 0);
@@ -253,7 +253,7 @@ static QoreNode *QSTYLE_generatedIconPixmap(QoreObject *self, QoreAbstractQStyle
 }
 
 //virtual SubControl hitTestComplexControl ( ComplexControl control, const QStyleOptionComplex * option, const QPoint & position, const QWidget * widget = 0 ) const = 0
-static QoreNode *QSTYLE_hitTestComplexControl(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_hitTestComplexControl(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::ComplexControl control = (QStyle::ComplexControl)(p ? p->getAsInt() : 0);
@@ -282,7 +282,7 @@ static QoreNode *QSTYLE_hitTestComplexControl(QoreObject *self, QoreAbstractQSty
 }
 
 //virtual QRect itemPixmapRect ( const QRect & rectangle, int alignment, const QPixmap & pixmap ) const
-static QoreNode *QSTYLE_itemPixmapRect(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_itemPixmapRect(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
@@ -309,7 +309,7 @@ static QoreNode *QSTYLE_itemPixmapRect(QoreObject *self, QoreAbstractQStyle *qs,
 }
 
 //virtual QRect itemTextRect ( const QFontMetrics & metrics, const QRect & rectangle, int alignment, bool enabled, const QString & text ) const
-static QoreNode *QSTYLE_itemTextRect(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_itemTextRect(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQFontMetrics *metrics = (p && p->type == NT_OBJECT) ? (QoreQFontMetrics *)p->val.object->getReferencedPrivateData(CID_QFONTMETRICS, xsink) : 0;
@@ -342,7 +342,7 @@ static QoreNode *QSTYLE_itemTextRect(QoreObject *self, QoreAbstractQStyle *qs, Q
 }
 
 //int layoutSpacing ( QSizePolicy::ControlType control1, QSizePolicy::ControlType control2, Qt::Orientation orientation, const QStyleOption * option = 0, const QWidget * widget = 0 ) const
-static QoreNode *QSTYLE_layoutSpacing(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_layoutSpacing(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QSizePolicy::ControlType control1 = (QSizePolicy::ControlType)(p ? p->getAsInt() : 0);
@@ -364,7 +364,7 @@ static QoreNode *QSTYLE_layoutSpacing(QoreObject *self, QoreAbstractQStyle *qs, 
 }
 
 //virtual int pixelMetric ( PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) const = 0
-static QoreNode *QSTYLE_pixelMetric(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_pixelMetric(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::PixelMetric metric = (QStyle::PixelMetric)(p ? p->getAsInt() : 0);
@@ -384,7 +384,7 @@ static QoreNode *QSTYLE_pixelMetric(QoreObject *self, QoreAbstractQStyle *qs, Qo
 //virtual void polish ( QWidget * widget )
 //virtual void polish ( QApplication * application )
 //virtual void polish ( QPalette & palette )
-static QoreNode *QSTYLE_polish(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_polish(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    if (!p) {
@@ -416,7 +416,7 @@ static QoreNode *QSTYLE_polish(QoreObject *self, QoreAbstractQStyle *qs, QoreNod
 }
 
 //virtual QSize sizeFromContents ( ContentsType type, const QStyleOption * option, const QSize & contentsSize, const QWidget * widget = 0 ) const = 0
-static QoreNode *QSTYLE_sizeFromContents(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_sizeFromContents(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::ContentsType type = (QStyle::ContentsType)(p ? p->getAsInt() : 0);
@@ -448,7 +448,7 @@ static QoreNode *QSTYLE_sizeFromContents(QoreObject *self, QoreAbstractQStyle *q
 }
 
 //QIcon standardIcon ( StandardPixmap standardIcon, const QStyleOption * option = 0, const QWidget * widget = 0 ) const
-static QoreNode *QSTYLE_standardIcon(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_standardIcon(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::StandardPixmap standardIcon = (QStyle::StandardPixmap)(p ? p->getAsInt() : 0);
@@ -469,7 +469,7 @@ static QoreNode *QSTYLE_standardIcon(QoreObject *self, QoreAbstractQStyle *qs, Q
 }
 
 //virtual QPalette standardPalette () const
-static QoreNode *QSTYLE_standardPalette(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_standardPalette(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
    QoreQPalette *q_qp = new QoreQPalette(qs->standardPalette());
@@ -478,7 +478,7 @@ static QoreNode *QSTYLE_standardPalette(QoreObject *self, QoreAbstractQStyle *qs
 }
 
 //virtual int styleHint ( StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0, QStyleHintReturn * returnData = 0 ) const = 0
-static QoreNode *QSTYLE_styleHint(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_styleHint(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::StyleHint hint = (QStyle::StyleHint)(p ? p->getAsInt() : 0);
@@ -498,7 +498,7 @@ static QoreNode *QSTYLE_styleHint(QoreObject *self, QoreAbstractQStyle *qs, Qore
 }
 
 //virtual QRect subControlRect ( ComplexControl control, const QStyleOptionComplex * option, SubControl subControl, const QWidget * widget = 0 ) const = 0
-static QoreNode *QSTYLE_subControlRect(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_subControlRect(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::ComplexControl control = (QStyle::ComplexControl)(p ? p->getAsInt() : 0);
@@ -524,7 +524,7 @@ static QoreNode *QSTYLE_subControlRect(QoreObject *self, QoreAbstractQStyle *qs,
 }
 
 //virtual QRect subElementRect ( SubElement element, const QStyleOption * option, const QWidget * widget = 0 ) const = 0
-static QoreNode *QSTYLE_subElementRect(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_subElementRect(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::SubElement element = (QStyle::SubElement)(p ? p->getAsInt() : 0);
@@ -549,7 +549,7 @@ static QoreNode *QSTYLE_subElementRect(QoreObject *self, QoreAbstractQStyle *qs,
 
 //virtual void unpolish ( QWidget * widget )
 //virtual void unpolish ( QApplication * application )
-static QoreNode *QSTYLE_unpolish(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_unpolish(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    if (!p) {
@@ -575,7 +575,7 @@ static QoreNode *QSTYLE_unpolish(QoreObject *self, QoreAbstractQStyle *qs, QoreN
 }
 
 //int layoutSpacingImplementation ( QSizePolicy::ControlType control1, QSizePolicy::ControlType control2, Qt::Orientation orientation, const QStyleOption * option = 0, const QWidget * widget = 0 ) const
-static QoreNode *QSTYLE_layoutSpacingImplementation(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_layoutSpacingImplementation(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QSizePolicy::ControlType control1 = (QSizePolicy::ControlType)(p ? p->getAsInt() : 0);
@@ -597,7 +597,7 @@ static QoreNode *QSTYLE_layoutSpacingImplementation(QoreObject *self, QoreAbstra
 }
 
 //QIcon standardIconImplementation ( StandardPixmap standardIcon, const QStyleOption * option = 0, const QWidget * widget = 0 ) const
-static QoreNode *QSTYLE_standardIconImplementation(QoreObject *self, QoreAbstractQStyle *qs, QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QSTYLE_standardIconImplementation(QoreObject *self, QoreAbstractQStyle *qs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QStyle::StandardPixmap standardIcon = (QStyle::StandardPixmap)(p ? p->getAsInt() : 0);

@@ -29,7 +29,7 @@ class QoreNode *NOTHING_DefaultValue()
    return Nothing;
 }
 
-class QoreString *NOTHING_MakeString(class QoreNode *n, int format, class ExceptionSink *xsink)
+class QoreString *NOTHING_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
 {
    return new QoreString("<NOTHING>");
 }

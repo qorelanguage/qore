@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-class QoreNode *backquote_Eval(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *backquote_Eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return backquoteEval(n->val.c_str, xsink);
 }

@@ -2358,7 +2358,7 @@ class QoreNode *Operator::eval(class QoreNode *left_side, class QoreNode *right_
 bool Operator::bool_eval(class QoreNode *left_side, class QoreNode *right_side, ExceptionSink *xsink) const
 {
    bool result;
-   
+
    tracein("Operator::bool_eval()");
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left_side, right_side);
    if (evalArgs)

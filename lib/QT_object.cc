@@ -26,23 +26,23 @@
 // there is no object_DeleteContents, because they will be taken care of by QoreNode::~QoreNode
 
 /*
-class QoreNode *object_Eval(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *object_Eval(const QoreNode *n, class ExceptionSink *xsink)
 {
    return n->val.object->doCopy(xsink);
 }
 */
 
-class QoreNode *object_Copy(class QoreNode *n, class ExceptionSink *xsink)
+class QoreNode *object_Copy(const QoreNode *n, class ExceptionSink *xsink)
 {
    return n->RefSelf();
 }
 
-bool object_Compare(class QoreNode *l, class QoreNode *r, class ExceptionSink *xsink)
+bool object_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return l->val.object->compareHard(r->val.object, xsink);
 }
 
-class QoreString *object_MakeString(class QoreNode *n, int foff, class ExceptionSink *xsink)
+class QoreString *object_MakeString(const QoreNode *n, int foff, class ExceptionSink *xsink)
 {
    QoreHash *h = n->val.object->evalData(xsink);
    if (xsink->isEvent())
