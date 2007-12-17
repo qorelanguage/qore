@@ -1230,7 +1230,10 @@ class QoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, con
    // build new argument list
    if (args)
    {
-      args_holder = args->eval(xsink);
+      if (args->val.list->needsEval())
+	 args_holder = args->eval(xsink);
+      else
+	 args_holder = args->realCopy(xsink);
       if (*xsink)
 	 return 0;
       args_holder->val.list->insert(new QoreNode(nme));

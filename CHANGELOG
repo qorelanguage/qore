@@ -1,3 +1,13 @@
+2007.12.17: David Nichols
+        * implemented hash - list and hash -= list operators to delete multiple
+	  hash keys in one expression
+        * fixed a potential rare memory leak in exception handling in 
+	  Operator.cc (3 places)
+        * ensure that argument list is unique before modifying in 
+          QoreClass::evalMethodGate()
+        * more SMP cache sync optimizations by eliminating atomic reference
+	  operations where possible by applying QoreNodeEvalOptionalRefHolder
+
 2007.12.16: David Nichols
 	* more major API updates for const correctness
 

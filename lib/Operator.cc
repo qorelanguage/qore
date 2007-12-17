@@ -692,7 +692,6 @@ static class QoreNode *op_object_ref(class QoreNode *left, class QoreNode *membe
 static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNode *func, bool ref_rv, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder op(left, xsink);
-
    if (*xsink)
       return 0;
 
@@ -727,7 +726,7 @@ static class QoreNode *op_new_object(class QoreNode *left, class QoreNode *x, bo
 
 static class QoreNode *op_assignment(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class QoreNode **v, *new_value;
+   class QoreNode **v;
 
    // tracein("op_assignment()");
 
@@ -736,35 +735,26 @@ static class QoreNode *op_assignment(class QoreNode *left, class QoreNode *right
       for the variable assignment - however it does need to be
       copied/referenced for the return value
    */
-   new_value = right->eval(xsink);
-   if (xsink->isEvent())
-   {
-      discard(new_value, xsink);
-      return NULL;
-   }
+   ReferenceHolder<QoreNode> new_value(right->eval(xsink), xsink);
+   if (*xsink)
+      return 0;
 
    // get current value and save
    class AutoVLock vl;
    v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-   {
-      vl.del();
-      discard(new_value, xsink);
-      return NULL;
-   }
+   if (*xsink)
+      return 0;
 
    // dereference old value if necessary
    discard(*v, xsink);
-   if (xsink->isEvent())
+   if (*xsink)
    {
-      *v = NULL;
-      vl.del();
-      discard(new_value, xsink);
-      return NULL;
+      *v = 0;
+      return 0;
    }
 
    // assign new value 
-   (*v) = new_value;
+   (*v) = new_value.release();
    vl.del();
 
 #if 0
@@ -775,15 +765,15 @@ static class QoreNode *op_assignment(class QoreNode *left, class QoreNode *right
 #endif
 
    // traceout("op_assignment()");
-   if (ref_rv && new_value)
-      return new_value->RefSelf();
+   if (ref_rv && (*v))
+      return (*v)->RefSelf();
 
    return NULL;
 }
 
 static class QoreNode *op_list_assignment(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class QoreNode **v, *new_value;
+   class QoreNode **v;
 
    // tracein("op_assignment()");
 
@@ -792,12 +782,9 @@ static class QoreNode *op_list_assignment(class QoreNode *left, class QoreNode *
       for the variable assignment - however it does need to be
       copied/referenced for the return value
    */
-   new_value = right->eval(xsink);
-   if (xsink->isEvent())
-   {
-      discard(new_value, xsink);
-      return NULL;
-   }
+   QoreNodeEvalOptionalRefHolder new_value(right, xsink);
+   if (*xsink)
+      return 0;
 
    // get values and save
    int i;
@@ -807,34 +794,22 @@ static class QoreNode *op_list_assignment(class QoreNode *left, class QoreNode *
 
       class AutoVLock vl;
       v = get_var_value_ptr(lv, &vl, xsink);
-      if (xsink->isEvent())
-      {
-	 vl.del();
-	 discard(new_value, xsink);
-	 return NULL;
-      }
+      if (*xsink)
+	 return 0;
       
       // dereference old value if necessary
       discard(*v, xsink);
-      if (xsink->isEvent())
+      if (*xsink)
       {
 	 *v = NULL;
-	 vl.del();
-	 discard(new_value, xsink);
-	 return NULL;
+	 return 0;
       }
 
       // if there's only one value, then save it
-      if (!new_value || new_value->type != NT_LIST)
+      if (!*new_value || new_value->type != NT_LIST)
       {
 	 if (!i)
-	 {
-	    (*v) = new_value;
-
-	    // ref for return value if exists
-	    if (new_value)
-	       new_value->ref();
-	 }
+	    (*v) = new_value.getReferencedValue();
 	 else
 	    (*v) = NULL;
       }
@@ -847,8 +822,8 @@ static class QoreNode *op_list_assignment(class QoreNode *left, class QoreNode *
       vl.del();
    }
 
-   // traceout("op_assignment()");
-   return new_value;
+   // traceout("op_list_assignment()");
+   return ref_rv ? new_value.takeReferencedValue() : 0;
 }
 
 static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -857,7 +832,7 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
 
    // tracein("op_plus_equals()");
    QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-   if (*xsink)
+   if (*xsink || !new_right)
       return 0;
 
    // get ptr to current value
@@ -897,6 +872,7 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
    // do hash/object plus-equals if left side is an object
    else if (*v && ((*v)->type == NT_OBJECT))
    {
+      // do not need ensure_unique() for objects
       if (new_right->type == NT_OBJECT)
       {
 	 class QoreHash *h = new_right->val.object->evalData(xsink);
@@ -917,22 +893,16 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
    }
    else if ((*v) && ((*v)->type == NT_FLOAT))
    {
-      if (new_right->type != NT_FLOAT)
-	 new_right.assign(true, new_right->convert(NT_FLOAT));
-
       ensure_unique(v, xsink);
-      (*v)->val.floatval += new_right->val.floatval;
+      (*v)->val.floatval += new_right->getAsFloat();
    }
    else if ((*v) && ((*v)->type == NT_DATE))
    {
       if (new_right->type != NT_DATE)
 	 new_right.assign(true, new_right->convert(NT_DATE));
 
-      // get new date value
-      class DateTime *nd = (*v)->val.date_time->add(new_right->val.date_time);
-      // dereference old value
-      (*v)->deref(NULL);
-      // assign new value
+      DateTime *nd = (*v)->val.date_time->add(new_right->val.date_time);
+      (*v)->deref(xsink);
       (*v) = new QoreNode(nd);
    }
    else if (is_nothing(*v))
@@ -971,90 +941,88 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
 
 static class QoreNode *op_minus_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class QoreNode **v, *new_right;
-
-   bool rd;
-   new_right = right->eval(rd, xsink);
-   if (!new_right)
-      return NULL;
-   if (xsink->isEvent())
-   {
-      if (rd)
-	 new_right->deref(xsink);
-      return NULL;
-   }
-
    // tracein("op_minus_equals()");
+
+   class QoreNode **v;
+
+   QoreNodeEvalOptionalRefHolder new_right(right, xsink);
+   if (*xsink || !new_right)
+      return 0;
+
    // get ptr to current value
 
    class AutoVLock vl;
    v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-   {
-      vl.del();
-      if (rd) new_right->deref(xsink);
-      return NULL;
-   }
+   if (*xsink)
+      return 0;
 
    // do float minus-equals if left side is a float
    if ((*v) && ((*v)->type == NT_FLOAT))
    {
-      if (new_right->type != NT_FLOAT)
-      {
-	 class QoreNode *n = new_right->convert(NT_FLOAT);
-	 if (rd) new_right->deref(xsink);
-	 new_right = n;
-	 rd = true;
-      }
       ensure_unique(v, xsink);
-      (*v)->val.floatval -= new_right->val.floatval;
+      (*v)->val.floatval -= new_right->getAsFloat();
    }
    else if ((*v) && ((*v)->type == NT_DATE))
    {
       if (new_right->type != NT_DATE)
-      {
-	 class QoreNode *n = new_right->convert(NT_DATE);
-	 if (rd) new_right->deref(xsink);
-	 new_right = n;
-	 rd = true;
-      }
-      // get new date value
-      class DateTime *nd = (*v)->val.date_time->subtractBy(new_right->val.date_time);
-      // dereference old value
-      (*v)->deref(NULL);
-      // assign new value
+	 new_right.assign(true, new_right->convert(NT_DATE));
+
+      ensure_unique(v, xsink);
+      DateTime *nd = (*v)->val.date_time->subtractBy(new_right->val.date_time);
+      (*v)->deref(xsink);
       (*v) = new QoreNode(nd);
    }
    else if ((*v) && ((*v)->type == NT_HASH))
    {
-      if (new_right->type != NT_STRING)
-      {
-	 class QoreNode *n = new_right->convert(NT_STRING);
-	 if (rd) new_right->deref(xsink);
-	 new_right = n;
-	 rd = true;
+      if (new_right->type == NT_HASH) {
+	 // do nothing
       }
-      ensure_unique(v, xsink);
-      (*v)->val.hash->deleteKey(new_right->val.String, xsink);
+      else if (new_right->type == NT_LIST && new_right->val.list->size()) {
+	 ensure_unique(v, xsink);
+
+	 // treat each element in the list as a string giving a key to delete
+	 ListIterator li(new_right->val.list);
+	 while (li.next()) {
+	    QoreNodeTypeHelper val(li.getValue(), NT_STRING, xsink);
+	    if (*xsink)
+	       return 0;
+
+	    (*v)->val.hash->deleteKey(val->val.String, xsink);
+	    if (*xsink)
+	       return 0;
+	 }
+      }
+      else {
+	 if (new_right->type != NT_STRING)
+	    new_right.assign(true, new_right->convert(NT_STRING));
+
+	 ensure_unique(v, xsink);
+	 (*v)->val.hash->deleteKey(new_right->val.String, xsink);
+      }
    }
    else // do integer minus-equals
    {
       if (new_right->type == NT_FLOAT)
       {
 	 // we know the lhs type is not NT_FLOAT already
-	 // dereferency any current value
-	 if (*v)
+	 // get current float value and dereference node
+	 double val;
+	 if (*v) {
+	    val = (*v)->getAsFloat();
 	    (*v)->deref(xsink);
+	 }
+	 else
+	    val = 0.0;
 
 	 // assign negative argument
-	 (*v) = new QoreNode(-new_right->getAsFloat());
+	 (*v) = new QoreNode(val - new_right->getAsFloat());
       }
       else
       {
 	 // get new value if necessary
 	 if (!(*v))
 	    (*v) = new QoreNode((int64)0);
-	 else 
+	 else
 	 {
 	    if ((*v)->type != NT_INT)
 	    {
@@ -1064,18 +1032,15 @@ static class QoreNode *op_minus_equals(class QoreNode *left, class QoreNode *rig
 	    }
 	    ensure_unique(v, xsink);
 	 }
-	 
+
 	 // increment current value
 	 (*v)->val.intval -= new_right->getAsBigInt();	 
       }
    }
-   if (rd) new_right->deref(xsink);
 
    // traceout("op_minus_equals()");
    // reference return value and return
-   if (ref_rv)
-      return (*v)->RefSelf();
-   return NULL;
+   return ref_rv ? (*v)->RefSelf() : 0;
 }
 
 static class QoreNode *op_and_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -2060,15 +2025,31 @@ static QoreNode *op_trim(class QoreNode *arg, class QoreNode *x, bool ref_rv, Ex
 
 static QoreNode *op_minus_hash_string(class QoreNode *h, class QoreNode *s, bool ref_rv, ExceptionSink *xsink)
 {
-   class QoreNode *x = h->realCopy(xsink);
-   if (xsink->isEvent())
-   {
-      if (x)
-	 x->deref(xsink);
-      return NULL;
-   }
+   ReferenceHolder<QoreNode> x(h->realCopy(xsink), xsink);
+   if (*xsink)
+      return 0;
    x->val.hash->deleteKey(s->val.String, xsink);
-   return x;
+   return x.release();
+}
+
+static QoreNode *op_minus_hash_list(class QoreNode *h, class QoreNode *l, bool ref_rv, ExceptionSink *xsink)
+{
+   ReferenceHolder<QoreNode> x(h->realCopy(xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   // treat each element in the list as a string giving a key to delete
+   ListIterator li(l->val.list);
+   while (li.next()) {
+      QoreNodeTypeHelper val(li.getValue(), NT_STRING, xsink);
+      if (*xsink)
+	 return 0;
+      
+      x->val.hash->deleteKey(val->val.String, xsink);
+      if (*xsink)
+	 return 0;
+   }
+   return x.release();
 }
 
 static class QoreNode *op_regex_extract(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -2812,6 +2793,7 @@ void OperatorList::init()
    OP_MINUS->addFunction(NT_INT,   NT_INT,     op_minus_bigint);
    //OP_MINUS->addFunction(NT_INT,   NT_NOTHING, op_minus_bigint);
    OP_MINUS->addFunction(NT_HASH,  NT_STRING,  op_minus_hash_string);
+   OP_MINUS->addFunction(NT_HASH,  NT_LIST,  op_minus_hash_list);
 
    OP_PLUS = add(new Operator(2, "+", "plus", 1, false));
    OP_PLUS->addFunction(NT_LIST,    NT_LIST,   op_plus_list);

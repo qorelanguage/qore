@@ -78,7 +78,7 @@ QoreNodeTypeHelper::QoreNodeTypeHelper(QoreNode *n, const QoreType *t, class Exc
 {
    if (!n)
    {
-      node = Nothing->convert(t, xsink);
+      node = t->getDefaultValue();
       temp = true;
    }
    else if (n->type != t)

@@ -315,10 +315,14 @@ void QoreHash::merge(const class QoreHash *h, class ExceptionSink *xsink)
    }
 }
 
-// adds all elements (already referenecd) from the hash passed, deletes the
+// takes all elements (and their references) from the hash passed, deletes the
 // hash passed; order is maintained
 void QoreHash::assimilate(class QoreHash *h, ExceptionSink *xsink)
 {
+   // ignore NULL hashes passed
+   if (!h)
+      return;
+
    class HashMember *where = h->member_list;
    
    while (where)

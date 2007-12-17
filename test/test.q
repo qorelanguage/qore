@@ -302,8 +302,12 @@ sub hash_tests()
     # delete 3 keys from the $c hash
     $b = $c - "new" - "barn" - "asd";
     test_value($b, ( "key" : 3, "unique" : 100 ), "hash minus operator"); 
+    $b = $c - ("new", "barn", "asd");
+    test_value($b, ( "key" : 3, "unique" : 100 ), "hash minus operator with list argument"); 
     $b -= "unique";
     test_value($b, ( "key" : 3 ), "hash minus-equals operator"); 
+    $c -= ( "new", "barn" );
+    test_value($c, ( "key": 3, "unique" : 100, "asd" : "dasd" ), "hash minus-equals operator with list argument");
     my $nh += ( "new-hash" : 1 );
     test_value($nh, ( "new-hash" : 1 ), "hash plus-equals, lhs NOTHING");
 }

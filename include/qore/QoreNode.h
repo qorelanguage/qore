@@ -300,6 +300,15 @@ class QoreNodeEvalOptionalRefHolder {
 	 needs_deref = n_needs_deref;
 	 val = n_val;
       }
+      // returns a referenced value - the caller will own the reference
+      DLLLOCAL QoreNode *getReferencedValue()
+      {
+	 if (needs_deref)
+	    needs_deref = false;
+	 else
+	    val->ref();
+	 return val;
+      }
       DLLLOCAL QoreNode *takeReferencedValue()
       {
 	 QoreNode *rv = val && !needs_deref ? val->RefSelf() : val;
