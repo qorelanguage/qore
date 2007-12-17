@@ -49,7 +49,7 @@ DLLEXPORT qore_module_delete_t qore_module_delete = tuxedo_module_delete;
 //------------------------------------------------------------------------------
 #ifdef DEBUG
 // exported
-QoreNode* runTuxedoTests(QoreNode* params, ExceptionSink* xsink)
+QoreNode* runTuxedoTests(const QoreNode* params, ExceptionSink* xsink)
 {
   minitest::result res = minitest::execute_all_tests();
   if (res.all_tests_succeeded) {
