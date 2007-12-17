@@ -1,3 +1,9 @@
+2007.12.17: David Nichols
+	* fixed a potential rare memory leak in exception handling in 
+	  Operator.cc (3 places) (backported from trunk/0.7.0)
+	* ensure that argument list is unique before modifying in 
+	  QoreClass::evalMethodGate() (backported from trunk/0.7.0)
+
 2007.12.13: David Nichols
 	* fixed tibae namespace handling for subprogram objects (backported from
 	  trunk/0.7.0)

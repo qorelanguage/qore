@@ -1153,6 +1153,18 @@ class QoreNode *QoreClass::evalMethodGate(Object *self, const char *nme, QoreNod
 	 traceout("QoreClass::evalMethodGate()");
 	 return NULL;
       }
+      // ensure that args is unique
+      if (!args->is_unique()) {
+	 QoreNode *t = args->realCopy(xsink);
+	 args->deref(xsink);
+	 args = t;
+      }
+      if (xsink->isEvent())
+      {
+	 args->deref(xsink);
+	 traceout("QoreClass::evalMethodGate()");
+	 return 0;
+      }
       args->val.list->insert(new QoreNode(nme));
    }
    else

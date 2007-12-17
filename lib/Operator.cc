@@ -2505,6 +2505,7 @@ class QoreNode *Operator::eval(class QoreNode *left, class QoreNode *right, bool
 	    if (xsink->isEvent())
 	    {
 	       if (nl) nl->deref(xsink);
+	       if (right && rd) right->deref(xsink);
 	       return NULL;
 	    }
 	    left = nl;
@@ -2637,6 +2638,7 @@ bool Operator::bool_eval(class QoreNode *left, class QoreNode *right, ExceptionS
 	    if (xsink->isEvent())
 	    {
 	       if (nl) nl->deref(xsink);
+	       if (right && rd) right->deref(xsink);
 	       return false;
 	    }
 	    left = nl;
@@ -2768,6 +2770,7 @@ int64 Operator::bigint_eval(class QoreNode *left, class QoreNode *right, Excepti
 	    if (xsink->isEvent())
 	    {
 	       if (nl) nl->deref(xsink);
+	       if (right && rd) right->deref(xsink);
 	       return 0;
 	    }
 	    left = nl;
@@ -2899,6 +2902,7 @@ double Operator::float_eval(class QoreNode *left, class QoreNode *right, Excepti
 	    if (xsink->isEvent())
 	    {
 	       if (nl) nl->deref(xsink);
+	       if (right && rd) right->deref(xsink);
 	       return 0.0;
 	    }
 	    left = nl;
