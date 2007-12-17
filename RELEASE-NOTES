@@ -1,4 +1,15 @@
-RELEASE NOTES for qore v0.6.2.2 and 0.6.2.1
+RELEASE NOTES for qore v0.6.2.3, 0.6.2.2 and 0.6.2.1
+
+0.6.2.3 is a bugfix release from 0.6.2.2
+	* compression of strings no longer includes the trailing null (broke XML-RPC and JSON-RPC communication over the HTTP server with compression with some browsers)
+	* do not throw an exception with sort*() functions when the argument is not a list - just return the argument
+	* fixed local and global variable destruction order (was reversed until now)
+	* fixed proxy URL reporting in Qore HTTPClient::getProxyURL() (was reporting the target port instead of the proxy port)
+	* corrected erroneous printd() debugging statement in Operator.cc (only affected debugging builds)
+	* fixed tibae, ncurses, pgsql, tibrv, and tuxedo module namespace handling for subprogram objects - when more than one subprogram object requested one of these 
+	  features, and it was not originally present in the parent Program object, a memory leak and erroneous behavior would result (mostly spurious exceptions)
+	* ensure that argument list is unique before modifying in QoreClass::evalMethodGate() (could cause erroneous behavior with methodGate methods in some circumstances)
+	* fixed a potential rare memory leak in exception handling related to QoreNode reference count managemnt in Operator.cc 
 
 0.6.2.2 contains one additional bugfix from 0.6.2.1:
 	* fixed an XML parsing bug with multiple out-of-order keys that could cause a crash
