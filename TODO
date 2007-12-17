@@ -1,6 +1,5 @@
 see docs/roadmap.html
 
-* update Operator.cc ex: op_plus_eq: use getAsFlaat() on evaluated argument instead of convert()
 * tag functions if they have no effect except returning a value so if the value is not used at the top level a warning may be emitted
 * implement find_key operator, taking a regular expression to find a key in a hash
 * add API compatibility info to to module data
@@ -9,7 +8,6 @@ see docs/roadmap.html
 * update round() to allow the specification of significant digits
 * implement support for builtin methodGate methods, custom DBI Datasource method extensions
 * implement public_instanceof operator
-* implement -,-= with hash, list of strings to remove lists of hash keys
 * implement auto-reconnect for mssql and other drivers (mysql has it already)
 * implement a mechanism for a thread to sleep until another thread terminates (join)
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
@@ -33,6 +31,8 @@ docs:
 * document optimizations
 
 done 0.7.0:
+* implement -,-= with hash, list of strings to remove lists of hash keys
+* update Operator.cc ex: op_plus_eq: use getAsFlaat() on evaluated argument instead of convert()
 * migrate to "pimpl" approach for exported classes in qore library
 * fix QoreSocket.cc to replace spaces with %20 in paths
 * fix qt QShortcut to work on dynamic slots by saving the slot and calling the slot when the shortcut's signal is raised
