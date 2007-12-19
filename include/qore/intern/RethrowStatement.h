@@ -36,6 +36,8 @@ class RethrowStatement : public AbstractStatement
       }
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0)
       {
+	 if (!(pflag & PF_RETHROW_OK))
+	    parseException("RETHROW-NOT-IN-CATCH-BLOCK", "rethrow statements are only allowed in catch blocks");
 	 return 0;
       }
    

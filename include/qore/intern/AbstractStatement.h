@@ -30,9 +30,9 @@
 #define RC_BREAK        2
 #define RC_CONTINUE     3
 
-#define PF_BACKGROUND   1
-#define PF_REFERENCE_OK 2
-#define PF_RETHROW_OK   4
+#define PF_BACKGROUND   (1 << 1)
+#define PF_REFERENCE_OK (1 << 2)
+#define PF_RETHROW_OK   (1 << 3)
 
 // all definitions in this file are private to the library and subject to change
 
