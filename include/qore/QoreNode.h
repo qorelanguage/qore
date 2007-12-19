@@ -305,7 +305,7 @@ class QoreNodeEvalOptionalRefHolder {
       {
 	 if (needs_deref)
 	    needs_deref = false;
-	 else
+	 else if (val)
 	    val->ref();
 	 return val;
       }
