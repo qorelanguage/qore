@@ -82,6 +82,8 @@ class QoreSignalManager
       
       DLLLOCAL static void reload();
       DLLLOCAL static void stop_signal_thread_unlocked();
+      DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
+      DLLLOCAL static void stop_signal_thread();
       
    public:
       enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
@@ -105,8 +107,6 @@ class QoreSignalManager
       DLLLOCAL static void release_idle();
       DLLLOCAL static void start_handler();
       DLLLOCAL static void end_handler();
-      DLLLOCAL static int start_signal_thread(class ExceptionSink *xsink);
-      DLLLOCAL static void stop_signal_thread();
       DLLLOCAL static void pre_fork_block_and_stop();
       DLLLOCAL static void post_fork_unblock_and_start(bool new_process, class ExceptionSink *xsink);
       DLLLOCAL static int gettid()
@@ -114,6 +114,7 @@ class QoreSignalManager
 	 return tid;
       }
       DLLLOCAL static void reset_default_signal_mask();
+      DLLLOCAL static bool enabled() { return tid != -1; }
 };
 
 DLLLOCAL extern class QoreSignalManager QSM;

@@ -111,17 +111,7 @@ class QoreNode *f_get_thread_data(const QoreNode *params, ExceptionSink *xsink)
       return NULL;
    QoreHash *data = getProgram()->getThreadData();
    QoreNode *v = data->getKeyValue(p0->val.String->getBuffer());
-   if (v)
-   {
-      v = v->eval(xsink);
-      if (xsink->isEvent())
-      {
-	 if (v)
-	    v->deref(xsink);
-	 return NULL;
-      }
-   }
-   return v;
+   return v ? v->RefSelf() : 0;
 }
 
 class QoreNode *f_get_all_thread_data(const QoreNode *params, ExceptionSink *xsink)

@@ -87,6 +87,8 @@ QoreSignalManager::QoreSignalManager()
    // initilize handlers
    for (int i = 0; i < QORE_SIGNAL_MAX; ++i)
       handlers[i].init();
+
+   tid = -1;
 }
 
 void QoreSignalManager::init(bool disable_signal_mask) 
@@ -108,22 +110,24 @@ void QoreSignalManager::init(bool disable_signal_mask)
       sigdelset(&mask, SIGPROF);
 #endif
       pthread_sigmask(SIG_SETMASK, &mask, NULL);
-   }
 
-   // set up default handler mask
-   sigemptyset(&mask);
-   sigaddset(&mask, QORE_STATUS_SIGNAL);
+      // set up default handler mask
+      sigemptyset(&mask);
+      sigaddset(&mask, QORE_STATUS_SIGNAL);
 
-   ExceptionSink xsink;
-   if (start_signal_thread(&xsink))
-   {
-      xsink.handleExceptions();
-      exit(1);
+      ExceptionSink xsink;
+      if (start_signal_thread(&xsink))
+      {
+	 xsink.handleExceptions();
+	 exit(1);
+      }
    }
 }
 
 void QoreSignalManager::del()
 {
+   if (!enabled())
+      return;
    stop_signal_thread();
 }
 
@@ -169,6 +173,9 @@ void QoreSignalManager::stop_signal_thread()
 void QoreSignalManager::pre_fork_block_and_stop()
 {
    SafeLocker sl(&mutex);
+   if (!enabled())
+      return;
+
    // if another block is already in progress then wait for it to complete
    while (block)
    {
@@ -187,6 +194,9 @@ void QoreSignalManager::pre_fork_block_and_stop()
 void QoreSignalManager::post_fork_unblock_and_start(bool new_process, class ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
+   if (!enabled())
+      return;
+
    block = false;
    if (waiting)
       cond.signal();
@@ -379,6 +389,9 @@ int QoreSignalManager::start_signal_thread(class ExceptionSink *xsink)
 int QoreSignalManager::setHandler(int sig, class AbstractFunctionReference *fr, class ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
+   if (!enabled())
+      return 0;
+
    // wait for any blocks to be lifted
    while (block)
    {
@@ -414,6 +427,9 @@ int QoreSignalManager::setHandler(int sig, class AbstractFunctionReference *fr, 
 int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
+   if (!enabled())
+      return 0;
+
    // wait for any blocks to be lifted
    while (block)
    {

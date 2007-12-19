@@ -1,3 +1,7 @@
+2007.12.19: David Nichols
+	* updated QoreSignalManager to respect library option 
+	  QLO_DISABLE_SIGNAL_HANDLING
+
 2007.12.17: David Nichols
         * implemented hash - list and hash -= list operators to delete multiple
 	  hash keys in one expression
