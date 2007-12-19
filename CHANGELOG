@@ -1,3 +1,7 @@
+2007.12.19: David Nichols
+	* fixed RethrowStatement::parseInit() to throw an exception if the
+	  statement is not valid (i.e. is outside of a catch block)
+
 2007.12.17: David Nichols
 	* fixed a potential rare memory leak in exception handling in 
 	  Operator.cc (3 places) (backported from trunk/0.7.0)
