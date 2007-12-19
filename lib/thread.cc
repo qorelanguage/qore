@@ -820,7 +820,7 @@ class QoreClass *getParseClass()
 void catchSaveException(class QoreException *e)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
-   printd(0, "cSE() td=%08p e=%08p\n", td, e);
+   //printd(5, "cSE() td=%08p e=%08p\n", td, e);
    td->catchException = e;
 }
 
@@ -828,7 +828,7 @@ void catchSaveException(class QoreException *e)
 class QoreException *catchGetException()
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
-   printd(0, "cGE() td=%08p e=%08p\n", td, td->catchException);
+   //printd(5, "cGE() td=%08p e=%08p\n", td, td->catchException);
    assert(td->catchException);
    return td->catchException;
 }
