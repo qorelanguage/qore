@@ -136,10 +136,10 @@ class QoreString *DatasourcePool::getAndResetSQL()
 
 void DatasourcePool::freeDS()
 {
-   // remove from thread resource list
    int tid = gettid();
 
-   //printd(0, "DatasourcePool::freeDS() trlist.remove() this=%08p, tid=%d\n", this, tid);
+   // remove from thread resource list
+   //printd(0, "DatasourcePool::freeDS() remove_thread_resource(this=%08p), tid=%d\n", this, tid);
    remove_thread_resource(this);
 
    AutoLocker al((LockedObject *)this);
@@ -214,7 +214,7 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, class ExceptionSink *xsink
    sl.unlock();
 
    // add to thread resource list
-   //printd(0, "DatasourcePool::getDS() trlist.set() this=%08p, tid=%d\n", this, gettid());
+   //printd(0, "DatasourcePool::getDS() set_thread_resource(this=%08p), tid=%d\n", this, gettid());
    set_thread_resource(this);
    
    return ds;
@@ -237,8 +237,8 @@ class QoreNode *DatasourcePool::select(class QoreString *sql, QoreList *args, cl
    else
       addSQL("select", sql);
 #endif
-   //printf("DSP::selectRow() ds=%N SQL=%n rv=%n\n", $ds, $sql, $rv);
-   
+
+   //printf("DSP::select() ds=%N SQL=%n rv=%n\n", $ds, $sql, $rv);   
    return rv;
 }
 
@@ -253,6 +253,8 @@ class QoreNode *DatasourcePool::selectRow(class QoreString *sql, QoreList *args,
       return NULL;
 
    rv = ds->selectRows(sql, args, xsink);
+   //printd(5, "DatasourcePool::selectRow() ds=%08p, trans=%d, xsink=%d, new_ds=%d\n", ds, ds->isInTransaction(), xsink->isException(), new_ds);
+
    if (new_ds)
       freeDS();
 #ifdef DEBUG
@@ -327,7 +329,8 @@ class QoreNode *DatasourcePool::exec(class QoreString *sql, QoreList *args, clas
 #endif
 
    class QoreNode *rv = ds->exec(sql, args, xsink);
-   
+   //printd(5, "DatasourcePool::exec() ds=%08p, trans=%d, xsink=%d, new_ds=%d\n", ds, ds->isInTransaction(), xsink->isException(), new_ds);
+
    if (xsink->isException() && new_ds)
       freeDS();
    
@@ -471,3 +474,11 @@ void DatasourcePool::cleanup(class ExceptionSink *xsink)
    if (wait_count)
       signal();
 }
+
+bool DatasourcePool::inTransaction()
+{
+   int tid = gettid();
+   AutoLocker al((LockedObject *)this);
+   return tmap.find(tid) != tmap.end();
+}
+

@@ -53,6 +53,7 @@ class Datasource
       DLLEXPORT void setConnectionValues();
       DLLEXPORT void setTransactionStatus(bool);
       DLLEXPORT void setPendingConnectionValues(const Datasource *other);
+      DLLEXPORT int beginImplicitTransaction(class ExceptionSink *xsink);
 
    public:
       DLLEXPORT Datasource(class DBIDriver *);

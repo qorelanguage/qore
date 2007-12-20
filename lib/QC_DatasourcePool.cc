@@ -280,6 +280,11 @@ static QoreNode *DSP_getClientVersion(class QoreObject *self, class DatasourcePo
    return ds->getClientVersion(xsink);
 }
 
+static QoreNode *DSP_inTransaction(class QoreObject *self, class DatasourcePool *ds, const QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(ds->inTransaction());
+}
+
 class QoreClass *initDatasourcePoolClass()
 {
    tracein("initDatasourcePoolClass()");
@@ -312,6 +317,7 @@ class QoreClass *initDatasourcePoolClass()
    QC_DATASOURCEPOOL->addMethod("toString",          (q_method_t)DSP_toString);
    QC_DATASOURCEPOOL->addMethod("getServerVersion",  (q_method_t)DSP_getServerVersion);
    QC_DATASOURCEPOOL->addMethod("getClientVersion",  (q_method_t)DSP_getClientVersion);
+   QC_DATASOURCEPOOL->addMethod("inTransaction",     (q_method_t)DSP_inTransaction);
 
    traceout("initDatasourcePoolClass()");
    return QC_DATASOURCEPOOL;

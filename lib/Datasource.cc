@@ -104,6 +104,7 @@ void Datasource::setPendingConnectionValues(const Datasource *other)
 
 void Datasource::setTransactionStatus(bool t)
 {
+   printd(0, "Datasource::setTS(%d) this=%08p\n", t, this);
    priv->in_transaction = t;
 }
 
@@ -168,10 +169,11 @@ QoreNode *Datasource::selectRows(class QoreString *query_str, class QoreList *ar
 
 QoreNode *Datasource::exec(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
 {
-   if (!priv->autocommit && !priv->in_transaction && beginTransaction(xsink))
+   if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
       return NULL;
 
    class QoreNode *rv = priv->dsl->execSQL(this, query_str, args, xsink);
+   //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
    if (priv->autocommit)
       priv->dsl->autoCommit(this, xsink);
    else if (!priv->in_transaction)
@@ -185,15 +187,20 @@ QoreNode *Datasource::exec(class QoreString *query_str, class QoreList *args, Ex
    return rv;
 }
 
-int Datasource::beginTransaction(class ExceptionSink *xsink)
+int Datasource::beginImplicitTransaction(class ExceptionSink *xsink)
 {
-   //printd(0, "Datasource::beginTransaction() autocommit=%s\n", autocommit ? "true" : "false");
+   //printd(5, "Datasource::beginImplicitTransaction() autocommit=%s\n", autocommit ? "true" : "false");
    if (priv->autocommit)
    {
       xsink->raiseException("AUTOCOMMIT-ERROR", "transaction management is not available because autocommit is enabled for this Datasource");
       return -1;
    }
-   int rc = priv->dsl->beginTransaction(this, xsink);
+   return priv->dsl->beginTransaction(this, xsink);
+}
+
+int Datasource::beginTransaction(class ExceptionSink *xsink)
+{
+   int rc = beginImplicitTransaction(xsink);
    if (!rc)
       priv->in_transaction = true;
    return rc;
@@ -201,7 +208,7 @@ int Datasource::beginTransaction(class ExceptionSink *xsink)
 
 int Datasource::commit(ExceptionSink *xsink)
 {
-   if (!priv->in_transaction && beginTransaction(xsink))
+   if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
    int rc = priv->dsl->commit(this, xsink);
@@ -211,7 +218,7 @@ int Datasource::commit(ExceptionSink *xsink)
 
 int Datasource::rollback(ExceptionSink *xsink)
 {
-   if (!priv->in_transaction && beginTransaction(xsink))
+   if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
    int rc = priv->dsl->rollback(this, xsink);

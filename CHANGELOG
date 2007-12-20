@@ -1,3 +1,8 @@
+2007.12.20: David Nichols
+	* fixed a bug in the Datasource class where an exception in the first 
+	  statement of an implicit transaction would erroneously grab the 
+	  transaction lock
+
 2007.12.19: David Nichols
 	* updated QoreSignalManager to respect library option 
 	  QLO_DISABLE_SIGNAL_HANDLING

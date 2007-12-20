@@ -343,6 +343,11 @@ static QoreNode *DS_getClientVersion(class QoreObject *self, class ManagedDataso
    return ds->getClientVersion(xsink);
 }
 
+static QoreNode *DS_inTransaction(class QoreObject *self, class ManagedDatasource *ds, const QoreNode *params, ExceptionSink *xsink)
+{
+   return new QoreNode(ds->isInTransaction());
+}
+
 class QoreClass *initDatasourceClass()
 {
    tracein("initDatasourceClass()");
@@ -385,6 +390,7 @@ class QoreClass *initDatasourceClass()
    QC_DATASOURCE->addMethod("getDriverName",     (q_method_t)DS_getDriverName);
    QC_DATASOURCE->addMethod("getServerVersion",  (q_method_t)DS_getServerVersion);
    QC_DATASOURCE->addMethod("getClientVersion",  (q_method_t)DS_getClientVersion);
+   QC_DATASOURCE->addMethod("inTransaction",     (q_method_t)DS_inTransaction);
 
    QC_DATASOURCE->addMethod("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout);
    QC_DATASOURCE->addMethod("getTransactionLockTimeout", (q_method_t)DS_getTransactionLockTimeout);

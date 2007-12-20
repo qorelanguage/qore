@@ -105,6 +105,7 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       {
 	 return pool[0]->getClientVersion(xsink);
       }
+      DLLLOCAL bool inTransaction();
 };
 
 #endif
