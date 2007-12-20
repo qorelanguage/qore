@@ -2,6 +2,8 @@
 	* fixed a bug in the Datasource class where an exception in the first 
 	  statement of an implicit transaction would erroneously grab the 
 	  transaction lock
+	* added DatasourcePool::inTransaction() and Datasource::inTransaction()
+	  methods
 
 2007.12.19: David Nichols
 	* updated QoreSignalManager to respect library option 
