@@ -63,6 +63,7 @@ class Datasource
       
       DLLLOCAL void freeConnectionValues();
       DLLLOCAL void setConnectionValues();
+      DLLLOCAL int beginImplicitTransaction(class ExceptionSink *xsink);
 
    public:
       DLLEXPORT Datasource(DBIDriver *);

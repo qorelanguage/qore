@@ -1,3 +1,8 @@
+2007.12.20: David Nichols
+        * fixed a bug in the Datasource class where an exception in the first
+          statement of an implicit transaction would erroneously grab the
+          transaction lock (fix backported from trunk/0.7.0)
+
 2007.12.19: David Nichols
 	* fixed RethrowStatement::parseInit() to throw an exception if the
 	  statement is not valid (i.e. is outside of a catch block)
