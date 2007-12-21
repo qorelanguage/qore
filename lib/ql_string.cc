@@ -546,7 +546,7 @@ static class QoreNode *f_replace(const QoreNode *params, ExceptionSink *xsink)
        !(p2 = test_param(params, NT_STRING, 2)))
       return NULL;
 
-   class QoreEncoding *ccs = p0->val.String->getEncoding();
+   const QoreEncoding *ccs = p0->val.String->getEncoding();
    QoreString *nstr = new QoreString(ccs);   
    QoreString *t1, *t2;
 

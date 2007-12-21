@@ -182,7 +182,7 @@ void QoreObject::tDeref()
       delete this;
 }
 
-class QoreNode *QoreObject::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, class QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreNode *args, class ExceptionSink *xsink)
 {
    // get referenced object
    class AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink);
@@ -249,7 +249,7 @@ bool QoreObject::validInstanceOf(int cid) const
    return priv->myclass->getClass(cid);
 }
 
-class QoreNode *QoreObject::evalMethod(const QoreString *name, class QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalMethod(const QoreString *name, const class QoreNode *args, class ExceptionSink *xsink)
 {
    return priv->myclass->evalMethod(this, name->getBuffer(), args, xsink);
 }
@@ -306,7 +306,7 @@ class QoreNode *QoreObject::evalMember(class QoreNode *member, class ExceptionSi
 }
 
 // 0 = equal, 1 = not equal
-bool QoreObject::compareSoft(class QoreObject *obj, class ExceptionSink *xsink) const
+bool QoreObject::compareSoft(const class QoreObject *obj, class ExceptionSink *xsink) const
 {
    if (obj->priv->myclass != priv->myclass)
       return 1;
@@ -348,7 +348,7 @@ bool QoreObject::compareSoft(class QoreObject *obj, class ExceptionSink *xsink) 
 }
 
 // 0 = equal, 1 = not equal
-bool QoreObject::compareHard(class QoreObject *obj, class ExceptionSink *xsink) const
+bool QoreObject::compareHard(const class QoreObject *obj, class ExceptionSink *xsink) const
 {
    if (obj->priv->myclass != priv->myclass)
       return 1;
@@ -638,7 +638,7 @@ int QoreObject::size(class ExceptionSink *xsink) const
 
 // adds all elements (and references them) from the hash passed, leaves the
 // hash passed alone
-void QoreObject::merge(class QoreHash *h, ExceptionSink *xsink)
+void QoreObject::merge(const class QoreHash *h, ExceptionSink *xsink)
 {
    if (priv->g.enter(xsink) < 0)
       return;

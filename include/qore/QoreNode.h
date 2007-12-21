@@ -238,7 +238,7 @@ class QoreNodeCStringHelper {
       DLLLOCAL void *operator new(size_t);
 
    public:
-      DLLEXPORT QoreNodeCStringHelper(const QoreNode *n, class QoreEncoding *enc, class ExceptionSink *xsink);
+      DLLEXPORT QoreNodeCStringHelper(const QoreNode *n, const class QoreEncoding *enc, class ExceptionSink *xsink);
       DLLEXPORT ~QoreNodeCStringHelper()
       {
 	 if (node && temp)

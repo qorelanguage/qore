@@ -34,10 +34,10 @@ struct qore_qf_private {
       int fd;
       bool is_open;
       bool special_file;
-      class QoreEncoding *charset;
+      const QoreEncoding *charset;
       std::string filename;
 
-      DLLLOCAL qore_qf_private(class QoreEncoding *cs)
+      DLLLOCAL qore_qf_private(const QoreEncoding *cs)
       {
 	 is_open = false;
 	 charset = cs;
@@ -69,7 +69,7 @@ int QoreFile::check_write_open(class ExceptionSink *xsink)
    return -1;
 }
 
-QoreFile::QoreFile(class QoreEncoding *cs) : priv(new qore_qf_private(cs))
+QoreFile::QoreFile(const QoreEncoding *cs) : priv(new qore_qf_private(cs))
 {
 }
 
@@ -104,12 +104,12 @@ int QoreFile::close()
    return rc;
 }
 
-void QoreFile::setEncoding(class QoreEncoding *cs)
+void QoreFile::setEncoding(const QoreEncoding *cs)
 {
    priv->charset = cs;
 }
 
-class QoreEncoding *QoreFile::getEncoding() const
+const QoreEncoding *QoreFile::getEncoding() const
 {
    return priv->charset;
 }
@@ -133,7 +133,7 @@ void QoreFile::makeSpecial(int sfd)
    priv->fd = sfd;
 }
 
-int QoreFile::open(const char *fn, int flags, int mode, class QoreEncoding *cs)
+int QoreFile::open(const char *fn, int flags, int mode, const QoreEncoding *cs)
 {
    if (!fn || priv->special_file)
       return -1;
@@ -150,7 +150,7 @@ int QoreFile::open(const char *fn, int flags, int mode, class QoreEncoding *cs)
    return 0;
 }
 
-int QoreFile::open2(class ExceptionSink *xsink, const char *fn, int flags, int mode, class QoreEncoding *cs)
+int QoreFile::open2(class ExceptionSink *xsink, const char *fn, int flags, int mode, const QoreEncoding *cs)
 {
    if (!fn)
    {
@@ -240,32 +240,35 @@ class QoreString *QoreFile::getchar()
    return str;
 }
 
-int QoreFile::write(class QoreString *str, class ExceptionSink *xsink)
+int QoreFile::write(const void *data, unsigned len, class ExceptionSink *xsink)
+{
+   if (check_write_open(xsink))
+      return -1;
+   
+   if (!len)
+      return 0;
+   
+   return ::write(priv->fd, data, len);
+}
+
+int QoreFile::write(const QoreString *str, class ExceptionSink *xsink)
 {
    if (check_write_open(xsink))
       return -1;
    
    if (!str)
       return 0;
-   
-   QoreString *wstr;
-   if (str->getEncoding() != priv->charset)
-   {
-      wstr = str->convertEncoding(priv->charset, xsink);
-      if (xsink->isEvent())
-	 return -1;
-   }
-   else 
-      wstr = str;
+
+   ConstTempEncodingHelper wstr(str, priv->charset, xsink);
+   if (*xsink)
+      return -1;
+
    //printd(0, "QoreFile::write() str priv->charset=%s, priv->charset=%s\n", str->getEncoding()->code, priv->charset->code);
    
-   int rc = ::write(priv->fd, wstr->getBuffer(), wstr->strlen());
-   if (str != wstr)
-      delete wstr;
-   return rc;
+   return ::write(priv->fd, wstr->getBuffer(), wstr->strlen());
 }
 
-int QoreFile::write(class BinaryObject *b, class ExceptionSink *xsink)
+int QoreFile::write(const BinaryObject *b, class ExceptionSink *xsink)
 {
    if (check_write_open(xsink))
       return -1;

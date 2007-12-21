@@ -37,7 +37,7 @@ struct code_table {
 };
 
 #define NUM_HTML_CODES 4
-extern class QoreEncoding *QCS_DEFAULT;
+extern const class QoreEncoding *QCS_DEFAULT;
 extern class code_table html_codes[];
 
 class QoreString {
@@ -72,10 +72,10 @@ class QoreString {
       DLLEXPORT QoreString();
       DLLEXPORT QoreString(bool b);
       DLLEXPORT QoreString(const char *);
-      DLLEXPORT QoreString(const char *str, class QoreEncoding *new_qorecharset);
-      DLLEXPORT QoreString(class QoreEncoding *new_qorecharset);
-      DLLEXPORT QoreString(const char *str, int len, class QoreEncoding *new_qorecharset = QCS_DEFAULT);
-      DLLEXPORT QoreString(const std::string &str, class QoreEncoding *new_encoding = QCS_DEFAULT);
+      DLLEXPORT QoreString(const char *str, const class QoreEncoding *new_qorecharset);
+      DLLEXPORT QoreString(const class QoreEncoding *new_qorecharset);
+      DLLEXPORT QoreString(const char *str, int len, const class QoreEncoding *new_qorecharset = QCS_DEFAULT);
+      DLLEXPORT QoreString(const std::string &str, const class QoreEncoding *new_encoding = QCS_DEFAULT);
       DLLEXPORT QoreString(char);
       DLLEXPORT QoreString(const QoreString *str);
       DLLEXPORT QoreString(const QoreString *, int);
@@ -87,8 +87,9 @@ class QoreString {
 
       // returns the number of characters
       DLLEXPORT int length() const;
-      DLLEXPORT void set(const char *str, class QoreEncoding *new_qorecharset = QCS_DEFAULT);
-      DLLEXPORT void set(QoreString *str);
+      DLLEXPORT void set(const char *str, const class QoreEncoding *new_qorecharset = QCS_DEFAULT);
+      DLLEXPORT void set(const QoreString *str);
+      DLLEXPORT void set(const QoreString &str);
       DLLEXPORT void concatAndHTMLEncode(const char *);
       DLLEXPORT void concatAndHTMLDecode(const QoreString *str);
       // concatenates a string and escapes character c with esc_char (converts encodings if necessary)
@@ -139,7 +140,7 @@ class QoreString {
       DLLEXPORT class QoreString *substr(int offset, int length);
       DLLEXPORT int chomp();
       // returns the encoding for the string
-      DLLEXPORT class QoreEncoding *getEncoding() const;
+      DLLEXPORT const class QoreEncoding *getEncoding() const;
       DLLEXPORT class QoreString *copy() const;
       DLLEXPORT void tolwr();
       DLLEXPORT void toupr();
@@ -218,7 +219,7 @@ class TempEncodingHelper {
       void *operator new(size_t);
 
    public:
-      DLLEXPORT TempEncodingHelper(class QoreString *s, class QoreEncoding *qe, class ExceptionSink *xsink)
+      DLLEXPORT TempEncodingHelper(class QoreString *s, const class QoreEncoding *qe, class ExceptionSink *xsink)
       {
 	 if (s->getEncoding() != qe)
 	 {
@@ -242,6 +243,46 @@ class TempEncodingHelper {
       }
       DLLEXPORT QoreString *operator->(){ return str; };
       DLLEXPORT QoreString *operator*() { return str; };
+      // to check for an exception in the constructor
+      DLLEXPORT operator bool() const { return str != 0; }
+};
+
+// class for using strings possibly temporarily converted to another encoding
+class ConstTempEncodingHelper {
+   private:
+      const class QoreString *str;
+      bool temp;
+
+      // not implemented
+      ConstTempEncodingHelper(const ConstTempEncodingHelper &);
+      ConstTempEncodingHelper& operator=(const ConstTempEncodingHelper &);
+      void *operator new(size_t);
+
+   public:
+      DLLEXPORT ConstTempEncodingHelper(const class QoreString *s, const class QoreEncoding *qe, class ExceptionSink *xsink)
+      {
+	 if (s->getEncoding() != qe)
+	 {
+	    str = s->convertEncoding(qe, xsink);
+	    temp = true;
+	 }
+	 else
+	 {
+	    str = s;
+	    temp = false;
+	 }
+      }
+      DLLEXPORT ~ConstTempEncodingHelper()
+      {
+	 if (temp && str)
+	    delete const_cast<QoreString *>(str);
+      }
+      DLLEXPORT bool is_temp() const
+      {
+	 return temp;
+      }
+      DLLEXPORT const QoreString *operator->(){ return str; };
+      DLLEXPORT const QoreString *operator*() { return str; };
       // to check for an exception in the constructor
       DLLEXPORT operator bool() const { return str != 0; }
 };

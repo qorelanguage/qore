@@ -105,7 +105,7 @@ unsigned command::get_column_count(ExceptionSink* xsink)
 }
 
 // FIXME: use ct_setparam to avoid copying data
-int command::set_params(sybase_query &query, class QoreList *args, ExceptionSink *xsink)
+int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink *xsink)
 {
    unsigned nparams = query.param_list.size();
    //printd(5, "query=%s\n", query.m_cmd.getBuffer());
@@ -394,7 +394,7 @@ class QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list,
    if (xsink->isException())
       return 0;
    
-   class QoreEncoding *encoding = m_conn.getEncoding();
+   const QoreEncoding *encoding = m_conn.getEncoding();
    class QoreNode *rv = 0;
    // setup hash of lists if necessary
    if (!list)
@@ -556,7 +556,7 @@ int command::append_buffers_to_list(PlaceholderList *placeholder_list, row_resul
 				    row_output_buffers& all_buffers, 
 				    class QoreHash *h, ExceptionSink *xsink)
 {
-   //class QoreEncoding *encoding = m_conn.getEncoding();
+   //const QoreEncoding *encoding = m_conn.getEncoding();
 
    HashIterator hi(h);
    for (unsigned i = 0, n = column_info.size(); i != n; ++i) {
@@ -614,7 +614,7 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
      return null();
   }
 
-  class QoreEncoding *encoding = m_conn.getEncoding();
+  const QoreEncoding *encoding = m_conn.getEncoding();
   
   //printd(5, "get_node() encoding=%s name=%s type=%d format=%d usertype=%d value_len=%d\n", encoding->getCode(), datafmt.name, datafmt.datatype, datafmt.format, datafmt.usertype, buffer.value_len);
 

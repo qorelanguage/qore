@@ -54,19 +54,21 @@
 
 #define QDBI_VALID_CODES 13
 
-// DBI method signatures
+// DBI method signatures - note that only get_client_version uses a "const Datasource" 
+// the others do not so that automatic reconnects can be supported (which will normally
+// require writing to the Datasource)
 typedef int (*q_dbi_open_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_close_t)(class Datasource *);
-typedef class QoreNode *(*q_dbi_select_t)(class Datasource *, class QoreString *, class QoreList *, class ExceptionSink *xsink);
-typedef class QoreNode *(*q_dbi_select_rows_t)(class Datasource *, class QoreString *, class QoreList *, class ExceptionSink *xsink);
-typedef class QoreNode *(*q_dbi_exec_t)(class Datasource *, class QoreString *, class QoreList *args, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_select_t)(class Datasource *, const class QoreString *, const class QoreList *, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_select_rows_t)(class Datasource *, const class QoreString *, const class QoreList *, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_exec_t)(class Datasource *, const class QoreString *, const class QoreList *args, class ExceptionSink *xsink);
 typedef int (*q_dbi_commit_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_rollback_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_begin_transaction_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_auto_commit_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_abort_transaction_start_t)(class Datasource *, class ExceptionSink *xsink);
 typedef class QoreNode *(*q_dbi_get_server_version_t)(class Datasource *, class ExceptionSink *xsink);
-typedef class QoreNode *(*q_dbi_get_client_version_t)(class Datasource *, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_get_client_version_t)(const class Datasource *, class ExceptionSink *xsink);
 
 typedef std::pair<int, void *> qore_dbi_method_t;
 
@@ -93,8 +95,10 @@ class qore_dbi_method_list
       DLLEXPORT void add(int code, q_dbi_close_t method);
       // covers select, select_rows. and exec
       DLLEXPORT void add(int code, q_dbi_select_t method);
-      // covers get_server_version and get_client_version
+      // covers get_server_version
       DLLEXPORT void add(int code, q_dbi_get_server_version_t method);
+      // covers get_client_version
+      DLLEXPORT void add(int code, q_dbi_get_client_version_t method);
 
       // internal interface
       DLLLOCAL dbi_method_list_t *getMethods() const;
@@ -136,6 +140,8 @@ class DBIDriverFunctions {
 
 struct qore_dbi_private;
 
+// most of these functions are not exported; the Datasource class should be used 
+// instead of using the DBIDriver class directly
 class DBIDriver {
    private:
       struct qore_dbi_private *priv;
@@ -145,39 +151,35 @@ class DBIDriver {
       DLLLOCAL DBIDriver& operator=(const DBIDriver&);
 
    public:
+      DLLEXPORT const char *getName() const;
+
       DLLLOCAL DBIDriver(const char *name, const dbi_method_list_t &methods, int cps);
       DLLLOCAL ~DBIDriver();
       DLLLOCAL int init(class Datasource *ds, class ExceptionSink *xsink);
       DLLLOCAL int close(class Datasource *ds);
-      DLLLOCAL class QoreNode *select(class Datasource *ds, class QoreString *sql, class QoreList *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRows(class Datasource *ds, class QoreString *sql, class QoreList *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *execSQL(class Datasource *ds, class QoreString *sql, class QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *select(class Datasource *ds, const class QoreString *sql, const class QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *selectRows(class Datasource *ds, const class QoreString *sql, const class QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *execSQL(class Datasource *ds, const class QoreString *sql, const class QoreList *args, class ExceptionSink *xsink);
       DLLLOCAL int commit(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int rollback(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int beginTransaction(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int autoCommit(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int abortTransactionStart(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getServerVersion(class Datasource *, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *getClientVersion(class Datasource *, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *getClientVersion(const class Datasource *, class ExceptionSink *xsink);
 
       DLLLOCAL int getCaps() const;
       DLLLOCAL class QoreList *getCapList() const;
-      DLLEXPORT const char *getName() const;
 };
 
 struct qore_dbi_dlist_private;
 
-// it's not necessary to lock this object because it will only be written to in one thread at a time
-// note that a safe_dslist is used because it can be safely read in multiple threads while
-// being written to (in the lock).  The list should never be that long so the penalty for searching
-// a linked list with strcmp() against using a hash with explicit locking around all searches
-// should be acceptable...
 class DBIDriverList
 {
    private:
       struct qore_dbi_dlist_private *priv;
 
-      DLLEXPORT DBIDriver *find_intern(const char *name) const;
+      DLLLOCAL DBIDriver *find_intern(const char *name) const;
 
 public:
       DLLEXPORT class DBIDriver *registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps);
@@ -188,9 +190,13 @@ public:
       DLLLOCAL class QoreList *getDriverList() const;
 };
 
+// 
 DLLEXPORT extern class DBIDriverList DBI;
 DLLEXPORT class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink);
+// concatenates a numeric value to the QoreString from the QoreNode
 DLLEXPORT void DBI_concat_numeric(class QoreString *str, class QoreNode *v);
+// concatenates a string value to the QoreString from the QoreNode, note that no escaping is done here
+// this function is most useful for table prefixes, etc in queries
 DLLEXPORT int DBI_concat_string(class QoreString *str, class QoreNode *v, class ExceptionSink *xsink);
 
 DLLLOCAL void init_dbi_functions();

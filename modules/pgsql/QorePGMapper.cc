@@ -24,7 +24,7 @@
 
 #include "QorePGMapper.h"
 
-encoding_map_t QorePGMapper::map;
+const_encoding_map_t QorePGMapper::map;
 rev_encoding_map_t QorePGMapper::rmap;
 
 #define DO_MAP(a, b) map[(a)] = (b); rmap[(b)] = (a);
@@ -50,9 +50,9 @@ void QorePGMapper::static_init()
    DO_MAP("KOI8",       QCS_KOI8_R);
 }
 
-class QoreEncoding *QorePGMapper::getQoreEncoding(const char *cs)
+const QoreEncoding *QorePGMapper::getQoreEncoding(const char *cs)
 {
-   encoding_map_t::const_iterator i = map.find(cs);
+   const_encoding_map_t::const_iterator i = map.find(cs);
    
    if (i != map.end())
       return i->second;
@@ -60,12 +60,12 @@ class QoreEncoding *QorePGMapper::getQoreEncoding(const char *cs)
    return QEM.findCreate(cs);
 }
 
-const char *QorePGMapper::getPGEncoding(QoreEncoding *enc)
+const char *QorePGMapper::getPGEncoding(const QoreEncoding *enc)
 {
    rev_encoding_map_t::const_iterator i = rmap.find(enc);
 
    if (i != rmap.end())
       return i->second;
 
-   return NULL;
+   return 0;
 }

@@ -83,11 +83,11 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT void parseAndRunClass(FILE *, const char *name, const char *classname);
       DLLEXPORT void parseAndRunClass(const char *str, const char *name, const char *classname);      
       DLLEXPORT void parse(FILE *, const char *name, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
-      DLLEXPORT void parse(class QoreString *str, class QoreString *lstr, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      DLLEXPORT void parse(const class QoreString *str, const class QoreString *lstr, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
       DLLEXPORT void parse(const char *str, const char *lstr, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
       DLLEXPORT void parseFile(const char *filename, class ExceptionSink *, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
       DLLEXPORT void parsePending(const char *code, const char *label, class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
-      DLLEXPORT void parsePending(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
+      DLLEXPORT void parsePending(const class QoreString *str, const class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
       DLLEXPORT void parseCommit(class ExceptionSink *xsink, class ExceptionSink *warnSink = NULL, int warn_mask = -1);
       DLLEXPORT void parseRollback();
       DLLEXPORT bool existsFunction(const char *name);

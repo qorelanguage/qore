@@ -50,7 +50,7 @@ class BinaryObject {
       }
 
       // returns 0 = equal, 1 = not equal
-      DLLEXPORT int compare(class BinaryObject *obj) const
+      DLLEXPORT int compare(const BinaryObject *obj) const
       {
 	 // if the sizes are not equal, then the objects can't be equal
 	 if (len != obj->len)
@@ -90,7 +90,7 @@ class BinaryObject {
 	 len += size;
       }
 
-      DLLEXPORT void append(class BinaryObject *b)
+      DLLEXPORT void append(const BinaryObject *b)
       {
 	 append(b->ptr, b->len);
       }

@@ -886,40 +886,22 @@ void QoreProgram::parse(FILE *fp, const char *name, class ExceptionSink *xsink, 
    yylex_destroy(lexer);
 }
 
-void QoreProgram::parse(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
+void QoreProgram::parse(const QoreString *str, const QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    if (!str->strlen())
       return;
 
-   class QoreString *tstr, *tlstr;
-
    // ensure code string has correct character set encoding
-   if (str->getEncoding() != QCS_DEFAULT)
-   {
-      tstr = str->convertEncoding(QCS_DEFAULT, xsink);
-      if (xsink->isEvent())
-	 return;
-   }
-   else
-      tstr = str;
+   ConstTempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return;
 
    // ensure label string has correct character set encoding
-   if (lstr->getEncoding() != QCS_DEFAULT)
-   {
-      tlstr = lstr->convertEncoding(QCS_DEFAULT, xsink);
-      if (xsink->isEvent())
-	 return;
-   }
-   else
-      tlstr = lstr;
+   ConstTempEncodingHelper tlstr(lstr, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return;
 
    parse(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
-
-   // cleanup temporary strings
-   if (tstr != str)
-      delete tstr;
-   if (tlstr != lstr)
-      delete tlstr;
 }
 
 void QoreProgram::parse(const char *code, const char *label, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
@@ -1056,40 +1038,22 @@ void QoreProgram::internParseCommit()
    traceout("QoreProgram::internParseCommit()");
 }
 
-void QoreProgram::parsePending(class QoreString *str, class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
+void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)
 {
    if (!str->strlen())
       return;
 
-   class QoreString *tstr, *tlstr;
+   // ensure code string has correct character set encoding
+   ConstTempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return;
 
-   // ensure code string has correct character set
-   if (str->getEncoding() != QCS_DEFAULT)
-   {
-      tstr = str->convertEncoding(QCS_DEFAULT, xsink);
-      if (xsink->isEvent())
-	 return;
-   }
-   else
-      tstr = str;
-
-   // ensure label string has correct character set
-   if (lstr->getEncoding() != QCS_DEFAULT)
-   {
-      tlstr = lstr->convertEncoding(QCS_DEFAULT, xsink);
-      if (xsink->isEvent())
-	 return;
-   }
-   else
-      tlstr = lstr;
+   // ensure label string has correct character set encoding
+   ConstTempEncodingHelper tlstr(lstr, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return;
 
    parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
-
-   // cleanup temporary strings
-   if (tstr != str)
-      delete tstr;
-   if (tlstr != lstr)
-      delete tlstr;
 }
 
 class QoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)

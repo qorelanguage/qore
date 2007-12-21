@@ -265,6 +265,16 @@ class QoreString *SocketSource::takeHostName()
    return host;
 }
 
+const char *SocketSource::getAddress() const
+{
+   return priv->address ? priv->address->getBuffer() : 0;
+}
+
+const char *SocketSource::getHostName() const
+{
+   return priv->hostname ? priv->hostname->getBuffer() : 0;
+}
+
 void SocketSource::setAll(class QoreObject *o, class ExceptionSink *xsink)
 {
    if (priv->address)
@@ -281,7 +291,7 @@ void SocketSource::setAll(class QoreObject *o, class ExceptionSink *xsink)
 
 struct qore_socket_private {
       int sock, type, port; //, sendTimeout, recvTimeout;
-      class QoreEncoding *charsetid;
+      const QoreEncoding *charsetid;
       bool del;
       std::string socketname;
       class SSLSocketHelper *ssl;
@@ -306,7 +316,7 @@ QoreSocket::QoreSocket() : priv(new qore_socket_private)
    priv->charsetid = QCS_DEFAULT;
 }
 
-QoreSocket::QoreSocket(int s, int t, class QoreEncoding *csid) : priv(new qore_socket_private)
+QoreSocket::QoreSocket(int s, int t, const QoreEncoding *csid) : priv(new qore_socket_private)
 {
    priv->type = t;
    priv->sock = s;
@@ -388,12 +398,12 @@ int QoreSocket::getSocket() const
    return priv->sock; 
 }
 
-class QoreEncoding *QoreSocket::getEncoding() const
+const QoreEncoding *QoreSocket::getEncoding() const
 {
    return priv->charsetid; 
 }
 
-void QoreSocket::setEncoding(class QoreEncoding *id) 
+void QoreSocket::setEncoding(const QoreEncoding *id) 
 { 
    priv->charsetid = id; 
 } 
@@ -1267,7 +1277,7 @@ int QoreSocket::recv(int fd, int size, int timeout)
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, class QoreHash *headers, const void *data, int size)
+int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHash *headers, const void *data, int size)
 {
    // prepare header string
    QoreString hdr(priv->charsetid);
@@ -1276,7 +1286,7 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
    // FIXME: implement a function for the following to share with sendHTTPResponse
    if (headers)
    {
-      class HashIterator hi(headers);
+      class ConstHashIterator hi(headers);
 
       while (hi.next())
       {
@@ -1311,7 +1321,7 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, class QoreHash *headers, const void *data, int size)
+int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, const class QoreHash *headers, const void *data, int size)
 {
    // prepare header string
    QoreString hdr(priv->charsetid);
@@ -1319,7 +1329,7 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
    hdr.sprintf("HTTP/%s %03d %s\r\n", http_version, code, desc);
    if (headers)
    {
-      class HashIterator hi(headers);
+      class ConstHashIterator hi(headers);
 
       while (hi.next())
       {

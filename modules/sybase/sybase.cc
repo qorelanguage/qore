@@ -101,7 +101,7 @@ QoreNode* runRecentSybaseTests(const QoreNode* params, ExceptionSink* xsink)
 static void set_encoding(Datasource* ds, ExceptionSink* xsink)
 {
    if (ds->getDBEncoding()) {
-      QoreEncoding *enc = name_to_QoreEncoding(ds->getDBEncoding());
+      const QoreEncoding *enc = name_to_QoreEncoding(ds->getDBEncoding());
       ds->setQoreEncoding(enc);
    } else  {
       const char *enc = QoreEncoding_to_SybaseName(QCS_DEFAULT);
@@ -160,20 +160,20 @@ static int sybase_close(Datasource *ds)
 }
 
 //------------------------------------------------------------------------------
-static QoreNode* sybase_select(Datasource *ds, QoreString *qstr, QoreList *args, ExceptionSink *xsink)
+static QoreNode* sybase_select(Datasource *ds, const QoreString *qstr, const QoreList *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    return conn->exec(qstr, args, xsink);
 }
 
-static QoreNode* sybase_select_rows(Datasource *ds, QoreString *qstr, QoreList *args, ExceptionSink *xsink)
+static QoreNode* sybase_select_rows(Datasource *ds, const QoreString *qstr, const QoreList *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    //printd(5, "sybase_select_rows(ds=%08p, qstr='%s', args=%08p)\n", ds, qstr->getBuffer(), args);
    return conn->exec_rows(qstr, args, xsink);
 }
 
-static QoreNode* sybase_exec(Datasource *ds, QoreString *qstr, QoreList *args, ExceptionSink *xsink)
+static QoreNode* sybase_exec(Datasource *ds, const QoreString *qstr, const QoreList *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    return conn->exec(qstr, args, xsink);
@@ -191,7 +191,7 @@ static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
    return conn->rollback(xsink);
 }
 
-static class QoreNode *sybase_get_client_version(Datasource *ds, ExceptionSink *xsink)
+static class QoreNode *sybase_get_client_version(const Datasource *ds, ExceptionSink *xsink)
 {
    connection* conn = (connection*)ds->getPrivateData();
    class QoreString *str = conn->get_client_version(xsink);

@@ -1,4 +1,4 @@
-/*
+#/*
   QC_Socket.h
 
   Qore Programming Language
@@ -127,8 +127,8 @@ class mySocket : public AbstractPrivateData, public LockedObject
       DLLLOCAL bool isSecure();
       DLLLOCAL long verifyPeerCertificate();
       DLLLOCAL int getSocket();
-      DLLLOCAL void setEncoding(class QoreEncoding *id);
-      DLLLOCAL class QoreEncoding *getEncoding() const;
+      DLLLOCAL void setEncoding(const class QoreEncoding *id);
+      DLLLOCAL const class QoreEncoding *getEncoding() const;
       DLLLOCAL bool isDataAvailable(int timeout = 0);
       DLLLOCAL bool isOpen() const;
       // c must be already referenced before this call

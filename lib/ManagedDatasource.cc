@@ -216,7 +216,7 @@ void ManagedDatasource::setAutoCommit(bool ac)
    Datasource::setAutoCommit(ac);
 }
 
-QoreNode *ManagedDatasource::select(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
+QoreNode *ManagedDatasource::select(const QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
 {
    class QoreNode *rv;
    
@@ -233,7 +233,7 @@ QoreNode *ManagedDatasource::select(class QoreString *query_str, class QoreList 
 }
 
 // FIXME: should be a native DBI driver method
-class QoreNode *ManagedDatasource::selectRow(class QoreString *sql, QoreList *args, class ExceptionSink *xsink)
+class QoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreList *args, class ExceptionSink *xsink)
 {
    class QoreNode *rv;
    
@@ -257,7 +257,7 @@ class QoreNode *ManagedDatasource::selectRow(class QoreString *sql, QoreList *ar
    return rv;
 }
 
-QoreNode *ManagedDatasource::selectRows(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
+QoreNode *ManagedDatasource::selectRows(const QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
 {
    class QoreNode *rv;
    
@@ -273,7 +273,7 @@ QoreNode *ManagedDatasource::selectRows(class QoreString *query_str, class QoreL
    return rv;
 }
 
-QoreNode *ManagedDatasource::exec(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
+QoreNode *ManagedDatasource::exec(const QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
 {
    class QoreNode *rv = NULL;
 

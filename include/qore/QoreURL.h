@@ -37,19 +37,19 @@ class QoreURL {
    public:      
       DLLEXPORT QoreURL();
       DLLEXPORT QoreURL(const char *url);
-      DLLEXPORT QoreURL(class QoreString *url);
+      DLLEXPORT QoreURL(const class QoreString *url);
       DLLEXPORT ~QoreURL();
       DLLEXPORT int parse(const char *url);
-      DLLEXPORT int parse(class QoreString *url);
+      DLLEXPORT int parse(const class QoreString *url);
       DLLEXPORT bool isValid() const;
       // returns a hash of the parameters parsed - destructive: zeros out all elements
       DLLEXPORT class QoreHash *getHash();
       // returns the QoreString without zeroing it out in the class
-      DLLEXPORT class QoreString *getHost() const;
-      DLLEXPORT class QoreString *getUserName() const;
-      DLLEXPORT class QoreString *getPassword() const;
-      DLLEXPORT class QoreString *getPath() const;
-      DLLEXPORT class QoreString *getProtocol() const;
+      DLLEXPORT const class QoreString *getHost() const;
+      DLLEXPORT const class QoreString *getUserName() const;
+      DLLEXPORT const class QoreString *getPassword() const;
+      DLLEXPORT const class QoreString *getPath() const;
+      DLLEXPORT const class QoreString *getProtocol() const;
       DLLEXPORT int getPort() const;
       
       // the "take" methods return the char * pointer for the QoreString members

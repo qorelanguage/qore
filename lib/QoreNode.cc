@@ -30,7 +30,7 @@
 
 #define TRACK_REFS 1
 
-QoreNodeCStringHelper::QoreNodeCStringHelper(const QoreNode *n, class QoreEncoding *enc, class ExceptionSink *xsink) : temp(false)
+QoreNodeCStringHelper::QoreNodeCStringHelper(const QoreNode *n, const QoreEncoding *enc, class ExceptionSink *xsink) : temp(false)
 {
    if (is_nothing(n) || is_null(n))
    {

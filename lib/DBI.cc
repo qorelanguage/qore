@@ -201,76 +201,82 @@ QoreList *DBIDriver::getCapList() const
    return l;
 }
 
-int DBIDriver::init(class Datasource *ds, class ExceptionSink *xsink)
+int DBIDriver::init(Datasource *ds, class ExceptionSink *xsink)
 {
    return priv->f.open(ds, xsink);
 }
 
-int DBIDriver::close(class Datasource *ds)
+int DBIDriver::close(Datasource *ds)
 {
    return priv->f.close(ds);
 }
 
-class QoreNode *DBIDriver::select(class Datasource *ds, class QoreString *sql, class QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::select(Datasource *ds, const class QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
 {
    return priv->f.select(ds, sql, args, xsink);
 }
 
-class QoreNode *DBIDriver::selectRows(class Datasource *ds, class QoreString *sql, class QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::selectRows(Datasource *ds, const class QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
 {
    return priv->f.selectRows(ds, sql, args, xsink);
 }
 
-class QoreNode *DBIDriver::execSQL(class Datasource *ds, class QoreString *sql, class QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::execSQL(Datasource *ds, const class QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
 {
    return priv->f.execSQL(ds, sql, args, xsink);
 }
 
-int DBIDriver::commit(class Datasource *ds, class ExceptionSink *xsink)
+int DBIDriver::commit(Datasource *ds, class ExceptionSink *xsink)
 {
    return priv->f.commit(ds, xsink);
 }
 
-int DBIDriver::rollback(class Datasource *ds, class ExceptionSink *xsink)
+int DBIDriver::rollback(Datasource *ds, class ExceptionSink *xsink)
 {
    return priv->f.rollback(ds, xsink);
 }
 
-int DBIDriver::beginTransaction(class Datasource *ds, class ExceptionSink *xsink)
+int DBIDriver::beginTransaction(Datasource *ds, class ExceptionSink *xsink)
 {
    if (priv->f.begin_transaction)
       return priv->f.begin_transaction(ds, xsink);
    return 0; // 0 = OK
 }
 
-int DBIDriver::autoCommit(class Datasource *ds, class ExceptionSink *xsink)
+int DBIDriver::autoCommit(Datasource *ds, class ExceptionSink *xsink)
 {
    if (priv->f.auto_commit)
       return priv->f.auto_commit(ds, xsink);
    return 0; // 0 = OK
 }
 
-int DBIDriver::abortTransactionStart(class Datasource *ds, class ExceptionSink *xsink)
+int DBIDriver::abortTransactionStart(Datasource *ds, class ExceptionSink *xsink)
 {
    if (priv->f.abort_transaction_start)
       return priv->f.abort_transaction_start(ds, xsink);
    return 0; // 0 = OK
 }
 
-class QoreNode *DBIDriver::getServerVersion(class Datasource *ds, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::getServerVersion(Datasource *ds, class ExceptionSink *xsink)
 {
    if (priv->f.get_server_version)
       return priv->f.get_server_version(ds, xsink);
    return 0;
 }
 
-class QoreNode *DBIDriver::getClientVersion(class Datasource *ds, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::getClientVersion(const Datasource *ds, class ExceptionSink *xsink)
 {
    if (priv->f.get_client_version)
       return priv->f.get_client_version(ds, xsink);
    return 0;
 }
 
+// it's not necessary to lock this object because it will only be written to in one thread at a time
+// (within the module lock)
+// note that a safe_dslist is used because it can be safely read in multiple threads while
+// being written to (in the lock).  The list should never be that long so the penalty for searching
+// a linked list with strcmp() against using a hash with explicit locking around all searches
+// should be acceptable...
 struct qore_dbi_dlist_private {
       dbi_list_t l;
 

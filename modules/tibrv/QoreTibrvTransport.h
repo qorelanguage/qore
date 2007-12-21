@@ -34,15 +34,15 @@ class QoreTibrvTransport
 {
    public:
       class TibrvNetTransport transport;
-      class QoreEncoding *enc;
-
+      const QoreEncoding *enc;
+      
       QoreTibrvTransport(const char *desc, const char *service, const char *network, const char *daemon, class ExceptionSink *xsink);
 
-      inline void setStringEncoding(class QoreEncoding *e)
+      inline void setStringEncoding(const QoreEncoding *e)
       {
 	 enc = e;
       }
-      inline class QoreEncoding *getStringEncoding()
+      inline const QoreEncoding *getStringEncoding()
       {
 	 return enc;
       }

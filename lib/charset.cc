@@ -28,7 +28,7 @@
 #include <strings.h>
 #include <iconv.h>
 
-struct QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
+const QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
    *QCS_ISO_8859_2, *QCS_ISO_8859_3, *QCS_ISO_8859_4, *QCS_ISO_8859_5,
    *QCS_ISO_8859_6, *QCS_ISO_8859_7, *QCS_ISO_8859_8, *QCS_ISO_8859_9,
    *QCS_ISO_8859_10, *QCS_ISO_8859_11, *QCS_ISO_8859_13, *QCS_ISO_8859_14,
@@ -39,20 +39,20 @@ static int utf8end(const char *p, int l);
 static int utf8cpos(const char *p, const char *e);
 
 encoding_map_t QoreEncodingManager::emap;
-encoding_map_t QoreEncodingManager::amap;
+const_encoding_map_t QoreEncodingManager::amap;
 class LockedObject QoreEncodingManager::mutex;
 class QoreEncodingManager QEM;
 
-struct QoreEncoding *QoreEncodingManager::addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
+const QoreEncoding *QoreEncodingManager::addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
 {
-   struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
+   QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
    emap[qcs->getCode()] = qcs;
    return qcs;
 }
 
-struct QoreEncoding *QoreEncodingManager::add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
+const QoreEncoding *QoreEncodingManager::add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)
 {
-   struct QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
+   QoreEncoding *qcs = new QoreEncoding(code, l, e, p, desc);
    mutex.lock();
    emap[qcs->getCode()] = qcs;
    mutex.unlock();
@@ -271,13 +271,13 @@ QoreEncodingManager::~QoreEncodingManager()
 
 void QoreEncodingManager::showEncodings()
 {
-   for (encoding_map_t::iterator i = emap.begin(); i != emap.end(); i++)
+   for (encoding_map_t::const_iterator i = emap.begin(); i != emap.end(); i++)
       printf("%s: %s\n", i->first, i->second->getDesc());
 }
 
 void QoreEncodingManager::showAliases()
 {
-   for (encoding_map_t::iterator i = amap.begin(); i != amap.end(); i++)
+   for (const_encoding_map_t::const_iterator i = amap.begin(); i != amap.end(); i++)
       printf("%s = %s: %s\n", i->first, i->second->getCode(), i->second->getDesc());
 }
 
@@ -314,29 +314,31 @@ void QoreEncodingManager::init(const char *def)
    }
 }
 
-void QoreEncodingManager::addAlias(struct QoreEncoding *qcs, const char *alias)
+void QoreEncodingManager::addAlias(const QoreEncoding *qcs, const char *alias)
 {
    mutex.lock();
    amap[alias] = qcs;
    mutex.unlock();
 }
 
-struct QoreEncoding *QoreEncodingManager::findUnlocked(const char *name)
+const QoreEncoding *QoreEncodingManager::findUnlocked(const char *name)
 {
-   encoding_map_t::iterator i = emap.find(name);
-   if (i != emap.end())
-      return i->second;
+   {
+      encoding_map_t::const_iterator i = emap.find(name);
+      if (i != emap.end())
+	 return i->second;
+   }
 
-   i = amap.find(name);
+   const_encoding_map_t::const_iterator i = amap.find(name);
    if (i != amap.end())
       return i->second;
 
-   return NULL;
+   return 0;
 }
 
-struct QoreEncoding *QoreEncodingManager::findCreate(const char *name)
+const QoreEncoding *QoreEncodingManager::findCreate(const char *name)
 {
-   struct QoreEncoding *rv;
+   const QoreEncoding *rv;
    mutex.lock();
    rv = findUnlocked(name);
    if (!rv)
@@ -345,7 +347,7 @@ struct QoreEncoding *QoreEncodingManager::findCreate(const char *name)
    return rv;
 }
 
-struct QoreEncoding *QoreEncodingManager::findCreate(class QoreString *str)
+const QoreEncoding *QoreEncodingManager::findCreate(const QoreString *str)
 {
    return findCreate(str->getBuffer());
 }

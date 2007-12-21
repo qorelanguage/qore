@@ -58,13 +58,19 @@ class SocketSource {
    public:
       DLLEXPORT SocketSource();
       DLLEXPORT ~SocketSource();
-      DLLEXPORT void setAddress(class QoreString *addr);
-      DLLEXPORT void setAddress(const char *addr);
-      DLLEXPORT void setHostName(const char *host);
-      DLLEXPORT void setHostName(class QoreString *host);
+
+      // caller owns the QoreString returned
       DLLEXPORT class QoreString *takeAddress();
+      // caller owns the QoreString returned
       DLLEXPORT class QoreString *takeHostName();
-      DLLEXPORT void setAll(class QoreObject *o, class ExceptionSink *xsink);
+      DLLEXPORT const char *getAddress() const;
+      DLLEXPORT const char *getHostName() const;
+
+      DLLLOCAL void setAddress(class QoreString *addr);
+      DLLLOCAL void setAddress(const char *addr);
+      DLLLOCAL void setHostName(const char *host);
+      DLLLOCAL void setHostName(class QoreString *host);
+      DLLLOCAL void setAll(class QoreObject *o, class ExceptionSink *xsink);
 };
 
 class QoreSocket 
@@ -72,7 +78,7 @@ class QoreSocket
    private:
       struct qore_socket_private *priv; // private implementation
 
-      DLLLOCAL QoreSocket(int s, int t, class QoreEncoding *csid);
+      DLLLOCAL QoreSocket(int s, int t, const class QoreEncoding *csid);
       // opens an INET socket
       DLLLOCAL int openINET();
       // opens a UNIX socket
@@ -145,23 +151,23 @@ class QoreSocket
       DLLEXPORT int recvu4(int timeout, unsigned int *val);
       DLLEXPORT int recvu2LSB(int timeout, unsigned short *val);
       DLLEXPORT int recvu4LSB(int timeout, unsigned int *val);
-      // receive a certain number of bytes
+      // receive a certain number of bytes (caller owns QoreString returned)
       DLLEXPORT class QoreString *recv(int bufsize, int timeout, int *prc);
-      // receive a certain number of bytes as a binary object
+      // receive a certain number of bytes as a binary object (caller owns BinaryObject returned)
       DLLEXPORT class BinaryObject *recvBinary(int bufsize, int timeout, int *prc);
-      // receive a message
+      // receive a message (caller owns QoreString returned)
       DLLEXPORT class QoreString *recv(int timeout, int *prc);
       // receive and write data to a file descriptor
       DLLEXPORT int recv(int fd, int size, int timeout);
       // send an HTTP message
-      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, class QoreHash *headers, const void *data, int size);
+      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHash *headers, const void *data, int size);
       // send an HTTP response
-      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, class QoreHash *headers, const void *data, int size);
-      // read and parse HTTP header
+      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const class QoreHash *headers, const void *data, int size);
+      // read and parse HTTP header (caller owns QoreNode reference returned)
       DLLEXPORT class QoreNode *readHTTPHeader(int timeout, int *prc);
-      // receive a binary message in HTTP chunked format
+      // receive a binary message in HTTP chunked format (caller owns QoreHash returned)
       DLLEXPORT class QoreHash *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
-      // receive a string message in HTTP chunked format
+      // receive a string message in HTTP chunked format (caller owns QoreHash returned)
       DLLEXPORT class QoreHash *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
       // set send timeout in milliseconds
       DLLEXPORT int setSendTimeout(int ms);
@@ -176,8 +182,8 @@ class QoreSocket
       DLLEXPORT int shutdown();
       DLLEXPORT int shutdownSSL(class ExceptionSink *xsink);
       DLLEXPORT int getSocket() const;
-      DLLEXPORT class QoreEncoding *getEncoding() const;
-      DLLEXPORT void setEncoding(class QoreEncoding *id);
+      DLLEXPORT const class QoreEncoding *getEncoding() const;
+      DLLEXPORT void setEncoding(const class QoreEncoding *id);
       DLLEXPORT bool isOpen() const;
       DLLEXPORT const char *getSSLCipherName() const;
       DLLEXPORT const char *getSSLCipherVersion() const;
@@ -186,7 +192,7 @@ class QoreSocket
       DLLEXPORT int upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       DLLEXPORT int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
 
-      DLLEXPORT static void doException(int rc, const char *meth, class ExceptionSink *xsink);
+      DLLLOCAL static void doException(int rc, const char *meth, class ExceptionSink *xsink);
 };
 
 #endif // _QORE_QORESOCKET_H

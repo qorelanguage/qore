@@ -128,6 +128,67 @@ bool HashIterator::first() const
    return (bool)(ptr ? !ptr->prev : false); 
 } 
 
+ConstHashIterator::ConstHashIterator(const QoreHash *qh) 
+{
+   h = qh;
+   ptr = NULL;
+}
+
+ConstHashIterator::ConstHashIterator(const QoreHash &qh) 
+{
+   h = &qh;
+   ptr = NULL;
+}
+
+class QoreNode *ConstHashIterator::eval(class ExceptionSink *xsink) const
+{
+   if (ptr && ptr->node)
+      return ptr->node->eval(xsink);
+   return NULL;
+}
+
+class QoreString *ConstHashIterator::getKeyString() const
+{
+   if (!ptr)
+      return NULL;
+   
+   return new QoreString(ptr->key, QCS_DEFAULT);
+}
+
+class HashMember *ConstHashIterator::next() 
+{ 
+   if (ptr) 
+      ptr = ptr->next;
+   else
+      ptr = h->member_list;
+   return ptr;
+}
+
+const char *ConstHashIterator::getKey() const
+{ 
+   if (!ptr)
+      return NULL;
+   
+   return ptr->key;
+}
+
+class QoreNode *ConstHashIterator::getValue() const
+{
+   if (ptr)
+      return ptr->node;
+   return NULL;
+}
+
+bool ConstHashIterator::last() const 
+{ 
+   return (bool)(ptr ? !ptr->next : false); 
+} 
+
+bool ConstHashIterator::first() const 
+{ 
+   return (bool)(ptr ? !ptr->prev : false); 
+} 
+
 const char *QoreHash::getFirstKey() const 
 { 
    return member_list ? member_list->key :NULL; 
@@ -461,7 +522,7 @@ class QoreNode *QoreHash::getKeyValueExistence(const char *key) const
 
 // does a "soft" compare (values of different types are converted if necessary and then compared)
 // 0 = equal, 1 = not equal
-bool QoreHash::compareSoft(class QoreHash *h, class ExceptionSink *xsink) const
+bool QoreHash::compareSoft(const QoreHash *h, class ExceptionSink *xsink) const
 {
    if (h->hm.size() != hm.size())
       return 1;
@@ -481,7 +542,7 @@ bool QoreHash::compareSoft(class QoreHash *h, class ExceptionSink *xsink) const
 
 // does a "hard" compare (types must be exactly the same)
 // 0 = equal, 1 = not equal
-bool QoreHash::compareHard(class QoreHash *h, class ExceptionSink *xsink) const
+bool QoreHash::compareHard(const QoreHash *h, class ExceptionSink *xsink) const
 {
    if (h->hm.size() != hm.size())
       return 1;

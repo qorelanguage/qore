@@ -68,8 +68,8 @@ class Datasource
       DLLEXPORT void *getPrivateData() const;
       DLLEXPORT void setPrivateData(void *data);
       DLLEXPORT void setDBEncoding(const char *name);
-      DLLEXPORT class QoreEncoding *getQoreEncoding() const;
-      DLLEXPORT void setQoreEncoding(class QoreEncoding *enc);
+      DLLEXPORT const class QoreEncoding *getQoreEncoding() const;
+      DLLEXPORT void setQoreEncoding(const class QoreEncoding *enc);
       DLLEXPORT void setQoreEncoding(const char *name);
       DLLEXPORT void setPendingUsername(const char *u);
       DLLEXPORT void setPendingPassword(const char *p);
@@ -78,11 +78,16 @@ class Datasource
       DLLEXPORT void setPendingHostName(const char *h);
       DLLEXPORT void setAutoCommit(bool ac);
       DLLEXPORT int open(ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *select(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *selectRows(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *exec(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink);
+      // not "const" to allow for reconnects
+      DLLEXPORT class QoreNode *select(const class QoreString *query_str, const QoreList *args, ExceptionSink *xsink);
+      // not "const" to allow for reconnects
+      DLLEXPORT class QoreNode *selectRows(const class QoreString *query_str, const QoreList *args, ExceptionSink *xsink);
+      // not "const" to allow for reconnects and also to change transaction status
+      DLLEXPORT class QoreNode *exec(const class QoreString *query_str, const QoreList *args, ExceptionSink *xsink);
       //DLLEXPORT class QoreHash *describe(char *table_name, ExceptionSink *xsink);
+      // not "const" to allow for reconnects
       DLLEXPORT int commit(ExceptionSink *xsink);
+      // not "const" to allow for reconnects
       DLLEXPORT int rollback(ExceptionSink *xsink);
       DLLEXPORT int close();
       DLLEXPORT void reset(ExceptionSink *xsink);
@@ -101,8 +106,9 @@ class Datasource
       DLLEXPORT bool isOpen() const;
       DLLEXPORT Datasource *copy() const;
       DLLEXPORT const char *getDriverName() const;
+      // not "const" to allow for reconnects
       DLLEXPORT class QoreNode *getServerVersion(class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *getClientVersion(class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *getClientVersion(class ExceptionSink *xsink) const;
 
       DLLEXPORT class DBIDriver *getDriver() const;
 };

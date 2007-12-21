@@ -25,10 +25,10 @@
 #define QORE_LIB_MISC_H
 
 DLLEXPORT class BinaryObject *qore_deflate(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
-DLLEXPORT class QoreString   *qore_inflate_to_string(class BinaryObject *b, class QoreEncoding *enc, class ExceptionSink *xsink);
+DLLEXPORT class QoreString   *qore_inflate_to_string(class BinaryObject *b, const class QoreEncoding *enc, ExceptionSink *xsink);
 DLLEXPORT class BinaryObject *qore_inflate_to_binary(class BinaryObject *b, class ExceptionSink *xsink);
 DLLEXPORT class BinaryObject *qore_gzip(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
-DLLEXPORT class QoreString   *qore_gunzip_to_string(class BinaryObject *bin, class QoreEncoding *enc, ExceptionSink *xsink);
+DLLEXPORT class QoreString   *qore_gunzip_to_string(class BinaryObject *bin, const class QoreEncoding *enc, ExceptionSink *xsink);
 DLLEXPORT class BinaryObject *qore_gunzip_to_binary(class BinaryObject *bin, ExceptionSink *xsink);
 
 DLLLOCAL void init_misc_functions();

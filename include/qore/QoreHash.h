@@ -65,9 +65,32 @@ class HashIterator
       //DLLEXPORT void setValue(class QoreNode *val, class ExceptionSink *xsink);
 };
 
+class ConstHashIterator
+{
+   private:
+      const QoreHash *h;
+      class HashMember *ptr;
+
+      // not implemented
+      DLLLOCAL ConstHashIterator(const HashIterator&);
+      DLLLOCAL ConstHashIterator& operator=(const HashIterator&);
+
+   public:
+      DLLEXPORT ConstHashIterator(const class QoreHash *h);
+      DLLEXPORT ConstHashIterator(const class QoreHash &h);
+      DLLEXPORT class HashMember *next();
+      DLLEXPORT const char *getKey() const;
+      DLLEXPORT class QoreString *getKeyString() const;
+      DLLEXPORT class QoreNode *getValue() const;
+      DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT bool first() const;
+      DLLEXPORT bool last() const;
+};
+
 class QoreHash
 {
       friend class HashIterator;
+      friend class ConstHashIterator;
 
    private:
       class HashMember *member_list;
@@ -116,8 +139,8 @@ class QoreHash
       // "takes" the value of the key from the hash and removes the key from the hash and returns the value
       DLLEXPORT class QoreNode *takeKeyValue(const char *key);
       DLLEXPORT class QoreList *getKeys() const;
-      DLLEXPORT bool compareSoft(class QoreHash *h, class ExceptionSink *xsink) const;
-      DLLEXPORT bool compareHard(class QoreHash *h, class ExceptionSink *xsink) const;
+      DLLEXPORT bool compareSoft(const QoreHash *h, class ExceptionSink *xsink) const;
+      DLLEXPORT bool compareHard(const QoreHash *h, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink) const;
       DLLEXPORT void dereference(class ExceptionSink *xsink);
       DLLEXPORT void derefAndDelete(class ExceptionSink *xsink);

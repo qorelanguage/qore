@@ -106,7 +106,7 @@ static void ora_checkerr(OCIError *errhp, sword status, const char *query_name, 
    //if (xsink->isEvent()) abort();
 }
 
-static int oracle_commit(class Datasource *ds, ExceptionSink *xsink)
+static int oracle_commit(Datasource *ds, ExceptionSink *xsink)
 {
    int status;
 
@@ -118,7 +118,7 @@ static int oracle_commit(class Datasource *ds, ExceptionSink *xsink)
    return 0;
 }
 
-static int oracle_rollback(class Datasource *ds, ExceptionSink *xsink)
+static int oracle_rollback(Datasource *ds, ExceptionSink *xsink)
 {
    int status;
 
@@ -607,7 +607,7 @@ static class QoreList *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *d
    return l;
 }
 
-OraBindGroup::OraBindGroup(class Datasource *ods, class QoreString *ostr, class QoreList *args, ExceptionSink *xsink)
+OraBindGroup::OraBindGroup(class Datasource *ods, const class QoreString *ostr, const QoreList *args, ExceptionSink *xsink)
 {
    stmthp = NULL;
    hasOutput = false;
@@ -659,7 +659,7 @@ OraBindGroup::OraBindGroup(class Datasource *ods, class QoreString *ostr, class 
    }
 }
 
-void OraBindGroup::parseQuery(class QoreList *args, class ExceptionSink *xsink)
+void OraBindGroup::parseQuery(const QoreList *args, class ExceptionSink *xsink)
 {
    printd(5, "parseQuery() args=%08p str=%s\n", args, str->getBuffer());
 
@@ -1128,7 +1128,7 @@ class QoreNode *OraBindGroup::selectRows(class ExceptionSink *xsink)
    return new QoreNode(l);
 }
 
-static class QoreNode *oracle_exec(class Datasource *ds, QoreString *qstr, QoreList *args, class ExceptionSink *xsink)
+static class QoreNode *oracle_exec(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)
 {
    class OraBindGroup bg(ds, qstr, args, xsink);
 
@@ -1138,7 +1138,7 @@ static class QoreNode *oracle_exec(class Datasource *ds, QoreString *qstr, QoreL
    return bg.exec(xsink);
 }
 
-static class QoreNode *oracle_select(class Datasource *ds, QoreString *qstr, QoreList *args, class ExceptionSink *xsink)
+static class QoreNode *oracle_select(Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)
 {
    class OraBindGroup bg(ds, qstr, args, xsink);
 
@@ -1148,7 +1148,7 @@ static class QoreNode *oracle_select(class Datasource *ds, QoreString *qstr, Qor
    return bg.select(xsink);
 }
 
-static class QoreNode *oracle_select_rows(class Datasource *ds, QoreString *qstr, QoreList *args, class ExceptionSink *xsink)
+static class QoreNode *oracle_select_rows(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)
 {
    class OraBindGroup bg(ds, qstr, args, xsink);
 
@@ -1354,7 +1354,7 @@ static class QoreNode *oracle_get_server_version(class Datasource *ds, class Exc
 }
 
 #ifdef HAVE_OCICLIENTVERSION
-static class QoreNode *oracle_get_client_version(class Datasource *ds, class ExceptionSink *xsink)
+static class QoreNode *oracle_get_client_version(const Datasource *ds, class ExceptionSink *xsink)
 {
    sword major, minor, update, patch, port_update;
 

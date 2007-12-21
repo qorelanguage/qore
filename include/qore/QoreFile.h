@@ -37,7 +37,7 @@
 #include <string.h>
 #include <netinet/in.h>
 
-extern class QoreEncoding *QCS_DEFAULT;
+extern const class QoreEncoding *QCS_DEFAULT;
 
 class QoreFile {
    private:
@@ -56,19 +56,20 @@ class QoreFile {
       DLLLOCAL QoreFile& operator=(const QoreFile&);
       
    public:
-      DLLEXPORT QoreFile(class QoreEncoding *cs = QCS_DEFAULT);
+      DLLEXPORT QoreFile(const class QoreEncoding *cs = QCS_DEFAULT);
       DLLEXPORT ~QoreFile();
       // NOTE: QoreFile::makeSpecial() can only be called right after the constructor
       DLLEXPORT void makeSpecial(int sfd);
-      DLLEXPORT int open(const char *fn, int flags = O_RDONLY, int mode = 0777, class QoreEncoding *cs = QCS_DEFAULT);      
-      DLLEXPORT int open2(class ExceptionSink *xsink, const char *fn, int flags = O_RDONLY, int mode = 0777, class QoreEncoding *cs = QCS_DEFAULT);      
+      DLLEXPORT int open(const char *fn, int flags = O_RDONLY, int mode = 0777, const class QoreEncoding *cs = QCS_DEFAULT);      
+      DLLEXPORT int open2(class ExceptionSink *xsink, const char *fn, int flags = O_RDONLY, int mode = 0777, const class QoreEncoding *cs = QCS_DEFAULT);      
       DLLEXPORT int close();
-      DLLEXPORT void setEncoding(class QoreEncoding *cs);
-      DLLEXPORT class QoreEncoding *getEncoding() const;
+      DLLEXPORT void setEncoding(const class QoreEncoding *cs);
+      DLLEXPORT const class QoreEncoding *getEncoding() const;
       DLLEXPORT int sync();
       DLLEXPORT class QoreString *readLine(class ExceptionSink *xsink);
-      DLLEXPORT int write(class QoreString *str, class ExceptionSink *xsink);
-      DLLEXPORT int write(class BinaryObject *b, class ExceptionSink *xsink);
+      DLLEXPORT int write(const class QoreString *str, class ExceptionSink *xsink);
+      DLLEXPORT int write(const class BinaryObject *b, class ExceptionSink *xsink);
+      DLLEXPORT int write(const void *data, unsigned len, class ExceptionSink *xsink);
       DLLEXPORT int writei1(char i, class ExceptionSink *xsink);
       DLLEXPORT int writei2(short i, class ExceptionSink *xsink);
       DLLEXPORT int writei4(int i, class ExceptionSink *xsink);

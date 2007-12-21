@@ -73,21 +73,21 @@ static int qore_pgsql_begin_transaction(class Datasource *ds, ExceptionSink *xsi
    return pc->begin_transaction(ds, xsink);
 }
 
-static class QoreNode *qore_pgsql_select_rows(class Datasource *ds, QoreString *qstr, class QoreList *args, class ExceptionSink *xsink)
+static class QoreNode *qore_pgsql_select_rows(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
    return pc->select_rows(ds, qstr, args, xsink);
 }
 
-static class QoreNode *qore_pgsql_select(class Datasource *ds, QoreString *qstr, class QoreList *args, class ExceptionSink *xsink)
+static class QoreNode *qore_pgsql_select(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
    return pc->select(ds, qstr, args, xsink);
 }
 
-static class QoreNode *qore_pgsql_exec(class Datasource *ds, QoreString *qstr, class QoreList *args, class ExceptionSink *xsink)
+static class QoreNode *qore_pgsql_exec(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
@@ -114,7 +114,7 @@ static int qore_pgsql_open(Datasource *ds, ExceptionSink *xsink)
 
    if (ds->getDBEncoding())
    {
-      class QoreEncoding *enc = QorePGMapper::getQoreEncoding(ds->getDBEncoding());
+      const QoreEncoding *enc = QorePGMapper::getQoreEncoding(ds->getDBEncoding());
       ds->setQoreEncoding(enc);
    }
    else

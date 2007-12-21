@@ -149,7 +149,7 @@ class QoreNode *TIBRVCMSENDER_setStringEncoding(class QoreObject *self, class Qo
       return NULL;
    }
 
-   class QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
+   const QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
    cms->setStringEncoding(enc);
 
    return NULL;

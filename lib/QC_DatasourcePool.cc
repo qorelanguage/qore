@@ -241,7 +241,7 @@ static QoreNode *DSP_getDBCharset(class QoreObject *self, class DatasourcePool *
 
 static QoreNode *DSP_getOSCharset(class QoreObject *self, class DatasourcePool *ds, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreEncoding *enc = ds->getQoreEncoding();
+   const QoreEncoding *enc = ds->getQoreEncoding();
    return new QoreNode(enc ? enc->getCode() : "(unknown)");
 }
 

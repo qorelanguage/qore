@@ -60,7 +60,7 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
 
 #ifdef DEBUG
       pthread_key_t thread_local_storage;
-      void addSQL(char *cmd, class QoreString *sql);
+      void addSQL(char *cmd, const QoreString *sql);
       void resetSQL();
 #endif
 
@@ -77,11 +77,11 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       DLLLOCAL virtual ~DatasourcePool();
       DLLLOCAL void destructor(class ExceptionSink *xsink);
       DLLLOCAL virtual void cleanup(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *select(class QoreString *sql, QoreList *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRow(class QoreString *sql, QoreList *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRows(class QoreString *sql, QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *select(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *selectRow(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *selectRows(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink);
       DLLLOCAL int beginTransaction(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *exec(class QoreString *sql, QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *exec(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink);
       DLLLOCAL int commit(class ExceptionSink *xsink);
       DLLLOCAL int rollback(class ExceptionSink *xsink);
       DLLLOCAL class QoreString *toString();
@@ -92,7 +92,7 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       DLLLOCAL class QoreNode *getPendingDBName() const;
       DLLLOCAL class QoreNode *getPendingDBEncoding() const;
       DLLLOCAL class QoreNode *getPendingHostName() const;
-      DLLLOCAL class QoreEncoding *getQoreEncoding() const;
+      DLLLOCAL const class QoreEncoding *getQoreEncoding() const;
       DLLLOCAL const char *getDriverName () const
       {
 	 return pool[0]->getDriverName();

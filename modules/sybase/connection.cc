@@ -121,7 +121,7 @@ int connection::direct_execute(const char* sql_text, ExceptionSink* xsink)
    return purge_messages(xsink);
 }
 
-class QoreNode *connection::exec_intern(class QoreString *cmd_text, class QoreList *qore_args, bool need_list, class ExceptionSink* xsink)
+class QoreNode *connection::exec_intern(class QoreString *cmd_text, const QoreList *qore_args, bool need_list, class ExceptionSink* xsink)
 {
    sybase_query query;
    if (query.init(cmd_text, qore_args, xsink))
@@ -150,7 +150,7 @@ class QoreNode *connection::exec_intern(class QoreString *cmd_text, class QoreLi
    return result;
 }
 
-class QoreNode *connection::exec(class QoreString *cmd, class QoreList *parameters, class ExceptionSink *xsink)
+class QoreNode *connection::exec(const QoreString *cmd, const QoreList *parameters, class ExceptionSink *xsink)
 {
    // copy the string here for intrusive editing, convert encoding too if necessary
    class QoreString *query = cmd->convertEncoding(enc, xsink);
@@ -161,7 +161,7 @@ class QoreNode *connection::exec(class QoreString *cmd, class QoreList *paramete
    return exec_intern(query, parameters, false, xsink);
 }
 
-class QoreNode *connection::exec_rows(class QoreString *cmd, class QoreList *parameters, class ExceptionSink *xsink)
+class QoreNode *connection::exec_rows(const QoreString *cmd, const QoreList *parameters, class ExceptionSink *xsink)
 {
    // copy the string here for intrusive editing, convert encoding too if necessary
    class QoreString *query = cmd->convertEncoding(enc, xsink);
@@ -185,7 +185,7 @@ int connection::rollback(class ExceptionSink *xsink)
 }
 
 // Post-constructor initialization 
-int connection::init(const char* username, const char* password, const char* dbname, const char *db_encoding, class QoreEncoding *n_enc, class ExceptionSink* xsink)
+int connection::init(const char* username, const char* password, const char* dbname, const char *db_encoding, const QoreEncoding *n_enc, class ExceptionSink* xsink)
 {
   assert(!m_connection);
   assert(!m_context);

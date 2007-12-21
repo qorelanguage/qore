@@ -395,12 +395,12 @@ int mySocket::getSocket()
    return socket->getSocket();
 }
 
-void mySocket::setEncoding(class QoreEncoding *id)
+void mySocket::setEncoding(const QoreEncoding *id)
 {
    socket->setEncoding(id);
 }
 
-class QoreEncoding *mySocket::getEncoding() const
+const QoreEncoding *mySocket::getEncoding() const
 {
    return socket->getEncoding();
 }

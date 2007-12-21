@@ -35,9 +35,9 @@
 #include "connection.h"
 
 //------------------------------------------------------------------------------
-typedef std::map<QoreEncoding*, const char*> rev_encoding_map_t;
+typedef std::map<const QoreEncoding*, const char*> rev_encoding_map_t;
 
-static encoding_map_t encoding_map;
+static const_encoding_map_t encoding_map;
 static rev_encoding_map_t encoding_rmap;
 
 #ifdef DO_MAP
@@ -68,19 +68,19 @@ static bool encoding_dummy = init_encoding_maps();
 #undef DO_MAP
 
 //------------------------------------------------------------------------------
-QoreEncoding* name_to_QoreEncoding(const char* name)
+const QoreEncoding* name_to_QoreEncoding(const char* name)
 {
-  encoding_map_t::const_iterator it = encoding_map.find(name);
-  if (it != encoding_map.end()) return it->second;
-  return QEM.findCreate((char*)name);
+   const_encoding_map_t::const_iterator it = encoding_map.find(name);
+   if (it != encoding_map.end()) return it->second;
+   return QEM.findCreate((char*)name);
 }
 
 //------------------------------------------------------------------------------
-const char* QoreEncoding_to_SybaseName(QoreEncoding *enc)
+const char* QoreEncoding_to_SybaseName(const QoreEncoding *enc)
 {
-  rev_encoding_map_t::const_iterator it = encoding_rmap.find(enc);
-  if (it != encoding_rmap.end()) return it->second;
-  return 0;
+   rev_encoding_map_t::const_iterator it = encoding_rmap.find(enc);
+   if (it != encoding_rmap.end()) return it->second;
+   return 0;
 }
 
 #ifdef DEBUG

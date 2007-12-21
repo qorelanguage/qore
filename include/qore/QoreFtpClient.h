@@ -86,14 +86,16 @@ class QoreFtpClient : public LockedObject
       DLLLOCAL QoreFtpClient& operator=(const QoreFtpClient&);
 
    public:
-      DLLEXPORT QoreFtpClient(class QoreString *url, class ExceptionSink *xsink);
+      DLLEXPORT QoreFtpClient(const QoreString *url, class ExceptionSink *xsink);
       DLLEXPORT ~QoreFtpClient();
       DLLEXPORT int connect(class ExceptionSink *xsink);
       DLLEXPORT int disconnect();
       DLLEXPORT int cwd(const char *dir, class ExceptionSink *xsink);
+      // caller owns QoreString returned
       DLLEXPORT class QoreString *pwd(class ExceptionSink *xsink);
       DLLEXPORT int put(const char *localpath, const char *remotename, class ExceptionSink *xsink);
       DLLEXPORT int get(const char *remotepath, const char *localname, class ExceptionSink *xsink);
+      // caller owns QoreString returned
       DLLEXPORT class QoreString *list(const char *path, bool long_list, class ExceptionSink *xsink);
       DLLEXPORT int del(const char *file, class ExceptionSink *xsink);
       //DLLEXPORT int cdup(class ExceptionSink *xsink);
@@ -101,10 +103,11 @@ class QoreFtpClient : public LockedObject
       //DLLEXPORT int mkdir(char *dir, class ExceptionSink *xsink);
       //DLLEXPORT int rmdir(char *dir, class ExceptionSink *xsink);
       DLLEXPORT int getPort() const;
-      DLLEXPORT char *getUserName() const;
-      DLLEXPORT char *getPassword() const;
-      DLLEXPORT char *getHostName() const;
-      DLLEXPORT void setURL(class QoreString *url, class ExceptionSink *xsink);
+      DLLEXPORT const char *getUserName() const;
+      DLLEXPORT const char *getPassword() const;
+      DLLEXPORT const char *getHostName() const;
+      DLLEXPORT void setURL(const QoreString *url, class ExceptionSink *xsink);
+      // caller owns the QoreString returned
       DLLEXPORT class QoreString *getURL() const;
       DLLEXPORT void setPort(int p);
       DLLEXPORT void setUserName(const char *u); 

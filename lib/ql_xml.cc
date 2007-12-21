@@ -196,7 +196,7 @@ inline xml_stack::xml_stack()
 
 } // anonymous namespace
 
-static void makeXMLString(QoreString *str, QoreHash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink);
+static void makeXMLString(QoreString *str, QoreHash *h, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink);
 
 static void concatSimpleValue(QoreString *str, QoreNode *n, class ExceptionSink *xsink)
 {
@@ -249,7 +249,7 @@ static void concatSimpleCDataValue(QoreString *str, QoreNode *n, class Exception
    }
 }
 
-static void addXMLElement(const char *key, QoreString *str, QoreNode *n, int indent, const char *node, class QoreEncoding *ccs, int format, ExceptionSink *xsink)
+static void addXMLElement(const char *key, QoreString *str, QoreNode *n, int indent, const char *node, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    //tracein("addXMLElement()");
 
@@ -412,7 +412,7 @@ static void addXMLElement(const char *key, QoreString *str, QoreNode *n, int ind
    //traceout("addXMLElement()");
 }
 
-static void makeXMLString(QoreString *str, QoreHash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink)
+static void makeXMLString(QoreString *str, QoreHash *h, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink)
 {
    tracein("makeXMLString()");
    HashIterator hi(h);
@@ -490,7 +490,7 @@ static class QoreNode *f_makeXMLString(const QoreNode *params, ExceptionSink *xs
 {
    class QoreNode *pstr, *pobj, *pcs;
    int i;
-   class QoreEncoding *ccs;
+   const QoreEncoding *ccs;
 
    tracein("f_makeXMLString()");
    if ((pobj = test_param(params, NT_HASH, 0)) && (pobj->val.hash->size() == 1))
@@ -556,7 +556,7 @@ static class QoreNode *f_makeFormattedXMLString(const QoreNode *params, Exceptio
       i = 2;
    }
 
-   class QoreEncoding *ccs;
+   const QoreEncoding *ccs;
    if ((pcs = test_param(params, NT_STRING, i)))
       ccs = QEM.findCreate(pcs->val.String);
    else
@@ -589,7 +589,7 @@ static class QoreNode *f_makeXMLFragment(const QoreNode *params, ExceptionSink *
    if (!pobj)
       return NULL;
 
-   class QoreEncoding *ccs;
+   const QoreEncoding *ccs;
    if ((pcs = test_param(params, NT_STRING, 1)))
       ccs = QEM.findCreate(pcs->val.String);
    else
@@ -612,7 +612,7 @@ static class QoreNode *f_makeFormattedXMLFragment(const QoreNode *params, Except
    if (!pobj)
       return NULL;
 
-   class QoreEncoding *ccs;
+   const QoreEncoding *ccs;
    if ((pcs = test_param(params, NT_STRING, 1)))
       ccs = QEM.findCreate(pcs->val.String->getBuffer());
    else
@@ -625,9 +625,9 @@ static class QoreNode *f_makeFormattedXMLFragment(const QoreNode *params, Except
    return rv;
 }
 
-static void addXMLRPCValue(QoreString *str, QoreNode *n, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink);
+static void addXMLRPCValue(QoreString *str, QoreNode *n, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink);
 
-static inline void addXMLRPCValueInternHash(QoreString *str, QoreHash *h, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink)
+static inline void addXMLRPCValueInternHash(QoreString *str, QoreHash *h, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink)
 {
    str->concat("<struct>");
    if (format) str->concat('\n');
@@ -684,7 +684,7 @@ static inline void addXMLRPCValueInternHash(QoreString *str, QoreHash *h, int in
    //if (format) str->concat('\n');
 }
 
-static void addXMLRPCValueIntern(QoreString *str, QoreNode *n, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink)
+static void addXMLRPCValueIntern(QoreString *str, QoreNode *n, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink)
 {
    if (n->type == NT_BOOLEAN)
       str->sprintf("<boolean>%d</boolean>", n->val.boolval);
@@ -770,7 +770,7 @@ static void addXMLRPCValueIntern(QoreString *str, QoreNode *n, int indent, class
    }
 }
 
-static void addXMLRPCValue(QoreString *str, QoreNode *n, int indent, class QoreEncoding *ccs, int format, class ExceptionSink *xsink)
+static void addXMLRPCValue(QoreString *str, QoreNode *n, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink)
 {
    tracein("addXMLRPCValue()");
 
@@ -800,7 +800,7 @@ static void addXMLRPCValue(QoreString *str, QoreNode *n, int indent, class QoreE
    traceout("addXMLRPCValue()");
 }
 
-class QoreString *makeXMLRPCCallString(class QoreEncoding *ccs, const QoreNode *params, ExceptionSink *xsink)
+class QoreString *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p;
 
@@ -863,7 +863,7 @@ static class QoreNode *f_makeXMLRPCCallString(const QoreNode *params, ExceptionS
 }
 
 // makeXMLRPCCallStringArgs(string (function name), list of params)
-class QoreString *makeXMLRPCCallStringArgs(class QoreEncoding *ccs, const QoreNode *params, ExceptionSink *xsink)
+class QoreString *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
 
@@ -939,7 +939,7 @@ static class QoreNode *f_makeXMLRPCCallStringArgs(const QoreNode *params, Except
    return str ? new QoreNode(str) : NULL;
 }
 
-static inline class QoreString *getXmlString(xmlTextReader *reader, class QoreEncoding *id, class ExceptionSink *xsink)
+static inline class QoreString *getXmlString(xmlTextReader *reader, const QoreEncoding *id, class ExceptionSink *xsink)
 {
    class QoreString *rv;
    if (id == QCS_UTF8)
@@ -973,7 +973,7 @@ static bool keys_are_equal(const char *k1, const char *k2, bool &get_value)
    return false;
 }
 
-static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncoding *data_ccsid, ExceptionSink *xsink)
+static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncoding *data_ccsid, ExceptionSink *xsink)
 {
    tracein("getXMLData()");
    int rc = 1;
@@ -1182,7 +1182,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, class QoreEncodi
    return rc;
 }
 
-static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, class QoreEncoding *data_ccsid, bool read_next, ExceptionSink *xsink);
+static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, const QoreEncoding *data_ccsid, bool read_next, ExceptionSink *xsink);
 
 static inline int qore_xmlRead(xmlTextReader *reader, class ExceptionSink *xsink)
 {
@@ -1250,7 +1250,7 @@ static inline int qore_xmlCheckName(xmlTextReader *reader, char *member, class E
    return 0;
 }
 
-static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, class QoreEncoding *data_ccsid, ExceptionSink *xsink)
+static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, const QoreEncoding *data_ccsid, ExceptionSink *xsink)
 {
    int nt;
 
@@ -1394,7 +1394,7 @@ static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, class Q
    }
 }
 
-static void getXMLRPCArray(xmlTextReader *reader, class XmlRpcValue *v, class QoreEncoding *data_ccsid, ExceptionSink *xsink)
+static void getXMLRPCArray(xmlTextReader *reader, class XmlRpcValue *v, const QoreEncoding *data_ccsid, ExceptionSink *xsink)
 {
    int nt;
    int index = 0;
@@ -1495,7 +1495,7 @@ static void getXMLRPCArray(xmlTextReader *reader, class XmlRpcValue *v, class Qo
       xsink->raiseException("XML-RPC-PARSE-ARRAY-ERROR", "extra data in array, expecting array close tag");
 }
 
-static void getXMLRPCParams(xmlTextReader *reader, class XmlRpcValue *v, class QoreEncoding *data_ccsid, ExceptionSink *xsink)
+static void getXMLRPCParams(xmlTextReader *reader, class XmlRpcValue *v, const QoreEncoding *data_ccsid, ExceptionSink *xsink)
 {
    int nt;
    int index = 0;
@@ -1598,7 +1598,7 @@ static void getXMLRPCParams(xmlTextReader *reader, class XmlRpcValue *v, class Q
    }
 }
 
-static void getXMLRPCString(xmlTextReader *reader, class XmlRpcValue *v, class QoreEncoding *data_ccsid, ExceptionSink *xsink)
+static void getXMLRPCString(xmlTextReader *reader, class XmlRpcValue *v, const QoreEncoding *data_ccsid, ExceptionSink *xsink)
 {
    int nt;
 
@@ -1832,7 +1832,7 @@ static void doEmptyValue(class XmlRpcValue *v, char *name, int depth, class Exce
       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "unknown XML-RPC type '%s' at level %d", name, depth);
 }
 
-static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, class QoreEncoding *data_ccsid, bool read_next, ExceptionSink *xsink)
+static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, const QoreEncoding *data_ccsid, bool read_next, ExceptionSink *xsink)
 {
    int nt = qore_xmlTextReaderNodeType(reader);
    if (nt == -1)
@@ -2116,7 +2116,7 @@ static class QoreNode *f_parseXML(const QoreNode *params, ExceptionSink *xsink)
 
    printd(5, "parseXML(%s)\n", p0->val.String->getBuffer());
 
-   class QoreEncoding *ccsid;
+   const QoreEncoding *ccsid;
    if ((p1 = test_param(params, NT_STRING, 1)))
       ccsid = QEM.findCreate(p1->val.String);
    else
@@ -2154,7 +2154,7 @@ static class QoreNode *f_parseXML(const QoreNode *params, ExceptionSink *xsink)
    return xstack.getVal();
 }
 
-class QoreString *makeXMLQoreString(QoreNode *pstr, QoreNode *pobj, int format, class QoreEncoding *ccsid, bool fragment, class ExceptionSink *xsink)
+class QoreString *makeXMLQoreString(QoreNode *pstr, QoreNode *pobj, int format, const QoreEncoding *ccsid, bool fragment, class ExceptionSink *xsink)
 {
    xmlBufferPtr buf = xmlBufferCreate();
    if (!buf)
@@ -2254,7 +2254,7 @@ static class QoreNode *f_makeXMLStringNew(const QoreNode *params, ExceptionSink 
       i = 2;
    }
 
-   class QoreEncoding *ccs;
+   const QoreEncoding *ccs;
    if ((pcs = test_param(params, NT_STRING, i)))
       ccs = QEM.findCreate(pcs->val.String);
    else
@@ -2291,7 +2291,7 @@ static class QoreNode *f_makeFormattedXMLStringNew(const QoreNode *params, Excep
       }
       i = 2;
    }
-   class QoreEncoding *ccs;
+   const QoreEncoding *ccs;
    if ((pcs = test_param(params, NT_STRING, i)))
       ccs = QEM.findCreate(pcs->val.String);
    else
@@ -2522,7 +2522,7 @@ static class QoreNode *f_makeXMLRPCCallStringNew(const QoreNode *params, Excepti
 		     "expecting method name as first parameter");
       return NULL;
    }
-   class QoreEncoding *ccs = QCS_DEFAULT;
+   const QoreEncoding *ccs = QCS_DEFAULT;
 
    xmlBufferPtr buf = xmlBufferCreate();
    if (!buf)
@@ -2664,7 +2664,7 @@ static class QoreNode *f_makeXMLRPCFaultResponseString(const QoreNode *params, E
       return NULL;
    }
    int code = p0 ? p0->getAsInt() : 0;
-   class QoreEncoding *ccsid = p1->val.String->getEncoding();
+   const QoreEncoding *ccsid = p1->val.String->getEncoding();
 
    // for speed, the XML is created directly here
    QoreString *str = new QoreString(ccsid);
@@ -2689,7 +2689,7 @@ static class QoreNode *f_makeFormattedXMLRPCFaultResponseString(const QoreNode *
       return NULL;
    }
    int code = p0 ? p0->getAsInt() : 0;
-   class QoreEncoding *ccsid = p1->val.String->getEncoding();
+   const QoreEncoding *ccsid = p1->val.String->getEncoding();
    //printd(0, "ccsid=%016x (%s) (%s) code=%d\n", ccsid, ccsid->getCode(), p1->val.String->getBuffer(), code);
 
    // for speed, the XML is created directly here
@@ -2708,7 +2708,7 @@ static class QoreNode *f_makeXMLRPCResponseString(const QoreNode *params, Except
    tracein("f_makeXMLRPCResponseString()");
 
    QoreNode *p;
-   class QoreEncoding *ccs = QCS_DEFAULT;
+   const QoreEncoding *ccs = QCS_DEFAULT;
 
    if (!num_params(params))
    {
@@ -2745,7 +2745,7 @@ static class QoreNode *f_makeXMLRPCResponseString(const QoreNode *params, Except
 static class QoreNode *f_makeXMLRPCValueString(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p;
-   class QoreEncoding *ccs = QCS_DEFAULT;
+   const QoreEncoding *ccs = QCS_DEFAULT;
 
    tracein("f_makeXMLRPCValueString()");
    if (!(p = get_param(params, 0)))
@@ -2765,7 +2765,7 @@ static class QoreNode *f_makeXMLRPCValueString(const QoreNode *params, Exception
 static class QoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
-   class QoreEncoding *ccs = QCS_DEFAULT;
+   const QoreEncoding *ccs = QCS_DEFAULT;
 
    tracein("f_makeFormattedXMLRPCCallStringArgs()");
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -2830,7 +2830,7 @@ static class QoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreNode *param
 static class QoreNode *f_makeFormattedXMLRPCCallString(const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p;
-   class QoreEncoding *ccs = QCS_DEFAULT;
+   const QoreEncoding *ccs = QCS_DEFAULT;
 
    tracein("f_makeFormattedXMLRPCCallString()");
    if (!(p0 = test_param(params, NT_STRING, 0)))
@@ -2875,7 +2875,7 @@ static class QoreNode *f_makeFormattedXMLRPCResponseString(const QoreNode *param
    tracein("f_makeFormattedXMLRPCResponseString()");
 
    QoreNode *p;
-   class QoreEncoding *ccs = QCS_DEFAULT;
+   const QoreEncoding *ccs = QCS_DEFAULT;
 
    int ls = num_params(params);
    if (!ls)
@@ -2916,7 +2916,7 @@ static class QoreNode *f_makeFormattedXMLRPCValueString(const QoreNode *params, 
    tracein("f_makeFormattedXMLRPCValueString()");
 
    QoreNode *p;
-   class QoreEncoding *ccs = QCS_DEFAULT;
+   const QoreEncoding *ccs = QCS_DEFAULT;
 
    if (!(p = get_param(params, 0)))
    {
@@ -2946,7 +2946,7 @@ static class QoreNode *f_makeXMLFragmentNew(const QoreNode *params, ExceptionSin
    if (!pobj)
       return NULL;
 
-   class QoreEncoding *ccs;
+   const QoreEncoding *ccs;
    if ((pcs = test_param(params, NT_STRING, 1)))
       ccs = QEM.findCreate(pcs->val.String);
    else
@@ -2966,7 +2966,7 @@ static class QoreNode *f_makeFormattedXMLFragmentNew(const QoreNode *params, Exc
    if (!pobj)
       return NULL;
 
-   class QoreEncoding *ccs;
+   const QoreEncoding *ccs;
    if ((pcs = test_param(params, NT_STRING, 1)))
       ccs = QEM.findCreate(pcs->val.String);
    else
@@ -2985,7 +2985,7 @@ static class QoreNode *f_parseXMLRPCValue(const QoreNode *params, ExceptionSink 
 
    printd(5, "parseXMLRPCValue(%s)\n", p0->val.String->getBuffer());
 
-   class QoreEncoding *ccsid;
+   const QoreEncoding *ccsid;
    if ((p1 = test_param(params, NT_STRING, 1)))
       ccsid = QEM.findCreate(p1->val.String->getBuffer());
    else
@@ -3035,7 +3035,7 @@ static class QoreNode *f_parseXMLRPCCall(const QoreNode *params, ExceptionSink *
 
    printd(5, "parseXMLRPCCall(%s)\n", p0->val.String->getBuffer());
 
-   class QoreEncoding *ccsid;
+   const QoreEncoding *ccsid;
    if ((p1 = test_param(params, NT_STRING, 1)))
       ccsid = QEM.findCreate(p1->val.String);
    else
@@ -3163,7 +3163,7 @@ static class QoreNode *f_parseXMLRPCCall(const QoreNode *params, ExceptionSink *
    return new QoreNode(h.getHash());
 }
 
-class QoreNode *parseXMLRPCResponse(class QoreString *msg, class QoreEncoding *ccsid, ExceptionSink *xsink)
+class QoreNode *parseXMLRPCResponse(class QoreString *msg, const QoreEncoding *ccsid, ExceptionSink *xsink)
 {
    printd(5, "parseXMLRPCCall(%s)\n", msg->getBuffer());
 
@@ -3330,7 +3330,7 @@ static class QoreNode *f_parseXMLRPCResponse(const QoreNode *params, ExceptionSi
 
    printd(5, "parseXMLRPCCall(%s)\n", p0->val.String->getBuffer());
 
-   class QoreEncoding *ccsid;
+   const QoreEncoding *ccsid;
    if ((p1 = test_param(params, NT_STRING, 1)))
       ccsid = QEM.findCreate(p1->val.String);
    else

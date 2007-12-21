@@ -37,8 +37,8 @@ class ExceptionSink;
 class QoreNode;
 class QoreEncoding;
 
-extern QoreEncoding* name_to_QoreEncoding(const char* name);
-extern const char* QoreEncoding_to_SybaseName(QoreEncoding *enc);
+extern const QoreEncoding* name_to_QoreEncoding(const char* name);
+extern const char* QoreEncoding_to_SybaseName(const QoreEncoding *enc);
 
 //------------------------------------------------------------------------------
 // Return lowercased encoding name in Sybase format (e.g. utf8, iso_1).

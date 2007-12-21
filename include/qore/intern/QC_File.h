@@ -37,7 +37,7 @@ class File : public AbstractPrivateData, public QoreFile
       DLLLOCAL virtual ~File() {}
 
    public:
-      DLLLOCAL inline File(class QoreEncoding *cs) : QoreFile(cs) {}
+      DLLLOCAL inline File(const class QoreEncoding *cs) : QoreFile(cs) {}
 };
 
 static inline void addFileConstants(class QoreNamespace *ns)

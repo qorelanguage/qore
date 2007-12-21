@@ -89,35 +89,37 @@ public:
 };
 
 // case-insensitive maps for encodings
-typedef std::map<const char *, struct QoreEncoding *, class ltcstrcase> encoding_map_t;
+typedef std::map<const char *, QoreEncoding *, class ltcstrcase> encoding_map_t;
+typedef std::map<const char *, const QoreEncoding *, class ltcstrcase> const_encoding_map_t;
 
 // there will always only be one of these, therefore all members and methods are static
 class QoreEncodingManager
 {
    private:
-      DLLLOCAL static encoding_map_t emap, amap;
+      DLLLOCAL static encoding_map_t emap;
+      DLLLOCAL static const_encoding_map_t amap;
       DLLLOCAL static class LockedObject mutex;
    
-      DLLLOCAL static struct QoreEncoding *addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc);
-      DLLLOCAL static struct QoreEncoding *findUnlocked(const char *name);
+      DLLLOCAL static const QoreEncoding *addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc);
+      DLLLOCAL static const QoreEncoding *findUnlocked(const char *name);
 
    public:
-      DLLEXPORT static void addAlias(struct QoreEncoding *qcs, const char *alias);
-      DLLEXPORT static struct QoreEncoding *findCreate(const char *name);
-      DLLEXPORT static struct QoreEncoding *findCreate(class QoreString *str);
+      DLLEXPORT static void addAlias(const QoreEncoding *qcs, const char *alias);
+      DLLEXPORT static const QoreEncoding *findCreate(const char *name);
+      DLLEXPORT static const QoreEncoding *findCreate(const QoreString *str);
       DLLEXPORT static void showEncodings();
       DLLEXPORT static void showAliases();
       DLLEXPORT static void init(const char *def);
 
       DLLLOCAL QoreEncodingManager();
       DLLLOCAL ~QoreEncodingManager();
-      DLLLOCAL static struct QoreEncoding *add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc);
+      DLLLOCAL static const QoreEncoding *add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc);
 };
 
 DLLEXPORT extern QoreEncodingManager QEM;
 
 // builtin character encodings
-DLLEXPORT extern QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
+DLLEXPORT extern const QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
    *QCS_ISO_8859_2, *QCS_ISO_8859_3, *QCS_ISO_8859_4, *QCS_ISO_8859_5,
    *QCS_ISO_8859_6, *QCS_ISO_8859_7, *QCS_ISO_8859_8, *QCS_ISO_8859_9,
    *QCS_ISO_8859_10, *QCS_ISO_8859_11, *QCS_ISO_8859_13, *QCS_ISO_8859_14,

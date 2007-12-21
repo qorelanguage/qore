@@ -26,11 +26,11 @@
 
 #include <qore/Qore.h>
 
-typedef std::map<class QoreEncoding *, const char *> rev_encoding_map_t;
+typedef std::map<const QoreEncoding *, const char *> rev_encoding_map_t;
 
 class QorePGMapper {
    private:
-      DLLLOCAL static encoding_map_t map;
+      DLLLOCAL static const_encoding_map_t map;
       DLLLOCAL static rev_encoding_map_t rmap;
       
       DLLLOCAL QorePGMapper() {}
@@ -39,8 +39,8 @@ class QorePGMapper {
    public:
       // static functions
       DLLLOCAL static void static_init();
-      DLLLOCAL static class QoreEncoding *getQoreEncoding(const char *enc);
-      DLLLOCAL static const char *getPGEncoding(QoreEncoding *enc);
+      DLLLOCAL static const QoreEncoding *getQoreEncoding(const char *enc);
+      DLLLOCAL static const char *getPGEncoding(const QoreEncoding *enc);
 };
 
 #endif

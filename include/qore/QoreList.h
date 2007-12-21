@@ -148,7 +148,22 @@ class ListIterator
       DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
       DLLEXPORT bool first() const;
       DLLEXPORT bool last() const;
-      //void setValue(class QoreNode *val, class ExceptionSink *xsink);
+      //DLLEXPORT void setValue(class QoreNode *val, class ExceptionSink *xsink) const;
+};
+
+class ConstListIterator
+{
+   private:
+      const QoreList* l;
+      int pos;
+   
+   public:
+      DLLEXPORT ConstListIterator(const QoreList *lst);
+      DLLEXPORT bool next();
+      DLLEXPORT class QoreNode *getValue() const;
+      DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT bool first() const;
+      DLLEXPORT bool last() const;
 };
 
 #endif

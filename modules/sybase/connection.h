@@ -46,9 +46,9 @@ class connection
       CS_CONTEXT* m_context;
       CS_CONNECTION* m_connection;
       bool connected;
-      class QoreEncoding *enc;
+      const QoreEncoding *enc;
 
-      class QoreNode *exec_intern(class QoreString *cmd_text, class QoreList *qore_args, bool need_list, class ExceptionSink* xsink);
+      class QoreNode *exec_intern(class QoreString *cmd_text, const QoreList *qore_args, bool need_list, class ExceptionSink* xsink);
 
 public:
       DLLLOCAL connection();
@@ -56,7 +56,7 @@ public:
 
       // to be called after the object is constructed
       // returns 0=OK, -1=error (exception raised)
-      DLLLOCAL int init(const char *username, const char *password, const char *dbname, const char *db_encoding, class QoreEncoding *n_enc, ExceptionSink* xsink);
+      DLLLOCAL int init(const char *username, const char *password, const char *dbname, const char *db_encoding, const QoreEncoding *n_enc, ExceptionSink* xsink);
       // returns 0=OK, -1=error (exception raised)
       DLLLOCAL int purge_messages(class ExceptionSink *xsink);
       // returns -1
@@ -68,12 +68,12 @@ public:
       // returns 0=OK, -1=error (exception raised)
       DLLLOCAL int rollback(class ExceptionSink *xsink);
       
-      DLLLOCAL class QoreNode *exec(QoreString *cmd, QoreList *parameters, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *exec_rows(QoreString *cmd, QoreList *parameters, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *exec(const QoreString *cmd, const QoreList *parameters, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *exec_rows(const QoreString *cmd, const QoreList *parameters, class ExceptionSink *xsink);
 
       DLLLOCAL CS_CONNECTION* getConnection() const { return m_connection; }
       DLLLOCAL CS_CONTEXT* getContext() const { return m_context; }
-      DLLLOCAL class QoreEncoding *getEncoding() const { return enc; }
+      DLLLOCAL const QoreEncoding *getEncoding() const { return enc; }
 
       DLLLOCAL class QoreString *get_client_version(class ExceptionSink *xsink);
       DLLLOCAL QoreNode *get_server_version(class ExceptionSink *xsink);

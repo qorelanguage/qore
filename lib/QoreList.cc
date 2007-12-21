@@ -342,12 +342,6 @@ void QoreList::splice(int offset, int len, class QoreNode *l, class ExceptionSin
    splice_intern(offset, len, l, xsink);
 }
 
-class QoreNode *ListIterator::eval(class ExceptionSink *xsink) const
-{
-   // QoreList::eval_entry() checks if the offset is < 0 already
-   return l->eval_entry(pos, xsink);
-}
-
 static int compareListEntries(class QoreNode *l, class QoreNode *r)
 {
    //printd(5, "compareListEntries(%08p, %08p) (%s %s)\n", l, r, l->type == NT_STRING ? l->val.String->getBuffer() : "?", r->type == NT_STRING ? r->val.String->getBuffer() : "?");
@@ -883,3 +877,43 @@ bool ListIterator::first() const
 {
    return !pos; 
 } 
+
+class QoreNode *ListIterator::eval(class ExceptionSink *xsink) const
+{
+   // QoreList::eval_entry() checks if the offset is < 0 already
+   return l->eval_entry(pos, xsink);
+}
+
+ConstListIterator::ConstListIterator(const QoreList *lst) : l(lst), pos(-1)
+{ 
+}
+
+bool ConstListIterator::next() 
+{
+   if (l->size() == 0) return false; // empty
+   if (++pos >= l->size()) return false; // finished
+   return true;
+}
+
+class QoreNode *ConstListIterator::getValue() const
+{
+   if (pos < 0)
+      return NULL;
+   return l->retrieve_entry(pos);
+}
+
+bool ConstListIterator::last() const
+{
+   return (bool)(pos == (l->size() - 1)); 
+} 
+
+bool ConstListIterator::first() const
+{
+   return !pos; 
+} 
+
+class QoreNode *ConstListIterator::eval(class ExceptionSink *xsink) const
+{
+   // QoreList::eval_entry() checks if the offset is < 0 already
+   return l->eval_entry(pos, xsink);
+}

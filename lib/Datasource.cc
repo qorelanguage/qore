@@ -32,8 +32,8 @@ struct qore_ds_private {
       bool in_transaction;
       bool isopen;
       bool autocommit;
-      class DBIDriver *dsl;
-      class QoreEncoding *qorecharset;
+      mutable class DBIDriver *dsl;
+      const QoreEncoding *qorecharset;
       void *private_data;               // driver private data per connection
       
       // for pending connection values
@@ -151,7 +151,7 @@ void Datasource::setAutoCommit(bool ac)
    priv->autocommit = ac;
 }
 
-QoreNode *Datasource::select(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
+QoreNode *Datasource::select(const QoreString *query_str, const QoreList *args, ExceptionSink *xsink)
 {
    QoreNode *rv = priv->dsl->select(this, query_str, args, xsink);
    if (priv->autocommit)
@@ -159,7 +159,7 @@ QoreNode *Datasource::select(class QoreString *query_str, class QoreList *args, 
    return rv;
 }
 
-QoreNode *Datasource::selectRows(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
+QoreNode *Datasource::selectRows(const QoreString *query_str, const QoreList *args, ExceptionSink *xsink)
 {
    QoreNode *rv = priv->dsl->selectRows(this, query_str, args, xsink);
    if (priv->autocommit)
@@ -167,7 +167,7 @@ QoreNode *Datasource::selectRows(class QoreString *query_str, class QoreList *ar
    return rv;
 }
 
-QoreNode *Datasource::exec(class QoreString *query_str, class QoreList *args, ExceptionSink *xsink)
+QoreNode *Datasource::exec(const QoreString *query_str, const QoreList *args, ExceptionSink *xsink)
 {
    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
       return NULL;
@@ -339,7 +339,7 @@ const char *Datasource::getHostName() const
    return priv->hostname.empty() ? NULL : priv->hostname.c_str();
 }
 
-class QoreEncoding *Datasource::getQoreEncoding() const
+const QoreEncoding *Datasource::getQoreEncoding() const
 {
    return priv->qorecharset;
 }
@@ -354,7 +354,7 @@ void Datasource::setQoreEncoding(const char *name)
    priv->qorecharset = QEM.findCreate(name);
 }
 
-void Datasource::setQoreEncoding(class QoreEncoding *enc)
+void Datasource::setQoreEncoding(const QoreEncoding *enc)
 {
    priv->qorecharset = enc;
 }
@@ -399,7 +399,7 @@ class QoreNode *Datasource::getServerVersion(class ExceptionSink *xsink)
    return priv->dsl->getServerVersion(this, xsink);
 }
 
-class QoreNode *Datasource::getClientVersion(class ExceptionSink *xsink)
+class QoreNode *Datasource::getClientVersion(class ExceptionSink *xsink) const
 {
    return priv->dsl->getClientVersion(this, xsink);
 }

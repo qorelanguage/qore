@@ -145,7 +145,7 @@ QoreURL::QoreURL(const char *url) : priv(new qore_url_private)
    parse(url);
 }
 
-QoreURL::QoreURL(class QoreString *url) : priv(new qore_url_private)
+QoreURL::QoreURL(const QoreString *url) : priv(new qore_url_private)
 {
    parse(url->getBuffer());
 }
@@ -163,7 +163,7 @@ int QoreURL::parse(const char *url)
    return isValid() ? 0 : -1;
 }
 
-int QoreURL::parse(class QoreString *url)
+int QoreURL::parse(const QoreString *url)
 {
    priv->reset();
    priv->zero();
@@ -176,27 +176,27 @@ bool QoreURL::isValid() const
    return priv->host && priv->host->strlen();
 }
 
-class QoreString *QoreURL::getProtocol() const
+const QoreString *QoreURL::getProtocol() const
 {
    return priv->protocol;
 }
 
-class QoreString *QoreURL::getUserName() const
+const QoreString *QoreURL::getUserName() const
 {
    return priv->username;
 }
 
-class QoreString *QoreURL::getPassword() const
+const QoreString *QoreURL::getPassword() const
 {
    return priv->password;
 }
 
-class QoreString *QoreURL::getPath() const
+const QoreString *QoreURL::getPath() const
 {
    return priv->path;
 }
 
-class QoreString *QoreURL::getHost() const
+const QoreString *QoreURL::getHost() const
 {
    return priv->host;
 }

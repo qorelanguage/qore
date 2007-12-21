@@ -105,7 +105,7 @@ void DatasourcePool::destructor(class ExceptionSink *xsink)
 }
 
 #ifdef DEBUG
-void DatasourcePool::addSQL(char *cmd, QoreString *sql)
+void DatasourcePool::addSQL(char *cmd, const QoreString *sql)
 {
    class QoreString *str = (QoreString *)pthread_getspecific(thread_local_storage);
    if (!str)
@@ -220,7 +220,7 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, class ExceptionSink *xsink
    return ds;
 }
 
-class QoreNode *DatasourcePool::select(class QoreString *sql, QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::select(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class QoreNode *rv = NULL;
@@ -243,7 +243,7 @@ class QoreNode *DatasourcePool::select(class QoreString *sql, QoreList *args, cl
 }
 
 // FIXME: should be a native DBI driver method
-class QoreNode *DatasourcePool::selectRow(class QoreString *sql, QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class QoreNode *rv;
@@ -277,7 +277,7 @@ class QoreNode *DatasourcePool::selectRow(class QoreString *sql, QoreList *args,
    return rv;
 }
 
-class QoreNode *DatasourcePool::selectRows(class QoreString *sql, QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class QoreNode *rv;
@@ -316,7 +316,7 @@ int DatasourcePool::beginTransaction(class ExceptionSink *xsink)
    return rc;
 }
 
-class QoreNode *DatasourcePool::exec(class QoreString *sql, QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::exec(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class Datasource *ds = getDS(new_ds, xsink);
@@ -439,7 +439,7 @@ class QoreNode *DatasourcePool::getPendingHostName() const
    return pool[0]->getPendingHostName();
 }
 
-class QoreEncoding *DatasourcePool::getQoreEncoding() const
+const QoreEncoding *DatasourcePool::getQoreEncoding() const
 {
    return pool[0]->getQoreEncoding();
 }

@@ -34,7 +34,7 @@ static void FILE_system_constructor(class QoreObject *self, const QoreNode *para
 static void FILE_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    // get character set name if available
-   class QoreEncoding *cs;
+   const QoreEncoding *cs;
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (p0)
    {
@@ -57,7 +57,7 @@ static class QoreNode *FILE_open(class QoreObject *self, class File *f, const Qo
 {
    QoreNode *p0, *p;
    int flags, mode;
-   class QoreEncoding *charset;
+   const QoreEncoding *charset;
    p0 = test_param(params, NT_STRING, 0);
    if (!p0)
    {
@@ -89,7 +89,7 @@ static class QoreNode *FILE_open2(class QoreObject *self, class File *f, const Q
 {
    QoreNode *p0, *p;
    int flags, mode;
-   class QoreEncoding *charset;
+   const QoreEncoding *charset;
    p0 = test_param(params, NT_STRING, 0);
    if (!p0)
    {
@@ -481,7 +481,7 @@ static class QoreNode *FILE_readLine(class QoreObject *self, class File *f, cons
 
 static class QoreNode *FILE_setCharset(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreEncoding *charset;
+   const QoreEncoding *charset;
    QoreNode *p0 = test_param(params, NT_STRING, 0);
    if (p0)
       charset = QEM.findCreate(p0->val.String);

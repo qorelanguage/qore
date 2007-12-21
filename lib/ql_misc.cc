@@ -427,7 +427,7 @@ class BinaryObject *qore_deflate(const void *ptr, unsigned long len, int level, 
    return new BinaryObject(buf, bsize - c_stream.avail_out);
 }
 
-class QoreString *qore_inflate_to_string(class BinaryObject *b, class QoreEncoding *enc, class ExceptionSink *xsink)
+class QoreString *qore_inflate_to_string(class BinaryObject *b, const QoreEncoding *enc, class ExceptionSink *xsink)
 {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
@@ -611,7 +611,7 @@ class BinaryObject *qore_gzip(const void *ptr, unsigned long len, int level, Exc
    return new BinaryObject(buf, bsize - c_stream.avail_out);
 }
 
-class QoreString *qore_gunzip_to_string(class BinaryObject *bin, class QoreEncoding *enc, ExceptionSink *xsink)
+class QoreString *qore_gunzip_to_string(class BinaryObject *bin, const QoreEncoding *enc, ExceptionSink *xsink)
 {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
@@ -770,7 +770,7 @@ static class QoreNode *f_uncompress_to_string(const QoreNode *params, ExceptionS
    if (!p0)
       return NULL;
 
-   QoreEncoding *ccsid;
+   const QoreEncoding *ccsid;
    QoreNode *p1 = test_param(params, NT_STRING, 1);
    ccsid = p1 ? QEM.findCreate(p1->val.String) : QCS_DEFAULT;
 
@@ -836,7 +836,7 @@ static class QoreNode *f_gunzip_to_string(const QoreNode *params, ExceptionSink 
    if (!p0)
       return NULL;
 
-   QoreEncoding *ccsid;
+   const QoreEncoding *ccsid;
    QoreNode *p1 = test_param(params, NT_STRING, 1);
    ccsid = p1 ? QEM.findCreate(p1->val.String) : QCS_DEFAULT;
 

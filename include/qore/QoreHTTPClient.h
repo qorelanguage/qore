@@ -84,7 +84,7 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       // returns -1 if an exception was thrown, 0 for OK
       DLLLOCAL int connect_unlocked(class ExceptionSink *xsink);
       DLLLOCAL void disconnect_unlocked();
-      DLLLOCAL class QoreNode *send_internal(const char *meth, const char *mpath, class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *send_internal(const char *meth, const char *mpath, const class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
       DLLLOCAL void setSocketPath();
       DLLLOCAL const char *getMsgPath(const char *mpath, class QoreString &pstr);
       DLLLOCAL class QoreNode *getResponseHeader(const char *meth, const char *mpath, class QoreHash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink);
@@ -102,7 +102,7 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
 
       // set options with a hash, returns -1 if an exception was thrown, 0 for OK
       // NOTE: this function is unlocked and designed only to be called with the constructor
-      DLLEXPORT int setOptions(QoreHash* opts, ExceptionSink* xsink);
+      DLLEXPORT int setOptions(const class QoreHash *opts, ExceptionSink* xsink);
       // useful for c++ derived classes
       DLLEXPORT void setDefaultPort(int prt);
       // useful for c++ derived classes
@@ -113,8 +113,8 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLEXPORT void setTimeout(int to);
       DLLEXPORT int getTimeout() const;
 
-      DLLEXPORT void setEncoding(class QoreEncoding *qe);
-      DLLEXPORT class QoreEncoding *getEncoding() const;
+      DLLEXPORT void setEncoding(const class QoreEncoding *qe);
+      DLLEXPORT const class QoreEncoding *getEncoding() const;
 
       // returns -1 if an exception was thrown, 0 for OK
       DLLEXPORT int setHTTPVersion(const char* version, ExceptionSink* xsink);
@@ -124,9 +124,11 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
 
       // returns -1 if an exception was thrown, 0 for OK
       DLLEXPORT int setURL(const char *url, class ExceptionSink *xsink);
+      // caller owns the QoreString returned
       DLLEXPORT class QoreString *getURL();
 
       DLLEXPORT int setProxyURL(const char *proxy, class ExceptionSink *xsink);
+      // caller owns the QoreString returned
       DLLEXPORT class QoreString *getProxyURL();
       DLLEXPORT void clearProxyURL();
 
@@ -140,17 +142,21 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLEXPORT int getMaxRedirects() const;
 
       DLLEXPORT long verifyPeerCertificate();
-      DLLEXPORT const char* getSSLCipherName();
-      DLLEXPORT const char* getSSLCipherVersion();
+      DLLEXPORT const char *getSSLCipherName();
+      DLLEXPORT const char *getSSLCipherVersion();
       
       // returns -1 if an exception was thrown, 0 for OK
       DLLEXPORT int connect(class ExceptionSink *xsink);
       DLLEXPORT void disconnect();
 
-      DLLEXPORT class QoreNode *send(const char *meth, const char *path, class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *get(const char *path, class QoreHash *headers, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *head(const char *path, class QoreHash *headers, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *post(const char *path, class QoreHash *headers, const void *data, unsigned size, class ExceptionSink *xsink);
+      // caller owns the QoreNode reference returned
+      DLLEXPORT class QoreNode *send(const char *meth, const char *path, const class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      // caller owns the QoreNode reference returned
+      DLLEXPORT class QoreNode *get(const char *path, const class QoreHash *headers, class ExceptionSink *xsink);
+      // caller owns the QoreNode reference returned
+      DLLEXPORT class QoreNode *head(const char *path, const class QoreHash *headers, class ExceptionSink *xsink);
+      // caller owns the QoreNode reference returned
+      DLLEXPORT class QoreNode *post(const char *path, const class QoreHash *headers, const void *data, unsigned size, class ExceptionSink *xsink);
       DLLEXPORT void setDefaultHeaderValue(const char *header, const char *val);
 };
 

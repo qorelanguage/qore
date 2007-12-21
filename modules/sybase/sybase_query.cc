@@ -32,7 +32,7 @@
 #include "sybase_query.h"
 
 // returns 0=OK, -1=error (exception raised)
-int sybase_query::init(QoreString *cmd_text, class QoreList *args, ExceptionSink *xsink)
+int sybase_query::init(QoreString *cmd_text, const QoreList *args, ExceptionSink *xsink)
 {
    m_cmd = cmd_text;
 

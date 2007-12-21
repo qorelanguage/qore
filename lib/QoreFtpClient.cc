@@ -100,7 +100,7 @@ struct qore_ftp_private {
       int mode, port;
       bool secure, secure_data;
 
-      DLLLOCAL qore_ftp_private(class QoreString *url, class ExceptionSink *xsink)
+      DLLLOCAL qore_ftp_private(const QoreString *url, class ExceptionSink *xsink)
       {
 	 control_connected = loggedin = false;
 	 mode = FTP_MODE_UNKNOWN;
@@ -123,7 +123,7 @@ struct qore_ftp_private {
       }
 
       // private unlocked
-      DLLLOCAL void setURLInternal(class QoreString *url_str, class ExceptionSink *xsink)
+      DLLLOCAL void setURLInternal(const QoreString *url_str, class ExceptionSink *xsink)
       {
 	 QoreURL url(url_str);
 	 if (!url.isValid())
@@ -154,7 +154,7 @@ struct qore_ftp_private {
       }
 };
 
-QoreFtpClient::QoreFtpClient(class QoreString *url, class ExceptionSink *xsink) : priv(new qore_ftp_private(url, xsink))
+QoreFtpClient::QoreFtpClient(const QoreString *url, class ExceptionSink *xsink) : priv(new qore_ftp_private(url, xsink))
 {
 }
 
@@ -1045,7 +1045,7 @@ int QoreFtpClient::del(const char *file, class ExceptionSink *xsink)
    return -1;
 }
 
-void QoreFtpClient::setURL(class QoreString *url, class ExceptionSink *xsink)
+void QoreFtpClient::setURL(const QoreString *url, class ExceptionSink *xsink)
 {
    lock();
    priv->setURLInternal(url, xsink);
@@ -1200,17 +1200,17 @@ int QoreFtpClient::getPort() const
    return priv->port; 
 }
 
-char *QoreFtpClient::getUserName() const 
+const char *QoreFtpClient::getUserName() const 
 { 
    return priv->user;
 }
 
-char *QoreFtpClient::getPassword() const 
+const char *QoreFtpClient::getPassword() const 
 { 
    return priv->pass; 
 }
 
-char *QoreFtpClient::getHostName() const 
+const char *QoreFtpClient::getHostName() const 
 { 
    return priv->host; 
 }
