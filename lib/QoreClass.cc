@@ -142,9 +142,9 @@ struct qore_method_private {
       } func;
       bool priv_flag;
       char *name;
-      class QoreClass *parent_class;
+      const QoreClass *parent_class;
 
-      DLLLOCAL qore_method_private(class QoreClass *p_class) : parent_class(p_class)
+      DLLLOCAL qore_method_private(const QoreClass *p_class) : parent_class(p_class)
       {
       }
 
@@ -738,7 +738,7 @@ void QoreMethod::userInit(UserFunction *u, int p)
    priv->priv_flag = p;
 }
 
-QoreMethod::QoreMethod(class QoreClass *p_class) : priv(new qore_method_private(p_class))
+QoreMethod::QoreMethod(const QoreClass *p_class) : priv(new qore_method_private(p_class))
 {
 }
 
@@ -748,7 +748,7 @@ QoreMethod::QoreMethod(UserFunction *u, int p) : priv(new qore_method_private(0)
    userInit(u, p);
 }
 
-QoreMethod::QoreMethod(class QoreClass *p_class, BuiltinMethod *b, bool n_priv) : priv(new qore_method_private(p_class))
+QoreMethod::QoreMethod(const QoreClass *p_class, BuiltinMethod *b, bool n_priv) : priv(new qore_method_private(p_class))
 {
    priv->name = (char *)b->getName();
    priv->type = OTF_BUILTIN;
@@ -776,12 +776,12 @@ const char *QoreMethod::getName() const
    return priv->name;
 }
 
-class QoreClass *QoreMethod::get_class() const
+const QoreClass *QoreMethod::get_class() const
 {
    return priv->parent_class;
 }
 
-void QoreMethod::assign_class(class QoreClass *p_class)
+void QoreMethod::assign_class(const QoreClass *p_class)
 {
    assert(!priv->parent_class);
    priv->parent_class = p_class;
@@ -801,7 +801,7 @@ bool QoreMethod::inMethod(const QoreObject *self) const
    return ::inMethod(priv->func.builtin->getName(), self);
 }
 
-void QoreMethod::evalSystemConstructor(QoreObject *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
+void QoreMethod::evalSystemConstructor(QoreObject *self, const QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
 {
    // type must be OTF_BUILTIN
    priv->func.builtin->evalSystemConstructor(self, args, bcl, bceal, xsink);
@@ -829,7 +829,7 @@ void QoreMethod::parseInitConstructor(class BCList *bcl)
    priv->func.userFunc->statements->parseInit(priv->func.userFunc->params, bcl);
 }
 
-QoreMethod *QoreMethod::copy(class QoreClass *p_class) const
+QoreMethod *QoreMethod::copy(const QoreClass *p_class) const
 {
    class QoreMethod *nof;
    if (priv->type == OTF_USER)
@@ -1061,7 +1061,7 @@ class QoreNode *QoreMethod::eval(QoreObject *self, const QoreNode *args, Excepti
    return rv;
 }
 
-void QoreMethod::evalConstructor(QoreObject *self, QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
+void QoreMethod::evalConstructor(QoreObject *self, const QoreNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
 {
    tracein("QoreMethod::evalConstructor()");
 #ifdef DEBUG
@@ -1278,7 +1278,7 @@ class QoreNode *QoreClass::evalMemberGate(class QoreObject *self, class QoreNode
    return rv;
 }
 
-class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink *xsink) const
+class QoreNode *QoreClass::execConstructor(const QoreNode *args, ExceptionSink *xsink) const
 {
    // create new object
    class QoreObject *o = new QoreObject(this, getProgram());
@@ -1315,7 +1315,7 @@ class QoreNode *QoreClass::execConstructor(QoreNode *args, ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *QoreClass::execSystemConstructor(QoreNode *args, class ExceptionSink *xsink) const
+class QoreNode *QoreClass::execSystemConstructor(const QoreNode *args, class ExceptionSink *xsink) const
 {
    // create new object
    class QoreObject *o = new QoreObject(this, NULL);

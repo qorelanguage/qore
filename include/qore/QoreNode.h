@@ -193,7 +193,7 @@ static inline bool is_null(const class QoreNode *n)
 
 class QoreNodeTypeHelper {
    private:
-      class QoreNode *node;
+      const QoreNode *node;
       bool temp;
 
       // not implemented
@@ -202,8 +202,49 @@ class QoreNodeTypeHelper {
       DLLLOCAL void *operator new(size_t);
 
    public:
-      DLLEXPORT QoreNodeTypeHelper(QoreNode *n, const QoreType *t, class ExceptionSink *xsink);
+      DLLEXPORT QoreNodeTypeHelper(const QoreNode *n, const QoreType *t, class ExceptionSink *xsink);
       DLLEXPORT ~QoreNodeTypeHelper()
+      {
+         if (node && temp)
+            (const_cast<QoreNode *>(node))->deref(NULL);
+      }
+      // to check for an exception in the constructor
+      DLLEXPORT operator bool() const 
+      { 
+         return !temp || node;
+      }
+      DLLEXPORT const class QoreNode *operator*()
+      {
+	 return node;
+      }
+      // FIXME: eliminate when the QoreNode union is eliminated
+      // this is dangerous, but in order for the QoreNode union to be accessible from this
+      // helper class, this function is necessary to implement with the const_cast
+      // we trust that nobody will change a QoreNodeTypeHelper object anyway
+      DLLEXPORT class QoreNode *operator->()
+      { 
+	 return const_cast<QoreNode *>(node); 
+      }
+      DLLEXPORT bool is_temp() const
+      {
+	 return temp;
+      }
+};
+
+/*
+class ConstQoreNodeTypeHelper {
+   private:
+      const class QoreNode *node;
+      bool temp;
+
+      // not implemented
+      DLLLOCAL ConstQoreNodeTypeHelper(const ConstQoreNodeTypeHelper&);
+      DLLLOCAL ConstQoreNodeTypeHelper& operator=(const ConstQoreNodeTypeHelper&);
+      DLLLOCAL void *operator new(size_t);
+
+   public:
+      DLLEXPORT ConstQoreNodeTypeHelper(const QoreNode *n, const QoreType *t, class ExceptionSink *xsink);
+      DLLEXPORT ~ConstQoreNodeTypeHelper()
       {
          if (node && temp)
             node->deref(NULL);
@@ -217,15 +258,12 @@ class QoreNodeTypeHelper {
       {
 	 return node;
       }
-      DLLEXPORT class QoreNode *operator->()
-      { 
-	 return node; 
-      }
       DLLEXPORT bool is_temp() const
       {
 	 return temp;
       }
 };
+*/
 
 class QoreNodeCStringHelper {
    private:

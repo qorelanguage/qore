@@ -83,14 +83,14 @@ typedef std::list<class_virt_pair_t> class_list_t;
 class BCSMList : public class_list_t
 {
    public:
-      DLLLOCAL inline void add(class QoreClass *thisclass, class QoreClass *qc, bool is_virtual);
-      DLLLOCAL inline void addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc, bool is_virtual);
-      DLLLOCAL inline bool isBaseClass(class QoreClass *qc) const;
-      DLLLOCAL inline class QoreClass *getClass(int cid) const;
-      //DLLLOCAL inline void execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
-      DLLLOCAL inline void execDestructors(class QoreObject *o, class ExceptionSink *xsink) const;
-      DLLLOCAL inline void execSystemDestructors(class QoreObject *o, class ExceptionSink *xsink) const;
-      DLLLOCAL inline void execCopyMethods(class QoreObject *self, class QoreObject *old, class ExceptionSink *xsink) const;
+      DLLLOCAL void add(class QoreClass *thisclass, class QoreClass *qc, bool is_virtual);
+      DLLLOCAL void addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc, bool is_virtual);
+      DLLLOCAL bool isBaseClass(class QoreClass *qc) const;
+      DLLLOCAL class QoreClass *getClass(int cid) const;
+      //DLLLOCAL void execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL void execDestructors(class QoreObject *o, class ExceptionSink *xsink) const;
+      DLLLOCAL void execSystemDestructors(class QoreObject *o, class ExceptionSink *xsink) const;
+      DLLLOCAL void execCopyMethods(class QoreObject *self, class QoreObject *old, class ExceptionSink *xsink) const;
 };
 
 // BCNode 
@@ -100,21 +100,21 @@ class BCNode
    public:
       class NamedScope *cname;
       char *cstr;
-      class QoreClass *sclass;
-      class QoreNode *args;
+      QoreClass *sclass;
+      QoreNode *args;
       bool hasargs;
       bool priv;
       bool is_virtual;
       
-      DLLLOCAL inline BCNode(class NamedScope *c, bool p) : cname(c), cstr(0), sclass(0), args(0), hasargs(false), priv(p), is_virtual(false)
+      DLLLOCAL BCNode(class NamedScope *c, bool p) : cname(c), cstr(0), sclass(0), args(0), hasargs(false), priv(p), is_virtual(false)
       {
       }
       // this method takes ownership of *str
-      DLLLOCAL inline BCNode(char *str, bool p) : cname(0), cstr(str), sclass(0), args(0), hasargs(false), priv(p), is_virtual(false)
+      DLLLOCAL BCNode(char *str, bool p) : cname(0), cstr(str), sclass(0), args(0), hasargs(false), priv(p), is_virtual(false)
       {
       }
       // for builtin base classes
-      DLLLOCAL inline BCNode(class QoreClass *qc, class QoreNode *xargs = 0, bool n_virtual  = false) 
+      DLLLOCAL BCNode(class QoreClass *qc, class QoreNode *xargs = 0, bool n_virtual  = false) 
 	 : cname(0), cstr(0), sclass(qc), args(xargs), hasargs(xargs ? true : false), priv(false), is_virtual(n_virtual)
       {
       }

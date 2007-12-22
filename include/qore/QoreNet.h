@@ -30,16 +30,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#ifndef HAVE_GETHOSTBYNAME_R
-extern class LockedObject lck_gethostbyname;
-#endif
-#ifndef HAVE_GETHOSTBYADDR_R
-extern class LockedObject lck_gethostbyaddr;
-#endif
-
-#define UNIX_PATH_MAX    108
-#define NET_BUFSIZE      1024
-
 // thread-safe gethostbyname (0 = success, !0 = error)
 DLLEXPORT int q_gethostbyname(const char *host, struct in_addr *sin_addr);
 // thread-safe gethostbyname (0/NULL = error)

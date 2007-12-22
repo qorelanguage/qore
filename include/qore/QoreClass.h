@@ -59,7 +59,7 @@ class QoreMethod {
    private:
       struct qore_method_private *priv; // private implementation
 
-      DLLLOCAL QoreMethod(class QoreClass *p_class);
+      DLLLOCAL QoreMethod(const class QoreClass *p_class);
       DLLLOCAL void userInit(UserFunction *u, int p);
 
       // not implemented
@@ -74,20 +74,20 @@ class QoreMethod {
       DLLEXPORT const char *getName() const;
 
       DLLLOCAL QoreMethod(class UserFunction *u, int p);
-      DLLLOCAL QoreMethod(class QoreClass *p_class, class BuiltinMethod *b, bool n_priv = false);
+      DLLLOCAL QoreMethod(const class QoreClass *p_class, class BuiltinMethod *b, bool n_priv = false);
       DLLLOCAL ~QoreMethod();
       DLLLOCAL bool inMethod(const class QoreObject *self) const;
-      DLLLOCAL void evalConstructor(class QoreObject *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalConstructor(class QoreObject *self, const QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL void evalDestructor(class QoreObject *self, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalSystemConstructor(class QoreObject *self, class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalSystemConstructor(class QoreObject *self, const QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL void evalSystemDestructor(class QoreObject *self, class ExceptionSink *xsink) const;
       DLLLOCAL void evalCopy(class QoreObject *self, class QoreObject *old, class ExceptionSink *xsink) const;
-      DLLLOCAL class QoreMethod *copy(class QoreClass *p_class) const;
+      DLLLOCAL class QoreMethod *copy(const class QoreClass *p_class) const;
       DLLLOCAL void parseInit();
       DLLLOCAL void parseInitConstructor(class BCList *bcl);
       // only called when method is user
-      DLLLOCAL class QoreClass *get_class() const;
-      DLLLOCAL void assign_class(class QoreClass *p_class);
+      DLLLOCAL const QoreClass *get_class() const;
+      DLLLOCAL void assign_class(const QoreClass *p_class);
 };
 
 /*
@@ -132,8 +132,8 @@ class QoreClass{
       DLLEXPORT void addPrivateMember(char *name);
       DLLEXPORT bool isPrivateMember(const char *str) const;
       DLLEXPORT class QoreNode *evalMethod(class QoreObject *self, const char *nme, const class QoreNode *args, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *execConstructor(class QoreNode *args, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *execSystemConstructor(class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *execConstructor(const class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *execSystemConstructor(const class QoreNode *args, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *execCopy(class QoreObject *old, class ExceptionSink *xsink) const;
       DLLEXPORT const QoreMethod *findLocalMethod(const char *name) const;
       DLLEXPORT class QoreList *getMethodList() const;
@@ -148,13 +148,18 @@ class QoreClass{
       // used at run-time
       DLLEXPORT const QoreMethod *findMethod(const char *nme) const;
       DLLEXPORT const QoreMethod *findMethod(const char *nme, bool *priv) const;
+
       // make a builtin class a child of another builtin class, private inheritance makes no sense
       // (there would be too much overhead to use user-level qore interfaces to call private methods)
       // but base class constructor arguments can be given
+      // this function takes over the reference for the xargs argument
       DLLEXPORT void addBuiltinBaseClass(class QoreClass *qc, class QoreNode *xargs = NULL);
+
       // this method will do the same as above but will also ensure that the given class' private data
       // will be used in all object methods - in this case the class cannot have any private data
+      // this function takes over the reference for the xargs argument
       DLLEXPORT void addDefaultBuiltinBaseClass(class QoreClass *qc, class QoreNode *xargs = NULL);
+
       // this method adds a base class placeholder for a subclass - where the subclass' private data 
       // object is actually a subclass of the parent class and all methods are virtual, so the
       // base class' constructor, destructor, and copy constructor will never be run and the base

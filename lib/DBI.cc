@@ -357,7 +357,7 @@ class QoreList *DBIDriverList::getDriverList() const
    return priv->getDriverList();
 }
 
-void DBI_concat_numeric(class QoreString *str, class QoreNode *v)
+void DBI_concat_numeric(class QoreString *str, const QoreNode *v)
 {
    if (is_nothing(v) || is_null(v))
    {
@@ -373,7 +373,7 @@ void DBI_concat_numeric(class QoreString *str, class QoreNode *v)
    str->sprintf("%lld", v->getAsBigInt());
 }
 
-int DBI_concat_string(class QoreString *str, class QoreNode *v, class ExceptionSink *xsink)
+int DBI_concat_string(class QoreString *str, const QoreNode *v, class ExceptionSink *xsink)
 {
    if (is_nothing(v) || is_null(v))
       return 0;

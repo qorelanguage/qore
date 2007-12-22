@@ -74,7 +74,7 @@ int QoreNodeCStringHelper::strlen() const
    return node ? node->val.String->strlen() : 0;
 }
 
-QoreNodeTypeHelper::QoreNodeTypeHelper(QoreNode *n, const QoreType *t, class ExceptionSink *xsink) : temp(false)
+QoreNodeTypeHelper::QoreNodeTypeHelper(const QoreNode *n, const QoreType *t, class ExceptionSink *xsink) : temp(false)
 {
    if (!n)
    {

@@ -336,7 +336,7 @@ void QoreList::splice(int offset, int len, class ExceptionSink *xsink)
    splice_intern(offset, len, xsink);
 }
 
-void QoreList::splice(int offset, int len, class QoreNode *l, class ExceptionSink *xsink)
+void QoreList::splice(int offset, int len, QoreNode *l, class ExceptionSink *xsink)
 {
    check_offset(offset, len);
    splice_intern(offset, len, l, xsink);
@@ -668,7 +668,7 @@ void QoreList::splice_intern(int offset, int len, class ExceptionSink *xsink)
    resize(priv->length - len);
 }
 
-void QoreList::splice_intern(int offset, int len, class QoreNode *l, class ExceptionSink *xsink)
+void QoreList::splice_intern(int offset, int len, QoreNode *l, class ExceptionSink *xsink)
 {
    //printd(5, "splice_intern(offset=%d, len=%d, priv->length=%d)\n", offset, len, priv->length);
    int end;

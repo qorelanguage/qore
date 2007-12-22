@@ -85,6 +85,7 @@ class QoreList {
       DLLEXPORT class QoreNode *max(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
+      // the "l" QoreNode will be referenced for the assignment in the QoreList
       DLLEXPORT void splice(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);
       DLLEXPORT int size() const;
       DLLEXPORT bool needsEval() const;

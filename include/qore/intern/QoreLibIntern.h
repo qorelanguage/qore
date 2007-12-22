@@ -24,6 +24,21 @@
 
 #define _QORE_QORELIBINTERN_H
 
+#ifndef HAVE_GETHOSTBYNAME_R
+DLLLOCAL extern class LockedObject lck_gethostbyname;
+#endif
+#ifndef HAVE_GETHOSTBYADDR_R
+DLLLOCAL extern class LockedObject lck_gethostbyaddr;
+#endif
+
+#ifndef UNIX_PATH_MAX
+#define UNIX_PATH_MAX    108
+#endif
+
+#ifndef NET_BUFSIZE
+#define NET_BUFSIZE      1024
+#endif
+
 #ifndef HOSTNAMEBUFSIZE
 #define HOSTNAMEBUFSIZE 512
 #endif
