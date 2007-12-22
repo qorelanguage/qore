@@ -82,7 +82,7 @@ class QoreString *QoreSSLPrivateKey::getPEM(class ExceptionSink *xsink) const
    return str;
 }
 
-char *QoreSSLPrivateKey::getType() const
+const char *QoreSSLPrivateKey::getType() const
 {
    switch (EVP_PKEY_type(priv->pk->type))
    {

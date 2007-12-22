@@ -389,7 +389,7 @@ const char *Datasource::getDriverName() const
    return priv->dsl->getName();
 }
 
-class DBIDriver *Datasource::getDriver() const
+const DBIDriver *Datasource::getDriver() const
 {
    return priv->dsl;
 }

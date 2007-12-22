@@ -46,22 +46,34 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       DLLLOCAL virtual ~QoreSSLCertificate();
 
    public:
+      // caller owns the QoreString returned
       DLLEXPORT class QoreString *getPEM(class ExceptionSink *xsink) const;
 
       DLLLOCAL QoreSSLCertificate(X509 *c);
       DLLLOCAL QoreSSLCertificate(const char *fn, class ExceptionSink *xsink);
+      // caller does NOT own the X509 pointer returned; "const" cannot be used because of the openssl API does not support it
       DLLLOCAL X509 *getData() const;
+      // caller owns value returned
       DLLLOCAL class QoreHash *getSubjectHash() const;
+      // caller owns value returned
       DLLLOCAL class QoreHash *getIssuerHash() const;
       DLLLOCAL int64 getSerialNumber() const;
       DLLLOCAL int64 getVersion() const;
+      // caller owns value returned
       DLLLOCAL class QoreHash *getPurposeHash() const;
+      // caller owns value returned
       DLLLOCAL class DateTime *getNotBeforeDate() const;
+      // caller owns value returned
       DLLLOCAL class DateTime *getNotAfterDate() const;
+      // caller owns value returned
       DLLLOCAL class QoreString *getSignatureType() const;
+      // caller owns value returned
       DLLLOCAL class BinaryObject *getSignature() const;
+      // caller owns value returned
       DLLLOCAL class QoreString *getPublicKeyAlgorithm() const;
+      // caller owns value returned
       DLLLOCAL class BinaryObject *getPublicKey() const;
+      // caller owns value returned
       DLLLOCAL class QoreHash *getInfo() const;
 };
 

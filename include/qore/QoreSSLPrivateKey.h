@@ -42,15 +42,18 @@ class QoreSSLPrivateKey : public AbstractPrivateData
       DLLLOCAL virtual ~QoreSSLPrivateKey();
 
    public:
+      // caller owns the QoreString returned
       DLLEXPORT class QoreString *getPEM(class ExceptionSink *xsink) const;
 
       DLLLOCAL QoreSSLPrivateKey(EVP_PKEY *p);
       DLLLOCAL QoreSSLPrivateKey(const char *fn, char *pp, class ExceptionSink *xsink);
+      // caller does NOT own the EVP_PKEY returned; "const" cannot be used because of the openssl API does not support it
       DLLLOCAL EVP_PKEY *getData() const;
-      DLLLOCAL char *getType() const;
+      DLLLOCAL const char *getType() const;
       DLLLOCAL int64 getVersion() const;
       // returns the length in bits
       DLLLOCAL int64 getBitLength() const;
+      // caller owns the QoreHash returned
       DLLLOCAL class QoreHash *getInfo() const;
 };
 

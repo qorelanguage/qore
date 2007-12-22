@@ -138,7 +138,7 @@ void ManagedDatasource::forceReleaseLock()
 
 ManagedDatasource *ManagedDatasource::copy()
 {
-   class ManagedDatasource *nds = new ManagedDatasource(getDriver());   
+   class ManagedDatasource *nds = new ManagedDatasource(const_cast<DBIDriver *>(getDriver()));   
    nds->setPendingConnectionValues(static_cast<Datasource *>(this));
    return nds;
 }

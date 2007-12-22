@@ -84,19 +84,24 @@ class Datasource
       DLLEXPORT class QoreNode *selectRows(const class QoreString *query_str, const QoreList *args, ExceptionSink *xsink);
       // not "const" to allow for reconnects and also to change transaction status
       DLLEXPORT class QoreNode *exec(const class QoreString *query_str, const QoreList *args, ExceptionSink *xsink);
-      //DLLEXPORT class QoreHash *describe(char *table_name, ExceptionSink *xsink);
       // not "const" to allow for reconnects
       DLLEXPORT int commit(ExceptionSink *xsink);
       // not "const" to allow for reconnects
       DLLEXPORT int rollback(ExceptionSink *xsink);
       DLLEXPORT int close();
       DLLEXPORT void reset(ExceptionSink *xsink);
+      // caller owns the pointer returned
       DLLEXPORT QoreList *getCapabilityList() const;
       DLLEXPORT int getCapabilities() const;
+      // caller owns the QoreNode reference returned
       DLLEXPORT QoreNode *getPendingUsername() const;
+      // caller owns the QoreNode reference returned
       DLLEXPORT QoreNode *getPendingPassword() const;
+      // caller owns the QoreNode reference returned
       DLLEXPORT QoreNode *getPendingDBName() const;
+      // caller owns the QoreNode reference returned
       DLLEXPORT QoreNode *getPendingDBEncoding() const;
+      // caller owns the QoreNode reference returned
       DLLEXPORT QoreNode *getPendingHostName() const;
       DLLEXPORT void setTransactionLockTimeout(int t);
       DLLEXPORT int getTransactionLockTimeout() const;
@@ -106,11 +111,12 @@ class Datasource
       DLLEXPORT bool isOpen() const;
       DLLEXPORT Datasource *copy() const;
       DLLEXPORT const char *getDriverName() const;
-      // not "const" to allow for reconnects
+      // caller owns the QoreNode reference returned; not "const" to allow for reconnects
       DLLEXPORT class QoreNode *getServerVersion(class ExceptionSink *xsink);
+      // caller owns the QoreNode reference returned
       DLLEXPORT class QoreNode *getClientVersion(class ExceptionSink *xsink) const;
 
-      DLLEXPORT class DBIDriver *getDriver() const;
+      DLLEXPORT const class DBIDriver *getDriver() const;
 };
 
 #endif // _QORE_DATASOURCE_H

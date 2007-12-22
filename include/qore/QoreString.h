@@ -46,8 +46,8 @@ class QoreString {
 
       // the following two functions are not implemented - 
       // QoreStrings must be explicitly copied with QoreString::copy()
-      QoreString(const QoreString &);
-      QoreString & operator=(const QoreString &);
+      DLLLOCAL QoreString(const QoreString &);
+      DLLLOCAL QoreString & operator=(const QoreString &);
 
       DLLLOCAL inline void check_char(unsigned i);
       DLLLOCAL inline void check_offset(int &offset);
