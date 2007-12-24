@@ -1494,6 +1494,7 @@ static class QoreNode *op_divide_equals(class QoreNode *left, class QoreNode *ri
       int64 val = res ? res->getAsBigInt() : 0;
       if (!val)
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression!");
+      else
       {
 	 // get new value if necessary
 	 if (!(*v))

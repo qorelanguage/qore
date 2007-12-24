@@ -1,3 +1,7 @@
+2007.20.24: David Nichols
+        * fixed integer divide by zero, missing "else" could cause a run-time
+          divide by zero error
+
 2007.12.20: David Nichols
         * fixed a bug in the Datasource class where an exception in the first
           statement of an implicit transaction would erroneously grab the
