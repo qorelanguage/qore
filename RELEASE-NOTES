@@ -12,6 +12,8 @@ RELEASE NOTES for qore v0.6.2.3, 0.6.2.2 and 0.6.2.1
 	* fixed a potential rare memory leak in exception handling related to QoreNode reference count managemnt in Operator.cc 
 	* fixed rethrow statement parsing to throw a parse exception when a rethrow statement is outside of a catch block (before would cause a run-time core dump)
 	* fixed Datasource class not to mark a Datasource as in a transaction if an exception occurs in the first statement of an implicit transaction
+        * fixed integer divide by zero, missing "else" could cause a run-time division by zero error
+	* fixed a memory leak in the "replace()" function if an exception occurs converting string encodings
 
 0.6.2.2 contains one additional bugfix from 0.6.2.1:
 	* fixed an XML parsing bug with multiple out-of-order keys that could cause a crash

@@ -895,6 +895,7 @@ sub string_tests()
     my $x = <0abf83e8ca72d32c>;
     my $b64 = makeBase64String($x);
     test_value($x, parseBase64String($b64), "first base64");
+    test_value(parseBase64StringToString(makeBase64String($str)), $str, "parseBase64StringToString()");
     my $hex = makeHexString($x);
     test_value($x, parseHexString($hex), "first hex");
 

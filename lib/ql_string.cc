@@ -547,30 +547,16 @@ static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
       return NULL;
 
    class QoreEncoding *ccs = p0->val.String->getEncoding();
-   QoreString *nstr = new QoreString(ccs);   
-   QoreString *t1, *t2;
 
-   if (p1->val.String->getEncoding() != ccs)
-   {
-      t1 = p1->val.String->convertEncoding(ccs, xsink);
-      if (xsink->isEvent())
-	 return NULL;
-   }
-   else
-      t1 = p1->val.String;
-   
-   if (p2->val.String->getEncoding() != ccs)
-   {
-      t2 = p2->val.String->convertEncoding(ccs, xsink);
-      if (xsink->isEvent())
-      {
-	 if (t1 != p1->val.String)
-	    delete t1;
-	 return NULL;
-      }
-   }
-   else
-      t2 = p2->val.String;
+   TempEncodingHelper t1(p1->val.String, ccs, xsink);
+   if (*xsink)
+      return 0;
+
+   TempEncodingHelper t2(p2->val.String, ccs, xsink);
+   if (*xsink)
+      return 0;
+
+   QoreString *nstr = new QoreString(ccs);   
 
    const char *str, *pattern;
    str = p0->val.String->getBuffer();
@@ -582,7 +568,7 @@ static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
       //printd(5, "str=%08p p=%08p '%s' '%s'->'%s'\n", str, p, str, pattern, t1->getBuffer());
       if (p != str)
 	 nstr->concat(str, p - str);
-      nstr->concat(t2);
+      nstr->concat(*t2);
 
       str = p + plen;
    }
@@ -590,11 +576,6 @@ static class QoreNode *f_replace(class QoreNode *params, ExceptionSink *xsink)
    if (*str)
       nstr->concat(str);
 
-   if (t1 != p1->val.String)
-      delete t1;
-   if (t2 != p2->val.String)
-      delete t2;
-   
    return new QoreNode(nstr);
 }
 

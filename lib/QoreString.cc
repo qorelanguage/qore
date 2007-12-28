@@ -1408,6 +1408,8 @@ class QoreString *QoreString::parseBase64ToString(class ExceptionSink *xsink) co
    if (!b)
       return NULL;
    QoreString *str = new QoreString();
+   // free old, unused buffer
+   free(str->buf);
    str->len = b->size() - 1;
    str->buf = (char *)b->giveBuffer();
    delete b;
@@ -1418,6 +1420,8 @@ class QoreString *QoreString::parseBase64ToString(class ExceptionSink *xsink) co
       str->buf = (char *)realloc(str->buf, str->len + 1);
       str->buf[str->len] = '\0';
    }
+   // set allocated
+   str->allocated = str->len + 1;
    return str;
 }
 
