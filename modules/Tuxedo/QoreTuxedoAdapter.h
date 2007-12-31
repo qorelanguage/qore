@@ -82,7 +82,7 @@ public:  // public for now so the QC_TuxedoAdapter has access to it
 
   TPCONTEXT_T m_context;
 
-  QoreEncoding* m_string_encoding; // used to convert every string sent/received
+  const QoreEncoding* m_string_encoding; // used to convert every string sent/received
 
   std::vector<int> m_pending_async_calls;
   TPQCTL m_queue_settings;
