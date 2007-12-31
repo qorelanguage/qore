@@ -1,4 +1,8 @@
-2007.20.28: David Nichols
+2007.12.31: David Nichols
+	* fixed a crashing bug in exception handling in a JSON generation helper
+	  function in lib/ql_json.cc 
+
+2007.12.28: David Nichols
 	* fixed a memory leak in the "replace()" function if an exception occurs
 	  in converting string encodings
 	* fixed a memory leak in the "parseBase64ToString()" function 

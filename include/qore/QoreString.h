@@ -186,7 +186,7 @@ DLLEXPORT class QoreString *checkEncoding(const class QoreString *str, const cla
 
 class TempString {
    private:
-      class QoreString *str;
+      QoreString *str;
 
       // not implemented
       TempString(const TempString &);
@@ -205,6 +205,12 @@ class TempString {
       DLLEXPORT QoreString *operator->(){ return str; };
       DLLEXPORT QoreString *operator*() { return str; };
       DLLEXPORT operator bool() const { return str != 0; }      
+      DLLEXPORT QoreString *release() 
+      {
+	 QoreString *rv = str;
+	 str = 0;
+	 return rv;
+      }
 };
 
 // class for using strings possibly temporarily converted to another encoding
