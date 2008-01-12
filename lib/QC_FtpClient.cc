@@ -43,7 +43,7 @@ static void FC_constructor(class Object *self, class QoreNode *params, Exception
       return;
    }
 
-   self->setPrivate(CID_FTPCLIENT, f = new QoreFtpClient(url, xsink));
+   self->setPrivate(CID_FTPCLIENT, f);
 }
 
 static void FC_copy(class Object *self, class Object *old, class QoreFtpClient *f, class ExceptionSink *xsink)

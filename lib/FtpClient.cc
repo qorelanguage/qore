@@ -670,7 +670,7 @@ class QoreString *FtpClient::list(const char *path, bool long_list, class Except
    if (!loggedin)
    {
       xsink->raiseException("FTP-NOT-CONNECTED", "FtpClient::connect() must be called before FtpClient::%s()",
-		     (long_list ? "list" : "nlst"));
+			    (long_list ? "list" : "nlst"));
       return NULL;
    }
 
@@ -721,8 +721,10 @@ class QoreString *FtpClient::list(const char *path, bool long_list, class Except
    data.close();
    resp.assign(getResponse(xsink));
    sl.unlock();
-   if (xsink->isEvent())
+   if (xsink->isEvent()) {
+      delete l;
       return NULL;
+   }
 
    code = resp.getCode();
 

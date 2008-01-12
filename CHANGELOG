@@ -1,6 +1,18 @@
+2008.01.10: David Nichols
+	* fixed a bug where the string encoding returned by 
+	  QoreString::reverse() was in the default encoding even if the old and
+	  new strings are actually in a different encoding (backported from
+	  0.7.0/trunk)
+	* fixed a bug where the HashIterator::takeValueAndDelete() function 
+	  would leave the map entry in the Hash which could cause a crash later
+	  (backported from 0.7.0/trunk)
+	* fixed a memory leak in exception handling in FtpClient::list()
+	  (backported from 0.7.0/trunk)
+
 2007.12.31: David Nichols
 	* fixed a crashing bug in exception handling in a JSON generation helper
 	  function in lib/ql_json.cc 
+	* fixed a memory leak in the FtpClient class constructor
 
 2007.12.28: David Nichols
 	* fixed a memory leak in the "replace()" function if an exception occurs

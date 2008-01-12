@@ -1593,7 +1593,7 @@ void QoreString::concatUTF8FromUnicode(unsigned code)
 
 class QoreString *QoreString::reverse() const
 {
-   class QoreString *str = new QoreString();
+   class QoreString *str = new QoreString(charset);
    str->check_char(len);
    if (charset->isMultiByte())
    {

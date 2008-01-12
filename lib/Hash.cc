@@ -104,7 +104,13 @@ class QoreNode *HashIterator::takeValueAndDelete()
       ptr->node = NULL;
       class HashMember *w = ptr;
       ptr = ptr->prev;
+      // remove entry from list
       h->internDeleteKey(w);
+
+      // now remove key from map as well
+      hm_hm_t::iterator i = h->hm.find(key);
+      assert(i != h->hm.end());
+      h->hm.erase(i);
    }
    else
       rv = NULL;

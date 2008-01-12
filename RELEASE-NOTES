@@ -16,6 +16,10 @@ RELEASE NOTES for qore v0.6.2.3, 0.6.2.2 and 0.6.2.1
 	* fixed a memory leak in the "replace()" function if an exception occurs converting string encodings
 	* fixed a memory leak in the "parseBase64ToString()" function
 	* fixed a crashing bug in exception handling in a JSON generation helper function in lib/ql_json.cc
+        * fixed	a memory leak in the FtpClient class constructor
+        * fixed	a bug where the	string returned by QoreString::reverse() could be tagged with the wrong encoding under some circumstances
+        * fixed a bug where the HashIterator::takeValueAndDelete() function would leave the map entry in the Hash which could cause a crash later
+        * fixed a memory leak in exception handling in FtpClient::list()
 
 0.6.2.2 contains one additional bugfix from 0.6.2.1:
 	* fixed an XML parsing bug with multiple out-of-order keys that could cause a crash
