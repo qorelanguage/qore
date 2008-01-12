@@ -1656,16 +1656,24 @@ static class QoreNode *op_shift_right_equals(class QoreNode *left, class QoreNod
 
 static class QoreNode *op_plus_list(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class QoreNode *node = left->realCopy(xsink);
+   ReferenceHolder<QoreNode> node(left->realCopy(xsink), xsink);
+   if (*xsink)
+      return 0;
    node->val.list->merge(right->val.list);
-   return node;
+   if (*xsink)
+      return 0;
+   return node.release();
 }
 
 static class QoreNode *op_plus_hash_hash(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class QoreNode *node = left->realCopy(xsink);
+   ReferenceHolder<QoreNode> node(left->realCopy(xsink), xsink);
+   if (*xsink)
+      return 0;
    node->val.hash->merge(right->val.hash, xsink);
-   return node;
+   if (*xsink)
+      return 0;
+   return node.release();
 }
 
 static class QoreNode *op_plus_hash_object(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1674,9 +1682,13 @@ static class QoreNode *op_plus_hash_object(class QoreNode *left, class QoreNode 
    if (!h)
       return NULL;
 
-   class QoreNode *node = left->realCopy(xsink);
+   ReferenceHolder<QoreNode> node(left->realCopy(xsink), xsink);
+   if (*xsink)
+      return 0;
    node->val.hash->assimilate(h, xsink);
-   return node;
+   if (*xsink)
+      return 0;
+   return node.release();
 }
 
 // note that this will return a hash
@@ -1686,6 +1698,10 @@ static class QoreNode *op_plus_object_hash(class QoreNode *left, class QoreNode 
    if (!h)
       return NULL;
    h->merge(right->val.hash, xsink);
+   if (*xsink) {
+      h->derefAndDelete(xsink);
+      return 0;
+   }
    return new QoreNode(h);
 }
 
