@@ -440,7 +440,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
 	 ub4 amt = 0;
 	 if (dtype == SQLT_CLOB)
 	 {
-	    TempStringNode str(new QoreStringNode(ds->getQoreEncoding()));
+	    TempQoreStringNode str(new QoreStringNode(ds->getQoreEncoding()));
 	    // read LOB data in streaming callback mode
 	    ora_checkerr(d_ora->errhp,
 			 OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)val.ptr, &amt, 1, buf, LOB_BLOCK_SIZE,
@@ -988,7 +988,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
    {
       // must be string data
       remove_trailing_blanks((char *)buf.ptr);
-      int len = strlen(buf.ptr);
+      int len = strlen((char *)buf.ptr);
       class QoreStringNode *str = new QoreStringNode((char *)buf.ptr, len, len + 1, ds->getQoreEncoding());
       buf.ptr = 0;
       return str;
@@ -1027,7 +1027,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
       ub4 amt = 0;
       if (buftype == SQLT_CLOB)
       {
-	 TempStringNode str(new QoreStringNode(ds->getQoreEncoding()));
+	 TempQoreStringNode str(new QoreStringNode(ds->getQoreEncoding()));
 	 // read LOB data in streaming callback mode
 	 ora_checkerr(d_ora->errhp,
 		      OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)buf.ptr, &amt, 1, bbuf, LOB_BLOCK_SIZE,
