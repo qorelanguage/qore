@@ -33,7 +33,7 @@ class ReferenceObject
 {
    protected:
       mutable int references;
-      mutable struct qore_ro_private *priv;
+      mutable struct qore_ro_private *ropriv;
 
    public:
       DLLEXPORT ReferenceObject();

@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include "QC_QRectF.h"
+#include "QC_QRect.h"
 #include "QC_QColor.h"
 
 int CID_QRECTF;

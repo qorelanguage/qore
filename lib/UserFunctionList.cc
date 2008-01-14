@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/UserFunctionList.h>
 #include <qore/intern/Function.h>
+#include <qore/intern/StatementBlock.h>
 
 UserFunctionList::~UserFunctionList()
 {
@@ -77,7 +78,7 @@ class QoreList *UserFunctionList::getList()
    hm_uf_t::iterator i = fmap.begin();
    while (i != fmap.end())
    {
-      l->push(new QoreNode(i->first));      
+      l->push(new QoreStringNode(i->first));      
       i++;
    }
    

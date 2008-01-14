@@ -114,7 +114,7 @@ class MyBindNode {
 
       struct {
 	    class QoreNode *value;   // value to be bound
-	    class QoreString *tstr;   // temporary string to be deleted
+	    class QoreStringNode *tstr;   // temporary string to be deleted
       } data;
 
       union my_val vbuf;
@@ -132,7 +132,7 @@ class MyBindNode {
       DLLLOCAL inline ~MyBindNode()
       {
 	 if (data.tstr)
-	    delete data.tstr;
+	    data.tstr->deref();
       }
      
       DLLLOCAL int bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class ExceptionSink *xsink);

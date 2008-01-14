@@ -41,7 +41,7 @@ static class QoreNode *f_int(const QoreNode *params, ExceptionSink *xsink)
    class QoreNode *p0 = get_param(params, 0);
    if (!p0)
       return zero();
-   return p0->convert(NT_INT);
+   return new QoreNode(p0->getAsBigInt());
 }
 
 static class QoreNode *f_float(const QoreNode *params, ExceptionSink *xsink)
@@ -49,15 +49,13 @@ static class QoreNode *f_float(const QoreNode *params, ExceptionSink *xsink)
    class QoreNode *p0 = get_param(params, 0);
    if (!p0)
       return zero_float();
-   return p0->convert(NT_FLOAT);
+   return new QoreNode(p0->getAsFloat());
 }
 
 static class QoreNode *f_string(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = get_param(params, 0);
-   if (!p0)
-      return null_string();
-   return p0->convert(NT_STRING);
+   QoreStringNodeValueHelper str(get_param(params, 0));
+   return str.takeReferencedValue();
 }
 
 static class QoreNode *f_binary(const QoreNode *params, ExceptionSink *xsink)
@@ -69,24 +67,22 @@ static class QoreNode *f_binary(const QoreNode *params, ExceptionSink *xsink)
    if (p0->type == NT_BINARY)
       return p0->RefSelf();
 
-   if (p0->type == NT_STRING)
-      return new QoreNode(new BinaryObject(strdup(p0->val.String->getBuffer()), p0->val.String->strlen()));
+   if (p0->type == NT_STRING) {
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p0);
+      return new QoreNode(new BinaryObject(strdup(str->getBuffer()), str->strlen()));
+   }
 
    // convert to string and make binary object
-   QoreNode *t = p0->convert(NT_STRING);
-   int len = t->val.String->strlen();
-   QoreNode *rv = new QoreNode(new BinaryObject(t->val.String->giveBuffer(), len));
-   
-   t->deref(xsink);
-   return rv;
+   QoreStringValueHelper t(p0);
+   TempString str(t.giveString());
+   int len = str->strlen();
+   return new QoreNode(new BinaryObject(str->giveBuffer(), len));
 }
 
 static class QoreNode *f_date(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = get_param(params, 0);
-   if (!p0)
-      return zero_date();
-   return p0->convert(NT_DATE);
+   DateTimeNodeValueHelper date(get_param(params, 0));
+   return date.takeReferencedValue();
 }
 
 static class QoreNode *f_list(const QoreNode *params, ExceptionSink *xsink)
@@ -105,18 +101,16 @@ static class QoreNode *f_list(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_hash(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *rv = new QoreNode(NT_HASH);
-   rv->val.hash = new QoreHash();
-   return rv;
+   return new QoreNode(new QoreHash());
 }
 
 static class QoreNode *f_type(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
    if (!p)
-      return new QoreNode(NT_NOTHING->getName());
+      return new QoreStringNode(NT_NOTHING->getName());
    else
-      return new QoreNode(p->type->getName());
+      return new QoreStringNode(p->type->getName());
 }
 
 void init_type_functions()

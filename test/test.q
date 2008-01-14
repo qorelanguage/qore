@@ -73,7 +73,7 @@ sub test_value($v1, $v2, $msg)
     }
     else
     {
-	printf("ERROR: %s test failed! (%n != %n)\n", $msg, $v1, $v2);
+	printf("ERROR: %s test failed! (%N != %N)\n", $msg, $v1, $v2);
 	#printf("%s%s", dbg_node_info($v1), dbg_node_info($v2));
 	$errors++;
     }

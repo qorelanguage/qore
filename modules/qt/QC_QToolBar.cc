@@ -23,6 +23,13 @@
 #include <qore/Qore.h>
 
 #include "QC_QToolBar.h"
+#include "QC_QWidget.h"
+#include "QC_QObject.h"
+#include "QC_QAction.h"
+#include "QC_QPoint.h"
+#include "QC_QIcon.h"
+
+#include "qore-qt.h"
 
 int CID_QTOOLBAR;
 class QoreClass *QC_QToolBar = 0;
@@ -105,12 +112,13 @@ static QoreNode *QTOOLBAR_addAction(QoreObject *self, QoreQToolBar *qtb, const Q
 	 return 0;
       }
       ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
-      p = get_param(params, 2);
-      if (!p || p->type != NT_STRING) {
+
+      QoreStringNode *pstr = test_string_param(params, 2);
+      if (!pstr) {
 	 xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "expecting a string as fourth argument to QToolBar::addAction()");
 	 return 0;
       }
-      const char *member = p->val.String->getBuffer();
+      const char *member = pstr->getBuffer();
       return return_qaction(qtb->qobj->addAction(text, receiver->getQObject(), member));
    }
    if (*xsink)
@@ -144,12 +152,13 @@ static QoreNode *QTOOLBAR_addAction(QoreObject *self, QoreQToolBar *qtb, const Q
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
-   p = get_param(params, 3);
-   if (!p || p->type != NT_STRING) {
+
+   QoreStringNode *pstr = test_string_param(params, 3);
+   if (!pstr) {
       xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "expecting a string as fourth argument to QToolBar::addAction()");
       return 0;
    }
-   const char *member = p->val.String->getBuffer();
+   const char *member = pstr->getBuffer();
    return return_qaction(qtb->qobj->addAction(*(static_cast<QIcon *>(icon)), text, receiver->getQObject(), member));
 }
 

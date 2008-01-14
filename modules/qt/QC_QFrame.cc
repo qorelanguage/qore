@@ -24,6 +24,7 @@
 
 #include "QC_QFrame.h"
 #include "QC_QRect.h"
+#include "QC_QWidget.h"
 
 int CID_QFRAME;
 

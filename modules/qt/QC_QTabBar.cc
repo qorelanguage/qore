@@ -23,6 +23,14 @@
 #include <qore/Qore.h>
 
 #include "QC_QTabBar.h"
+#include "QC_QWidget.h"
+#include "QC_QIcon.h"
+#include "QC_QColor.h"
+#include "QC_QPoint.h"
+#include "QC_QRect.h"
+#include "QC_QStyleOptionTab.h"
+
+#include "qore-qt.h"
 
 int CID_QTABBAR;
 class QoreClass *QC_QTabBar = 0;
@@ -350,7 +358,7 @@ static QoreNode *QTABBAR_tabText(QoreObject *self, QoreAbstractQTabBar *qtb, con
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qtb->getQTabBar()->tabText(index).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtb->getQTabBar()->tabText(index).toUtf8().data(), QCS_UTF8);
 }
 
 //QColor tabTextColor ( int index ) const
@@ -369,7 +377,7 @@ static QoreNode *QTABBAR_tabToolTip(QoreObject *self, QoreAbstractQTabBar *qtb, 
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qtb->getQTabBar()->tabToolTip(index).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtb->getQTabBar()->tabToolTip(index).toUtf8().data(), QCS_UTF8);
 }
 
 //QString tabWhatsThis ( int index ) const
@@ -377,7 +385,7 @@ static QoreNode *QTABBAR_tabWhatsThis(QoreObject *self, QoreAbstractQTabBar *qtb
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qtb->getQTabBar()->tabWhatsThis(index).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtb->getQTabBar()->tabWhatsThis(index).toUtf8().data(), QCS_UTF8);
 }
 
 //bool usesScrollButtons () const

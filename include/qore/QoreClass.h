@@ -168,7 +168,7 @@ class QoreClass{
 
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(class QoreMethod *f);
-      DLLLOCAL class QoreNode *evalMemberGate(class QoreObject *self, class QoreNode *name, class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *evalMemberGate(class QoreObject *self, const QoreString *nme, class ExceptionSink *xsink) const;
       DLLLOCAL void execSubclassConstructor(class QoreObject *self, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL void execSubclassSystemConstructor(class QoreObject *self, class BCEAList *bceal, class ExceptionSink *xsink) const;      
       DLLLOCAL void execDestructor(class QoreObject *self, class ExceptionSink *xsink) const;

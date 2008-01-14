@@ -23,6 +23,18 @@
 #include <qore/Qore.h>
 
 #include "QC_QPaintEngine.h"
+#include "QC_QLine.h"
+#include "QC_QLineF.h"
+#include "QC_QPainterPath.h"
+#include "QC_QRectF.h"
+#include "QC_QPixmap.h"
+#include "QC_QPointF.h"
+#include "QC_QPainter.h"
+#include "QC_QRect.h"
+#include "QC_QImage.h"
+#include "QC_QPaintDevice.h"
+
+#include "qore-qt.h"
 
 int CID_QPAINTENGINE;
 class QoreClass *QC_QPaintEngine = 0;

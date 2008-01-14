@@ -68,52 +68,12 @@ class QoreNode *hash_eval_opt_deref(bool &needs_deref, const QoreNode *n, class 
 
 class QoreNode *hash_Copy(const QoreNode *l, class ExceptionSink *xsink)
 {
-   return new QoreNode(l->val.hash->eval(xsink));
+   return new QoreNode(l->val.hash->copy());
 }
 
 bool hash_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    return l->val.hash->compareHard(r->val.hash, xsink);
-}
-
-class QoreString *hash_MakeString(const QoreNode *n, int foff, class ExceptionSink *xsink)
-{
-   QoreString *rv = new QoreString();
-   if (!n->val.hash->size())
-      rv->concat("<EMPTY HASH>");
-   else
-   {
-      rv->concat("hash: ");
-      if (foff != FMT_NONE)
-	 rv->sprintf("(%d member%s)\n", n->val.hash->size(), n->val.hash->size() == 1 ? "" : "s");
-      else
-	 rv->concat('(');
-
-      class HashIterator hi(n->val.hash);
-      //class QoreList *l = n->val.hash->getKeys();                                                                                                                       
-      bool first = false;
-      while (hi.next())
-      {
-	 if (first)
-	    if (foff != FMT_NONE)
-	       rv->concat('\n');
-	    else
-	       rv->concat(", ");
-	 else
-	    first = true;
-
-	 if (foff != FMT_NONE)
-	    rv->addch(' ', foff + 2);
-
-	 QoreString *elem = hi.getValue()->getAsString(foff != FMT_NONE ? foff + 2 : foff, xsink);
-	 rv->sprintf("%s : %s", hi.getKey(), elem->getBuffer());
-	 delete elem;
-      }
-	 
-      if (foff == FMT_NONE)
-	 rv->concat(')');
-   }
-   return rv;
 }
 
 void hash_DeleteContents(class QoreNode *n)

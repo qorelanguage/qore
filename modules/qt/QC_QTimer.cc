@@ -25,6 +25,7 @@
 #include "QC_QTimer.h"
 #include "QC_QFont.h"
 #include "QC_QWidget.h"
+#include "QC_QObject.h"
 
 int CID_QTIMER;
 
@@ -154,13 +155,14 @@ static QoreNode *f_QTimer_singleShot(const QoreNode *params, ExceptionSink *xsin
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
-   p = get_param(params, 2);
-   if (!p || p->type != NT_STRING) {
+
+   QoreStringNode *pstr = test_string_param(params, 2);
+   if (!pstr) {
       xsink->raiseException("QTIMER-SINGLESHOT-PARAM-ERROR", "expecting a string as third argument to QTimer::singleShot()");
       return 0;
    }
-   const char *member = p->val.String->getBuffer();
-   
+   const char *member = pstr->getBuffer();
+
    QoreObject *obj = new QoreObject(QC_QObject, getProgram());
    class QoreQtSingleShotTimer *qsst = new QoreQtSingleShotTimer(obj, msec, receiver, member, xsink);
    if (!*xsink)

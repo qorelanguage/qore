@@ -92,7 +92,7 @@ class QoreSocket
       DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       // read until \r\n and return the string
-      DLLLOCAL class QoreString *readHTTPData(int timeout, int *rc, int state = -1);
+      DLLLOCAL class QoreStringNode *readHTTPData(int timeout, int *rc, int state = -1);
       DLLLOCAL static void convertHeaderToHash(class QoreHash *h, char *p);
       
       // not implemented
@@ -152,11 +152,11 @@ class QoreSocket
       DLLEXPORT int recvu2LSB(int timeout, unsigned short *val);
       DLLEXPORT int recvu4LSB(int timeout, unsigned int *val);
       // receive a certain number of bytes (caller owns QoreString returned)
-      DLLEXPORT class QoreString *recv(int bufsize, int timeout, int *prc);
+      DLLEXPORT class QoreStringNode *recv(int bufsize, int timeout, int *prc);
       // receive a certain number of bytes as a binary object (caller owns BinaryObject returned)
       DLLEXPORT class BinaryObject *recvBinary(int bufsize, int timeout, int *prc);
       // receive a message (caller owns QoreString returned)
-      DLLEXPORT class QoreString *recv(int timeout, int *prc);
+      DLLEXPORT class QoreStringNode *recv(int timeout, int *prc);
       // receive and write data to a file descriptor
       DLLEXPORT int recv(int fd, int size, int timeout);
       // send an HTTP message

@@ -56,19 +56,19 @@ static void HC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, E
 
 static class QoreNode *HC_setHTTPVersion(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = test_param(params, NT_STRING, 0);
+   class QoreStringNode *p = test_string_param(params, 0);
    if (!p)
    {
       xsink->raiseException("HTTP-CLIENT-SETHTTPVERSION-ERROR", "expecting string ('1.0' or '1.1') passed as only argument");
       return NULL;
    }
-   client->setHTTPVersion(p->val.String->getBuffer(), xsink);
+   client->setHTTPVersion(p->getBuffer(), xsink);
    return NULL;
 }
 
 static class QoreNode *HC_getHTTPVersion(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(client->getHTTPVersion());
+   return new QoreStringNode(client->getHTTPVersion());
 }
 
 static class QoreNode *HC_setSecure(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
@@ -85,20 +85,20 @@ static class QoreNode *HC_isSecure(class QoreObject *self, class QoreHTTPClient 
 
 static class QoreNode *HC_verifyPeerCertificate(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   char *c = getSSLCVCode(client->verifyPeerCertificate());
-   return c ? new QoreNode(c) : NULL;
+   const char *c = getSSLCVCode(client->verifyPeerCertificate());
+   return c ? new QoreStringNode(c) : NULL;
 }
 
 static class QoreNode *HC_getSSLCipherName(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
    const char *str = client->getSSLCipherName();
-   return str ? new QoreNode(str) : NULL;
+   return str ? new QoreStringNode(str) : NULL;
 }
 
 static class QoreNode *HC_getSSLCipherVersion(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
    const char *str = client->getSSLCipherVersion();
-   return str ? new QoreNode(str) : NULL;
+   return str ? new QoreStringNode(str) : NULL;
 }
 
 static class QoreNode *HC_connect(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
@@ -123,8 +123,9 @@ static class QoreNode *HC_send(class QoreObject *self, class QoreHTTPClient *cli
    {
       if (p->type == NT_STRING)
       {
-	 ptr = p->val.String->getBuffer();
-	 size = p->val.String->strlen();
+	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p);
+	 ptr = str->getBuffer();
+	 size = str->strlen();
       }
       else if (p->type == NT_BINARY)
       {
@@ -134,16 +135,16 @@ static class QoreNode *HC_send(class QoreObject *self, class QoreHTTPClient *cli
       // ignore other types - no exception raised
    }
    
-   p = test_param(params, NT_STRING, 1);
-   if (!p)
+   QoreStringNode *pstr = test_string_param(params, 1);
+   if (!pstr)
    {
       xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "expecting method name as second parameter");
       return NULL;
    }
-   const char *meth = p->val.String->getBuffer();
+   const char *meth = pstr->getBuffer();
 
-   p = test_param(params, NT_STRING, 2);
-   const char *path = p ? p->val.String->getBuffer() : NULL;
+   pstr = test_string_param(params, 2);
+   const char *path = pstr ? pstr->getBuffer() : NULL;
 
    p = test_param(params, NT_HASH, 3);
    class QoreHash *h = p ? p->val.hash : NULL;
@@ -157,15 +158,15 @@ static class QoreNode *HC_send(class QoreObject *self, class QoreHTTPClient *cli
 // get(path, headers)
 static class QoreNode *HC_get(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p)
+   class QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr)
    {
       xsink->raiseException("HTTP-CLIENT-GET-ERROR", "expecting path as first parameter");
       return NULL;
    }
-   const char *path = p->val.String->getBuffer();
+   const char *path = pstr->getBuffer();
 
-   p = test_param(params, NT_HASH, 1);
+   QoreNode *p = test_param(params, NT_HASH, 1);
 
    return client->get(path, p ? p->val.hash : NULL, xsink);
 }
@@ -173,15 +174,15 @@ static class QoreNode *HC_get(class QoreObject *self, class QoreHTTPClient *clie
 // head(path, headers)
 static class QoreNode *HC_head(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p)
+   class QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr)
    {
       xsink->raiseException("HTTP-CLIENT-HEAD-ERROR", "expecting path as first parameter");
       return NULL;
    }
-   const char *path = p->val.String->getBuffer();
+   const char *path = pstr->getBuffer();
 
-   p = test_param(params, NT_HASH, 1);
+   QoreNode *p = test_param(params, NT_HASH, 1);
 
    return client->head(path, p ? p->val.hash : NULL, xsink);
 }
@@ -189,23 +190,24 @@ static class QoreNode *HC_head(class QoreObject *self, class QoreHTTPClient *cli
 // post(path, data, headers)
 static class QoreNode *HC_post(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p)
+   class QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr)
    {
       xsink->raiseException("HTTP-CLIENT-POST-ERROR", "expecting path as first parameter");
       return NULL;
    }
-   const char *path = p->val.String->getBuffer();
+   const char *path = pstr->getBuffer();
 
    const void *ptr = NULL;
    int size = 0;
-   p = get_param(params, 1);
+   QoreNode *p = get_param(params, 1);
    if (!is_nothing(p))
    {
       if (p->type == NT_STRING)
       {
-	 ptr = p->val.String->getBuffer();
-	 size = p->val.String->strlen();
+	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p);
+	 ptr = str->getBuffer();
+	 size = str->strlen();
       }
       else if (p->type == NT_BINARY)
       {
@@ -238,53 +240,51 @@ static class QoreNode *HC_getTimeout(class QoreObject *self, class QoreHTTPClien
 
 static class QoreNode *HC_setEncoding(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
    {
       xsink->raiseException("HTTP-CLIENT-SET-ENCODING-ERROR", "expecting charset name (string) as parameter of HTTPClient::setEncoding() call");
       return NULL;
    }
 
-   client->setEncoding(QEM.findCreate(p0->val.String));
+   client->setEncoding(QEM.findCreate(p0));
    return NULL; 
 }
 
 static class QoreNode *HC_getEncoding(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(client->getEncoding()->getCode());
+   return new QoreStringNode(client->getEncoding()->getCode());
 }
 
 class QoreNode *f_setURL(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *n = test_param(params, NT_STRING, 0);
-   if (!n || !n->val.String->strlen())
+   class QoreStringNode *n = test_string_param(params, 0);
+   if (!n || !n->strlen())
       xsink->raiseException("HTTP-CLIENT-EMPTY-URL", "HTTPClient::setURL() called without a valid string argument");
    else
-      client->setURL(n->val.String->getBuffer(), xsink);
+      client->setURL(n->getBuffer(), xsink);
    return NULL;
 }
 
 class QoreNode *f_getURL(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreString *str = client->getURL();
-   return str ? new QoreNode(str) : NULL;
+   return client->getURL();
 }
 
 class QoreNode *f_setProxyURL(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *n = test_param(params, NT_STRING, 0);
+   class QoreStringNode *n = test_string_param(params, 0);
    if (!n)
       client->clearProxyURL();
    else
-      client->setProxyURL(n->val.String->getBuffer(), xsink);
+      client->setProxyURL(n->getBuffer(), xsink);
    return NULL;
 }
 
 class QoreNode *f_getProxyURL(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreString *str = client->getProxyURL();
-   return str ? new QoreNode(str) : NULL;
+   return client->getProxyURL();
 }
 
 class QoreNode *f_clearProxyURL(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)

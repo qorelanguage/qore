@@ -23,6 +23,18 @@
 #include <qore/Qore.h>
 
 #include "QC_QTextFormat.h"
+#include "QC_QBrush.h"
+#include "QC_QColor.h"
+#include "QC_QTextLength.h"
+#include "QC_QPen.h"
+#include "QC_QTextBlockFormat.h"
+#include "QC_QTextCharFormat.h"
+#include "QC_QTextFrameFormat.h"
+#include "QC_QTextListFormat.h"
+#include "QC_QTextImageFormat.h"
+#include "QC_QTextTableFormat.h"
+
+#include "qore-qt.h"
 
 int CID_QTEXTFORMAT;
 class QoreClass *QC_QTextFormat = 0;
@@ -333,7 +345,7 @@ static QoreNode *QTEXTFORMAT_stringProperty(QoreObject *self, QoreQTextFormat *q
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qtf->stringProperty(propertyId).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtf->stringProperty(propertyId).toUtf8().data(), QCS_UTF8);
 }
 
 //QTextBlockFormat toBlockFormat () const

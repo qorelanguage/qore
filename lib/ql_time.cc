@@ -66,29 +66,19 @@ static class QoreNode *f_now(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_format_date(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *temp, *p0, *p1;
+   class QoreStringNode *p0;
+   class QoreNode *p1;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)) ||
+   if (!(p0 = test_string_param(params, 0)) ||
        !(p1 = get_param(params, 1)))
       return NULL;
-
-   tracein("format_date()");
-   // second argument is converted to a date if necessary
-   if (p1->type != NT_DATE)
-      temp = p1->convert(NT_DATE);
-   else
-      temp = p1;
-
-   class QoreString *rv = new QoreString();
-   temp->val.date_time->format(rv, p0->val.String->getBuffer());
    
-   if (temp != p1)
-      temp->deref(xsink);
-
+   DateTimeValueHelper temp(p1);
+   class QoreStringNode *rv = new QoreStringNode();
+   temp->format(rv, p0->getBuffer());
+   
    printd(5, "format_date() returning \"%s\"\n", rv->getBuffer());
-   traceout("format_date()");
-
-   return new QoreNode(rv);
+   return rv;
 }
 
 static class QoreNode *f_localtime(const QoreNode *params, ExceptionSink *xsink)
@@ -126,23 +116,16 @@ static class QoreNode *f_gmtime(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_mktime(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *temp, *p0;
+   class QoreNode *p0;
+   if (!(p0 = get_param(params, 0)))
+      return NULL;
+
+   DateTimeValueHelper temp(p0);
    struct tm nt;
    time_t t;
 
-   if (!(p0 = get_param(params, 0)))
-      return NULL;
-   if (p0->type == NT_DATE)
-      temp = p0;
-   else
-      temp = p0->convert(NT_DATE);
-
-   temp->val.date_time->getTM(&nt);
-
+   temp->getTM(&nt);
    t = mktime(&nt);
-
-   if (temp != p0)
-      temp->deref(xsink);
 
    return new QoreNode((int64)t);
 }
@@ -150,22 +133,16 @@ static class QoreNode *f_mktime(const QoreNode *params, ExceptionSink *xsink)
 #ifdef HAVE_TIMEGM
 static class QoreNode *f_timegm(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *temp, *p0;
+   class QoreNode *p0;
+   if (!(p0 = get_param(params, 0)))
+      return NULL;
+
+   DateTimeValueHelper temp(p0);
    struct tm nt;
    time_t t;
 
-   if (!(p0 = get_param(params, 0)))
-      return NULL;
-   if (p0->type != NT_DATE)
-      temp = p0->convert(NT_DATE);
-   else
-      temp = p0;
-
-   temp->val.date_time->getTM(&nt);
+   temp->getTM(&nt);
    t = timegm(&nt);
-
-   if (temp != p0)
-      temp->deref(xsink);
 
    return new QoreNode((int64)t);
 }
@@ -369,10 +346,10 @@ static class QoreNode *f_getISOWeekString(const QoreNode *params, ExceptionSink 
    
    int year, week, day;
    p0->val.date_time->getISOWeek(year, week, day);
-   class QoreString *str = new QoreString();
+   class QoreStringNode *str = new QoreStringNode();
    str->sprintf("%04d-W%02d-%d", year, week, day);
 
-   return new QoreNode(str);
+   return str;
 }
 
 // returns a date corresponding to the ISO-8601 calendar week information passed

@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QStyleOptionButton.h"
+#include "QC_QIcon.h"
+#include "QC_QSize.h"
+
+#include "qore-qt.h"
 
 int CID_QSTYLEOPTIONBUTTON;
 class QoreClass *QC_QStyleOptionButton = 0;
@@ -66,7 +70,7 @@ static QoreNode *QSTYLEOPTIONBUTTON_iconSize(QoreObject *self, QoreQStyleOptionB
 //QString text ()
 static QoreNode *QSTYLEOPTIONBUTTON_text(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qsob->text.toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qsob->text.toUtf8().data(), QCS_UTF8);
 }
 
 //void setFeatures ( ButtonFeatures features )

@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QInputDialog.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QINPUTDIALOG;
 class QoreClass *QC_QInputDialog = 0;
@@ -187,7 +190,7 @@ static QoreNode *f_QInputDialog_getItem(const QoreNode *params, ExceptionSink *x
       (*vp) = new QoreNode(ok);
    }
 
-   return new QoreNode(new QoreString(rv.toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(rv.toUtf8().data(), QCS_UTF8);
 }
 
 //QString getText ( QWidget * parent, const QString & title, const QString & label, QLineEdit::EchoMode mode = QLineEdit::Normal, const QString & text = QString(), bool * ok = 0, Qt::WindowFlags f = 0 )
@@ -235,7 +238,7 @@ static QoreNode *f_QInputDialog_getText(const QoreNode *params, ExceptionSink *x
       (*vp) = new QoreNode(ok);
    }
 
-   return new QoreNode(new QoreString(rv.toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(rv.toUtf8().data(), QCS_UTF8);
 }
 
 void initQInputDialogStaticFunctions()

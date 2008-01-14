@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include "QC_QLCDNumber.h"
+#include "QC_QWidget.h"
 
 int CID_QLCDNUMBER;
 
@@ -138,7 +139,7 @@ static QoreNode *QLCDNUMBER_display(QoreObject *self, QoreQLCDNumber *qlcdn, con
    if (p && p->type == NT_FLOAT)
       qlcdn->qobj->display(p->val.floatval);
    else if (p && p->type == NT_STRING)
-      qlcdn->qobj->display(p->val.String->getBuffer());
+      qlcdn->qobj->display((reinterpret_cast<QoreStringNode *>(p))->getBuffer());
    else {
       int num = p ? p->getAsInt() : 0;
       qlcdn->qobj->display(num);

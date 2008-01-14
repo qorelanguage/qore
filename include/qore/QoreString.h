@@ -41,12 +41,10 @@ extern const class QoreEncoding *QCS_DEFAULT;
 extern class code_table html_codes[];
 
 class QoreString {
-   private:
+   protected:
       struct qore_string_private *priv;
 
-      // the following two functions are not implemented - 
-      // QoreStrings must be explicitly copied with QoreString::copy()
-      DLLLOCAL QoreString(const QoreString &);
+      // the following function is not implemented
       DLLLOCAL QoreString & operator=(const QoreString &);
 
       DLLLOCAL inline void check_char(unsigned i);
@@ -57,13 +55,18 @@ class QoreString {
       DLLLOCAL void splice_complex(int offset, class ExceptionSink *xsink);
       DLLLOCAL void splice_complex(int offset, int length, class ExceptionSink *xsink);
       DLLLOCAL void splice_complex(int offset, int length, const class QoreString *str, class ExceptionSink *xsink);
-      DLLLOCAL class QoreString *substr_simple(int offset);
-      DLLLOCAL class QoreString *substr_simple(int offset, int length);
-      DLLLOCAL class QoreString *substr_complex(int offset);
-      DLLLOCAL class QoreString *substr_complex(int offset, int length);
+      DLLLOCAL int substr_simple(QoreString *str, int offset) const;
+      DLLLOCAL int substr_simple(QoreString *str, int offset, int length) const;
+      DLLLOCAL int substr_complex(QoreString *str, int offset) const;
+      DLLLOCAL int substr_complex(QoreString *str, int offset, int length) const;
+
+      // writes a new QoreString with the characters reversed of the "this" QoreString
+      // assumes the encoding is the same and the length is 0
+      DLLLOCAL void concat_reverse(QoreString *targ) const;
 
       DLLLOCAL int snprintf(int size, const char *fmt, ...);
       DLLLOCAL int vsnprintf(int size, const char *fmt, va_list args);
+      DLLLOCAL static int convert_encoding_intern(const char *src, int src_len, const class QoreEncoding *from, QoreString &targ, const class QoreEncoding *to, class ExceptionSink *xsink);
 
    public:
       // common HTML encodings table
@@ -77,12 +80,15 @@ class QoreString {
       DLLEXPORT QoreString(const char *str, int len, const class QoreEncoding *new_qorecharset = QCS_DEFAULT);
       DLLEXPORT QoreString(const std::string &str, const class QoreEncoding *new_encoding = QCS_DEFAULT);
       DLLEXPORT QoreString(char);
+      DLLEXPORT QoreString(const QoreString &str);
       DLLEXPORT QoreString(const QoreString *str);
       DLLEXPORT QoreString(const QoreString *, int);
       DLLEXPORT QoreString(int64);
       DLLEXPORT QoreString(double);
       DLLEXPORT QoreString(const class DateTime *);
       DLLEXPORT QoreString(const class BinaryObject *);
+      // takes ownership of the char * passed
+      DLLEXPORT QoreString(char *nbuf, int nlen, int nallocated, const class QoreEncoding *enc);
       DLLEXPORT ~QoreString();
 
       // returns the number of characters
@@ -121,11 +127,14 @@ class QoreString {
       DLLEXPORT int compare(const char *) const;
       DLLEXPORT void allocate(int);
       DLLEXPORT void terminate(int);
+      // this will concatentate the new formatted string to the existing string
       DLLEXPORT int sprintf(const char *fmt, ...);
+      // this will concatentate the new formatted string to the existing string
       DLLEXPORT int vsprintf(const char *fmt, va_list args);
       DLLEXPORT void take(char *);
-      DLLEXPORT void take(char *, const class QoreEncoding *new_charset);
+      DLLEXPORT void take(char *, const class QoreEncoding *enc);
       DLLEXPORT void take(char *, int size);
+      DLLEXPORT void take(char *, int size, const class QoreEncoding *enc);
       DLLEXPORT void takeAndTerminate(char *, int size);
       DLLEXPORT class QoreString *convertEncoding(const class QoreEncoding *nccs, class ExceptionSink *xsink) const;
       DLLEXPORT char *giveBuffer();
@@ -136,8 +145,8 @@ class QoreString {
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, const class QoreNode *strn, class ExceptionSink *xsink);
-      DLLEXPORT class QoreString *substr(int offset);
-      DLLEXPORT class QoreString *substr(int offset, int length);
+      DLLEXPORT class QoreString *substr(int offset) const;
+      DLLEXPORT class QoreString *substr(int offset, int length) const;
       DLLEXPORT int chomp();
       // returns the encoding for the string
       DLLEXPORT const class QoreEncoding *getEncoding() const;
@@ -174,12 +183,14 @@ class QoreString {
       // remove leading and trailing single char
       DLLEXPORT void trim(char c);
       // return Unicode code point for character offset, string must be UTF-8
-      DLLEXPORT unsigned int getUnicodePointFromUTF8(int offset = 0);
+      DLLEXPORT unsigned int getUnicodePointFromUTF8(int offset = 0) const;
       // return Unicode code point for character offset
-      DLLEXPORT unsigned int getUnicodePoint(int offset, class ExceptionSink *xsink);
+      DLLEXPORT unsigned int getUnicodePoint(int offset, class ExceptionSink *xsink) const;
 
       // concatenates a qorestring without converting encodings - internal only
       DLLLOCAL void concat(const QoreString *);
+      // private constructor
+      DLLLOCAL QoreString(struct qore_string_private *p);
 };
 
 DLLEXPORT class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink);
@@ -204,7 +215,8 @@ class TempString {
       }
       DLLEXPORT QoreString *operator->(){ return str; };
       DLLEXPORT QoreString *operator*() { return str; };
-      DLLEXPORT operator bool() const { return str != 0; }      
+      DLLEXPORT operator bool() const { return str != 0; }
+      DLLEXPORT QoreString *release() { QoreString *rv = str; str = 0; return rv; }
 };
 
 // class for using strings possibly temporarily converted to another encoding

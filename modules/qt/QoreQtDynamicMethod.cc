@@ -25,6 +25,8 @@
 #include "QoreQtDynamicMethod.h"
 
 #include "QC_QFont.h"
+#include "QC_QListWidgetItem.h"
+#include "QC_QWidget.h"
 
 #include <string.h>
 #include <ctype.h>
@@ -209,7 +211,7 @@ void QoreQtDynamicSlot::call(void **arguments)
 	 QString *qstr = reinterpret_cast<QString *>(arguments[i + 1]);
 	 //printd(5, "slot argument string: %08p: %d\n", qstr, qstr->length());
 	 //printd(5, "slot argument string: '%s'\n", qstr->toUtf8().data());
-	 args->push(new QoreNode(new QoreString(qstr->toUtf8().data(), QCS_UTF8)));
+	 args->push(new QoreStringNode(qstr->toUtf8().data(), QCS_UTF8));
       }
       else if (type_list[i] == QQT_TYPE_QDATE) {
 	 QDate *qdate = reinterpret_cast<QDate *>(arguments[i + 1]);

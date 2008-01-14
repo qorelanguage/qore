@@ -35,7 +35,10 @@ class Environment {
       DLLEXPORT ~Environment();
 
       DLLEXPORT int set(const char *name, const char *value, int overwrite = 1);
+      // caller owns pointer returned, returns 0 if variable does not exist in the environment
       DLLEXPORT class QoreString *get(const char *name);
+      // caller owns reference returned, returns 0 if variable does not exist in the environment
+      DLLEXPORT class QoreStringNode *getAsStringNode(const char *name);
       // appends value to string, returns 0 for OK, -1 for not found
       DLLEXPORT int get(const char *name, class QoreString *str);
       DLLEXPORT int unset(const char *name);

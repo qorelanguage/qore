@@ -43,9 +43,11 @@ static const char *get_class(QoreHash *h)
 
    if (!(t = h->getKeyValue("^class^")))
       return NULL;
-   if (t->type != NT_STRING)
+   
+   QoreStringNode *str = dynamic_cast<QoreStringNode *>(t);
+   if (!str)
       return NULL;
-   return t->val.String->getBuffer();
+   return str->getBuffer();
 }
 
 QoreApp::QoreApp(MAppProperties *pMAP, const char *name, QoreHash *clh,
@@ -130,7 +132,7 @@ const MBaseClassDescription *QoreApp::find_class(const char *cn, ExceptionSink *
 
    const char *cdesc;
    if (classlist && (t = classlist->getKeyValue(cn)) && t->type == NT_STRING)
-      cdesc = t->val.String->getBuffer();
+      cdesc = (reinterpret_cast<QoreStringNode *>(t))->getBuffer();
    else
       cdesc = cn;
 
@@ -208,20 +210,13 @@ class MData *QoreApp::do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 
       case TIBAE_DATE:
       {
-	 QoreNodeTypeHelper d(v, NT_DATE, xsink);
-	 if (!d)
-	    return 0;	 
-
-         return new MDate(d->val.date_time->getYear(), d->val.date_time->getMonth(), d->val.date_time->getDay());
+	 DateTimeValueHelper d(v);
+         return new MDate(d->getYear(), d->getMonth(), d->getDay());
       }
 
       case TIBAE_STRING:
       {
-	 QoreNodeTypeHelper d(v, NT_STRING, xsink);
-	 if (!d)
-	    return 0;
-
-	 TempEncodingHelper t(d->val.String, QCS_UTF8, xsink);
+	 QoreStringValueHelper t(v, QCS_UTF8, xsink);
 	 if (!t)
 	    return 0;
 
@@ -242,11 +237,8 @@ class MData *QoreApp::do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 
       case TIBAE_INTERVAL:
       {
-	 QoreNodeTypeHelper d(v, NT_DATE, xsink);
-	 if (!d)
-	    return 0;	 
-
-	 int64 ms = d->val.date_time->getRelativeMilliseconds();
+	 DateTimeValueHelper d(v);
+	 int64 ms = d->getRelativeMilliseconds();
 	 float seconds = (float)ms / (float)1000.0; 
 
 	 try {
@@ -254,27 +246,22 @@ class MData *QoreApp::do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 	 }
 	 catch (MException &tib_e)
 	 {
-	    xsink->raiseException("TIBCO-EXCEPTION", "%s, %s", 
-				  tib_e.getType().c_str(), tib_e.getDescription().c_str());
+	    xsink->raiseException("TIBCO-EXCEPTION", "%s, %s", tib_e.getType().c_str(), tib_e.getDescription().c_str());
 	    return 0;
 	 }
       }
 
       case TIBAE_TIME:
       {
-	 QoreNodeTypeHelper d(v, NT_DATE, xsink);
-	 if (!d)
-	    return 0;	 
-
-	 float seconds = (float)d->val.date_time->getSecond() + ((float)d->val.date_time->getMillisecond()) / (float)1000.0; 
+	 DateTimeValueHelper d(v);
+	 float seconds = (float)d->getSecond() + ((float)d->getMillisecond()) / (float)1000.0; 
 
 	 try {
-	    return new MTime(d->val.date_time->getHour(), d->val.date_time->getMinute(), seconds);
+	    return new MTime(d->getHour(), d->getMinute(), seconds);
 	 }
 	 catch (MException &tib_e)
 	 {
-	    xsink->raiseException("TIBCO-EXCEPTION", "%s, %s", 
-				  tib_e.getType().c_str(), tib_e.getDescription().c_str());
+	    xsink->raiseException("TIBCO-EXCEPTION", "%s, %s", tib_e.getType().c_str(), tib_e.getDescription().c_str());
 	    return 0;
 	 }
       }
@@ -357,22 +344,24 @@ lass '%s'", pcd->getFullName().c_str(), cn);
    if (v->type == NT_BOOLEAN)
       return new MBool(v->val.boolval);
 
-   if (v->type == NT_STRING)
    {
-      printd(3, "data=%08p val='%s'\n", v->val.String->getBuffer(), v->val.String->getBuffer());
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(t);
+      if (str) {
+	 printd(3, "data=%08p val='%s'\n", str->getBuffer(), str->getBuffer());
 #if (TIBCO_SDK == 4)
-      return new MStringData(v->val.String->getBuffer());
+	 return new MStringData(str->getBuffer());
 #else
-      // it appears that all MString data must be UTF-8, no matter how we use the MStringData constructor
-      // furthermore, it appears that we have to trick the SDK into thinking that the data is ASCII, so
-      // no conversions are attempted
-      TempEncodingHelper t(v->val.String, QCS_UTF8, xsink);
-      if (!t)
-	 return 0;
+	 // it appears that all MString data must be UTF-8, no matter how we use the MStringData constructor
+	 // furthermore, it appears that we have to trick the SDK into thinking that the data is ASCII, so
+	 // no conversions are attempted
+	 TempEncodingHelper t(str, QCS_UTF8, xsink);
+	 if (!t)
+	    return 0;
 
-      //md = new MStringData(t->getBuffer(), MEncoding::M_UTF8);
-      return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
+	 //md = new MStringData(t->getBuffer(), MEncoding::M_UTF8);
+	 return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
 #endif
+      }
    }
 
    if (v->type == NT_INT)

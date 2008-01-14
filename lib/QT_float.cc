@@ -28,31 +28,3 @@ class QoreNode *float_DefaultValue()
    ZeroFloat->ref();
    return ZeroFloat;
 }
-
-class QoreNode *float_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
-{
-   double f;
-
-   if (n->type == NT_STRING)
-      f = atof(n->val.String->getBuffer());
-   else if (n->type == NT_INT)
-      f = (double)n->val.intval;
-   else if (n->type == NT_DATE)
-      f = (double)n->val.date_time->getEpochSeconds();
-   else if (n->type == NT_BOOLEAN)
-      f = (double)n->val.boolval;
-   else
-      f = 0.0;
-
-   return new QoreNode(f);
-}
-
-bool float_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
-{
-   return (bool)(l->val.floatval != r->val.floatval);
-}
-
-class QoreString *float_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
-{
-   return new QoreString(n->val.floatval);
-}

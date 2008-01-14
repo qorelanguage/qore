@@ -75,7 +75,7 @@ public:
       DLLLOCAL CS_CONTEXT* getContext() const { return m_context; }
       DLLLOCAL const QoreEncoding *getEncoding() const { return enc; }
 
-      DLLLOCAL class QoreString *get_client_version(class ExceptionSink *xsink);
+      DLLLOCAL class QoreStringNode *get_client_version(class ExceptionSink *xsink);
       DLLLOCAL QoreNode *get_server_version(class ExceptionSink *xsink);
 };
 

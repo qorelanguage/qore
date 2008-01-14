@@ -21,7 +21,14 @@
  */
 
 #include <qore/Qore.h>
+
 #include "QC_QIcon.h"
+#include "QC_QPixmap.h"
+#include "QC_QSize.h"
+#include "QC_QPainter.h"
+#include "QC_QRect.h"
+
+#include "qore-qt.h"
 
 int CID_QICON;
 QoreClass *QC_QIcon = 0;
@@ -53,7 +60,7 @@ static void QICON_constructor(class QoreObject *self, const QoreNode *params, Ex
 	 qi = new QoreQIcon(*(pixmap->getQPixmap()));
       }
       else {
-	 const char *fname = p->val.String->getBuffer();
+	 const char *fname = (reinterpret_cast<QoreStringNode *>(p))->getBuffer();
 	 
 	 qi = new QoreQIcon(fname);
       }

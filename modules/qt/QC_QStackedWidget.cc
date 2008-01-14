@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QStackedWidget.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QSTACKEDWIDGET;
 class QoreClass *QC_QStackedWidget = 0;

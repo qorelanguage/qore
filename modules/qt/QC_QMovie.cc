@@ -23,6 +23,13 @@
 #include <qore/Qore.h>
 
 #include "QC_QMovie.h"
+#include "QC_QObject.h"
+#include "QC_QColor.h"
+#include "QC_QImage.h"
+#include "QC_QPixmap.h"
+#include "QC_QByteArray.h"
+#include "QC_QRect.h"
+#include "QC_QSize.h"
 
 int CID_QMOVIE;
 class QoreClass *QC_QMovie = 0;
@@ -117,7 +124,7 @@ static QoreNode *QMOVIE_device(QoreObject *self, QoreQMovie *qm, const QoreNode 
 //QString fileName () const
 static QoreNode *QMOVIE_fileName(QoreObject *self, QoreQMovie *qm, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qm->qobj->fileName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qm->qobj->fileName().toUtf8().data(), QCS_UTF8);
 }
 
 //QByteArray format () const
@@ -350,7 +357,7 @@ static QoreNode *f_QMovie_supportedFormats(const QoreNode *params, ExceptionSink
 
    QList<QByteArray> l = QMovie::supportedFormats();
    for (QList<QByteArray>::iterator i = l.begin(), e=l.end(); i != e; ++i)
-      ql->push(new QoreNode(new QoreString((*i).data())));
+      ql->push(new QoreStringNode((*i).data()));
 
    return new QoreNode(ql);
 }

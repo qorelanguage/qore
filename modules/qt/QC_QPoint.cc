@@ -25,6 +25,8 @@
 #include "QC_QPoint.h"
 #include "QC_QColor.h"
 
+#include "qore-qt.h"
+
 int CID_QPOINT;
 class QoreClass *QC_QPoint = 0;
 

@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QDateTimeEdit.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QDATETIMEEDIT;
 class QoreClass *QC_QDateTimeEdit = 0;
@@ -133,7 +136,7 @@ static QoreNode *QDATETIMEEDIT_dateTime(QoreObject *self, QoreAbstractQDateTimeE
 //QString displayFormat () const
 static QoreNode *QDATETIMEEDIT_displayFormat(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qdte->getQDateTimeEdit()->displayFormat().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qdte->getQDateTimeEdit()->displayFormat().toUtf8().data(), QCS_UTF8);
 }
 
 //Sections displayedSections () const
@@ -189,7 +192,7 @@ static QoreNode *QDATETIMEEDIT_sectionText(QoreObject *self, QoreAbstractQDateTi
 {
    QoreNode *p = get_param(params, 0);
    QDateTimeEdit::Section section = (QDateTimeEdit::Section)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(qdte->getQDateTimeEdit()->sectionText(section).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qdte->getQDateTimeEdit()->sectionText(section).toUtf8().data(), QCS_UTF8);
 }
 
 //void setCalendarPopup ( bool enable )
@@ -238,11 +241,10 @@ static QoreNode *QDATETIMEEDIT_setDateRange(QoreObject *self, QoreAbstractQDateT
 static QoreNode *QDATETIMEEDIT_setDisplayFormat(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QDATETIMEEDIT-SETDISPLAYFORMAT-PARAM-ERROR", "expecting a string as first argument to QDateTimeEdit::setDisplayFormat()");
+   QString format;
+   if (get_qstring(p, format, xsink))
       return 0;
-   }
-   const char *format = p->val.String->getBuffer();
+
    qdte->getQDateTimeEdit()->setDisplayFormat(format);
    return 0;
 }

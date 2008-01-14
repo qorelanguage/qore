@@ -28,31 +28,3 @@ class QoreNode *bigint_DefaultValue()
    Zero->ref();
    return Zero;
 }
-
-class QoreNode *bigint_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
-{
-   int64 i;
-
-   if (n->type == NT_STRING)
-      i = strtoll(n->val.String->getBuffer(), NULL, 10);
-   else if (n->type == NT_FLOAT)
-      i = (int64)n->val.floatval;
-   else if (n->type == NT_DATE)
-      i = n->val.date_time->getEpochSeconds();
-   else if (n->type == NT_BOOLEAN)
-      i = n->val.boolval;
-   else
-      i = 0;
-
-   return new QoreNode(i);
-}
-
-bool bigint_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
-{
-   return (bool)(l->val.intval != r->val.intval);
-}
-
-class QoreString *bigint_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
-{
-   return new QoreString(n->val.intval);
-}

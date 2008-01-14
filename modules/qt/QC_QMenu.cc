@@ -23,6 +23,15 @@
 #include <qore/Qore.h>
 
 #include "QC_QMenu.h"
+#include "QC_QWidget.h"
+#include "QC_QPoint.h"
+#include "QC_QAction.h"
+#include "QC_QRect.h"
+#include "QC_QObject.h"
+#include "QC_QIcon.h"
+#include "QC_QStyleOptionMenuItem.h"
+
+#include "qore-qt.h"
 
 int CID_QMENU;
 class QoreClass *QC_QMenu = 0;
@@ -163,12 +172,12 @@ static QoreNode *QMENU_addAction(QoreObject *self, QoreQMenu *qm, const QoreNode
    }
    ReferenceHolder<QoreAbstractQObject> receiverHolder(receiver, xsink);
    
-   p = get_param(params, 2 + offset);
-   if (!p || p->type != NT_STRING || !p->val.String->strlen()) {
+   QoreStringNode *pstr = test_string_param(params, 2 + offset);
+   if (!pstr || !pstr->strlen()) {
       xsink->raiseException("QMENU-ADDACTION-PARAM-ERROR", "expecting a string as third or fourth argument to QMenu::addAction()");
       return 0;
    }
-   const char *member = p->val.String->getBuffer();
+   const char *member = pstr->getBuffer();
    
    p = get_param(params, 3 + offset);
    QKeySequence shortcut;
@@ -485,7 +494,7 @@ static QoreNode *QMENU_setTitle(QoreObject *self, QoreQMenu *qm, const QoreNode 
 //QString title () const
 static QoreNode *QMENU_title(QoreObject *self, QoreQMenu *qm, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qm->getQMenu()->title().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qm->getQMenu()->title().toUtf8().data(), QCS_UTF8);
 }
 
 //int columnCount () const

@@ -137,19 +137,20 @@ static void GETOPT_constructor(class QoreObject *self, const QoreNode *params, E
       }
 
       class QoreNode *v = hi.getValue();
-      if (!v || v->type != NT_STRING)
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
+      if (!str)
       {
-	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k,
-			v ? v->type->getName() : "NOTHING");
+	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k, v ? v->type->getName() : "NOTHING");
 	 break;
       }
+
       class QoreType *at = NULL;
       char *long_opt = NULL, short_opt = '\0';
       int attributes = QGO_OPT_NONE;
 
       // reset buffer
       vstr.clear();
-      vstr.concat(v->val.String->getBuffer());
+      vstr.concat(str->getBuffer());
       char *val = (char *)vstr.getBuffer();
 
       // get data type, if any

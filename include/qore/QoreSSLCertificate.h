@@ -46,8 +46,8 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       DLLLOCAL virtual ~QoreSSLCertificate();
 
    public:
-      // caller owns the QoreString returned
-      DLLEXPORT class QoreString *getPEM(class ExceptionSink *xsink) const;
+      // caller owns the QoreStringNode reference returned
+      DLLEXPORT class QoreStringNode *getPEM(class ExceptionSink *xsink) const;
 
       DLLLOCAL QoreSSLCertificate(X509 *c);
       DLLLOCAL QoreSSLCertificate(const char *fn, class ExceptionSink *xsink);
@@ -66,11 +66,11 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       // caller owns value returned
       DLLLOCAL class DateTime *getNotAfterDate() const;
       // caller owns value returned
-      DLLLOCAL class QoreString *getSignatureType() const;
+      DLLLOCAL class QoreStringNode *getSignatureType() const;
       // caller owns value returned
       DLLLOCAL class BinaryObject *getSignature() const;
       // caller owns value returned
-      DLLLOCAL class QoreString *getPublicKeyAlgorithm() const;
+      DLLLOCAL class QoreStringNode *getPublicKeyAlgorithm() const;
       // caller owns value returned
       DLLLOCAL class BinaryObject *getPublicKey() const;
       // caller owns value returned

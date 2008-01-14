@@ -197,7 +197,7 @@ QoreList *DBIDriver::getCapList() const
    QoreList *l = new QoreList();
    for (int i = 0; i < NUM_DBI_CAPS; i++)
       if (priv->caps & dbi_cap_list[i].cap)
-	 l->push(new QoreNode(dbi_cap_list[i].desc));
+	 l->push(new QoreStringNode(dbi_cap_list[i].desc));
    return l;
 }
 
@@ -308,7 +308,7 @@ struct qore_dbi_dlist_private {
 	 class QoreList *lst = new QoreList();
 	 
 	 for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
-	    lst->push(new QoreNode((*i)->getName()));
+	    lst->push(new QoreStringNode((*i)->getName()));
 	 
 	 return lst;
       }
@@ -365,7 +365,7 @@ void DBI_concat_numeric(class QoreString *str, const QoreNode *v)
       return;
    }
 
-   if (v->type == NT_FLOAT || (v->type == NT_STRING && strchr(v->val.String->getBuffer(), '.')))
+   if (v->type == NT_FLOAT || (v->type == NT_STRING && strchr((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), '.')))
    {
       str->sprintf("%g", v->getAsFloat());
       return;
@@ -377,12 +377,12 @@ int DBI_concat_string(class QoreString *str, const QoreNode *v, class ExceptionS
 {
    if (is_nothing(v) || is_null(v))
       return 0;
-   
-   QoreNodeTypeHelper tstr(v, NT_STRING, xsink);
-   if (!tstr)
+
+   QoreStringValueHelper tstr(v, str->getEncoding(), xsink);
+   if (*xsink)
       return -1;
-   
-   str->concat(tstr->val.String, xsink);
+
+   str->concat(*tstr, xsink);
    return *xsink;
 }
 
@@ -407,7 +407,7 @@ class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
    if (p)
    {
       *p = '\0';
-      h->setKeyValue("type", new QoreNode(str), NULL);
+      h->setKeyValue("type", new QoreStringNode(str), NULL);
       str = p + 1;
    }
 
@@ -416,7 +416,7 @@ class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
    if (p)
    {
       *p = '\0';
-      h->setKeyValue("user", new QoreNode(str), NULL);
+      h->setKeyValue("user", new QoreStringNode(str), NULL);
       str = p + 1;
       has_pass = true;
    }
@@ -434,9 +434,9 @@ class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
    if (p != str)
    {
       if (has_pass)
-	 h->setKeyValue("pass", new QoreNode(str), NULL);
+	 h->setKeyValue("pass", new QoreStringNode(str), NULL);
       else
-	 h->setKeyValue("user", new QoreNode(str), NULL);
+	 h->setKeyValue("user", new QoreStringNode(str), NULL);
    }
    str = p + 1;
 
@@ -455,7 +455,7 @@ class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
       *p = '\0';  // terminate for db
       *end = '\0';  // terminate charset
       p++;
-      h->setKeyValue("charset", new QoreNode(p), NULL);
+      h->setKeyValue("charset", new QoreStringNode(p), NULL);
       str = end + 1;
    }
    
@@ -471,22 +471,22 @@ class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
 	 h->derefAndDelete(xsink);
 	 return NULL;
       }
-      h->setKeyValue("host", new QoreNode(p), NULL);
+      h->setKeyValue("host", new QoreStringNode(p), NULL);
    }
 
-   h->setKeyValue("db", new QoreNode(db), NULL);
+   h->setKeyValue("db", new QoreStringNode(db), NULL);
    free(ostr);
    return h;
 }
 
 class QoreNode *f_parseDatasource(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   class QoreHash *h = parseDatasource(p0->val.String->getBuffer(), xsink);
+   class QoreHash *h = parseDatasource(p0->getBuffer(), xsink);
 
    return h ? new QoreNode(h) : NULL;
 }
@@ -502,12 +502,12 @@ class QoreNode *f_getDBIDriverList(const QoreNode *params, ExceptionSink *xsink)
 
 class QoreNode *f_getDBIDriverCapabilityList(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   DBIDriver *dd = DBI.find(p0->val.String->getBuffer());
+   DBIDriver *dd = DBI.find(p0->getBuffer());
    if (!dd)
       return NULL;
 
@@ -521,16 +521,16 @@ class QoreNode *f_getDBIDriverCapabilityList(const QoreNode *params, ExceptionSi
 
 class QoreNode *f_getDBIDriverCapabilities(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   DBIDriver *dd = DBI.find(p0->val.String->getBuffer());
+   DBIDriver *dd = DBI.find(p0->getBuffer());
    if (!dd)
       return NULL;
 
-   return new QoreNode(NT_INT, dd->getCaps());
+   return new QoreNode((int64)dd->getCaps());
 }
 
 void init_dbi_functions()
@@ -550,14 +550,14 @@ class QoreNamespace *getSQLNamespace()
    SQLNS->addSystemClass(initDatasourcePoolClass());
 
    // datasource type constants
-   SQLNS->addConstant("DSOracle",   new QoreNode("oracle"));
-   SQLNS->addConstant("DSMySQL",    new QoreNode("mysql"));
-   SQLNS->addConstant("DSSybase",   new QoreNode("sybase"));
-   SQLNS->addConstant("DSPGSQL",    new QoreNode("pgsql"));
-   SQLNS->addConstant("DSMSSQL",    new QoreNode("mssql"));
+   SQLNS->addConstant("DSOracle",   new QoreStringNode("oracle"));
+   SQLNS->addConstant("DSMySQL",    new QoreStringNode("mysql"));
+   SQLNS->addConstant("DSSybase",   new QoreStringNode("sybase"));
+   SQLNS->addConstant("DSPGSQL",    new QoreStringNode("pgsql"));
+   SQLNS->addConstant("DSMSSQL",    new QoreStringNode("mssql"));
    // the following have no drivers yet
-   SQLNS->addConstant("DSDB2",      new QoreNode("db2"));
-   SQLNS->addConstant("DSInformix", new QoreNode("informix"));
+   SQLNS->addConstant("DSDB2",      new QoreStringNode("db2"));
+   SQLNS->addConstant("DSInformix", new QoreStringNode("informix"));
 
    // for DBI driver capabilities
    SQLNS->addConstant("DBI_CAP_CHARSET_SUPPORT",        new QoreNode((int64)DBI_CAP_CHARSET_SUPPORT));
@@ -568,11 +568,11 @@ class QoreNamespace *getSQLNamespace()
    SQLNS->addConstant("DBI_CAP_BIND_BY_PLACEHOLDER",    new QoreNode((int64)DBI_CAP_BIND_BY_PLACEHOLDER));
 
    // for column types for binding
-   SQLNS->addConstant("VARCHAR", new QoreNode("string"));
-   SQLNS->addConstant("NUMBER",  new QoreNode("string"));
-   SQLNS->addConstant("CLOB",    new QoreNode("clob"));
-   SQLNS->addConstant("BLOB",    new QoreNode("blob"));
-   SQLNS->addConstant("DATE",    new QoreNode("date"));
+   SQLNS->addConstant("VARCHAR", new QoreStringNode("string"));
+   SQLNS->addConstant("NUMBER",  new QoreStringNode("string"));
+   SQLNS->addConstant("CLOB",    new QoreStringNode("clob"));
+   SQLNS->addConstant("BLOB",    new QoreStringNode("blob"));
+   SQLNS->addConstant("DATE",    new QoreStringNode("date"));
 
    return SQLNS;
 }

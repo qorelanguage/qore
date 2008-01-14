@@ -128,11 +128,12 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    char fmt[20], *f;
    QoreString tbuf(cstr->getEncoding());
 
-   printd(3, "process_opt(): param=%s type=%d node=%08p node->type=%s refs=%d\n",
+   printd(5, "process_opt(): param=%s type=%d node=%08p node->type=%s refs=%d\n",
 	  param, type, node, node ? node->type->getName() : "(null)", node ? node->reference_count() : -1);
-   if (node && node->type == NT_STRING)
-      printd(4, "process_opt() %08p (%d) \"%s\"\n",
-	     node->val.String->getBuffer(), node->val.String->strlen(), node->val.String->getBuffer());
+   if (node && node->type == NT_STRING) {
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(node);
+      printd(5, "process_opt() %08p (%d) \"%s\"\n", str->getBuffer(), str->strlen(), str->getBuffer());
+   }
   loop:
    switch (*(++param))
    {
@@ -154,23 +155,21 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    char p = *param;
    switch (*param)
    {
-      case 's':
-	 if (!node)
-	    arg = null_string();
-	 else if (node->type != NT_STRING)
-	    arg = node->convert(NT_STRING);
-	 length = arg->val.String->strlen();
+      case 's': {
+	 QoreStringValueHelper astr(node);
+
+	 length = astr->strlen();
 	 if ((width != -1) && (length > width) && !type)
 	    width = length;
 	 if ((width != -1) && (length > width))
 	 {
-	    tbuf.concat(arg->val.String, width, xsink);
+	    tbuf.concat(*astr, width, xsink); // string encodings are converted here if necessary
 	 }
 	 else
 	 {
 	    if ((width != -1) && (opts & P_JUSTIFY_LEFT))
 	    {
-	       tbuf.concat(arg->val.String, xsink);
+	       tbuf.concat(*astr, xsink);
 	       while (width > length)
 	       {
 		  tbuf.concat(' ');
@@ -184,10 +183,11 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
 		  tbuf.concat(' ');
 		  width--;
 	       }
-	       tbuf.concat(arg->val.String, xsink);
+	       tbuf.concat(*astr, xsink);
 	    }
 	 }
 	 break;
+      }
       case 'p':
 	 p = 'x';
       case 'd':
@@ -263,11 +263,10 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
       case 'n':
       case 'N':
       {
-	 QoreString *t = node->getAsString(*param == 'N' 
-					   ? (width == -1 ? FMT_NORMAL : width) 
-					   : FMT_NONE, xsink);
-	 tbuf.concat(t);
-	 delete t;
+	 QoreNodeAsStringHelper t(node, *param == 'N' 
+				  ? (width == -1 ? FMT_NORMAL : width) 
+				  : FMT_NONE, xsink);
+	 tbuf.concat(*t);
 	 break;
       }
       default:
@@ -283,55 +282,55 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    return (int)(param - str);
 }
 
-class QoreString *q_sprintf(const QoreNode *params, int field, int offset, class ExceptionSink *xsink)
+class QoreStringNode *q_sprintf(const QoreNode *params, int field, int offset, class ExceptionSink *xsink)
 {
    int i, j, l;
-   QoreNode *p;
+   QoreStringNode *p;
 
-   if (!(p = test_param(params, NT_STRING, offset)))
-      return new QoreString();
+   if (!(p = test_string_param(params, offset)))
+      return new QoreStringNode();
 
-   QoreString *buf = new QoreString(p->val.String->getEncoding());
+   QoreStringNode *buf = new QoreStringNode(p->getEncoding());
 
    j = 1 + offset;
-   l = strlen(p->val.String->getBuffer());
+   l = strlen(p->getBuffer());
    for (i = 0; i < l; i++)
    {
       int taken = 1;
-      if ((p->val.String->getBuffer()[i] == '%') 
+      if ((p->getBuffer()[i] == '%') 
 	  && (j < params->val.list->size()))
       {
-	 i += process_opt(buf, (char *)&p->val.String->getBuffer()[i], 
-			  get_param(params, j++), field, &taken, xsink);
+	 i += process_opt(buf, (char *)&p->getBuffer()[i], get_param(params, j++), field, &taken, xsink);
 	 if (!taken)
 	    j--;
       }
       else
-	 buf->concat(p->val.String->getBuffer()[i]);
+	 buf->concat(p->getBuffer()[i]);
    }
 
    return buf;
 }
 
-class QoreString *q_vsprintf(const QoreNode *params, int field, int offset, class ExceptionSink *xsink)
+class QoreStringNode *q_vsprintf(const QoreNode *params, int field, int offset, class ExceptionSink *xsink)
 {
-   class QoreNode *fmt, *args;
+   QoreStringNode *fmt;
+   QoreNode *args;
 
-   if (!(fmt = test_param(params, NT_STRING, offset)))
-      return new QoreString();
+   if (!(fmt = test_string_param(params, offset)))
+      return new QoreStringNode();
 
    args = get_param(params, offset + 1);
 
-   QoreString *buf = new QoreString(fmt->val.String->getEncoding());
+   QoreStringNode *buf = new QoreStringNode(fmt->getEncoding());
    int j = 0;
-   int l = fmt->val.String->strlen();
+   int l = fmt->strlen();
    for (int i = 0; i < l; i++)
    {
       int taken = 1;
       bool havearg = false;
       class QoreNode *arg = NULL;
 
-      if ((fmt->val.String->getBuffer()[i] == '%'))
+      if ((fmt->getBuffer()[i] == '%'))
       {
 	 if (args)
 	 {
@@ -351,13 +350,13 @@ class QoreString *q_vsprintf(const QoreNode *params, int field, int offset, clas
       }
       if (havearg)
       {
-	 i += process_opt(buf, (char *)&fmt->val.String->getBuffer()[i], 
+	 i += process_opt(buf, (char *)&fmt->getBuffer()[i], 
 			  arg, field, &taken, xsink);
 	 if (!taken)
 	    j--;
       }
       else
-	 buf->concat(fmt->val.String->getBuffer()[i]);
+	 buf->concat(fmt->getBuffer()[i]);
    }
    return buf;
 }
@@ -557,19 +556,9 @@ char *make_class_name(const char *str)
 
 void print_node(FILE *fp, class QoreNode *node)
 {
-   class QoreNode *n_node;
-
    printd(5, "print_node() node=%08p (%s)\n", node, node ? node->type->getName() : "(null)");
-   if (!node)
-      return;
-   if (node->type != NT_STRING)
-   {
-      n_node = node->convert(NT_STRING);
-      fputs(n_node->val.String->getBuffer(), fp);
-      n_node->deref(NULL);
-      return;
-   }
-   fputs(node->val.String->getBuffer(), fp);
+   QoreStringValueHelper str(node);
+   fputs(str->getBuffer(), fp);
 }
 
 void qore_setup_argv(int pos, int argc, char *argv[])
@@ -580,8 +569,8 @@ void qore_setup_argv(int pos, int argc, char *argv[])
    for (int i = 0; i < argc; i++)
    {
       if (i < end)
-	 ARGV->push(new QoreNode(argv[i + pos]));
-      QORE_ARGV->push(new QoreNode(argv[i]));
+	 ARGV->push(new QoreStringNode(argv[i + pos]));
+      QORE_ARGV->push(new QoreStringNode(argv[i]));
    }
 }
 
@@ -598,7 +587,7 @@ void initENV(char *env[])
       {
 	 char save = *p;
 	 *p = '\0';
-	 ENV->setKeyValue(env[i], new QoreNode(p + 1), NULL);
+	 ENV->setKeyValue(env[i], new QoreStringNode(p + 1), NULL);
 	 //printd(5, "creating $ENV{\"%s\"} = \"%s\"\n", env[i], p + 1);
 	 *p = save;
       }

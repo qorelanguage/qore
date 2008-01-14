@@ -58,7 +58,7 @@ class QoreNode *f_save_thread_data(const QoreNode *params, ExceptionSink *xsink)
       if (p1)
 	 p1->RefSelf();
 
-      data->setKeyValue(p0->val.String, p1, xsink);
+      data->setKeyValue(((QoreStringNode *)p0), p1, xsink);
    }
 
    return NULL;
@@ -77,16 +77,9 @@ class QoreNode *f_delete_thread_data(const QoreNode *params, ExceptionSink *xsin
 	 QoreNode *p = get_param(params, i);
 	 if (p)
 	 {
-	    if (p->type != NT_STRING)
-	    {
-	       QoreNode *t = p->convert(NT_STRING);
-	       data->deleteKey(t->val.String, xsink);
-	       t->deref(xsink);
-	    }
-	    else
-	       data->deleteKey(p->val.String, xsink);
-	    
-	    if (xsink->isEvent())
+	    QoreStringValueHelper t(p);
+	    data->deleteKey(*t, xsink);
+	    if (*xsink)
 	       break;
 	 }
       }
@@ -105,12 +98,12 @@ class QoreNode *f_delete_all_thread_data(const QoreNode *params, ExceptionSink *
 
 class QoreNode *f_get_thread_data(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
    QoreHash *data = getProgram()->getThreadData();
-   QoreNode *v = data->getKeyValue(p0->val.String->getBuffer());
+   QoreNode *v = data->getKeyValue(p0->getBuffer());
    return v ? v->RefSelf() : 0;
 }
 
@@ -124,7 +117,7 @@ class QoreNode *f_getAllThreadCallStacks(const QoreNode *params, ExceptionSink *
 #ifdef DEBUG
    return new QoreNode(getAllCallStacks());
 #else
-   return new QoreNode("getAllThreadCallStacks() not available without debugging");
+   return new QoreStringNode("getAllThreadCallStacks() not available without debugging");
 #endif
 }
 

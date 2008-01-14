@@ -25,6 +25,8 @@
 #include "QC_QDate.h"
 #include "QC_QTime.h"
 
+#include "qore-qt.h"
+
 DLLLOCAL int CID_QDATETIME;
 
 static void QDATETIME_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
@@ -258,16 +260,15 @@ static QoreNode *QDATETIME_toLocalTime(QoreObject *self, QoreQDateTime *qdt, con
 static QoreNode *QDATETIME_toString(QoreObject *self, QoreQDateTime *qdt, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_STRING) {
-      if (!p || p->type != NT_STRING) {
-         xsink->raiseException("QDATETIME-TOSTRING-PARAM-ERROR", "expecting a string as first argument to QDateTime::toString()");
-         return 0;
-      }
-      const char *format = p->val.String->getBuffer();
-      return new QoreNode(new QoreString(qdt->toString(format).toUtf8().data(), QCS_UTF8));
+   {
+      QString format;
+      if (!get_qstring(p, format, xsink, true))
+	 return new QoreStringNode(qdt->toString(format).toUtf8().data(), QCS_UTF8);
    }
+   if (*xsink)
+      return 0;
    Qt::DateFormat format = (Qt::DateFormat)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(qdt->toString(format).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qdt->toString(format).toUtf8().data(), QCS_UTF8);
 }
 
 //QDateTime toTimeSpec ( Qt::TimeSpec specification ) const

@@ -52,7 +52,7 @@ DLLLOCAL extern DateTime* DATETIME4_to_DateTime(CS_DATETIME4& dt, ExceptionSink*
 
 // Sybase DECIMAL datatype manipulation
 //DLLLOCAL extern void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionSink* xsink);
-//DLLLOCAL extern class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink);
+//DLLLOCAL extern class QoreStringNode *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink);
 
 
 #endif

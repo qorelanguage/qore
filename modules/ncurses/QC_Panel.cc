@@ -1,3 +1,4 @@
+
 /*
   QC_Panel.cc
 
@@ -69,9 +70,9 @@ class QoreNode *PC_addstr(class QoreObject *self, class Panel *p, const QoreNode
 {
    QoreNode *rv;
    int rc;
-   class QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (p0)
-      rc = p->qaddstr(p0->val.String->getBuffer());
+      rc = p->qaddstr(p0->getBuffer());
    else
       rc = 0;
 
@@ -83,12 +84,12 @@ class QoreNode *PC_mvaddstr(class QoreObject *self, class Panel *p, const QoreNo
 {
    QoreNode *rv;
    int rc;
-   class QoreNode *p2 = test_param(params, NT_STRING, 2);
+   QoreStringNode *p2 = test_string_param(params, 2);
    if (p2)
    {
       class QoreNode *p0 = get_param(params, 0);
       class QoreNode *p1 = get_param(params, 1);
-      rc = p->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, p2->val.String->getBuffer());
+      rc = p->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, p2->getBuffer());
    }
    else
       rc = 0;
@@ -392,7 +393,7 @@ class QoreNode *PC_addch(class QoreObject *self, class Panel *p, const QoreNode 
 {
    QoreNode *rv;
    QoreNode *p0 = get_param(params, 0);
-   if (!is_nothing(p0) && (p0->type != NT_STRING || p0->val.String->strlen()))
+   if (!is_nothing(p0) && (p0->type != NT_STRING || (reinterpret_cast<QoreStringNode *>(p0))->strlen()))
       rv = new QoreNode((int64)p->qaddch(getChar(p0)));
    else
       rv = NULL;
@@ -405,7 +406,7 @@ class QoreNode *PC_mvaddch(class QoreObject *self, class Panel *p, const QoreNod
    QoreNode *p0 = get_param(params, 0);
    QoreNode *p1 = get_param(params, 1);
    QoreNode *p2 = get_param(params, 2);
-   if (!is_nothing(p2) && (p2->type != NT_STRING || p2->val.String->strlen()))
+   if (!is_nothing(p2) && (p2->type != NT_STRING || (reinterpret_cast<QoreStringNode *>(p2))->strlen()))
       rv = new QoreNode((int64)p->qmvaddch(p0 ? p0->getAsInt() : 0,
 					   p1 ? p1->getAsInt() : 0,
 					   getChar(p2)));

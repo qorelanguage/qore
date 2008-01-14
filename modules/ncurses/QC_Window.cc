@@ -63,9 +63,9 @@ class QoreNode *WC_keypad(class QoreObject *self, class Window *w, const QoreNod
 class QoreNode *WC_addstr(class QoreObject *self, class Window *w, const QoreNode *params, ExceptionSink *xsink)
 {
    int rc;
-   class QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (p0)
-      rc = w->qaddstr(p0->val.String->getBuffer());
+      rc = w->qaddstr(p0->getBuffer());
    else
       rc = 0;
    
@@ -75,12 +75,12 @@ class QoreNode *WC_addstr(class QoreObject *self, class Window *w, const QoreNod
 class QoreNode *WC_mvaddstr(class QoreObject *self, class Window *w, const QoreNode *params, ExceptionSink *xsink)
 {
    int rc;
-   class QoreNode *p2 = test_param(params, NT_STRING, 2);
+   QoreStringNode *p2 = test_string_param(params, 2);
    if (p2)
    {
       class QoreNode *p0 = get_param(params, 0);
       class QoreNode *p1 = get_param(params, 1);
-      rc = w->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, p2->val.String->getBuffer());
+      rc = w->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, p2->getBuffer());
    }
    else
       rc = 0;
@@ -90,24 +90,17 @@ class QoreNode *WC_mvaddstr(class QoreObject *self, class Window *w, const QoreN
 
 class QoreNode *WC_printw(class QoreObject *self, class Window *w, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *rv;
-   class QoreString *str = q_sprintf(params, 0, 0, xsink);
-   rv = new QoreNode((int64)w->qaddstr(str->getBuffer()));
-   delete str;
-
-   return rv;
+   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   return new QoreNode((int64)w->qaddstr(str->getBuffer()));
 }
 
 class QoreNode *WC_mvprintw(class QoreObject *self, class Window *w, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *rv;
-   class QoreString *str = q_sprintf(params, 0, 2, xsink);
+   TempQoreStringNode str(q_sprintf(params, 0, 2, xsink));
    class QoreNode *p0 = get_param(params, 0);
    class QoreNode *p1 = get_param(params, 1);
 
-   rv = new QoreNode((int64)w->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, str->getBuffer()));
-   delete str;
-   return rv;
+   return new QoreNode((int64)w->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, str->getBuffer()));
 }
 
 class QoreNode *WC_refresh(class QoreObject *self, class Window *w, const QoreNode *params, ExceptionSink *xsink)
@@ -304,7 +297,7 @@ class QoreNode *WC_addch(class QoreObject *self, class Window *w, const QoreNode
 {
    QoreNode *rv;
    QoreNode *p0 = get_param(params, 0);
-   if (!is_nothing(p0) && (p0->type != NT_STRING || p0->val.String->strlen()))
+   if (!is_nothing(p0) && (p0->type != NT_STRING || (reinterpret_cast<QoreStringNode *>(p0))->strlen()))
       rv = new QoreNode((int64)w->qaddch(getChar(p0)));
    else
       rv = NULL;
@@ -317,7 +310,7 @@ class QoreNode *WC_mvaddch(class QoreObject *self, class Window *w, const QoreNo
    QoreNode *p0 = get_param(params, 0);
    QoreNode *p1 = get_param(params, 1);
    QoreNode *p2 = get_param(params, 2);
-   if (!is_nothing(p2) && (p2->type != NT_STRING || p2->val.String->strlen()))
+   if (!is_nothing(p2) && (p2->type != NT_STRING || (reinterpret_cast<QoreStringNode *>(p2))->strlen()))
       rv = new QoreNode((int64)w->qmvaddch(p0 ? p0->getAsInt() : 0,
 					   p1 ? p1->getAsInt() : 0,
 					   getChar(p2)));

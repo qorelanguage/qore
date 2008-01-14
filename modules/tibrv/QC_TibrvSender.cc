@@ -34,18 +34,18 @@ void TIBRVSENDER_constructor(class QoreObject *self, const QoreNode *params, cla
    tracein("TIBRVSENDER_constructor");
 
    const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (pt)
-      desc = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 1);
+      desc = pt->getBuffer();
+   pt = test_string_param(params, 1);
    if (pt)
-      service = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 2);
+      service = pt->getBuffer();
+   pt = test_string_param(params, 2);
    if (pt)
-      network = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 3);
+      network = pt->getBuffer();
+   pt = test_string_param(params, 3);
    if (pt)
-      daemon = pt->val.String->getBuffer();
+      daemon = pt->getBuffer();
 
    class QoreTibrvSender *qsender = new QoreTibrvSender(desc, service, network, daemon, xsink);
 
@@ -64,22 +64,22 @@ void TIBRVSENDER_copy(class QoreObject *self, class QoreObject *old, class QoreT
 
 static QoreNode *TIBRVSENDER_sendSubject(class QoreObject *self, class QoreTibrvSender *trvs, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVSENDER-SENDSUBJECT-ERROR", "missing subject string as first parameter to method");
       return NULL;
    }
-   const char *subject = pt->val.String->getBuffer();
-   pt = test_param(params, NT_HASH, 1);
-   if (!pt)
+   const char *subject = pt->getBuffer();
+   QoreNode *ph = test_param(params, NT_HASH, 1);
+   if (!ph)
    {
       xsink->raiseException("TIBRVSENDER-SENDSUBJECT-ERROR", "missing data hash as second parameter to method");
       return NULL;
    }
-   class QoreHash *h = pt->val.hash;
-   pt = test_param(params, NT_STRING, 2);
-   const char *replySubject = pt ? pt->val.String->getBuffer() : NULL;
+   class QoreHash *h = ph->val.hash;
+   pt = test_string_param(params, 2);
+   const char *replySubject = pt ? pt->getBuffer() : NULL;
 
    trvs->sendSubject(subject, h, replySubject, xsink);
    return NULL;
@@ -87,20 +87,20 @@ static QoreNode *TIBRVSENDER_sendSubject(class QoreObject *self, class QoreTibrv
 
 static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class QoreObject *self, class QoreTibrvSender *trvs, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing subject string as first parameter to method");
       return NULL;
    }
-   const char *subject = pt->val.String->getBuffer();
-   pt = test_param(params, NT_HASH, 1);
-   if (!pt)
+   const char *subject = pt->getBuffer();
+   QoreNode *ph = test_param(params, NT_HASH, 1);
+   if (!ph)
    {
       xsink->raiseException("TIBRVSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing data hash as second parameter to method");
       return NULL;
    }
-   class QoreHash *h = pt->val.hash;
+   class QoreHash *h = ph->val.hash;
    int64 timeout = getMsMinusOneBigInt(get_param(params, 2));
 
    h = trvs->sendSubjectWithSyncReply(subject, h, timeout, xsink);
@@ -111,14 +111,14 @@ static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class QoreObject *self, cl
 
 class QoreNode *TIBRVSENDER_setStringEncoding(class QoreObject *self, class QoreTibrvSender *trvs, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVSENDER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");
       return NULL;
    }
 
-   const QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
+   const QoreEncoding *enc = QEM.findCreate(pt->getBuffer());
    trvs->setStringEncoding(enc);
    return NULL;
 }

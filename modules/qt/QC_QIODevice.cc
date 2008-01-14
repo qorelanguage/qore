@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QIODevice.h"
+#include "QC_QByteArray.h"
+
+#include "qore-qt.h"
 
 int CID_QIODEVICE;
 class QoreClass *QC_QIODevice = 0;
@@ -73,19 +76,19 @@ static QoreNode *QIODEVICE_close(QoreObject *self, QoreAbstractQIODevice *qiod, 
 //QString errorString () const
 static QoreNode *QIODEVICE_errorString(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qiod->getQIODevice()->errorString().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qiod->getQIODevice()->errorString().toUtf8().data(), QCS_UTF8);
 }
 
 /*
 //bool getChar ( char * c )
 static QoreNode *QIODEVICE_getChar(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QIODEVICE-GETCHAR-PARAM-ERROR", "expecting a string as first argument to QIODevice::getChar()");
       return 0;
    }
-   const char *c = p->val.String->getBuffer();
+   const char *c = p->getBuffer();
    return new QoreNode(qiod->getQIODevice()->getChar(c));
 }
 */
@@ -154,12 +157,12 @@ static QoreNode *QIODEVICE_pos(QoreObject *self, QoreAbstractQIODevice *qiod, co
 //bool putChar ( char c )
 static QoreNode *QIODEVICE_putChar(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QIODEVICE-PUTCHAR-PARAM-ERROR", "expecting a string as first argument to QIODevice::putChar()");
       return 0;
    }
-   const char c = p->val.String->getBuffer()[0];
+   const char c = p->getBuffer()[0];
    return new QoreNode(qiod->getQIODevice()->putChar(c));
 }
 
@@ -226,12 +229,12 @@ static QoreNode *QIODEVICE_size(QoreObject *self, QoreAbstractQIODevice *qiod, c
 //void ungetChar ( char c )
 static QoreNode *QIODEVICE_ungetChar(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QIODEVICE-UNGETCHAR-PARAM-ERROR", "expecting a string as first argument to QIODevice::ungetChar()");
       return 0;
    }
-   const char c = p->val.String->getBuffer()[0];
+   const char c = p->getBuffer()[0];
    qiod->getQIODevice()->ungetChar(c);
    return 0;
 }

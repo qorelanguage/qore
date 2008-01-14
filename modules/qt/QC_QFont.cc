@@ -22,21 +22,22 @@
 
 #include <qore/Qore.h>
 #include "QC_QFont.h"
+#include "qore-qt.h"
 
 int CID_QFONT;
 QoreClass *QC_QFont = 0;
 
 static void QFONT_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
-   if (is_nothing(p)) {
+   QoreStringNode *str = test_string_param(params, 0);
+   if (!str) {
       self->setPrivate(CID_QFONT, new QoreQFont());
       return;
    }
-   const char *fname = p->val.String->getBuffer();
+   const char *fname = str->getBuffer();
 
    // get point size
-   p = get_param(params, 1);
+   QoreNode *p = get_param(params, 1);
    int point_size = p ? p->getAsInt() : -1;
 
    // get weight
@@ -65,7 +66,7 @@ static QoreNode *QFONT_bold(QoreObject *self, QoreQFont *qf, const QoreNode *par
 //QString defaultFamily () const
 static QoreNode *QFONT_defaultFamily(QoreObject *self, QoreQFont *qf, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qf->defaultFamily().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qf->defaultFamily().toUtf8().data(), QCS_UTF8);
 }
 
 //bool exactMatch () const
@@ -77,7 +78,7 @@ static QoreNode *QFONT_exactMatch(QoreObject *self, QoreQFont *qf, const QoreNod
 //QString family () const
 static QoreNode *QFONT_family(QoreObject *self, QoreQFont *qf, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qf->family().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qf->family().toUtf8().data(), QCS_UTF8);
 }
 
 //bool fixedPitch () const
@@ -96,11 +97,10 @@ static QoreNode *QFONT_fixedPitch(QoreObject *self, QoreQFont *qf, const QoreNod
 static QoreNode *QFONT_fromString(QoreObject *self, QoreQFont *qf, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONT-FROMSTRING-PARAM-ERROR", "expecting a string as first argument to QFont::fromString()");
+   QString descrip;
+   if (get_qstring(p, descrip, xsink))
       return 0;
-   }
-   const char *descrip = p->val.String->getBuffer();
+
    return new QoreNode(qf->fromString(descrip));
 }
 
@@ -133,19 +133,19 @@ static QoreNode *QFONT_kerning(QoreObject *self, QoreQFont *qf, const QoreNode *
 //QString key () const
 static QoreNode *QFONT_key(QoreObject *self, QoreQFont *qf, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qf->key().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qf->key().toUtf8().data(), QCS_UTF8);
 }
 
 //QString lastResortFamily () const
 static QoreNode *QFONT_lastResortFamily(QoreObject *self, QoreQFont *qf, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qf->lastResortFont().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qf->lastResortFont().toUtf8().data(), QCS_UTF8);
 }
 
 //QString lastResortFont () const
 static QoreNode *QFONT_lastResortFont(QoreObject *self, QoreQFont *qf, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qf->lastResortFont().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qf->lastResortFont().toUtf8().data(), QCS_UTF8);
 }
 
 #ifdef Q_WS_MAC
@@ -189,7 +189,7 @@ static QoreNode *QFONT_rawMode(QoreObject *self, QoreQFont *qf, const QoreNode *
 //QString rawName () const
 static QoreNode *QFONT_rawName(QoreObject *self, QoreQFont *qf, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qf->rawName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qf->rawName().toUtf8().data(), QCS_UTF8);
 }
 
 //QFont resolve ( const QFont & other ) const
@@ -213,11 +213,10 @@ static QoreNode *QFONT_setBold(QoreObject *self, QoreQFont *qf, const QoreNode *
 static QoreNode *QFONT_setFamily(QoreObject *self, QoreQFont *qf, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONT-SETFAMILY-PARAM-ERROR", "expecting a string as first argument to QFont::setFamily()");
+   QString family;
+   if (get_qstring(p, family, xsink))
       return 0;
-   }
-   const char *family = p->val.String->getBuffer();
+
    qf->setFamily(family);
    return 0;
 }
@@ -298,11 +297,10 @@ static QoreNode *QFONT_setRawMode(QoreObject *self, QoreQFont *qf, const QoreNod
 static QoreNode *QFONT_setRawName(QoreObject *self, QoreQFont *qf, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONT-SETRAWNAME-PARAM-ERROR", "expecting a string as first argument to QFont::setRawName()");
+   QString name;
+   if (get_qstring(p, name, xsink))
       return 0;
-   }
-   const char *name = p->val.String->getBuffer();
+
    qf->setRawName(name);
    return 0;
 }
@@ -405,7 +403,7 @@ static QoreNode *QFONT_styleStrategy(QoreObject *self, QoreQFont *qf, const Qore
 //QString toString () const
 static QoreNode *QFONT_toString(QoreObject *self, QoreQFont *qf, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qf->toString().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qf->toString().toUtf8().data(), QCS_UTF8);
 }
 
 //bool underline () const

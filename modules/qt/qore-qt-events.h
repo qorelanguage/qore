@@ -22,4 +22,3 @@
 #include "QC_QChildEvent.h"
 #include "QC_QTimerEvent.h"
 #include "QC_QHelpEvent.h"
-

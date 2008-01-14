@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include "QC_QGroupBox.h"
+#include "QC_QWidget.h"
 
 int CID_QGROUPBOX;
 class QoreClass *QC_QGroupBox = 0;
@@ -108,12 +109,12 @@ static QoreNode *QGROUPBOX_setFlat(QoreObject *self, QoreAbstractQGroupBox *qgb,
 //void setTitle ( const QString & title )
 static QoreNode *QGROUPBOX_setTitle(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QGROUPBOX-SETTITLE-PARAM-ERROR", "expecting a string as first argument to QGroupBox::setTitle()");
       return 0;
    }
-   const char *title = p->val.String->getBuffer();
+   const char *title = p->getBuffer();
    qgb->getQGroupBox()->setTitle(title);
    return 0;
 }
@@ -121,7 +122,7 @@ static QoreNode *QGROUPBOX_setTitle(QoreObject *self, QoreAbstractQGroupBox *qgb
 //QString title () const
 static QoreNode *QGROUPBOX_title(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qgb->getQGroupBox()->title().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qgb->getQGroupBox()->title().toUtf8().data(), QCS_UTF8);
 }
 
 //void setChecked ( bool checked )

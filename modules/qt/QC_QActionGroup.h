@@ -26,6 +26,8 @@
 
 #include "QoreAbstractQObject.h"
 
+#include "QC_QApplication.h"
+
 #include <QActionGroup>
 
 DLLLOCAL extern int CID_QACTIONGROUP;

@@ -57,7 +57,10 @@ class HashIterator
       DLLEXPORT const char *getKey() const;
       DLLEXPORT class QoreString *getKeyString() const;
       DLLEXPORT class QoreNode *getValue() const;
+      // deletes the key from the hash and returns the value, caller owns the reference
       DLLEXPORT class QoreNode *takeValueAndDelete();
+      // deletes the key from the hash and dereferences the value
+      DLLEXPORT void deleteKey(class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getValuePtr() const;
       DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
       DLLEXPORT bool first() const;
@@ -99,6 +102,7 @@ class QoreHash
       bool needs_eval;
 
       DLLLOCAL class QoreNode **newKeyValue(const char *key, class QoreNode *value);
+      // does not touch the QoreNode value
       DLLLOCAL void internDeleteKey(class HashMember *m);
       DLLLOCAL void deref_intern(class ExceptionSink *xsink);
 
@@ -128,7 +132,9 @@ class QoreHash
       DLLEXPORT void merge(const class QoreHash *h, class ExceptionSink *xsink);
       DLLEXPORT void assimilate(class QoreHash *h, class ExceptionSink *xsink);
       DLLEXPORT class QoreHash *eval(class ExceptionSink *xsink) const;
+      // FIXME: change to const QoreString * so encodings can be taken into consideration
       DLLEXPORT class QoreNode *evalKey(const char *key, class ExceptionSink *xsink) const;
+      // FIXME: change to const QoreString * so encodings can be taken into consideration
       DLLEXPORT class QoreNode *evalKeyExistence(const char *key, class ExceptionSink *xsink) const;
       DLLEXPORT void setKeyValue(const class QoreString *key, class QoreNode *value, class ExceptionSink *xsink);
       DLLEXPORT void setKeyValue(const char *key, class QoreNode *value, class ExceptionSink *xsink);
@@ -146,6 +152,7 @@ class QoreHash
       DLLEXPORT void derefAndDelete(class ExceptionSink *xsink);
       DLLEXPORT int size() const;
       DLLEXPORT bool needsEval() const;
+      DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       DLLLOCAL void clearNeedsEval();
 };
@@ -170,6 +177,38 @@ class StackHash : public QoreHash
       {
 	 dereference(xsink);
       }
+};
+
+class TempQoreHash {
+  private:
+   QoreHash *h;
+   ExceptionSink *xsink;
+
+   DLLLOCAL TempQoreHash(const TempQoreHash&); // not implemented
+   DLLLOCAL TempQoreHash& operator=(const TempQoreHash&); // not implemented
+   DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
+
+  public:
+   DLLLOCAL TempQoreHash(QoreHash *nh, ExceptionSink *xs) : h(nh), xsink(xs)
+   {
+   }
+   DLLLOCAL TempQoreHash(ExceptionSink *xs) : h(0), xsink(xs)
+   {
+   }
+   DLLLOCAL ~TempQoreHash()
+   {
+      if (h)
+	 h->derefAndDelete(xsink);
+   }
+   DLLLOCAL QoreHash *operator->() { return h; }
+   DLLLOCAL QoreHash *operator*() { return h; }
+   DLLLOCAL void operator=(QoreHash *nv) { if (h) h->derefAndDelete(xsink); h = nv; }
+   DLLLOCAL QoreHash *release() 
+   {
+      QoreHash *rv = h;
+      h = 0;
+      return rv;
+   }
 };
 
 #endif // _QORE_HASH_H

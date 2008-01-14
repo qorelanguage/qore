@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_lib.h>
 #include <qore/intern/ExecArgList.h>
+#include <qore/intern/QoreSignal.h>
 #include <qore/minitest.hpp>
 
 #include <errno.h>
@@ -61,12 +62,12 @@ static class QoreNode *f_abort(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_exec(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   class ExecArgList args(p0->val.String->getBuffer());
+   class ExecArgList args(p0->getBuffer());
    execvp(args.getFile(), args.getArgs());
    
    xsink->raiseException("EXEC-ERROR", "execvp() failed with error code %d", errno);
@@ -76,17 +77,17 @@ static class QoreNode *f_exec(const QoreNode *params, ExceptionSink *xsink)
 // executes a command and returns exit status
 static class QoreNode *f_system(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
    int rc;
    // use system() if shell meta-characters are found
-   if (strchrs(p0->val.String->getBuffer(), "*?><;"))
+   if (strchrs(p0->getBuffer(), "*?><;"))
    {
       QoreString c;
-      c.sprintf("/bin/sh -c \"%s\"", p0->val.String->getBuffer());
+      c.sprintf("/bin/sh -c \"%s\"", p0->getBuffer());
       rc = system(c.getBuffer());
    }
    else // otherwise fork and exec
@@ -94,7 +95,7 @@ static class QoreNode *f_system(const QoreNode *params, ExceptionSink *xsink)
       pid_t pid;
       if (!(pid = fork()))
       {
-	 class ExecArgList args(p0->val.String->getBuffer());
+	 class ExecArgList args(p0->getBuffer());
 	 execvp(args.getFile(), args.getArgs());
 	 printf("execvp() failed with error code %d: %s\n", errno, strerror(errno));
 	 exit(-1);
@@ -289,21 +290,21 @@ static class QoreHash *map_sbuf_to_hash(struct stat *sbuf)
    else
       type = "UNKNOWN";
 
-   h->setKeyValue("type",  new QoreNode(type), NULL);
+   h->setKeyValue("type",  new QoreStringNode(type), NULL);
    return h;
 }
 
 static class QoreNode *f_stat(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
    tracein("f_stat()");
    struct stat sbuf;
    int rc;
 
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
       return NULL;
 
    traceout("f_stat()");
@@ -312,15 +313,15 @@ static class QoreNode *f_stat(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_lstat(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
    tracein("f_lstat()");
    struct stat sbuf;
    int rc;
 
-   if ((rc = lstat(p0->val.String->getBuffer(), &sbuf)))
+   if ((rc = lstat(p0->getBuffer(), &sbuf)))
       return NULL;
 
    traceout("f_lstat()");
@@ -329,15 +330,15 @@ static class QoreNode *f_lstat(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_hstat(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
    tracein("f_hstat()");
    struct stat sbuf;
    int rc;
 
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
       return NULL;
 
    traceout("f_hstat()");
@@ -346,15 +347,15 @@ static class QoreNode *f_hstat(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_hlstat(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
    tracein("f_hlstat()");
    struct stat sbuf;
    int rc;
 
-   if ((rc = lstat(p0->val.String->getBuffer(), &sbuf)))
+   if ((rc = lstat(p0->getBuffer(), &sbuf)))
       return NULL;
 
    traceout("f_hstat()");
@@ -363,12 +364,12 @@ static class QoreNode *f_hlstat(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_glob(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
    glob_t globbuf;
-   if (glob(p0->val.String->getBuffer(), 0, NULL, &globbuf))
+   if (glob(p0->getBuffer(), 0, NULL, &globbuf))
    {
       globfree(&globbuf);
       return NULL;
@@ -376,7 +377,7 @@ static class QoreNode *f_glob(const QoreNode *params, ExceptionSink *xsink)
 
    QoreList *l = new QoreList();
    for (int i = 0; i < (int)globbuf.gl_pathc; i++)
-      l->push(new QoreNode(globbuf.gl_pathv[i]));
+      l->push(new QoreStringNode(globbuf.gl_pathv[i]));
    
    globfree(&globbuf);
    return new QoreNode(l);
@@ -384,11 +385,11 @@ static class QoreNode *f_glob(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_unlink(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   return new QoreNode((int64)unlink(p0->val.String->getBuffer()));
+   return new QoreNode((int64)unlink(p0->getBuffer()));
 }
 
 static class QoreNode *f_umask(const QoreNode *params, ExceptionSink *xsink)
@@ -421,7 +422,7 @@ static class QoreNode *f_gethostname(const QoreNode *params, ExceptionSink *xsin
 
    if (gethostname(buf, HOSTNAMEBUFSIZE))
       return NULL;
-   return new QoreNode(buf);
+   return new QoreStringNode(buf);
 }
 
 static class QoreNode *f_errno(const QoreNode *params, ExceptionSink *xsink)
@@ -440,26 +441,26 @@ static class QoreNode *f_strerror(const QoreNode *params, ExceptionSink *xsink)
    char buf[STRERR_BUFSIZE];
    if (strerror_r(p0->getAsInt(), buf, STRERR_BUFSIZE))
       return NULL;
-   return new QoreNode(buf);
+   return new QoreStringNode(buf);
 #else
-   return new QoreNode(strerror(p0->getAsInt()));
+   return new QoreStringNode(strerror(p0->getAsInt()));
 #endif
 }
 
 static class QoreNode *f_basename(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
       return NULL;
 
-   class QoreString *str = new QoreString();
-   str->take(q_basename(p0->val.String->getBuffer()), p0->val.String->getEncoding());
-   return new QoreNode(str);
+   char *p = q_basename(p0->getBuffer());
+   int len = strlen(p);
+   return new QoreStringNode(p, len, len + 1, p0->getEncoding());
 }
 
 static class QoreNode *f_mkdir(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("MKDIR-PARAMETER-ERROR", "expecting string as first parameter of mkdir");
@@ -473,25 +474,25 @@ static class QoreNode *f_mkdir(const QoreNode *params, ExceptionSink *xsink)
    else
       mode = 0777;
 
-   return new QoreNode((int64)mkdir(p0->val.String->getBuffer(), mode));
+   return new QoreNode((int64)mkdir(p0->getBuffer(), mode));
 }
 
 static class QoreNode *f_rmdir(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("RMDIR-PARAMETER-ERROR", "expecting string as first parameter of rmdir");
       return NULL;
    }
 
-   return new QoreNode((int64)rmdir(p0->val.String->getBuffer()));
+   return new QoreNode((int64)rmdir(p0->getBuffer()));
 }
 
 // usage: chmod(path, mode)
 static class QoreNode *f_chmod(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("CHMOD-PARAMETER-ERROR", "expecting string as first parameter of chmod");
@@ -505,19 +506,19 @@ static class QoreNode *f_chmod(const QoreNode *params, ExceptionSink *xsink)
       return NULL;
    }
 
-   return new QoreNode((int64)chmod(p0->val.String->getBuffer(), p1->getAsInt()));
+   return new QoreNode((int64)chmod(p0->getBuffer(), p1->getAsInt()));
 }
 
 static class QoreNode *f_chdir(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("CHDIR-PARAMETER-ERROR", "expecting string as first parameter of chdir");
       return NULL;
    }
 
-   return new QoreNode((int64)chdir(p0->val.String->getBuffer()));
+   return new QoreNode((int64)chdir(p0->getBuffer()));
 }
 
 static class QoreNode *f_getcwd(const QoreNode *params, ExceptionSink *xsink)
@@ -526,14 +527,11 @@ static class QoreNode *f_getcwd(const QoreNode *params, ExceptionSink *xsink)
    char *buf = (char *)malloc(sizeof(char) * bs);
  
    do {
-      bs *= 2;
+      bs += 512;
       buf = (char *)realloc(buf, sizeof(char) * bs);
    } while (getcwd(buf, bs));
 
-   QoreString *rv = new QoreString();
-   rv->take(buf);
-
-   return new QoreNode(rv);
+   return new QoreStringNode(buf, strlen(buf), bs, QCS_DEFAULT);
 }
 
 /*
@@ -541,7 +539,7 @@ static class QoreNode *f_getcwd(const QoreNode *params, ExceptionSink *xsink)
 // usage: mknod(path, mode)
 static class QoreNode *f_mknod(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting string as first parameter of mknod");
@@ -549,40 +547,40 @@ static class QoreNode *f_mknod(const QoreNode *params, ExceptionSink *xsink)
    }
 
    QoreNode *p1 = get_param(params, 1);
-   if (!p1)
+   if (is_nothing(p1))
    {
       xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting mode as second parameter of mknod");
       return NULL;
    }
 
    QoreNode *p2 = get_param(params, 2);
-   if (!p2)
+   if (is_nothing(p2))
    {
       xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting device as second parameter of mknod");
       return NULL;
    }
 
-   return new QoreNode((int64)mknod(p0->val.String->getBuffer(), p1->getAsInt(), p2->getAsInt()));
+   return new QoreNode((int64)mknod(p0->getBuffer(), p1->getAsInt(), p2->getAsInt()));
 }
 */
 
 static class QoreNode *f_mkfifo(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
-
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   const char *fn = p0->val.String->getBuffer();
+   const char *fn = p0->getBuffer();
    int mode;
 
+   QoreNode *p1;
    p1 = test_param(params, NT_INT, 1);
    if (p1)
       mode = p1->val.intval;
    else
       mode = 0600;
 
-   return new QoreNode(NT_INT, mkfifo(fn, mode));
+   return new QoreNode((int64)mkfifo(fn, mode));
 }
 
 static class QoreNode *f_setuid(const QoreNode *params, ExceptionSink *xsink)
@@ -643,17 +641,16 @@ static class QoreNode *f_setegid(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_gethostbyname(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (!p)
       return NULL;
 
-   class QoreString *str = q_gethostbyname_to_string(p->val.String->getBuffer());
-   return str ? new QoreNode(str) : 0;
+   return q_gethostbyname_to_string(p->getBuffer());
 }
 
 static class QoreNode *f_gethostbyaddr(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
       return NULL;
 
@@ -661,23 +658,22 @@ static class QoreNode *f_gethostbyaddr(const QoreNode *params, ExceptionSink *xs
    int type = p1 ? p1->getAsInt() : 0;
    if (!type) type = AF_INET;
 
-   class QoreString *str = q_gethostbyaddr_to_string(xsink, p0->val.String->getBuffer(), type);
-   return str ? new QoreNode(str) : 0;
+   return q_gethostbyaddr_to_string(xsink, p0->getBuffer(), type);
 }
 
 static class QoreNode *f_gethostbyname_long(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (!p)
       return NULL;
 
-   class QoreHash *h = q_gethostbyname_to_hash(p->val.String->getBuffer());
+   class QoreHash *h = q_gethostbyname_to_hash(p->getBuffer());
    return h ? new QoreNode(h) : 0;
 }
 
 static class QoreNode *f_gethostbyaddr_long(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
       return NULL;
 
@@ -685,7 +681,7 @@ static class QoreNode *f_gethostbyaddr_long(const QoreNode *params, ExceptionSin
    int type = p1 ? p1->getAsInt() : 0;
    if (!type) type = AF_INET;
 
-   class QoreHash *h = q_gethostbyaddr_to_hash(xsink, p0->val.String->getBuffer(), type);
+   class QoreHash *h = q_gethostbyaddr_to_hash(xsink, p0->getBuffer(), type);
    return h ? new QoreNode(h) : 0;
 }
 

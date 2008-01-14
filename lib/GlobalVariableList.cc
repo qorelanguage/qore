@@ -128,7 +128,7 @@ class QoreList *GlobalVariableList::getVarList() const
    QoreList *l = new QoreList();
    
    for (map_var_t::const_iterator i = vmap.begin(); i != vmap.end(); i++)
-      l->push(new QoreNode(i->first));
+      l->push(new QoreStringNode(i->first));
    
    return l;
 }

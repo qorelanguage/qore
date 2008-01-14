@@ -28,27 +28,27 @@ static inline class QoreNamespace *get_type_ns()
 {
    class QoreNamespace *Type = new QoreNamespace("Type");
 
-   Type->addConstant("Boolean",        new QoreNode(NT_BOOLEAN->getName()));
-   Type->addConstant("Int",            new QoreNode(NT_INT->getName()));
-   Type->addConstant("Float",          new QoreNode(NT_FLOAT->getName()));
-   Type->addConstant("String",         new QoreNode(NT_STRING->getName()));
-   Type->addConstant("Date",           new QoreNode(NT_DATE->getName()));
-   Type->addConstant("NothingType",    new QoreNode(NT_NOTHING->getName()));
-   Type->addConstant("NullType",       new QoreNode(NT_NULL->getName()));
-   Type->addConstant("Binary",         new QoreNode(NT_BINARY->getName()));
-   Type->addConstant("List",           new QoreNode(NT_LIST->getName()));
-   Type->addConstant("Hash",           new QoreNode(NT_HASH->getName())); 
-   Type->addConstant("Object",         new QoreNode(NT_OBJECT->getName())); 
-   Type->addConstant("CallReference",  new QoreNode(NT_FUNCREF->getName()));
-   //Type->addConstant("FList", new QoreNode("")); //new QoreNode((int64)(int)NT_FLIST));
-   //Type->addConstant("BackquoteExpression", new QoreNode("")); //new QoreNode((int64)(int)NT_BACKQUOTE));
-   //Type->addConstant("ContextRef", new QoreNode("")); //new QoreNode((int64)(int)NT_CONTEXTREF));
-   //Type->addConstant("VariableReference", new QoreNode("")); //new QoreNode((int64)(int)NT_VARREF));
-   //Type->addConstant("ExpressionTree", new QoreNode("")); //new QoreNode((int64)(int)NT_TREE));
-   //Type->addConstant("FindExpression", new QoreNode("")); //new QoreNode((int64)(int)NT_FIND));
-   //Type->addConstant("FunctionCall", new QoreNode("")); //new QoreNode((int64)(int)NT_FUNCTION_CALL));
-   //Type->addConstant("ObjectVariableReference", new QoreNode("")); //new QoreNode((int64)(int)NT_SELF_VARREF));
-   //Type->addConstant("ScopedReference", new QoreNode("")); //new QoreNode((int64)(int)NT_SCOPE_REF));
+   Type->addConstant("Boolean",        new QoreStringNode(NT_BOOLEAN->getName()));
+   Type->addConstant("Int",            new QoreStringNode(NT_INT->getName()));
+   Type->addConstant("Float",          new QoreStringNode(NT_FLOAT->getName()));
+   Type->addConstant("String",         new QoreStringNode(NT_STRING->getName()));
+   Type->addConstant("Date",           new QoreStringNode(NT_DATE->getName()));
+   Type->addConstant("NothingType",    new QoreStringNode(NT_NOTHING->getName()));
+   Type->addConstant("NullType",       new QoreStringNode(NT_NULL->getName()));
+   Type->addConstant("Binary",         new QoreStringNode(NT_BINARY->getName()));
+   Type->addConstant("List",           new QoreStringNode(NT_LIST->getName()));
+   Type->addConstant("Hash",           new QoreStringNode(NT_HASH->getName())); 
+   Type->addConstant("Object",         new QoreStringNode(NT_OBJECT->getName())); 
+   Type->addConstant("CallReference",  new QoreStringNode(NT_FUNCREF->getName()));
+   //Type->addConstant("FList", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_FLIST));
+   //Type->addConstant("BackquoteExpression", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_BACKQUOTE));
+   //Type->addConstant("ContextRef", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_CONTEXTREF));
+   //Type->addConstant("VariableReference", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_VARREF));
+   //Type->addConstant("ExpressionTree", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_TREE));
+   //Type->addConstant("FindExpression", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_FIND));
+   //Type->addConstant("FunctionCall", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_FUNCTION_CALL));
+   //Type->addConstant("ObjectVariableReference", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_SELF_VARREF));
+   //Type->addConstant("ScopedReference", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_SCOPE_REF));
 
    return Type;
 }

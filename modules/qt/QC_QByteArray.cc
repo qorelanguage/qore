@@ -24,6 +24,8 @@
 
 #include "QC_QByteArray.h"
 
+#include "qore-qt.h"
+
 int CID_QBYTEARRAY;
 class QoreClass *QC_QByteArray = 0;
 
@@ -37,10 +39,12 @@ static void QBYTEARRAY_constructor(QoreObject *self, const QoreNode *params, Exc
       self->setPrivate(CID_QBYTEARRAY, new QoreQByteArray());
       return;
    }
-   if (p->type == NT_STRING) {
-      const char *str = p->val.String->getBuffer();
-      self->setPrivate(CID_QBYTEARRAY, new QoreQByteArray(str, p->val.String->strlen()));
-      return;
+   {
+      QoreStringNode *pstr = dynamic_cast<QoreStringNode *>(p);
+      if (pstr) {
+	 self->setPrivate(CID_QBYTEARRAY, new QoreQByteArray(pstr->getBuffer(), pstr->strlen()));
+	 return;
+      }
    }
    if (p->type != NT_BINARY) {
       xsink->raiseException("QBYTEARRAY-CONSTRUCTOR-ERROR", "expecting a string or binary object as sole argument to QByteArray::constructor()");
@@ -141,7 +145,7 @@ static QoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *qba, con
 //         xsink->raiseException("QBYTEARRAY-CONTAINS-PARAM-ERROR", "expecting a string as first argument to QByteArray::contains()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //      return new QoreNode(qba->contains(str));
 //   }
 //   QByteArray::char ch = (QByteArray::char)(p ? p->getAsInt() : 0);
@@ -169,7 +173,7 @@ static QoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *qba, con
 //         xsink->raiseException("QBYTEARRAY-COUNT-PARAM-ERROR", "expecting a string as first argument to QByteArray::count()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //      return new QoreNode((int64)qba->count(str));
 //   }
 //   QByteArray::char ch = (QByteArray::char)(p ? p->getAsInt() : 0);
@@ -208,7 +212,7 @@ static QoreNode *QBYTEARRAY_data(QoreObject *self, QoreQByteArray *qba, const Qo
 //         xsink->raiseException("QBYTEARRAY-ENDSWITH-PARAM-ERROR", "expecting a string as first argument to QByteArray::endsWith()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //      return new QoreNode(qba->endsWith(str));
 //   }
 //   QByteArray::char ch = (QByteArray::char)(p ? p->getAsInt() : 0);
@@ -218,14 +222,14 @@ static QoreNode *QBYTEARRAY_data(QoreObject *self, QoreQByteArray *qba, const Qo
 //QByteArray & fill ( char ch, int size = -1 )
 static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p || !p->val.String->strlen()) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p || !p->strlen()) {
       xsink->raiseException("QBYTEARRAY-FILL-ERROR", "Expecting a string giving the character to use to fill the array as first argument");
       return 0;
    }
-   char ch = p->val.String->getBuffer()[0];
-   p = get_param(params, 1);
-   int size = !is_nothing(p) ? p->getAsInt() : -1;
+   char ch = p->getBuffer()[0];
+   QoreNode *pn = get_param(params, 1);
+   int size = !is_nothing(pn) ? p->getAsInt() : -1;
 
    qba->fill(ch, size);
 
@@ -254,7 +258,7 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 //         xsink->raiseException("QBYTEARRAY-INDEXOF-PARAM-ERROR", "expecting a string as first argument to QByteArray::indexOf()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //   p = get_param(params, 1);
 //   int from = p ? p->getAsInt() : 0;
 //   return new QoreNode((int64)qba->indexOf(str, from));
@@ -264,7 +268,7 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 //         xsink->raiseException("QBYTEARRAY-INDEXOF-PARAM-ERROR", "expecting a string as first argument to QByteArray::indexOf()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //   p = get_param(params, 1);
 //   int from = p ? p->getAsInt() : 0;
 //   return new QoreNode((int64)qba->indexOf(str, from));
@@ -298,7 +302,7 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 //         xsink->raiseException("QBYTEARRAY-INSERT-PARAM-ERROR", "expecting a string as second argument to QByteArray::insert()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->insert(i, str));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -309,7 +313,7 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 //         xsink->raiseException("QBYTEARRAY-INSERT-PARAM-ERROR", "expecting a string as second argument to QByteArray::insert()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->insert(i, str));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -354,7 +358,7 @@ static QoreNode *QBYTEARRAY_isNull(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-LASTINDEXOF-PARAM-ERROR", "expecting a string as first argument to QByteArray::lastIndexOf()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //   p = get_param(params, 1);
 //   int from = !is_nothing(p) ? p->getAsInt() : -1;
 //   return new QoreNode((int64)qba->lastIndexOf(str, from));
@@ -364,7 +368,7 @@ static QoreNode *QBYTEARRAY_isNull(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-LASTINDEXOF-PARAM-ERROR", "expecting a string as first argument to QByteArray::lastIndexOf()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //   p = get_param(params, 1);
 //   int from = !is_nothing(p) ? p->getAsInt() : -1;
 //   return new QoreNode((int64)qba->lastIndexOf(str, from));
@@ -391,8 +395,10 @@ static QoreNode *QBYTEARRAY_leftJustified(QoreObject *self, QoreQByteArray *qba,
 {
    QoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
-   p = test_param(params, NT_STRING, 1);
-   char fill = p ? p->val.String->getBuffer()[0] : ' ';
+
+   QoreStringNode *str = test_string_param(params, 1);
+   char fill = str ? str->getBuffer()[0] : ' ';
+
    p = get_param(params, 2);
    bool truncate = p ? p->getAsBool() : false;
 
@@ -441,7 +447,7 @@ static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const Qor
 //         xsink->raiseException("QBYTEARRAY-PREPEND-PARAM-ERROR", "expecting a string as first argument to QByteArray::prepend()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->prepend(str));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -472,7 +478,7 @@ static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const Qor
 //         xsink->raiseException("QBYTEARRAY-PUSH_BACK-PARAM-ERROR", "expecting a string as first argument to QByteArray::push_back()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //      qba->push_back(str);
 //      return 0;
 //   }
@@ -499,7 +505,7 @@ static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const Qor
 //         xsink->raiseException("QBYTEARRAY-PUSH_FRONT-PARAM-ERROR", "expecting a string as first argument to QByteArray::push_front()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //      qba->push_front(str);
 //      return 0;
 //   }
@@ -557,7 +563,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -568,7 +574,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -589,7 +595,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as first argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *before = p->val.String->getBuffer();
+//      const char *before = p->getBuffer();
 //   p = get_param(params, 1);
 //   if (p && p->type == NT_???) {
 //      QByteArray after;
@@ -605,7 +611,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -616,7 +622,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -651,7 +657,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -662,7 +668,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -683,7 +689,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as first argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *before = p->val.String->getBuffer();
+//      const char *before = p->getBuffer();
 //   p = get_param(params, 1);
 //   if (p && p->type == NT_???) {
 //      QByteArray after;
@@ -699,7 +705,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -710,7 +716,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -731,7 +737,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as first argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *before = p->val.String->getBuffer();
+//      const char *before = p->getBuffer();
 //   p = get_param(params, 1);
 //   if (p && p->type == NT_???) {
 //      QByteArray after;
@@ -747,7 +753,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -758,7 +764,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -779,7 +785,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as first argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *before = p->val.String->getBuffer();
+//      const char *before = p->getBuffer();
 //   p = get_param(params, 1);
 //   if (p && p->type == NT_???) {
 //      QByteArray after;
@@ -795,7 +801,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -806,7 +812,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -838,7 +844,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(pos, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -849,7 +855,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
-//      const char *after = p->val.String->getBuffer();
+//      const char *after = p->getBuffer();
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(pos, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
@@ -901,8 +907,8 @@ static QoreNode *QBYTEARRAY_rightJustified(QoreObject *self, QoreQByteArray *qba
    QoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
 
-   p = test_param(params, NT_STRING, 1);
-   char fill = p ? p->val.String->getBuffer()[0] : ' ';
+   QoreStringNode *str = test_string_param(params, 1);
+   char fill = str ? str->getBuffer()[0] : ' ';
 
    p = get_param(params, 2);
    bool truncate = p ? p->getAsBool() : false;
@@ -936,7 +942,7 @@ static QoreNode *QBYTEARRAY_setNum(QoreObject *self, QoreQByteArray *qba, const 
       p = get_param(params, 1);
       char f;
       if (p && p->type == NT_STRING)
-	 f = p->val.String->getBuffer()[0];
+	 f = (reinterpret_cast<QoreStringNode *>(p))->getBuffer()[0];
       else
 	 f = 'g';
       p = get_param(params, 2);
@@ -997,7 +1003,7 @@ static QoreNode *QBYTEARRAY_squeeze(QoreObject *self, QoreQByteArray *qba, const
 //         xsink->raiseException("QBYTEARRAY-STARTSWITH-PARAM-ERROR", "expecting a string as first argument to QByteArray::startsWith()");
 //         return 0;
 //      }
-//      const char *str = p->val.String->getBuffer();
+//      const char *str = p->getBuffer();
 //      return new QoreNode(qba->startsWith(str));
 //   }
 //   QByteArray::char ch = (QByteArray::char)(p ? p->getAsInt() : 0);

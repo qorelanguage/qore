@@ -24,6 +24,8 @@
 
 #include "QC_QLocale.h"
 
+#include "qore-qt.h"
+
 int CID_QLOCALE;
 class QoreClass *QC_QLocale = 0;
 
@@ -68,7 +70,7 @@ static QoreNode *QLOCALE_dateFormat(QoreObject *self, QoreQLocale *ql, const Qor
 {
    QoreNode *p = get_param(params, 0);
    QLocale::FormatType format = (QLocale::FormatType)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(ql->dateFormat(format).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(ql->dateFormat(format).toUtf8().data(), QCS_UTF8);
 }
 
 //QString dayName ( int day, FormatType type = LongFormat ) const
@@ -78,7 +80,7 @@ static QoreNode *QLOCALE_dayName(QoreObject *self, QoreQLocale *ql, const QoreNo
    int day = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QLocale::FormatType type = (QLocale::FormatType)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(ql->dayName(day, type).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(ql->dayName(day, type).toUtf8().data(), QCS_UTF8);
 }
 
 //QChar decimalPoint () const
@@ -121,13 +123,13 @@ static QoreNode *QLOCALE_monthName(QoreObject *self, QoreQLocale *ql, const Qore
    int month = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QLocale::FormatType type = (QLocale::FormatType)(!is_nothing(p) ? p->getAsInt() : QLocale::LongFormat);
-   return new QoreNode(new QoreString(ql->monthName(month, type).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(ql->monthName(month, type).toUtf8().data(), QCS_UTF8);
 }
 
 //QString name () const
 static QoreNode *QLOCALE_name(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(ql->name().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(ql->name().toUtf8().data(), QCS_UTF8);
 }
 
 //QChar negativeSign () const
@@ -168,7 +170,7 @@ static QoreNode *QLOCALE_timeFormat(QoreObject *self, QoreQLocale *ql, const Qor
 {
    QoreNode *p = get_param(params, 0);
    QLocale::FormatType format = (QLocale::FormatType)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(ql->timeFormat(format).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(ql->timeFormat(format).toUtf8().data(), QCS_UTF8);
 }
 
 //double toDouble ( const QString & s, bool * ok = 0 ) const
@@ -231,7 +233,7 @@ static QoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, const Qor
 //   QLocale::char f = (QLocale::char)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 2);
 //   int prec = !is_nothing(p) ? p->getAsInt() : 6;
-//   return new QoreNode(new QoreString(ql->toString(date, f, prec).toUtf8().data(), QCS_UTF8));
+//   return new QoreStringNode(ql->toString(date, f, prec).toUtf8().data(), QCS_UTF8);
 //   }
 //   if (p && p->type == NT_???) {
 //      QDate date;
@@ -241,7 +243,7 @@ static QoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, const Qor
 //   QLocale::char f = (QLocale::char)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 2);
 //   int prec = !is_nothing(p) ? p->getAsInt() : 6;
-//   return new QoreNode(new QoreString(ql->toString(date, f, prec).toUtf8().data(), QCS_UTF8));
+//   return new QoreStringNode(ql->toString(date, f, prec).toUtf8().data(), QCS_UTF8);
 //   }
 //   if (p && p->type == NT_???) {
 //      QTime time;
@@ -251,7 +253,7 @@ static QoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, const Qor
 //   QLocale::char f = (QLocale::char)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 2);
 //   int prec = !is_nothing(p) ? p->getAsInt() : 6;
-//   return new QoreNode(new QoreString(ql->toString(time, f, prec).toUtf8().data(), QCS_UTF8));
+//   return new QoreStringNode(ql->toString(time, f, prec).toUtf8().data(), QCS_UTF8);
 //   }
 //   if (p && p->type == NT_???) {
 //      QTime time;
@@ -261,38 +263,38 @@ static QoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, const Qor
 //   QLocale::char f = (QLocale::char)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 2);
 //   int prec = !is_nothing(p) ? p->getAsInt() : 6;
-//   return new QoreNode(new QoreString(ql->toString(time, f, prec).toUtf8().data(), QCS_UTF8));
+//   return new QoreStringNode(ql->toString(time, f, prec).toUtf8().data(), QCS_UTF8);
 //   }
 //   if (p && p->type == NT_INT) {
 //      QLocale::qlonglong i = (QLocale::qlonglong)(p ? p->getAsInt() : 0);
-//      return new QoreNode(new QoreString(ql->toString(i).toUtf8().data(), QCS_UTF8));
+//      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
 //   if (p && p->type == NT_INT) {
 //      QLocale::qulonglong i = (QLocale::qulonglong)(p ? p->getAsInt() : 0);
-//      return new QoreNode(new QoreString(ql->toString(i).toUtf8().data(), QCS_UTF8));
+//      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
 //   if (p && p->type == NT_INT) {
 //      QLocale::short i = (QLocale::short)(p ? p->getAsInt() : 0);
-//      return new QoreNode(new QoreString(ql->toString(i).toUtf8().data(), QCS_UTF8));
+//      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
 //   if (p && p->type == NT_INT) {
 //      QLocale::ushort i = (QLocale::ushort)(p ? p->getAsInt() : 0);
-//      return new QoreNode(new QoreString(ql->toString(i).toUtf8().data(), QCS_UTF8));
+//      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
 //   if (p && p->type == NT_INT) {
 //      int i = p ? p->getAsInt() : 0;
-//      return new QoreNode(new QoreString(ql->toString(i).toUtf8().data(), QCS_UTF8));
+//      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
 //   if (p && p->type == NT_INT) {
 //      unsigned i = p ? p->getAsBigInt() : 0;
-//      return new QoreNode(new QoreString(ql->toString(i).toUtf8().data(), QCS_UTF8));
+//      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
 //   double i = p ? p->getAsFloat() : 0.0;
 //   p = get_param(params, 1);
 //   QLocale::char f = (QLocale::char)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 2);
 //   int prec = !is_nothing(p) ? p->getAsInt() : 6;
-//   return new QoreNode(new QoreString(ql->toString(i, f, prec).toUtf8().data(), QCS_UTF8));
+//   return new QoreStringNode(ql->toString(i, f, prec).toUtf8().data(), QCS_UTF8);
 //}
 
 //QChar zeroDigit () const
@@ -322,14 +324,14 @@ static QoreNode *f_QLocale_languageToString(const QoreNode *params, class Except
 {
    QoreNode *p = get_param(params, 0);
    QLocale::Language language = (QLocale::Language)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(QLocale::languageToString(language).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QLocale::languageToString(language).toUtf8().data(), QCS_UTF8);
 }
 
 static QoreNode *f_QLocale_countryToString(const QoreNode *params, class ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QLocale::Country country = (QLocale::Country)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(QLocale::countryToString(country).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QLocale::countryToString(country).toUtf8().data(), QCS_UTF8);
 }
 
 QoreClass *initQLocaleClass()

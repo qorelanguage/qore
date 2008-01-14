@@ -67,7 +67,7 @@ class myQSpinBox : public QSpinBox, public QoreQWidgetExtension
 	    return QSpinBox::valueFromText(text);
 
 	 QoreList *args = new QoreList();
-	 args->push(new QoreNode(new QoreString(text.toUtf8().data(), QCS_UTF8)));
+	 args->push(new QoreStringNode(text.toUtf8().data(), QCS_UTF8));
 
 	 return dispatch_event_int(qore_obj, m_valueFromText, args);
       }

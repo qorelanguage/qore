@@ -35,14 +35,14 @@ void createSSLCertificateObject(class QoreObject *self, X509 *cert)
 // syntax: SSLCertificate(filename)
 static void SSLCERT_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = get_param(params, 0);
-   if (!p0 || p0->type != NT_STRING)
+   class QoreStringNode *p0 = test_string_param(params, 0);
+   if (!p0)
    {
       xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "expecting file name as argument");
       return;
    }
    
-   QoreSSLCertificate *qc = new QoreSSLCertificate(p0->val.String->getBuffer(), xsink);
+   QoreSSLCertificate *qc = new QoreSSLCertificate(p0->getBuffer(), xsink);
    if (xsink->isEvent())
       qc->deref();
    else
@@ -56,26 +56,22 @@ static void SSLCERT_copy(class QoreObject *self, class QoreObject *old, class Qo
 
 static QoreNode *SSLCERT_getPEM(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreString *ps = s->getPEM(xsink);
-   if (ps)
-      return new QoreNode(ps);
-
-   return NULL;
+   return s->getPEM(xsink);
 }
 
 static QoreNode *SSLCERT_getInfo(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getInfo());
+   return new QoreStringNode(s->getInfo());
 }
 
 static QoreNode *SSLCERT_getSignature(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getSignature());
+   return new QoreStringNode(s->getSignature());
 }
 
 static QoreNode *SSLCERT_getSignatureType(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getSignatureType());
+   return s->getSignatureType();
 }
 
 static QoreNode *SSLCERT_getPublicKey(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
@@ -85,7 +81,7 @@ static QoreNode *SSLCERT_getPublicKey(class QoreObject *self, class QoreSSLCerti
 
 static QoreNode *SSLCERT_getPublicKeyAlgorithm(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getPublicKeyAlgorithm());
+   return s->getPublicKeyAlgorithm();
 }
 
 static QoreNode *SSLCERT_getSubjectHash(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)

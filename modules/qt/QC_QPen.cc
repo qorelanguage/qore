@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QPen.h"
+#include "QC_QBrush.h"
+#include "QC_QColor.h"
+
+#include "qore-qt.h"
 
 int CID_QPEN;
 class QoreClass *QC_QPen = 0;

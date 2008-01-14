@@ -21,6 +21,8 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/SwitchStatement.h>
+#include <qore/intern/StatementBlock.h>
 #include <qore/intern/CaseNodeWithOperator.h>
 #include <qore/intern/CaseNodeRegex.h>
 #include <qore/minitest.hpp>
@@ -194,20 +196,16 @@ bool CaseNodeWithOperator::matches(QoreNode* lhs_value, class ExceptionSink *xsi
 
 bool CaseNodeRegex::matches(QoreNode *lhs_value, class ExceptionSink *xsink)
 {
-   QoreNodeTypeHelper str(lhs_value, NT_STRING, xsink);
-   if (!str)
-      return false;
+   QoreStringValueHelper str(lhs_value);
    
-   return re->exec((*str)->val.String, xsink);
+   return re->exec(*str, xsink);
 }
 
 bool CaseNodeNegRegex::matches(QoreNode *lhs_value, class ExceptionSink *xsink)
 {   
-   QoreNodeTypeHelper str(lhs_value, NT_STRING, xsink);
-   if (!str)
-      return false;
+   QoreStringValueHelper str(lhs_value);
    
-   return !re->exec((*str)->val.String, xsink);
+   return !re->exec(*str, xsink);
 }
 
 // EOF

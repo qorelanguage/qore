@@ -41,7 +41,7 @@ static QoreNode *f_callObjectMethod(const QoreNode *params, ExceptionSink *xsink
       return NULL;
    
    // get method name
-   QoreNode *p1 = test_param(params, NT_STRING, 1);
+   QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
       return NULL;
    
@@ -68,7 +68,7 @@ static QoreNode *f_callObjectMethod(const QoreNode *params, ExceptionSink *xsink
    {
       CodeContextHelper cch(NULL, p0->val.object, xsink);
       //substituteObjectIfEqual(p0->val.object);
-      rv = p0->val.object->evalMethod(p1->val.String, args, xsink);
+      rv = p0->val.object->evalMethod(p1, args, xsink);
       if (args)
 	 args->deref(xsink);
    }
@@ -83,7 +83,7 @@ static QoreNode *f_callObjectMethodArgs(const QoreNode *params, ExceptionSink *x
       return NULL;
    
    // get method name
-   QoreNode *p1 = test_param(params, NT_STRING, 1);
+   QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
       return NULL;
    
@@ -108,7 +108,7 @@ static QoreNode *f_callObjectMethodArgs(const QoreNode *params, ExceptionSink *x
    {
       CodeContextHelper cch(NULL, p0->val.object, xsink);
       //substituteObjectIfEqual(p0->val.object);
-      rv = p0->val.object->evalMethod(p1->val.String, args, xsink);
+      rv = p0->val.object->evalMethod(p1, args, xsink);
       if (p2 != args)
       {
 	 args->val.list->shift();

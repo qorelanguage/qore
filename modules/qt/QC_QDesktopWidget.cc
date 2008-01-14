@@ -23,6 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QDesktopWidget.h"
+#include "QC_QWidget.h"
+#include "QC_QPoint.h"
+#include "QC_QRect.h"
+
+#include "qore-qt.h"
 
 int CID_QDESKTOPWIDGET;
 class QoreClass *QC_QDesktopWidget = 0;

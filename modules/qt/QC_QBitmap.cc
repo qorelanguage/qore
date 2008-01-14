@@ -46,12 +46,13 @@ static void QBITMAP_constructor(class QoreObject *self, const QoreNode *params, 
 
       qp = new QoreQBitmap(*(qpix->getQPixmap()));
    }
-   if (p && p->type == NT_STRING) {
-      const char *filename = p->val.String->getBuffer();
+   else if (p && p->type == NT_STRING) {
+      QoreStringNode *pstr = reinterpret_cast<QoreStringNode *>(p);
+      const char *filename = pstr->getBuffer();
 
-      p = get_param(params, 1);
-      const char *format = p ? p->val.String->getBuffer() : 0;
-
+      pstr = test_string_param(params, 1);
+      const char *format = pstr ? pstr->getBuffer() : 0;
+      
       qp = new QoreQBitmap(filename, format);
    }
    else {

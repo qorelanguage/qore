@@ -33,17 +33,17 @@ static void TIBRVFTMONITOR_constructor(class QoreObject *self, const QoreNode *p
 {
    tracein("TIBRVFTMONITOR_constructor");
 
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVFTMONITOR-CONSTRUCTOR-ERROR", "missing fault-tolerant group name as first parameter to TibrvFtMonitor::constructor()");
       return;
    }
-   const char *groupName = pt->val.String->getBuffer();
+   const char *groupName = pt->getBuffer();
 
    int64 lostInterval;
-   pt = get_param(params, 1);
-   lostInterval = pt ? pt->getAsInt() : 0;
+   QoreNode *pn = get_param(params, 1);
+   lostInterval = pn ? pn->getAsInt() : 0;
    if (lostInterval <= 0)
    {
       xsink->raiseException("TIBRVFTMONITOR-CONSTRUCTOR-ERROR", "lostInterval must be greater than zero (value passed: %lld)", lostInterval);
@@ -51,18 +51,18 @@ static void TIBRVFTMONITOR_constructor(class QoreObject *self, const QoreNode *p
    }
 
    const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
-   pt = test_param(params, NT_STRING, 2);
+   pt = test_string_param(params, 2);
    if (pt)
-      service = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 3);
+      service = pt->getBuffer();
+   pt = test_string_param(params, 3);
    if (pt)
-      network = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 4);
+      network = pt->getBuffer();
+   pt = test_string_param(params, 4);
    if (pt)
-      daemon = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 5);
+      daemon = pt->getBuffer();
+   pt = test_string_param(params, 5);
    if (pt)
-      desc = pt->val.String->getBuffer();
+      desc = pt->getBuffer();
 
    class QoreTibrvFtMonitor *qftmonitor = new QoreTibrvFtMonitor(groupName, lostInterval, service, network, daemon, desc, xsink);
 

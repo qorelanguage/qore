@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QScrollArea.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QSCROLLAREA;
 class QoreClass *QC_QScrollArea = 0;

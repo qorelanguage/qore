@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QTranslator.h"
+#include "QC_QObject.h"
+
+#include "qore-qt.h"
 
 int CID_QTRANSLATOR;
 class QoreClass *QC_QTranslator = 0;
@@ -76,26 +79,29 @@ static QoreNode *QTRANSLATOR_load(QoreObject *self, QoreQTranslator *qt, const Q
 //QString translate ( const char * context, const char * sourceText, const char * comment, int n ) const
 static QoreNode *QTRANSLATOR_translate(QoreObject *self, QoreQTranslator *qt, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QTRANSLATOR-TRANSLATE-PARAM-ERROR", "expecting a string as first argument to QTranslator::translate()");
       return 0;
    }
-   const char *context = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   if (!p || p->type != NT_STRING) {
+   const char *context = p->getBuffer();
+
+   p = test_string_param(params, 1);
+   if (!p) {
       xsink->raiseException("QTRANSLATOR-TRANSLATE-PARAM-ERROR", "expecting a string as second argument to QTranslator::translate()");
       return 0;
    }
-   const char *sourceText = p->val.String->getBuffer();
-   p = get_param(params, 2);
-   const char *comment = (p && p->type == NT_STRING) ? p->val.String->getBuffer() : 0;
-   if (num_params(params) < 4) 
-      return new QoreNode(new QoreString(qt->qobj->translate(context, sourceText, comment).toUtf8().data(), QCS_UTF8));
+   const char *sourceText = p->getBuffer();
 
-   p = get_param(params, 3);
-   int n = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qt->qobj->translate(context, sourceText, comment, n).toUtf8().data(), QCS_UTF8));
+   p = test_string_param(params, 2);
+   const char *comment = p ? p->getBuffer() : 0;
+
+   if (num_params(params) < 4) 
+      return new QoreStringNode(qt->qobj->translate(context, sourceText, comment).toUtf8().data(), QCS_UTF8);
+
+   QoreNode *pn = get_param(params, 3);
+   int n = pn ? pn->getAsInt() : 0;
+   return new QoreStringNode(qt->qobj->translate(context, sourceText, comment, n).toUtf8().data(), QCS_UTF8);
 }
 
 QoreClass *initQTranslatorClass(QoreClass *qobject)

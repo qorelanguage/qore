@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QPushButton.h"
+#include "QC_QIcon.h"
+#include "QC_QWidget.h"
+#include "QC_QMenu.h"
 
 int CID_QPUSHBUTTON;
 class QoreClass *QC_QPushButton = 0;

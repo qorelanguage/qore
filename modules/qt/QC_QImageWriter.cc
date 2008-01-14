@@ -23,6 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QImageWriter.h"
+#include "QC_QIODevice.h"
+#include "QC_QByteArray.h"
+#include "QC_QImage.h"
+
+#include "qore-qt.h"
 
 int CID_QIMAGEWRITER;
 class QoreClass *QC_QImageWriter = 0;
@@ -109,13 +114,13 @@ static QoreNode *QIMAGEWRITER_error(QoreObject *self, QoreQImageWriter *qiw, con
 //QString errorString () const
 static QoreNode *QIMAGEWRITER_errorString(QoreObject *self, QoreQImageWriter *qiw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qiw->errorString().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qiw->errorString().toUtf8().data(), QCS_UTF8);
 }
 
 //QString fileName () const
 static QoreNode *QIMAGEWRITER_fileName(QoreObject *self, QoreQImageWriter *qiw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qiw->fileName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qiw->fileName().toUtf8().data(), QCS_UTF8);
 }
 
 //QByteArray format () const
@@ -277,7 +282,7 @@ static QoreNode *f_QImageWriter_supportedImageFormats(const QoreNode *params, Ex
 
    QList<QByteArray> l = QImageWriter::supportedImageFormats();
    for (QList<QByteArray>::iterator i = l.begin(), e=l.end(); i != e; ++i)
-      ql->push(new QoreNode(new QoreString((*i).data())));
+      ql->push(new QoreStringNode((*i).data()));
 
    return new QoreNode(ql);
 }

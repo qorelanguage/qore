@@ -25,6 +25,9 @@
 #include "QC_QMoveEvent.h"
 #include "QC_QRegion.h"
 #include "QC_QRect.h"
+#include "QC_QPoint.h"
+
+#include "qore-qt.h"
 
 int CID_QMOVEEVENT;
 

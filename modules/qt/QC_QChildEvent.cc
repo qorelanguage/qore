@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QChildEvent.h"
+#include "QC_QObject.h"
+
+#include "qore-qt.h"
 
 int CID_QCHILDEVENT;
 class QoreClass *QC_QChildEvent = 0;

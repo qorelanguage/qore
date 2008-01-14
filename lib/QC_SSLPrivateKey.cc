@@ -38,17 +38,17 @@ void createSSLPrivateKeyObject(class QoreObject *self, EVP_PKEY *cert)
 // syntax: SSLPrivateKey(filename)
 static void SSLPKEY_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_STRING, 0);
+   class QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "expecting file name as argument");
       return;
    }
    // get pass phrase if any
-   class QoreNode *p1 = test_param(params, NT_STRING, 1);
-   const char *pp = p1 ? p1->val.String->getBuffer() : NULL;   
+   class QoreStringNode *p1 = test_string_param(params, 1);
+   const char *pp = p1 ? p1->getBuffer() : NULL;   
 
-   QoreSSLPrivateKey *qpk = new QoreSSLPrivateKey(p0->val.String->getBuffer(), (char *)pp, xsink);
+   QoreSSLPrivateKey *qpk = new QoreSSLPrivateKey(p0->getBuffer(), (char *)pp, xsink);
    if (xsink->isEvent())
       qpk->deref();
    else
@@ -67,7 +67,7 @@ static QoreNode *SSLPKEY_getInfo(class QoreObject *self, class QoreSSLPrivateKey
 
 static QoreNode *SSLPKEY_getType(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(pk->getType());
+   return new QoreStringNode(pk->getType());
 }
 
 static QoreNode *SSLPKEY_getVersion(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreNode *params, ExceptionSink *xsink)

@@ -97,47 +97,27 @@ void QoreRegex::parse()
 }
 
 #define OVECCOUNT 30
-bool QoreRegex::exec(class QoreString *target, class ExceptionSink *xsink)
+bool QoreRegex::exec(const QoreString *target, class ExceptionSink *xsink)
 {
-   class QoreString *t;
-   
-   // convert to UTF-8 if necessary
-   if (target->getEncoding() != QCS_UTF8)
-   {
-      t = target->convertEncoding(QCS_UTF8, xsink);
-      if (xsink->isEvent())
-	 return false;
-   }
-   else 
-      t = target;
+   ConstTempEncodingHelper t(target, QCS_UTF8, xsink);
+   if (!t)
+      return false;
    
    // the PCRE docs say that if we don't send an ovector here the library may have to malloc
    // memory, so, even though we don't need the results, we include the vector to avoid 
    // extraneous malloc()s
    int ovector[OVECCOUNT];
    int rc = pcre_exec(p, NULL, t->getBuffer(), t->strlen(), 0, 0, ovector, OVECCOUNT);
-   //printd(0, "QoreRegex::exec(%s =~ /%s/ = %d\n", target->getBuffer(), str->getBuffer(), rc);
-   
-   if (t != target)
-      delete t;
-   
+   //printd(0, "QoreRegex::exec(%s =~ /%s/ = %d\n", target->getBuffer(), str->getBuffer(), rc);   
    return rc >= 0;
 }
 
 #define OVEC_LATELEM 20
-class QoreList *QoreRegex::extractSubstrings(class QoreString *target, class ExceptionSink *xsink)
+class QoreList *QoreRegex::extractSubstrings(const QoreString *target, class ExceptionSink *xsink)
 {
-   class QoreString *t;
-   
-   // convert to UTF-8 if necessary
-   if (target->getEncoding() != QCS_UTF8)
-   {
-      t = target->convertEncoding(QCS_UTF8, xsink);
-      if (xsink->isEvent())
-	 return false;
-   }
-   else 
-      t = target;
+   ConstTempEncodingHelper t(target, QCS_UTF8, xsink);
+   if (!t)
+      return false;
    
    // FIXME: rc = 0 means that not enough space was available in ovector!
    
@@ -167,12 +147,9 @@ class QoreList *QoreRegex::extractSubstrings(class QoreString *target, class Exc
 	 class QoreString *tstr = new QoreString();
 	 //printd(5, "substring %d: %d - %d (len %d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos]);
 	 tstr->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
-	 l->push(new QoreNode(tstr));
+	 l->push(new QoreStringNode(tstr));
       }
    }
-   
-   if (t != target)
-      delete t;
    
    return l;
 }

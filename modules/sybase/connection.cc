@@ -474,7 +474,7 @@ CS_RETCODE connection::servermsg_callback(CS_CONTEXT* ctx, CS_CONNECTION* conn, 
 
 // get client version
 #define CLIENT_VER_LEN 240
-QoreString *connection::get_client_version(class ExceptionSink *xsink)
+QoreStringNode *connection::get_client_version(class ExceptionSink *xsink)
 {
    char *buf = (char *)malloc(sizeof(char) * CLIENT_VER_LEN);
    CS_INT olen;
@@ -485,7 +485,7 @@ QoreString *connection::get_client_version(class ExceptionSink *xsink)
       return 0;
    }  
    //printd(5, "client version=%s\n", buf);
-   return new QoreString(buf);
+   return new QoreStringNode(buf);
 }
 
 class QoreNode *connection::get_server_version(class ExceptionSink *xsink)
@@ -498,8 +498,10 @@ class QoreNode *connection::get_server_version(class ExceptionSink *xsink)
    hi.next();
    QoreNode *rv = hi.takeValueAndDelete();
    res->deref(xsink);
-   if (rv && rv->type == NT_STRING)
-      rv->val.String->trim_trailing('\n');
+
+   QoreStringNode *str = dynamic_cast<QoreStringNode *>(rv);
+   if (str)
+      str->trim_trailing('\n');
    
    return rv;
 }

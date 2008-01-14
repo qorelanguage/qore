@@ -27,7 +27,7 @@
 class QoreAbstractQPaintDevice
 {
    public:
-      DLLLOCAL virtual QPaintDevice *getQPaintDevice() const = 0;
+      DLLLOCAL virtual class QPaintDevice *getQPaintDevice() const = 0;
       DLLLOCAL virtual ~QoreAbstractQPaintDevice()
       {
       }

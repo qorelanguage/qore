@@ -361,27 +361,27 @@ void Datasource::setQoreEncoding(const QoreEncoding *enc)
 
 QoreNode *Datasource::getPendingUsername() const
 {
-   return priv->p_username.empty() ? NULL : new QoreNode(priv->p_username.c_str());
+   return priv->p_username.empty() ? NULL : new QoreStringNode(priv->p_username.c_str());
 }
 
 QoreNode *Datasource::getPendingPassword() const
 {
-   return priv->p_password.empty() ? NULL : new QoreNode(priv->p_password.c_str());
+   return priv->p_password.empty() ? NULL : new QoreStringNode(priv->p_password.c_str());
 }
 
 QoreNode *Datasource::getPendingDBName() const
 {
-   return priv->p_dbname.empty() ? NULL : new QoreNode(priv->p_dbname.c_str());
+   return priv->p_dbname.empty() ? NULL : new QoreStringNode(priv->p_dbname.c_str());
 }
 
 QoreNode *Datasource::getPendingDBEncoding() const
 {
-   return priv->p_db_encoding.empty() ? NULL : new QoreNode(priv->p_db_encoding.c_str());
+   return priv->p_db_encoding.empty() ? NULL : new QoreStringNode(priv->p_db_encoding.c_str());
 }
 
 QoreNode *Datasource::getPendingHostName() const
 {
-   return priv->p_hostname.empty() ? NULL : new QoreNode(priv->p_hostname.c_str());
+   return priv->p_hostname.empty() ? NULL : new QoreStringNode(priv->p_hostname.c_str());
 }
 
 const char *Datasource::getDriverName() const

@@ -1,3 +1,18 @@
+2007.01.14: David Nichols
+	* first part of new type system implementation: QoreNode is being split
+	  into subclasses; at the end of the migration, it will be an abstract
+	  class.  QoreStringNode is the first subclass.  Operator implementation
+	  has been reworked and is much more efficient with data type 
+	  conversions.  More classes have been added for managing resources. 
+	  Many bugs were fixed as well (fixes also ported to 0.6.2 branch)
+	* do not set visibility to hidden by default with g++ because it hides 
+	  RTTI symbols, all symbols are tagged for visibility in the library's
+	  header files anyway
+
+2007.20.24: David Nichols
+	* fixed integer divide by zero, missing "else" could cause a run-time
+	  divide by zero error
+
 2007.20.21: David Nichols
 	* more fixes for "const correctness"
 

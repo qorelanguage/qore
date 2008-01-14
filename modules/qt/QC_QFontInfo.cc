@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QFontInfo.h"
+#include "QC_QFont.h"
+
+#include "qore-qt.h"
 
 int CID_QFONTINFO;
 class QoreClass *QC_QFontInfo = 0;
@@ -63,7 +66,7 @@ static QoreNode *QFONTINFO_exactMatch(QoreObject *self, QoreQFontInfo *qfi, cons
 //QString family () const
 static QoreNode *QFONTINFO_family(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->family().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->family().toUtf8().data(), QCS_UTF8);
 }
 
 //bool fixedPitch () const

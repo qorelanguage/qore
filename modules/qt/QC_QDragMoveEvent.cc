@@ -23,6 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QDragMoveEvent.h"
+#include "QC_QPoint.h"
+#include "QC_QMimeData.h"
+#include "QC_QRect.h"
+
+#include "qore-qt.h"
 
 int CID_QDRAGMOVEEVENT;
 class QoreClass *QC_QDragMoveEvent = 0;

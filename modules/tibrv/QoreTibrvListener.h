@@ -59,7 +59,7 @@ class QoreTibrvListener : public AbstractPrivateData, public QoreTibrvTransport
       class QoreHash *getMessage(class ExceptionSink *xsink);
       class QoreHash *getMessage(int64 timeout, class ExceptionSink *xsink);
 
-      class QoreString *createInboxName(class ExceptionSink *xsink)
+      class QoreStringNode *createInboxName(class ExceptionSink *xsink)
       {
 	 char name[120];
 	 
@@ -69,7 +69,7 @@ class QoreTibrvListener : public AbstractPrivateData, public QoreTibrvTransport
 	    xsink->raiseException("TIBRVLISTENER-CREATEINBOXNAME-ERROR", "cannot create inbox name: %s", status.getText());
 	    return NULL;
 	 }
-	 return new QoreString(name);
+	 return new QoreStringNode(name);
       }
 };
 

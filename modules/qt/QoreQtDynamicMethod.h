@@ -24,6 +24,12 @@
 
 #define _QORE_QOREQTDYNAMICMETHOD_H
 
+#include <QString>
+#include <QObject>
+#include <QDate>
+#include <QWidget>
+#include <QListWidgetItem>
+
 #define QORE_VIRTUAL_QOBJECT_METHODS \
    DLLLOCAL virtual int getSlotIndex(const QByteArray &theSlot, class ExceptionSink *xsink) {\
       return qobj->getSlotIndex(theSlot, xsink);				\

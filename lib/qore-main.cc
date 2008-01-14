@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include <qore/DBI.h>
+#include <qore/intern/QoreSignal.h>
 
 #include <stdio.h>
 #include <string.h>

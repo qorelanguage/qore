@@ -24,7 +24,7 @@
 
 #define _QORE_QC_QSHORTCUT_H
 
-#include "QoreAbstractQObject.h"
+#include "QoreAbstractQWidget.h"
 
 #include <QShortcut>
 

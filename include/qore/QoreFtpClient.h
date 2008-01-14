@@ -66,8 +66,8 @@ class QoreFtpClient : public LockedObject
    private:
       struct qore_ftp_private *priv;
 
-      DLLLOCAL class QoreString *getResponse(class ExceptionSink *xsink);
-      DLLLOCAL class QoreString *sendMsg(const char *cmd, const char *arg, class ExceptionSink *xsink);
+      DLLLOCAL class QoreStringNode *getResponse(class ExceptionSink *xsink);
+      DLLLOCAL class QoreStringNode *sendMsg(const char *cmd, const char *arg, class ExceptionSink *xsink);
       DLLLOCAL void stripEOL(class QoreString *str);
       //DLLLOCAL int connectDataLongPassive(class ExceptionSink *xsink);
       DLLLOCAL int connectDataExtendedPassive(class ExceptionSink *xsink);
@@ -92,11 +92,11 @@ class QoreFtpClient : public LockedObject
       DLLEXPORT int disconnect();
       DLLEXPORT int cwd(const char *dir, class ExceptionSink *xsink);
       // caller owns QoreString returned
-      DLLEXPORT class QoreString *pwd(class ExceptionSink *xsink);
+      DLLEXPORT class QoreStringNode *pwd(class ExceptionSink *xsink);
       DLLEXPORT int put(const char *localpath, const char *remotename, class ExceptionSink *xsink);
       DLLEXPORT int get(const char *remotepath, const char *localname, class ExceptionSink *xsink);
       // caller owns QoreString returned
-      DLLEXPORT class QoreString *list(const char *path, bool long_list, class ExceptionSink *xsink);
+      DLLEXPORT class QoreStringNode *list(const char *path, bool long_list, class ExceptionSink *xsink);
       DLLEXPORT int del(const char *file, class ExceptionSink *xsink);
       //DLLEXPORT int cdup(class ExceptionSink *xsink);
       //DLLEXPORT int rename(char *old, char *name, class ExceptionSink *xsink);
@@ -108,7 +108,7 @@ class QoreFtpClient : public LockedObject
       DLLEXPORT const char *getHostName() const;
       DLLEXPORT void setURL(const QoreString *url, class ExceptionSink *xsink);
       // caller owns the QoreString returned
-      DLLEXPORT class QoreString *getURL() const;
+      DLLEXPORT class QoreStringNode *getURL() const;
       DLLEXPORT void setPort(int p);
       DLLEXPORT void setUserName(const char *u); 
       DLLEXPORT void setPassword(const char *p);

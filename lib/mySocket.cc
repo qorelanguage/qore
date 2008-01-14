@@ -187,7 +187,7 @@ int mySocket::sendi8LSB(int64 b)
 }
 
 // receive a certain number of bytes as a string
-class QoreString *mySocket::recv(int bufsize, int timeout, int *rc)
+class QoreStringNode *mySocket::recv(int bufsize, int timeout, int *rc)
 {
    SafeLocker sl(this);
    return socket->recv(bufsize, timeout, rc);
@@ -201,7 +201,7 @@ class BinaryObject *mySocket::recvBinary(int bufsize, int timeout, int *rc)
 }
 
 // receive a message
-class QoreString *mySocket::recv(int timeout, int *rc)
+class QoreStringNode *mySocket::recv(int timeout, int *rc)
 {
    SafeLocker sl(this);
    return socket->recv(timeout, rc);

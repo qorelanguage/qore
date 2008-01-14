@@ -24,6 +24,7 @@
 
 #include "QC_QObject.h"
 #include "QC_QFont.h"
+#include "QC_QMetaObject.h"
 
 int CID_QOBJECT;
 QoreClass *QC_QObject = 0;
@@ -83,18 +84,21 @@ static QoreNode *QOBJECT_connect(QoreObject *self, QoreAbstractQObject *qo, cons
       return 0;
    }
    ReferenceHolder<QoreAbstractQObject> holder(sender, xsink);
-   p = get_param(params, 1);
-   if (!p || p->type != NT_STRING) {
+
+   QoreStringNode *pstr = test_string_param(params, 1);
+   if (!pstr) {
       xsink->raiseException("QOBJECT-CONNECT-PARAM-ERROR", "expecting a string as second argument to QObject::connect()");
       return 0;
    }
-   const char *signal = p->val.String->getBuffer();
-   p = get_param(params, 2);
-   if (!p || p->type != NT_STRING) {
+   const char *signal = pstr->getBuffer();
+
+   pstr = test_string_param(params, 2);
+   if (!pstr) {
       xsink->raiseException("QOBJECT-CONNECT-PARAM-ERROR", "expecting a string as third argument to QObject::connect()");
       return 0;
    }
-   const char *method = p->val.String->getBuffer();
+   const char *method = pstr->getBuffer();
+
    //p = get_param(params, 3);
    //Qt::ConnectionType type = (Qt::ConnectionType)(p ? p->getAsInt() : 0);
    //return new QoreNode(qo->getQObject()->connect(sender->getQObject(), signal, method, type));
@@ -116,9 +120,12 @@ static QoreNode *QOBJECT_disconnect(QoreObject *self, QoreAbstractQObject *qo, c
    }
 
    const char *signal = 0;
-   if (p && p->type == NT_STRING) {
-      signal = p->val.String->getBuffer();
-      offset = 1;
+   {
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(p);
+      if (str) {
+	 signal = str->getBuffer();
+	 offset = 1;
+      }
    }
 
    p = get_param(params, offset++);
@@ -130,14 +137,17 @@ static QoreNode *QOBJECT_disconnect(QoreObject *self, QoreAbstractQObject *qo, c
       return 0;
    }
    ReferenceHolder<QoreAbstractQObject> holder(receiver, xsink);
-   p = get_param(params, offset);
-   if (!p || p->type != NT_STRING) {
+
+   QoreStringNode *pstr = test_string_param(params, offset);
+   if (!pstr) {
       xsink->raiseException("QOBJECT-DISCONNECT-PARAM-ERROR", "expecting a string as third argument to QObject::disconnect()");
       return 0;
    }
-   const char *method = p->val.String->getBuffer();
+   const char *method = pstr->getBuffer();
+
    if (signal)
       return new QoreNode(qo->getQObject()->disconnect(signal, receiver->getQObject(), method));
+
    return new QoreNode(qo->getQObject()->disconnect(receiver->getQObject(), method));
 }
 
@@ -194,7 +204,7 @@ static QoreNode *QOBJECT_dumpObjectTree(QoreObject *self, QoreAbstractQObject *q
 //      xsink->raiseException("QOBJECT-FINDCHILD-PARAM-ERROR", "expecting a string as first argument to QObject::findChild()");
 //      return 0;
 //   }
-//   const char *name = p->val.String->getBuffer();
+//   const char *name = p->getBuffer();
 //   ??? return new QoreNode((int64)qo->getQObject()->findChild(name));
 //}
 
@@ -206,7 +216,7 @@ static QoreNode *QOBJECT_dumpObjectTree(QoreObject *self, QoreAbstractQObject *q
 //      xsink->raiseException("QOBJECT-FINDCHILDREN-PARAM-ERROR", "expecting a string as first argument to QObject::findChildren()");
 //      return 0;
 //   }
-//   const char *name = p->val.String->getBuffer();
+//   const char *name = p->getBuffer();
 //   ??? return new QoreNode((int64)qo->getQObject()->findChildren(name));
 //}
 //QList<T> findChildren ( const QRegExp & regExp ) const
@@ -220,12 +230,12 @@ static QoreNode *QOBJECT_dumpObjectTree(QoreObject *self, QoreAbstractQObject *q
 //bool inherits ( const char * className ) const
 static QoreNode *QOBJECT_inherits(QoreObject *self, QoreAbstractQObject *qo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QOBJECT-INHERITS-PARAM-ERROR", "expecting a string as first argument to QObject::inherits()");
       return 0;
    }
-   const char *className = p->val.String->getBuffer();
+   const char *className = p->getBuffer();
    return new QoreNode(qo->getQObject()->inherits(className));
 }
 
@@ -281,7 +291,7 @@ static QoreNode *QOBJECT_metaObject(QoreObject *self, QoreAbstractQObject *qo, c
 //QString objectName () const
 static QoreNode *QOBJECT_objectName(QoreObject *self, QoreAbstractQObject *qo, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qo->getQObject()->objectName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qo->getQObject()->objectName().toUtf8().data(), QCS_UTF8);
 }
 
 //QObject * parent () const
@@ -303,12 +313,12 @@ static QoreNode *QOBJECT_parent(QoreObject *self, QoreAbstractQObject *qo, const
 //QVariant property ( const char * name ) const
 static QoreNode *QOBJECT_property(QoreObject *self, QoreAbstractQObject *qo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QOBJECT-PROPERTY-PARAM-ERROR", "expecting a string as first argument to QObject::property()");
       return 0;
    }
-   const char *name = p->val.String->getBuffer();
+   const char *name = p->getBuffer();
    return return_qvariant(qo->getQObject()->property(name));
 }
 
@@ -358,13 +368,14 @@ static QoreNode *QOBJECT_setParent(QoreObject *self, QoreAbstractQObject *qo, co
 //bool setProperty ( const char * name, const QVariant & value )
 static QoreNode *QOBJECT_setProperty(QoreObject *self, QoreAbstractQObject *qo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr) {
       xsink->raiseException("QOBJECT-SETPROPERTY-PARAM-ERROR", "expecting a string as first argument to QObject::setProperty()");
       return 0;
    }
-   const char *name = p->val.String->getBuffer();
-   p = get_param(params, 1);
+   const char *name = pstr->getBuffer();
+
+   QoreNode *p = get_param(params, 1);
    QVariant value;
    if (get_qvariant(p, value, xsink))
       return 0;
@@ -395,25 +406,25 @@ static QoreNode *QOBJECT_startTimer(QoreObject *self, QoreAbstractQObject *qo, c
 // custom methods
 static QoreNode *QOBJECT_createSignal(QoreObject *self, QoreAbstractQObject *qo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QOBJECT-CREATE-SIGNAL-ERROR", "no string argument passed to QObject::createSignal()");
       return 0;
    }
 
-   qo->createSignal(p->val.String->getBuffer(), xsink);
+   qo->createSignal(p->getBuffer(), xsink);
    return 0;
 }
 
 static QoreNode *QOBJECT_emit(QoreObject *self, QoreAbstractQObject *qo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QOBJECT-EMIT-ERROR", "no string argument passed to QObject::emit()");
       return 0;
    }
 
-   qo->emit_signal(p->val.String->getBuffer(), params->val.list);
+   qo->emit_signal(p->getBuffer(), params->val.list);
    return 0;
 }
 

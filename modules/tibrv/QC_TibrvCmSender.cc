@@ -36,37 +36,37 @@ void TIBRVCMSENDER_constructor(class QoreObject *self, const QoreNode *params, c
    const char *cmName = NULL, *ledgerName = NULL, *relayAgent = NULL;
    bool requestOld, syncLedger;
 
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (pt)
-      cmName = pt->val.String->getBuffer();
+      cmName = pt->getBuffer();
 
-   pt = get_param(params, 1);
-   requestOld = pt ? pt->getAsBool() : false;
+   QoreNode *pn = get_param(params, 1);
+   requestOld = pn ? pn->getAsBool() : false;
 
-   pt = test_param(params, NT_STRING, 2);
+   pt = test_string_param(params, 2);
    if (pt)
-      ledgerName = pt->val.String->getBuffer();
+      ledgerName = pt->getBuffer();
 
-   pt = get_param(params, 3);
-   syncLedger = pt ? pt->getAsBool() : false;
+   pn = get_param(params, 3);
+   syncLedger = pn ? pn->getAsBool() : false;
 
-   pt = test_param(params, NT_STRING, 4);
+   pt = test_string_param(params, 4);
    if (pt)
-      relayAgent = pt->val.String->getBuffer();
+      relayAgent = pt->getBuffer();
 
    const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
-   pt = test_param(params, NT_STRING, 5);
+   pt = test_string_param(params, 5);
    if (pt)
-      desc = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 6);
+      desc = pt->getBuffer();
+   pt = test_string_param(params, 6);
    if (pt)
-      service = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 7);
+      service = pt->getBuffer();
+   pt = test_string_param(params, 7);
    if (pt)
-      network = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 8);
+      network = pt->getBuffer();
+   pt = test_string_param(params, 8);
    if (pt)
-      daemon = pt->val.String->getBuffer();
+      daemon = pt->getBuffer();
 
    class QoreTibrvCmSender *qcmsender = new QoreTibrvCmSender(cmName, requestOld, ledgerName, syncLedger,relayAgent, desc, service, network, daemon, xsink);
 
@@ -85,22 +85,22 @@ void TIBRVCMSENDER_copy(class QoreObject *self, class QoreObject *old, class Qor
 
 static QoreNode *TIBRVCMSENDER_sendSubject(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVCMSENDER-SENDSUBJECT-ERROR", "missing subject string as first parameter to method");
       return NULL;
    }
-   const char *subject = pt->val.String->getBuffer();
-   pt = test_param(params, NT_HASH, 1);
-   if (!pt)
+   const char *subject = pt->getBuffer();
+   QoreNode *pn = test_param(params, NT_HASH, 1);
+   if (!pn)
    {
       xsink->raiseException("TIBRVCMSENDER-SENDSUBJECT-ERROR", "missing data hash as second parameter to method");
       return NULL;
    }
-   class QoreHash *h = pt->val.hash;
-   pt = test_param(params, NT_STRING, 2);
-   const char *replySubject = pt ? pt->val.String->getBuffer() : NULL;
+   class QoreHash *h = pn->val.hash;
+   pt = test_string_param(params, 2);
+   const char *replySubject = pt ? pt->getBuffer() : NULL;
 
    // get certified delivery time limit
    int64 time_limit = getMsZeroBigInt(get_param(params, 3));
@@ -112,20 +112,22 @@ static QoreNode *TIBRVCMSENDER_sendSubject(class QoreObject *self, class QoreTib
 
 static QoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
-   if (!pt)
+   QoreStringNode *str = test_string_param(params, 0);
+   if (!str)
    {
       xsink->raiseException("TIBRVCMSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing subject string as first parameter to method");
       return NULL;
    }
-   const char *subject = pt->val.String->getBuffer();
-   pt = test_param(params, NT_HASH, 1);
+   const char *subject = str->getBuffer();
+
+   QoreNode *pt = test_param(params, NT_HASH, 1);
    if (!pt)
    {
       xsink->raiseException("TIBRVCMSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing data hash as second parameter to method");
       return NULL;
    }
    class QoreHash *h = pt->val.hash;
+
    pt = get_param(params, 2);
    int64 timeout = getMsMinusOneBigInt(pt);
 
@@ -134,22 +136,19 @@ static QoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class QoreObject *self, 
    int64 time_limit = pt ? pt->getAsBigInt() : 0;
 
    h = cms->sendSubjectWithSyncReply(subject, h, timeout, time_limit, xsink);
-   if (h)
-      return new QoreNode(h);
-
-   return NULL;
+   return h ? new QoreNode(h) : 0;
 }
 
 class QoreNode *TIBRVCMSENDER_setStringEncoding(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVCMSENDER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");
       return NULL;
    }
 
-   const QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
+   const QoreEncoding *enc = QEM.findCreate(pt->getBuffer());
    cms->setStringEncoding(enc);
 
    return NULL;
@@ -174,15 +173,15 @@ class QoreNode *TIBRVCMSENDER_disconnectFromRelayAgent(class QoreObject *self, c
 
 class QoreNode *TIBRVCMSENDER_expireMessages(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
-   if (!pt)
+   QoreStringNode *str = test_string_param(params, 0);
+   if (!str)
    {
       xsink->raiseException("TIBRV-CMSENDER-EXPIRE-MESSAGES-ERROR", "missing subject name as first parameter to method");
       return NULL;
    }
-   const char *subj = pt->val.String->getBuffer();
+   const char *subj = str->getBuffer();
 
-   pt = get_param(params, 1);
+   QoreNode *pt = get_param(params, 1);
    int64 seqNum = pt ? pt->getAsBigInt() : 0;
 
    cms->expireMessages(subj, seqNum, xsink);
@@ -218,26 +217,26 @@ class QoreNode *TIBRVCMSENDER_setDefaultTimeLimit(class QoreObject *self, class 
 
 class QoreNode *TIBRVCMSENDER_reviewLedger(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRV-CMSENDER-REVIEW-LEDGER-ERROR", "missing subject name as first parameter to method");
       return NULL;
    }
-   const char *subj = pt->val.String->getBuffer();
+   const char *subj = pt->getBuffer();
 
    return cms->reviewLedger(subj, xsink);
 }
 
 class QoreNode *TIBRVCMSENDER_removeSendState(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRV-CMSENDER-REMOVE-SEND-STATE-ERROR", "missing subject name as first parameter to method");
       return NULL;
    }
-   const char *subj = pt->val.String->getBuffer();
+   const char *subj = pt->getBuffer();
 
    cms->removeSendState(subj, xsink);
    return NULL;

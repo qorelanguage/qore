@@ -29,7 +29,7 @@
 
 static class QoreNode *check_stat(unsigned code, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
 
    if (!p0)
       return NULL;
@@ -37,7 +37,7 @@ static class QoreNode *check_stat(unsigned code, const QoreNode *params, Excepti
    struct stat sbuf;
    int rc;
    
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
       return NULL;
 
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
@@ -45,14 +45,14 @@ static class QoreNode *check_stat(unsigned code, const QoreNode *params, Excepti
 
 static class QoreNode *check_lstat(unsigned code, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
    
    struct stat sbuf;
    int rc;
    
-   if ((rc = lstat(p0->val.String->getBuffer(), &sbuf)))
+   if ((rc = lstat(p0->getBuffer(), &sbuf)))
       return NULL;
    
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
@@ -90,14 +90,14 @@ static class QoreNode *f_is_bdev(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_is_dev(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
    
    struct stat sbuf;
    int rc;
    
-   if ((rc = lstat(p0->val.String->getBuffer(), &sbuf)))
+   if ((rc = lstat(p0->getBuffer(), &sbuf)))
       return NULL;
    
    return ((sbuf.st_mode & S_IFMT) == S_IFCHR)
@@ -112,14 +112,14 @@ static class QoreNode *f_is_link(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_is_readable(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
    
    struct stat sbuf;
    int rc;
    
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
       return NULL;
    
    if (sbuf.st_mode & S_IROTH 
@@ -132,15 +132,15 @@ static class QoreNode *f_is_readable(const QoreNode *params, ExceptionSink *xsin
 
 static class QoreNode *f_is_writeable(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
    
    tracein("f_stat()");
    struct stat sbuf;
    int rc;
    
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
       return NULL;
    
    if (sbuf.st_mode & S_IWOTH 
@@ -153,14 +153,14 @@ static class QoreNode *f_is_writeable(const QoreNode *params, ExceptionSink *xsi
 
 static class QoreNode *f_is_executable(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
    
    struct stat sbuf;
    int rc;
    
-   if ((rc = stat(p0->val.String->getBuffer(), &sbuf)))
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
       return NULL;
    
    if (sbuf.st_mode & S_IXOTH 

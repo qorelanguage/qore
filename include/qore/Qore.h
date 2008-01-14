@@ -25,11 +25,13 @@
 #define _QORE_QORE_H
 
 #include <qore/common.h>
+#include <qore/QoreNode.h>
 #include <qore/QoreList.h>
 #include <qore/QoreProgram.h>
 #include <qore/ModuleManager.h>
 #include <qore/QoreLib.h>
-#include <qore/QoreNode.h>
+#include <qore/QoreStringNode.h>
+#include <qore/DateTimeNode.h>
 #include <qore/QoreNet.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreFile.h>
@@ -73,6 +75,8 @@
 #include <qore/intern/VRMutex.h>
 #include <qore/intern/VLock.h>
 #include <qore/intern/qore_thread_intern.h>
+#include <qore/intern/FunctionReference.h>
+#include <qore/intern/StatementBlock.h>
 
 DLLLOCAL extern int qore_library_options;
 #endif

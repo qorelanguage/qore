@@ -468,227 +468,227 @@ void QoreSignalManager::addSignalConstants(class QoreNamespace *ns)
    class QoreHash *nh = new QoreHash();
    class QoreHash *sh = new QoreHash();
 #ifdef SIGHUP
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGHUP), new QoreNode("SIGHUP"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGHUP), new QoreStringNode("SIGHUP"), NULL);
    sh->setKeyValue("SIGHUP", new QoreNode((int64)SIGHUP), NULL);
    ns->addConstant("SIGHUP", new QoreNode((int64)SIGHUP));
 #endif
 #ifdef SIGINT
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGINT), new QoreNode("SIGINT"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGINT), new QoreStringNode("SIGINT"), NULL);
    sh->setKeyValue("SIGINT", new QoreNode((int64)SIGINT), NULL);
    ns->addConstant("SIGINT", new QoreNode((int64)SIGINT));
 #endif
 #ifdef SIGQUIT
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGQUIT), new QoreNode("SIGQUIT"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGQUIT), new QoreStringNode("SIGQUIT"), NULL);
    sh->setKeyValue("SIGQUIT", new QoreNode((int64)SIGQUIT), NULL);
    ns->addConstant("SIGQUIT", new QoreNode((int64)SIGQUIT));
 #endif
 #ifdef SIGILL
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGILL), new QoreNode("SIGILL"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGILL), new QoreStringNode("SIGILL"), NULL);
    sh->setKeyValue("SIGILL", new QoreNode((int64)SIGILL), NULL);
    ns->addConstant("SIGILL", new QoreNode((int64)SIGILL));
 #endif
 #ifdef SIGTRAP
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTRAP), new QoreNode("SIGTRAP"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTRAP), new QoreStringNode("SIGTRAP"), NULL);
    sh->setKeyValue("SIGTRAP", new QoreNode((int64)SIGTRAP), NULL);
    ns->addConstant("SIGTRAP", new QoreNode((int64)SIGTRAP));
 #endif
 #ifdef SIGABRT
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGABRT), new QoreNode("SIGABRT"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGABRT), new QoreStringNode("SIGABRT"), NULL);
    sh->setKeyValue("SIGABRT", new QoreNode((int64)SIGABRT), NULL);
    ns->addConstant("SIGABRT", new QoreNode((int64)SIGABRT));
 #endif
 #ifdef SIGPOLL
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGPOLL), new QoreNode("SIGPOLL"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGPOLL), new QoreStringNode("SIGPOLL"), NULL);
    sh->setKeyValue("SIGPOLL", new QoreNode((int64)SIGPOLL), NULL);
    ns->addConstant("SIGPOLL", new QoreNode((int64)SIGPOLL));
 #endif
 #ifdef SIGIOT
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGIOT), new QoreNode("SIGIOT"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGIOT), new QoreStringNode("SIGIOT"), NULL);
    sh->setKeyValue("SIGIOT", new QoreNode((int64)SIGIOT), NULL);
    ns->addConstant("SIGIOT", new QoreNode((int64)SIGIOT));
 #endif
 #ifdef SIGEMT
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGEMT), new QoreNode("SIGEMT"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGEMT), new QoreStringNode("SIGEMT"), NULL);
    sh->setKeyValue("SIGEMT", new QoreNode((int64)SIGEMT), NULL);
    ns->addConstant("SIGEMT", new QoreNode((int64)SIGEMT));
 #endif
 #ifdef SIGFPE
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGFPE), new QoreNode("SIGFPE"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGFPE), new QoreStringNode("SIGFPE"), NULL);
    sh->setKeyValue("SIGFPE", new QoreNode((int64)SIGFPE), NULL);
    ns->addConstant("SIGFPE", new QoreNode((int64)SIGFPE));
 #endif
 #ifdef SIGKILL
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGKILL), new QoreNode("SIGKILL"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGKILL), new QoreStringNode("SIGKILL"), NULL);
    sh->setKeyValue("SIGKILL", new QoreNode((int64)SIGKILL), NULL);
    ns->addConstant("SIGKILL", new QoreNode((int64)SIGKILL));
 #endif
 #ifdef SIGBUS
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGBUS), new QoreNode("SIGBUS"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGBUS), new QoreStringNode("SIGBUS"), NULL);
    sh->setKeyValue("SIGBUS", new QoreNode((int64)SIGBUS), NULL);
    ns->addConstant("SIGBUS", new QoreNode((int64)SIGBUS));
 #endif
 #ifdef SIGSEGV
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGSEGV), new QoreNode("SIGSEGV"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGSEGV), new QoreStringNode("SIGSEGV"), NULL);
    sh->setKeyValue("SIGSEGV", new QoreNode((int64)SIGSEGV), NULL);
    ns->addConstant("SIGSEGV", new QoreNode((int64)SIGSEGV));
 #endif
 #ifdef SIGSYS
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGSYS), new QoreNode("SIGSYS"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGSYS), new QoreStringNode("SIGSYS"), NULL);
    sh->setKeyValue("SIGSYS", new QoreNode((int64)SIGSYS), NULL);
    ns->addConstant("SIGSYS", new QoreNode((int64)SIGSYS));
 #endif
 #ifdef SIGPIPE
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGPIPE), new QoreNode("SIGPIPE"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGPIPE), new QoreStringNode("SIGPIPE"), NULL);
    sh->setKeyValue("SIGPIPE", new QoreNode((int64)SIGPIPE), NULL);
    ns->addConstant("SIGPIPE", new QoreNode((int64)SIGPIPE));
 #endif
 #ifdef SIGALRM
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGALRM), new QoreNode("SIGALRM"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGALRM), new QoreStringNode("SIGALRM"), NULL);
    sh->setKeyValue("SIGALRM", new QoreNode((int64)SIGALRM), NULL);
    ns->addConstant("SIGALRM", new QoreNode((int64)SIGALRM));
 #endif
 #ifdef SIGTERM
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTERM), new QoreNode("SIGTERM"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTERM), new QoreStringNode("SIGTERM"), NULL);
    sh->setKeyValue("SIGTERM", new QoreNode((int64)SIGTERM), NULL);
    ns->addConstant("SIGTERM", new QoreNode((int64)SIGTERM));
 #endif
 #ifdef SIGURG
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGURG), new QoreNode("SIGURG"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGURG), new QoreStringNode("SIGURG"), NULL);
    sh->setKeyValue("SIGURG", new QoreNode((int64)SIGURG), NULL);
    ns->addConstant("SIGURG", new QoreNode((int64)SIGURG));
 #endif
 #ifdef SIGSTOP
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGSTOP), new QoreNode("SIGSTOP"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGSTOP), new QoreStringNode("SIGSTOP"), NULL);
    sh->setKeyValue("SIGSTOP", new QoreNode((int64)SIGSTOP), NULL);
    ns->addConstant("SIGSTOP", new QoreNode((int64)SIGSTOP));
 #endif
 #ifdef SIGTSTP
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTSTP), new QoreNode("SIGTSTP"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTSTP), new QoreStringNode("SIGTSTP"), NULL);
    sh->setKeyValue("SIGTSTP", new QoreNode((int64)SIGTSTP), NULL);
    ns->addConstant("SIGTSTP", new QoreNode((int64)SIGTSTP));
 #endif
 #ifdef SIGCONT
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGCONT), new QoreNode("SIGCONT"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGCONT), new QoreStringNode("SIGCONT"), NULL);
    sh->setKeyValue("SIGCONT", new QoreNode((int64)SIGCONT), NULL);
    ns->addConstant("SIGCONT", new QoreNode((int64)SIGCONT));
 #endif
 #ifdef SIGCHLD
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGCHLD), new QoreNode("SIGCHLD"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGCHLD), new QoreStringNode("SIGCHLD"), NULL);
    sh->setKeyValue("SIGCHLD", new QoreNode((int64)SIGCHLD), NULL);
    ns->addConstant("SIGCHLD", new QoreNode((int64)SIGCHLD));
 #endif
 #ifdef SIGTTIN
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTTIN), new QoreNode("SIGTTIN"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTTIN), new QoreStringNode("SIGTTIN"), NULL);
    sh->setKeyValue("SIGTTIN", new QoreNode((int64)SIGTTIN), NULL);
    ns->addConstant("SIGTTIN", new QoreNode((int64)SIGTTIN));
 #endif
 #ifdef SIGTTOU
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTTOU), new QoreNode("SIGTTOU"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTTOU), new QoreStringNode("SIGTTOU"), NULL);
    sh->setKeyValue("SIGTTOU", new QoreNode((int64)SIGTTOU), NULL);
    ns->addConstant("SIGTTOU", new QoreNode((int64)SIGTTOU));
 #endif
 #ifdef SIGIO
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGIO), new QoreNode("SIGIO"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGIO), new QoreStringNode("SIGIO"), NULL);
    sh->setKeyValue("SIGIO", new QoreNode((int64)SIGIO), NULL);
    ns->addConstant("SIGIO", new QoreNode((int64)SIGIO));
 #endif
 #ifdef SIGXCPU
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGXCPU), new QoreNode("SIGXCPU"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGXCPU), new QoreStringNode("SIGXCPU"), NULL);
    sh->setKeyValue("SIGXCPU", new QoreNode((int64)SIGXCPU), NULL);
    ns->addConstant("SIGXCPU", new QoreNode((int64)SIGXCPU));
 #endif
 #ifdef SIGXFSZ
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGXFSZ), new QoreNode("SIGXFSZ"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGXFSZ), new QoreStringNode("SIGXFSZ"), NULL);
    sh->setKeyValue("SIGXFSZ", new QoreNode((int64)SIGXFSZ), NULL);
    ns->addConstant("SIGXFSZ", new QoreNode((int64)SIGXFSZ));
 #endif
 #ifdef SIGVTALRM
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGVTALRM), new QoreNode("SIGVTALRM"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGVTALRM), new QoreStringNode("SIGVTALRM"), NULL);
    sh->setKeyValue("SIGVTALRM", new QoreNode((int64)SIGVTALRM), NULL);
    ns->addConstant("SIGVTALRM", new QoreNode((int64)SIGVTALRM));
 #endif
 #ifdef SIGPROF
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGPROF), new QoreNode("SIGPROF"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGPROF), new QoreStringNode("SIGPROF"), NULL);
    sh->setKeyValue("SIGPROF", new QoreNode((int64)SIGPROF), NULL);
    ns->addConstant("SIGPROF", new QoreNode((int64)SIGPROF));
 #endif
 #ifdef SIGWINCH
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGWINCH), new QoreNode("SIGWINCH"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGWINCH), new QoreStringNode("SIGWINCH"), NULL);
    sh->setKeyValue("SIGWINCH", new QoreNode((int64)SIGWINCH), NULL);
    ns->addConstant("SIGWINCH", new QoreNode((int64)SIGWINCH));
 #endif
 #ifdef SIGINFO
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGINFO), new QoreNode("SIGINFO"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGINFO), new QoreStringNode("SIGINFO"), NULL);
    sh->setKeyValue("SIGINFO", new QoreNode((int64)SIGINFO), NULL);
    ns->addConstant("SIGINFO", new QoreNode((int64)SIGINFO));
 #endif
 #ifdef SIGUSR1
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGUSR1), new QoreNode("SIGUSR1"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGUSR1), new QoreStringNode("SIGUSR1"), NULL);
    sh->setKeyValue("SIGUSR1", new QoreNode((int64)SIGUSR1), NULL);
    ns->addConstant("SIGUSR1", new QoreNode((int64)SIGUSR1));
 #endif
 #ifdef SIGUSR2
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGUSR2), new QoreNode("SIGUSR2"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGUSR2), new QoreStringNode("SIGUSR2"), NULL);
    sh->setKeyValue("SIGUSR2", new QoreNode((int64)SIGUSR2), NULL);
    ns->addConstant("SIGUSR2", new QoreNode((int64)SIGUSR2));
 #endif
 #ifdef SIGSTKFLT
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGSTKSZ), new QoreNode("SIGSTKFLT"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGSTKSZ), new QoreStringNode("SIGSTKFLT"), NULL);
    sh->setKeyValue("SIGSTKFLT", new QoreNode((int64)SIGSTKFLT), NULL);
    ns->addConstant("SIGSTKFLT", new QoreNode((int64)SIGSTKFLT));
 #endif
 #ifdef SIGCLD
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGCHLD), new QoreNode("SIGCLD"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGCHLD), new QoreStringNode("SIGCLD"), NULL);
    sh->setKeyValue("SIGCLD", new QoreNode((int64)SIGCLD), NULL);
    ns->addConstant("SIGCLD", new QoreNode((int64)SIGCLD));
 #endif
 #ifdef SIGPWR
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGPWR), new QoreNode("SIGPWR"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGPWR), new QoreStringNode("SIGPWR"), NULL);
    sh->setKeyValue("SIGPWR", new QoreNode((int64)SIGPWR), NULL);
    ns->addConstant("SIGPWR", new QoreNode((int64)SIGPWR));
 #endif
 #ifdef SIGLOST
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGLOST), new QoreNode("SIGLOST"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGLOST), new QoreStringNode("SIGLOST"), NULL);
    sh->setKeyValue("SIGLOST", new QoreNode((int64)SIGLOST), NULL);
    ns->addConstant("SIGLOST", new QoreNode((int64)SIGLOST));
 #endif
 #ifdef SIGWAITING
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGWAITING), new QoreNode("SIGWAITING"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGWAITING), new QoreStringNode("SIGWAITING"), NULL);
    sh->setKeyValue("SIGWAITING", new QoreNode((int64)SIGWAITING), NULL);
    ns->addConstant("SIGWAITING", new QoreNode((int64)SIGWAITING));
 #endif
 #ifdef SIGLWP
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGLWP), new QoreNode("SIGLWP"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGLWP), new QoreStringNode("SIGLWP"), NULL);
    sh->setKeyValue("SIGLWP", new QoreNode((int64)SIGLWP), NULL);
    ns->addConstant("SIGLWP", new QoreNode((int64)SIGLWP));
 #endif
 #ifdef SIGFREEZE
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGFREEZE), new QoreNode("SIGFREEZE"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGFREEZE), new QoreStringNode("SIGFREEZE"), NULL);
    sh->setKeyValue("SIGFREEZE", new QoreNode((int64)SIGFREEZE), NULL);
    ns->addConstant("SIGFREEZE", new QoreNode((int64)SIGFREEZE));
 #endif
 #ifdef SIGTHAW
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTHAW), new QoreNode("SIGTHAW"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGTHAW), new QoreStringNode("SIGTHAW"), NULL);
    sh->setKeyValue("SIGTHAW", new QoreNode((int64)SIGTHAW), NULL);
    ns->addConstant("SIGTHAW", new QoreNode((int64)SIGTHAW));
 #endif
 #ifdef SIGCANCEL
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGCANCEL), new QoreNode("SIGCANCEL"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGCANCEL), new QoreStringNode("SIGCANCEL"), NULL);
    sh->setKeyValue("SIGCANCEL", new QoreNode((int64)SIGCANCEL), NULL);
    ns->addConstant("SIGCANCEL", new QoreNode((int64)SIGCANCEL));
 #endif
 #ifdef SIGXRES
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGXRES), new QoreNode("SIGXRES"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGXRES), new QoreStringNode("SIGXRES"), NULL);
    sh->setKeyValue("SIGXRES", new QoreNode((int64)SIGXRES), NULL);
    ns->addConstant("SIGXRES", new QoreNode((int64)SIGXRES));
 #endif
 #ifdef SIGJVM1
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGJVM1), new QoreNode("SIGJVM1"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGJVM1), new QoreStringNode("SIGJVM1"), NULL);
    sh->setKeyValue("SIGJVM1", new QoreNode((int64)SIGJVM1), NULL);
    ns->addConstant("SIGJVM1", new QoreNode((int64)SIGJVM1));
 #endif
 #ifdef SIGJVM2
-   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGJVM2), new QoreNode("SIGJVM2"), NULL);
+   nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGJVM2), new QoreStringNode("SIGJVM2"), NULL);
    sh->setKeyValue("SIGJVM2", new QoreNode((int64)SIGJVM2), NULL);
    ns->addConstant("SIGJVM2", new QoreNode((int64)SIGJVM2));
 #endif

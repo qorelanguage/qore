@@ -32,7 +32,7 @@ class QoreSSLBase
   public:
    static class QoreHash *X509_NAME_to_hash(X509_NAME *n);
    static class DateTime *ASN1_TIME_to_DateTime(ASN1_STRING *t);
-   static class QoreString *ASN1_OBJECT_to_QoreString(ASN1_OBJECT *o);
+   static class QoreStringNode *ASN1_OBJECT_to_QoreStringNode(ASN1_OBJECT *o);
 };
 
 #endif // _QORE_CLASS_SSLBASE_H

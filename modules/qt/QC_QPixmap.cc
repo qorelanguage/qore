@@ -21,9 +21,16 @@
  */
 
 #include <qore/Qore.h>
+#include "qore-qt.h"
 
 #include "QC_QPixmap.h"
 #include "QC_QBitmap.h"
+#include "QC_QSize.h"
+#include "QC_QRect.h"
+#include "QC_QColor.h"
+#include "QC_QWidget.h"
+#include "QC_QPoint.h"
+#include "QC_QImage.h"
 
 int CID_QPIXMAP;
 QoreClass *QC_QPixmap = 0;
@@ -41,8 +48,8 @@ static void QPIXMAP_constructor(class QoreObject *self, const QoreNode *params, 
 
    QString fileName;
    if (!get_qstring(p, fileName, xsink, true)) {
-      p = test_param(params, NT_STRING, 1);
-      const char *format = p ? p->val.String->getBuffer() : 0;
+      QoreStringNode *str = test_string_param(params, 1);
+      const char *format = str ? str->getBuffer() : 0;
       p = get_param(params, 2);
       Qt::ImageConversionFlags flags = !is_nothing(p) ? (Qt::ImageConversionFlags)p->getAsInt() : Qt::AutoColor;
 
@@ -277,8 +284,10 @@ static QoreNode *QPIXMAP_load(QoreObject *self, QoreAbstractQPixmap *qp, const Q
    QString fileName;
    if (get_qstring(p, fileName, xsink))
       return 0;
-   p = get_param(params, 1);
-   const char *format = p ? p->val.String->getBuffer() : 0;
+
+   QoreStringNode *pstr = test_string_param(params, 1);
+   const char *format = pstr ? pstr->getBuffer() : 0;
+
    p = get_param(params, 2);
    Qt::ImageConversionFlags flags = !is_nothing(p) ? (Qt::ImageConversionFlags)p->getAsInt() :  Qt::AutoColor;
    return new QoreNode(qp->getQPixmap()->load(fileName, format, flags));
@@ -292,16 +301,16 @@ static QoreNode *QPIXMAP_load(QoreObject *self, QoreAbstractQPixmap *qp, const Q
 //   ??? uchar* data = p;
 //   p = get_param(params, 1);
 //   if (p && p->type == NT_STRING) {
-//      const char *format = p ? p->val.String->getBuffer() : 0;
+//      const char *format = p ? p->getBuffer() : 0;
 //   p = get_param(params, 2);
-//   const char *format = p ? p->val.String->getBuffer() : 0;
+//   const char *format = p ? p->getBuffer() : 0;
 //   p = get_param(params, 3);
 //   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
 //   return new QoreNode(qp->getQPixmap()->loadFromData(data, format, format, flags));
 //   }
 //   unsigned len = p ? p->getAsBigInt() : 0;
 //   p = get_param(params, 2);
-//   const char *format = p ? p->val.String->getBuffer() : 0;
+//   const char *format = p ? p->getBuffer() : 0;
 //   p = get_param(params, 3);
 //   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
 //   return new QoreNode(qp->getQPixmap()->loadFromData(data, len, format, flags));
@@ -329,16 +338,18 @@ static QoreNode *QPIXMAP_rect(QoreObject *self, QoreAbstractQPixmap *qp, const Q
 //bool save ( QIODevice * device, const char * format = 0, int quality = -1 ) const
 static QoreNode *QPIXMAP_save(QoreObject *self, QoreAbstractQPixmap *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QPIXMAP-SAVE-PARAM-ERROR", "expecting a string as first argument to QPixmap::save()");
       return 0;
    }
-   const char *fileName = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   const char *format = p ? p->val.String->getBuffer() : 0;
-   p = get_param(params, 2);
-   int quality = !is_nothing(p) ? p->getAsInt() : -1;
+   const char *fileName = p->getBuffer();
+
+   p = test_string_param(params, 1);
+   const char *format = p ? p->getBuffer() : 0;
+
+   QoreNode *pn = get_param(params, 2);
+   int quality = !is_nothing(pn) ? pn->getAsInt() : -1;
    return new QoreNode(qp->getQPixmap()->save(fileName, format, quality));
 }
 

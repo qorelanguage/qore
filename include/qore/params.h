@@ -48,6 +48,14 @@ static inline QoreNode *test_param(const QoreNode *n, class QoreType *type, int 
    return (p->type == type) ? p : NULL;
 }
 
+static inline QoreStringNode *test_string_param(const QoreNode *n, int i)
+{
+   if (!n) return 0;
+   QoreNode *p = n->val.list->retrieve_entry(i);
+   if (!p) return 0;
+   return dynamic_cast<QoreStringNode *>(p);
+}
+
 /*
 // this will return only valid objects of the passed class ID
 // if an object is returned it will be locked and the caller

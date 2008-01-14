@@ -21,8 +21,13 @@
  */
 
 #include <qore/Qore.h>
+
 #include "QC_QActionGroup.h"
 #include "QC_QAction.h"
+#include "QC_QObject.h"
+#include "QC_QIcon.h"
+
+#include "qore-qt.h"
 
 int CID_QACTIONGROUP;
 QoreClass *QC_QActionGroup = 0;

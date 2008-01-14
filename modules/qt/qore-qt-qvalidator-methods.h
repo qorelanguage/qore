@@ -11,7 +11,7 @@ class T {
 	    return;
 	 }
 
-	 QoreNode *val = new QoreNode(new QoreString(input.toUtf8().data(), QCS_UTF8));
+	 QoreNode *val = new QoreStringNode(input.toUtf8().data(), QCS_UTF8);
 	 ExceptionSink xsink;
 	 LVarInstantiatorHelper lvh("arg0", val, &xsink);
 
@@ -37,7 +37,7 @@ class T {
 	    return validate_parent(input, pos);
 
 	 ExceptionSink xsink;
-	 LVarInstantiatorHelper arg0("arg0", new QoreNode(new QoreString(input.toUtf8().data(), QCS_UTF8)), &xsink);
+	 LVarInstantiatorHelper arg0("arg0", new QoreStringNode(input.toUtf8().data(), QCS_UTF8), &xsink);
 	 LVarInstantiatorHelper arg1("arg1", new QoreNode((int64)pos), &xsink);
 
 	 QoreList *args = new QoreList();

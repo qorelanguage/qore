@@ -26,20 +26,25 @@
 #include "QC_QMovie.h"
 #include "QC_QPicture.h"
 #include "QC_QPixmap.h"
+#include "QC_QWidget.h"
 
 int CID_QLABEL;
 
 static void QLABEL_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreQLabel *ql;
+
    QoreNode *p = get_param(params, 0);
    const char *text = 0;
 
-   if (p && p->type == NT_STRING) {
-      text = p->val.String->getBuffer();
-      p = get_param(params, 1);
+   {
+      QoreStringNode *pstr = dynamic_cast<QoreStringNode *>(p);
+      if (pstr) {
+	 text = pstr->getBuffer();
+	 p = get_param(params, 1);
+      }
    }
-   
+
    QoreAbstractQWidget *parent = 0;
    if (p && p->type == NT_OBJECT)
    {
@@ -228,7 +233,7 @@ static QoreNode *QLABEL_setWordWrap(QoreObject *self, QoreQLabel *ql, const Qore
 //QString text () const
 static QoreNode *QLABEL_text(QoreObject *self, QoreQLabel *ql, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(ql->qobj->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(ql->qobj->text().toUtf8().data(), QCS_UTF8);
 }
 
 //Qt::TextFormat textFormat () const
@@ -321,12 +326,12 @@ static QoreNode *QLABEL_setPixmap(QoreObject *self, QoreQLabel *ql, const QoreNo
 //void setText ( const QString & )
 static QoreNode *QLABEL_setText(QoreObject *self, QoreQLabel *ql, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QLABEL-SETTEXT-PARAM-ERROR", "expecting a string as first argument to QLabel::setText()");
       return 0;
    }
-   const char *qstring = p->val.String->getBuffer();
+   const char *qstring = p->getBuffer();
    ql->qobj->setText(qstring);
    return 0;
 }

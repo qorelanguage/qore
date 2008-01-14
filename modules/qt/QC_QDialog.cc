@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QDialog.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QDIALOG;
 class QoreClass *QC_QDialog = 0;

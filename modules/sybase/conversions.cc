@@ -248,7 +248,7 @@ void double_to_DECIMAL(connection& conn, double val, CS_DECIMAL& out, ExceptionS
 }
 
 #define SYB_DEC_STR_LEN 50
-class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink)
+class QoreStringNode *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSink* xsink)
 {
   CS_DATAFMT srcfmt;
   memset(&srcfmt, 0, sizeof(srcfmt));
@@ -271,7 +271,7 @@ class QoreString *DECIMAL_to_string(connection& conn, CS_DECIMAL& m, ExceptionSi
     return 0;
   }
   //printd(5, "DECIMAL_to_string: '%s'\n", buf);
-  return new QoreString(buf);  
+  return new QoreStringNode(buf);  
 }
 */
 

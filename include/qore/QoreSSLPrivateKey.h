@@ -43,7 +43,7 @@ class QoreSSLPrivateKey : public AbstractPrivateData
 
    public:
       // caller owns the QoreString returned
-      DLLEXPORT class QoreString *getPEM(class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreStringNode *getPEM(class ExceptionSink *xsink) const;
 
       DLLLOCAL QoreSSLPrivateKey(EVP_PKEY *p);
       DLLLOCAL QoreSSLPrivateKey(const char *fn, char *pp, class ExceptionSink *xsink);

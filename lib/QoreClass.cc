@@ -23,7 +23,6 @@
 #include <qore/Qore.h>
 #include <qore/intern/Sequence.h>
 #include <qore/intern/BuiltinMethod.h>
-
 #include <qore/intern/QoreClassIntern.h>
 
 #include <string.h>
@@ -1236,12 +1235,12 @@ class QoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, con
 	 args_holder = args->realCopy(xsink);
       if (*xsink)
 	 return 0;
-      args_holder->val.list->insert(new QoreNode(nme));
+      args_holder->val.list->insert(new QoreStringNode(nme));
    }
    else
    {
       QoreList *l = new QoreList();
-      l->push(new QoreNode(nme));
+      l->push(new QoreStringNode(nme));
       args_holder = new QoreNode(l);
    }
 
@@ -1259,23 +1258,18 @@ bool QoreClass::isPrivateMember(const char *str) const
    return false;
 }
 
-class QoreNode *QoreClass::evalMemberGate(class QoreObject *self, class QoreNode *nme, class ExceptionSink *xsink) const
+class QoreNode *QoreClass::evalMemberGate(class QoreObject *self, const QoreString *nme, class ExceptionSink *xsink) const
 {
-   tracein("QoreClass::evalMembeGatre()");
-   assert(nme && nme->type == NT_STRING);
-   printd(5, "QoreClass::evalMemberGate() member=%s\n", nme->val.String->getBuffer());
+   assert(nme && nme->getEncoding() == QCS_DEFAULT);
+
+   printd(5, "QoreClass::evalMemberGate() member=%s\n", nme->getBuffer());
    // do not run memberGate method if we are already in it...
    if (!priv->memberGate || priv->memberGate->inMethod(self))
-   {
-      traceout("QoreClass::evalMemberGate()");
-      return NULL;
-   }
-   class QoreNode *args = new QoreNode(new QoreList());
-   args->val.list->push(nme->RefSelf());
-   class QoreNode *rv = priv->memberGate->eval(self, args, xsink);
-   args->deref(xsink);
-   traceout("QoreClass::evalMemberGate()");
-   return rv;
+      return 0;
+
+   ReferenceHolder<QoreNode> args(new QoreNode(new QoreList()), xsink);
+   args->val.list->push(new QoreStringNode(*nme));
+   return priv->memberGate->eval(self, *args, xsink);
 }
 
 class QoreNode *QoreClass::execConstructor(const QoreNode *args, ExceptionSink *xsink) const
@@ -1693,7 +1687,7 @@ QoreList *QoreClass::getMethodList() const
    QoreList *l = new QoreList();
 
    for (hm_method_t::const_iterator i = priv->hm.begin(); i != priv->hm.end(); i++)
-      l->push(new QoreNode(i->first));
+      l->push(new QoreStringNode(i->first));
    return l;
 }
 

@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QCheckBox.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QCHECKBOX;
 class QoreClass *QC_QCheckBox = 0;

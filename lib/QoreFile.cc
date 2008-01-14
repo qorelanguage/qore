@@ -186,7 +186,7 @@ int QoreFile::readChar()
    return (int)ch;
 }
 
-class QoreString *QoreFile::readLine(class ExceptionSink *xsink)
+class QoreStringNode *QoreFile::readLine(class ExceptionSink *xsink)
 {
    if (!priv->is_open)
    {
@@ -195,7 +195,8 @@ class QoreString *QoreFile::readLine(class ExceptionSink *xsink)
    }
    
    int ch;
-   class QoreString *str = new QoreString(priv->charset);
+
+   TempQoreStringNode str(new QoreStringNode(priv->charset));
    while ((ch = readChar()) >= 0)
    {
       char c = ch;
@@ -204,11 +205,9 @@ class QoreString *QoreFile::readLine(class ExceptionSink *xsink)
 	 break;
    }
    if (!str->strlen())
-   {
-      delete str;
-      str = NULL;
-   }
-   return str;
+      return 0;
+
+   return str.release();
 }
 
 int QoreFile::setPos(int pos)
@@ -227,7 +226,7 @@ int QoreFile::getPos()
    return lseek(priv->fd, 0, SEEK_CUR);
 }
 
-class QoreString *QoreFile::getchar()
+class QoreStringNode *QoreFile::getchar()
 {
    if (!priv->is_open)
       return NULL;
@@ -235,7 +234,7 @@ class QoreString *QoreFile::getchar()
    int c = readChar();
    if (c < 0)
       return NULL;
-   QoreString *str = new QoreString(priv->charset);
+   QoreStringNode *str = new QoreStringNode(priv->charset);
    str->concat((char)c);
    return str;
 }
@@ -283,7 +282,7 @@ int QoreFile::write(const BinaryObject *b, class ExceptionSink *xsink)
 #define DEFAULT_FILE_BUFSIZE 4096
 #endif
 
-class QoreString *QoreFile::read(int size, class ExceptionSink *xsink)
+class QoreStringNode *QoreFile::read(int size, class ExceptionSink *xsink)
 {
    if (!size)
       return NULL;
@@ -295,7 +294,7 @@ class QoreString *QoreFile::read(int size, class ExceptionSink *xsink)
    if (!buf)
       return NULL;
    
-   class QoreString *str = new QoreString(priv->charset);
+   class QoreStringNode *str = new QoreStringNode(priv->charset);
    if (buf[size - 1] == '\0')
       str->take(buf, size - 1);
    else

@@ -24,6 +24,11 @@
 
 #include "QC_QLineEdit.h"
 #include "QC_QValidator.h"
+#include "QC_QWidget.h"
+#include "QC_QMenu.h"
+#include "QC_QPoint.h"
+
+#include "qore-qt.h"
 
 int CID_QLINEEDIT;
 class QoreClass *QC_QLineEdit = 0;
@@ -170,7 +175,7 @@ static QoreNode *QLINEEDIT_deselect(QoreObject *self, QoreQLineEdit *qle, const 
 //QString displayText () const
 static QoreNode *QLINEEDIT_displayText(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qle->qobj->displayText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qle->qobj->displayText().toUtf8().data(), QCS_UTF8);
 }
 
 //bool dragEnabled () const
@@ -224,7 +229,7 @@ static QoreNode *QLINEEDIT_home(QoreObject *self, QoreQLineEdit *qle, const Qore
 //QString inputMask () const
 static QoreNode *QLINEEDIT_inputMask(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qle->qobj->inputMask().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qle->qobj->inputMask().toUtf8().data(), QCS_UTF8);
 }
 
 //void insert ( const QString & newText )
@@ -284,7 +289,7 @@ static QoreNode *QLINEEDIT_minimumSizeHint(QoreObject *self, QoreQLineEdit *qle,
 //QString selectedText () const
 static QoreNode *QLINEEDIT_selectedText(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qle->qobj->selectedText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qle->qobj->selectedText().toUtf8().data(), QCS_UTF8);
 }
 
 //int selectionStart () const
@@ -422,7 +427,7 @@ static QoreNode *QLINEEDIT_sizeHint(QoreObject *self, QoreQLineEdit *qle, const 
 //QString text () const
 static QoreNode *QLINEEDIT_text(QoreObject *self, QoreQLineEdit *qle, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qle->qobj->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qle->qobj->text().toUtf8().data(), QCS_UTF8);
 }
 
 //const QValidator * validator () const

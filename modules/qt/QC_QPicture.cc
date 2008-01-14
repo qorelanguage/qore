@@ -23,6 +23,8 @@
 #include <qore/Qore.h>
 
 #include "QC_QPicture.h"
+#include "QC_QRect.h"
+#include "QC_QPainter.h"
 
 int CID_QPICTURE;
 QoreClass *QC_QPicture = 0;
@@ -97,14 +99,15 @@ static QoreNode *QPICTURE_isNull(QoreObject *self, QoreQPicture *qp, const QoreN
 //bool load ( QIODevice * dev, const char * format = 0 )
 static QoreNode *QPICTURE_load(QoreObject *self, QoreQPicture *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QPICTURE-LOAD-PARAM-ERROR", "expecting a string as first argument to QPicture::load()");
       return 0;
    }
-   const char *fileName = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   const char *format = p ? p->val.String->getBuffer() : 0;
+   const char *fileName = p->getBuffer();
+
+   p = test_string_param(params, 1);
+   const char *format = p ? p->getBuffer() : 0;
    return new QoreNode(qp->load(fileName, format));
 }
 
@@ -126,14 +129,14 @@ static QoreNode *QPICTURE_play(QoreObject *self, QoreQPicture *qp, const QoreNod
 //bool save ( QIODevice * dev, const char * format = 0 )
 static QoreNode *QPICTURE_save(QoreObject *self, QoreQPicture *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QPICTURE-SAVE-PARAM-ERROR", "expecting a string as first argument to QPicture::save()");
       return 0;
    }
-   const char *fileName = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   const char *format = p ? p->val.String->getBuffer() : 0;
+   const char *fileName = p->getBuffer();
+   p = test_string_param(params, 1);
+   const char *format = p ? p->getBuffer() : 0;
    return new QoreNode(qp->save(fileName, format));
 }
 
@@ -155,13 +158,14 @@ static QoreNode *QPICTURE_setBoundingRect(QoreObject *self, QoreQPicture *qp, co
 //virtual void setData ( const char * data, uint size )
 static QoreNode *QPICTURE_setData(QoreObject *self, QoreQPicture *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr) {
       xsink->raiseException("QPICTURE-SETDATA-PARAM-ERROR", "expecting a string as first argument to QPicture::setData()");
       return 0;
    }
-   const char *data = p->val.String->getBuffer();
-   p = get_param(params, 1);
+   const char *data = pstr->getBuffer();
+
+   QoreNode *p = get_param(params, 1);
    int size = p ? p->getAsInt() : 0;
    qp->setData(data, size);
    return 0;

@@ -31,17 +31,23 @@ static inline void strindent(QoreString *s, int indent)
       s->concat(' ');
 }
 
-static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class ExceptionSink *xsink)
+static void dni(QoreStringNode *s, class QoreNode *n, int indent, class ExceptionSink *xsink)
 {
-   //tracein("dni()");
    if (!n)
    {
       s->concat("node=NULL\n");
-      //traceout("dni()");
-      return s;
+      return;
    }
    
    s->sprintf("node=%08p refs=%d type=%s ", n, n->reference_count(), n->type->getName());
+
+   {
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      if (str) {
+	 s->sprintf("val=(enc=%s, %d:%d) \"%s\"", str->getEncoding()->getCode(), str->length(), str->strlen(), str->getBuffer());
+	 return;
+      }
+   }
    
    if (n->type == NT_BOOLEAN)
       s->sprintf("val=%s", n->val.boolval ? "True" : "False");
@@ -57,13 +63,6 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
    
    else if (n->type == NT_FLOAT)
       s->sprintf("val=%f", n->val.floatval);
-   
-   else if (n->type == NT_STRING)
-      s->sprintf("val=(enc=%s, %d:%d) \"%s\"", 
-                 n->val.String->getEncoding()->getCode(),
-                 n->val.String->length(),
-                 n->val.String->strlen(),
-                 n->val.String->getBuffer());
    
    else if (n->type ==  NT_LIST)
    {
@@ -91,9 +90,10 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
             for (int i = 0; i < l->size(); i++)
             {
                strindent(s, indent);
-               s->sprintf("key %d/%d \"%s\" = ", i, l->size(), l->retrieve_entry(i)->val.String->getBuffer());
+	       QoreStringNode *entry = reinterpret_cast<QoreStringNode *>(l->retrieve_entry(i));
+               s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
                QoreNode *nn;
-               dni(s, nn = n->val.object->evalMemberNoMethod(l->retrieve_entry(i)->val.String->getBuffer(), xsink), indent + 3, xsink);
+               dni(s, nn = n->val.object->evalMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
                discard(nn, xsink);
 	       if (i != (l->size() - 1))
 		  s->concat('\n');
@@ -134,18 +134,16 @@ static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent,
       s->sprintf("ptr=%08p len=%d", n->val.bin->getPtr(), n->val.bin->size());
    else
       s->sprintf("don't know how to print type '%s' :-(", n->type->getName());
-   
-   //printd(5, "D\n");
-   //traceout("dni()");
-   return s;
 }
 
 //static 
 class QoreNode *f_dbg_node_info(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *s = new QoreString();
-
-   return new QoreNode(dni(s, get_param(params, 0), 0, xsink));
+   TempQoreStringNode s(new QoreStringNode());
+   dni(*s, get_param(params, 0), 0, xsink);
+   if (*xsink)
+      return 0;
+   return s.release();
 }
 
 // returns a hash of all namespace information

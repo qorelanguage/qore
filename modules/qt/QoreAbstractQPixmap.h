@@ -24,6 +24,8 @@
 
 #define _QORE_QOREABSTRACTQPIXMAP_H
 
+#include "QoreAbstractQPaintDevice.h"
+
 class QoreAbstractQPixmap : public AbstractPrivateData, public QoreAbstractQPaintDevice
 {
    public:

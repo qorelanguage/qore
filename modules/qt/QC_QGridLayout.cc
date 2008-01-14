@@ -25,6 +25,7 @@
 #include "QC_QGridLayout.h"
 #include "QC_QFont.h"
 #include "QC_QWidget.h"
+#include "QC_QLayout.h"
 
 int CID_QGRIDLAYOUT;
 

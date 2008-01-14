@@ -21,12 +21,20 @@
  */
 
 #ifndef _QORE_QORE_QT_H
-
 #define _QORE_QORE_QT_H
+
+#include <QDate>
+#include <QDateTime>
+#include <QKeySequence>
+#include <QBrush>
+#include <QObject>
 
 DLLLOCAL extern QoreType *NT_BRUSHSTYLE, *NT_PENSTYLE;
 
-DLLLOCAL extern QoreObject *C_ClipBoard;
+DLLLOCAL extern QoreNode *C_Clipboard;
+
+extern int static_argc;
+extern char **static_argv;
 
 #include <map>
 
@@ -50,7 +58,7 @@ DLLLOCAL int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *x
 DLLLOCAL int get_qkeysequence(const QoreNode *n, QKeySequence &qks, class ExceptionSink *xsink, bool suppress_exception = false);
 
 DLLLOCAL QoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data);
-DLLLOCAL QoreNode *return_qvariant(QVariant &qv);
+DLLLOCAL QoreNode *return_qvariant(const QVariant &qv);
 DLLLOCAL QoreNode *return_qstyle(const QString &style, class QStyle *qs, ExceptionSink *xsink);
 DLLLOCAL QoreNode *return_qobject(QObject *o);
 DLLLOCAL QoreNode *return_qstyleoption(const class QStyleOption *qso);

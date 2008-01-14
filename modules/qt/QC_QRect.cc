@@ -25,6 +25,7 @@
 #include "QC_QRect.h"
 #include "QC_QColor.h"
 #include "QC_QPoint.h"
+#include "QC_QSize.h"
 
 int CID_QRECT;
 class QoreClass *QC_QRect = 0;

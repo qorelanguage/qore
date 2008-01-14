@@ -108,7 +108,7 @@ static void inline addError(class QoreHash *h, QoreString *err)
    class QoreNode **v = h->getKeyValuePtr("_ERRORS_");
    if (!(*v))
       (*v) = new QoreNode(new QoreList());
-   (*v)->val.list->push(new QoreNode(err));
+   (*v)->val.list->push(new QoreStringNode(err));
 }
 
 // private, static method
@@ -183,7 +183,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char
 
    class QoreNode *v;
    if (n->argtype == NT_STRING)
-      v = new QoreNode(val);
+      v = new QoreStringNode(val);
    else if (n->argtype == NT_INT)
       v = new QoreNode(strtoll(val, NULL, 10));
    else if (n->argtype == NT_FLOAT)
@@ -193,7 +193,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char
    else if (n->argtype == NT_BOOLEAN)
       v = new QoreNode((bool)strtol(val, NULL, 10));
    else // default string
-      v = new QoreNode(val);
+      v = new QoreStringNode(val);
    
    if (!(n->option & QGO_OPT_LIST_OR_ADD))
    {
@@ -231,9 +231,9 @@ char *QoreGetOpt::getNextArgument(class QoreList *l, class QoreHash *h, int &i, 
    if (i < (l->size() - 1))
    {
       i++;
-      class QoreNode *n = l->retrieve_entry(i);
-      if (n && n->type == NT_STRING)
-	 return (char *)n->val.String->getBuffer();
+      class QoreStringNode *n = dynamic_cast<QoreStringNode *>(l->retrieve_entry(i));
+      if (n)
+	 return (char *)n->getBuffer();
    }
    QoreString *err = new QoreString();
    if (lopt)
@@ -336,10 +336,13 @@ class QoreHash *QoreGetOpt::parse(class QoreList *l, bool modify, class Exceptio
    {
       //printf("QoreGetOpt::parse() %d/%d\n", i, l->size());
       class QoreNode *n = l->retrieve_entry(i);
-      if (!n || n->type != NT_STRING)
+      if (!n)
+	 continue;
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      if (!str)
 	 continue;
 
-      const char *arg = n->val.String->getBuffer();
+      const char *arg = str->getBuffer();
       if (arg[0] == '-')
       {
 	 if (!arg[1])

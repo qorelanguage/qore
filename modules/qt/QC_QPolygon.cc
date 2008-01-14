@@ -24,6 +24,9 @@
 
 #include "QC_QPolygon.h"
 #include "QC_QPoint.h"
+#include "QC_QRect.h"
+
+#include "qore-qt.h"
 
 int CID_QPOLYGON;
 class QoreClass *QC_QPolygon = 0;

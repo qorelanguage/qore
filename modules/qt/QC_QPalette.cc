@@ -26,6 +26,8 @@
 #include "QC_QColor.h"
 #include "QC_QBrush.h"
 
+#include "qore-qt.h"
+
 DLLLOCAL int CID_QPALETTE;
 DLLLOCAL QoreClass *QC_QPalette = 0;
 

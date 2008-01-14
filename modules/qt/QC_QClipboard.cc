@@ -23,6 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QClipboard.h"
+#include "QC_QImage.h"
+#include "QC_QPixmap.h"
+#include "QC_QMimeData.h"
+
+#include "qore-qt.h"
 
 int CID_QCLIPBOARD;
 class QoreClass *QC_QClipboard = 0;
@@ -186,9 +191,12 @@ static QoreNode *QCLIPBOARD_text(QoreObject *self, QoreQClipboard *qc, const Qor
    QoreNode *p = get_param(params, 0);
 
    const char *subtype = 0;
-   if (p && p->type == NT_STRING) {
-      subtype = p->val.String->getBuffer();
-      p = get_param(params, 1);
+   {
+      QoreStringNode *pstr = dynamic_cast<QoreStringNode *>(p);
+      if (pstr) {
+	 subtype = pstr->getBuffer();
+	 p = get_param(params, 1);
+      }
    }
    QClipboard::Mode mode = p ? (QClipboard::Mode)p->getAsInt() : QClipboard::Clipboard;
 
@@ -196,13 +204,13 @@ static QoreNode *QCLIPBOARD_text(QoreObject *self, QoreQClipboard *qc, const Qor
       QString st(subtype);
       QString rv = qc->qobj->text(st, mode);
       QoreHash *h = new QoreHash();
-      h->setKeyValue("subtype", new QoreNode(new QoreString(st.toUtf8().data(), QCS_UTF8)), 0);
-      h->setKeyValue("text", new QoreNode(new QoreString(rv.toUtf8().data(), QCS_UTF8)), 0);
+      h->setKeyValue("subtype", new QoreStringNode(st.toUtf8().data(), QCS_UTF8), 0);
+      h->setKeyValue("text", new QoreStringNode(rv.toUtf8().data(), QCS_UTF8), 0);
 
       return new QoreNode(h);
    }
 
-   return new QoreNode(new QoreString(qc->qobj->text(mode).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qc->qobj->text(mode).toUtf8().data(), QCS_UTF8);
 }
 
 QoreClass *initQClipboardClass(QoreClass *qobject)

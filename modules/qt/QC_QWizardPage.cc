@@ -23,6 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QWizardPage.h"
+#include "QC_QWizard.h"
+#include "QC_QWidget.h"
+#include "QC_QPixmap.h"
+
+#include "qore-qt.h"
 
 int CID_QWIZARDPAGE;
 class QoreClass *QC_QWizardPage = 0;
@@ -49,7 +54,7 @@ static QoreNode *QWIZARDPAGE_buttonText(QoreObject *self, QoreAbstractQWizardPag
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardButton which = (QWizard::WizardButton)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(qwp->getQWizardPage()->buttonText(which).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qwp->getQWizardPage()->buttonText(which).toUtf8().data(), QCS_UTF8);
 }
 
 //virtual void cleanupPage ()
@@ -174,13 +179,13 @@ static QoreNode *QWIZARDPAGE_setTitle(QoreObject *self, QoreAbstractQWizardPage 
 //QString subTitle () const
 static QoreNode *QWIZARDPAGE_subTitle(QoreObject *self, QoreAbstractQWizardPage *qwp, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qwp->getQWizardPage()->subTitle().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qwp->getQWizardPage()->subTitle().toUtf8().data(), QCS_UTF8);
 }
 
 //QString title () const
 static QoreNode *QWIZARDPAGE_title(QoreObject *self, QoreAbstractQWizardPage *qwp, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qwp->getQWizardPage()->title().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qwp->getQWizardPage()->title().toUtf8().data(), QCS_UTF8);
 }
 
 //virtual bool validatePage ()
@@ -215,9 +220,9 @@ static QoreNode *QWIZARDPAGE_registerField(QoreObject *self, QoreAbstractQWizard
    }
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
    p = get_param(params, 2);
-   const char *property = (p && p->type == NT_STRING) ? p->val.String->getBuffer() : 0;
+   const char *property = (p && p->type == NT_STRING) ? (reinterpret_cast<QoreStringNode *>(p))->getBuffer() : 0;
    p = get_param(params, 3);
-   const char *changedSignal = (p && p->type == NT_STRING) ? p->val.String->getBuffer() : 0;
+   const char *changedSignal = (p && p->type == NT_STRING) ? (reinterpret_cast<QoreStringNode *>(p))->getBuffer() : 0;
    qwp->registerField(name, static_cast<QWidget *>(widget->getQWidget()), property, changedSignal);
    return 0;
 }

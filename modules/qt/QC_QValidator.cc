@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QValidator.h"
+#include "QC_QObject.h"
+#include "QC_QLocale.h"
+
+#include "qore-qt.h"
 
 int CID_QVALIDATOR;
 class QoreClass *QC_QValidator = 0;
@@ -67,7 +71,7 @@ static QoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidator *qv, 
 
    if (*vp)
       (*vp)->deref(xsink);
-   (*vp) = new QoreNode(new QoreString(input.toUtf8().data(), QCS_UTF8));
+   (*vp) = new QoreStringNode(input.toUtf8().data(), QCS_UTF8);
 
    return 0;
 }
@@ -130,7 +134,7 @@ static QoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *q
 
    if (*vp0)
       (*vp0)->deref(xsink);
-   (*vp0) = new QoreNode(new QoreString(input.toUtf8().data(), QCS_UTF8));
+   (*vp0) = new QoreStringNode(input.toUtf8().data(), QCS_UTF8);
 
    if (*vp1)
       (*vp1)->deref(xsink);

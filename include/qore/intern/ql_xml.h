@@ -26,10 +26,10 @@
 
 #define _QORE_QL_XML_H
 
-DLLLOCAL class QoreString *makeXMLRPCCallString(const QoreEncoding *ccs, class QoreNode *params, ExceptionSink *xsink);
-DLLLOCAL class QoreString *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, class QoreNode *params, ExceptionSink *xsink);
+DLLLOCAL class QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreNode *args, ExceptionSink *xsink);
+DLLLOCAL class QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreNode *args, ExceptionSink *xsink);
 // ccsid is the output encoding for strings
-DLLLOCAL class QoreNode *parseXMLRPCResponse(class QoreString *msg, const QoreEncoding *ccsid, ExceptionSink *xsink);
+DLLLOCAL class QoreNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccsid, ExceptionSink *xsink);
 DLLLOCAL void init_xml_functions();
 
 #endif // _QORE_QL_XML_H

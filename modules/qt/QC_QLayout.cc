@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include "QC_QLayout.h"
+#include "QC_QRect.h"
 
 int CID_QLAYOUT;
 QoreClass *QC_QLayout = 0;

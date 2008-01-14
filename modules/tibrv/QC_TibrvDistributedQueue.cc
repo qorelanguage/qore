@@ -33,16 +33,16 @@ void TIBRVDQ_constructor(class QoreObject *self, const QoreNode *params, class E
 {
    tracein("TIBRVDQ_constructor");
 
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
-   if (!pt)
+   QoreStringNode *str = test_string_param(params, 0);
+   if (!str)
    {
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-CONSTRUCTOR-ERROR", "missing fault-tolerant group name as first parameter to TibrvDistributedQueue::constructor()");
       return;
    }
-   const char *cmName = pt->val.String->getBuffer();
+   const char *cmName = str->getBuffer();
 
    unsigned workerWeight, workerTasks;
-   pt = get_param(params, 1);
+   QoreNode *pt = get_param(params, 1);
    int64 t = pt ? pt->getAsBigInt() : TIBRVCM_DEFAULT_WORKER_WEIGHT;
    if (t < 0)
    {
@@ -59,7 +59,7 @@ void TIBRVDQ_constructor(class QoreObject *self, const QoreNode *params, class E
       return;
    }
    workerTasks = t;
-   
+
    unsigned short schedulerWeight;
    pt = get_param(params, 3);
    t = pt ? pt->getAsBigInt() : TIBRVCM_DEFAULT_SCHEDULER_WEIGHT;
@@ -88,18 +88,18 @@ void TIBRVDQ_constructor(class QoreObject *self, const QoreNode *params, class E
    }
    
    const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
-   pt = test_param(params, NT_STRING, 6);
-   if (pt)
-      service = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 7);
-   if (pt)
-      network = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 8);
-   if (pt)
-      daemon = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 9);
-   if (pt)
-      desc = pt->val.String->getBuffer();
+   str = test_string_param(params, 6);
+   if (str)
+      service = str->getBuffer();
+   str = test_string_param(params, 7);
+   if (str)
+      network = str->getBuffer();
+   str = test_string_param(params, 8);
+   if (str)
+      daemon = str->getBuffer();
+   str = test_string_param(params, 9);
+   if (str)
+      desc = str->getBuffer();
 
    class QoreTibrvDistributedQueue *qdq = new QoreTibrvDistributedQueue(cmName, workerWeight, workerTasks, 
 									schedulerWeight, schedulerHeartbeat, schedulerActivation, 

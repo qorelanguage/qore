@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/Function.h>
 #include <qore/intern/StatementBlock.h>
+#include <qore/intern/QoreClassIntern.h>
 
 #include <stdio.h>
 #include <ctype.h>

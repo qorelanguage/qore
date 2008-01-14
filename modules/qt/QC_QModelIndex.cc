@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QModelIndex.h"
+#include "QC_QAbstractItemModel.h"
+
+#include "qore-qt.h"
 
 int CID_QMODELINDEX;
 class QoreClass *QC_QModelIndex = 0;

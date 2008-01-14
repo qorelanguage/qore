@@ -28,31 +28,3 @@ class QoreNode *boolean_DefaultValue()
    False->ref();
    return False;
 }
-
-class QoreNode *boolean_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
-{
-   class QoreNode *rv;
-
-   if (n->type == NT_INT)
-      rv = n->val.intval ? boolean_true() : boolean_false();
-   else if (n->type == NT_FLOAT)
-      rv = n->val.floatval ? boolean_true() : boolean_false();
-   else if (n->type == NT_STRING)
-      rv = strtoll(n->val.String->getBuffer(), NULL, 10) ? boolean_true() : boolean_false();
-   else if (n->type == NT_DATE)
-      rv = n->val.date_time->getEpochSeconds() ? boolean_true() : boolean_false();
-   else
-      rv = boolean_false();
-
-   return rv;
-}
-
-bool boolean_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
-{
-   return (bool)(l->val.boolval != r->val.boolval);
-}
-
-class QoreString *boolean_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
-{
-   return new QoreString((char *)(n->val.boolval ? "True" : "False"));
-}

@@ -375,9 +375,9 @@ int DatasourcePool::rollback(class ExceptionSink *xsink)
    return rc;
 }
 
-class QoreString *DatasourcePool::toString()
+class QoreStringNode *DatasourcePool::toString()
 {
-   class QoreString *str = new QoreString();
+   class QoreStringNode *str = new QoreStringNode();
 
    SafeLocker sl((LockedObject *)this);
    str->sprintf("this=%08p, min=%d, max=%d, cmax=%d, wait_count=%d, thread_map = (", this, min, max, cmax, wait_count);

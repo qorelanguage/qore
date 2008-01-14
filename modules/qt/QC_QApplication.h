@@ -33,9 +33,6 @@ extern int CID_QAPPLICATION;
 DLLLOCAL class QoreClass *initQApplicationClass(class QoreClass *parent);
 DLLLOCAL void initQApplicationStaticFunctions();
 
-extern int static_argc;
-extern char **static_argv;
-
 DLLLOCAL extern void qapp_dec();
 DLLLOCAL extern QoreNode *get_qore_qapp();
 

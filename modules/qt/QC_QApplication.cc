@@ -25,6 +25,10 @@
 #include "QC_QObject.h"
 #include "QC_QClipboard.h"
 #include "QC_QStyle.h"
+#include "QC_QWidget.h"
+#include "QC_QDesktopWidget.h"
+#include "QC_QFont.h"
+#include "QC_QLocale.h"
 
 DLLLOCAL int CID_QAPPLICATION;
 
@@ -258,7 +262,7 @@ static QoreNode *f_QApplication_font(const QoreNode *params, ExceptionSink *xsin
       o_qf->setPrivate(CID_QFONT, q_qf);
       return new QoreNode(o_qf);
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p->type == NT_OBJECT) {
       QoreQWidget *widget = (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (!widget) {
          if (!xsink->isException())
@@ -271,11 +275,12 @@ static QoreNode *f_QApplication_font(const QoreNode *params, ExceptionSink *xsin
       o_qf->setPrivate(CID_QFONT, q_qf);
       return new QoreNode(o_qf);
    }
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QAPPLICATION-FONT-PARAM-ERROR", "expecting a string as first argument to QApplication::font()");
+   QoreStringNode *pstr = dynamic_cast<QoreStringNode *>(p);
+   if (!pstr) {
+      xsink->raiseException("QAPPLICATION-FONT-PARAM-ERROR", "QApplication::font() expects either a string, a QWidget as the sole argument or no arguments at all");
       return 0;
    }
-   const char *className = p->val.String->getBuffer();
+   const char *className = pstr->getBuffer();
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(QApplication::font(className));
    o_qf->setPrivate(CID_QFONT, q_qf);
@@ -398,11 +403,12 @@ static QoreNode *f_QApplication_palette(const QoreNode *params, ExceptionSink *x
       o_qp->setPrivate(CID_QPALETTE, q_qp);
       return new QoreNode(o_qp);
    }
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *pstr = dynamic_cast<QoreStringNode *>(p);
+   if (!pstr) {
       xsink->raiseException("QAPPLICATION-PALETTE-PARAM-ERROR", "expecting a string as first argument to QApplication::palette()");
       return 0;
    }
-   const char *className = p->val.String->getBuffer();
+   const char *className = pstr->getBuffer();
    QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
    QoreQPalette *q_qp = new QoreQPalette(QApplication::palette(className));
    o_qp->setPrivate(CID_QPALETTE, q_qp);
@@ -511,8 +517,8 @@ static QoreNode *f_QApplication_setFont(const QoreNode *params, ExceptionSink *x
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> fontHolder(static_cast<AbstractPrivateData *>(font), xsink);
-   p = get_param(params, 1);
-   const char *className = (p && p->type == NT_STRING) ? p->val.String->getBuffer() : 0;
+   QoreStringNode *pstr = test_string_param(params, 1);
+   const char *className = pstr ? pstr->getBuffer() : 0;
    QApplication::setFont(*(static_cast<QFont *>(font)), className);
    return 0;
 }
@@ -575,8 +581,8 @@ static QoreNode *f_QApplication_setPalette(const QoreNode *params, ExceptionSink
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> paletteHolder(static_cast<AbstractPrivateData *>(palette), xsink);
-   p = get_param(params, 1);
-   const char *className = (p && p->type == NT_STRING) ? p->val.String->getBuffer() : 0;
+   QoreStringNode *pstr = test_string_param(params, 1);
+   const char *className = pstr ? pstr->getBuffer() : 0;
    QApplication::setPalette(*(palette->getQPalette()), className);
    return 0;
 }

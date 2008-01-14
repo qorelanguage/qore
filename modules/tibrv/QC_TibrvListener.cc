@@ -33,27 +33,27 @@ void TIBRVLISTENER_constructor(class QoreObject *self, const QoreNode *params, c
 {
    tracein("TIBRVLISTENER_constructor");
 
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   class QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVLISTENER-CONSTRUCTOR-ERROR", "missing subject string");
       return;
    }      
-   const char *subject = pt->val.String->getBuffer();   
+   const char *subject = pt->getBuffer();   
 
    const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
-   pt = test_param(params, NT_STRING, 1);
+   pt = test_string_param(params, 1);
    if (pt)
-      desc = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 2);
+      desc = pt->getBuffer();
+   pt = test_string_param(params, 2);
    if (pt)
-      service = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 3);
+      service = pt->getBuffer();
+   pt = test_string_param(params, 3);
    if (pt)
-      network = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 4);
+      network = pt->getBuffer();
+   pt = test_string_param(params, 4);
    if (pt)
-      daemon = pt->val.String->getBuffer();
+      daemon = pt->getBuffer();
 
    class QoreTibrvListener *qlistener = new QoreTibrvListener(subject, desc, service, network, daemon, xsink);
 
@@ -97,23 +97,19 @@ static QoreNode *TIBRVLISTENER_getMessage(class QoreObject *self, class QoreTibr
 
 static QoreNode *TIBRVLISTENER_createInboxName(class QoreObject *self, class QoreTibrvListener *trvl, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreString *str = trvl->createInboxName(xsink);
-   if (str)
-      return new QoreNode(str);
-
-   return NULL;
+   return trvl->createInboxName(xsink);
 }
 
 class QoreNode *TIBRVLISTENER_setStringEncoding(class QoreObject *self, class QoreTibrvListener *trvl, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVLISTENER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");
       return NULL;
    }
 
-   const QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
+   const QoreEncoding *enc = QEM.findCreate(pt->getBuffer());
    trvl->setStringEncoding(enc);
    return NULL;
 }

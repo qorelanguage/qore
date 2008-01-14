@@ -23,6 +23,12 @@
 #include <qore/Qore.h>
 
 #include "QC_QStyleOption.h"
+#include "QC_QWidget.h"
+#include "QC_QRect.h"
+#include "QC_QPalette.h"
+#include "QC_QFontMetrics.h"
+
+#include "qore-qt.h"
 
 int CID_QSTYLEOPTION;
 class QoreClass *QC_QStyleOption = 0;

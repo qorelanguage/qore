@@ -60,7 +60,7 @@ static QoreNode *QMETAOBJECT_classInfoOffset(QoreObject *self, QoreQMetaObject *
 //const char * className () const
 static QoreNode *QMETAOBJECT_className(QoreObject *self, QoreQMetaObject *qmo, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qmo->qobj->className()));
+   return new QoreStringNode(qmo->qobj->className());
 }
 
 ////QMetaEnum enumerator ( int index ) const
@@ -86,72 +86,72 @@ static QoreNode *QMETAOBJECT_enumeratorOffset(QoreObject *self, QoreQMetaObject 
 //int indexOfClassInfo ( const char * name ) const
 static QoreNode *QMETAOBJECT_indexOfClassInfo(QoreObject *self, QoreQMetaObject *qmo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QMETAOBJECT-INDEXOFCLASSINFO-PARAM-ERROR", "expecting a string as first argument to QMetaObject::indexOfClassInfo()");
       return 0;
    }
-   const char *name = p->val.String->getBuffer();
+   const char *name = p->getBuffer();
    return new QoreNode((int64)qmo->qobj->indexOfClassInfo(name));
 }
 
 //int indexOfEnumerator ( const char * name ) const
 static QoreNode *QMETAOBJECT_indexOfEnumerator(QoreObject *self, QoreQMetaObject *qmo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QMETAOBJECT-INDEXOFENUMERATOR-PARAM-ERROR", "expecting a string as first argument to QMetaObject::indexOfEnumerator()");
       return 0;
    }
-   const char *name = p->val.String->getBuffer();
+   const char *name = p->getBuffer();
    return new QoreNode((int64)qmo->qobj->indexOfEnumerator(name));
 }
 
 //int indexOfMethod ( const char * method ) const
 static QoreNode *QMETAOBJECT_indexOfMethod(QoreObject *self, QoreQMetaObject *qmo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QMETAOBJECT-INDEXOFMETHOD-PARAM-ERROR", "expecting a string as first argument to QMetaObject::indexOfMethod()");
       return 0;
    }
-   const char *method = p->val.String->getBuffer();
+   const char *method = p->getBuffer();
    return new QoreNode((int64)qmo->qobj->indexOfMethod(method));
 }
 
 //int indexOfProperty ( const char * name ) const
 static QoreNode *QMETAOBJECT_indexOfProperty(QoreObject *self, QoreQMetaObject *qmo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QMETAOBJECT-INDEXOFPROPERTY-PARAM-ERROR", "expecting a string as first argument to QMetaObject::indexOfProperty()");
       return 0;
    }
-   const char *name = p->val.String->getBuffer();
+   const char *name = p->getBuffer();
    return new QoreNode((int64)qmo->qobj->indexOfProperty(name));
 }
 
 //int indexOfSignal ( const char * signal ) const
 static QoreNode *QMETAOBJECT_indexOfSignal(QoreObject *self, QoreQMetaObject *qmo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QMETAOBJECT-INDEXOFSIGNAL-PARAM-ERROR", "expecting a string as first argument to QMetaObject::indexOfSignal()");
       return 0;
    }
-   const char *signal = p->val.String->getBuffer();
+   const char *signal = p->getBuffer();
    return new QoreNode((int64)qmo->qobj->indexOfSignal(signal));
 }
 
 //int indexOfSlot ( const char * slot ) const
 static QoreNode *QMETAOBJECT_indexOfSlot(QoreObject *self, QoreQMetaObject *qmo, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QMETAOBJECT-INDEXOFSLOT-PARAM-ERROR", "expecting a string as first argument to QMetaObject::indexOfSlot()");
       return 0;
    }
-   const char *slot = p->val.String->getBuffer();
+   const char *slot = p->getBuffer();
    return new QoreNode((int64)qmo->qobj->indexOfSlot(slot));
 }
 

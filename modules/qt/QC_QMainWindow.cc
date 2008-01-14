@@ -23,6 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QMainWindow.h"
+#include "QC_QWidget.h"
+#include "QC_QMenuBar.h"
+#include "QC_QByteArray.h"
+
+#include "qore-qt.h"
 
 int CID_QMAINWINDOW;
 class QoreClass *QC_QMainWindow = 0;
@@ -77,7 +82,7 @@ static void QMAINWINDOW_copy(class QoreObject *self, class QoreObject *old, clas
 //         xsink->raiseException("QMAINWINDOW-ADDTOOLBAR-PARAM-ERROR", "expecting a string as first argument to QMainWindow::addToolBar()");
 //         return 0;
 //      }
-//      const char *title = p->val.String->getBuffer();
+//      const char *title = p->getBuffer();
 //      qmw->qobj->addToolBar(title);
 //      return 0;
 //   }

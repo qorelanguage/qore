@@ -208,20 +208,20 @@ int QoreHTTPClient::setOptions(const QoreHash* opts, ExceptionSink* xsink)
       priv->default_port = HTTPCLIENT_DEFAULT_PORT;
 
    // check if proxy is true
-   n = opts->getKeyValue("proxy");  
+   n = opts->getKeyValue("proxy"); 
    if (n && n->type == NT_STRING)
-      if (set_proxy_url_unlocked(n->val.String->getBuffer(), xsink))
+      if (set_proxy_url_unlocked((reinterpret_cast<QoreStringNode *>(n))->getBuffer(), xsink))
 	 return -1;
 
    // parse url option if present
    n = opts->getKeyValue("url");  
    if (n && n->type == NT_STRING)
-      if (set_url_unlocked(n->val.String->getBuffer(), xsink))
+      if (set_url_unlocked((reinterpret_cast<QoreStringNode *>(n))->getBuffer(), xsink))
 	 return -1;
 
    n = opts->getKeyValue("default_path");  
    if (n && n->type == NT_STRING)
-      priv->default_path = n->val.String->getBuffer();
+      priv->default_path = (reinterpret_cast<QoreStringNode *>(n))->getBuffer();
 
    // set default timeout if given in option hash - accept relative date/time values as well as integers
    n = opts->getKeyValue("timeout");  
@@ -233,7 +233,7 @@ int QoreHTTPClient::setOptions(const QoreHash* opts, ExceptionSink* xsink)
    {
       if (n->type == NT_STRING)
       {
-	 if (setHTTPVersion(n->val.String->getBuffer(), xsink))
+	 if (setHTTPVersion((reinterpret_cast<QoreStringNode *>(n))->getBuffer(), xsink))
 	    return -1;
       }
       else
@@ -334,10 +334,10 @@ int QoreHTTPClient::setURL(const char *str, ExceptionSink* xsink)
    return set_url_unlocked(str, xsink);
 }
 
-class QoreString *QoreHTTPClient::getURL()
+class QoreStringNode *QoreHTTPClient::getURL()
 {
    SafeLocker sl(this);
-   class QoreString *pstr = new QoreString("http");
+   class QoreStringNode *pstr = new QoreStringNode("http");
    if (priv->ssl)
       pstr->concat("s://");
    else
@@ -472,14 +472,14 @@ int QoreHTTPClient::setProxyURL(const char *proxy, class ExceptionSink *xsink)
    return set_proxy_url_unlocked(proxy, xsink);
 }
 
-class QoreString *QoreHTTPClient::getProxyURL() 
+class QoreStringNode *QoreHTTPClient::getProxyURL() 
 {
    SafeLocker sl(this);
 
    if (!priv->proxy_port)
       return NULL;
 
-   class QoreString *pstr = new QoreString("http");
+   class QoreStringNode *pstr = new QoreStringNode("http");
    if (priv->proxy_ssl)
       pstr->concat("s://");
    else
@@ -699,12 +699,12 @@ class QoreNode *QoreHTTPClient::getHostHeaderValue()
    QoreNode *hv;
 
    if (priv->port == 80)
-      hv = new QoreNode(priv->host.c_str());
+      hv = new QoreStringNode(priv->host.c_str());
    else
    {
       QoreString *str = new QoreString();
       str->sprintf("%s:%d", priv->host.c_str(), priv->port);
-      hv = new QoreNode(str);
+      hv = new QoreStringNode(str);
    }
    return hv;
 }
@@ -733,7 +733,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 	 if (!strcasecmp(hi.getKey(), "connection") || (priv->proxy_port && !strcasecmp(hi.getKey(), "proxy-connection")))
 	 {
 	    class QoreNode *v = hi.getValue();
-	    if (v && v->type == NT_STRING && !strcasecmp(v->val.String->getBuffer(), "close"))
+	    if (v && v->type == NT_STRING && !strcasecmp((reinterpret_cast<QoreStringNode *>(v))->getBuffer(), "close"))
 	       keep_alive = false;
 	 }
 
@@ -771,7 +771,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       // if there is no message body then do not send the "content-type" header
       if (!data && !strcmp(i->first.c_str(), "Content-Type"))
 	 continue;
-      nh.setKeyValue(i->first.c_str(), new QoreNode(i->second.c_str()), xsink);
+      nh.setKeyValue(i->first.c_str(), new QoreStringNode(i->second.c_str()), xsink);
    }
    if (!priv->username.empty())
    {
@@ -795,7 +795,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 	 tmp.sprintf("%s:%s", priv->username.c_str(), priv->password.c_str());
 	 class QoreString *auth_str = new QoreString("Basic ");
 	 auth_str->concatBase64(&tmp);
-	 nh.setKeyValue("Authorization", new QoreNode(auth_str), xsink);
+	 nh.setKeyValue("Authorization", new QoreStringNode(auth_str), xsink);
       }
    }
    if (priv->proxy_port && !priv->proxy_username.empty())
@@ -820,7 +820,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 	 tmp.sprintf("%s:%s", priv->proxy_username.c_str(), priv->proxy_password.c_str());
 	 class QoreString *auth_str = new QoreString("Basic ");
 	 auth_str->concatBase64(&tmp);
-	 nh.setKeyValue("Proxy-Authorization", new QoreNode(auth_str), xsink);
+	 nh.setKeyValue("Proxy-Authorization", new QoreStringNode(auth_str), xsink);
       }
    }
 
@@ -851,13 +851,13 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 
 	 host_override = false;
 	 v = ah->getKeyValue("location");
-	 const char *location = v ? v->val.String->getBuffer() : NULL;
+	 const char *location = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : NULL;
 
 	 if (!location)
 	 {
 	    sl.unlock();
 	    v = ah->getKeyValue("status_message");
-	    const char *mess = v ? v->val.String->getBuffer() : "<no message>";
+	    const char *mess = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no message>";
 	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "no redirect location given for status code %d: message: '%s'", code, mess);
 	    ans->deref(xsink);
 	    return NULL;
@@ -871,7 +871,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 	 {
 	    sl.unlock();
 	    v = ah->getKeyValue("status_message");
-	    const char *mess = v ? v->val.String->getBuffer() : "<no message>";
+	    const char *mess = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no message>";
 	    xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "exception occurred while setting URL for new location '%s' (code %d: message: '%s')", location, code, mess);
 	    ans->deref(xsink);
 	    return NULL;
@@ -888,9 +888,9 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    {
       sl.unlock();
       v = ah->getKeyValue("status_message");
-      const char *mess = v ? v->val.String->getBuffer() : "<no message>";
+      const char *mess = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no message>";
       v = ah->getKeyValue("location");
-      const char *location = v ? v->val.String->getBuffer() : "<no location>";
+      const char *location = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no location>";
       xsink->raiseException("HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED", "maximum redirections (%d) exceeded; redirect code %d to '%s' ignored (message: '%s')", priv->max_redirects, code, location, mess);
       ans->deref(xsink);
       return NULL;
@@ -900,7 +900,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    {
       sl.unlock();
       v = ah->getKeyValue("status_message");
-      const char *mess = v ? v->val.String->getBuffer() :"<no message>";
+      const char *mess = v ? (reinterpret_cast<QoreStringNode *>(v))->getBuffer() : "<no message>";
       xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "HTTP status code %d received: message: %s", code, mess);
       ans->deref(xsink);
       return NULL;
@@ -911,7 +911,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    // see if there is a character set specification in the content-type header
    if (v)
    {
-      const char *str = v->val.String->getBuffer();
+      const char *str = (reinterpret_cast<QoreStringNode *>(v))->getBuffer();
       const char *p = strstr(str, "charset=");
       if (p && (p == str || *(p - 1) == ';' || *(p - 1) == ' '))
       {
@@ -931,7 +931,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 	    nc->concat(str, p - str);
 	 if (*c)
 	    nc->concat(*c);
-	 ah->setKeyValue("content-type", new QoreNode(nc), xsink);
+	 ah->setKeyValue("content-type", new QoreStringNode(nc), xsink);
 	 str = nc->getBuffer();
       }
       // split into a list if ";" characters are present
@@ -940,12 +940,12 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       {
 	 class QoreList *l = new QoreList();
 	 do {
-	    l->push(new QoreNode(new QoreString(str, p - str, priv->m_socket.getEncoding())));
+	    l->push(new QoreStringNode(new QoreString(str, p - str, priv->m_socket.getEncoding())));
 	    str = p + 1;
 	 } while ((p = strchr(str, ';')));
 	 // add last field
 	 if (*str)
-	    l->push(new QoreNode(new QoreString(str, priv->m_socket.getEncoding())));
+	    l->push(new QoreStringNode(new QoreString(str, priv->m_socket.getEncoding())));
 	 ah->setKeyValue("content-type", new QoreNode(l), xsink);
       }
    }
@@ -955,7 +955,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    v = ah->getKeyValue("content-encoding");
    if (v)
    {
-      content_encoding = v->val.String->getBuffer();
+      content_encoding = (reinterpret_cast<QoreStringNode *>(v))->getBuffer();
       // check for misuse of this field by including a character encoding value
       if (!strncasecmp(content_encoding, "iso", 3) || !strncasecmp(content_encoding, "utf-", 4))
       {
@@ -971,7 +971,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    int len = v ? v->getAsInt() : 0;
 
    class QoreNode *body = NULL;   
-   if (te && !strcasecmp(te->val.String->getBuffer(), "chunked")) // check for chunked response body
+   if (te && !strcasecmp((reinterpret_cast<QoreStringNode *>(te))->getBuffer(), "chunked")) // check for chunked response body
    {
       class QoreHash *nah;
       if (content_encoding)
@@ -1001,7 +1001,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       {
 	 class QoreString *bstr = priv->m_socket.recv(len, priv->timeout, &rc);
 	 if (rc > 0 && bstr)
-	    body = new QoreNode(bstr);
+	    body = new QoreStringNode(bstr);
       }
 
       //printf("body=%08p\n", body);
@@ -1025,7 +1025,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    }
 
    // check for connection: close header
-   if (!keep_alive || ((v = ah->getKeyValue("connection")) && !strcasecmp(v->val.String->getBuffer(), "close")))
+   if (!keep_alive || ((v = ah->getKeyValue("connection")) && !strcasecmp((reinterpret_cast<QoreStringNode *>(v))->getBuffer(), "close")))
       disconnect_unlocked();
 
    sl.unlock();
@@ -1036,7 +1036,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
    if (body && content_encoding)
    {
       class BinaryObject *bobj = body->val.bin;
-      class QoreString *str = NULL;
+      class QoreStringNode *str = NULL;
       if (!strcasecmp(content_encoding, "deflate") || !strcasecmp(content_encoding, "x-deflate"))
 	 str = qore_inflate_to_string(bobj, priv->m_socket.getEncoding(), xsink);
       else if (!strcasecmp(content_encoding, "gzip") || !strcasecmp(content_encoding, "x-gzip"))
@@ -1048,10 +1048,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 	 ans = NULL;
       }
       body->deref(xsink);
-      if (str)
-	 body = new QoreNode(str);
-      else
-	 body = NULL;	    
+      body = str;
    }
    
    // merge redirect hash keys
@@ -1078,12 +1075,11 @@ class QoreNode *QoreHTTPClient::send(const char *meth, const char *new_path, con
 
 class QoreNode *QoreHTTPClient::get(const char *new_path, const QoreHash *headers, class ExceptionSink *xsink)
 {
-   class QoreNode *ans = send_internal("GET", new_path, headers, NULL, 0, true, xsink);
+   ReferenceHolder<QoreNode> ans(send_internal("GET", new_path, headers, 0, 0, true, xsink), xsink);
    if (!ans)
       return NULL;
-   class QoreNode *rv = ans->val.hash->takeKeyValue("body");
-   ans->deref(xsink);
-   return rv;
+
+   return ans->val.hash->takeKeyValue("body");
 }
 
 class QoreNode *QoreHTTPClient::head(const char *new_path, const QoreHash *headers, class ExceptionSink *xsink)
@@ -1093,14 +1089,11 @@ class QoreNode *QoreHTTPClient::head(const char *new_path, const QoreHash *heade
 
 class QoreNode *QoreHTTPClient::post(const char *new_path, const QoreHash *headers, const void *data, unsigned size, class ExceptionSink *xsink)
 {
-   class QoreNode *ans = send_internal("POST", new_path, headers, data, size, true, xsink);
+   ReferenceHolder<QoreNode> ans(send_internal("POST", new_path, headers, data, size, true, xsink), xsink);
    if (!ans)
       return NULL;
-   // check for 2** return code, if not throw an exception
-   
-   class QoreNode *rv = ans->val.hash->takeKeyValue("body");
-   ans->deref(xsink);
-   return rv;
+
+   return ans->val.hash->takeKeyValue("body");
 }
 
 void QoreHTTPClient::addProtocol(const char *prot, int new_port, bool new_ssl)

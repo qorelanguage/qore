@@ -24,6 +24,12 @@
 
 #include "QC_QListView.h"
 #include "QC_QListWidget.h"
+#include "QC_QWidget.h"
+#include "QC_QModelIndex.h"
+#include "QC_QRect.h"
+#include "QC_QPoint.h"
+
+#include "qore-qt.h"
 
 int CID_QLISTVIEW;
 class QoreClass *QC_QListView = 0;

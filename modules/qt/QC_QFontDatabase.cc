@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QFontDatabase.h"
+#include "QC_QFont.h"
+#include "QC_QFontInfo.h"
+
+#include "qore-qt.h"
 
 int CID_QFONTDATABASE;
 class QoreClass *QC_QFontDatabase = 0;
@@ -43,17 +47,15 @@ static void QFONTDATABASE_copy(class QoreObject *self, class QoreObject *old, cl
 static QoreNode *QFONTDATABASE_bold(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-BOLD-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::bold()");
+   QString family;
+   if (get_qstring(p, family,  xsink))
       return 0;
-   }
-   const char *family = p->val.String->getBuffer();
+
    p = get_param(params, 1);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-BOLD-PARAM-ERROR", "expecting a string as second argument to QFontDatabase::bold()");
+   QString style;
+   if (get_qstring(p, style, xsink))
       return 0;
-   }
-   const char *style = p->val.String->getBuffer();
+
    return new QoreNode(qfd->bold(family, style));
 }
 
@@ -65,7 +67,7 @@ static QoreNode *QFONTDATABASE_families(QoreObject *self, QoreQFontDatabase *qfd
    QStringList strlist_rv = qfd->families(writingSystem);
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 
@@ -73,17 +75,15 @@ static QoreNode *QFONTDATABASE_families(QoreObject *self, QoreQFontDatabase *qfd
 static QoreNode *QFONTDATABASE_font(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-FONT-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::font()");
+   QString family;
+   if (get_qstring(p, family,  xsink))
       return 0;
-   }
-   const char *family = p->val.String->getBuffer();
+
    p = get_param(params, 1);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-FONT-PARAM-ERROR", "expecting a string as second argument to QFontDatabase::font()");
+   QString style;
+   if (get_qstring(p, style, xsink))
       return 0;
-   }
-   const char *style = p->val.String->getBuffer();
+
    p = get_param(params, 2);
    int pointSize = p ? p->getAsInt() : 0;
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
@@ -95,46 +95,49 @@ static QoreNode *QFONTDATABASE_font(QoreObject *self, QoreQFontDatabase *qfd, co
 //bool isBitmapScalable ( const QString & family, const QString & style = QString() ) const
 static QoreNode *QFONTDATABASE_isBitmapScalable(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QFONTDATABASE-ISBITMAPSCALABLE-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::isBitmapScalable()");
       return 0;
    }
-   const char *family = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   const char *style = p ? p->val.String->getBuffer() : 0;
-   if (style)
-      return new QoreNode(qfd->isBitmapScalable(family, style));
+   const char *family = p->getBuffer();
+
+   p = test_string_param(params, 1);
+   if (p)
+      return new QoreNode(qfd->isBitmapScalable(family, p->getBuffer()));
+
    return new QoreNode(qfd->isBitmapScalable(family));
 }
 
 //bool isFixedPitch ( const QString & family, const QString & style = QString() ) const
 static QoreNode *QFONTDATABASE_isFixedPitch(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QFONTDATABASE-ISFIXEDPITCH-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::isFixedPitch()");
       return 0;
    }
-   const char *family = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   const char *style = p ? p->val.String->getBuffer() : 0;
+   const char *family = p->getBuffer();
+
+   p = test_string_param(params, 1);
+   const char *style = p ? p->getBuffer() : 0;
    if (style)
       return new QoreNode(qfd->isFixedPitch(family, style));
+
    return new QoreNode(qfd->isFixedPitch(family));
 }
 
 //bool isScalable ( const QString & family, const QString & style = QString() ) const
 static QoreNode *QFONTDATABASE_isScalable(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QFONTDATABASE-ISSCALABLE-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::isScalable()");
       return 0;
    }
-   const char *family = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   const char *style = p ? p->val.String->getBuffer() : 0;
+   const char *family = p->getBuffer();
+   p = test_string_param(params, 1);
+   const char *style = p ? p->getBuffer() : 0;
    if (style)
       return new QoreNode(qfd->isScalable(family, style));
    return new QoreNode(qfd->isScalable(family));
@@ -143,14 +146,15 @@ static QoreNode *QFONTDATABASE_isScalable(QoreObject *self, QoreQFontDatabase *q
 //bool isSmoothlyScalable ( const QString & family, const QString & style = QString() ) const
 static QoreNode *QFONTDATABASE_isSmoothlyScalable(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QFONTDATABASE-ISSMOOTHLYSCALABLE-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::isSmoothlyScalable()");
       return 0;
    }
-   const char *family = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   const char *style = p ? p->val.String->getBuffer() : 0;
+   const char *family = p->getBuffer();
+
+   p = test_string_param(params, 1);
+   const char *style = p ? p->getBuffer() : 0;
    if (style)
       return new QoreNode(qfd->isSmoothlyScalable(family, style));
    return new QoreNode(qfd->isSmoothlyScalable(family));
@@ -160,17 +164,15 @@ static QoreNode *QFONTDATABASE_isSmoothlyScalable(QoreObject *self, QoreQFontDat
 static QoreNode *QFONTDATABASE_italic(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-ITALIC-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::italic()");
+   QString family;
+   if (get_qstring(p, family,  xsink))
       return 0;
-   }
-   const char *family = p->val.String->getBuffer();
+
    p = get_param(params, 1);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-ITALIC-PARAM-ERROR", "expecting a string as second argument to QFontDatabase::italic()");
+   QString style;
+   if (get_qstring(p, style, xsink))
       return 0;
-   }
-   const char *style = p->val.String->getBuffer();
+
    return new QoreNode(qfd->italic(family, style));
 }
 
@@ -178,14 +180,22 @@ static QoreNode *QFONTDATABASE_italic(QoreObject *self, QoreQFontDatabase *qfd, 
 static QoreNode *QFONTDATABASE_pointSizes(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-POINTSIZES-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::pointSizes()");
+   QString family;
+   if (get_qstring(p, family,  xsink))
       return 0;
-   }
-   const char *family = p->val.String->getBuffer();
+
    p = get_param(params, 1);
-   const char *style = p ? p->val.String->getBuffer() : "";
-   QList<int> ilist_rv = qfd->pointSizes(family, style);
+   QString style;
+
+   QList<int> ilist_rv;
+   if (get_qstring(p, style, xsink, true)) {
+      if (*xsink)
+	 return 0;
+      ilist_rv = qfd->pointSizes(family);
+   }
+   else
+      ilist_rv = qfd->pointSizes(family, style);
+
    QoreList *l = new QoreList();
    for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)
       l->push(new QoreNode((int64)(*i)));
@@ -196,17 +206,15 @@ static QoreNode *QFONTDATABASE_pointSizes(QoreObject *self, QoreQFontDatabase *q
 static QoreNode *QFONTDATABASE_smoothSizes(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-SMOOTHSIZES-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::smoothSizes()");
+   QString family;
+   if (get_qstring(p, family, xsink))
       return 0;
-   }
-   const char *family = p->val.String->getBuffer();
+
    p = get_param(params, 1);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-SMOOTHSIZES-PARAM-ERROR", "expecting a string as second argument to QFontDatabase::smoothSizes()");
+   QString style;
+   if (get_qstring(p, style, xsink))
       return 0;
-   }
-   const char *style = p->val.String->getBuffer();
+
    QList<int> ilist_rv = qfd->smoothSizes(family, style);
    QoreList *l = new QoreList();
    for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)
@@ -229,25 +237,24 @@ static QoreNode *QFONTDATABASE_styleString(QoreObject *self, QoreQFontDatabase *
 	 return 0;
       }
       ReferenceHolder<QoreQFont> fontHolder(font, xsink);
-      return new QoreNode(new QoreString(qfd->styleString(*(static_cast<QFont *>(font))).toUtf8().data(), QCS_UTF8));
+      return new QoreStringNode(qfd->styleString(*(static_cast<QFont *>(font))).toUtf8().data(), QCS_UTF8);
    }
    ReferenceHolder<QoreQFontInfo> fontInfoHolder(fontInfo, xsink);
-   return new QoreNode(new QoreString(qfd->styleString(*(static_cast<QFontInfo *>(fontInfo))).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfd->styleString(*(static_cast<QFontInfo *>(fontInfo))).toUtf8().data(), QCS_UTF8);
 }
 
 //QStringList styles ( const QString & family ) const
 static QoreNode *QFONTDATABASE_styles(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-STYLES-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::styles()");
+   QString family;
+   if (get_qstring(p, family, xsink))
       return 0;
-   }
-   const char *family = p->val.String->getBuffer();
+
    QStringList styles = qfd->styles(family);
    QoreList *l = new QoreList();
    for (QStringList::iterator i = styles.begin(), e = styles.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 
@@ -255,17 +262,15 @@ static QoreNode *QFONTDATABASE_styles(QoreObject *self, QoreQFontDatabase *qfd, 
 static QoreNode *QFONTDATABASE_weight(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-WEIGHT-PARAM-ERROR", "expecting a string as first argument to QFontDatabase::weight()");
+   QString family;
+   if (get_qstring(p, family, xsink))
       return 0;
-   }
-   const char *family = p->val.String->getBuffer();
+
    p = get_param(params, 1);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-WEIGHT-PARAM-ERROR", "expecting a string as second argument to QFontDatabase::weight()");
+   QString style;
+   if (get_qstring(p, style, xsink))
       return 0;
-   }
-   const char *style = p->val.String->getBuffer();
+
    return new QoreNode((int64)qfd->weight(family, style));
 }
 
@@ -274,17 +279,17 @@ static QoreNode *QFONTDATABASE_weight(QoreObject *self, QoreQFontDatabase *qfd, 
 static QoreNode *QFONTDATABASE_writingSystems(QoreObject *self, QoreQFontDatabase *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!is_nothing(p) && p->type != NT_STRING) {
-      xsink->raiseException("QFONTDATABASE-WRITINGSYSTEMS-PARAM-ERROR", "expecting either NOTHING or a string as first argument to QFontDatabase::writingSystems()");
-      return 0;
-   }
 
    QList<QFontDatabase::WritingSystem> ilist_rv;
-   
-   if (is_nothing(p))
+
+   QString family;
+   if (get_qstring(p, family, xsink, true)) {
+      if (*xsink)
+	 return 0;
       ilist_rv = qfd->writingSystems();
+   }
    else
-      ilist_rv = qfd->writingSystems(p->val.String->getBuffer());
+      ilist_rv = qfd->writingSystems(family);
 
    QoreList *l = new QoreList();
    for (QList<QFontDatabase::WritingSystem>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)

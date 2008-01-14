@@ -34,6 +34,8 @@ noinst_HEADERS = \
 	include/qore/QoreException.h \
 	include/qore/QoreHash.h \
 	include/qore/QoreNode.h \
+	include/qore/QoreStringNode.h \
+	include/qore/DateTimeNode.h \
 	include/qore/ModuleManager.h \
 	include/qore/QoreNamespace.h \
 	include/qore/QoreObject.h \

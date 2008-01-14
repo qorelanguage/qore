@@ -23,6 +23,12 @@
 #include <qore/Qore.h>
 
 #include "QC_QWizard.h"
+#include "QC_QWidget.h"
+#include "QC_QWizardPage.h"
+#include "QC_QAbstractButton.h"
+#include "QC_QPixmap.h"
+
+#include "qore-qt.h"
 
 int CID_QWIZARD;
 class QoreClass *QC_QWizard = 0;
@@ -85,7 +91,7 @@ static QoreNode *QWIZARD_buttonText(QoreObject *self, QoreAbstractQWizard *qw, c
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardButton which = (QWizard::WizardButton)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(qw->getQWizard()->buttonText(which).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qw->getQWizard()->buttonText(which).toUtf8().data(), QCS_UTF8);
 }
 
 //int currentId () const
@@ -217,24 +223,27 @@ static QoreNode *QWIZARD_setButtonText(QoreObject *self, QoreAbstractQWizard *qw
 //void setDefaultProperty ( const char * className, const char * property, const char * changedSignal )
 static QoreNode *QWIZARD_setDefaultProperty(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *str = test_string_param(params, 0);
+   if (!str) {
       xsink->raiseException("QWIZARD-SETDEFAULTPROPERTY-PARAM-ERROR", "expecting a string as first argument to QWizard::setDefaultProperty()");
       return 0;
    }
-   const char *className = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   if (!p || p->type != NT_STRING) {
+   const char *className = str->getBuffer();
+
+   str = test_string_param(params, 1);
+   if (!str) {
       xsink->raiseException("QWIZARD-SETDEFAULTPROPERTY-PARAM-ERROR", "expecting a string as second argument to QWizard::setDefaultProperty()");
       return 0;
    }
-   const char *property = p->val.String->getBuffer();
-   p = get_param(params, 2);
-   if (!p || p->type != NT_STRING) {
+   const char *property = str->getBuffer();
+
+   str = test_string_param(params, 2);
+   if (!str) {
       xsink->raiseException("QWIZARD-SETDEFAULTPROPERTY-PARAM-ERROR", "expecting a string as third argument to QWizard::setDefaultProperty()");
       return 0;
    }
-   const char *changedSignal = p->val.String->getBuffer();
+   const char *changedSignal = str->getBuffer();
+
    qw->getQWizard()->setDefaultProperty(className, property, changedSignal);
    return 0;
 }

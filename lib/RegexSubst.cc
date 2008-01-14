@@ -120,6 +120,7 @@ void RegexSubst::parse()
    str = NULL;
 }
 
+// static function
 void RegexSubst::concat(class QoreString *cstr, int *ovector, int olen, const char *ptr, const char *target)
 {
    while (*ptr)
@@ -143,24 +144,16 @@ void RegexSubst::concat(class QoreString *cstr, int *ovector, int olen, const ch
 #define SUBST_OVECSIZE 30
 #define SUBST_LASTELEM 20
 // called directly for run-time evaluation
-class QoreString *RegexSubst::exec(class QoreString *target, class QoreString *nstr, class ExceptionSink *xsink)
+class QoreStringNode *RegexSubst::exec(const QoreString *target, const QoreString *nstr, ExceptionSink *xsink) const
 {
-   class QoreString *t;
+   ConstTempEncodingHelper t(target, QCS_UTF8, xsink);
+   if (*xsink)
+      return 0;
+
+   class QoreStringNode *tstr = new QoreStringNode();
    
-   // convert to UTF-8 if necessary
-   if (target->getEncoding() != QCS_UTF8)
-   {
-      t = target->convertEncoding(QCS_UTF8, xsink);
-      if (xsink->isEvent())
-	 return false;
-   }
-   else 
-      t = target;
-   
-   class QoreString *tstr = new QoreString();
-   
-   //printd(5, "RegexSubst::exec(%s) this=%08p: global=%s\n", target->getBuffer(), this, global ? "true" : "false"); 
    const char *ptr = t->getBuffer();
+   //printd(5, "RegexSubst::exec(%s) this=%08p: global=%s\n", ptr, this, global ? "true" : "false"); 
    while (true)
    {
       int ovector[SUBST_OVECSIZE];
@@ -186,15 +179,12 @@ class QoreString *RegexSubst::exec(class QoreString *target, class QoreString *n
    if (*ptr)
       tstr->concat(ptr);
    
-   if (t != target)
-      delete t;
-   
    //printd(5, "RegexSubst::exec() this=%08p: returning '%s'\n", this, tstr->getBuffer());
    return tstr;
 }
 
 // called for run-time evaluation of parse-time-created objects
-class QoreString *RegexSubst::exec(class QoreString *target, class ExceptionSink *xsink)
+class QoreStringNode *RegexSubst::exec(const QoreString *target, class ExceptionSink *xsink) const
 {
    return exec(target, newstr, xsink);
 }

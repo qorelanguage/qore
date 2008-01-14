@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QFontComboBox.h"
+#include "QC_QWidget.h"
+#include "QC_QFont.h"
+
+#include "qore-qt.h"
 
 int CID_QFONTCOMBOBOX;
 class QoreClass *QC_QFontComboBox = 0;

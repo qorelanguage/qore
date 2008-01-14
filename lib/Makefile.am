@@ -25,6 +25,7 @@ libqore_la_SOURCES = \
 	ClassRef.cc \
 	ScopedObjectCall.cc \
 	QoreNode.cc \
+	QoreStringNode.cc \
 	Function.cc \
 	BuiltinFunctionList.cc \
 	UserFunctionList.cc \

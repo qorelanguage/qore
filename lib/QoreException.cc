@@ -31,7 +31,7 @@ struct qore_ex_private {
       int type;
       int start_line, end_line;
       char *file;
-      class QoreNode *callStack, *err, *desc, *arg;
+      QoreNode *callStack, *err, *desc, *arg;
       class QoreException *next;
 
       DLLLOCAL qore_ex_private()
@@ -328,8 +328,8 @@ QoreException::QoreException(const char *e, class QoreString *d) : priv(new qore
    priv->file = f ? strdup(f) : NULL;
    priv->callStack = new QoreNode(new QoreList()); //getCallStackList());
 
-   priv->err = new QoreNode(e);
-   priv->desc = new QoreNode(d);
+   priv->err = new QoreStringNode(e);
+   priv->desc = new QoreStringNode(d);
    priv->arg = NULL;
 
    priv->next = NULL;
@@ -346,8 +346,8 @@ ParseException::ParseException(const char *e, class QoreString *d)
    priv->file = f ? strdup(f) : NULL;
    priv->callStack = new QoreNode(new QoreList()); //getCallStackList());
 
-   priv->err = new QoreNode(e);
-   priv->desc = new QoreNode(d);
+   priv->err = new QoreStringNode(e);
+   priv->desc = new QoreStringNode(d);
    priv->arg = NULL;
 
    priv->next = NULL;
@@ -363,8 +363,8 @@ ParseException::ParseException(int s_line, int e_line, const char *e, class Qore
    priv->file = f ? strdup(f) : NULL;
    priv->callStack = new QoreNode(new QoreList()); //getCallStackList());
 
-   priv->err = new QoreNode(e);
-   priv->desc = new QoreNode(d);
+   priv->err = new QoreStringNode(e);
+   priv->desc = new QoreStringNode(d);
    priv->arg = NULL;
 
    priv->next = NULL;
@@ -421,8 +421,10 @@ QoreException::QoreException(class QoreNode *n) : priv(new qore_ex_private)
 	    priv->arg->ref();
       }
    }
-   else
-      priv->err = priv->desc = priv->arg = NULL;
+   else {
+      priv->err = priv->desc = 0;
+      priv->arg = 0;
+   }
 }
 
 QoreException::QoreException(class QoreException *old, class ExceptionSink *xsink) : priv(new qore_ex_private)
@@ -437,8 +439,10 @@ QoreException::QoreException(class QoreException *old, class ExceptionSink *xsin
    const char *fn = NULL;
    class QoreNode *n = l->retrieve_entry(0);
    // get function name
-   if (n)
-      fn = n->val.hash->getKeyValue("function")->val.String->getBuffer();
+   if (n) {
+      QoreStringNode *func = reinterpret_cast<QoreStringNode *>(n->val.hash->getKeyValue("function"));
+      fn = func->getBuffer();
+   }
    if (!fn)
       fn = "<unknown>";
    
@@ -460,8 +464,8 @@ class QoreNode *QoreException::makeExceptionObject()
 
    QoreHash *h = new QoreHash();
 
-   h->setKeyValue("type", new QoreNode(priv->type == ET_USER ? "User" : "System"), NULL);
-   h->setKeyValue("file", new QoreNode(priv->file), NULL);
+   h->setKeyValue("type", new QoreStringNode(priv->type == ET_USER ? "User" : "System"), NULL);
+   h->setKeyValue("file", new QoreStringNode(priv->file), NULL);
    h->setKeyValue("line", new QoreNode((int64)priv->start_line), NULL);
    h->setKeyValue("endline", new QoreNode((int64)priv->end_line), NULL);
    h->setKeyValue("callstack", priv->callStack->RefSelf(), NULL);
@@ -516,16 +520,15 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 {
 	    found = true;
 	    class QoreHash *h = cs->retrieve_entry(i)->val.hash;
+
+	    QoreStringNode *func = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
+	    QoreStringNode *type = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));
+
 	    if (e->priv->start_line == e->priv->end_line)
-	       printe(" in %s() (%s:%d, %s code)\n",
-		      h->getKeyValue("function")->val.String->getBuffer(),
-		      e->priv->file, e->priv->start_line,
-		      h->getKeyValue("type")->val.String->getBuffer());
+	       printe(" in %s() (%s:%d, %s code)\n", func->getBuffer(), e->priv->file, e->priv->start_line, type->getBuffer());
 	    else
-	       printe(" in %s() (%s:%d-%d, %s code)\n",
-		      h->getKeyValue("function")->val.String->getBuffer(),
-		      e->priv->file, e->priv->start_line, e->priv->end_line,
-		      h->getKeyValue("type")->val.String->getBuffer());
+	       printe(" in %s() (%s:%d-%d, %s code)\n", func->getBuffer(), 
+		      e->priv->file, e->priv->start_line, e->priv->end_line, type->getBuffer());
 	 }
       }
 
@@ -544,21 +547,25 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 printe("\n");
       }
       
-      if (e->priv->type == ET_SYSTEM)
-	 printe("%s: %s\n", e->priv->err->val.String->getBuffer(), e->priv->desc->val.String->getBuffer());
+      if (e->priv->type == ET_SYSTEM) {
+	 QoreStringNode *err = reinterpret_cast<QoreStringNode *>(e->priv->err);
+	 QoreStringNode *desc = reinterpret_cast<QoreStringNode *>(e->priv->desc);
+	 printe("%s: %s\n", err->getBuffer(), desc->getBuffer());
+      }
       else
       {
 	 bool hdr = false;
 
 	 if (e->priv->err)
 	 {
-	    if (e->priv->err->type == NT_STRING)
-	       printe("%s", e->priv->err->val.String->getBuffer());
+	    if (e->priv->err->type == NT_STRING) {
+	       QoreStringNode *err = reinterpret_cast<QoreStringNode *>(e->priv->err);
+	       printe("%s", err->getBuffer());
+	    }
 	    else
 	    {
-	       QoreString *str = e->priv->err->getAsString(FMT_NORMAL, &xsink);
+	       QoreNodeAsStringHelper str(e->priv->err, FMT_NORMAL, &xsink);
 	       printe("EXCEPTION: %s", str->getBuffer());
-	       delete str;
 	       hdr = true;
 	    }
 	 }
@@ -567,26 +574,28 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 
 	 if (e->priv->desc)
 	 {
-	    if (e->priv->desc->type == NT_STRING)
-	       printe("%s%s", hdr ? ", desc: " : ": ", e->priv->desc->val.String->getBuffer());
+	    if (e->priv->desc->type == NT_STRING) {
+	       QoreStringNode *desc = reinterpret_cast<QoreStringNode *>(e->priv->desc);
+	       printe("%s%s", hdr ? ", desc: " : ": ", desc->getBuffer());
+	    }
 	    else
 	    {
-	       QoreString *str = e->priv->desc->getAsString(FMT_NORMAL, &xsink);
+	       QoreNodeAsStringHelper str(e->priv->desc, FMT_NORMAL, &xsink);
 	       printe(", desc: %s", str->getBuffer());
-	       delete str;
 	       hdr = true;
 	    }
 	 }
 	 
 	 if (e->priv->arg)
 	 {
-	    if (e->priv->arg->type == NT_STRING)
-	       printe("%s%s", hdr ? ", arg: " : "", e->priv->arg->val.String->getBuffer());
+	    if (e->priv->arg->type == NT_STRING) {
+	       QoreStringNode *arg = reinterpret_cast<QoreStringNode *>(e->priv->arg);
+	       printe("%s%s", hdr ? ", arg: " : "", arg->getBuffer());
+	    }
 	    else
 	    {
-	       QoreString *str = e->priv->arg->getAsString(FMT_NORMAL, &xsink);
+	       QoreNodeAsStringHelper str (e->priv->arg, FMT_NORMAL, &xsink);
 	       printe(", arg: %s", str->getBuffer());
-	       delete str;
 	    }
 	 }
 	 printe("\n");
@@ -598,25 +607,27 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 {
 	    int pos = cs->size() - i;
 	    class QoreHash *h = cs->retrieve_entry(i)->val.hash;
-	    const char *type = h->getKeyValue("type")->val.String->getBuffer();
+	    QoreStringNode *strtype = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));
+	    const char *type = strtype->getBuffer();
 	    if (!strcmp(type, "new-thread"))
 	       printe(" %2d: *thread start*\n", pos);
 	    else
 	    {
-	       QoreNode *fn = h->getKeyValue("file");
-	       const char *fns = fn ? fn->val.String->getBuffer() : NULL;
+	       QoreStringNode *fn = reinterpret_cast<QoreStringNode *>(h->getKeyValue("file"));
+	       const char *fns = fn ? fn->getBuffer() : NULL;
 	       int start_line = h->getKeyValue("line")->val.intval;
 	       int end_line = h->getKeyValue("endline")->val.intval;
 	       if (!strcmp(type, "rethrow"))
 	       {
 		  if (fn)
-		     printe(" %2d: RETHROW at %s:%d\n", pos, fn->val.String->getBuffer(), start_line);
+		     printe(" %2d: RETHROW at %s:%d\n", pos, fn->getBuffer(), start_line);
 		  else
 		     printe(" %2d: RETHROW at line %d\n", pos, start_line);
 	       }
 	       else
 	       {
-		  const char *func = h->getKeyValue("function")->val.String->getBuffer();
+		  QoreStringNode *fs = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
+		  const char *func = fs->getBuffer();
 		  if (fns)
 		     if (start_line == end_line)
 			printe(" %2d: %s() (%s:%d, %s code)\n", pos, func, fns, start_line, type);
@@ -657,8 +668,11 @@ void ExceptionSink::defaultWarningHandler(QoreException *e)
 	 else
 	    printe("on line %d-%d", e->priv->start_line, e->priv->end_line);
       printe("\n");
-      
-      printe("%s: %s\n", e->priv->err->val.String->getBuffer(), e->priv->desc->val.String->getBuffer());
+
+      QoreStringNode *err  = reinterpret_cast<QoreStringNode *>(e->priv->err);
+      QoreStringNode *desc = reinterpret_cast<QoreStringNode *>(e->priv->desc);
+
+      printe("%s: %s\n", err->getBuffer(), desc->getBuffer());
 
       e = e->priv->next;
       if (e)
@@ -671,15 +685,15 @@ class QoreHash *QoreException::getStackHash(int type, const char *class_name, co
 {
    class QoreHash *h = new QoreHash();
 
-   class QoreString *str = new QoreString();
+   class QoreStringNode *str = new QoreStringNode();
    if (class_name)
       str->sprintf("%s::", class_name);
    str->concat(code);
    
-   h->setKeyValue("function", str ? new QoreNode(str) : NULL, NULL);
+   h->setKeyValue("function", str, NULL);
    h->setKeyValue("line",     new QoreNode((int64)start_line), NULL);
    h->setKeyValue("endline",  new QoreNode((int64)end_line), NULL);
-   h->setKeyValue("file",     file ? new QoreNode(file) : NULL, NULL);
+   h->setKeyValue("file",     file ? new QoreStringNode(file) : NULL, NULL);
    h->setKeyValue("typecode", new QoreNode((int64)type), NULL);
    const char *tstr = 0;
    switch (type)
@@ -701,6 +715,6 @@ class QoreHash *QoreException::getStackHash(int type, const char *class_name, co
       default:
 	 assert(false);
    }
-   h->setKeyValue("type",  new QoreNode(tstr), NULL);
+   h->setKeyValue("type",  new QoreStringNode(tstr), NULL);
    return h;
 }

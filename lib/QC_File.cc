@@ -35,11 +35,11 @@ static void FILE_constructor(class QoreObject *self, const QoreNode *params, Exc
 {
    // get character set name if available
    const QoreEncoding *cs;
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (p0)
    {
-      cs = QEM.findCreate(p0->val.String);
-      //printd(0, "FILE_constructor() str=%s, cs=%08p\n", p0->val.String->getBuffer(), cs);
+      cs = QEM.findCreate(p0);
+      //printd(0, "FILE_constructor() str=%s, cs=%08p\n", p0->getBuffer(), cs);
    }
    else
       cs = QCS_DEFAULT;
@@ -55,64 +55,70 @@ static void FILE_copy(class QoreObject *self, class QoreObject *old, class File 
 // open(filename, [flags, mode, charset])
 static class QoreNode *FILE_open(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p;
-   int flags, mode;
-   const QoreEncoding *charset;
-   p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0;
+   p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("FILE-OPEN-PARAMETER-ERROR", "expecting string filename as first argument of File::open()");
       return NULL;
    }
-   p = get_param(params, 1);
+
+   int flags, mode;
+   QoreNode *p = get_param(params, 1);
    if (!is_nothing(p))
       flags = p->getAsInt();
    else
       flags = O_RDONLY;
+
    p = get_param(params, 2);
    if (!is_nothing(p))
       mode = p->getAsInt();
    else
       mode = 0666;
-   p = test_param(params, NT_STRING, 3);
-   if (p)
-      charset = QEM.findCreate(p->val.String);
+
+   QoreStringNode *pstr = test_string_param(params, 3);
+   const QoreEncoding *charset;
+   if (pstr)
+      charset = QEM.findCreate(pstr);
    else
       charset = QCS_DEFAULT;
 
-   return new QoreNode((int64)f->open(p0->val.String->getBuffer(), flags, mode, charset));
+   return new QoreNode((int64)f->open(p0->getBuffer(), flags, mode, charset));
 }
 
 // open2(filename, [flags, mode, charset])
 // thrown an exception if there is an error
 static class QoreNode *FILE_open2(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p;
+   QoreStringNode *p0;
    int flags, mode;
    const QoreEncoding *charset;
-   p0 = test_param(params, NT_STRING, 0);
+   p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("FILE-OPEN2-PARAMETER-ERROR", "expecting string filename as first argument of File::open2()");
       return NULL;
    }
-   p = get_param(params, 1);
+   
+   QoreNode *p = get_param(params, 1);
    if (!is_nothing(p))
       flags = p->getAsInt();
    else
       flags = O_RDONLY;
+
    p = get_param(params, 2);
    if (!is_nothing(p))
       mode = p->getAsInt();
    else
       mode = 0666;
-   p = test_param(params, NT_STRING, 3);
+
+   QoreStringNode *pstr = test_string_param(params, 3);
    if (p)
-      charset = QEM.findCreate(p->val.String);
+      charset = QEM.findCreate(pstr);
    else
       charset = QCS_DEFAULT;
    
-   f->open2(xsink, p0->val.String->getBuffer(), flags, mode, charset);
+   f->open2(xsink, p0->getBuffer(), flags, mode, charset);
    return 0;
 }
 
@@ -141,11 +147,7 @@ static class QoreNode *FILE_read(class QoreObject *self, class File *f, const Qo
       return NULL;
    }
 
-   QoreString *str = f->read(size, xsink);
-   if (str)
-      return new QoreNode(str);
-
-   return NULL;
+   return f->read(size, xsink);
 }
 
 static class QoreNode *FILE_readu1(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
@@ -281,7 +283,7 @@ static class QoreNode *FILE_write(class QoreObject *self, class File *f, const Q
 
    int rc;
    if (p0->type == NT_STRING)
-      rc = f->write(p0->val.String, xsink);
+      rc = f->write(reinterpret_cast<QoreStringNode *>(p0), xsink);
    else
       rc = f->write(p0->val.bin, xsink);
    if (xsink->isEvent())
@@ -403,88 +405,59 @@ static class QoreNode *FILE_writei8LSB(class QoreObject *self, class File *f, co
 
 static class QoreNode *FILE_printf(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreString *str = q_sprintf(params, 0, 0, xsink);
+   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
    if (!str)
-      return NULL;
+      return 0;
 
-   int rc = f->write(str, xsink);
+   int rc = f->write(*str, xsink);
 
-   class QoreNode *rv;
-   if (xsink->isEvent())
-      rv = NULL;
-   else
-      rv = new QoreNode((int64)rc);
-   delete str;
-
-   return rv;
+   return *xsink ? 0 : new QoreNode((int64)rc);
 }
 
 static class QoreNode *FILE_vprintf(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreString *str = q_vsprintf(params, 0, 0, xsink);
+   TempQoreStringNode str(q_vsprintf(params, 0, 0, xsink));
    if (!str)
-      return NULL;
+      return 0;
 
-   QoreNode *rv;
+   int rc = f->write(*str, xsink);
 
-   int rc = f->write(str, xsink);
-   if (xsink->isEvent())
-      rv = NULL;
-   else
-      rv = new QoreNode((int64)rc);
-   delete str;
-
-   return rv;
+   return *xsink ? 0 : new QoreNode((int64)rc);
 }
 
 static class QoreNode *FILE_f_printf(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreString *str = q_sprintf(params, 1, 0, xsink);
+   TempQoreStringNode str(q_sprintf(params, 1, 0, xsink));
    if (!str)
-      return NULL;
+      return 0;
 
-   QoreNode *rv;
-   int rc = f->write(str, xsink);
-   if (xsink->isEvent())
-      rv = NULL;
-   else
-      rv = new QoreNode((int64)rc);
-   delete str;
+   int rc = f->write(*str, xsink);
 
-   return rv;
+   return *xsink ? 0 : new QoreNode((int64)rc);
 }
 
 static class QoreNode *FILE_f_vprintf(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreString *str = q_vsprintf(params, 1, 0, xsink);
+   TempQoreStringNode str(q_vsprintf(params, 1, 0, xsink));
    if (!str)
-      return NULL;
+      return 0;
 
-   QoreNode *rv;
-   int rc = f->write(str, xsink);
-   if (xsink->isEvent())
-      rv = NULL;
-   else
-      rv = new QoreNode((int64)rc);
-   delete str;
-   return rv;
+   int rc = f->write(*str, xsink);
+
+   return *xsink ? 0 : new QoreNode((int64)rc);
 }
 
 static class QoreNode *FILE_readLine(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *str = f->readLine(xsink);
-   if (str)
-      return new QoreNode(str);
-
-   return NULL;
+   return f->readLine(xsink);
 }
 
 static class QoreNode *FILE_setCharset(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
    const QoreEncoding *charset;
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (p0)
-      charset = QEM.findCreate(p0->val.String);
+      charset = QEM.findCreate(p0);
    else
       charset = QCS_DEFAULT;
 
@@ -494,7 +467,7 @@ static class QoreNode *FILE_setCharset(class QoreObject *self, class File *f, co
 
 static class QoreNode *FILE_getCharset(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(f->getEncoding()->getCode());
+   return new QoreStringNode(f->getEncoding()->getCode());
 }
 
 static class QoreNode *FILE_setPos(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
@@ -530,11 +503,7 @@ static class QoreNode *FILE_getPos(class QoreObject *self, class File *f, const 
 
 static class QoreNode *FILE_getchar(class QoreObject *self, class File *f, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *str = f->getchar();
-   if (str)
-      return new QoreNode(str);
-
-   return NULL;
+   return f->getchar();
 }
 
 class QoreClass *initFileClass()

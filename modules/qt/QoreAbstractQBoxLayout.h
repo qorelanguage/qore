@@ -31,7 +31,7 @@ extern int CID_QWIDGET;
 class QoreAbstractQBoxLayout : public QoreAbstractQLayout
 {
    public:
-      DLLLOCAL virtual QBoxLayout *getQBoxLayout() const = 0;
+      DLLLOCAL virtual class QBoxLayout *getQBoxLayout() const = 0;
 };
 
 #endif

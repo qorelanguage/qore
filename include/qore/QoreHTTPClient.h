@@ -125,11 +125,11 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       // returns -1 if an exception was thrown, 0 for OK
       DLLEXPORT int setURL(const char *url, class ExceptionSink *xsink);
       // caller owns the QoreString returned
-      DLLEXPORT class QoreString *getURL();
+      DLLEXPORT class QoreStringNode *getURL();
 
       DLLEXPORT int setProxyURL(const char *proxy, class ExceptionSink *xsink);
       // caller owns the QoreString returned
-      DLLEXPORT class QoreString *getProxyURL();
+      DLLEXPORT class QoreStringNode *getProxyURL();
       DLLEXPORT void clearProxyURL();
 
       DLLEXPORT void setSecure(bool is_secure);

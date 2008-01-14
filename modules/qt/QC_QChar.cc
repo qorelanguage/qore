@@ -24,6 +24,8 @@
 
 #include "QC_QChar.h"
 
+#include "qore-qt.h"
+
 int CID_QCHAR;
 class QoreClass *QC_QChar = 0;
 
@@ -40,7 +42,7 @@ static void QCHAR_constructor(QoreObject *self, const QoreNode *params, Exceptio
    }
    int code;
    if (p->type == NT_STRING) {
-      code = p->val.String->getUnicodePoint(0, xsink);
+      code = (reinterpret_cast<QoreStringNode *>(p))->getUnicodePoint(0, xsink);
       if (*xsink)
 	 return;
    }
@@ -79,7 +81,7 @@ static QoreNode *QCHAR_combiningClass(QoreObject *self, QoreQChar *qc, const Qor
 //QString decomposition () const
 static QoreNode *QCHAR_decomposition(QoreObject *self, QoreQChar *qc, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qc->decomposition().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qc->decomposition().toUtf8().data(), QCS_UTF8);
 }
 
 //Decomposition decompositionTag () const

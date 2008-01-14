@@ -66,7 +66,7 @@ class QoreFile {
       DLLEXPORT void setEncoding(const class QoreEncoding *cs);
       DLLEXPORT const class QoreEncoding *getEncoding() const;
       DLLEXPORT int sync();
-      DLLEXPORT class QoreString *readLine(class ExceptionSink *xsink);
+      DLLEXPORT class QoreStringNode *readLine(class ExceptionSink *xsink);
       DLLEXPORT int write(const class QoreString *str, class ExceptionSink *xsink);
       DLLEXPORT int write(const class BinaryObject *b, class ExceptionSink *xsink);
       DLLEXPORT int write(const void *data, unsigned len, class ExceptionSink *xsink);
@@ -89,11 +89,11 @@ class QoreFile {
       DLLEXPORT int readi2LSB(short *val, class ExceptionSink *xsink);
       DLLEXPORT int readi4LSB(int *val, class ExceptionSink *xsink);
       DLLEXPORT int readi8LSB(int64 *val, class ExceptionSink *xsink);
-      DLLEXPORT class QoreString *read(int size, class ExceptionSink *xsink);
+      DLLEXPORT class QoreStringNode *read(int size, class ExceptionSink *xsink);
       DLLEXPORT class BinaryObject *readBinary(int size, class ExceptionSink *xsink);
       DLLEXPORT int setPos(int pos);
       DLLEXPORT int getPos();
-      DLLEXPORT class QoreString *getchar();
+      DLLEXPORT class QoreStringNode *getchar();
       DLLEXPORT const char *getFileName() const;
 };
 

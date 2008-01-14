@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QPrinter.h"
+#include "QC_QRect.h"
+
+#include "qore-qt.h"
 
 int CID_QPRINTER;
 class QoreClass *QC_QPrinter = 0;
@@ -62,13 +65,13 @@ static QoreNode *QPRINTER_colorMode(QoreObject *self, QoreQPrinter *qp, const Qo
 //QString creator () const
 static QoreNode *QPRINTER_creator(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qp->creator().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qp->creator().toUtf8().data(), QCS_UTF8);
 }
 
 //QString docName () const
 static QoreNode *QPRINTER_docName(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qp->docName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qp->docName().toUtf8().data(), QCS_UTF8);
 }
 
 //bool doubleSidedPrinting () const
@@ -116,7 +119,7 @@ static QoreNode *QPRINTER_orientation(QoreObject *self, QoreQPrinter *qp, const 
 //QString outputFileName () const
 static QoreNode *QPRINTER_outputFileName(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qp->outputFileName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qp->outputFileName().toUtf8().data(), QCS_UTF8);
 }
 
 //OutputFormat outputFormat () const
@@ -176,7 +179,7 @@ static QoreNode *QPRINTER_paperSource(QoreObject *self, QoreQPrinter *qp, const 
 //QString printProgram () const
 static QoreNode *QPRINTER_printProgram(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qp->printProgram().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qp->printProgram().toUtf8().data(), QCS_UTF8);
 }
 
 //PrintRange printRange () const
@@ -188,13 +191,13 @@ static QoreNode *QPRINTER_printRange(QoreObject *self, QoreQPrinter *qp, const Q
 //QString printerName () const
 static QoreNode *QPRINTER_printerName(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qp->printerName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qp->printerName().toUtf8().data(), QCS_UTF8);
 }
 
 //QString printerSelectionOption () const
 static QoreNode *QPRINTER_printerSelectionOption(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qp->printerSelectionOption().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qp->printerSelectionOption().toUtf8().data(), QCS_UTF8);
 }
 
 //PrinterState printerState () const

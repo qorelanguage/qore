@@ -76,40 +76,6 @@ bool list_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsi
    return 0;
 }
 
-class QoreString *list_MakeString(const QoreNode *n, int foff, class ExceptionSink *xsink)
-{
-   QoreString *rv = new QoreString();
-   if (!n->val.list->size())
-      rv->concat("<EMPTY LIST>");
-   else
-   {
-      rv->concat("list: ");
-      if (foff != FMT_NONE)
-	 rv->sprintf("(%d element%s)\n", n->val.list->size(), n->val.list->size() == 1 ? "" : "s");
-      else
-	 rv->concat('(');
-      for (int i = 0; i < n->val.list->size(); i++)
-      {
-	 if (foff != FMT_NONE)
-	 {
-	    rv->addch(' ', foff + 2);
-	    rv->sprintf("[%d]=", i);
-	 }
-	 QoreString *elem = n->val.list->retrieve_entry(i)->getAsString(foff != FMT_NONE ? foff + 2 : foff, xsink);
-	 rv->concat(elem);
-	 delete elem;
-	 if (i != (n->val.list->size() - 1))
-	    if (foff != FMT_NONE)
-	       rv->concat('\n');
-	    else
-	       rv->concat(", ");
-      }
-      if (foff == FMT_NONE)
-	 rv->concat(')');
-   }
-   return rv;
-}
-
 void list_DeleteContents(class QoreNode *n)
 {
    n->val.list->derefAndDelete(NULL);

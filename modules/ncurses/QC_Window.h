@@ -392,8 +392,11 @@ class Window : public AbstractPrivateData, public LockedObject {
 
 static inline int getChar(QoreNode *p)
 {
-   if (p->type == NT_STRING)
-      return p->val.String->getBuffer()[0];
+   {
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(p);
+      if (str)
+	 return str->strlen() ? str->getBuffer()[0] : 0; 
+   }
 
    return p->getAsInt();
 }

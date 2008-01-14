@@ -113,22 +113,22 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
    for (unsigned i = 0; i < nparams; ++i)
    {
       //printd(5, "set_params() param %d = %d\n", i, query.param_list[i].type);
-
+      
       if (query.param_list[i] == 'd') 
 	 continue;
-
+      
       class QoreNode *val = args ? args->retrieve_entry(i) : NULL;
       //printd(5, "set_params() param %d = value %08p (%s)\n", i, val, val ? val->type->getName() : "n/a");
-
+      
       CS_DATAFMT datafmt;
       memset(&datafmt, 0, sizeof(datafmt));
       datafmt.status = CS_INPUTVALUE;
       datafmt.namelen = CS_NULLTERM;
       datafmt.maxlength = CS_UNUSED;
       datafmt.count = 1;
-
+      
       CS_RETCODE err;
-
+      
       if (!val || is_null(val) || is_nothing(val))
       {
 #ifdef FREETDS
@@ -147,8 +147,9 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
       }
       else if (val->type == NT_STRING)
       {
+	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(val);
 	 // ensure we bind with the proper encoding for the connection
-	 TempEncodingHelper s(val->val.String, m_conn.getEncoding(), xsink);
+	 TempEncodingHelper s(str, m_conn.getEncoding(), xsink);
 	 if (!s)
 	    return -1;
 
@@ -625,8 +626,7 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
      case CS_CHAR_TYPE:
      {
 	CS_CHAR* value = (CS_CHAR*)(buffer.value);
-	QoreString *s = 0;
-	s = new QoreString(value, buffer.value_len - 1, encoding);
+	QoreStringNode *s = new QoreStringNode(value, buffer.value_len - 1, encoding);
 	if (datafmt.format == CS_FMT_PADBLANK || datafmt.usertype == 34
 #ifdef SYBASE
 	    // for some reason sybase returns a char field as LONGCHAR when the server
@@ -638,8 +638,7 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
 	   )
 	   s->trim_trailing(' '); // remove trailing blanks
 	//printd(5, "name=%s vlen=%d strlen=%d len=%d str='%s'\n", datafmt.name, buffer.value_len, s->strlen(), s->length(), s->getBuffer());
-	return new QoreNode(s);
-	break;
+	return s;
      }
 
      case CS_VARBINARY_TYPE:
@@ -705,19 +704,19 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
 
     case CS_DATETIME_TYPE:
     {
-      CS_DATETIME* value = (CS_DATETIME*)(buffer.value);
-
+       CS_DATETIME* value = (CS_DATETIME*)(buffer.value);
+       
        // NOTE: can't find a USER_* define for 38!
        if (datafmt.usertype == 38)
 	  return new QoreNode(TIME_to_DateTime(*value));
-
-      return new QoreNode(DATETIME_to_DateTime(*value));
+       
+       return new QoreNode(DATETIME_to_DateTime(*value));
     }
     case CS_DATETIME4_TYPE:
     {
-      CS_DATETIME4* value = (CS_DATETIME4*)(buffer.value);
-      DateTime* dt = DATETIME4_to_DateTime(*value, xsink);
-      return new QoreNode(dt);
+       CS_DATETIME4* value = (CS_DATETIME4*)(buffer.value);
+       DateTime* dt = DATETIME4_to_DateTime(*value, xsink);
+       return new QoreNode(dt);
     }
 
 /*
@@ -747,8 +746,7 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
     case CS_DECIMAL_TYPE:
     {
       CS_DECIMAL* value = (CS_DECIMAL*)(buffer.value);
-      QoreString *str = DECIMAL_to_string(m_conn, *value, xsink);
-      return str ? new QoreNode(str) : 0;
+      return DECIMAL_to_string(m_conn, *value, xsink);
     }
 */
     default:

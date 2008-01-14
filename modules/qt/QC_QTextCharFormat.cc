@@ -24,6 +24,10 @@
 
 #include "QC_QTextCharFormat.h"
 #include "QC_QPen.h"
+#include "QC_QFont.h"
+#include "QC_QColor.h"
+
+#include "qore-qt.h"
 
 int CID_QTEXTCHARFORMAT;
 class QoreClass *QC_QTextCharFormat = 0;
@@ -43,7 +47,7 @@ static void QTEXTCHARFORMAT_copy(class QoreObject *self, class QoreObject *old, 
 //QString anchorHref () const
 static QoreNode *QTEXTCHARFORMAT_anchorHref(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qtcf->anchorHref().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtcf->anchorHref().toUtf8().data(), QCS_UTF8);
 }
 
 ////QStringList anchorNames () const
@@ -64,7 +68,7 @@ static QoreNode *QTEXTCHARFORMAT_font(QoreObject *self, QoreQTextCharFormat *qtc
 //QString fontFamily () const
 static QoreNode *QTEXTCHARFORMAT_fontFamily(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qtcf->fontFamily().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtcf->fontFamily().toUtf8().data(), QCS_UTF8);
 }
 
 //bool fontFixedPitch () const
@@ -315,7 +319,7 @@ static QoreNode *QTEXTCHARFORMAT_textOutline(QoreObject *self, QoreQTextCharForm
 //QString toolTip () const
 static QoreNode *QTEXTCHARFORMAT_toolTip(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qtcf->toolTip().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtcf->toolTip().toUtf8().data(), QCS_UTF8);
 }
 
 //QColor underlineColor () const

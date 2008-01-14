@@ -28,7 +28,7 @@
 #include <stdlib.h>
 
 struct qore_url_private {
-      class QoreString *protocol, *path, *username, *password, *host;
+      class QoreStringNode *protocol, *path, *username, *password, *host;
       int port;
 
       DLLLOCAL qore_url_private()
@@ -50,15 +50,15 @@ struct qore_url_private {
       DLLLOCAL void reset()
       {
 	 if (protocol)
-	    delete protocol;
+	    protocol->deref();
 	 if (path)
-	    delete path;
+	    path->deref();
 	 if (username)
-	    delete username;
+	    username->deref();
 	 if (password)
-	    delete password;
+	    password->deref();
 	 if (host)
-	    delete host;
+	    host->deref();
       }
 
       DLLLOCAL void parseIntern(const char *buf)
@@ -74,7 +74,7 @@ struct qore_url_private {
 	 // get protocol
 	 if (p)
 	 {
-	    protocol = new QoreString(buf, p - buf);
+	    protocol = new QoreStringNode(buf, p - buf);
 	    // convert to lower case
 	    protocol->tolwr();
 	    printd(5, "QoreURL::parseIntern protocol=%s\n", protocol->getBuffer());
@@ -91,7 +91,7 @@ struct qore_url_private {
 	    // get pathname if not at EOS
 	    if (p[1] != '\0')
 	    {
-	       path = new QoreString(p);
+	       path = new QoreStringNode(p);
 	       printd(5, "QoreURL::parseIntern path=%s\n", path->getBuffer());
 	    }
 	    // get copy of hostname string for localized searching and invasive parsing
@@ -112,12 +112,12 @@ struct qore_url_private {
 	    if ((p = strchr(nbuf, ':')))
 	    {
 	       printd(5, "QoreURL::parseIntern password=%s\n", p + 1);
-	       password = new QoreString(p + 1);
+	       password = new QoreStringNode(p + 1);
 	       *p = '\0';
 	    }
 	    // set username
 	    printd(5, "QoreURL::parseIntern username=%s\n", nbuf);
-	    username = new QoreString(nbuf);
+	    username = new QoreStringNode(nbuf);
 	 }
 	 else
 	    pos = nbuf;
@@ -131,7 +131,7 @@ struct qore_url_private {
 	 }
 	 // set hostname
 	 printd(5, "QoreURL::parseIntern host=%s\n", pos);
-	 host = new QoreString(pos);
+	 host = new QoreStringNode(pos);
 	 free(nbuf);
       }
 };
@@ -211,27 +211,27 @@ class QoreHash *QoreURL::getHash()
    class QoreHash *h = new QoreHash();
    if (priv->protocol)
    {
-      h->setKeyValue("protocol", new QoreNode(priv->protocol), NULL);
+      h->setKeyValue("protocol", priv->protocol, NULL);
       priv->protocol = NULL;
    }
    if (priv->path)
    {
-      h->setKeyValue("path", new QoreNode(priv->path), NULL);
+      h->setKeyValue("path", priv->path, NULL);
       priv->path = NULL;
    }
    if (priv->username)
    {
-      h->setKeyValue("username", new QoreNode(priv->username), NULL);
+      h->setKeyValue("username", priv->username, NULL);
       priv->username = NULL;
    }
    if (priv->password)
    {
-      h->setKeyValue("password", new QoreNode(priv->password), NULL);
+      h->setKeyValue("password", priv->password, NULL);
       priv->password = NULL;
    }
    if (priv->host)
    {
-      h->setKeyValue("host", new QoreNode(priv->host), NULL);
+      h->setKeyValue("host", priv->host, NULL);
       priv->host = NULL;
    }
    if (priv->port)

@@ -66,15 +66,22 @@ static class QoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, co
       return NULL;
 
    // create the outgoing message in XML-RPC call format
-   TempString msg(makeXMLRPCCallStringArgs(client->getEncoding(), params, xsink));
+   TempQoreStringNode msg(makeXMLRPCCallStringArgs(client->getEncoding(), params, xsink));
    if (!msg)
       return NULL;
    // send the message to the server and get the response as an XML string
    ReferenceHolder<QoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
    if (!ans)
       return NULL;
-   // parse XML-RPC response
-   return parseXMLRPCResponse(ans->val.String, QCS_DEFAULT, xsink);
+   
+   QoreStringNode *str = dynamic_cast<QoreStringNode *>(*ans);
+   if (!str) {
+      xsink->raiseException("XMLRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
+      return 0;
+   }
+
+   // parse XML-RPC response   
+   return parseXMLRPCResponse(str, QCS_DEFAULT, xsink);
 }
 
 static class QoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
@@ -84,15 +91,22 @@ static class QoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, const 
       return NULL;
 
    // create the outgoing message in XML-RPC call format
-   TempString msg(makeXMLRPCCallString(client->getEncoding(), params, xsink));
+   TempQoreStringNode msg(makeXMLRPCCallString(client->getEncoding(), params, xsink));
    if (!msg)
       return NULL;
    // send the message to the server and get the response as an XML string
    ReferenceHolder<QoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
    if (!ans)
       return NULL;
+
+   QoreStringNode *str = dynamic_cast<QoreStringNode *>(*ans);
+   if (!str) {
+      xsink->raiseException("XMLRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
+      return 0;
+   }
+
    // parse XML-RPC response
-   return parseXMLRPCResponse(ans->val.String, QCS_DEFAULT, xsink);
+   return parseXMLRPCResponse(str, QCS_DEFAULT, xsink);
 }
 
 class QoreClass *initXmlRpcClientClass(class QoreClass *http_client)

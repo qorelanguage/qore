@@ -64,7 +64,7 @@ class T {
 	 args->push(new QoreNode((int64)alignment));
 	 args->push(return_object(QC_QPalette, new QoreQPalette(palette)));
 	 args->push(new QoreNode(enabled));
-	 args->push(new QoreNode(new QoreString(text.toUtf8().data())));
+	 args->push(new QoreStringNode(text.toUtf8().data()));
 	 args->push(new QoreNode((int64)textRole));
 
 	 dispatch_event(qore_obj, m_drawItemText, args);
@@ -180,7 +180,7 @@ class T {
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreNode((int64)alignment));
 	 args->push(new QoreNode(enabled));
-	 args->push(new QoreNode(new QoreString(text.toUtf8().data())));
+	 args->push(new QoreStringNode(text.toUtf8().data()));
 
 	 ExceptionSink xsink;
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemTextRect, args, &xsink), &xsink);

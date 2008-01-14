@@ -36,8 +36,6 @@ class QoreNode *backquote_Eval(const QoreNode *n, class ExceptionSink *xsink)
 
 class QoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink)
 {
-   tracein("backquoteEval()");
-
    // execute command in a new process and read stdout in parent
    FILE *p = popen(cmd, "r");
    if (!p)
@@ -49,7 +47,7 @@ class QoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink)
    }
 
    // allocate buffer for return value
-   QoreString *s = new QoreString();
+   TempQoreStringNode s(new QoreStringNode());
 
    // read in result string
    while (1)
@@ -71,14 +69,8 @@ class QoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink)
    // wait for child process to terminate and close pipe
    pclose(p);
 
-   QoreNode *rv;
    if (!s->strlen())
-   {
-      delete s;
-      rv = NULL;
-   }
-   else
-      rv = new QoreNode(s);
-   traceout("backquoteEval()");
-   return rv;
+      return 0;
+
+   return s.release();
 }

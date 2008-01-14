@@ -92,7 +92,7 @@ class Var : public ReferenceObject
       int type;
       // holds the value of the variable or a pointer to the imported variable
       union VarValue v;
-      class VRMutex gate;
+      mutable class VRMutex gate;
 
       DLLLOCAL void del(class ExceptionSink *xsink);
 

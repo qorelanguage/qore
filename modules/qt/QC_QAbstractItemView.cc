@@ -23,6 +23,13 @@
 #include <qore/Qore.h>
 
 #include "QC_QAbstractItemView.h"
+#include "QC_QModelIndex.h"
+#include "QC_QPoint.h"
+#include "QC_QWidget.h"
+#include "QC_QAbstractItemDelegate.h"
+#include "QC_QRect.h"
+
+#include "qore-qt.h"
 
 int CID_QABSTRACTITEMVIEW;
 class QoreClass *QC_QAbstractItemView = 0;

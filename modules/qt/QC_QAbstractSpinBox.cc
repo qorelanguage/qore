@@ -194,7 +194,7 @@ static QoreNode *QABSTRACTSPINBOX_setWrapping(QoreObject *self, QoreAbstractQAbs
 //QString specialValueText () const
 static QoreNode *QABSTRACTSPINBOX_specialValueText(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qasb->getQAbstractSpinBox()->specialValueText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qasb->getQAbstractSpinBox()->specialValueText().toUtf8().data(), QCS_UTF8);
 }
 
 //virtual void stepBy ( int steps )
@@ -209,20 +209,20 @@ static QoreNode *QABSTRACTSPINBOX_stepBy(QoreObject *self, QoreAbstractQAbstract
 //QString text () const
 static QoreNode *QABSTRACTSPINBOX_text(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qasb->getQAbstractSpinBox()->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qasb->getQAbstractSpinBox()->text().toUtf8().data(), QCS_UTF8);
 }
 
 //virtual QValidator::State validate ( QString & input, int & pos ) const
 //static QoreNode *QABSTRACTSPINBOX_validate(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreNode *params, ExceptionSink *xsink)
 //{
-//  QoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
+//  QoreStringNode *p = test_string_param(params, 0);
+//   if (!p) {
 //      xsink->raiseException("QABSTRACTSPINBOX-VALIDATE-PARAM-ERROR", "expecting a string as first argument to QAbstractSpinBox::validate()");
 //      return 0;
 //   }
-//   const char *input = p->val.String->getBuffer();
-//   p = get_param(params, 1);
-//   int pos = p ? p->getAsInt() : 0;
+//   const char *input = p->getBuffer();
+//   QoreNode *p2 = get_param(params, 1);
+//   int pos = p2 ? p2->getAsInt() : 0;
 //   return new QoreNode((int64)qasb->getQAbstractSpinBox()->validate(input, pos));
 //}
 

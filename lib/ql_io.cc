@@ -50,17 +50,17 @@ static class QoreNode *f_print(const QoreNode *params, ExceptionSink *xsink)
  */
 static class QoreNode *f_f_sprintf(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(q_sprintf(params, 1, 0, xsink));
+   return q_sprintf(params, 1, 0, xsink);
 }
 
 static class QoreNode *f_sprintf(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(q_sprintf(params, 0, 0, xsink));
+   return q_sprintf(params, 0, 0, xsink);
 }
 
 static class QoreNode *f_vsprintf(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(q_vsprintf(params, 0, 0, xsink));
+   return q_vsprintf(params, 0, 0, xsink);
 }
 
 static class QoreNode *f_f_printf(const QoreNode *params, ExceptionSink *xsink)

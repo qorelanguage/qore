@@ -23,6 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QHeaderView.h"
+#include "QC_QWidget.h"
+#include "QC_QByteArray.h"
+#include "QC_QPoint.h"
+
+#include "qore-qt.h"
 
 int CID_QHEADERVIEW;
 class QoreClass *QC_QHeaderView = 0;

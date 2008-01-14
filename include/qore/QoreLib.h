@@ -40,8 +40,8 @@
 // function to try and make a class name out of a file path, returns a new string that must be free()ed
 DLLEXPORT char *make_class_name(const char *fn);
 // some string formatting functions that work with Qore data structures
-DLLEXPORT class QoreString *q_sprintf(const class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
-DLLEXPORT class QoreString *q_vsprintf(const class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
+DLLEXPORT class QoreStringNode *q_sprintf(const class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
+DLLEXPORT class QoreStringNode *q_vsprintf(const class QoreNode *params, int field, int offset, class ExceptionSink *xsink);
 DLLEXPORT struct tm *q_localtime(const time_t *clock, struct tm *tms);
 DLLEXPORT struct tm *q_gmtime(const time_t *clock, struct tm *tms);
 // thread-safe basename function (resulting pointer must be free()ed)
@@ -54,6 +54,8 @@ DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
 
 // implemented in Variable.h
 DLLEXPORT class QoreNode **get_var_value_ptr(class QoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
+// implemented in Variable.h, only returns a value if the variable's value is of type string
+DLLEXPORT class QoreStringNode **get_string_var_value_ptr(class QoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
 
 // find one of any characters in a string
 static inline char *strchrs(const char *str, const char *chars)

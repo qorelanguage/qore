@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QCoreApplication.h"
+#include "QC_QObject.h"
+#include "QC_QTranslator.h"
+
+#include "qore-qt.h"
 
 int CID_QCOREAPPLICATION;
 class QoreClass *QC_QCoreApplication = 0;
@@ -124,19 +128,19 @@ static QoreNode *f_QCoreApplication_addLibraryPath(const QoreNode *params, Excep
 //QString applicationDirPath ()
 static QoreNode *f_QCoreApplication_applicationDirPath(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(QCoreApplication::applicationDirPath().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QCoreApplication::applicationDirPath().toUtf8().data(), QCS_UTF8);
 }
 
 //QString applicationFilePath ()
 static QoreNode *f_QCoreApplication_applicationFilePath(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(QCoreApplication::applicationFilePath().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QCoreApplication::applicationFilePath().toUtf8().data(), QCS_UTF8);
 }
 
 //QString applicationName ()
 static QoreNode *f_QCoreApplication_applicationName(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(QCoreApplication::applicationName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QCoreApplication::applicationName().toUtf8().data(), QCS_UTF8);
 }
 
 //QStringList arguments ()
@@ -145,7 +149,7 @@ static QoreNode *f_QCoreApplication_arguments(const QoreNode *params, ExceptionS
    QStringList strlist_rv = QCoreApplication::arguments();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 
@@ -222,20 +226,20 @@ static QoreNode *f_QCoreApplication_libraryPaths(const QoreNode *params, Excepti
    QStringList strlist_rv = QCoreApplication::libraryPaths();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 
 //QString organizationDomain ()
 static QoreNode *f_QCoreApplication_organizationDomain(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(QCoreApplication::organizationDomain().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QCoreApplication::organizationDomain().toUtf8().data(), QCS_UTF8);
 }
 
 //QString organizationName ()
 static QoreNode *f_QCoreApplication_organizationName(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(QCoreApplication::organizationName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QCoreApplication::organizationName().toUtf8().data(), QCS_UTF8);
 }
 
 //void postEvent ( QObject * receiver, QEvent * event )
@@ -466,28 +470,31 @@ static QoreNode *f_QCoreApplication_testAttribute(const QoreNode *params, Except
 //QString translate ( const char * context, const char * sourceText, const char * comment = 0, Encoding encoding = CodecForTr )
 static QoreNode *f_QCoreApplication_translate(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QCOREAPPLICATION-TRANSLATE-PARAM-ERROR", "expecting a string as first argument to QCoreApplication::translate()");
       return 0;
    }
-   const char *context = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   if (!p || p->type != NT_STRING) {
+   const char *context = p->getBuffer();
+
+   p = test_string_param(params, 1);
+   if (!p) {
       xsink->raiseException("QCOREAPPLICATION-TRANSLATE-PARAM-ERROR", "expecting a string as second argument to QCoreApplication::translate()");
       return 0;
    }
-   const char *sourceText = p->val.String->getBuffer();
-   p = test_param(params, NT_STRING, 2);
-   const char *comment = p ? p->val.String->getBuffer() : 0;
-   p = get_param(params, 3);
-   QCoreApplication::Encoding encoding = (QCoreApplication::Encoding)(p ? p->getAsInt() : QCoreApplication::CodecForTr);
-   if (num_params(params) < 5)
-      return new QoreNode(new QoreString(QCoreApplication::translate(context, sourceText, comment, encoding).toUtf8().data(), QCS_UTF8));
+   const char *sourceText = p->getBuffer();
 
-   p = get_param(params, 4);
-   int n = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(QCoreApplication::translate(context, sourceText, comment, encoding, n).toUtf8().data(), QCS_UTF8));
+   p = test_string_param(params, 2);
+   const char *comment = p ? p->getBuffer() : 0;
+
+   QoreNode *pn = get_param(params, 3);
+   QCoreApplication::Encoding encoding = (QCoreApplication::Encoding)(pn ? pn->getAsInt() : QCoreApplication::CodecForTr);
+   if (num_params(params) < 5)
+      return new QoreStringNode(QCoreApplication::translate(context, sourceText, comment, encoding).toUtf8().data(), QCS_UTF8);
+
+   pn = get_param(params, 4);
+   int n = pn ? pn->getAsInt() : 0;
+   return new QoreStringNode(QCoreApplication::translate(context, sourceText, comment, encoding, n).toUtf8().data(), QCS_UTF8);
 }
 
 void initQCoreApplicationStaticFunctions()

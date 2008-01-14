@@ -1,5 +1,7 @@
 see docs/roadmap.html
 
+* make QoreHash implementation private
+* change getExistingVarValue to take a ReferenceHolder argument instead of a temporary QoreNode * arg
 * make ThreadResourceList private
 * tag functions if they have no effect except returning a value so if the value is not used at the top level a warning may be emitted
 * implement find_key operator, taking a regular expression to find a key in a hash

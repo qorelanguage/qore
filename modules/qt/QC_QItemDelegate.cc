@@ -23,6 +23,14 @@
 #include <qore/Qore.h>
 
 #include "QC_QItemDelegate.h"
+#include "QC_QObject.h"
+#include "QC_QWidget.h"
+#include "QC_QStyleOptionViewItem.h"
+#include "QC_QModelIndex.h"
+#include "QC_QAbstractItemModel.h"
+#include "QC_QSize.h"
+
+#include "qore-qt.h"
 
 int CID_QITEMDELEGATE;
 class QoreClass *QC_QItemDelegate = 0;

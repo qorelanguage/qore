@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QTimeEdit.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QTIMEEDIT;
 class QoreClass *QC_QTimeEdit = 0;

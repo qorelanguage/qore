@@ -23,6 +23,12 @@
 #include <qore/Qore.h>
 
 #include "QC_QTabWidget.h"
+#include "QC_QWidget.h"
+#include "QC_QIcon.h"
+#include "QC_QStyleOptionTabWidgetFrame.h"
+#include "QC_QTabBar.h"
+
+#include "qore-qt.h"
 
 int CID_QTABWIDGET;
 class QoreClass *QC_QTabWidget = 0;
@@ -376,7 +382,7 @@ static QoreNode *QTABWIDGET_tabText(QoreObject *self, QoreQTabWidget *qtw, const
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qtw->qobj->tabText(index).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtw->qobj->tabText(index).toUtf8().data(), QCS_UTF8);
 }
 
 //QString tabToolTip ( int index ) const
@@ -384,7 +390,7 @@ static QoreNode *QTABWIDGET_tabToolTip(QoreObject *self, QoreQTabWidget *qtw, co
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qtw->qobj->tabToolTip(index).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtw->qobj->tabToolTip(index).toUtf8().data(), QCS_UTF8);
 }
 
 //QString tabWhatsThis ( int index ) const
@@ -392,7 +398,7 @@ static QoreNode *QTABWIDGET_tabWhatsThis(QoreObject *self, QoreQTabWidget *qtw, 
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qtw->qobj->tabWhatsThis(index).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtw->qobj->tabWhatsThis(index).toUtf8().data(), QCS_UTF8);
 }
 
 //bool usesScrollButtons () const

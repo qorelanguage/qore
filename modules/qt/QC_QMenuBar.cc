@@ -23,6 +23,13 @@
 #include <qore/Qore.h>
 
 #include "QC_QMenuBar.h"
+#include "QC_QWidget.h"
+#include "QC_QAction.h"
+#include "QC_QMenu.h"
+#include "QC_QObject.h"
+#include "QC_QIcon.h"
+
+#include "qore-qt.h"
 
 int CID_QMENUBAR;
 class QoreClass *QC_QMenuBar = 0;
@@ -85,12 +92,13 @@ static QoreNode *QMENUBAR_addAction(QoreObject *self, QoreAbstractQMenuBar *qmb,
 	 return 0;
       }
       ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
-      p = get_param(params, 2);
-      if (!p || p->type != NT_STRING) {
+
+      QoreStringNode *p = test_string_param(params, 2);
+      if (!p) {
          xsink->raiseException("QMENUBAR-ADDACTION-PARAM-ERROR", "expecting a string as third argument to QMenuBar::addAction()");
          return 0;
       }
-      const char *member = p->val.String->getBuffer();
+      const char *member = p->getBuffer();
 
       qaction = qmb->getQMenuBar()->addAction(text, receiver->getQObject(), member);
    }

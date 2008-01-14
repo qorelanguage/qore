@@ -75,6 +75,7 @@ class ReferenceHolder
 	 return rv;
       }
       DLLLOCAL operator bool() const { return p != 0; }
+      DLLLOCAL T **getPtrPtr() { return &p; }
 };
 
 #endif

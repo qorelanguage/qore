@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QAbstractButton.h"
+#include "QC_QIcon.h"
+#include "QC_QKeySequence.h"
+
+#include "qore-qt.h"
 
 int CID_QABSTRACTBUTTON;
 class QoreClass *QC_QAbstractButton = 0;
@@ -220,7 +224,7 @@ static QoreNode *QABSTRACTBUTTON_shortcut(QoreObject *self, QoreAbstractQAbstrac
 //QString text () const
 static QoreNode *QABSTRACTBUTTON_text(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qab->getQAbstractButton()->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qab->getQAbstractButton()->text().toUtf8().data(), QCS_UTF8);
 }
 
 // slots

@@ -30,66 +30,6 @@
 
 #define TRACK_REFS 1
 
-QoreNodeCStringHelper::QoreNodeCStringHelper(const QoreNode *n, const QoreEncoding *enc, class ExceptionSink *xsink) : temp(false)
-{
-   if (is_nothing(n) || is_null(n))
-   {
-      node = NULL;
-      return;
-   }
-   if (n->type == NT_STRING)
-   {
-      if (n->val.String->getEncoding() == enc)
-      {
-	 node = const_cast<QoreNode *>(n);
-	 return;
-      }
-      class QoreString *str = n->val.String->convertEncoding(enc, xsink);
-      if (!str)
-      {
-	 node = 0;
-	 return;
-      }
-      node = new QoreNode(str);
-      temp = true;
-      return;
-   }
-   // if an exception occurs, node is NULL and temp is true                                                                                                                                
-   // NOTE: converting to a string means that the string will be effectively in ASCII encoding even though it will be marked with the default encoding                                     
-   // because only ASCII characters are generated when converted to a string (boolean, numbers, dates)                                                                                     
-   // since ASCII is the lowest common denominator for all encodings supported by Qore, this works regardless of the target encoding specified                                             
-   node = n->convert(NT_STRING, xsink);
-   temp = true;
-}
-
-const char *QoreNodeCStringHelper::operator*()
-{
-   if (!node)
-      return "";
-   return node->val.String->getBuffer();
-}
-
-int QoreNodeCStringHelper::strlen() const
-{
-   return node ? node->val.String->strlen() : 0;
-}
-
-QoreNodeTypeHelper::QoreNodeTypeHelper(const QoreNode *n, const QoreType *t, class ExceptionSink *xsink) : temp(false)
-{
-   if (!n)
-   {
-      node = t->getDefaultValue();
-      temp = true;
-   }
-   else if (n->type != t)
-   {
-      node = n->convert(t, xsink);
-      temp = true;
-   }
-   else
-      node = n;
-}
-
 QoreNode::QoreNode() 
 {
 #if TRACK_REFS
@@ -194,47 +134,6 @@ QoreNode::QoreNode(DateTime *dt)
 {
    type = NT_DATE;
    val.date_time = dt;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
-#endif
-}
-
-QoreNode::QoreNode(class QoreString *str)
-{
-   type = NT_STRING;
-   val.String = str;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1) '%s'\n", this, type->getName(), str->getBuffer());
-#endif
-}
-
-/*
-QoreNode::QoreNode(char *str)
-{
-   //fprintf(stderr,"QoreNode::QoreNode(char *= %s)\n", str);
-   type = NT_STRING;
-   val.String = new QoreString(str);
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1) '%s'\n", this, type->getName(), str);
-#endif
-}
-*/
-
-QoreNode::QoreNode(const char *str)
-{
-   //fprintf(stderr,"QoreNode::QoreNode(char *= %s)\n", str);
-   type = NT_STRING;
-   val.String = new QoreString(str);
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1) '%s'\n", this, type->getName(), str);
-#endif
-}
-
-QoreNode::QoreNode(const std::string &str)
-{
-   //fprintf(stderr,"QoreNode::QoreNode(char *= %s)\n", str);
-   type = NT_STRING;
-   val.String = new QoreString(str);
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
 #endif
@@ -421,22 +320,6 @@ QoreNode::QoreNode(class FunctionCall *fc)
 #endif
 }
 
-class QoreNode *QoreNode::convert(const QoreType *new_type) const
-{
-   if (type == new_type)
-      return RefSelf();
-   
-   return new_type->convertTo(this, NULL);
-}
-
-class QoreNode *QoreNode::convert(const QoreType *new_type, class ExceptionSink *xsink) const
-{
-   if (type == new_type)
-      return RefSelf();
-   
-   return new_type->convertTo(this, xsink);
-}
-
 void QoreNode::ref() const
 {
 #ifdef DEBUG
@@ -456,25 +339,15 @@ class QoreNode *QoreNode::RefSelf() const
    return const_cast<QoreNode *>(this);
 }
 
-static class QoreString *dni(class QoreString *s, class QoreNode *n, int indent, class ExceptionSink *xsink);
-
 void QoreNode::deref(ExceptionSink *xsink)
 {
    //tracein("QoreNode::deref()");
 #ifdef DEBUG
 #if TRACK_REFS
-   if (type == NT_STRING) printd(5, "QoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, val.String ? val.String->getBuffer() : "(null)");
+   if (type == NT_STRING) printd(5, "QoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
    else if (type == NT_OBJECT) printd(5, "QoreNode::deref() %08p (%d->%d) object=%08p class=%s\n", this, references, references - 1, val.object, val.object->getClass()->getName());
    else
       printd(5, "QoreNode::deref() %08p type=%s (%d->%d)\n", this, type->getName(), references, references - 1);
-
-/*
-   else if (type == NT_HASH && references <= 51200 && references > 0) { 
-      QoreString tmp; 
-      dni(&tmp, this, 0, xsink);
-      printd(5, "QoreNode::deref() %08p hash=%s\n", this, tmp.getBuffer());
-   }
-*/
 
 #endif
    if (references > 51200 || references < 0)
@@ -484,7 +357,7 @@ void QoreNode::deref(ExceptionSink *xsink)
 		this, references, type->getName(), val.intval);
       else if (type == NT_STRING)
 	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s) (val=\"%s\")\n",
-		this, references, type->getName(), val.String->getBuffer());
+		this, references, type->getName(), ((QoreStringNode *)this)->getBuffer());
       else
 	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s)\n",
 		this, references, type->getName());
@@ -561,72 +434,110 @@ bool QoreNode::boolEval(ExceptionSink *xsink) const
    return type->bool_eval(this, xsink);
 }
 
-class QoreString *QoreNode::getAsString(int foff, class ExceptionSink *xsink) const
+QoreString *QoreNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
 {
-   if (!this)
-      return new QoreString("<NOTHING>");
-   
-   return type->getAsString(this, foff, xsink);
+   if (type == NT_NOTHING) {
+      del = false;
+      return &NothingTypeString;
+   }
+   if (type == NT_NULL) {
+      del = false;
+      return &NullTypeString;
+   }
+   if (type == NT_INT) {
+      del = true;
+      return new QoreString(val.intval);
+   }
+   if (type == NT_FLOAT) {
+      del = true;
+      return new QoreString(val.floatval);
+   }
+   if (type == NT_DATE) {
+      del = true;
+      class QoreString *str = new QoreString();
+      val.date_time->getString(str);
+      return str;
+   }
+   if (type == NT_BOOLEAN) {
+      del = false;
+      return val.boolval ? &TrueString : &FalseString;
+   }
+   if (type == NT_HASH)
+      return val.hash->getAsString(del, foff, xsink);
+
+   if (type == NT_LIST)
+      return val.list->getAsString(del, foff, xsink);
+
+   if (type == NT_OBJECT)
+      return val.object->getAsString(del, foff, xsink);
+
+   if (type == NT_BINARY) {
+      del = true;
+      QoreString *rv = new QoreString();
+      rv->sprintf("binary object %08p (%d byte%s)", val.bin->getPtr(), val.bin->size(), val.bin->size() == 1 ? "" : "s");
+      return rv;
+   }
+
+   del = true;
+   QoreString *rv = new QoreString();
+   rv->sprintf("%s (0x%08p)", type->getName(), this);
+   return rv;
 }
 
 bool QoreNode::getAsBool() const
 {
    if (type == NT_BOOLEAN)
       return val.boolval;
-   else if (type == NT_FLOAT)
+   if (type == NT_FLOAT)
       return (bool)val.floatval;
-   else if (type == NT_INT)
+   if (type == NT_INT)
       return (bool)val.intval;
+   if (type == NT_DATE)
+      return val.date_time->getEpochSeconds() ? true : false;
 
-   QoreNode *t = this->convert(NT_BOOLEAN);
-   bool rc = t->val.boolval;
-   t->deref(NULL);
-   return rc;
+   return false;
 }
 
 int QoreNode::getAsInt() const
 {
    if (type == NT_INT)
       return val.intval;
-   else if (type == NT_BOOLEAN)
+   if (type == NT_BOOLEAN)
       return (int)val.boolval;
-   else if (type == NT_FLOAT)
+   if (type == NT_FLOAT)
       return (int)val.floatval;
+   if (type == NT_DATE)
+      return val.date_time->getEpochSeconds();
 
-   QoreNode *t = this->convert(NT_INT);
-   int rc = t->val.intval;
-   t->deref(NULL);
-   return rc;
+   return 0;
 }
 
 int64 QoreNode::getAsBigInt() const
 {
    if (type == NT_INT)
       return val.intval;
-   else if (type == NT_BOOLEAN)
+   if (type == NT_BOOLEAN)
       return (int64)val.boolval;
-   else if (type == NT_FLOAT)
+   if (type == NT_FLOAT)
       return (int64)val.floatval;
+   if (type == NT_DATE)
+      return val.date_time->getEpochSeconds();
 
-   QoreNode *t = this->convert(NT_INT);
-   int64 rc = t->val.intval;
-   t->deref(NULL);
-   return rc;
+   return 0;
 }
 
 double QoreNode::getAsFloat() const
 {
    if (type == NT_FLOAT)
       return val.floatval;
-   else if (type == NT_BOOLEAN)
+   if (type == NT_BOOLEAN)
       return (double)val.boolval;
-   else if (type == NT_INT)
+   if (type == NT_INT)
       return (double)val.intval;
+   if (type == NT_DATE)
+      return (double)val.date_time->getEpochSeconds();
 
-   QoreNode *t = this->convert(NT_FLOAT);
-   double rc = t->val.floatval;
-   t->deref(NULL);
-   return rc;
+   return 0.0;
 }
 
 // for getting relative time values or integer values
@@ -838,3 +749,188 @@ class QoreNode *copy_and_resolve_lvar_refs(const class QoreNode *n, ExceptionSin
 
    return n->RefSelf();
 }
+
+// get the value of the type in a string context, empty string for complex types (default implementation)
+QoreString *QoreNode::getStringRepresentation(bool &del) const
+{
+   //del = false;
+   //return null_string();
+
+   // delete the following
+   if (type == NT_INT) {
+      del = true;
+      return new QoreString(val.intval);
+   }
+   if (type == NT_FLOAT) {
+      del = true;
+      return new QoreString(val.floatval);
+   }
+   if (type == NT_DATE) {
+      del = true;
+      return new QoreString(val.date_time);
+   }
+   if (type == NT_BOOLEAN) {
+      del = true;
+      return new QoreString(val.boolval);
+   }
+
+   del = false;
+   return NullString;
+}
+
+// empty default implementation
+void QoreNode::getStringRepresentation(QoreString &str) const
+{
+   // delete this code
+   if (type == NT_INT)
+      str.sprintf("%lld", val.intval);
+   else if (type == NT_FLOAT)
+      str.sprintf("%g", val.floatval);
+   else if (type == NT_DATE)
+      str.concat(val.date_time);
+   else if (type == NT_BOOLEAN)
+      str.concat(val.boolval ? '1' : '0');
+}
+
+// if del is true, then the returned DateTime * should be deleted, if false, then it should not
+class DateTime *QoreNode::getDateTimeRepresentation(bool &del) const
+{
+   // del = false;
+   // return zero_date();
+
+   // delete the following
+   if (type == NT_INT) {
+      del = true;
+      return new DateTime(val.intval);
+   }
+   if (type == NT_FLOAT) {
+      del = true;
+      return new DateTime((int64)(val.floatval));
+   }   
+   if (type == NT_DATE) {
+      del = false;
+      return val.date_time;
+   }
+   if (type == NT_BOOLEAN) {
+      del = true;
+      return new DateTime((int64)(val.boolval));
+   }
+
+   del = false;
+   return ZeroDate->val.date_time;
+}
+
+// assign date representation to a DateTime * (no action for complex types = default implementation)
+void QoreNode::getDateTimeRepresentation(DateTime &dt) const
+{
+}
+
+// returns 0 if the value is not immediately returnable as a QoreString (without conversion)
+/*
+class QoreString *QoreNode::getQoreStringValue() const
+{
+   return 0;
+}
+
+// returns 0 if the value is not immediately returnable as a const char * (without conversion)
+const char *QoreNode::getStringValue() const
+{
+   return 0;
+}
+*/
+
+// "soft" comparison
+static inline bool list_is_equal_soft(class QoreList *l, class QoreList *r, ExceptionSink *xsink)
+{
+   if (l->size() != r->size())
+      return false;
+   for (int i = 0; i < l->size(); i++)
+   {
+      if (compareSoft(l->retrieve_entry(i), r->retrieve_entry(i), xsink) || *xsink)
+         return false;
+   }
+   return true;
+}
+
+static inline bool list_is_equal_hard(class QoreList *l, class QoreList *r, ExceptionSink *xsink)
+{
+  if (l->size() != r->size())
+      return false;
+   for (int i = 0; i < l->size(); i++)
+      if (compareHard(l->retrieve_entry(i), r->retrieve_entry(i), xsink) || *xsink)
+         return false;
+   return true;
+}
+
+bool QoreNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+{
+   if (is_nothing(this)) {
+      if (is_nothing(v))
+	 return true;
+      return false;
+   }
+   if (is_nothing(v))
+      return false;
+
+   if (is_null(this))
+      if (is_null(v))
+	 return true;
+      else
+	 return false;
+
+   if (type == NT_INT)
+      return val.intval == v->getAsBigInt();
+   if (type == NT_FLOAT)
+      return val.floatval == v->getAsFloat();
+   if (type == NT_BOOLEAN)
+      return val.boolval == v->getAsBool();
+   if (type == NT_DATE) {
+      DateTimeValueHelper date(v);
+      return val.date_time->isEqual(*date);
+   }
+   // the following types can't be converted
+   if (type != v->type)
+      return false;
+
+   if (type == NT_LIST)
+      return !list_is_equal_soft(val.list, v->val.list, xsink);
+   if (type == NT_HASH)
+      return !val.hash->compareSoft(v->val.hash, xsink);
+   if (type == NT_OBJECT)
+      return !val.object->compareSoft(v->val.object, xsink);
+
+   assert(false);
+}
+
+bool QoreNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+{
+   if (type != v->type)
+      return false;
+
+   if (is_nothing(this))
+      return true;
+
+   if (is_null(this))
+      return true;
+
+   if (type == NT_INT)
+      return val.intval == v->val.intval;
+   if (type == NT_FLOAT)
+      return val.floatval == v->val.floatval;
+   if (type == NT_BOOLEAN)
+      return val.boolval == v->val.boolval;
+   if (type == NT_DATE)
+      return val.date_time->isEqual(v->val.date_time);
+
+   if (type == NT_LIST)
+      return list_is_equal_hard(val.list, v->val.list, xsink);
+   if (type == NT_HASH)
+      return !val.hash->compareHard(v->val.hash, xsink);
+   if (type == NT_OBJECT)
+      return !val.object->compareHard(v->val.object, xsink);
+   if (type == NT_BINARY)
+      return !val.bin->compare(v->val.bin);
+
+   assert(false);   
+}
+

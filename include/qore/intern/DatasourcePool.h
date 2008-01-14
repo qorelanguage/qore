@@ -84,7 +84,7 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       DLLLOCAL class QoreNode *exec(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink);
       DLLLOCAL int commit(class ExceptionSink *xsink);
       DLLLOCAL int rollback(class ExceptionSink *xsink);
-      DLLLOCAL class QoreString *toString();
+      DLLLOCAL class QoreStringNode *toString();
       DLLLOCAL int getMin() const;
       DLLLOCAL int getMax() const;
       DLLLOCAL class QoreNode *getPendingUsername() const;

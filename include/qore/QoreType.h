@@ -30,8 +30,11 @@
 #include <map>
 
 // global default values
-DLLEXPORT extern class QoreNode *False, *True, *Nothing, *Null, *Zero, *ZeroFloat, *NullString, 
-   *ZeroDate, *emptyList, *emptyHash;
+DLLEXPORT extern class QoreNode *False, *True, *Nothing, *Null, *Zero, *ZeroFloat, *ZeroDate, *emptyList, *emptyHash;
+DLLEXPORT extern class QoreStringNode *NullString;
+
+DLLEXPORT extern class QoreString NothingTypeString, NullTypeString, TrueString, FalseString, EmptyHashString, 
+   EmptyListString;
 
 typedef class QoreNode *(*no_arg_func_t)();
 typedef class QoreNode *(*single_arg_func_t)(const class QoreNode *, class ExceptionSink *xsink);
@@ -96,7 +99,6 @@ class QoreType {
       DLLEXPORT double float_eval(const class QoreNode *n, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *copy(const class QoreNode *n, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *getDefaultValue() const;
-      DLLEXPORT class QoreNode *convertTo(const class QoreNode *n, class ExceptionSink *xsink) const;
       // compare = 0 means values are equal
       DLLEXPORT bool compare(const class QoreNode *n1, const class QoreNode *n2, class ExceptionSink *xsink) const;
       DLLEXPORT void deleteContents(class QoreNode *n) const;
@@ -170,7 +172,7 @@ static inline class QoreNode *zero_date()
    return ZeroDate;
 }
 
-static inline class QoreNode *null_string()
+static inline class QoreStringNode *null_string()
 {
    NullString->ref();
    return NullString;

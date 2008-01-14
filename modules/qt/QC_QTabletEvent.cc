@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QTabletEvent.h"
+#include "QC_QPoint.h"
+#include "QC_QPointF.h"
+
+#include "qore-qt.h"
 
 int CID_QTABLETEVENT;
 class QoreClass *QC_QTabletEvent = 0;

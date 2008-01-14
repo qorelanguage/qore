@@ -21,9 +21,12 @@
  */
 
 #include <qore/Qore.h>
+#include "qore-qt.h"
 
 #include "QC_QBrush.h"
 #include "QC_QColor.h"
+#include "QC_QPixmap.h"
+#include "QC_QImage.h"
 
 int CID_QBRUSH;
 QoreClass *QC_QBrush = 0;

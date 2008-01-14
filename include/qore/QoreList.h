@@ -91,35 +91,43 @@ class QoreList {
       DLLEXPORT bool needsEval() const;
       DLLEXPORT void clearNeedsEval();
       DLLEXPORT class QoreList *reverse() const;
+      DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 };
 
 class StackList : public QoreList
 {
-private:
-   class ExceptionSink *xsink;
+   private:
+      class ExceptionSink *xsink;
+      
+      // none of these operators/methods are implemented - here to make sure they are not used
+      DLLLOCAL void *operator new(size_t); 
+      DLLLOCAL StackList();
+      DLLLOCAL StackList(bool i);
+      DLLLOCAL void deleteAndDeref(class ExceptionSink *xsink);
+      DLLLOCAL StackList(const StackList&);
+      DLLLOCAL StackList& operator=(const StackList&);
    
-   // none of these operators/methods are implemented - here to make sure they are not used
-   DLLLOCAL void *operator new(size_t); 
-   DLLLOCAL StackList();
-   DLLLOCAL StackList(bool i);
-   DLLLOCAL void deleteAndDeref(class ExceptionSink *xsink);
-   
-public:
-   DLLEXPORT StackList(class ExceptionSink *xs)
-   {
-      xsink = xs;
-   }
-   DLLEXPORT ~StackList()
-   {
-      dereference(xsink);
-   }
-   DLLEXPORT class QoreNode *getAndClear(int i);
+   public:
+      DLLEXPORT StackList(class ExceptionSink *xs)
+      {
+	 xsink = xs;
+      }
+      DLLEXPORT ~StackList()
+      {
+	 dereference(xsink);
+      }
+      DLLEXPORT class QoreNode *getAndClear(int i);
 };
 
 class TempList {
    private:
       class QoreList *l;
       class ExceptionSink *xsink;
+
+      // not implemented
+      DLLLOCAL void *operator new(size_t); 
+      DLLLOCAL TempList(const TempList&);
+      DLLLOCAL TempList& operator=(const TempList&);
 
    public:
       DLLEXPORT TempList(class QoreList *lst, class ExceptionSink *xs) : l(lst), xsink(xs)
@@ -133,6 +141,7 @@ class TempList {
       DLLEXPORT QoreList *operator->(){ return l; };
       DLLEXPORT QoreList *operator*() { return l; };
       DLLEXPORT operator bool() const { return l != 0; }
+      DLLLOCAL QoreList *release() { QoreList *rv = l; l = 0; return rv; }
 };
 
 class ListIterator

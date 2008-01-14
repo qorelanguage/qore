@@ -5,6 +5,7 @@
 #include "ClassRef.cc"
 #include "ScopedObjectCall.cc"
 #include "QoreNode.cc"
+#include "QoreStringNode.cc"
 #include "Function.cc"
 #include "BuiltinFunctionList.cc"
 #include "UserFunctionList.cc"

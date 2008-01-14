@@ -24,7 +24,7 @@
 
 #define _QORE_QC_QLCDNUMBER_H
 
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQFrame.h"
 
 #include <QLCDNumber>
 
@@ -63,6 +63,9 @@ class QoreQLCDNumber : public QoreAbstractQFrame
       {
       }
       DLLLOCAL QoreQLCDNumber(QoreObject *obj, QWidget *parent = 0) : qobj(new myQLCDNumber(obj, parent))
+      {
+      }
+      DLLLOCAL virtual ~QoreQLCDNumber()
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

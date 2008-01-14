@@ -44,7 +44,7 @@ static void QINPUTMETHODEVENT_constructor(QoreObject *self, const QoreNode *para
 //      xsink->raiseException("QINPUTMETHODEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a string as first argument to QInputMethodEvent::constructor()");
 //      return;
 //   }
-//   const char *preeditText = p->val.String->getBuffer();
+//   const char *preeditText = p->getBuffer();
 //   p = get_param(params, 1);
 //   ??? QList<Attribute> attributes = p;
 //   self->setPrivate(CID_QINPUTMETHODEVENT, new QoreQInputMethodEvent(preeditText, attributes));
@@ -65,13 +65,13 @@ static void QINPUTMETHODEVENT_copy(class QoreObject *self, class QoreObject *old
 //const QString & commitString () const
 static QoreNode *QINPUTMETHODEVENT_commitString(QoreObject *self, QoreQInputMethodEvent *qime, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qime->commitString().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qime->commitString().toUtf8().data(), QCS_UTF8);
 }
 
 //const QString & preeditString () const
 static QoreNode *QINPUTMETHODEVENT_preeditString(QoreObject *self, QoreQInputMethodEvent *qime, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qime->preeditString().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qime->preeditString().toUtf8().data(), QCS_UTF8);
 }
 
 //int replacementLength () const
@@ -89,16 +89,19 @@ static QoreNode *QINPUTMETHODEVENT_replacementStart(QoreObject *self, QoreQInput
 //void setCommitString ( const QString & commitString, int replaceFrom = 0, int replaceLength = 0 )
 static QoreNode *QINPUTMETHODEVENT_setCommitString(QoreObject *self, QoreQInputMethodEvent *qime, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr) {
       xsink->raiseException("QINPUTMETHODEVENT-SETCOMMITSTRING-PARAM-ERROR", "expecting a string as first argument to QInputMethodEvent::setCommitString()");
       return 0;
    }
-   const char *commitString = p->val.String->getBuffer();
-   p = get_param(params, 1);
+   const char *commitString = pstr->getBuffer();
+
+   QoreNode *p = get_param(params, 1);
    int replaceFrom = p ? p->getAsInt() : 0;
+
    p = get_param(params, 2);
    int replaceLength = p ? p->getAsInt() : 0;
+
    qime->setCommitString(commitString, replaceFrom, replaceLength);
    return 0;
 }

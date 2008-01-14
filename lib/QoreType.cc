@@ -47,10 +47,19 @@
 #include <string.h>
 #include <assert.h>
 
+#include <typeinfo>
+
 #define QTM_NO_VALUE     false
 #define QTM_VALUE        true
 #define QTM_NO_CONTAINER false
 #define QTM_CONTAINER    true
+
+QoreString NothingTypeString("<NOTHING>");
+QoreString NullTypeString("<NULL>");
+QoreString TrueString("True");
+QoreString FalseString("False");
+QoreString EmptyHashString("<EMPTY HASH>");
+QoreString EmptyListString("<EMPTY LIST>");
 
 DLLLOCAL int QoreTypeManager::lastid = 0;
 DLLLOCAL class QoreType *QoreTypeManager::typelist[NUM_VALUE_TYPES];
@@ -67,7 +76,8 @@ DLLEXPORT class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
    *NT_OBJMETHREF, *NT_FUNCREF, *NT_FUNCREFCALL;
 
 // default value nodes for builtin types
-DLLEXPORT class QoreNode *Nothing, *Null, *Zero, *NullString, *ZeroFloat, *ZeroDate, *True, *False, *emptyList, *emptyHash;
+DLLEXPORT class QoreNode *Nothing, *Null, *Zero, *ZeroFloat, *ZeroDate, *True, *False, *emptyList, *emptyHash;
+DLLEXPORT QoreStringNode *NullString;
 
 QoreType::QoreType(const char *            p_name, 
 		   needs_eval_func_t       p_needs_eval,
@@ -195,12 +205,6 @@ class QoreNode *QoreType::getDefaultValue() const
    return f_default_value();
 }
 
-class QoreNode *QoreType::convertTo(const QoreNode *n, class ExceptionSink *xsink) const
-{
-   assert(f_convert_to);
-   return f_convert_to(n, xsink);
-}
-
 class QoreNode *QoreType::copy(const QoreNode *n, class ExceptionSink *xsink) const
 {
    if (!f_copy)
@@ -220,27 +224,10 @@ void QoreTypeManager::add(class QoreType *t)
    insert(std::make_pair(t->getID(), t));
 }
 
-bool QoreType::compare(const QoreNode *n1, const QoreNode *n2, class ExceptionSink *xsink) const
-{
-   if (!f_compare)
-      return 0;
-   return f_compare(n1, n2, xsink);
-}
-
 void QoreType::deleteContents(class QoreNode *n) const
 {
    if (f_delete_contents)
       f_delete_contents(n);
-}
-
-class QoreString *QoreType::getAsString(const QoreNode *n, int format, class ExceptionSink *xsink) const
-{
-   if (f_make_string)
-      return f_make_string(n, format, xsink);
-   
-   QoreString *rv = new QoreString();
-   rv->sprintf("%s (0x%08p)", name, n);
-   return rv;
 }
 
 int QoreType::getID() const
@@ -402,17 +389,17 @@ QoreTypeManager::QoreTypeManager()
    
    // register system data types
    // first, value types for operator matrix optimization
-   add(NT_NOTHING = new QoreType("nothing", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NOTHING_DefaultValue, NULL, NULL, NULL, NOTHING_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_INT = new QoreType("integer", NULL, NULL, NULL, NULL, NULL, NULL, bigint_ConvertTo, bigint_DefaultValue, NULL, bigint_Compare, NULL, bigint_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_FLOAT = new QoreType("float", NULL, NULL, NULL, NULL, NULL, NULL, float_ConvertTo, float_DefaultValue, NULL, float_Compare, NULL, float_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_STRING = new QoreType("string", NULL, NULL, NULL, NULL, NULL, NULL, string_ConvertTo, string_DefaultValue, string_Copy, string_Compare, string_DeleteContents, string_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_DATE = new QoreType("date", NULL, NULL, NULL, NULL, NULL, NULL, date_ConvertTo, date_DefaultValue, date_Copy, date_Compare, date_DeleteContents, date_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_BOOLEAN = new QoreType("boolean", NULL, NULL, NULL, NULL, NULL, NULL, boolean_ConvertTo, boolean_DefaultValue, NULL, boolean_Compare, NULL, boolean_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_NULL = new QoreType("NULL", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL_DefaultValue, NULL, NULL, NULL, NULL_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_BINARY = new QoreType("binary", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, binary_Copy, binary_Compare, binary_DeleteContents, binary_MakeString, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_LIST = new QoreType("list", list_needs_eval, list_Eval, list_eval_opt_deref, NULL, NULL, NULL, list_ConvertTo, list_DefaultValue, list_Copy, list_Compare, list_DeleteContents, list_MakeString, QTM_VALUE, QTM_CONTAINER));
-   add(NT_HASH = new QoreType("hash", hash_needs_eval, hash_Eval, hash_eval_opt_deref, NULL, NULL, NULL, hash_ConvertTo, hash_DefaultValue, hash_Copy, hash_Compare, hash_DeleteContents, hash_MakeString, QTM_VALUE, QTM_CONTAINER));
-   add(NT_OBJECT = new QoreType("object", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, object_Copy, object_Compare, NULL, object_MakeString, QTM_VALUE, QTM_CONTAINER));
+   add(NT_NOTHING = new QoreType("nothing", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NOTHING_DefaultValue, NULL, NULL, NULL, 0, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_INT = new QoreType("integer", NULL, NULL, NULL, NULL, NULL, NULL, 0, bigint_DefaultValue, NULL, 0, NULL, 0, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_FLOAT = new QoreType("float", NULL, NULL, NULL, NULL, NULL, NULL, 0, float_DefaultValue, NULL, 0, NULL, 0, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_STRING = new QoreType("string", NULL, NULL, NULL, NULL, NULL, NULL, 0, string_DefaultValue, 0, 0, 0, 0, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_DATE = new QoreType("date", NULL, NULL, NULL, NULL, NULL, NULL, 0, date_DefaultValue, date_Copy, 0, date_DeleteContents, 0, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_BOOLEAN = new QoreType("boolean", NULL, NULL, NULL, NULL, NULL, NULL, 0, boolean_DefaultValue, NULL, 0, NULL, 0, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_NULL = new QoreType("NULL", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL_DefaultValue, NULL, NULL, NULL, 0, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_BINARY = new QoreType("binary", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, binary_Copy, 0, binary_DeleteContents, 0, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_LIST = new QoreType("list", list_needs_eval, list_Eval, list_eval_opt_deref, NULL, NULL, NULL, 0, list_DefaultValue, list_Copy, 0, list_DeleteContents, 0, QTM_VALUE, QTM_CONTAINER));
+   add(NT_HASH = new QoreType("hash", hash_needs_eval, hash_Eval, hash_eval_opt_deref, NULL, NULL, NULL, 0, hash_DefaultValue, hash_Copy, 0, hash_DeleteContents, 0, QTM_VALUE, QTM_CONTAINER));
+   add(NT_OBJECT = new QoreType("object", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, object_Copy, 0, NULL, 0, QTM_VALUE, QTM_CONTAINER));
 
    // now parse types
    add(NT_FLIST = new QoreType("flist", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, list_DeleteContents, NULL, QTM_NO_VALUE, QTM_NO_CONTAINER));
@@ -448,17 +435,17 @@ QoreTypeManager::QoreTypeManager()
 void QoreTypeManager::init()
 {
    // initialize global default values
-   False       = new QoreNode(false);
-   True        = new QoreNode(true);
-   Nothing     = new QoreNode(NT_NOTHING);
-   Null        = new QoreNode(NT_NULL);
-   Zero        = new QoreNode((int64)0);
-   ZeroFloat   = new QoreNode(0.0);
-   NullString  = new QoreNode("");
-   ZeroDate    = new QoreNode(new DateTime((int64)0));
+   False         = new QoreNode(false);
+   True          = new QoreNode(true);
+   Nothing       = new QoreNode(NT_NOTHING);
+   Null          = new QoreNode(NT_NULL);
+   Zero          = new QoreNode((int64)0);
+   ZeroFloat     = new QoreNode(0.0);
+   NullString    = new QoreStringNode("");
+   ZeroDate      = new QoreNode(new DateTime((int64)0));
    
-   emptyList   = new QoreNode(new QoreList());
-   emptyHash   = new QoreNode(new QoreHash());
+   emptyList     = new QoreNode(new QoreList());
+   emptyHash     = new QoreNode(new QoreHash());
 }
 
 void QoreTypeManager::del()
@@ -470,7 +457,7 @@ void QoreTypeManager::del()
    Null->deref(NULL);
    Zero->deref(NULL);
    ZeroFloat->deref(NULL);
-   NullString->deref(NULL);
+   NullString->deref();
    ZeroDate->deref(NULL);
    emptyList->deref(NULL);
    emptyHash->deref(NULL);
@@ -502,6 +489,7 @@ class QoreType *QoreTypeManager::find(int id)
    return i->second;
 }
 
+// 0 = equal, 1 = not equal
 bool compareHard(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    if (is_nothing(l))
@@ -513,12 +501,15 @@ bool compareHard(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsin
       return 1;
    if (l->type != r->type)
       return 1;
-   
-   return l->type->compare(l, r, xsink);
+
+   // logical equals always returns an integer result
+   // FIXME: fix Operator.h and cc instead of using const_cast<>!
+   return !OP_ABSOLUTE_EQ->bool_eval(const_cast<QoreNode *>(l), const_cast<QoreNode *>(r), xsink);
 }
 
 // this function calls the operator function that will
 // convert values to do the conversion
+// 0 = equal, 1 = not equal
 bool compareSoft(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
 {
    // logical equals always returns an integer result

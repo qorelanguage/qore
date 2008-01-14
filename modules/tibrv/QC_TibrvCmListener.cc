@@ -33,48 +33,48 @@ void TIBRVCMLISTENER_constructor(class QoreObject *self, const QoreNode *params,
 {
    tracein("TIBRVCMLISTENER_constructor");
 
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVCMLISTENER-CONSTRUCTOR-ERROR", "missing subject string");
       return;
    }      
-   const char *subject = pt->val.String->getBuffer();   
+   const char *subject = pt->getBuffer();   
 
    const char *cmName = NULL, *ledgerName = NULL, *relayAgent = NULL;
    bool requestOld, syncLedger;
 
-   pt = test_param(params, NT_STRING, 1);
+   pt = test_string_param(params, 1);
    if (pt)
-      cmName = pt->val.String->getBuffer();
+      cmName = pt->getBuffer();
 
-   pt = get_param(params, 2);
-   requestOld = pt ? pt->getAsBool() : false;
+   QoreNode *pn = get_param(params, 2);
+   requestOld = pn ? pn->getAsBool() : false;
 
-   pt = test_param(params, NT_STRING, 3);
+   pt = test_string_param(params, 3);
    if (pt)
-      ledgerName = pt->val.String->getBuffer();
+      ledgerName = pt->getBuffer();
 
-   pt = get_param(params, 4);
-   syncLedger = pt ? pt->getAsBool() : false;
+   pn = get_param(params, 4);
+   syncLedger = pn ? pn->getAsBool() : false;
 
-   pt = test_param(params, NT_STRING, 5);
+   pt = test_string_param(params, 5);
    if (pt)
-      relayAgent = pt->val.String->getBuffer();
+      relayAgent = pt->getBuffer();
 
    const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
-   pt = test_param(params, NT_STRING, 6);
+   pt = test_string_param(params, 6);
    if (pt)
-      desc = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 7);
+      desc = pt->getBuffer();
+   pt = test_string_param(params, 7);
    if (pt)
-      service = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 8);
+      service = pt->getBuffer();
+   pt = test_string_param(params, 8);
    if (pt)
-      network = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 9);
+      network = pt->getBuffer();
+   pt = test_string_param(params, 9);
    if (pt)
-      daemon = pt->val.String->getBuffer();
+      daemon = pt->getBuffer();
 
    class QoreTibrvCmListener *qcmlistener = new QoreTibrvCmListener(subject, cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon, xsink);
 
@@ -118,23 +118,19 @@ static QoreNode *TIBRVCMLISTENER_getMessage(class QoreObject *self, class QoreTi
 
 static QoreNode *TIBRVCMLISTENER_createInboxName(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreString *str = cml->createInboxName(xsink);
-   if (str)
-      return new QoreNode(str);
-
-   return NULL;
+   return cml->createInboxName(xsink);
 }
 
 class QoreNode *TIBRVCMLISTENER_setStringEncoding(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
+   QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVCMLISTENER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");
       return NULL;
    }
 
-   const QoreEncoding *enc = QEM.findCreate(pt->val.String->getBuffer());
+   const QoreEncoding *enc = QEM.findCreate(pt->getBuffer());
    cml->setStringEncoding(enc);
 
    return NULL;

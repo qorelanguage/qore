@@ -43,7 +43,6 @@ union node_u {
       char c_char;
       int c_int;
       double floatval;
-      class QoreString *String;
       // to initialize unresolved function calls, backquote expressions, etc
       char *c_str;
       // for dates
@@ -98,60 +97,85 @@ class QoreNode : public ReferenceObject
       DLLLOCAL QoreNode& operator=(const QoreNode&);
 
    protected:
-      inline ~QoreNode();
+      DLLLOCAL virtual ~QoreNode();
 
    public:
       union node_u val;
       class QoreType *type;
 
       DLLEXPORT QoreNode();
-      DLLEXPORT QoreNode(class QoreType *t);
-      DLLEXPORT QoreNode(class QoreType *t, int64 v);
-      DLLEXPORT QoreNode(long v);
-      DLLEXPORT QoreNode(int64 v);
-      DLLEXPORT QoreNode(bool v);
-      //DLLEXPORT QoreNode(char *str);
-      DLLEXPORT QoreNode(const char *str);
-      DLLEXPORT QoreNode(const std::string &str);
-      DLLEXPORT QoreNode(double d);
-      DLLEXPORT QoreNode(class DateTime *dt);
-      DLLEXPORT QoreNode(class BinaryObject *b);
-      DLLEXPORT QoreNode(class QoreString *str);
-      DLLEXPORT QoreNode(class QoreObject *o);
-      DLLEXPORT QoreNode(class QoreHash *h);
-      DLLEXPORT QoreNode(class QoreList *l);
+      DLLEXPORT explicit QoreNode(class QoreType *t);
+      DLLEXPORT explicit QoreNode(class QoreType *t, int64 v);
+      DLLEXPORT explicit QoreNode(long v);
+      DLLEXPORT explicit QoreNode(int64 v);
+      DLLEXPORT explicit QoreNode(bool v);
 
-      DLLEXPORT class QoreNode *convert(const class QoreType *new_type) const;
-      DLLEXPORT class QoreNode *convert(const class QoreType *new_type, class ExceptionSink *xsink) const;
-      DLLEXPORT bool getAsBool() const;
-      DLLEXPORT int getAsInt() const;
-      DLLEXPORT int64 getAsBigInt() const;
-      DLLEXPORT double getAsFloat() const;
-      DLLEXPORT class QoreString *getAsString(int foff, class ExceptionSink *xsink) const;
+      DLLEXPORT explicit QoreNode(const char *str);
+      DLLEXPORT explicit QoreNode(const std::string &str);
+      DLLEXPORT explicit QoreNode(class QoreString *str);
+
+      DLLEXPORT explicit QoreNode(double d);
+      DLLEXPORT explicit QoreNode(class DateTime *dt);
+      DLLEXPORT explicit QoreNode(class BinaryObject *b);
+      DLLEXPORT explicit QoreNode(class QoreObject *o);
+      DLLEXPORT explicit QoreNode(class QoreHash *h);
+      DLLEXPORT explicit QoreNode(class QoreList *l);
+
+      // get the value of the type in a string context, 0 (NULL) for complex types (default implementation)
+      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+      // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
+      DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
+      // concatenate string representation to a QoreString (no action for complex types = default implementation)
+      DLLEXPORT virtual void getStringRepresentation(QoreString &str) const;
+
+      // if del is true, then the returned DateTime * should be deleted, if false, then it should not
+      DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
+      // assign date representation to a DateTime (no action for complex types = default implementation)
+      DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
+
+      DLLEXPORT virtual bool getAsBool() const;
+      DLLEXPORT virtual int getAsInt() const;
+      DLLEXPORT virtual int64 getAsBigInt() const;
+      DLLEXPORT virtual double getAsFloat() const;
+
+      // FIXME: move QoreString * to first argument
+      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+      // the ExceptionSink is only needed for QoreObject where a method may be executed
+      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+      DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+
+      DLLEXPORT virtual bool needs_eval() const;
+      DLLEXPORT virtual class QoreNode *realCopy(class ExceptionSink *xsink) const;
+
+      // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
+      // the "val" passed
+      //DLLLOCAL virtual int compare(const QoreNode *val) const;
+      // the type passed must always be equal to the current type
+      DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
+
+      DLLLOCAL explicit QoreNode(char *fn, class QoreNode *a);
+      DLLLOCAL explicit QoreNode(class QoreNode *a, char *fn);
+      DLLLOCAL explicit QoreNode(class QoreNode *a, class NamedScope *n);
+      DLLLOCAL explicit QoreNode(class UserFunction *u, class QoreNode *a);
+      DLLLOCAL explicit QoreNode(class BuiltinFunction *b, class QoreNode *a);
+      DLLLOCAL explicit QoreNode(class NamedScope *n, class QoreNode *a);
+      DLLLOCAL explicit QoreNode(class NamedScope *n);
+      DLLLOCAL explicit QoreNode(class ClassRef *c);
+      DLLLOCAL explicit QoreNode(class VarRef *v);
+      DLLLOCAL explicit QoreNode(class QoreNode *l, class Operator *o, class QoreNode *r);
+      DLLLOCAL explicit QoreNode(class RegexSubst *rs);
+      DLLLOCAL explicit QoreNode(class RegexTrans *rt);
+      DLLLOCAL explicit QoreNode(class ComplexContextRef *ccref);
+      DLLLOCAL explicit QoreNode(class LVRef *lvref);
+      DLLLOCAL explicit QoreNode(class QoreRegex *r);
+      DLLLOCAL explicit QoreNode(class Tree *t);
+      DLLLOCAL explicit QoreNode(class FunctionReferenceCall *frc);
+      DLLLOCAL explicit QoreNode(class AbstractFunctionReference *afr);
+      DLLLOCAL explicit QoreNode(class AbstractParseObjectMethodReference *objmethref);
+      DLLLOCAL explicit QoreNode(class FunctionCall *fc);
       
-      DLLLOCAL QoreNode(char *fn, class QoreNode *a);
-      DLLLOCAL QoreNode(class QoreNode *a, char *fn);
-      DLLLOCAL QoreNode(class QoreNode *a, class NamedScope *n);
-      DLLLOCAL QoreNode(class UserFunction *u, class QoreNode *a);
-      DLLLOCAL QoreNode(class BuiltinFunction *b, class QoreNode *a);
-      DLLLOCAL QoreNode(class NamedScope *n, class QoreNode *a);
-      DLLLOCAL QoreNode(class NamedScope *n);
-      DLLLOCAL QoreNode(class ClassRef *c);
-      DLLLOCAL QoreNode(class VarRef *v);
-      DLLLOCAL QoreNode(class QoreNode *l, class Operator *o, class QoreNode *r);
-      DLLLOCAL QoreNode(class RegexSubst *rs);
-      DLLLOCAL QoreNode(class RegexTrans *rt);
-      DLLLOCAL QoreNode(class ComplexContextRef *ccref);
-      DLLLOCAL QoreNode(class LVRef *lvref);
-      DLLLOCAL QoreNode(class QoreRegex *r);
-      DLLLOCAL QoreNode(class Tree *t);
-      DLLLOCAL QoreNode(class FunctionReferenceCall *frc);
-      DLLLOCAL QoreNode(class AbstractFunctionReference *afr);
-      DLLLOCAL QoreNode(class AbstractParseObjectMethodReference *objmethref);
-      DLLLOCAL QoreNode(class FunctionCall *fc);
-      
-      DLLLOCAL bool needs_eval() const;
-      DLLLOCAL class QoreNode *realCopy(class ExceptionSink *xsink) const;
       DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink) const;
       DLLLOCAL class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
       DLLLOCAL int64 bigIntEval(class ExceptionSink *xsink) const;
@@ -232,39 +256,6 @@ class QoreNodeTypeHelper {
 };
 
 /*
-class ConstQoreNodeTypeHelper {
-   private:
-      const class QoreNode *node;
-      bool temp;
-
-      // not implemented
-      DLLLOCAL ConstQoreNodeTypeHelper(const ConstQoreNodeTypeHelper&);
-      DLLLOCAL ConstQoreNodeTypeHelper& operator=(const ConstQoreNodeTypeHelper&);
-      DLLLOCAL void *operator new(size_t);
-
-   public:
-      DLLEXPORT ConstQoreNodeTypeHelper(const QoreNode *n, const QoreType *t, class ExceptionSink *xsink);
-      DLLEXPORT ~ConstQoreNodeTypeHelper()
-      {
-         if (node && temp)
-            node->deref(NULL);
-      }
-      // to check for an exception in the constructor
-      DLLEXPORT operator bool() const 
-      { 
-         return !temp || node;
-      }
-      DLLEXPORT const class QoreNode *operator*()
-      {
-	 return node;
-      }
-      DLLEXPORT bool is_temp() const
-      {
-	 return temp;
-      }
-};
-*/
-
 class QoreNodeCStringHelper {
    private:
       class QoreNode *node;
@@ -294,6 +285,7 @@ class QoreNodeCStringHelper {
       }
       DLLEXPORT int strlen() const;
 };
+*/
 
 class QoreNodeEvalOptionalRefHolder {
    private:
@@ -348,6 +340,7 @@ class QoreNodeEvalOptionalRefHolder {
 	    val->ref();
 	 return val;
       }
+      // takes the referenced value and leaves this object empty, value is referenced if necessary
       DLLLOCAL QoreNode *takeReferencedValue()
       {
 	 QoreNode *rv = val && !needs_deref ? val->RefSelf() : val;

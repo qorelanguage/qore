@@ -23,6 +23,8 @@
 #include <qore/Qore.h>
 #include "QC_QDate.h"
 
+#include "qore-qt.h"
+
 int CID_QDATE;
 QoreClass *QC_QDate = 0;
 
@@ -174,16 +176,16 @@ static QoreNode *QDATE_toJulianDay(QoreObject *self, QoreQDate *qd, const QoreNo
 static QoreNode *QDATE_toString(QoreObject *self, QoreQDate *qd, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_STRING) {
-      if (!p || p->type != NT_STRING) {
-         xsink->raiseException("QDATE-TOSTRING-PARAM-ERROR", "expecting a string as first argument to QDate::toString()");
-         return 0;
-      }
-      const char *format = p->val.String->getBuffer();
-      return new QoreNode(new QoreString(qd->toString(format).toUtf8().data(), QCS_UTF8));
+   {
+      QString format;
+      if (!get_qstring(p, format, xsink, true))
+	 return new QoreStringNode(qd->toString(format).toUtf8().data(), QCS_UTF8);
    }
+   if (*xsink)
+      return 0;
+
    Qt::DateFormat format = (Qt::DateFormat)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(qd->toString(format).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qd->toString(format).toUtf8().data(), QCS_UTF8);
 }
 
 //int weekNumber ( int * yearNumber = 0 ) const

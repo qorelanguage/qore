@@ -194,8 +194,7 @@ static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
 static class QoreNode *sybase_get_client_version(const Datasource *ds, ExceptionSink *xsink)
 {
    connection* conn = (connection*)ds->getPrivateData();
-   class QoreString *str = conn->get_client_version(xsink);
-   return str ? new QoreNode(str) : 0;
+   return conn->get_client_version(xsink);
 }
 
 static class QoreNode *sybase_get_server_version(Datasource *ds, ExceptionSink *xsink)

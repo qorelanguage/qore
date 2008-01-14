@@ -31,6 +31,7 @@
 #include <qore/intern/ssl_constants.h>
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/QoreClassList.h>
+#include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/QoreSignal.h>
 
 #include <qore/minitest.hpp>
@@ -463,22 +464,21 @@ void QoreNamespace::addInitialNamespace(class QoreNamespace *ns)
 
 int parseInitConstantHash(class QoreHash *h, int level)
 {
-   // cannot use an iterator here because we change the hash
-   QoreList *keys = h->getKeys();
    class RootQoreNamespace *rns = getRootNS();
-   for (int i = 0; i < keys->size(); i++)
-   {
-      const char *k = keys->retrieve_entry(i)->val.String->getBuffer();
 
-      class QoreNode **value = h->getKeyValuePtr(k);
+   HashIterator hi(h);
+   while (hi.next()) {
+      const char *k = hi.getKey();
+      class QoreNode **value = hi.getValuePtr();
 
       if (rns->parseInitConstantValue(value, level + 1))
 	 return -1;
 
+      ReferenceHolder<QoreNode> n(0);
       // resolve constant references in keys
       if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST)
       {
-	 QoreNode *n;
+	 // FIXME: add new entry points to RootQoreNamespace so it's not necessary to create these temporary QoreNode values
 	 if (k[0] == HE_TAG_CONST)
 	 {
 	    n = new QoreNode(NT_BAREWORD);
@@ -486,35 +486,24 @@ int parseInitConstantHash(class QoreHash *h, int level)
 	 }
 	 else
 	    n = new QoreNode(new NamedScope(strdup(k + 1)));
-	 if (rns->parseInitConstantValue(&n, level + 1))
-	 {
-	    if (n)
-	       n->deref(NULL);
+	 if (rns->parseInitConstantValue(n.getPtrPtr(), level + 1))
 	    return -1;
-	 }
 
 	 if (n)
 	 {
-	    if (n->type != NT_STRING)
-	    {
-	       QoreNode *t = n;
-	       n = n->convert(NT_STRING);
-	       // not possible to have an exception here
-	       t->deref(NULL);
-	    }
+	    QoreStringValueHelper str(*n);
 	 
 	    // reference value for new hash
 	    (*value)->ref();
 	    // not possible to have an exception here
-	    h->setKeyValue(n->val.String->getBuffer(), *value, NULL);
+	    // adds to end of hash key list so it won't invalidate up our iterator
+	    h->setKeyValue(*str, *value, NULL);
 	    // or here
-	    h->deleteKey(k, NULL);
-	    // or here
-	    n->deref(NULL);
+	    hi.deleteKey(0);
 	 }
       }
    }
-   keys->derefAndDelete(NULL);
+
    return 0;
 }
 
@@ -1637,8 +1626,8 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    qns->addConstant("stderr",        get_file_constant(File, 2));
 
    // add constants for exception types
-   qns->addConstant("ET_System",     new QoreNode("System"));
-   qns->addConstant("ET_User",       new QoreNode("User"));
+   qns->addConstant("ET_System",     new QoreStringNode("System"));
+   qns->addConstant("ET_User",       new QoreStringNode("User"));
 
    // create constants for call types
    qns->addConstant("CT_User",       new QoreNode((int64)CT_USER));
@@ -1647,13 +1636,13 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    qns->addConstant("CT_Rethrow",    new QoreNode((int64)CT_RETHROW));
 
    // create constants for version and platform information
-   qns->addConstant("VersionString", new QoreNode(qore_version_string));
+   qns->addConstant("VersionString", new QoreStringNode(qore_version_string));
    qns->addConstant("VersionMajor",  new QoreNode((int64)qore_version_major));
    qns->addConstant("VersionMinor",  new QoreNode((int64)qore_version_minor));
    qns->addConstant("VersionSub",    new QoreNode((int64)qore_version_sub));
    qns->addConstant("Build",         new QoreNode((int64)qore_build_number));
-   qns->addConstant("PlatformCPU",   new QoreNode(TARGET_ARCH));
-   qns->addConstant("PlatformOS",    new QoreNode(TARGET_OS));
+   qns->addConstant("PlatformCPU",   new QoreStringNode(TARGET_ARCH));
+   qns->addConstant("PlatformOS",    new QoreStringNode(TARGET_OS));
 
    // add constants for regex() function options
    qns->addConstant("RE_Caseless",   new QoreNode((int64)PCRE_CASELESS));

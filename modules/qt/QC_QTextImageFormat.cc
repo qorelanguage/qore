@@ -24,6 +24,8 @@
 
 #include "QC_QTextImageFormat.h"
 
+#include "qore-qt.h"
+
 int CID_QTEXTIMAGEFORMAT;
 class QoreClass *QC_QTextImageFormat = 0;
 
@@ -54,7 +56,7 @@ static QoreNode *QTEXTIMAGEFORMAT_isValid(QoreObject *self, QoreQTextImageFormat
 //QString name () const
 static QoreNode *QTEXTIMAGEFORMAT_name(QoreObject *self, QoreQTextImageFormat *qtif, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qtif->name().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtif->name().toUtf8().data(), QCS_UTF8);
 }
 
 //void setHeight ( qreal height )

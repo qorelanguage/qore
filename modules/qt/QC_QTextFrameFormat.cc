@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QTextFrameFormat.h"
+#include "QC_QBrush.h"
+#include "QC_QTextLength.h"
+
+#include "qore-qt.h"
 
 int CID_QTEXTFRAMEFORMAT;
 class QoreClass *QC_QTextFrameFormat = 0;

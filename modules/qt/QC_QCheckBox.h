@@ -85,13 +85,16 @@ class QoreQCheckBox : public QoreAbstractQCheckBox
       QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQCheckBox : public QoreAbstractQAbstractButton
+class QoreQtQCheckBox : public QoreAbstractQCheckBox
 {
    public:
       QoreObject *qore_obj;
       QPointer<QCheckBox> qobj;
 
       DLLLOCAL QoreQtQCheckBox(QoreObject *obj, QCheckBox *cb) : qore_obj(obj), qobj(cb)
+      {
+      }
+      DLLLOCAL ~QoreQtQCheckBox()
       {
       }
       DLLLOCAL virtual class QObject *getQObject() const

@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 
 #include "QC_QBoxLayout.h"
+#include "QC_QLayout.h"
 
 int CID_QBOXLAYOUT;
 

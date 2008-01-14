@@ -512,10 +512,7 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vl
    if (*xsink)
       return 0;
 
-   if (!member)
-      member.assign(false, NullString);
-   else if (member->type != NT_STRING)
-      member.assign(true, member->convert(NT_STRING));
+   QoreStringValueHelper mem(*member);
 
    QoreNode **val = get_var_value_ptr(tree->left, vlp, xsink);
    if (*xsink)
@@ -541,13 +538,13 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vl
    class QoreNode **rv;
    if ((*val)->type == NT_HASH)
    {
-      //printd(0, "do_object_val_ptr() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), member->val.String->getEncoding()->getCode(), member->val.String->getBuffer());
-      rv = (*val)->val.hash->getKeyValuePtr(member->val.String, xsink);
+      //printd(0, "do_object_val_ptr() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
+      rv = (*val)->val.hash->getKeyValuePtr(*mem, xsink);
    }
    else
    {
       // if object has been deleted, then dereference, make into a hash, and get hash pointer
-      if (!(rv = (*val)->val.object->getMemberValuePtr(member->val.String, vlp, xsink)))
+      if (!(rv = (*val)->val.object->getMemberValuePtr(*mem, vlp, xsink)))
       {
 	 if (xsink->isException())
 	    rv = NULL;
@@ -555,17 +552,17 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vl
 	 {
 	    (*val)->deref(xsink);
 	    (*val) = new QoreNode(new QoreHash());
-	    rv = (*val)->val.hash->getKeyValuePtr(member->val.String, xsink);
+	    rv = (*val)->val.hash->getKeyValuePtr(*mem, xsink);
 	 }
       }
    }
-   //printd(5, "do_object_val_ptr() member=%s\n", member->val.String->getBuffer());
+   //printd(5, "do_object_val_ptr() member=%s\n", mem->getBuffer());
 
    return rv;
 }
 
 // this function will change the lvalue to the right type if needed (used for assignments)
-class QoreNode **get_var_value_ptr(class QoreNode *n, class AutoVLock *vlp, class ExceptionSink *xsink)
+class QoreNode **get_var_value_ptr(QoreNode *n, AutoVLock *vlp, ExceptionSink *xsink)
 {
    //printd(5, "get_var_value_ptr(%08p) %s\n", n, n->type->getName());
    if (n->type == NT_VARREF)
@@ -587,6 +584,16 @@ class QoreNode **get_var_value_ptr(class QoreNode *n, class AutoVLock *vlp, clas
    if (n->val.tree->op == OP_LIST_REF)
       return do_list_val_ptr(n->val.tree, vlp, xsink);
    return do_object_val_ptr(n->val.tree, vlp, xsink);
+}
+
+class QoreStringNode **get_string_var_value_ptr(class QoreNode *n, class AutoVLock *vlp, class ExceptionSink *xsink)
+{
+   QoreNode **v = get_var_value_ptr(n, vlp, xsink);
+   if (!v || *xsink)
+      return 0;
+   if (dynamic_cast<QoreStringNode *>(*v))
+      return reinterpret_cast<QoreStringNode **>(v);
+   return 0;
 }
 
 // finds value of partially evaluated lvalue expressions (for use with references)
@@ -628,30 +635,10 @@ class QoreNode *getNoEvalVarValue(class QoreNode *n, class AutoVLock *vl, class 
       return NULL;
       
    // otherwise get member name
-   if (!n->val.tree->right)
-   {
-      if (val->type == NT_HASH)
-	 return val->val.hash->getKeyValue("");
-      return val->val.object->getMemberValueNoMethod("", vl, xsink);
-   }
-   
-   if (n->val.tree->right->type == NT_STRING)
-   {
-      if (val->type == NT_HASH)
-	 return val->val.hash->getKeyValue(n->val.tree->right->val.String, xsink);
-      return val->val.object->getMemberValueNoMethod(n->val.tree->right->val.String, vl, xsink);
-   }
-   
-   class QoreNode *nm = n->val.tree->right->convert(NT_STRING);
-   
-   class QoreNode *rv;
+   QoreStringValueHelper key(n->val.tree->right);
    if (val->type == NT_HASH)
-      rv = val->val.hash->getKeyValue(nm->val.String, xsink);
-   else
-      rv = val->val.object->getMemberValueNoMethod(nm->val.String, vl, xsink);
-   nm->deref(xsink);
-   
-   return rv;
+      return val->val.hash->getKeyValue(*key, xsink);
+   return val->val.object->getMemberValueNoMethod(*key, vl, xsink);
 }
 
 // finds object value pointers without making any changes to the referenced structures
@@ -695,16 +682,13 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
 	 if (*xsink)
 	    return 0;
 
-	 if (!member)
-	    member.assign(false, NullString);
-	 else
-	    member.assign(true, member->convert(NT_STRING));
-	 
+	 QoreStringValueHelper mem(*member);
+
 	 class QoreNode *rv;
 	 if (val->type == NT_HASH)
-	    rv = val->val.hash->getKeyValue(member->val.String, xsink);
+	    rv = val->val.hash->getKeyValue(*mem, xsink);
 	 else
-	    rv = val->val.object->getMemberValueNoMethod(member->val.String, vl, xsink);
+	    rv = val->val.object->getMemberValueNoMethod(*mem, vl, xsink);
 	 
 	 //traceout("getExistingVarValue()");
 	 return rv;
@@ -775,16 +759,13 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
 	 if (*xsink)
 	    return 0;
 
-	 if (!member)
-	    member.assign(false, NullString);
-	 else
-	    member.assign(true, member->convert(NT_STRING));
-         
+	 QoreStringValueHelper mem(*member);
+
          class QoreNode **rv;
          if ((*val)->type == NT_HASH)
-            rv = (*val)->val.hash->getExistingValuePtr(member->val.String, xsink);
+            rv = (*val)->val.hash->getExistingValuePtr(*mem, xsink);
          else
-            rv = (*val)->val.object->getExistingValuePtr(member->val.String, vl, xsink);
+            rv = (*val)->val.object->getExistingValuePtr(*mem, vl, xsink);
          
          //traceout("getUniqueExistingVarValuePtr()");
          return rv;
@@ -884,10 +865,7 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
    if (*xsink)
       return;
 
-   if (!member)
-      member.assign(false, NullString);
-   else
-      member.assign(true, member->convert(NT_STRING));
+   QoreStringValueHelper mem(*member);
 
    // get unique value if necessary
    if ((*val)->reference_count() > 1)
@@ -899,9 +877,9 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
 
    // if it's a hash reference, then delete the key
    if ((*val)->type == NT_HASH)
-      (*val)->val.hash->deleteKey(member->val.String, xsink);
+      (*val)->val.hash->deleteKey(*mem, xsink);
    else     // must be an object reference
-      (*val)->val.object->deleteMemberValue(member->val.String, xsink);
+      (*val)->val.object->deleteMemberValue(*mem, xsink);
 
    // release lock(s)
    vl.del();

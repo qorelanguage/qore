@@ -23,6 +23,12 @@
 #include <qore/Qore.h>
 
 #include "QC_QSystemTrayIcon.h"
+#include "QC_QObject.h"
+#include "QC_QMenu.h"
+#include "QC_QRect.h"
+#include "QC_QIcon.h"
+
+#include "qore-qt.h"
 
 int CID_QSYSTEMTRAYICON;
 class QoreClass *QC_QSystemTrayIcon = 0;
@@ -167,7 +173,7 @@ static QoreNode *QSYSTEMTRAYICON_showMessage(QoreObject *self, QoreQSystemTrayIc
 //QString toolTip () const
 static QoreNode *QSYSTEMTRAYICON_toolTip(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qsti->qobj->toolTip().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qsti->qobj->toolTip().toUtf8().data(), QCS_UTF8);
 }
 
 //void hide ()

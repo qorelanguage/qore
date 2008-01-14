@@ -46,10 +46,10 @@ module_map_t ModuleManager::map;
 #ifdef QORE_MONOLITHIC
 // for non-shared builds of the qore library, initialize all optional components here
 # ifdef TIBRV
-#  include "../modules/TIBCO/tibrv-module.h"
+#  include "../modules/tibrv/tibrv-module.h"
 # endif
 # ifdef TIBAE
-#  include "../modules/TIBCO/tibae-module.h"
+#  include "../modules/tibae/tibae-module.h"
 # endif
 # ifdef ORACLE
 #  include "../modules/oracle/oracle-module.h"
@@ -155,15 +155,15 @@ bool ModuleInfo::isBuiltin() const
 class QoreHash *ModuleInfo::getHash() const
 {
    class QoreHash *h = new QoreHash();
-   h->setKeyValue("filename", new QoreNode(filename), NULL);
-   h->setKeyValue("name", new QoreNode(name), NULL);
-   h->setKeyValue("desc", new QoreNode(desc), NULL);
-   h->setKeyValue("version", new QoreNode(version), NULL);
-   h->setKeyValue("author", new QoreNode(author), NULL);
+   h->setKeyValue("filename", new QoreStringNode(filename), NULL);
+   h->setKeyValue("name", new QoreStringNode(name), NULL);
+   h->setKeyValue("desc", new QoreStringNode(desc), NULL);
+   h->setKeyValue("version", new QoreStringNode(version), NULL);
+   h->setKeyValue("author", new QoreStringNode(author), NULL);
    h->setKeyValue("api_major", new QoreNode((int64)api_major), NULL);
    h->setKeyValue("api_minor", new QoreNode((int64)api_minor), NULL);
    if (url)
-      h->setKeyValue("url", new QoreNode(url), NULL);
+      h->setKeyValue("url", new QoreStringNode(url), NULL);
    return h;
 }
 
@@ -399,7 +399,7 @@ class QoreString *ModuleManager::loadModuleFromPath(const char *path, const char
       *mip = NULL;
 
    class QoreString *str = NULL;
-   void *ptr = dlopen(path, RTLD_LAZY);
+   void *ptr = dlopen(path, RTLD_LAZY|RTLD_GLOBAL);
    if (!ptr)
    {
       str = new QoreString();

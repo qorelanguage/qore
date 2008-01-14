@@ -26,6 +26,9 @@
 #include "QC_QRectF.h"
 #include "QC_QPoint.h"
 //#include "QC_QPointF.h"
+#include "QC_QRegion.h"
+
+#include "qore-qt.h"
 
 int CID_QMATRIX;
 QoreClass *QC_QMatrix = 0;

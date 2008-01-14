@@ -23,6 +23,12 @@
 #include <qore/Qore.h>
 
 #include "QC_QFontMetrics.h"
+#include "QC_QFont.h"
+#include "QC_QPaintDevice.h"
+#include "QC_QRect.h"
+
+#include "qore-qt.h"
+
 
 int CID_QFONTMETRICS;
 class QoreClass *QC_QFontMetrics = 0;
@@ -94,7 +100,7 @@ static QoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFontMetric
 //         xsink->raiseException("QFONTMETRICS-BOUNDINGRECT-PARAM-ERROR", "expecting a string as third argument to QFontMetrics::boundingRect()");
 //         return 0;
 //      }
-//      const char *text = p->val.String->getBuffer();
+//      const char *text = p->getBuffer();
 //      p = get_param(params, 3);
 //      int tabStops = p ? p->getAsInt() : 0;
 //      p = get_param(params, 4);
@@ -109,7 +115,7 @@ static QoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFontMetric
 //         xsink->raiseException("QFONTMETRICS-BOUNDINGRECT-PARAM-ERROR", "expecting a string as first argument to QFontMetrics::boundingRect()");
 //         return 0;
 //      }
-//      const char *text = p->val.String->getBuffer();
+//      const char *text = p->getBuffer();
 //      QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
 //      QoreQRect *q_qr = new QoreQRect(qfm->boundingRect(text));
 //      o_qr->setPrivate(CID_QRECT, q_qr);
@@ -129,7 +135,7 @@ static QoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFontMetric
 //      xsink->raiseException("QFONTMETRICS-BOUNDINGRECT-PARAM-ERROR", "expecting a string as sixth argument to QFontMetrics::boundingRect()");
 //      return 0;
 //   }
-//   const char *text = p->val.String->getBuffer();
+//   const char *text = p->getBuffer();
 //   p = get_param(params, 6);
 //   int tabStops = p ? p->getAsInt() : 0;
 //   p = get_param(params, 7);
@@ -143,13 +149,14 @@ static QoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFontMetric
 //int charWidth ( const QString & text, int pos ) const
 static QoreNode *QFONTMETRICS_charWidth(QoreObject *self, QoreQFontMetrics *qfm, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr) {
       xsink->raiseException("QFONTMETRICS-CHARWIDTH-PARAM-ERROR", "expecting a string as first argument to QFontMetrics::charWidth()");
       return 0;
    }
-   const char *text = p->val.String->getBuffer();
-   p = get_param(params, 1);
+   const char *text = pstr->getBuffer();
+
+   QoreNode *p = get_param(params, 1);
    int pos = p ? p->getAsInt() : 0;
    return new QoreNode((int64)qfm->charWidth(text, pos));
 }
@@ -163,19 +170,20 @@ static QoreNode *QFONTMETRICS_descent(QoreObject *self, QoreQFontMetrics *qfm, c
 //QString elidedText ( const QString & text, Qt::TextElideMode mode, int width, int flags = 0 ) const
 static QoreNode *QFONTMETRICS_elidedText(QoreObject *self, QoreQFontMetrics *qfm, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr) {
       xsink->raiseException("QFONTMETRICS-ELIDEDTEXT-PARAM-ERROR", "expecting a string as first argument to QFontMetrics::elidedText()");
       return 0;
    }
-   const char *text = p->val.String->getBuffer();
-   p = get_param(params, 1);
+   const char *text = pstr->getBuffer();
+
+   QoreNode *p = get_param(params, 1);
    Qt::TextElideMode mode = (Qt::TextElideMode)(p ? p->getAsInt() : 0);
    p = get_param(params, 2);
    int width = p ? p->getAsInt() : 0;
    p = get_param(params, 3);
    int flags = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qfm->elidedText(text, mode, width, flags).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfm->elidedText(text, mode, width, flags).toUtf8().data(), QCS_UTF8);
 }
 
 //int height () const
@@ -204,12 +212,12 @@ static QoreNode *QFONTMETRICS_leading(QoreObject *self, QoreQFontMetrics *qfm, c
 //int leftBearing ( QChar ch ) const
 static QoreNode *QFONTMETRICS_leftBearing(QoreObject *self, QoreQFontMetrics *qfm, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QFONTMETRICS-LEFTBEARING-PARAM-ERROR", "expecting a string as first argument to QFontMetrics::leftBearing()");
       return 0;
    }
-   const char ch = p->val.String->getBuffer()[0];
+   const char ch = p->getBuffer()[0];
    return new QoreNode((int64)qfm->leftBearing(ch));
 }
 
@@ -252,12 +260,12 @@ static QoreNode *QFONTMETRICS_overlinePos(QoreObject *self, QoreQFontMetrics *qf
 //int rightBearing ( QChar ch ) const
 static QoreNode *QFONTMETRICS_rightBearing(QoreObject *self, QoreQFontMetrics *qfm, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QFONTMETRICS-RIGHTBEARING-PARAM-ERROR", "expecting a string as first argument to QFontMetrics::rightBearing()");
       return 0;
    }
-   const char ch = p->val.String->getBuffer()[0];
+   const char ch = p->getBuffer()[0];
    return new QoreNode((int64)qfm->rightBearing(ch));
 }
 
@@ -271,7 +279,7 @@ static QoreNode *QFONTMETRICS_rightBearing(QoreObject *self, QoreQFontMetrics *q
 //      xsink->raiseException("QFONTMETRICS-SIZE-PARAM-ERROR", "expecting a string as second argument to QFontMetrics::size()");
 //      return 0;
 //   }
-//   const char *text = p->val.String->getBuffer();
+//   const char *text = p->getBuffer();
 //   p = get_param(params, 2);
 //   int tabStops = p ? p->getAsInt() : 0;
 //   p = get_param(params, 3);
@@ -291,12 +299,12 @@ static QoreNode *QFONTMETRICS_strikeOutPos(QoreObject *self, QoreQFontMetrics *q
 //QRect tightBoundingRect ( const QString & text ) const
 static QoreNode *QFONTMETRICS_tightBoundingRect(QoreObject *self, QoreQFontMetrics *qfm, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QFONTMETRICS-TIGHTBOUNDINGRECT-PARAM-ERROR", "expecting a string as first argument to QFontMetrics::tightBoundingRect()");
       return 0;
    }
-   const char *text = p->val.String->getBuffer();
+   const char *text = p->getBuffer();
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qfm->tightBoundingRect(text));
    o_qr->setPrivate(CID_QRECT, q_qr);
@@ -314,10 +322,14 @@ static QoreNode *QFONTMETRICS_underlinePos(QoreObject *self, QoreQFontMetrics *q
 static QoreNode *QFONTMETRICS_width(QoreObject *self, QoreQFontMetrics *qfm, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_STRING) {
-      const char *text = p->val.String->getBuffer();
-      p = get_param(params, 1);
-      return new QoreNode((int64)qfm->width(text, !is_nothing(p) ? p->getAsInt() : -1));
+
+   {
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(p);
+      if (str) {
+	 const char *text = str->getBuffer();
+	 p = get_param(params, 1);
+	 return new QoreNode((int64)qfm->width(text, !is_nothing(p) ? p->getAsInt() : -1));
+      }
    }
 
    QChar ch;

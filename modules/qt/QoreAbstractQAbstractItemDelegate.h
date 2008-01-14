@@ -29,6 +29,11 @@
 #include "QoreQtEventDispatcher.h"
 
 #include "QC_QPainter.h"
+#include "QC_QStyleOptionViewItem.h"
+#include "QC_QModelIndex.h"
+#include "QC_QAbstractItemModel.h"
+#include "QC_QWidget.h"
+#include "QC_QSize.h"
 
 extern int CID_QWIDGET;
 

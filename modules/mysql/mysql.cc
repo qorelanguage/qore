@@ -428,7 +428,7 @@ class QoreNode *MyResult::getBoundColumnValue(const QoreEncoding *csid, int i)
    else if (bindbuf[i].buffer_type == MYSQL_TYPE_STRING)
    {
       //printf("string (%d): '%s'\n", mlen[i], (char *)bindbuf[i].buffer);
-      n = new QoreNode(new QoreString((char *)bindbuf[i].buffer, csid));
+      n = new QoreStringNode((const char *)bindbuf[i].buffer, csid);
    }
    else if (bindbuf[i].buffer_type == MYSQL_TYPE_DATETIME)
    {
@@ -813,28 +813,31 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
       buf->buffer_type = MYSQL_TYPE_NULL;
       return 0;
    }
-   else if (data.value->type == NT_STRING)
+
    {
-      // convert to the db charset if necessary
-      class QoreString *bstr = data.value->val.String;
-      if (bstr->getEncoding() != enc)
-      {
-	 bstr = bstr->convertEncoding(enc, xsink);
-	 if (!bstr) // exception was thrown
-	    return -1;
-	 // save temporary string for later deleting
-	 data.tstr = bstr;
+      QoreStringNode *bstr = dynamic_cast<QoreStringNode *>(data.value);
+      if (bstr) {
+	 // convert to the db charset if necessary
+	 if (bstr->getEncoding() != enc)
+	 {
+	    bstr = bstr->convertEncoding(enc, xsink);
+	    if (!bstr) // exception was thrown
+	       return -1;
+	    // save temporary string for later deleting
+	    data.tstr = bstr;
+	 }
+
+	 len = bstr->strlen();
+
+	 buf->buffer_type = MYSQL_TYPE_STRING;
+	 buf->buffer = (char *)bstr->getBuffer();
+	 buf->buffer_length = len + 1;
+	 buf->length = &len;
+	 return 0;
       }
-
-      len = bstr->strlen();
-
-      buf->buffer_type = MYSQL_TYPE_STRING;
-      buf->buffer = (char *)bstr->getBuffer();
-      buf->buffer_length = len + 1;
-      buf->length = &len;
-      return 0;
    }
-   else if (data.value->type == NT_DATE)
+
+   if (data.value->type == NT_DATE)
    {
       vbuf.assign(data.value->val.date_time);
 
@@ -842,7 +845,8 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
       buf->buffer = &vbuf.time;
       return 0;
    }
-   else if (data.value->type == NT_BINARY)
+
+   if (data.value->type == NT_BINARY)
    {
       len = data.value->val.bin->size();
       buf->buffer_type = MYSQL_TYPE_BLOB;
@@ -851,20 +855,23 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
       buf->length = &len;
       return 0;
    }
-   else if (data.value->type == NT_BOOLEAN)
+
+   if (data.value->type == NT_BOOLEAN)
    {
       vbuf.i4 = data.value->val.intval;
       buf->buffer_type = MYSQL_TYPE_LONG;
       buf->buffer = (char *)&vbuf.i4;
       return 0;
    }
-   else if (data.value->type == NT_INT)
+   
+   if (data.value->type == NT_INT)
    {
       buf->buffer_type = MYSQL_TYPE_LONGLONG;
       buf->buffer = (char *)&data.value->val.intval;
       return 0;
    }
-   else if (data.value->type == NT_FLOAT)
+
+   if (data.value->type == NT_FLOAT)
    {
       buf->buffer_type = MYSQL_TYPE_DOUBLE;
       buf->buffer = (char *)&data.value->val.floatval;
@@ -906,7 +913,7 @@ static class QoreHash *get_result_set(const Datasource *ds, MYSQL_RES *res)
 	    case FIELD_TYPE_LONG:
 	    case FIELD_TYPE_INT24:
 	    case FIELD_TYPE_TINY:
-	       n = new QoreNode(NT_INT, atoi(row[i]));
+	       n = new QoreNode((int64)atoi(row[i]));
 	       break;
 	       
 	       // for floating point values
@@ -952,7 +959,7 @@ static class QoreHash *get_result_set(const Datasource *ds, MYSQL_RES *res)
 	    
 	    // the rest defaults to string
 	    default:
-	       n = new QoreNode(new QoreString(row[i], ds->getQoreEncoding()));
+	       n = new QoreStringNode(row[i], ds->getQoreEncoding());
 	       break;
 	 }
 	 //printd(5, "get_result_set() row %d col %d: %s (type=%d)=\"%s\"\n", rn, i, field[i].name, field[i].type, row[i]);
@@ -996,7 +1003,7 @@ static class QoreNode *qore_mysql_do_sql(const Datasource *ds, const QoreString 
    }
    else
    {
-      rv = new QoreNode(NT_INT, mysql_affected_rows(db));
+      rv = new QoreNode((int64)mysql_affected_rows(db));
    }
 #ifdef HAVE_MYSQL_COMMIT
    if (ds->getAutoCommit())

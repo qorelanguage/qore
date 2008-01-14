@@ -132,7 +132,7 @@ class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    if ((msd = MStringData::downCast(md)))
    {
       MString ms = msd->getAsString();
-      return new QoreNode((char *)ms.c_str());
+      return new QoreStringNode((char *)ms.c_str());
    }
    
    const MReal *mr;
@@ -202,14 +202,16 @@ void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &
 	 continue;
       }
 
-      if (hi.getValue()->type != NT_STRING)
+      QoreNode *v = hi.getValue();
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
+      if (!str)
       {
 	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH",
-			"properties hash has invalid type '%s' for key '%s' (must be string)",
-			hi.getValue()->type->getName(), key);
+			       "properties hash has invalid type '%s' for key '%s' (must be string)",
+			       v ? v->type->getName() : "NOTHING", key);
 	 return;
       }
-      const char *val = hi.getValue()->val.String->getBuffer();
+      const char *val = str->getBuffer();
 
       if (!strcmp(key, "AppVersion"))
 	 appProperties->setAppVersion(val);
@@ -236,10 +238,11 @@ void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &
 	    continue;
 
 	 class QoreNode *n = vhi.getValue();
-	 if (!n || n->type != NT_STRING || !n->val.String->strlen())
+	 QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+	 if (!str || !str->strlen())
 	    continue;
-	 //printd(5, "setting override for global variable %s=%s\n", key, n->val.String->getBuffer());
-	 tcl.add(key, n->val.String->getBuffer());
+	 //printd(5, "setting override for global variable %s=%s\n", key, str->getBuffer());
+	 tcl.add(key, str->getBuffer());
       }
    }
 

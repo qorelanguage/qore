@@ -33,16 +33,16 @@ static void TIBRVFTMEMBER_constructor(class QoreObject *self, const QoreNode *pa
 {
    tracein("TIBRVFTMEMBER_constructor");
 
-   class QoreNode *pt = test_param(params, NT_STRING, 0);
-   if (!pt)
+   QoreStringNode *str = test_string_param(params, 0);
+   if (!str)
    {
       xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "missing fault-tolerant group name as first parameter to TibrvFtMember::constructor()");
       return;
    }
-   const char *groupName = pt->val.String->getBuffer();
+   const char *groupName = str->getBuffer();
 
    int weight, activeGoal;
-   pt = get_param(params, 1);
+   QoreNode *pt = get_param(params, 1);
    weight = pt ? pt->getAsInt() : 0;
    if (weight <= 0)
    {
@@ -103,21 +103,20 @@ static void TIBRVFTMEMBER_constructor(class QoreObject *self, const QoreNode *pa
    }
 
    const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
-   pt = test_param(params, NT_STRING, 6);
-   if (pt)
-      service = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 7);
-   if (pt)
-      network = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 8);
-   if (pt)
-      daemon = pt->val.String->getBuffer();
-   pt = test_param(params, NT_STRING, 9);
-   if (pt)
-      desc = pt->val.String->getBuffer();
+   str = test_string_param(params, 6);
+   if (str)
+      service = str->getBuffer();
+   str = test_string_param(params, 7);
+   if (str)
+      network = str->getBuffer();
+   str = test_string_param(params, 8);
+   if (str)
+      daemon = str->getBuffer();
+   str = test_string_param(params, 9);
+   if (str)
+      desc = str->getBuffer();
 
-   class QoreTibrvFtMember *qftmember = new QoreTibrvFtMember(groupName, weight, activeGoal, heartbeat, prep, activation, 
-							      service, network, daemon, desc, xsink);
+   class QoreTibrvFtMember *qftmember = new QoreTibrvFtMember(groupName, weight, activeGoal, heartbeat, prep, activation, service, network, daemon, desc, xsink);
 
    if (xsink->isException())
       qftmember->deref();
@@ -154,10 +153,7 @@ static QoreNode *TIBRVFTMEMBER_stop(class QoreObject *self, class QoreTibrvFtMem
 class QoreNode *TIBRVFTMEMBER_getGroupName(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreNode *params, ExceptionSink *xsink)
 {
    const char *name = ftm->getGroupName();
-   if (name)
-      return new QoreNode((char *)name);
-
-   return NULL;
+   return name ? new QoreStringNode((char *)name) : 0;
 }
 
 class QoreNode *TIBRVFTMEMBER_setWeight(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreNode *params, ExceptionSink *xsink)

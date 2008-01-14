@@ -23,6 +23,16 @@
 #include <qore/Qore.h>
 
 #include "QC_QTextEdit.h"
+#include "QC_QWidget.h"
+#include "QC_QPoint.h"
+#include "QC_QMenu.h"
+#include "QC_QTextCharFormat.h"
+#include "QC_QFont.h"
+#include "QC_QUrl.h"
+#include "QC_QPrinter.h"
+#include "QC_QColor.h"
+
+#include "qore-qt.h"
 
 int CID_QTEXTEDIT;
 class QoreClass *QC_QTextEdit = 0;
@@ -84,7 +94,7 @@ static QoreNode *QTEXTEDIT_anchorAt(QoreObject *self, QoreAbstractQTextEdit *qte
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> posHolder(static_cast<AbstractPrivateData *>(pos), xsink);
-   return new QoreNode(new QoreString(qte->getQTextEdit()->anchorAt(*(static_cast<QPoint *>(pos))).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qte->getQTextEdit()->anchorAt(*(static_cast<QPoint *>(pos))).toUtf8().data(), QCS_UTF8);
 }
 
 //AutoFormatting autoFormatting () const
@@ -188,7 +198,7 @@ static QoreNode *QTEXTEDIT_document(QoreObject *self, QoreAbstractQTextEdit *qte
 //QString documentTitle () const
 static QoreNode *QTEXTEDIT_documentTitle(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qte->getQTextEdit()->documentTitle().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qte->getQTextEdit()->documentTitle().toUtf8().data(), QCS_UTF8);
 }
 
 //void ensureCursorVisible ()
@@ -221,7 +231,7 @@ static QoreNode *QTEXTEDIT_find(QoreObject *self, QoreAbstractQTextEdit *qte, co
 //QString fontFamily () const
 static QoreNode *QTEXTEDIT_fontFamily(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qte->getQTextEdit()->fontFamily().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qte->getQTextEdit()->fontFamily().toUtf8().data(), QCS_UTF8);
 }
 
 //bool fontItalic () const
@@ -540,13 +550,13 @@ static QoreNode *QTEXTEDIT_textInteractionFlags(QoreObject *self, QoreAbstractQT
 //QString toHtml () const
 static QoreNode *QTEXTEDIT_toHtml(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qte->getQTextEdit()->toHtml().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qte->getQTextEdit()->toHtml().toUtf8().data(), QCS_UTF8);
 }
 
 //QString toPlainText () const
 static QoreNode *QTEXTEDIT_toPlainText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qte->getQTextEdit()->toPlainText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qte->getQTextEdit()->toPlainText().toUtf8().data(), QCS_UTF8);
 }
 
 //QTextOption::WrapMode wordWrapMode () const

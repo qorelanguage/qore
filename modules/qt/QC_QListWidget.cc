@@ -23,6 +23,12 @@
 #include <qore/Qore.h>
 
 #include "QC_QListWidget.h"
+#include "QC_QWidget.h"
+#include "QC_QListWidgetItem.h"
+#include "QC_QRect.h"
+#include "QC_QPoint.h"
+
+#include "qore-qt.h"
 
 int CID_QLISTWIDGET;
 class QoreClass *QC_QListWidget = 0;

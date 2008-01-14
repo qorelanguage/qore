@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QMotifStyle.h"
+#include "QC_QStyleOption.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QMOTIFSTYLE;
 class QoreClass *QC_QMotifStyle = 0;

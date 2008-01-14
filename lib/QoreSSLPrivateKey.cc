@@ -65,7 +65,7 @@ EVP_PKEY *QoreSSLPrivateKey::getData() const
    return priv->pk; 
 }
 
-class QoreString *QoreSSLPrivateKey::getPEM(class ExceptionSink *xsink) const
+class QoreStringNode *QoreSSLPrivateKey::getPEM(class ExceptionSink *xsink) const
 {
    BIO *bp = BIO_new(BIO_s_mem());
    if (!PEM_write_bio_PrivateKey(bp, priv->pk, NULL, NULL, 0, NULL, NULL))
@@ -77,7 +77,7 @@ class QoreString *QoreSSLPrivateKey::getPEM(class ExceptionSink *xsink) const
    char *buf;
    long len = BIO_get_mem_data(bp, &buf);
    
-   class QoreString *str = new QoreString(buf, (int)len);
+   class QoreStringNode *str = new QoreStringNode(buf, (int)len);
    BIO_free(bp);
    return str;
 }
@@ -159,7 +159,7 @@ int64 QoreSSLPrivateKey::getBitLength() const
 class QoreHash *QoreSSLPrivateKey::getInfo() const
 {
    class QoreHash *h = new QoreHash();
-   h->setKeyValue("type", new QoreNode(getType()), NULL);
+   h->setKeyValue("type", new QoreStringNode(getType()), NULL);
    h->setKeyValue("version", new QoreNode(getVersion()), NULL);
    h->setKeyValue("bitLength", new QoreNode(getBitLength()), NULL);
    return h;

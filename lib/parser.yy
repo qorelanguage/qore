@@ -95,7 +95,7 @@ static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class 
 {
    //tracein("makeTree()");
    //printd(5, "makeTree(): l=%08p, r=%08p, op=%d\n", left, right, op);
-   // if both nodes are constants, then evaluate immediately */
+   // if both nodes are constants, then evaluate immediately
    if (is_value(left) && (!right || is_value(right)))
    {
       ExceptionSink xsink;
@@ -129,14 +129,15 @@ static inline QoreNode *makeArgs(QoreNode *arg)
 inline HashElement::HashElement(class QoreNode *k, class QoreNode *v)
 {
    //tracein("HashElement::HashElement()");
-   if (k->type != NT_STRING)
+   QoreStringNode *str = dynamic_cast<QoreStringNode *>(k);
+   if (!str)
    {
       parse_error("object member name must be a string value!");
       key = strdup("");
    }
    else
-      key = strdup(k->val.String->getBuffer());
-   k->deref(NULL);
+      key = strdup(str->getBuffer());
+   k->deref(0);
    value = v;
    //traceout("HashElement::HashElement()");
 }
@@ -300,7 +301,7 @@ static QoreNode *process_dot(class QoreNode *l, class QoreNode *r)
 {
    if (r->type == NT_BAREWORD)
    {
-      class QoreNode *rv = makeTree(OP_OBJECT_REF, l, new QoreNode(r->val.c_str));
+      class QoreNode *rv = makeTree(OP_OBJECT_REF, l, new QoreStringNode(r->val.c_str));
       r->deref(NULL);
       return rv;
    }
@@ -481,7 +482,7 @@ struct MethodNode {
       int i4;
       int64 integer;
       double decimal;
-      class QoreString *String;
+      class QoreStringNode *String;
       char *string;
       class BinaryObject *binary;
       class QoreNode *node;
@@ -702,8 +703,8 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { if ($$) delete $$; } BINARY DATETIME QUOTED_WORD REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes string
-%destructor { if ($$) $$->deref(); } superclass_list inheritance_list
+%destructor { if ($$) delete $$; } BINARY DATETIME REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
+%destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD
 %destructor { if ($$) $$->deref(NULL); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
 
@@ -1816,17 +1817,13 @@ exp:    scalar
 	      printd(5, "parsing in-object method call %s()\n", str);
 	      $$ = new QoreNode(makeArgs($3), str);
 	   }
-	   else if ($1->type == NT_TREE && $1->val.tree->op == OP_OBJECT_REF
-		    && $1->val.tree->right && $1->val.tree->right->type == NT_STRING)
+	   else if ($1->type == NT_TREE && $1->val.tree->op == OP_OBJECT_REF && $1->val.tree->right && $1->val.tree->right->type == NT_STRING)
 	   {
 	      // create an object method call node
 	      // take the string
-	      class QoreNode *r = $1->val.tree->right;
-	      class QoreString *str = r->val.String;
-	      r->val.String = 0;
-	      r->deref(0);
+	      class QoreStringNode *str = reinterpret_cast<QoreStringNode *>($1->val.tree->right);
 	      char *cstr = str->giveBuffer();
-	      delete str;
+	      str->deref();
 
 	      //printd(5, "method call to %s: tree=%s, args=%08p %s\n", cstr, $1->val.tree->left->type->getName(), $3, $3 ? $3->type->getName() : "n/a");
 
@@ -1866,20 +1863,6 @@ exp:    scalar
         {
 	   $$ = makeTree(OP_REGEX_NMATCH, $1, new QoreNode($3));
 	}
-/*
-        | exp REGEX_MATCH exp
-        {
-	   $$ = makeTree(OP_REGEX_MATCH, $1, new QoreNode(new QoreRegex($3->val.String)));
-	   $3->type = NT_INT;
-	   $3->deref(NULL);
-	}
-        | exp REGEX_NMATCH exp
-        { 
-	   $$ = makeTree(OP_REGEX_NMATCH, $1, new QoreNode(new QoreRegex($3->val.String))); 
-	   $3->type = NT_INT;
-	   $3->deref(NULL);
-	}
-*/
         | exp REGEX_MATCH REGEX_SUBST
         {
 	   if (check_lvalue($1))
@@ -2051,13 +2034,13 @@ string:
 	{
 	   $$ = $1;
 	   $$->concat($2);
-	   delete $2;
+	   $2->deref();
 	}
 
 scalar:
 	QFLOAT        { $$ = new QoreNode(NT_FLOAT); $$->val.floatval = $1; }
 	| INTEGER     { $$ = new QoreNode(NT_INT); $$->val.intval = $1; }
-        | string      { $$ = new QoreNode($1); }
+        | string      { $$ = $1; }
         | DATETIME    { $$ = new QoreNode($1); }
         | TOK_NULL    { $$ = new QoreNode(NT_NULL); }
         | TOK_NOTHING { $$ = new QoreNode(NT_NOTHING); }

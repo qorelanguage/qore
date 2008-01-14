@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QIntValidator.h"
+#include "QC_QObject.h"
+
+#include "qore-qt.h"
 
 int CID_QINTVALIDATOR;
 class QoreClass *QC_QIntValidator = 0;

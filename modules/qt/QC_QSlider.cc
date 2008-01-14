@@ -24,6 +24,7 @@
 
 #include "QC_QSlider.h"
 #include "QC_QAbstractSlider.h"
+#include "QC_QWidget.h"
 
 int CID_QSLIDER;
 

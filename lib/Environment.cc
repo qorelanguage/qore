@@ -87,6 +87,20 @@ class QoreString *Environment::get(const char *name)
    return str;
 }
 
+class QoreStringNode *Environment::getAsStringNode(const char *name)
+{
+   class QoreStringNode *str;
+#ifdef NEED_ENVIRON_LOCK
+   lck_environ.lock();
+#endif
+   char *p = getenv(name);
+   str = p ? new QoreStringNode(p) : NULL;
+#ifdef NEED_ENVIRON_LOCK
+   lck_environ.unlock();
+#endif
+   return str;
+}
+
 int Environment::unset(const char *name)
 {
    int rc;

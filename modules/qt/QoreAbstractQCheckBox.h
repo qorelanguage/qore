@@ -24,9 +24,9 @@
 
 #define _QORE_QT_QOREABSTRACTQCHECKBOX_H
 
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQAbstractButton.h"
 
-class QoreAbstractQCheckBox : public QoreAbstractQWidget
+class QoreAbstractQCheckBox : public QoreAbstractQAbstractButton
 {
    public:
       DLLLOCAL virtual class QCheckBox *getQCheckBox() const = 0;

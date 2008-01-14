@@ -80,29 +80,29 @@ static class QoreHash *he_to_hash(struct hostent &he)
    class QoreHash *h = new QoreHash();
    
    if (he.h_name && he.h_name[0])
-      h->setKeyValue("name", new QoreNode(he.h_name), 0); // official host name
+      h->setKeyValue("name", new QoreStringNode(he.h_name), 0); // official host name
    if (he.h_aliases)
    {
       class QoreList *l = new QoreList();
       char **a = he.h_aliases;
       while (*a)
-	 l->push(new QoreNode(*(a++)));
+	 l->push(new QoreStringNode(*(a++)));
       h->setKeyValue("aliases", new QoreNode(l), 0);
    }
    switch (he.h_addrtype)
    {
       case AF_INET:
-	 h->setKeyValue("typename", new QoreNode("ipv4"), 0);
+	 h->setKeyValue("typename", new QoreStringNode("ipv4"), 0);
 	 h->setKeyValue("type", new QoreNode((int64)AF_INET), 0);
 	 break;
 
       case AF_INET6:
-	 h->setKeyValue("typename", new QoreNode("ipv6"), 0);
+	 h->setKeyValue("typename", new QoreStringNode("ipv6"), 0);
 	 h->setKeyValue("type", new QoreNode((int64)AF_INET6), 0);
 	 break;
 
       default:
-	 h->setKeyValue("typename", new QoreNode("unknown"), 0);
+	 h->setKeyValue("typename", new QoreStringNode("unknown"), 0);
    }
    h->setKeyValue("len", new QoreNode((int64)he.h_length), 0);
 
@@ -115,7 +115,7 @@ static class QoreHash *he_to_hash(struct hostent &he)
       while (*a)
       {
 	 if (inet_ntop(he.h_addrtype, *(a++), buf, QORE_NET_ADDR_BUF_LEN))
-	    l->push(new QoreNode(buf));
+	    l->push(new QoreStringNode(buf));
       }
       h->setKeyValue("addresses", new QoreNode(l), 0);
    }
@@ -123,24 +123,24 @@ static class QoreHash *he_to_hash(struct hostent &he)
    return h;
 }
 
-static class QoreString *hename_string(struct hostent &he)
+static class QoreStringNode *hename_string(struct hostent &he)
 {
    if (he.h_name && he.h_name[0])
-      return new QoreString(he.h_name);
+      return new QoreStringNode(he.h_name);
 
-   return new QoreString();
+   return new QoreStringNode();
 }
 
-static class QoreString *headdr_string(struct hostent &he)
+static class QoreStringNode *headdr_string(struct hostent &he)
 {
    if (he.h_addr_list && he.h_addr_list[0])
    {
       char buf[QORE_NET_ADDR_BUF_LEN];
       if (inet_ntop(he.h_addrtype, he.h_addr_list[0], buf, QORE_NET_ADDR_BUF_LEN))
-	 return new QoreString(buf);
+	 return new QoreStringNode(buf);
    }
 
-   return new QoreString();
+   return new QoreStringNode();
 }
 
 class QoreHash *q_gethostbyname_to_hash(const char *host)
@@ -179,7 +179,7 @@ class QoreHash *q_gethostbyname_to_hash(const char *host)
 #endif
 }
 
-class QoreString *q_gethostbyname_to_string(const char *host)
+class QoreStringNode *q_gethostbyname_to_string(const char *host)
 {  
 #ifdef HAVE_GETHOSTBYNAME_R
    struct hostent he;
@@ -312,7 +312,7 @@ class QoreHash *q_gethostbyaddr_to_hash(class ExceptionSink *xsink, const char *
 
 // thread-safe gethostbyaddr
 // FIXME: check err?
-class QoreString *q_gethostbyaddr_to_string(class ExceptionSink *xsink, const char *addr, int type)
+class QoreStringNode *q_gethostbyaddr_to_string(class ExceptionSink *xsink, const char *addr, int type)
 {
    in_addr sin_addr;
    in6_addr sin6_addr;

@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QBasicTimer.h"
+#include "QC_QObject.h"
+
+#include "qore-qt.h"
 
 int CID_QBASICTIMER;
 class QoreClass *QC_QBasicTimer = 0;

@@ -23,6 +23,13 @@
 #include <qore/Qore.h>
 
 #include "QC_QListWidgetItem.h"
+#include "QC_QIcon.h"
+#include "QC_QBrush.h"
+#include "QC_QListWidget.h"
+#include "QC_QFont.h"
+#include "QC_QSize.h"
+
+#include "qore-qt.h"
 
 int CID_QLISTWIDGETITEM;
 class QoreClass *QC_QListWidgetItem = 0;
@@ -377,13 +384,13 @@ static QoreNode *QLISTWIDGETITEM_sizeHint(QoreObject *self, QoreQListWidgetItem 
 //QString statusTip () const
 static QoreNode *QLISTWIDGETITEM_statusTip(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qlwi->getQListWidgetItem()->statusTip().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qlwi->getQListWidgetItem()->statusTip().toUtf8().data(), QCS_UTF8);
 }
 
 //QString text () const
 static QoreNode *QLISTWIDGETITEM_text(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qlwi->getQListWidgetItem()->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qlwi->getQListWidgetItem()->text().toUtf8().data(), QCS_UTF8);
 }
 
 //int textAlignment () const
@@ -395,7 +402,7 @@ static QoreNode *QLISTWIDGETITEM_textAlignment(QoreObject *self, QoreQListWidget
 //QString toolTip () const
 static QoreNode *QLISTWIDGETITEM_toolTip(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qlwi->getQListWidgetItem()->toolTip().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qlwi->getQListWidgetItem()->toolTip().toUtf8().data(), QCS_UTF8);
 }
 
 //int type () const
@@ -407,7 +414,7 @@ static QoreNode *QLISTWIDGETITEM_type(QoreObject *self, QoreQListWidgetItem *qlw
 //QString whatsThis () const
 static QoreNode *QLISTWIDGETITEM_whatsThis(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qlwi->getQListWidgetItem()->whatsThis().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qlwi->getQListWidgetItem()->whatsThis().toUtf8().data(), QCS_UTF8);
 }
 
 /*

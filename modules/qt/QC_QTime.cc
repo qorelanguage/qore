@@ -23,6 +23,8 @@
 #include <qore/Qore.h>
 #include "QC_QTime.h"
 
+#include "qore-qt.h"
+
 int CID_QTIME;
 QoreClass *QC_QTime = 0;
 
@@ -185,9 +187,9 @@ static QoreNode *QTIME_toString(QoreObject *self, QoreQTime *qt, const QoreNode 
    QString format;
    if (get_qstring(p, format, xsink)) {
       Qt::DateFormat f = (Qt::DateFormat)(p ? p->getAsInt() : 0);
-      return new QoreNode(new QoreString(qt->toString(f).toUtf8().data(), QCS_UTF8));
+      return new QoreStringNode(qt->toString(f).toUtf8().data(), QCS_UTF8);
    }
-   return new QoreNode(new QoreString(qt->toString(format).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qt->toString(format).toUtf8().data(), QCS_UTF8);
 }
 
 class QoreClass *initQTimeClass()

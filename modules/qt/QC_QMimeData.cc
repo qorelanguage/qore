@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QMimeData.h"
+#include "QC_QByteArray.h"
+
+#include "qore-qt.h"
 
 int CID_QMIMEDATA;
 class QoreClass *QC_QMimeData = 0;
@@ -72,7 +75,7 @@ static QoreNode *QMIMEDATA_formats(QoreObject *self, QoreQMimeData *qmd, const Q
    QStringList strlist_rv = qmd->qobj->formats();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 
@@ -120,7 +123,7 @@ static QoreNode *QMIMEDATA_hasUrls(QoreObject *self, QoreQMimeData *qmd, const Q
 //QString html () const
 static QoreNode *QMIMEDATA_html(QoreObject *self, QoreQMimeData *qmd, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qmd->qobj->html().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qmd->qobj->html().toUtf8().data(), QCS_UTF8);
 }
 
 //QVariant imageData () const
@@ -203,7 +206,7 @@ static QoreNode *QMIMEDATA_setText(QoreObject *self, QoreQMimeData *qmd, const Q
 //QString text () const
 static QoreNode *QMIMEDATA_text(QoreObject *self, QoreQMimeData *qmd, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qmd->qobj->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qmd->qobj->text().toUtf8().data(), QCS_UTF8);
 }
 
 ////QList<QUrl> urls () const

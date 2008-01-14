@@ -319,7 +319,7 @@ static void *make_oracle_date_time(class DateTime *d)
 extern "C" sb4 read_clob_callback(void *sp, CONST dvoid *bufp, ub4 len, ub1 piece)
 {
    printd(5, "read_clob_callback(%08p, %08p, %d, %d)\n", sp, bufp, len, piece);
-   ((class QoreString *)sp)->concat((char *)bufp, len);
+   (reinterpret_cast<QoreStringNode *>(sp))->concat((char *)bufp, len);
    return OCI_CONTINUE;
 }
 
@@ -440,15 +440,12 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
 	 ub4 amt = 0;
 	 if (dtype == SQLT_CLOB)
 	 {
-	    class QoreString *str = new QoreString(ds->getQoreEncoding());
+	    TempStringNode str(new QoreStringNode(ds->getQoreEncoding()));
 	    // read LOB data in streaming callback mode
 	    ora_checkerr(d_ora->errhp,
 			 OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)val.ptr, &amt, 1, buf, LOB_BLOCK_SIZE,
-				    str, read_clob_callback, (ub2)d_ora->charsetid, (ub1)0), "oraReadCLOBCallback()", ds, xsink);
-	    if (!xsink->isEvent())
-	       rv = new QoreNode(str);
-	    else
-	       rv = NULL;
+				    *str, read_clob_callback, (ub2)d_ora->charsetid, (ub1)0), "oraReadCLOBCallback()", ds, xsink);
+	    rv = *xsink ? 0 : str.release();
 	 }
 	 else
 	 {
@@ -470,7 +467,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
 	 //printd(5, "type=%d\n", dtype);
 	 // must be string data
 	 remove_trailing_blanks((char *)val.ptr);
-	 return new QoreNode(new QoreString((char *)val.ptr, ds->getQoreEncoding()));
+	 return new QoreStringNode((char *)val.ptr, ds->getQoreEncoding());
    }
    // to avoid a warning
    return NULL;
@@ -740,7 +737,8 @@ void OraBindGroup::parseQuery(const QoreList *args, class ExceptionSink *xsink)
 	       xsink->raiseException("DBI-EXEC-EXCEPTION", "missing 'type' key in placeholder hash");
 	       break;	 
 	    }
-	    if (t->type != NT_STRING)
+	    QoreStringNode *str = dynamic_cast<QoreStringNode *>(t);
+	    if (!str)
 	    {
 	       xsink->raiseException("DBI-EXEC-EXCEPTION", "expecting type name as value of 'type' key, got '%s'", t->type->getName());
 	       break;
@@ -750,11 +748,11 @@ void OraBindGroup::parseQuery(const QoreList *args, class ExceptionSink *xsink)
 	    class QoreNode *sz = v->val.hash->getKeyValue("size");
 	    int size = sz ? sz->getAsInt() : -1;
 	    
-	    printd(5, "OraBindGroup::parseQuery() adding placeholder name=%s, size=%d, type=%s\n", tstr.getBuffer(), size, t->val.String->getBuffer());
-	    add(tstr.giveBuffer(), size, t->val.String->getBuffer());
+	    printd(5, "OraBindGroup::parseQuery() adding placeholder name=%s, size=%d, type=%s\n", tstr.getBuffer(), size, str->getBuffer());
+	    add(tstr.giveBuffer(), size, str->getBuffer());
 	 }
 	 else if (v->type == NT_STRING)
-	    add(tstr.giveBuffer(), -1, v->val.String->getBuffer());
+	    add(tstr.giveBuffer(), -1, (reinterpret_cast<QoreStringNode *>(v))->getBuffer());
 	 else if (v->type == NT_INT)
 	    add(tstr.giveBuffer(), v->val.intval, "string");
 	 else
@@ -785,31 +783,36 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
    if (is_nothing(data.v.value) || is_null(data.v.value))
    {
       ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, NULL, 0, SQLT_STR, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
-		   "OraBindNode::bindValue()", ds, xsink);      
-   }
-   else if (data.v.value->type == NT_STRING)
-   {
-      buftype = SQLT_STR;
-
-      class QoreString *bstr = data.v.value->val.String;
-      // convert to the db charset if necessary
-      if (bstr->getEncoding() != ds->getQoreEncoding())
-      {
-	 bstr = bstr->convertEncoding(ds->getQoreEncoding(), xsink);
-	 if (xsink->isEvent())
-	    return;
-	 // save temporary string for later deleting
-	 data.v.tstr = bstr;
-      }
-
-      // bind value to buffer
-      buf.ptr = (char *)bstr->getBuffer();
-
-      // bind it
-      ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, buf.ptr, bstr->strlen() + 1, SQLT_STR, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
 		   "OraBindNode::bindValue()", ds, xsink);
+      return;
    }
-   else if (data.v.value->type == NT_DATE)
+
+   {
+      QoreStringNode *bstr = dynamic_cast<QoreStringNode *>(data.v.value);
+      if (bstr) {
+	 buftype = SQLT_STR;
+
+	 // convert to the db charset if necessary
+	 if (bstr->getEncoding() != ds->getQoreEncoding())
+	 {
+	    QoreString *nstr = bstr->QoreString::convertEncoding(ds->getQoreEncoding(), xsink);
+	    if (*xsink)
+	       return;
+	    // save temporary string for later deleting
+	    data.v.tstr = nstr;
+	    buf.ptr = (char *)nstr->getBuffer();
+	 }
+	 else // bind value to buffer
+	    buf.ptr = (char *)bstr->getBuffer();
+	 
+	 // bind it
+	 ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, buf.ptr, bstr->strlen() + 1, SQLT_STR, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
+		      "OraBindNode::bindValue()", ds, xsink);
+	 return;
+      }
+   }
+
+   if (data.v.value->type == NT_DATE)
    {
       class DateTime *d = data.v.value->val.date_time;
       buftype = SQLT_DATE;
@@ -835,19 +838,25 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
       ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, buf.date, 7, SQLT_DAT, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
 		   "OraBindNode::bindValue()", ds, xsink);
 */
+      return;
    }
-   else if (data.v.value->type == NT_BINARY)
+
+   if (data.v.value->type == NT_BINARY)
    {
       printd(5, "OraBindNode::bindValue() BLOB ptr=%08p size=%d\n", data.v.value->val.bin->getPtr(), data.v.value->val.bin->size());
       ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, (void *)data.v.value->val.bin->getPtr(), data.v.value->val.bin->size(), SQLT_BIN, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
 		   "OraBindNode::bindValue()", ds, xsink);      
+      return;
    }
-   else if (data.v.value->type == NT_BOOLEAN)
+
+   if (data.v.value->type == NT_BOOLEAN)
    {
       buf.i4 = data.v.value->val.boolval;
       ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &buf.i4, sizeof(int), SQLT_INT, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindValue()", ds, xsink);
+      return;
    }
-   else if (data.v.value->type == NT_INT)
+
+   if (data.v.value->type == NT_INT)
    {
       if (data.v.value->val.intval <= MAXINT32 && data.v.value->val.intval >= -MAXINT32)
       {
@@ -865,14 +874,17 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
 	 //printd(5, "binding number '%s'\n", buf.ptr);
 	 ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, (char *)tstr->getBuffer(), tstr->strlen() + 1, SQLT_STR, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindValue()", ds, xsink);
       }
+      return;
    }
-   else if (data.v.value->type == NT_FLOAT)
+
+   if (data.v.value->type == NT_FLOAT)
    {
       ora_checkerr(d_ora->errhp, 
 		   OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &data.v.value->val.floatval, sizeof(double), SQLT_BDOUBLE, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindValue()", ds, xsink);
+      return;
    }
-   else
-      xsink->raiseException("ORACLE-BIND-PLACEHOLDER-ERROR", "type '%s' is not supported for SQL binding", data.v.value->type->getName());
+
+   xsink->raiseException("ORACLE-BIND-PLACEHOLDER-ERROR", "type '%s' is not supported for SQL binding", data.v.value->type->getName());
 }
 
 void OraBindNode::bindPlaceholder(class Datasource *ds, OCIStmt *stmthp, int pos, class ExceptionSink *xsink)
@@ -976,10 +988,10 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
    {
       // must be string data
       remove_trailing_blanks((char *)buf.ptr);
-      class QoreString *str = new QoreString();
-      str->take((char *)buf.ptr, ds->getQoreEncoding());
-      buf.ptr = NULL;
-      return new QoreNode(str);
+      int len = strlen(buf.ptr);
+      class QoreStringNode *str = new QoreStringNode((char *)buf.ptr, len, len + 1, ds->getQoreEncoding());
+      buf.ptr = 0;
+      return str;
    }
    else if (buftype == SQLT_DAT)
       return new QoreNode(convert_date_time(buf.date));
@@ -1015,12 +1027,12 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
       ub4 amt = 0;
       if (buftype == SQLT_CLOB)
       {
-	 class QoreString *str = new QoreString(ds->getQoreEncoding());
+	 TempStringNode str(new QoreStringNode(ds->getQoreEncoding()));
 	 // read LOB data in streaming callback mode
 	 ora_checkerr(d_ora->errhp,
 		      OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)buf.ptr, &amt, 1, bbuf, LOB_BLOCK_SIZE,
-				 str, read_clob_callback, (ub2)d_ora->charsetid, (ub1)0), "oraReadCLOBCallback()", ds, xsink);
-	 rv = new QoreNode(str);
+				 *str, read_clob_callback, (ub2)d_ora->charsetid, (ub1)0), "oraReadCLOBCallback()", ds, xsink);
+	 rv = *xsink ? 0 : str.release();
       }
       else
       {

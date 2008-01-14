@@ -33,14 +33,14 @@ ReferenceObject::ReferenceObject()
 {
    references = 1;
 #if !defined(HAVE_ATOMIC_MACROS)
-   priv = new qore_ro_private;
+   ropriv = new qore_ro_private;
 #endif
 }
 
 ReferenceObject::~ReferenceObject()
 {
 #if !defined(HAVE_ATOMIC_MACROS)
-   delete priv;
+   delete ropriv;
 #endif
 }
 
@@ -49,9 +49,9 @@ void ReferenceObject::ROreference() const
 #ifdef HAVE_ATOMIC_MACROS
    atomic_inc(&references);
 #else
-   priv->mRO.lock();
+   ropriv->mRO.lock();
    ++references; 
-   priv->mRO.unlock();
+   ropriv->mRO.unlock();
 #endif
 }
 
@@ -70,9 +70,9 @@ bool ReferenceObject::ROdereference() const
       return true;
    return atomic_dec(&references);
 #else
-   priv->mRO.lock();
+   ropriv->mRO.lock();
    int rc = --references;
-   priv->mRO.unlock();
+   ropriv->mRO.unlock();
    return !rc;
 #endif
 }

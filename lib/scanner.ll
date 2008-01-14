@@ -369,7 +369,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 <incl>{WS}*				// ignore white space
 <incl>[^\t\n\r]+			{
                                            FILE *save_yyin = yyin;
-					   QoreString *fname = getIncludeFileName(yytext);
+					   TempString fname(getIncludeFileName(yytext));
 					   yyin = fopen(fname->getBuffer(), "r");
 					   
 					   if (!yyin)
@@ -388,7 +388,6 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					      yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
 					      BEGIN(INITIAL);
 					   }
-					   delete fname;
                                         }
 <<EOF>>                                 {
 					   // delete current buffer
@@ -405,7 +404,7 @@ BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 					   else
 					      yyterminate();
                                         }
-\"					yylval->String = new QoreString(); yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
+\"					yylval->String = new QoreStringNode(); yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
 <str_state>{
       \"				BEGIN(INITIAL); return QUOTED_WORD;
       \n				yylval->String->concat('\n');
@@ -647,7 +646,7 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
 \%\%                                    return TOK_CONTEXT_ROW;
 \`[^`]*\`                               yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE;
-\'[^\']*\'				yylval->String = new QoreString(remove_quotes(yytext)); return QUOTED_WORD;
+\'[^\']*\'				yylval->String = new QoreStringNode(remove_quotes(yytext)); return QUOTED_WORD;
 \<{WS}*=				return LOGICAL_LE;
 \>{WS}*=				return LOGICAL_GE;
 \!{WS}*=				return LOGICAL_NE;

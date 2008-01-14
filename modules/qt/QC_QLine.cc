@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QLine.h"
+#include "QC_QPoint.h"
+
+#include "qore-qt.h"
 
 int CID_QLINE;
 class QoreClass *QC_QLine = 0;

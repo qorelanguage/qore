@@ -23,6 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QAbstractItemModel.h"
+#include "QC_QModelIndex.h"
+#include "QC_QMimeData.h"
+#include "QC_QSize.h"
+
+#include "qore-qt.h"
 
 int CID_QABSTRACTITEMMODEL;
 class QoreClass *QC_QAbstractItemModel = 0;
@@ -340,7 +345,7 @@ static QoreNode *QABSTRACTITEMMODEL_mimeTypes(QoreObject *self, QoreAbstractQAbs
    QStringList strlist_rv = qaim->getQAbstractItemModel()->mimeTypes();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 

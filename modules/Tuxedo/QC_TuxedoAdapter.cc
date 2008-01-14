@@ -219,9 +219,9 @@ static void TUXEDO_copy(QoreObject *self, QoreObject *old, QoreTuxedoAdapter* ad
 static QoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-CALL";
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, "First parameter needs to be service string.");
-  const char* service_name = n->val.String->getBuffer();
+  QoreStringNode* nstr = test_string_param(params, 0);
+  if (!nstr) return xsink->raiseException(err_name, "First parameter needs to be service string.");
+  const char* service_name = nstr->getBuffer();
   if (!service_name || !service_name[0]) {
     return xsink->raiseException(err_name, "Service name string cannot be empty.");
   }
@@ -238,6 +238,7 @@ static QoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNo
   long flags = 0;
   long* pflags = 0;
 
+  QoreNode *n;
   if (get_param(params, 2)) {
     n = test_param(params, NT_HASH, 2);
     if (n) {
@@ -316,9 +317,9 @@ TEST()
 //-----------------------------------------------------------------------------
 static QoreNode* setStringEncoding(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
 {
-  QoreNode* n = test_param(params, NT_STRING, 0);
+  QoreStringNode* n = test_string_param(params, 0);
   if (!n) return xsink->raiseException("TUXEDO-ADAPTER-SET-STRING-ENCODING", "One parameter expected: string name of the encoding.");
-  const char* name = n->val.String->getBuffer();
+  const char* name = n->getBuffer();
   adapter->setStringEncoding(name);
   return 0;
 }
@@ -327,9 +328,9 @@ static QoreNode* setStringEncoding(QoreObject* self, QoreTuxedoAdapter* adapter,
 static QoreNode* asyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-ASYNC-CALL";
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, "First parameter needs to be service string.");
-  const char* service_name = n->val.String->getBuffer();
+  QoreStringNode* nstr = test_string_param(params, 0);
+  if (!nstr) return xsink->raiseException(err_name, "First parameter needs to be service string.");
+  const char* service_name = nstr->getBuffer();
   if (!service_name || !service_name[0]) {
     return xsink->raiseException(err_name, "Service name string cannot be empty.");
   }
@@ -346,6 +347,7 @@ static QoreNode* asyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const Q
   long flags = 0;
   long* pflags = 0;
 
+  QoreNode *n;
   if (get_param(params, 2)) {
     n = test_param(params, NT_HASH, 2);
     if (n) {
@@ -543,9 +545,9 @@ static QoreNode* waitForAsyncReply(QoreObject* self, QoreTuxedoAdapter* adapter,
 static QoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-JOIN-CONVERSATION";
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, "First parameter needs to be service name string.");
-  const char* service_name = n->val.String->getBuffer();
+  QoreStringNode* nstr = test_string_param(params, 0);
+  if (!nstr) return xsink->raiseException(err_name, "First parameter needs to be service name string.");
+  const char* service_name = nstr->getBuffer();
   if (!service_name || !service_name[0]) {
     return xsink->raiseException(err_name, "Service name string cannot be empty.");
   }
@@ -562,6 +564,7 @@ static QoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, 
   long flags = 0;
   long* pflags = 0;
 
+  QoreNode *n;
   if (get_param(params, 2)) {
     n = test_param(params, NT_HASH, 2);
     if (n) {
@@ -690,15 +693,15 @@ static QoreNode* receiveConversationData(QoreObject* self, QoreTuxedoAdapter* ad
 static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-ENQUEUE";
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, "First parameter needs to be queue space string.");
-  const char* queue_space = n->val.String->getBuffer();
+  QoreStringNode* nstr = test_string_param(params, 0);
+  if (!nstr) return xsink->raiseException(err_name, "First parameter needs to be queue space string.");
+  const char* queue_space = nstr->getBuffer();
   if (!queue_space || !queue_space[0]) {
     return xsink->raiseException(err_name, "Queue space parameter cannot be empty.");
   }
-  n = test_param(params, NT_STRING, 1);
-  if (!n) return xsink->raiseException(err_name, "Second parameter needs to be queue name string.");
-  const char* queue_name = n->val.String->getBuffer();
+  nstr = test_string_param(params, 1);
+  if (!nstr) return xsink->raiseException(err_name, "Second parameter needs to be queue name string.");
+  const char* queue_name = nstr->getBuffer();
   if (!queue_name || !queue_name[0]) return xsink->raiseException(err_name, "Queue name cannot be empty.");
 
   QoreNode* data = get_param(params, 2);
@@ -714,6 +717,7 @@ static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const Qor
   long flags = 0;
   long* pflags = 0;
 
+  QoreNode *n;
   if (get_param(params, 2)) {
     n = test_param(params, NT_HASH, 3);
     if (n) {
@@ -744,15 +748,15 @@ static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const Qor
 static QoreNode* dequeue(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-DEQUEUE";
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, "First parameter needs to be queue space string.");
-  const char* queue_space = n->val.String->getBuffer();
+  QoreStringNode* nstr = test_string_param(params, 0);
+  if (!nstr) return xsink->raiseException(err_name, "First parameter needs to be queue space string.");
+  const char* queue_space = nstr->getBuffer();
   if (!queue_space || !queue_space[0]) {
     return xsink->raiseException(err_name, "Queue space parameter cannot be empty.");
   }
-  n = test_param(params, NT_STRING, 1);
-  if (!n) return xsink->raiseException(err_name, "Second parameter needs to be queue name string.");
-  const char* queue_name = n->val.String->getBuffer();
+  nstr = test_string_param(params, 1);
+  if (!nstr) return xsink->raiseException(err_name, "Second parameter needs to be queue name string.");
+  const char* queue_name = nstr->getBuffer();
   if (!queue_name || !queue_name[0]) return xsink->raiseException(err_name, "Queue name cannot be empty.");
 
   // optional settings are either (1) integer flags or (2) hash with flags and queue control parameters
@@ -760,6 +764,7 @@ static QoreNode* dequeue(QoreObject* self, QoreTuxedoAdapter* adapter, const Qor
   long flags = 0;
   long* pflags = 0;
 
+  QoreNode *n;
   if (get_param(params, 2)) {
     n = test_param(params, NT_HASH, 2);
     if (n) {
@@ -841,9 +846,9 @@ static QoreNode* writeToLog(QoreObject* self, QoreTuxedoAdapter* adapter, const 
 {
   adapter->switchToSavedContext();
   
-  QoreNode* n = test_param(params, NT_STRING, 0);
+  QoreStringNode* n = test_string_param(params, 0);
   if (!n) return xsink->raiseException("TUXEDO-ADAPTER-WRITE-TO-LOG", "One parameter expected - string to be written.");
-  const char* text = n->val.String->getBuffer();
+  const char* text = n->getBuffer();
   if (!text) text = (char*)"";
   userlog("%s", text);
   return 0;
@@ -1045,9 +1050,9 @@ static QoreNode* isTransactionRunning(QoreObject* self, QoreTuxedoAdapter* adapt
 static QoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-POST-EVENT";
-  QoreNode* n = test_param(params, NT_STRING, 0);
-  if (!n) return xsink->raiseException(err_name, "First parameter needs to be event name string.");
-  const char* event_name = n->val.String->getBuffer();
+  QoreStringNode* nstr = test_string_param(params, 0);
+  if (!nstr) return xsink->raiseException(err_name, "First parameter needs to be event name string.");
+  const char* event_name = nstr->getBuffer();
   if (!event_name || !event_name[0]) {
     return xsink->raiseException(err_name, "Event name string cannot be empty.");
   }
@@ -1064,6 +1069,7 @@ static QoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const Q
   long flags = 0;
   long* pflags = 0;
 
+  QoreNode *n;
   if (get_param(params, 2)) {
     n = test_param(params, NT_HASH, 2);
     if (n) {
@@ -1230,7 +1236,7 @@ static QoreNode* error2string(QoreObject* self, QoreTuxedoAdapter* adapter, cons
   int err = (int)n->val.intval;
   char* str = strerror(err);
   if (!str || !str[0]) str = (char*)"<uknown error>";
-  return new QoreNode(str);
+  return new QoreStringNode(str);
 }
 
 //-----------------------------------------------------------------------------

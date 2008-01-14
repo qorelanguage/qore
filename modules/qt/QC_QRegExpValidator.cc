@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QRegExpValidator.h"
+#include "QC_QObject.h"
+#include "QC_QRegExp.h"
+
+#include "qore-qt.h"
 
 int CID_QREGEXPVALIDATOR;
 class QoreClass *QC_QRegExpValidator = 0;

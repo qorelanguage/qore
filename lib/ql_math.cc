@@ -309,24 +309,24 @@ static class QoreNode *f_expm1(const QoreNode *params, ExceptionSink *xsink)
 // syntax: format_number(".,3", <number>);
 static class QoreNode *f_format_number(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1;
+   QoreStringNode *p0;
+   class QoreNode *p1;
    int decimals = 0, neg = 1, len;
    int64 tr, bi, mi, th, val;
    char thousands_sep, decimal_sep = '.', chr[40], str[40], dec[20];
 
-   if (!(p0 = test_param(params, NT_STRING, 0))
-       || !(p1 = get_param(params, 1)))
+   if (!(p0 = test_string_param(params, 0)) || !(p1 = get_param(params, 1)))
       return NULL;
 
-   len = p0->val.String->strlen();
+   len = p0->strlen();
    if ((len != 1) && (len != 3))
       return NULL;
 
-   thousands_sep = p0->val.String->getBuffer()[0];
+   thousands_sep = p0->getBuffer()[0];
    if (len == 3)
    {
-      decimal_sep = p0->val.String->getBuffer()[1];
-      decimals = atoi(p0->val.String->getBuffer() + 2);
+      decimal_sep = p0->getBuffer()[1];
+      decimals = atoi(p0->getBuffer() + 2);
    }
 
    double t = p1->getAsFloat();
@@ -408,7 +408,7 @@ static class QoreNode *f_format_number(const QoreNode *params, ExceptionSink *xs
       else
 	 sprintf(str, "%lld", neg * val);
 
-   return new QoreNode(str);
+   return new QoreStringNode(str);
 }
 
 void init_math_functions()

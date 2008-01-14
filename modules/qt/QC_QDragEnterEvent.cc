@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QDragEnterEvent.h"
+#include "QC_QPoint.h"
+#include "QC_QMimeData.h"
+
+#include "qore-qt.h"
 
 int CID_QDRAGENTEREVENT;
 class QoreClass *QC_QDragEnterEvent = 0;

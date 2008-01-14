@@ -24,6 +24,11 @@
 
 #include "QC_QTableView.h"
 #include "QC_QHeaderView.h"
+#include "QC_QWidget.h"
+#include "QC_QPoint.h"
+#include "QC_QModelIndex.h"
+
+#include "qore-qt.h"
 
 int CID_QTABLEVIEW;
 class QoreClass *QC_QTableView = 0;

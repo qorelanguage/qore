@@ -24,6 +24,14 @@
 
 #include "QC_QMessageBox.h"
 #include "QC_QPushButton.h"
+#include "QC_QWidget.h"
+#include "QC_QCheckBox.h"
+#include "QC_QRadioButton.h"
+#include "QC_QToolButton.h"
+#include "QC_QPixmap.h"
+#include "QC_QAbstractButton.h"
+
+#include "qore-qt.h"
 
 int CID_QMESSAGEBOX;
 class QoreClass *QC_QMessageBox = 0;
@@ -208,7 +216,7 @@ static QoreNode *QMESSAGEBOX_defaultButton(QoreObject *self, QoreQMessageBox *qm
 //QString detailedText () const
 static QoreNode *QMESSAGEBOX_detailedText(QoreObject *self, QoreQMessageBox *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qmb->qobj->detailedText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qmb->qobj->detailedText().toUtf8().data(), QCS_UTF8);
 }
 
 //QAbstractButton * escapeButton () const
@@ -242,7 +250,7 @@ static QoreNode *QMESSAGEBOX_iconPixmap(QoreObject *self, QoreQMessageBox *qmb, 
 //QString informativeText () const
 static QoreNode *QMESSAGEBOX_informativeText(QoreObject *self, QoreQMessageBox *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qmb->qobj->informativeText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qmb->qobj->informativeText().toUtf8().data(), QCS_UTF8);
 }
 
 //void removeButton ( QAbstractButton * button )
@@ -414,7 +422,7 @@ static QoreNode *QMESSAGEBOX_setWindowTitle(QoreObject *self, QoreQMessageBox *q
 //QString text () const
 static QoreNode *QMESSAGEBOX_text(QoreObject *self, QoreQMessageBox *qmb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qmb->qobj->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qmb->qobj->text().toUtf8().data(), QCS_UTF8);
 }
 
 //Qt::TextFormat textFormat () const

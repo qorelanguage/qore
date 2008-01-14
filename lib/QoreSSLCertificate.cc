@@ -77,7 +77,7 @@ X509 *QoreSSLCertificate::getData() const
    return priv->cert; 
 }
 
-class QoreString *QoreSSLCertificate::getPEM(class ExceptionSink *xsink) const
+class QoreStringNode *QoreSSLCertificate::getPEM(class ExceptionSink *xsink) const
 {
    BIO *bp = BIO_new(BIO_s_mem());
    if (!PEM_write_bio_X509(bp, priv->cert))
@@ -89,7 +89,7 @@ class QoreString *QoreSSLCertificate::getPEM(class ExceptionSink *xsink) const
    char *buf;
    long len = BIO_get_mem_data(bp, &buf);
    
-   class QoreString *str = new QoreString(buf, (int)len);
+   class QoreStringNode *str = new QoreStringNode(buf, (int)len);
    BIO_free(bp);
    return str;
 }
@@ -124,9 +124,9 @@ class DateTime *QoreSSLCertificate::getNotAfterDate() const
    return ASN1_TIME_to_DateTime(X509_get_notAfter(priv->cert));
 }
 
-class QoreString *QoreSSLCertificate::getSignatureType() const
+class QoreStringNode *QoreSSLCertificate::getSignatureType() const
 {
-   return ASN1_OBJECT_to_QoreString(priv->cert->sig_alg->algorithm);
+   return ASN1_OBJECT_to_QoreStringNode(priv->cert->sig_alg->algorithm);
 }
 
 class BinaryObject *QoreSSLCertificate::getSignature() const
@@ -139,9 +139,9 @@ class BinaryObject *QoreSSLCertificate::getSignature() const
    return new BinaryObject(buf, len);
 }
 
-class QoreString *QoreSSLCertificate::getPublicKeyAlgorithm() const
+class QoreStringNode *QoreSSLCertificate::getPublicKeyAlgorithm() const
 {
-   return ASN1_OBJECT_to_QoreString(priv->cert->cert_info->key->algor->algorithm);
+   return ASN1_OBJECT_to_QoreStringNode(priv->cert->cert_info->key->algor->algorithm);
 }
 
 class BinaryObject *QoreSSLCertificate::getPublicKey() const
@@ -233,7 +233,7 @@ QoreHash *QoreSSLCertificate::getInfo() const
    // get not after date
    h->setKeyValue("notAfter", new QoreNode(getNotAfterDate()), NULL);
    // get signature type
-   h->setKeyValue("signatureType", new QoreNode(getSignatureType()), NULL);
+   h->setKeyValue("signatureType", new QoreStringNode(getSignatureType()), NULL);
    // get signature
    //h->setKeyValue("signature", new QoreNode(getSignature()), NULL);
    // get public key

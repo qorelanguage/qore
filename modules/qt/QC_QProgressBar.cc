@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QProgressBar.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QPROGRESSBAR;
 class QoreClass *QC_QProgressBar = 0;
@@ -53,7 +56,7 @@ static QoreNode *QPROGRESSBAR_alignment(QoreObject *self, QoreQProgressBar *qpb,
 //QString format () const
 static QoreNode *QPROGRESSBAR_format(QoreObject *self, QoreQProgressBar *qpb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qpb->qobj->format().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qpb->qobj->format().toUtf8().data(), QCS_UTF8);
 }
 
 //bool invertedAppearance ()
@@ -136,7 +139,7 @@ static QoreNode *QPROGRESSBAR_setTextVisible(QoreObject *self, QoreQProgressBar 
 //virtual QString text () const
 static QoreNode *QPROGRESSBAR_text(QoreObject *self, QoreQProgressBar *qpb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qpb->qobj->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qpb->qobj->text().toUtf8().data(), QCS_UTF8);
 }
 
 //QProgressBar::Direction textDirection ()

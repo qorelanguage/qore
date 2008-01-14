@@ -31,6 +31,11 @@
 #include "QC_QRegion.h"
 #include "QC_QLayout.h"
 #include "QC_QStyle.h"
+#include "QC_QAction.h"
+#include "QC_QFontInfo.h"
+#include "QC_QLocale.h"
+#include "QC_QByteArray.h"
+#include "QC_QBitmap.h"
 
 int CID_QWIDGET;
 QoreClass *QC_QWidget = 0;
@@ -68,13 +73,13 @@ static QoreNode *QWIDGET_acceptDrops(class QoreObject *self, QoreAbstractQWidget
 //QString accessibleDescription () const
 static QoreNode *QWIDGET_accessibleDescription(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qw->getQWidget()->accessibleDescription().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qw->getQWidget()->accessibleDescription().toUtf8().data(), QCS_UTF8);
 }
 
 //QString accessibleName () const
 static QoreNode *QWIDGET_accessibleName(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qw->getQWidget()->accessibleName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qw->getQWidget()->accessibleName().toUtf8().data(), QCS_UTF8);
 }
 
 //QList<QAction *> actions () const
@@ -1058,18 +1063,18 @@ static QoreNode *QWIDGET_setAcceptDrops(QoreObject *self, QoreAbstractQWidget *q
 //void setAccessibleDescription ( const QString & description )
 static QoreNode *QWIDGET_setAccessibleDescription(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (p)
-      qw->getQWidget()->setAccessibleDescription(p->val.String->getBuffer());
+      qw->getQWidget()->setAccessibleDescription(p->getBuffer());
    return 0;
 }
 
 //void setAccessibleName ( const QString & name )
 static QoreNode *QWIDGET_setAccessibleName(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (p)
-      qw->getQWidget()->setAccessibleName(p->val.String->getBuffer());
+      qw->getQWidget()->setAccessibleName(p->getBuffer());
    return 0;
 }
 
@@ -1583,9 +1588,9 @@ static QoreNode *QWIDGET_setSizePolicy(QoreObject *self, QoreAbstractQWidget *qw
 //void setStatusTip ( const QString & )
 static QoreNode *QWIDGET_setStatusTip(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (p)
-      qw->getQWidget()->setStatusTip(p->val.String->getBuffer());
+      qw->getQWidget()->setStatusTip(p->getBuffer());
    return 0;
 }
 
@@ -1607,9 +1612,9 @@ static QoreNode *QWIDGET_setStyle(QoreObject *self, QoreAbstractQWidget *qw, con
 //void setToolTip ( const QString & )
 static QoreNode *QWIDGET_setToolTip(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (p)
-      qw->getQWidget()->setToolTip(p->val.String->getBuffer());
+      qw->getQWidget()->setToolTip(p->getBuffer());
    return 0;
 }
 
@@ -1624,9 +1629,9 @@ static QoreNode *QWIDGET_setUpdatesEnabled(class QoreObject *self, QoreAbstractQ
 //void setWhatsThis ( const QString & )
 static QoreNode *QWIDGET_setWhatsThis(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (p)
-      qw->getQWidget()->setWhatsThis(p->val.String->getBuffer());
+      qw->getQWidget()->setWhatsThis(p->getBuffer());
    return 0;
 }
 
@@ -1657,9 +1662,9 @@ static QoreNode *QWIDGET_setWindowIcon(QoreObject *self, QoreAbstractQWidget *qw
 //void setWindowIconText ( const QString & )
 static QoreNode *QWIDGET_setWindowIconText(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (p)
-      qw->getQWidget()->setWindowIconText(p->val.String->getBuffer());
+      qw->getQWidget()->setWindowIconText(p->getBuffer());
    return 0;
 }
 
@@ -1684,9 +1689,9 @@ static QoreNode *QWIDGET_setWindowOpacity(QoreObject *self, QoreAbstractQWidget 
 //void setWindowRole ( const QString & role )
 static QoreNode *QWIDGET_setWindowRole(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_STRING, 0);
+   QoreStringNode *p = test_string_param(params, 0);
    if (p)
-      qw->getQWidget()->setWindowRole(p->val.String->getBuffer());
+      qw->getQWidget()->setWindowRole(p->getBuffer());
    return 0;
 }
 
@@ -1758,7 +1763,7 @@ static QoreNode *QWIDGET_stackUnder(QoreObject *self, QoreAbstractQWidget *qw, c
 //QString statusTip () const
 static QoreNode *QWIDGET_statusTip(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qw->getQWidget()->statusTip().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qw->getQWidget()->statusTip().toUtf8().data(), QCS_UTF8);
 }
 
 //QStyle * style () const
@@ -1782,7 +1787,7 @@ static QoreNode *QWIDGET_style(QoreObject *self, QoreAbstractQWidget *qw, const 
 //QString styleSheet () const
 static QoreNode *QWIDGET_styleSheet(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qw->getQWidget()->styleSheet().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qw->getQWidget()->styleSheet().toUtf8().data(), QCS_UTF8);
 }
 
 //bool testAttribute ( Qt::WidgetAttribute attribute ) const
@@ -1796,7 +1801,7 @@ static QoreNode *QWIDGET_testAttribute(QoreObject *self, QoreAbstractQWidget *qw
 //QString toolTip () const
 static QoreNode *QWIDGET_toolTip(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qw->getQWidget()->toolTip().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qw->getQWidget()->toolTip().toUtf8().data(), QCS_UTF8);
 }
 
 //bool underMouse () const
@@ -1891,7 +1896,7 @@ static QoreNode *QWIDGET_visibleRegion(QoreObject *self, QoreAbstractQWidget *qw
 //QString whatsThis () const
 static QoreNode *QWIDGET_whatsThis(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qw->getQWidget()->whatsThis().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qw->getQWidget()->whatsThis().toUtf8().data(), QCS_UTF8);
 }
 
 //int width () const
@@ -1942,7 +1947,7 @@ static QoreNode *QWIDGET_windowIcon(QoreObject *self, QoreAbstractQWidget *qw, c
 //QString windowIconText () const
 static QoreNode *QWIDGET_windowIconText(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qw->getQWidget()->windowIconText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qw->getQWidget()->windowIconText().toUtf8().data(), QCS_UTF8);
 }
 
 //Qt::WindowModality windowModality () const
@@ -1960,7 +1965,7 @@ static QoreNode *QWIDGET_windowOpacity(QoreObject *self, QoreAbstractQWidget *qw
 //QString windowRole () const
 static QoreNode *QWIDGET_windowRole(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qw->getQWidget()->windowRole().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qw->getQWidget()->windowRole().toUtf8().data(), QCS_UTF8);
 }
 
 //Qt::WindowStates windowState () const
@@ -1977,7 +1982,7 @@ static QoreNode *QWIDGET_windowState(QoreObject *self, QoreAbstractQWidget *qw, 
 //QString windowTitle () const
 static QoreNode *QWIDGET_windowTitle(class QoreObject *self, QoreAbstractQWidget *qw, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qw->getQWidget()->windowTitle().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qw->getQWidget()->windowTitle().toUtf8().data(), QCS_UTF8);
 }
 
 //Qt::WindowType windowType () const

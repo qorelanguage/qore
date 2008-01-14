@@ -39,7 +39,7 @@ class QoreHash *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n)
       OBJ_obj2txt(key, OBJ_BUF_LEN, ko, 0);
       ASN1_STRING *val = X509_NAME_ENTRY_get_data(e);
       //printd(5, "do_X509_name() %s=%s\n", key, ASN1_STRING_data(val));
-      h->setKeyValue(key, new QoreNode((char *)ASN1_STRING_data(val)), NULL);
+      h->setKeyValue(key, new QoreStringNode((const char *)ASN1_STRING_data(val)), NULL);
    }
    return h;
 }
@@ -55,13 +55,13 @@ class DateTime *QoreSSLBase::ASN1_TIME_to_DateTime(ASN1_STRING *t)
 }
 
 // static method
-class QoreString *QoreSSLBase::ASN1_OBJECT_to_QoreString(ASN1_OBJECT *o)
+class QoreStringNode *QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(ASN1_OBJECT *o)
 {
    BIO *bp = BIO_new(BIO_s_mem());
    i2a_ASN1_OBJECT(bp, o);
    char *buf;
    long len = BIO_get_mem_data(bp, &buf);
-   class QoreString *str = new QoreString(buf, (int)len);
+   class QoreStringNode *str = new QoreStringNode(buf, (int)len);
    BIO_free(bp);
    return str;
 }

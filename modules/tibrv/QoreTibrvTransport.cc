@@ -65,47 +65,55 @@ int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, class QoreHash *hash, class Exc
 int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink)
 {
    //printd(5, "adding %s (%s)\n", key, v ? v->type->getName() : "null");
-   if (is_nothing(v))
+   if (is_nothing(v)) {
       msg->addString(key, NULL);
-   else if (v->type == NT_INT)
+      return 0;
+   }
+
+   if (v->type == NT_INT) {
       msg->addI64(key, v->val.intval);
-   else if (v->type == NT_FLOAT)
+      return 0;
+   }
+
+   if (v->type == NT_FLOAT) {
       msg->addF64(key, v->val.floatval);
-   else if (v->type == NT_LIST)
-   {
+      return 0;
+   }
+
+   if (v->type == NT_LIST) {
       for (int i = 0; i < v->val.list->size(); i++)
 	 if (valueToField(key, v->val.list->retrieve_entry(i), msg, xsink))
 	    return -1;
+      return 0;
    }
-   else if (v->type == NT_STRING)
+
    {
-      // convert string to transport's encoding if necessary
-      class QoreString *t;
-      if (v->val.String->getEncoding() != enc)
-      {
-	 t = v->val.String->convertEncoding(enc, xsink);
-	 if (!t)
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
+      if (str) {
+	 TempEncodingHelper t(str, enc, xsink);
+	 if (*xsink)
 	    return -1;
+
+	 msg->addString(key, t->getBuffer());
+	 return 0;
       }
-      else
-	 t = v->val.String;
-      msg->addString(key, t->getBuffer());
-      if (t != v->val.String)
-	 delete t;
    }
-   else if (v->type == NT_DATE)
+
+   if (v->type == NT_DATE)
    {
       TibrvMsgDateTime dt;
       dt.sec = v->val.date_time->getEpochSeconds();
       msg->addDateTime(key, dt);
+      return 0;
    }
-   else if (v->type == NT_HASH)
+
+   if (v->type == NT_HASH)
    {
       QoreHash *h = v->val.hash;
       //check if it's a type-encoded hash
       class QoreNode *t;
       if (h->size() == 2 && (t = h->getKeyValue("^type^")) && (t->type == NT_STRING))
-	 doEncodedType(msg, key, t->val.String->getBuffer(), h->getKeyValue("^value^"), xsink);
+	 doEncodedType(msg, key, (reinterpret_cast<QoreStringNode *>(t))->getBuffer(), h->getKeyValue("^value^"), xsink);
       else
       {
 	 TibrvMsg m;
@@ -114,18 +122,21 @@ int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMs
 	    return -1;
 	 msg->addMsg(key, m);
       }
-   }
-   else if (v->type == NT_BOOLEAN)
-      msg->addBool(key, (tibrv_bool)v->val.boolval);
-   else if (v->type == NT_BINARY)
-      msg->addOpaque(key, v->val.bin->getPtr(), v->val.bin->size());
-   else
-   {
-      xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize type '%s'", v->type->getName());
-      return -1;
+      return 0;
    }
 
-   return 0;
+   if (v->type == NT_BOOLEAN) {
+      msg->addBool(key, (tibrv_bool)v->val.boolval);
+      return 0;
+   }
+   
+   if (v->type == NT_BINARY) {
+      msg->addOpaque(key, v->val.bin->getPtr(), v->val.bin->size());
+      return 0;
+   }
+
+   xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize type '%s'", v->type->getName());
+   return -1;
 }
 
 class QoreHash *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink *xsink)
@@ -144,11 +155,11 @@ class QoreHash *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink 
    const char *str;
    TibrvStatus status = msg->getReplySubject(str);
    if (status == TIBRV_OK)
-      h->setKeyValue("replySubject", new QoreNode(str), xsink);
+      h->setKeyValue("replySubject", new QoreStringNode(str), xsink);
    
    status = msg->getSendSubject(str);
    if (status == TIBRV_OK)
-      h->setKeyValue("subject", new QoreNode(str), xsink);
+      h->setKeyValue("subject", new QoreStringNode(str), xsink);
 
    return h;
 }
@@ -221,7 +232,7 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
    switch (field->getType())
    {
       case TIBRVMSG_STRING:
-	 val = new QoreNode(new QoreString((char *)data.str, enc));
+	 val = new QoreStringNode((char *)data.str, enc);
 	 break;
 
       case TIBRVMSG_I8:
@@ -270,13 +281,13 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
 
       case TIBRVMSG_IPADDR32:
       {
-	 class QoreString *addr = new QoreString(enc);
+	 class QoreStringNode *addr = new QoreStringNode(enc);
 	 unsigned int ia = ntohl(data.ipaddr32);
 	 //printd(0, "ipaddr32: data=%u conv=%u\n", data.ipaddr32, ia);
 	 unsigned char *uc = (unsigned char*)&ia;
 	 addr->sprintf("%d.%d.%d.%d", (int)uc[3], (int)uc[2], (int)uc[1], (int)uc[0]);
 	 //printd(5, "addr=%s\n", addr->getBuffer());
-	 val = new QoreNode(addr);
+	 val = addr;
 	 break;
       }
 
@@ -306,14 +317,14 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
 
       case TIBRVMSG_XML:
       {
-	 class QoreString *str = new QoreString(enc);
+	 class QoreStringNode *str = new QoreStringNode(enc);
 	 // ensure that xml string is terminated with a null character in case it wasn't sent
 	 int len = field->size;
 	 if (!((char *)data.buf)[len - 1])
 	    len--;
 	 str->allocate(len);
 	 memcpy((char *)str->getBuffer(), data.buf, len);
-	 val = new QoreNode(str);
+	 val = str;
 	 break;
       }
 
@@ -452,37 +463,39 @@ int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char
       }
       else if (!strcmp(type, "paddr32"))
       {
-	 if (val && val->type == NT_STRING)  // assuming format "#.#.#.#"
-	 {
-	    int addr[4] = { 0, 0, 0, 0 };
-	    int i = 0;
-	    const char *c;
-	    const char *buf = val->val.String->getBuffer();
-	    QoreString str;
-	    while ((c = strchr(buf, '.')))
-	    {
-	       str.terminate(0);
-	       str.concat(buf, c - buf);
-	       addr[i] = atoi(str.getBuffer());
-	       //printd(5, "addr[%d]=%d\n", i, addr[i]);
-	       i++;
-	       if (i == 3)
-	       {
-		  addr[i] = atoi(c + 1);
-		  //printd(5, "addr[%d]=%d\n", i, addr[i]);
-		  break;
-	       }
-	       buf = c + 1;
-	    }
-	    // put it network byte order directly
-	    i = addr[0] | addr[1] << 8 | addr[2] << 16 | addr[3] << 24;
-	    msg->addIPAddr32(key, i);
-	    
-	    return 0;
+	 QoreStringNode *vstr = dynamic_cast<QoreStringNode *>(val);
+	 if (!vstr) {
+	    xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'ipaddr32' from qore type '%s' (expecting string)", val ? val->type->getName() : "NOTHING");
+	    return -1;
 	 }
-	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'ipaddr32' from qore type '%s' (need int, float, or string)", val ? val->type->getName() : "NOTHING");
-	 return -1;
-      }	 
+
+	 // assuming format "#.#.#.#"
+	 int addr[4] = { 0, 0, 0, 0 };
+	 int i = 0;
+	 const char *c;
+	 const char *buf = vstr->getBuffer();
+	 QoreString str;
+	 while ((c = strchr(buf, '.')))
+	 {
+	    str.terminate(0);
+	    str.concat(buf, c - buf);
+	    addr[i] = atoi(str.getBuffer());
+	    //printd(5, "addr[%d]=%d\n", i, addr[i]);
+	    i++;
+	    if (i == 3)
+	    {
+	       addr[i] = atoi(c + 1);
+	       //printd(5, "addr[%d]=%d\n", i, addr[i]);
+	       break;
+	    }
+	    buf = c + 1;
+	 }
+	 // put it network byte order directly
+	 i = addr[0] | addr[1] << 8 | addr[2] << 16 | addr[3] << 24;
+	 msg->addIPAddr32(key, i);
+	 
+	 return 0;
+      }
    }
    else if (type[0] == 'u')
    {   
@@ -533,13 +546,14 @@ int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char
    }
    else if (!strcmp(type, "xml"))
    {
-      if (!val || val->type != NT_STRING)
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(val);
+      if (!str)
       {
 	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'xml' from qore type '%s' (need string)", val ? val->type->getName() : "NOTHING");
 	 return -1;
       }
 
-      msg->addXml(key, val->val.String->getBuffer(), val->val.String->strlen() + 1);
+      msg->addXml(key, str->getBuffer(), str->strlen() + 1);
       return 0;
    }
 

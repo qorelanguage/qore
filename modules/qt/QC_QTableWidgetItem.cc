@@ -23,6 +23,13 @@
 #include <qore/Qore.h>
 
 #include "QC_QTableWidgetItem.h"
+#include "QC_QWidget.h"
+#include "QC_QIcon.h"
+#include "QC_QBrush.h"
+#include "QC_QFont.h"
+#include "QC_QSize.h"
+
+#include "qore-qt.h"
 
 int CID_QTABLEWIDGETITEM;
 class QoreClass *QC_QTableWidgetItem = 0;
@@ -332,7 +339,7 @@ static QoreNode *QTABLEWIDGETITEM_sizeHint(QoreObject *self, QoreQTableWidgetIte
 //QString statusTip () const
 static QoreNode *QTABLEWIDGETITEM_statusTip(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qtwi->qore_obj->statusTip().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtwi->qore_obj->statusTip().toUtf8().data(), QCS_UTF8);
 }
 
 ////QTableWidget * tableWidget () const
@@ -344,7 +351,7 @@ static QoreNode *QTABLEWIDGETITEM_statusTip(QoreObject *self, QoreQTableWidgetIt
 //QString text () const
 static QoreNode *QTABLEWIDGETITEM_text(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qtwi->qore_obj->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtwi->qore_obj->text().toUtf8().data(), QCS_UTF8);
 }
 
 //int textAlignment () const
@@ -356,7 +363,7 @@ static QoreNode *QTABLEWIDGETITEM_textAlignment(QoreObject *self, QoreQTableWidg
 //QString toolTip () const
 static QoreNode *QTABLEWIDGETITEM_toolTip(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qtwi->qore_obj->toolTip().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtwi->qore_obj->toolTip().toUtf8().data(), QCS_UTF8);
 }
 
 //int type () const
@@ -368,7 +375,7 @@ static QoreNode *QTABLEWIDGETITEM_type(QoreObject *self, QoreQTableWidgetItem *q
 //QString whatsThis () const
 static QoreNode *QTABLEWIDGETITEM_whatsThis(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qtwi->qore_obj->whatsThis().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qtwi->qore_obj->whatsThis().toUtf8().data(), QCS_UTF8);
 }
 
 ////virtual void write ( QDataStream & out ) const

@@ -74,8 +74,15 @@ static class QoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, co
    ReferenceHolder<QoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
    if (!ans)
       return NULL;
+
+   QoreStringNode *str = dynamic_cast<QoreStringNode *>(*ans);
+   if (!str) {
+      xsink->raiseException("JSONRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
+      return 0;
+   }
+
    // parse JSON-RPC response
-   return parseJSONValue(ans->val.String, xsink);
+   return parseJSONValue(str, xsink);
 }
 
 static class QoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)
@@ -92,8 +99,15 @@ static class QoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const 
    ReferenceHolder<QoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
    if (!ans)
       return NULL;
+
+   QoreStringNode *str = dynamic_cast<QoreStringNode *>(*ans);
+   if (!str) {
+      xsink->raiseException("JSONRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
+      return 0;
+   }
+
    // parse JSON-RPC response
-   return parseJSONValue(ans->val.String, xsink);
+   return parseJSONValue(str, xsink);
 }
 
 QoreClass *initJsonRpcClientClass(class QoreClass *http_client)

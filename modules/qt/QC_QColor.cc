@@ -21,6 +21,7 @@
  */
 
 #include <qore/Qore.h>
+#include "qore-qt.h"
 #include "QC_QColor.h"
 
 int CID_QCOLOR;
@@ -34,7 +35,7 @@ static void QCOLOR_constructor(class QoreObject *self, const QoreNode *params, E
    if (is_nothing(p))
       qc = new QoreQColor();
    else if (p->type == NT_STRING)
-      qc = new QoreQColor(p->val.String->getBuffer());
+      qc = new QoreQColor((reinterpret_cast<QoreStringNode *>(p))->getBuffer());
    else {
       int f = p->getAsInt();
       p = get_param(params, 1);
@@ -268,7 +269,7 @@ static QoreNode *QCOLOR_magentaF(QoreObject *self, QoreQColor *qc, const QoreNod
 //QString name () const
 static QoreNode *QCOLOR_name(QoreObject *self, QoreQColor *qc, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qc->name().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qc->name().toUtf8().data(), QCS_UTF8);
 }
 
 //int red () const
@@ -679,7 +680,7 @@ static QoreNode *f_QColor_colorNames(const QoreNode *params, ExceptionSink *xsin
    QStringList strlist_rv = QColor::colorNames();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 

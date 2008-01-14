@@ -23,6 +23,13 @@
 #include <qore/Qore.h>
 
 #include "QC_QComboBox.h"
+#include "QC_QWidget.h"
+#include "QC_QIcon.h"
+#include "QC_QModelIndex.h"
+#include "QC_QAbstractItemDelegate.h"
+#include "QC_QLineEdit.h"
+
+#include "qore-qt.h"
 
 int CID_QCOMBOBOX;
 class QoreClass *QC_QComboBox = 0;
@@ -125,7 +132,7 @@ static QoreNode *QCOMBOBOX_currentIndex(QoreObject *self, QoreQComboBox *qcb, co
 //QString currentText () const
 static QoreNode *QCOMBOBOX_currentText(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qcb->getQComboBox()->currentText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qcb->getQComboBox()->currentText().toUtf8().data(), QCS_UTF8);
 }
 
 //bool duplicatesEnabled () const
@@ -292,7 +299,7 @@ static QoreNode *QCOMBOBOX_itemText(QoreObject *self, QoreQComboBox *qcb, const 
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qcb->getQComboBox()->itemText(index).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qcb->getQComboBox()->itemText(index).toUtf8().data(), QCS_UTF8);
 }
 
 //QLineEdit * lineEdit () const
@@ -631,11 +638,10 @@ static QoreNode *QCOMBOBOX_setCurrentIndex(QoreObject *self, QoreQComboBox *qcb,
 static QoreNode *QCOMBOBOX_setEditText(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
-      xsink->raiseException("QCOMBOBOX-SETEDITTEXT-PARAM-ERROR", "expecting a string as first argument to QComboBox::setEditText()");
+   QString text;
+   if (get_qstring(p, text, xsink))
       return 0;
-   }
-   const char *text = p->val.String->getBuffer();
+
    qcb->getQComboBox()->setEditText(text);
    return 0;
 }

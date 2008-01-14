@@ -79,6 +79,8 @@ class QoreObject : public ReferenceObject
       DLLEXPORT class QoreNode *evalMemberExistence(const char *mem, class ExceptionSink *xsink) const;
       // caller owns the QoreHash returned
       DLLEXPORT class QoreHash *evalData(class ExceptionSink *xsink) const;
+      // caller owns the QoreHash returned
+      DLLEXPORT class QoreHash *copyData(class ExceptionSink *xsink) const;
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
       DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink);
       // caller owns the QoreNode (reference) returned
@@ -93,8 +95,9 @@ class QoreObject : public ReferenceObject
       DLLEXPORT void tDeref();
       DLLEXPORT void ref();
       DLLEXPORT void dereference(class ExceptionSink *xsink);
+      DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLLOCAL class QoreNode *evalMember(class QoreNode *member, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *evalMember(const QoreString *member, class ExceptionSink *xsink);
       DLLLOCAL void instantiateLVar(lvh_t id);
       DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
       DLLLOCAL void merge(const class QoreHash *h, class ExceptionSink *xsink);
@@ -104,7 +107,7 @@ class QoreObject : public ReferenceObject
       DLLLOCAL class QoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreNode *args, class ExceptionSink *xsink);
       // called on old to acquire private data, copy method called on self (new copy)
       DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class QoreObject *self, const char *class_name, class ExceptionSink *xsink);
-      DLLLOCAL void addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink);
+      DLLLOCAL void addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink) const;
       DLLLOCAL void obliterate(class ExceptionSink *xsink);
       DLLLOCAL void doDelete(class ExceptionSink *xsink);
       DLLLOCAL void defaultSystemDestructor(int classID, class ExceptionSink *xsink);

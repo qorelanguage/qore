@@ -45,10 +45,9 @@ static void PROGRAM_copy(class QoreObject *self, class QoreObject *old, class Qo
 
 static QoreNode *PROGRAM_parse(class QoreObject *self, class QoreProgram *p, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
+   QoreStringNode *p0, *p1;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)) ||
-       !(p1 = test_param(params, NT_STRING, 1)))
+   if (!(p0 = test_string_param(params, 0)) || !(p1 = test_string_param(params, 1)))
    {
       xsink->raiseException("PROGRAM-PARAMETER-ERROR", "expecting code(string), label(string) as arguments to Program::parse()");
       return NULL;
@@ -60,11 +59,11 @@ static QoreNode *PROGRAM_parse(class QoreObject *self, class QoreProgram *p, con
 
    if (!warning_mask)
    {
-      p->parse(p0->val.String, p1->val.String, xsink);
+      p->parse(p0, p1, xsink);
       return NULL;
    }
    ExceptionSink wsink;
-   p->parse(p0->val.String, p1->val.String, xsink, &wsink, warning_mask);
+   p->parse(p0, p1, xsink, &wsink, warning_mask);
    if (!wsink.isException())
       return NULL;
 
@@ -75,10 +74,9 @@ static QoreNode *PROGRAM_parse(class QoreObject *self, class QoreProgram *p, con
 
 static QoreNode *PROGRAM_parsePending(class QoreObject *self, class QoreProgram *p, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
+   QoreStringNode *p0, *p1;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)) ||
-       !(p1 = test_param(params, NT_STRING, 1)))
+   if (!(p0 = test_string_param(params, 0)) || !(p1 = test_string_param(params, 1)))
    {
       xsink->raiseException("PROGRAM-PARSE-PARAMETER-ERROR", "expecting code(string), label(string) as arguments to Program::parsePending()");
       return NULL;
@@ -90,11 +88,11 @@ static QoreNode *PROGRAM_parsePending(class QoreObject *self, class QoreProgram 
 
    if (!warning_mask)
    {
-      p->parsePending(p0->val.String, p1->val.String, xsink);
+      p->parsePending(p0, p1, xsink);
       return NULL;
    }
    ExceptionSink wsink;
-   p->parsePending(p0->val.String, p1->val.String, xsink, &wsink, warning_mask);
+   p->parsePending(p0, p1, xsink, &wsink, warning_mask);
    if (!wsink.isException())
       return NULL;
 
@@ -132,9 +130,9 @@ static QoreNode *PROGRAM_parseRollback(class QoreObject *self, class QoreProgram
 
 static QoreNode *PROGRAM_callFunction(class QoreObject *self, class QoreProgram *p, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
    {
       xsink->raiseException("PROGRAM-PARAMETER-ERROR", "expecting function-name(string) as argument to QoreProgram::callFunction()");
       return NULL;
@@ -154,7 +152,7 @@ static QoreNode *PROGRAM_callFunction(class QoreObject *self, class QoreProgram 
    else
       args = NULL;
 
-   class QoreNode *rv = p->callFunction(p0->val.String->getBuffer(), args, xsink);
+   class QoreNode *rv = p->callFunction(p0->getBuffer(), args, xsink);
 
    if (args)
       args->deref(xsink);
@@ -164,13 +162,15 @@ static QoreNode *PROGRAM_callFunction(class QoreObject *self, class QoreProgram 
 
 static QoreNode *PROGRAM_callFunctionArgs(class QoreObject *self, class QoreProgram *p, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
+   QoreStringNode *p0;
+   QoreNode *p1;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
    {
       xsink->raiseException("PROGRAM-PARAMETER-ERROR", "expecting function-name(string) as argument to QoreProgram::callFunctionArgs()");
       return NULL;
    }
+
    QoreNode *args;
    p1 = get_param(params, 1);
    if (is_nothing(p1))
@@ -183,7 +183,7 @@ static QoreNode *PROGRAM_callFunctionArgs(class QoreObject *self, class QoreProg
       args->val.list->push(p1);      
    }
 
-   QoreNode *rv = p->callFunction(p0->val.String->getBuffer(), args, xsink);
+   QoreNode *rv = p->callFunction(p0->getBuffer(), args, xsink);
    
    if (args && p1 != args)
    {
@@ -196,12 +196,12 @@ static QoreNode *PROGRAM_callFunctionArgs(class QoreObject *self, class QoreProg
 
 static QoreNode *PROGRAM_existsFunction(class QoreObject *self, class QoreProgram *p, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   return new QoreNode(p->existsFunction(p0->val.String->getBuffer()));
+   return new QoreNode(p->existsFunction(p0->getBuffer()));
 }
 
 static QoreNode *PROGRAM_run(class QoreObject *self, class QoreProgram *p, const QoreNode *params, ExceptionSink *xsink)
@@ -211,14 +211,14 @@ static QoreNode *PROGRAM_run(class QoreObject *self, class QoreProgram *p, const
 
 static QoreNode *PROGRAM_importFunction(class QoreObject *self, class QoreProgram *p, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
    {
       xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "expecting function-name(string) as argument to QoreProgram::importUserFunction()");
       return NULL;
    }
-   const char *func = p0->val.String->getBuffer();
+   const char *func = p0->getBuffer();
 
    getProgram()->exportUserFunction(func, p, xsink);
    return NULL;
@@ -226,25 +226,27 @@ static QoreNode *PROGRAM_importFunction(class QoreObject *self, class QoreProgra
 
 static QoreNode *PROGRAM_importGlobalVariable(class QoreObject *self, class QoreProgram *p, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
+   QoreStringNode *p0;
+   QoreNode *p1;
    bool readonly;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
    {
       xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-PARAMETER-ERROR", "expecting variable-name(string) as argument to QoreProgram::importUserFunction()");
       return NULL;
    }
+
    p1 = get_param(params, 1);
    if (p1)
       readonly = p1->getAsBool();
    else
       readonly = false;
       
-   class Var *var = getProgram()->findVar(p0->val.String->getBuffer());
+   class Var *var = getProgram()->findVar(p0->getBuffer());
    if (var)
       p->importGlobalVariable(var, xsink, readonly);
    else
-      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", p0->val.String->getBuffer());
+      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", p0->getBuffer());
    return NULL;
 }
 

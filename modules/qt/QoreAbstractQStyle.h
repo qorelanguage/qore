@@ -31,6 +31,16 @@
 
 #include "QC_QStyleOptionComplex.h"
 #include "QC_QPalette.h"
+#include "QC_QRect.h"
+#include "QC_QPainter.h"
+#include "QC_QPixmap.h"
+#include "QC_QPoint.h"
+#include "QC_QFontMetrics.h"
+#include "QC_QSize.h"
+#include "QC_QPainter.h"
+#include "QC_QIcon.h"
+#include "QC_QApplication.h"
+#include "QC_QObject.h"
 
 #include <QStyle>
 

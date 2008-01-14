@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 
 #include "QC_QAbstractScrollArea.h"
+#include "QC_QWidget.h"
+#include "QC_QScrollBar.h"
+
+#include "qore-qt.h"
 
 int CID_QABSTRACTSCROLLAREA;
 class QoreClass *QC_QAbstractScrollArea = 0;

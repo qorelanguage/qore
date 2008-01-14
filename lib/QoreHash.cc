@@ -104,11 +104,35 @@ class QoreNode *HashIterator::takeValueAndDelete()
       ptr->node = NULL;
       class HashMember *w = ptr;
       ptr = ptr->prev;
+
+      // remove key from map before deleting hash member with key pointer
+      hm_hm_t::iterator i = h->hm.find(w->key);
+      assert(i != h->hm.end());
+      h->hm.erase(i);
+
       h->internDeleteKey(w);
    }
    else
       rv = NULL;
    return rv;
+}
+
+void HashIterator::deleteKey(ExceptionSink *xsink)
+{
+   if (!ptr)
+      return;
+
+   ptr->node->deref(xsink);
+   ptr->node = 0;
+   class HashMember *w = ptr;
+   ptr = ptr->prev;
+   
+   // remove key from map before deleting hash member with key pointer
+   hm_hm_t::iterator i = h->hm.find(w->key);
+   assert(i != h->hm.end());
+   h->hm.erase(i);
+
+   h->internDeleteKey(w);
 }
 
 class QoreNode **HashIterator::getValuePtr() const
@@ -356,7 +380,7 @@ class QoreList *QoreHash::getKeys() const
    
    while (where)
    {
-      list->push(new QoreNode(where->key));
+      list->push(new QoreStringNode(where->key));
       where = where->next;
    }
    return list;
@@ -668,3 +692,45 @@ void QoreHash::clearNeedsEval()
    needs_eval = false;
 }
 
+QoreString *QoreHash::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+{
+   del = false;
+   int elements = size();
+   if (!elements)
+      return &EmptyHashString;
+
+   TempString rv(new QoreString());
+   rv->concat("hash: ");
+   if (foff != FMT_NONE)
+      rv->sprintf("(%d member%s)\n", elements, elements == 1 ? "" : "s");
+   else
+      rv->concat('(');
+   
+   class ConstHashIterator hi(this);
+   
+   bool first = false;
+   while (hi.next())
+   {
+      if (first)
+	 if (foff != FMT_NONE)
+	    rv->concat('\n');
+	 else
+	    rv->concat(", ");
+      else
+	 first = true;
+      
+      if (foff != FMT_NONE)
+	 rv->addch(' ', foff + 2);
+      
+      QoreNodeAsStringHelper elem(hi.getValue(), foff != FMT_NONE ? foff + 2 : foff, xsink);
+      if (*xsink)
+	 return 0;
+      rv->sprintf("%s : %s", hi.getKey(), elem->getBuffer());
+   }
+   
+   if (foff == FMT_NONE)
+      rv->concat(')');
+
+   del = true;
+   return rv.release();
+}

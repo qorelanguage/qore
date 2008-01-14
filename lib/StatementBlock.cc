@@ -22,8 +22,11 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/StatementBlock.h>
+#include <qore/intern/OnBlockExitStatement.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/Find.h>
+#include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/ObjectMethodReference.h>
 #include <qore/minitest.hpp>
 
 #include <stdio.h>
@@ -472,7 +475,8 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       QoreList *keys = (*node)->val.hash->getKeys();
       for (i = 0; i < keys->size(); i++)
       {
-	 const char *k = keys->retrieve_entry(i)->val.String->getBuffer();
+	 QoreStringNode *key = reinterpret_cast<QoreStringNode *>(keys->retrieve_entry(i));
+	 const char *k = key->getBuffer();
 	 class QoreNode **value = (*node)->val.hash->getKeyValuePtr(k);
 	 // resolve constant references in keys
 	 if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST)
@@ -488,23 +492,15 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
 	    }
 	    if (rv)
 	    {
-	       QoreNode *t;
-	       if (rv->type != NT_STRING)
-		  t = rv->convert(NT_STRING);
-	       else
-		  t = rv;
+	       QoreStringValueHelper t(rv);
 	       
 	       // reference value for new hash key
 	       (*value)->ref();
 	       // not possible to have an exception here
-	       (*node)->val.hash->setKeyValue(t->val.String->getBuffer(), *value, NULL);
+	       (*node)->val.hash->setKeyValue(t->getBuffer(), *value, NULL);
 
 	       // now reget new value ptr
-	       value = (*node)->val.hash->getKeyValuePtr(t->val.String->getBuffer());
-
-	       // or here
-	       if (rv != t)
-		  t->deref(NULL);
+	       value = (*node)->val.hash->getKeyValuePtr(t->getBuffer());
 	    }
 	    else
 	       value = NULL;

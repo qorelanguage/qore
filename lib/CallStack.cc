@@ -53,7 +53,7 @@ class QoreHash *CallNode::getInfo() const
 {
    class QoreHash *h = new QoreHash();
    // FIXME: add class name
-   class QoreString *str = new QoreString();
+   class QoreStringNode *str = new QoreStringNode();
    if (obj)
    {
       str->concat(obj->getClass()->getName());
@@ -61,22 +61,22 @@ class QoreHash *CallNode::getInfo() const
    }
    str->concat(func);
 
-   h->setKeyValue("function", new QoreNode(str), NULL);
+   h->setKeyValue("function", str, NULL);
    h->setKeyValue("line",     new QoreNode((int64)start_line), NULL);
    h->setKeyValue("endline",  new QoreNode((int64)end_line), NULL);
-   h->setKeyValue("file",     new QoreNode(file_name), NULL);
+   h->setKeyValue("file",     new QoreStringNode(file_name), NULL);
    h->setKeyValue("typecode", new QoreNode((int64)type), NULL);
    // CT_RETHROW is only aded manually
    switch (type)
    {
       case CT_USER:
-	 h->setKeyValue("type",  new QoreNode("user"), NULL);
+	 h->setKeyValue("type",  new QoreStringNode("user"), NULL);
 	 break;
       case CT_BUILTIN:
-	 h->setKeyValue("type",  new QoreNode("builtin"), NULL);
+	 h->setKeyValue("type",  new QoreStringNode("builtin"), NULL);
 	 break;
       case CT_NEWTHREAD:
-	 h->setKeyValue("type",  new QoreNode("new-thread"), NULL);
+	 h->setKeyValue("type",  new QoreStringNode("new-thread"), NULL);
 	 break;
    }
    return h;

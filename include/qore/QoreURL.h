@@ -44,7 +44,6 @@ class QoreURL {
       DLLEXPORT bool isValid() const;
       // returns a hash of the parameters parsed - destructive: zeros out all elements
       DLLEXPORT class QoreHash *getHash();
-      // returns the QoreString without zeroing it out in the class
       DLLEXPORT const class QoreString *getHost() const;
       DLLEXPORT const class QoreString *getUserName() const;
       DLLEXPORT const class QoreString *getPassword() const;
@@ -52,8 +51,8 @@ class QoreURL {
       DLLEXPORT const class QoreString *getProtocol() const;
       DLLEXPORT int getPort() const;
       
-      // the "take" methods return the char * pointer for the QoreString members
-      // as "taken" from the QoreStrings (QoreStrings are left empty)
+      // the "take" methods return the char * pointers for the data
+      // the caller owns the memory
       DLLEXPORT char *take_path();
       DLLEXPORT char *take_username();
       DLLEXPORT char *take_password();

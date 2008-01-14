@@ -24,6 +24,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/BuiltinMethod.h>
+#include <qore/intern/QoreClassIntern.h>
 
 #include <stdlib.h>
 #include <assert.h>
@@ -261,10 +262,10 @@ const QoreClass *QoreObject::getClass(int cid) const
    return priv->myclass->getClass(cid);
 }
 
-class QoreNode *QoreObject::evalMember(class QoreNode *member, class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalMember(const QoreString *member, class ExceptionSink *xsink)
 {
    // make sure to convert string encoding if necessary to default character set
-   TempEncodingHelper tstr(member->val.String, QCS_DEFAULT, xsink);
+   ConstTempEncodingHelper tstr(member, QCS_DEFAULT, xsink);
    if (!tstr)
       return NULL;
 
@@ -280,7 +281,7 @@ class QoreNode *QoreObject::evalMember(class QoreNode *member, class ExceptionSi
    if ((!obj || (obj && obj->priv->myclass->getID() != priv->myclass->getID())) && priv->myclass->isPrivateMember(mem))
    {
       if (priv->myclass->hasMemberGate()) // execute the member gate if it exists for private members
-	 rv = priv->myclass->evalMemberGate(this, member, xsink);
+	 rv = priv->myclass->evalMemberGate(this, *tstr, xsink);
       else
 	 xsink->raiseException("PRIVATE-MEMBER", "'%s' is a private member of class '%s'", mem, priv->myclass->getName());
    }
@@ -297,7 +298,7 @@ class QoreNode *QoreObject::evalMember(class QoreNode *member, class ExceptionSi
 	    
 	    // execute memberGate method for objects where no member exists
 	    if (rv == (QoreNode *)-1)
-	       rv = priv->myclass->evalMemberGate(this, member, xsink);
+	       rv = priv->myclass->evalMemberGate(this, *tstr, xsink);
 	 }
       }
    }
@@ -740,6 +741,21 @@ class QoreHash *QoreObject::evalData(class ExceptionSink *xsink) const
    return rv;
 }
 
+class QoreHash *QoreObject::copyData(class ExceptionSink *xsink) const
+{
+   if (priv->g.enter(xsink) < 0)
+      return NULL;
+   if (priv->status == OS_DELETED)
+   {
+      priv->g.exit();
+      // need to return an empty hash here
+      return new QoreHash();
+   }
+   class QoreHash *rv = priv->data->copy();
+   priv->g.exit();
+   return rv;
+}
+
 // NOTE: caller must unlock lock
 // we check if the object is already locked
 class QoreNode **QoreObject::getExistingValuePtr(const QoreString *mem, class AutoVLock *vl, class ExceptionSink *xsink) const
@@ -827,7 +843,7 @@ void QoreObject::setPrivate(int key, AbstractPrivateData *pd)
    addVirtualPrivateData(pd);
 }
 
-void QoreObject::addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink)
+void QoreObject::addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink) const
 {
    str->concat('(');
    if (priv->g.enter(xsink) < 0)
@@ -871,4 +887,61 @@ void QoreObject::defaultSystemDestructor(int classID, class ExceptionSink *xsink
    printd(5, "QoreObject::defaultSystemDestructor() this=%08p class=%s private_data=%08p\n", this, priv->myclass->getName(), pd); 
    if (pd)
       pd->deref(xsink);
+}
+
+QoreString *QoreObject::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+{
+   del = false;
+   TempQoreHash h(copyData(xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   TempString rv(new QoreString());
+   rv->sprintf("class %s: ", priv->myclass->getName());
+
+   if (foff != FMT_NONE)
+   {
+      addPrivateDataToString(*rv, xsink);
+      if (*xsink)
+         return 0;
+
+      rv->concat(' ');
+   }
+   if (!h->size())
+      rv->concat("<NO MEMBERS>");
+   else
+   {
+      if (foff != FMT_NONE)
+         rv->sprintf(" (%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
+      else
+         rv->concat('(');
+
+      class HashIterator hi(*h);
+
+      bool first = false;
+      while (hi.next())
+      {
+         if (first)
+            if (foff != FMT_NONE)
+               rv->concat('\n');
+            else
+               rv->concat(", ");
+         else
+            first = true;
+
+         if (foff != FMT_NONE)
+            rv->addch(' ', foff + 2);
+
+         QoreNodeAsStringHelper elem(hi.getValue(), foff != FMT_NONE ? foff + 2 : foff, xsink);
+         if (*xsink)
+            return 0;
+
+         rv->sprintf("%s : %s", hi.getKey(), elem->getBuffer());
+      }
+      if (foff == FMT_NONE)
+         rv->concat(')');
+   }
+
+   del = true;
+   return rv.release();
 }

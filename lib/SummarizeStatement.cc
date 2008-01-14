@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/SummarizeStatement.h>
+#include <qore/intern/StatementBlock.h>
 
 int SummarizeStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {

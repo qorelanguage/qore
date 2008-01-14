@@ -24,6 +24,9 @@
 
 #include "QC_QRegion.h"
 #include "QC_QColor.h"
+#include "QC_QBitmap.h"
+#include "QC_QRect.h"
+#include "QC_QPolygon.h"
 
 DLLLOCAL int CID_QREGION;
 DLLLOCAL class QoreClass *QC_QRegion = 0;

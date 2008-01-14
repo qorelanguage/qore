@@ -140,7 +140,7 @@ struct qore_program_private {
 	 class QoreList *l = new QoreList();
 	 
 	 for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
-	    l->push(new QoreNode(*i));
+	    l->push(new QoreStringNode(*i));
 	 
 	 return l;
       }

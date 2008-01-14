@@ -843,6 +843,45 @@ class QoreList *QoreList::reverse() const
    return l;
 }
 
+QoreString *QoreList::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+{
+   del = false;
+   if (!priv->length)
+      return &EmptyListString;
+      
+   TempString rv(new QoreString());
+   rv->concat("list: ");
+   if (foff != FMT_NONE)
+      rv->sprintf("(%d element%s)\n", priv->length, priv->length == 1 ? "" : "s");
+   else
+      rv->concat('(');
+
+   for (int i = 0; i < priv->length; ++i)
+   {
+      if (foff != FMT_NONE)
+      {
+	 rv->addch(' ', foff + 2);
+	 rv->sprintf("[%d]=", i);
+      }
+      
+      QoreNodeAsStringHelper elem(priv->entry[i], foff != FMT_NONE ? foff + 2 : foff, xsink);
+      if (*xsink)
+	 return 0;
+      rv->concat(*elem);
+      
+      if (i != (priv->length - 1))
+	 if (foff != FMT_NONE)
+	    rv->concat('\n');
+	 else
+	    rv->concat(", ");
+   }
+   if (foff == FMT_NONE)
+      rv->concat(')');
+
+   del = true;
+   return rv.release();
+}
+
 ListIterator::ListIterator(class QoreList *lst) : l(lst), pos(-1)
 { 
 }

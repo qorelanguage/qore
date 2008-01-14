@@ -115,11 +115,11 @@ void showCallStack()
       for (int i = 0; i < callStack->size(); i++)
       {
          class QoreHash *h = callStack->retrieve_entry(i)->val.hash;
-         printe(" %2d: %s() (%s line %d, %s)\n", i + 1,
-                h->getKeyValue("function")->val.String->getBuffer(),
-                h->getKeyValue("file")->val.String->getBuffer(),
-                (int)h->getKeyValue("line")->val.intval,
-                h->getKeyValue("type")->val.String->getBuffer());
+	 QoreStringNode *func = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
+	 QoreStringNode *file = reinterpret_cast<QoreStringNode *>(h->getKeyValue("file"));
+	 QoreStringNode *type = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));
+         printe(" %2d: %s() (%s line %d, %s)\n", i + 1, func->getBuffer(), file->getBuffer(), 
+		(int)h->getKeyValue("line")->val.intval, type->getBuffer());
       }
    }
 }

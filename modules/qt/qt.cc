@@ -332,11 +332,16 @@ int get_qbytearray(const QoreNode *n, QByteArray &ba, class ExceptionSink *xsink
       ba = nba;
       return 0;
    }
-   if (n && n->type == NT_STRING) {
-      ba.clear();
-      ba.append(n->val.String->getBuffer());
-      return 0;
+   
+   {
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
+      if (str) {
+	 ba.clear();
+	 ba.append(str->getBuffer());
+	 return 0;
+      }
    }
+
    if (!suppress_exception)
       xsink->raiseException("QBYTEARRAY-ERROR", "cannot convert type '%s' to QByteArray", n ? n->type->getName() : "NOTHING");
    return -1;
@@ -367,11 +372,16 @@ int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
 	    xsink->raiseException("QVARIANT-ERROR", "cannot convert class '%s' to QVariant", n->val.object->getClass()->getName());
 	 return -1;
       }
-      if (n->type == NT_STRING) {
-	 QVariant n_qv(n->val.String->getBuffer());
-	 qva = n_qv;
-	 return 0;
+
+      {
+	 const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
+	 if (str) {
+	    QVariant n_qv(str->getBuffer());
+	    qva = n_qv;
+	    return 0;
+	 }
       }
+
       if (n->type == NT_INT) {
 	 if (n->val.intval <= 0x7fffffff)
 	    qva.setValue((int)n->val.intval);
@@ -392,13 +402,16 @@ int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
 
 int get_qchar(const QoreNode *n, QChar &c, class ExceptionSink *xsink, bool suppress_exception)
 {
-   if (n && n->type == NT_STRING) {
-      unsigned int unicode = n->val.String->getUnicodePoint(0, xsink);
-      if (*xsink)
-	 return -1;
-      QChar tmp(unicode);
-      c = tmp;
-      return 0;
+   {
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
+      if (str) {
+	 unsigned int unicode = str->getUnicodePoint(0, xsink);
+	 if (*xsink)
+	    return -1;
+	 QChar tmp(unicode);
+	 c = tmp;
+	 return 0;
+      }
    }
 
    class QoreQChar *qc = (n && n->type == NT_OBJECT) ? (QoreQChar *)n->val.object->getReferencedPrivateData(CID_QCHAR, xsink) : 0;
@@ -421,22 +434,26 @@ int get_qchar(const QoreNode *n, QChar &c, class ExceptionSink *xsink, bool supp
 
 int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception)
 {
-   if (n && n->type == NT_STRING) {
-      if (n->val.String->getEncoding() == QCS_ISO_8859_1) {
-	 str = QString::fromLatin1(n->val.String->getBuffer());
+   {
+      const QoreStringNode *pstr = dynamic_cast<const QoreStringNode *>(n);
+      if (pstr) {
+	 if (pstr->getEncoding() == QCS_ISO_8859_1) {
+	    str = QString::fromLatin1(pstr->getBuffer());
+	 }
+	 else if (pstr->getEncoding() == QCS_USASCII) {
+	    str = QString::fromAscii(pstr->getBuffer());
+	 }
+	 else {
+	    ConstTempEncodingHelper estr(pstr, QCS_UTF8, xsink);
+	    if (*xsink)
+	       return -1;
+	    
+	    str = QString::fromUtf8(estr->getBuffer());
+	 }
+	 return 0;
       }
-      else if (n->val.String->getEncoding() == QCS_USASCII) {
-	 str = QString::fromAscii(n->val.String->getBuffer());
-      }
-      else {
-	 TempEncodingHelper estr(n->val.String, QCS_UTF8, xsink);
-	 if (*xsink)
-	    return -1;
-
-	 str = QString::fromUtf8(estr->getBuffer());
-      }
-      return 0;
    }
+
    if (!suppress_exception) {
       if (n && n->type == NT_INT) {
 	 str.setNum(n->val.intval);
@@ -790,7 +807,7 @@ class QoreNode *return_qvariant(const QVariant &qv)
       //case QVariant::SizePolicy:
          //return return_object(QC_QSizePolicy, new QoreQSizePolicy(qv.value<QSizePolicy>()));
       case QVariant::String:
-	 return new QoreNode(new QoreString(qv.toString().toUtf8().data(), QCS_UTF8));
+	 return new QoreStringNode(qv.toString().toUtf8().data(), QCS_UTF8);
       //case QVariant::StringList:
          //return return_object(QC_QStringList, new QoreQStringList(qv.value<QStringList>()));
       case QVariant::TextFormat:
@@ -1023,13 +1040,13 @@ static class QoreNode *f_QObject_connect(const QoreNode *params, class Exception
    }
    ReferenceHolder<AbstractPrivateData> holder1(spd, xsink);
 
-   p = test_param(params, NT_STRING, 1);
-   if (!p)
+   QoreStringNode *str = test_string_param(params, 1);
+   if (!str)
    {
       xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing signal string as second argument");
       return 0;
    }
-   const char *signal = p->val.String->getBuffer();
+   const char *signal = str->getBuffer();
 
    p = get_param(params, 2);
    if (!p || p->type != NT_OBJECT)
@@ -1047,13 +1064,13 @@ static class QoreNode *f_QObject_connect(const QoreNode *params, class Exception
    ReferenceHolder<AbstractPrivateData> holder2(rpd, xsink);
 
    // get member/slot name
-   p = test_param(params, NT_STRING, 3);
-   if (!p)
+   str = test_string_param(params, 3);
+   if (!str)
    {
       xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing slot as fourth argument");
       return 0;
    }
-   const char *member = p->val.String->getBuffer();
+   const char *member = str->getBuffer();
 
    /*
    p = get_param(params, 4);
@@ -1069,49 +1086,49 @@ static class QoreNode *f_QObject_connect(const QoreNode *params, class Exception
 static class QoreNode *f_SLOT(const QoreNode *params, class ExceptionSink *xsink)
 {
    // get slot name
-   QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p || !p->val.String->strlen())
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p || !p->strlen())
    {
       xsink->raiseException("SLOT-ERROR", "missing slot name");
       return 0;
    }
-   QoreString *str = new QoreString("1");
-   str->concat(p->val.String->getBuffer());
+   QoreStringNode *str = new QoreStringNode("1");
+   str->concat(p->getBuffer());
    const char *buf = str->getBuffer();
    int slen = str->strlen();
    if (slen < 3 || buf[slen - 1] != ')')
       str->concat("()");
-   return new QoreNode(str);
+   return str;
 }
 
 static class QoreNode *f_SIGNAL(const QoreNode *params, class ExceptionSink *xsink)
 {
    // get slot name
-   QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p || !p->val.String->strlen())
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p || !p->strlen())
    {
       xsink->raiseException("SIGNAL-ERROR", "missing signal name");
       return 0;
    }
-   QoreString *str = new QoreString("2");
-   str->concat(p->val.String->getBuffer());
+   QoreStringNode *str = new QoreStringNode("2");
+   str->concat(p->getBuffer());
    const char *buf = str->getBuffer();
    int slen = str->strlen();
    if (slen < 3 || buf[slen - 1] != ')')
       str->concat("()");
-   return new QoreNode(str);
+   return str;
 }
 
 static class QoreNode *f_TR(const QoreNode *params, class ExceptionSink *xsink)
 {
    // get slot name
-   QoreNode *p = test_param(params, NT_STRING, 0);
-   if (!p || !p->val.String->strlen())
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p || !p->strlen())
    {
       xsink->raiseException("TR-ERROR", "missing string argument to TR()");
       return 0;
    }
-   return new QoreNode(new QoreString(QObject::tr(p->val.String->getBuffer()).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QObject::tr(p->getBuffer()).toUtf8().data(), QCS_UTF8);
 }
 
 static class QoreNode *f_QAPP(const QoreNode *params, class ExceptionSink *xsink)
@@ -1252,12 +1269,12 @@ static class QoreNode *f_QToolTip_showText(const QoreNode *params, class Excepti
       return 0;
    }
    ReferenceHolder<QoreQPoint> posHolder(pos, xsink);
-   p = test_param(params, NT_STRING, 1);
-   if (!p) {
+   QoreStringNode *str = test_string_param(params, 1);
+   if (!str) {
       xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "expecting a string as second argument to QToolTip_showText()");
       return 0;
    }
-   const char *text = p->val.String->getBuffer();
+   const char *text = str->getBuffer();
 
    p = test_param(params, NT_OBJECT, 2);
    QoreQWidget *w = p ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -1305,7 +1322,7 @@ static QoreNode *f_QStyleFactory_keys(const QoreNode *params, ExceptionSink *xsi
    QStringList strlist_rv = QStyleFactory::keys();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 

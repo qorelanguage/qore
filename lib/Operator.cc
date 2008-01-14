@@ -49,18 +49,7 @@ class Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
    *OP_EXISTS, *OP_INSTANCEOF;
 
-// call to get a node with the specified type
-static inline void ensure_type(class QoreNode **v, class QoreType *type, class ExceptionSink *xsink)
-{
-   if ((*v)->type != type)
-   {
-      class QoreNode *n = (*v)->convert(type);
-      (*v)->deref(xsink);
-      (*v) = n;
-   }
-}
-
-// call to get a node with reference count 1
+// call to get a node with reference count 1 (copy on write)
 static inline void ensure_unique(class QoreNode **v, class ExceptionSink *xsink)
 {
    if (!(*v)->is_unique())
@@ -71,125 +60,151 @@ static inline void ensure_unique(class QoreNode **v, class ExceptionSink *xsink)
    }
 }
 
+// call to get a unique douvle node
+static inline void ensure_unique_float(class QoreNode **v, class ExceptionSink *xsink)
+{
+   if ((*v)->type != NT_FLOAT)
+   {
+      double f = (*v)->getAsFloat();
+      (*v)->deref(xsink);
+      (*v) = new QoreNode(f);
+   }
+   else
+      ensure_unique(v, xsink);
+}
+
+// call to get a unique int64 node
+static inline void ensure_unique_int(class QoreNode **v, class ExceptionSink *xsink)
+{
+   if ((*v)->type != NT_INT)
+   {
+      int64 i = (*v)->getAsBigInt();
+      (*v)->deref(xsink);
+      (*v) = new QoreNode(i);
+   }
+   else
+      ensure_unique(v, xsink);
+}
+
 // operator functions for builtin types
-static bool op_log_lt_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_lt_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval < right->val.intval;
 }
 
-static bool op_log_gt_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_gt_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    //printd(1, "op_log_gt_bigint() left=%lld right=%lld result=%d\n", left->val.intval, right->val.intval, (left->val.intval > right->val.intval));
    return left->val.intval > right->val.intval;
 }
 
-static bool op_log_eq_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    //printd(5, "op_log_eq_bigint() left=%lld right=%lld result=%d\n", left->val.intval, right->val.intval, (left->val.intval == right->val.intval));
    return left->val.intval == right->val.intval;
 }
 
-static bool op_log_eq_binary(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_binary(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return !left->val.bin->compare(right->val.bin);
 }
 
-static bool op_log_ne_binary(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ne_binary(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.bin->compare(right->val.bin);
 }
 
-static bool op_log_eq_boolean(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_boolean(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.boolval == right->val.boolval;
 }
 
-static bool op_log_ne_boolean(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ne_boolean(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.boolval != right->val.boolval;
 }
 
-static bool op_log_not_boolean(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_not_boolean(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return !left->val.boolval;
 }
 
-static bool op_log_ne_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ne_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval != right->val.intval;
 }
 
-static bool op_log_le_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_le_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval <= right->val.intval;
 }
 
-static bool op_log_ge_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ge_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval >= right->val.intval;
 }
 
-static bool op_log_eq_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_date(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.date_time->isEqual(right->val.date_time);
 }
 
-static bool op_log_gt_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_gt_date(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return DateTime::compareDates(left->val.date_time, right->val.date_time) > 0;
 }
 
-static bool op_log_ge_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ge_date(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return DateTime::compareDates(left->val.date_time, right->val.date_time) >= 0;
 }
 
-static bool op_log_lt_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_lt_date(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return DateTime::compareDates(left->val.date_time, right->val.date_time) < 0;
 }
 
-static bool op_log_le_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_le_date(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return DateTime::compareDates(left->val.date_time, right->val.date_time) <= 0;
 }
 
-static bool op_log_ne_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ne_date(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return !left->val.date_time->isEqual(right->val.date_time);
 }
 
-static bool op_log_lt_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_lt_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.floatval < right->val.floatval;
 }
 
-static bool op_log_gt_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_gt_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.floatval > right->val.floatval;
 }
 
-static bool op_log_eq_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.floatval == right->val.floatval;
 }
 
-static bool op_log_ne_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ne_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.floatval != right->val.floatval;
 }
 
-static bool op_log_le_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_le_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.floatval <= right->val.floatval;
 }
 
-static bool op_log_ge_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ge_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.floatval >= right->val.floatval;
 }
 
-static bool op_log_eq_string(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
    //   tracein("op_log_eq_string()");
    /*
@@ -198,35 +213,35 @@ static bool op_log_eq_string(class QoreNode *left, class QoreNode *right, Except
 	   left->type, right->type, left->val.c_str, right->val.c_str);
     */
    //   traceout("op_log_eq_string()");
-   return !left->val.String->compareSoft(right->val.String, xsink);
+   return !left->compareSoft(right, xsink);
 }
 
-static bool op_log_gt_string(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_gt_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
-   return left->val.String->compare(right->val.String) > 0;
+   return left->compare(right) > 0;
 }
 
-static bool op_log_ge_string(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ge_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
-   return right->val.String->compare(left->val.String) >= 0;
+   return right->compare(left) >= 0;
 }
 
-static bool op_log_lt_string(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_lt_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
-   return left->val.String->compare(right->val.String) < 0;
+   return left->compare(right) < 0;
 }
 
-static bool op_log_le_string(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_le_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
-   return left->val.String->compare(right->val.String) <= 0;
+   return left->compare(right) <= 0;
 }
 
-static bool op_log_ne_string(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ne_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
-   return left->val.String->compare(right->val.String);
+   return left->compare(right);
 }
 
-static bool op_absolute_log_eq(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_absolute_log_eq(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder lnp(left, xsink);
    if (*xsink)
@@ -235,84 +250,73 @@ static bool op_absolute_log_eq(class QoreNode *left, class QoreNode *right, Exce
    QoreNodeEvalOptionalRefHolder rnp(right, xsink);
    if (*xsink)
       return false;
+
+   if (is_nothing(*lnp))
+      if (is_nothing(*rnp))
+	 return true;
+      else 
+	 return false;
    
-   return !compareHard(*lnp, *rnp, xsink);
-}
-
-static bool op_absolute_log_neq(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
-{
-   QoreNodeEvalOptionalRefHolder lnp(left, xsink);
-   if (*xsink)
+   if (is_nothing(*rnp))
       return false;
 
-   QoreNodeEvalOptionalRefHolder rnp(right, xsink);
-   if (*xsink)
-      return false;
-
-   return compareHard(*lnp, *rnp, xsink);
+   return lnp->is_equal_hard(*rnp, xsink);
 }
 
-static bool op_regex_match(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_absolute_log_neq(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   return right->val.regex->exec(left->val.String, xsink);
+   return !op_absolute_log_eq(left, right, xsink);
 }
 
-static bool op_regex_nmatch(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_regex_match(const QoreString *left, QoreRegex *right, ExceptionSink *xsink)
 {
-   return !right->val.regex->exec(left->val.String, xsink);
+   return right->exec(left, xsink);
+}
+
+static bool op_regex_nmatch(const QoreString *left, QoreRegex *right, ExceptionSink *xsink)
+{
+   return !right->exec(left, xsink);
 }
 
 // takes all arguments unevaluated so logic short-circuiting can happen
-static bool op_log_or(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_or(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   bool l = left->boolEval(xsink);
-   
-   if (xsink->isEvent())
+   bool l = left->boolEval(xsink);   
+   if (*xsink)
       return false;
-   
-   bool b;
+
    // if left side is true, then do not evaluate right side
-   if (l)
-      b = true;
-   else
-      b = right->boolEval(xsink);
-   
-   return b;
+   return l ? true : right->boolEval(xsink);
 }
 
 // "soft" comparison
-// 0 = equal, 1 = not equal
-static inline bool compare_lists(class QoreList *l, class QoreList *r, ExceptionSink *xsink)
+static inline bool list_is_equal(const QoreList *l, const QoreList *r, ExceptionSink *xsink)
 {
    if (l->size() != r->size())
-      return 1;
+      return false;
    for (int i = 0; i < l->size(); i++)
-   {
-      if (compareSoft(l->retrieve_entry(i), r->retrieve_entry(i), xsink))
-	 return 1;
-      if (xsink->isEvent())
-	 return 0;
-   }
-   return 0;
+      if (compareSoft(l->retrieve_entry(i), r->retrieve_entry(i), xsink) || *xsink)
+	 return false;
+   return true;
 }
 
-static bool op_log_eq_list(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_list(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    if ((left->type != NT_LIST) || (right->type != NT_LIST))
       return false;
    
-   return !compare_lists(left->val.list, right->val.list, xsink);
+   return list_is_equal(left->val.list, right->val.list, xsink);
 }
 
-static bool op_log_eq_hash(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    if ((left->type != NT_HASH) || (right->type != NT_HASH))
       return false;
-   
+
    return !left->val.hash->compareSoft(right->val.hash, xsink);
 }
 
-static bool op_log_eq_object(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_object(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    if ((left->type != NT_OBJECT) || (right->type != NT_OBJECT))
       return false;
@@ -320,41 +324,35 @@ static bool op_log_eq_object(class QoreNode *left, class QoreNode *right, Except
    return !left->val.object->compareSoft(right->val.object, xsink);
 }
 
-static bool op_log_eq_nothing(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_nothing(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return true;
 }
 
-static bool op_log_eq_null(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_eq_null(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    if (left && left->type == NT_NULL && right && right->type == NT_NULL)
       return true;
    return false;
 }
 
-static bool op_log_ne_list(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ne_list(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   bool b;
-   
-   if ((left->type != NT_LIST) || (right->type != NT_LIST))
-      b = true;
-   else
-      b = compare_lists(left->val.list, right->val.list, xsink);
-   return b;
+   if (left->type != NT_LIST || right->type != NT_LIST)
+      return true;
+
+   return !list_is_equal(left->val.list, right->val.list, xsink);
 }
 
-static bool op_log_ne_hash(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
-{
-   bool b;
-   
-   if ((left->type != NT_HASH) || (right->type != NT_HASH))
-      b = true;
-   else
-      b = left->val.hash->compareSoft(right->val.hash, xsink);
-   return b;
+static bool op_log_ne_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
+{   
+   if (left->type != NT_HASH || right->type != NT_HASH)
+      return true;
+
+   return left->val.hash->compareSoft(right->val.hash, xsink);
 }
 
-static bool op_log_ne_object(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ne_object(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    bool b;
    
@@ -365,19 +363,19 @@ static bool op_log_ne_object(class QoreNode *left, class QoreNode *right, Except
    return b;
 }
 
-static bool op_log_ne_nothing(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ne_nothing(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return false;
 }
 
-static bool op_log_ne_null(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_ne_null(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    if (left && left->type == NT_NULL && right && right->type == NT_NULL)
       return false;
    return true;
 }
 
-static bool op_exists(class QoreNode *left, class QoreNode *x, ExceptionSink *xsink)
+static bool op_exists(QoreNode *left, class QoreNode *x, ExceptionSink *xsink)
 {
    bool b;
    // if left == NOTHING
@@ -422,7 +420,7 @@ static bool op_instanceof(class QoreNode *l, class QoreNode *r, ExceptionSink *x
 }
 
 // takes all arguments unevaluated so logic short-circuiting can happen
-static bool op_log_and(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static bool op_log_and(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    // if left side is 0, then do not evaluate right side
    bool l = left->boolEval(xsink);
@@ -437,27 +435,27 @@ static bool op_log_and(class QoreNode *left, class QoreNode *right, ExceptionSin
    return b;
 }
 
-static int64 op_cmp_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_cmp_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval - right->val.intval;
 }
 
-static int64 op_minus_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_minus_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval - right->val.intval;
 }
 
-static int64 op_plus_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_plus_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval + right->val.intval;
 }
 
-static int64 op_multiply_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_multiply_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval * right->val.intval;
 }
 
-static int64 op_divide_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_divide_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    if (!right->val.intval)
    {
@@ -467,42 +465,42 @@ static int64 op_divide_bigint(class QoreNode *left, class QoreNode *right, Excep
    return left->val.intval / right->val.intval;
 }
 
-static int64 op_unary_minus_bigint(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_unary_minus_bigint(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return -left->val.intval;
 }
 
-static class QoreNode *op_minus_date(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_minus_date(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
     return new QoreNode(left->val.date_time->subtractBy(right->val.date_time));
 }
 
-static class QoreNode *op_plus_date(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_plus_date(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
     return new QoreNode(left->val.date_time->add(right->val.date_time));
 }
 
-static int64 op_cmp_date(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_cmp_date(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return (int64)DateTime::compareDates(left->val.date_time, right->val.date_time);
 }
 
-static double op_minus_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static double op_minus_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.floatval - right->val.floatval;
 }
 
-static double op_plus_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static double op_plus_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.floatval + right->val.floatval;
 }
 
-static double op_multiply_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static double op_multiply_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.floatval * right->val.floatval;
 }
 
-static double op_divide_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static double op_divide_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    if (!right->val.floatval)
    {
@@ -512,51 +510,56 @@ static double op_divide_float(class QoreNode *left, class QoreNode *right, Excep
    return left->val.floatval / right->val.floatval;
 }
 
-static double op_unary_minus_float(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static double op_unary_minus_float(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return -left->val.floatval;
 }
 
-static class QoreNode *op_plus_string(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreStringNode *op_plus_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
-   //printd(5, "op_plus_string() (%d) \"%s\" + (%d) \"%s\"\n", left->val.String->strlen(), left->val.String->getBuffer(), right->val.String->strlen(), right->val.String->getBuffer());
-
-   QoreString *str = new QoreString(left->val.String);
-   str->concat(right->val.String, xsink);
+   //printd(5, "op_plus_string() (%d) \"%s\" + (%d) \"%s\"\n", left->strlen(), left->getBuffer(), right->strlen(), right->getBuffer());
+   TempQoreStringNode str(new QoreStringNode(*left));
+   str->concat(right, xsink);
+   if (*xsink)
+      return 0;
+   
    printd(5, "op_plus_string() result=\"%s\"\n", str->getBuffer());
-   return new QoreNode(str);
+   return str.release();
 }
 
-static int64 op_cmp_string(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_cmp_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
-   return (int64)left->val.String->compare(right->val.String);
+   return (int64)left->compare(right);
 }
 
-static int64 op_elements(class QoreNode *left, class QoreNode *null, ExceptionSink *xsink)
+static int64 op_elements(QoreNode *left, class QoreNode *null, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder np(left, xsink);
    if (*xsink || !np)
       return 0;
 
-   int size;
-
    if (np->type == NT_LIST)
-      size = np->val.list->size();
-   else if (np->type == NT_OBJECT)
-      size = np->val.object->size(xsink);
-   else if (np->type == NT_HASH)
-      size = np->val.hash->size();
-   else if (np->type == NT_BINARY)
-      size = np->val.bin->size();
-   else if (np->type == NT_STRING)
-      size = np->val.String->length();
-   else
-      return 0;
+      return np->val.list->size();
 
-   return (int64)size;
+   if (np->type == NT_OBJECT)
+      return np->val.object->size(xsink);
+
+   if (np->type == NT_HASH)
+      return np->val.hash->size();
+
+   if (np->type == NT_BINARY)
+      return np->val.bin->size();
+
+   {
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(*np);
+      if (str)
+	 return str->length();
+   }
+
+   return 0;
 }
 
-static class QoreNode *op_keys(class QoreNode *left, class QoreNode *null, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_keys(QoreNode *left, class QoreNode *null, bool ref_rv, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder np(left, xsink);
    if (*xsink || !np || (np->type != NT_OBJECT && np->type != NT_HASH))
@@ -571,7 +574,7 @@ static class QoreNode *op_keys(class QoreNode *left, class QoreNode *null, bool 
    return l ? new QoreNode(l) : NULL;
 }
 
-static class QoreNode *op_question_mark(class QoreNode *left, class QoreNode *list, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_question_mark(QoreNode *left, class QoreNode *list, bool ref_rv, ExceptionSink *xsink)
 {
    bool b = left->boolEval(xsink);
    if (xsink->isEvent())
@@ -582,7 +585,7 @@ static class QoreNode *op_question_mark(class QoreNode *left, class QoreNode *li
    return list->val.list->retrieve_entry(1)->eval(xsink);
 }
 
-static class QoreNode *op_regex_subst(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_regex_subst(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    // get current value and save
    class AutoVLock vl;
@@ -594,19 +597,20 @@ static class QoreNode *op_regex_subst(class QoreNode *left, class QoreNode *righ
    if (!(*v) || (*v)->type != NT_STRING)
       return NULL;
 
-   QoreString *nv = right->val.resub->exec((*v)->val.String, xsink);
+   QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
+   QoreStringNode *nv = right->val.resub->exec((*vs), xsink);
    if (xsink->isEvent())
       return NULL;
 
    // assign new value to lvalue
-   (*v)->deref(xsink);
-   (*v) = new QoreNode(nv);
-   // reference for return value
-   (*v)->ref();
-   return (*v);      
+   (*vs)->deref();
+   (*v) = nv;
+
+   // reference for return value if necessary
+   return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class QoreNode *op_regex_trans(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_regex_trans(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    // get current value and save
    class AutoVLock vl;
@@ -618,23 +622,24 @@ static class QoreNode *op_regex_trans(class QoreNode *left, class QoreNode *righ
    if (!(*v) || (*v)->type != NT_STRING)
       return NULL;
 
-   QoreString *nv = right->val.retrans->exec((*v)->val.String, xsink);
+   QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
+   QoreString *nv = right->val.retrans->exec((*vs), xsink);
    if (xsink->isEvent())
       return NULL;
 
    // assign new value to lvalue
-   (*v)->deref(xsink);
-   (*v) = new QoreNode(nv);
+   (*vs)->deref();
+   (*v) = new QoreStringNode(nv);
    // reference for return value
    (*v)->ref();
    return (*v);      
 }
 
-static class QoreNode *op_list_ref(class QoreNode *left, class QoreNode *index, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_list_ref(QoreNode *left, QoreNode *index, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder lp(left, xsink);
 
-   // return NULL if left side is not a list (or exception)
+   // return NULL if left side is not a list or string (or exception)
    if (!lp || *xsink || (lp->type != NT_LIST && lp->type != NT_STRING))
       return 0;
 
@@ -649,9 +654,8 @@ static class QoreNode *op_list_ref(class QoreNode *left, class QoreNode *index, 
 	    rv->ref();
       }
       else if (ind >= 0) {
-	 QoreString *str = lp->val.String->substr(ind, 1);
-	 if (str)
-	    rv = new QoreNode(str);
+	 QoreStringNode *lpstr = reinterpret_cast<QoreStringNode *>(*lp);
+	 rv = lpstr->substr(ind, 1);
       }
       //printd(5, "op_list_ref() index=%d, rv=%08p\n", ind, rv);
    }
@@ -660,7 +664,7 @@ static class QoreNode *op_list_ref(class QoreNode *left, class QoreNode *index, 
 
 // for the member name, a string is required.  non-string arguments will
 // be converted.  The null string can also be used
-static class QoreNode *op_object_ref(class QoreNode *left, class QoreNode *member, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_object_ref(QoreNode *left, class QoreNode *member, bool ref_rv, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder op(left, xsink);
 
@@ -673,23 +677,18 @@ static class QoreNode *op_object_ref(class QoreNode *left, class QoreNode *membe
    if (*xsink)
       return 0;
 
-   // assign NullString without needing deref to mem if mem is null
-   if (!mem) 
-      mem.assign(false, NullString);
-   else if (mem->type != NT_STRING)
-      mem.assign(true, mem->convert(NT_STRING));
-
+   QoreStringNodeValueHelper key(*mem);
    class QoreNode *rv;
 
    if (op->type == NT_HASH)
-      rv = op->val.hash->evalKey(mem->val.String->getBuffer(), xsink);
+      rv = op->val.hash->evalKey(key->getBuffer(), xsink);
    else
-      rv = op->val.object->evalMember(*mem, xsink);
+      rv = op->val.object->evalMember(*key, xsink);
 
    return rv;
 }
 
-static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNode *func, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_object_method_call(QoreNode *left, class QoreNode *func, bool ref_rv, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder op(left, xsink);
    if (*xsink)
@@ -713,7 +712,7 @@ static class QoreNode *op_object_method_call(class QoreNode *left, class QoreNod
    return op->val.object->getClass()->evalMethod(op->val.object, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
 }
 
-static class QoreNode *op_new_object(class QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_new_object(QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
    tracein("op_new_object()");
 
@@ -724,7 +723,7 @@ static class QoreNode *op_new_object(class QoreNode *left, class QoreNode *x, bo
    return rv;
 }
 
-static class QoreNode *op_assignment(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_assignment(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
 
@@ -771,7 +770,7 @@ static class QoreNode *op_assignment(class QoreNode *left, class QoreNode *right
    return NULL;
 }
 
-static class QoreNode *op_list_assignment(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_list_assignment(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
 
@@ -826,7 +825,7 @@ static class QoreNode *op_list_assignment(class QoreNode *left, class QoreNode *
    return ref_rv ? new_value.takeReferencedValue() : 0;
 }
 
-static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
 
@@ -885,11 +884,11 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
    // do string plus-equals if left-hand side is a string
    else if ((*v) && ((*v)->type == NT_STRING))
    {
-      if (new_right->type != NT_STRING)
-	 new_right.assign(true, new_right->convert(NT_STRING));
+      QoreStringValueHelper str(*new_right);
 
       ensure_unique(v, xsink);
-      (*v)->val.String->concat(new_right->val.String, xsink);
+      QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
+      (*vs)->concat(*str, xsink);
    }
    else if ((*v) && ((*v)->type == NT_FLOAT))
    {
@@ -898,10 +897,9 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
    }
    else if ((*v) && ((*v)->type == NT_DATE))
    {
-      if (new_right->type != NT_DATE)
-	 new_right.assign(true, new_right->convert(NT_DATE));
+      DateTimeValueHelper date(*new_right);
 
-      DateTime *nd = (*v)->val.date_time->add(new_right->val.date_time);
+      DateTime *nd = (*v)->val.date_time->add(*date);
       (*v)->deref(xsink);
       (*v) = new QoreNode(nd);
    }
@@ -921,7 +919,7 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
       {
 	 if ((*v)->type != NT_INT)
 	 {
-	    class QoreNode *n = (*v)->convert(NT_INT);
+	    class QoreNode *n = new QoreNode((*v)->getAsBigInt());
 	    (*v)->deref(xsink);
 	    (*v) = n;
 	 }
@@ -939,7 +937,7 @@ static class QoreNode *op_plus_equals(class QoreNode *left, class QoreNode *righ
    return NULL;
 }
 
-static class QoreNode *op_minus_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_minus_equals(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    // tracein("op_minus_equals()");
 
@@ -964,11 +962,10 @@ static class QoreNode *op_minus_equals(class QoreNode *left, class QoreNode *rig
    }
    else if ((*v) && ((*v)->type == NT_DATE))
    {
-      if (new_right->type != NT_DATE)
-	 new_right.assign(true, new_right->convert(NT_DATE));
+      DateTimeValueHelper date(*new_right);
 
       ensure_unique(v, xsink);
-      DateTime *nd = (*v)->val.date_time->subtractBy(new_right->val.date_time);
+      DateTime *nd = (*v)->val.date_time->subtractBy(*date);
       (*v)->deref(xsink);
       (*v) = new QoreNode(nd);
    }
@@ -983,21 +980,17 @@ static class QoreNode *op_minus_equals(class QoreNode *left, class QoreNode *rig
 	 // treat each element in the list as a string giving a key to delete
 	 ListIterator li(new_right->val.list);
 	 while (li.next()) {
-	    QoreNodeTypeHelper val(li.getValue(), NT_STRING, xsink);
-	    if (*xsink)
-	       return 0;
+	    QoreStringValueHelper val(li.getValue());
 
-	    (*v)->val.hash->deleteKey(val->val.String, xsink);
+	    (*v)->val.hash->deleteKey(*val, xsink);
 	    if (*xsink)
 	       return 0;
 	 }
       }
       else {
-	 if (new_right->type != NT_STRING)
-	    new_right.assign(true, new_right->convert(NT_STRING));
-
+	 QoreStringValueHelper str(*new_right);
 	 ensure_unique(v, xsink);
-	 (*v)->val.hash->deleteKey(new_right->val.String, xsink);
+	 (*v)->val.hash->deleteKey(*str, xsink);
       }
    }
    else // do integer minus-equals
@@ -1026,7 +1019,7 @@ static class QoreNode *op_minus_equals(class QoreNode *left, class QoreNode *rig
 	 {
 	    if ((*v)->type != NT_INT)
 	    {
-	       class QoreNode *n = (*v)->convert(NT_INT);
+	       class QoreNode *n = new QoreNode((*v)->getAsBigInt());
 	       (*v)->deref(xsink);
 	       (*v) = n;
 	    }
@@ -1043,7 +1036,7 @@ static class QoreNode *op_minus_equals(class QoreNode *left, class QoreNode *rig
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class QoreNode *op_and_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_and_equals(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
 
@@ -1065,9 +1058,7 @@ static class QoreNode *op_and_equals(class QoreNode *left, class QoreNode *right
    {
       if ((*v)->type != NT_INT)
       {
-	 class QoreNode *n;
-	 
-	 n = (*v)->convert(NT_INT);
+	 class QoreNode *n = new QoreNode((*v)->getAsBigInt()); 
 	 (*v)->deref(xsink);
 	 (*v) = n;
       }
@@ -1086,7 +1077,7 @@ static class QoreNode *op_and_equals(class QoreNode *left, class QoreNode *right
    return NULL;
 }
 
-static class QoreNode *op_or_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_or_equals(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
 
@@ -1109,9 +1100,7 @@ static class QoreNode *op_or_equals(class QoreNode *left, class QoreNode *right,
    {
       if ((*v)->type != NT_INT)
       {
-	 class QoreNode *n;
-	 
-	 n = (*v)->convert(NT_INT);
+	 class QoreNode *n = new QoreNode((*v)->getAsBigInt()); 
 	 (*v)->deref(xsink);
 	 (*v) = n;
       }
@@ -1129,7 +1118,7 @@ static class QoreNode *op_or_equals(class QoreNode *left, class QoreNode *right,
    return NULL;
 }
 
-static class QoreNode *op_modula_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_modula_equals(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
 
@@ -1152,9 +1141,7 @@ static class QoreNode *op_modula_equals(class QoreNode *left, class QoreNode *ri
    {
       if ((*v)->type != NT_INT)
       {
-	 class QoreNode *n;
-	 
-	 n = (*v)->convert(NT_INT);
+	 class QoreNode *n = new QoreNode((*v)->getAsBigInt());
 	 (*v)->deref(xsink);
 	 (*v) = n;
       }
@@ -1173,29 +1160,20 @@ static class QoreNode *op_modula_equals(class QoreNode *left, class QoreNode *ri
    return NULL;
 }
 
-static class QoreNode *op_multiply_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_multiply_equals(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
    //tracein("op_multiply_equals()");
 
-   bool rd;
-   class QoreNode *res = right->eval(rd, xsink);
-   if (xsink->isEvent())
-   {
-      if (res && rd)
-	 res->deref(xsink);
-      return NULL;
-   }
+   QoreNodeEvalOptionalRefHolder res(right, xsink);
+   if (*xsink)
+      return 0;
 
    // get ptr to current value
    class AutoVLock vl;
    v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-   {
-      if (res && rd)
-	 res->deref(xsink);
-      return NULL;
-   }
+   if (*xsink)
+      return 0;
 
    // is either side a float?
    if (res && res->type == NT_FLOAT)
@@ -1204,9 +1182,10 @@ static class QoreNode *op_multiply_equals(class QoreNode *left, class QoreNode *
 	 (*v) = new QoreNode((double)0.0);
       else
       {
-	 ensure_type(v, NT_FLOAT, xsink);
-	 ensure_unique(v, xsink);
-
+	 ensure_unique_float(v, xsink);
+	 if (*xsink)
+	    return 0;
+	 
 	 // multiply current value with arg val
 	 (*v)->val.floatval *= res->val.floatval;
       }
@@ -1233,8 +1212,9 @@ static class QoreNode *op_multiply_equals(class QoreNode *left, class QoreNode *
       {
 	 if (res)
 	 {
-	    ensure_type(v, NT_INT, xsink);
-	    ensure_unique(v, xsink);
+	    ensure_unique_int(v, xsink);
+	    if (*xsink)
+	       return 0;
 
 	    // multiply current value with arg val
 	    (*v)->val.intval *= res->getAsBigInt();
@@ -1247,40 +1227,26 @@ static class QoreNode *op_multiply_equals(class QoreNode *left, class QoreNode *
       }
    }
 
-   // dereference factor expression result
-   if (res && rd)
-      res->deref(xsink);
+   //traceout("op_multiply_equals()");
 
    // reference return value and return
-   if (ref_rv)
-      return (*v)->RefSelf();
-
-   //traceout("op_multiply_equals()");
-   return NULL;
+   return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class QoreNode *op_divide_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_divide_equals(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
    //tracein("op_divide_equals()");
-   bool rd;
-   class QoreNode *res = right->eval(rd, xsink);
-   if (xsink->isEvent())
-   {
-      if (res && rd)
-	 res->deref(xsink);
-      return NULL;
-   }
+
+   QoreNodeEvalOptionalRefHolder res(right, xsink);
+   if (*xsink)
+      return 0;
 
    // get ptr to current value
    class AutoVLock vl;
    v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-   {
-      if (res && rd)
-	 res->deref(xsink);
-      return NULL;
-   }
+   if (*xsink)
+      return 0;
 
    // is either side a float?
    if (res && res->type == NT_FLOAT)
@@ -1293,8 +1259,7 @@ static class QoreNode *op_divide_equals(class QoreNode *left, class QoreNode *ri
 	    (*v) = new QoreNode((double)0.0);
 	 else
 	 {
-	    ensure_type(v, NT_FLOAT, xsink);
-	    ensure_unique(v, xsink);
+	    ensure_unique_float(v, xsink);
 
 	    // divide current value with arg val
 	    (*v)->val.floatval /= res->val.floatval;
@@ -1306,10 +1271,11 @@ static class QoreNode *op_divide_equals(class QoreNode *left, class QoreNode *ri
       if (res)
       {
 	 float val = res->getAsFloat();
-	 if (!val)
+	 if (!val) {
 	    xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression!");
-	 else
-	 {
+	    return 0;
+	 }
+	 else {
 	    ensure_unique(v, xsink);
 	    (*v)->val.floatval /= val;
 	 }
@@ -1320,36 +1286,29 @@ static class QoreNode *op_divide_equals(class QoreNode *left, class QoreNode *ri
    else // do integer divide equals
    {
       int64 val = res ? res->getAsBigInt() : 0;
-      if (!val)
+      if (!val) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression!");
+	 return 0;
+      }
+      // get new value if necessary
+      if (!(*v))
+	 (*v) = new QoreNode((int64)0);
+      else 
       {
-	 // get new value if necessary
-	 if (!(*v))
-	    (*v) = new QoreNode((int64)0);
-	 else 
-	 {
-	    ensure_type(v, NT_INT, xsink);
-	    ensure_unique(v, xsink);
-
-	    // divide current value with arg val
-	    (*v)->val.intval /= val;
-	 }
+	 ensure_unique_int(v, xsink);
+	 if (*xsink)
+	    return 0;
+	 
+	 // divide current value with arg val
+	 (*v)->val.intval /= val;
       }
    }
 
-   // dereference factor expression result
-   if (res && rd)
-      res->deref(xsink);
-
    // reference return value and return
-   if ((*v) && ref_rv)
-      return (*v)->RefSelf();
-
-   //traceout("op_divide_equals()");
-   return NULL;
+   return ((*v) && ref_rv) ? (*v)->RefSelf() : 0;
 }
 
-static class QoreNode *op_xor_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_xor_equals(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
 
@@ -1372,9 +1331,7 @@ static class QoreNode *op_xor_equals(class QoreNode *left, class QoreNode *right
    {
       if ((*v)->type != NT_INT)
       {
-	 class QoreNode *n;
-	 
-	 n = (*v)->convert(NT_INT);
+	 class QoreNode *n = new QoreNode((*v)->getAsBigInt());
 	 (*v)->deref(xsink);
 	 (*v) = n;
       }
@@ -1393,7 +1350,7 @@ static class QoreNode *op_xor_equals(class QoreNode *left, class QoreNode *right
    return NULL;
 }
 
-static class QoreNode *op_shift_left_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_shift_left_equals(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
 
@@ -1416,9 +1373,7 @@ static class QoreNode *op_shift_left_equals(class QoreNode *left, class QoreNode
    {
       if ((*v)->type != NT_INT)
       {
-	 class QoreNode *n;
-	 
-	 n = (*v)->convert(NT_INT);
+	 class QoreNode *n = new QoreNode((*v)->getAsBigInt());
 	 (*v)->deref(xsink);
 	 (*v) = n;
       }
@@ -1430,14 +1385,10 @@ static class QoreNode *op_shift_left_equals(class QoreNode *left, class QoreNode
    (*v)->val.intval <<= val;
 
    // reference return value and return
-   if (ref_rv)
-      return (*v)->RefSelf();
-
-   //traceout("op_shift_left_equals()");
-   return NULL;
+   return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class QoreNode *op_shift_right_equals(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_shift_right_equals(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
 
@@ -1460,9 +1411,7 @@ static class QoreNode *op_shift_right_equals(class QoreNode *left, class QoreNod
    {
       if ((*v)->type != NT_INT)
       {
-	 class QoreNode *n;
-	 
-	 n = (*v)->convert(NT_INT);
+	 class QoreNode *n = new QoreNode((*v)->getAsBigInt());
 	 (*v)->deref(xsink);
 	 (*v) = n;
       }
@@ -1481,42 +1430,75 @@ static class QoreNode *op_shift_right_equals(class QoreNode *left, class QoreNod
    return NULL;
 }
 
-static class QoreNode *op_plus_list(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+// this is the default (highest-priority) function for the + operator, so any type could be sent here on either side
+static class QoreNode *op_plus_list(QoreNode *left, QoreNode *right)
 {
-   class QoreNode *node = left->realCopy(xsink);
-   node->val.list->merge(right->val.list);
-   return node;
+   QoreList *rv;
+   if (left->type == NT_LIST) {
+      rv = left->val.list->copyList();
+      if (right->type == NT_LIST)
+	 rv->merge(right->val.list);
+      else
+	 rv->push(right->RefSelf());
+   }
+   else if (right->type != NT_LIST)
+      return 0;
+   else {
+      QoreList *rv = new QoreList();
+      rv->push(left->RefSelf());
+      rv->merge(right->val.list);
+   }
+
+   return new QoreNode(rv);
 }
 
-static class QoreNode *op_plus_hash_hash(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_plus_hash_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   class QoreNode *node = left->realCopy(xsink);
-   node->val.hash->merge(right->val.hash, xsink);
-   return node;
+   if (!left || left->type != NT_HASH)
+      return 0;
+   if (!right || right->type != NT_HASH)
+      return 0;
+
+   TempQoreHash rv(left->val.hash->copy(), xsink);
+   rv->merge(right->val.hash, xsink);
+   if (*xsink)
+      return 0;
+   return new QoreNode(rv.release());
 }
 
-static class QoreNode *op_plus_hash_object(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_plus_hash_object(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   class QoreHash *h = right->val.object->evalData(xsink);
-   if (!h)
-      return NULL;
+   assert(right && right->type == NT_OBJECT);
+   TempQoreHash h(right->val.object->copyData(xsink), xsink);
+   if (*xsink)
+      return 0;
 
-   class QoreNode *node = left->realCopy(xsink);
-   node->val.hash->assimilate(h, xsink);
-   return node;
+   assert(left && left->type == NT_HASH);
+   TempQoreHash rv(left->val.hash->copy(), xsink);
+   rv->assimilate(h.release(), xsink);
+   if (*xsink)
+      return 0;
+
+   return new QoreNode(rv.release());
 }
 
 // note that this will return a hash
-static class QoreNode *op_plus_object_hash(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_plus_object_hash(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class QoreHash *h = left->val.object->evalData(xsink);
-   if (!h)
-      return NULL;
+   assert(left && left->type == NT_OBJECT);
+   TempQoreHash h(left->val.object->copyData(xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   assert(right && right->type == NT_HASH);
    h->merge(right->val.hash, xsink);
-   return new QoreNode(h);
+   if (*xsink)
+      return 0;
+
+   return new QoreNode(h.release());
 }
 
-static int64 op_cmp_double(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_cmp_double(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    int64 rc;
    if (left->val.floatval < right->val.floatval)
@@ -1528,48 +1510,47 @@ static int64 op_cmp_double(class QoreNode *left, class QoreNode *right, Exceptio
    return rc;
 }
 
-static int64 op_modula_int(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_modula_int(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval % right->val.intval;
 }
 
-static int64 op_bin_and_int(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_bin_and_int(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval & right->val.intval;
 }
 
-static int64 op_bin_or_int(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_bin_or_int(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval | right->val.intval;
 }
 
-static int64 op_bin_not_int(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_bin_not_int(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return ~left->val.intval;
 }
 
-static int64 op_bin_xor_int(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_bin_xor_int(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval ^ right->val.intval;
 }
 
-static int64 op_shift_left_int(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_shift_left_int(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval << right->val.intval;
 }
 
-static int64 op_shift_right_int(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink)
+static int64 op_shift_right_int(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
    return left->val.intval >> right->val.intval;
 }
 
 // variable assignment
-static class QoreNode *op_post_inc(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_post_inc(QoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **n, *rv;
 
    // tracein("op_post_inc()");
-
    class AutoVLock vl;
    n = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
@@ -1582,7 +1563,7 @@ static class QoreNode *op_post_inc(class QoreNode *left, class QoreNode *right, 
       (*n) = new QoreNode((int64)0);
    else if ((*n)->type != NT_INT)
    {
-      class QoreNode *nv = (*n)->convert(NT_INT);
+      class QoreNode *nv = new QoreNode((*n)->getAsBigInt());
 
       // get unique value if necessary
       if (!nv->is_unique())
@@ -1605,7 +1586,7 @@ static class QoreNode *op_post_inc(class QoreNode *left, class QoreNode *right, 
 }
 
 // variable assignment
-static class QoreNode *op_post_dec(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_post_dec(QoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **n, *rv;
    // tracein("op_post_dec()");
@@ -1624,7 +1605,7 @@ static class QoreNode *op_post_dec(class QoreNode *left, class QoreNode *right, 
    }
    else if ((*n)->type != NT_INT)
    {
-      class QoreNode *nv = (*n)->convert(NT_INT);
+      class QoreNode *nv = new QoreNode((*n)->getAsBigInt());
       rv = *n;
 
       // get unique value if necessary
@@ -1653,7 +1634,7 @@ static class QoreNode *op_post_dec(class QoreNode *left, class QoreNode *right, 
 }
 
 // variable assignment
-static class QoreNode *op_pre_inc(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_pre_inc(QoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **n;
    // tracein("op_pre_inc()");
@@ -1670,7 +1651,7 @@ static class QoreNode *op_pre_inc(class QoreNode *left, class QoreNode *right, b
    {
       if ((*n)->type != NT_INT)
       {
-	 class QoreNode *nv = (*n)->convert(NT_INT);
+	 class QoreNode *nv = new QoreNode((*n)->getAsBigInt());
 	 (*n)->deref(xsink);
 	 (*n) = nv;
       }
@@ -1691,7 +1672,7 @@ static class QoreNode *op_pre_inc(class QoreNode *left, class QoreNode *right, b
 }
 
 // variable assignment
-static class QoreNode *op_pre_dec(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_pre_dec(QoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **n;
    // tracein("op_pre_dec()");
@@ -1708,7 +1689,7 @@ static class QoreNode *op_pre_dec(class QoreNode *left, class QoreNode *right, b
    {
       if ((*n)->type != NT_INT)
       {
-	 class QoreNode *nv = (*n)->convert(NT_INT);
+	 class QoreNode *nv = new QoreNode((*n)->getAsBigInt());
 	 (*n)->deref(xsink);
 	 (*n) = nv;
       }
@@ -1728,7 +1709,7 @@ static class QoreNode *op_pre_dec(class QoreNode *left, class QoreNode *right, b
 }
 
 // unshift lvalue, element
-static QoreNode *op_unshift(class QoreNode *left, class QoreNode *elem, bool ref_rv, ExceptionSink *xsink)
+static QoreNode *op_unshift(QoreNode *left, class QoreNode *elem, bool ref_rv, ExceptionSink *xsink)
 {
    //tracein("op_unshift()");
    printd(5, "op_unshift(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
@@ -1750,7 +1731,7 @@ static QoreNode *op_unshift(class QoreNode *left, class QoreNode *elem, bool ref
    if (elem)
    {
       elem = elem->eval(xsink);
-      if (xsink->isEvent())
+      if (*xsink)
       {
 	 if (elem) elem->deref(xsink);
 	 return NULL;
@@ -1767,7 +1748,7 @@ static QoreNode *op_unshift(class QoreNode *left, class QoreNode *elem, bool ref
    return NULL;
 }
 
-static QoreNode *op_shift(class QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
+static QoreNode *op_shift(QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
    //tracein("op_shift()");
    printd(5, "op_shift(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
@@ -1792,7 +1773,7 @@ static QoreNode *op_shift(class QoreNode *left, class QoreNode *x, bool ref_rv, 
    return rv;
 }
 
-static QoreNode *op_pop(class QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
+static QoreNode *op_pop(QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
    //tracein("op_pop()");
    printd(5, "op_pop(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
@@ -1817,7 +1798,7 @@ static QoreNode *op_pop(class QoreNode *left, class QoreNode *x, bool ref_rv, Ex
    return rv;
 }
 
-static QoreNode *op_push(class QoreNode *left, class QoreNode *elem, bool ref_rv, ExceptionSink *xsink)
+static QoreNode *op_push(QoreNode *left, class QoreNode *elem, bool ref_rv, ExceptionSink *xsink)
 {
    //tracein("op_push()");
    printd(5, "op_push(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
@@ -1838,7 +1819,7 @@ static QoreNode *op_push(class QoreNode *left, class QoreNode *elem, bool ref_rv
    if (elem)
    {
       elem = elem->eval(xsink);
-      if (xsink->isEvent())
+      if (*xsink)
       {
 	 if (elem) elem->deref(xsink);
 	 return NULL;
@@ -1848,15 +1829,11 @@ static QoreNode *op_push(class QoreNode *left, class QoreNode *elem, bool ref_rv
    (*val)->val.list->push(elem);
 
    // reference for return value
-   if (ref_rv)
-      return (*val)->RefSelf();
-
-   //traceout("op_push()");
-   return NULL;
+   return ref_rv ? (*val)->RefSelf() : 0;
 }
 
 // lvalue, offset, [length, [list]]
-static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, bool ref_rv, ExceptionSink *xsink)
+static QoreNode *op_splice(QoreNode *left, class QoreNode *l, bool ref_rv, ExceptionSink *xsink)
 {
    //tracein("op_splice()");
    printd(5, "op_splice(%08p, %08p, isEvent=%d)\n", left, l, xsink->isEvent());
@@ -1888,8 +1865,11 @@ static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, bool ref_rv,
 #ifdef DEBUG
    if ((*val)->type == NT_LIST)
       printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.list->size(), *nl, size, offset);
-   else
-      printd(5, "op_splice() val=%08p (strlen=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.String->strlen(), *nl, size, offset);
+   else {
+      QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(val);
+
+      printd(5, "op_splice() val=%08p (strlen=%d) list=%08p (size=%d) offset=%d\n", (*val), (*vs)->strlen(), *nl, size, offset);
+   }
 #endif
 
    if ((*val)->type == NT_LIST)
@@ -1907,15 +1887,17 @@ static QoreNode *op_splice(class QoreNode *left, class QoreNode *l, bool ref_rv,
    }
    else // must be a string
    {
+      QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(val);
+
       if (size == 1)
-	 (*val)->val.String->splice(offset, xsink);
+	 (*vs)->splice(offset, xsink);
       else
       {
 	 int length = nl->val.list->getEntryAsInt(1);
 	 if (size == 2)
-	    (*val)->val.String->splice(offset, length, xsink);
+	    (*vs)->splice(offset, length, xsink);
 	 else
-	    (*val)->val.String->splice(offset, length, nl->val.list->retrieve_entry(2), xsink);
+	    (*vs)->splice(offset, length, nl->val.list->retrieve_entry(2), xsink);
       }
    }
 
@@ -1938,8 +1920,10 @@ static int64 op_chomp(class QoreNode *arg, class QoreNode *x, ExceptionSink *xsi
    
    // note that no exception can happen here
    ensure_unique(val, xsink);
-   if ((*val)->type == NT_STRING)
-      count += (*val)->val.String->chomp();
+   if ((*val)->type == NT_STRING) {
+      QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(val);
+      count += (*vs)->chomp();
+   }
    else if ((*val)->type == NT_LIST)
    {
       ListIterator li((*val)->val.list);
@@ -1950,7 +1934,8 @@ static int64 op_chomp(class QoreNode *arg, class QoreNode *x, ExceptionSink *xsi
 	 {
 	    // note that no exception can happen here
 	    ensure_unique(v, xsink);
-	    count += (*v)->val.String->chomp();
+	    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
+	    count += (*vs)->chomp();
 	 }
       }      
    }
@@ -1964,7 +1949,8 @@ static int64 op_chomp(class QoreNode *arg, class QoreNode *x, ExceptionSink *xsi
 	 {
 	    // note that no exception can happen here
 	    ensure_unique(v, xsink);
-	    count += (*v)->val.String->chomp();
+	    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
+	    count += (*vs)->chomp();
 	 }
       }
    }
@@ -1985,8 +1971,10 @@ static QoreNode *op_trim(class QoreNode *arg, class QoreNode *x, bool ref_rv, Ex
    
    // note that no exception can happen here
    ensure_unique(val, xsink);
-   if ((*val)->type == NT_STRING)
-      (*val)->val.String->trim();
+   if ((*val)->type == NT_STRING) {
+      QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(val);
+      (*vs)->trim();
+   }
    else if ((*val)->type == NT_LIST)
    {
       ListIterator li((*val)->val.list);
@@ -1997,7 +1985,8 @@ static QoreNode *op_trim(class QoreNode *arg, class QoreNode *x, bool ref_rv, Ex
 	 {
 	    // note that no exception can happen here
 	    ensure_unique(v, xsink);
-	    (*v)->val.String->trim();
+	    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
+	    (*vs)->trim();
 	 }
       }      
    }
@@ -2011,7 +2000,8 @@ static QoreNode *op_trim(class QoreNode *arg, class QoreNode *x, bool ref_rv, Ex
 	 {
 	    // note that no exception can happen here
 	    ensure_unique(v, xsink);
-	    (*v)->val.String->trim();
+	    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
+	    (*vs)->trim();
 	 }
       }
    }
@@ -2023,16 +2013,16 @@ static QoreNode *op_trim(class QoreNode *arg, class QoreNode *x, bool ref_rv, Ex
    return 0;
 }
 
-static QoreNode *op_minus_hash_string(class QoreNode *h, class QoreNode *s, bool ref_rv, ExceptionSink *xsink)
+static QoreNode *op_minus_hash_string(const QoreHash *h, const QoreString *s, ExceptionSink *xsink)
 {
-   ReferenceHolder<QoreNode> x(h->realCopy(xsink), xsink);
+   TempQoreHash nh(h->copy(), xsink);
+   nh->deleteKey(s, xsink);
    if (*xsink)
       return 0;
-   x->val.hash->deleteKey(s->val.String, xsink);
-   return x.release();
+   return new QoreNode(nh.release());
 }
 
-static QoreNode *op_minus_hash_list(class QoreNode *h, class QoreNode *l, bool ref_rv, ExceptionSink *xsink)
+static QoreNode *op_minus_hash_list(class QoreNode *h, class QoreNode *l, ExceptionSink *xsink)
 {
    ReferenceHolder<QoreNode> x(h->realCopy(xsink), xsink);
    if (*xsink)
@@ -2041,155 +2031,973 @@ static QoreNode *op_minus_hash_list(class QoreNode *h, class QoreNode *l, bool r
    // treat each element in the list as a string giving a key to delete
    ListIterator li(l->val.list);
    while (li.next()) {
-      QoreNodeTypeHelper val(li.getValue(), NT_STRING, xsink);
-      if (*xsink)
-	 return 0;
+      QoreStringValueHelper val(li.getValue());
       
-      x->val.hash->deleteKey(val->val.String, xsink);
+      x->val.hash->deleteKey(*val, xsink);
       if (*xsink)
 	 return 0;
    }
    return x.release();
 }
 
-static class QoreNode *op_regex_extract(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_regex_extract(const QoreString *left, QoreRegex *right, ExceptionSink *xsink)
 {
-   class QoreList *l = right->val.regex->extractSubstrings(left->val.String, xsink);
+   class QoreList *l = right->extractSubstrings(left, xsink);
    if (!l)
       return NULL;
    return new QoreNode(l);
 }
 
-AbstractOperatorFunction::AbstractOperatorFunction(class QoreType *lt, class QoreType *rt) : ltype(lt), rtype(rt)
+static QoreNode *get_node_type(QoreNode *n, const QoreType *t)
+{
+   assert(n);
+   assert(n->type != t);
+
+   if (t == NT_STRING) {
+      QoreStringNode *str = new QoreStringNode();
+      n->getStringRepresentation(*str);
+      return str;
+   }
+
+   if (t == NT_INT)
+      return new QoreNode(n->getAsBigInt());
+
+   if (t == NT_FLOAT)
+      return new QoreNode(n->getAsFloat());
+
+   if (t == NT_BOOLEAN)
+      return new QoreNode(n->getAsBool());
+
+   if (t == NT_DATE) {
+      DateTime *dt = new DateTime();
+      n->getDateTimeRepresentation(*dt);
+      return new QoreNode(dt);
+   }
+   
+   if (t == NT_LIST) {
+      QoreList *l = new QoreList();
+      l->push(n ? n->RefSelf() : 0);
+      return new QoreNode(l);
+   }
+
+   printd(0, "get_node_type() got type '%s'\n", t->getName());
+   assert(false);
+   return 0;
+}
+
+AbstractOperatorFunction::AbstractOperatorFunction(const QoreType *lt, const QoreType *rt) : ltype(lt), rtype(rt)
 {
 }
 
-OperatorFunction::OperatorFunction(class QoreType *lt, class QoreType *rt, op_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
+OperatorFunction::OperatorFunction(const QoreType *lt, const QoreType *rt, op_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
 {
 }
 
-BoolOperatorFunction::BoolOperatorFunction(class QoreType *lt, class QoreType *rt, op_bool_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
+BoolOperatorFunction::BoolOperatorFunction(const QoreType *lt, const QoreType *rt, op_bool_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
 {
 }
 
-BigIntOperatorFunction::BigIntOperatorFunction(class QoreType *lt, class QoreType *rt, op_bigint_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
+BigIntOperatorFunction::BigIntOperatorFunction(const QoreType *lt, const QoreType *rt, op_bigint_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
 {
 }
 
-FloatOperatorFunction::FloatOperatorFunction(class QoreType *lt, class QoreType *rt, op_float_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
+FloatOperatorFunction::FloatOperatorFunction(const QoreType *lt, const QoreType *rt, op_float_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
 {
 }
 
-class QoreNode *OperatorFunction::eval(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink) const
+class QoreNode *OperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1)
+      return op_func(left, 0, ref_rv, xsink);
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
+   return op_func(left, right, ref_rv, xsink);
+}
+
+bool OperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      ReferenceHolder<QoreNode> rv(op_func(left, 0, true, xsink), xsink);
+      return *rv ? rv->getAsBool() : false;
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
+   ReferenceHolder<QoreNode> rv(op_func(left, right, true, xsink), xsink);
+   return *rv ? rv->getAsBool() : false;
+}
+
+int64 OperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      ReferenceHolder<QoreNode> rv(op_func(left, 0, true, xsink), xsink);
+      return *rv ? rv->getAsBigInt() : false;
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
+   ReferenceHolder<QoreNode> rv(op_func(left, right, true, xsink), xsink);
+   return *rv ? rv->getAsBigInt() : 0;
+}
+
+double OperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      ReferenceHolder<QoreNode> rv(op_func(left, 0, true, xsink), xsink);
+      return *rv ? rv->getAsFloat() : false;
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
+   ReferenceHolder<QoreNode> rv(op_func(left, right, true, xsink), xsink);
+   return *rv ? rv->getAsFloat() : 0;
+}
+
+class QoreNode *NodeOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   if (!ref_rv)
+      return 0;
+   return op_func(left, right, xsink);
+}
+
+bool NodeOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> rv(op_func(left, right, xsink), xsink);
+   return *rv ? rv->getAsBool() : false;
+}
+
+int64 NodeOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> rv(op_func(left, right, xsink), xsink);
+   return *rv ? rv->getAsBigInt() : 0;
+}
+
+double NodeOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> rv(op_func(left, right, xsink), xsink);
+   return *rv ? rv->getAsFloat() : 0;
+}
+
+class QoreNode *EffectNoEvalOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    return op_func(left, right, ref_rv, xsink);
 }
 
-bool OperatorFunction::bool_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+bool EffectNoEvalOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   class QoreNode *rv = op_func(left, right, true, xsink);
-   bool b = rv ? rv->getAsBool() : false;
-   if (rv)
-      rv->deref(xsink);
-   return b;
+   ReferenceHolder<QoreNode> rv(op_func(left, right, true, xsink), xsink);
+   return *rv ? rv->getAsBool() : false;
 }
 
-int64 OperatorFunction::bigint_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+int64 EffectNoEvalOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   class QoreNode *rv = op_func(left, right, true, xsink);
-   int64 i = rv ? rv->getAsBigInt() : 0;
-   if (rv)
-      rv->deref(xsink);
-   return i;
+   ReferenceHolder<QoreNode> rv(op_func(left, right, true, xsink), xsink);
+   return *rv ? rv->getAsBigInt() : 0;
 }
 
-double OperatorFunction::float_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+double EffectNoEvalOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   class QoreNode *rv = op_func(left, right, true, xsink);
-   double f = rv ? rv->getAsFloat() : 0.0;
-   if (rv)
-      rv->deref(xsink);
-   return f;
+   ReferenceHolder<QoreNode> rv(op_func(left, right, true, xsink), xsink);
+   return *rv ? rv->getAsFloat() : 0;
 }
 
-class QoreNode *BoolOperatorFunction::eval(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink) const
+class QoreNode *HashStringOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
-   bool rv = op_func(left, right, xsink);
-   if (!ref_rv || xsink->isException())
-      return NULL;
-   return new QoreNode(rv);
+   assert(left && left->type == NT_HASH);
+   // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
+   if (!ref_rv) return 0;
+
+   QoreStringValueHelper r(right);
+   return op_func(left->val.hash, *r, xsink);
 }
 
-bool BoolOperatorFunction::bool_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+bool HashStringOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(left && left->type == NT_HASH);
+   // this operator can never return a value in a boolean context and cannot have a side-effect
+   return false;
+}
+
+int64 HashStringOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(left && left->type == NT_HASH);
+   // this operator can never return a value in an integer context and cannot have a side-effect
+   return 0;
+}
+
+double HashStringOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(left && left->type == NT_HASH);
+   // this operator can never return a value in a floating-point context and cannot have a side-effect
+   return 0.0;
+}
+
+class QoreNode *HashListOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   assert(left && left->type == NT_HASH);
+   assert(right && right->type == NT_LIST);
+   // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
+   if (!ref_rv) return 0;
+
+   return op_func(left->val.hash, right->val.list, xsink);
+}
+
+bool HashListOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(left && left->type == NT_HASH);
+   // this operator can never return a value in a boolean context and cannot have a side-effect
+   return false;
+}
+
+int64 HashListOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(left && left->type == NT_HASH);
+   // this operator can never return a value in an integer context and cannot have a side-effect
+   return 0;
+}
+
+double HashListOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(left && left->type == NT_HASH);
+   // this operator can never return a value in a floating-point context and cannot have a side-effect
+   return 0.0;
+}
+
+class QoreNode *NoConvertOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
+   if (!ref_rv) return 0;
+
+   return op_func(left, right);
+}
+
+bool NoConvertOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   // this operator can never return a value in a boolean context and cannot have a side-effect
+   return false;
+}
+
+int64 NoConvertOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   // this operator can never return a value in an integer context and cannot have a side-effect
+   return 0;
+}
+
+double NoConvertOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   // this operator can never return a value in a floating-point context and cannot have a side-effect
+   return 0.0;
+}
+
+class QoreNode *EffectBoolOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   bool b = op_func(left, right, xsink);
+   return *xsink ? 0 : new QoreNode(b);
+}
+
+bool EffectBoolOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
    return op_func(left, right, xsink);
 }
 
-int64 BoolOperatorFunction::bigint_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+int64 EffectBoolOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
    return (int64)op_func(left, right, xsink);
 }
 
-double BoolOperatorFunction::float_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+double EffectBoolOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
    return (double)op_func(left, right, xsink);
 }
 
-class QoreNode *BigIntOperatorFunction::eval(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink) const
+class QoreNode *VarRefOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
+   assert(left);
+   return op_func(left, ref_rv, xsink);
+}
+
+bool VarRefOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(left);
+   ReferenceHolder<QoreNode> rv(op_func(left, true, xsink), xsink);
+   return rv->getAsBool();
+}
+
+int64 VarRefOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(left);
+   ReferenceHolder<QoreNode> rv(op_func(left, true, xsink), xsink);
+   return rv->getAsBigInt();
+}
+
+double VarRefOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(left);
+   ReferenceHolder<QoreNode> rv(op_func(left, true, xsink), xsink);
+   return rv->getAsFloat();
+}
+
+class QoreNode *StringStringStringOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
+   if (!ref_rv) return 0;
+
+   QoreStringValueHelper l(left);
+   QoreStringValueHelper r(right);
+   return op_func(*l, *r, xsink);
+}
+
+bool StringStringStringOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   QoreStringValueHelper r(right);
+
+   TempQoreStringNode rv(op_func(*l, *r, xsink));
+   if (!*rv)
+      return 0;
+   return rv->getAsBool();
+}
+
+int64 StringStringStringOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   QoreStringValueHelper r(right);
+
+   TempQoreStringNode rv(op_func(*l, *r, xsink));
+   if (!*rv)
+      return 0;
+   return rv->getAsBigInt();
+}
+
+double StringStringStringOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   QoreStringValueHelper r(right);
+
+   TempQoreStringNode rv(op_func(*l, *r, xsink));
+   if (!*rv)
+      return 0;
+   return rv->getAsFloat();
+}
+
+class QoreNode *ListStringRegexOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   assert(right && right->type == NT_REGEX);
+   // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
+   if (!ref_rv) return 0;
+
+   QoreStringValueHelper l(left);
+   return op_func(*l, right->val.regex, xsink);
+}
+
+bool ListStringRegexOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(right && right->type == NT_REGEX);
+   // this operator can never return a value in this context and cannot have a side-effect
+   return false;
+}
+
+int64 ListStringRegexOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(right && right->type == NT_REGEX);
+   // this operator can never return a value in this context and cannot have a side-effect
+   return 0;
+}
+
+double ListStringRegexOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   assert(right && right->type == NT_REGEX);
+   // this operator can never return a value in this context and cannot have a side-effect
+   return 0.0;
+}
+
+class QoreNode *BoolOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      bool rv = op_func(left, 0, xsink);
+      if (!ref_rv || *xsink)
+	 return 0;
+      return new QoreNode(rv);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
+   bool rv = op_func(left, right, xsink);
+   if (!ref_rv || *xsink)
+      return 0;
+   return new QoreNode(rv);
+}
+
+bool BoolOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      return op_func(left, right, xsink);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
+   return op_func(left, right, xsink);
+}
+
+int64 BoolOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      return (int64)op_func(left, right, xsink);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
+   return (int64)op_func(left, right, xsink);
+}
+
+double BoolOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      return (double)op_func(left, right, xsink);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
+   return (double)op_func(left, right, xsink);
+}
+
+class QoreNode *NoConvertBoolOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   if (args == 1) {
+      bool rv = op_func(left, 0, xsink);
+      if (!ref_rv || *xsink)
+	 return 0;
+      return new QoreNode(rv);
+   }
+
+   bool rv = op_func(left, right, xsink);
+   if (!ref_rv || *xsink)
+      return 0;
+   return new QoreNode(rv);
+}
+
+bool NoConvertBoolOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   if (args == 1)
+      return op_func(left, right, xsink);
+
+   return op_func(left, right, xsink);
+}
+
+int64 NoConvertBoolOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   if (args == 1)
+      return (int64)op_func(left, right, xsink);
+
+   return (int64)op_func(left, right, xsink);
+}
+
+double NoConvertBoolOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   if (args == 1)
+      return (double)op_func(left, right, xsink);
+
+   return (double)op_func(left, right, xsink);
+}
+
+class QoreNode *BoolStrStrOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   
+   bool rv;
+   if (args == 1) {
+      rv = op_func(*l, 0, xsink);
+   }
+   else {
+      QoreStringValueHelper r(right);
+
+      rv = op_func(*l, *r, xsink);
+   }
+   if (!ref_rv || *xsink)
+      return 0;
+   return new QoreNode(rv);
+}
+
+bool BoolStrStrOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   
+   if (args == 1)
+      return op_func(*l, 0, xsink);
+
+   QoreStringValueHelper r(right);
+   return op_func(*l, *r, xsink);
+}
+
+int64 BoolStrStrOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   
+   if (args == 1)
+      return (int64)op_func(*l, 0, xsink);
+
+   QoreStringValueHelper r(right);
+   return (int64)op_func(*l, *r, xsink);
+}
+
+double BoolStrStrOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);   
+   if (args == 1)
+      return (double)op_func(*l, 0, xsink);
+
+   QoreStringValueHelper r(right);
+   return (double)op_func(*l, *r, xsink);
+}
+
+class QoreNode *BoolStrRegexOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   assert(right && right->type == NT_REGEX);
+
+   bool rv = op_func(*l, right->val.regex, xsink);
+   if (!ref_rv || *xsink)
+      return 0;
+   return new QoreNode(rv);
+}
+
+bool BoolStrRegexOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   assert(right && right->type == NT_REGEX);
+
+   return op_func(*l, right->val.regex, xsink);
+}
+
+int64 BoolStrRegexOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   assert(right && right->type == NT_REGEX);
+
+   return (int64)op_func(*l, right->val.regex, xsink);
+}
+
+double BoolStrRegexOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   assert(right && right->type == NT_REGEX);
+
+   return (double)op_func(*l, right->val.regex, xsink);
+}
+
+class QoreNode *BigIntStrStrOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   
+   int64 rv;
+   if (args == 1) {
+      rv = op_func(*l, 0, xsink);
+   }
+   else {
+      QoreStringValueHelper r(right);
+
+      rv = op_func(*l, *r, xsink);
+   }
+   if (!ref_rv || *xsink)
+      return 0;
+   return new QoreNode(rv);
+}
+
+bool BigIntStrStrOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   
+   if (args == 1)
+      return (bool)op_func(*l, 0, xsink);
+
+   QoreStringValueHelper r(right);
+   return (bool)op_func(*l, *r, xsink);
+}
+
+int64 BigIntStrStrOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);
+   
+   if (args == 1)
+      return op_func(*l, 0, xsink);
+
+   QoreStringValueHelper r(right);
+   return op_func(*l, *r, xsink);
+}
+
+double BigIntStrStrOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
+{
+   QoreStringValueHelper l(left);   
+   if (args == 1)
+      return (double)op_func(*l, 0, xsink);
+
+   QoreStringValueHelper r(right);
+   return (double)op_func(*l, *r, xsink);
+}
+
+class QoreNode *BigIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+{
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      int64 rv = op_func(left, right, xsink);
+      if (!ref_rv || xsink->isException())
+	 return NULL;
+      return new QoreNode(rv);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
    int64 rv = op_func(left, right, xsink);
    if (!ref_rv || xsink->isException())
       return NULL;
    return new QoreNode(rv);
 }
 
-bool BigIntOperatorFunction::bool_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+bool BigIntOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      return (bool)op_func(left, right, xsink);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
    return (bool)op_func(left, right, xsink);
 }
 
-int64 BigIntOperatorFunction::bigint_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+int64 BigIntOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      return op_func(left, right, xsink);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL)) {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
    return op_func(left, right, xsink);
 }
 
-double BigIntOperatorFunction::float_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+double BigIntOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      return (double)op_func(left, right, xsink);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL)) {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
    return (double)op_func(left, right, xsink);
 }
 
-class QoreNode *FloatOperatorFunction::eval(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink) const
+class QoreNode *FloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      double rv = op_func(left, right, xsink);
+      if (!ref_rv || xsink->isException())
+	 return NULL;
+      return new QoreNode(rv);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL)) {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
    double rv = op_func(left, right, xsink);
    if (!ref_rv || xsink->isException())
       return NULL;
    return new QoreNode(rv);
 }
 
-bool FloatOperatorFunction::bool_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+bool FloatOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      return (bool)op_func(left, right, xsink);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
    return (bool)op_func(left, right, xsink);
 }
 
-int64 FloatOperatorFunction::bigint_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+int64 FloatOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      return (int64)op_func(left, right, xsink);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
    return (int64)op_func(left, right, xsink);
 }
 
-double FloatOperatorFunction::float_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+double FloatOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
+   ReferenceHolder<QoreNode> l(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((left->type != ltype) && (ltype != NT_ALL))
+   {
+      left = get_node_type(left, ltype);
+      l = left;
+   }
+
+   if (args == 1) {
+      return op_func(left, right, xsink);
+   }
+
+   ReferenceHolder<QoreNode> r(xsink);
+
+   // convert node type to required argument types for operator if necessary
+   if ((right->type != rtype) && (rtype != NT_ALL))
+   {
+      right = get_node_type(right, rtype);
+      r = right;
+   }
+
    return op_func(left, right, xsink);
 }
 
-Operator::Operator(int arg, char *n, char *desc, int ev, bool eff, bool lv)
+Operator::Operator(int arg, char *n, char *desc, int n_evalArgs, bool n_effect, bool n_lvalue)
 {
    args = arg;
    name = n;
    description = desc;
-   evalArgs = ev;
+   evalArgs = n_evalArgs;
    opMatrix = NULL;
-   effect = eff;
-   lvalue = lv;
+   effect = n_effect;
+   lvalue = n_lvalue;
 }
 
 Operator::~Operator()
@@ -2234,14 +3042,43 @@ void Operator::init()
 
 // if there is no exact match, the first partial match counts as a match
 // static method
-int Operator::match(class QoreType *ntype, class QoreType *rtype)
+int Operator::match(const QoreType *ntype, const QoreType *rtype)
 {
    // if any type is OK, or an exact match
    if (rtype == NT_ALL || ntype == rtype || (rtype == NT_VARREF && ntype == NT_SELF_VARREF))
       return 1;
-   // otherwise fail
-   else
+   else // otherwise fail
       return 0;
+}
+
+int Operator::get_function(QoreNodeEvalOptionalRefHolder &nleft, ExceptionSink *xsink) const
+{
+   int t;
+   // find operator function
+   if (functions.size() == 1)
+      t = 0;
+   else if (nleft->type->getID() < NUM_VALUE_TYPES)
+      t = opMatrix[nleft->type->getID()][NT_NOTHING->getID()];
+   else
+      t = findFunction(nleft->type, NT_NOTHING);
+   
+   printd(5, "Operator::get_function() found function %d\n", t);
+   return t;
+}
+
+int Operator::get_function(QoreNodeEvalOptionalRefHolder &nleft, QoreNodeEvalOptionalRefHolder &nright, ExceptionSink *xsink) const
+{
+   int t;
+   // find operator function
+   if (functions.size() == 1)
+      t = 0;
+   else if (nleft->type->getID() < NUM_VALUE_TYPES && nright->type->getID() < NUM_VALUE_TYPES)
+      t = opMatrix[nleft->type->getID()][nright->type->getID()];
+   else
+      t = findFunction(nleft->type, nright->type);
+
+   printd(5, "Operator::get_function() found function %d\n", t);
+   return t;
 }
 
 // Operator::eval(): return value requires a deref(xsink) afterwards
@@ -2249,11 +3086,8 @@ int Operator::match(class QoreType *ntype, class QoreType *rtype)
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-class QoreNode *Operator::eval(class QoreNode *left_side, class QoreNode *right_side, bool ref_rv, ExceptionSink *xsink) const
+class QoreNode *Operator::eval(QoreNode *left_side, QoreNode *right_side, bool ref_rv, ExceptionSink *xsink) const
 {
-   class QoreNode *result;
-   
-   tracein("Operator::eval()");
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left_side, right_side);
    if (evalArgs)
    {
@@ -2262,73 +3096,33 @@ class QoreNode *Operator::eval(class QoreNode *left_side, class QoreNode *right_
 	 return 0;
       if (!nleft)
 	 nleft.assign(false, Nothing);
-	 
+
       int t;
 
       if (args == 1)
       {
-	 // find operator function
-	 if (functions.size() == 1)
-	    t = 0;
-	 else if (nleft->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[nleft->type->getID()][NT_NOTHING->getID()];
-	 else
-	    t = findFunction(nleft->type, NT_NOTHING);
-	 
-	 printd(5, "Operator::eval() found function %d\n", t);	 
-	 // convert node type to required argument types for operator if necessary
-	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
-	 {
-	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 result = functions[t]->eval(*nleft, 0, ref_rv, xsink);
-      }
-      else // 2 arguments
-      {
-	 QoreNodeEvalOptionalRefHolder nright(right_side, xsink);
-	 if (*xsink)
+	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
-	 if (!nright)
-	    nright.assign(false, Nothing);
-	 
-	 // find operator function
-	 if (functions.size() == 1)
-	    t = 0;
-	 else if (nleft->type->getID() < NUM_VALUE_TYPES && nright->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[nleft->type->getID()][nright->type->getID()];
-	 else
-	    t = findFunction(nleft->type, nright->type);
-	 
-	 printd(5, "Operator::eval() found function %d\n", t);
-	 
-	 // convert node type to required argument types for operator if necessary
-	 // convert left node
-	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
-	 {
-	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 // convert right node if necessary
-	 if ((nright->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
-	 {
-	    nright.assign(true, functions[t]->rtype->convertTo(*nright, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 result = functions[t]->eval(*nleft, *nright, ref_rv, xsink);
+
+	 return functions[t]->eval(*nleft, 0, ref_rv, 1, xsink);
       }
+
+      QoreNodeEvalOptionalRefHolder nright(right_side, xsink);
+      if (*xsink)
+	 return 0;
+      if (!nright)
+	 nright.assign(false, Nothing);
+      
+      // find operator function
+      if ((t = get_function(nleft, nright, xsink)) == -1)
+	 return 0;
+      
+      return functions[t]->eval(*nleft, *nright, ref_rv, 2, xsink);
    }
-   else
-   {
-      // in this case there will only be one entry (0)
-      printd(5, "Operator::eval() evaluating function 0\n");
-      result = functions[0]->eval(left_side, right_side, ref_rv, xsink);
-   }
-   traceout("Operator::eval()");
-   return result;
+
+   // in this case there will only be one entry (0)
+   printd(5, "Operator::eval() evaluating function 0\n");
+   return functions[0]->eval(left_side, right_side, ref_rv, args, xsink);
 }
 
 // Operator::bool_eval(): return value
@@ -2336,11 +3130,8 @@ class QoreNode *Operator::eval(class QoreNode *left_side, class QoreNode *right_
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-bool Operator::bool_eval(class QoreNode *left_side, class QoreNode *right_side, ExceptionSink *xsink) const
+bool Operator::bool_eval(QoreNode *left_side, QoreNode *right_side, ExceptionSink *xsink) const
 {
-   bool result;
-
-   tracein("Operator::bool_eval()");
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left_side, right_side);
    if (evalArgs)
    {
@@ -2353,69 +3144,28 @@ bool Operator::bool_eval(class QoreNode *left_side, class QoreNode *right_side, 
       int t;
       if (args == 1)
       {
-	 // find operator function
-	 if (functions.size() == 1)
-	    t = 0;
-	 else if (nleft->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[nleft->type->getID()][NT_NOTHING->getID()];
-	 else
-	    t = findFunction(nleft->type, NT_NOTHING);
-	 
-	 printd(5, "Operator::bool_eval() 1 arg: found function %d\n", t);	 
-	 // convert node type to required argument types for operator if necessary
-	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
-	 {
-	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 result = functions[t]->bool_eval(*nleft, NULL, xsink);
-      }
-      else // 2 arguments
-      {
-	 QoreNodeEvalOptionalRefHolder nright(right_side, xsink);
-	 if (*xsink)
+	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
-	 if (!nright)
-	    nright.assign(false, Nothing);
 
-	 // find operator function
-	 if (functions.size() == 1)
-	    t = 0;
-	 else if (nleft->type->getID() < NUM_VALUE_TYPES && nright->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[nleft->type->getID()][nright->type->getID()];
-	 else
-	    t = findFunction(nleft->type, nright->type);
-	 
-	 printd(5, "Operator::bool_eval() 2 args: found function %d\n", t);
-
-	 // convert node type to required argument types for operator if necessary
-	 // convert left node
-	 if ((nleft->type != functions[t]->ltype) && 
-	     (functions[t]->ltype != NT_ALL))
-	 {
-	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 // convert right node if necessary
-	 if ((nright->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
-	 {
-	    nright.assign(true, functions[t]->rtype->convertTo(*nright, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 result = functions[t]->bool_eval(*nleft, *nright, xsink);
+	 return functions[t]->bool_eval(*nleft, NULL, 1, xsink);
       }
+
+      QoreNodeEvalOptionalRefHolder nright(right_side, xsink);
+      if (*xsink)
+	 return 0;
+      if (!nright)
+	 nright.assign(false, Nothing);
+      
+      // find operator function
+      if ((t = get_function(nleft, nright, xsink)) == -1)
+	 return 0;
+      
+      return functions[t]->bool_eval(*nleft, *nright, 2, xsink);
    }
-   else
-   {
-      // in this case there will only be one entry (0)
-      printd(5, "Operator::bool_eval() evaluating function 0\n");
-      result = functions[0]->bool_eval(left_side, right_side, xsink);
-   }
-   traceout("Operator::bool_eval()");
-   return result;
+
+   // in this case there will only be one entry (0)
+   printd(5, "Operator::bool_eval() evaluating function 0\n");
+   return functions[0]->bool_eval(left_side, right_side, args, xsink);
 }
 
 // Operator::bigint_eval(): return value
@@ -2423,11 +3173,8 @@ bool Operator::bool_eval(class QoreNode *left_side, class QoreNode *right_side, 
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-int64 Operator::bigint_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+int64 Operator::bigint_eval(QoreNode *left, QoreNode *right, ExceptionSink *xsink) const
 {
-   int64 result;
-   
-   tracein("Operator::bigint_eval()");
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
    if (evalArgs)
    {
@@ -2441,68 +3188,28 @@ int64 Operator::bigint_eval(class QoreNode *left, class QoreNode *right, Excepti
 
       if (args == 1)
       {
-	 // find operator function
-	 if (functions.size() == 1)
-	    t = 0;
-	 else if (nleft->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[nleft->type->getID()][NT_NOTHING->getID()];
-	 else
-	    t = findFunction(nleft->type, NT_NOTHING);
-	 
-	 printd(5, "Operator::bigint_eval() found function %d\n", t);	 
-	 // convert node type to required argument types for operator if necessary
-	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
-	 {
-	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 result = functions[t]->bigint_eval(*nleft, NULL, xsink);
-      }
-      else // 2 arguments
-      {
-	 QoreNodeEvalOptionalRefHolder nright(right, xsink);
-	 if (*xsink)
+	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
-	 if (!nright)
-	    nright.assign(false, Nothing);
-	 
-	 // find operator function
-	 if (functions.size() == 1)
-	    t = 0;
-	 else if (nleft->type->getID() < NUM_VALUE_TYPES && nright->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[nleft->type->getID()][nright->type->getID()];
-	 else
-	    t = findFunction(nleft->type, nright->type);
-	 
-	 printd(5, "Operator::bigint_eval() found function %d\n", t);
-	 
-	 // convert node type to required argument types for operator if necessary
-	 // convert left node
-	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
-	 {
-	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 // convert right node if necessary
-	 if ((nright->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
-	 {
-	    nright.assign(true, functions[t]->rtype->convertTo(*nright, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 result = functions[t]->bigint_eval(*nleft, *nright, xsink);
+
+	 return functions[t]->bigint_eval(*nleft, NULL, 1, xsink);
       }
+
+      QoreNodeEvalOptionalRefHolder nright(right, xsink);
+      if (*xsink)
+	 return 0;
+      if (!nright)
+	 nright.assign(false, Nothing);
+	 
+      // find operator function
+      if ((t = get_function(nleft, nright, xsink)) == -1)
+	 return 0;
+      
+      return functions[t]->bigint_eval(*nleft, *nright, 2, xsink);
    }
-   else
-   {
-      // in this case there will only be one entry (0)
-      printd(5, "Operator::bigint_eval() evaluating function 0\n");
-      result = functions[0]->bigint_eval(left, right, xsink);
-   }
-   traceout("Operator::bigint_eval()");
-   return result;
+
+   // in this case there will only be one entry (0)
+   printd(5, "Operator::bigint_eval() evaluating function 0\n");
+   return functions[0]->bigint_eval(left, right, args, xsink);
 }
 
 // Operator::float_eval(): return value
@@ -2510,11 +3217,8 @@ int64 Operator::bigint_eval(class QoreNode *left, class QoreNode *right, Excepti
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-double Operator::float_eval(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink) const
+double Operator::float_eval(QoreNode *left, QoreNode *right, ExceptionSink *xsink) const
 {
-   double result;
-   
-   tracein("Operator::float_eval()");
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left, right);
    if (evalArgs)
    {
@@ -2528,71 +3232,31 @@ double Operator::float_eval(class QoreNode *left, class QoreNode *right, Excepti
 
       if (args == 1)
       {
-	 // find operator function
-	 if (functions.size() == 1)
-	    t = 0;
-	 else if (nleft->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[nleft->type->getID()][NT_NOTHING->getID()];
-	 else
-	    t = findFunction(nleft->type, NT_NOTHING);
-	 
-	 printd(5, "Operator::float_eval() found function %d\n", t);	 
-	 // convert node type to required argument types for operator if necessary
-	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
-	 {
-	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 result = functions[t]->float_eval(*nleft, NULL, xsink);
-      }
-      else // 2 arguments
-      {
-	 QoreNodeEvalOptionalRefHolder nright(right, xsink);
-	 if (*xsink)
+	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
-	 if (!nright)
-	    nright.assign(false, Nothing);
-	 
-	 // find operator function
-	 if (functions.size() == 1)
-	    t = 0;
-	 else if (nleft->type->getID() < NUM_VALUE_TYPES && nright->type->getID() < NUM_VALUE_TYPES)
-	    t = opMatrix[nleft->type->getID()][nright->type->getID()];
-	 else
-	    t = findFunction(nleft->type, nright->type);
-	 
-	 printd(5, "Operator::float_eval() found function %d\n", t);
-	 
-	 // convert node type to required argument types for operator if necessary
-	 // convert left node
-	 if ((nleft->type != functions[t]->ltype) && (functions[t]->ltype != NT_ALL))
-	 {
-	    nleft.assign(true, functions[t]->ltype->convertTo(*nleft, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 // convert right node if necessary
-	 if ((nright->type != functions[t]->rtype) && (functions[t]->rtype != NT_ALL))
-	 {
-	    nright.assign(true, functions[t]->rtype->convertTo(*nright, xsink));
-	    if (*xsink)
-	       return 0;
-	 }
-	 result = functions[t]->float_eval(*nleft, *nright, xsink);
+
+	 return functions[t]->float_eval(*nleft, NULL, 1, xsink);
       }
+
+      QoreNodeEvalOptionalRefHolder nright(right, xsink);
+      if (*xsink)
+	 return 0;
+      if (!nright)
+	 nright.assign(false, Nothing);
+	 
+      // find operator function
+      if ((t = get_function(nleft, nright, xsink)) == -1)
+	 return 0;
+
+      return functions[t]->float_eval(*nleft, *nright, 2, xsink);
    }
-   else
-   {
-      // in this case there will only be one entry (0)
-      printd(5, "Operator::float_eval() evaluating function 0\n");
-      result = functions[0]->float_eval(left, right, xsink);
-   }
-   traceout("Operator::float_eval()");
-   return result;
+
+   // in this case there will only be one entry (0)
+   printd(5, "Operator::float_eval() evaluating function 0\n");
+   return functions[0]->float_eval(left, right, args, xsink);
 }
 
-int Operator::findFunction(class QoreType *ltype, class QoreType *rtype) const
+int Operator::findFunction(const QoreType *ltype, const QoreType *rtype) const
 {
    int m = -1;
    
@@ -2625,22 +3289,22 @@ int Operator::findFunction(class QoreType *ltype, class QoreType *rtype) const
    return m == -1 ? 0 : m;
 }
 
-void Operator::addFunction(class QoreType *lt, class QoreType *rt, op_func_t f)
+void Operator::addFunction(const QoreType *lt, const QoreType *rt, op_func_t f)
 {
    functions.push_back(new OperatorFunction(lt, rt, f));
 }
 
-void Operator::addFunction(class QoreType *lt, class QoreType *rt, op_bool_func_t f)
+void Operator::addFunction(const QoreType *lt, const QoreType *rt, op_bool_func_t f)
 {
    functions.push_back(new BoolOperatorFunction(lt, rt, f));
 }
 
-void Operator::addFunction(class QoreType *lt, class QoreType *rt, op_bigint_func_t f)
+void Operator::addFunction(const QoreType *lt, const QoreType *rt, op_bigint_func_t f)
 {
    functions.push_back(new BigIntOperatorFunction(lt, rt, f));
 }
 
-void Operator::addFunction(class QoreType *lt, class QoreType *rt, op_float_func_t f)
+void Operator::addFunction(const QoreType *lt, const QoreType *rt, op_float_func_t f)
 {
    functions.push_back(new FloatOperatorFunction(lt, rt, f));
 }
@@ -2671,52 +3335,52 @@ void OperatorList::init()
    tracein("OperatorList::init()");
    
    OP_LOG_AND = add(new Operator(2, "&&", "logical-and", 0, false));
-   OP_LOG_AND->addFunction(NT_INT, NT_INT, op_log_and);
+   OP_LOG_AND->addEffectFunction(op_log_and);
 
    OP_LOG_OR = add(new Operator(2, "||", "logical-or", 0, false));
-   OP_LOG_OR->addFunction(NT_INT, NT_INT, op_log_or);
+   OP_LOG_OR->addEffectFunction(op_log_or);
    
    OP_LOG_LT = add(new Operator(2, "<", "less-than", 1, false));
    OP_LOG_LT->addFunction(NT_FLOAT,  NT_FLOAT,  op_log_lt_float);
    OP_LOG_LT->addFunction(NT_INT,    NT_INT,    op_log_lt_bigint);
-   OP_LOG_LT->addFunction(NT_STRING, NT_STRING, op_log_lt_string);
+   OP_LOG_LT->addFunction(op_log_lt_string);
    OP_LOG_LT->addFunction(NT_DATE,   NT_DATE,   op_log_lt_date);
    
    OP_LOG_GT = add(new Operator(2, ">", "greater-than", 1, false));
    OP_LOG_GT->addFunction(NT_FLOAT,  NT_FLOAT,  op_log_gt_float);
    OP_LOG_GT->addFunction(NT_INT,    NT_INT,    op_log_gt_bigint);
-   OP_LOG_GT->addFunction(NT_STRING, NT_STRING, op_log_gt_string);
+   OP_LOG_GT->addFunction(op_log_gt_string);
    OP_LOG_GT->addFunction(NT_DATE,   NT_DATE,   op_log_gt_date);
 
    OP_LOG_EQ = add(new Operator(2, "==", "logical-equals", 1, false));
-   OP_LOG_EQ->addFunction(NT_STRING,  NT_STRING,  op_log_eq_string);
+   OP_LOG_EQ->addFunction(op_log_eq_string);
    OP_LOG_EQ->addFunction(NT_FLOAT,   NT_FLOAT,   op_log_eq_float);
    OP_LOG_EQ->addFunction(NT_INT,     NT_INT,     op_log_eq_bigint);
    OP_LOG_EQ->addFunction(NT_BOOLEAN, NT_BOOLEAN, op_log_eq_boolean);
    OP_LOG_EQ->addFunction(NT_DATE,    NT_DATE,    op_log_eq_date);
-   OP_LOG_EQ->addFunction(NT_LIST,    NT_ALL,     op_log_eq_list);
-   OP_LOG_EQ->addFunction(NT_ALL,     NT_LIST,    op_log_eq_list);
-   OP_LOG_EQ->addFunction(NT_HASH,    NT_ALL,     op_log_eq_hash);
-   OP_LOG_EQ->addFunction(NT_ALL,     NT_HASH,    op_log_eq_hash);
-   OP_LOG_EQ->addFunction(NT_OBJECT,  NT_ALL,     op_log_eq_object);
-   OP_LOG_EQ->addFunction(NT_ALL,     NT_OBJECT,  op_log_eq_object);
+   OP_LOG_EQ->addNoConvertFunction(NT_LIST,    NT_ALL,     op_log_eq_list);
+   OP_LOG_EQ->addNoConvertFunction(NT_ALL,     NT_LIST,    op_log_eq_list);
+   OP_LOG_EQ->addNoConvertFunction(NT_HASH,    NT_ALL,     op_log_eq_hash);
+   OP_LOG_EQ->addNoConvertFunction(NT_ALL,     NT_HASH,    op_log_eq_hash);
+   OP_LOG_EQ->addNoConvertFunction(NT_OBJECT,  NT_ALL,     op_log_eq_object);
+   OP_LOG_EQ->addNoConvertFunction(NT_ALL,     NT_OBJECT,  op_log_eq_object);
    OP_LOG_EQ->addFunction(NT_NULL,    NT_ALL,     op_log_eq_null);
    OP_LOG_EQ->addFunction(NT_ALL,     NT_NULL,    op_log_eq_null);
    OP_LOG_EQ->addFunction(NT_NOTHING, NT_NOTHING, op_log_eq_nothing);
    OP_LOG_EQ->addFunction(NT_BINARY,  NT_BINARY,  op_log_eq_binary);
 
    OP_LOG_NE = add(new Operator(2, "!=", "not-equals", 1, false));
-   OP_LOG_NE->addFunction(NT_STRING,  NT_STRING,  op_log_ne_string);
+   OP_LOG_NE->addFunction(op_log_ne_string);
    OP_LOG_NE->addFunction(NT_FLOAT,   NT_FLOAT,   op_log_ne_float);
    OP_LOG_NE->addFunction(NT_INT,     NT_INT,     op_log_ne_bigint);
    OP_LOG_NE->addFunction(NT_BOOLEAN, NT_BOOLEAN, op_log_ne_boolean);
    OP_LOG_NE->addFunction(NT_DATE,    NT_DATE,    op_log_ne_date);
-   OP_LOG_NE->addFunction(NT_LIST,    NT_ALL,     op_log_ne_list);
-   OP_LOG_NE->addFunction(NT_ALL,     NT_LIST,    op_log_ne_list);
-   OP_LOG_NE->addFunction(NT_HASH,    NT_ALL,     op_log_ne_hash);
-   OP_LOG_NE->addFunction(NT_ALL,     NT_HASH,    op_log_ne_hash);
-   OP_LOG_NE->addFunction(NT_OBJECT,  NT_ALL,     op_log_ne_object);
-   OP_LOG_NE->addFunction(NT_ALL,     NT_OBJECT,  op_log_ne_object);
+   OP_LOG_NE->addNoConvertFunction(NT_LIST,    NT_ALL,     op_log_ne_list);
+   OP_LOG_NE->addNoConvertFunction(NT_ALL,     NT_LIST,    op_log_ne_list);
+   OP_LOG_NE->addNoConvertFunction(NT_HASH,    NT_ALL,     op_log_ne_hash);
+   OP_LOG_NE->addNoConvertFunction(NT_ALL,     NT_HASH,    op_log_ne_hash);
+   OP_LOG_NE->addNoConvertFunction(NT_OBJECT,  NT_ALL,     op_log_ne_object);
+   OP_LOG_NE->addNoConvertFunction(NT_ALL,     NT_OBJECT,  op_log_ne_object);
    OP_LOG_NE->addFunction(NT_NULL,    NT_ALL,     op_log_ne_null);
    OP_LOG_NE->addFunction(NT_ALL,     NT_NULL,    op_log_ne_null);
    OP_LOG_NE->addFunction(NT_NOTHING, NT_NOTHING, op_log_ne_nothing);
@@ -2725,13 +3389,13 @@ void OperatorList::init()
    OP_LOG_LE = add(new Operator(2, "<=", "less-than-or-equals", 1, false));
    OP_LOG_LE->addFunction(NT_FLOAT,  NT_FLOAT,  op_log_le_float);
    OP_LOG_LE->addFunction(NT_INT,    NT_INT,    op_log_le_bigint);
-   OP_LOG_LE->addFunction(NT_STRING, NT_STRING, op_log_le_string);
+   OP_LOG_LE->addFunction(op_log_le_string);
    OP_LOG_LE->addFunction(NT_DATE,   NT_DATE,   op_log_le_date);
 
    OP_LOG_GE = add(new Operator(2, ">=", "greater-than-or-equals", 1, false));
    OP_LOG_GE->addFunction(NT_FLOAT,  NT_FLOAT,  op_log_ge_float);
    OP_LOG_GE->addFunction(NT_INT,    NT_INT,    op_log_ge_bigint);
-   OP_LOG_GE->addFunction(NT_STRING, NT_STRING, op_log_ge_string);
+   OP_LOG_GE->addFunction(op_log_ge_string);
    OP_LOG_GE->addFunction(NT_DATE,   NT_DATE,   op_log_ge_date);
 
    OP_ABSOLUTE_EQ = add(new Operator(2, "===", "absolute logical-equals", 0, false));
@@ -2741,23 +3405,23 @@ void OperatorList::init()
    OP_ABSOLUTE_NE->addFunction(NT_ALL, NT_ALL, op_absolute_log_neq);
    
    OP_REGEX_MATCH = add(new Operator(2, "=~", "regular expression match", 1, false));
-   OP_REGEX_MATCH->addFunction(NT_STRING, NT_REGEX, op_regex_match);
+   OP_REGEX_MATCH->addFunction(op_regex_match);
    
    OP_REGEX_NMATCH = add(new Operator(2, "!~", "regular expression negative match", 1, false));
-   OP_REGEX_NMATCH->addFunction(NT_STRING, NT_REGEX, op_regex_nmatch);
+   OP_REGEX_NMATCH->addFunction(op_regex_nmatch);
 
    OP_EXISTS = add(new Operator(1, "exists", "exists", 0, false));
    OP_EXISTS->addFunction(NT_ALL, NT_NONE, op_exists);
    
    OP_INSTANCEOF = add(new Operator(2, "instanceof", "instanceof", 0, false));
    OP_INSTANCEOF->addFunction(NT_ALL, NT_CLASSREF, op_instanceof);
-      
+   
    OP_NOT = add(new Operator(1, "!", "logical-not", 1, false));
    OP_NOT->addFunction(NT_BOOLEAN, NT_NONE, op_log_not_boolean);
       
    // bigint operators
    OP_LOG_CMP = add(new Operator(2, "<=>", "logical-comparison", 1, false));
-   OP_LOG_CMP->addFunction(NT_STRING, NT_STRING, op_cmp_string);
+   OP_LOG_CMP->addFunction(op_cmp_string);
    OP_LOG_CMP->addFunction(NT_FLOAT,  NT_FLOAT,  op_cmp_double);
    OP_LOG_CMP->addFunction(NT_INT,    NT_INT,    op_cmp_bigint);
    OP_LOG_CMP->addFunction(NT_DATE,   NT_DATE,   op_cmp_date);
@@ -2792,12 +3456,12 @@ void OperatorList::init()
    OP_MINUS->addFunction(NT_FLOAT, NT_FLOAT,   op_minus_float);
    OP_MINUS->addFunction(NT_INT,   NT_INT,     op_minus_bigint);
    //OP_MINUS->addFunction(NT_INT,   NT_NOTHING, op_minus_bigint);
-   OP_MINUS->addFunction(NT_HASH,  NT_STRING,  op_minus_hash_string);
-   OP_MINUS->addFunction(NT_HASH,  NT_LIST,  op_minus_hash_list);
+   OP_MINUS->addFunction(op_minus_hash_string);
+   OP_MINUS->addFunction(NT_ALL, NT_ALL, op_minus_hash_list);
 
    OP_PLUS = add(new Operator(2, "+", "plus", 1, false));
    OP_PLUS->addFunction(NT_LIST,    NT_LIST,   op_plus_list);
-   OP_PLUS->addFunction(NT_STRING,  NT_STRING, op_plus_string);
+   OP_PLUS->addFunction(op_plus_string);
    OP_PLUS->addFunction(NT_DATE,    NT_DATE,   op_plus_date);
    OP_PLUS->addFunction(NT_FLOAT,   NT_FLOAT,  op_plus_float);
    OP_PLUS->addFunction(NT_INT,     NT_INT,    op_plus_bigint);
@@ -2825,22 +3489,22 @@ void OperatorList::init()
    OP_SHIFT_RIGHT->addFunction(NT_INT, NT_INT, op_shift_right_int);
 
    OP_POST_INCREMENT = add(new Operator(1, "++", "post-increment", 0, true, true));
-   OP_POST_INCREMENT->addFunction(NT_VARREF, NT_NONE, op_post_inc);
+   OP_POST_INCREMENT->addFunction(op_post_inc);
 
    OP_POST_DECREMENT = add(new Operator(1, "--", "post-decrement", 0, true, true));
-   OP_POST_DECREMENT->addFunction(NT_VARREF, NT_NONE, op_post_dec);
+   OP_POST_DECREMENT->addFunction(op_post_dec);
 
    OP_PRE_INCREMENT = add(new Operator(1, "++", "pre-increment", 0, true, true));
-   OP_PRE_INCREMENT->addFunction(NT_VARREF, NT_NONE, op_pre_inc);
+   OP_PRE_INCREMENT->addFunction(op_pre_inc);
 
    OP_PRE_DECREMENT = add(new Operator(1, "--", "pre-decrement", 0, true, true));
-   OP_PRE_DECREMENT->addFunction(NT_VARREF, NT_NONE, op_pre_dec);
+   OP_PRE_DECREMENT->addFunction(op_pre_dec);
 
    OP_PLUS_EQUALS = add(new Operator(2, "+=", "plus-equals", 0, true, true));
-   OP_PLUS_EQUALS->addFunction(NT_ALL, NT_INT, op_plus_equals);
+   OP_PLUS_EQUALS->addFunction(op_plus_equals);
 
    OP_MINUS_EQUALS = add(new Operator(2, "-=", "minus-equals", 0, true, true));
-   OP_MINUS_EQUALS->addFunction(NT_ALL, NT_INT, op_minus_equals);
+   OP_MINUS_EQUALS->addFunction(op_minus_equals);
 
    OP_AND_EQUALS = add(new Operator(2, "&=", "and-equals", 0, true, true));
    OP_AND_EQUALS->addFunction(NT_ALL, NT_INT, op_and_equals);
@@ -2852,10 +3516,10 @@ void OperatorList::init()
    OP_MODULA_EQUALS->addFunction(NT_ALL, NT_INT, op_modula_equals);
 
    OP_MULTIPLY_EQUALS = add(new Operator(2, "*=", "multiply-equals", 0, true, true));
-   OP_MULTIPLY_EQUALS->addFunction(NT_ALL, NT_INT, op_multiply_equals);
+   OP_MULTIPLY_EQUALS->addFunction(op_multiply_equals);
 
    OP_DIVIDE_EQUALS = add(new Operator(2, "/=", "divide-equals", 0, true, true));
-   OP_DIVIDE_EQUALS->addFunction(NT_ALL, NT_INT, op_divide_equals);
+   OP_DIVIDE_EQUALS->addFunction(op_divide_equals);
 
    OP_XOR_EQUALS = add(new Operator(2, "^=", "xor-equals", 0, true, true));
    OP_XOR_EQUALS->addFunction(NT_ALL, NT_INT, op_xor_equals);
@@ -2867,7 +3531,7 @@ void OperatorList::init()
    OP_SHIFT_RIGHT_EQUALS->addFunction(NT_ALL, NT_INT, op_shift_right_equals);
 
    OP_LIST_REF = add(new Operator(2, "[]", "list-reference", 0, false));
-   OP_LIST_REF->addFunction(NT_LIST, NT_INT, op_list_ref);
+   OP_LIST_REF->addFunction(NT_ALL, NT_ALL, op_list_ref);
 
    OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false));
    OP_OBJECT_REF->addFunction(NT_ALL, NT_ALL, op_object_ref); 
@@ -2885,28 +3549,28 @@ void OperatorList::init()
    OP_NEW->addFunction(NT_ALL, NT_NONE, op_new_object);
 
    OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true));
-   OP_SHIFT->addFunction(NT_ALL, NT_NONE, op_shift);
+   OP_SHIFT->addFunction(op_shift);
 
    OP_POP = add(new Operator(1, "pop", "pop from list", 0, true, true));
-   OP_POP->addFunction(NT_ALL, NT_NONE, op_pop);
+   OP_POP->addFunction(op_pop);
 
-   OP_PUSH = add(new Operator(1, "push", "push on list", 0, true, true));
-   OP_PUSH->addFunction(NT_ALL, NT_NONE, op_push);
+   OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true));
+   OP_PUSH->addFunction(op_push);
 
    OP_SPLICE = add(new Operator(2, "splice", "splice in list", 0, true, true));
-   OP_SPLICE->addFunction(NT_ALL, NT_ALL, op_splice);
+   OP_SPLICE->addFunction(op_splice);
 
-   OP_UNSHIFT = add(new Operator(1, "unshift", "unshift/insert to begnning of list", 0, true, true));
-   OP_UNSHIFT->addFunction(NT_ALL, NT_NONE, op_unshift);
+   OP_UNSHIFT = add(new Operator(2, "unshift", "unshift/insert to begnning of list", 0, true, true));
+   OP_UNSHIFT->addFunction(op_unshift);
 
-   OP_REGEX_SUBST = add(new Operator(1, "regex subst", "regular expression substitution", 0, true, true));
+   OP_REGEX_SUBST = add(new Operator(2, "regex subst", "regular expression substitution", 0, true, true));
    OP_REGEX_SUBST->addFunction(NT_ALL, NT_REGEX_SUBST, op_regex_subst);
 
-   OP_REGEX_TRANS = add(new Operator(1, "transliteration", "transliteration", 0, true, true));
+   OP_REGEX_TRANS = add(new Operator(2, "transliteration", "transliteration", 0, true, true));
    OP_REGEX_TRANS->addFunction(NT_ALL, NT_REGEX_TRANS, op_regex_trans);
 
    OP_REGEX_EXTRACT = add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 1, false));
-   OP_REGEX_EXTRACT->addFunction(NT_STRING, NT_REGEX, op_regex_extract);
+   OP_REGEX_EXTRACT->addFunction(op_regex_extract);
 
    OP_CHOMP = add(new Operator(1, "chomp", "chomp EOL marker from lvalue", 0, true, true));
    OP_CHOMP->addFunction(NT_ALL, NT_NONE, op_chomp);

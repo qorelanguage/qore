@@ -23,6 +23,11 @@
 #include <qore/Qore.h>
 
 #include "QC_QFileInfo.h"
+#include "QC_QDir.h"
+#include "QC_QDate.h"
+#include "QC_QTime.h"
+
+#include "qore-qt.h"
 
 int CID_QFILEINFO;
 class QoreClass *QC_QFileInfo = 0;
@@ -78,25 +83,25 @@ static QoreNode *QFILEINFO_absoluteDir(QoreObject *self, QoreQFileInfo *qfi, con
 //QString absoluteFilePath () const
 static QoreNode *QFILEINFO_absoluteFilePath(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->absoluteFilePath().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->absoluteFilePath().toUtf8().data(), QCS_UTF8);
 }
 
 //QString absolutePath () const
 static QoreNode *QFILEINFO_absolutePath(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->absolutePath().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->absolutePath().toUtf8().data(), QCS_UTF8);
 }
 
 //QString baseName () const
 static QoreNode *QFILEINFO_baseName(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->baseName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->baseName().toUtf8().data(), QCS_UTF8);
 }
 
 //QString bundleName () const
 static QoreNode *QFILEINFO_bundleName(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->bundleName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->bundleName().toUtf8().data(), QCS_UTF8);
 }
 
 //bool caching () const
@@ -108,25 +113,25 @@ static QoreNode *QFILEINFO_caching(QoreObject *self, QoreQFileInfo *qfi, const Q
 //QString canonicalFilePath () const
 static QoreNode *QFILEINFO_canonicalFilePath(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->canonicalFilePath().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->canonicalFilePath().toUtf8().data(), QCS_UTF8);
 }
 
 //QString canonicalPath () const
 static QoreNode *QFILEINFO_canonicalPath(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->canonicalPath().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->canonicalPath().toUtf8().data(), QCS_UTF8);
 }
 
 //QString completeBaseName () const
 static QoreNode *QFILEINFO_completeBaseName(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->completeBaseName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->completeBaseName().toUtf8().data(), QCS_UTF8);
 }
 
 //QString completeSuffix () const
 static QoreNode *QFILEINFO_completeSuffix(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->completeSuffix().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->completeSuffix().toUtf8().data(), QCS_UTF8);
 }
 
 //QDateTime created () const
@@ -156,19 +161,19 @@ static QoreNode *QFILEINFO_exists(QoreObject *self, QoreQFileInfo *qfi, const Qo
 //QString fileName () const
 static QoreNode *QFILEINFO_fileName(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->fileName().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->fileName().toUtf8().data(), QCS_UTF8);
 }
 
 //QString filePath () const
 static QoreNode *QFILEINFO_filePath(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->filePath().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->filePath().toUtf8().data(), QCS_UTF8);
 }
 
 //QString group () const
 static QoreNode *QFILEINFO_group(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->group().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->group().toUtf8().data(), QCS_UTF8);
 }
 
 //uint groupId () const
@@ -270,7 +275,7 @@ static QoreNode *QFILEINFO_makeAbsolute(QoreObject *self, QoreQFileInfo *qfi, co
 //QString owner () const
 static QoreNode *QFILEINFO_owner(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->owner().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->owner().toUtf8().data(), QCS_UTF8);
 }
 
 //uint ownerId () const
@@ -282,7 +287,7 @@ static QoreNode *QFILEINFO_ownerId(QoreObject *self, QoreQFileInfo *qfi, const Q
 //QString path () const
 static QoreNode *QFILEINFO_path(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->path().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->path().toUtf8().data(), QCS_UTF8);
 }
 
 //bool permission ( QFile::Permissions permissions ) const
@@ -352,13 +357,13 @@ static QoreNode *QFILEINFO_size(QoreObject *self, QoreQFileInfo *qfi, const Qore
 //QString suffix () const
 static QoreNode *QFILEINFO_suffix(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->suffix().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->suffix().toUtf8().data(), QCS_UTF8);
 }
 
 //QString symLinkTarget () const
 static QoreNode *QFILEINFO_symLinkTarget(QoreObject *self, QoreQFileInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfi->symLinkTarget().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfi->symLinkTarget().toUtf8().data(), QCS_UTF8);
 }
 
 QoreClass *initQFileInfoClass()

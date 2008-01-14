@@ -23,6 +23,13 @@
 #include <qore/Qore.h>
 
 #include "QC_QImage.h"
+#include "QC_QSize.h"
+#include "QC_QRect.h"
+#include "QC_QPoint.h"
+
+#include "qore-qt.h"
+
+#include <QStringList>
 
 int CID_QIMAGE;
 QoreClass *QC_QImage = 0;
@@ -56,10 +63,10 @@ val.object->getClass()->getName());
       qp = new QoreQImage(p->val.bin);
 */
    if (p && p->type == NT_STRING) {
-      const char *filename = p->val.String->getBuffer();
+      const char *filename = (reinterpret_cast<QoreStringNode *>(p))->getBuffer();
 
-      p = get_param(params, 1);
-      const char *format = p ? p->val.String->getBuffer() : 0;
+      QoreStringNode *pstr = test_string_param(params, 1);
+      const char *format = pstr ? pstr->getBuffer() : 0;
 
       qp = new QoreQImage(filename, format);
    }
@@ -290,14 +297,16 @@ static QoreNode *QIMAGE_isNull(QoreObject *self, QoreQImage *qi, const QoreNode 
 //bool load ( QIODevice * device, const char * format )
 static QoreNode *QIMAGE_load(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr) {
       xsink->raiseException("QIMAGE-LOAD-PARAM-ERROR", "expecting a string as first argument to QImage::load()");
       return 0;
    }
-   const char *fileName = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   const char *format = p ? p->val.String->getBuffer() : 0;
+   const char *fileName = pstr->getBuffer();
+
+   pstr = test_string_param(params, 1);
+   const char *format = pstr ? pstr->getBuffer() : 0;
+
    return new QoreNode(qi->load(fileName, format));
 }
 
@@ -314,8 +323,8 @@ static QoreNode *QIMAGE_loadFromData(QoreObject *self, QoreQImage *qi, const Qor
 
    const char *format;
 
-   p = test_param(params, NT_STRING, 1);
-   format = p ? p->val.String->getBuffer() : 0;
+   QoreStringNode *str = test_string_param(params, 1);
+   format = str ? str->getBuffer() : 0;
 
    return new QoreNode(qi->loadFromData((const uchar *)data->getPtr(), data->size(), format));
 }
@@ -418,16 +427,19 @@ static QoreNode *QIMAGE_rgbSwapped(QoreObject *self, QoreQImage *qi, const QoreN
 //bool save ( QIODevice * device, const char * format = 0, int quality = -1 ) const
 static QoreNode *QIMAGE_save(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *pstr = test_string_param(params, 0);
+   if (!pstr) {
       xsink->raiseException("QIMAGE-SAVE-PARAM-ERROR", "expecting a string as first argument to QImage::save()");
       return 0;
    }
-   const char *fileName = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   const char *format = p ? p->val.String->getBuffer() : 0;
-   p = get_param(params, 2);
+   const char *fileName = pstr->getBuffer();
+
+   pstr = test_string_param(params, 1);
+   const char *format = pstr ? pstr->getBuffer() : 0;
+
+   QoreNode *p = get_param(params, 2);
    int quality = !is_nothing(p) ? p->getAsInt() : -1;
+
    return new QoreNode(qi->save(fileName, format, quality));
 }
 
@@ -591,18 +603,20 @@ static QoreNode *QIMAGE_setPixel(QoreObject *self, QoreQImage *qi, const QoreNod
 //void setText ( const QString & key, const QString & text )
 static QoreNode *QIMAGE_setText(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_STRING) {
+   QoreStringNode *p = test_string_param(params, 0);
+   if (!p) {
       xsink->raiseException("QIMAGE-SETTEXT-PARAM-ERROR", "expecting a string as first argument to QImage::setText()");
       return 0;
    }
-   const char *key = p->val.String->getBuffer();
-   p = get_param(params, 1);
-   if (!p || p->type != NT_STRING) {
+   const char *key = p->getBuffer();
+
+   p = test_string_param(params, 1);
+   if (!p) {
       xsink->raiseException("QIMAGE-SETTEXT-PARAM-ERROR", "expecting a string as second argument to QImage::setText()");
       return 0;
    }
-   const char *text = p->val.String->getBuffer();
+   const char *text = p->getBuffer();
+
    qi->setText(key, text);
    return 0;
 }
@@ -619,9 +633,9 @@ static QoreNode *QIMAGE_size(QoreObject *self, QoreQImage *qi, const QoreNode *p
 //QString text ( const QString & key = QString() ) const
 static QoreNode *QIMAGE_text(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   const char *key = p ? p->val.String->getBuffer() : "";
-   return new QoreNode(new QoreString(qi->text(key).toUtf8().data(), QCS_UTF8));
+   QoreStringNode *p = test_string_param(params, 0);
+   const char *key = p ? p->getBuffer() : "";
+   return new QoreStringNode(qi->text(key).toUtf8().data(), QCS_UTF8);
 }
 
 //QStringList textKeys () const
@@ -630,7 +644,7 @@ static QoreNode *QIMAGE_textKeys(QoreObject *self, QoreQImage *qi, const QoreNod
    QStringList strlist_rv = qi->textKeys();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 

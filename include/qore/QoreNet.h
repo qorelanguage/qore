@@ -35,13 +35,13 @@ DLLEXPORT int q_gethostbyname(const char *host, struct in_addr *sin_addr);
 // thread-safe gethostbyname (0/NULL = error)
 DLLEXPORT class QoreHash *q_gethostbyname_to_hash(const char *host);
 // thread-safe gethostbyname (0/NULL = error)
-DLLEXPORT class QoreString *q_gethostbyname_to_string(const char *host);
+DLLEXPORT class QoreStringNode *q_gethostbyname_to_string(const char *host);
 
 // thread-safe gethostbyaddr (string returned must be freed)
 DLLEXPORT char *q_gethostbyaddr(const char *addr, int len, int type);
 // thread-safe gethostbyaddr (0/NULL = error)
 DLLEXPORT class QoreHash *q_gethostbyaddr_to_hash(class ExceptionSink *xsink, const char *addr, int type = AF_INET);
 // thread-safe gethostbyaddr (0/NULL = error)
-DLLEXPORT class QoreString *q_gethostbyaddr_to_string(class ExceptionSink *xsink, const char *addr, int type = AF_INET);
+DLLEXPORT class QoreStringNode *q_gethostbyaddr_to_string(class ExceptionSink *xsink, const char *addr, int type = AF_INET);
 
 #endif // _QORE_QORENET_H

@@ -24,9 +24,9 @@
 
 #define _QORE_QT_QOREABSTRACTQRADIOBUTTON_H
 
-#include "QoreAbstractQWidget.h"
+#include "QoreAbstractQAbstractButton.h"
 
-class QoreAbstractQRadioButton : public QoreAbstractQWidget
+class QoreAbstractQRadioButton : public QoreAbstractQAbstractButton
 {
    public:
       DLLLOCAL virtual class QRadioButton *getQRadioButton() const = 0;

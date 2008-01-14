@@ -24,6 +24,8 @@
 
 #include "QC_QRegExp.h"
 
+#include "qore-qt.h"
+
 int CID_QREGEXP;
 class QoreClass *QC_QRegExp = 0;
 
@@ -58,7 +60,7 @@ static QoreNode *QREGEXP_cap(QoreObject *self, QoreQRegExp *qre, const QoreNode 
 {
    QoreNode *p = get_param(params, 0);
    int nth = !is_nothing(p) ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qre->cap(nth).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qre->cap(nth).toUtf8().data(), QCS_UTF8);
 }
 
 //QStringList capturedTexts ()
@@ -67,7 +69,7 @@ static QoreNode *QREGEXP_capturedTexts(QoreObject *self, QoreQRegExp *qre, const
    QStringList strlist_rv = qre->capturedTexts();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 
@@ -80,7 +82,7 @@ static QoreNode *QREGEXP_caseSensitivity(QoreObject *self, QoreQRegExp *qre, con
 //QString errorString ()
 static QoreNode *QREGEXP_errorString(QoreObject *self, QoreQRegExp *qre, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qre->errorString().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qre->errorString().toUtf8().data(), QCS_UTF8);
 }
 
 //bool exactMatch ( const QString & str ) const
@@ -154,7 +156,7 @@ static QoreNode *QREGEXP_numCaptures(QoreObject *self, QoreQRegExp *qre, const Q
 //QString pattern () const
 static QoreNode *QREGEXP_pattern(QoreObject *self, QoreQRegExp *qre, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qre->pattern().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qre->pattern().toUtf8().data(), QCS_UTF8);
 }
 
 //PatternSyntax patternSyntax () const

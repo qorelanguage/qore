@@ -29,39 +29,9 @@ class QoreNode *date_DefaultValue()
    return ZeroDate;
 }
 
-class QoreNode *date_ConvertTo(const QoreNode *n, class ExceptionSink *xsink)
-{
-   if (n->type == NT_INT)
-      return new QoreNode(new DateTime(n->val.intval));
-
-   if (n->type == NT_FLOAT)
-      return new QoreNode(new DateTime((int64)(n->val.floatval)));
-   
-   if (n->type == NT_STRING)
-      return new QoreNode(new DateTime(n->val.String->getBuffer()));
-   
-   if (n->type == NT_BOOLEAN)
-      return new QoreNode(new DateTime((int64)(n->val.boolval)));
-
-   ZeroDate->ref();
-   return ZeroDate;
-}
-
 class QoreNode *date_Copy(const QoreNode *l, class ExceptionSink *xsink)
 {
    return new QoreNode(new DateTime(*(l->val.date_time)));
-}
-
-bool date_Compare(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
-{
-   return (bool)!l->val.date_time->isEqual(r->val.date_time);
-}
-
-class QoreString *date_MakeString(const QoreNode *n, int format, class ExceptionSink *xsink)
-{
-   class QoreString *str = new QoreString();
-   n->val.date_time->getString(str);
-   return str;
 }
 
 void date_DeleteContents(class QoreNode *n)

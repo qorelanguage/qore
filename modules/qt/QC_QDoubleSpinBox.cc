@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QDoubleSpinBox.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QDOUBLESPINBOX;
 class QoreClass *QC_QDoubleSpinBox = 0;
@@ -47,7 +50,7 @@ static void QDOUBLESPINBOX_copy(class QoreObject *self, class QoreObject *old, c
 //QString cleanText () const
 static QoreNode *QDOUBLESPINBOX_cleanText(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qdsb->qobj->cleanText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qdsb->qobj->cleanText().toUtf8().data(), QCS_UTF8);
 }
 
 //int decimals () const
@@ -71,7 +74,7 @@ static QoreNode *QDOUBLESPINBOX_minimum(QoreObject *self, QoreQDoubleSpinBox *qd
 //QString prefix () const
 static QoreNode *QDOUBLESPINBOX_prefix(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qdsb->qobj->prefix().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qdsb->qobj->prefix().toUtf8().data(), QCS_UTF8);
 }
 
 //void setDecimals ( int prec )
@@ -152,7 +155,7 @@ static QoreNode *QDOUBLESPINBOX_singleStep(QoreObject *self, QoreQDoubleSpinBox 
 //QString suffix () const
 static QoreNode *QDOUBLESPINBOX_suffix(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qdsb->qobj->suffix().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qdsb->qobj->suffix().toUtf8().data(), QCS_UTF8);
 }
 
 //virtual QString textFromValue ( double value ) const
@@ -160,7 +163,7 @@ static QoreNode *QDOUBLESPINBOX_textFromValue(QoreObject *self, QoreQDoubleSpinB
 {
    QoreNode *p = get_param(params, 0);
    double value = p ? p->getAsFloat() : 0.0;
-   return new QoreNode(new QoreString(qdsb->qobj->textFromValue(value).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qdsb->qobj->textFromValue(value).toUtf8().data(), QCS_UTF8);
 }
 
 //double value () const

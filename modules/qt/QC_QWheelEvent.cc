@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QWheelEvent.h"
+#include "QC_QPoint.h"
+
+#include "qore-qt.h"
 
 int CID_QWHEELEVENT;
 class QoreClass *QC_QWheelEvent = 0;

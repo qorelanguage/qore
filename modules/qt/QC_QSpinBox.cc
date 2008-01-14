@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 
 #include "QC_QSpinBox.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QSPINBOX;
 class QoreClass *QC_QSpinBox = 0;
@@ -47,7 +50,7 @@ static void QSPINBOX_copy(class QoreObject *self, class QoreObject *old, class Q
 //QString cleanText () const
 static QoreNode *QSPINBOX_cleanText(QoreObject *self, QoreQSpinBox *qsb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qsb->qobj->cleanText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qsb->qobj->cleanText().toUtf8().data(), QCS_UTF8);
 }
 
 //int maximum () const
@@ -65,7 +68,7 @@ static QoreNode *QSPINBOX_minimum(QoreObject *self, QoreQSpinBox *qsb, const Qor
 //QString prefix () const
 static QoreNode *QSPINBOX_prefix(QoreObject *self, QoreQSpinBox *qsb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qsb->qobj->prefix().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qsb->qobj->prefix().toUtf8().data(), QCS_UTF8);
 }
 
 //void setMaximum ( int max )
@@ -137,7 +140,7 @@ static QoreNode *QSPINBOX_singleStep(QoreObject *self, QoreQSpinBox *qsb, const 
 //QString suffix () const
 static QoreNode *QSPINBOX_suffix(QoreObject *self, QoreQSpinBox *qsb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qsb->qobj->suffix().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qsb->qobj->suffix().toUtf8().data(), QCS_UTF8);
 }
 
 //int value () const
@@ -160,7 +163,7 @@ static QoreNode *QSPINBOX_textFromValue(QoreObject *self, QoreQSpinBox *qsb, con
 {
    QoreNode *p = get_param(params, 0);
    int value = p ? p->getAsInt() : 0;
-   return new QoreNode(new QoreString(qsb->qobj->parent_textFromValue(value).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qsb->qobj->parent_textFromValue(value).toUtf8().data(), QCS_UTF8);
 }
 
 //virtual int valueFromText ( const QString & text ) const

@@ -279,12 +279,12 @@ void SocketSource::setAll(class QoreObject *o, class ExceptionSink *xsink)
 {
    if (priv->address)
    {
-      o->setValue("source", new QoreNode(priv->address), xsink);
+      o->setValue("source", new QoreStringNode(priv->address), xsink);
       priv->address = NULL;
    }
    if (priv->hostname)
    {
-      o->setValue("source_host", new QoreNode(priv->hostname), xsink);
+      o->setValue("source_host", new QoreStringNode(priv->hostname), xsink);
       priv->hostname = NULL;
    }
 }
@@ -1164,7 +1164,7 @@ class BinaryObject *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
    return b;
 }
 
-class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
+class QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc)
 {
    if (!priv->sock)
    {
@@ -1174,9 +1174,10 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
 
    int bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
-   class QoreString *str = new QoreString(priv->charsetid);
+   QoreStringNode *str = new QoreStringNode(priv->charsetid);
 
    char *buf = (char *)malloc(sizeof(char) * bs);
+   ON_BLOCK_EXIT(free, buf);
 
    int br = 0; // bytes received
    while (true)
@@ -1188,7 +1189,7 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
 
 	 if (*rc || !br || (!*rc && bufsize > 0))
 	 {
-	    delete str;
+	    str->deref();
 	    str = NULL;
 	 }
 	 break;
@@ -1212,7 +1213,7 @@ class QoreString *QoreSocket::recv(int bufsize, int timeout, int *rc)
    return str;
 }
 
-class QoreString *QoreSocket::recv(int timeout, int *rc)
+class QoreStringNode *QoreSocket::recv(int timeout, int *rc)
 {
    if (!priv->sock)
    {
@@ -1229,7 +1230,7 @@ class QoreString *QoreSocket::recv(int timeout, int *rc)
    }
 
    buf[*rc] = '\0';
-   QoreString *msg = new QoreString(priv->charsetid);
+   QoreStringNode *msg = new QoreStringNode(priv->charsetid);
    msg->take(buf);
    return msg;
 }
@@ -1276,14 +1277,8 @@ int QoreSocket::recv(int fd, int size, int timeout)
    return rc;
 }
 
-// returns 0 for success
-int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHash *headers, const void *data, int size)
+static void do_headers(QoreString &hdr, const QoreHash *headers, int size)
 {
-   // prepare header string
-   QoreString hdr(priv->charsetid);
-
-   hdr.sprintf("%s %s HTTP/%s\r\n", method, path && path[0] ? path : "/", http_version);
-   // FIXME: implement a function for the following to share with sendHTTPResponse
    if (headers)
    {
       class ConstHashIterator hi(headers);
@@ -1293,9 +1288,14 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
 	 class QoreNode *v = hi.getValue();
 	 if (v)
 	 {
-	    if (v->type == NT_STRING)
-	       hdr.sprintf("%s: %s\r\n", hi.getKey(), v->val.String->getBuffer());
-	    else if (v->type == NT_INT)
+	    {
+	       QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
+	       if (str) {
+		  hdr.sprintf("%s: %s\r\n", hi.getKey(), str->getBuffer());
+		  continue;
+	       }
+	    }
+	    if (v->type == NT_INT)
 	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), v->val.intval);
 	    else if (v->type == NT_FLOAT)
 	       hdr.sprintf("%s: %f\r\n", hi.getKey(), v->val.floatval);
@@ -1305,8 +1305,21 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
       }
    }
    // add data and content-length header if necessary
-   if (size && data)
+   if (size)
       hdr.sprintf("Content-Length: %d\r\n", size);
+
+   hdr.concat("\r\n");
+}
+
+// returns 0 for success
+int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHash *headers, const void *data, int size)
+{
+   // prepare header string
+   QoreString hdr(priv->charsetid);
+
+   hdr.sprintf("%s %s HTTP/%s\r\n", method, path && path[0] ? path : "/", http_version);
+   // insert headers
+   do_headers(hdr, headers, size && data ? size : 0);
 
    hdr.concat("\r\n");
    //printf("hdr=%s\n", hdr.getBuffer());
@@ -1327,31 +1340,8 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
    QoreString hdr(priv->charsetid);
 
    hdr.sprintf("HTTP/%s %03d %s\r\n", http_version, code, desc);
-   if (headers)
-   {
-      class ConstHashIterator hi(headers);
+   do_headers(hdr, headers, size && data ? size : 0);
 
-      while (hi.next())
-      {
-	 class QoreNode *v = hi.getValue();
-	 if (v)
-	 {
-	    if (v->type == NT_STRING)
-	       hdr.sprintf("%s: %s\r\n", hi.getKey(), v->val.String->getBuffer());
-	    else if (v->type == NT_INT)
-	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), v->val.intval);
-	    else if (v->type == NT_FLOAT)
-	       hdr.sprintf("%s: %f\r\n", hi.getKey(), v->val.floatval);
-	    else if (v->type == NT_BOOLEAN)
-	       hdr.sprintf("%s: %d\r\n", hi.getKey(), v->val.boolval);
-	 }
-      }
-   }
-   // add data and content-length header if necessary
-   if (size && data)
-      hdr.sprintf("Content-Length: %d\r\n", size);
-
-   hdr.concat("\r\n");
    int rc;
    if ((rc = send(hdr.getBuffer(), hdr.strlen())))
       return rc;
@@ -1367,11 +1357,11 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
 //   1 = '\r\n' received
 //   2 = '\r\n\r' received
 //   3 = '\n' received
-class QoreString *QoreSocket::readHTTPData(int timeout, int *rc, int state)
+class QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state)
 {
    // read in HHTP header until \r\n\r\n or \n\n from socket
-      
-   QoreString *hdr = new QoreString(priv->charsetid);
+   TempQoreStringNode hdr(new QoreStringNode(priv->charsetid));
+
    while (true)
    {
       char c;
@@ -1380,9 +1370,7 @@ class QoreString *QoreSocket::readHTTPData(int timeout, int *rc, int state)
       if ((*rc) <= 0)
       {
 	 //printd(0, "QoreSocket::readHTTPHeader(timeout=%d) hdr->strlen()=%d, rc=%d, errno=%d (%s)\n", timeout, hdr->strlen(), *rc, errno, strerror(errno));
-	 
-	 delete hdr;
-	 return NULL;
+	 return 0;
       }
       // check if we can progress to the next state
       if (state == -1 && c == '\n')
@@ -1423,7 +1411,7 @@ class QoreString *QoreSocket::readHTTPData(int timeout, int *rc, int state)
    }
    hdr->concat('\n');
    
-   return hdr;
+   return hdr.release();
 }
 
 // static method
@@ -1453,7 +1441,7 @@ void QoreSocket::convertHeaderToHash(class QoreHash *h, char *p)
       while (t && isblank(*t))
 	 t++;
       strtolower(buf);
-      h->setKeyValue(buf, new QoreNode(t), NULL);
+      h->setKeyValue(buf, new QoreStringNode(t), NULL);
    }
 }
 
@@ -1471,7 +1459,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
       return NULL;
    }
 
-   class QoreString *hdr = readHTTPData(timeout, rc);
+   TempQoreStringNode hdr(readHTTPData(timeout, rc));
    if (!hdr)
       return NULL;
 
@@ -1492,20 +1480,20 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    else
    {
       //printd(5, "can't find first EOL marker\n");
-      return new QoreNode(hdr);
+      return hdr.release();
    }
    char *t1;
    if (!(t1 = (char *)strstr(buf, "HTTP/1.")))
-      return new QoreNode(hdr);
+      return hdr.release();
 
    QoreHash *h = new QoreHash();
 
 #if 0
-   h->setKeyValue("dbg_hdr", new QoreNode(buf), NULL);
+   h->setKeyValue("dbg_hdr", new QoreStringNode(buf), NULL);
 #endif
 
    // get version
-   h->setKeyValue("http_version", new QoreNode(new QoreString(t1 + 5, 3, priv->charsetid)), NULL);
+   h->setKeyValue("http_version", new QoreStringNode(t1 + 5, 3, priv->charsetid), NULL);
 
    // if we are getting a response
    if (t1 == buf)
@@ -1518,7 +1506,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 	 {
 	    h->setKeyValue("status_code", new QoreNode((int64)atoi(t2)), NULL);
 	    if (strlen(t2) > 4)
-	       h->setKeyValue("status_message", new QoreNode(t2 + 4), NULL);
+	       h->setKeyValue("status_message", new QoreStringNode(t2 + 4), NULL);
 	 }
       }
    }
@@ -1528,20 +1516,19 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
       if (t2)
       {
 	 *t2 = '\0';
-	 h->setKeyValue("method", new QoreNode(buf), NULL);
+	 h->setKeyValue("method", new QoreStringNode(buf), NULL);
 	 t2++;
 	 t1 = strchr(t2, ' ');
 	 if (t1)
 	 {
 	    *t1 = '\0';
 	    // the path is returned as-is with no decodings - use decode_url() to decode
-	    h->setKeyValue("path", new QoreNode(new QoreString(t2, priv->charsetid)), 0);
+	    h->setKeyValue("path", new QoreStringNode(t2, priv->charsetid), 0);
 	 }
       }
    }
    
    convertHeaderToHash(h, p);
-   delete hdr;
    return new QoreNode(h);
 }
 
@@ -1656,8 +1643,9 @@ class QoreHash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Excepti
       // ensure string is blanked for next read
       str.clear();
    }
+
    // read footers or nothing
-   class QoreString *hdr = readHTTPData(timeout, &rc, 1);
+   TempQoreStringNode hdr(readHTTPData(timeout, &rc, 1));
    if (!hdr)
    {
       delete b;
@@ -1668,12 +1656,9 @@ class QoreHash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Excepti
    h->setKeyValue("body", new QoreNode(b), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
-   {
-      delete hdr;
       return h;
-   }
+
    convertHeaderToHash(h, (char *)hdr->getBuffer());
-   delete hdr;
    return h; 
 }
 
@@ -1776,8 +1761,9 @@ class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink
 	 br += rc;
       }      
    }
+
    // read footers or nothing
-   class QoreString *hdr = readHTTPData(timeout, &rc, 1);
+   TempQoreStringNode hdr(readHTTPData(timeout, &rc, 1));
    if (!hdr)
    {
       delete buf;
@@ -1785,15 +1771,12 @@ class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink
       return NULL;
    }
    class QoreHash *h = new QoreHash();
-   h->setKeyValue("body", new QoreNode(buf), xsink);
+   h->setKeyValue("body", new QoreStringNode(buf), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
-   {
-      delete hdr;
       return h;
-   }
+
    convertHeaderToHash(h, (char *)hdr->getBuffer());
-   delete hdr;
    return h;
 }
 

@@ -23,6 +23,23 @@
 #include <qore/Qore.h>
 
 #include "QC_QVariant.h"
+#include "QC_QPoint.h"
+#include "QC_QPointF.h"
+#include "QC_QSize.h"
+//#include "QC_QSizeF.h"
+#include "QC_QLine.h"
+#include "QC_QLineF.h"
+#include "QC_QRect.h"
+#include "QC_QRectF.h"
+#include "QC_QLocale.h"
+#include "QC_QByteArray.h"
+#include "QC_QDateTime.h"
+#include "QC_QDate.h"
+#include "QC_QTime.h"
+#include "QC_QChar.h"
+#include "QC_QUrl.h"
+
+#include "qore-qt.h"
 
 int CID_QVARIANT;
 class QoreClass *QC_QVariant = 0;
@@ -453,7 +470,7 @@ static QoreNode *QVARIANT_toSize(QoreObject *self, QoreQVariant *qv, const QoreN
 //QString toString () const
 static QoreNode *QVARIANT_toString(QoreObject *self, QoreQVariant *qv, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qv->toString().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qv->toString().toUtf8().data(), QCS_UTF8);
 }
 
 ////QStringList toStringList () const
@@ -508,7 +525,7 @@ static QoreNode *QVARIANT_typeName(QoreObject *self, QoreQVariant *qv, const Qor
    const char *c_rv = qv->typeName();
    if (!c_rv)
       return 0;
-   return new QoreNode(new QoreString(c_rv));
+   return new QoreStringNode(c_rv);
 }
 
 //int userType () const

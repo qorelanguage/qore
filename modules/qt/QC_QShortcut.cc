@@ -24,6 +24,9 @@
 
 #include "QC_QShortcut.h"
 #include "QC_QKeySequence.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QSHORTCUT;
 class QoreClass *QC_QShortcut = 0;
@@ -53,10 +56,13 @@ static void QSHORTCUT_constructor(class QoreObject *self, const QoreNode *params
 	 return;
       }
       ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
-      p = get_param(params, 2);
-      const char *member = p && p->val.String->strlen() ? p->val.String->getBuffer() : 0;
-      p = get_param(params, 3);
-      const char *ambiguousMember = p && p->val.String->strlen() ? p->val.String->getBuffer() : 0;
+
+      QoreStringNode *pstr = test_string_param(params, 2);
+      const char *member = pstr && pstr->strlen() ? pstr->getBuffer() : 0;
+
+      pstr = test_string_param(params, 3);
+      const char *ambiguousMember = pstr && pstr->strlen() ? pstr->getBuffer() : 0;
+
       p = get_param(params, 4);
       Qt::ShortcutContext context = !is_nothing(p) ? (Qt::ShortcutContext)p->getAsInt() : Qt::WindowShortcut;
 
@@ -185,7 +191,7 @@ static QoreNode *QSHORTCUT_setWhatsThis(QoreObject *self, QoreQShortcut *qs, con
 //QString whatsThis () const
 static QoreNode *QSHORTCUT_whatsThis(QoreObject *self, QoreQShortcut *qs, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qs->qobj->whatsThis().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qs->qobj->whatsThis().toUtf8().data(), QCS_UTF8);
 }
 
 class QoreClass *initQShortcutClass(class QoreClass *qobject)

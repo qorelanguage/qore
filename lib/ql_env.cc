@@ -28,39 +28,33 @@
 
 static class QoreNode *f_getenv(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
-
-   class QoreString *str = Env.get(p0->val.String->getBuffer());
-   return str ? new QoreNode(str) : NULL;
+   
+   return Env.getAsStringNode(p0->getBuffer());
 }
 
 static class QoreNode *f_setenv(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1, *t;
+   QoreStringNode *p0;
+   QoreNode *p1;
    
-   if (!(p0 = test_param(params, NT_STRING, 0))
-       || !(p1 = get_param(params, 1)))
+   if (!(p0 = test_string_param(params, 0))
+       || is_nothing((p1 = get_param(params, 1))))
       return NULL;
-   if (p1->type != NT_STRING)
-      t = p1->convert(NT_STRING);
-   else
-      t = p1;
 
-   int rc = Env.set(p0->val.String->getBuffer(), t->val.String->getBuffer());
-   if (t != p1)
-      t->deref(xsink);
-   return new QoreNode((int64)rc);
+   QoreStringValueHelper t(p1);
+   return new QoreNode((int64)Env.set(p0->getBuffer(), t->getBuffer()));
 }
 
 static class QoreNode *f_unsetenv(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   QoreStringNode *p0;
+   if (!(p0 = test_string_param(params, 0)))
       return NULL;
-   return new QoreNode((int64)Env.unset(p0->val.String->getBuffer()));
+   return new QoreNode((int64)Env.unset(p0->getBuffer()));
 }
 
 void init_env_functions()

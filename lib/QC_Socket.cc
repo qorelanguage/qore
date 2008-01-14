@@ -57,16 +57,16 @@ static void SOCKET_copy(class QoreObject *self, class QoreObject *old, void *obj
 // * connect("filename");
 static QoreNode *SOCKET_connect(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
    // if parameters are not correct
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
    {
       xsink->raiseException("SOCKET-CONNECT-PARAMETER-ERROR",
 			    "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connect() call");
       return NULL;
    }
 
-   s->connect(p0->val.String->getBuffer(), xsink);
+   s->connect(p0->getBuffer(), xsink);
    return NULL;
 }
 
@@ -78,16 +78,16 @@ static QoreNode *SOCKET_connect(class QoreObject *self, class mySocket *s, const
 // * connectSSL("filename");
 static QoreNode *SOCKET_connectSSL(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
    // if parameters are not correct
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
    {
       xsink->raiseException("SOCKET-CONNECTSSL-PARAMETER-ERROR",
-		     "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connectSSL() call");
+			    "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connectSSL() call");
       return NULL;
    }
 
-   s->connectSSL(p0->val.String->getBuffer(), xsink);
+   s->connectSSL(p0->getBuffer(), xsink);
    return NULL;
 }
 
@@ -118,7 +118,7 @@ static QoreNode *SOCKET_bind(class QoreObject *self, class mySocket *s, const Qo
    if (p0->type == NT_INT)
       return new QoreNode((int64)s->bind(p0->val.intval, rua));
    else
-      return new QoreNode((int64)s->bind(p0->val.String->getBuffer(), rua));
+      return new QoreNode((int64)s->bind((reinterpret_cast<QoreStringNode *>(p0))->getBuffer(), rua));
 }
 
 // Socket::accept()
@@ -183,7 +183,7 @@ static QoreNode *SOCKET_send(class QoreObject *self, class mySocket *s, const Qo
    int rc;
 
    if (p0->type == NT_STRING)
-      rc = s->send(p0->val.String, xsink);
+      rc = s->send((reinterpret_cast<QoreStringNode *>(p0)), xsink);
    else
       rc = s->send(p0->val.bin);
       
@@ -208,8 +208,10 @@ static QoreNode *SOCKET_sendBinary(class QoreObject *self, class mySocket *s, co
    int rc = 0;
 
    // send strings with no conversions
-   if (p0->type == NT_STRING)
-      rc = s->send(p0->val.String->getBuffer(), p0->val.String->strlen());
+   if (p0->type == NT_STRING) {
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p0);
+      rc = s->send(str->getBuffer(), str->strlen());
+   }
    else
       rc = s->send(p0->val.bin);
 
@@ -373,20 +375,14 @@ static QoreNode *SOCKET_recv(class QoreObject *self, class mySocket *s, const Qo
    
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 1));
-
    int rc;
-   QoreString *msg;
-
-   if (bs)
-      msg = s->recv(bs, timeout, &rc);
-   else
-      msg = s->recv(timeout, &rc);
+   TempQoreStringNode msg(bs ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
 	
    if (rc > 0)
-      return new QoreNode(msg);
+      return msg.release();
 
    QoreSocket::doException(rc, "recv", xsink);
-   return NULL;
+   return 0;
 }
 
 static QoreNode *SOCKET_recvi1(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)
@@ -537,21 +533,21 @@ static QoreNode *SOCKET_recvBinary(class QoreObject *self, class mySocket *s, co
 // params: method, path, http_version, hash (http headers), data
 static QoreNode *SOCKET_sendHTTPMessage(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_STRING, 0);
+   QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR", "expecting method (string) as first parameter of Socket::sendHTTPMessage() call");
       return NULL;
    }
 
-   QoreNode *p1 = test_param(params, NT_STRING, 1);
+   QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
    {
       xsink->raiseException("SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR", "expecting path (string) as second parameter of Socket::sendHTTPMessage() call");
       return NULL;
    }
 
-   QoreNode *p2 = test_param(params, NT_STRING, 2);
+   QoreStringNode *p2 = test_string_param(params, 2);
    if (!p2)
    {
       xsink->raiseException("SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR", "expecting HTTP version (string) as third parameter of Socket::sendHTTPMessage() call");
@@ -566,9 +562,9 @@ static QoreNode *SOCKET_sendHTTPMessage(class QoreObject *self, class mySocket *
    }
 
    const char *method, *path, *http_version;
-   method = p0->val.String->getBuffer();
-   path = p1->val.String->getBuffer();
-   http_version = p2->val.String->getBuffer();
+   method = p0->getBuffer();
+   path = p1->getBuffer();
+   http_version = p2->getBuffer();
 
    class QoreHash *headers = p3->val.hash;
 
@@ -580,8 +576,9 @@ static QoreNode *SOCKET_sendHTTPMessage(class QoreObject *self, class mySocket *
    if (p4)
       if (p4->type == NT_STRING)
       {
-	 ptr = p4->val.String->getBuffer();
-	 size = p4->val.String->strlen();
+	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p4);
+	 ptr = str->getBuffer();
+	 size = str->strlen();
       }
       else if (p4->type == NT_BINARY)
       {
@@ -614,14 +611,14 @@ static QoreNode *SOCKET_sendHTTPResponse(class QoreObject *self, class mySocket 
       return NULL;
    }
 
-   QoreNode *p1 = test_param(params, NT_STRING, 1);
+   QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
    {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR", "expecting status description (string) as second parameter of Socket::sendHTTPResponse() call");
       return NULL;
    }
 
-   QoreNode *p2 = test_param(params, NT_STRING, 2);
+   QoreStringNode *p2 = test_string_param(params, 2);
    if (!p2)
    {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR", "expecting HTTP version (string) as third parameter of Socket::sendHTTPResponse() call");
@@ -636,8 +633,8 @@ static QoreNode *SOCKET_sendHTTPResponse(class QoreObject *self, class mySocket 
    }
 
    const char *status_desc, *http_version;
-   status_desc = p1->val.String->getBuffer();
-   http_version = p2->val.String->getBuffer();
+   status_desc = p1->getBuffer();
+   http_version = p2->getBuffer();
 
    class QoreHash *headers = p3->val.hash;
 
@@ -649,8 +646,9 @@ static QoreNode *SOCKET_sendHTTPResponse(class QoreObject *self, class mySocket 
    if (p4)
       if (p4->type == NT_STRING)
       {
-	 ptr = p4->val.String->getBuffer();
-	 size = p4->val.String->strlen();
+	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p4);
+	 ptr = str->getBuffer();
+	 size = str->strlen();
       }
       else if (p4->type == NT_BINARY)
       {
@@ -762,21 +760,21 @@ static QoreNode *SOCKET_getRecvTimeout(class QoreObject *self, class mySocket *s
 
 static QoreNode *SOCKET_setCharset(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   QoreStringNode *p0;
 
-   if (!(p0 = test_param(params, NT_STRING, 0)))
+   if (!(p0 = test_string_param(params, 0)))
    {
       xsink->raiseException("SOCKET-SET-CHARSET-PARAMETER-ERROR", "expecting charset name (string) as parameter of Socket::setCharset() call");
       return NULL;
    }
 
-   s->setEncoding(QEM.findCreate(p0->val.String));
+   s->setEncoding(QEM.findCreate(p0));
    return NULL; 
 }
 
 static QoreNode *SOCKET_getCharset(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getEncoding()->getCode());
+   return new QoreStringNode(s->getEncoding()->getCode());
 }
 
 static QoreNode *SOCKET_isDataAvailable(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)
@@ -794,7 +792,7 @@ static QoreNode *SOCKET_getSSLCipherName(class QoreObject *self, class mySocket 
 {
    const char *str = s->getSSLCipherName();
    if (str)
-      return new QoreNode(str);
+      return new QoreStringNode(str);
 
    return NULL;
 }
@@ -803,7 +801,7 @@ static QoreNode *SOCKET_getSSLCipherVersion(class QoreObject *self, class mySock
 {
    const char *str = s->getSSLCipherVersion();
    if (str)
-      return new QoreNode(str);
+      return new QoreStringNode(str);
 
    return NULL;
 }
@@ -815,8 +813,8 @@ static QoreNode *SOCKET_isSecure(class QoreObject *self, class mySocket *s, cons
 
 static QoreNode *SOCKET_verifyPeerCertificate(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   char *c = getSSLCVCode(s->verifyPeerCertificate());
-   return c ? new QoreNode(c) : NULL;
+   const char *c = getSSLCVCode(s->verifyPeerCertificate());
+   return c ? new QoreStringNode(c) : NULL;
 }
 
 static QoreNode *SOCKET_setCertificate(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)
@@ -827,8 +825,9 @@ static QoreNode *SOCKET_setCertificate(class QoreObject *self, class mySocket *s
 
    if (p0 && p0->type == NT_STRING)
    {
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p0);
       // try and create object
-      cert = new QoreSSLCertificate(p0->val.String->getBuffer(), xsink);
+      cert = new QoreSSLCertificate(str->getBuffer(), xsink);
       if (xsink->isEvent())
       {
 	 cert->deref();
@@ -856,10 +855,10 @@ static QoreNode *SOCKET_setPrivateKey(class QoreObject *self, class mySocket *s,
    if (p0 && p0->type == NT_STRING)
    {
       // get passphrase if present
-      QoreNode *p1 = test_param(params, NT_STRING, 1);
-      const char *pp = p1 ? p1->val.String->getBuffer() : NULL;
+      QoreStringNode *p1 = test_string_param(params, 1);
+      const char *pp = p1 ? p1->getBuffer() : NULL;
       // Try and create object
-      pk = new QoreSSLPrivateKey(p0->val.String->getBuffer(), (char *)pp, xsink);
+      pk = new QoreSSLPrivateKey(((QoreStringNode *)p0)->getBuffer(), (char *)pp, xsink);
       if (xsink->isEvent())
       {
 	 pk->deref();

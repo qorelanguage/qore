@@ -85,7 +85,7 @@ class QoreQRadioButton : public QoreAbstractQRadioButton
       QORE_VIRTUAL_QWIDGET_METHODS
 };
 
-class QoreQtQRadioButton : public QoreAbstractQAbstractButton
+class QoreQtQRadioButton : public QoreAbstractQRadioButton
 {
    public:
       QoreObject *qore_obj;

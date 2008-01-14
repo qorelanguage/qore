@@ -23,6 +23,12 @@
 #include <qore/Qore.h>
 
 #include "QC_QFileDialog.h"
+#include "QC_QWidget.h"
+#include "QC_QDir.h"
+#include "QC_QByteArray.h"
+#include "QC_QAbstractItemDelegate.h"
+
+#include "qore-qt.h"
 
 int CID_QFILEDIALOG;
 class QoreClass *QC_QFileDialog = 0;
@@ -90,7 +96,7 @@ static QoreNode *QFILEDIALOG_confirmOverwrite(QoreObject *self, QoreQFileDialog 
 //QString defaultSuffix () const
 static QoreNode *QFILEDIALOG_defaultSuffix(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfd->qobj->defaultSuffix().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfd->qobj->defaultSuffix().toUtf8().data(), QCS_UTF8);
 }
 
 //QDir directory () const
@@ -114,7 +120,7 @@ static QoreNode *QFILEDIALOG_filters(QoreObject *self, QoreQFileDialog *qfd, con
    QStringList strlist_rv = qfd->qobj->filters();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 
@@ -124,7 +130,7 @@ static QoreNode *QFILEDIALOG_history(QoreObject *self, QoreQFileDialog *qfd, con
    QStringList strlist_rv = qfd->qobj->history();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 
@@ -158,7 +164,7 @@ static QoreNode *QFILEDIALOG_labelText(QoreObject *self, QoreQFileDialog *qfd, c
 {
    QoreNode *p = get_param(params, 0);
    QFileDialog::DialogLabel label = (QFileDialog::DialogLabel)(p ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(qfd->qobj->labelText(label).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfd->qobj->labelText(label).toUtf8().data(), QCS_UTF8);
 }
 
 ////QAbstractProxyModel * proxyModel () const
@@ -220,14 +226,14 @@ static QoreNode *QFILEDIALOG_selectedFiles(QoreObject *self, QoreQFileDialog *qf
    QStringList strlist_rv = qfd->qobj->selectedFiles();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 
 //QString selectedFilter () const
 static QoreNode *QFILEDIALOG_selectedFilter(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qfd->qobj->selectedFilter().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qfd->qobj->selectedFilter().toUtf8().data(), QCS_UTF8);
 }
 
 //void setAcceptMode ( AcceptMode mode )
@@ -513,7 +519,7 @@ static QoreNode *f_QFileDialog_getExistingDirectory(const QoreNode *params, Exce
       dir = QString();
    p = get_param(params, 3);
    QFileDialog::Options options = !is_nothing(p) ? (QFileDialog::Options)p->getAsInt() : QFileDialog::ShowDirsOnly;
-   return new QoreNode(new QoreString(QFileDialog::getExistingDirectory(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, options).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QFileDialog::getExistingDirectory(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, options).toUtf8().data(), QCS_UTF8);
 }
 
 //QString getOpenFileName ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, Options options = 0 )
@@ -544,7 +550,7 @@ static QoreNode *f_QFileDialog_getOpenFileName(const QoreNode *params, Exception
    p = get_param(params, 5);
    QFileDialog::Options options = (QFileDialog::Options)(!is_nothing(p) ? p->getAsInt() : 0);
 
-   return new QoreNode(new QoreString(QFileDialog::getOpenFileName(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, &selectedFilter, options).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QFileDialog::getOpenFileName(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, &selectedFilter, options).toUtf8().data(), QCS_UTF8);
 }
 
 //QStringList getOpenFileNames ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, Options options = 0 )
@@ -577,7 +583,7 @@ static QoreNode *f_QFileDialog_getOpenFileNames(const QoreNode *params, Exceptio
    QStringList strlist_rv = QFileDialog::getOpenFileNames(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, &selectedFilter, options);
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
-      l->push(new QoreNode(new QoreString((*i).toUtf8().data(), QCS_UTF8)));
+      l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return new QoreNode(l);
 }
 
@@ -608,7 +614,7 @@ static QoreNode *f_QFileDialog_getSaveFileName(const QoreNode *params, Exception
 
    p = get_param(params, 5);
    QFileDialog::Options options = (QFileDialog::Options)(!is_nothing(p) ? p->getAsInt() : 0);
-   return new QoreNode(new QoreString(QFileDialog::getSaveFileName(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, &selectedFilter, options).toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(QFileDialog::getSaveFileName(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, caption, dir, filter, &selectedFilter, options).toUtf8().data(), QCS_UTF8);
 }
 
 

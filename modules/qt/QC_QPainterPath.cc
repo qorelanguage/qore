@@ -23,6 +23,13 @@
 #include <qore/Qore.h>
 
 #include "QC_QPainterPath.h"
+#include "QC_QPointF.h"
+#include "QC_QPolygonF.h"
+#include "QC_QRectF.h"
+#include "QC_QRegion.h"
+#include "QC_QFont.h"
+
+#include "qore-qt.h"
 
 int CID_QPAINTERPATH;
 class QoreClass *QC_QPainterPath = 0;

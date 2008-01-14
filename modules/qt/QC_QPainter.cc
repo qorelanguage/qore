@@ -25,6 +25,28 @@
 #include "QC_QPainter.h"
 #include "QC_QColor.h"
 #include "QC_QBrush.h"
+#include "QC_QRectF.h"
+#include "QC_QRect.h"
+#include "QC_QMatrix.h"
+#include "QC_QPointF.h"
+#include "QC_QPoint.h"
+#include "QC_QPen.h"
+#include "QC_QPainterPath.h"
+#include "QC_QFont.h"
+#include "QC_QRegion.h"
+#include "QC_QFontMetrics.h"
+#include "QC_QFontInfo.h"
+#include "QC_QPixmap.h"
+#include "QC_QPolygon.h"
+#include "QC_QPicture.h"
+#include "QC_QImage.h"
+#include "QC_QWidget.h"
+#include "QC_QPolygonF.h"
+#include "QC_QPaintDevice.h"
+#include "QC_QLine.h"
+#include "QC_QLineF.h"
+
+#include "qore-qt.h"
 
 DLLLOCAL int CID_QPAINTER;
 DLLLOCAL QoreClass *QC_QPainter = 0;
@@ -114,12 +136,13 @@ static QoreNode *QPAINTER_boundingRect(QoreObject *self, QoreQPainter *qp, const
 	  ReferenceHolder<QoreQRect> holder(rectangle, xsink);
 	  p = get_param(params, 1);
 	  int flags = p ? p->getAsInt() : 0;
-	  p = get_param(params, 2);
-	  if (!p || p->type != NT_STRING) {
+
+	  QoreStringNode *pstr = test_string_param(params, 2);
+	  if (!pstr) {
 	     xsink->raiseException("QPAINTER-BOUNDINGRECT-PARAM-ERROR", "expecting a string as third argument to QPainter::boundingRect()");
 	     return 0;
 	  }
-	  const char *text = p->val.String->getBuffer();
+	  const char *text = pstr->getBuffer();
 	  
 	  QoreQRect *q_qr = new QoreQRect(qp->getQPainter()->boundingRect(*((QRect *)rectangle), flags, text));
 	  QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
@@ -129,12 +152,13 @@ static QoreNode *QPAINTER_boundingRect(QoreObject *self, QoreQPainter *qp, const
       ReferenceHolder<QoreQRectF> holder(rectanglef, xsink);
       p = get_param(params, 1);
       int flags = p ? p->getAsInt() : 0;
-      p = get_param(params, 2);
-      if (!p || p->type != NT_STRING) {
+
+      QoreStringNode *pstr = test_string_param(params, 2);
+      if (!pstr) {
 	 xsink->raiseException("QPAINTER-BOUNDINGRECT-PARAM-ERROR", "expecting a string as third argument to QPainter::boundingRect()");
 	 return 0;
       }
-      const char *text = p->val.String->getBuffer();
+      const char *text = pstr->getBuffer();
 
       QoreQRectF *q_qrf = new QoreQRectF(qp->getQPainter()->boundingRect(*((QRectF *)rectanglef), flags, text));
       QoreObject *o_qrf = new QoreObject(QC_QRectF, getProgram());
@@ -151,12 +175,13 @@ static QoreNode *QPAINTER_boundingRect(QoreObject *self, QoreQPainter *qp, const
    int h = p ? p->getAsInt() : 0;
    p = get_param(params, 4);
    int flags = p ? p->getAsInt() : 0;
-   p = get_param(params, 5);
-   if (!p || p->type != NT_STRING) {
+
+   QoreStringNode *pstr = test_string_param(params, 5);
+   if (!pstr) {
       xsink->raiseException("QPAINTER-BOUNDINGRECT-PARAM-ERROR", "expecting a string as sixth argument to QPainter::boundingRect()");
       return 0;
    }
-   const char *text = p->val.String->getBuffer();
+   const char *text = pstr->getBuffer();
 
    QoreQRect *q_qr = new QoreQRect(qp->getQPainter()->boundingRect(x, y, w, h, flags, text));
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());

@@ -41,8 +41,8 @@ static void QKEYEVENT_constructor(class QoreObject *self, const QoreNode *params
    p = get_param(params, 2);
    Qt::KeyboardModifiers km = (Qt::KeyboardModifiers)(p ? p->getAsInt() : 0);
 
-   p = test_param(params, NT_STRING, 3);
-   const char *text = p ? p->val.String->getBuffer() : 0;
+   QoreStringNode *str = test_string_param(params, 3);
+   const char *text = str ? str->getBuffer() : 0;
 
    p = get_param(params, 4);
    bool autorep = p ? p->getAsBool() : false;
@@ -116,7 +116,7 @@ static QoreNode *QKEYEVENT_nativeVirtualKey(QoreObject *self, QoreQKeyEvent *qke
 //QString text () const
 static QoreNode *QKEYEVENT_text(QoreObject *self, QoreQKeyEvent *qke, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qke->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qke->text().toUtf8().data(), QCS_UTF8);
 }
 
 class QoreClass *initQKeyEventClass(class QoreClass *qinputevent)

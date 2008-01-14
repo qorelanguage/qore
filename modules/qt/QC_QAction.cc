@@ -23,6 +23,15 @@
 #include <qore/Qore.h>
 
 #include "QC_QAction.h"
+#include "QC_QIcon.h"
+#include "QC_QObject.h"
+#include "QC_QFont.h"
+#include "QC_QActionGroup.h"
+#include "QC_QMenu.h"
+#include "QC_QKeySequence.h"
+#include "QC_QWidget.h"
+
+#include "qore-qt.h"
 
 int CID_QACTION;
 class QoreClass *QC_QAction = 0;
@@ -143,7 +152,7 @@ static QoreNode *QACTION_icon(QoreObject *self, QoreAbstractQAction *qa, const Q
 //QString iconText () const
 static QoreNode *QACTION_iconText(QoreObject *self, QoreAbstractQAction *qa, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qa->getQAction()->iconText().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qa->getQAction()->iconText().toUtf8().data(), QCS_UTF8);
 }
 
 //bool isCheckable () const
@@ -461,25 +470,25 @@ static QoreNode *QACTION_showStatusText(QoreObject *self, QoreAbstractQAction *q
 //QString statusTip () const
 static QoreNode *QACTION_statusTip(QoreObject *self, QoreAbstractQAction *qa, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qa->getQAction()->statusTip().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qa->getQAction()->statusTip().toUtf8().data(), QCS_UTF8);
 }
 
 //QString text () const
 static QoreNode *QACTION_text(QoreObject *self, QoreAbstractQAction *qa, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qa->getQAction()->text().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qa->getQAction()->text().toUtf8().data(), QCS_UTF8);
 }
 
 //QString toolTip () const
 static QoreNode *QACTION_toolTip(QoreObject *self, QoreAbstractQAction *qa, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qa->getQAction()->toolTip().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qa->getQAction()->toolTip().toUtf8().data(), QCS_UTF8);
 }
 
 //QString whatsThis () const
 static QoreNode *QACTION_whatsThis(QoreObject *self, QoreAbstractQAction *qa, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreString(qa->getQAction()->whatsThis().toUtf8().data(), QCS_UTF8));
+   return new QoreStringNode(qa->getQAction()->whatsThis().toUtf8().data(), QCS_UTF8);
 }
 
 //void hover ()
