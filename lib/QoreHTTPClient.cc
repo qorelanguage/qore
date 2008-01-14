@@ -793,9 +793,9 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       {
 	 class QoreString tmp;
 	 tmp.sprintf("%s:%s", priv->username.c_str(), priv->password.c_str());
-	 class QoreString *auth_str = new QoreString("Basic ");
+	 class QoreStringNode *auth_str = new QoreStringNode("Basic ");
 	 auth_str->concatBase64(&tmp);
-	 nh.setKeyValue("Authorization", new QoreStringNode(auth_str), xsink);
+	 nh.setKeyValue("Authorization", auth_str, xsink);
       }
    }
    if (priv->proxy_port && !priv->proxy_username.empty())
@@ -818,9 +818,9 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       {
 	 class QoreString tmp;
 	 tmp.sprintf("%s:%s", priv->proxy_username.c_str(), priv->proxy_password.c_str());
-	 class QoreString *auth_str = new QoreString("Basic ");
+	 class QoreStringNode *auth_str = new QoreStringNode("Basic ");
 	 auth_str->concatBase64(&tmp);
-	 nh.setKeyValue("Proxy-Authorization", new QoreStringNode(auth_str), xsink);
+	 nh.setKeyValue("Proxy-Authorization", auth_str, xsink);
       }
    }
 
@@ -923,7 +923,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 	 // set new encoding
 	 priv->m_socket.setEncoding(QEM.findCreate(&enc));
 	 // strip from content-type
-	 class QoreString *nc = new QoreString();
+	 class QoreStringNode *nc = new QoreStringNode();
 	 // skip any spaces before the charset=
 	 while (p != str && (*(p - 1) == ' ' || *(p - 1) == ';'))
 	    p--;
@@ -931,7 +931,7 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
 	    nc->concat(str, p - str);
 	 if (*c)
 	    nc->concat(*c);
-	 ah->setKeyValue("content-type", new QoreStringNode(nc), xsink);
+	 ah->setKeyValue("content-type", nc, xsink);
 	 str = nc->getBuffer();
       }
       // split into a list if ";" characters are present
@@ -940,12 +940,12 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       {
 	 class QoreList *l = new QoreList();
 	 do {
-	    l->push(new QoreStringNode(new QoreString(str, p - str, priv->m_socket.getEncoding())));
+	    l->push(new QoreStringNode(str, p - str, priv->m_socket.getEncoding()));
 	    str = p + 1;
 	 } while ((p = strchr(str, ';')));
 	 // add last field
 	 if (*str)
-	    l->push(new QoreStringNode(new QoreString(str, priv->m_socket.getEncoding())));
+	    l->push(new QoreStringNode(str, priv->m_socket.getEncoding()));
 	 ah->setKeyValue("content-type", new QoreNode(l), xsink);
       }
    }
