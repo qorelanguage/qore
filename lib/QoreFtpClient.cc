@@ -302,7 +302,7 @@ class QoreStringNode *QoreFtpClient::getResponse(class ExceptionSink *xsink)
       resp = priv->control.recv(-1, &rc);
    else
    {
-      resp = new QoreStringNode(&priv->buffer);
+      resp = new QoreStringNode(priv->buffer.giveBuffer());
       priv->buffer.clear();
    }
    // see if we got the whole response
