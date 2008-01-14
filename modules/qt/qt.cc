@@ -186,7 +186,7 @@ QoreType *NT_BRUSHSTYLE = 0, *NT_PENSTYLE = 0;
 
 QoreNode *C_Clipboard = 0;
 
-static class QoreString *qt_module_init();
+static class QoreStringNode *qt_module_init();
 static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);
 static void qt_module_delete();
 
@@ -3309,7 +3309,7 @@ static void init_namespace()
 
 }
 
-static class QoreString *qt_module_init()
+static class QoreStringNode *qt_module_init()
 {
    // add new types
    addBrushStyleType();

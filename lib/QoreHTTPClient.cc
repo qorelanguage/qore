@@ -696,17 +696,12 @@ class QoreNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *
 // (RFC 2616 is not totally clear on this, but other clients do it this way)
 class QoreNode *QoreHTTPClient::getHostHeaderValue()
 {
-   QoreNode *hv;
-
    if (priv->port == 80)
-      hv = new QoreStringNode(priv->host.c_str());
-   else
-   {
-      QoreString *str = new QoreString();
-      str->sprintf("%s:%d", priv->host.c_str(), priv->port);
-      hv = new QoreStringNode(str);
-   }
-   return hv;
+      return new QoreStringNode(priv->host.c_str());
+
+   QoreStringNode *str = new QoreStringNode();
+   str->sprintf("%s:%d", priv->host.c_str(), priv->port);
+   return str;
 }
 
 class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, const QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink)
@@ -999,9 +994,9 @@ class QoreNode *QoreHTTPClient::send_internal(const char *meth, const char *mpat
       }
       else
       {
-	 class QoreString *bstr = priv->m_socket.recv(len, priv->timeout, &rc);
+	 TempQoreStringNode bstr(priv->m_socket.recv(len, priv->timeout, &rc));
 	 if (rc > 0 && bstr)
-	    body = new QoreStringNode(bstr);
+	    body = bstr.release();
       }
 
       //printf("body=%08p\n", body);

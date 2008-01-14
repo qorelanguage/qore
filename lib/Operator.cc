@@ -623,13 +623,13 @@ static class QoreNode *op_regex_trans(QoreNode *left, QoreNode *right, bool ref_
       return NULL;
 
    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-   QoreString *nv = right->val.retrans->exec((*vs), xsink);
-   if (xsink->isEvent())
+   QoreStringNode *nv = right->val.retrans->exec((*vs), xsink);
+   if (*xsink)
       return NULL;
 
    // assign new value to lvalue
    (*vs)->deref();
-   (*v) = new QoreStringNode(nv);
+   (*v) = nv;
    // reference for return value
    (*v)->ref();
    return (*v);      

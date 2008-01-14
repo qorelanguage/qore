@@ -24,7 +24,7 @@
 
 #define _QORE_SYBASE_MODULE_H
 
-extern QoreString *sybase_module_init();
+extern QoreStringNode *sybase_module_init();
 extern void sybase_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
 extern void sybase_module_delete();
 

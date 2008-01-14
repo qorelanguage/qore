@@ -27,7 +27,7 @@
 
 #include <libpq-fe.h>
 
-static class QoreString *pgsql_module_init();
+static class QoreStringNode *pgsql_module_init();
 static void pgsql_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);
 static void pgsql_module_delete();
 
@@ -291,14 +291,11 @@ static void init_namespace()
    pgsql_ns->addConstant("PG_TYPE_ANYARRAY",            new QoreNode((int64)ANYARRAYOID));
 }
 
-static class QoreString *pgsql_module_init()
+static class QoreStringNode *pgsql_module_init()
 {
 #ifdef HAVE_PQISTHREADSAFE
    if (!PQisthreadsafe())
-   {
-      class QoreString *err = new QoreString("cannot load pgsql module; the PostgreSQL library on this system is not thread-safe");
-      return err;
-   }
+      return QoreStringNode("cannot load pgsql module; the PostgreSQL library on this system is not thread-safe");
 #endif
 
    init_namespace();

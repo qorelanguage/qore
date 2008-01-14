@@ -144,10 +144,10 @@ class QoreList *QoreRegex::extractSubstrings(const QoreString *target, class Exc
 	    l->push(nothing());
 	    continue;
 	 }
-	 class QoreString *tstr = new QoreString();
+	 class QoreStringNode *tstr = new QoreStringNode();
 	 //printd(5, "substring %d: %d - %d (len %d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos]);
 	 tstr->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
-	 l->push(new QoreStringNode(tstr));
+	 l->push(tstr);
       }
    }
    

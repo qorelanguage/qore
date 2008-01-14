@@ -160,7 +160,7 @@ QoreQtDynamicSlot::QoreQtDynamicSlot(QoreObject *n_qore_obj, const char *sig, Ex
       while (*p) {
 	 int tc = get_type(p);
 	 if (tc == QQT_TYPE_UNKNOWN) {
-	    QoreString *desc = new QoreString("cannot resolve argument type '");
+	    QoreStringNode *desc = new QoreStringNode("cannot resolve argument type '");
 	    char *x = strchrs(p, " ,)");
 	    if (x)
 	       desc->concat(p, x - p);
@@ -285,7 +285,7 @@ QoreQtDynamicSignal::QoreQtDynamicSignal(const char *sig, ExceptionSink *xsink)
    while (*p) {
       int at = get_type(p);
       if (at == QQT_TYPE_UNKNOWN) {
-	 QoreString *desc = new QoreString("cannot resolve argument type '");
+	 QoreStringNode *desc = new QoreStringNode("cannot resolve argument type '");
 	 char *x = strchrs(p, " ,)");
 	 if (x)
 	    desc->concat(p, x - p);

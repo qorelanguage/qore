@@ -110,20 +110,14 @@ void RegexTrans::concatTarget(char c)
       target->concat(c);
 }
 
-class QoreString *RegexTrans::exec(class QoreString *str, class ExceptionSink *xsink)
+class QoreStringNode *RegexTrans::exec(const QoreString *str, class ExceptionSink *xsink) const
 {
    //printd(5, "source='%s' target='%s' ('%s')\n", source->getBuffer(), target->getBuffer(), str->getBuffer());
-   class QoreString *tstr;
-   if (str->getEncoding() != QCS_DEFAULT)
-   {
-      tstr = str->convertEncoding(QCS_DEFAULT, xsink);
-      if (!tstr)
-	 return NULL;
-   }
-   else
-      tstr = str;
-   
-   class QoreString *ns = new QoreString();
+   ConstTempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return 0;
+
+   class QoreStringNode *ns = new QoreStringNode();
    for (int i = 0; i < tstr->strlen(); i++)
    {
       char c = tstr->getBuffer()[i];
@@ -139,8 +133,7 @@ class QoreString *RegexTrans::exec(class QoreString *str, class ExceptionSink *x
       else
 	 ns->concat(c);
    }
-   if (tstr != str)
-      delete tstr;
+
    return ns;
 }
 

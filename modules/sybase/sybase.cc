@@ -276,7 +276,7 @@ static void init_namespace()
 }
  */
 
-QoreString* sybase_module_init()
+QoreStringNode *sybase_module_init()
 {
    tracein("sybase_module_init()");
 
@@ -307,7 +307,7 @@ QoreString* sybase_module_init()
 #endif
 
    traceout("sybase_module_init()");
-   return NULL;
+   return 0;
 }
 
 void sybase_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)

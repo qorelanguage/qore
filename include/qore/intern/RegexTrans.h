@@ -39,7 +39,7 @@ class RegexTrans
       DLLLOCAL ~RegexTrans();
       DLLLOCAL void finishSource();
       DLLLOCAL void finishTarget();
-      DLLLOCAL class QoreString *exec(class QoreString *target, class ExceptionSink *xsink);
+      DLLLOCAL class QoreStringNode *exec(const QoreString *target, class ExceptionSink *xsink) const;
       DLLLOCAL void concatSource(char c);
       DLLLOCAL void concatTarget(char c);
       DLLLOCAL void setTargetRange();

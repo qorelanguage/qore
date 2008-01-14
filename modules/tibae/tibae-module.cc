@@ -91,7 +91,7 @@ static void setup_namespace()
    tibns->addConstant("TIBAE_U8",          new QoreNode((int64)TIBAE_U8));
 }
 
-class QoreString *tibae_module_init()
+class QoreStringNode *tibae_module_init()
 {
    setup_namespace();
 

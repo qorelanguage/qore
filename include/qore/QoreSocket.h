@@ -59,17 +59,17 @@ class SocketSource {
       DLLEXPORT SocketSource();
       DLLEXPORT ~SocketSource();
 
-      // caller owns the QoreString returned
-      DLLEXPORT class QoreString *takeAddress();
-      // caller owns the QoreString returned
-      DLLEXPORT class QoreString *takeHostName();
+      // caller owns the QoreStringNode reference returned
+      DLLEXPORT class QoreStringNode *takeAddress();
+      // caller owns the QoreStringNode reference returned
+      DLLEXPORT class QoreStringNode *takeHostName();
       DLLEXPORT const char *getAddress() const;
       DLLEXPORT const char *getHostName() const;
 
-      DLLLOCAL void setAddress(class QoreString *addr);
+      DLLLOCAL void setAddress(class QoreStringNode *addr);
       DLLLOCAL void setAddress(const char *addr);
       DLLLOCAL void setHostName(const char *host);
-      DLLLOCAL void setHostName(class QoreString *host);
+      DLLLOCAL void setHostName(class QoreStringNode *host);
       DLLLOCAL void setAll(class QoreObject *o, class ExceptionSink *xsink);
 };
 

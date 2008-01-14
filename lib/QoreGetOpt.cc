@@ -102,13 +102,13 @@ int QoreGetOpt::add(const char *name, char short_opt, char *long_opt, class Qore
    return 0;
 }
 
-static void inline addError(class QoreHash *h, QoreString *err)
+static void inline addError(class QoreHash *h, QoreStringNode *err)
 {
    //printd(5, "addError() adding: %s\n", err->getBuffer());
    class QoreNode **v = h->getKeyValuePtr("_ERRORS_");
    if (!(*v))
       (*v) = new QoreNode(new QoreList());
-   (*v)->val.list->push(new QoreStringNode(err));
+   (*v)->val.list->push(err);
 }
 
 // private, static method
@@ -235,7 +235,7 @@ char *QoreGetOpt::getNextArgument(class QoreList *l, class QoreHash *h, int &i, 
       if (n)
 	 return (char *)n->getBuffer();
    }
-   QoreString *err = new QoreString();
+   QoreStringNode *err = new QoreStringNode();
    if (lopt)
       err->sprintf("long option '--%s' requires an argument", lopt);
    else
@@ -270,7 +270,7 @@ void QoreGetOpt::processLongArg(const char *arg, class QoreList *l, class QoreHa
    class QoreGetOptNode *w = find(opt);
    if (!w)
    {
-      QoreString *err = new QoreString();
+      QoreStringNode *err = new QoreStringNode();
       err->sprintf("unknown long option '--%s'", opt);
       addError(h, err);
       return;
@@ -297,7 +297,7 @@ int QoreGetOpt::processShortArg(const char *arg, class QoreList *l, class QoreHa
    class QoreGetOptNode *w = find(opt);
    if (!w)
    {
-      QoreString *err = new QoreString();
+      QoreStringNode *err = new QoreStringNode();
       err->sprintf("unknown short option '-%c'", opt);
       addError(h, err);
       return 0;

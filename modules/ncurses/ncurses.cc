@@ -649,7 +649,7 @@ static void init_namespace()
    init_constants(NCNS);
 }
 
-class QoreString *ncurses_module_init()
+class QoreStringNode *ncurses_module_init()
 {
    tracein("ncurses_module_init()");
 
@@ -718,7 +718,7 @@ class QoreString *ncurses_module_init()
 #endif // NCURSES_MOUSE_VERSION
 
    traceout("ncurses_module_init()");
-   return NULL;
+   return 0;
 }
 
 void ncurses_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)

@@ -59,7 +59,7 @@ class ExceptionSink {
       // Raise exception with additional argument (the 'arg' member). Always returns 0.
       DLLEXPORT QoreNode* raiseExceptionArg(const char* err, QoreNode* arg, const char* fmt, ...);
       // returns NULL, takes owenership of the "desc" argument
-      DLLEXPORT QoreNode *raiseException(const char *err, class QoreString *desc);
+      DLLEXPORT QoreNode *raiseException(const char *err, class QoreStringNode *desc);
       DLLEXPORT void rethrow(class QoreException *old);
       DLLEXPORT void raiseThreadExit();
       DLLEXPORT void assimilate(class ExceptionSink *xs);
@@ -98,7 +98,7 @@ class QoreException {
       DLLEXPORT class QoreNode *makeExceptionObject();
 
       // called for runtime exceptions
-      DLLLOCAL QoreException(const char *err, class QoreString *desc);
+      DLLLOCAL QoreException(const char *err, class QoreStringNode *desc);
       // called for rethrow
       DLLLOCAL QoreException(class QoreException *old, class ExceptionSink *xsink);
       // called for user exceptions
@@ -112,9 +112,9 @@ class ParseException : public QoreException
 {
    public:
       // called for parse exceptions
-      DLLLOCAL ParseException(const char *err, class QoreString *desc);
+      DLLLOCAL ParseException(const char *err, class QoreStringNode *desc);
       // called for parse exceptions
-      DLLLOCAL ParseException(int s_line, int e_line, const char *err, class QoreString *desc);
+      DLLLOCAL ParseException(int s_line, int e_line, const char *err, class QoreStringNode *desc);
 };
 
 static inline void alreadyDeleted(class ExceptionSink *xsink, const char *cmeth)

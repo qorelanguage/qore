@@ -39,9 +39,8 @@ class QoreStringNode : public QoreNode, public QoreString
       DLLEXPORT QoreStringNode();
 
       DLLEXPORT QoreStringNode(const char *str, const class QoreEncoding *enc = QCS_DEFAULT);
-      // FIXME: remove this function
-      // takes ownership of str
-      //DLLEXPORT QoreStringNode(QoreString *str);
+      // FIXME: remove this function, not actually implemented
+      DLLLOCAL QoreStringNode(QoreString *str);
       // copies str
       DLLEXPORT QoreStringNode(const QoreString &str);
       // copies str

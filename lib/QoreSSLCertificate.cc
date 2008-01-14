@@ -233,7 +233,7 @@ QoreHash *QoreSSLCertificate::getInfo() const
    // get not after date
    h->setKeyValue("notAfter", new QoreNode(getNotAfterDate()), NULL);
    // get signature type
-   h->setKeyValue("signatureType", new QoreStringNode(getSignatureType()), NULL);
+   h->setKeyValue("signatureType", getSignatureType(), NULL);
    // get signature
    //h->setKeyValue("signature", new QoreNode(getSignature()), NULL);
    // get public key

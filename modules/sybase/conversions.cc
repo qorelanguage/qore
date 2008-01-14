@@ -61,7 +61,7 @@ int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME &out, ExceptionSink* xsink)
    int year = dt->getYear();
    if (year > 9999)
    {
-      QoreString *desc = new QoreString();
+      QoreStringNode *desc = new QoreStringNode();
       desc->sprintf("maximum sybase datetime value is 9999-12-31, date passed: ");
       dt->format(desc, "YYYY-DD-MM");
       xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
@@ -69,7 +69,7 @@ int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME &out, ExceptionSink* xsink)
    }
    if (year < 1753)
    {
-      QoreString *desc = new QoreString();
+      QoreStringNode *desc = new QoreStringNode();
       desc->sprintf("minumum sybase datetime value is 1753-01-01, date passed: ");
       dt->format(desc, "YYYY-DD-MM");
       xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
@@ -113,7 +113,7 @@ int DateTime_to_DATETIME4(DateTime *dt, CS_DATETIME4 &out, ExceptionSink *xsink)
    }
    if (DateTime::compareDates(dt, &dt4_max) > 0)
    {
-      QoreString *desc = new QoreString();
+      QoreStringNode *desc = new QoreStringNode();
       desc->sprintf("maximum sybase small datetime value is 2079-06-06, date passed: ");
       dt->format(desc, "YYYY-DD-MM");
       xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
@@ -122,7 +122,7 @@ int DateTime_to_DATETIME4(DateTime *dt, CS_DATETIME4 &out, ExceptionSink *xsink)
    int year = dt->getYear();
    if (year < 1900)
    {
-      QoreString *desc = new QoreString();
+      QoreStringNode *desc = new QoreStringNode();
       desc->sprintf("minumum sybase small datetime value is 1900-01-01, date passed: ");
       dt->format(desc, "YYYY-DD-MM");
       xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);

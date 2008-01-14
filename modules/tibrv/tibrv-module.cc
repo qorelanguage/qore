@@ -71,13 +71,13 @@ static void init_namespace()
    tibns->addConstant("TIBRVFT_QORE_STOP", new QoreNode((int64)-1));
 }
 
-class QoreString *tibrv_module_init()
+class QoreStringNode *tibrv_module_init()
 {
    // initialize rendezvous
    TibrvStatus status = Tibrv::open();
    if (status != TIBRV_OK)
    {
-      class QoreString *err = new QoreString;
+      class QoreStringNode *err = new QoreStringNode;
       err->sprintf("cannot initialize TIB/RV library: status=%d: %s\n", (int)status, status.getText());
       return err;
    }

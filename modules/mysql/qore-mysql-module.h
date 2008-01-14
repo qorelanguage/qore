@@ -24,7 +24,7 @@
 
 #define _QORE_MYSQL_MODULE_H
 
-class QoreString *qore_mysql_module_init();
+class QoreStringNode *qore_mysql_module_init();
 void qore_mysql_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);
 void qore_mysql_module_delete();
 

@@ -235,7 +235,7 @@ static void init_namespace()
 }
 
 //------------------------------------------------------------------------------
-QoreString* tuxedo_module_init()
+QoreStringNode* tuxedo_module_init()
 {
   tracein("tuxedo_module_init");
 

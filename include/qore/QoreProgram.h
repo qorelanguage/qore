@@ -126,13 +126,13 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL class Var *checkVar(const char *name);
       DLLLOCAL class Var *createVar(const char *name);
       DLLLOCAL void importGlobalVariable(class Var *var, class ExceptionSink *xsink, bool readonly);
-      DLLLOCAL void makeParseException(const char *err, class QoreString *desc);
-      DLLLOCAL void makeParseException(int sline, int eline, class QoreString *desc);
-      DLLLOCAL void makeParseException(class QoreString *desc);
+      DLLLOCAL void makeParseException(const char *err, class QoreStringNode *desc);
+      DLLLOCAL void makeParseException(int sline, int eline, class QoreStringNode *desc);
+      DLLLOCAL void makeParseException(class QoreStringNode *desc);
       DLLLOCAL void addParseException(class ExceptionSink *xsink);
       DLLLOCAL void makeParseWarning(int code, const char *warn, const char *fmt, ...);
       DLLLOCAL void addParseWarning(int code, class ExceptionSink *xsink);
-      DLLLOCAL void cannotProvideFeature(class QoreString *desc);
+      DLLLOCAL void cannotProvideFeature(class QoreStringNode *desc);
       DLLLOCAL void exportUserFunction(const char *name, class QoreProgram *p, class ExceptionSink *xsink);
       DLLLOCAL void endThread(class ExceptionSink *xsink);
       DLLLOCAL void startThread();

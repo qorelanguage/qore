@@ -1386,7 +1386,7 @@ static int do_pg_error(const char *err, class ExceptionSink *xsink)
       e = err + 8;
    else
       e = err;
-   QoreString *desc = new QoreString(e);
+   QoreStringNode *desc = new QoreStringNode(e);
    desc->chomp();
    xsink->raiseException("DBI:PGSQL:ERROR", desc);
    return -1;

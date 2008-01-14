@@ -1124,7 +1124,7 @@ static class QoreNode *qore_mysql_get_client_version(const Datasource *ds, class
    return new QoreNode((int64)mysql_get_client_version());
 }
 
-class QoreString *qore_mysql_module_init()
+class QoreStringNode *qore_mysql_module_init()
 {
    tracein("qore_mysql_module_init()");
 

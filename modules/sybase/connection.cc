@@ -322,7 +322,7 @@ int connection::purge_messages(class ExceptionSink *xsink)
       assert(ret == CS_SUCCEED);
       if (CS_SEVERITY(cmsg.msgnumber) > 10)
       {
-	 QoreString *desc = new QoreString();
+	 QoreStringNode *desc = new QoreStringNode();
 	 desc->sprintf("client message %d, severity %d: %s", CS_NUMBER(cmsg.msgnumber), CS_SEVERITY(cmsg.msgnumber), cmsg.msgstring);
 	 if (cmsg.osstringlen)
 	    desc->sprintf(": %s", cmsg.osstring);
@@ -344,7 +344,7 @@ int connection::purge_messages(class ExceptionSink *xsink)
       assert(ret == CS_SUCCEED);
       if (smsg.severity > 10)
       {
-	 QoreString *desc = new QoreString();
+	 QoreStringNode *desc = new QoreStringNode();
 	 desc->sprintf("server message %d, ", smsg.msgnumber);
 	 if (smsg.line)
 	    desc->sprintf("line %d, ", smsg.line);
@@ -362,7 +362,7 @@ int connection::purge_messages(class ExceptionSink *xsink)
 
 int connection::do_exception(class ExceptionSink *xsink, const char *err, const char *fmt, ...)
 {
-   class QoreString *estr = new QoreString();
+   class QoreStringNode *estr = new QoreStringNode();
    va_list args;
    while (fmt)
    {

@@ -1473,7 +1473,7 @@ const QoreEncoding *QoreString::getEncoding() const
 
 class QoreString *QoreString::copy() const
 {
-   return new QoreString((QoreString *)this);
+   return new QoreString(*this);
 }
 
 void QoreString::tolwr()

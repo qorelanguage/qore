@@ -204,8 +204,8 @@ long SSLSocketHelper::verifyPeerCertificate() const
 }
 
 struct qore_socketsource_private {
-      class QoreString *address;
-      class QoreString *hostname;
+      class QoreStringNode *address;
+      class QoreStringNode *hostname;
 
       DLLLOCAL qore_socketsource_private()
       {
@@ -213,8 +213,8 @@ struct qore_socketsource_private {
       }
       DLLLOCAL ~qore_socketsource_private()
       {
-	 delete address;
-	 delete hostname;
+	 if (address)  address->deref();
+	 if (hostname) hostname->deref();
       }
 };
 
@@ -227,7 +227,7 @@ SocketSource::~SocketSource()
    delete priv;
 }
 
-void SocketSource::setAddress(class QoreString *addr)
+void SocketSource::setAddress(class QoreStringNode *addr)
 {
    assert(!priv->address);
    priv->address = addr;
@@ -236,31 +236,31 @@ void SocketSource::setAddress(class QoreString *addr)
 void SocketSource::setAddress(const char *addr)
 {
    assert(!priv->address);
-   priv->address = new QoreString(addr);
+   priv->address = new QoreStringNode(addr);
 }
 
 void SocketSource::setHostName(const char *host)
 {
    assert(!priv->hostname);
-   priv->hostname = new QoreString(host);
+   priv->hostname = new QoreStringNode(host);
 }
 
-void SocketSource::setHostName(class QoreString *host)
+void SocketSource::setHostName(class QoreStringNode *host)
 {
    assert(!priv->hostname);
    priv->hostname = host;
 }
 
-class QoreString *SocketSource::takeAddress()
+class QoreStringNode *SocketSource::takeAddress()
 {
-   class QoreString *addr = priv->address;
+   class QoreStringNode *addr = priv->address;
    priv->address = NULL;
    return addr;
 }
 
-class QoreString *SocketSource::takeHostName()
+class QoreStringNode *SocketSource::takeHostName()
 {
-   class QoreString *host = priv->hostname;
+   class QoreStringNode *host = priv->hostname;
    priv->hostname = NULL;
    return host;
 }
@@ -279,12 +279,12 @@ void SocketSource::setAll(class QoreObject *o, class ExceptionSink *xsink)
 {
    if (priv->address)
    {
-      o->setValue("source", new QoreStringNode(priv->address), xsink);
+      o->setValue("source", priv->address, xsink);
       priv->address = NULL;
    }
    if (priv->hostname)
    {
-      o->setValue("source_host", new QoreStringNode(priv->hostname), xsink);
+      o->setValue("source_host", priv->hostname, xsink);
       priv->hostname = NULL;
    }
 }
@@ -486,7 +486,7 @@ int QoreSocket::acceptInternal(class SocketSource *source)
       
       if (rc > 0 && source)
       {
-	 class QoreString *addr = new QoreString(priv->charsetid);
+	 class QoreStringNode *addr = new QoreStringNode(priv->charsetid);
 	 addr->sprintf("UNIX socket: %s", priv->socketname.c_str());
 	 source->setAddress(addr);
 	 source->setHostName("localhost");
@@ -509,8 +509,8 @@ int QoreSocket::acceptInternal(class SocketSource *source)
 	 char *host;
 	 if ((host = q_gethostbyaddr((const char *)&addr_in.sin_addr.s_addr, sizeof(addr_in.sin_addr.s_addr), AF_INET)))
 	 {
-	    class QoreString *hostname = new QoreString(priv->charsetid);
-	    hostname->take(host);
+	    int len = strlen(host);
+	    class QoreStringNode *hostname = new QoreStringNode(host, len, len + 1, priv->charsetid);
 	    source->setHostName(hostname);
 	 }
 
@@ -1665,7 +1665,7 @@ class QoreHash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Excepti
 // receive a message in HTTP chunked format
 class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
 {
-   class QoreString *buf = new QoreString(priv->charsetid);
+   TempQoreStringNode buf(new QoreStringNode(priv->charsetid));
    class QoreString str; // for reading the size of each chunk
    
    int rc;
@@ -1681,7 +1681,6 @@ class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink
 	 rc = recv(&c, 1, 0, timeout);
 	 if (rc <= 0)
 	 {
-	    delete buf;
 	    doException(rc, "readHTTPChunkedBody", xsink);
 	    return NULL;
 	 }
@@ -1712,7 +1711,6 @@ class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink
 	 break;
       if (size < 0)
       {
-	 delete buf;
 	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%d)", size);
 	 return NULL;
       }
@@ -1730,7 +1728,6 @@ class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink
 	 rc = recv((char *)buf->getBuffer() + buf->strlen() + br, bs, 0, timeout);
 	 if (rc <= 0)
 	 {
-	    delete buf;
 	    doException(rc, "readHTTPChunkedBody", xsink);
 	    return NULL;
 	 }
@@ -1754,7 +1751,6 @@ class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink
 	 rc = recv(crlf, 2 - br, 0, timeout);
 	 if (rc <= 0)
 	 {
-	    delete buf;
 	    doException(rc, "readHTTPChunkedBody", xsink);
 	    return NULL;
 	 }
@@ -1766,12 +1762,11 @@ class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink
    TempQoreStringNode hdr(readHTTPData(timeout, &rc, 1));
    if (!hdr)
    {
-      delete buf;
       doException(rc, "readHTTPChunkedBody", xsink);
       return NULL;
    }
    class QoreHash *h = new QoreHash();
-   h->setKeyValue("body", new QoreStringNode(buf), xsink);
+   h->setKeyValue("body", buf.release(), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
       return h;

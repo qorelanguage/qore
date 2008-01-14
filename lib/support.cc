@@ -129,7 +129,7 @@ void parse_error(const char *fmt, ...)
 {
    printd(5, "parse_error(\"%s\", ...) called\n", fmt);
 
-   class QoreString *desc = new QoreString();
+   class QoreStringNode *desc = new QoreStringNode();
    while (true)
    {
       va_list args;
@@ -146,7 +146,7 @@ void parse_error(int sline, int eline, const char *fmt, ...)
 {
    printd(5, "parse_error(sline, eline, \"%s\", ...) called\n", sline, eline, fmt);
 
-   class QoreString *desc = new QoreString();
+   class QoreStringNode *desc = new QoreStringNode();
    while (true)
    {
       va_list args;
@@ -163,7 +163,7 @@ void parseException(const char *err, const char *fmt, ...)
 {
    printd(5, "parseException(%s. '%s', ...) called\n", err, fmt);
 
-   class QoreString *desc = new QoreString();
+   class QoreStringNode *desc = new QoreStringNode();
    while (true)
    {
       va_list args;

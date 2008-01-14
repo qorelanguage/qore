@@ -1381,7 +1381,7 @@ static class QoreNode *oracle_get_client_version(const Datasource *ds, class Exc
 }
 #endif
 
-class QoreString *oracle_module_init()
+class QoreStringNode *oracle_module_init()
 {
    tracein("oracle_module_init()");
 

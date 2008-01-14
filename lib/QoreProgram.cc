@@ -362,42 +362,39 @@ void QoreProgram::addGlobalVarDef(const char *name)
       makeParseWarning(QP_WARN_DUPLICATE_GLOBAL_VARS, "DUPLICATE-GLOBAL-VARIABLE", "global variable '%s' has already been declared", name);
 }
 
-void QoreProgram::makeParseException(const char *err, class QoreString *desc)
+void QoreProgram::makeParseException(const char *err, class QoreStringNode *desc)
 {
    tracein("QoreProgram::makeParseException()");
+   TempQoreStringNode d(desc);
    if (!priv->requires_exception)
    {
-      class QoreException *ne = new ParseException(err, desc);
+      class QoreException *ne = new ParseException(err, d.release());
       priv->parseSink->raiseException(ne);
    }
-   else
-      delete desc;
    traceout("QoreProgram::makeParseException()");
 }
 
-void QoreProgram::makeParseException(class QoreString *desc)
+void QoreProgram::makeParseException(class QoreStringNode *desc)
 {
    tracein("QoreProgram::makeParseException()");
+   TempQoreStringNode d(desc);
    if (!priv->requires_exception)
    {
-      class QoreException *ne = new ParseException("PARSE-EXCEPTION", desc);
+      class QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
       priv->parseSink->raiseException(ne);
    }
-   else
-      delete desc;
    traceout("QoreProgram::makeParseException()");
 }
 
-void QoreProgram::makeParseException(int sline, int eline, class QoreString *desc)
+void QoreProgram::makeParseException(int sline, int eline, class QoreStringNode *desc)
 {
    tracein("QoreProgram::makeParseException()");
+   TempQoreStringNode d(desc);
    if (!priv->requires_exception)
    {
-      class QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", desc);
+      class QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", d.release());
       priv->parseSink->raiseException(ne);
    }
-   else
-      delete desc;
    traceout("QoreProgram::makeParseException()");
 }
 
@@ -421,7 +418,7 @@ void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, 
    if (!priv->warnSink || !(code & priv->warn_mask))
       return;
    tracein("QoreProgram::makeParseWarning()");
-   class QoreString *desc = new QoreString();
+   class QoreStringNode *desc = new QoreStringNode();
    while (true)
    {
       va_list args;
@@ -443,7 +440,7 @@ void QoreProgram::addParseWarning(int code, class ExceptionSink *xsink)
    priv->warnSink->assimilate(xsink);
 }
 
-void QoreProgram::cannotProvideFeature(class QoreString *desc)
+void QoreProgram::cannotProvideFeature(class QoreStringNode *desc)
 {
    tracein("QoreProgram::cannotProvideFeature()");
    

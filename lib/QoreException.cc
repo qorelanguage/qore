@@ -42,6 +42,10 @@ struct qore_ex_private {
       {
 	 if (file)
 	    free(file);
+	 assert(!callStack);
+	 assert(!err);
+	 assert(!desc);
+	 assert(!arg);
       }
 };
 
@@ -212,7 +216,7 @@ void ExceptionSink::insert(class QoreException *e)
 
 QoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...)
 {
-   class QoreString *desc = new QoreString();
+   class QoreStringNode *desc = new QoreStringNode();
    
    va_list args;
    
@@ -230,7 +234,7 @@ QoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...)
 }
 
 // returns NULL, takes ownership of the "desc" argument
-QoreNode *ExceptionSink::raiseException(const char *err, QoreString *desc)
+QoreNode *ExceptionSink::raiseException(const char *err, QoreStringNode *desc)
 {
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
    insert(new QoreException(err, desc));
@@ -239,7 +243,7 @@ QoreNode *ExceptionSink::raiseException(const char *err, QoreString *desc)
 
 QoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreNode* arg, const char* fmt, ...)
 {
-   class QoreString *desc = new QoreString();
+   class QoreStringNode *desc = new QoreStringNode();
    
    va_list args;
    
@@ -319,7 +323,7 @@ QoreException::QoreException() : priv(new qore_ex_private)
 }
 
 // called for runtime errors
-QoreException::QoreException(const char *e, class QoreString *d) : priv(new qore_ex_private)
+QoreException::QoreException(const char *e, class QoreStringNode *d) : priv(new qore_ex_private)
 {
    //printd(5, "QoreException::QoreException() this=%08p\n", this);
    priv->type = ET_SYSTEM;
@@ -329,14 +333,14 @@ QoreException::QoreException(const char *e, class QoreString *d) : priv(new qore
    priv->callStack = new QoreNode(new QoreList()); //getCallStackList());
 
    priv->err = new QoreStringNode(e);
-   priv->desc = new QoreStringNode(d);
+   priv->desc = d;
    priv->arg = NULL;
 
    priv->next = NULL;
 }
 
 // called when parsing
-ParseException::ParseException(const char *e, class QoreString *d)
+ParseException::ParseException(const char *e, class QoreStringNode *d)
 {
    priv->type = ET_SYSTEM;
    priv->start_line = -1;
@@ -347,14 +351,14 @@ ParseException::ParseException(const char *e, class QoreString *d)
    priv->callStack = new QoreNode(new QoreList()); //getCallStackList());
 
    priv->err = new QoreStringNode(e);
-   priv->desc = new QoreStringNode(d);
+   priv->desc = d;
    priv->arg = NULL;
 
    priv->next = NULL;
 }
 
 // called when parsing
-ParseException::ParseException(int s_line, int e_line, const char *e, class QoreString *d)
+ParseException::ParseException(int s_line, int e_line, const char *e, class QoreStringNode *d)
 {
    priv->type = ET_SYSTEM;
    priv->start_line = s_line;
@@ -364,7 +368,7 @@ ParseException::ParseException(int s_line, int e_line, const char *e, class Qore
    priv->callStack = new QoreNode(new QoreList()); //getCallStackList());
 
    priv->err = new QoreStringNode(e);
-   priv->desc = new QoreStringNode(d);
+   priv->desc = d;
    priv->arg = NULL;
 
    priv->next = NULL;
@@ -377,16 +381,22 @@ QoreException::~QoreException()
 
 void QoreException::del(class ExceptionSink *xsink)
 {
-   if (priv->callStack)
+   if (priv->callStack) {
       priv->callStack->deref(xsink);
-
-   if (priv->err)
+      priv->callStack = 0;
+   }
+   if (priv->err) {
       priv->err->deref(xsink);
-   if (priv->desc)
+      priv->err = 0;
+   }
+   if (priv->desc) {
       priv->desc->deref(xsink);
-   if (priv->arg)
+      priv->desc = 0;
+   }
+   if (priv->arg) {
       priv->arg->deref(xsink);
-
+      priv->arg = 0;
+   }
    if (priv->next)
       priv->next->del(xsink);
    

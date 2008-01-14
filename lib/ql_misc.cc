@@ -294,7 +294,7 @@ static class QoreNode *f_hash_values(const QoreNode *params, ExceptionSink *xsin
 
 void do_zlib_exception(int rc, char *func, class ExceptionSink *xsink)
 {
-   class QoreString *desc = new QoreString();
+   class QoreStringNode *desc = new QoreStringNode();
    desc->sprintf("%s(): ", func);
    switch (rc)
    {
@@ -463,9 +463,11 @@ class QoreStringNode *qore_inflate_to_string(class BinaryObject *b, const QoreEn
       }
    }
 
-   class QoreStringNode *str = new QoreStringNode(enc);
    // how much data was decompressed
    len = bsize - d_stream.avail_out;
+
+   // implement qppropriate QoreStringNode constructor so that a buffer can be taken and a null added if necessary
+   class QoreStringNode *str = new QoreStringNode(enc);
    // add closing \0 if necessary
    if (((char *)buf)[len - 1])
       str->takeAndTerminate((char *)buf, len);
@@ -651,10 +653,13 @@ class QoreStringNode *qore_gunzip_to_string(class BinaryObject *bin, const QoreE
    // how much data was decompressed
    len = bsize - d_stream.avail_out;
 
-   QoreStringNode *str = new QoreStringNode((char *)buf, len - 1, len, enc);
+   // implement qppropriate QoreStringNode constructor so that a buffer can be taken and a null added if necessary
+   class QoreStringNode *str = new QoreStringNode(enc);
    // add closing \0 if necessary
    if (((char *)buf)[len - 1])
-      str->terminate(len);
+      str->takeAndTerminate((char *)buf, len);
+   else // otherwise take string and set length
+      str->take((char *)buf, len - 1);
 
    return str;
 }
