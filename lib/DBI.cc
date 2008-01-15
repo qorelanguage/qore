@@ -82,8 +82,14 @@ void qore_dbi_method_list::add(int code, q_dbi_select_t method)
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
-// covers get_server_version and get_client_version
+// covers get_server_version
 void qore_dbi_method_list::add(int code, q_dbi_get_server_version_t method)
+{
+   priv->l.push_back(std::make_pair(code, (void *)method));
+}
+
+// covers get_client_version
+void qore_dbi_method_list::add(int code, q_dbi_get_client_version_t method)
 {
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
