@@ -1206,7 +1206,6 @@ class QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc)
       }
    }
    //printd(5, "QoreSocket::recv() received %d byte(s), strlen=%d\n", br, str->strlen());
-   free(buf);
    // "fix" return code value if no buffer size was set
    if (bufsize <= 0 && !(*rc))
       *rc = 1;
