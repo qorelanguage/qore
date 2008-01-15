@@ -20,6 +20,9 @@ RELEASE NOTES for qore v0.6.2.3, 0.6.2.2 and 0.6.2.1
         * fixed	a bug where the	string returned by QoreString::reverse() could be tagged with the wrong encoding under some circumstances
         * fixed a bug where the HashIterator::takeValueAndDelete() function would leave the map entry in the Hash which could cause a crash later
         * fixed a memory leak in exception handling in FtpClient::list()
+        * fixed	a memory leak in exception handling in object_MakeString()
+        * fixed	2 off-by-one bugs with string concatentation in	the QoreString class
+        * fixed	get*BigInt() time functions to return int64 instead of int
 
 0.6.2.2 contains one additional bugfix from 0.6.2.1:
 	* fixed an XML parsing bug with multiple out-of-order keys that could cause a crash

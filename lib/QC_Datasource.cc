@@ -31,7 +31,7 @@ static void DS_constructor(class Object *self, class QoreNode *params, Exception
    QoreNode *p = test_param(params, NT_STRING, 0);
    if (!p || !p->val.String->strlen())
    {
-      xsink->raiseException("DATASOURCE-PARAMETER-ERROR", "expecting database driver name as first parameter of ManagedDatasource() constructor");
+      xsink->raiseException("DATASOURCE-PARAMETER-ERROR", "expecting database driver name as first parameter of Datasource() constructor");
       return;
    }
    DBIDriver *db_driver = DBI.find(p->val.String->getBuffer());

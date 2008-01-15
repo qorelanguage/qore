@@ -50,19 +50,19 @@ class QoreString *object_MakeString(class QoreNode *n, int foff, class Exception
       if (h)
       {
 	 h->derefAndDelete(xsink);
-	 return NULL;
+	 return 0;
       }
    }
-   QoreString *rv = new QoreString();
+   TempString rv(new QoreString());
    rv->sprintf("class %s: ", n->val.object->getClass()->getName());
 
    if (foff != FMT_NONE)
    {
-      n->val.object->addPrivateDataToString(rv, xsink);
+      n->val.object->addPrivateDataToString(*rv, xsink);
       if (xsink->isException())
       {
 	 h->derefAndDelete(xsink);
-	 return NULL;
+	 return 0;
       }
       rv->concat(' ');
    }
@@ -101,5 +101,5 @@ class QoreString *object_MakeString(class QoreNode *n, int foff, class Exception
    }
    h->derefAndDelete(xsink);
 
-   return rv;
+   return rv.release();
 }

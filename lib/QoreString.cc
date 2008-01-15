@@ -861,7 +861,7 @@ void QoreString::concat(const QoreString *str)
    if (str && str->len)
    {
       // if buffer needs to be resized
-      check_char(str->len + len);
+      check_char(str->len + len + STR_CLASS_EXTRA);
       // concatenate new string
       memcpy(buf + len, str->buf, str->len);
       len += str->len;
@@ -900,7 +900,7 @@ void QoreString::concat(const QoreString *str, class ExceptionSink *xsink)
       }
 
       // if buffer needs to be resized
-      check_char(cstr->len + len);
+      check_char(cstr->len + len + STR_CLASS_EXTRA);
       // concatenate new string
       memcpy(buf + len, cstr->buf, cstr->len);
       len += cstr->len;
@@ -929,7 +929,7 @@ void QoreString::concat(const QoreString *str, int size, class ExceptionSink *xs
 	 size = charset->getByteLen(cstr->buf, size);
 
       // if buffer needs to be resized
-      check_char(cstr->len + size);
+      check_char(cstr->len + size + STR_CLASS_EXTRA);
       // concatenate new string
       memcpy(buf + len, cstr->buf, size);
       len += size;

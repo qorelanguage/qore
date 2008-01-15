@@ -627,7 +627,7 @@ int getSecZeroInt(class QoreNode *a)
    return a->getAsInt();
 }
 
-int getSecZeroBigInt(class QoreNode *a)
+int64 getSecZeroBigInt(class QoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -646,7 +646,7 @@ int getSecMinusOneInt(class QoreNode *a)
    return a->getAsInt();
 }
 
-int getSecMinusOneBigInt(class QoreNode *a)
+int64 getSecMinusOneBigInt(class QoreNode *a)
 {
    if (is_nothing(a))
       return -1;
@@ -664,7 +664,7 @@ int getMsZeroInt(class QoreNode *a)
    return a->getAsInt();
 }
 
-int getMsZeroBigInt(class QoreNode *a)
+int64 getMsZeroBigInt(class QoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -683,7 +683,7 @@ int getMsMinusOneInt(class QoreNode *a)
    return a->getAsInt();
 }
 
-int getMsMinusOneBigInt(class QoreNode *a)
+int64 getMsMinusOneBigInt(class QoreNode *a)
 {
    if (is_nothing(a))
       return -1;

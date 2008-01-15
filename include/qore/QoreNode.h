@@ -162,13 +162,13 @@ class QoreNode : public ReferenceObject
 
 // for getting relative time values or integer values
 DLLEXPORT int getSecZeroInt(class QoreNode *a);
-DLLEXPORT int getSecZeroBigInt(class QoreNode *a);
+DLLEXPORT int64 getSecZeroBigInt(class QoreNode *a);
 DLLEXPORT int getSecMinusOneInt(class QoreNode *a);
-DLLEXPORT int getSecMinusOneBigInt(class QoreNode *a);
+DLLEXPORT int64 getSecMinusOneBigInt(class QoreNode *a);
 DLLEXPORT int getMsZeroInt(class QoreNode *a);
-DLLEXPORT int getMsZeroBigInt(class QoreNode *a);
+DLLEXPORT int64 getMsZeroBigInt(class QoreNode *a);
 DLLEXPORT int getMsMinusOneInt(class QoreNode *a);
-DLLEXPORT int getMsMinusOneBigInt(class QoreNode *a);
+DLLEXPORT int64 getMsMinusOneBigInt(class QoreNode *a);
 DLLEXPORT int getMicroSecZeroInt(class QoreNode *a);
 DLLEXPORT bool is_nothing(class QoreNode *n);
 DLLEXPORT bool is_value(class QoreNode *node);

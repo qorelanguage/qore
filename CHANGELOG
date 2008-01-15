@@ -1,3 +1,13 @@
+2008.01.15: David Nichols
+	* fixed 2 off-by-one bugs with string concatentation in the QoreString
+	  class (backported from 0.7.0/trunk)
+	* fixed get*BigInt() time functions to return int64 instead of int
+	  (backported from 0.7.0/trunk)
+
+2008.01.13: David Nichols
+	* fixed a memory leak in exception handling in object_MakeString()
+	  (backported from 0.7.0/trunk)
+
 2008.01.10: David Nichols
 	* fixed a bug where the string encoding returned by 
 	  QoreString::reverse() was in the default encoding even if the old and
