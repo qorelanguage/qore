@@ -217,7 +217,7 @@ class MData *QoreApp::do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
       case TIBAE_STRING:
       {
 	 QoreStringValueHelper t(v, QCS_UTF8, xsink);
-	 if (!t)
+	 if (*xsink)
 	    return 0;
 
 	 return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
@@ -345,7 +345,7 @@ lass '%s'", pcd->getFullName().c_str(), cn);
       return new MBool(v->val.boolval);
 
    {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(t);
+      QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
       if (str) {
 	 printd(3, "data=%08p val='%s'\n", str->getBuffer(), str->getBuffer());
 #if (TIBCO_SDK == 4)

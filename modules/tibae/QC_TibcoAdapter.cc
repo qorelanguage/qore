@@ -92,8 +92,8 @@ void TIBAE_constructor(class QoreObject *self, const QoreNode *params, class Exc
    TibCommandLine tcl;
    set_properties(appProps, p1->val.hash, tcl, xsink); 
 
-   if (xsink->isEvent())
-      return 0;
+   if (*xsink)
+      return;
 
    try 
    {
@@ -263,7 +263,7 @@ static QoreNode* TIBAE_operationsCallWithSyncResult(QoreObject* self, QoreApp* m
       return xsink->raiseException(func, err);
    }
    const char* class_name_extracted = class_name->getBuffer(); 
-   QoreStrinfNode* method_name = test_string_param(params, 1);
+   QoreStringNode* method_name = test_string_param(params, 1);
    if (!method_name) {
       return xsink->raiseException(func, err);
    } 
