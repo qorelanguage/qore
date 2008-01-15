@@ -1161,6 +1161,7 @@ class BinaryObject *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
    // "fix" return code value if no buffer size was set
    if (bufsize <= 0 && !(*rc))
       *rc = 1;
+   printd(5, "QoreSocket::recvBinary() received %d byte(s), bufsize=%d, strlen=%d\n", br, bufsize, b->size());
    return b;
 }
 
@@ -1185,7 +1186,7 @@ class QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc)
       *rc = recv(buf, bs, 0, timeout);
       if ((*rc) <= 0)
       {
-	 //printd(0, "QoreSocket::recv(%d, %d) bs=%d, br=%d, rc=%d, errno=%d (%s)\n", bufsize, timeout, bs, br, *rc, errno, strerror(errno));
+	 printd(5, "QoreSocket::recv(%d, %d) bs=%d, br=%d, rc=%d, errno=%d (%s)\n", bufsize, timeout, bs, br, *rc, errno, strerror(errno));
 
 	 if (*rc || !br || (!*rc && bufsize > 0))
 	 {
@@ -1205,7 +1206,7 @@ class QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc)
 	    bs = bufsize - br;
       }
    }
-   //printd(5, "QoreSocket::recv() received %d byte(s), strlen=%d\n", br, str->strlen());
+   printd(5, "QoreSocket::recv() received %d byte(s), bufsize=%d, strlen=%d str='%s'\n", br, bufsize, str ? str->strlen() : 0, str ? str->getBuffer() : "n/a");
    // "fix" return code value if no buffer size was set
    if (bufsize <= 0 && !(*rc))
       *rc = 1;
@@ -1320,7 +1321,6 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
    // insert headers
    do_headers(hdr, headers, size && data ? size : 0);
 
-   hdr.concat("\r\n");
    //printf("hdr=%s\n", hdr.getBuffer());
    int rc;
    if ((rc = send(hdr.getBuffer(), hdr.strlen())))

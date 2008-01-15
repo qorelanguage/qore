@@ -2255,7 +2255,7 @@ static class QoreNode *f_parseXMLRPCCall(const QoreNode *params, ExceptionSink *
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   printd(5, "parseXMLRPCCall(%s)\n", p0->getBuffer());
+   //printd(5, "parseXMLRPCCall() c=%d str=%s\n", p0->getBuffer()[0], p0->getBuffer());
 
    const QoreEncoding *ccsid;
    if ((p1 = test_string_param(params, 1)))

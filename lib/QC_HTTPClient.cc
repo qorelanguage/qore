@@ -124,6 +124,7 @@ static class QoreNode *HC_send(class QoreObject *self, class QoreHTTPClient *cli
       if (p->type == NT_STRING)
       {
 	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p);
+	 assert(str);
 	 ptr = str->getBuffer();
 	 size = str->strlen();
       }
