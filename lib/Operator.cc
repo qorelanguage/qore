@@ -1470,34 +1470,42 @@ static class QoreNode *op_plus_hash_hash(QoreNode *left, QoreNode *right, Except
 
 static class QoreNode *op_plus_hash_object(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   assert(right && right->type == NT_OBJECT);
-   TempQoreHash h(right->val.object->copyData(xsink), xsink);
-   if (*xsink)
-      return 0;
+   if (left->type == NT_HASH) {
+      if (right->type == NT_OBJECT) {
+	 TempQoreHash h(right->val.object->copyData(xsink), xsink);
+	 if (*xsink)
+	    return 0;
 
-   assert(left && left->type == NT_HASH);
-   TempQoreHash rv(left->val.hash->copy(), xsink);
-   rv->assimilate(h.release(), xsink);
-   if (*xsink)
-      return 0;
+	 TempQoreHash rv(left->val.hash->copy(), xsink);
+	 rv->assimilate(h.release(), xsink);
+	 if (*xsink)
+	    return 0;
 
-   return new QoreNode(rv.release());
+	 return new QoreNode(rv.release());
+      }
+      return left->RefSelf();
+   }
+   return right->type == NT_OBJECT ? right->RefSelf() : 0;
 }
 
 // note that this will return a hash
-static class QoreNode *op_plus_object_hash(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_plus_object_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   assert(left && left->type == NT_OBJECT);
-   TempQoreHash h(left->val.object->copyData(xsink), xsink);
-   if (*xsink)
-      return 0;
+   if (left->type == NT_OBJECT) {
+      if (right->type == NT_HASH) {
+	 TempQoreHash h(left->val.object->copyData(xsink), xsink);
+	 if (*xsink)
+	    return 0;
 
-   assert(right && right->type == NT_HASH);
-   h->merge(right->val.hash, xsink);
-   if (*xsink)
-      return 0;
+	 h->merge(right->val.hash, xsink);
+	 if (*xsink)
+	    return 0;
 
-   return new QoreNode(h.release());
+	 return new QoreNode(h.release());
+      }
+      return left->RefSelf();
+   }
+   return right->type == NT_HASH ? right->RefSelf() : 0;
 }
 
 static int64 op_cmp_double(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
