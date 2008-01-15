@@ -73,6 +73,21 @@ typedef QoreNode *(*op_hash_list_func_t)(const QoreHash *l, const QoreList *r, E
 typedef QoreNode *(*op_noconvert_func_t)(QoreNode *l, QoreNode *r);
 typedef QoreNode *(*op_node_int_func_t)(QoreNode *l, int r, ExceptionSink *xsink);
 typedef QoreNode *(*op_node_func_t)(QoreNode *l, QoreNode *r, ExceptionSink *xsink);
+typedef bool (*op_bool_int_func_t)(int64 l, int64 r);
+typedef int64 (*op_int_int_func_t)(int64 l, int64 r);
+typedef int64 (*op_divide_int_func_t)(int64 l, int64 r, ExceptionSink *xsink);
+typedef bool (*op_logic_func_t)(bool l, bool r);
+
+typedef bool (*op_bool_float_func_t)(double l, double r);
+typedef double (*op_float_float_func_t)(double l, double r);
+typedef double (*op_divide_float_func_t)(double l, double r, ExceptionSink *xsink);
+typedef int64 (*op_compare_float_func_t)(double l, double r);
+
+typedef bool (*op_bool_date_func_t)(const DateTime *l, const DateTime *r);
+typedef DateTime *(*op_date_func_t)(const DateTime *l, const DateTime *r);
+
+typedef bool (*op_bool_bin_func_t)(const BinaryObject *l, const BinaryObject *r);
+typedef bool (*op_simple_bool_func_t)(QoreNode *l, QoreNode *r);
 
 typedef QoreNode *(* op_func_t)(QoreNode *l, QoreNode *r, bool ref_rv, ExceptionSink *xsink);
 typedef bool (*op_bool_func_t)(QoreNode *l, QoreNode *r, ExceptionSink *xsink);
@@ -266,6 +281,54 @@ class BoolStrStrOperatorFunction : public AbstractOperatorFunction
       DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
 };
 
+class BoolDateOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_bool_date_func_t op_func;
+
+   public:
+      DLLLOCAL BoolDateOperatorFunction(op_bool_date_func_t f) : AbstractOperatorFunction(NT_DATE, NT_DATE), op_func(f)
+      {
+      }      
+      DLLLOCAL virtual ~BoolDateOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+class DateOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_date_func_t op_func;
+
+   public:
+      DLLLOCAL DateOperatorFunction(op_date_func_t f) : AbstractOperatorFunction(NT_DATE, NT_DATE), op_func(f)
+      {
+      }      
+      DLLLOCAL virtual ~DateOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+class BoolBinOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_bool_bin_func_t op_func;
+
+   public:
+      DLLLOCAL BoolBinOperatorFunction(op_bool_bin_func_t f) : AbstractOperatorFunction(NT_BINARY, NT_BINARY), op_func(f)
+      {
+      }      
+      DLLLOCAL virtual ~BoolBinOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
 class NoConvertBoolOperatorFunction : public AbstractOperatorFunction
 {
    private:
@@ -315,6 +378,207 @@ class BoolStrRegexOperatorFunction : public AbstractOperatorFunction
       DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
 };
 
+class BoolIntOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_bool_int_func_t op_func;
+
+   public:
+      DLLLOCAL BoolIntOperatorFunction(op_bool_int_func_t f) : AbstractOperatorFunction(NT_INT, NT_INT), op_func(f)
+      {
+      }
+      DLLLOCAL virtual ~BoolIntOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+class IntIntOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_int_int_func_t op_func;
+
+   public:
+      DLLLOCAL IntIntOperatorFunction(op_int_int_func_t f) : AbstractOperatorFunction(NT_INT, NT_INT), op_func(f)
+      {
+      }
+      DLLLOCAL virtual ~IntIntOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+// this whole class just for one operator (integer division)...
+class DivideIntOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_divide_int_func_t op_func;
+
+   public:
+      DLLLOCAL DivideIntOperatorFunction(op_divide_int_func_t f) : AbstractOperatorFunction(NT_INT, NT_INT), op_func(f)
+      {
+      }
+      DLLLOCAL virtual ~DivideIntOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+// this whole class just for one operator (integer unary minus)...
+class UnaryMinusIntOperatorFunction : public AbstractOperatorFunction
+{
+   public:
+      DLLLOCAL UnaryMinusIntOperatorFunction() : AbstractOperatorFunction(NT_INT, NT_INT)
+      {
+      }
+      DLLLOCAL virtual ~UnaryMinusIntOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+// this whole class just for one operator (binary integer not)...
+class IntegerNotOperatorFunction : public AbstractOperatorFunction
+{
+   public:
+      DLLLOCAL IntegerNotOperatorFunction() : AbstractOperatorFunction(NT_INT, NT_NONE)
+      {
+      }
+      DLLLOCAL virtual ~IntegerNotOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+class BoolFloatOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_bool_float_func_t op_func;
+
+   public:
+      DLLLOCAL BoolFloatOperatorFunction(op_bool_float_func_t f) : AbstractOperatorFunction(NT_FLOAT, NT_FLOAT), op_func(f)
+      {
+      }
+      DLLLOCAL virtual ~BoolFloatOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+class FloatFloatOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_float_float_func_t op_func;
+
+   public:
+      DLLLOCAL FloatFloatOperatorFunction(op_float_float_func_t f) : AbstractOperatorFunction(NT_FLOAT, NT_FLOAT), op_func(f)
+      {
+      }
+      DLLLOCAL virtual ~FloatFloatOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+// this whole class just for one operator (floating-point division)...
+class DivideFloatOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_divide_float_func_t op_func;
+
+   public:
+      DLLLOCAL DivideFloatOperatorFunction(op_divide_float_func_t f) : AbstractOperatorFunction(NT_FLOAT, NT_FLOAT), op_func(f)
+      {
+      }
+      DLLLOCAL virtual ~DivideFloatOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+// this whole class just for one operator (floating-point unary minus)...
+class UnaryMinusFloatOperatorFunction : public AbstractOperatorFunction
+{
+   public:
+      DLLLOCAL UnaryMinusFloatOperatorFunction() : AbstractOperatorFunction(NT_FLOAT, NT_FLOAT)
+      {
+      }
+      DLLLOCAL virtual ~UnaryMinusFloatOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+// this whole class just for one operator (floating-point comparison <=>)...
+class CompareFloatOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_compare_float_func_t op_func;
+
+   public:
+      DLLLOCAL CompareFloatOperatorFunction(op_compare_float_func_t f) : AbstractOperatorFunction(NT_FLOAT, NT_FLOAT), op_func(f)
+      {
+      }
+      DLLLOCAL virtual ~CompareFloatOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+// this whole class just for one operator (boolean/logical not)...
+class BoolNotOperatorFunction : public AbstractOperatorFunction
+{
+   public:
+      DLLLOCAL BoolNotOperatorFunction() : AbstractOperatorFunction(NT_BOOLEAN, NT_NONE)
+      {
+      }
+      DLLLOCAL virtual ~BoolNotOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+// this whole class just for one operator (date comparison <=>)...
+class CompareDateOperatorFunction : public AbstractOperatorFunction
+{
+   public:
+      DLLLOCAL CompareDateOperatorFunction() : AbstractOperatorFunction(NT_DATE, NT_DATE)
+      {
+      }
+      DLLLOCAL virtual ~CompareDateOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+class LogicOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_logic_func_t op_func;
+
+   public:
+      DLLLOCAL LogicOperatorFunction(op_logic_func_t f) : AbstractOperatorFunction(NT_BOOLEAN, NT_BOOLEAN), op_func(f)
+      {
+      }
+      DLLLOCAL virtual ~LogicOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
 class BigIntStrStrOperatorFunction : public AbstractOperatorFunction
 {
    private:
@@ -325,6 +589,23 @@ class BigIntStrStrOperatorFunction : public AbstractOperatorFunction
       {
       }
       DLLLOCAL virtual ~BigIntStrStrOperatorFunction() {}
+      DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual double float_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
+};
+
+// this class if only for operators that have no side effects
+class SimpleBoolOperatorFunction : public AbstractOperatorFunction
+{
+   private:
+      op_simple_bool_func_t op_func;
+
+   public:
+      DLLLOCAL SimpleBoolOperatorFunction(const QoreType *lt, const QoreType *rt, op_simple_bool_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
+      {
+      }
+      DLLLOCAL virtual ~SimpleBoolOperatorFunction() {}
       DLLLOCAL virtual class QoreNode *eval(QoreNode *l, QoreNode *r, bool ref_rv, int args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual bool bool_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
       DLLLOCAL virtual int64 bigint_eval(QoreNode *l, QoreNode *r, int args, ExceptionSink *xsink) const;
@@ -412,6 +693,10 @@ class Operator {
       {
 	 functions.push_back(new HashStringOperatorFunction(f));
       }
+      DLLLOCAL void addFunction(op_hash_list_func_t f)
+      {
+	 functions.push_back(new HashListOperatorFunction(f));
+      }
       DLLLOCAL void addFunction(op_str_str_str_func_t f)
       {
 	 functions.push_back(new StringStringStringOperatorFunction(f));
@@ -436,6 +721,10 @@ class Operator {
       {
 	 functions.push_back(new NodeOperatorFunction(lt, rt, f));
       }
+      DLLLOCAL void addFunction(const QoreType *lt, const QoreType *rt, op_simple_bool_func_t f)
+      {
+	 functions.push_back(new SimpleBoolOperatorFunction(lt, rt, f));
+      }
       DLLLOCAL void addFunction(const QoreType *lt, const QoreType *rt, op_noconvert_func_t f)
       {
 	 functions.push_back(new NoConvertOperatorFunction(lt, rt, f));
@@ -447,6 +736,70 @@ class Operator {
       DLLLOCAL void addEffectFunction(op_bool_func_t f)
       {
 	 functions.push_back(new EffectBoolOperatorFunction(f));
+      }
+      DLLLOCAL void addFunction(op_bool_int_func_t f)
+      {
+	 functions.push_back(new BoolIntOperatorFunction(f));
+      }
+      DLLLOCAL void addFunction(op_int_int_func_t f)
+      {
+	 functions.push_back(new IntIntOperatorFunction(f));
+      }
+      DLLLOCAL void addFunction(op_divide_int_func_t f)
+      {
+	 functions.push_back(new DivideIntOperatorFunction(f));
+      }
+      DLLLOCAL void addUnaryMinusIntFunction()
+      {
+	 functions.push_back(new UnaryMinusIntOperatorFunction());
+      }
+      DLLLOCAL void addFunction(op_bool_float_func_t f)
+      {
+	 functions.push_back(new BoolFloatOperatorFunction(f));
+      }
+      DLLLOCAL void addFunction(op_float_float_func_t f)
+      {
+	 functions.push_back(new FloatFloatOperatorFunction(f));
+      }
+      DLLLOCAL void addFunction(op_divide_float_func_t f)
+      {
+	 functions.push_back(new DivideFloatOperatorFunction(f));
+      }
+      DLLLOCAL void addUnaryMinusFloatFunction()
+      {
+	 functions.push_back(new UnaryMinusFloatOperatorFunction());
+      }
+      DLLLOCAL void addFunction(op_compare_float_func_t f)
+      {
+	 functions.push_back(new CompareFloatOperatorFunction(f));
+      }
+      DLLLOCAL void addFunction(op_logic_func_t f)
+      {
+	 functions.push_back(new LogicOperatorFunction(f));
+      }
+      DLLLOCAL void addFunction(op_bool_date_func_t f)
+      {
+	 functions.push_back(new BoolDateOperatorFunction(f));
+      }
+      DLLLOCAL void addFunction(op_bool_bin_func_t f)
+      {
+	 functions.push_back(new BoolBinOperatorFunction(f));
+      }
+      DLLLOCAL void addFunction(op_date_func_t f)
+      {
+	 functions.push_back(new DateOperatorFunction(f));
+      }
+      DLLLOCAL void addCompareDateFunction()
+      {
+	 functions.push_back(new CompareDateOperatorFunction());
+      }
+      DLLLOCAL void addBoolNotFunction()
+      {
+	 functions.push_back(new BoolNotOperatorFunction());
+      }
+      DLLLOCAL void addIntegerNotFunction()
+      {
+	 functions.push_back(new IntegerNotOperatorFunction());
       }
 
       DLLLOCAL void addFunction(const QoreType *lt, const QoreType *rt, op_func_t f); 
