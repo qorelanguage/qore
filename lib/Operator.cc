@@ -1455,16 +1455,17 @@ static class QoreNode *op_plus_list(QoreNode *left, QoreNode *right)
 
 static class QoreNode *op_plus_hash_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   if (!left || left->type != NT_HASH)
-      return 0;
-   if (!right || right->type != NT_HASH)
-      return 0;
-
-   TempQoreHash rv(left->val.hash->copy(), xsink);
-   rv->merge(right->val.hash, xsink);
-   if (*xsink)
-      return 0;
-   return new QoreNode(rv.release());
+   if (left->type == NT_HASH) {
+      if (right->type == NT_HASH) {
+	 TempQoreHash rv(left->val.hash->copy(), xsink);
+	 rv->merge(right->val.hash, xsink);
+	 if (*xsink)
+	    return 0;
+	 return new QoreNode(rv.release());
+      }
+      return left->RefSelf();
+   }
+   return right->type == NT_HASH ? right->RefSelf() : 0;
 }
 
 static class QoreNode *op_plus_hash_object(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
