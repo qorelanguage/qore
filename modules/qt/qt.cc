@@ -1138,49 +1138,40 @@ static class QoreNode *f_QAPP(const QoreNode *params, class ExceptionSink *xsink
 
 static class QoreNode *f_qDebug(const QoreNode *params, class ExceptionSink *xsink)
 {
-   class QoreString *str = q_sprintf(params, 0, 0, xsink);
-   if (*xsink) {
-      if (str)
-	 delete str;
-   }
-   else
-      qDebug(str->getBuffer());
-   return 0;
+   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   if (*xsink)
+      return 0;
+
+   qDebug(str->getBuffer());
 }
 
 static class QoreNode *f_qWarning(const QoreNode *params, class ExceptionSink *xsink)
 {
-   class QoreString *str = q_sprintf(params, 0, 0, xsink);
-   if (*xsink) {
-      if (str)
-	 delete str;
-   }
-   else
-      qWarning(str->getBuffer());
+   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   if (*xsink)
+      return 0;
+
+   qWarning(str->getBuffer());
    return 0;
 }
 
 static class QoreNode *f_qCritical(const QoreNode *params, class ExceptionSink *xsink)
 {
-   class QoreString *str = q_sprintf(params, 0, 0, xsink);
-   if (*xsink) {
-      if (str)
-	 delete str;
-   }
-   else
-      qCritical(str->getBuffer());
+   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   if (*xsink)
+      return 0;
+
+   qCritical(str->getBuffer());
    return 0;
 }
 
 static class QoreNode *f_qFatal(const QoreNode *params, class ExceptionSink *xsink)
 {
-   class QoreString *str = q_sprintf(params, 0, 0, xsink);
-   if (*xsink) {
-      if (str)
-	 delete str;
-   }
-   else
-      qFatal(str->getBuffer());
+   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   if (*xsink)
+      return 0;
+
+   qFatal(str->getBuffer());
    return 0;
 }
 

@@ -252,12 +252,9 @@ static class QoreNode *f_initscr(const QoreNode *params, class ExceptionSink *xs
 static class QoreNode *f_printw(const QoreNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
-
-   QoreString *str = q_sprintf(params, 0, 0, xsink); 
-
+   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink)); 
    // note: need cast for solaris curses
    int rc = printw((char *)str->getBuffer());
-   delete str;
    return new QoreNode((int64)rc);
 }
 

@@ -100,23 +100,17 @@ class QoreNode *PC_mvaddstr(class QoreObject *self, class Panel *p, const QoreNo
 
 class QoreNode *PC_printw(class QoreObject *self, class Panel *p, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *rv;
-   class QoreString *str = q_sprintf(params, 0, 0, xsink);
-   rv = new QoreNode((int64)p->qaddstr(str->getBuffer()));
-   delete str;
-   return rv;
+   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   return new QoreNode((int64)p->qaddstr(str->getBuffer()));
 }
 
 class QoreNode *PC_mvprintw(class QoreObject *self, class Panel *p, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *rv;
-   class QoreString *str = q_sprintf(params, 0, 2, xsink);
+   TempQoreStringNode str(q_sprintf(params, 0, 2, xsink));
    class QoreNode *p0 = get_param(params, 0);
    class QoreNode *p1 = get_param(params, 1);
 
-   rv = new QoreNode((int64)p->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, str->getBuffer()));
-   delete str;
-   return rv;
+   return new QoreNode((int64)p->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, str->getBuffer()));
 }
 
 class QoreNode *PC_refresh(class QoreObject *self, class Panel *p, const QoreNode *params, ExceptionSink *xsink)

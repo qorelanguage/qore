@@ -45,10 +45,10 @@ struct qore_string_private {
       DLLLOCAL qore_string_private(const qore_string_private &p)
       {
 	 allocated = p.len + STR_CLASS_EXTRA;
-	 buf = (char *)malloc(sizeof(char) * p.allocated);
+	 buf = (char *)malloc(sizeof(char) * allocated);
 	 len = p.len;
-	 if (p.len)
-	    memcpy(buf, p.buf, p.len);
+	 if (len)
+	    memcpy(buf, p.buf, len);
 	 buf[len] = '\0';
 	 charset = p.charset;
       }
