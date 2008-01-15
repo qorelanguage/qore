@@ -675,7 +675,7 @@ void QoreString::concatAndHTMLEncode(const QoreString *str, class ExceptionSink 
    // if it's not a null string
    if (str && str->priv->len)
    {
-      TempEncodingHelper cstr((QoreString *)str, priv->charset, xsink);
+      ConstTempEncodingHelper cstr(str, priv->charset, xsink);
       if (!cstr)
 	 return;
 
@@ -874,7 +874,7 @@ void QoreString::concat(const QoreString *str)
    if (str && str->priv->len)
    {
       // if priv->buffer needs to be resized
-      priv->check_char(str->priv->len + priv->len);
+      priv->check_char(str->priv->len + priv->len + STR_CLASS_EXTRA);
       // concatenate new string
       memcpy(priv->buf + priv->len, str->priv->buf, str->priv->len);
       priv->len += str->priv->len;
@@ -904,23 +904,16 @@ void QoreString::concat(const QoreString *str, class ExceptionSink *xsink)
    // if it's not a null string
    if (str && str->priv->len)
    {
-      const QoreString *cstr = str;
-      if (priv->charset != str->priv->charset)
-      {
-	 cstr = str->convertEncoding(priv->charset, xsink);
-	 if (xsink->isEvent())
-	    return;
-      }
+      ConstTempEncodingHelper cstr(str, priv->charset, xsink);
+      if (*xsink)
+         return;
 
       // if priv->buffer needs to be resized
-      priv->check_char(cstr->priv->len + priv->len);
+      priv->check_char(cstr->priv->len + priv->len + STR_CLASS_EXTRA);
       // concatenate new string
       memcpy(priv->buf + priv->len, cstr->priv->buf, cstr->priv->len);
       priv->len += cstr->priv->len;
       priv->buf[priv->len] = '\0';
-
-      if (cstr != str)
-	 delete cstr;
    }
 }
 
@@ -929,27 +922,20 @@ void QoreString::concat(const QoreString *str, int size, class ExceptionSink *xs
    // if it's not a null string
    if (str && str->priv->len)
    {
-      const QoreString *cstr = str;
-      if (priv->charset != str->priv->charset)
-      {
-	 cstr = str->convertEncoding(priv->charset, xsink);
-	 if (xsink->isEvent())
-	    return;
-      }
+      ConstTempEncodingHelper cstr(str, priv->charset, xsink);
+      if (*xsink)
+         return;
 
       // adjust size for number of characters if this is a multi-byte character set
       if (priv->charset->isMultiByte())
 	 size = priv->charset->getByteLen(cstr->priv->buf, size);
 
       // if priv->buffer needs to be resized
-      priv->check_char(cstr->priv->len + size);
+      priv->check_char(cstr->priv->len + size + STR_CLASS_EXTRA);
       // concatenate new string
       memcpy(priv->buf + priv->len, cstr->priv->buf, size);
       priv->len += size;
       priv->buf[priv->len] = '\0';
-
-      if (cstr != str)
-	 delete cstr;
    }
 }
 

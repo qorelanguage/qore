@@ -517,8 +517,9 @@ static double op_unary_minus_float(QoreNode *left, QoreNode *right, ExceptionSin
 
 static class QoreStringNode *op_plus_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
-   //printd(5, "op_plus_string() (%d) \"%s\" + (%d) \"%s\"\n", left->strlen(), left->getBuffer(), right->strlen(), right->getBuffer());
    TempQoreStringNode str(new QoreStringNode(*left));
+   //printd(5, "op_plus_string() (%d) %08p \"%s\" + (%d) %08p \"%s\"\n", left->strlen(), left->getBuffer(), left->getBuffer(), right->strlen(), right->getBuffer(), right->getBuffer());
+   //printd(5, "op_plus_string() str= (%d) %08p \"%s\"\n", str->strlen(), str->getBuffer(), str->getBuffer());
    str->concat(right, xsink);
    if (*xsink)
       return 0;
