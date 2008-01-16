@@ -83,8 +83,8 @@ typedef double (*op_float_float_func_t)(double l, double r);
 typedef double (*op_divide_float_func_t)(double l, double r, ExceptionSink *xsink);
 typedef int64 (*op_compare_float_func_t)(double l, double r);
 
-typedef bool (*op_bool_date_func_t)(const DateTime *l, const DateTime *r);
-typedef DateTime *(*op_date_func_t)(const DateTime *l, const DateTime *r);
+typedef bool (*op_bool_date_func_t)(const DateTimeNode *l, const DateTimeNode *r);
+typedef DateTimeNode *(*op_date_func_t)(const DateTimeNode *l, const DateTimeNode *r);
 
 typedef bool (*op_bool_bin_func_t)(const BinaryObject *l, const BinaryObject *r);
 typedef bool (*op_simple_bool_func_t)(QoreNode *l, QoreNode *r);

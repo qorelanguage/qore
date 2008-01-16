@@ -320,9 +320,7 @@ static QoreNode *QFILEDIALOG_setFilters(QoreObject *self, QoreQFileDialog *qfd, 
    ListIterator li_filters(p->val.list);
    while (li_filters.next())
    {
-      QoreNodeTypeHelper str(li_filters.getValue(), NT_STRING, xsink);
-      if (*xsink)
-         return 0;
+      QoreStringNodeValueHelper str(li_filters.getValue());
       QString tmp;
       if (get_qstring(*str, tmp, xsink))
          return 0;
@@ -344,9 +342,7 @@ static QoreNode *QFILEDIALOG_setHistory(QoreObject *self, QoreQFileDialog *qfd, 
    ListIterator li_paths(p->val.list);
    while (li_paths.next())
    {
-      QoreNodeTypeHelper str(li_paths.getValue(), NT_STRING, xsink);
-      if (*xsink)
-         return 0;
+      QoreStringNodeValueHelper str(li_paths.getValue());
       QString tmp;
       if (get_qstring(*str, tmp, xsink))
          return 0;

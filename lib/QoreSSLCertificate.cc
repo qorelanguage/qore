@@ -114,12 +114,12 @@ int64 QoreSSLCertificate::getVersion() const
    return (int64)(X509_get_version(priv->cert) + 1);
 }
 
-class DateTime *QoreSSLCertificate::getNotBeforeDate() const
+class DateTimeNode *QoreSSLCertificate::getNotBeforeDate() const
 {
    return ASN1_TIME_to_DateTime(X509_get_notBefore(priv->cert));
 }
 
-class DateTime *QoreSSLCertificate::getNotAfterDate() const
+class DateTimeNode *QoreSSLCertificate::getNotAfterDate() const
 {
    return ASN1_TIME_to_DateTime(X509_get_notAfter(priv->cert));
 }
@@ -229,9 +229,9 @@ QoreHash *QoreSSLCertificate::getInfo() const
    // get purposes
    h->setKeyValue("purposes", new QoreNode(getPurposeHash()), NULL);
    // get not before date
-   h->setKeyValue("notBefore", new QoreNode(getNotBeforeDate()), NULL);
+   h->setKeyValue("notBefore", getNotBeforeDate(), NULL);
    // get not after date
-   h->setKeyValue("notAfter", new QoreNode(getNotAfterDate()), NULL);
+   h->setKeyValue("notAfter", getNotAfterDate(), NULL);
    // get signature type
    h->setKeyValue("signatureType", getSignatureType(), NULL);
    // get signature

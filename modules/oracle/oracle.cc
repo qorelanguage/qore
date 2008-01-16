@@ -287,7 +287,7 @@ void OraColumns::define(OCIStmt *stmthp, class Datasource *ds, const char *str, 
    //traceout("OraColumns::define()");
 }
 
-static class DateTime *convert_date_time(unsigned char *str)
+static class DateTimeNode *convert_date_time(unsigned char *str)
 {
    int year;
    if ((str[0] < 100) || (str[1] < 100))
@@ -296,25 +296,8 @@ static class DateTime *convert_date_time(unsigned char *str)
       year = (str[0] - 100) * 100 + (str[1] - 100);
 
    //printd(5, "convert_date_time(): %d %d = %04d-%02d-%02d %02d:%02d:%02d\n", str[0], str[1], dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second);
-   return new DateTime(year, str[2], str[3], str[4] - 1, str[5] - 1, str[6] - 1);
+   return new DateTimeNode(year, str[2], str[3], str[4] - 1, str[5] - 1, str[6] - 1);
 }
-
-/*
-static void *make_oracle_date_time(class DateTime *d)
-{
-   char *buf = (char *)malloc(7 * sizeof(char));
-
-   buf[0] = d->getYear() / 100 + 100;
-   buf[1] = d->getYear() % 100 + 100;
-   buf[2] = d->getMonth();
-   buf[3] = d->getDay();
-   buf[4] = d->getHour() + 1;
-   buf[5] = d->getMinute() + 1;
-   buf[6] = d->getSecond() + 1;
-   //printd(5, "make_oracle_date_time(): %04d-%02d-%02d %02d:%02d:%02d = %d %d\n", d->year, d->month, d->day, d->hour, d->minute, d->second, buf[0], buf[1]);
-   return buf;
-}
-*/
 
 extern "C" sb4 read_clob_callback(void *sp, CONST dvoid *bufp, ub4 len, ub1 piece)
 {
@@ -353,7 +336,7 @@ class QoreNode *get_oracle_timestamp(Datasource *ds, OCIDateTime *odt, class Exc
    if (*xsink)
       return NULL;
 
-   return new QoreNode(new DateTime(year, month, day, hour, minute, second, us / 1000));
+   return new DateTimeNode(year, month, day, hour, minute, second, us / 1000);
 }
 
 class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *xsink)
@@ -377,7 +360,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
 	 return new QoreNode(val.f8);
 
       case SQLT_DAT:
-	 return new QoreNode(convert_date_time(val.date));
+	 return convert_date_time(val.date);
 
       case SQLT_TIMESTAMP:
       case SQLT_TIMESTAMP_TZ:
@@ -398,7 +381,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
 		      "OCIIntervalGetYearMonth()", ds, xsink);
 	 
 	 return (*xsink ? NULL :
-		 new QoreNode(new DateTime(year, month, 0, 0, 0, 0, 0, true)));
+		 new DateTimeNode(year, month, 0, 0, 0, 0, 0, true));
       }
 
       case SQLT_INTERVAL_DS:
@@ -414,7 +397,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
 		      "OCIIntervalGetDaySecond()", ds, xsink);
 	 
 	 return (*xsink ? NULL :
-		 new QoreNode(new DateTime(0, 0, day, hour, minute, second, microsecond / 1000, true)));
+		 new DateTimeNode(0, 0, day, hour, minute, second, microsecond / 1000, true));
       }
 
       case SQLT_LVB:
@@ -812,33 +795,27 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
       }
    }
 
-   if (data.v.value->type == NT_DATE)
    {
-      class DateTime *d = data.v.value->val.date_time;
-      buftype = SQLT_DATE;
-      buf.odt = NULL;
-      ora_checkerr(d_ora->errhp,
-		   OCIDescriptorAlloc(d_ora->envhp, (dvoid **)&buf.odt, OCI_DTYPE_TIMESTAMP, 0, NULL), "OraBindNode::bindValue() TIMESTAMP", ds, xsink);
-      if (!*xsink)
-      {
-	 ora_checkerr(d_ora->errhp, 
-		      OCIDateTimeConstruct (d_ora->envhp, d_ora->errhp, buf.odt, (sb2)d->getYear(), (ub1)d->getMonth(), (ub1)d->getDay(),
-					    (ub1)d->getHour(), (ub1)d->getMinute(), (ub1)d->getSecond(),
-					    (ub4)(d->getMillisecond() * 1000), NULL, 0), "OraBindNode::bindValue() TIMESTAMP", ds, xsink);
-	 
-	 // bind it
-	 ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &buf.odt, 0, SQLT_TIMESTAMP, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
-		      "OraBindNode::bindValue()", ds, xsink);
-	 
+      DateTimeNode *d = dynamic_cast<DateTimeNode *>(data.v.value);
+      if (d) {
+	 buftype = SQLT_DATE;
+	 buf.odt = NULL;
+	 ora_checkerr(d_ora->errhp,
+		      OCIDescriptorAlloc(d_ora->envhp, (dvoid **)&buf.odt, OCI_DTYPE_TIMESTAMP, 0, NULL), "OraBindNode::bindValue() TIMESTAMP", ds, xsink);
+	 if (!*xsink)
+	 {
+	    ora_checkerr(d_ora->errhp, 
+			 OCIDateTimeConstruct (d_ora->envhp, d_ora->errhp, buf.odt, (sb2)d->getYear(), (ub1)d->getMonth(), (ub1)d->getDay(),
+					       (ub1)d->getHour(), (ub1)d->getMinute(), (ub1)d->getSecond(),
+					       (ub4)(d->getMillisecond() * 1000), NULL, 0), "OraBindNode::bindValue() TIMESTAMP", ds, xsink);
+	    
+	    // bind it
+	    ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &buf.odt, 0, SQLT_TIMESTAMP, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
+			 "OraBindNode::bindValue()", ds, xsink);
+	    
+	 }
+	 return;
       }
-/*
-      buftype = SQLT_DAT;
-      make_oracle_date_time(data.v.value->val.date_time, buf.date);
-      // bind it
-      ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, buf.date, 7, SQLT_DAT, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), 
-		   "OraBindNode::bindValue()", ds, xsink);
-*/
-      return;
    }
 
    if (data.v.value->type == NT_BINARY)
@@ -994,7 +971,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
       return str;
    }
    else if (buftype == SQLT_DAT)
-      return new QoreNode(convert_date_time(buf.date));
+      return convert_date_time(buf.date);
    else if (buftype == SQLT_DATE)
       return get_oracle_timestamp(ds, buf.odt, xsink);
    else if (buftype == SQLT_INT)

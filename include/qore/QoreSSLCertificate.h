@@ -62,9 +62,9 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       // caller owns value returned
       DLLLOCAL class QoreHash *getPurposeHash() const;
       // caller owns value returned
-      DLLLOCAL class DateTime *getNotBeforeDate() const;
+      DLLLOCAL class DateTimeNode *getNotBeforeDate() const;
       // caller owns value returned
-      DLLLOCAL class DateTime *getNotAfterDate() const;
+      DLLLOCAL class DateTimeNode *getNotAfterDate() const;
       // caller owns value returned
       DLLLOCAL class QoreStringNode *getSignatureType() const;
       // caller owns value returned

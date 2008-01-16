@@ -433,7 +433,7 @@ class QoreNode *MyResult::getBoundColumnValue(const QoreEncoding *csid, int i)
    else if (bindbuf[i].buffer_type == MYSQL_TYPE_DATETIME)
    {
       MYSQL_TIME *t = (MYSQL_TIME *)bindbuf[i].buffer;
-      n = new QoreNode(new DateTime(t->year, t->month, t->day, t->hour, t->minute, t->second));
+      n = new DateTimeNode(t->year, t->month, t->day, t->hour, t->minute, t->second);
    }
    else if (bindbuf[i].buffer_type == MYSQL_TYPE_BLOB)
       n = new QoreNode(new BinaryObject(bindbuf[i].buffer, *bindbuf[i].length));
@@ -836,14 +836,15 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
 	 return 0;
       }
    }
-
-   if (data.value->type == NT_DATE)
    {
-      vbuf.assign(data.value->val.date_time);
+      DateTimeNode *date = dynamic_cast<DateTimeNode *>(data.value);
+      if (date) {
+	 vbuf.assign(date);
 
-      buf->buffer_type = MYSQL_TYPE_DATETIME;
-      buf->buffer = &vbuf.time;
-      return 0;
+	 buf->buffer_type = MYSQL_TYPE_DATETIME;
+	 buf->buffer = &vbuf.time;
+	 return 0;
+      }
    }
 
    if (data.value->type == NT_BINARY)
@@ -931,7 +932,7 @@ static class QoreHash *get_result_set(const Datasource *ds, MYSQL_RES *res)
 	       row[i][13] = '\0';
 	       row[i][16] = '\0';
 
-	       n = new QoreNode(new DateTime(atoi(row[i]), atoi(row[i] + 5), atoi(row[i] + 8), atoi(row[i] + 11), atoi(row[i] + 14), atoi(row[i] + 17)));
+	       n = new DateTimeNode(atoi(row[i]), atoi(row[i] + 5), atoi(row[i] + 8), atoi(row[i] + 11), atoi(row[i] + 14), atoi(row[i] + 17));
 	       break;
 	    }
 
@@ -940,7 +941,7 @@ static class QoreHash *get_result_set(const Datasource *ds, MYSQL_RES *res)
 	    {
 	       row[i][4] = '\0';
 	       row[i][7] = '\0';
-	       n = new QoreNode(new DateTime(atoi(row[i]), atoi(row[i] + 5), atoi(row[i] + 8), 0, 0, 0));
+	       n = new DateTimeNode(atoi(row[i]), atoi(row[i] + 5), atoi(row[i] + 8), 0, 0, 0);
 	       break;
 	    }
 	    
@@ -949,12 +950,12 @@ static class QoreHash *get_result_set(const Datasource *ds, MYSQL_RES *res)
 	    {
 	       row[i][2] = '\0';
 	       row[i][5] = '\0';
-	       n = new QoreNode(new DateTime(0, 0, 0, atoi(row[i]), atoi(row[i] + 3), atoi(row[i] + 6)));
+	       n = new DateTimeNode(0, 0, 0, atoi(row[i]), atoi(row[i] + 3), atoi(row[i] + 6));
 	       break;
 	    }
 
 	    case FIELD_TYPE_TIMESTAMP:
-	       n = new QoreNode(new DateTime(row[i]));
+	       n = new DateTimeNode(row[i]);
 	       break;
 	    
 	    // the rest defaults to string

@@ -78,6 +78,39 @@ class ReferenceHolder
       DLLLOCAL T **getPtrPtr() { return &p; }
 };
 
+template<typename T>
+class SimpleRefHolder
+{
+   private:
+      DLLLOCAL SimpleRefHolder(const SimpleRefHolder&); // not implemented
+      DLLLOCAL SimpleRefHolder& operator=(const SimpleRefHolder&); // not implemented
+      DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
+      
+      T* p;
+
+   public:
+      DLLLOCAL SimpleRefHolder() : p(0) {}
+      DLLLOCAL SimpleRefHolder(T* p_) : p(p_) {}
+      DLLLOCAL ~SimpleRefHolder() { if (p) p->deref(); }
+      
+      DLLLOCAL T* operator->() { return p; }
+      DLLLOCAL T* operator*() { return p; }
+      DLLLOCAL void operator=(T *nv)
+      {
+         if (p)
+            p->deref();
+         p = nv;
+      }
+      DLLLOCAL T *release()
+      {
+         T *rv = p;
+         p = 0;
+         return rv;
+      }
+      DLLLOCAL operator bool() const { return p != 0; }
+      //DLLLOCAL T **getPtrPtr() { return &p; }
+};
+
 #endif
 
 // EOF

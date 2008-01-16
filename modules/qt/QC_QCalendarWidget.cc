@@ -109,14 +109,14 @@ static QoreNode *QCALENDARWIDGET_isNavigationBarVisible(QoreObject *self, QoreQC
 static QoreNode *QCALENDARWIDGET_maximumDate(QoreObject *self, QoreQCalendarWidget *qcw, const QoreNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qcw->qobj->maximumDate();
-   return new QoreNode(new DateTime(rv_date.year(), rv_date.month(), rv_date.day()));
+   return new DateTimeNode(rv_date.year(), rv_date.month(), rv_date.day());
 }
 
 //QDate minimumDate () const
 static QoreNode *QCALENDARWIDGET_minimumDate(QoreObject *self, QoreQCalendarWidget *qcw, const QoreNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qcw->qobj->minimumDate();
-   return new QoreNode(new DateTime(rv_date.year(), rv_date.month(), rv_date.day()));
+   return new DateTimeNode(rv_date.year(), rv_date.month(), rv_date.day());
 }
 
 //int monthShown () const
@@ -129,7 +129,7 @@ static QoreNode *QCALENDARWIDGET_monthShown(QoreObject *self, QoreQCalendarWidge
 static QoreNode *QCALENDARWIDGET_selectedDate(QoreObject *self, QoreQCalendarWidget *qcw, const QoreNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qcw->qobj->selectedDate();
-   return new QoreNode(new DateTime(rv_date.year(), rv_date.month(), rv_date.day()));
+   return new DateTimeNode(rv_date.year(), rv_date.month(), rv_date.day());
 }
 
 //SelectionMode selectionMode () const

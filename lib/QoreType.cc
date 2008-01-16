@@ -76,8 +76,9 @@ DLLEXPORT class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
    *NT_OBJMETHREF, *NT_FUNCREF, *NT_FUNCREFCALL;
 
 // default value nodes for builtin types
-DLLEXPORT class QoreNode *Nothing, *Null, *Zero, *ZeroFloat, *ZeroDate, *True, *False, *emptyList, *emptyHash;
-DLLEXPORT QoreStringNode *NullString;
+QoreNode *Nothing, *Null, *Zero, *ZeroFloat, *True, *False, *emptyList, *emptyHash;
+QoreStringNode *NullString;
+DateTimeNode *ZeroDate;
 
 QoreType::QoreType(const char *            p_name, 
 		   needs_eval_func_t       p_needs_eval,
@@ -393,7 +394,7 @@ QoreTypeManager::QoreTypeManager()
    add(NT_INT = new QoreType("integer", NULL, NULL, NULL, NULL, NULL, NULL, 0, bigint_DefaultValue, NULL, 0, NULL, 0, QTM_VALUE, QTM_NO_CONTAINER));
    add(NT_FLOAT = new QoreType("float", NULL, NULL, NULL, NULL, NULL, NULL, 0, float_DefaultValue, NULL, 0, NULL, 0, QTM_VALUE, QTM_NO_CONTAINER));
    add(NT_STRING = new QoreType("string", NULL, NULL, NULL, NULL, NULL, NULL, 0, string_DefaultValue, 0, 0, 0, 0, QTM_VALUE, QTM_NO_CONTAINER));
-   add(NT_DATE = new QoreType("date", NULL, NULL, NULL, NULL, NULL, NULL, 0, date_DefaultValue, date_Copy, 0, date_DeleteContents, 0, QTM_VALUE, QTM_NO_CONTAINER));
+   add(NT_DATE = new QoreType("date", NULL, NULL, NULL, NULL, NULL, NULL, 0, date_DefaultValue, 0, 0, 0, 0, QTM_VALUE, QTM_NO_CONTAINER));
    add(NT_BOOLEAN = new QoreType("boolean", NULL, NULL, NULL, NULL, NULL, NULL, 0, boolean_DefaultValue, NULL, 0, NULL, 0, QTM_VALUE, QTM_NO_CONTAINER));
    add(NT_NULL = new QoreType("NULL", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL_DefaultValue, NULL, NULL, NULL, 0, QTM_VALUE, QTM_NO_CONTAINER));
    add(NT_BINARY = new QoreType("binary", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, binary_Copy, 0, binary_DeleteContents, 0, QTM_VALUE, QTM_NO_CONTAINER));
@@ -442,7 +443,7 @@ void QoreTypeManager::init()
    Zero          = new QoreNode((int64)0);
    ZeroFloat     = new QoreNode(0.0);
    NullString    = new QoreStringNode("");
-   ZeroDate      = new QoreNode(new DateTime((int64)0));
+   ZeroDate      = new DateTimeNode((int64)0);
    
    emptyList     = new QoreNode(new QoreList());
    emptyHash     = new QoreNode(new QoreHash());
@@ -458,7 +459,7 @@ void QoreTypeManager::del()
    Zero->deref(NULL);
    ZeroFloat->deref(NULL);
    NullString->deref();
-   ZeroDate->deref(NULL);
+   ZeroDate->deref();
    emptyList->deref(NULL);
    emptyHash->deref(NULL);
 }

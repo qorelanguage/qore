@@ -209,19 +209,31 @@ static void concatSimpleValue(QoreString *str, QoreNode *n, class ExceptionSink 
 	 return;
       }
    }
-   if (n->type == NT_INT)
+   if (n->type == NT_INT) {
       str->sprintf("%lld", n->val.intval);
-   else if (n->type == NT_FLOAT)
-      str->sprintf("%.9g", n->val.floatval);
-   else if (n->type == NT_BOOLEAN)
-      str->sprintf("%d", n->val.boolval);
-   else if (n->type == NT_DATE)
-      str->concat(n->val.date_time);
-   else
-   {
-      QoreStringValueHelper temp(n);
-      str->concatAndHTMLEncode(*temp, xsink);
+      return;
    }
+
+   if (n->type == NT_FLOAT) {
+      str->sprintf("%.9g", n->val.floatval);
+      return;
+   }
+
+   if (n->type == NT_BOOLEAN) {
+      str->sprintf("%d", n->val.boolval);
+      return;
+   }
+
+   {
+      DateTimeNode *date = dynamic_cast<DateTimeNode *>(n);
+      if (date) {
+	 str->concat(date);
+	 return;
+      }
+   }
+
+   QoreStringValueHelper temp(n);
+   str->concatAndHTMLEncode(*temp, xsink);
 }
 
 static void concatSimpleCDataValue(QoreString *str, QoreNode *n, class ExceptionSink *xsink)
@@ -240,19 +252,31 @@ static void concatSimpleCDataValue(QoreString *str, QoreNode *n, class Exception
       }
    }
 
-   if (n->type == NT_INT)
+   if (n->type == NT_INT) {
       str->sprintf("%lld", n->val.intval);
-   else if (n->type == NT_FLOAT)
-      str->sprintf("%.9g", n->val.floatval);
-   else if (n->type == NT_BOOLEAN)
-      str->sprintf("%d", n->val.boolval);
-   else if (n->type == NT_DATE)
-      str->concat(n->val.date_time);
-   else
-   {
-      QoreStringValueHelper temp(n);
-      str->concat(*temp, xsink);
+      return;
    }
+
+   if (n->type == NT_FLOAT) {
+      str->sprintf("%.9g", n->val.floatval);
+      return;
+   }
+
+   if (n->type == NT_BOOLEAN) {
+      str->sprintf("%d", n->val.boolval);
+      return;
+   }
+
+   {
+      DateTimeNode *date = dynamic_cast<DateTimeNode *>(n);
+      if (date) {
+	 str->concat(date);
+	 return;
+      }
+   }
+
+   QoreStringValueHelper temp(n);
+   str->concat(*temp, xsink);
 }
 
 static void addXMLElement(const char *key, QoreString *str, QoreNode *n, int indent, const char *node, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
@@ -713,7 +737,7 @@ static void addXMLRPCValueIntern(QoreString *str, QoreNode *n, int indent, const
    else if (n->type == NT_DATE)
    {
       str->concat("<dateTime.iso8601>");
-      str->concatISO8601DateTime(n->val.date_time);
+      str->concatISO8601DateTime((DateTimeNode *)n);
       str->concat("</dateTime.iso8601>");
    }
 
@@ -1731,7 +1755,7 @@ static void getXMLRPCDate(xmlTextReader *reader, class XmlRpcValue *v, Exception
 	 while (qstr.strlen() < 14)
 	    qstr.concat('0');
 
-	 v->set(new QoreNode(new DateTime(qstr.getBuffer())));
+	 v->set(new DateTimeNode(qstr.getBuffer()));
       }
 
       // advance to next position

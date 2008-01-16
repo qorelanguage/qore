@@ -166,8 +166,9 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
       }
       else if (val->type == NT_DATE)
       {
+	 DateTimeNode *date = reinterpret_cast<DateTimeNode *>(val);
 	 CS_DATETIME dt;
-	 if (DateTime_to_DATETIME(val->val.date_time, dt, xsink))
+	 if (DateTime_to_DATETIME(date, dt, xsink))
 	    return -1;
 	
 	 datafmt.datatype = CS_DATETIME_TYPE;
@@ -708,15 +709,14 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
        
        // NOTE: can't find a USER_* define for 38!
        if (datafmt.usertype == 38)
-	  return new QoreNode(TIME_to_DateTime(*value));
+	  return TIME_to_DateTime(*value);
        
-       return new QoreNode(DATETIME_to_DateTime(*value));
+       return DATETIME_to_DateTime(*value);
     }
     case CS_DATETIME4_TYPE:
     {
        CS_DATETIME4* value = (CS_DATETIME4*)(buffer.value);
-       DateTime* dt = DATETIME4_to_DateTime(*value, xsink);
-       return new QoreNode(dt);
+       return DATETIME4_to_DateTime(*value, xsink);
     }
 
 /*

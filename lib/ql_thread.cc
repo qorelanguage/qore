@@ -29,13 +29,13 @@
 
 class QoreNode *f_gettid(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(NT_INT, gettid());
+   return new QoreNode((int64)gettid());
 }
 
 extern int num_threads;
 class QoreNode *f_num_threads(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(NT_INT, num_threads);
+   return new QoreNode((int64)num_threads);
 }
 
 class QoreNode *f_thread_list(const QoreNode *params, ExceptionSink *xsink)

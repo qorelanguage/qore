@@ -229,14 +229,9 @@ static QoreList *map_sbuf_to_list(struct stat *sbuf)
    l->push(new QoreNode((int64)sbuf->st_size));
    
    struct tm tms;
-   DateTime *adt = new DateTime(q_localtime(&sbuf->st_atime, &tms));
-   l->push(new QoreNode(adt));
-
-   DateTime *mdt = new DateTime(q_localtime(&sbuf->st_mtime, &tms));
-   l->push(new QoreNode(mdt));
-
-   DateTime *cdt = new DateTime(q_localtime(&sbuf->st_ctime, &tms));
-   l->push(new QoreNode(cdt));
+   l->push(new DateTimeNode(q_localtime(&sbuf->st_atime, &tms)));
+   l->push(new DateTimeNode(q_localtime(&sbuf->st_mtime, &tms)));
+   l->push(new DateTimeNode(q_localtime(&sbuf->st_ctime, &tms)));
 
    l->push(new QoreNode((int64)sbuf->st_blksize));
    l->push(new QoreNode((int64)sbuf->st_blocks));
@@ -258,14 +253,9 @@ static class QoreHash *map_sbuf_to_hash(struct stat *sbuf)
    h->setKeyValue("size",    new QoreNode((int64)sbuf->st_size), NULL);
    
    struct tm tms;
-   DateTime *adt = new DateTime(q_localtime(&sbuf->st_atime, &tms));
-   h->setKeyValue("atime",   new QoreNode(adt), NULL);
-
-   DateTime *mdt = new DateTime(q_localtime(&sbuf->st_mtime, &tms));
-   h->setKeyValue("mtime",   new QoreNode(mdt), NULL);
-
-   DateTime *cdt = new DateTime(q_localtime(&sbuf->st_ctime, &tms));
-   h->setKeyValue("ctime",   new QoreNode(cdt), NULL);
+   h->setKeyValue("atime",   new DateTimeNode(q_localtime(&sbuf->st_atime, &tms)), NULL);
+   h->setKeyValue("mtime",   new DateTimeNode(q_localtime(&sbuf->st_mtime, &tms)), NULL);
+   h->setKeyValue("ctime",   new DateTimeNode(q_localtime(&sbuf->st_ctime, &tms)), NULL);
 
    h->setKeyValue("blksize", new QoreNode((int64)sbuf->st_blksize), NULL);
    h->setKeyValue("blocks",  new QoreNode((int64)sbuf->st_blocks), NULL);

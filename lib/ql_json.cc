@@ -454,12 +454,14 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
 	 str->concat("false");
       return 0;
    }
-   if (v->type == NT_DATE)  // this will be serialized as a string
    {
-      str->concat('"');
-      v->val.date_time->getString(str);
-      str->concat('"');
-      return 0;
+      DateTimeNode *date = dynamic_cast<DateTimeNode *>(v);
+      if (date) { // this will be serialized as a string
+	 str->concat('"');
+	 date->getString(str);
+	 str->concat('"');
+	 return 0;
+      }
    }
    
    xsink->raiseException("JSON-SERIALIZATION-ERROR", "don't know how to serialize type '%s'", v->type->getName());

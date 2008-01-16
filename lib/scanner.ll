@@ -86,39 +86,39 @@ static inline char *remove_quotes(char *str)
    return str + 1;
 }
 
-static inline class DateTime *makeYears(int years)
+static inline DateTimeNode *makeYears(int years)
 {
-   return new DateTime(years, 0, 0, 0, 0, 0, 0, true);
+   return new DateTimeNode(years, 0, 0, 0, 0, 0, 0, true);
 }
 
-static inline class DateTime *makeMonths(int months)
+static inline DateTimeNode *makeMonths(int months)
 {
-   return new DateTime(0, months, 0, 0, 0, 0, 0, true);
+   return new DateTimeNode(0, months, 0, 0, 0, 0, 0, true);
 }
 
-static inline class DateTime *makeDays(int days)
+static inline DateTimeNode *makeDays(int days)
 {
-   return new DateTime(0, 0, days, 0, 0, 0, 0, true);
+   return new DateTimeNode(0, 0, days, 0, 0, 0, 0, true);
 }
 
-static inline class DateTime *makeHours(int hours)
+static inline DateTimeNode *makeHours(int hours)
 {
-   return new DateTime(0, 0, 0, hours, 0, 0, 0, true);
+   return new DateTimeNode(0, 0, 0, hours, 0, 0, 0, true);
 }
 
-static inline class DateTime *makeMinutes(int minutes)
+static inline DateTimeNode *makeMinutes(int minutes)
 {
-   return new DateTime(0, 0, 0, 0, minutes, 0, 0, true);
+   return new DateTimeNode(0, 0, 0, 0, minutes, 0, 0, true);
 }
 
-static inline class DateTime *makeSeconds(int seconds)
+static inline DateTimeNode *makeSeconds(int seconds)
 {
-   return new DateTime(0, 0, 0, 0, 0, seconds, 0, true);
+   return new DateTimeNode(0, 0, 0, 0, 0, seconds, 0, true);
 }
 
-static inline class DateTime *makeMilliseconds(int ms)
+static inline DateTimeNode *makeMilliseconds(int ms)
 {
-   return new DateTime(0, 0, 0, 0, 0, 0, ms, true);
+   return new DateTimeNode(0, 0, 0, 0, 0, 0, ms, true);
 }
 
 //2005-03-29-10:19:27
@@ -157,52 +157,52 @@ static inline void do_time_str(char *str)
    memmove(str+4, str+6, strlen(str+6) + 1);
 }
 
-static inline class DateTime *makeDateTime(char *str)
+static inline DateTimeNode *makeDateTime(char *str)
 {
    // move string to middle to form date string
    do_date_time_str(str);
    //printf("new date: %s\n", str + 3);
-   return new DateTime(str + 3);
+   return new DateTimeNode(str + 3);
 }
 
-static inline class DateTime *makeDate(char *str)
+static inline class DateTimeNode *makeDate(char *str)
 {
    do_date_str(str);
    //printf("new date: %d:%s\n", strlen(str), str);
-   return new DateTime(str);
+   return new DateTimeNode(str);
 }
 
-static inline class DateTime *makeTime(char *str)
+static inline class DateTimeNode *makeTime(char *str)
 {
    do_time_str(str);
    //printf("new time: %d:%s\n", strlen(str), str);
-   return new DateTime(str);
+   return new DateTimeNode(str);
 }
 
-static inline class DateTime *makeRelativeDateTime(char *str)
+static inline class DateTimeNode *makeRelativeDateTime(char *str)
 {
    // move string to middle to form date string
    do_date_time_str(str);
    //printf("new date: %s\n", str + 3);
-   class DateTime *dt = new DateTime();
+   class DateTimeNode *dt = new DateTimeNode();
    dt->setRelativeDate(str + 3);
    return dt;
 }
 
-static inline class DateTime *makeRelativeDate(char *str)
+static inline class DateTimeNode *makeRelativeDate(char *str)
 {
    do_date_str(str);
    //printf("new date: %d:%s\n", strlen(str), str);
-   class DateTime *dt = new DateTime();
+   class DateTimeNode *dt = new DateTimeNode();
    dt->setRelativeDate(str);
    return dt;
 }
 
-static inline class DateTime *makeRelativeTime(char *str)
+static inline class DateTimeNode *makeRelativeTime(char *str)
 {
    do_time_str(str);
    //printf("new time: %d:%s\n", strlen(str), str);
-   class DateTime *dt = new DateTime();
+   class DateTimeNode *dt = new DateTimeNode();
    dt->setRelativeDate(str);
    return dt;
 }

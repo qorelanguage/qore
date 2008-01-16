@@ -86,9 +86,7 @@ static QoreNode *QLISTWIDGET_addItems(QoreObject *self, QoreAbstractQListWidget 
    ListIterator li_labels(p->val.list);
    while (li_labels.next())
    {
-      QoreNodeTypeHelper str(li_labels.getValue(), NT_STRING, xsink);
-      if (*xsink)
-         return 0;
+      QoreStringNodeValueHelper str(li_labels.getValue());
       QString tmp;
       if (get_qstring(*str, tmp, xsink))
          return 0;
@@ -199,9 +197,7 @@ static QoreNode *QLISTWIDGET_insertItems(QoreObject *self, QoreAbstractQListWidg
    ListIterator li_labels(p->val.list);
    while (li_labels.next())
    {
-      QoreNodeTypeHelper str(li_labels.getValue(), NT_STRING, xsink);
-      if (*xsink)
-         return 0;
+      QoreStringNodeValueHelper str(li_labels.getValue());
       QString tmp;
       if (get_qstring(*str, tmp, xsink))
          return 0;

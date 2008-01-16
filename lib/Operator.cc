@@ -143,32 +143,32 @@ static bool op_log_ge_bigint(int64 left, int64 right)
    return left >= right;
 }
 
-static bool op_log_eq_date(const DateTime *left, const DateTime *right)
+static bool op_log_eq_date(const DateTimeNode *left, const DateTimeNode *right)
 {
    return left->isEqual(right);
 }
 
-static bool op_log_gt_date(const DateTime *left, const DateTime *right)
+static bool op_log_gt_date(const DateTimeNode *left, const DateTimeNode *right)
 {
    return DateTime::compareDates(left, right) > 0;
 }
 
-static bool op_log_ge_date(const DateTime *left, const DateTime *right)
+static bool op_log_ge_date(const DateTimeNode *left, const DateTimeNode *right)
 {
    return DateTime::compareDates(left, right) >= 0;
 }
 
-static bool op_log_lt_date(const DateTime *left, const DateTime *right)
+static bool op_log_lt_date(const DateTimeNode *left, const DateTimeNode *right)
 {
    return DateTime::compareDates(left, right) < 0;
 }
 
-static bool op_log_le_date(const DateTime *left, const DateTime *right)
+static bool op_log_le_date(const DateTimeNode *left, const DateTimeNode *right)
 {
    return DateTime::compareDates(left, right) <= 0;
 }
 
-static bool op_log_ne_date(const DateTime *left, const DateTime *right)
+static bool op_log_ne_date(const DateTimeNode *left, const DateTimeNode *right)
 {
    return !left->isEqual(right);
 }
@@ -466,12 +466,12 @@ static int64 op_divide_bigint(int64 left, int64 right, ExceptionSink *xsink)
    return left / right;
 }
 
-static DateTime *op_minus_date(const DateTime *left, const DateTime *right)
+static DateTimeNode *op_minus_date(const DateTimeNode *left, const DateTimeNode *right)
 {
     return left->subtractBy(right);
 }
 
-static DateTime *op_plus_date(const DateTime *left, const DateTime *right)
+static DateTimeNode *op_plus_date(const DateTimeNode *left, const DateTimeNode *right)
 {
     return left->add(right);
 }
@@ -886,9 +886,10 @@ static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_
    {
       DateTimeValueHelper date(*new_right);
 
-      DateTime *nd = (*v)->val.date_time->add(*date);
+      DateTimeNode **vd = reinterpret_cast<DateTimeNode **>(v);
+      DateTimeNode *nd = (*vd)->add(*date);
       (*v)->deref(xsink);
-      (*v) = new QoreNode(nd);
+      (*v) = nd;
    }
    else if (is_nothing(*v))
    {
@@ -952,9 +953,10 @@ static class QoreNode *op_minus_equals(QoreNode *left, QoreNode *right, bool ref
       DateTimeValueHelper date(*new_right);
 
       ensure_unique(v, xsink);
-      DateTime *nd = (*v)->val.date_time->subtractBy(*date);
+      DateTimeNode **vd = reinterpret_cast<DateTimeNode **>(v);
+      DateTimeNode *nd = (*vd)->subtractBy(*date);
       (*v)->deref(xsink);
-      (*v) = new QoreNode(nd);
+      (*v) = nd;
    }
    else if ((*v) && ((*v)->type == NT_HASH))
    {
@@ -2057,9 +2059,9 @@ static QoreNode *get_node_type(QoreNode *n, const QoreType *t)
       return new QoreNode(n->getAsBool());
 
    if (t == NT_DATE) {
-      DateTime *dt = new DateTime();
+      DateTimeNode *dt = new DateTimeNode();
       n->getDateTimeRepresentation(*dt);
-      return new QoreNode(dt);
+      return dt;
    }
    
    if (t == NT_LIST) {
@@ -2697,30 +2699,30 @@ class QoreNode *BoolDateOperatorFunction::eval(QoreNode *left, QoreNode *right, 
    if (!ref_rv)
       return 0;
 
-   DateTimeValueHelper l(left);
-   DateTimeValueHelper r(right);
+   DateTimeNodeValueHelper l(left);
+   DateTimeNodeValueHelper r(right);
    bool b = op_func(*l, *r);
    return new QoreNode(b);
 }
 
 bool BoolDateOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   DateTimeValueHelper l(left);
-   DateTimeValueHelper r(right);
+   DateTimeNodeValueHelper l(left);
+   DateTimeNodeValueHelper r(right);
    return op_func(*l, *r);
 }
 
 int64 BoolDateOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   DateTimeValueHelper l(left);
-   DateTimeValueHelper r(right);
+   DateTimeNodeValueHelper l(left);
+   DateTimeNodeValueHelper r(right);
    return (int64)op_func(*l, *r);
 }
 
 double BoolDateOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   DateTimeValueHelper l(left);   
-   DateTimeValueHelper r(right);
+   DateTimeNodeValueHelper l(left);   
+   DateTimeNodeValueHelper r(right);
    return (double)op_func(*l, *r);
 }
 
@@ -2730,40 +2732,40 @@ class QoreNode *DateOperatorFunction::eval(QoreNode *left, QoreNode *right, bool
    if (!ref_rv)
       return 0;
 
-   DateTimeValueHelper l(left);
-   DateTimeValueHelper r(right);
+   DateTimeNodeValueHelper l(left);
+   DateTimeNodeValueHelper r(right);
 
-   return new QoreNode(op_func(*l, *r));
+   return op_func(*l, *r);
 }
 
 bool DateOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   DateTimeValueHelper l(left);
-   DateTimeValueHelper r(right);
+   DateTimeNodeValueHelper l(left);
+   DateTimeNodeValueHelper r(right);
 
-   std::auto_ptr<DateTime> date(op_func(*l, *r));
+   SimpleRefHolder<DateTimeNode> date(op_func(*l, *r));
    return date->getEpochSeconds() ? true : false;
 }
 
 int64 DateOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   DateTimeValueHelper l(left);
-   DateTimeValueHelper r(right);
+   DateTimeNodeValueHelper l(left);
+   DateTimeNodeValueHelper r(right);
 
-   std::auto_ptr<DateTime> date(op_func(*l, *r));
+   SimpleRefHolder<DateTimeNode> date(op_func(*l, *r));
    return date->getEpochSeconds();
 }
 
 double DateOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   DateTimeValueHelper l(left);
-   DateTimeValueHelper r(right);
+   DateTimeNodeValueHelper l(left);
+   DateTimeNodeValueHelper r(right);
 
-   std::auto_ptr<DateTime> date(op_func(*l, *r));
+   SimpleRefHolder<DateTimeNode> date(op_func(*l, *r));
    return (double)date->getEpochSeconds();
 }
 
-class QoreNode *BoolIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *BoolIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -2788,7 +2790,7 @@ double BoolIntOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int 
    return (double)op_func(left->getAsBigInt(), right->getAsBigInt());
 }
 
-class QoreNode *IntIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *IntIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -2813,7 +2815,7 @@ double IntIntOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int a
    return (double)op_func(left->getAsBigInt(), right->getAsBigInt());
 }
 
-class QoreNode *DivideIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *DivideIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -2838,7 +2840,7 @@ double DivideIntOperatorFunction::float_eval(QoreNode *left, QoreNode *right, in
    return (double)op_func(left->getAsBigInt(), right->getAsBigInt(), xsink);
 }
 
-class QoreNode *UnaryMinusIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *UnaryMinusIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -2863,7 +2865,7 @@ double UnaryMinusIntOperatorFunction::float_eval(QoreNode *left, QoreNode *right
    return (double)-left->getAsBigInt();
 }
 
-class QoreNode *BoolFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *BoolFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -2888,7 +2890,7 @@ double BoolFloatOperatorFunction::float_eval(QoreNode *left, QoreNode *right, in
    return (double)op_func(left->getAsFloat(), right->getAsFloat());
 }
 
-class QoreNode *FloatFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *FloatFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -2913,7 +2915,7 @@ double FloatFloatOperatorFunction::float_eval(QoreNode *left, QoreNode *right, i
    return op_func(left->getAsFloat(), right->getAsFloat());
 }
 
-class QoreNode *DivideFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *DivideFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -2938,7 +2940,7 @@ double DivideFloatOperatorFunction::float_eval(QoreNode *left, QoreNode *right, 
    return op_func(left->getAsFloat(), right->getAsFloat(), xsink);
 }
 
-class QoreNode *UnaryMinusFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *UnaryMinusFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -2963,7 +2965,7 @@ double UnaryMinusFloatOperatorFunction::float_eval(QoreNode *left, QoreNode *rig
    return -left->getAsFloat();
 }
 
-class QoreNode *CompareFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *CompareFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -2988,7 +2990,7 @@ double CompareFloatOperatorFunction::float_eval(QoreNode *left, QoreNode *right,
    return (double)op_func(left->getAsFloat(), right->getAsFloat());
 }
 
-class QoreNode *BoolNotOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *BoolNotOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -3012,7 +3014,7 @@ double BoolNotOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int 
    return (double)(!left->getAsBool());
 }
 
-class QoreNode *IntegerNotOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *IntegerNotOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -3036,7 +3038,7 @@ double IntegerNotOperatorFunction::float_eval(QoreNode *left, QoreNode *right, i
    return (double)(~left->getAsBigInt());
 }
 
-class QoreNode *CompareDateOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *CompareDateOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // this operator can have no side effects
    if (!ref_rv)
@@ -3073,7 +3075,7 @@ double CompareDateOperatorFunction::float_eval(QoreNode *left, QoreNode *right, 
    return (double)DateTime::compareDates(*l, *r);
 }
 
-class QoreNode *LogicOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *LogicOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side effects
    if (!ref_rv)
@@ -3098,7 +3100,7 @@ double LogicOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int ar
    return (double)op_func(left->getAsBool(), right->getAsBool());
 }
 
-class QoreNode *BoolStrRegexOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *BoolStrRegexOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    QoreStringValueHelper l(left);
    assert(right && right->type == NT_REGEX);
@@ -3133,7 +3135,7 @@ double BoolStrRegexOperatorFunction::float_eval(QoreNode *left, QoreNode *right,
    return (double)op_func(*l, right->val.regex, xsink);
 }
 
-class QoreNode *BigIntStrStrOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *BigIntStrStrOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    QoreStringValueHelper l(left);
    
@@ -3183,7 +3185,7 @@ double BigIntStrStrOperatorFunction::float_eval(QoreNode *left, QoreNode *right,
    return (double)op_func(*l, *r, xsink);
 }
 
-class QoreNode *BigIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *BigIntOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    ReferenceHolder<QoreNode> l(xsink);
 
@@ -3295,7 +3297,7 @@ double BigIntOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int a
    return (double)op_func(left, right, xsink);
 }
 
-class QoreNode *FloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+QoreNode *FloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    ReferenceHolder<QoreNode> l(xsink);
 
@@ -3505,7 +3507,7 @@ int Operator::get_function(QoreNodeEvalOptionalRefHolder &nleft, QoreNodeEvalOpt
 // 1: evalArgs 1 argument
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
-class QoreNode *Operator::eval(QoreNode *left_side, QoreNode *right_side, bool ref_rv, ExceptionSink *xsink) const
+QoreNode *Operator::eval(QoreNode *left_side, QoreNode *right_side, bool ref_rv, ExceptionSink *xsink) const
 {
    printd(5, "evaluating operator %s (0x%08p 0x%08p)\n", description, left_side, right_side);
    if (evalArgs)

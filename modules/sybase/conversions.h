@@ -38,10 +38,10 @@
 DLLLOCAL extern int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink);
 //DLLLOCAL extern int DateTime_to_DATETIME4(DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink);
 
-DLLLOCAL extern DateTime *TIME_to_DateTime(CS_DATETIME &dt);
+DLLLOCAL extern DateTimeNode *TIME_to_DateTime(CS_DATETIME &dt);
 
-DLLLOCAL extern DateTime* DATETIME_to_DateTime(CS_DATETIME& dt);
-DLLLOCAL extern DateTime* DATETIME4_to_DateTime(CS_DATETIME4& dt, ExceptionSink* xsink);
+DLLLOCAL extern DateTimeNode* DATETIME_to_DateTime(CS_DATETIME& dt);
+DLLLOCAL extern DateTimeNode* DATETIME4_to_DateTime(CS_DATETIME4& dt, ExceptionSink* xsink);
 
 // Sybase MONEY datatype manipulation (it is converted from/to float)
 //DLLLOCAL extern void double_to_MONEY(connection& conn, double val, CS_MONEY& out, ExceptionSink* xsink);

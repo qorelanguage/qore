@@ -392,9 +392,7 @@ static QoreNode *QTABLEWIDGET_setHorizontalHeaderLabels(QoreObject *self, QoreQT
    ListIterator li_labels(p->val.list);
    while (li_labels.next())
    {
-      QoreNodeTypeHelper str(li_labels.getValue(), NT_STRING, xsink);
-      if (*xsink)
-         return 0;
+      QoreStringNodeValueHelper str(li_labels.getValue());
       QString tmp;
       if (get_qstring(*str, tmp, xsink))
          return 0;
@@ -488,9 +486,7 @@ static QoreNode *QTABLEWIDGET_setVerticalHeaderLabels(QoreObject *self, QoreQTab
    ListIterator li_labels(p->val.list);
    while (li_labels.next())
    {
-      QoreNodeTypeHelper str(li_labels.getValue(), NT_STRING, xsink);
-      if (*xsink)
-         return 0;
+      QoreStringNodeValueHelper str(li_labels.getValue());
       QString tmp;
       if (get_qstring(*str, tmp, xsink))
          return 0;

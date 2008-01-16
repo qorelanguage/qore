@@ -56,12 +56,9 @@ static class QoreNode *f_now(const QoreNode *params, ExceptionSink *xsink)
    time_t ct;
 
    ct = time(NULL);
-
-   struct tm tms;
-   class DateTime *dt = new DateTime(q_localtime(&ct, &tms));
    //printf("f_now() %d\n", ct);
-
-   return new QoreNode(dt);
+   struct tm tms;
+   return new DateTimeNode(q_localtime(&ct, &tms));
 }
 
 static class QoreNode *f_format_date(const QoreNode *params, ExceptionSink *xsink)
@@ -95,7 +92,7 @@ static class QoreNode *f_localtime(const QoreNode *params, ExceptionSink *xsink)
    }
 
    struct tm tms;
-   return new QoreNode(new DateTime(q_localtime(&t, &tms)));
+   return new DateTimeNode(q_localtime(&t, &tms));
 }
 
 static class QoreNode *f_gmtime(const QoreNode *params, ExceptionSink *xsink)
@@ -111,7 +108,7 @@ static class QoreNode *f_gmtime(const QoreNode *params, ExceptionSink *xsink)
    }
 
    struct tm tms;
-   return new QoreNode(new DateTime(q_gmtime(&t, &tms)));
+   return new DateTimeNode(q_gmtime(&t, &tms));
 }
 
 static class QoreNode *f_mktime(const QoreNode *params, ExceptionSink *xsink)
@@ -150,185 +147,185 @@ static class QoreNode *f_timegm(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_get_epoch_seconds(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return 0;
 
-   return new QoreNode((int64)p0->val.date_time->getEpochSeconds());
+   return new QoreNode((int64)p0->getEpochSeconds());
 }
 
 static class QoreNode *f_years(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    
-   return new QoreNode(new DateTime(p0 ? p0->getAsInt() : 0, 0, 0, 0, 0, 0, 0, true));
+   return new DateTimeNode(p0 ? p0->getAsInt() : 0, 0, 0, 0, 0, 0, 0, true);
 }
 
 static class QoreNode *f_months(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    
-   return new QoreNode(new DateTime(0, p0 ? p0->getAsInt() : 0, 0, 0, 0, 0, 0, true));
+   return new DateTimeNode(0, p0 ? p0->getAsInt() : 0, 0, 0, 0, 0, 0, true);
 }
 
 static class QoreNode *f_days(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    
-   return new QoreNode(new DateTime(0, 0, p0 ? p0->getAsInt() : 0, 0, 0, 0, 0, true));
+   return new DateTimeNode(0, 0, p0 ? p0->getAsInt() : 0, 0, 0, 0, 0, true);
 }
 
 static class QoreNode *f_hours(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    
-   return new QoreNode(new DateTime(0, 0, 0, p0 ? p0->getAsInt() : 0, 0, 0, 0, true));
+   return new DateTimeNode(0, 0, 0, p0 ? p0->getAsInt() : 0, 0, 0, 0, true);
 }
 
 static class QoreNode *f_minutes(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    
-   return new QoreNode(new DateTime(0, 0, 0, 0, p0 ? p0->getAsInt() : 0, 0, 0, true));
+   return new DateTimeNode(0, 0, 0, 0, p0 ? p0->getAsInt() : 0, 0, 0, true);
 }
 
 static class QoreNode *f_seconds(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    
-   return new QoreNode(new DateTime(0, 0, 0, 0, 0, p0 ? p0->getAsInt() : 0, 0, true));
+   return new DateTimeNode(0, 0, 0, 0, 0, p0 ? p0->getAsInt() : 0, 0, true);
 }
 
 static class QoreNode *f_milliseconds(const QoreNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    
-   return new QoreNode(new DateTime(0, 0, 0, 0, 0, 0, p0 ? p0->getAsInt() : 0, true));
+   return new DateTimeNode(0, 0, 0, 0, 0, 0, p0 ? p0->getAsInt() : 0, true);
 }
 
 // returns an integer corresponding to the year value in the date
 static class QoreNode *f_get_years(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
    
-   return new QoreNode((int64)p0->val.date_time->getYear());
+   return new QoreNode((int64)p0->getYear());
 }
 
 // returns an integer corresponding to the month value in the date
 static class QoreNode *f_get_months(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
    
-   return new QoreNode((int64)p0->val.date_time->getMonth());
+   return new QoreNode((int64)p0->getMonth());
 }
 
 // returns an integer corresponding to the day value in the date
 static class QoreNode *f_get_days(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
    
-   return new QoreNode((int64)p0->val.date_time->getDay());
+   return new QoreNode((int64)p0->getDay());
 }
 
 // returns an integer corresponding to the hour value in the date
 static class QoreNode *f_get_hours(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
    
-   return new QoreNode((int64)p0->val.date_time->getHour());
+   return new QoreNode((int64)p0->getHour());
 }
 
 // returns an integer corresponding to the minute value in the date
 static class QoreNode *f_get_minutes(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
    
-   return new QoreNode((int64)p0->val.date_time->getMinute());
+   return new QoreNode((int64)p0->getMinute());
 }
 
 // returns an integer corresponding to the second value in the date
 static class QoreNode *f_get_seconds(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
    
-   return new QoreNode((int64)p0->val.date_time->getSecond());
+   return new QoreNode((int64)p0->getSecond());
 }
 
 // returns an integer corresponding to the millisecond value in the date
 static class QoreNode *f_get_milliseconds(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
    
-   return new QoreNode((int64)p0->val.date_time->getMillisecond());
+   return new QoreNode((int64)p0->getMillisecond());
 }
 
 // returns midnight on the date passed (strips the time component on the new value)
 static class QoreNode *f_get_midnight(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
 
-   class DateTime *dt = new DateTime(*p0->val.date_time);
+   class DateTimeNode *dt = new DateTimeNode(*p0);
    dt->setTime(0, 0, 0);
-   return new QoreNode(dt);
+   return dt;
 }
 
 // returns an integer corresponding to the number of the day in the year
 static class QoreNode *f_getDayNumber(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
    
-   return new QoreNode((int64)p0->val.date_time->getDayNumber());
+   return new QoreNode((int64)p0->getDayNumber());
 }
 
 // returns an integer between 0-6 corresponding to the number of the day in the week: 0 = sun, 6 = sat
 static class QoreNode *f_getDayOfWeek(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
 
-   int d = p0->val.date_time->getDayOfWeek();
+   int d = p0->getDayOfWeek();
    return new QoreNode((int64)d);
 }
 
 // returns an integer between 1-7 corresponding to the number of the day in the week according to IS-8601: 1 = mon, 7 = sun
 static class QoreNode *f_getISODayOfWeek(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
    
-   int d = p0->val.date_time->getDayOfWeek();
+   int d = p0->getDayOfWeek();
    return new QoreNode((int64)(!d ? 7 : d));
 }
 
 // returns a hash giving the ISO-8601 values for the year and calendar week for the date passed
 static class QoreNode *f_getISOWeekHash(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
 
    int year, week, day;
-   p0->val.date_time->getISOWeek(year, week, day);
+   p0->getISOWeek(year, week, day);
    class QoreHash *h = new QoreHash();
    h->setKeyValue("year", new QoreNode((int64)year), NULL);
    h->setKeyValue("week", new QoreNode((int64)week), NULL);
@@ -340,12 +337,12 @@ static class QoreNode *f_getISOWeekHash(const QoreNode *params, ExceptionSink *x
 // returns a string corresponding to the ISO-8601 year and calendar week for the date passed
 static class QoreNode *f_getISOWeekString(const QoreNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = test_param(params, NT_DATE, 0);
+   DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
       return NULL;
    
    int year, week, day;
-   p0->val.date_time->getISOWeek(year, week, day);
+   p0->getISOWeek(year, week, day);
    class QoreStringNode *str = new QoreStringNode();
    str->sprintf("%04d-W%02d-%d", year, week, day);
 
@@ -367,10 +364,7 @@ static class QoreNode *f_getDateFromISOWeek(const QoreNode *params, ExceptionSin
    pt = get_param(params, 2);
    int day = pt ? pt->getAsInt() : 1;
 
-   class DateTime *dt = DateTime::getDateFromISOWeek(year, week, day, xsink);
-   if (!dt)
-      return NULL;
-   return new QoreNode(dt);
+   return DateTimeNode::getDateFromISOWeek(year, week, day, xsink);
 }
 
 /**
@@ -416,7 +410,7 @@ static class QoreNode *f_date_ms(const QoreNode *params, ExceptionSink *xsink)
    class QoreNode *p = get_param(params, 0);
    int64 ms = p ? p->getAsBigInt() : 0;
    int64 secs = ms / 1000;
-   return new QoreNode(new DateTime(secs, (int)(ms - secs * 1000)));
+   return new DateTimeNode(secs, (int)(ms - secs * 1000));
 }
 
 void init_time_functions()

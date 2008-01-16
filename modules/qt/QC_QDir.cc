@@ -126,9 +126,7 @@ static QoreNode *QDIR_dirName(QoreObject *self, QoreQDir *qd, const QoreNode *pa
 //      ListIterator li_nameFilters(p->val.list);
 //      while (li_nameFilters.next())
 //      {
-//         QoreNodeTypeHelper str(li_nameFilters.getValue(), NT_STRING, xsink);
-//         if (*xsink)
-//            return 0;
+//         QoreStringNodeValueHelper str(li_nameFileters.getValue());
 //         QString tmp;
 //         if (get_qstring(*str, tmp, xsink))
 //            return 0;
@@ -165,7 +163,7 @@ static QoreNode *QDIR_dirName(QoreObject *self, QoreQDir *qd, const QoreNode *pa
 //      ListIterator li_nameFilters(p->val.list);
 //      while (li_nameFilters.next())
 //      {
-//         QoreNodeTypeHelper str(li_nameFilters.getValue(), NT_STRING, xsink);
+//         QoreStringNodeValueHelper str(li_nameFileters.getValue());
 //         if (*xsink)
 //            return 0;
 //         QString tmp;
@@ -369,9 +367,7 @@ static QoreNode *QDIR_setNameFilters(QoreObject *self, QoreQDir *qd, const QoreN
    ListIterator li_nameFilters(p->val.list);
    while (li_nameFilters.next())
    {
-      QoreNodeTypeHelper str(li_nameFilters.getValue(), NT_STRING, xsink);
-      if (*xsink)
-         return 0;
+      QoreStringNodeValueHelper str(li_nameFilters.getValue());
       QString tmp;
       if (get_qstring(*str, tmp, xsink))
          return 0;
@@ -589,10 +585,10 @@ static QoreNode *f_QDir_searchPaths(const QoreNode *params, ExceptionSink *xsink
 //QChar separator ()
 static QoreNode *f_QDir_separator(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = QDir::separator();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //bool setCurrent ( const QString & path )
@@ -621,9 +617,7 @@ static QoreNode *f_QDir_setSearchPaths(const QoreNode *params, ExceptionSink *xs
    ListIterator li_searchPaths(p->val.list);
    while (li_searchPaths.next())
    {
-      QoreNodeTypeHelper str(li_searchPaths.getValue(), NT_STRING, xsink);
-      if (*xsink)
-         return 0;
+      QoreStringNodeValueHelper str(li_searchPaths.getValue());
       QString tmp;
       if (get_qstring(*str, tmp, xsink))
          return 0;

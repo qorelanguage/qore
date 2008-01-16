@@ -73,9 +73,9 @@ static QoreNode *QCHAR_cell(QoreObject *self, QoreQChar *qc, const QoreNode *par
 static QoreNode *QCHAR_combiningClass(QoreObject *self, QoreQChar *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    const char c_rv = qc->combiningClass();
-   QoreString *rv_str = new QoreString();
+   QoreStringNode *rv_str = new QoreStringNode();
    rv_str->concat(c_rv);
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //QString decomposition () const
@@ -207,10 +207,10 @@ static QoreNode *QCHAR_joining(QoreObject *self, QoreQChar *qc, const QoreNode *
 //QChar mirroredChar () const
 static QoreNode *QCHAR_mirroredChar(QoreObject *self, QoreQChar *qc, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = qc->mirroredChar();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //uchar row () const
@@ -223,54 +223,54 @@ static QoreNode *QCHAR_row(QoreObject *self, QoreQChar *qc, const QoreNode *para
 static QoreNode *QCHAR_toAscii(QoreObject *self, QoreQChar *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    const char c_rv = qc->toAscii();
-   QoreString *rv_str = new QoreString();
+   QoreStringNode *rv_str = new QoreStringNode();
    rv_str->concat(c_rv);
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //QChar toCaseFolded () const
 static QoreNode *QCHAR_toCaseFolded(QoreObject *self, QoreQChar *qc, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = qc->toCaseFolded();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //const char toLatin1 () const
 static QoreNode *QCHAR_toLatin1(QoreObject *self, QoreQChar *qc, const QoreNode *params, ExceptionSink *xsink)
 {
    const char c_rv = qc->toLatin1();
-   QoreString *rv_str = new QoreString();
+   QoreStringNode *rv_str = new QoreStringNode();
    rv_str->concat(c_rv);
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //QChar toLower () const
 static QoreNode *QCHAR_toLower(QoreObject *self, QoreQChar *qc, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = qc->toLower();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //QChar toTitleCase () const
 static QoreNode *QCHAR_toTitleCase(QoreObject *self, QoreQChar *qc, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = qc->toTitleCase();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //QChar toUpper () const
 static QoreNode *QCHAR_toUpper(QoreObject *self, QoreQChar *qc, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = qc->toUpper();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //ushort & unicode ()

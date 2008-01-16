@@ -177,19 +177,8 @@ class QoreNode *TIBAE_sendSubjectWithSyncReply(class QoreObject *self, class Qor
 
    // set timeout parameter if present
    int timeout = 0;
-   if ((p3 = get_param(params, 3))) {
-      QoreNode* n = test_param(params, NT_INT, 3);
-      if (n) {
-        timeout = p3->getAsInt();
-      } else {
-        n = test_param(params, NT_DATE, 3);
-        if (!n) {
-          xsink->raiseException("TIBCO-SEND-WITH-SYNC-REPLY-PARAMETER-ERROR", "The timeout parameter needs to be integer or string.");
-          return 0;
-        }
-        timeout = n->val.date_time->getRelativeMilliseconds();
-      }
-   }
+   if ((p3 = get_param(params, 3)))
+      timeout = geMsZeroInt(p3);
 
    // try to send message
    try
@@ -223,18 +212,7 @@ class QoreNode *TIBAE_receive(class QoreObject *self, class QoreApp *myQoreApp, 
 
    QoreNode *p1; 
    if ((p1 = get_param(params, 1))) {
-      QoreNode* n = test_param(params, NT_INT, 1);
-      if (n) {
-	 timeout = (unsigned long)n->val.intval;
-      } else {
-	 n = test_param(params, NT_DATE, 3);
-	 if (n) {
-	    timeout = (unsigned long)n->val.date_time->getRelativeMilliseconds();
-	 } else {
-	    xsink->raiseException("TIBCO-RECEIVE-PARAMETER-ERROR", "timeout parameter needs to be either integer or date/time.");
-	 }
-      }
-   }
+      timeout = getMsZeroInt(p1);
    
    return myQoreApp->receive(subject, timeout, xsink);
 }
@@ -282,9 +260,9 @@ static QoreNode* TIBAE_operationsCallWithSyncResult(QoreObject* self, QoreApp* m
       timeout = (unsigned)n->val.intval;
       ++next_item;
    } else {
-      n = test_param(params, NT_DATE, 3);
-      if (n) {
-	 timeout = (unsigned)n->val.date_time->getRelativeMilliseconds();
+      DateTimeNode *date = test_date_param(params, 3);
+      if (date) {
+	 timeout = (unsigned)date->getRelativeMilliseconds();
 	 ++next_item;
       }
    }
@@ -362,9 +340,9 @@ static QoreNode* TIBAE_operationsAsyncCall(QoreObject* self, QoreApp* myQoreApp,
       timeout = (unsigned)n->val.intval;
       ++next_item;
    } else {
-      n = test_param(params, NT_DATE, 3);
-      if (n) {
-	 timeout = (unsigned)n->val.date_time->getRelativeMilliseconds();
+      DateTimeNode *date = test_date_param(params, 3);
+      if (date) {
+	 timeout = (unsigned)date->getRelativeMilliseconds();
 	 ++next_item;
       }
    }

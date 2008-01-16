@@ -215,7 +215,7 @@ void QoreQtDynamicSlot::call(void **arguments)
       }
       else if (type_list[i] == QQT_TYPE_QDATE) {
 	 QDate *qdate = reinterpret_cast<QDate *>(arguments[i + 1]);
-	 args->push(new QoreNode(new DateTime(qdate->year(), qdate->month(), qdate->day())));
+	 args->push(new DateTimeNode(qdate->year(), qdate->month(), qdate->day()));
       }
       else if (type_list[i] == QQT_TYPE_QFONT) {
 	 QFont *qfont = reinterpret_cast<QFont *>(arguments[i + 1]);

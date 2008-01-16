@@ -86,28 +86,28 @@ static QoreNode *QLOCALE_dayName(QoreObject *self, QoreQLocale *ql, const QoreNo
 //QChar decimalPoint () const
 static QoreNode *QLOCALE_decimalPoint(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = ql->decimalPoint();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //QChar exponential () const
 static QoreNode *QLOCALE_exponential(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = ql->exponential();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //QChar groupSeparator () const
 static QoreNode *QLOCALE_groupSeparator(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = ql->groupSeparator();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //Language language () const
@@ -135,10 +135,10 @@ static QoreNode *QLOCALE_name(QoreObject *self, QoreQLocale *ql, const QoreNode 
 //QChar negativeSign () const
 static QoreNode *QLOCALE_negativeSign(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = ql->negativeSign();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //NumberOptions numberOptions () const
@@ -150,10 +150,10 @@ static QoreNode *QLOCALE_numberOptions(QoreObject *self, QoreQLocale *ql, const 
 //QChar percent () const
 static QoreNode *QLOCALE_percent(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = ql->percent();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //void setNumberOptions ( NumberOptions options )
@@ -300,10 +300,10 @@ static QoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, const Qor
 //QChar zeroDigit () const
 static QoreNode *QLOCALE_zeroDigit(QoreObject *self, QoreQLocale *ql, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = ql->zeroDigit();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 static QoreNode *f_QLocale_countriesForLanguage(const QoreNode *params, class ExceptionSink *xsink)

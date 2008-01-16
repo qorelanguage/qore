@@ -45,13 +45,13 @@ class QoreHash *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n)
 }
 
 // static method
-class DateTime *QoreSSLBase::ASN1_TIME_to_DateTime(ASN1_STRING *t)
+class DateTimeNode *QoreSSLBase::ASN1_TIME_to_DateTime(ASN1_STRING *t)
 {
    // FIXME: check ASN1_TIME format if this algorithm is always correct
    QoreString str("20");
    str.concat((char *)ASN1_STRING_data(t));
    str.terminate(14);
-   return new DateTime(str.getBuffer());
+   return new DateTimeNode(str.getBuffer());
 }
 
 // static method

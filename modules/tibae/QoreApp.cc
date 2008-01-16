@@ -201,11 +201,9 @@ class MData *QoreApp::do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 
       case TIBAE_DATETIME:
       {
-	 QoreNodeTypeHelper d(v, NT_DATE, xsink);
-	 if (!d)
-	    return 0;
+	 DateTimeValueHelper d(v);
 
-	 return get_mdatetime(d->val.date_time);
+	 return get_mdatetime(*d);
       }
 
       case TIBAE_DATE:
@@ -376,17 +374,19 @@ lass '%s'", pcd->getFullName().c_str(), cn);
    if (v->type == NT_FLOAT)
       return new MReal(v->val.floatval);
 
-   if (v->type == NT_DATE)
    {
-      const char *type = pcd->getShortName().c_str();
-      if (!strcmp(type, "dateTime") || !strcmp(type, "any"))
-	 return get_mdatetime(v->val.date_time);
-      else if (!strcmp(type, "date"))
-	 return new MDate(v->val.date_time->getYear(), v->val.date_time->getMonth(), v->val.date_time->getDay());
-
-      xsink->raiseException("TIBCO-DATE-INSTANTIATION-ERROR", "cannot map from QORE type 'date' to TIBCO type '%s'",
-			    pcd->getShortName().c_str());
-      return 0;
+      DateTimeNode *date = dynamic_cast<DateTimeNode *>(v);
+      if (date) {
+	 const char *type = pcd->getShortName().c_str();
+	 if (!strcmp(type, "dateTime") || !strcmp(type, "any"))
+	    return get_mdatetime(date);
+	 else if (!strcmp(type, "date"))
+	    return new MDate(date->getYear(), date->getMonth(), date->getDay());
+	 
+	 xsink->raiseException("TIBCO-DATE-INSTANTIATION-ERROR", "cannot map from QORE type 'date' to TIBCO type '%s'",
+			       pcd->getShortName().c_str());
+	 return 0;
+      }
    }
 
    if (v->type == NT_BINARY)

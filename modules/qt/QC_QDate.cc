@@ -36,7 +36,7 @@ static void QDATE_constructor(class QoreObject *self, const QoreNode *params, Ex
    if (is_nothing(p))
       qdt = new QoreQDate();
    else if (p->type == NT_DATE) {
-      DateTime *dt = p->val.date_time;
+      DateTimeNode *dt = reinterpret_cast<DateTimeNode *>(p);
       qdt = new QoreQDate(dt->getYear(), dt->getMonth(), dt->getDay());
    }
    else {

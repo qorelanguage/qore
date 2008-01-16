@@ -37,6 +37,8 @@ struct date_s {
 struct qore_dt_private;
 
 class DateTime {
+      friend class DateTimeNode;
+
    private:
       // static constants
       static const int month_lengths[];
@@ -50,12 +52,17 @@ class DateTime {
       // private date data - most are ints so relative dates can hold a lot of data
       struct qore_dt_private *priv;
       
-      DLLLOCAL class DateTime *addAbsoluteToRelative(const class DateTime *dt) const;
-      DLLLOCAL class DateTime *addRelativeToRelative(const class DateTime *dt) const;
+      // must be called with result being already a copy of "this"
+      DLLLOCAL void addAbsoluteToRelative(DateTime &result, const class DateTime *dt) const;
+      // result should be empty
+      DLLLOCAL void addRelativeToRelative(DateTime &result, const class DateTime *dt) const;
 
-      DLLLOCAL class DateTime *subtractAbsoluteByRelative(const class DateTime *dt) const;
-      DLLLOCAL class DateTime *subtractRelativeByRelative(const class DateTime *dt) const;
-      DLLLOCAL class DateTime *calcDifference(const class DateTime *dt) const;
+      // must be called with result being already a copy of "this"
+      DLLLOCAL void subtractAbsoluteByRelative(DateTime &result, const class DateTime *dt) const;
+      // result should be empty
+      DLLLOCAL void subtractRelativeByRelative(DateTime &result, const class DateTime *dt) const;
+      // result must be a blank relative date
+      DLLLOCAL void calcDifference(DateTime &result, const class DateTime *dt) const;
       DLLLOCAL void setDateLiteral(int64 date);
       DLLLOCAL void setRelativeDateLiteral(int64 date);
 
@@ -66,6 +73,9 @@ class DateTime {
       // returns 0 - 6, 0 = Sunday
       DLLLOCAL static int getDayOfWeek(int year, int month, int day);
       DLLLOCAL static int64 getEpochSeconds(int year, int month, int day);
+
+      // result should be empty
+      DLLLOCAL static int getDateFromISOWeekIntern(DateTime &result, int year, int week, int day, class ExceptionSink *xsink);
 
       // not implemented
       DLLLOCAL DateTime& operator=(const DateTime&);
@@ -87,6 +97,7 @@ class DateTime {
       DLLEXPORT void setDate(const char *str);
       DLLEXPORT void setRelativeDate(const char *str);
       DLLEXPORT void setDate(struct tm *tms, short ms = 0);
+      DLLEXPORT void setDate(const DateTime &date);
       DLLEXPORT void setTime(int h, int m, int s, short ms = 0);
       DLLEXPORT bool checkValidity() const;
       DLLEXPORT bool isEqual(const class DateTime *dt) const;

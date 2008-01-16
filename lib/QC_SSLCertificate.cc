@@ -111,12 +111,12 @@ static QoreNode *SSLCERT_getPurposeHash(class QoreObject *self, class QoreSSLCer
 
 static QoreNode *SSLCERT_getNotBeforeDate(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getNotBeforeDate());
+   return s->getNotBeforeDate();
 }
 
 static QoreNode *SSLCERT_getNotAfterDate(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getNotAfterDate());
+   return s->getNotAfterDate();
 }
 
 class QoreClass *initSSLCertificateClass()

@@ -141,11 +141,11 @@ class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    
    const MDateTime *mdt;
    if ((mdt = MDateTime::downCast(md)))
-      return new QoreNode(new DateTime(mdt->getYear(), mdt->getMonth(), mdt->getDay(), mdt->getHour(), mdt->getMinute(), mdt->getSecond(), mdt->getMicroSeconds() / 1000));
+      return new DateTimeNode(mdt->getYear(), mdt->getMonth(), mdt->getDay(), mdt->getHour(), mdt->getMinute(), mdt->getSecond(), mdt->getMicroSeconds() / 1000);
    
    const MDate *mdate;
    if ((mdate = MDate::downCast(md)))
-      return new QoreNode(new DateTime(mdate->getYear(), mdate->getMonth(), mdate->getDay()));
+      return new DateTimeNode(mdate->getYear(), mdate->getMonth(), mdate->getDay());
    
    const MBool *mb;
    if ((mb = MBool::downCast(md)))

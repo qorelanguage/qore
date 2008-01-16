@@ -309,17 +309,17 @@ static QoreNode *QVARIANT_toByteArray(QoreObject *self, QoreQVariant *qv, const 
 //QChar toChar () const
 static QoreNode *QVARIANT_toChar(QoreObject *self, QoreQVariant *qv, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreString *rv_str = new QoreString(QCS_UTF8);
+   QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = qv->toChar();
    rv_str->concatUTF8FromUnicode(rv_qc.unicode());
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //QDate toDate () const
 static QoreNode *QVARIANT_toDate(QoreObject *self, QoreQVariant *qv, const QoreNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qv->toDate();
-   return new QoreNode(new DateTime(rv_date.year(), rv_date.month(), rv_date.day()));
+   return new DateTimeNode(rv_date.year(), rv_date.month(), rv_date.day());
 }
 
 //QDateTime toDateTime () const
@@ -328,7 +328,7 @@ static QoreNode *QVARIANT_toDateTime(QoreObject *self, QoreQVariant *qv, const Q
    QDateTime rv_dt = qv->toDateTime();
    QDate rv_d = rv_dt.date();
    QTime rv_t = rv_dt.time();
-   return new QoreNode(new DateTime(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec()));
+   return new DateTimeNode(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());
 }
 
 //double toDouble ( bool * ok = 0 ) const
@@ -483,7 +483,7 @@ static QoreNode *QVARIANT_toString(QoreObject *self, QoreQVariant *qv, const Qor
 static QoreNode *QVARIANT_toTime(QoreObject *self, QoreQVariant *qv, const QoreNode *params, ExceptionSink *xsink)
 {
    QTime rv_t = qv->toTime();
-   return new QoreNode(new DateTime(1970, 1, 1, rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec()));
+   return new DateTimeNode(1970, 1, 1, rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());
 }
 
 ////uint toUInt ( bool * ok = 0 ) const

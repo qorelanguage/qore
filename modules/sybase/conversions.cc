@@ -42,13 +42,13 @@
 #define SYB_DAYS_TO_EPOCH 25567
 #define SYB_SECS_TO_EPOCH (SYB_DAYS_TO_EPOCH * 86400LL)
 
-DateTime *TIME_to_DateTime(CS_DATETIME &dt)
+DateTimeNode *TIME_to_DateTime(CS_DATETIME &dt)
 {
    int64 secs = dt.dttime / 300;
 
    // use floating point to get more accurate 1/3 s
    double ts = round((double)(dt.dttime - (secs * 300)) * 3.3333333);
-   return new DateTime(secs, (int)ts);
+   return new DateTimeNode(secs, (int)ts);
 }
 
 int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME &out, ExceptionSink* xsink)
@@ -85,21 +85,21 @@ int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME &out, ExceptionSink* xsink)
    return 0;
 }
 
-DateTime* DATETIME_to_DateTime(CS_DATETIME& dt)
+DateTimeNode *DATETIME_to_DateTime(CS_DATETIME& dt)
 {
    int64 secs = dt.dttime / 300;
    // use floating point to get more accurate 1/3 s
    double ts = round((double)(dt.dttime - (secs * 300)) * 3.3333333);
-   return new DateTime(secs + dt.dtdays * 86400ll - SYB_SECS_TO_EPOCH, (int)ts);
+   return new DateTimeNode(secs + dt.dtdays * 86400ll - SYB_SECS_TO_EPOCH, (int)ts);
 }
 
 // maximum sybase small datetime value (June 6, 2079)
 static DateTime dt4_max(2079, 6, 6);
 
-DateTime *DATETIME4_to_DateTime(CS_DATETIME4 &dt, ExceptionSink *xsink)
+DateTimeNode *DATETIME4_to_DateTime(CS_DATETIME4 &dt, ExceptionSink *xsink)
 {
    int64 secs = dt.minutes * 60LL + dt.days * 86400LL - SYB_SECS_TO_EPOCH;
-   return new DateTime(secs);
+   return new DateTimeNode(secs);
 }
 
 /*

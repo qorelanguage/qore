@@ -224,12 +224,11 @@ static inline class QoreNode *splice_expressions(class QoreNode *a1, class QoreN
       return a1;
    }
    //printd(5, "NODE x\n");
-   class QoreNode *nl = new QoreNode(NT_LIST);
-   nl->val.list = new QoreList(1);
-   nl->val.list->push(a1);
-   nl->val.list->push(a2);
+   QoreList *l = new QoreList(1);
+   l->push(a1);
+   l->push(a2);
    //traceout("splice_expressions()");
-   return nl;
+   return new QoreNode(l);
 }
 
 static inline int checkParseOption(int o)
@@ -499,7 +498,7 @@ struct MethodNode {
       class QoreNamespace *ns;
       class NSNode *nsn;
       class ObjClassDef *objdef;
-      class DateTime *datetime;
+      class DateTimeNode *datetime;
       class RegexSubst *RegexSubst;
       class RegexTrans *RegexTrans;
       class SwitchStatement *switchstmt;
@@ -703,8 +702,8 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { if ($$) delete $$; } BINARY DATETIME REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
-%destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD
+%destructor { if ($$) delete $$; } BINARY REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
+%destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME
 %destructor { if ($$) $$->deref(NULL); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
 
@@ -2039,9 +2038,9 @@ string:
 
 scalar:
 	QFLOAT        { $$ = new QoreNode(NT_FLOAT); $$->val.floatval = $1; }
-	| INTEGER     { $$ = new QoreNode(NT_INT); $$->val.intval = $1; }
+        | INTEGER     { $$ = new QoreNode($1); }
         | string      { $$ = $1; }
-        | DATETIME    { $$ = new QoreNode($1); }
+        | DATETIME    { $$ = $1; }
         | TOK_NULL    { $$ = new QoreNode(NT_NULL); }
         | TOK_NOTHING { $$ = new QoreNode(NT_NOTHING); }
 	;

@@ -1,5 +1,6 @@
 see docs/roadmap.html
 
+* implement optimization to check a program for use of parse(), parseCommit() and background to convert all global variables to local to avoid locking
 * make QoreHash implementation private
 * change getExistingVarValue to take a ReferenceHolder argument instead of a temporary QoreNode * arg
 * make ThreadResourceList private

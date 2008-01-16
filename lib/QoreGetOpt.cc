@@ -138,12 +138,12 @@ class QoreNode *QoreGetOpt::parseDate(const char *val)
 	    if (len == 23)
 	       str.concat(val + 19);
 	 }
-	 return new QoreNode(new DateTime(str.getBuffer()));
+	 return new DateTimeNode(str.getBuffer());
       }
       // fall through to default date parse below
    }
 
-   return new QoreNode(new DateTime(val));
+   return new DateTimeNode(val);
 }
 
 void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char *val)

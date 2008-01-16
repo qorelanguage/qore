@@ -887,12 +887,11 @@ static QoreNode* beginTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, 
   QoreNode* n = test_param(params, NT_INT, 0);
   long timeout = 0; // no timeout by default
   if (!n) {
-    n = test_param(params, NT_DATE, 0);
-    if (n) {
-      timeout = (long)n->val.date_time->getRelativeSeconds();
-    }
+     DateTimeNode *date = test_date_param(params, 0);
+     if (date) 
+	timeout = (long)date->getRelativeSeconds();
   } else {
-    timeout = (long)n->val.intval;
+     timeout = (long)n->val.intval;
   }
 
   adapter->switchToSavedContext();
@@ -1209,11 +1208,11 @@ static QoreNode* setTxTransactionsTimeout(QoreObject* self, QoreTuxedoAdapter* a
   QoreNode* n = test_param(params, NT_INT, 0);
   long timeout;
   if (!n) {
-    n = test_param(params, NT_DATE, 0);
-    if (n) {
-      timeout = (long)n->val.date_time->getRelativeSeconds();
-    } else {
-      return xsink->raiseException(err_name, "Integer or date/time timeout in seconds expected.");
+     DateTimeNode *date = test_date_param(params, 0);
+     if (date) 
+	timeout = (long)date->getRelativeSeconds();
+     else {
+	return xsink->raiseException(err_name, "Integer or date/time timeout in seconds expected.");
     }
   } else {
     timeout = (long)n->val.intval;

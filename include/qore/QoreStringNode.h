@@ -29,8 +29,13 @@
 #include <qore/QoreNode.h>
 #include <qore/QoreString.h>
 
-class QoreStringNode : public QoreNode, public QoreString
+class QoreStringNode : public SimpleQoreNode, public QoreString
 {
+   private:
+      // these functions are not actually implemented
+      DLLLOCAL QoreStringNode(QoreString *str);
+      DLLLOCAL QoreStringNode& operator=(const QoreStringNode&); // not implemented
+
    protected:
       // destructor only called when references = 0, use deref() instead
       DLLEXPORT virtual ~QoreStringNode();
@@ -39,8 +44,6 @@ class QoreStringNode : public QoreNode, public QoreString
       DLLEXPORT QoreStringNode();
 
       DLLEXPORT QoreStringNode(const char *str, const class QoreEncoding *enc = QCS_DEFAULT);
-      // FIXME: remove this function, not actually implemented
-      DLLLOCAL QoreStringNode(QoreString *str);
       // copies str
       DLLEXPORT QoreStringNode(const QoreString &str);
       // copies str
@@ -66,11 +69,6 @@ class QoreStringNode : public QoreNode, public QoreString
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      // returns 0 if the value is not immediately returnable as a QoreString (without conversion)
-      //DLLEXPORT virtual class QoreString *getQoreStringValue() const;
-      // returns 0 if the value is not immediately returnable as a const char * (without conversion)
-      //DLLEXPORT virtual const char *getStringValue() const;
-
       // get the value of the type in a string context (0 (NULL) for complex types = default implementation)
       // if del is true, then the returned QoreString should be deleted, if false, then it should not
       DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
@@ -87,24 +85,25 @@ class QoreStringNode : public QoreNode, public QoreString
       DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
       DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
 
+      // returns the data type
+      DLLEXPORT virtual const QoreType *getType() const;
+      DLLEXPORT virtual const char *getTypeName() const;
+      
       DLLEXPORT QoreStringNode *convertEncoding(const class QoreEncoding *nccs, class ExceptionSink *xsink) const;
       DLLEXPORT QoreStringNode *substr(int offset) const;
       DLLEXPORT QoreStringNode *substr(int offset, int length) const;
 
-      // return a Qorestring with the characters reversed
+      // return a QoreString with the characters reversed
       DLLEXPORT QoreStringNode *reverse() const;
-
-      // can be used as an alternative for deref(xsink) - no exception possible when deleting
-      DLLEXPORT void deref();
 
       // copy function
       DLLEXPORT QoreStringNode *copy() const;
 
       // creates a new QoreStringNode from a string and converts its encoding
       DLLEXPORT static QoreStringNode *createAndConvertEncoding(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink);
-
+      // parses the string as a base64-encoded binary and returns the decoded value as a QoreStringNode
       DLLEXPORT class QoreStringNode *parseBase64ToString(class ExceptionSink *xsink) const;
-      
+
       // constructor supporting createAndConvertEncoding()
       DLLLOCAL QoreStringNode(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink);
       DLLLOCAL QoreStringNode(struct qore_string_private *p);

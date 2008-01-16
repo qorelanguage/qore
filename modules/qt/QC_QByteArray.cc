@@ -93,9 +93,9 @@ static QoreNode *QBYTEARRAY_at(QoreObject *self, QoreQByteArray *qba, const Qore
    QoreNode *p = get_param(params, 0);
    int i = p ? p->getAsInt() : 0;
    char c_rv = qba->at(i);
-   QoreString *rv_str = new QoreString();
+   QoreStringNode *rv_str = new QoreStringNode();
    rv_str->concat(c_rv);
-   return new QoreNode(rv_str);
+   return rv_str;
 }
 
 //int capacity () const

@@ -28,13 +28,3 @@ class QoreNode *date_DefaultValue()
    ZeroDate->ref();
    return ZeroDate;
 }
-
-class QoreNode *date_Copy(const QoreNode *l, class ExceptionSink *xsink)
-{
-   return new QoreNode(new DateTime(*(l->val.date_time)));
-}
-
-void date_DeleteContents(class QoreNode *n)
-{
-   delete n->val.date_time;
-}

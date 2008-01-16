@@ -418,9 +418,7 @@ static QoreNode *f_QCoreApplication_setLibraryPaths(const QoreNode *params, Exce
    ListIterator li_paths(p->val.list);
    while (li_paths.next())
    {
-      QoreNodeTypeHelper str(li_paths.getValue(), NT_STRING, xsink);
-      if (*xsink)
-         return 0;
+      QoreStringNodeValueHelper str(li_paths.getValue());
       QString tmp;
       if (get_qstring(*str, tmp, xsink))
          return 0;

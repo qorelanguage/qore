@@ -49,22 +49,32 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
       }
    }
    
-   if (n->type == NT_BOOLEAN)
+   if (n->type == NT_BOOLEAN) {
       s->sprintf("val=%s", n->val.boolval ? "True" : "False");
-   
-   else if (n->type == NT_INT)
+      return;
+   }
+
+   if (n->type == NT_INT) {
       s->sprintf("val=%lld", n->val.intval);
-   
-   else if (n->type == NT_NOTHING)
+      return;
+   }
+  
+   if (n->type == NT_NOTHING) {
       s->sprintf("val=NOTHING");
-   
-   else if (n->type == NT_NULL)
+      return;
+   }
+
+   if (n->type == NT_NULL) {
       s->sprintf("val=SQL NULL");
-   
-   else if (n->type == NT_FLOAT)
+      return;
+   }
+
+   if (n->type == NT_FLOAT) {
       s->sprintf("val=%f", n->val.floatval);
+      return;
+   }
    
-   else if (n->type ==  NT_LIST)
+   if (n->type == NT_LIST)
    {
       s->sprintf("elements=%d\n", n->val.list->size());
       ListIterator li(n->val.list);
@@ -76,9 +86,10 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
 	 if (!li.last())
 	    s->concat('\n');
       }
+      return;
    }
    
-   else if (n->type == NT_OBJECT)
+   if (n->type == NT_OBJECT)
    {
       s->sprintf("elements=%d (type=%s, valid=%s)\n", n->val.object->size(xsink),
                  n->val.object->getClass() ? n->val.object->getClass()->getName() : "<none>",
@@ -101,9 +112,10 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
             l->derefAndDelete(xsink);
          }
       }
+      return;
    }
    
-   else if (n->type == NT_HASH)
+   if (n->type == NT_HASH)
    {
       s->sprintf("elements=%d\n", n->val.hash->size());
       {
@@ -118,22 +130,25 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
 	       s->concat('\n');
          }
       }
+      return;
    }
    
-   else if (n->type == NT_DATE)
-      s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%03d (rel=%s)", 
-                 n->val.date_time->getYear(),
-                 n->val.date_time->getMonth(),
-                 n->val.date_time->getDay(),
-                 n->val.date_time->getHour(),
-                 n->val.date_time->getMinute(),
-                 n->val.date_time->getSecond(),
-                 n->val.date_time->getMillisecond(),
-                 n->val.date_time->isRelative() ? "True" : "False");
-   else if (n->type == NT_BINARY)
+   {
+      DateTimeNode *date = dynamic_cast<DateTimeNode *>(n);
+      if (date) {
+	 s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%03d (rel=%s)", 
+		    date->getYear(), date->getMonth(), date->getDay(), date->getHour(),
+		    date->getMinute(), date->getSecond(), date->getMillisecond(), date->isRelative() ? "True" : "False");
+	 return;
+      }
+   }
+
+   if (n->type == NT_BINARY) {
       s->sprintf("ptr=%08p len=%d", n->val.bin->getPtr(), n->val.bin->size());
-   else
-      s->sprintf("don't know how to print type '%s' :-(", n->type->getName());
+      return;
+   }
+
+   s->sprintf("don't know how to print type '%s' :-(", n->type->getName());
 }
 
 //static 

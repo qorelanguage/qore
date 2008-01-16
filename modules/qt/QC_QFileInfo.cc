@@ -140,7 +140,7 @@ static QoreNode *QFILEINFO_created(QoreObject *self, QoreQFileInfo *qfi, const Q
    QDateTime rv_dt = qfi->created();
    QDate rv_d = rv_dt.date();
    QTime rv_t = rv_dt.time();
-   return new QoreNode(new DateTime(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec()));
+   return new DateTimeNode(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());
 }
 
 //QDir dir () const
@@ -254,7 +254,7 @@ static QoreNode *QFILEINFO_lastModified(QoreObject *self, QoreQFileInfo *qfi, co
    QDateTime rv_dt = qfi->lastModified();
    QDate rv_d = rv_dt.date();
    QTime rv_t = rv_dt.time();
-   return new QoreNode(new DateTime(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec()));
+   return new DateTimeNode(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());
 }
 
 //QDateTime lastRead () const
@@ -263,7 +263,7 @@ static QoreNode *QFILEINFO_lastRead(QoreObject *self, QoreQFileInfo *qfi, const 
    QDateTime rv_dt = qfi->lastRead();
    QDate rv_d = rv_dt.date();
    QTime rv_t = rv_dt.time();
-   return new QoreNode(new DateTime(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec()));
+   return new DateTimeNode(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());
 }
 
 //bool makeAbsolute ()

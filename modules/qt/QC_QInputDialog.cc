@@ -158,9 +158,7 @@ static QoreNode *f_QInputDialog_getItem(const QoreNode *params, ExceptionSink *x
    ListIterator li_list(p->val.list);
    while (li_list.next())
    {
-      QoreNodeTypeHelper str(li_list.getValue(), NT_STRING, xsink);
-      if (*xsink)
-         return 0;
+      QoreStringNodeValueHelper str(li_list.getValue());
       QString tmp;
       if (get_qstring(*str, tmp, xsink))
          return 0;

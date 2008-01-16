@@ -205,9 +205,12 @@ DLLEXPORT qore_module_delete_t qore_module_delete = qt_module_delete;
 
 int get_qdate(const QoreNode *n, QDate &date, class ExceptionSink *xsink)
 {
-   if (n && n->type == NT_DATE) {
-      date.setDate(n->val.date_time->getYear(), n->val.date_time->getMonth(), n->val.date_time->getDay());
-      return 0;
+   {
+      const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(n);
+      if (d) {
+	 date.setDate(d->getYear(), d->getMonth(), d->getDay());
+	 return 0;
+      }
    }
    
    class QoreQDate *qd = (n && n->type == NT_OBJECT) ? (QoreQDate *)n->val.object->getReferencedPrivateData(CID_QDATE, xsink) : 0;
@@ -238,11 +241,13 @@ int get_qdate(const QoreNode *n, QDate &date, class ExceptionSink *xsink)
 int get_qdatetime(const QoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
 {
    if (n) {
-      if (n->type == NT_DATE) {
-	 DateTime *qdt = n->val.date_time;
-	 dt.setDate(QDate(qdt->getYear(), qdt->getMonth(), qdt->getDay()));
-	 dt.setTime(QTime(qdt->getHour(), qdt->getMinute(), qdt->getSecond(), qdt->getMillisecond()));
-	 return 0;
+      {
+	 const DateTimeNode *qdt = dynamic_cast<const DateTimeNode *>(n);
+	 if (qdt) {
+	    dt.setDate(QDate(qdt->getYear(), qdt->getMonth(), qdt->getDay()));
+	    dt.setTime(QTime(qdt->getHour(), qdt->getMinute(), qdt->getSecond(), qdt->getMillisecond()));
+	    return 0;
+	 }
       }
    
       if (n->type == NT_OBJECT) {
@@ -281,10 +286,12 @@ int get_qdatetime(const QoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
 
 int get_qtime(const QoreNode *n, QTime &time, class ExceptionSink *xsink)
 {
-   if (n && n->type == NT_DATE) {
-      DateTime *qdt = n->val.date_time;
-      time.setHMS(qdt->getHour(), qdt->getMinute(), qdt->getSecond(), qdt->getMillisecond());
-      return 0;
+   {
+      const DateTimeNode *qdt = dynamic_cast<const DateTimeNode *>(n);
+      if (qdt) {
+	 time.setHMS(qdt->getHour(), qdt->getMinute(), qdt->getSecond(), qdt->getMillisecond());
+	 return 0;
+      }
    }
    
    class QoreQTime *qt = (n && n->type == NT_OBJECT) ? (QoreQTime *)n->val.object->getReferencedPrivateData(CID_QTIME, xsink) : 0;
@@ -747,12 +754,11 @@ class QoreNode *return_qvariant(const QVariant &qv)
       case QVariant::Color:
 	 return return_object(QC_QColor, new QoreQColor(qv.value<QColor>()));
       case QVariant::Date: 
-	 return new QoreNode(new DateTime(qv.toDate().year(), qv.toDate().month(), qv.toDate().day()));
+	 return new DateTimeNode(qv.toDate().year(), qv.toDate().month(), qv.toDate().day());
       case QVariant::DateTime: {
 	 QDate rv_d = qv.toDateTime().date();
 	 QTime rv_t = qv.toDateTime().time();
-	 return new QoreNode(new DateTime(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), 
-					  rv_t.minute(), rv_t.second(), rv_t.msec()));
+	 return new DateTimeNode(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());
       }
       case QVariant::Double:
 	 return new QoreNode(qv.toDouble());
@@ -815,8 +821,7 @@ class QoreNode *return_qvariant(const QVariant &qv)
       case QVariant::TextLength:
          return return_object(QC_QTextLength, new QoreQTextLength(qv.value<QTextLength>()));
       case QVariant::Time:
-	 return new QoreNode(new DateTime(1970, 1, 1, qv.toTime().hour(), qv.toTime().minute(), 
-					  qv.toTime().second(), qv.toTime().msec()));
+	 return new DateTimeNode(1970, 1, 1, qv.toTime().hour(), qv.toTime().minute(), qv.toTime().second(), qv.toTime().msec());
       //case QVariant::Transform:
          //return return_object(QC_QVariant::Transform, new QTransform(qv.value<QVariant::Transform>()));
       case QVariant::UInt:
@@ -1143,6 +1148,7 @@ static class QoreNode *f_qDebug(const QoreNode *params, class ExceptionSink *xsi
       return 0;
 
    qDebug(str->getBuffer());
+   return 0;
 }
 
 static class QoreNode *f_qWarning(const QoreNode *params, class ExceptionSink *xsink)

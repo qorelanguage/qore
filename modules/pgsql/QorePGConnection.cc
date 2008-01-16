@@ -93,13 +93,13 @@ static class QoreNode *qpg_data_float8(char *data, int type, int len, class Qore
 static class QoreNode *qpg_data_abstime(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    int val = ntohl(*((uint32_t *)data));
-   return new QoreNode(new DateTime((int64)val));
+   return new DateTimeNode((int64)val);
 }
 
 static class QoreNode *qpg_data_reltime(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    int val = ntohl(*((uint32_t *)data));
-   return new QoreNode(new DateTime(0, 0, 0, 0, 0, val, 0, true));
+   return new DateTimeNode(0, 0, 0, 0, 0, val, 0, true);
 }
 
 static class QoreNode *qpg_data_timestamp(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
@@ -112,20 +112,20 @@ static class QoreNode *qpg_data_timestamp(char *data, int type, int len, class Q
       int64 secs = val / 1000000;
       int ms = val / 1000 - secs * 1000;
       secs += 10957 * 86400;
-      return new QoreNode(new DateTime(secs, ms));
+      return new DateTimeNode(secs, ms);
    }
    double fv = MSBf8(*((double *)data));
    int64 nv = (int64)fv;
    int ms = (int)((fv - (double)nv) * 1000);
    nv += 10957 * 86400;
    //printd(5, "time=%lld.%03d seconds\n", val, ms);
-   return new QoreNode(new DateTime(nv, ms));
+   return new DateTimeNode(nv, ms);
 }
 
 static class QoreNode *qpg_data_date(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    int val = (ntohl(*((uint32_t *)data)) + 10957) * 86400;      
-   return new QoreNode(new DateTime((int64)val));
+   return new DateTimeNode((int64)val);
 }
 
 static class QoreNode *qpg_data_interval(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
@@ -147,9 +147,9 @@ static class QoreNode *qpg_data_interval(char *data, int type, int len, class Qo
       ms = (int)((f - (double)secs) * 1000.0);   
    }
    if (conn->has_interval_day())
-      return new QoreNode(new DateTime(0, ntohl(iv->rest.with_day.month), ntohl(iv->rest.with_day.day), 0, 0, secs, ms, true));
+      return new DateTimeNode(0, ntohl(iv->rest.with_day.month), ntohl(iv->rest.with_day.day), 0, 0, secs, ms, true);
    else
-      return new QoreNode(new DateTime(0, ntohl(iv->rest.month), 0, 0, 0, secs, ms, true));
+      return new DateTimeNode(0, ntohl(iv->rest.month), 0, 0, 0, secs, ms, true);
 }
 
 static class QoreNode *qpg_data_time(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
@@ -168,7 +168,7 @@ static class QoreNode *qpg_data_time(char *data, int type, int len, class QorePG
       secs = (int64)val;
       ms = (int)((val - (double)secs) * 1000.0);
    }
-   return new QoreNode(new DateTime(secs, ms));
+   return new DateTimeNode(secs, ms);
 }
 
 static class QoreNode *qpg_data_timetz(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
@@ -189,7 +189,7 @@ static class QoreNode *qpg_data_timetz(char *data, int type, int len, class Qore
       secs = (int64)val;
       ms = (int)((val - (double)secs) * 1000.0);
    }
-   return new QoreNode(new DateTime(secs, ms));
+   return new DateTimeNode(secs, ms);
 }
 
 static class QoreNode *qpg_data_tinterval(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
@@ -818,57 +818,58 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
       return 0;
    }
 
-   if (v->type == NT_DATE)
    {
-      class DateTime *d = v->val.date_time;
-      if (d->isRelative())
-      {
-	 paramTypes[nParams] = INTERVALOID;
-
-	 int day_seconds;
-	 if (conn->has_interval_day())
+      DateTimeNode *d = dynamic_cast<DateTimeNode *>(v);
+      if (d) {
+	 if (d->isRelative())
 	 {
-	    pb->iv.rest.with_day.month = htonl(d->getMonth());
-	    pb->iv.rest.with_day.day   = htonl(d->getDay());
-	    day_seconds = 0;
+	    paramTypes[nParams] = INTERVALOID;
+	    
+	    int day_seconds;
+	    if (conn->has_interval_day())
+	    {
+	       pb->iv.rest.with_day.month = htonl(d->getMonth());
+	       pb->iv.rest.with_day.day   = htonl(d->getDay());
+	       day_seconds = 0;
+	    }
+	    else
+	    {
+	       pb->iv.rest.month = htonl(d->getMonth());
+	       day_seconds = d->getDay() * 3600 * 24;
+	    }
+	    
+	    if (conn->has_integer_datetimes())
+	       pb->iv.time.i = i8MSB(((d->getYear() * 365 * 24 * 3600) + d->getHour() * 24 * 3600 + d->getMinute() * 3600 + d->getSecond() + day_seconds) * 1000000 + d->getMillisecond() * 1000);
+	    else
+	       pb->iv.time.f = f8MSB((double)((d->getYear() * 365 * 24 * 3600) + d->getHour() * 3600 + d->getMinute() * 60 + d->getSecond() + day_seconds) + (double)d->getMillisecond() / 1000.0);
+	    
+	    paramValues[nParams] = (char *)&pb->iv;
+	    paramLengths[nParams] = conn->has_interval_day() ? 16 : 12;
 	 }
 	 else
 	 {
-	    pb->iv.rest.month = htonl(d->getMonth());
-	    day_seconds = d->getDay() * 3600 * 24;
+	    paramTypes[nParams] = TIMESTAMPOID;
+	    
+	    if (conn->has_integer_datetimes())
+	    {
+	       // get number of seconds offset from jan 1 2000 then make it microseconds and add ms
+	       int64 val = (d->getEpochSeconds() - 10957 * 86400) * 1000000 + d->getMillisecond() * 1000;
+	       pb->assign(val);
+	       paramValues[nParams] = (char *)&pb->i8;
+	       paramLengths[nParams] = sizeof(int64);
+	    }
+	    else
+	    {
+	       double val = (double)((double)d->getEpochSeconds() - 10957 * 86400) + (double)(d->getMillisecond() / 1000.0);
+	       //printd(5, "timestamp time=%9g\n", val);
+	       pb->assign(val);
+	       paramValues[nParams] = (char *)&pb->f8;
+	       paramLengths[nParams] = sizeof(double);
+	    }
 	 }
-
-	 if (conn->has_integer_datetimes())
-	    pb->iv.time.i = i8MSB(((d->getYear() * 365 * 24 * 3600) + d->getHour() * 24 * 3600 + d->getMinute() * 3600 + d->getSecond() + day_seconds) * 1000000 + d->getMillisecond() * 1000);
-	 else
-	    pb->iv.time.f = f8MSB((double)((d->getYear() * 365 * 24 * 3600) + d->getHour() * 3600 + d->getMinute() * 60 + d->getSecond() + day_seconds) + (double)d->getMillisecond() / 1000.0);
-
-	 paramValues[nParams] = (char *)&pb->iv;
-	 paramLengths[nParams] = conn->has_interval_day() ? 16 : 12;
+	 ++nParams;
+	 return 0;
       }
-      else
-      {
-	 paramTypes[nParams] = TIMESTAMPOID;
-
-	 if (conn->has_integer_datetimes())
-	 {
-	    // get number of seconds offset from jan 1 2000 then make it microseconds and add ms
-	    int64 val = (d->getEpochSeconds() - 10957 * 86400) * 1000000 + d->getMillisecond() * 1000;
-	    pb->assign(val);
-	    paramValues[nParams] = (char *)&pb->i8;
-	    paramLengths[nParams] = sizeof(int64);
-	 }
-	 else
-	 {
-	    double val = (double)((double)d->getEpochSeconds() - 10957 * 86400) + (double)(d->getMillisecond() / 1000.0);
-	    //printd(5, "timestamp time=%9g\n", val);
-	    pb->assign(val);
-	    paramValues[nParams] = (char *)&pb->f8;
-	    paramLengths[nParams] = sizeof(double);
-	 }
-      }
-      ++nParams;
-      return 0;
    }
 
    if (v->type == NT_BINARY)
@@ -994,7 +995,7 @@ int QorePGBindArray::check_type(class QoreNode *n, class ExceptionSink *xsink)
       xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "cannot bind NULL values within an array");
       return -1;
    }
-   class QoreType *t = n->type;
+   const QoreType *t = n->type;
    if (!type)
    {
       type = t;
@@ -1003,43 +1004,57 @@ int QorePGBindArray::check_type(class QoreNode *n, class ExceptionSink *xsink)
       {
 	 arrayoid = QPGT_INT8ARRAYOID;
 	 oid = INT8OID;
+	 return 0;
       }
-      else if (type == NT_FLOAT)
+
+      if (type == NT_FLOAT)
       {
 	 arrayoid = QPGT_FLOAT8ARRAYOID;
 	 oid = FLOAT8OID;
+	 return 0;
       }
-      else if (type == NT_BOOLEAN)
+
+      if (type == NT_BOOLEAN)
       {
 	 arrayoid = QPGT_BOOLARRAYOID;
 	 oid = BOOLOID;
+	 return 0;
       }
-      else if (type == NT_STRING)
+
+      if (type == NT_STRING)
       {
 	 arrayoid = QPGT_TEXTARRAYOID;
 	 oid = TEXTOID;
 	 //format = 0;
+	 return 0;
       }
-      else if (type == NT_DATE)
+
       {
-	 if (n->val.date_time->isRelative())
-	 {
-	    arrayoid = QPGT_INTERVALARRAYOID;
-	    oid = INTERVALOID;
-	 }
-	 else
-	 {
-	    arrayoid = QPGT_TIMESTAMPARRAYOID;
-	    oid = TIMESTAMPOID;
+	 DateTimeNode *date = dynamic_cast<DateTimeNode *>(n);
+	 if (date) {
+	    if (date->isRelative())
+	    {
+	       arrayoid = QPGT_INTERVALARRAYOID;
+	       oid = INTERVALOID;
+	    }
+	    else
+	    {
+	       arrayoid = QPGT_TIMESTAMPARRAYOID;
+	       oid = TIMESTAMPOID;
+	    }
+	    return 0;
 	 }
       }
-      else if (type == NT_BINARY)
+
+      if (type == NT_BINARY)
       {
 	 arrayoid = QPGT_BYTEAARRAYOID;
 	 oid = BYTEAOID;
+	 return 0;
       }
+
 /*
-      else if (type == NT_HASH)
+      if (type == NT_HASH)
       {
 	 format = 0;
 	 oid = check_hash_type(n->val.hash, xsink);
@@ -1052,29 +1067,33 @@ int QorePGBindArray::check_type(class QoreNode *n, class ExceptionSink *xsink)
 	    return -1;
 	 }
 	 arrayoid = i->second;
+	 return 0;
       }
 */
-      else
-      {
-	 xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "don't know how to bind type '%s'", type->getName());
-	 return -1;
-      }
+
+      xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "don't know how to bind type '%s'", type->getName());
+      return -1;
    }
-   else if (t != type)
+
+   if (t != type)
    {
       xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "array elements must be all of the same type for binding");
       return -1;
-   } else if (t == NT_DATE)
+   }
+
    {
-      if (n->val.date_time->isRelative() && (oid == TIMESTAMPOID))
-      {
-	 xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "array type was set to TIMESTAMP, but a relative date/time is present in the list");
-	 return -1;
-      }
-      if (n->val.date_time->isAbsolute() && (oid == INTERVALOID))
-      {
-	 xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "array type was set to INTERVAL, but a absolute date/time is present in the list");
-	 return -1;
+      DateTimeNode *date = dynamic_cast<DateTimeNode *>(n);
+      if (date) {
+	 if (date->isRelative() && (oid == TIMESTAMPOID))
+	 {
+	    xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "array type was set to TIMESTAMP, but a relative date/time is present in the list");
+	    return -1;
+	 }
+	 if (date->isAbsolute() && (oid == INTERVALOID))
+	 {
+	    xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "array type was set to INTERVAL, but an absolute date/time is present in the list");
+	    return -1;
+	 }
       }
    }
    return 0;
@@ -1190,24 +1209,23 @@ int QorePGBindArray::bind(class QoreNode *n, const QoreEncoding *enc, class Exce
       return 0;
    }   
 
+   if (type == NT_STRING)
    {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
-      if (str) {
-	 TempEncodingHelper tmp(str, enc, xsink);
-	 if (!tmp)
-	    return -1;
-
-	 int len = tmp->strlen();
-	 check_size(len);
-	 memcpy(ptr, tmp->getBuffer(), len);
-	 ptr += len;
-	 return 0;
-      }
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(n);
+      TempEncodingHelper tmp(str, enc, xsink);
+      if (!tmp)
+	 return -1;
+      
+      int len = tmp->strlen();
+      check_size(len);
+      memcpy(ptr, tmp->getBuffer(), len);
+      ptr += len;
+      return 0;
    }
 
    if (type == NT_DATE)
    {
-      class DateTime *d = n->val.date_time;
+      DateTimeNode *d = reinterpret_cast<DateTimeNode *>(n);
       if (d->isRelative())
       {
 	 int d_size = conn->has_interval_day() ? 16 : 12;
@@ -1283,7 +1301,7 @@ int QorePGBindArray::process_list(QoreList *l, int current, const QoreEncoding *
    ListIterator li(l);
    while (li.next())
    {
-      class QoreType *v_type;
+      const QoreType *v_type;
       class QoreNode *n = li.getValue();
       v_type = n ? n->type : NT_NOTHING;
       if (type == NT_LIST)

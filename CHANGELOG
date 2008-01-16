@@ -1,3 +1,7 @@
+2007.01.15: David Nichols
+	* DateTimeNode created as QoreNode subtype
+	* bugfixes related to new API and type system changes
+
 2007.01.14: David Nichols
 	* first part of new type system implementation: QoreNode is being split
 	  into subclasses; at the end of the migration, it will be an abstract

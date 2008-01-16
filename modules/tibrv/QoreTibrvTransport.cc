@@ -99,12 +99,14 @@ int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMs
       }
    }
 
-   if (v->type == NT_DATE)
    {
-      TibrvMsgDateTime dt;
-      dt.sec = v->val.date_time->getEpochSeconds();
-      msg->addDateTime(key, dt);
-      return 0;
+      DateTimeNode *date = dynamic_cast<DateTimeNode *>(v);
+      if (date) {
+	 TibrvMsgDateTime dt;
+	 dt.sec = date->getEpochSeconds();
+	 msg->addDateTime(key, dt);
+	 return 0;
+      }
    }
 
    if (v->type == NT_HASH)
@@ -304,7 +306,7 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
       }
 
       case TIBRVMSG_DATETIME:
-	 val = new QoreNode(new DateTime((int64)data.date.sec));
+	 val = new DateTimeNode((int64)data.date.sec);
 	 break;
 
       case TIBRVMSG_OPAQUE:
