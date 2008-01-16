@@ -166,7 +166,7 @@ static QoreNode *QDESKTOPWIDGET_screenNumber(QoreObject *self, QoreQDesktopWidge
 	 if (p->type == NT_OBJECT)
 	    xsink->raiseException("QDESKTOPWIDGET-SCREENNUMBER-PARAM-ERROR", "expecting either NOTHING, a QWidget, or a QPoint object as the sole argument to QDesktopWidget::screenNumber(), got class '%s'", p->val.object->getClass()->getName());
 	 else
-	    xsink->raiseException("QDESKTOPWIDGET-SCREENNUMBER-PARAM-ERROR", "expecting either NOTHING, a QWidget, or a QPoint object as the sole argument to QDesktopWidget::screenNumber(), got '%s'", p->type->getName());
+	    xsink->raiseException("QDESKTOPWIDGET-SCREENNUMBER-PARAM-ERROR", "expecting either NOTHING, a QWidget, or a QPoint object as the sole argument to QDesktopWidget::screenNumber(), got '%s'", p->getTypeName());
       }
       ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
       return new QoreNode((int64)qdw->qobj->screenNumber(widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));

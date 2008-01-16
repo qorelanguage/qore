@@ -39,7 +39,7 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
       return;
    }
    
-   s->sprintf("node=%08p refs=%d type=%s ", n, n->reference_count(), n->type->getName());
+   s->sprintf("node=%08p refs=%d type=%s ", n, n->reference_count(), n->getTypeName());
 
    {
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
@@ -148,7 +148,7 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
       return;
    }
 
-   s->sprintf("don't know how to print type '%s' :-(", n->type->getName());
+   s->sprintf("don't know how to print type '%s' :-(", n->getTypeName());
 }
 
 //static 

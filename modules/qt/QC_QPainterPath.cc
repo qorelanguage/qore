@@ -299,7 +299,7 @@ static QoreNode *QPAINTERPATH_arcMoveTo(QoreObject *self, QoreQPainterPath *qpp,
 static QoreNode *QPAINTERPATH_arcTo(QoreObject *self, QoreQPainterPath *qpp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   //printd(5, "QPainterPath::arcTo() p=%08p '%s' params=%d p=%d\n", p, p ? p->type->getName() : "N/A", params ? params->val.list->size() : 0, p && p->type == NT_LIST ? p->val.list->size() : 0);
+   //printd(5, "QPainterPath::arcTo() p=%08p '%s' params=%d p=%d\n", p, p ? p->getTypeName() : "N/A", params ? params->val.list->size() : 0, p && p->type == NT_LIST ? p->val.list->size() : 0);
    if (p && p->type == NT_OBJECT) {
       QoreQRectF *rectangle = (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectangle) {

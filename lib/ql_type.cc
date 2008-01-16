@@ -110,7 +110,7 @@ static class QoreNode *f_type(const QoreNode *params, ExceptionSink *xsink)
    if (!p)
       return new QoreStringNode(NT_NOTHING->getName());
    else
-      return new QoreStringNode(p->type->getName());
+      return new QoreStringNode(p->getTypeName());
 }
 
 void init_type_functions()

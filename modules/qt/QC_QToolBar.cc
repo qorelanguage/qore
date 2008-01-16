@@ -124,7 +124,7 @@ static QoreNode *QTOOLBAR_addAction(QoreObject *self, QoreQToolBar *qtb, const Q
    if (*xsink)
       return 0;
    if (!p | p->type != NT_OBJECT) {
-      xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "QToolBar::addAction() does not know how to handle arguments of type '%s' as the first argument", p ? p->type->getName() : "NOTHING");
+      xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "QToolBar::addAction() does not know how to handle arguments of type '%s' as the first argument", p ? p->getTypeName() : "NOTHING");
       return 0;
    }
 

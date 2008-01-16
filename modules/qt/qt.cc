@@ -223,7 +223,7 @@ int get_qdate(const QoreNode *n, QDate &date, class ExceptionSink *xsink)
 	    if (n && n->type == NT_OBJECT) 
 	       xsink->raiseException("DATE-ERROR", "class '%s' is not derived from QDate or QDateTime", n->val.object->getClass()->getName());
 	    else
-	       xsink->raiseException("DATE-ERROR", "cannot convert type '%s' to QDate", n ? n->type->getName() : "NOTHING");
+	       xsink->raiseException("DATE-ERROR", "cannot convert type '%s' to QDate", n ? n->getTypeName() : "NOTHING");
 	 }
 	 return -1;
       }
@@ -280,7 +280,7 @@ int get_qdatetime(const QoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
       }
    }
 
-   xsink->raiseException("QDATETIME-ERROR", "cannot derive QDateTime value from type '%s'", n ? n->type->getName() : "NOTHING");
+   xsink->raiseException("QDATETIME-ERROR", "cannot derive QDateTime value from type '%s'", n ? n->getTypeName() : "NOTHING");
    return -1;
 }
 
@@ -304,7 +304,7 @@ int get_qtime(const QoreNode *n, QTime &time, class ExceptionSink *xsink)
 	    if (n && n->type == NT_OBJECT) 
 	       xsink->raiseException("QTIME-ERROR", "class '%s' is not derived from QTime or QDateTime", n->val.object->getClass()->getName());
 	    else
-	       xsink->raiseException("QTIME-ERROR", "cannot convert type '%s' to QTime", n ? n->type->getName() : "NOTHING");
+	       xsink->raiseException("QTIME-ERROR", "cannot convert type '%s' to QTime", n ? n->getTypeName() : "NOTHING");
 	 }
 	 return -1;
       }
@@ -350,13 +350,13 @@ int get_qbytearray(const QoreNode *n, QByteArray &ba, class ExceptionSink *xsink
    }
 
    if (!suppress_exception)
-      xsink->raiseException("QBYTEARRAY-ERROR", "cannot convert type '%s' to QByteArray", n ? n->type->getName() : "NOTHING");
+      xsink->raiseException("QBYTEARRAY-ERROR", "cannot convert type '%s' to QByteArray", n ? n->getTypeName() : "NOTHING");
    return -1;
 }
 
 int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, bool suppress_exception)
 {
-   //printd(5, "get_variant() n=%08p %s\n", n, n ? n->type->getName() : "n/a");
+   //printd(5, "get_variant() n=%08p %s\n", n, n ? n->getTypeName() : "n/a");
    if (n) {
       if (n->type == NT_OBJECT) {
 	 class QoreQVariant *qv = (QoreQVariant *)n->val.object->getReferencedPrivateData(CID_QVARIANT, xsink);
@@ -403,7 +403,7 @@ int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
       }
    }
    if (!suppress_exception)
-      xsink->raiseException("QVARIANT-ERROR", "cannot convert type '%s' to QVariant", n ? n->type->getName() : "NOTHING");
+      xsink->raiseException("QVARIANT-ERROR", "cannot convert type '%s' to QVariant", n ? n->getTypeName() : "NOTHING");
    return -1;
 }
 
@@ -429,7 +429,7 @@ int get_qchar(const QoreNode *n, QChar &c, class ExceptionSink *xsink, bool supp
 	 if (n && n->type == NT_OBJECT) 
 	    xsink->raiseException("QCHAR-ERROR", "class '%s' is not derived from QChar", n->val.object->getClass()->getName());
 	 else
-	    xsink->raiseException("QCHAR-ERROR", "cannot convert type '%s' to QChar", n ? n->type->getName() : "NOTHING");
+	    xsink->raiseException("QCHAR-ERROR", "cannot convert type '%s' to QChar", n ? n->getTypeName() : "NOTHING");
       }
       return -1;
    }
@@ -484,7 +484,7 @@ int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, boo
 	    if (n && n->type == NT_OBJECT) 
 	       xsink->raiseException("QSTRING-ERROR", "class '%s' is not derived from QChar or QVariant", n->val.object->getClass()->getName());
 	    else
-	       xsink->raiseException("QSTRING-ERROR", "cannot convert type '%s' to QString", n ? n->type->getName() : "NOTHING");
+	       xsink->raiseException("QSTRING-ERROR", "cannot convert type '%s' to QString", n ? n->getTypeName() : "NOTHING");
 	 }
 	 return -1;
       }
@@ -533,13 +533,13 @@ int get_qkeysequence(const QoreNode *n, QKeySequence &ks, class ExceptionSink *x
       return 0;
    }
    if (!suppress_exception)
-      xsink->raiseException("QKEYSEQUENCE-ERROR", "cannot convert type '%s' to QKeySequence", n ? n->type->getName() : "NOTHING");
+      xsink->raiseException("QKEYSEQUENCE-ERROR", "cannot convert type '%s' to QKeySequence", n ? n->getTypeName() : "NOTHING");
    return -1;
 }
 
 int get_qbrush(const QoreNode *n, QBrush &brush, class ExceptionSink *xsink)
 {
-   //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->type->getName() : "n/a", n && n->type == NT_OBJECT ? n->val.object->getClass()->getName() : "n/a");
+   //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->getTypeName() : "n/a", n && n->type == NT_OBJECT ? n->val.object->getClass()->getName() : "n/a");
    if (n) {
       if (n->type == NT_OBJECT) {
 	 class QoreQBrush *qb = (QoreQBrush *)n->val.object->getReferencedPrivateData(CID_QBRUSH, xsink);
@@ -587,7 +587,7 @@ int get_qbrush(const QoreNode *n, QBrush &brush, class ExceptionSink *xsink)
 	 return 0;
       }
    }
-   xsink->raiseException("QBRUSH-ERROR", "cannot derive QBrush object from type %s", n ? n->type->getName() : "NOTHING");
+   xsink->raiseException("QBRUSH-ERROR", "cannot derive QBrush object from type %s", n ? n->getTypeName() : "NOTHING");
    return -1;
 }
 

@@ -202,7 +202,7 @@ void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &
       {
 	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH",
 			       "properties hash has invalid type '%s' for key '%s' (must be string)",
-			       v ? v->type->getName() : "NOTHING", key);
+			       v ? v->getTypeName() : "NOTHING", key);
 	 return;
       }
       const char *val = str->getBuffer();

@@ -140,7 +140,7 @@ static void GETOPT_constructor(class QoreObject *self, const QoreNode *params, E
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
       if (!str)
       {
-	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k, v ? v->type->getName() : "NOTHING");
+	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k, v ? v->getTypeName() : "NOTHING");
 	 break;
       }
 

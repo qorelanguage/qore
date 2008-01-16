@@ -70,7 +70,7 @@ static void QLISTWIDGETITEM_constructor(QoreObject *self, const QoreNode *params
       if (*xsink)
 	 return;
       if (offset) { // we got icon but not text
-	 xsink->raiseException("QLISTWIDGETITEM-CONSTRUTOR-ERROR", "expecting a string as second argument to QListWidgetItem::constructor() when the first argument is a QIcon, got type '%s' instead", p ? p->type->getName() : "NOTHING");
+	 xsink->raiseException("QLISTWIDGETITEM-CONSTRUTOR-ERROR", "expecting a string as second argument to QListWidgetItem::constructor() when the first argument is a QIcon, got type '%s' instead", p ? p->getTypeName() : "NOTHING");
 	 return;
       }
    }

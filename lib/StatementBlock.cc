@@ -284,7 +284,7 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    int current_pflag = pflag;
    pflag &= ~PF_REFERENCE_OK;  // unset "reference ok" for next call
 
-   //printd(5, "process_node() %08p type=%s cp=%d, p=%d\n", *node, *node ? (*node)->type->getName() : "(null)", current_pflag, pflag);
+   //printd(5, "process_node() %08p type=%s cp=%d, p=%d\n", *node, *node ? (*node)->getTypeName() : "(null)", current_pflag, pflag);
    if (!(*node))
       return 0;
 

@@ -226,7 +226,7 @@ class MData *QoreApp::do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 	 if (!v || v->type != NT_BINARY)
 	 {
 	    xsink->raiseException("TIBCO-TYPE-ERROR", "expecting binary object to serialize as TIBCO_BINARY, got '%s'", 
-				  v ? v->type->getName() : "NOTHING");
+				  v ? v->getTypeName() : "NOTHING");
 	    return 0;
 	 }
 
@@ -396,7 +396,7 @@ lass '%s'", pcd->getFullName().c_str(), cn);
       return NULL;
 
    xsink->raiseException("TIBCO-UNSUPPORTED-TYPE", "unsupported QORE type '%s' (TIBCO type '%s')",
-                  v->type->getName(), pcd->getShortName().c_str());
+                  v->getTypeName(), pcd->getShortName().c_str());
 
    //traceout("QoreApp::do_primitive_type()");
    return NULL;
@@ -525,7 +525,7 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-SEQUENCE",
                          "cannot instantiate TIBCO sequence '%s' from node type '%s'",
-                         msd->getFullName().c_str(), v->type->getName());
+                         msd->getFullName().c_str(), v->getTypeName());
       return NULL;
    }
    MSequence *seq = new MSequence(mcr, msd->getFullName());
@@ -563,7 +563,7 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Qo
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-CLASS",
                          "cannot instantiate class '%s' from node type '%s'",
-                         mcd->getFullName().c_str(), v->type->getName());
+                         mcd->getFullName().c_str(), v->getTypeName());
       return NULL;
    }
 
@@ -592,7 +592,7 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Qo
             return NULL;
          }
          printd(5, "QoreApp::instantiate_modeledclass(): instantiating %s member %s (%08p %s)\n",
-                mcd->getFullName().c_str(), key, t, t ? t->type->getName() : "(null)");
+                mcd->getFullName().c_str(), key, t, t ? t->getTypeName() : "(null)");
          MData *md = instantiate_class(t, mad->getAttributeClassDescription(), xsink);
          printd(5, "QoreApp::instantiate_modeledclass(): setting key=%s to md=%08p\n", key, md);
          try {
@@ -639,7 +639,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-UNION",
                          "cannot instantiate TIBCO union '%s' from node type '%s'",
-                         mud->getFullName().c_str(), v->type->getName());
+                         mud->getFullName().c_str(), v->getTypeName());
       return NULL;
    }
    // ensure that QoreObject does not have more than one key
@@ -669,7 +669,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
          return NULL;
       }
       printd(3, "QoreApp::instantiate_union(): instantiating %s member %s (%08p %s)\n",
-             mud->getFullName().c_str(), key, t, t ? t->type->getName() : "(null)");
+             mud->getFullName().c_str(), key, t, t ? t->getTypeName() : "(null)");
       MData *md;
       mu->set(key, md = instantiate_class(t, mmd->getMemberClassDescription(), xsink));
       if (md)
@@ -683,7 +683,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
 class MData *QoreApp::instantiate_class(QoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink)
 {
    tracein("QoreApp::instantiate_class()");
-   printd(5, "QoreApp::instantiate_class() mbcd=%08p %s: %08p (%s)\n", mbcd, mbcd->getFullName().c_str(), v, v ? v->type->getName() : "(null)");
+   printd(5, "QoreApp::instantiate_class() mbcd=%08p %s: %08p (%s)\n", mbcd, mbcd->getFullName().c_str(), v, v ? v->getTypeName() : "(null)");
 
    const MPrimitiveClassDescription *pcd;
    const MModeledClassDescription *mcd;

@@ -32,7 +32,7 @@ struct lvih_intern {
       DLLLOCAL lvih_intern(const char *name, QoreNode *val, ExceptionSink *xs) : xsink(xs)
       {
 	 char *new_name = strdup(name);
-	 printd(5, "LVarInstantiatorHelper::LVarInstantiatorHelper() instantiating '%s' %08p (val=%08p type='%s') \n", new_name, new_name, val, val ? val->type->getName() : "n/a");
+	 printd(5, "LVarInstantiatorHelper::LVarInstantiatorHelper() instantiating '%s' %08p (val=%08p type='%s') \n", new_name, new_name, val, val ? val->getTypeName() : "n/a");
 	 lv = instantiateLVar(new_name, val);
 	 ref = new QoreNode(NT_REFERENCE);
 	 VarRef *vr = new VarRef(new_name, VT_LOCAL);

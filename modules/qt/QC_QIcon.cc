@@ -42,7 +42,7 @@ static void QICON_constructor(class QoreObject *self, const QoreNode *params, Ex
       qi = new QoreQIcon();
    else {
       if (p->type != NT_STRING && p->type != NT_OBJECT) {
-	 xsink->raiseException("QICON-CONSTRUCTOR-ERROR", "missing icon name or QPixmap as first parameter (got type '%s')", p->type->getName());
+	 xsink->raiseException("QICON-CONSTRUCTOR-ERROR", "missing icon name or QPixmap as first parameter (got type '%s')", p->getTypeName());
 	 return;
       }
 

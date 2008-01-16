@@ -223,7 +223,7 @@ static void QVARIANT_constructor(QoreObject *self, const QoreNode *params, Excep
       self->setPrivate(CID_QVARIANT, new QoreQVariant(val));
       return;
    }
-   xsink->raiseException("QVARIANT-CONSTRUCTOR-ERROR", "don't know how to handle arguments of type '%s'", p ? p->type->getName() : "NOTHING");
+   xsink->raiseException("QVARIANT-CONSTRUCTOR-ERROR", "don't know how to handle arguments of type '%s'", p ? p->getTypeName() : "NOTHING");
    return;
 }
 

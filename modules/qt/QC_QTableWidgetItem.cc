@@ -41,7 +41,7 @@ class QoreClass *QC_QTableWidgetItem = 0;
 static void QTABLEWIDGETITEM_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   //printd(0, "QTableWidgetItem() self=%08p, p=%s\n", self, p ? p->type->getName() : "(null)");
+   //printd(0, "QTableWidgetItem() self=%08p, p=%s\n", self, p ? p->getTypeName() : "(null)");
    if (p && p->type == NT_OBJECT) {
       QoreQIcon *icon = (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {

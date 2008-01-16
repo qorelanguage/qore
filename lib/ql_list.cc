@@ -51,7 +51,7 @@ static class QoreNode *f_sort(const QoreNode *params, ExceptionSink *xsink)
    }
    if (fn->type != NT_FUNCREF)
    {
-      xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->type->getName());
+      xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
    return lst->val.list->sort(fn->val.funcref, xsink);
@@ -86,7 +86,7 @@ static class QoreNode *f_sortDescending(const QoreNode *params, ExceptionSink *x
    
    if (fn->type != NT_FUNCREF)
    {
-      xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->type->getName());
+      xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
    return lst->val.list->sortDescending(fn->val.funcref, xsink);
@@ -121,7 +121,7 @@ static class QoreNode *f_sortStable(const QoreNode *params, ExceptionSink *xsink
       
    if (fn->type != NT_FUNCREF)
    {
-      xsink->raiseException("SORTSTABLE-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->type->getName());
+      xsink->raiseException("SORTSTABLE-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
    return lst->val.list->sortStable(fn->val.funcref, xsink);
@@ -156,7 +156,7 @@ static class QoreNode *f_sortDescendingStable(const QoreNode *params, ExceptionS
 
    if (fn->type != NT_FUNCREF)
    {
-      xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->type->getName());
+      xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
    return lst->val.list->sortDescendingStable(fn->val.funcref, xsink);
@@ -188,7 +188,7 @@ static class QoreNode *f_min(const QoreNode *params, ExceptionSink *xsink)
 
       if (p->type != NT_FUNCREF)
       {
-	 xsink->raiseException("MIN-PARAM-ERROR", "second argument is present and is not a call reference or string (%s)", p->type->getName());
+	 xsink->raiseException("MIN-PARAM-ERROR", "second argument is present and is not a call reference or string (%s)", p->getTypeName());
 	 return NULL;
       }
       return lst->min(p->val.funcref, xsink);
@@ -224,7 +224,7 @@ static class QoreNode *f_max(const QoreNode *params, ExceptionSink *xsink)
 
       if (p->type != NT_FUNCREF)
       {
-	 xsink->raiseException("MAX-PARAM-ERROR", "second argument is present and is not a call reference or string (%s)", p->type->getName());
+	 xsink->raiseException("MAX-PARAM-ERROR", "second argument is present and is not a call reference or string (%s)", p->getTypeName());
 	 return NULL;
       }
       return lst->max(p->val.funcref, xsink);

@@ -42,7 +42,7 @@ static void QDATETIME_constructor(class QoreObject *self, const QoreNode *params
 			      QTime(dt->getHour(), dt->getMinute(), dt->getSecond(), dt->getMillisecond()));
    }
    else if (p->type != NT_OBJECT) {
-      xsink->raiseException("QDATETIME-CONSTRUCTOR-ERROR", "don't know how to handle argument of type '%s' in QDateTime::constructor()", p->type->getName());
+      xsink->raiseException("QDATETIME-CONSTRUCTOR-ERROR", "don't know how to handle argument of type '%s' in QDateTime::constructor()", p->getTypeName());
       return;
    }
    else {

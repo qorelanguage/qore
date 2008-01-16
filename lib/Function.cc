@@ -574,7 +574,7 @@ QoreNode *BuiltinFunction::eval(const QoreNode *args, ExceptionSink *xsink) cons
    tracein("BuiltinFunction::eval(Node)");
    printd(3, "BuiltinFunction::eval(Node) calling builtin function \"%s\"\n", name);
    
-   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->type->getName() : "(null)");
+   //printd(5, "BuiltinFunction::eval(Node) args=%08p %s\n", args, args ? args->getTypeName() : "(null)");
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
@@ -583,7 +583,7 @@ QoreNode *BuiltinFunction::eval(const QoreNode *args, ExceptionSink *xsink) cons
 
    QoreNodeEvalOptionalRefHolder tmp(args, xsink);
 
-   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->type->getName() : "(null)");
+   //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->getTypeName() : "(null)");
 
    {
       CodeContextHelper cch(name, NULL, xsink);
@@ -635,7 +635,7 @@ class QoreNode *UserFunction::eval(const QoreNode *args, QoreObject *self, class
    for (i = 0; i < num_params; i++)
    {
       QoreNode *n = args ? args->val.list->retrieve_entry(i) : NULL;
-      printd(4, "UserFunction::eval() %d: instantiating param lvar %d (%08p %s)\n", i, params->ids[i], n, n ? n->type->getName() : "(null)");
+      printd(4, "UserFunction::eval() %d: instantiating param lvar %d (%08p %s)\n", i, params->ids[i], n, n ? n->getTypeName() : "(null)");
       if (n)
       {
          if (n->type == NT_REFERENCE)

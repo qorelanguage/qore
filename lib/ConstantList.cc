@@ -147,7 +147,7 @@ void ConstantList::parseInit()
       printd(5, "ConstantList::parseInit() %s\n", i->first);
       rns->parseInitConstantValue(&i->second, 0);
       printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", 
-	     i->first, i->second, i->second ? i->second->type->getName() : "NULL");
+	     i->first, i->second, i->second ? i->second->getTypeName() : "NULL");
       if (!i->second)
 	 i->second = nothing();
    }

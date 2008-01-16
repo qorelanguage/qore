@@ -41,7 +41,7 @@ static int qpolygon_add_points(QoreQPolygon *qp, QoreList *l, class ExceptionSin
       QoreQPoint *point = (n && n->type == NT_OBJECT) ?  (QoreQPoint *)n->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
       if (!point) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QPOINT-LIST-TYPE-ERROR", "expecting only objects derived from QPoint, found other type ('%s')", n ? n->type->getName() : "NOTHING");
+	    xsink->raiseException("QPOINT-LIST-TYPE-ERROR", "expecting only objects derived from QPoint, found other type ('%s')", n ? n->getTypeName() : "NOTHING");
 	 return -1;
       }
       ReferenceHolder<QoreQPoint> pointHolder(point, xsink);

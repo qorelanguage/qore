@@ -603,7 +603,7 @@ inline void QoreHash::deref_intern(class ExceptionSink *xsink)
       printd(5, "Hash::deref_intern() %s=%08p type=%s references=%d\n",
 	     where->key ? where->key : "(null)",
 	     where->node,
-	     where->node ? where->node->type->getName() : "(null)",
+	     where->node ? where->node->getTypeName() : "(null)",
 	     where->node ? where->node->reference_count() : 0);
 #endif
       class HashMember *om = where;

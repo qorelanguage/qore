@@ -711,7 +711,7 @@ static int check_hash_type(class QoreHash *h, class ExceptionSink *xsink)
    }
    if (t->type != NT_INT)
    {
-      xsink->raiseException("DBI:PGSQL:BIND-ERROR", "'^pgtype^' key contains '%s' value, expecting integer", t->type->getName());
+      xsink->raiseException("DBI:PGSQL:BIND-ERROR", "'^pgtype^' key contains '%s' value, expecting integer", t->getTypeName());
       return -1;
    }
    return t->val.intval;
@@ -722,7 +722,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
    parambuf *pb = new parambuf();
    parambuf_list.push_back(pb);
 
-   //printd(5, "nparams=%d, v=%08p, type=%s\n", nParams, v, v ? v->type->getName() : "(null)");
+   //printd(5, "nparams=%d, v=%08p, type=%s\n", nParams, v, v ? v->getTypeName() : "(null)");
    if (nParams == allocated)
    {
       allocated += 5;
@@ -944,7 +944,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
 
    paramTypes[nParams] = 0;
    paramValues[nParams] = 0;
-   xsink->raiseException("DBI:PGSQL:EXEC-EXCEPTION", "don't know how to bind type '%s'", v->type->getName());
+   xsink->raiseException("DBI:PGSQL:EXEC-EXCEPTION", "don't know how to bind type '%s'", v->getTypeName());
 
    nParams++;
    return -1;

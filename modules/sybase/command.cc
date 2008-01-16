@@ -118,7 +118,7 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
 	 continue;
       
       class QoreNode *val = args ? args->retrieve_entry(i) : NULL;
-      //printd(5, "set_params() param %d = value %08p (%s)\n", i, val, val ? val->type->getName() : "n/a");
+      //printd(5, "set_params() param %d = value %08p (%s)\n", i, val, val ? val->getTypeName() : "n/a");
       
       CS_DATAFMT datafmt;
       memset(&datafmt, 0, sizeof(datafmt));
@@ -238,7 +238,7 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
       }
       else
       {
-	 xsink->raiseException("DBI:SYBASE:BIND-ERROR", "do not know how to bind values of type '%s'", val->type->getName());
+	 xsink->raiseException("DBI:SYBASE:BIND-ERROR", "do not know how to bind values of type '%s'", val->getTypeName());
 	 return -1;
       }
    }

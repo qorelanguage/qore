@@ -231,7 +231,7 @@ static QoreNode *QPEN_setStyle(QoreObject *self, QoreQPen *qp, const QoreNode *p
 {
    QoreNode *p = get_param(params, 0);
    if (!p || p->type != NT_PENSTYLE) {
-      xsink->raiseException("QPEN-SETSTYLE-ERROR", "QPen::setStyle() expects a PenStyle constant as the sole argument, got type '%s' instead", p ? p->type->getName() : "NOTHING");
+      xsink->raiseException("QPEN-SETSTYLE-ERROR", "QPen::setStyle() expects a PenStyle constant as the sole argument, got type '%s' instead", p ? p->getTypeName() : "NOTHING");
       return 0;
    }
 

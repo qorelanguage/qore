@@ -129,7 +129,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    QoreString tbuf(cstr->getEncoding());
 
    printd(5, "process_opt(): param=%s type=%d node=%08p node->type=%s refs=%d\n",
-	  param, type, node, node ? node->type->getName() : "(null)", node ? node->reference_count() : -1);
+	  param, type, node, node ? node->getTypeName() : "(null)", node ? node->reference_count() : -1);
    if (node && node->type == NT_STRING) {
       QoreStringNode *str = reinterpret_cast<QoreStringNode *>(node);
       printd(5, "process_opt() %08p (%d) \"%s\"\n", str->getBuffer(), str->strlen(), str->getBuffer());
@@ -556,7 +556,7 @@ char *make_class_name(const char *str)
 
 void print_node(FILE *fp, class QoreNode *node)
 {
-   printd(5, "print_node() node=%08p (%s)\n", node, node ? node->type->getName() : "(null)");
+   printd(5, "print_node() node=%08p (%s)\n", node, node ? node->getTypeName() : "(null)");
    QoreStringValueHelper str(node);
    fputs(str->getBuffer(), fp);
 }

@@ -42,7 +42,7 @@ static void QOBJECT_constructor(class QoreObject *self, const QoreNode *params, 
       if (!parent)
       {
 	 if (!xsink->isException())
-	    xsink->raiseException("QOBJECT-CONSTRUCTOR-ERROR", "expecting an object derived from QObject as parameter to QObject::constructor() in first argument if passed, argument is either not an argument or not derived from QObject (type passed: %s)", p ? p->type->getName() : "NOTHING");
+	    xsink->raiseException("QOBJECT-CONSTRUCTOR-ERROR", "expecting an object derived from QObject as parameter to QObject::constructor() in first argument if passed, argument is either not an argument or not derived from QObject (type passed: %s)", p ? p->getTypeName() : "NOTHING");
 	 return;
       }
       ReferenceHolder<QoreAbstractQObject> holder(parent, xsink);

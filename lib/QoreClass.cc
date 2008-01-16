@@ -1054,7 +1054,7 @@ class QoreNode *QoreMethod::eval(QoreObject *self, const QoreNode *args, Excepti
    
 #ifdef DEBUG
    printd(5, "QoreMethod::eval() %s::%s() returning %08p (type=%s, refs=%d)\n",
-	  oname, priv->name, rv, rv ? rv->type->getName() : "(null)", rv ? rv->reference_count() : 0);
+	  oname, priv->name, rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
 #endif
    traceout("QoreMethod::eval()");
    return rv;

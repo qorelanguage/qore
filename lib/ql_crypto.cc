@@ -66,7 +66,7 @@ class BaseHelper {
 	    return 0;
 	 }
 	 
-	 xsink->raiseException(err, "don't know how to process type '%s' (expecing string or binary)", pt->type->getName());
+	 xsink->raiseException(err, "don't know how to process type '%s' (expecing string or binary)", pt->getTypeName());
 	 return -1;
       }      
 };
@@ -155,7 +155,7 @@ class CryptoHelper : public BaseHelper
 	    return 0;
 	 }
 
-	 xsink->raiseException(err, "can't use type '%s' for %s key value", pt->type->getName(), getOrdinal(n));
+	 xsink->raiseException(err, "can't use type '%s' for %s key value", pt->getTypeName(), getOrdinal(n));
 	 return -1;
       }
 
@@ -193,7 +193,7 @@ class CryptoHelper : public BaseHelper
 	    return 0;
 	 }
 
-	 xsink->raiseException(err, "can't use type '%s' as an input vector", pt->type->getName());
+	 xsink->raiseException(err, "can't use type '%s' as an input vector", pt->getTypeName());
 	 return -1;
       }
 

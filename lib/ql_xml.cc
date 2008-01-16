@@ -200,7 +200,7 @@ static void makeXMLString(QoreString *str, QoreHash *h, int indent, const QoreEn
 
 static void concatSimpleValue(QoreString *str, QoreNode *n, class ExceptionSink *xsink)
 {
-   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->type->getName(), n->type == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
+   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->type == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
    {
       QoreStringNode *qsn = dynamic_cast<QoreStringNode *>(n);
@@ -238,7 +238,7 @@ static void concatSimpleValue(QoreString *str, QoreNode *n, class ExceptionSink 
 
 static void concatSimpleCDataValue(QoreString *str, QoreNode *n, class ExceptionSink *xsink)
 {
-   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->type->getName(), n->type == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
+   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->type == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
    {
       QoreStringNode *qsn = dynamic_cast<QoreStringNode *>(n);
