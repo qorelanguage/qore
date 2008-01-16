@@ -102,7 +102,7 @@ class QoreNode *TIBRVFTMONITOR_getGroupName(class QoreObject *self, class QoreTi
 {
    const char *name = ftm->getGroupName();
    if (name)
-      return new QoreNode((char *)name);
+      return new QoreStringNode((char *)name);
 
    return NULL;
 }

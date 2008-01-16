@@ -1339,7 +1339,7 @@ static class QoreNode *oracle_get_server_version(class Datasource *ds, class Exc
    if (xsink->isEvent())
       return NULL;
    
-   return new QoreNode(version_buf);   
+   return new QoreStringNode(version_buf);   
 }
 
 #ifdef HAVE_OCICLIENTVERSION

@@ -156,7 +156,7 @@ class QoreNode *TIBRVCMSENDER_setStringEncoding(class QoreObject *self, class Qo
 
 class QoreNode *TIBRVCMSENDER_getStringEncoding(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(cms->getStringEncoding()->getCode());
+   return new QoreStringNode(cms->getStringEncoding()->getCode());
 }
 
 class QoreNode *TIBRVCMSENDER_connectToRelayAgent(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreNode *params, ExceptionSink *xsink)
@@ -192,7 +192,7 @@ class QoreNode *TIBRVCMSENDER_getName(class QoreObject *self, class QoreTibrvCmS
 {
    const char *name = cms->getName(xsink);
    if (!xsink->isException())
-      return new QoreNode(name);
+      return new QoreStringNode(name);
 
    return NULL;
 }

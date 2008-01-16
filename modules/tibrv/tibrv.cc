@@ -116,7 +116,7 @@ static class QoreNode *tibrv_hash_helper(char *key, class QoreNode *val)
    class QoreHash *h = new QoreHash();
    if (val)
       val->ref();
-   h->setKeyValue("^type^", new QoreNode(key), NULL);
+   h->setKeyValue("^type^", new QoreStringNode(key), NULL);
    h->setKeyValue("^value^", val, NULL);
    return new QoreNode(h);
 }
@@ -193,7 +193,7 @@ static class QoreNode *f_tibrv_bool(const QoreNode *params, class ExceptionSink 
 
 static class QoreNode *f_tibrvGetVersion(const QoreNode *params, class ExceptionSink *xsink)
 {
-   return new QoreNode(Tibrv::version());
+   return new QoreStringNode(Tibrv::version());
 }
 
 void init_tibrv_functions()

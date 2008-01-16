@@ -125,7 +125,7 @@ class QoreNode *TIBRVSENDER_setStringEncoding(class QoreObject *self, class Qore
 
 class QoreNode *TIBRVSENDER_getStringEncoding(class QoreObject *self, class QoreTibrvSender *trvs, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(trvs->getStringEncoding()->getCode());
+   return new QoreStringNode(trvs->getStringEncoding()->getCode());
 }
 
 class QoreClass *initTibrvSenderClass()

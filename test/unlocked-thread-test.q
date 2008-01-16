@@ -151,7 +151,7 @@ try
 	$queue.push(sprintf("total %d threads\n", num_threads()));
 	foreach my $t in ($l = thread_list())
 	    $queue.push(sprintf("TID %d still running\n", $t));
-	if (elements $l == 3)
+	if (elements $l == 2)
 	    break;
 	sleep(2);
     }

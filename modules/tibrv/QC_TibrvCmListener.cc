@@ -138,7 +138,7 @@ class QoreNode *TIBRVCMLISTENER_setStringEncoding(class QoreObject *self, class 
 
 class QoreNode *TIBRVCMLISTENER_getStringEncoding(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(cml->getStringEncoding()->getCode());
+   return new QoreStringNode(cml->getStringEncoding()->getCode());
 }
 
 class QoreNode *TIBRVCMLISTENER_syncLedger(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreNode *params, ExceptionSink *xsink)
@@ -151,7 +151,7 @@ static QoreNode *TIBRVCMLISTENER_getName(class QoreObject *self, class QoreTibrv
 {
    const char *name = cml->getName(xsink);
    if (!xsink->isException())
-      return new QoreNode(name);
+      return new QoreStringNode(name);
 
    return NULL;
 }

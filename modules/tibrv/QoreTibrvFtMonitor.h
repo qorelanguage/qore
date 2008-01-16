@@ -88,7 +88,7 @@ class QoreTibrvFtMonitorCallback : public TibrvFtMonitorCallback
       {
 	 //printd(5, "onFtAction %s: %d\n", groupName, action);
 	 h = new QoreHash();
-	 h->setKeyValue("group", new QoreNode(groupName), NULL);
+	 h->setKeyValue("group", new QoreStringNode(groupName), NULL);
 	 h->setKeyValue("numActiveMembers", new QoreNode((int64)numActiveMembers), NULL);
       }
 

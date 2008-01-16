@@ -96,6 +96,8 @@ class QoreNode : public ReferenceObject
 
       DLLEXPORT QoreNode(class QoreString *str);
       DLLEXPORT QoreNode(class DateTime *dt);
+      DLLEXPORT QoreNode(const char *str);
+      DLLEXPORT QoreNode(const std::string &str);
 
    protected:
       DLLLOCAL virtual ~QoreNode();
@@ -110,9 +112,6 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(long v);
       DLLEXPORT QoreNode(int64 v);
       DLLEXPORT QoreNode(bool v);
-
-      DLLEXPORT QoreNode(const char *str);
-      DLLEXPORT QoreNode(const std::string &str);
 
       DLLEXPORT QoreNode(double d);
       DLLEXPORT QoreNode(class BinaryObject *b);

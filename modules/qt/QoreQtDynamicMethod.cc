@@ -205,7 +205,7 @@ void QoreQtDynamicSlot::call(void **arguments)
       }
       else if (type_list[i] == QQT_TYPE_P_CHAR) {
 	 char **ptr = reinterpret_cast<char **>(arguments[i + 1]);
-	 args->push(new QoreNode(*ptr));
+	 args->push(new QoreStringNode(*ptr));
       }
       else if (type_list[i] == QQT_TYPE_QSTRING) {
 	 QString *qstr = reinterpret_cast<QString *>(arguments[i + 1]);

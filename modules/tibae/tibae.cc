@@ -161,17 +161,11 @@ class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
 
    const MInterval *mint;
    if ((mint = MInterval::downCast(md)))
-   {
-      class DateTime *d = new DateTime(0, 0, 0, 0, 0, mint->getSeconds(), mint->getMicroSeconds() / 1000, true);
-      return new QoreNode(d);
-   }
+      return new DateTimeNode(0, 0, 0, 0, 0, mint->getSeconds(), mint->getMicroSeconds() / 1000, true);
 
    const MTime *mtime;
    if ((mtime = MTime::downCast(md)))
-   {
-      class DateTime *d = new DateTime(0, 0, 0, mtime->getHour(), mtime->getMinute(), mtime->getSecond(), mtime->getMicroSeconds() / 1000);
-      return new QoreNode(d);
-   }
+      return new DateTimeNode(0, 0, 0, mtime->getHour(), mtime->getMinute(), mtime->getSecond(), mtime->getMicroSeconds() / 1000);
 
    xsink->raiseException("MAP-ERROR", "can't map MData element of class '%s' to QORE type", md->getClassName());
    return NULL;

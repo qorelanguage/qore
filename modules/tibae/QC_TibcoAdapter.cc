@@ -178,7 +178,7 @@ class QoreNode *TIBAE_sendSubjectWithSyncReply(class QoreObject *self, class Qor
    // set timeout parameter if present
    int timeout = 0;
    if ((p3 = get_param(params, 3)))
-      timeout = geMsZeroInt(p3);
+      timeout = getMsZeroInt(p3);
 
    // try to send message
    try
@@ -211,7 +211,7 @@ class QoreNode *TIBAE_receive(class QoreObject *self, class QoreApp *myQoreApp, 
    unsigned long timeout = 0;
 
    QoreNode *p1; 
-   if ((p1 = get_param(params, 1))) {
+   if ((p1 = get_param(params, 1)))
       timeout = getMsZeroInt(p1);
    
    return myQoreApp->receive(subject, timeout, xsink);

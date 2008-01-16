@@ -96,7 +96,7 @@ class QoreTibrvFtMemberCallback : public TibrvFtMemberCallback
 	 //printd(0, "onFtAction %s: %d\n", groupName, action);
 	 h = new QoreHash();
 	 h->setKeyValue("action", new QoreNode((int64)action), NULL);
-	 h->setKeyValue("group", new QoreNode(groupName), NULL);
+	 h->setKeyValue("group", new QoreStringNode(groupName), NULL);
       }
 
    public:

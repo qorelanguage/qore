@@ -90,7 +90,7 @@ class QoreTibrvCmMsgCallback : public TibrvCmMsgCallback
 	 {
 	    const char *name;
 	    if (TibrvCmMsg::getSender(msg, name) == TIBRV_OK)
-	       h->setKeyValue("cmSender", new QoreNode(name), NULL);
+	       h->setKeyValue("cmSender", new QoreStringNode(name), NULL);
 	    
 	    tibrv_u64 seq;
 	    if (TibrvCmMsg::getSequence(msg, seq) == TIBRV_OK)

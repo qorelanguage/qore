@@ -106,7 +106,7 @@ QoreApp::~QoreApp()
 
 void QoreApp::deref(ExceptionSink *xsink)
 {
-   printd(0, "QoreApp::deref() this=%08p session=%s, refs=%d -> %d\n", this, session_name, reference_count(), reference_count() - 1);
+   //printd(5, "QoreApp::deref() this=%08p session=%s, refs=%d -> %d\n", this, session_name, reference_count(), reference_count() - 1);
    //tracein("QoreApp::deref()");
    if (ROdereference())
    {
@@ -144,7 +144,7 @@ const MBaseClassDescription *QoreApp::find_class(const char *cn, ExceptionSink *
    return mbcd;
 }
 
-DLLLOCAL MDateTime *get_mdatetime(class DateTime *d)
+DLLLOCAL MDateTime *get_mdatetime(const DateTime *d)
 {
    // we have to use a string here in case the date is too large for a time_t value
    QoreString str;
@@ -966,11 +966,11 @@ class QoreNode *QoreApp::receive(const char *subj, unsigned long timeout, Except
 
 	 printd(5, "QoreApp::receive() subject=%s\n", myEventHandler->subject.c_str());
 	 // assign "subject" member
-	 h->setKeyValue("subject", new QoreNode(myEventHandler->subject.c_str()), NULL);
+	 h->setKeyValue("subject", new QoreStringNode(myEventHandler->subject.c_str()), NULL);
 
 	 printd(5, "QoreApp::receive() replySubject=%s\n", myEventHandler->replySubject.c_str());
 	 // assign "replySubject" member
-	 h->setKeyValue("replySubject", new QoreNode(myEventHandler->replySubject.c_str()), NULL);
+	 h->setKeyValue("replySubject", new QoreStringNode(myEventHandler->replySubject.c_str()), NULL);
 	 rv = new QoreNode(h);
       }
       else
