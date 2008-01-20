@@ -501,7 +501,7 @@ static QoreNode* cancelAsyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, c
   if (res != -1) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpcancel"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpcancel"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpcancel() failed with error %d.", tperrno);
 }
 
@@ -603,7 +603,7 @@ static QoreNode* breakConversation(QoreObject* self, QoreTuxedoAdapter* adapter,
   if (res != -1) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpdiscon"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpdiscon"), xsink);
   return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpdiscon() failed with error %d.", tperrno);
 }
 
@@ -862,7 +862,7 @@ static QoreNode* openResourceManager(QoreObject* self, QoreTuxedoAdapter* adapte
   if (res == -1) {    
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpopen"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpopen"), xsink);
     xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpopen() failed with error %d.", tperrno);
   }
   return 0;
@@ -876,7 +876,7 @@ static QoreNode* closeResourceManager(QoreObject* self, QoreTuxedoAdapter* adapt
   if (res != -1) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpclose"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpclose"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpclose() failed with error %d.", tperrno);
 }
 
@@ -899,7 +899,7 @@ static QoreNode* beginTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, 
   if (res != -1) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpbegin"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpbegin"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpbegin() failed with error %d.", tperrno);
 }
 
@@ -911,7 +911,7 @@ static QoreNode* commitTransaction(QoreObject* self, QoreTuxedoAdapter* adapter,
   if (res != -1) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpcommit"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpcommit"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpcommit() failed with error %d.", tperrno);
 }
 
@@ -923,7 +923,7 @@ static QoreNode* abortTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, 
   if (res != -1) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpabort"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpabort"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpabort() failed with error %d.", tperrno);
 }
 
@@ -947,7 +947,7 @@ static QoreNode* setPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const
   if (res != -1) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpsprio"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpsprio"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpsprio() failed with error %d.", tperrno);
 
 }
@@ -960,7 +960,7 @@ static QoreNode* getPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const
   if (res != -1) return new QoreNode((int64)res);
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpgprio"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpgprio"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpgprio() failed with error %d.", tperrno);
 
 }
@@ -978,7 +978,7 @@ static QoreNode* suspendTransaction(QoreObject* self, QoreTuxedoAdapter* adapter
   }
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpsuspend"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpsuspend"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpsuspend() failed with error %d.", tperrno);
 }
 
@@ -1003,7 +1003,7 @@ static QoreNode* resumeTransaction(QoreObject* self, QoreTuxedoAdapter* adapter,
   }
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpresume"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpresume"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpresume() failed with error %d.", tperrno);
 }
 
@@ -1015,7 +1015,7 @@ static QoreNode* finishCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter
   if (res != -1) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpscmt"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpscmt"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpscmt() failed with error %d.", tperrno);
 }
 
@@ -1027,7 +1027,7 @@ static QoreNode* finishCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedo
   if (res != -1) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpscmt"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpscmt"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpscmt() failed with error %d.", tperrno);
 }
 
@@ -1039,7 +1039,7 @@ static QoreNode* isTransactionRunning(QoreObject* self, QoreTuxedoAdapter* adapt
   if (res == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpgetlev"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpgetlev"), xsink);
     return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpgetlev() failed with error %d.", tperrno);
   }
   return new QoreNode(res != 0);
@@ -1101,7 +1101,7 @@ static QoreNode* beginTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter
   if (res == TX_OK) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_begin"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_begin"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tx_begin() failed with error %d.", res);
 }
 
@@ -1113,7 +1113,7 @@ static QoreNode* commitTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapte
   if (res == TX_OK) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_commit"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_commit"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tx_commit() failed with error %d.", res);
 }
 
@@ -1125,7 +1125,7 @@ static QoreNode* abortTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter
   if (res == TX_OK) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_rollback"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_rollback"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tx_rollback() failed with error %d.", res);
 }
 
@@ -1137,7 +1137,7 @@ static QoreNode* finishTxCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapt
   if (res == TX_OK) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_commit_return"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_set_commit_return"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tx_set_commit_return() failed with error %d.", res);
 }
 
@@ -1149,7 +1149,7 @@ static QoreNode* finishTxCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxe
   if (res == TX_OK) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_commit_return"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_set_commit_return"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tx_set_commit_return() failed with error %d.", res);
 }
 
@@ -1161,7 +1161,7 @@ static QoreNode* openTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adap
   if (res == TX_OK) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_open"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_open"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tx_open() failed with error %d.", res);
 }
 
@@ -1173,7 +1173,7 @@ static QoreNode* closeTxResourceManager(QoreObject* self, QoreTuxedoAdapter* ada
   if (res == TX_OK) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_close"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_close"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tx_close() failed with error %d.", res);
 }
 
@@ -1185,7 +1185,7 @@ static QoreNode* setChainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* a
   if (res == TX_OK) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_transaction_control"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_set_transaction_control"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tx_set_transaction_control() failed with error %d.", res);
 }
 
@@ -1197,7 +1197,7 @@ static QoreNode* setUnchainedTxTransactions(QoreObject* self, QoreTuxedoAdapter*
   if (res == TX_OK) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_transaction_control"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_set_transaction_control"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tx_set_transaction_control() failed with error %d.", res);
 }
 
@@ -1223,7 +1223,7 @@ static QoreNode* setTxTransactionsTimeout(QoreObject* self, QoreTuxedoAdapter* a
   if (res == TX_OK) return 0;
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_transaction"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_set_transaction"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tx_set_transaction() failed with error %d.", res);
 }
 

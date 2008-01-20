@@ -885,7 +885,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
   if (res == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpinit"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpinit"), xsink);
     xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpinit() failed with error %d.", tperrno);
     return;
   } 
@@ -898,7 +898,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     if (res == -1) {
       QoreHash* h = new QoreHash;
       h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-      h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpsprio"), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpsprio"), xsink);
       xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpsprio() failed with error %d.", tperrno);
       return;
     }
@@ -914,7 +914,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     if (res == -1) {
       QoreHash* h = new QoreHash;
       h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-      h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpscmt"), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpscmt"), xsink);
       xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpscmt() failed with error %d.", tperrno);
       return;
     }
@@ -930,7 +930,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     if (res != TX_OK) {
       QoreHash* h = new QoreHash;
       h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-      h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_commit_return"), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_set_commit_return"), xsink);
       xsink->raiseExceptionArg(err_name, new QoreNode(h), "tx_set_commit_return() failed with error %d.", tperrno);
       return;
     }
@@ -941,7 +941,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     if (res != TX_OK) {
       QoreHash* h = new QoreHash;
       h->setKeyValue((char*)"error", new QoreNode((int64)res), xsink);
-      h->setKeyValue((char*)"Tuxedo call", new QoreNode("tx_set_transaction_control"), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tx_set_transaction_control"), xsink);
       xsink->raiseExceptionArg(err_name, new QoreNode(h), "tx_set_transaction_control() failed with error %d.", res);
       return;
     }
@@ -1057,7 +1057,7 @@ bool QoreTuxedoAdapter::allocate_send_buffer(const char* type, long size, const 
   }
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpcall"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpcall"), xsink);
   xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpcall(\"%s\", %ld) failed with error %d.", type, size, tperrno);
   return false;
 }
@@ -1095,7 +1095,7 @@ pair<char*, long> QoreTuxedoAdapter::allocate_out_buffer(const char* default_typ
   if (!result.first) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpalloc"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpalloc"), xsink);
     xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpalloc(\"%s\", 4096) failed with error %d.", type, tperrno);
     return result;
   }
@@ -1205,7 +1205,7 @@ QoreNode* QoreTuxedoAdapter::buffer2node(char* buffer, long buffer_size, const c
   if (res == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tptypes"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tptypes"), xsink);
     return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tptypes() failed with error %d.", tperrno);
   }
   
@@ -1221,7 +1221,7 @@ QoreNode* QoreTuxedoAdapter::buffer2node(char* buffer, long buffer_size, const c
 
   if (!strcmp(type, "STRING")) {
     QoreString aux(buffer, m_string_encoding);
-    return new QoreNode(aux.getBuffer());    
+    return new QoreStringNode(aux.getBuffer());    
   }
 
   if (!strcmp(type, "FML32")) {
@@ -1259,7 +1259,7 @@ QoreNode* QoreTuxedoAdapter::call(const char* service_name, QoreHash* call_setti
     if (res == -1) {
       QoreHash* h = new QoreHash;
       h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-      h->setKeyValue((char*)"Tuxedo call", new QoreNode("tptypes"), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tptypes"), xsink);
       return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tptypes() failed with error %d.", tperrno);
     }
   }
@@ -1278,7 +1278,7 @@ QoreNode* QoreTuxedoAdapter::call(const char* service_name, QoreHash* call_setti
   if (res == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpcall"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpcall"), xsink);
     return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpcall() failed with error %d.", tperrno);
   }
 
@@ -1299,7 +1299,7 @@ QoreNode* QoreTuxedoAdapter::acall(const char* service_name, QoreHash* call_sett
   if (res == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpacall"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpacall"), xsink);
     return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tpacall() failed with error %d.", tperrno);
   }
   if (res != 0) { // 0 == no reply expected
@@ -1322,7 +1322,7 @@ QoreNode* QoreTuxedoAdapter::post_event(const char* event_name, QoreHash* call_s
 
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tppost"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tppost"), xsink);
   return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tppost() failed with error %d.", tperrno);
 }
 
@@ -1347,7 +1347,7 @@ QoreNode* QoreTuxedoAdapter::get_reply(int handle, QoreHash* call_settings, long
   if (res == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpgetrply"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpgetrply"), xsink);
     return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpgetrply() failed with error %d.", tperrno);
   }
 
@@ -1374,7 +1374,7 @@ QoreNode* QoreTuxedoAdapter::connect(const char* service_name, QoreHash* call_se
   }
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpconnect"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpconnect"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpconnect() failed with error %d.", tperrno);
 }
 
@@ -1391,7 +1391,7 @@ QoreNode* QoreTuxedoAdapter::send(int handle, QoreHash* call_settings, long* pfl
   }
   QoreHash* h = new QoreHash;
   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-  h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpsend"), xsink);
+  h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpsend"), xsink);
   return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpsend() failed with error %d.", tperrno);
 }
 
@@ -1414,7 +1414,7 @@ QoreNode* QoreTuxedoAdapter::receive(int handle, QoreHash* call_settings, long* 
   if (res == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tprecv"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tprecv"), xsink);
     return xsink->raiseExceptionArg(err_name, new QoreNode(h), "tprecv() failed with error %d.", tperrno);
   } 
     
@@ -1491,7 +1491,7 @@ QoreNode* QoreTuxedoAdapter::enqueue(const char* queue_space, const char* queue_
   if (res == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpenqueue"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpenqueue"), xsink);
     return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpenqueue() failed with error %d.", tperrno);
   }
   // create hash with relevant out settings
@@ -1556,7 +1556,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_
   if (x == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tpdequeue"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tpdequeue"), xsink);
     return xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tpdequeue() failed with error %d.", tperrno);
   }
   QoreNode* retval = buffer2node(out.first, out.second, err_name, xsink);
@@ -1592,8 +1592,8 @@ QoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_
 
   res->setKeyValue((char*)"queue_control_delivery_qos", new QoreNode((int64)ctl.delivery_qos), xsink);
   res->setKeyValue((char*)"queue_control_reply_qos", new QoreNode((int64)ctl.reply_qos), xsink);
-  res->setKeyValue((char*)"queue_control_replyqueue", new QoreNode((char*)ctl.replyqueue), xsink);
-  res->setKeyValue((char*)"queue_control_failurequeue", new QoreNode((char*)ctl.failurequeue), xsink);
+  res->setKeyValue((char*)"queue_control_replyqueue", new QoreStringNode((char*)ctl.replyqueue), xsink);
+  res->setKeyValue((char*)"queue_control_failurequeue", new QoreStringNode((char*)ctl.failurequeue), xsink);
   res->setKeyValue((char*)"queue_control_diagnostic", new QoreNode((int64)ctl.diagnostic), xsink);
   res->setKeyValue((char*)"queue_control_appkey", new QoreNode((int64)ctl.appkey), xsink);
   res->setKeyValue((char*)"queue_control_urcode", new QoreNode((int64)ctl.urcode), xsink);
@@ -1841,7 +1841,7 @@ static void reallocate_buffer(char** buffer, long* buffer_size, long new_size, c
   if (!res) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("tprealloc"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("tprealloc"), xsink);
     xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "tprealloc() failed with error %d.", tperrno);
     return;
   }
@@ -2046,7 +2046,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
     if (Ferror != FNOSPACE) {
       QoreHash* h = new QoreHash;
       h->setKeyValue((char*)"error", new QoreNode((int64)Ferror), xsink);
-      h->setKeyValue((char*)"Tuxedo call", new QoreNode("Fappend[32]"), xsink);
+      h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("Fappend[32]"), xsink);
       xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "Value '%s' cannot be appended into FML[32] buffer. Error %d.", value_name, (int)Ferror);
       return;
     }
@@ -2076,7 +2076,7 @@ void QoreTuxedoAdapter::setFmlDataToSend(QoreHash* description_info, QoreHash* d
   if (res == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)Ferror), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("Finit[32]"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("Finit[32]"), xsink);
     xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "Finit[32] failed with error %d.", (int)Ferror);
     return;
   }
@@ -2126,7 +2126,7 @@ void QoreTuxedoAdapter::setFmlDataToSend(QoreHash* description_info, QoreHash* d
   if (res == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)Ferror), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("Findex[32]"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("Findex[32]"), xsink);
     xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "Findex[32] failed with error %d.", (int)Ferror);
     return;
   }
@@ -2141,7 +2141,7 @@ void QoreTuxedoAdapter::setFmlDataToSend(QoreHash* description_info, QoreHash* d
   if (result_size == -1) {
     QoreHash* h = new QoreHash;
     h->setKeyValue((char*)"error", new QoreNode((int64)Ferror), xsink);
-    h->setKeyValue((char*)"Tuxedo call", new QoreNode("Fsizeof[32]"), xsink);
+    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode("Fsizeof[32]"), xsink);
     xsink->raiseExceptionArg("TUXEDO-ERROR", new QoreNode(h), "Fsizeof[32] failed with error %d.", (int)Ferror);
     return;
   }
@@ -2335,7 +2335,7 @@ QoreHash* QoreTuxedoAdapter::getFmlDataFromBuffer(QoreHash* description_info, bo
     case FLD_STRING: 
     {
       assert(value_buffer[actual_value_length] == 0);
-      result_value = new QoreNode(value_buffer);
+      result_value = new QoreStringNode(value_buffer);
       break;
     }
 
@@ -2403,8 +2403,8 @@ static void do_test2(bool is_fml32)
 
   QoreHash* data = new QoreHash;
   data->setKeyValue((char*)"a_long", new QoreNode((int64)12345678), &xsink);
-  data->setKeyValue((char*)"a_string", new QoreNode("string1"), &xsink);
-  data->setKeyValue((char*)"a_string", new QoreNode("string2"), &xsink);
+  data->setKeyValue((char*)"a_string", new QoreStringNode("string1"), &xsink);
+  data->setKeyValue((char*)"a_string", new QoreStringNode("string2"), &xsink);
   assert(!xsink.isException());
 
   char* type = (char*)(is_fml32 ? "FML32" : "FML");
