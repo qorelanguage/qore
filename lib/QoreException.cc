@@ -527,7 +527,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 while (true) {
 	    h = reinterpret_cast<QoreHashNode *>(cs->retrieve_entry(i));
 	    assert(h);
-	    if (h->getKeyValue("typecope")->val.intval != CT_RETHROW)
+	    if (h->getKeyValue("typecode")->val.intval != CT_RETHROW)
 	       break;
 	    i++;
 	    if (i == cs->size())
