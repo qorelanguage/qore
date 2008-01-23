@@ -64,6 +64,14 @@ public:
 };
 #endif
 
+static inline QoreHashNode *make_tuxedo_err_hash(int tperrno, const char *errstr)
+{
+   QoreHashNode *h = new QoreHashNode();
+   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), 0);
+   h->setKeyValue((char*)"Tuxedo call", new QoreStringNode(errstr), 0);
+   return h;
+}
+
 //------------------------------------------------------------------------------
 class QoreTuxedoAdapter : public AbstractPrivateData
 {
@@ -128,7 +136,7 @@ public:  // public for now so the QC_TuxedoAdapter has access to it
   void add_fml_value_into_send_buffer(const char* value_name, FLDID32 id, int value_type, QoreNode* value, 
     bool is_fml32, const char* err_name, ExceptionSink* xsink);
   void setFmlDataToSend(QoreHash* description_info, QoreHash* data, bool is_fml32, const char* err_name, ExceptionSink* xsink);
-  QoreHash* getFmlDataFromBuffer(QoreHash* description_info, bool is_fml32, ExceptionSink* xsink, const char* buffer, long buffer_size, const char* err_name);
+  QoreHash Node*getFmlDataFromBuffer(QoreHash* description_info, bool is_fml32, ExceptionSink* xsink, const char* buffer, long buffer_size, const char* err_name);
 
   // FML/FML32 - load the description from tables (possibly generate the tables temporarily)
   QoreHash* loadFmlDescription(const std::vector<std::string>& files, bool is_fml32, ExceptionSink* xsink);
@@ -156,12 +164,12 @@ public:
 
   QoreNode* call(const char* service_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink);
   QoreNode* acall(const char* service_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink);
-  QoreNode* get_reply(int handle, QoreHash* call_settings, long* pflags, ExceptionSink* xsink);
+  QoreHashNode* get_reply(int handle, QoreHash* call_settings, long* pflags, ExceptionSink* xsink);
   QoreNode* post_event(const char* event_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink);
   QoreNode* connect(const char* service_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink);
   QoreNode* send(int handle, QoreHash* call_settings, long* pflags, ExceptionSink* xsink);
-  QoreNode* receive(int handle, QoreHash* call_settings, long* pflags, ExceptionSink* xsink); 
-  QoreNode* enqueue(const char* queue_space, const char* queue_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink); 
+  QoreHashNode* receive(int handle, QoreHash* call_settings, long* pflags, ExceptionSink* xsink); 
+  QoreHashNode* enqueue(const char* queue_space, const char* queue_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink); 
   QoreNode* dequeue(const char* queue_space, const char* queue_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink);
 
   void remove_pending_async_call(int handle);
