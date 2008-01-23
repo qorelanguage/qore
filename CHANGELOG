@@ -1,7 +1,9 @@
 2008.01.23: David Nichols
 	* fixed a bug in the ? : operator where immediate list values could be
 	  returned improperly (only the first element could be erroneously
-	  returned under some conditions)
+	  returned under some conditions) (backported from 0.7.0/trunk)
+	* fixed a potentially crashing bug in 
+	  makeFormattedXMLRPCCallStringArgs() (backported from 0.7.0/trunk)
 
 2008.01.21: David Nichols
 	* fixed a memory leak in QoreHTTPClient.cc processing 100 responses

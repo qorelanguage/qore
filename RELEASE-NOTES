@@ -25,6 +25,7 @@ RELEASE NOTES for qore v0.6.2.3, 0.6.2.2 and 0.6.2.1
         * fixed	get*BigInt() time functions to return int64 instead of int
         * fixed	a memory leak in QoreHTTPClient processing 100 responses
         * fixed	a bug in the ? : operator where	immediate list values could be returned improperly (only the first element could be erroneously returned under some conditions)
+        * fixed a potentially crashing bug in makeFormattedXMLRPCCallStringArgs()
 
 0.6.2.2 contains one additional bugfix from 0.6.2.1:
 	* fixed an XML parsing bug with multiple out-of-order keys that could cause a crash

@@ -2782,7 +2782,7 @@ static class QoreNode *f_makeFormattedXMLRPCCallStringArgs(class QoreNode *param
 
    if ((p1 = get_param(params, 1)))
    {
-      if (p1->type == NT_LIST)
+      if (p1 && p1->type == NT_LIST)
       {
 	 // now process all params
 	 int ls = p1->val.list->size();
