@@ -655,8 +655,10 @@ class QoreNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *
    
       code = v->getAsInt();
       // continue processing if "100 Continue" response received (ignore this response)
-      if (code == 100)
+      if (code == 100) {
+	 ans->deref(xsink);
 	 continue;
+      }
       break;
    }
 

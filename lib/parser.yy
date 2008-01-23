@@ -209,8 +209,16 @@ static inline void addNSNode(class Namespace *ns, struct NSNode *n)
    delete n;
 }
 
+static class QoreNode *make_list(class QoreNode *a1, class QoreNode *a2)
+{
+   List *l = new List(1);
+   l->push(a1);
+   l->push(a2);
+   return new QoreNode(l);
+}
+
 // copies keys added, deletes them in the destructor
-static inline class QoreNode *splice_expressions(class QoreNode *a1, class QoreNode *a2)
+static class QoreNode *splice_expressions(class QoreNode *a1, class QoreNode *a2)
 {
    //tracein("splice_expressions()");
    if (a1->type == NT_LIST)
@@ -219,13 +227,7 @@ static inline class QoreNode *splice_expressions(class QoreNode *a1, class QoreN
       a1->val.list->push(a2);
       return a1;
    }
-   //printd(5, "NODE x\n");
-   class QoreNode *nl = new QoreNode(NT_LIST);
-   nl->val.list = new List(1);
-   nl->val.list->push(a1);
-   nl->val.list->push(a2);
-   //traceout("splice_expressions()");
-   return nl;
+   return make_list(a1, a2);
 }
 
 static inline int checkParseOption(int o)
@@ -1741,7 +1743,7 @@ exp:    scalar
 	   }
 	}
         | exp '?' exp ':' exp
-        { $$ = new QoreNode($1, OP_QUESTION_MARK, splice_expressions($3, $5)); } 
+        { $$ = new QoreNode($1, OP_QUESTION_MARK, make_list($3, $5)); } 
         | P_INCREMENT exp   // pre-increment
         {
 	   if (check_lvalue($2))
