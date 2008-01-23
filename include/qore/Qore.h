@@ -32,6 +32,7 @@
 #include <qore/QoreLib.h>
 #include <qore/QoreStringNode.h>
 #include <qore/DateTimeNode.h>
+#include <qore/QoreHashNode.h>
 #include <qore/QoreNet.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreFile.h>

@@ -521,44 +521,40 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vl
    // if the variable's value is not already a hash or an object, then make it a hash
    //printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->getTypeName() : "(null)");
    if (!(*val))
-      (*val) = new QoreNode(new QoreHash());
+      (*val) = new QoreHashNode();
    else if ((*val)->type != NT_OBJECT && (*val)->type != NT_HASH)
    {
       (*val)->deref(xsink);
-      (*val) = new QoreNode(new QoreHash());
+      (*val) = new QoreHashNode();
    }
-   // otherwise if the reference_count > 1, then duplicate it.
-   else if ((*val)->reference_count() > 1)
+   // otherwise if the reference_count > 1 (and it's not an object), then duplicate it.
+   else if ((*val)->type == NT_HASH && (*val)->reference_count() > 1)
    {
       QoreNode *old = (*val);
       (*val) = (*val)->realCopy(xsink);
       old->deref(xsink);
    }
 
-   class QoreNode **rv;
-   if ((*val)->type == NT_HASH)
-   {
+   QoreHashNode *h = dynamic_cast<QoreHashNode *>(*val);
+   if (h) {
       //printd(0, "do_object_val_ptr() def=%s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
-      rv = (*val)->val.hash->getKeyValuePtr(*mem, xsink);
+      return h->getKeyValuePtr(*mem, xsink);
    }
-   else
-   {
-      // if object has been deleted, then dereference, make into a hash, and get hash pointer
-      if (!(rv = (*val)->val.object->getMemberValuePtr(*mem, vlp, xsink)))
-      {
-	 if (xsink->isException())
-	    rv = NULL;
-	 else
-	 {
-	    (*val)->deref(xsink);
-	    (*val) = new QoreNode(new QoreHash());
-	    rv = (*val)->val.hash->getKeyValuePtr(*mem, xsink);
-	 }
-      }
-   }
+
    //printd(5, "do_object_val_ptr() member=%s\n", mem->getBuffer());
 
-   return rv;
+   class QoreNode **rv;
+   // if object has been deleted, then dereference, make into a hash, and get hash pointer
+   if ((rv = (*val)->val.object->getMemberValuePtr(*mem, vlp, xsink)))
+      return rv;
+
+   if (*xsink)
+      return NULL;
+
+   (*val)->deref(xsink);
+   h = new QoreHashNode();
+   (*val) = h; 
+   return h->getKeyValuePtr(*mem, xsink);
 }
 
 // this function will change the lvalue to the right type if needed (used for assignments)
@@ -632,12 +628,16 @@ class QoreNode *getNoEvalVarValue(class QoreNode *n, class AutoVLock *vl, class 
    // it's an object reference
    // if not an object or a hash, return NULL
    if (val->type != NT_OBJECT && val->type != NT_HASH)
-      return NULL;
+      return 0;
       
    // otherwise get member name
    QoreStringValueHelper key(n->val.tree->right);
-   if (val->type == NT_HASH)
-      return val->val.hash->getKeyValue(*key, xsink);
+
+   {
+      QoreHashNode *h = dynamic_cast<QoreHashNode *>(val);
+      if (h)
+	 return h->getKeyValue(*key, xsink);
+   }
    return val->val.object->getMemberValueNoMethod(*key, vl, xsink);
 }
 
@@ -686,7 +686,7 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
 
 	 class QoreNode *rv;
 	 if (val->type == NT_HASH)
-	    rv = val->val.hash->getKeyValue(*mem, xsink);
+	    rv = (reinterpret_cast<QoreHashNode *>(val))->getKeyValue(*mem, xsink);
 	 else
 	    rv = val->val.object->getMemberValueNoMethod(*mem, vl, xsink);
 	 
@@ -727,7 +727,7 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
          return NULL;
 
       // get a unique object if necessary
-      if ((*val)->reference_count() > 1)
+      if ((*val)->type != NT_OBJECT && (*val)->reference_count() > 1)
       {
 	 QoreNode *cp = (*val)->realCopy(xsink);
 	 (*val)->deref(xsink);
@@ -763,7 +763,7 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
 
          class QoreNode **rv;
          if ((*val)->type == NT_HASH)
-            rv = (*val)->val.hash->getExistingValuePtr(*mem, xsink);
+	    rv = (reinterpret_cast<QoreHashNode *>(*val))->getExistingValuePtr(*mem, xsink);
          else
             rv = (*val)->val.object->getExistingValuePtr(*mem, vl, xsink);
          
@@ -868,7 +868,7 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
    QoreStringValueHelper mem(*member);
 
    // get unique value if necessary
-   if ((*val)->reference_count() > 1)
+   if ((*val)->type == NT_HASH && (*val)->reference_count() > 1)
    {
       QoreNode *s = *val;
       *val = (*val)->realCopy(xsink);
@@ -877,7 +877,7 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
 
    // if it's a hash reference, then delete the key
    if ((*val)->type == NT_HASH)
-      (*val)->val.hash->deleteKey(*mem, xsink);
+      (reinterpret_cast<QoreHashNode *>(*val))->deleteKey(*mem, xsink);
    else     // must be an object reference
       (*val)->val.object->deleteMemberValue(*mem, xsink);
 

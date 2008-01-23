@@ -116,7 +116,7 @@ static inline int process_type(const char *key, int &attributes, char *opt, clas
 
 static void GETOPT_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_HASH, 0);
+   QoreHashNode *p0 = test_hash_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("GETOPT-PARAMETER-ERROR", "expecting hash as first argument to GetOpt::constructor()");
@@ -125,7 +125,7 @@ static void GETOPT_constructor(class QoreObject *self, const QoreNode *params, E
 
    class GetOpt *g = new GetOpt();
 
-   class HashIterator hi(p0->val.hash);
+   class HashIterator hi(p0);
    class QoreString vstr;
    while (hi.next())
    {
@@ -256,11 +256,7 @@ static class QoreNode *GETOPT_parse(class QoreObject *self, class GetOpt *g, con
    else
       return NULL;
 
-   class QoreHash *h = g->parse(l, modify, xsink);
-   if (h)
-      return new QoreNode(h);
-
-   return NULL;
+   return g->parse(l, modify, xsink);
 }
 
 class QoreClass *initGetOptClass()

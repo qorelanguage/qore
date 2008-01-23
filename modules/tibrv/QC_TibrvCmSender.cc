@@ -92,13 +92,12 @@ static QoreNode *TIBRVCMSENDER_sendSubject(class QoreObject *self, class QoreTib
       return NULL;
    }
    const char *subject = pt->getBuffer();
-   QoreNode *pn = test_param(params, NT_HASH, 1);
-   if (!pn)
+   QoreHashNode *h = test_hash_param(params, 1);
+   if (!h)
    {
       xsink->raiseException("TIBRVCMSENDER-SENDSUBJECT-ERROR", "missing data hash as second parameter to method");
-      return NULL;
+      return 0;
    }
-   class QoreHash *h = pn->val.hash;
    pt = test_string_param(params, 2);
    const char *replySubject = pt ? pt->getBuffer() : NULL;
 
@@ -120,23 +119,21 @@ static QoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class QoreObject *self, 
    }
    const char *subject = str->getBuffer();
 
-   QoreNode *pt = test_param(params, NT_HASH, 1);
-   if (!pt)
+   QoreHashNode *h = test_hash_param(params, 1);
+   if (!h)
    {
       xsink->raiseException("TIBRVCMSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing data hash as second parameter to method");
       return NULL;
    }
-   class QoreHash *h = pt->val.hash;
 
-   pt = get_param(params, 2);
+   QoreNode *pt = get_param(params, 2);
    int64 timeout = getMsMinusOneBigInt(pt);
 
    // get certified delivery time limit
    pt = get_param(params, 3);
    int64 time_limit = pt ? pt->getAsBigInt() : 0;
 
-   h = cms->sendSubjectWithSyncReply(subject, h, timeout, time_limit, xsink);
-   return h ? new QoreNode(h) : 0;
+   return cms->sendSubjectWithSyncReply(subject, h, timeout, time_limit, xsink);
 }
 
 class QoreNode *TIBRVCMSENDER_setStringEncoding(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreNode *params, ExceptionSink *xsink)

@@ -41,38 +41,27 @@ static inline void assign_value(QoreHash *h, char *key, int val)
 
 static class QoreNode *f_getpwuid(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *rv;
+   QoreNode *p0;
 
-   tracein("f_getpwuid()");
    if (!(p0 = get_param(params, 0)))
-   {
-      traceout("f_getpwuid()");      
       return NULL;
-   }
 
-   lck_getpwuid.lock();
+   AutoLocker al(&lck_getpwuid);
    
    struct passwd *pw = getpwuid(p0->getAsInt());
-   if (pw)
-   {
-      QoreHash *h = new QoreHash();
-      // assign values
-      assign_value(h, "pw_name", pw->pw_name);
-      assign_value(h, "pw_passwd", pw->pw_passwd);
-      assign_value(h, "pw_gecos", pw->pw_gecos);
-      assign_value(h, "pw_dir", pw->pw_dir);
-      assign_value(h, "pw_shell", pw->pw_shell);
-      assign_value(h, "pw_uid", pw->pw_uid);
-      assign_value(h, "pw_gid", pw->pw_gid);
-      rv = new QoreNode(h);
-   }
-   else
-      rv = NULL;
+   if (!pw)
+      return 0;
 
-   lck_getpwuid.unlock();
-
-   traceout("f_getpwuid()");
-   return rv;
+   QoreHashNode *h = new QoreHashNode();
+   // assign values
+   assign_value(h, "pw_name", pw->pw_name);
+   assign_value(h, "pw_passwd", pw->pw_passwd);
+   assign_value(h, "pw_gecos", pw->pw_gecos);
+   assign_value(h, "pw_dir", pw->pw_dir);
+   assign_value(h, "pw_shell", pw->pw_shell);
+   assign_value(h, "pw_uid", pw->pw_uid);
+   assign_value(h, "pw_gid", pw->pw_gid);
+   return h;
 }
 
 void init_pwd_functions()

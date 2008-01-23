@@ -114,7 +114,7 @@ void showCallStack()
       printe("call stack:\n");
       for (int i = 0; i < callStack->size(); i++)
       {
-         class QoreHash *h = callStack->retrieve_entry(i)->val.hash;
+         class QoreHashNode *h = reinterpret_cast<QoreHashNode *>(callStack->retrieve_entry(i));
 	 QoreStringNode *func = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
 	 QoreStringNode *file = reinterpret_cast<QoreStringNode *>(h->getKeyValue("file"));
 	 QoreStringNode *type = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));

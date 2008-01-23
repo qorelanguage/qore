@@ -615,7 +615,7 @@ inline int MyBindGroup::parse(const QoreList *args, class ExceptionSink *xsink)
 
 inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 {
-   class QoreHash *h = new QoreHash();
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
    TempCharPtrStore::iterator sli = phl.begin();
    while (sli != phl.end())
@@ -624,10 +624,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
       mysql_stmt_close(stmt);
       stmt = mydata->stmt_init(xsink);
       if (!stmt)
-      {
-	 h->derefAndDelete(xsink);
-	 return NULL;
-      }
+	 return 0;
       
       QoreString qstr;
       qstr.sprintf("select @%s", *sli);
@@ -635,9 +632,8 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
       // prepare the statement for execution
       if (mysql_stmt_prepare(stmt, qstr.getBuffer(), qstr.strlen()))
       {
-	 h->derefAndDelete(xsink);
 	 xsink->raiseException("DBI:MYSQL:ERROR", mydata->error());
-	 return NULL;
+	 return 0;
       }
 
       class QoreNode *v = NULL;
@@ -649,7 +645,6 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 
 	 if (mysql_stmt_execute(stmt))
 	 {
-	    h->derefAndDelete(xsink);
 	    xsink->raiseException("DBI:MYSQL:ERROR", mydata->error());
 	    return NULL;
 	 }
@@ -677,7 +672,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
       h->setKeyValue(*sli, v, NULL);
       sli++;
    }
-   return new QoreNode(h);
+   return h.release();
 }
 
 class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
@@ -694,7 +689,7 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 	 return NULL;
       }
 
-      QoreHash *h = new QoreHash();
+      QoreHashNode *h = new QoreHashNode();
       const QoreEncoding *enc = ds->getQoreEncoding();
       class QoreString tstr;
 	 
@@ -716,7 +711,7 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 	       hi.getValue()->val.list->push(myres.getBoundColumnValue(enc, i++));
 	 }
       }
-      rv = new QoreNode(h);
+      rv = h;
    }
    else
    {
@@ -771,7 +766,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 
 	 while (!mysql_stmt_fetch(stmt))
 	 {
-	    class QoreHash *h = new QoreHash();
+	    class QoreHashNode *h = new QoreHashNode();
 
 	    for (int i = 0; i < myres.getNumFields(); i++)
 	    {
@@ -779,7 +774,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 	       h->setKeyValue(&tstr, myres.getBoundColumnValue(enc, i), NULL);
 	    }
 
-	    l->push(new QoreNode(h));
+	    l->push(h);
 	 }
       }
 
@@ -884,11 +879,11 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
 }
 
 #else  // !HAVE_MYSQL_STMT
-static class QoreHash *get_result_set(const Datasource *ds, MYSQL_RES *res)
+static class QoreHashNode *get_result_set(const Datasource *ds, MYSQL_RES *res)
 {
    MYSQL_ROW row;
    int num_fields = mysql_num_fields(res);
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    
    // get column names and set up column lists
    MYSQL_FIELD *field = mysql_fetch_fields(res);
@@ -998,8 +993,7 @@ static class QoreNode *qore_mysql_do_sql(const Datasource *ds, const QoreString 
 	 xsink->raiseException("DBI:MYSQL:SELECT-ERROR", (char *)mysql_error(db));
 	 return NULL;
       }
-      class QoreHash *h = get_result_set(ds, res);
-      rv = new QoreNode(h);
+      rv = get_result_set(ds, res);
       mysql_free_result(res);
    }
    else

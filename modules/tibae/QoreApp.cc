@@ -283,32 +283,32 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNod
    if (!v)
       return NULL;
 
-   if (v->type == NT_HASH)
    {
-      // check to see if type is specified
-      class QoreNode *t = v->val.hash->getKeyValue("^type^");
-      if (!is_nothing(t))
-	 return do_type(t->getAsInt(), v->val.hash->getKeyValue("^value^"), xsink);
-
-      // class instantiation (normally for TIBCO m_any type)
-      const char *cn;
-      if (!(cn = get_class(v->val.hash)))
-      {
-         xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type '%s': can't instantiate class from object without '^class^' key", pcd->getFullName().c_str());
-         return NULL;
-      }
-      else
-      {
-         const MBaseClassDescription *mbcd = find_class(cn, xsink);
-         if (xsink->isEvent())
-            return NULL;
-         QoreNode *val;
-         if (!(val = v->val.hash->getKeyValue("^value^")))
-         {
-           xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for class '%s'", pcd->getFullName().c_str(), cn);
-            return NULL;
-         }
-         return instantiate_class(val, mbcd, xsink);
+      QoreHashNode *h = dynamic_cast<QoreHashNode>(v);
+      if (h) {
+	 // check to see if type is specified
+	 class QoreNode *t = h->getKeyValue("^type^");
+	 if (!is_nothing(t))
+	    return do_type(t->getAsInt(), h->getKeyValue("^value^"), xsink);
+	 
+	 // class instantiation (normally for TIBCO m_any type)
+	 const char *cn;
+	 if (!(cn = get_class(h)))
+	 {
+	    xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type '%s': can't instantiate class from object without '^class^' key", pcd->getFullName().c_str());
+	    return NULL;
+	 }
+	 
+	 const MBaseClassDescription *mbcd = find_class(cn, xsink);
+	 if (xsink->isEvent())
+	    return NULL;
+	 QoreNode *val;
+	 if (!(val = h->getKeyValue("^value^")))
+	 {
+	    xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for class '%s'", pcd->getFullName().c_str(), cn);
+	    return NULL;
+	 }
+	 return instantiate_class(val, mbcd, xsink);
       }
    }
 /*
@@ -486,18 +486,18 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
    // check if class info embedded
    if (v && v->type == NT_HASH)
    {
+      QoreHashNode *h = reinterpret_cast<QoreHashNode *>(v);
       const char *cn;
-      if (!(cn = get_class(v->val.hash)))
+      if (!(cn = get_class(h)))
       {
          xsink->raiseException("TIBCO-MISSING-CLASS-NAME",
-                            "can't instantiate sequence of type '%s' from hash without '^class^' entry",
-                            msd->getFullName().c_str());
+			       "can't instantiate sequence of type '%s' from hash without '^class^' entry",
+			       msd->getFullName().c_str());
 
-         return NULL;
+         return 0;
       }
-      printd(1, "QoreApp::instantiate_sequence() '%s': ignoring class information provided (%s)\n",
-             msd->getFullName().c_str(), cn);
-      v = v->val.hash->getKeyValue("^value^");
+      printd(1, "QoreApp::instantiate_sequence() '%s': ignoring class information provided (%s)\n", msd->getFullName().c_str(), cn);
+      v = h->getKeyValue("^value^");
    }
 /*
    else if (v && v->type == NT_OBJECT)
@@ -524,8 +524,8 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
    else if (v->type != NT_LIST)
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-SEQUENCE",
-                         "cannot instantiate TIBCO sequence '%s' from node type '%s'",
-                         msd->getFullName().c_str(), v->getTypeName());
+			    "cannot instantiate TIBCO sequence '%s' from node type '%s'",
+			    msd->getFullName().c_str(), v->getTypeName());
       return NULL;
    }
    MSequence *seq = new MSequence(mcr, msd->getFullName());
@@ -552,9 +552,9 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Qo
       traceout("QoreApp::instantiate_modeledclass()");
       return new MInstance(mcr, mcd->getFullName());
    }
-   QoreHash *h;
+   QoreHashNode *h;
    if (v->type == NT_HASH)
-      h = v->val.hash;
+      h = reinterpret_cast<QoreHashNode *>(v);
 /*
    else if (v->type == NT_OBJECT)
       h = v->val.object->data;
@@ -628,9 +628,9 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
       traceout("QoreApp::instantiate_union()");
       return new MUnion(mcr, mud->getFullName());
    }
-   QoreHash *h;
+   QoreHashNode *h;
    if (v->type == NT_HASH)
-      h = v->val.hash;
+      h = reinterpret_cast<QoreHashNode *>(v);
 /*
    else if (v->type == NT_OBJECT)
       h = v->val.object->data;
@@ -647,7 +647,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
    {
       xsink->raiseException("TIBCO-INVALID-MULTIPLE-KEYS-FOR-UNION",
                          "cannot instantiate TIBCO union '%s' from from hash with %d members!",
-                         mud->getFullName().c_str(), v->val.hash->size());
+                         mud->getFullName().c_str(), h->size());
       return NULL;
    }
    MUnion *mu = new MUnion(mcr, mud->getFullName());
@@ -905,7 +905,7 @@ void QoreApp::send(const char *subj, const char *function_name, QoreNode *value,
    //something more to delete here?
 }
 
-class QoreNode *QoreApp::receive(const char *subj, unsigned long timeout, ExceptionSink *xsink)
+QoreHashNode *QoreApp::receive(const char *subj, unsigned long timeout, ExceptionSink *xsink)
 {
    QoreNode *rv = NULL;
 
@@ -957,7 +957,7 @@ class QoreNode *QoreApp::receive(const char *subj, unsigned long timeout, Except
       if (!myEventHandler->xsink.isEvent())
       {
 	 // build return value
-	 QoreHash *h = new QoreHash();
+	 QoreHashNode *h = new QoreHashNode();
 	 
 	 printd(5, "QoreApp::receive() msgNode=%08p\n", myEventHandler->msgNode);
 	 // assign "msg" member
@@ -971,7 +971,7 @@ class QoreNode *QoreApp::receive(const char *subj, unsigned long timeout, Except
 	 printd(5, "QoreApp::receive() replySubject=%s\n", myEventHandler->replySubject.c_str());
 	 // assign "replySubject" member
 	 h->setKeyValue("replySubject", new QoreStringNode(myEventHandler->replySubject.c_str()), NULL);
-	 rv = new QoreNode(h);
+	 rv = h;
       }
       else
 	 xsink->assimilate(&myEventHandler->xsink);

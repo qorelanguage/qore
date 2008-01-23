@@ -49,9 +49,9 @@ void CallNode::objectDeref(class ExceptionSink *xsink)
 }
 
 extern char *file_names[];
-class QoreHash *CallNode::getInfo() const
+class QoreHashNode *CallNode::getInfo() const
 {
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    // FIXME: add class name
    class QoreStringNode *str = new QoreStringNode();
    if (obj)
@@ -127,7 +127,7 @@ class QoreList *CallStack::getCallStack() const
    CallNode *c = tail;
    while (c)
    {
-      l->push(new QoreNode(c->getInfo()));
+      l->push(c->getInfo());
       c = c->prev;
    }
    return l;

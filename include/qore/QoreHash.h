@@ -20,9 +20,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_HASH_H
+#ifndef _QORE_QOREHASH_H
 
-#define _QORE_HASH_H
+#define _QORE_QOREHASH_H
 
 #include <qore/common.h>
 #include <qore/hash_map.h>
@@ -96,21 +96,24 @@ class QoreHash
       friend class ConstHashIterator;
 
    private:
-      class HashMember *member_list;
-      class HashMember *tail;
-      hm_hm_t hm;
-      bool needs_eval;
-
       DLLLOCAL class QoreNode **newKeyValue(const char *key, class QoreNode *value);
       // does not touch the QoreNode value
       DLLLOCAL void internDeleteKey(class HashMember *m);
       DLLLOCAL void deref_intern(class ExceptionSink *xsink);
+      DLLLOCAL void assimilate_intern(QoreHash *h, class ExceptionSink *xsink);
 
       // not implemented
       DLLLOCAL QoreHash(const QoreHash&);
       DLLLOCAL QoreHash& operator=(const QoreHash&);
 
   protected:
+      class HashMember *member_list;
+      class HashMember *tail;
+      hm_hm_t hm;
+      bool needs_eval;
+
+      int eval_intern(QoreHash *new_hash, class ExceptionSink *xsink) const;
+      void copy_intern(QoreHash *new_hash) const;
       DLLEXPORT ~QoreHash();
 
    public:
@@ -125,6 +128,7 @@ class QoreHash
       DLLEXPORT class QoreNode *getKeyValue(const class QoreString *key, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *getKeyValue(const char *key) const;
       DLLEXPORT class QoreHash *copy() const;
+      DLLEXPORT class QoreHashNode *copyNode() const;
       DLLEXPORT class QoreNode **getKeyValuePtr(const class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode **getKeyValuePtr(const char *key);
       DLLEXPORT class QoreNode **getExistingValuePtr(const class QoreString *key, class ExceptionSink *xsink);

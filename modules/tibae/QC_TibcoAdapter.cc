@@ -32,16 +32,16 @@
 int CID_TIBAE;
 
 // usage: new TibcoAdapter(session-name, properties, classlist, [, service, network, daemon])
-void TIBAE_constructor(class QoreObject *self, const QoreNode *params, class ExceptionSink *xsink)
+void TIBAE_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
    tracein("TIBAE_constructor");
 
    const char *session_name, *service = NULL, *network = NULL, *daemon = NULL;
    QoreStringNode *p0;
-   QoreNode *p1, *p2, *p;
+   QoreHashNode *p1, *p2;
+   QoreNode *p;
 
-   if (!(p0 = test_string_param(params, 0)) ||
-       !(p1 = test_param(params, NT_HASH, 1)))
+   if (!(p0 = test_string_param(params, 0)) || !(p1 = test_hash_param(params, 1)))
    {
       xsink->raiseException("TIBCO-PARAMETER-ERROR", "invalid parameters passed to Tibco() constructor, expecting session name (string), properties (object), [classlist (object), service (string), network (string), daemon (string)]");
       traceout("TIBAE_constructor");
@@ -50,10 +50,10 @@ void TIBAE_constructor(class QoreObject *self, const QoreNode *params, class Exc
 
    session_name = p0->getBuffer();
    TempQoreHash classlist(xsink);
-   if ((p2 = test_param(params, NT_HASH, 2)))
+   if ((p2 = test_hash_param(params, 2)))
    {
       // FIXME: check that classlist hash has only String values!
-      classlist = p2->val.hash->copy();
+      classlist = p2->QoreHash::copy();
    }
 
    QoreString tmp;
@@ -90,7 +90,7 @@ void TIBAE_constructor(class QoreObject *self, const QoreNode *params, class Exc
    MAppProperties *appProps = new MAppProperties();
 
    TibCommandLine tcl;
-   set_properties(appProps, p1->val.hash, tcl, xsink); 
+   set_properties(appProps, p1, tcl, xsink); 
 
    if (*xsink)
       return;
@@ -246,11 +246,10 @@ static QoreNode* TIBAE_operationsCallWithSyncResult(QoreObject* self, QoreApp* m
       return xsink->raiseException(func, err);
    } 
    const char* method_name_extracted = method_name->getBuffer();
-   QoreNode* data = test_param(params, NT_HASH, 2);
+   QoreHashNode *data = test_hash_param(params, 2);
    if (!data) {
       return xsink->raiseException(func, err);
    }
-   QoreHash* data_extracted = data->val.hash;
    unsigned timeout = 60 * 1000;
    const char* client_name = "";
   
@@ -271,7 +270,7 @@ static QoreNode* TIBAE_operationsCallWithSyncResult(QoreObject* self, QoreApp* m
       client_name = nstr->getBuffer();
    }
 
-   return myQoreApp->operationsCallWithSyncResult(class_name_extracted, method_name_extracted, data_extracted, timeout, client_name, xsink);
+   return myQoreApp->operationsCallWithSyncResult(class_name_extracted, method_name_extracted, data, timeout, client_name, xsink);
 }
 
 //------------------------------------------------------------------------------
@@ -293,11 +292,10 @@ static QoreNode* TIBAE_operationsOneWayCall(QoreObject* self, QoreApp* myQoreApp
       return xsink->raiseException(func, err);
    }
    const char* method_name_extracted = method_name->getBuffer();
-   QoreNode* data = test_param(params, NT_HASH, 2);
+   QoreHashNode *data = test_hash_param(params, 2);
    if (!data) {
       return xsink->raiseException(func, err);
    }
-   QoreHash* data_extracted = data->val.hash;
    const char* client_name = "";
 
    QoreStringNode* n = test_string_param(params, 3);
@@ -305,7 +303,7 @@ static QoreNode* TIBAE_operationsOneWayCall(QoreObject* self, QoreApp* myQoreApp
       client_name = n->getBuffer();
    }
 
-   myQoreApp->operationsOneWayCall(class_name_extracted, method_name_extracted, data_extracted, client_name, xsink);
+   myQoreApp->operationsOneWayCall(class_name_extracted, method_name_extracted, data, client_name, xsink);
    return 0;
 }
 
@@ -326,11 +324,10 @@ static QoreNode* TIBAE_operationsAsyncCall(QoreObject* self, QoreApp* myQoreApp,
       return xsink->raiseException(func, err);
    }
    const char* method_name_extracted = method_name->getBuffer();
-   QoreNode* data = test_param(params, NT_HASH, 2);
+   QoreHashNode *data = test_hash_param(params, 2);
    if (!data) {
       return xsink->raiseException(func, err);
    }
-   QoreHash* data_extracted = data->val.hash;
    unsigned timeout = 60 * 1000;
    const char* client_name = "";
 
@@ -351,7 +348,7 @@ static QoreNode* TIBAE_operationsAsyncCall(QoreObject* self, QoreApp* myQoreApp,
       client_name = nstr->getBuffer();
    }
 
-   myQoreApp->operationsAsyncCall(class_name_extracted, method_name_extracted, data_extracted, timeout, client_name, xsink);
+   myQoreApp->operationsAsyncCall(class_name_extracted, method_name_extracted, data, timeout, client_name, xsink);
    return 0;
 }
 

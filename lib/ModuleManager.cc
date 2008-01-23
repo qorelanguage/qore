@@ -152,9 +152,9 @@ bool ModuleInfo::isBuiltin() const
    return !dlptr;
 }
 
-class QoreHash *ModuleInfo::getHash() const
+class QoreHashNode *ModuleInfo::getHash() const
 {
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("filename", new QoreStringNode(filename), NULL);
    h->setKeyValue("name", new QoreStringNode(name), NULL);
    h->setKeyValue("desc", new QoreStringNode(desc), NULL);
@@ -584,7 +584,7 @@ class QoreList *ModuleManager::getModuleList()
       l = new QoreList();
       for (module_map_t::iterator i = map.begin(); i != map.end(); i++)
 	 if (!i->second->isBuiltin())
-	    l->push(new QoreNode(i->second->getHash()));
+	    l->push(i->second->getHash());
    }
    return l;
 }

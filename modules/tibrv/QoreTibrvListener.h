@@ -56,8 +56,8 @@ class QoreTibrvListener : public AbstractPrivateData, public QoreTibrvTransport
 	 return count;
       }
 
-      class QoreHash *getMessage(class ExceptionSink *xsink);
-      class QoreHash *getMessage(int64 timeout, class ExceptionSink *xsink);
+      QoreHashNode *getMessage(class ExceptionSink *xsink);
+      QoreHashNode *getMessage(int64 timeout, class ExceptionSink *xsink);
 
       class QoreStringNode *createInboxName(class ExceptionSink *xsink)
       {
@@ -77,9 +77,9 @@ class QoreTibrvListener : public AbstractPrivateData, public QoreTibrvTransport
 class QoreTibrvMsgCallback : public TibrvMsgCallback
 {
    private:
-      class QoreTibrvListener *ql;
-      class ExceptionSink xsink;
-      class QoreHash *h;
+      QoreTibrvListener *ql;
+      ExceptionSink xsink;
+      QoreHashNode *h;
 
       virtual void onMsg(TibrvListener *listener, TibrvMsg &msg)
       {
@@ -96,17 +96,17 @@ class QoreTibrvMsgCallback : public TibrvMsgCallback
       virtual ~QoreTibrvMsgCallback()
       {
 	 if (h)
-	    h->derefAndDelete(&xsink);
+	    h->deref(&xsink);
       }
 
-      inline class QoreHash *getMessage(class ExceptionSink *xs)
+      QoreHashNode *getMessage(class ExceptionSink *xs)
       {
 	 if (xsink.isException())
 	 {
 	    xs->assimilate(&xsink);
 	    return NULL;
 	 }
-	 class QoreHash *rv = h;
+	 QoreHashNode *rv = h;
 	 h = NULL;
 	 return rv;
       }

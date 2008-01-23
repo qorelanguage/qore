@@ -94,14 +94,19 @@ static inline class QoreNode *makeErrorTree(class Operator *op, class QoreNode *
 static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class QoreNode *right)
 {
    //tracein("makeTree()");
-   //printd(5, "makeTree(): l=%08p, r=%08p, op=%d\n", left, right, op);
-   // if both nodes are constants, then evaluate immediately
-   if (is_value(left) && (!right || is_value(right)))
+   //printd(5, "makeTree(): l=%08p, r=%08p, op=%s\n", left, right, op->getName());
+
+   // convert FLIST to LIST
+   if (left->type == NT_FLIST) left->type = NT_LIST;
+   if (right && right->type == NT_FLIST) right->type = NT_LIST;
+   
+   // if both nodes are values, then evaluate immediately
+   if (left->is_value() && (!right || right->is_value()))
    {
       ExceptionSink xsink;
 
       class QoreNode *n_node = op->eval(left, right, true, &xsink);
-      //printd(5, "makeTree(): l=%08p (%s), r=%08p, op=%s, returning %08p\n", left, left->type->getName(), right, op->name, n_node);
+      //printd(5, "makeTree(): l=%08p (%s), r=%08p (%s), op=%s, returning %08p\n", left, left->getTypeName(), right, right ? right->getTypeName() : "n/a", op->getName(), n_node);
       left->deref(NULL);
       if (right)
 	 right->deref(NULL);
@@ -368,20 +373,19 @@ bool needsEval(class QoreNode *n)
       return false;
    }
 
-   if (n->type == NT_HASH)
    {
-      class HashIterator hi(n->val.hash);
-      while (hi.next())
-	 if (needsEval(hi.getValue()))
-	    return true;
-      // here we set needs_eval to false so the hash won't be evaluated again
-      n->val.hash->clearNeedsEval();
-      return false;
+      QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
+      if (h) {
+	 class HashIterator hi(h);
+	 while (hi.next())
+	    if (needsEval(hi.getValue()))
+	       return true;
+	 // here we set needs_eval to false so the hash won't be evaluated again
+	 h->clearNeedsEval();
+	 return false;
+      }
    }
    
-   if (n->type->isValue())
-      return false;
-
    if (n->type == NT_TREE)
    {
       if (needsEval(n->val.tree->left) || (n->val.tree->right && needsEval(n->val.tree->right)))
@@ -392,7 +396,7 @@ bool needsEval(class QoreNode *n)
    }
 
    //printd(5, "needsEval() type %s = true\n", n->type->getName());
-   return true;
+   return n->needs_eval();
 }
 
 static bool hasEffect(class QoreNode *n)
@@ -485,6 +489,7 @@ struct MethodNode {
       char *string;
       class BinaryObject *binary;
       class QoreNode *node;
+      QoreHashNode *hash;
       class AbstractStatement *statement;
       class StatementBlock *sblock;
       class ContextModList *cmods;
@@ -672,7 +677,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %type <node>        exp
 %type <node>        myexp
 %type <node>        scalar
-%type <node>        hash
+%type <hash>        hash
 %type <node>        list
 %type <String>      string
 %type <hashelement> hash_element
@@ -1405,14 +1410,13 @@ list:
 hash:
 	hash_element
 	{
-	   class QoreHash *h = new QoreHash(1);
-	   h->setKeyValue($1->key, $1->value, NULL);
+	   $$ = new QoreHashNode(1);
+	   $$->setKeyValue($1->key, $1->value, NULL);
 	   delete $1;
-	   $$ = new QoreNode(h);
 	}
 	| hash ',' hash_element
 	{
-	   $1->val.hash->setKeyValue($3->key, $3->value, NULL);
+	   $1->setKeyValue($3->key, $3->value, NULL);
 	   delete $3;
 	   $$ = $1;
 	}

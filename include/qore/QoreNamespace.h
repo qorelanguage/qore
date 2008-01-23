@@ -83,9 +83,9 @@ class QoreNamespace
       DLLEXPORT void addInitialNamespace(class QoreNamespace *ns);
       DLLEXPORT class QoreNamespace *copy(int po = 0) const;
       // info
-      DLLEXPORT class QoreHash *getClassInfo() const;
-      DLLEXPORT class QoreHash *getConstantInfo() const;
-      DLLEXPORT class QoreHash *getInfo() const;
+      DLLEXPORT class QoreHashNode *getClassInfo() const;
+      DLLEXPORT class QoreHashNode *getConstantInfo() const;
+      DLLEXPORT class QoreHashNode *getInfo() const;
       DLLEXPORT const char *getName() const;
 };
 

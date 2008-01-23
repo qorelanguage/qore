@@ -62,7 +62,7 @@ static inline void addSSLConstants(class QoreNamespace *ns)
    ns->addConstant("X509_V_ERR_KEYUSAGE_NO_CERTSIGN", new QoreNode((int64)X509_V_ERR_KEYUSAGE_NO_CERTSIGN));
    ns->addConstant("X509_V_ERR_APPLICATION_VERIFICATION", new QoreNode((int64)X509_V_ERR_APPLICATION_VERIFICATION));
 
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("X509_V_OK", new QoreStringNode("OK"), NULL);
    h->setKeyValue("X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT", new QoreStringNode("Unable to get issuer certificate"), NULL);
    h->setKeyValue("X509_V_ERR_UNABLE_TO_GET_CRL", new QoreStringNode("Unable to get certificate CRL"), NULL);
@@ -97,7 +97,7 @@ static inline void addSSLConstants(class QoreNamespace *ns)
    h->setKeyValue("X509_V_ERR_KEYUSAGE_NO_CERTSIGN", new QoreStringNode("The keyUsage extension does not permit certificate signing"), NULL);
    h->setKeyValue("X509_V_ERR_APPLICATION_VERIFICATION", new QoreStringNode("Verification failure"), NULL);
 
-   ns->addConstant("X509_VerificationReasons", new QoreNode(h));
+   ns->addConstant("X509_VerificationReasons", h);
 }
 
 static inline char *getSSLCVCode(int code)

@@ -171,9 +171,6 @@
 #include "QC_QDialogButtonBox.h"
 #include "QC_QToolBar.h"
 
-#include "QT_BrushStyle.h"
-#include "QT_PenStyle.h"
-
 #include "qore-qt.h"
 
 #include <QPalette>
@@ -577,9 +574,12 @@ int get_qbrush(const QoreNode *n, QBrush &brush, class ExceptionSink *xsink)
 	 brush = *(qb->getQBrush());
 	 return 0;
       }
-      if (n->type == NT_BRUSHSTYLE) {
-	 brush = QBrush((Qt::BrushStyle)n->val.intval);
-	 return 0;
+      {
+	 const BrushStyleNode *bs = dynamic_cast<const BrushStyleNode *>(n);
+	 if (bs) {
+	    brush = QBrush(bs->getStyle());
+	    return 0;
+	 }
       }
       // assume Qt::GlobalColor enum
       if (n->type == NT_INT) {
@@ -2601,34 +2601,34 @@ static void init_namespace()
    qt_ns->addConstant("transparent",       new QoreNode((int64)Qt::transparent));
 
    // BrushStyle enum
-   qt_ns->addConstant("NoBrush",                  make_enum(NT_BRUSHSTYLE, (int)Qt::NoBrush));
-   qt_ns->addConstant("SolidPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::SolidPattern));
-   qt_ns->addConstant("Dense1Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense1Pattern));
-   qt_ns->addConstant("Dense2Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense2Pattern));
-   qt_ns->addConstant("Dense3Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense3Pattern));
-   qt_ns->addConstant("Dense4Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense4Pattern));
-   qt_ns->addConstant("Dense5Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense5Pattern));
-   qt_ns->addConstant("Dense6Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense6Pattern));
-   qt_ns->addConstant("Dense7Pattern",            make_enum(NT_BRUSHSTYLE, (int)Qt::Dense7Pattern));
-   qt_ns->addConstant("HorPattern",               make_enum(NT_BRUSHSTYLE, (int)Qt::HorPattern));
-   qt_ns->addConstant("VerPattern",               make_enum(NT_BRUSHSTYLE, (int)Qt::VerPattern));
-   qt_ns->addConstant("CrossPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::CrossPattern));
-   qt_ns->addConstant("BDiagPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::BDiagPattern));
-   qt_ns->addConstant("FDiagPattern",             make_enum(NT_BRUSHSTYLE, (int)Qt::FDiagPattern));
-   qt_ns->addConstant("DiagCrossPattern",         make_enum(NT_BRUSHSTYLE, (int)Qt::DiagCrossPattern));
-   qt_ns->addConstant("LinearGradientPattern",    make_enum(NT_BRUSHSTYLE, (int)Qt::LinearGradientPattern));
-   qt_ns->addConstant("RadialGradientPattern",    make_enum(NT_BRUSHSTYLE, (int)Qt::RadialGradientPattern));
-   qt_ns->addConstant("ConicalGradientPattern",   make_enum(NT_BRUSHSTYLE, (int)Qt::ConicalGradientPattern));
-   qt_ns->addConstant("TexturePattern",           make_enum(NT_BRUSHSTYLE, (int)Qt::TexturePattern));
+   qt_ns->addConstant("NoBrush",                  new BrushStyleNode(Qt::NoBrush));
+   qt_ns->addConstant("SolidPattern",             new BrushStyleNode(Qt::SolidPattern));
+   qt_ns->addConstant("Dense1Pattern",            new BrushStyleNode(Qt::Dense1Pattern));
+   qt_ns->addConstant("Dense2Pattern",            new BrushStyleNode(Qt::Dense2Pattern));
+   qt_ns->addConstant("Dense3Pattern",            new BrushStyleNode(Qt::Dense3Pattern));
+   qt_ns->addConstant("Dense4Pattern",            new BrushStyleNode(Qt::Dense4Pattern));
+   qt_ns->addConstant("Dense5Pattern",            new BrushStyleNode(Qt::Dense5Pattern));
+   qt_ns->addConstant("Dense6Pattern",            new BrushStyleNode(Qt::Dense6Pattern));
+   qt_ns->addConstant("Dense7Pattern",            new BrushStyleNode(Qt::Dense7Pattern));
+   qt_ns->addConstant("HorPattern",               new BrushStyleNode(Qt::HorPattern));
+   qt_ns->addConstant("VerPattern",               new BrushStyleNode(Qt::VerPattern));
+   qt_ns->addConstant("CrossPattern",             new BrushStyleNode(Qt::CrossPattern));
+   qt_ns->addConstant("BDiagPattern",             new BrushStyleNode(Qt::BDiagPattern));
+   qt_ns->addConstant("FDiagPattern",             new BrushStyleNode(Qt::FDiagPattern));
+   qt_ns->addConstant("DiagCrossPattern",         new BrushStyleNode(Qt::DiagCrossPattern));
+   qt_ns->addConstant("LinearGradientPattern",    new BrushStyleNode(Qt::LinearGradientPattern));
+   qt_ns->addConstant("RadialGradientPattern",    new BrushStyleNode(Qt::RadialGradientPattern));
+   qt_ns->addConstant("ConicalGradientPattern",   new BrushStyleNode(Qt::ConicalGradientPattern));
+   qt_ns->addConstant("TexturePattern",           new BrushStyleNode(Qt::TexturePattern));
 
    // PenStyle enum
-   qt_ns->addConstant("NoPen",             make_enum(NT_PENSTYLE, (int)Qt::NoPen));
-   qt_ns->addConstant("SolidLine",         make_enum(NT_PENSTYLE, (int)Qt::SolidLine));
-   qt_ns->addConstant("DashLine",          make_enum(NT_PENSTYLE, (int)Qt::DashLine));
-   qt_ns->addConstant("DotLine",           make_enum(NT_PENSTYLE, (int)Qt::DotLine));
-   qt_ns->addConstant("DashDotLine",       make_enum(NT_PENSTYLE, (int)Qt::DashDotLine));
-   qt_ns->addConstant("DashDotDotLine",    make_enum(NT_PENSTYLE, (int)Qt::DashDotDotLine));
-   qt_ns->addConstant("CustomDashLine",    make_enum(NT_PENSTYLE, (int)Qt::CustomDashLine));
+   qt_ns->addConstant("NoPen",             new PenStyleNode(Qt::NoPen));
+   qt_ns->addConstant("SolidLine",         new PenStyleNode(Qt::SolidLine));
+   qt_ns->addConstant("DashLine",          new PenStyleNode(Qt::DashLine));
+   qt_ns->addConstant("DotLine",           new PenStyleNode(Qt::DotLine));
+   qt_ns->addConstant("DashDotLine",       new PenStyleNode(Qt::DashDotLine));
+   qt_ns->addConstant("DashDotDotLine",    new PenStyleNode(Qt::DashDotDotLine));
+   qt_ns->addConstant("CustomDashLine",    new PenStyleNode(Qt::CustomDashLine));
 
    // AlignmentFlag enum
    qt_ns->addConstant("AlignLeft",                new QoreNode((int64)Qt::AlignLeft));

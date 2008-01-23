@@ -32,6 +32,41 @@
 
 #include <tibrv/ftcpp.h>
 
+// each dispatched event calling onFtAction() must be followed by a getEvent() call
+class QoreTibrvFtMemberCallback : public TibrvFtMemberCallback
+{
+   private:
+      QoreHashNode *h;
+
+      DLLLOCAL virtual void onFtAction(TibrvFtMember *ftMember, const char *groupName, tibrvftAction action)
+      {
+	 //printd(0, "onFtAction %s: %d\n", groupName, action);
+	 h = new QoreHashNode();
+	 h->setKeyValue("action", new QoreNode((int64)action), NULL);
+	 h->setKeyValue("group", new QoreStringNode(groupName), NULL);
+      }
+
+   public:
+      DLLLOCAL QoreTibrvFtMemberCallback()
+      {
+	 h = NULL;
+      }
+
+      DLLLOCAL virtual ~QoreTibrvFtMemberCallback() 
+      {
+	 if (h)
+	    h->deref(NULL);
+      }
+
+      DLLLOCAL QoreHashNode *getEvent()
+      {
+	 QoreHashNode *rv = h;
+	 h = NULL;
+	 //printd(0, "callback getEvent() returning %08p\n", rv);
+	 return rv;
+      }
+};
+
 class QoreTibrvFtMember : public AbstractPrivateData, public QoreTibrvTransport
 {
    private:
@@ -40,29 +75,61 @@ class QoreTibrvFtMember : public AbstractPrivateData, public QoreTibrvTransport
       class QoreTibrvFtMemberCallback *callback;
 
    protected:
-      virtual ~QoreTibrvFtMember();
+      DLLLOCAL virtual ~QoreTibrvFtMember()
+      {
+	 if (callback)
+	    delete callback;
+      }
 
    public:
-      QoreTibrvFtMember(const char *groupname, int weight, int activeGoal, int64 heartbeat, int64 prep, int64 activation,
-			const char *desc, const char *service, const char *network, const char *daemon, 
-			class ExceptionSink *xsink);
+      DLLLOCAL QoreTibrvFtMember(const char *groupname, int weight, int activeGoal, int64 heartbeat, int64 prep, int64 activation,
+				 const char *desc, const char *service, const char *network, const char *daemon, 
+				 ExceptionSink *xsink);
 
-      inline QoreNode *getEvent(class ExceptionSink *xsink);
+      DLLLOCAL QoreHashNode *getEvent(ExceptionSink *xsink)
+      {
+	 while (true)
+	 {
+	    TibrvStatus status = queue.dispatch();
+	    
+	    if (status == TIBRV_TIMEOUT)
+	       return NULL;
+	    
+	    if (status == TIBRV_INVALID_QUEUE)
+	    {
+	       QoreHashNode *h = new QoreHashNode();
+	       h->setKeyValue("action", new QoreNode((int64)-1), NULL);
+	       return h;
+	    }
+	    
+	    if (status != TIBRV_OK)
+	    {
+	       xsink->raiseException("TIBRVFTMEMBER-GETEVENT-ERROR", status.getText());
+	       return NULL;
+	    }
+	    
+	    QoreHashNode *h = callback->getEvent();
+	    if (!h)
+	       continue;
+	    
+	    return h;
+	 }
+      }
 
-      inline void stop()
+      DLLLOCAL void stop()
       {
 	 ftMember.destroy();
 	 queue.destroy();
       }
 
-      inline void setWeight(int weight, class ExceptionSink *xsink)
+      DLLLOCAL void setWeight(int weight, class ExceptionSink *xsink)
       {
 	 TibrvStatus status = ftMember.setWeight((tibrv_u16)weight);
 	 if (status != TIBRV_OK)
 	    xsink->raiseException("TIBRVFTMEMEBER-SETWEIGHT-ERROR", "%s", status.getText());
       }
 
-      inline const char *getGroupName()
+      DLLLOCAL const char *getGroupName()
       {
 	 const char *groupName;
 	 TibrvStatus status = ftMember.getGroupName(groupName);
@@ -71,7 +138,7 @@ class QoreTibrvFtMember : public AbstractPrivateData, public QoreTibrvTransport
 	 return NULL;
       }
       
-      inline int getQueueSize(class ExceptionSink *xsink)
+      DLLLOCAL int getQueueSize(class ExceptionSink *xsink)
       {
          tibrv_u32 count;
          TibrvStatus status = queue.getCount(count);
@@ -84,76 +151,5 @@ class QoreTibrvFtMember : public AbstractPrivateData, public QoreTibrvTransport
          return count;
       }
 };
-
-// each dispatched event calling onFtAction() must be followed by a getEvent() call
-class QoreTibrvFtMemberCallback : public TibrvFtMemberCallback
-{
-   private:
-      class QoreHash *h;
-
-      virtual void onFtAction(TibrvFtMember *ftMember, const char *groupName, tibrvftAction action)
-      {
-	 //printd(0, "onFtAction %s: %d\n", groupName, action);
-	 h = new QoreHash();
-	 h->setKeyValue("action", new QoreNode((int64)action), NULL);
-	 h->setKeyValue("group", new QoreStringNode(groupName), NULL);
-      }
-
-   public:
-      inline QoreTibrvFtMemberCallback()
-      {
-	 h = NULL;
-      }
-
-      virtual ~QoreTibrvFtMemberCallback() 
-      {
-	 if (h)
-	    h->derefAndDelete(NULL);
-      }
-
-      class QoreHash *getEvent()
-      {
-	 class QoreHash *rv = h;
-	 h = NULL;
-	 //printd(0, "callback getEvent() returning %08p\n", rv);
-	 return rv;
-      }
-};
-
-inline QoreTibrvFtMember::~QoreTibrvFtMember()
-{
-   if (callback)
-      delete callback;
-}
-
-inline QoreNode *QoreTibrvFtMember::getEvent(class ExceptionSink *xsink)
-{
-   while (true)
-   {
-      TibrvStatus status = queue.dispatch();
-   
-      if (status == TIBRV_TIMEOUT)
-	 return NULL;
-
-      if (status == TIBRV_INVALID_QUEUE)
-      {
-	 class QoreHash *h = new QoreHash();
-	 h->setKeyValue("action", new QoreNode((int64)-1), NULL);
-	 return new QoreNode(h);
-      }
-   
-      if (status != TIBRV_OK)
-      {
-	 xsink->raiseException("TIBRVFTMEMBER-GETEVENT-ERROR", status.getText());
-	 return NULL;
-      }
-      
-      class QoreHash *h = callback->getEvent();
-      if (!h)
-	 continue;
-
-      return new QoreNode(h);
-   }
-}
 
 #endif

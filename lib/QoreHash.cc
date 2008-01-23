@@ -400,14 +400,9 @@ void QoreHash::merge(const class QoreHash *h, class ExceptionSink *xsink)
    }
 }
 
-// takes all elements (and their references) from the hash passed, deletes the
-// hash passed; order is maintained
-void QoreHash::assimilate(class QoreHash *h, ExceptionSink *xsink)
+// takes all elements (and their references) from the hash passed, order is maintained
+void QoreHash::assimilate_intern(QoreHash *h, ExceptionSink *xsink)
 {
-   // ignore NULL hashes passed
-   if (!h)
-      return;
-
    class HashMember *where = h->member_list;
    
    while (where)
@@ -422,39 +417,71 @@ void QoreHash::assimilate(class QoreHash *h, ExceptionSink *xsink)
 #ifdef DEBUG
    h->member_list = NULL;
 #endif
+}
+
+// takes all elements (and their references) from the hash passed, deletes the
+// hash passed; order is maintained
+void QoreHash::assimilate(QoreHash *h, ExceptionSink *xsink)
+{
+   // ignore NULL hashes passed
+   if (!h)
+      return;
+   
+   assimilate_intern(h, xsink);
    delete h;
 }
 
-// can only be used on hashes populated with parsed data - no objects can be present
-// returns the same order
-class QoreHash *QoreHash::copy() const
+void QoreHash::copy_intern(QoreHash *new_hash) const
 {
-   QoreHash *h = new QoreHash();
-
    // copy all members to new object
    class HashMember *where = member_list;
    while (where)
    {
-      h->setKeyValue(where->key, where->node ? where->node->RefSelf() : NULL, NULL);
+      new_hash->setKeyValue(where->key, where->node ? where->node->RefSelf() : 0, 0);
       where = where->next;
    }
+}
+
+// can only be used on hashes populated with parsed data - no objects can be present
+// returns the same order
+QoreHash *QoreHash::copy() const
+{
+   QoreHash *h = new QoreHash();
+   copy_intern(h);
    return h;
+}
+
+// can only be used on hashes populated with parsed data - no objects can be present
+// returns the same order
+QoreHashNode *QoreHash::copyNode() const
+{
+   QoreHashNode *h = new QoreHashNode();
+   copy_intern(h);
+   return h;
+}
+
+int QoreHash::eval_intern(QoreHash *new_hash, class ExceptionSink *xsink) const
+{
+   class HashMember *where = member_list;
+   while (where)
+   {
+      new_hash->setKeyValue(where->key, where->node ? where->node->eval(xsink) : NULL, xsink);
+      if (*xsink)
+	 return -1;
+      where = where->next;
+   }
+   return 0;
 }
 
 // returns a hash with the same order
 class QoreHash *QoreHash::eval(ExceptionSink *xsink) const
 {
-   class QoreHash *h = new QoreHash();
+   TempQoreHash h(new QoreHash(), xsink);
 
-   class HashMember *where = member_list;
-   while (where)
-   {
-      h->setKeyValue(where->key, where->node ? where->node->eval(xsink) : NULL, xsink);
-      if (xsink->isEvent())
-	 break;
-      where = where->next;
-   }
-   return h;
+   if (!eval_intern(*h, xsink))
+      return h.release();
+
+   return 0;
 }
 
 class QoreNode *QoreHash::evalFirstKeyValue(class ExceptionSink *xsink) const

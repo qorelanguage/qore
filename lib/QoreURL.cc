@@ -206,9 +206,9 @@ int QoreURL::getPort() const
    return priv->port;
 }
 
-class QoreHash *QoreURL::getHash()
+class QoreHashNode *QoreURL::getHash()
 {
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    if (priv->protocol)
    {
       h->setKeyValue("protocol", priv->protocol, NULL);

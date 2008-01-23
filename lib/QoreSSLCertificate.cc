@@ -94,12 +94,12 @@ class QoreStringNode *QoreSSLCertificate::getPEM(class ExceptionSink *xsink) con
    return str;
 }
 
-class QoreHash *QoreSSLCertificate::getSubjectHash() const
+class QoreHashNode *QoreSSLCertificate::getSubjectHash() const
 {
    return X509_NAME_to_hash(X509_get_subject_name(priv->cert));
 }
 
-class QoreHash *QoreSSLCertificate::getIssuerHash() const
+class QoreHashNode *QoreSSLCertificate::getIssuerHash() const
 {
    return X509_NAME_to_hash(X509_get_issuer_name(priv->cert));
 }
@@ -154,9 +154,9 @@ class BinaryObject *QoreSSLCertificate::getPublicKey() const
    return new BinaryObject(buf, len);
 }
 
-class QoreHash *QoreSSLCertificate::getPurposeHash() const
+class QoreHashNode *QoreSSLCertificate::getPurposeHash() const
 {
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    QoreString tstr;
    for (int i = 0; i < X509_PURPOSE_get_count(); i++)
    {
@@ -215,19 +215,19 @@ class QoreHash *QoreSSLCertificate::getPurposeHash() const
    return h;
 }
 
-QoreHash *QoreSSLCertificate::getInfo() const
+QoreHashNode *QoreSSLCertificate::getInfo() const
 {
-   class QoreHash *h = new QoreHash();
+   QoreHashNode *h = new QoreHashNode();
    // get version
    h->setKeyValue("version", new QoreNode(getVersion()), NULL);
    // get serial number
    h->setKeyValue("serialNumber", new QoreNode(getSerialNumber()), NULL);
    // do subject
-   h->setKeyValue("subject", new QoreNode(getSubjectHash()), NULL);
+   h->setKeyValue("subject", getSubjectHash(), NULL);
    // do issuer
-   h->setKeyValue("issuer", new QoreNode(getIssuerHash()), NULL);
+   h->setKeyValue("issuer", getIssuerHash(), NULL);
    // get purposes
-   h->setKeyValue("purposes", new QoreNode(getPurposeHash()), NULL);
+   h->setKeyValue("purposes", getPurposeHash(), NULL);
    // get not before date
    h->setKeyValue("notBefore", getNotBeforeDate(), NULL);
    // get not after date

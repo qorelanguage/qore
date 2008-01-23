@@ -26,9 +26,9 @@
 #define OBJ_BUF_LEN 80
 
 // static method
-class QoreHash *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n)
+class QoreHashNode *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n)
 {
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    for (int i = 0; i < X509_NAME_entry_count(n); i++)
    {
       X509_NAME_ENTRY *e = X509_NAME_get_entry(n, i);

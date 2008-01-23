@@ -111,14 +111,12 @@ static class QoreNode *f_tibrvSetUserCertWithKey(const QoreNode *params, class E
 }
 #endif
 
-static class QoreNode *tibrv_hash_helper(char *key, class QoreNode *val)
+static QoreHashNode *tibrv_hash_helper(char *key, class QoreNode *val)
 {
-   class QoreHash *h = new QoreHash();
-   if (val)
-      val->ref();
+   QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("^type^", new QoreStringNode(key), NULL);
-   h->setKeyValue("^value^", val, NULL);
-   return new QoreNode(h);
+   h->setKeyValue("^value^", val ? val->RefSelf() : 0, NULL);
+   return h;
 }
 
 static class QoreNode *f_tibrv_i8(const QoreNode *params, class ExceptionSink *xsink)

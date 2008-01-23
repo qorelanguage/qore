@@ -42,9 +42,9 @@ QoreTibrvTransport::QoreTibrvTransport(const char *desc, const char *service, co
    transport.setDescription(desc);
 }
 
-int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, class QoreHash *hash, class ExceptionSink *xsink)
+int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, QoreHash *hash, ExceptionSink *xsink)
 {
-   class HashIterator hi(hash);
+   ConstHashIterator hi(hash);
    
    while (hi.next())
    {
@@ -109,22 +109,23 @@ int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMs
       }
    }
 
-   if (v->type == NT_HASH)
    {
-      QoreHash *h = v->val.hash;
-      //check if it's a type-encoded hash
-      class QoreNode *t;
-      if (h->size() == 2 && (t = h->getKeyValue("^type^")) && (t->type == NT_STRING))
-	 doEncodedType(msg, key, (reinterpret_cast<QoreStringNode *>(t))->getBuffer(), h->getKeyValue("^value^"), xsink);
-      else
-      {
-	 TibrvMsg m;
-	 hashToMsg(&m, h, xsink);
-	 if (xsink->isException())
-	    return -1;
-	 msg->addMsg(key, m);
+      QoreHashNode *h = dynamic_cast<QoreHashNode *>(v);
+      if (h) {
+	 //check if it's a type-encoded hash
+	 class QoreNode *t;
+	 if (h->size() == 2 && (t = h->getKeyValue("^type^")) && (t->type == NT_STRING))
+	    doEncodedType(msg, key, (reinterpret_cast<QoreStringNode *>(t))->getBuffer(), h->getKeyValue("^value^"), xsink);
+	 else
+	 {
+	    TibrvMsg m;
+	    hashToMsg(&m, h, xsink);
+	    if (xsink->isException())
+	       return -1;
+	    msg->addMsg(key, m);
+	 }
+	 return 0;
       }
-      return 0;
    }
 
    if (v->type == NT_BOOLEAN) {
@@ -141,18 +142,14 @@ int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMs
    return -1;
 }
 
-class QoreHash *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink *xsink)
+QoreHashNode *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink *xsink)
 {
-   class QoreHash *data = msgToHash(msg, xsink);
+   ReferenceHolder<QoreHashNode> data(msgToHash(msg, xsink), xsink);
    if (xsink->isException())
-   {
-      if (data)
-	 data->derefAndDelete(xsink);
-      return NULL;
-   }
+      return 0;
    
-   class QoreHash *h = new QoreHash();
-   h->setKeyValue("msg", new QoreNode(data), NULL);
+   QoreHashNode *h = new QoreHashNode();
+   h->setKeyValue("msg", data.release(), NULL);
    
    const char *str;
    TibrvStatus status = msg->getReplySubject(str);
@@ -166,27 +163,26 @@ class QoreHash *QoreTibrvTransport::parseMsg(TibrvMsg *msg, class ExceptionSink 
    return h;
 }
 
-class QoreHash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xsink)
+QoreHashNode *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *xsink)
 {
    tibrv_u32 len;
    TibrvStatus status = msg->getNumFields(len);
    if (status != TIBRV_OK)
    {
       xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", status.getText());
-      return NULL;
+      return 0;
    }
 
    TibrvMsgField field;
 
-   class QoreHash *h = new QoreHash();
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
    for (unsigned i = 0; i < len; i++)
    {
       status = msg->getFieldByIndex(field, i);
       if (status != TIBRV_OK)
       {
-	 h->derefAndDelete(xsink);
 	 xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", status.getText());
-	 return NULL;
+	 return 0;
       }
 
       const char *key = field.name;
@@ -194,16 +190,14 @@ class QoreHash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink
       if (!key)
 	 key = "";
 
-      class QoreNode *val = fieldToNode(&field, xsink);
+      QoreNode *val = fieldToNode(&field, xsink);
       if (xsink->isException())
-      {
-	 h->derefAndDelete(xsink);
-	 return NULL;
-      }
-      class QoreNode *ev = h->getKeyValueExistence(key);
+	 return 0;
+
+      QoreNode *ev = h->getKeyValueExistence(key);
       if (ev != (QoreNode *)-1)
       {
-	 class QoreNode **evp = h->getKeyValuePtr(key);
+	 QoreNode **evp = h->getKeyValuePtr(key);
 	 if (ev->type != NT_LIST)
 	 {
 	    //printd(5, "QoreTibrvTransport::msgToHash() making list\n");
@@ -218,15 +212,14 @@ class QoreHash *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink
 	 h->setKeyValue(key, val, NULL);
    }
 
-   return h;
+   return h.release();
 }
 
-class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionSink *xsink)
+QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionSink *xsink)
 {
    if (field->count > 1)
       return listToNode(field, xsink);
 
-   class QoreNode *val;
    tibrvLocalData data = field->getData();
 
    //printd(5, "QoreTibrvTransport::fieldToNode() type=%d\n", field->getType());
@@ -234,52 +227,40 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
    switch (field->getType())
    {
       case TIBRVMSG_STRING:
-	 val = new QoreStringNode((char *)data.str, enc);
-	 break;
+	 return new QoreStringNode((char *)data.str, enc);
 
       case TIBRVMSG_I8:
-	 val = new QoreNode((int64)data.i8);
-	 break;
+	 return new QoreNode((int64)data.i8);
 
       case TIBRVMSG_U8:
-	 val = new QoreNode((int64)data.u8);
-	 break;
+	 return new QoreNode((int64)data.u8);
 
       case TIBRVMSG_I16:
-	 val = new QoreNode((int64)data.i16);
-	 break;
+	 return new QoreNode((int64)data.i16);
 
       case TIBRVMSG_U16:
-	 val = new QoreNode((int64)data.u16);
-	 break;
+	 return new QoreNode((int64)data.u16);
 
       case TIBRVMSG_I32:
-	 val = new QoreNode((int64)data.i32);
-	 break;
+	 return new QoreNode((int64)data.i32);
 
       case TIBRVMSG_U32:
-	 val = new QoreNode((int64)data.u32);
-	 break;
+	 return new QoreNode((int64)data.u32);
 
       case TIBRVMSG_I64:
-	 val = new QoreNode((int64)data.i64);
-	 break;
+	 return new QoreNode((int64)data.i64);
 
       case TIBRVMSG_U64:
-	 val = new QoreNode((int64)data.u64);
-	 break;
+	 return new QoreNode((int64)data.u64);
 
       case TIBRVMSG_F32:
-	 val = new QoreNode((double)data.f32);
-	 break;
-
+	 return new QoreNode((double)data.f32);
+ 
       case TIBRVMSG_F64:
-	 val = new QoreNode(data.f64);
-	 break;
+	 return new QoreNode(data.f64);
 
       case TIBRVMSG_IPPORT16:
-	 val = new QoreNode((int64)ntohs(data.ipport16));
-	 break;
+	 return new QoreNode((int64)ntohs(data.ipport16));
 
       case TIBRVMSG_IPADDR32:
       {
@@ -289,32 +270,27 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
 	 unsigned char *uc = (unsigned char*)&ia;
 	 addr->sprintf("%d.%d.%d.%d", (int)uc[3], (int)uc[2], (int)uc[1], (int)uc[0]);
 	 //printd(5, "addr=%s\n", addr->getBuffer());
-	 val = addr;
-	 break;
+	 return addr;
       }
 
       case TIBRVMSG_BOOL:
-	 val = new QoreNode((bool)data.boolean);
-	 break;
+	 return new QoreNode((bool)data.boolean);
 
       case TIBRVMSG_MSG:
       {
 	 //printd(5, "TIBRVMSG_MSG size=%d\n", field->size);
 	 TibrvMsg msg(data.msg, TIBRV_FALSE);
-	 val = new QoreNode(msgToHash(&msg, xsink));
-	 break;
+	 return msgToHash(&msg, xsink);
       }
 
       case TIBRVMSG_DATETIME:
-	 val = new DateTimeNode((int64)data.date.sec);
-	 break;
+	 return new DateTimeNode((int64)data.date.sec);
 
       case TIBRVMSG_OPAQUE:
       {
 	 void *ptr = malloc(field->size);
 	 memcpy(ptr, data.buf, field->size);
-	 val = new QoreNode(new BinaryObject(ptr, field->size));
-	 break;
+	 return new QoreNode(new BinaryObject(ptr, field->size));
       }
 
       case TIBRVMSG_XML:
@@ -326,16 +302,12 @@ class QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Exce
 	    len--;
 	 str->allocate(len);
 	 memcpy((char *)str->getBuffer(), data.buf, len);
-	 val = str;
-	 break;
+	 return str;
       }
-
-      default:
-	 xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", "don't know how to convert type %d", field->getType());
-	 val = NULL;
-	 break;
    }
-   return val;
+
+   xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", "don't know how to convert type %d", field->getType());
+   return 0;
 }
 
 class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class ExceptionSink *xsink)

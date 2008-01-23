@@ -55,7 +55,7 @@ void QoreTibrvCmSender::sendSubject(const char *subject, class QoreHash *data, c
    //printd(0, "subject: %s msg=%08p sent OK\n", subject, data);
 }
 
-class QoreHash *QoreTibrvCmSender::sendSubjectWithSyncReply(const char *subject, class QoreHash *data, int64 timeout, int64 time_limit, class ExceptionSink *xsink)
+QoreHashNode *QoreTibrvCmSender::sendSubjectWithSyncReply(const char *subject, class QoreHash *data, int64 timeout, int64 time_limit, class ExceptionSink *xsink)
 {
    TibrvMsg msg;
 

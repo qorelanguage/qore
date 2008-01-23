@@ -203,11 +203,11 @@ static QoreNode *QCLIPBOARD_text(QoreObject *self, QoreQClipboard *qc, const Qor
    if (subtype) {
       QString st(subtype);
       QString rv = qc->qobj->text(st, mode);
-      QoreHash *h = new QoreHash();
+      QoreHashNode *h = new QoreHashNode();
       h->setKeyValue("subtype", new QoreStringNode(st.toUtf8().data(), QCS_UTF8), 0);
       h->setKeyValue("text", new QoreStringNode(rv.toUtf8().data(), QCS_UTF8), 0);
 
-      return new QoreNode(h);
+      return h;
    }
 
    return new QoreStringNode(qc->qobj->text(mode).toUtf8().data(), QCS_UTF8);

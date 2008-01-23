@@ -150,7 +150,7 @@ class QoreNode *Context::evalValue(char *field, class ExceptionSink *xsink)
    if (!value)
       return NULL;
 
-   class QoreNode *v = value->val.hash->evalKeyExistence(field, xsink);
+   class QoreNode *v = value->evalKeyExistence(field, xsink);
    if (v == (QoreNode *)-1)
    {
       xsink->raiseException("CONTEXT-EXCEPTION", "\"%s\" is not a valid key for this context", field);
@@ -170,15 +170,15 @@ class QoreNode *Context::evalValue(char *field, class ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *Context::getRow(class ExceptionSink *xsink)
+class QoreHashNode *Context::getRow(class ExceptionSink *xsink)
 {
    printd(5, "Context::getRow() value=%08p %s\n", value, value ? value->getTypeName() : "NULL");
    if (!value)
       return NULL;
 
-   class QoreHash *h = new QoreHash();
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
-   class HashIterator hi(value->val.hash);
+   class HashIterator hi(value);
    while (hi.next())
    {
       const char *key = hi.getKey();
@@ -186,22 +186,18 @@ class QoreNode *Context::getRow(class ExceptionSink *xsink)
       printd(5, "Context::getRow() key=%s\n", key);
       // get list from hash
       class QoreNode *v = hi.eval(xsink);
-      if (xsink->isEvent())
-      {
-	 h->derefAndDelete(xsink);
-	 return NULL;
-      }
+      if (*xsink)
+	 return 0;
       // set key value to list entry
       h->setKeyValue(key, v->val.list->eval_entry(row_list[pos], xsink), NULL);
       v->deref(xsink);
    }
    
-   return new QoreNode(h);
+   return h.release();
 }
 
 #define ROW_BLOCK 40
-static inline int in_list(class QoreNode *node, struct node_row_list_s *nlist,
-			  int max, int row, ExceptionSink *xsink)
+static inline int in_list(class QoreNode *node, struct node_row_list_s *nlist, int max, int row, ExceptionSink *xsink)
 {
    int i;
 
@@ -351,22 +347,20 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
    else // copy object (query) list
    {
       name = nme ? strdup(nme) : NULL;
-      value = exp->eval(xsink);
+      ReferenceHolder<QoreNode> rv(exp->eval(xsink), xsink);
 
       // push context on stack
       next = get_context_stack();
       update_context_stack(this);
 
+      if (*xsink)
+	 return;
+
+      value = dynamic_cast<QoreHashNode *>(*rv);
       if (!value)
 	 return;
-      if (xsink->isEvent() || value->type != NT_HASH)
-      {
-	 value->deref(xsink);
-	 value = NULL;
-	 return;
-      }
 
-      class QoreNode *fkv = value->val.hash->evalFirstKeyValue(xsink);
+      ReferenceHolder<QoreNode> fkv(value->evalFirstKeyValue(xsink), xsink);
 
       if (fkv && fkv->type == NT_LIST)
       {
@@ -375,8 +369,6 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
 	 if (!row_list)
 	 {
 	    xsink->outOfMemory();
-	    if (fkv)
-	       fkv->deref(xsink);
 	    return;
 	 }
 
@@ -386,9 +378,8 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
       }
       else
 	 max_pos = 0;
-
-      if (fkv)
-	 fkv->deref(xsink);
+      
+      rv.release();
    }
 
    printd(5, "Context::Context() %s max_pos=%d row_list=%08p\n", 

@@ -41,8 +41,8 @@
 #include "QC_QActionGroup.cc"
 #include "QC_QShortcut.cc"
 
-#include "QT_BrushStyle.cc"
-#include "QT_PenStyle.cc"
+#include "BrushStyleNode.cc"
+#include "PenStyleNode.cc"
 
 #include "QC_QEvent.cc"
 #include "QC_QInputEvent.cc"

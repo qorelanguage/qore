@@ -206,11 +206,7 @@ static QoreNode *DS_describe(class QoreObject *self, class ManagedDatasource *ds
    if (!p)
       return NULL;
 
-   class QoreHash *h = ds->describe(p->getBuffer(), xsink);
-   if (h)
-	return new QoreNode(h);
-
-   return NULL;
+   return ds->describe(p->getBuffer(), xsink);
 }
 */
 

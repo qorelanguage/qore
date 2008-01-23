@@ -84,10 +84,10 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       // returns -1 if an exception was thrown, 0 for OK
       DLLLOCAL int connect_unlocked(class ExceptionSink *xsink);
       DLLLOCAL void disconnect_unlocked();
-      DLLLOCAL class QoreNode *send_internal(const char *meth, const char *mpath, const class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLLOCAL class QoreHashNode *send_internal(const char *meth, const char *mpath, const class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
       DLLLOCAL void setSocketPath();
       DLLLOCAL const char *getMsgPath(const char *mpath, class QoreString &pstr);
-      DLLLOCAL class QoreNode *getResponseHeader(const char *meth, const char *mpath, class QoreHash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink);
+      DLLLOCAL class QoreHashNode *getResponseHeader(const char *meth, const char *mpath, class QoreHash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getHostHeaderValue();
 
       // not implemented
@@ -150,11 +150,11 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLEXPORT void disconnect();
 
       // caller owns the QoreNode reference returned
-      DLLEXPORT class QoreNode *send(const char *meth, const char *path, const class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLEXPORT class QoreHashNode *send(const char *meth, const char *path, const class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
       // caller owns the QoreNode reference returned
       DLLEXPORT class QoreNode *get(const char *path, const class QoreHash *headers, class ExceptionSink *xsink);
       // caller owns the QoreNode reference returned
-      DLLEXPORT class QoreNode *head(const char *path, const class QoreHash *headers, class ExceptionSink *xsink);
+      DLLEXPORT class QoreHashNode *head(const char *path, const class QoreHash *headers, class ExceptionSink *xsink);
       // caller owns the QoreNode reference returned
       DLLEXPORT class QoreNode *post(const char *path, const class QoreHash *headers, const void *data, unsigned size, class ExceptionSink *xsink);
       DLLEXPORT void setDefaultHeaderValue(const char *header, const char *val);

@@ -60,6 +60,12 @@ static inline DateTimeNode *test_date_param(const QoreNode *n, int i)
    return dynamic_cast<DateTimeNode *>(n->val.list->retrieve_entry(i));
 }
 
+static inline QoreHashNode *test_hash_param(const QoreNode *n, int i)
+{
+   if (!n) return 0;
+   return dynamic_cast<QoreHashNode *>(n->val.list->retrieve_entry(i));
+}
+
 /*
 // this will return only valid objects of the passed class ID
 // if an object is returned it will be locked and the caller

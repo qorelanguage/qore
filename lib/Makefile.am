@@ -27,6 +27,7 @@ libqore_la_SOURCES = \
 	QoreNode.cc \
 	QoreStringNode.cc \
 	DateTimeNode.cc \
+	QoreHashNode.cc \
 	Function.cc \
 	BuiltinFunctionList.cc \
 	UserFunctionList.cc \
@@ -107,20 +108,6 @@ libqore_la_SOURCES = \
 	QoreCounter.cc \
 	FunctionReference.cc \
 	ParseOptionMap.cc \
-	QT_NOTHING.cc \
-	QT_bigint.cc \
-	QT_float.cc \
-	QT_string.cc \
-	QT_date.cc \
-	QT_boolean.cc \
-	QT_NULL.cc \
-	QT_binary.cc \
-	QT_list.cc \
-	QT_hash.cc \
-	QT_object.cc \
-	QT_backquote.cc \
-	QT_context.cc \
-	QT_varref.cc \
 	ql_thread.cc \
 	ql_io.cc \
 	ql_time.cc \

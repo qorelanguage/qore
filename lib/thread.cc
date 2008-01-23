@@ -1139,9 +1139,9 @@ QoreList *get_thread_list()
 }
 
 #ifdef DEBUG
-QoreHash *getAllCallStacks()
+QoreHashNode *getAllCallStacks()
 {
-   QoreHash *h = new QoreHash();
+   QoreHashNode *h = new QoreHashNode();
    QoreString str;
    lThreadList.lock();
    tid_node *w = tid_head;

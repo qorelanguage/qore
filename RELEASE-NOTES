@@ -2,6 +2,11 @@ RELEASE NOTES for qore v0.7.0
 
 NOTE: for platform-specific notes and build instructions, please see the file BUILD
 
+qore 0.7.0 is a major release with major new features
+*) stable ABI and API, cleaned-up public header files, development packages
+*) complete reimplementation of the typing and operator subsystems
+*) qt module
+
 
 ***********************
 *** LANGUAGE ISSUES ***

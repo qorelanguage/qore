@@ -90,12 +90,12 @@ class QoreException {
 
       DLLLOCAL ~QoreException();
       DLLLOCAL void addStackInfo(class QoreNode *n);
-      DLLLOCAL static class QoreHash *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
+      DLLLOCAL static class QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
 
    public:
       // called for generic exceptions
-      DLLEXPORT class QoreNode *makeExceptionObjectAndDelete(class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *makeExceptionObject();
+      DLLEXPORT class QoreHashNode *makeExceptionObjectAndDelete(class ExceptionSink *xsink);
+      DLLEXPORT class QoreHashNode *makeExceptionObject();
 
       // called for runtime exceptions
       DLLLOCAL QoreException(const char *err, class QoreStringNode *desc);

@@ -622,7 +622,7 @@ class QoreNode *QorePGResult::getNode(int row, int col, class ExceptionSink *xsi
    if (ai == array_data_map.end())
    {
       xsink->raiseException("DBI:PGSQL:TYPE-ERROR", "don't know how to handle type ID: %d", type);      
-      return NULL;
+      return 0;
    }
 
    //printd(5, "QorePGResult::getNode(row=%d, col=%d) ARRAY type=%d this=%08p len=%d\n", row, col, type, this, len);
@@ -647,9 +647,9 @@ class QoreNode *QorePGResult::getNode(int row, int col, class ExceptionSink *xsi
    return rv;
 }
 
-class QoreHash *QorePGResult::getHash(class ExceptionSink *xsink)
+class QoreHashNode *QorePGResult::getHash(class ExceptionSink *xsink)
 {
-   class QoreHash *h = new QoreHash();
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
    int num_columns = PQnfields(res);
 
@@ -662,21 +662,19 @@ class QoreHash *QorePGResult::getHash(class ExceptionSink *xsink)
    {
       for (int j = 0; j < num_columns; ++j)
       {
-	 class QoreNode *n = getNode(i, j, xsink);
-	 if (!n)
-	 {
-	    h->derefAndDelete(xsink);
-	    return NULL;
-	 }
-	 h->getKeyValue(PQfname(res, j))->val.list->push(n);
+	 ReferenceHolder<QoreNode> n(getNode(i, j, xsink), xsink);
+	 if (!n || *xsink)
+	    return 0;
+
+	 h->getKeyValue(PQfname(res, j))->val.list->push(n.release());
       }
    }
-   return h;
+   return h.release();
 }
 
 class QoreList *QorePGResult::getQoreList(class ExceptionSink *xsink)
 {
-   class QoreList *l = new QoreList();
+   TempList l(new QoreList(), xsink);
 
    int num_columns = PQnfields(res);
 
@@ -684,21 +682,17 @@ class QoreList *QorePGResult::getQoreList(class ExceptionSink *xsink)
 
    for (int i = 0, e = PQntuples(res); i < e; ++i)
    {
-      class QoreHash *h = new QoreHash();
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
       for (int j = 0; j < num_columns; ++j)
       {
-	 class QoreNode *n = getNode(i, j, xsink);
-	 if (!n)
-	 {
-	    h->derefAndDelete(xsink);
-	    l->derefAndDelete(xsink);
-	    return NULL;
-	 }
-	 h->setKeyValue(PQfname(res, j), n, NULL);
+	 ReferenceHolder<QoreNode> n(getNode(i, j, xsink), xsink);
+	 if (!n || *xsink)
+	    return 0;
+	 h->setKeyValue(PQfname(res, j), n.release(), xsink);
       }
-      l->push(new QoreNode(h));
+      l->push(h.release());
    }
-   return l;
+   return l.release();
 }
 
 static int check_hash_type(class QoreHash *h, class ExceptionSink *xsink)
@@ -882,37 +876,39 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
       return 0;
    }
 
-   if (v->type == NT_HASH)
    {
-      Oid type = check_hash_type(v->val.hash, xsink);
-      if (type < 0)
-	 return -1;
-      class QoreNode *t = v->val.hash->getKeyValue("^value^");
-      if (is_nothing(t) || is_null(t))
-      {
-	 paramTypes[nParams] = 0;
-	 paramValues[nParams] = 0;
-      }
-      else
-      {
-	 paramTypes[nParams] = type;
-
-	 QoreStringValueHelper str(t);
-	 paramValues[nParams]  = (char *)str->getBuffer();
-	 paramLengths[nParams] = str->strlen();
-
-	 // save the buffer for later deletion if it's a temporary string
-	 if (str.is_temp()) {
-	    TempString tstr(str.giveString());
-	    pb->str = tstr->giveBuffer();
+      QoreHashNode *vh = dynamic_cast<QoreHashNode *>(v);
+      if (vh) {
+	 Oid type = check_hash_type(vh, xsink);
+	 if (type < 0)
+	    return -1;
+	 class QoreNode *t = vh->getKeyValue("^value^");
+	 if (is_nothing(t) || is_null(t))
+	 {
+	    paramTypes[nParams] = 0;
+	    paramValues[nParams] = 0;
 	 }
 	 else
-	    pb->str = 0;
+	 {
+	    paramTypes[nParams] = type;
+	    
+	    QoreStringValueHelper str(t);
+	    paramValues[nParams]  = (char *)str->getBuffer();
+	    paramLengths[nParams] = str->strlen();
+	    
+	    // save the buffer for later deletion if it's a temporary string
+	    if (str.is_temp()) {
+	       TempString tstr(str.giveString());
+	       pb->str = tstr->giveBuffer();
+	    }
+	    else
+	       pb->str = 0;
+	 }
+	 paramFormats[nParams] = 0;
+	 
+	 ++nParams;
+	 return 0;
       }
-      paramFormats[nParams] = 0;
-
-      ++nParams;
-      return 0;
    }
 
    if (v->type == NT_LIST)
@@ -1057,7 +1053,7 @@ int QorePGBindArray::check_type(class QoreNode *n, class ExceptionSink *xsink)
       if (type == NT_HASH)
       {
 	 format = 0;
-	 oid = check_hash_type(n->val.hash, xsink);
+	 oid = check_hash_type(n->valx.hash, xsink);
 	 if (oid < 0)
 	    return -1;
 	 qore_pg_array_type_map_t::const_iterator i = QorePGResult::array_type_map.find(oid);
@@ -1278,7 +1274,8 @@ int QorePGBindArray::bind(class QoreNode *n, const QoreEncoding *enc, class Exce
 
    if (type == NT_HASH)
    {
-      class QoreNode *t = n->val.hash->getKeyValue("^value^");
+      QoreHashNode *h = reinterpret_cast<QoreHashNode *>(n);
+      QoreNode *t = h->getKeyValue("^value^");
       if (is_nothing(t) || is_null(t))
 	 check_size(-1);
       else
@@ -1316,7 +1313,7 @@ int QorePGBindArray::process_list(QoreList *l, int current, const QoreEncoding *
       {
 	 if (check_type(n, xsink))
 	    return -1;
-	 if (v_type == NT_HASH && check_oid(n->val.hash, xsink))
+	 if (v_type == NT_HASH && check_oid(reinterpret_cast<QoreHashNode *>(n), xsink))
 	    return -1;
 
 	 if (bind(n, enc, xsink))
@@ -1546,8 +1543,7 @@ class QoreNode *QorePGConnection::select(class Datasource *ds, const QoreString 
    if (res.exec(pc, qstr, args, xsink))
       return NULL;
 
-   class QoreHash *h = res.getHash(xsink);
-   return h ? new QoreNode(h) : NULL;
+   return res.getHash(xsink);
 }
 
 class QoreNode *QorePGConnection::select_rows(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)
@@ -1567,10 +1563,7 @@ class QoreNode *QorePGConnection::exec(class Datasource *ds, const QoreString *q
       return NULL;
 
    if (res.hasResultData())
-   {
-      class QoreHash *h = res.getHash(xsink);
-      return h ? new QoreNode(h) : NULL;
-   }
+      return res.getHash(xsink);
 
    return new QoreNode((int64)res.rowsAffected());
 }

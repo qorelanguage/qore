@@ -470,48 +470,49 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       return lvids;
    }
 
-   if ((*node)->type == NT_HASH)
    {
-      QoreList *keys = (*node)->val.hash->getKeys();
-      for (i = 0; i < keys->size(); i++)
-      {
-	 QoreStringNode *key = reinterpret_cast<QoreStringNode *>(keys->retrieve_entry(i));
-	 const char *k = key->getBuffer();
-	 class QoreNode **value = (*node)->val.hash->getKeyValuePtr(k);
-	 // resolve constant references in keys
-	 if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST)
-	 {
-	    QoreNode *rv;
-	    if (k[0] == HE_TAG_CONST)
-	       rv = getRootNS()->findConstantValue(k + 1, 1);
-	    else
-	    {
-	       class NamedScope *nscope = new NamedScope(strdup(k + 1));
-	       rv = getRootNS()->findConstantValue(nscope, 1);
-	       delete nscope;
-	    }
-	    if (rv)
-	    {
-	       QoreStringValueHelper t(rv);
-	       
-	       // reference value for new hash key
-	       (*value)->ref();
-	       // not possible to have an exception here
-	       (*node)->val.hash->setKeyValue(t->getBuffer(), *value, NULL);
+      QoreHashNode *h = dynamic_cast<QoreHashNode *>(*node);
+      if (h) {
+	 HashIterator hi(h);
+	 while (hi.next()) {
+	    const char *k = hi.getKey();
+	    class QoreNode **value = hi.getValuePtr();
 
-	       // now reget new value ptr
-	       value = (*node)->val.hash->getKeyValuePtr(t->getBuffer());
+	    // resolve constant references in keys
+	    if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST)
+	    {
+	       QoreNode *rv;
+	       if (k[0] == HE_TAG_CONST)
+		  rv = getRootNS()->findConstantValue(k + 1, 1);
+	       else
+	       {
+		  class NamedScope *nscope = new NamedScope(strdup(k + 1));
+		  rv = getRootNS()->findConstantValue(nscope, 1);
+		  delete nscope;
+	       }
+	       if (rv)
+	       {
+		  QoreStringValueHelper t(rv);
+		  
+		  // reference value for new hash key
+		  (*value)->ref();
+		  // not possible to have an exception here
+		  h->setKeyValue(t->getBuffer(), *value, 0);
+		  
+		  // now reget new value ptr
+		  value = h->getKeyValuePtr(t->getBuffer());
+	       }
+	       else
+		  value = 0;
+
+	       // delete the old key (not possible to have an exception here)
+	       hi.deleteKey(0);
 	    }
-	    else
-	       value = NULL;
-	    // delete the old key (not possible to have an exception here)
-	    (*node)->val.hash->deleteKey(k, NULL);
+	    if (value)
+	       lvids += process_node(value, oflag, pflag);
 	 }
-	 if (value)
-	    lvids += process_node(value, oflag, pflag);
+	 return lvids;
       }
-      keys->derefAndDelete(NULL);
-      return lvids;
    }
 
    if ((*node)->type == NT_FIND)

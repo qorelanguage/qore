@@ -83,16 +83,11 @@ static QoreNode *TIBRVLISTENER_getMessage(class QoreObject *self, class QoreTibr
 {
    int64 timeout = getMsMinusOneBigInt(get_param(params, 0));
 
-   class QoreHash *h;
    // if timeout is < 0, then do not time out
    if (timeout < 0)
-      h = trvl->getMessage(xsink);
-   else
-      h = trvl->getMessage(timeout, xsink);
-   if (h)
-      return new QoreNode(h);
+      return trvl->getMessage(xsink);
 
-   return NULL;
+   return trvl->getMessage(timeout, xsink);
 }
 
 static QoreNode *TIBRVLISTENER_createInboxName(class QoreObject *self, class QoreTibrvListener *trvl, const QoreNode *params, ExceptionSink *xsink)

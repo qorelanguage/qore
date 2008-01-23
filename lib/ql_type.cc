@@ -101,7 +101,7 @@ static class QoreNode *f_list(const QoreNode *params, ExceptionSink *xsink)
 
 static class QoreNode *f_hash(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(new QoreHash());
+   return new QoreHashNode();
 }
 
 static class QoreNode *f_type(const QoreNode *params, ExceptionSink *xsink)

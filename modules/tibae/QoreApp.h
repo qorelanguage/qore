@@ -81,14 +81,14 @@ class QoreApp : public AbstractPrivateData, public MApp
       DLLLOCAL QoreApp(MAppProperties *pMAP, const char *name, class QoreHash *clh, 
 		       const char *svc = NULL, const char *net = NULL, 
 		       const char *dmn = NULL, const char *sbj = NULL);
-      DLLLOCAL class QoreNode *sendWithSyncReply(const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *sendWithSyncReply(const char *subject, const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
+      DLLLOCAL QoreNode *sendWithSyncReply(const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
+      DLLLOCAL QoreNode *sendWithSyncReply(const char *subject, const char *function_name, QoreNode *value, int timeout, ExceptionSink *xsink);
       DLLLOCAL void send(const char *function_name, QoreNode *value, ExceptionSink *xsink);
       DLLLOCAL void send(const char *subject, const char *function_name, QoreNode *value, ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *receive(const char *subject, unsigned long timeout, ExceptionSink *xsink);
+      DLLLOCAL QoreHashNode *receive(const char *subject, unsigned long timeout, ExceptionSink *xsink);
       DLLLOCAL void set_subject_name(const char *sub);
       DLLLOCAL const char *get_subject() { return subject; }
-      DLLLOCAL class QoreNode *map_mtree_to_node(MTree *msg, ExceptionSink *xsink);
+      DLLLOCAL QoreNode *map_mtree_to_node(MTree *msg, ExceptionSink *xsink);
       DLLLOCAL virtual void deref(class ExceptionSink *xsink);
 
       // operations

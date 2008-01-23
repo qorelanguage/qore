@@ -77,7 +77,7 @@ class QoreGetOpt {
       DLLLOCAL ~QoreGetOpt();
       // returns 0 for OK
       DLLLOCAL int add(const char *name, char short_opt, char *long_opt, class QoreType *argtype = NULL, int option = QGO_OPT_NONE);
-      DLLLOCAL class QoreHash *parse(class QoreList *l, bool ml, class ExceptionSink *xsink);
+      DLLLOCAL class QoreHashNode *parse(class QoreList *l, bool ml, class ExceptionSink *xsink);
 };
 
 #endif // _QORE_QOREGETOPT_H

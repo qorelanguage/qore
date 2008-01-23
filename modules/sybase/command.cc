@@ -277,7 +277,7 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
 	    
 	 case CS_ROW_RESULT:
 	 {
-	    class QoreNode *t = read_rows(0, list, xsink);
+	    QoreNode *t = read_rows(0, list, xsink);
 	    if (xsink->isException())
 	    {
 	       assert(!t);
@@ -289,16 +289,17 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
 	       // put the results already read into hash key "query0"
 	       if (result_count == 1)
 	       {
-		  QoreHash *h = new QoreHash();
+		  QoreHashNode *h = new QoreHashNode();
 		  h->setKeyValue("query0", query_result.release(), 0);
 		  h->setKeyValue("query1", t, 0);
-		  query_result = new QoreNode(h);
+		  query_result = h;
 	       }
 	       else
 	       {
 		  QoreString tmp;
 		  tmp.sprintf("query%d", result_count);
-		  query_result->val.hash->setKeyValue(tmp.getBuffer(), t, 0);
+		  QoreHashNode *h = reinterpret_cast<QoreHashNode *>(*query_result);
+		  h->setKeyValue(tmp.getBuffer(), t, 0);
 	       }
 	    }
 	    else
@@ -348,19 +349,19 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
    //printd(5, "read_output() q=%d, p=%d\n", (bool)query_result, (bool)param_result);
 
    m_conn.purge_messages(xsink);   
-   class QoreNode *rv = 0;
+   QoreNode *rv = 0;
    if (!query_result)
    {
       if (param_result)
-      {
 	 rv = param_result.release();
-	 assert(rv->type == NT_HASH);
-      }
       else if (rowcount != -1)
 	 return new QoreNode((int64)rowcount);
 
-      if (rowcount != -1)
-	 rv->val.hash->setKeyValue("rowcount", new QoreNode((int64)rowcount), xsink);
+      if (rowcount != -1) {
+	 QoreHashNode *h = dynamic_cast<QoreHashNode *>(rv);
+	 if (h)
+	    h->setKeyValue("rowcount", new QoreNode((int64)rowcount), xsink);
+      }
       return rv;
    }
 
@@ -368,20 +369,20 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
    if (!param_result)
       return rv;
 
-   class QoreHash *h = new QoreHash();
+   // return hash with param_result
+   QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("query", rv, xsink);
-   rv = new QoreNode(h);
 
    if (param_result)
-      rv->val.hash->setKeyValue("params", param_result.release(), xsink);
+      h->setKeyValue("params", param_result.release(), xsink);
 
    if (rowcount != -1)
-      rv->val.hash->setKeyValue("rowcount", new QoreNode((int64)rowcount), xsink);
+      h->setKeyValue("rowcount", new QoreNode((int64)rowcount), xsink);
 
-   return rv;
+   return h;
 }
 
-class QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list, ExceptionSink* xsink)
+QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list, ExceptionSink* xsink)
 {
    unsigned columns = get_column_count(xsink);
    if (xsink->isException())
@@ -395,16 +396,14 @@ class QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list,
    setup_output_buffers(descriptions, out_buffers, xsink);
    if (xsink->isException())
       return 0;
-   
+
    const QoreEncoding *encoding = m_conn.getEncoding();
-   class QoreNode *rv = 0;
+
    // setup hash of lists if necessary
-   if (!list)
-   {
-      QoreHash *h = new QoreHash();
+   if (!list) {
+      QoreHashNode *h = new QoreHashNode();
       QoreString str(encoding);
       for (unsigned i = 0, n = descriptions.size(); i != n; ++i) {
-
 	 const char *col_name;
 
 	 if (descriptions[i].name && descriptions[i].name[0]) {
@@ -420,43 +419,32 @@ class QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list,
 
 	 h->setKeyValue(col_name, new QoreNode(new QoreList()), 0);
       }
-      rv = new QoreNode(h);
+
+      while (fetch_row_into_buffers(xsink)) {
+	 if (append_buffers_to_list(placeholder_list, descriptions, out_buffers, h, xsink))
+	    return 0;
+      }
+      return h;
    }
 
+   ReferenceHolder<QoreNode> rv(xsink);
    while (fetch_row_into_buffers(xsink)) {
-
-      if (!list)
-      {
-	 if (append_buffers_to_list(placeholder_list, descriptions, out_buffers, rv->val.hash, xsink))
-	 {
-	    rv->deref(xsink);
-	    return 0;
+      QoreHashNode *h = output_buffers_to_hash(placeholder_list, descriptions, out_buffers, xsink);
+      if (*xsink)
+	 return 0;
+      if (rv) {
+	 if (rv->type == NT_HASH) {
+	    // convert to list - several rows
+	    class QoreList *l = new QoreList();
+	    l->push(rv.release());
+	    rv = new QoreNode(l);
 	 }
+	 rv->val.list->push(h);
       }
       else
-      {
-	 QoreHash* h = output_buffers_to_hash(placeholder_list, descriptions, out_buffers, xsink);
-	 if (xsink->isException()) {
-	    if (rv)
-	       rv->deref(xsink);
-	    return 0;
-	 }
-	 if (rv)
-	 {
-	    if (rv->type == NT_HASH)
-	    {
-	       // convert to hash - several rows
-	       class QoreList *l = new QoreList();
-	       l->push(rv);
-	       rv = new QoreNode(l);
-	    }
-	    rv->val.list->push(new QoreNode(h));
-	 } 
-	 else
-	    rv = new QoreNode(h);
-      }
-   } // while
-   return rv;
+	 rv = h;
+   }
+   return rv.release();
 }
 
 // returns 0=OK, -1=error (exception raised)
@@ -577,20 +565,17 @@ int command::append_buffers_to_list(PlaceholderList *placeholder_list, row_resul
    return 0;
 }
 
-class QoreHash *command::output_buffers_to_hash(PlaceholderList *placeholder_list, row_result_t column_info, row_output_buffers& all_buffers, ExceptionSink* xsink)
+QoreHashNode *command::output_buffers_to_hash(PlaceholderList *placeholder_list, row_result_t column_info, row_output_buffers& all_buffers, ExceptionSink* xsink)
 {
-   QoreHash *result = new QoreHash;
+   ReferenceHolder<QoreHashNode> result(new QoreHashNode(), xsink);
    if (placeholder_list)
       placeholder_list->reset();
    for (unsigned i = 0, n = column_info.size(); i != n; ++i) 
    {
       const output_value_buffer& buff = *(all_buffers.m_buffers[i]);
-      QoreNode *value = get_node(column_info[i], buff, xsink);
-      if (xsink->isException()) {
-	 if (value) value->deref(xsink);
-	 result->derefAndDelete(xsink);
+      ReferenceHolder<QoreNode> value(get_node(column_info[i], buff, xsink), xsink);
+      if (*xsink)
 	 return 0;
-      }
 
       const char *column_name;
       if (column_info[i].name && column_info[i].name[0]) {
@@ -600,14 +585,14 @@ class QoreHash *command::output_buffers_to_hash(PlaceholderList *placeholder_lis
       {
 	 char aux[20];
 	 sprintf(aux, "%d", i);
-	 result->setKeyValue(aux, value, xsink);
+	 result->setKeyValue(aux, value.release(), xsink);
 	 continue;
       }
 
-      result->setKeyValue(column_name, value, xsink);
+      result->setKeyValue(column_name, value.release(), xsink);
    } // for
 
-   return result;
+   return result.release();
 }
 
 class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_buffer& buffer, ExceptionSink* xsink)

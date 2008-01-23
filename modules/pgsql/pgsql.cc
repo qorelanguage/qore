@@ -166,10 +166,10 @@ static class QoreNode *f_pgsql_bind(const QoreNode *params, class ExceptionSink 
       return NULL;
    }
    p = get_param(params, 1);
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("^pgtype^", new QoreNode((int64)type), xsink);
    h->setKeyValue("^value^", p ? p->RefSelf() : NULL, xsink);
-   return new QoreNode(h);
+   return h;
 }
 
 static class QoreNamespace *pgsql_ns;

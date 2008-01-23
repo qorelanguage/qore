@@ -326,12 +326,12 @@ static class QoreNode *f_getISOWeekHash(const QoreNode *params, ExceptionSink *x
 
    int year, week, day;
    p0->getISOWeek(year, week, day);
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("year", new QoreNode((int64)year), NULL);
    h->setKeyValue("week", new QoreNode((int64)week), NULL);
    h->setKeyValue("day", new QoreNode((int64)day), NULL);
    
-   return new QoreNode(h);
+   return h;
 }
 
 // returns a string corresponding to the ISO-8601 year and calendar week for the date passed

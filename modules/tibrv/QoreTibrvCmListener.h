@@ -33,8 +33,8 @@
 class QoreTibrvCmListener : public AbstractPrivateData, public QoreTibrvCmTransport
 {
    private:
-      class TibrvCmListener cmListener;
-      class TibrvQueue queue;
+      TibrvCmListener cmListener;
+      TibrvQueue queue;
       class QoreTibrvCmMsgCallback *callback;
 
    protected:
@@ -57,10 +57,10 @@ class QoreTibrvCmListener : public AbstractPrivateData, public QoreTibrvCmTransp
 	 return count;
       }
 
-      class QoreHash *getMessage(class ExceptionSink *xsink);
-      class QoreHash *getMessage(int64 timeout, class ExceptionSink *xsink);
+      QoreHashNode *getMessage(class ExceptionSink *xsink);
+      QoreHashNode *getMessage(int64 timeout, class ExceptionSink *xsink);
 
-      class QoreStringNode *createInboxName(class ExceptionSink *xsink)
+      QoreStringNode *createInboxName(class ExceptionSink *xsink)
       {
 	 char name[120];
 	 
@@ -78,10 +78,10 @@ class QoreTibrvCmListener : public AbstractPrivateData, public QoreTibrvCmTransp
 class QoreTibrvCmMsgCallback : public TibrvCmMsgCallback
 {
    private:
-      class QoreTibrvCmListener *ql;
-      class ExceptionSink xsink;
-      class QoreHash *h;
-
+      QoreTibrvCmListener *ql;
+      ExceptionSink xsink;
+      QoreHashNode *h;
+      
       virtual void onCmMsg(TibrvCmListener *cmListener, TibrvMsg &msg)
       {
 	 h = ql->parseMsg(&msg, &xsink);
@@ -108,17 +108,17 @@ class QoreTibrvCmMsgCallback : public TibrvCmMsgCallback
       virtual ~QoreTibrvCmMsgCallback()
       {
 	 if (h)
-	    h->derefAndDelete(&xsink);
+	    h->deref(&xsink);
       }
 
-      inline class QoreHash *getMessage(class ExceptionSink *xs)
+      inline QoreHashNode *getMessage(class ExceptionSink *xs)
       {
 	 if (xsink.isException())
 	 {
 	    xs->assimilate(&xsink);
 	    return NULL;
 	 }
-	 class QoreHash *rv = h;
+	 QoreHashNode *rv = h;
 	 h = NULL;
 	 return rv;
       }

@@ -554,8 +554,8 @@ static QoreNode *SOCKET_sendHTTPMessage(class QoreObject *self, class mySocket *
       return NULL;
    }
 
-   QoreNode *p3 = test_param(params, NT_HASH, 3);
-   if (!p3)
+   QoreHashNode *headers = test_hash_param(params, 3);
+   if (!headers)
    {
       xsink->raiseException("SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR", "expecting HTTP headers (hash) as fourth parameter of Socket::sendHTTPMessage() call");
       return NULL;
@@ -565,8 +565,6 @@ static QoreNode *SOCKET_sendHTTPMessage(class QoreObject *self, class mySocket *
    method = p0->getBuffer();
    path = p1->getBuffer();
    http_version = p2->getBuffer();
-
-   class QoreHash *headers = p3->val.hash;
 
    // see if there is data to send as well
    QoreNode *p4 = get_param(params, 4);
@@ -625,8 +623,8 @@ static QoreNode *SOCKET_sendHTTPResponse(class QoreObject *self, class mySocket 
       return NULL;
    }
 
-   QoreNode *p3 = test_param(params, NT_HASH, 3);
-   if (!p3)
+   QoreHashNode *headers = test_hash_param(params, 3);
+   if (!headers)
    {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR", "expecting HTTP headers (hash) as fourth parameter of Socket::sendHTTPResponse() call");
       return NULL;
@@ -635,8 +633,6 @@ static QoreNode *SOCKET_sendHTTPResponse(class QoreObject *self, class mySocket 
    const char *status_desc, *http_version;
    status_desc = p1->getBuffer();
    http_version = p2->getBuffer();
-
-   class QoreHash *headers = p3->val.hash;
 
    // see if there is data to send as well
    QoreNode *p4 = get_param(params, 4);
@@ -684,8 +680,7 @@ static QoreNode *SOCKET_readHTTPChunkedBody(class QoreObject *self, class mySock
    int timeout = getMsMinusOneInt(get_param(params, 0));
 
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
-   class QoreHash *h = s->readHTTPChunkedBody(timeout, xsink);
-   return h ? new QoreNode(h) : NULL;
+   return s->readHTTPChunkedBody(timeout, xsink);
 }
 
 static QoreNode *SOCKET_readHTTPChunkedBodyBinary(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)
@@ -693,8 +688,7 @@ static QoreNode *SOCKET_readHTTPChunkedBodyBinary(class QoreObject *self, class 
    int timeout = getMsMinusOneInt(get_param(params, 0));
 
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
-   class QoreHash *h = s->readHTTPChunkedBodyBinary(timeout, xsink);
-   return h ? new QoreNode(h) : NULL;
+   return s->readHTTPChunkedBodyBinary(timeout, xsink);
 }
 
 static QoreNode *SOCKET_close(class QoreObject *self, class mySocket *s, const QoreNode *params, ExceptionSink *xsink)

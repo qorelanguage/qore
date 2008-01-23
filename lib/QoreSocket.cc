@@ -1485,7 +1485,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    if (!(t1 = (char *)strstr(buf, "HTTP/1.")))
       return hdr.release();
 
-   QoreHash *h = new QoreHash();
+   QoreHashNode *h = new QoreHashNode();
 
 #if 0
    h->setKeyValue("dbg_hdr", new QoreStringNode(buf), NULL);
@@ -1528,7 +1528,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    }
    
    convertHeaderToHash(h, p);
-   return new QoreNode(h);
+   return h;
 }
 
 void QoreSocket::doException(int rc, const char *meth, class ExceptionSink *xsink)
@@ -1543,7 +1543,7 @@ void QoreSocket::doException(int rc, const char *meth, class ExceptionSink *xsin
 }
 
 // receive a binary message in HTTP chunked format
-class QoreHash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
+class QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
 {
    class BinaryObject *b = new BinaryObject;
    class QoreString str; // for reading the size of each chunk
@@ -1651,7 +1651,7 @@ class QoreHash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Excepti
       doException(rc, "readHTTPChunkedBodyBinary", xsink);
       return NULL;
    }
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("body", new QoreNode(b), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
@@ -1662,7 +1662,7 @@ class QoreHash *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Excepti
 }
 
 // receive a message in HTTP chunked format
-class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
+class QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
 {
    TempQoreStringNode buf(new QoreStringNode(priv->charsetid));
    class QoreString str; // for reading the size of each chunk
@@ -1764,7 +1764,7 @@ class QoreHash *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink
       doException(rc, "readHTTPChunkedBody", xsink);
       return NULL;
    }
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("body", buf.release(), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)

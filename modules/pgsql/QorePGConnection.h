@@ -289,7 +289,7 @@ class QorePGResult {
       DLLLOCAL int exec(PGconn *pc, const QoreString *str, const QoreList *args, class ExceptionSink *xsink);
       // returns 0 for OK, -1 for error
       DLLLOCAL int exec(PGconn *pc, const char *cmd, class ExceptionSink *xsink);
-      DLLLOCAL class QoreHash *getHash(class ExceptionSink *xsink);
+      DLLLOCAL class QoreHashNode *getHash(class ExceptionSink *xsink);
       DLLLOCAL class QoreList *getQoreList(class ExceptionSink *xsink);
       DLLLOCAL int rowsAffected();
       DLLLOCAL bool hasResultData();

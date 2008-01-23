@@ -37,73 +37,19 @@ DLLEXPORT extern class DateTimeNode *ZeroDate;
 DLLEXPORT extern class QoreString NothingTypeString, NullTypeString, TrueString, FalseString, EmptyHashString, 
    EmptyListString;
 
-typedef class QoreNode *(*no_arg_func_t)();
-typedef class QoreNode *(*single_arg_func_t)(const class QoreNode *, class ExceptionSink *xsink);
-typedef class QoreNode *(*eval_opt_deref_func_t)(bool &, const class QoreNode *, class ExceptionSink *xsink);
-typedef bool (*needs_eval_func_t)(const class QoreNode *);
-typedef bool (*bool_eval_type_func_t)(const class QoreNode *, class ExceptionSink *xsink);
-typedef int64 (*bigint_eval_type_func_t)(const class QoreNode *, class ExceptionSink *xsink);
-typedef double (*float_eval_type_func_t)(const class QoreNode *, class ExceptionSink *xsink);
-typedef class QoreNode *(*convert_func_t)(const class QoreNode *, class ExceptionSink *xsink);
-typedef bool (*compare_func_t)(const class QoreNode *, const class QoreNode *, class ExceptionSink *xsink);
-typedef void (*delete_func_t)(class QoreNode *);
-typedef class QoreString *(*string_func_t)(const class QoreNode *, int format, class ExceptionSink *xsink);
-
 #define QTM_USER_START   200
 
-// sort_compare -1 l < r, 0 l == r, 1 l > r
-// compare 0 l = r, 1 l != r
 class QoreType {
    private:
       const char *name;
-      needs_eval_func_t       f_needs_eval;
-      single_arg_func_t       f_eval;
-      eval_opt_deref_func_t   f_eval_opt_deref;
-      bool_eval_type_func_t   f_bool_eval;
-      bigint_eval_type_func_t f_bigint_eval;
-      float_eval_type_func_t  f_float_eval;
-      convert_func_t          f_convert_to;
-      no_arg_func_t           f_default_value;
-      single_arg_func_t       f_copy;
-      compare_func_t          f_compare;
-      delete_func_t           f_delete_contents;
-      string_func_t           f_make_string;
-      bool is_value;
-      bool is_container;
       int  id;
 
    public:
       // note that this method is not thread safe - should only be called in library or module initialization
-      DLLEXPORT QoreType(const char *            p_name, 
-			 needs_eval_func_t       p_needs_eval,
-			 single_arg_func_t       p_eval, 
-			 eval_opt_deref_func_t   p_eval_opt_deref,
-			 bool_eval_type_func_t	 p_bool_eval,
-			 bigint_eval_type_func_t p_bigint_eval,
-			 float_eval_type_func_t  p_float_eval,
-			 convert_func_t          p_convert_to, 
-			 no_arg_func_t           p_default_value,
-			 single_arg_func_t       p_copy,
-			 compare_func_t          p_compare,
-			 delete_func_t           p_delete_contents,
-			 string_func_t           p_make_string,
-			 bool   p_is_value, 
-			 bool   p_is_container);
+      DLLEXPORT QoreType(const char *p_name);
       DLLEXPORT int getID() const;
-      DLLEXPORT bool isValue() const;
       DLLEXPORT const char *getName() const;
-      DLLEXPORT bool needs_eval(const class QoreNode *n) const;
-      DLLEXPORT class QoreNode *eval(const class QoreNode *n, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *eval(bool &needs_deref, const class QoreNode *n, class ExceptionSink *xsink) const;
-      DLLEXPORT bool bool_eval(const class QoreNode *n, class ExceptionSink *xsink) const;
-      DLLEXPORT int64 bigint_eval(const class QoreNode *n, class ExceptionSink *xsink) const;
-      DLLEXPORT double float_eval(const class QoreNode *n, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *copy(const class QoreNode *n, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *getDefaultValue() const;
       // compare = 0 means values are equal
-      DLLEXPORT bool compare(const class QoreNode *n1, const class QoreNode *n2, class ExceptionSink *xsink) const;
-      DLLEXPORT void deleteContents(class QoreNode *n) const;
-      DLLEXPORT class QoreString *getAsString(const class QoreNode *n, int format, class ExceptionSink *xsink) const;
 };
 
 typedef std::map<int, class QoreType *> qore_type_map_t;

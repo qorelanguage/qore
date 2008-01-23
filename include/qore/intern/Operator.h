@@ -61,15 +61,13 @@ typedef bool (*op_bool_str_str_func_t)(const QoreString *l, const QoreString *r,
 // FIXME: change to const QoreRegex
 typedef bool (*op_bool_str_regex_func_t)(const QoreString *l, QoreRegex *r, ExceptionSink *xsink);
 typedef int64 (*op_bigint_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink *xsink);
-// should be QoreHash (return value)
-typedef QoreNode *(*op_hash_string_func_t)(const QoreHash *l, const QoreString *r, ExceptionSink *xsink);
+typedef QoreHashNode *(*op_hash_string_func_t)(const QoreHashNode *l, const QoreString *r, ExceptionSink *xsink);
 typedef QoreStringNode *(*op_str_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink *xsink);
 // FIXME: change to const QoreRegex
 // should be QoreList (return value)
 typedef QoreNode *(*op_list_str_regex_func_t)(const QoreString *l, QoreRegex *r, ExceptionSink *xsink);
 typedef QoreNode *(*op_varref_func_t)(QoreNode *vref, bool ref_rv, ExceptionSink *xsink);
-typedef bool (*op_bool_hash_hash_func_t)(const QoreHash *l, const QoreHash *r, ExceptionSink *xsink);
-typedef QoreNode *(*op_hash_list_func_t)(const QoreHash *l, const QoreList *r, ExceptionSink *xsink);
+typedef QoreHashNode *(*op_hash_list_func_t)(const QoreHashNode *l, const QoreList *r, ExceptionSink *xsink);
 typedef QoreNode *(*op_noconvert_func_t)(QoreNode *l, QoreNode *r);
 typedef QoreNode *(*op_node_int_func_t)(QoreNode *l, int r, ExceptionSink *xsink);
 typedef QoreNode *(*op_node_func_t)(QoreNode *l, QoreNode *r, ExceptionSink *xsink);

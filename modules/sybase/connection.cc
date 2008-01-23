@@ -141,13 +141,12 @@ class QoreNode *connection::exec_intern(class QoreString *cmd_text, const QoreLi
    if (cmd.send(xsink))
       return 0;
 
-   QoreNode* result = cmd.read_output(query.placeholder_list, need_list, xsink);
-   if (xsink->isException()) {
-      if (result) result->deref(xsink);
+   ReferenceHolder<QoreNode> result(cmd.read_output(query.placeholder_list, need_list, xsink), xsink);
+   if (*xsink)
       return 0;
-   }
+
    //printd(5, "execute_command_impl() result=%08p (%lld)\n", result, result && result->type == NT_INT ? result->val.intval : 0LL);
-   return result;
+   return result.release();
 }
 
 class QoreNode *connection::exec(const QoreString *cmd, const QoreList *parameters, class ExceptionSink *xsink)
@@ -494,7 +493,7 @@ class QoreNode *connection::get_server_version(class ExceptionSink *xsink)
    if (!res)
       return 0;
    assert(res->type == NT_HASH);
-   HashIterator hi(res->val.hash);
+   HashIterator hi(reinterpret_cast<QoreHashNode *>(res));
    hi.next();
    QoreNode *rv = hi.takeValueAndDelete();
    res->deref(xsink);

@@ -272,7 +272,7 @@ class QoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreList 
       else
 	 rv = NULL;
    }
-   //printd(5, "DSP::selectRow() ds=%08p SQL=%s rv=%s (%08p)\n", ds, sql->getBuffer(), rv ? rv->type->name : "(null)", rv);
+   //printd(5, "DSP::selectRow() ds=%08p SQL=%s rv=%s (%08p)\n", ds, sql->getBuffer(), rv ? rv->getTypeName() : "(null)", rv);
    
    return rv;
 }

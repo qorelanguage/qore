@@ -54,13 +54,13 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       // caller does NOT own the X509 pointer returned; "const" cannot be used because of the openssl API does not support it
       DLLLOCAL X509 *getData() const;
       // caller owns value returned
-      DLLLOCAL class QoreHash *getSubjectHash() const;
+      DLLLOCAL class QoreHashNode *getSubjectHash() const;
       // caller owns value returned
-      DLLLOCAL class QoreHash *getIssuerHash() const;
+      DLLLOCAL class QoreHashNode *getIssuerHash() const;
       DLLLOCAL int64 getSerialNumber() const;
       DLLLOCAL int64 getVersion() const;
       // caller owns value returned
-      DLLLOCAL class QoreHash *getPurposeHash() const;
+      DLLLOCAL class QoreHashNode *getPurposeHash() const;
       // caller owns value returned
       DLLLOCAL class DateTimeNode *getNotBeforeDate() const;
       // caller owns value returned
@@ -74,7 +74,7 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       // caller owns value returned
       DLLLOCAL class BinaryObject *getPublicKey() const;
       // caller owns value returned
-      DLLLOCAL class QoreHash *getInfo() const;
+      DLLLOCAL class QoreHashNode *getInfo() const;
 };
 
 #endif

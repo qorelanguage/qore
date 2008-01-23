@@ -1355,7 +1355,7 @@ static QoreNode *QPAINTER_setBrush(QoreObject *self, QoreQPainter *qp, const Qor
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_BRUSHSTYLE) {
-      Qt::BrushStyle style = (Qt::BrushStyle)(p ? p->getAsInt() : 0);
+      Qt::BrushStyle style = (reinterpret_cast<BrushStyleNode *>(p))->getStyle();
       qp->getQPainter()->setBrush(style);
    }
    else {
@@ -1557,12 +1557,18 @@ static QoreNode *QPAINTER_setPen(QoreObject *self, QoreQPainter *qp, const QoreN
       qp->getQPainter()->setPen(*((QColor *)color));
       return 0;
    }
-   else if (p && p->type == NT_PENSTYLE)
-      qp->getQPainter()->setPen((Qt::PenStyle)p->val.intval);
-   else {  // assume it's a color value
-      Qt::GlobalColor color = (Qt::GlobalColor)(p ? p->getAsInt() : 0);
-      qp->getQPainter()->setPen(color);
+
+   {
+      PenStyleNode *ps = dynamic_cast<PenStyleNode *>(p);
+      if (ps) {
+	 qp->getQPainter()->setPen(ps->getStyle());
+	 return 0;
+      }
    }
+
+   // assume it's a color value
+   Qt::GlobalColor color = (Qt::GlobalColor)(p ? p->getAsInt() : 0);
+   qp->getQPainter()->setPen(color);
    return 0;
 }
 

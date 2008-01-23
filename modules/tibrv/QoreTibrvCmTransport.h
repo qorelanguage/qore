@@ -202,18 +202,16 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 
 	 if (!l)
 	    l = new QoreList();
-
-	 class QoreHash *h = cmt->msgToHash(&msg, &xsink);
+	 
+	 ReferenceHolder<QoreHashNode> h(cmt->msgToHash(&msg, &xsink), &xsink);
 	 if (xsink.isException())
 	 {
-	    if (h)
-	       h->derefAndDelete(&xsink);
 	    l->derefAndDelete(&xsink);
 	    l = NULL;
 	    return this;
 	 }
 
-	 l->push(new QoreNode(h));
+	 l->push(h.release());
 	 return NULL;
       }
 

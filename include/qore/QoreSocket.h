@@ -166,9 +166,9 @@ class QoreSocket
       // read and parse HTTP header (caller owns QoreNode reference returned)
       DLLEXPORT class QoreNode *readHTTPHeader(int timeout, int *prc);
       // receive a binary message in HTTP chunked format (caller owns QoreHash returned)
-      DLLEXPORT class QoreHash *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
+      DLLEXPORT class QoreHashNode *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
       // receive a string message in HTTP chunked format (caller owns QoreHash returned)
-      DLLEXPORT class QoreHash *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
+      DLLEXPORT class QoreHashNode *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
       // set send timeout in milliseconds
       DLLEXPORT int setSendTimeout(int ms);
       // set recv timeout in milliseconds

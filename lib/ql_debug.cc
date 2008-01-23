@@ -115,22 +115,24 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
       return;
    }
    
-   if (n->type == NT_HASH)
    {
-      s->sprintf("elements=%d\n", n->val.hash->size());
-      {
-         int i = 0;
-         HashIterator hi(n->val.hash);
-         while (hi.next())
-         {
-            strindent(s, indent);
-            s->sprintf("key %d/%d \"%s\" = ", i++, n->val.hash->size(), hi.getKey());
-            dni(s, hi.getValue(), indent + 3, xsink);
-	    if (!hi.last())
-	       s->concat('\n');
-         }
+      QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
+      if (h) {
+	 s->sprintf("elements=%d\n", h->size());
+	 {
+	    int i = 0;
+	    HashIterator hi(h);
+	    while (hi.next())
+	    {
+	       strindent(s, indent);
+	       s->sprintf("key %d/%d \"%s\" = ", i++, h->size(), hi.getKey());
+	       dni(s, hi.getValue(), indent + 3, xsink);
+	       if (!hi.last())
+		  s->concat('\n');
+	    }
+	 }
+	 return;
       }
-      return;
    }
    
    {
@@ -164,7 +166,7 @@ class QoreNode *f_dbg_node_info(const QoreNode *params, ExceptionSink *xsink)
 // returns a hash of all namespace information
 static class QoreNode *f_dbg_get_ns_info(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(getRootNS()->getInfo());
+   return getRootNS()->getInfo();
 }
 
 static class QoreNode *f_dbg_global_vars(const QoreNode *params, ExceptionSink *xsink)

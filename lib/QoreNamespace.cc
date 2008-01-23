@@ -462,7 +462,7 @@ void QoreNamespace::addInitialNamespace(class QoreNamespace *ns)
    priv->nsl->add(ns);
 }
 
-int parseInitConstantHash(class QoreHash *h, int level)
+static int parseInitConstantHash(class QoreHashNode *h, int level)
 {
    class RootQoreNamespace *rns = getRootNS();
 
@@ -1004,25 +1004,35 @@ int RootQoreNamespace::parseInitConstantValue(class QoreNode **val, int level)
       else
 	 break;
    }
-   if ((*val)->type == NT_LIST)
+
+   if ((*val)->type == NT_LIST) {
       for (int i = 0; i < (*val)->val.list->size(); i++)
       {
 	 if (parseInitConstantValue((*val)->val.list->get_entry_ptr(i), level + 1))
 	    return -1;
       }
-   else if ((*val)->type == NT_HASH)
-   {
-      if (parseInitConstantHash((*val)->val.hash, level))
-	 return -1;
+      return 0;
    }
-   else if ((*val)->type == NT_TREE)
+
+   {
+      QoreHashNode *h = dynamic_cast<QoreHashNode *>(*val);
+      if (h) {
+	 if (parseInitConstantHash(h, level))
+	    return -1;
+	 return 0;
+      }
+   }
+
+   if ((*val)->type == NT_TREE)
    {
       if (parseInitConstantValue(&((*val)->val.tree->left), level + 1))
 	 return -1;
       if ((*val)->val.tree->right)
 	 if (parseInitConstantValue(&((*val)->val.tree->right), level + 1))
 	    return -1;
+      return 0;
    }
+
    // if it's an expression or container type, then evaluate in case it contains immediate expressions
    if ((*val)->type == NT_TREE || (*val)->type == NT_LIST || (*val)->type == NT_HASH)
    {
@@ -1358,36 +1368,36 @@ class QoreNode *QoreNamespace::parseMatchScopedConstantValue(class NamedScope *n
    return ns->getConstantValue(nscope->getIdentifier());
 }
 
-class QoreHash *QoreNamespace::getConstantInfo() const
+class QoreHashNode *QoreNamespace::getConstantInfo() const
 {
    return priv->constant->getInfo();
 }
 
-class QoreHash *QoreNamespace::getClassInfo() const
+class QoreHashNode *QoreNamespace::getClassInfo() const
 {
    return priv->classList->getInfo();
 }
 
 // returns a hash of namespace information
-class QoreHash *QoreNamespace::getInfo() const
+class QoreHashNode *QoreNamespace::getInfo() const
 {
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
 
-   h->setKeyValue("constants", new QoreNode(getConstantInfo()), NULL);
-   h->setKeyValue("classes", new QoreNode(getClassInfo()), NULL);
+   h->setKeyValue("constants", getConstantInfo(), NULL);
+   h->setKeyValue("classes", getClassInfo(), NULL);
 
    if (priv->nsl->head)
    {
-      class QoreHash *nsh = new QoreHash();
+      class QoreHashNode *nsh = new QoreHashNode();
       
       class QoreNamespace *w = priv->nsl->head;
       while (w)
       {
-	 nsh->setKeyValue(w->priv->name.c_str(), new QoreNode(w->getInfo()), NULL);
+	 nsh->setKeyValue(w->priv->name.c_str(), w->getInfo(), NULL);
 	 w = w->priv->next;
       }
 
-      h->setKeyValue("subnamespaces", new QoreNode(nsh), NULL);
+      h->setKeyValue("subnamespaces", nsh, NULL);
    }
 
    return h;

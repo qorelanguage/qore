@@ -35,17 +35,12 @@ int CID_HTTPCLIENT;
 //-----------------------------------------------------------------------------
 static void HC_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
 {
-  QoreHTTPClient* client = new QoreHTTPClient();
-  QoreNode* n = test_param(params, NT_HASH, 0);
-  if (n) {
-     if (client->setOptions(n->val.hash, xsink))
-     {
-	client->deref();
-	return;
-     }
-  }
-
-  self->setPrivate(CID_HTTPCLIENT, client);
+   SimpleRefHolder<QoreHTTPClient> client(new QoreHTTPClient());
+   QoreHashNode *n = test_hash_param(params, 0);
+   if (n && client->setOptions(n, xsink))
+      return;
+   
+   self->setPrivate(CID_HTTPCLIENT, client.release());
 }
 
 //-----------------------------------------------------------------------------
@@ -147,13 +142,12 @@ static class QoreNode *HC_send(class QoreObject *self, class QoreHTTPClient *cli
    pstr = test_string_param(params, 2);
    const char *path = pstr ? pstr->getBuffer() : NULL;
 
-   p = test_param(params, NT_HASH, 3);
-   class QoreHash *h = p ? p->val.hash : NULL;
+   QoreHashNode *ph = test_hash_param(params, 3);
 
    p = get_param(params, 4);
    bool getbody = p ? p->getAsBool() : false;
 
-   return client->send(meth, path, h, ptr, size, getbody, xsink);
+   return client->send(meth, path, ph, ptr, size, getbody, xsink);
 }
 
 // get(path, headers)
@@ -167,9 +161,8 @@ static class QoreNode *HC_get(class QoreObject *self, class QoreHTTPClient *clie
    }
    const char *path = pstr->getBuffer();
 
-   QoreNode *p = test_param(params, NT_HASH, 1);
-
-   return client->get(path, p ? p->val.hash : NULL, xsink);
+   QoreHashNode *ph = test_hash_param(params, 1);
+   return client->get(path, ph, xsink);
 }
 
 // head(path, headers)
@@ -183,9 +176,8 @@ static class QoreNode *HC_head(class QoreObject *self, class QoreHTTPClient *cli
    }
    const char *path = pstr->getBuffer();
 
-   QoreNode *p = test_param(params, NT_HASH, 1);
-
-   return client->head(path, p ? p->val.hash : NULL, xsink);
+   QoreHashNode *ph = test_hash_param(params, 1);
+   return client->head(path, ph, xsink);
 }
 
 // post(path, data, headers)
@@ -222,10 +214,8 @@ static class QoreNode *HC_post(class QoreObject *self, class QoreHTTPClient *cli
       }
    }
 
-   p = test_param(params, NT_HASH, 2);
-   class QoreHash *h = p ? p->val.hash : NULL;
-
-   return client->post(path, h, ptr, size, xsink);
+   QoreHashNode *ph = test_hash_param(params, 2);
+   return client->post(path, ph, ptr, size, xsink);
 }
 
 static class QoreNode *HC_setTimeout(class QoreObject *self, class QoreHTTPClient *client, const QoreNode *params, ExceptionSink *xsink)

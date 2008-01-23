@@ -38,7 +38,7 @@ class CallNode {
 
       DLLLOCAL CallNode(const char *f, int t, class QoreObject *o);
       DLLLOCAL void objectDeref(class ExceptionSink *xsink);
-      DLLLOCAL class QoreHash *getInfo() const;
+      DLLLOCAL class QoreHashNode *getInfo() const;
 };
 
 class CallStack {

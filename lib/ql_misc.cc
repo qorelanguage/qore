@@ -207,7 +207,7 @@ static class QoreNode *f_parseURL(const QoreNode *params, ExceptionSink *xsink)
 
    QoreURL url(p0);
    if (url.isValid())
-      return new QoreNode(url.getHash());
+      return url.getHash();
 
    return NULL;
 }
@@ -275,12 +275,12 @@ static class QoreNode *f_getFeatureList(const QoreNode *params, ExceptionSink *x
 
 static class QoreNode *f_hash_values(const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_HASH, 0);
+   QoreHashNode *p0 = test_hash_param(params, 0);
    if (!p0)
       return NULL;
 
    class QoreList *l = new QoreList();
-   class HashIterator hi(p0->val.hash);
+   class HashIterator hi(p0);
    while (hi.next() && !xsink->isEvent())
       l->push(hi.eval(xsink));
 

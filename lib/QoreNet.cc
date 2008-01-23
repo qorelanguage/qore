@@ -75,9 +75,9 @@ int q_gethostbyname(const char *host, struct in_addr *sin_addr)
 }
 
 #define QORE_NET_ADDR_BUF_LEN 80
-static class QoreHash *he_to_hash(struct hostent &he)
+static QoreHashNode *he_to_hash(struct hostent &he)
 {
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    
    if (he.h_name && he.h_name[0])
       h->setKeyValue("name", new QoreStringNode(he.h_name), 0); // official host name
@@ -143,7 +143,7 @@ static class QoreStringNode *headdr_string(struct hostent &he)
    return new QoreStringNode();
 }
 
-class QoreHash *q_gethostbyname_to_hash(const char *host)
+class QoreHashNode *q_gethostbyname_to_hash(const char *host)
 {  
 #ifdef HAVE_GETHOSTBYNAME_R
    struct hostent he;
@@ -252,7 +252,7 @@ char *q_gethostbyaddr(const char *addr, int len, int type)
 
 // thread-safe gethostbyaddr
 // FIXME: check err?
-class QoreHash *q_gethostbyaddr_to_hash(class ExceptionSink *xsink, const char *addr, int type)
+class QoreHashNode *q_gethostbyaddr_to_hash(class ExceptionSink *xsink, const char *addr, int type)
 {
    in_addr sin_addr;
    in6_addr sin6_addr;

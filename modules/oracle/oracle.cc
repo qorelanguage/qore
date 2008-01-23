@@ -456,76 +456,75 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
    return NULL;
 }
 
-static class QoreHash *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class ExceptionSink *xsink)
+static QoreHashNode *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class ExceptionSink *xsink)
 {
-   class QoreHash *h = NULL;
    // retrieve results from statement and return hash
    
    // setup column structure for output columns
    OraColumns columns(stmthp, ds, "ora_fetch()", xsink);
+   if (*xsink)
+      return 0;
 
-   if (!xsink->isEvent())
+   // allocate result hash for result value
+   class QoreHashNode *h = new QoreHashNode();
+      
+   // create hash elements for each column, assign empty list
+   class OraColumn *w = columns.getHead();
+   while (w)
    {
-      // allocate result hash for result value
-      h = new QoreHash();
+      printd(5, "ora_fetch() allocating list for '%s' column\n", w->name);
+      h->setKeyValue(w->name, new QoreNode(new QoreList()), xsink);
+      w = w->next;
+   }
+   
+   int num_rows = 0;
+   
+   // setup temporary row to accept values
+   columns.define(stmthp, ds, "ora_fetch()", xsink);
+   
+   // now finally fetch the data
+   while (!xsink->isEvent())
+   {
+      int status;
+      class OracleData *d_ora = (OracleData *)ds->getPrivateData();
       
-      // create hash elements for each column, assign empty list
-      class OraColumn *w = columns.getHead();
-      while (w)
+      if ((status = OCIStmtFetch(stmthp, d_ora->errhp, 1, OCI_FETCH_NEXT, OCI_DEFAULT)))
       {
-	 printd(5, "ora_fetch() allocating list for '%s' column\n", w->name);
-	 h->setKeyValue(w->name, new QoreNode(new QoreList()), xsink);
-	 w = w->next;
-      }
-      
-      int num_rows = 0;
-      
-      // setup temporary row to accept values
-      columns.define(stmthp, ds, "ora_fetch()", xsink);
-      
-      // now finally fetch the data
-      while (!xsink->isEvent())
-      {
-	 int status;
-	 class OracleData *d_ora = (OracleData *)ds->getPrivateData();
-
-	 if ((status = OCIStmtFetch(stmthp, d_ora->errhp, 1, OCI_FETCH_NEXT, OCI_DEFAULT)))
+	 if (status == OCI_NO_DATA)
+	    break;
+	 else
 	 {
-	    if (status == OCI_NO_DATA)
-	       break;
-	    else
-	    {
-	       ora_checkerr(d_ora->errhp, status, "ora_fetch()", ds, xsink);
-	       if (xsink->isEvent())
-		  break;
-	    }
-	 }
-
-	 // copy data or perform per-value processing if needed
-	 class OraColumn *w = columns.getHead();
-	 int i = 0;
-	 while (w)
-	 {
-	    // get pointer to value of target node
-	    QoreNode **v = h->getKeyValue(w->name)->val.list->get_entry_ptr(num_rows);
-	    
-	    // dereference node if already present
-	    if (*v)
-	    {
-	       printd(1, "ora_fetch(): dereferencing result value (col=%s)\n", w->name);
-	       (*v)->deref(xsink);
-	    }
-	    // FIXME: check for exception after this call
-	    (*v) = w->getValue(ds, xsink);
+	    ora_checkerr(d_ora->errhp, status, "ora_fetch()", ds, xsink);
 	    if (xsink->isEvent())
 	       break;
-	    w = w->next;
-	    i++;
 	 }
-	 num_rows++;
       }
-      printd(2, "ora_fetch(): %d column(s), %d row(s) retrieved as output\n", columns.size(), num_rows);
+      
+      // copy data or perform per-value processing if needed
+      class OraColumn *w = columns.getHead();
+      int i = 0;
+      while (w)
+      {
+	 // get pointer to value of target node
+	 QoreNode **v = h->getKeyValue(w->name)->val.list->get_entry_ptr(num_rows);
+	 
+	 // dereference node if already present
+	 if (*v)
+	 {
+	    printd(1, "ora_fetch(): dereferencing result value (col=%s)\n", w->name);
+	    (*v)->deref(xsink);
+	 }
+	 // FIXME: check for exception after this call
+	 (*v) = w->getValue(ds, xsink);
+	 if (xsink->isEvent())
+	    break;
+	 w = w->next;
+	 i++;
+      }
+      num_rows++;
    }
+   printd(2, "ora_fetch(): %d column(s), %d row(s) retrieved as output\n", columns.size(), num_rows);
+
    return h;
 }
 
@@ -567,7 +566,7 @@ static class QoreList *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *d
 	 //printd(5, "ora_fetch_horizontal(): l=%08p, %d column(s), got row %d\n", l, columns.size(), l->size());
 
 	 // set up hash for row
-	 class QoreHash *h = new QoreHash();
+	 class QoreHashNode *h = new QoreHashNode();
 
 	 // copy data or perform per-value processing if needed
 	 class OraColumn *w = columns.getHead();
@@ -580,7 +579,7 @@ static class QoreList *ora_fetch_horizontal(OCIStmt *stmthp, class Datasource *d
 	    w = w->next;
 	 }
 	 // add row to list
-	 l->push(new QoreNode(h));
+	 l->push(h);
       }
       printd(2, "ora_fetch_horizontal(): %d column(s), %d row(s) retrieved as output\n", columns.size(), l->size());
    }
@@ -713,8 +712,9 @@ void OraBindGroup::parseQuery(const QoreList *args, class ExceptionSink *xsink)
 	    add(tstr.giveBuffer(), -1, "string");
 	 else if (v->type == NT_HASH)
 	 {
+	    QoreHashNode *h = reinterpret_cast<QoreHashNode *>(v);
 	    // get and check data type
-	    class QoreNode *t = v->val.hash->getKeyValue("type");
+	    class QoreNode *t = h->getKeyValue("type");
 	    if (!t)
 	    {
 	       xsink->raiseException("DBI-EXEC-EXCEPTION", "missing 'type' key in placeholder hash");
@@ -728,7 +728,7 @@ void OraBindGroup::parseQuery(const QoreList *args, class ExceptionSink *xsink)
 	    }
 	    
 	    // get and check size
-	    class QoreNode *sz = v->val.hash->getKeyValue("size");
+	    class QoreNode *sz = h->getKeyValue("size");
 	    int size = sz ? sz->getAsInt() : -1;
 	    
 	    printd(5, "OraBindGroup::parseQuery() adding placeholder name=%s, size=%d, type=%s\n", tstr.getBuffer(), size, str->getBuffer());
@@ -979,10 +979,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
    else if (buftype == SQLT_BDOUBLE)
       return new QoreNode(buf.f8);
    else if (buftype == SQLT_RSET)
-   {
-      class QoreHash *h = ora_fetch((OCIStmt *)buf.ptr, ds, xsink);
-      return h ? new QoreNode(h) : NULL;
-   }
+      return ora_fetch((OCIStmt *)buf.ptr, ds, xsink);
    else if (buftype == SQLT_LVB)
    {
       // get oracle data
@@ -1027,9 +1024,9 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
    return NULL;
 }
 
-class QoreNode *OraBindGroup::getOutputHash(class ExceptionSink *xsink)
+QoreHashNode *OraBindGroup::getOutputHash(class ExceptionSink *xsink)
 {
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    
    class OraBindNode *w = head;
    while (w)
@@ -1038,7 +1035,7 @@ class QoreNode *OraBindGroup::getOutputHash(class ExceptionSink *xsink)
 	 h->setKeyValue(w->data.ph.name, w->getValue(ds, xsink), xsink);
       w = w->next;
    }
-   return new QoreNode(h);
+   return h;
 }
 
 class QoreNode *OraBindGroup::exec(class ExceptionSink *xsink)
@@ -1081,7 +1078,7 @@ class QoreNode *OraBindGroup::select(class ExceptionSink *xsink)
    if (status)
       ora_checkerr(d_ora->errhp, status, "OraBindGroup::select()", ds, xsink);
 
-   class QoreHash *h = NULL;
+   class QoreHashNode *h = 0;
    if (!xsink->isEvent())
       h = ora_fetch(stmthp, ds, xsink);
 
@@ -1090,9 +1087,7 @@ class QoreNode *OraBindGroup::select(class ExceptionSink *xsink)
       if ((status = OCITransCommit(d_ora->svchp, d_ora->errhp, (ub4) 0)))
 	 ora_checkerr(d_ora->errhp, status, "OraBindGroup():commit", ds, xsink);
 
-   if (!h)
-      return NULL;
-   return new QoreNode(h);
+   return h;
 }
 
 class QoreNode *OraBindGroup::selectRows(class ExceptionSink *xsink)
@@ -1348,13 +1343,13 @@ static class QoreNode *oracle_get_client_version(const Datasource *ds, class Exc
    sword major, minor, update, patch, port_update;
 
    OCIClientVersion(&major, &minor, &update, &patch, &port_update);
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("major", new QoreNode((int64)major), NULL);
    h->setKeyValue("minor", new QoreNode((int64)minor), NULL);
    h->setKeyValue("update", new QoreNode((int64)update), NULL);
    h->setKeyValue("patch", new QoreNode((int64)patch), NULL);
    h->setKeyValue("port_update", new QoreNode((int64)port_update), NULL);
-   return new QoreNode(h);
+   return h;
 }
 #endif
 

@@ -192,7 +192,7 @@ public:
 
 // 
 DLLEXPORT extern class DBIDriverList DBI;
-DLLEXPORT class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink);
+DLLEXPORT class QoreHashNode *parseDatasource(const char *ds, class ExceptionSink *xsink);
 // concatenates a numeric value to the QoreString from the QoreNode
 DLLEXPORT void DBI_concat_numeric(class QoreString *str, const class QoreNode *v);
 // concatenates a string value to the QoreString from the QoreNode, note that no escaping is done here

@@ -303,14 +303,14 @@ int mySocket::sendHTTPResponse(int code, const char *desc, const char *http_vers
 }
 
 // receive a binary message in HTTP chunked format
-class QoreHash *mySocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
+class QoreHashNode *mySocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->readHTTPChunkedBodyBinary(timeout, xsink);
 }
 
 // receive a string message in HTTP chunked format
-class QoreHash *mySocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
+class QoreHashNode *mySocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->readHTTPChunkedBody(timeout, xsink);

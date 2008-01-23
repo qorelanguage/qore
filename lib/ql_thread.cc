@@ -51,7 +51,7 @@ class QoreNode *f_save_thread_data(const QoreNode *params, ExceptionSink *xsink)
 
    QoreHash *data = getProgram()->getThreadData();
    if (p0->type == NT_HASH)
-      data->merge(p0->val.hash, xsink);
+      data->merge(reinterpret_cast<QoreHashNode *>(p0), xsink);
    else
    {
       QoreNode *p1 = get_param(params, 1);
@@ -109,13 +109,13 @@ class QoreNode *f_get_thread_data(const QoreNode *params, ExceptionSink *xsink)
 
 class QoreNode *f_get_all_thread_data(const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(getProgram()->getThreadData()->copy());
+   return getProgram()->getThreadData()->copyNode();
 }
 
 class QoreNode *f_getAllThreadCallStacks(const QoreNode *params, ExceptionSink *xsink)
 {
 #ifdef DEBUG
-   return new QoreNode(getAllCallStacks());
+   return getAllCallStacks();
 #else
    return new QoreStringNode("getAllThreadCallStacks() not available without debugging");
 #endif

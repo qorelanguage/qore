@@ -54,7 +54,7 @@ class ConstantList
       DLLLOCAL void assimilate(class ConstantList *n, class ConstantList *otherlist, const char *nsname);
       DLLLOCAL void assimilate(class ConstantList *n);
       DLLLOCAL void parseInit();
-      DLLLOCAL QoreHash *getInfo();
+      DLLLOCAL QoreHashNode *getInfo();
 };
 
 #endif

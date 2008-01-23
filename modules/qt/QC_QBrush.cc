@@ -72,7 +72,7 @@ static void QBRUSH_constructor(class QoreObject *self, const QoreNode *params, E
 	    qb = new QoreQBrush(*color, *(qpixmap->getQPixmap()));
 	 }
 
-	 Qt::BrushStyle style = p && p->type == NT_BRUSHSTYLE ? (Qt::BrushStyle)p->val.intval : Qt::SolidPattern;	 
+	 Qt::BrushStyle style = p && p->type == NT_BRUSHSTYLE ? (reinterpret_cast<BrushStyleNode *>(p))->getStyle() : Qt::SolidPattern;	 
 	 qb = new QoreQBrush(*color, style);
       }
       else {
@@ -81,7 +81,7 @@ static void QBRUSH_constructor(class QoreObject *self, const QoreNode *params, E
       }
    }
    else if (p->type == NT_BRUSHSTYLE) {
-      Qt::BrushStyle style = (Qt::BrushStyle)p->val.intval;
+      Qt::BrushStyle style = (reinterpret_cast<BrushStyleNode *>(p))->getStyle();
       qb = new QoreQBrush(style);
    }
    else {
@@ -191,7 +191,7 @@ static QoreNode *QBRUSH_setStyle(QoreObject *self, QoreQBrush *qb, const QoreNod
       xsink->raiseException("QBRUSH-SETSTYLE-ERROR", "expecting a BrushStyle constant as the sole argument to QBrush::setStyle()");
       return 0;
    }
-   Qt::BrushStyle style = (Qt::BrushStyle)p->val.intval;
+   Qt::BrushStyle style = (reinterpret_cast<BrushStyleNode *>(p))->getStyle();
    qb->getQBrush()->setStyle(style);
    return 0;
 }
@@ -238,7 +238,7 @@ static QoreNode *QBRUSH_setTextureImage(QoreObject *self, QoreQBrush *qb, const 
 //Qt::BrushStyle style () const
 static QoreNode *QBRUSH_style(QoreObject *self, QoreQBrush *qb, const QoreNode *params, ExceptionSink *xsink)
 {
-   return make_enum(NT_BRUSHSTYLE, (int)qb->getQBrush()->style());
+   return new BrushStyleNode(qb->getQBrush()->style());
 }
 
 //QPixmap texture () const

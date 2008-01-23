@@ -726,7 +726,9 @@ class QoreNode *QoreObject::evalMemberExistence(const char *mem, class Exception
    return rv;
 }
 
-class QoreHash *QoreObject::evalData(class ExceptionSink *xsink) const
+/*
+// this method should never be necessary as objects cannot contain parse expressions, only data
+QoreHash *QoreObject::evalData(class ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -736,24 +738,53 @@ class QoreHash *QoreObject::evalData(class ExceptionSink *xsink) const
       // need to return an empty hash here
       return new QoreHash();
    }
-   class QoreHash *rv = priv->data->eval(xsink);
+   QoreHash *rv = priv->data->eval(xsink);
+   priv->g.exit();
+   return rv;
+}
+*/
+
+QoreHash *QoreObject::copyData(class ExceptionSink *xsink) const
+{
+   if (priv->g.enter(xsink) < 0)
+      return NULL;
+   if (priv->status == OS_DELETED)
+   {
+      priv->g.exit();
+      // need to return an empty hash here
+      return new QoreHash();
+   }
+   QoreHash *rv = priv->data->copy();
    priv->g.exit();
    return rv;
 }
 
-class QoreHash *QoreObject::copyData(class ExceptionSink *xsink) const
+QoreHashNode *QoreObject::copyDataNode(ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
    if (priv->status == OS_DELETED)
    {
       priv->g.exit();
-      // need to return an empty hash here
-      return new QoreHash();
+      return 0;
    }
-   class QoreHash *rv = priv->data->copy();
+   QoreHashNode *rv = priv->data->copyNode();
    priv->g.exit();
    return rv;
+}
+
+void QoreObject::mergeDataToHash(QoreHash *hash, ExceptionSink *xsink)
+{
+   if (priv->g.enter(xsink) < 0)
+      return;
+   if (priv->status == OS_DELETED)
+   {
+      priv->g.exit();
+      makeAccessDeletedObjectException(xsink, priv->myclass->getName());
+      return;
+   }
+   hash->merge(priv->data, xsink);
+   priv->g.exit();
 }
 
 // NOTE: caller must unlock lock

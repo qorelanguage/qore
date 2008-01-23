@@ -43,7 +43,7 @@ class Context {
 
    public:
       char *name;
-      class QoreNode *value;
+      class QoreHashNode *value;
       // master row list needed for summary contexts
       int master_max_pos;
       int *master_row_list;
@@ -61,7 +61,7 @@ class Context {
 		       int sort_type = -1, class QoreNode *sort = NULL,
 		       class QoreNode *summary = NULL, int ignore_key = 0);
       DLLLOCAL class QoreNode *evalValue(char *field, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *getRow(class ExceptionSink *xsink);
+      DLLLOCAL class QoreHashNode *getRow(class ExceptionSink *xsink);
       DLLLOCAL int next_summary();
       DLLLOCAL int check_condition(class QoreNode *cond, class ExceptionSink *xsinkx);
       DLLLOCAL void deref(class ExceptionSink *xsink);

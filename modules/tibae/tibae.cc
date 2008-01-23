@@ -34,16 +34,14 @@ static inline class QoreNode *map_minstance_to_node(const MInstance *min, Except
    MString name;
    MData *val;
 
-   QoreHash* h = new QoreHash;
-   while (me->next(name, val) && !xsink->isEvent())
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
+   while (me->next(name, val)) {
       h->setKeyValue((char *)name.c_str(), map_mdata_to_node(val, xsink), xsink);
-
-   if (xsink->isEvent())
-   {
-      h->derefAndDelete(xsink);
-      return NULL;
+      if (*xsink)
+	 return 0;
    }
-   return new QoreNode(h);
+
+   return h.release();
 }
 
 // maps a TIBCO sequence to a QORE list
@@ -66,38 +64,33 @@ static inline class QoreNode *map_msequence_to_node(const MSequence *ms, Excepti
 // maps a TIBCO associative list to a QORE hash
 static inline class QoreNode *map_massoclist_to_node(const MAssocList *mal, ExceptionSink *xsink)
 {
-   QoreHash *h = new QoreHash();
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
-   MEnumerator<MString, MData *> *me = mal->newEnumerator();
+   std::auto_ptr<MEnumerator<MString, MData *>> me(mal->newEnumerator());
    MString name;
    MData *val;
 
-   while (me->next(name, val) && !xsink->isEvent())
+   while (me->next(name, val)) {
       h->setKeyValue((char *)name.c_str(), map_mdata_to_node(val, xsink), xsink);
-
-   delete me;
-   if (xsink->isEvent())
-   {
-      h->derefAndDelete(xsink);
-      return NULL;
+      if (*xsink)
+	 return 0;
    }
-   return new QoreNode(h);
+
+   return h.release();
 }
 
 // maps a TIBCO union to a QORE hash
 static inline class QoreNode *map_munion_to_node(const MUnion *mu, ExceptionSink *xsink)
 {
-   QoreHash *h = new QoreHash();
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
    MString MSkey = mu->getMemberName();
    h->setKeyValue((char *)MSkey.c_str(), map_mdata_to_node((MData *)mu->get(MSkey), xsink), xsink);
    
-   if (xsink->isEvent())
-   {
-      h->derefAndDelete(xsink);
-      return NULL;
-   }
-   return new QoreNode(h);
+   if (*xsink)
+      return 0;
+
+   return h.release();
 }
 
 // maps a TIBCO MTree to a QORE node
@@ -176,7 +169,7 @@ void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &
    tracein("set_properties()");
 
    // variable hash for overridding global variables
-   class QoreHash *vh = NULL;
+   QoreHashNode *vh = NULL;
 
    HashIterator hi(h);
    while (hi.next())
@@ -184,16 +177,15 @@ void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &
       const char *key = hi.getKey();
       if (!hi.getValue())
       {
-	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH", 
-			"properties hash key '%s' has value = NOTHING",
-			key);
+	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH", "properties hash key '%s' has value = NOTHING",	key);
 	 return;
       }
 
-      if (!strcmp(key, "Vars") && hi.getValue() && hi.getValue()->type == NT_HASH)
+      if (!strcmp(key, "Vars"))
       {
-	 vh = hi.getValue()->val.hash;
-	 continue;
+	 vh = dynamic_cast<QoreHashNode *>(hi.getValue());
+	 if (vh)
+	    continue;
       }
 
       QoreNode *v = hi.getValue();

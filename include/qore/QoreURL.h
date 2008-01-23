@@ -43,7 +43,7 @@ class QoreURL {
       DLLEXPORT int parse(const class QoreString *url);
       DLLEXPORT bool isValid() const;
       // returns a hash of the parameters parsed - destructive: zeros out all elements
-      DLLEXPORT class QoreHash *getHash();
+      DLLEXPORT class QoreHashNode *getHash();
       DLLEXPORT const class QoreString *getHost() const;
       DLLEXPORT const class QoreString *getUserName() const;
       DLLEXPORT const class QoreString *getPassword() const;

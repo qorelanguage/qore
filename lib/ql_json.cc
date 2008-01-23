@@ -138,11 +138,11 @@ static int getJSONStringToken(QoreString &str, const char *&buf, int &line_numbe
 static class QoreNode *getJSONValue(const char *&buf, int &line_number, const QoreEncoding *enc, class ExceptionSink *xsink);
 
 // '{' has already been read and the buffer is set to this character
-static class QoreNode *getJSONObject(const char *&buf, int &line_number, const QoreEncoding *enc, class ExceptionSink *xsink)
+static class QoreHashNode *getJSONObject(const char *&buf, int &line_number, const QoreEncoding *enc, class ExceptionSink *xsink)
 {
    // increment buffer to first character of object description
    buf++;
-   class QoreHash *h = new QoreHash();
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
    // get either string or '}'
    skip_whitespace(buf, line_number);
@@ -150,7 +150,7 @@ static class QoreNode *getJSONObject(const char *&buf, int &line_number, const Q
    if (*buf == '}')
    {
       buf++;
-      return new QoreNode(h);
+      return h.release();
    }
 
    while (*buf)
@@ -196,7 +196,7 @@ static class QoreNode *getJSONObject(const char *&buf, int &line_number, const Q
       if (*buf == '}')
       {
 	 buf++;
-	 return new QoreNode(h);
+	 return h.release();
       }
 
       if (*buf != ',')
@@ -209,8 +209,7 @@ static class QoreNode *getJSONObject(const char *&buf, int &line_number, const Q
       skip_whitespace(buf, line_number);
 
    }
-   h->derefAndDelete(NULL);
-   return NULL;
+   return 0;
 }
 
 // '[' has already been read and the buffer is set to this character
@@ -399,43 +398,50 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
       str->concat(" ]");
       return 0;
    }
-   if (v->type == NT_HASH)
-   {
-      str->concat("{ ");
-      HashIterator hi(v->val.hash);
-      QoreString tmp(str->getEncoding());
-      while (hi.next())
-      {
-	 bool ind = tmp.strlen() > JSF_THRESHOLD;
-	 tmp.clear();
-	 if (doJSONValue(&tmp, hi.getValue(), format == -1 ? format : format + 2, xsink))
-	    return -1;
 
-	 if (format != -1 && (ind || tmp.strlen() > JSF_THRESHOLD))
+   {
+      QoreHashNode *h = dynamic_cast<QoreHashNode *>(v);
+      if (h) {
+	 str->concat("{ ");
+	 HashIterator hi(h);
+	 QoreString tmp(str->getEncoding());
+	 while (hi.next())
 	 {
-	    str->concat('\n');
-	    str->addch(' ', format + 2);
+	    bool ind = tmp.strlen() > JSF_THRESHOLD;
+	    tmp.clear();
+	    if (doJSONValue(&tmp, hi.getValue(), format == -1 ? format : format + 2, xsink))
+	       return -1;
+	    
+	    if (format != -1 && (ind || tmp.strlen() > JSF_THRESHOLD))
+	    {
+	       str->concat('\n');
+	       str->addch(' ', format + 2);
+	    }
+	    str->sprintf("\"%s\" : %s", hi.getKey(), tmp.getBuffer());
+	    if (!hi.last())
+	       str->concat(", ");
 	 }
-	 str->sprintf("\"%s\" : %s", hi.getKey(), tmp.getBuffer());
-	 if (!hi.last())
-	    str->concat(", ");
+	 str->concat(" }");
+	 return 0;
       }
-      str->concat(" }");
-      return 0;
    }
-   if (v->type == NT_STRING)
-   {
-      ConstTempEncodingHelper t((QoreStringNode *)v, str->getEncoding(), xsink);
-      if (*xsink)
-	 return -1;
 
-      str->concat('"');
-      str->concatEscape(*t, '"', '\\', xsink);
-      if (*xsink)
-	 return -1;
-      str->concat('"');
-      return 0;
+   {
+      QoreStringNode *vstr = dynamic_cast<QoreStringNode *>(v);
+      if (vstr) {
+	 ConstTempEncodingHelper t(vstr, str->getEncoding(), xsink);
+	 if (*xsink)
+	    return -1;
+	 
+	 str->concat('"');
+	 str->concatEscape(*t, '"', '\\', xsink);
+	 if (*xsink)
+	    return -1;
+	 str->concat('"');
+	 return 0;
+      }
    }
+
    if (v->type == NT_INT)
    {
       str->sprintf("%lld", v->val.intval);

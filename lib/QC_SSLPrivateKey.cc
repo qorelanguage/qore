@@ -62,7 +62,7 @@ static void SSLPKEY_copy(class QoreObject *self, class QoreObject *old, class Qo
 
 static QoreNode *SSLPKEY_getInfo(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(pk->getInfo());
+   return pk->getInfo();
 }
 
 static QoreNode *SSLPKEY_getType(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreNode *params, ExceptionSink *xsink)

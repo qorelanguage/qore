@@ -465,8 +465,8 @@ int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
 
 void QoreSignalManager::addSignalConstants(class QoreNamespace *ns)
 {
-   class QoreHash *nh = new QoreHash();
-   class QoreHash *sh = new QoreHash();
+   class QoreHashNode *nh = new QoreHashNode();
+   class QoreHashNode *sh = new QoreHashNode();
 #ifdef SIGHUP
    nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGHUP), new QoreStringNode("SIGHUP"), NULL);
    sh->setKeyValue("SIGHUP", new QoreNode((int64)SIGHUP), NULL);
@@ -693,7 +693,7 @@ void QoreSignalManager::addSignalConstants(class QoreNamespace *ns)
    ns->addConstant("SIGJVM2", new QoreNode((int64)SIGJVM2));
 #endif
    
-   ns->addConstant("SignalToName", new QoreNode(nh));
-   ns->addConstant("NametoSignal", new QoreNode(sh));
+   ns->addConstant("SignalToName", nh);
+   ns->addConstant("NametoSignal", sh);
 }
 

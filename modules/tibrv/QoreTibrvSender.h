@@ -44,7 +44,7 @@ class QoreTibrvSender : public AbstractPrivateData, public QoreTibrvTransport
       void sendSubject(const char *subject, class QoreHash *data, const char *replySubject, class ExceptionSink *xsink);
       
       // timout in ms
-      class QoreHash *sendSubjectWithSyncReply(const char *subject, class QoreHash *data, int64 timeout, class ExceptionSink *xsink);
+      QoreHashNode *sendSubjectWithSyncReply(const char *subject, class QoreHash *data, int64 timeout, class ExceptionSink *xsink);
 };
 
 #endif

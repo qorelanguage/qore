@@ -48,6 +48,9 @@ class QoreObject : public ReferenceObject
       // not implemented
       DLLLOCAL QoreObject(const QoreObject&);
       DLLLOCAL QoreObject& operator=(const QoreObject&);
+
+      // FIXME: delete this
+      DLLLOCAL class QoreHash *evalData(class ExceptionSink *xsink) const;
       
    protected:
       DLLLOCAL ~QoreObject();
@@ -78,9 +81,12 @@ class QoreObject : public ReferenceObject
       // caller owns the QoreNode (reference) returned
       DLLEXPORT class QoreNode *evalMemberExistence(const char *mem, class ExceptionSink *xsink) const;
       // caller owns the QoreHash returned
-      DLLEXPORT class QoreHash *evalData(class ExceptionSink *xsink) const;
-      // caller owns the QoreHash returned
       DLLEXPORT class QoreHash *copyData(class ExceptionSink *xsink) const;
+      // caller owns the QoreHashNode returned
+      DLLEXPORT class QoreHashNode *copyDataNode(class ExceptionSink *xsink) const;
+      // copies all data to the passed QoreHash
+      DLLEXPORT void mergeDataToHash(class QoreHash *hash, class ExceptionSink *xsink);
+      // sets private data to the passed key, used in constructors
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
       DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink);
       // caller owns the QoreNode (reference) returned

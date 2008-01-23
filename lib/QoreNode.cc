@@ -23,6 +23,9 @@
 #include <qore/Qore.h>
 #include <qore/intern/Find.h>
 
+// TEMP!! FIXME: DELETEME:!
+#include <qore/intern/QT_backquote.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -30,12 +33,14 @@
 
 #define TRACK_REFS 1
 
-QoreNode::QoreNode() 
+/*
+QoreNode::QoreNode()
 {
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08p type=unknown (0->1)\n", this);
 #endif
 }
+*/
 
 #if TRACK_REFS
 
@@ -85,15 +90,6 @@ QoreNode::QoreNode(bool v)
 #endif
 }
 
-QoreNode::QoreNode(class QoreHash *h)
-{
-   type = NT_HASH;
-   val.hash = h;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
 QoreNode::QoreNode(QoreObject *o)
 {
    type = NT_OBJECT;
@@ -135,7 +131,102 @@ QoreNode::~QoreNode()
 #if 0
    printd(5, "QoreNode::~QoreNode() type=%s\n", getTypeName());
 #endif
-   type->deleteContents(this);
+
+   if (type == NT_BINARY) {
+      delete val.bin;
+      return;
+   }
+
+   if (type == NT_COMPLEXCONTEXTREF) {
+      delete val.complex_cref;
+      return;
+   }
+
+   if (type == NT_LIST) {
+      // FIXME: delete in deref(xsink) like object and hash
+      val.list->derefAndDelete(NULL);
+      return;
+   }
+
+   if (type == NT_VARREF) {
+      delete val.vref;
+      return;
+   }
+
+   if (type == NT_BACKQUOTE) {
+      if (val.c_str)
+	 free(val.c_str);
+      return;
+   }
+
+   if (type == NT_SELF_VARREF) {
+      if (val.c_str)
+	 free(val.c_str);
+      return;
+   }
+
+   if (type == NT_BAREWORD) {
+      if (val.c_str)
+	 free(val.c_str);
+      return;
+   }
+
+   if (type == NT_CONTEXTREF) {
+      if (val.c_str)
+	 free(val.c_str);
+      return;
+   }
+
+   if (type == NT_TREE) {
+      delete val.tree;
+      return;
+   }
+
+   if (type == NT_FIND) {
+      delete val.find;
+      return;
+   }
+
+   if (type == NT_FUNCTION_CALL) {
+      delete val.fcall;
+      return;
+   }
+
+   if (type == NT_SCOPE_REF) {
+      delete val.socall;
+      return;
+   }
+
+   if (type == NT_CONSTANT) {
+      delete val.scoped_ref;
+      return;
+   }
+
+   if (type == NT_CLASSREF) {
+      delete val.classref;
+      return;
+   }
+
+   if (type == NT_REFERENCE) {
+      val.lvexp->deref(NULL);
+      return;
+   }
+
+   if (type == NT_REGEX_SUBST) {
+      delete val.resub;
+      return;
+   }
+
+   if (type == NT_REGEX_TRANS) {
+      delete val.retrans;
+      return;
+   }
+
+   if (type == NT_REGEX) {
+      delete val.regex;
+      return;
+   }
+
 }
 
 QoreNode::QoreNode(char *name, class QoreNode *a)
@@ -361,8 +452,6 @@ void QoreNode::deref(ExceptionSink *xsink)
    {
       if (type == NT_LIST)
 	 val.list->dereference(xsink);
-      else if (type == NT_HASH)
-	 val.hash->dereference(xsink);
       else if (type == NT_OBJECT)
 	 val.object->dereference(xsink);
       else if (type == NT_FUNCREF)
@@ -377,16 +466,253 @@ void QoreNode::deref(ExceptionSink *xsink)
 
 class QoreNode *QoreNode::realCopy(ExceptionSink *xsink) const
 {
-   //tracein("QoreNode::realCopy()");
    assert(this);
+   
+   if (type == NT_BACKQUOTE) {
+      QoreNode *n = new QoreNode(type);
+      n->val.c_str = val.c_str ? strdup(val.c_str) : 0;
+      return n;
+   }
 
-   //traceout("QoreNode::realCopy()");
-   return type->copy(this, xsink);
+   if (type == NT_CONTEXTREF) {
+      QoreNode *n = new QoreNode(type);
+      n->val.c_str = val.c_str ? strdup(val.c_str) : 0;
+      return n;
+   }
+
+   if (type == NT_SELF_VARREF) {
+      QoreNode *n = new QoreNode(type);
+      n->val.c_str = val.c_str ? strdup(val.c_str) : 0;
+      return n;
+   }
+
+   if (type == NT_BAREWORD) {
+      QoreNode *n = new QoreNode(type);
+      n->val.c_str = val.c_str ? strdup(val.c_str) : 0;
+      return n;
+   }
+
+   if (type == NT_BINARY) {
+      return new QoreNode(val.bin->copy());
+   }
+
+   if (type == NT_LIST) {
+      return val.list->copy();
+   }
+
+   if (type == NT_OBJECT) {
+      // objects are not copied; they remain unique unless explicitly copied
+      return RefSelf();
+   }
+
+   if (type == NT_COMPLEXCONTEXTREF) {
+      return new QoreNode(val.complex_cref->copy());
+   }
+
+   if (type == NT_VARREF) {
+      return new QoreNode(val.vref->copy());
+   }
+
+   if (type == NT_TREE)
+      assert(false);
+
+   if (type == NT_FIND)
+      assert(false);
+
+   if (type == NT_FUNCTION_CALL)
+      assert(false);
+
+   if (type == NT_SCOPE_REF)
+      assert(false);
+
+   if (type == NT_CONSTANT)
+      assert(false);
+
+   if (type == NT_REFERENCE)
+      assert(false);
+
+   if (type == NT_REGEX_SUBST)
+      assert(false);
+
+   if (type == NT_REGEX_TRANS)
+      assert(false);
+
+   if (type == NT_REGEX)
+      assert(false);
+
+   if (type == NT_CLASSREF)
+      assert(false);
+
+   if (type == NT_FLIST)
+      assert(false);
+
+   if (type == NT_VLIST)
+      assert(false);
+
+   QoreNode *rv = new QoreNode(type);
+   memcpy(&rv->val, &val, sizeof(union node_u));
+   return rv;
 }
 
 bool QoreNode::needs_eval() const
 {
-   return type->needs_eval(this);
+   if (type == NT_LIST) {
+      return val.list->needsEval();
+   }
+
+   if (type == NT_BACKQUOTE)
+      return true;
+
+   if (type == NT_CONTEXTREF)
+      return true;
+
+   if (type == NT_COMPLEXCONTEXTREF)
+      return true;
+
+   if (type == NT_VARREF)
+      return true;
+
+   if (type == NT_TREE)
+      return true;
+
+   if (type == NT_FIND)
+      return true;
+
+   if (type == NT_FUNCTION_CALL)
+      return true;
+
+   if (type == NT_SELF_VARREF)
+      return true;
+
+   if (type == NT_CONTEXT_ROW)
+      return true;
+
+   if (type == NT_OBJMETHREF)
+      return true;
+
+   if (type == NT_FUNCREF)
+      return true;
+
+   if (type == NT_FUNCREFCALL)
+      return true;
+
+   return false;
+}
+
+bool QoreNode::is_value() const
+{
+   if (type == NT_LIST) {
+      return !val.list->needsEval();
+   }
+
+   if (type == NT_BACKQUOTE)
+      return false;
+
+   if (type == NT_CONTEXTREF)
+      return false;
+
+   if (type == NT_COMPLEXCONTEXTREF)
+      return false;
+
+   if (type == NT_VARREF)
+      return false;
+
+   if (type == NT_TREE)
+      return false;
+
+   if (type == NT_FIND)
+      return false;
+
+   if (type == NT_FUNCTION_CALL)
+      return false;
+
+   if (type == NT_SELF_VARREF)
+      return false;
+
+   if (type == NT_CONTEXT_ROW)
+      return false;
+
+   if (type == NT_OBJMETHREF)
+      return false;
+
+   if (type == NT_FUNCREF)
+      return false;
+
+   if (type == NT_FUNCREFCALL)
+      return false;
+
+   if (type == NT_FLIST)
+      return false;
+
+   if (type == NT_VLIST)
+      return false;
+
+   if (type == NT_BAREWORD)
+      return false;
+
+   if (type == NT_CONSTANT)
+      return false;
+
+   if (type == NT_REFERENCE)
+      return false;
+
+   if (type == NT_REGEX)
+      return false;
+
+   if (type == NT_CLASSREF)
+      return false;
+
+   if (type == NT_OBJMETHREF)
+      return false;
+
+   if (type == NT_SCOPE_REF)
+      return false;
+
+   return true;
+}
+
+#ifndef READ_BLOCK
+#define READ_BLOCK 1024
+#endif
+
+class QoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink)
+{
+   // execute command in a new process and read stdout in parent
+   FILE *p = popen(cmd, "r");
+   if (!p)
+   {
+      // could not fork or create pipe
+      xsink->raiseException("BACKQUOTE-ERROR", strerror(errno));
+      return 0;
+   }
+
+   // allocate buffer for return value
+   TempQoreStringNode s(new QoreStringNode());
+
+   // read in result string
+   while (1)
+   {
+      char buf[READ_BLOCK];
+      int size = fread(buf, 1, READ_BLOCK, p);
+
+      // break if no data is available or an error occurred
+      if (!size || size == -1)
+         break;
+
+      s->concat(buf, size);
+
+      // break if there is no more data
+      if (size != READ_BLOCK)
+         break;
+   }
+
+   // wait for child process to terminate and close pipe
+   pclose(p);
+
+   if (!s->strlen())
+      return 0;
+
+   return s.release();
 }
 
 /*
@@ -394,7 +720,81 @@ bool QoreNode::needs_eval() const
  */
 class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
 {
-   return type->eval(this, xsink);
+   if (type == NT_LIST) {
+      if (!val.list->needsEval())
+	 return RefSelf();
+      
+      return val.list->eval(xsink);
+   }
+
+   if (type == NT_BACKQUOTE) {
+      return backquoteEval(val.c_str, xsink);
+   }
+
+   if (type == NT_CONTEXTREF) {
+      return evalContextRef(val.c_str, xsink);
+   }
+
+   if (type == NT_COMPLEXCONTEXTREF) {
+      return evalComplexContextRef(val.complex_cref, xsink);
+   }
+
+   if (type == NT_VARREF) {
+      return val.vref->eval(xsink);
+   }
+
+   if (type == NT_TREE) {
+      return val.tree->eval(xsink);
+   }
+
+   if (type == NT_FIND) {
+      return val.find->eval(xsink);
+   }
+
+   if (type == NT_FUNCTION_CALL) {
+      return val.fcall->eval(xsink);
+   }
+
+   if (type == NT_SELF_VARREF) {
+      assert(getStackObject());
+      return getStackObject()->evalMemberNoMethod(val.c_str, xsink);
+   }
+
+   if (type == NT_CONTEXT_ROW) {
+      return evalContextRow(xsink);
+   }
+
+   if (type == NT_OBJMETHREF) {
+      return val.objmethref->eval(xsink);
+   }
+
+   if (type == NT_FUNCREF) {
+      return val.funcref->eval(this);
+   }
+
+   if (type == NT_FUNCREFCALL) {
+      return val.funcrefcall->eval(xsink);
+   }
+
+   if (type == NT_FLIST)
+      assert(false);
+
+   if (type == NT_SCOPE_REF)
+      assert(false);
+
+   if (type == NT_CONSTANT)
+      assert(false);
+
+   if (type == NT_BAREWORD)
+      assert(false);
+
+   if (type == NT_REGEX_SUBST)
+      assert(false);
+
+   if (type == NT_REGEX_TRANS)
+      assert(false);
+
+   return RefSelf();
 }
 
 /*
@@ -402,27 +802,60 @@ class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
  */
 class QoreNode *QoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const
 {
-   if (is_value(this))
+   /*
+     needs_deref = false;
+     return const_cast<QoreNode *>(this);
+    */
+
+   if (type == NT_VARREF) 
+      return val.vref->eval(needs_deref, xsink);
+
+   if (!needs_eval())
    {
       needs_deref = false;
       return const_cast<QoreNode *>(this);
    }
-   return type->eval(needs_deref, this, xsink);
+   needs_deref = true;
+   return eval(xsink);
 }
 
 int64 QoreNode::bigIntEval(ExceptionSink *xsink) const
 {
-   return type->bigint_eval(this, xsink);
+   if (!needs_eval())
+      return getAsBigInt();
+
+   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   if (*xsink || !rv)
+      return 0;
+
+   return rv->getAsBigInt();
 }
 
 int QoreNode::integerEval(ExceptionSink *xsink) const
 {
-   return (int)type->bigint_eval(this, xsink);
+   if (!needs_eval())
+      return getAsInt();
+
+   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   if (*xsink || !rv)
+      return 0;
+
+   return rv->getAsInt();
 }
 
 bool QoreNode::boolEval(ExceptionSink *xsink) const
 {
-   return type->bool_eval(this, xsink);
+   if (type == NT_TREE)
+      return val.tree->bool_eval(xsink);
+
+   if (!needs_eval())
+      return getAsBool();
+
+   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   if (*xsink || !rv)
+      return false;
+
+   return rv->getAsBool();
 }
 
 QoreString *QoreNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
@@ -447,9 +880,6 @@ QoreString *QoreNode::getAsString(bool &del, int foff, class ExceptionSink *xsin
       del = false;
       return val.boolval ? &TrueString : &FalseString;
    }
-   if (type == NT_HASH)
-      return val.hash->getAsString(del, foff, xsink);
-
    if (type == NT_LIST)
       return val.list->getAsString(del, foff, xsink);
 
@@ -647,18 +1077,6 @@ bool is_nothing(const QoreNode *n)
    return false;
 }
 
-bool is_value(const class QoreNode *node)
-{
-   // the only container types that can be created at parse time are lists and hashes
-   
-   if (node->type == NT_LIST)
-      return !node->val.list->needsEval();
-   else if (node->type == NT_HASH)
-      return !node->val.hash->needsEval();
-   
-   return node->type->isValue();
-}
-
 static inline QoreNode *crlr_list_copy(const QoreNode *n, ExceptionSink *xsink)
 {
    // if it's not an immediate list, then there can't be any
@@ -673,18 +1091,18 @@ static inline QoreNode *crlr_list_copy(const QoreNode *n, ExceptionSink *xsink)
    return new QoreNode(l);   
 }
 
-static inline QoreNode *crlr_hash_copy(const QoreNode *n, ExceptionSink *xsink)
+static inline QoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsink)
 {
    // if it's not an immediate hash, then there can't be any
    // variable references in it at any level, so return copy
-   if (!n->val.hash->needsEval())
+   if (!n->needsEval())
       return n->RefSelf();
 
-   QoreHash *h = new QoreHash(1);
-   HashIterator hi(n->val.hash);
+   QoreHashNode *h = new QoreHashNode(1);
+   ConstHashIterator hi(n);
    while (hi.next())
       h->setKeyValue(hi.getKey(), copy_and_resolve_lvar_refs(hi.getValue(), xsink), xsink);
-   return new QoreNode(h);
+   return h;
 }
 
 static inline QoreNode *crlr_tree_copy(const QoreNode *n, ExceptionSink *xsink)
@@ -736,15 +1154,18 @@ static inline class QoreNode *eval_notnull(const class QoreNode *n, ExceptionSin
    return const_cast<QoreNode *>(n);
 }
 
-class QoreNode *copy_and_resolve_lvar_refs(const class QoreNode *n, ExceptionSink *xsink)
+class QoreNode *copy_and_resolve_lvar_refs(const QoreNode *n, ExceptionSink *xsink)
 {
    if (!n) return NULL;
 
    if (n->type == NT_LIST)
       return crlr_list_copy(n, xsink);
 
-   if (n->type == NT_HASH)
-      return crlr_hash_copy(n, xsink);
+   {
+      const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(n);
+      if (h)
+	 return crlr_hash_copy(h, xsink);
+   }
 
    if (n->type == NT_TREE)
       return crlr_tree_copy(n, xsink);
@@ -801,9 +1222,6 @@ void QoreNode::getStringRepresentation(QoreString &str) const
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
 class DateTime *QoreNode::getDateTimeRepresentation(bool &del) const
 {
-   // del = false;
-   // return zero_date();
-
    // delete the following
    if (type == NT_INT) {
       del = true;
@@ -835,20 +1253,6 @@ void QoreNode::getDateTimeRepresentation(DateTime &dt) const
    else
       dt.setDate(0LL);
 }
-
-// returns 0 if the value is not immediately returnable as a QoreString (without conversion)
-/*
-class QoreString *QoreNode::getQoreStringValue() const
-{
-   return 0;
-}
-
-// returns 0 if the value is not immediately returnable as a const char * (without conversion)
-const char *QoreNode::getStringValue() const
-{
-   return 0;
-}
-*/
 
 // "soft" comparison
 static inline bool list_is_equal_soft(class QoreList *l, class QoreList *r, ExceptionSink *xsink)
@@ -901,10 +1305,10 @@ bool QoreNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
 
    if (type == NT_LIST)
       return !list_is_equal_soft(val.list, v->val.list, xsink);
-   if (type == NT_HASH)
-      return !val.hash->compareSoft(v->val.hash, xsink);
    if (type == NT_OBJECT)
       return !val.object->compareSoft(v->val.object, xsink);
+   if (type == NT_BINARY)
+      return !val.bin->compare(v->val.bin);
 
    assert(false);
 }
@@ -929,8 +1333,6 @@ bool QoreNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
 
    if (type == NT_LIST)
       return list_is_equal_hard(val.list, v->val.list, xsink);
-   if (type == NT_HASH)
-      return !val.hash->compareHard(v->val.hash, xsink);
    if (type == NT_OBJECT)
       return !val.object->compareHard(v->val.object, xsink);
    if (type == NT_BINARY)
@@ -947,7 +1349,7 @@ const QoreType *QoreNode::getType() const
 
 const char *QoreNode::getTypeName() const
 {
-   return getTypeName();
+   return type->getName();
 }
 
 SimpleQoreNode::SimpleQoreNode(const QoreType *t) : QoreNode(t)

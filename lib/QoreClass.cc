@@ -1434,8 +1434,8 @@ inline void QoreClass::execSubclassSystemDestructor(QoreObject *self, ExceptionS
 
 class QoreNode *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const
 {
-   class QoreHash *h = old->evalData(xsink);
-   if (xsink->isEvent())
+   class QoreHash *h = old->copyData(xsink);
+   if (*xsink)
       return NULL;
 
    // save current program location in case there's an exception

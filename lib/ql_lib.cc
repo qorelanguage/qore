@@ -239,9 +239,9 @@ static QoreList *map_sbuf_to_list(struct stat *sbuf)
    return l;
 }
 
-static class QoreHash *map_sbuf_to_hash(struct stat *sbuf)
+static class QoreHashNode *map_sbuf_to_hash(struct stat *sbuf)
 {
-   QoreHash *h = new QoreHash();
+   QoreHashNode *h = new QoreHashNode();
 
    h->setKeyValue("dev",     new QoreNode((int64)sbuf->st_dev), NULL);
    h->setKeyValue("inode",   new QoreNode((int64)sbuf->st_ino), NULL);
@@ -332,7 +332,7 @@ static class QoreNode *f_hstat(const QoreNode *params, ExceptionSink *xsink)
       return NULL;
 
    traceout("f_hstat()");
-   return new QoreNode(map_sbuf_to_hash(&sbuf));
+   return map_sbuf_to_hash(&sbuf);
 }
 
 static class QoreNode *f_hlstat(const QoreNode *params, ExceptionSink *xsink)
@@ -349,7 +349,7 @@ static class QoreNode *f_hlstat(const QoreNode *params, ExceptionSink *xsink)
       return NULL;
 
    traceout("f_hstat()");
-   return new QoreNode(map_sbuf_to_hash(&sbuf));
+   return map_sbuf_to_hash(&sbuf);
 }
 
 static class QoreNode *f_glob(const QoreNode *params, ExceptionSink *xsink)
@@ -657,8 +657,7 @@ static class QoreNode *f_gethostbyname_long(const QoreNode *params, ExceptionSin
    if (!p)
       return NULL;
 
-   class QoreHash *h = q_gethostbyname_to_hash(p->getBuffer());
-   return h ? new QoreNode(h) : 0;
+   return q_gethostbyname_to_hash(p->getBuffer());
 }
 
 static class QoreNode *f_gethostbyaddr_long(const QoreNode *params, ExceptionSink *xsink)
@@ -671,8 +670,7 @@ static class QoreNode *f_gethostbyaddr_long(const QoreNode *params, ExceptionSin
    int type = p1 ? p1->getAsInt() : 0;
    if (!type) type = AF_INET;
 
-   class QoreHash *h = q_gethostbyaddr_to_hash(xsink, p0->getBuffer(), type);
-   return h ? new QoreNode(h) : 0;
+   return q_gethostbyaddr_to_hash(xsink, p0->getBuffer(), type);
 }
 
 #ifdef DEBUG

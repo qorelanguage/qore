@@ -29,7 +29,8 @@
 #include <QBrush>
 #include <QObject>
 
-DLLLOCAL extern QoreType *NT_BRUSHSTYLE, *NT_PENSTYLE;
+#include "BrushStyleNode.h"
+#include "PenStyleNode.h"
 
 DLLLOCAL extern QoreNode *C_Clipboard;
 

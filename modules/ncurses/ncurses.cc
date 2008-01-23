@@ -617,7 +617,7 @@ static class QoreNode *f_mousemask(const QoreNode *params, class ExceptionSink *
    return new QoreNode((int64)mousemask(d, NULL));
 }
 
-static class QoreNode *f_getmouse(const QoreNode *params, class ExceptionSink *xsink)
+static QoreNode *f_getmouse(const QoreNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    MEVENT event;
@@ -625,14 +625,14 @@ static class QoreNode *f_getmouse(const QoreNode *params, class ExceptionSink *x
    if (getmouse(&event))
       return NULL;
 
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("id",     new QoreNode((int64)event.id), NULL);
    h->setKeyValue("x",      new QoreNode((int64)event.x), NULL);
    h->setKeyValue("y",      new QoreNode((int64)event.y), NULL);
    h->setKeyValue("z",      new QoreNode((int64)event.z), NULL);
    h->setKeyValue("bstate", new QoreNode((int64)event.bstate), NULL);
 
-   return new QoreNode(h);
+   return h;
 }
 #endif // NCURSES_MOUSE_VERSION
 

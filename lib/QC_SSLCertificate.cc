@@ -86,12 +86,12 @@ static QoreNode *SSLCERT_getPublicKeyAlgorithm(class QoreObject *self, class Qor
 
 static QoreNode *SSLCERT_getSubjectHash(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getSubjectHash());
+   return s->getSubjectHash();
 }
 
 static QoreNode *SSLCERT_getIssuerHash(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getIssuerHash());
+   return s->getIssuerHash();
 }
 
 static QoreNode *SSLCERT_getSerialNumber(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
@@ -106,7 +106,7 @@ static QoreNode *SSLCERT_getVersion(class QoreObject *self, class QoreSSLCertifi
 
 static QoreNode *SSLCERT_getPurposeHash(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->getPurposeHash());
+   return s->getPurposeHash();
 }
 
 static QoreNode *SSLCERT_getNotBeforeDate(class QoreObject *self, class QoreSSLCertificate *s, const QoreNode *params, ExceptionSink *xsink)

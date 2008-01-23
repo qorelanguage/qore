@@ -104,16 +104,11 @@ static QoreNode *TIBRVCMLISTENER_getMessage(class QoreObject *self, class QoreTi
 {
    int64 timeout = getMsMinusOneBigInt(get_param(params, 0));
 
-   class QoreHash *h;
    // do not time out and guarantee to return data (or an error) if timeout is negative
    if (timeout < 0)
-      h = cml->getMessage(xsink);
-   else
-      h = cml->getMessage(timeout, xsink);
-   if (h)
-      return new QoreNode(h);
+      return cml->getMessage(xsink);
 
-   return NULL;
+   return cml->getMessage(timeout, xsink);
 }
 
 static QoreNode *TIBRVCMLISTENER_createInboxName(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreNode *params, ExceptionSink *xsink)

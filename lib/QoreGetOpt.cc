@@ -329,9 +329,9 @@ int QoreGetOpt::processShortArg(const char *arg, class QoreList *l, class QoreHa
    return !j;
 }
 
-class QoreHash *QoreGetOpt::parse(class QoreList *l, bool modify, class ExceptionSink *xsink)
+class QoreHashNode *QoreGetOpt::parse(class QoreList *l, bool modify, class ExceptionSink *xsink)
 {
-   class QoreHash *h = new QoreHash();
+   class QoreHashNode *h = new QoreHashNode();
    for (int i = 0; i < l->size(); i++)
    {
       //printf("QoreGetOpt::parse() %d/%d\n", i, l->size());

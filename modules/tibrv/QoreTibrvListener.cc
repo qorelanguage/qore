@@ -54,9 +54,9 @@ QoreTibrvListener::QoreTibrvListener(const char *subject, const char *desc, cons
    //printd(5, "created listener subj=%s, desc=%s, service=%s, network=%s, daemon=%s\n", subject, desc ? desc : "n/a", service ? service : "n/a", network ? network : "n/a", daemon ? daemon : "n/a");
 }
 
-class QoreHash *QoreTibrvListener::getMessage(class ExceptionSink *xsink)
+QoreHashNode *QoreTibrvListener::getMessage(class ExceptionSink *xsink)
 {
-   class QoreHash *h;
+   QoreHashNode *h;
 
    while (true)
    {
@@ -65,16 +65,16 @@ class QoreHash *QoreTibrvListener::getMessage(class ExceptionSink *xsink)
       if (status != TIBRV_OK)
       {
 	 xsink->raiseException("TIBRVLISTENER-GETMESSAGE-ERROR", status.getText());
-	 return NULL;
+	 return 0;
       }
       if ((h = callback->getMessage(xsink)))
 	 return h;
    }
 
-   return NULL;
+   return 0;
 }
 
-class QoreHash *QoreTibrvListener::getMessage(int64 timeout_ms, class ExceptionSink *xsink)
+QoreHashNode *QoreTibrvListener::getMessage(int64 timeout_ms, class ExceptionSink *xsink)
 {
    tibrv_f64 timeout = (tibrv_f64)timeout_ms / 1000.0;
    TibrvStatus status = queue.timedDispatch(timeout);

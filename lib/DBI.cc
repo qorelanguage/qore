@@ -400,15 +400,16 @@ int DBI_concat_string(class QoreString *str, const QoreNode *v, class ExceptionS
   driver, charset, and host are optional
 */
 
-class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
+class QoreHashNode *parseDatasource(const char *ds, class ExceptionSink *xsink)
 {
    if (!ds || !ds[0])
       return NULL;
 
-   char *str = strdup(ds);
-   char *ostr = str;
-   
-   class QoreHash *h = new QoreHash();
+   // use a QoreString to create a temporary buffer
+   QoreString tmp(ds);
+   char *str = const_cast<char *>(tmp.getBuffer());
+
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
    char *p = strchr(str, ':');
    if (p)
    {
@@ -430,10 +431,8 @@ class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
    p = strrchr(str, '@');
    if (!p)
    {
-      free(ostr);
       xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing database name delimited by '@' in '%s'", ds);
-      h->derefAndDelete(xsink);
-      return NULL;
+      return 0;
    }
 
    *p = '\0';
@@ -453,10 +452,8 @@ class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
       char *end = strchr(p, ')');
       if (!end) 
       {
-	 free(ostr);
 	 xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing closing parenthesis in charset specification in '%s'", ds);
-	 h->derefAndDelete(xsink);
-	 return NULL;
+	 return 0;
       }
       *p = '\0';  // terminate for db
       *end = '\0';  // terminate charset
@@ -472,17 +469,14 @@ class QoreHash *parseDatasource(const char *ds, class ExceptionSink *xsink)
       p++;
       if (!*p)
       {
-	 free(ostr);
 	 xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing hostname string after '%' delimeter in '%s'", ds);
-	 h->derefAndDelete(xsink);
-	 return NULL;
+	 return 0;
       }
       h->setKeyValue("host", new QoreStringNode(p), NULL);
    }
 
    h->setKeyValue("db", new QoreStringNode(db), NULL);
-   free(ostr);
-   return h;
+   return h.release();
 }
 
 class QoreNode *f_parseDatasource(const QoreNode *params, ExceptionSink *xsink)
@@ -492,9 +486,7 @@ class QoreNode *f_parseDatasource(const QoreNode *params, ExceptionSink *xsink)
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   class QoreHash *h = parseDatasource(p0->getBuffer(), xsink);
-
-   return h ? new QoreNode(h) : NULL;
+   return parseDatasource(p0->getBuffer(), xsink);
 }
 
 class QoreNode *f_getDBIDriverList(const QoreNode *params, ExceptionSink *xsink)

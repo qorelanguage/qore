@@ -51,10 +51,13 @@ static void QPEN_constructor(QoreObject *self, const QoreNode *params, Exception
       qreal width = p ? p->getAsFloat() : 0.0;
       p = get_param(params, 2);
       Qt::PenStyle style;
-      if (p && p->type == NT_PENSTYLE)
-	 style = (Qt::PenStyle)p->val.intval;
-      else
-	 style = !is_nothing(p) ? (Qt::PenStyle)p->getAsInt() : Qt::SolidLine;
+      {
+	 PenStyleNode *ps = dynamic_cast<PenStyleNode *>(p);
+	 if (ps)
+	    style = ps->getStyle();
+	 else
+	    style = !is_nothing(p) ? (Qt::PenStyle)p->getAsInt() : Qt::SolidLine;
+      }
       p = get_param(params, 3);
       Qt::PenCapStyle cap = !is_nothing(p) ? (Qt::PenCapStyle)p->getAsInt() : Qt::SquareCap;
       p = get_param(params, 4);
@@ -64,8 +67,9 @@ static void QPEN_constructor(QoreObject *self, const QoreNode *params, Exception
       return;
    }
 
-   if (p && p->type == NT_PENSTYLE) {
-      Qt::PenStyle style = (Qt::PenStyle)p->val.intval;
+   PenStyleNode *ps = dynamic_cast<PenStyleNode *>(p);
+   if (ps) {
+      Qt::PenStyle style = ps->getStyle();
       self->setPrivate(CID_QPEN, new QoreQPen(style));
    }
    else {
@@ -230,12 +234,13 @@ static QoreNode *QPEN_setMiterLimit(QoreObject *self, QoreQPen *qp, const QoreNo
 static QoreNode *QPEN_setStyle(QoreObject *self, QoreQPen *qp, const QoreNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_PENSTYLE) {
+   PenStyleNode *ps = dynamic_cast<PenStyleNode *>(p);
+   if (!ps) {
       xsink->raiseException("QPEN-SETSTYLE-ERROR", "QPen::setStyle() expects a PenStyle constant as the sole argument, got type '%s' instead", p ? p->getTypeName() : "NOTHING");
       return 0;
    }
 
-   Qt::PenStyle style = (Qt::PenStyle)p->val.intval;
+   Qt::PenStyle style = ps->getStyle();
    qp->setStyle(style);
    return 0;
 }
@@ -261,9 +266,7 @@ static QoreNode *QPEN_setWidthF(QoreObject *self, QoreQPen *qp, const QoreNode *
 //Qt::PenStyle style () const
 static QoreNode *QPEN_style(QoreObject *self, QoreQPen *qp, const QoreNode *params, ExceptionSink *xsink)
 {
-   QoreNode *rv = new QoreNode(NT_PENSTYLE);
-   rv->val.intval = (int64)qp->style();
-   return rv;
+   return new PenStyleNode(qp->style());
 }
 
 //int width () const

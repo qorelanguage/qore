@@ -97,7 +97,7 @@ struct qore_program_private {
 	    var->setValue(QORE_ARGV->copy(), NULL);
 	 
 	 var = global_var_list.newVar("ENV");
-	 var->setValue(new QoreNode(ENV->copy()), NULL);
+	 var->setValue(ENV->copyNode(), NULL);
       }
 
       DLLLOCAL ~qore_program_private()

@@ -49,8 +49,6 @@ union node_u {
       class BinaryObject *bin;
       // for Lists
       class QoreList *list;
-      // for Hashes (Associative Arrays)
-      class QoreHash *hash;
       // for Objects
       class QoreObject *object;
       // for variable references
@@ -98,6 +96,8 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(class DateTime *dt);
       DLLEXPORT QoreNode(const char *str);
       DLLEXPORT QoreNode(const std::string &str);
+      DLLEXPORT QoreNode(class QoreHash *h);
+      DLLEXPORT QoreNode();
 
    protected:
       DLLLOCAL virtual ~QoreNode();
@@ -106,7 +106,6 @@ class QoreNode : public ReferenceObject
       union node_u val;
       const QoreType *type;
 
-      DLLEXPORT QoreNode();
       DLLEXPORT QoreNode(const QoreType *t);
       DLLEXPORT QoreNode(const QoreType *t, int64 v);
       DLLEXPORT QoreNode(long v);
@@ -116,7 +115,6 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(double d);
       DLLEXPORT QoreNode(class BinaryObject *b);
       DLLEXPORT QoreNode(class QoreObject *o);
-      DLLEXPORT QoreNode(class QoreHash *h);
       DLLEXPORT QoreNode(class QoreList *l);
 
       // get the value of the type in a string context (default implementation = del = false and returns NullString)
@@ -143,6 +141,7 @@ class QoreNode : public ReferenceObject
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
+      // default implementation returns false
       DLLEXPORT virtual bool needs_eval() const;
       DLLEXPORT virtual class QoreNode *realCopy(class ExceptionSink *xsink) const;
 
@@ -155,7 +154,19 @@ class QoreNode : public ReferenceObject
 
       // returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
+      // returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
+      // eval(): return value requires a deref(xsink)
+      // default implementation = returns "this" with incremented atomic reference count
+      DLLEXPORT virtual class QoreNode *eval(class ExceptionSink *xsink) const;
+      // eval(): return value requires a deref(xsink) if needs_deref is true
+      // default implementation = needs_deref = false, returns "this"
+      // note: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
+      DLLEXPORT virtual class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
+      // deletes the object when the reference count = 0
+      DLLEXPORT virtual void deref(class ExceptionSink *xsink);
+      // returns true if the node represents a value (default implementation)
+      DLLEXPORT virtual bool is_value() const;
       
       DLLLOCAL QoreNode(char *fn, class QoreNode *a);
       DLLLOCAL QoreNode(class QoreNode *a, char *fn);
@@ -178,15 +189,12 @@ class QoreNode : public ReferenceObject
       DLLLOCAL QoreNode(class AbstractParseObjectMethodReference *objmethref);
       DLLLOCAL QoreNode(class FunctionCall *fc);
       
-      DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink) const;
-      DLLLOCAL class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
       DLLLOCAL int64 bigIntEval(class ExceptionSink *xsink) const;
       DLLLOCAL int integerEval(class ExceptionSink *xsink) const;
       DLLLOCAL bool boolEval(class ExceptionSink *xsink) const;
 
       DLLEXPORT class QoreNode *RefSelf() const;
       DLLEXPORT void ref() const;
-      DLLEXPORT void deref(class ExceptionSink *xsink);
 };
 
 class SimpleQoreNode : public QoreNode 
@@ -197,7 +205,7 @@ class SimpleQoreNode : public QoreNode
 
    public:
       DLLEXPORT SimpleQoreNode(const QoreType *t);
-      DLLLOCAL SimpleQoreNode(const SimpleQoreNode &)
+      DLLLOCAL SimpleQoreNode(const SimpleQoreNode &) : QoreNode(type)
       {
       }
       DLLEXPORT void deref();

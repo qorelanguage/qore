@@ -145,6 +145,6 @@ DLLLOCAL void init_qore_threads();
 DLLLOCAL class QoreNamespace *get_thread_ns();
 DLLLOCAL void delete_qore_threads();
 DLLLOCAL class QoreList *get_thread_list();
-DLLLOCAL class QoreHash *getAllCallStacks();
+DLLLOCAL class QoreHashNode *getAllCallStacks();
 
 #endif

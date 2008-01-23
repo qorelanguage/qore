@@ -36,6 +36,7 @@ noinst_HEADERS = \
 	include/qore/QoreNode.h \
 	include/qore/QoreStringNode.h \
 	include/qore/DateTimeNode.h \
+	include/qore/QoreHashNode.h \
 	include/qore/ModuleManager.h \
 	include/qore/QoreNamespace.h \
 	include/qore/QoreObject.h \
@@ -331,8 +332,8 @@ noinst_HEADERS = \
 	modules/qt/QC_QKeySequence.h \
 	modules/qt/QC_QAction.h \
 	modules/qt/QC_QActionGroup.h \
-	modules/qt/QT_BrushStyle.h \
-	modules/qt/QT_PenStyle.h \
+	modules/qt/BrushStyleNode.h \
+	modules/qt/PenStyleNode.h \
 	modules/qt/QC_QPointF.h \
 	modules/qt/QC_QPolygon.h \
 	modules/qt/QC_QPolygonF.h \
