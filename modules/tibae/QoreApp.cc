@@ -284,7 +284,7 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNod
       return NULL;
 
    {
-      QoreHashNode *h = dynamic_cast<QoreHashNode>(v);
+      QoreHashNode *h = dynamic_cast<QoreHashNode *>(v);
       if (h) {
 	 // check to see if type is specified
 	 class QoreNode *t = h->getKeyValue("^type^");
@@ -907,7 +907,7 @@ void QoreApp::send(const char *subj, const char *function_name, QoreNode *value,
 
 QoreHashNode *QoreApp::receive(const char *subj, unsigned long timeout, ExceptionSink *xsink)
 {
-   QoreNode *rv = NULL;
+   QoreHashNode *rv = NULL;
 
    tracein("QoreApp::receive()");
    try {

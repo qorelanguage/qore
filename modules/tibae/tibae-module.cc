@@ -53,13 +53,13 @@ static class QoreNode *f_tibae_type(const QoreNode *params, class ExceptionSink 
       xsink->raiseException("TIBAE-TYPE-ERROR", "type %d is out of range (expecting 1 - %d)", type, MAX_TIBAE_TYPE);
       return 0;
    }
-   class QoreHash *h = new QoreHash();
+   QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("^type^", new QoreNode((int64)type), xsink);
    p = get_param(params, 1);
    if (p)
       p->ref();
    h->setKeyValue("^value^", p, xsink);
-   return new QoreNode(h);
+   return h;
 }
 
 static void setup_namespace()

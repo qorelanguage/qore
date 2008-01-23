@@ -61,12 +61,14 @@ static inline class QoreNode *map_msequence_to_node(const MSequence *ms, Excepti
    return rv;
 }
 
+typedef MEnumerator<MString, MData *> ma_enumerator_t;
+
 // maps a TIBCO associative list to a QORE hash
 static inline class QoreNode *map_massoclist_to_node(const MAssocList *mal, ExceptionSink *xsink)
 {
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
-   std::auto_ptr<MEnumerator<MString, MData *>> me(mal->newEnumerator());
+   std::auto_ptr<ma_enumerator_t> me(mal->newEnumerator());
    MString name;
    MData *val;
 
