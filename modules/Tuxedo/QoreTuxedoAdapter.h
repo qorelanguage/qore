@@ -35,9 +35,6 @@
 #include <atmi.h>
 #include <fml32.h>
 
-class QoreEncoding;
-class QoreHash;
-
 //------------------------------------------------------------------------------
 #ifdef DEBUG
 // Values to be used as environment variables, names and passwords for tests.
@@ -64,10 +61,10 @@ public:
 };
 #endif
 
-static inline QoreHashNode *make_tuxedo_err_hash(int tperrno, const char *errstr)
+static inline QoreHashNode *make_tuxedo_err_hash(int terrno, const char *errstr)
 {
    QoreHashNode *h = new QoreHashNode();
-   h->setKeyValue((char*)"error", new QoreNode((int64)tperrno), 0);
+   h->setKeyValue((char*)"error", new QoreNode((int64)terrno), 0);
    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode(errstr), 0);
    return h;
 }
@@ -126,8 +123,8 @@ public:  // public for now so the QC_TuxedoAdapter has access to it
   bool m_default_is_fml32_set;
 
   // FML/FML32 descriptions are always set in constructor
-  QoreHash* m_default_fml_description;
-  QoreHash* m_default_fml32_description;
+  QoreHashNode *m_default_fml_description;
+  QoreHashNode *m_default_fml32_description;
   
   int init();
   int close();
@@ -136,12 +133,12 @@ public:  // public for now so the QC_TuxedoAdapter has access to it
   void add_fml_value_into_send_buffer(const char* value_name, FLDID32 id, int value_type, QoreNode* value, 
     bool is_fml32, const char* err_name, ExceptionSink* xsink);
   void setFmlDataToSend(QoreHash* description_info, QoreHash* data, bool is_fml32, const char* err_name, ExceptionSink* xsink);
-  QoreHash Node*getFmlDataFromBuffer(QoreHash* description_info, bool is_fml32, ExceptionSink* xsink, const char* buffer, long buffer_size, const char* err_name);
+  QoreHashNode *getFmlDataFromBuffer(QoreHash* description_info, bool is_fml32, ExceptionSink* xsink, const char* buffer, long buffer_size, const char* err_name);
 
   // FML/FML32 - load the description from tables (possibly generate the tables temporarily)
-  QoreHash* loadFmlDescription(const std::vector<std::string>& files, bool is_fml32, ExceptionSink* xsink);
-  QoreHash* loadFmlDescription(const std::string& file, bool is_fml32, ExceptionSink* xsink);
-  QoreHash* generateFmlDescription(int base, QoreHash* typed_names, bool is_fml32, ExceptionSink* xsink);
+  QoreHashNode* loadFmlDescription(const std::vector<std::string>& files, bool is_fml32, ExceptionSink* xsink);
+  QoreHashNode* loadFmlDescription(const std::string& file, bool is_fml32, ExceptionSink* xsink);
+  QoreHashNode* generateFmlDescription(int base, QoreHash* typed_names, bool is_fml32, ExceptionSink* xsink);
 
   QoreNode* buffer2node(char* buffer, long buffer_size, const char* err_name, ExceptionSink* xsink);
   bool allocate_send_buffer(const char* type, long size, const char* err_name, ExceptionSink* xsink);

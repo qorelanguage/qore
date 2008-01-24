@@ -741,14 +741,14 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
         return;
       }
       char* err_text = (char*)"Settings 'DefaultFmlDescription' needs to be a hash.";
-      QoreHashNode h = dynamic_cast<QoreHashNode *>(iter.getValue());
+      QoreHashNode *h = dynamic_cast<QoreHashNode *>(iter.getValue());
       if (!h) {
         xsink->raiseException(err_name, err_text);
         return;
       }
       // check whether base is set
       int base = 0;
-      n = settings->getKeyValue("DefaultFmlDescriptionBase");
+      QoreNode *n = settings->getKeyValue("DefaultFmlDescriptionBase");
       if (n) {
         if (n->type != NT_INT) {
           xsink->raiseException(err_name, "Settings 'DefaultFmlDescriptionBase' needs to be an integer.");
@@ -776,14 +776,14 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
       }
       char* err_text = (char*)"Settings 'DefaultFml32Description' needs to be a hash.";
 
-      QoreHashNode h = dynamic_cast<QoreHashNode *>(iter.getValue());
+      QoreHashNode *h = dynamic_cast<QoreHashNode *>(iter.getValue());
       if (!h) {
         xsink->raiseException(err_name, err_text);
         return;
       }
       // check whether base is set
       int base = 0;
-      n = settings->getKeyValue("DefaultFml32DescriptionBase");
+      QoreNode *n = settings->getKeyValue("DefaultFml32DescriptionBase");
       if (n) {
         if (n->type != NT_INT) {
           xsink->raiseException(err_name, "Settings 'DefaultFml32DescriptionBase' needs to be an integer.");
@@ -974,16 +974,11 @@ int QoreTuxedoAdapter::close()
 {
   freeSendBuffer();
 
-  // needs to be so complicated, just delete (QoreHash*)h asserts in DEBUG
   if (m_default_fml_description) {
-    ExceptionSink xsink;
-    QoreNode* aux = new QoreNode(m_default_fml_description);
-    aux->deref(&xsink);
+     m_default_fml_description->deref(0);
   }
   if (m_default_fml32_description) {
-    ExceptionSink xsink;
-    QoreNode* aux = new QoreNode(m_default_fml32_description);
-    aux->deref(&xsink);
+     m_default_fml32_description->deref(0);
   }
 
   if (!m_Tuxedo_connection_initialized) {
@@ -1161,7 +1156,7 @@ void QoreTuxedoAdapter::setSendBuffer(QoreNode* n, QoreHash* settings, const cha
 	bool is_fml32 = is_fml32_requested(settings, m_default_is_fml32, m_default_is_fml32_set, err_name, xsink);
 	if (xsink->isException()) return;
 	if (!allocate_send_buffer(is_fml32 ? "FML32" : "FML", 4096, err_name, xsink)) return;
-	QoreHash* description = is_fml32 ? m_default_fml32_description : m_default_fml_description;
+	QoreHashNode *description = is_fml32 ? m_default_fml32_description : m_default_fml_description;
 	if (!description) {
 	   xsink->raiseException(err_name, "%s description was not specified as a constructor parameter ('DefaultFml[32]DescriptionFile' or 'DefaultFml[32]Description').", is_fml32 ? "FML32" : "FML");
 	   return;
@@ -1514,7 +1509,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_
   QoreNode* retval = buffer2node(out.first, out.second, err_name, xsink);
   if (xsink->isException()) return 0;
 
-  QoreHash *res = new QoreHash;
+  QoreHashNode *res = new QoreHashNode;
   res->setKeyValue((char*)"data", retval, xsink);
   
   res->setKeyValue((char*)"queue_control_flags", new QoreNode((int64)ctl.flags), xsink);
@@ -1524,7 +1519,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_
   void* copy = malloc(sz);
   if (!copy) {
     xsink->outOfMemory();
-    res->derefAndDelete(xsink);
+    res->deref(xsink);
     return 0;
   }
   memcpy(copy, &ctl.msgid, sz);
@@ -1535,7 +1530,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_
   copy = malloc(sz);
   if (!copy) {
     xsink->outOfMemory();
-    res->derefAndDelete(xsink);
+    res->deref(xsink);
     return 0;
   }
   memcpy(copy, &ctl.corrid, sz);
@@ -1554,7 +1549,7 @@ QoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_
   copy = malloc(sz);
   if (!copy) {
     xsink->outOfMemory();
-    res->derefAndDelete(xsink);
+    res->deref(xsink);
     return 0;
   }
   memcpy(copy, &ctl.cltid, sz);
@@ -1562,10 +1557,10 @@ QoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_
   res->setKeyValue((char*)"queue_control_cltid", new QoreNode(bin), xsink);
 
   if (xsink->isException()) {
-    res->derefAndDelete(xsink);
+    res->deref(xsink);
     return 0;
   }
-  return new QoreNode(res);
+  return res;
 }
 
 //------------------------------------------------------------------------------
@@ -1580,7 +1575,7 @@ void QoreTuxedoAdapter::remove_pending_async_call(int handle)
 }
 
 //------------------------------------------------------------------------------
-QoreHash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is_fml32, ExceptionSink* xsink)
+QoreHashNode *QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, bool is_fml32, ExceptionSink* xsink)
 {
   vector<string> all_names = read_names_from_all_fml_description_files(files,xsink);
   if (*xsink) return 0;
@@ -1591,7 +1586,7 @@ QoreHash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, boo
   FmlEnvironmentSetter setter(files, is_fml32);
   const char* err_name = (char*)"LOAD-FML-DESCRIPTION-ERROR";
 
-  QoreHash *result = new QoreHash;
+  QoreHashNode *result = new QoreHashNode;
 
   for (unsigned i = 0, n = all_names.size(); i != n; ++i) {
     char* name = (char*)all_names[i].c_str();
@@ -1602,7 +1597,7 @@ QoreHash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, boo
       id = Fldid(name);
     }
     if (id == BADFLDID) {
-      result->derefAndDelete(xsink);
+      result->deref(xsink);
       xsink->raiseException(err_name, "Fldid[32](\"%s\") failed. Ferror = %d.", name, Ferror);
       return 0;
     }
@@ -1618,7 +1613,7 @@ QoreHash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, boo
     list->push(new QoreNode((int64)type));
     result->setKeyValue(name, list, xsink);
     if (xsink->isException()) {
-      result->derefAndDelete(xsink);
+      result->deref(xsink);
       return 0;
     }
   }
@@ -1626,7 +1621,7 @@ QoreHash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, boo
 }
 
 //------------------------------------------------------------------------------
-QoreHash* QoreTuxedoAdapter::loadFmlDescription(const string& file, bool is_fml32, ExceptionSink* xsink)
+QoreHashNode *QoreTuxedoAdapter::loadFmlDescription(const string& file, bool is_fml32, ExceptionSink* xsink)
 {
   vector<string> files;
   files.push_back(file);
@@ -1634,7 +1629,7 @@ QoreHash* QoreTuxedoAdapter::loadFmlDescription(const string& file, bool is_fml3
 }
 
 //------------------------------------------------------------------------------
-QoreHash* QoreTuxedoAdapter::generateFmlDescription(int base, QoreHash* typed_names, bool is_fml32, ExceptionSink* xsink)
+QoreHashNode *QoreTuxedoAdapter::generateFmlDescription(int base, QoreHash* typed_names, bool is_fml32, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"LOAD-FML-DESCRIPTION-ERROR";
 
@@ -1674,16 +1669,16 @@ QoreHash* QoreTuxedoAdapter::generateFmlDescription(int base, QoreHash* typed_na
     case FLD_FML32:
     case FLD_VIEW32:
     case FLD_MBSTRING:
-      return (QoreHash*)xsink->raiseException(err_name, "Input hash: value of [ %s ], support for this type is not yet implemented.", name);
+      return (QoreHashNode*)xsink->raiseException(err_name, "Input hash: value of [ %s ], support for this type is not yet implemented.", name);
     default:
-      return (QoreHash*)xsink->raiseException(err_name, "Input hash: value of [ %s ] is not recognized as a type.", name);
+      return (QoreHashNode*)xsink->raiseException(err_name, "Input hash: value of [ %s ] is not recognized as a type.", name);
     }
 
     fprintf(f, "%s %d %s - \n", name, ++counter, type_name);
   }
   g.Dismiss();
   if (fclose(f)) {
-    return (QoreHash*)xsink->raiseException(err_name, "Failed to create a temporary file.");
+    return (QoreHashNode*)xsink->raiseException(err_name, "Failed to create a temporary file.");
   }
   return loadFmlDescription(tmpfile, is_fml32, xsink);
 }
@@ -1706,7 +1701,7 @@ static void do_test(bool is_fml32)
 
   QoreHash *empty = new QoreHash();
   QoreTuxedoAdapter adapter(empty, &xsink);
-  QoreHash* res = adapter.generateFmlDescription(500, typed_names, is_fml32, &xsink);
+  QoreHashNode *res = adapter.generateFmlDescription(500, typed_names, is_fml32, &xsink);
   if (xsink) {
     assert(false);
   }
@@ -1768,8 +1763,7 @@ static void do_test(bool is_fml32)
     ++counter;
   }
  
-  QoreNode* aux = new QoreNode(res);
-  aux->deref(&xsink);
+  res->deref(&xsink);
   assert(!xsink.isException());
 
   empty->derefAndDelete(&xsink);
