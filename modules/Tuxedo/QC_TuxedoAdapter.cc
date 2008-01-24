@@ -62,7 +62,7 @@ static const char* tuxfile(const char* file_name_part)
 //------------------------------------------------------------------------------
 
 #ifdef DEBUG
-static void TUXEDOTEST_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void TUXEDOTEST_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
   QoreTuxedoTest* tst = new QoreTuxedoTest;
   self->setPrivate(CID_TUXEDOTEST, tst);
@@ -74,7 +74,7 @@ static void TUXEDOTEST_destructor(QoreObject *self, QoreTuxedoTest* test, Except
 #endif
 
 //------------------------------------------------------------------------------
-static void TUXEDO_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void TUXEDO_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-CONSTRUCTOR";
   tracein(err_name);
@@ -215,7 +215,7 @@ static void TUXEDO_copy(QoreObject *self, QoreObject *old, QoreTuxedoAdapter* ad
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-CALL";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -314,7 +314,7 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
-static QoreNode* setStringEncoding(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* setStringEncoding(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   QoreStringNode* n = test_string_param(params, 0);
   if (!n) return xsink->raiseException("TUXEDO-ADAPTER-SET-STRING-ENCODING", "One parameter expected: string name of the encoding.");
@@ -324,7 +324,7 @@ static QoreNode* setStringEncoding(QoreObject* self, QoreTuxedoAdapter* adapter,
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* asyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* asyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-ASYNC-CALL";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -487,7 +487,7 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
-static QoreNode* cancelAsyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* cancelAsyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-CANCEL-ASYNC_CALL";
   adapter->switchToSavedContext();
@@ -502,7 +502,7 @@ static QoreNode* cancelAsyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, c
 }
 
 //------------------------------------------------------------------------------
-static QoreNode* waitForAsyncReply(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* waitForAsyncReply(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   char* err_name = (char*)"TUXEDO-ADAPTER-WAIT-FOR-ASYNC-REPLY";
@@ -538,7 +538,7 @@ static QoreNode* waitForAsyncReply(QoreObject* self, QoreTuxedoAdapter* adapter,
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-JOIN-CONVERSATION";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -587,7 +587,7 @@ static QoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, 
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* breakConversation(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* breakConversation(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-BREAK-CONVERSATION";
   adapter->switchToSavedContext();
@@ -601,7 +601,7 @@ static QoreNode* breakConversation(QoreObject* self, QoreTuxedoAdapter* adapter,
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* sendConversationData(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* sendConversationData(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-SEND-CONVERSATION-DATA";
   QoreNode* n = test_param(params, NT_INT, 0);
@@ -648,7 +648,7 @@ static QoreNode* sendConversationData(QoreObject* self, QoreTuxedoAdapter* adapt
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* receiveConversationData(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* receiveConversationData(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-RECEIVE-CONVERSATION-DATA";
   QoreNode* n = test_param(params, NT_INT, 0);
@@ -683,7 +683,7 @@ static QoreNode* receiveConversationData(QoreObject* self, QoreTuxedoAdapter* ad
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-ENQUEUE";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -738,7 +738,7 @@ static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const Qor
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* dequeue(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* dequeue(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-DEQUEUE";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -835,7 +835,7 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
-static QoreNode* writeToLog(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* writeToLog(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   
@@ -848,7 +848,7 @@ static QoreNode* writeToLog(QoreObject* self, QoreTuxedoAdapter* adapter, const 
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* openResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* openResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpopen();
@@ -859,7 +859,7 @@ static QoreNode* openResourceManager(QoreObject* self, QoreTuxedoAdapter* adapte
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* closeResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* closeResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpclose();
@@ -868,7 +868,7 @@ static QoreNode* closeResourceManager(QoreObject* self, QoreTuxedoAdapter* adapt
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* beginTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* beginTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
    //char* err = (char*)"One optional parameter: integer or date/time timeout in seconds expected.";
   QoreNode* n = test_param(params, NT_INT, 0);
@@ -888,7 +888,7 @@ static QoreNode* beginTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, 
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* commitTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* commitTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpcommit(0);
@@ -897,7 +897,7 @@ static QoreNode* commitTransaction(QoreObject* self, QoreTuxedoAdapter* adapter,
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* abortTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* abortTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpabort(0);
@@ -906,14 +906,14 @@ static QoreNode* abortTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, 
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* lastErrorDetails(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* lastErrorDetails(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   return new QoreNode((int64)tperrordetail(0));
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* setPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* setPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-SET-PRIORITY";
   QoreNode* n = test_param(params, NT_INT, 0);
@@ -928,7 +928,7 @@ static QoreNode* setPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* getPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* getPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpgprio();
@@ -938,7 +938,7 @@ static QoreNode* getPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* suspendTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* suspendTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int id = ++adapter->m_last_suspended_transaction_id;
@@ -952,7 +952,7 @@ static QoreNode* suspendTransaction(QoreObject* self, QoreTuxedoAdapter* adapter
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* resumeTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* resumeTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-RESUME-TRANSACTION";
   QoreNode* n = test_param(params, NT_INT, 0);
@@ -974,7 +974,7 @@ static QoreNode* resumeTransaction(QoreObject* self, QoreTuxedoAdapter* adapter,
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* finishCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* finishCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpscmt(TP_CMT_LOGGED);
@@ -983,7 +983,7 @@ static QoreNode* finishCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* finishCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* finishCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpscmt(TP_CMT_COMPLETE);
@@ -992,7 +992,7 @@ static QoreNode* finishCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedo
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* isTransactionRunning(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* isTransactionRunning(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpgetlev();
@@ -1003,7 +1003,7 @@ static QoreNode* isTransactionRunning(QoreObject* self, QoreTuxedoAdapter* adapt
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-POST-EVENT";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -1051,7 +1051,7 @@ static QoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const Q
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* beginTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* beginTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_begin();
@@ -1060,7 +1060,7 @@ static QoreNode* beginTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* commitTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* commitTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_commit();
@@ -1069,7 +1069,7 @@ static QoreNode* commitTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapte
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* abortTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* abortTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_rollback();
@@ -1078,7 +1078,7 @@ static QoreNode* abortTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* finishTxCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* finishTxCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_set_commit_return(TX_COMMIT_DECISION_LOGGED);
@@ -1087,7 +1087,7 @@ static QoreNode* finishTxCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapt
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* finishTxCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* finishTxCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_set_commit_return(TX_COMMIT_COMPLETED);
@@ -1096,7 +1096,7 @@ static QoreNode* finishTxCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxe
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* openTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* openTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_open();
@@ -1105,7 +1105,7 @@ static QoreNode* openTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adap
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* closeTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* closeTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_close();
@@ -1114,7 +1114,7 @@ static QoreNode* closeTxResourceManager(QoreObject* self, QoreTuxedoAdapter* ada
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* setChainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* setChainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_set_transaction_control(TX_CHAINED);
@@ -1123,7 +1123,7 @@ static QoreNode* setChainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* a
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* setUnchainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* setUnchainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_set_transaction_control(TX_UNCHAINED);
@@ -1132,7 +1132,7 @@ static QoreNode* setUnchainedTxTransactions(QoreObject* self, QoreTuxedoAdapter*
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* setTxTransactionsTimeout(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* setTxTransactionsTimeout(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-SET-TX-TRANSACTION-TIMEOUT";
   QoreNode* n = test_param(params, NT_INT, 0);
@@ -1155,7 +1155,7 @@ static QoreNode* setTxTransactionsTimeout(QoreObject* self, QoreTuxedoAdapter* a
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* error2string(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreNode *params, ExceptionSink* xsink)
+static QoreNode* error2string(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreList *params, ExceptionSink* xsink)
 {
   QoreNode* n = test_param(params, NT_INT, 0);
   if (!n) return xsink->raiseException("TUXEDO-ADAPTER-ERROR2STRING", "One parameter expected: integer error code.");

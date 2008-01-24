@@ -29,7 +29,7 @@ class QoreClass *QC_QStyleOptionSpinBox = 0;
 
 //QStyleOptionSpinBox ()
 //QStyleOptionSpinBox ( const QStyleOptionSpinBox & other )
-static void QSTYLEOPTIONSPINBOX_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONSPINBOX_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONSPINBOX, new QoreQStyleOptionSpinBox());
 }

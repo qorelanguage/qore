@@ -488,21 +488,26 @@ static inline class QoreNode **do_list_val_ptr(Tree *tree, class AutoVLock *vlp,
 
    // if the variable's value is not already a list, then make it one
    // printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->getTypeName() : "(null)");
+   QoreList *l;
    if (!(*val))
-      (*val) = new QoreNode(new QoreList());
-   else if ((*val)->type != NT_LIST)
-   {
-      (*val)->deref(xsink);
-      (*val) = new QoreNode(new QoreList());
+      l = new QoreList();
+   else {
+      l = dynamic_cast<QoreList *>(*val);
+      if (!l)
+      {
+	 (*val)->deref(xsink);
+	 l = new QoreList();
+      }
+      else if (l->reference_count() > 1) // otherwise if it's a list and the reference_count > 1, then duplicate it
+      {
+	 QoreNode *old = l;
+	 l = l->copy();
+	 old->deref(xsink);	 
+      }
    }
-   else if ((*val)->reference_count() > 1) // otherwise if it's a list and the reference_count > 1, then duplicate it
-   {
-      QoreNode *old = (*val);
-      (*val) = (*val)->realCopy(xsink);
-      old->deref(xsink);
-   }
+   (*val) = l;
 
-   return (*val)->val.list->get_entry_ptr(ind);
+   return l->get_entry_ptr(ind);
 }
 
 // for objects and hashes
@@ -531,7 +536,7 @@ static inline class QoreNode **do_object_val_ptr(Tree *tree, class AutoVLock *vl
    else if ((*val)->type == NT_HASH && (*val)->reference_count() > 1)
    {
       QoreNode *old = (*val);
-      (*val) = (*val)->realCopy(xsink);
+      (*val) = (*val)->realCopy();
       old->deref(xsink);
    }
 
@@ -613,8 +618,9 @@ class QoreNode *getNoEvalVarValue(class QoreNode *n, class AutoVLock *vl, class 
    if (n->val.tree->op == OP_LIST_REF)
    {
       // if it's not a list then return NULL
-      if (val->type != NT_LIST)
-	 return NULL;
+      QoreList *l = dynamic_cast<QoreList *>(val);
+      if (!l)
+	 return 0;
       
       // otherwise return value
       int i;
@@ -622,7 +628,7 @@ class QoreNode *getNoEvalVarValue(class QoreNode *n, class AutoVLock *vl, class 
 	 i = n->val.tree->right->getAsInt();
       else
 	 i = 0;
-      return val->val.list->retrieve_entry(i);
+      return l->retrieve_entry(i);
    }
       
    // it's an object reference
@@ -662,12 +668,13 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
       // if it's a list reference
       if (n->val.tree->op == OP_LIST_REF)
       {
+	 QoreList *l = dynamic_cast<QoreList *>(val);
 	 // if it's not a list then return NULL
-	 if (val->type != NT_LIST)
-	    return NULL;
+	 if (!l)
+	    return 0;
 
 	 // otherwise return value
-	 return val->val.list->retrieve_entry(n->val.tree->right->integerEval(xsink));
+	 return l->retrieve_entry(n->val.tree->right->integerEval(xsink));
       }
       
       // if it's an object reference
@@ -729,7 +736,7 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
       // get a unique object if necessary
       if ((*val)->type != NT_OBJECT && (*val)->reference_count() > 1)
       {
-	 QoreNode *cp = (*val)->realCopy(xsink);
+	 QoreNode *cp = (*val)->realCopy();
 	 (*val)->deref(xsink);
 	 (*val) = cp;
 	 if (xsink->isEvent())
@@ -739,12 +746,13 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
       // if it's a list reference
       if (n->val.tree->op == OP_LIST_REF)
       {
+	 QoreList *l = dynamic_cast<QoreList *>(*val);
          // if it's not a list then return NULL
-         if ((*val)->type != NT_LIST)
+         if (!l)
             return NULL;
 
          // otherwise return value
-         return (*val)->val.list->getExistingEntryPtr(n->val.tree->right->integerEval(xsink));
+         return l->getExistingEntryPtr(n->val.tree->right->integerEval(xsink));
       }
       
       // if it's an object reference
@@ -842,17 +850,18 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
    // list, then resize the list...
    if (lvalue->val.tree->op == OP_LIST_REF)
    {
+      QoreList *l = dynamic_cast<QoreList *>(*val);
       // if it's not a list then return
-      if ((*val)->type != NT_LIST)
+      if (!l)
 	 return;
       // delete the value if it exists and resize the list if necessary
-      if ((*val)->reference_count() > 1)
+      if (l->reference_count() > 1)
       {
-	 QoreNode *s = *val;
-	 *val = (*val)->realCopy(xsink);
-	 s->deref(xsink);
+	 l = l->copy();
+	 (*val)->deref(xsink);
+	 (*val) = l;
       }
-      (*val)->val.list->delete_entry(lvalue->val.tree->right->integerEval(xsink), xsink);
+      l->delete_entry(lvalue->val.tree->right->integerEval(xsink), xsink);
       return;
    }
 
@@ -871,7 +880,7 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
    if ((*val)->type == NT_HASH && (*val)->reference_count() > 1)
    {
       QoreNode *s = *val;
-      *val = (*val)->realCopy(xsink);
+      *val = (*val)->realCopy();
       s->deref(xsink);
    }
 

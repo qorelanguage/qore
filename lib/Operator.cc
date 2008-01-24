@@ -55,7 +55,7 @@ static inline void ensure_unique(class QoreNode **v, class ExceptionSink *xsink)
    if (!(*v)->is_unique())
    {
       QoreNode *old = *v;
-      (*v) = old->realCopy(xsink);
+      (*v) = old->realCopy();
       old->deref(xsink);
    }
 }
@@ -301,10 +301,15 @@ static inline bool list_is_equal(const QoreList *l, const QoreList *r, Exception
 
 static bool op_log_eq_list(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   if ((left->type != NT_LIST) || (right->type != NT_LIST))
+   QoreList *l = dynamic_cast<QoreList *>(left);
+   if (!l)
+      return false;
+
+   QoreList *r = dynamic_cast<QoreList *>(right);
+   if (!r)
       return false;
    
-   return list_is_equal(left->val.list, right->val.list, xsink);
+   return l->is_equal_soft(r, xsink);
 }
 
 static bool op_log_eq_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
@@ -343,10 +348,15 @@ static bool op_log_eq_null(QoreNode *left, QoreNode *right, ExceptionSink *xsink
 
 static bool op_log_ne_list(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   if (left->type != NT_LIST || right->type != NT_LIST)
+   QoreList *l = dynamic_cast<QoreList *>(left);
+   if (!l)
       return true;
 
-   return !list_is_equal(left->val.list, right->val.list, xsink);
+   QoreList *r = dynamic_cast<QoreList *>(right);
+   if (!r)
+      return true;
+   
+   return !l->is_equal_soft(r, xsink);
 }
 
 static bool op_log_ne_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
@@ -534,8 +544,11 @@ static int64 op_elements(QoreNode *left, class QoreNode *null, ExceptionSink *xs
    if (*xsink || !np)
       return 0;
 
-   if (np->type == NT_LIST)
-      return np->val.list->size();
+   {
+      QoreList *l = dynamic_cast<QoreList *>(*np);
+      if (l)
+	 return l->size();
+   }
 
    if (np->type == NT_OBJECT)
       return np->val.object->size(xsink);
@@ -575,25 +588,29 @@ static QoreList *get_keys(QoreNode *p, ExceptionSink *xsink)
    return 0;
 }
 
-static class QoreNode *op_keys(QoreNode *left, class QoreNode *null, bool ref_rv, ExceptionSink *xsink)
+// FIXME: do not need ref_rv here - also do not need second argument
+static class QoreNode *op_keys(QoreNode *left, QoreNode *null, bool ref_rv, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder np(left, xsink);
    if (*xsink)
       return 0;
 
-   QoreList *l = get_keys(*np, xsink);
-   return l ? new QoreNode(l) : 0;
+   return get_keys(*np, xsink);
 }
 
-static class QoreNode *op_question_mark(QoreNode *left, class QoreNode *list, bool ref_rv, ExceptionSink *xsink)
+// FIXME: do not need ref_rv here
+static class QoreNode *op_question_mark(QoreNode *left, QoreNode *list, bool ref_rv, ExceptionSink *xsink)
 {
+   assert(list && list->type == NT_LIST);
    bool b = left->boolEval(xsink);
    if (xsink->isEvent())
       return NULL;
 
+   QoreList *l = reinterpret_cast<QoreList *>(list);
+
    if (b)
-      return list->val.list->retrieve_entry(0)->eval(xsink);
-   return list->val.list->retrieve_entry(1)->eval(xsink);
+      return l->retrieve_entry(0)->eval(xsink);
+   return l->retrieve_entry(1)->eval(xsink);
 }
 
 static class QoreNode *op_regex_subst(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -659,7 +676,8 @@ static class QoreNode *op_list_ref(QoreNode *left, QoreNode *index, ExceptionSin
    if (!*xsink) {
       // get value
       if (lp->type == NT_LIST) {
-	 rv = lp->val.list->retrieve_entry(ind);
+	 QoreList *l = reinterpret_cast<QoreList *>(*lp);
+	 rv = l->retrieve_entry(ind);
 	 // reference for return
 	 if (rv)
 	    rv->ref();
@@ -786,9 +804,12 @@ static class QoreNode *op_assignment(QoreNode *left, QoreNode *right, bool ref_r
    return NULL;
 }
 
-static class QoreNode *op_list_assignment(QoreNode *left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class QoreNode *op_list_assignment(QoreNode *n_left, QoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **v;
+
+   assert(n_left && n_left->type == NT_LIST);
+   QoreList *left = reinterpret_cast<QoreList *>(n_left);
 
    // tracein("op_assignment()");
 
@@ -803,9 +824,9 @@ static class QoreNode *op_list_assignment(QoreNode *left, QoreNode *right, bool 
 
    // get values and save
    int i;
-   for (i = 0; i < left->val.list->size(); i++)
+   for (i = 0; i < left->size(); i++)
    {
-      class QoreNode *lv = left->val.list->retrieve_entry(i);
+      class QoreNode *lv = left->retrieve_entry(i);
 
       class AutoVLock vl;
       v = get_var_value_ptr(lv, &vl, xsink);
@@ -821,18 +842,17 @@ static class QoreNode *op_list_assignment(QoreNode *left, QoreNode *right, bool 
       }
 
       // if there's only one value, then save it
-      if (!*new_value || new_value->type != NT_LIST)
-      {
+      QoreList *nv = dynamic_cast<QoreList *>(*new_value);
+      if (nv) { // assign to list position
+	 (*v) = nv->retrieve_entry(i);
+	 if (*v)
+	    (*v)->ref();
+      }
+      else {
 	 if (!i)
 	    (*v) = new_value.getReferencedValue();
 	 else
 	    (*v) = NULL;
-      }
-      else // assign to list position
-      {
-	 (*v) = new_value->val.list->retrieve_entry(i);
-	 if (*v)
-	    (*v)->ref();
       }
       vl.del();
    }
@@ -863,10 +883,11 @@ static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_
    if (*v && ((*v)->type == NT_LIST))
    {
       ensure_unique(v, xsink);
+      QoreList *l = reinterpret_cast<QoreList *>(*v);
       if (new_right->type == NT_LIST)
-	 (*v)->val.list->merge(new_right->val.list);
+	 l->merge(reinterpret_cast<QoreList *>(*new_right));
       else
-	 (*v)->val.list->push(new_right.takeReferencedValue());
+	 l->push(new_right.takeReferencedValue());
    }
    // do hash plus-equals if left side is a hash
    else if (*v && ((*v)->type == NT_HASH))
@@ -875,7 +896,6 @@ static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_
       {
 	 ensure_unique(v, xsink);
 	 reinterpret_cast<QoreHashNode *>(*v)->merge(reinterpret_cast<QoreHashNode *>(*new_right), xsink);
-	 //(*v)->valx.hash->merge(new_right->valx.hash, xsink);
       }
       else if (new_right->type == NT_OBJECT)
       {
@@ -993,9 +1013,10 @@ static class QoreNode *op_minus_equals(QoreNode *left, QoreNode *right, bool ref
 	 ensure_unique(v, xsink);
 	 QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(*v);
 
-	 if (new_right->type == NT_LIST && new_right->val.list->size()) {
+	 QoreList *nrl = dynamic_cast<QoreList *>(*new_right);
+	 if (nrl && nrl->size()) {
 	    // treat each element in the list as a string giving a key to delete
-	    ListIterator li(new_right->val.list);
+	    ListIterator li(nrl);
 	    while (li.next()) {
 	       QoreStringValueHelper val(li.getValue());
 	       
@@ -1448,26 +1469,30 @@ static class QoreNode *op_shift_right_equals(QoreNode *left, QoreNode *right, bo
 }
 
 // this is the default (highest-priority) function for the + operator, so any type could be sent here on either side
-static class QoreNode *op_plus_list(QoreNode *left, QoreNode *right)
+static QoreNode *op_plus_list(QoreNode *left, QoreNode *right)
 {
-   if (left->type == NT_LIST) {
-      QoreList *rv;
-      rv = left->val.list->copyList();
-      if (right->type == NT_LIST)
-	 rv->merge(right->val.list);
-      else
-	 rv->push(right->RefSelf());
-      //printd(5, "op_plus_list() returning list=%08p size=%d\n", rv, rv->size());
-      return new QoreNode(rv);
+   {
+      QoreList *l = dynamic_cast<QoreList *>(left);
+      if (l) {
+	 QoreList *rv = l->copy();
+	 QoreList *r = dynamic_cast<QoreList *>(right);
+	 if (r)
+	    rv->merge(r);
+	 else
+	    rv->push(right->RefSelf());
+	 //printd(5, "op_plus_list() returning list=%08p size=%d\n", rv, rv->size());
+	 return rv;
+      }
    }
 
-   if (right->type != NT_LIST)
+   QoreList *r = dynamic_cast<QoreList *>(right);
+   if (!r)
       return 0;
 
    QoreList *rv = new QoreList();
    rv->push(left->RefSelf());
-   rv->merge(right->val.list);
-   return new QoreNode(rv);
+   rv->merge(r);
+   return rv;
 }
 
 static class QoreNode *op_plus_hash_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
@@ -1590,14 +1615,14 @@ static class QoreNode *op_post_inc(QoreNode *left, bool ref_rv, ExceptionSink *x
       // get unique value if necessary
       if (!nv->is_unique())
       {
-	 (*n) = nv->realCopy(xsink);
+	 (*n) = nv->realCopy();
 	 nv->deref(xsink);
       }	 
       else
 	 (*n) = nv;
    }
    else // copy value to get a node with reference count 1
-      (*n) = (*n)->realCopy(xsink);
+      (*n) = (*n)->realCopy();
 
    // increment value
    (*n)->val.intval++;
@@ -1633,7 +1658,7 @@ static class QoreNode *op_post_dec(QoreNode *left, bool ref_rv, ExceptionSink *x
       // get unique value if necessary
       if (!nv->is_unique())
       {
-	 (*n) = nv->realCopy(xsink);
+	 (*n) = nv->realCopy();
 	 nv->deref(xsink);
       }	 
       else
@@ -1643,7 +1668,7 @@ static class QoreNode *op_post_dec(QoreNode *left, bool ref_rv, ExceptionSink *x
    {
       // copy value and dereference original
       rv = (*n);
-      (*n) = (*n)->realCopy(xsink);
+      (*n) = (*n)->realCopy();
    }
 
    // decrement value
@@ -1733,22 +1758,29 @@ static class QoreNode *op_pre_dec(QoreNode *left, bool ref_rv, ExceptionSink *xs
 // unshift lvalue, element
 static QoreNode *op_unshift(QoreNode *left, class QoreNode *elem, bool ref_rv, ExceptionSink *xsink)
 {
-   //tracein("op_unshift()");
    printd(5, "op_unshift(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
    class AutoVLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
+   if (*xsink)
+      return 0;
+
+   QoreList *l = dynamic_cast<QoreList *>(*val);
    // value is not a list, so throw exception
-   if (xsink->isEvent() || !(*val) || (*val)->type != NT_LIST)
+   if (!l)
    {
       xsink->raiseException("UNSHIFT-ERROR", "first argument to unshift is not a list");
-      return NULL;
+      return 0;
    }
 
-   ensure_unique(val, xsink);
+   if (!l->is_unique()) {
+      l = l->copy();
+      (*val)->deref(xsink);
+      (*val) = l;
+   }
 
    printd(5, "op_unshift() *val=%08p (%s)\n", *val, *val ? (*val)->getTypeName() : "(none)");
-   printd(5, "op_unshift() about to call unshift() on list node %08p (%d) with element %08p\n", (*val), (*val)->val.list->size(), elem);
+   printd(5, "op_unshift() about to call unshift() on list node %08p (%d) with element %08p\n", l, l->size(), elem);
 
    if (elem)
    {
@@ -1760,13 +1792,12 @@ static QoreNode *op_unshift(QoreNode *left, class QoreNode *elem, bool ref_rv, E
       }
    }
 
-   (*val)->val.list->insert(elem);
+   l->insert(elem);
 
    // reference for return value
    if (ref_rv)
       return (*val)->RefSelf();
 
-   //traceout("op_unshift()");
    return NULL;
 }
 
@@ -1777,46 +1808,53 @@ static QoreNode *op_shift(QoreNode *left, class QoreNode *x, bool ref_rv, Except
 
    class AutoVLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent() || !(*val) || (*val)->type != NT_LIST)
+   if (*xsink)
+      return 0;
+   QoreList *l = dynamic_cast<QoreList *>(*val);
+   if (!l)
       return NULL;
 
-   ensure_unique(val, xsink);
+   if (!l->is_unique()) {
+      l = l->copy();
+      (*val)->deref(xsink);
+      (*val) = l;
+   }
 
    printd(5, "op_shift() *val=%08p (%s)\n", *val, *val ? (*val)->getTypeName() : "(none)");
-   printd(5, "op_shift() about to call QoreList::shift() on list node %08p (%d)\n", (*val), (*val)->val.list->size());
+   printd(5, "op_shift() about to call QoreList::shift() on list node %08p (%d)\n", l, l->size());
 
-   QoreNode *rv = (*val)->val.list->shift();
-
-   printd(5, "op_shift() got node %08p (%s)\n", rv, rv ? rv->getTypeName() : "(none)");
    // the list reference will now be the reference for return value
    // therefore no need to reference again
-
-   //traceout("op_shift()");
-   return rv;
+   return l->shift();
 }
 
 static QoreNode *op_pop(QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
-   //tracein("op_pop()");
    printd(5, "op_pop(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
    class AutoVLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent() || !(*val) || (*val)->type != NT_LIST)
+   if (*xsink)
+      return 0;
+   QoreList *l = dynamic_cast<QoreList *>(*val);
+   if (!l)
       return NULL;
 
-   ensure_unique(val, xsink);
+   if (!l->is_unique()) {
+      l = l->copy();
+      (*val)->deref(xsink);
+      (*val) = l;
+   }
 
    printd(5, "op_pop() *val=%08p (%s)\n", *val, *val ? (*val)->getTypeName() : "(none)");
-   printd(5, "op_pop() about to call QoreList::pop() on list node %08p (%d)\n", (*val), (*val)->val.list->size());
+   printd(5, "op_pop() about to call QoreList::pop() on list node %08p (%d)\n", (*val), l->size());
 
-   QoreNode *rv = (*val)->val.list->pop();
-
-   printd(5, "op_pop() got node %08p (%s)\n", rv, rv ? rv->getTypeName() : "(none)");
    // the list reference will now be the reference for return value
    // therefore no need to reference again
+   QoreNode *rv = l->pop();
 
-   //traceout("op_pop()");
+   printd(5, "op_pop() got node %08p (%s)\n", rv, rv ? rv->getTypeName() : "(none)");
+
    return rv;
 }
 
@@ -1827,16 +1865,23 @@ static QoreNode *op_push(QoreNode *left, class QoreNode *elem, bool ref_rv, Exce
 
    class AutoVLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   // value is not a list, so throw exception
-   if (xsink->isEvent() || !(*val) || (*val)->type != NT_LIST)
-   {
+   if (*xsink)
+      return 0;
+   QoreList *l = dynamic_cast<QoreList *>(*val);
+   if (!l) {
       xsink->raiseException("PUSH-ERROR", "first argument to push is not a list");
-      return NULL;
+      return 0;
+   }
+
+   if (!l->is_unique()) {
+      l = l->copy();
+      (*val)->deref(xsink);
+      (*val) = l;
    }
 
    ensure_unique(val, xsink);
 
-   printd(5, "op_push() about to call push() on list node %08p (%d) with element %08p\n", (*val), (*val)->val.list->size(), elem);
+   printd(5, "op_push() about to call push() on list node %08p (%d) with element %08p\n", (*val), l->size(), elem);
 
    if (elem)
    {
@@ -1848,17 +1893,19 @@ static QoreNode *op_push(QoreNode *left, class QoreNode *elem, bool ref_rv, Exce
       }
    }
 
-   (*val)->val.list->push(elem);
+   l->push(elem);
 
    // reference for return value
-   return ref_rv ? (*val)->RefSelf() : 0;
+   return ref_rv ? l->RefSelf() : 0;
 }
 
 // lvalue, offset, [length, [list]]
-static QoreNode *op_splice(QoreNode *left, class QoreNode *l, bool ref_rv, ExceptionSink *xsink)
+static QoreNode *op_splice(QoreNode *left, class QoreNode *n_l, bool ref_rv, ExceptionSink *xsink)
 {
-   //tracein("op_splice()");
-   printd(5, "op_splice(%08p, %08p, isEvent=%d)\n", left, l, xsink->isEvent());
+   printd(5, "op_splice(%08p, %08p, isEvent=%d)\n", left, n_l, xsink->isEvent());
+
+   assert(n_l->type == NT_LIST);
+   QoreList *l = reinterpret_cast<QoreList *>(n_l);
 
    class AutoVLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
@@ -1873,20 +1920,21 @@ static QoreNode *op_splice(QoreNode *left, class QoreNode *l, bool ref_rv, Excep
    }
    
    // evaluate list
-   QoreNodeEvalOptionalRefHolder nl(l, xsink);
+   QoreListEvalOptionalRefHolder nl(l, xsink);
    if (*xsink)
       return 0;
 
    ensure_unique(val, xsink);
 
    // evaluating a list must give another list
-   assert(nl->type == NT_LIST);
-   int size = nl->val.list->size();
-   int offset = nl->val.list->getEntryAsInt(0);
+   int size = nl->size();
+   int offset = nl->getEntryAsInt(0);
 
 #ifdef DEBUG
-   if ((*val)->type == NT_LIST)
-      printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", (*val), (*val)->val.list->size(), *nl, size, offset);
+   if ((*val)->type == NT_LIST) {
+      QoreList **vl = reinterpret_cast<QoreList **>(val);
+      printd(5, "op_splice() val=%08p (size=%d) list=%08p (size=%d) offset=%d\n", (*val), (*vl)->size(), *nl, size, offset);
+   }
    else {
       QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(val);
 
@@ -1896,30 +1944,31 @@ static QoreNode *op_splice(QoreNode *left, class QoreNode *l, bool ref_rv, Excep
 
    if ((*val)->type == NT_LIST)
    {
+      QoreList *vl = reinterpret_cast<QoreList *>(*val);
       if (size == 1)
-	 (*val)->val.list->splice(offset, xsink);
+	 vl->splice(offset, xsink);
       else
       {
-	 int length = nl->val.list->getEntryAsInt(1);
+	 int length = nl->getEntryAsInt(1);
 	 if (size == 2)
-	    (*val)->val.list->splice(offset, length, xsink);
+	    vl->splice(offset, length, xsink);
 	 else
-	    (*val)->val.list->splice(offset, length, nl->val.list->retrieve_entry(2), xsink);
+	    vl->splice(offset, length, nl->retrieve_entry(2), xsink);
       }
    }
    else // must be a string
    {
-      QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(val);
+      QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(*val);
 
       if (size == 1)
-	 (*vs)->splice(offset, xsink);
+	 vs->splice(offset, xsink);
       else
       {
-	 int length = nl->val.list->getEntryAsInt(1);
+	 int length = nl->getEntryAsInt(1);
 	 if (size == 2)
-	    (*vs)->splice(offset, length, xsink);
+	    vs->splice(offset, length, xsink);
 	 else
-	    (*vs)->splice(offset, length, nl->val.list->retrieve_entry(2), xsink);
+	    vs->splice(offset, length, nl->retrieve_entry(2), xsink);
       }
    }
 
@@ -1952,22 +2001,24 @@ static int64 op_chomp(class QoreNode *arg, class QoreNode *x, ExceptionSink *xsi
 
    int64 count = 0;   
 
-   if ((*val)->type == NT_LIST)
    {
-      ListIterator li((*val)->val.list);
-      while (li.next())
-      {
-	 class QoreNode **v = li.getValuePtr();
-	 if (*v && (*v)->type == NT_STRING)
+      QoreList *l = dynamic_cast<QoreList *>(*val);
+      if (l) {
+	 ListIterator li(l);
+	 while (li.next())
 	 {
-	    // note that no exception can happen here
-	    ensure_unique(v, xsink);
-	    assert(!*xsink);
-	    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-	    count += (*vs)->chomp();
-	 }
-      }      
-      return count;
+	    class QoreNode **v = li.getValuePtr();
+	    if (*v && (*v)->type == NT_STRING)
+	    {
+	       // note that no exception can happen here
+	       ensure_unique(v, xsink);
+	       assert(!*xsink);
+	       QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
+	       count += (*vs)->chomp();
+	    }
+	 }      
+	 return count;
+      }
    }
 
    // must be a hash
@@ -2010,7 +2061,8 @@ static QoreNode *op_trim(class QoreNode *arg, class QoreNode *x, bool ref_rv, Ex
    }
    else if ((*val)->type == NT_LIST)
    {
-      ListIterator li((*val)->val.list);
+      QoreList *l = reinterpret_cast<QoreList *>(*val);
+      ListIterator li(l);
       while (li.next())
       {
 	 class QoreNode **v = li.getValuePtr();
@@ -2076,10 +2128,7 @@ static QoreHashNode *op_minus_hash_list(const QoreHashNode *h, const QoreList *l
 
 static class QoreNode *op_regex_extract(const QoreString *left, QoreRegex *right, ExceptionSink *xsink)
 {
-   class QoreList *l = right->extractSubstrings(left, xsink);
-   if (!l)
-      return NULL;
-   return new QoreNode(l);
+   return right->extractSubstrings(left, xsink);
 }
 
 static QoreNode *get_node_type(QoreNode *n, const QoreType *t)
@@ -2111,7 +2160,7 @@ static QoreNode *get_node_type(QoreNode *n, const QoreType *t)
    if (t == NT_LIST) {
       QoreList *l = new QoreList();
       l->push(n ? n->RefSelf() : 0);
-      return new QoreNode(l);
+      return l;
    }
 
    printd(0, "get_node_type() got type '%s'\n", t->getName());
@@ -2338,7 +2387,7 @@ class QoreNode *HashListOperatorFunction::eval(QoreNode *left, QoreNode *right, 
    // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
    if (!ref_rv) return 0;
 
-   return op_func(reinterpret_cast<QoreHashNode *>(left), right->val.list, xsink);
+   return op_func(reinterpret_cast<QoreHashNode *>(left), reinterpret_cast<QoreList *>(right), xsink);
 }
 
 bool HashListOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const

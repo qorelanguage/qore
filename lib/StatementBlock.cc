@@ -277,6 +277,26 @@ static inline int getBaseLVType(class QoreNode *n)
    }
 }
 
+int process_list_node_intern(QoreList *l, lvh_t oflag, int pflag)
+{
+   int lvids = 0;
+
+   for (int i = 0; i < l->size(); i++)
+      lvids += process_node(l->get_entry_ptr(i), oflag, pflag);
+   
+   return lvids;
+}
+
+// this function will put variables on the local stack but will not pop them
+int process_list_node(QoreList **node, lvh_t oflag, int pflag)
+{
+   if (!(*node))
+      return 0;
+
+   // unset "reference ok" for next call
+   return process_list_node_intern(*node, oflag, pflag & ~PF_REFERENCE_OK);
+}
+
 // this function will put variables on the local stack but will not pop them
 int process_node(class QoreNode **node, lvh_t oflag, int pflag)
 {
@@ -425,9 +445,9 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
 	 getProgram()->resolveFunction((*node)->val.fcall);
       
       if ((*node)->val.fcall->args)
-	 for (i = 0; i < (*node)->val.fcall->args->val.list->size(); i++)
+	 for (i = 0; i < (*node)->val.fcall->args->size(); i++)
 	 {
-	    class QoreNode **n = (*node)->val.fcall->args->val.list->get_entry_ptr(i);
+	    class QoreNode **n = (*node)->val.fcall->args->get_entry_ptr(i);
 	    if ((*n)->type == NT_REFERENCE)
 	    {
 	       if (!(*node)->val.fcall->existsUserParam(i))
@@ -454,20 +474,15 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       delete (*node)->val.socall->name;
       (*node)->val.socall->name = NULL;
       if ((*node)->val.socall->args)
-	 lvids += process_node(&((*node)->val.socall->args), oflag, pflag);
+	 lvids += process_list_node(&((*node)->val.socall->args), oflag, pflag);
       
       return lvids;
    }
 
-   if ((*node)->type == NT_FLIST)
-      (*node)->type = NT_LIST;
-
-   if ((*node)->type == NT_LIST || (*node)->type == NT_VLIST)
    {
-      for (i = 0; i < (*node)->val.list->size(); i++)
-	 lvids += process_node((*node)->val.list->get_entry_ptr(i), oflag, pflag);
-
-      return lvids;
+      QoreList *l = dynamic_cast<QoreList *>(*node);
+      if (l) 
+	 return process_list_node_intern(l, oflag, pflag); 
    }
 
    {
@@ -642,7 +657,7 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
       {
 	 if ((*i)->args)
 	 {
-	    class QoreList *l = (*i)->args->val.list;
+	    QoreList *l = (*i)->args;
 	    for (int j = 0; j < l->size(); j++)
 	    {
 	       class QoreNode **n = l->get_entry_ptr(j);

@@ -169,6 +169,6 @@ class QoreHashNode *QoreClassList::getInfo()
 {
    class QoreHashNode *h = new QoreHashNode();
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
-      h->setKeyValue(i->first, new QoreNode(i->second->getMethodList()), NULL);
+      h->setKeyValue(i->first, i->second->getMethodList(), 0);
    return h;
 }

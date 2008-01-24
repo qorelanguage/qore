@@ -599,7 +599,7 @@ class QoreNode *QorePGResult::getArray(int type, qore_pg_data_func_t func, char 
 	 }
       }
 
-   return new QoreNode(l);
+   return l;
 }
 
 // converts from PostgreSQL data types to Qore data
@@ -654,7 +654,7 @@ class QoreHashNode *QorePGResult::getHash(class ExceptionSink *xsink)
    int num_columns = PQnfields(res);
 
    for (int i = 0; i < num_columns; ++i)
-      h->setKeyValue(PQfname(res, i), new QoreNode(new QoreList()), NULL);
+      h->setKeyValue(PQfname(res, i), new QoreList(), NULL);
 
    //printd(5, "num_columns=%d num_rows=%d\n", num_columns, PQntuples(res));
 
@@ -666,7 +666,8 @@ class QoreHashNode *QorePGResult::getHash(class ExceptionSink *xsink)
 	 if (!n || *xsink)
 	    return 0;
 
-	 h->getKeyValue(PQfname(res, j))->val.list->push(n.release());
+	 QoreList *l = reinterpret_cast<QoreList *>(h->getKeyValue(PQfname(res, j)));
+	 l->push(n.release());
       }
    }
    return h.release();
@@ -911,31 +912,33 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
       }
    }
 
-   if (v->type == NT_LIST)
    {
-      int len = v->val.list->size();
-      if (!len)
-      {
-	 paramTypes[nParams] = 0;
-	 paramValues[nParams] = 0;
-      }
-      else
-      {
-	 std::auto_ptr<QorePGBindArray> ba(new QorePGBindArray(conn));
-	 if (ba->create_data(v->val.list, 0, enc, xsink))
-	    return -1;
+      QoreList *l = dynamic_cast<QoreList *>(v);
+      if (l) {
+	 int len = l->size();
+	 if (!len)
+	 {
+	    paramTypes[nParams] = 0;
+	    paramValues[nParams] = 0;
+	 }
+	 else
+	 {
+	    std::auto_ptr<QorePGBindArray> ba(new QorePGBindArray(conn));
+	    if (ba->create_data(l, 0, enc, xsink))
+	       return -1;
+	    
+	    paramArray[nParams] = 1;
+	    paramTypes[nParams] = ba->getArrayOid();
+	    paramLengths[nParams] = ba->getSize();
+	    pb->ptr = ba->getHeader();
+	    paramValues[nParams] = (char *)pb->ptr;
+	    paramFormats[nParams] = ba->getFormat();
+	    //printd(5, "QorePGResult::add() array size=%d, arrayoid=%d, data=%08p\n", ba->getSize(), ba->getArrayOid(), pb->ptr);
+	 }
 	 
-	 paramArray[nParams] = 1;
-	 paramTypes[nParams] = ba->getArrayOid();
-	 paramLengths[nParams] = ba->getSize();
-	 pb->ptr = ba->getHeader();
-	 paramValues[nParams] = (char *)pb->ptr;
-	 paramFormats[nParams] = ba->getFormat();
-	 //printd(5, "QorePGResult::add() array size=%d, arrayoid=%d, data=%08p\n", ba->getSize(), ba->getArrayOid(), pb->ptr);
+	 ++nParams;
+	 return 0;
       }
-
-      ++nParams;
-      return 0;
    }
 
    paramTypes[nParams] = 0;
@@ -1303,10 +1306,11 @@ int QorePGBindArray::process_list(QoreList *l, int current, const QoreEncoding *
       v_type = n ? n->type : NT_NOTHING;
       if (type == NT_LIST)
       {
+	 QoreList *l = reinterpret_cast<QoreList *>(n);
 	 if (li.first())
-	    if (new_dimension(n->val.list, current + 1, xsink))
+	    if (new_dimension(l, current + 1, xsink))
 	       return -1;
-	 if (process_list(n->val.list, current + 1, enc, xsink))
+	 if (process_list(l, current + 1, enc, xsink))
 	    return -1;
       }
       else
@@ -1552,8 +1556,7 @@ class QoreNode *QorePGConnection::select_rows(class Datasource *ds, const QoreSt
    if (res.exec(pc, qstr, args, xsink))
       return NULL;
 
-   class QoreList *l = res.getQoreList(xsink);
-   return l ? new QoreNode(l) : NULL;
+   return res.getQoreList(xsink);
 }
 
 class QoreNode *QorePGConnection::exec(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)

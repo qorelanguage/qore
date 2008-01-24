@@ -28,7 +28,7 @@ int CID_QPLASTIQUESTYLE;
 class QoreClass *QC_QPlastiqueStyle = 0;
 
 //QPlastiqueStyle ()
-static void QPLASTIQUESTYLE_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QPLASTIQUESTYLE_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QPLASTIQUESTYLE, new QoreQPlastiqueStyle(self));
    return;

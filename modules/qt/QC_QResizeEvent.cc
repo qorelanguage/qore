@@ -29,7 +29,7 @@ int CID_QRESIZEEVENT;
 
 class QoreClass *QC_QResizeEvent = 0;
 
-static void QRESIZEEVENT_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QRESIZEEVENT_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    xsink->raiseException("QRESIZEEVENT-CONSTRUCTOR-ERROR", "QResizeEvent is an abstract base class");
 }
@@ -40,7 +40,7 @@ static void QRESIZEEVENT_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //const QSize & oldSize () const
-static QoreNode *QRESIZEEVENT_oldSize(QoreObject *self, QoreQResizeEvent *qre, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QRESIZEEVENT_oldSize(QoreObject *self, QoreQResizeEvent *qre, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qre->oldSize());
@@ -49,7 +49,7 @@ static QoreNode *QRESIZEEVENT_oldSize(QoreObject *self, QoreQResizeEvent *qre, c
 }
 
 //const QSize & size () const
-static QoreNode *QRESIZEEVENT_size(QoreObject *self, QoreQResizeEvent *qre, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QRESIZEEVENT_size(QoreObject *self, QoreQResizeEvent *qre, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qre->size());

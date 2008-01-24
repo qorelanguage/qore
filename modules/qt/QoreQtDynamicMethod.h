@@ -46,7 +46,7 @@
    DLLLOCAL virtual int connectDynamic(QoreAbstractQObject *sender, const char *signal, const char *slot, class ExceptionSink *xsink) { \
       return qobj->connectDynamic(sender, signal, slot, xsink);		\
    } \
-   DLLLOCAL virtual void emit_signal(const char *sig, QoreList *args) { return qobj->emit_signal(sig, args); } \
+   DLLLOCAL virtual void emit_signal(const char *sig, const QoreList *args) { return qobj->emit_signal(sig, args); } \
    DLLLOCAL virtual QObject *sender() const { return qobj->getSender(); } \
    DLLLOCAL virtual QoreObject *getQoreObject() const { return qobj->getQoreObject(); } \
    DLLLOCAL virtual void timerEvent(QTimerEvent * event) { qobj->parent_timerEvent(event); } \
@@ -164,7 +164,7 @@ struct QoreQtDynamicSignal : public QoreQtDynamicMethod
       DLLLOCAL virtual ~QoreQtDynamicSignal()
       {
       }
-      DLLLOCAL void emit_signal(QObject *obj, int id, QoreList *args);
+      DLLLOCAL void emit_signal(QObject *obj, int id, const QoreList *args);
 };
 
 typedef std::vector<QoreQtDynamicMethod *> qore_qt_method_list_t;
@@ -193,6 +193,6 @@ class DynamicMethodMap : public qore_qt_method_list_t
       }
 };
 
-DLLLOCAL void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, QoreList *args);
+DLLLOCAL void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, const QoreList *args);
 
 #endif

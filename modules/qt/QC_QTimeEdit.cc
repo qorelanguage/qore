@@ -32,7 +32,7 @@ class QoreClass *QC_QTimeEdit = 0;
 
 //QTimeEdit ( QWidget * parent = 0 )
 //QTimeEdit ( const QTime & time, QWidget * parent = 0 )
-static void QTIMEEDIT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QTIMEEDIT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {

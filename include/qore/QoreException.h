@@ -69,7 +69,7 @@ class ExceptionSink {
       DLLEXPORT void addStackInfo(int type, const char *class_name, const char *code);
 
       DLLLOCAL void raiseException(class QoreException *e);
-      DLLLOCAL void raiseException(class QoreNode *n);
+      DLLLOCAL void raiseException(class QoreList *n);
       DLLLOCAL class QoreException *catchException();
       DLLLOCAL void overrideLocation(int sline, int eline, const char *file);
 
@@ -102,7 +102,7 @@ class QoreException {
       // called for rethrow
       DLLLOCAL QoreException(class QoreException *old, class ExceptionSink *xsink);
       // called for user exceptions
-      DLLLOCAL QoreException(class QoreNode *n);
+      DLLLOCAL QoreException(class QoreList *n);
       // for derived classes
       DLLLOCAL QoreException();
       DLLLOCAL void del(class ExceptionSink *xsink);

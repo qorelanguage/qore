@@ -28,7 +28,7 @@ int CID_QFOCUSEVENT;
 class QoreClass *QC_QFocusEvent = 0;
 
 //QFocusEvent ( Type type, Qt::FocusReason reason = Qt::OtherFocusReason )
-static void QFOCUSEVENT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QFOCUSEVENT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QFocusEvent::Type type = (QFocusEvent::Type)(p ? p->getAsInt() : 0);
@@ -44,19 +44,19 @@ static void QFOCUSEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //bool gotFocus () const
-static QoreNode *QFOCUSEVENT_gotFocus(QoreObject *self, QoreQFocusEvent *qfe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFOCUSEVENT_gotFocus(QoreObject *self, QoreQFocusEvent *qfe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfe->gotFocus());
 }
 
 //bool lostFocus () const
-static QoreNode *QFOCUSEVENT_lostFocus(QoreObject *self, QoreQFocusEvent *qfe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFOCUSEVENT_lostFocus(QoreObject *self, QoreQFocusEvent *qfe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfe->lostFocus());
 }
 
 //Qt::FocusReason reason () const
-static QoreNode *QFOCUSEVENT_reason(QoreObject *self, QoreQFocusEvent *qfe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFOCUSEVENT_reason(QoreObject *self, QoreQFocusEvent *qfe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfe->reason());
 }

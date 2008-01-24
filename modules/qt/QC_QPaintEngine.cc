@@ -40,7 +40,7 @@ int CID_QPAINTENGINE;
 class QoreClass *QC_QPaintEngine = 0;
 
 //QPaintEngine ( PaintEngineFeatures caps = 0 )
-static void QPAINTENGINE_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QPAINTENGINE_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    xsink->raiseException("QPAINTENGINE-CONSTRUCTOR-ERROR", "QPaintEngine is an abstract class");
 }
@@ -51,7 +51,7 @@ static void QPAINTENGINE_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //virtual bool begin ( QPaintDevice * pdev ) = 0
-static QoreNode *QPAINTENGINE_begin(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_begin(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    AbstractPrivateData *apd_pdev = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
@@ -68,7 +68,7 @@ static QoreNode *QPAINTENGINE_begin(QoreObject *self, QoreAbstractQPaintEngine *
 
 //virtual void drawEllipse ( const QRectF & rect )
 //virtual void drawEllipse ( const QRect & rect )
-static QoreNode *QPAINTENGINE_drawEllipse(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_drawEllipse(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQRect *rect = p ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
@@ -93,7 +93,7 @@ static QoreNode *QPAINTENGINE_drawEllipse(QoreObject *self, QoreAbstractQPaintEn
 }
 
 //virtual void drawImage ( const QRectF & rectangle, const QImage & image, const QRectF & sr, Qt::ImageConversionFlags flags = Qt::AutoColor )
-static QoreNode *QPAINTENGINE_drawImage(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_drawImage(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
@@ -127,7 +127,7 @@ static QoreNode *QPAINTENGINE_drawImage(QoreObject *self, QoreAbstractQPaintEngi
 
 //virtual void drawLines ( const QLineF * lines, int lineCount )
 //virtual void drawLines ( const QLine * lines, int lineCount )
-static QoreNode *QPAINTENGINE_drawLines(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_drawLines(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQLine *lines = p ? (QoreQLine *)p->val.object->getReferencedPrivateData(CID_QLINE, xsink) : 0;
@@ -155,7 +155,7 @@ static QoreNode *QPAINTENGINE_drawLines(QoreObject *self, QoreAbstractQPaintEngi
 }
 
 //virtual void drawPath ( const QPainterPath & path )
-static QoreNode *QPAINTENGINE_drawPath(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_drawPath(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)p->val.object->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
@@ -170,7 +170,7 @@ static QoreNode *QPAINTENGINE_drawPath(QoreObject *self, QoreAbstractQPaintEngin
 }
 
 //virtual void drawPixmap ( const QRectF & r, const QPixmap & pm, const QRectF & sr ) = 0
-static QoreNode *QPAINTENGINE_drawPixmap(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_drawPixmap(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQRectF *r = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
@@ -203,7 +203,7 @@ static QoreNode *QPAINTENGINE_drawPixmap(QoreObject *self, QoreAbstractQPaintEng
 /*
 //virtual void drawPoints ( const QPointF * points, int pointCount )
 //virtual void drawPoints ( const QPoint * points, int pointCount )
-static QoreNode *QPAINTENGINE_drawPoints(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_drawPoints(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQPoint *points = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -234,7 +234,7 @@ static QoreNode *QPAINTENGINE_drawPoints(QoreObject *self, QoreAbstractQPaintEng
 /*
 //virtual void drawPolygon ( const QPointF * points, int pointCount, PolygonDrawMode mode )
 //virtual void drawPolygon ( const QPoint * points, int pointCount, PolygonDrawMode mode )
-static QoreNode *QPAINTENGINE_drawPolygon(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_drawPolygon(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQPoint *points = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -265,7 +265,7 @@ static QoreNode *QPAINTENGINE_drawPolygon(QoreObject *self, QoreAbstractQPaintEn
 /*
 //virtual void drawRects ( const QRectF * rects, int rectCount )
 //virtual void drawRects ( const QRect * rects, int rectCount )
-static QoreNode *QPAINTENGINE_drawRects(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_drawRects(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -294,7 +294,7 @@ static QoreNode *QPAINTENGINE_drawRects(QoreObject *self, QoreAbstractQPaintEngi
 
 /*
 //virtual void drawTextItem ( const QPointF & p, const QTextItem & textItem )
-static QoreNode *QPAINTENGINE_drawTextItem(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_drawTextItem(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPointF *p = (p && p->type == NT_OBJECT) ? (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
@@ -312,7 +312,7 @@ static QoreNode *QPAINTENGINE_drawTextItem(QoreObject *self, QoreAbstractQPaintE
 */
 
 //virtual void drawTiledPixmap ( const QRectF & rect, const QPixmap & pixmap, const QPointF & p )
-static QoreNode *QPAINTENGINE_drawTiledPixmap(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_drawTiledPixmap(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQRectF *rect = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
@@ -343,13 +343,13 @@ static QoreNode *QPAINTENGINE_drawTiledPixmap(QoreObject *self, QoreAbstractQPai
 }
 
 //virtual bool end () = 0
-static QoreNode *QPAINTENGINE_end(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_end(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qpe->getQPaintEngine()->end());
 }
 
 //bool hasFeature ( PaintEngineFeatures feature ) const
-static QoreNode *QPAINTENGINE_hasFeature(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_hasFeature(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPaintEngine::PaintEngineFeatures feature = (QPaintEngine::PaintEngineFeatures)(p ? p->getAsInt() : 0);
@@ -357,13 +357,13 @@ static QoreNode *QPAINTENGINE_hasFeature(QoreObject *self, QoreAbstractQPaintEng
 }
 
 //bool isActive () const
-static QoreNode *QPAINTENGINE_isActive(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_isActive(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qpe->getQPaintEngine()->isActive());
 }
 
 //QPaintDevice * paintDevice () const
-static QoreNode *QPAINTENGINE_paintDevice(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_paintDevice(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QPaintDevice *qpd = qpe->getQPaintEngine()->paintDevice();
 
@@ -376,7 +376,7 @@ static QoreNode *QPAINTENGINE_paintDevice(QoreObject *self, QoreAbstractQPaintEn
 }
 
 //QPainter * painter () const
-static QoreNode *QPAINTENGINE_painter(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_painter(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPainter, getProgram());
    QoreQPainter *q_qp = new QoreQPainter(qpe->getQPaintEngine()->painter());
@@ -385,7 +385,7 @@ static QoreNode *QPAINTENGINE_painter(QoreObject *self, QoreAbstractQPaintEngine
 }
 
 //void setActive ( bool state )
-static QoreNode *QPAINTENGINE_setActive(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_setActive(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool state = p ? p->getAsBool() : false;
@@ -394,14 +394,14 @@ static QoreNode *QPAINTENGINE_setActive(QoreObject *self, QoreAbstractQPaintEngi
 }
 
 //virtual Type type () const = 0
-static QoreNode *QPAINTENGINE_type(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_type(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qpe->getQPaintEngine()->type());
 }
 
 /*
 //virtual void updateState ( const QPaintEngineState & state ) = 0
-static QoreNode *QPAINTENGINE_updateState(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPAINTENGINE_updateState(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? QPaintEngineState state = p;

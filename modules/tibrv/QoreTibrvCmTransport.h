@@ -206,7 +206,7 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 	 ReferenceHolder<QoreHashNode> h(cmt->msgToHash(&msg, &xsink), &xsink);
 	 if (xsink.isException())
 	 {
-	    l->derefAndDelete(&xsink);
+	    l->deref(&xsink);
 	    l = NULL;
 	    return this;
 	 }
@@ -224,19 +224,19 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
       virtual inline ~QoreTibrvCmReviewCallback()
       {
 	 if (l)
-	    l->derefAndDelete(&xsink);
+	    l->deref(&xsink);
       }
 
       inline void cleanup()
       {
 	 if (l)
 	 {
-	    l->derefAndDelete(&xsink);
+	    l->deref(&xsink);
 	    l = NULL;
 	 }
       }
       
-      inline class QoreNode *getLedger(class ExceptionSink *xs)
+      inline QoreList *getLedger(class ExceptionSink *xs)
       {
          if (xsink.isException())
          {
@@ -244,7 +244,7 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
             return NULL;
          }
 
-	 class QoreNode *rv = l ? new QoreNode(l) : NULL;
+	 QoreList *rv = l;
 	 l = NULL;
 	 return rv;
       }

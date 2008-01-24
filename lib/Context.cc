@@ -156,17 +156,15 @@ class QoreNode *Context::evalValue(char *field, class ExceptionSink *xsink)
       xsink->raiseException("CONTEXT-EXCEPTION", "\"%s\" is not a valid key for this context", field);
       return NULL;
    }
-   if (!v || v->type != NT_LIST)
-   {
-      if (v) v->deref(xsink);
-      return NULL;
-   }
+   ReferenceHolder<QoreNode> val(v, xsink);
+   QoreList *l = dynamic_cast<QoreList *>(v);
+   if (!l)
+      return 0;
 
-   QoreNode *rv = v->val.list->retrieve_entry(row_list[pos]);
+   QoreNode *rv = l->retrieve_entry(row_list[pos]);
    if (rv) rv->ref();
    //printd(5, "Context::evalValue(%s) this=%08p pos=%d rv=%08p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->type == NT_INT ? rv->val.intval : -1);
    //printd(5, "Context::evalValue(%s) pos=%d, val=%s\n", field, pos, rv && rv->type == NT_STRING ? rv->val.String->getBuffer() : "?");
-   v->deref(xsink);
    return rv;
 }
 
@@ -182,15 +180,15 @@ class QoreHashNode *Context::getRow(class ExceptionSink *xsink)
    while (hi.next())
    {
       const char *key = hi.getKey();
-      //char *key = l->retrieve_entry(i)->val.String->getBuffer();
       printd(5, "Context::getRow() key=%s\n", key);
       // get list from hash
-      class QoreNode *v = hi.eval(xsink);
+      ReferenceHolder<QoreNode> v(hi.eval(xsink), xsink);
       if (*xsink)
 	 return 0;
+      assert(*v && v->type == NT_LIST);
       // set key value to list entry
-      h->setKeyValue(key, v->val.list->eval_entry(row_list[pos], xsink), NULL);
-      v->deref(xsink);
+      QoreList *l = reinterpret_cast<QoreList *>(*v);
+      h->setKeyValue(key, l->eval_entry(row_list[pos], xsink), NULL);
    }
    
    return h.release();
@@ -362,9 +360,9 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
 
       ReferenceHolder<QoreNode> fkv(value->evalFirstKeyValue(xsink), xsink);
 
-      if (fkv && fkv->type == NT_LIST)
-      {
-	 max_pos = fkv->val.list->size();
+      QoreList *l = dynamic_cast<QoreList *>(*fkv);
+      if (l) {
+	 max_pos = l->size();
 	 row_list = (int *)malloc(sizeof(int) * max_pos);
 	 if (!row_list)
 	 {

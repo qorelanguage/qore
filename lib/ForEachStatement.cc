@@ -61,9 +61,10 @@ int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSin
       tlist->deref(xsink);
       tlist = NULL;
    }
+   QoreList *l_tlist = dynamic_cast<QoreList *>(tlist);
 
    // execute "foreach" body
-   if (!xsink->isEvent() && tlist && ((tlist->type != NT_LIST) || tlist->val.list->size()))
+   if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
    {
       int i = 0;
 
@@ -102,8 +103,8 @@ int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSin
 	 }
 
 	 // assign variable to current value in list
-	 if (tlist->type == NT_LIST)
-	    *n = tlist->val.list->eval_entry(i, xsink);
+	 if (l_tlist)
+	    *n = l_tlist->eval_entry(i, xsink);
 	 else
 	    *n = tlist;
 
@@ -122,15 +123,13 @@ int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSin
 	 else if (rc == RC_CONTINUE)
 	    rc = 0;
 	 i++;
-	 if (tlist->type != NT_LIST)
-	    break;
-	 if (i == tlist->val.list->size())
+	 // if the argument is not a list or list iteration is done, then break
+	 if (!l_tlist || i == l_tlist->size())
 	    break;
       }
    }
-   // dereference list (but not single values; their reference belongs to the
-   // variable assignment
-   if (tlist && tlist->type == NT_LIST)
+   // dereference list (but not single values; their reference belongs to the variable assignment
+   if (l_tlist)
       tlist->deref(xsink);
 
    // uninstantiate local variables
@@ -165,16 +164,18 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
    else
       tlist = NULL;
 
+   QoreList *l_tlist = dynamic_cast<QoreList *>(tlist);
+
    AutoVLock vl;
 
    // execute "foreach" body
-   if (!xsink->isEvent() && tlist && ((tlist->type != NT_LIST) || tlist->val.list->size()))
+   if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
    {
       class QoreNode *ln = NULL;
       int i = 0;
 
-      if (tlist->type == NT_LIST)
-	 ln = new QoreNode(new QoreList());
+      if (l_tlist)
+	 ln = new QoreList();
 
       while (true)
       {
@@ -186,7 +187,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
 	    // dereference single value (because it won't be assigned
 	    // to the variable and dereferenced later because an 
 	    // exception has been thrown)
-	    if (tlist->type != NT_LIST)
+	    if (!l_tlist)
 	       tlist->deref(xsink);
 	    break;
 	 }
@@ -203,15 +204,15 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
 	       // dereference single value (because it won't be assigned
 	       // to the variable and dereferenced later because an 
 	       // exception has been thrown)
-	       if (tlist->type != NT_LIST)
+	       if (!l_tlist)
 		  tlist->deref(xsink);
 	       break;
 	    }
 	 }
 
 	 // assign variable to current value in list
-	 if (tlist->type == NT_LIST)
-	    *n = tlist->val.list->eval_entry(i, xsink);
+	 if (l_tlist)
+	    *n = l_tlist->eval_entry(i, xsink);
 	 else
 	    *n = tlist;
 	 
@@ -239,8 +240,8 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
 	       nv = NULL;
 
 	    // assign new value to referenced variable
-	    if (tlist->type == NT_LIST)
-	       ln->val.list->set_entry(i, nv, NULL);
+	    if (l_tlist)
+	       (reinterpret_cast<QoreList *>(ln))->set_entry(i, nv, NULL);
 	    else
 	       ln = nv;
 
@@ -260,7 +261,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
 	 i++;
 
 	 // break out of loop if appropriate
-	 if (tlist->type != NT_LIST || i == tlist->val.list->size())
+	 if (!l_tlist || i == l_tlist->size())
 	    break;
       }
 
@@ -284,7 +285,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
 
     // dereference list (but not single values; their reference belongs to the
    // variable assignment
-   if (tlist && tlist->type == NT_LIST)
+   if (l_tlist)
       tlist->deref(xsink);
 
    // dereference partial evaluation for lvalue assignment

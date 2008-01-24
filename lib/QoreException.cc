@@ -31,7 +31,8 @@ struct qore_ex_private {
       int type;
       int start_line, end_line;
       char *file;
-      QoreNode *callStack, *err, *desc, *arg;
+      QoreList *callStack;
+      QoreNode *err, *desc, *arg;
       class QoreException *next;
 
       DLLLOCAL qore_ex_private()
@@ -260,12 +261,12 @@ QoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreNode* arg, const
    return NULL;
 }
 
-void ExceptionSink::raiseException(class QoreException *e)
+void ExceptionSink::raiseException(QoreException *e)
 {
    insert(e);
 }
 
-void ExceptionSink::raiseException(class QoreNode *n)
+void ExceptionSink::raiseException(QoreList *n)
 {
    insert(new QoreException(n));
 }
@@ -328,7 +329,7 @@ QoreException::QoreException(const char *e, class QoreStringNode *d) : priv(new 
    get_pgm_counter(priv->start_line, priv->end_line);
    const char *f = get_pgm_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreNode(new QoreList()); //getCallStackList());
+   priv->callStack = new QoreList(); //getCallStackList());
 
    priv->err = new QoreStringNode(e);
    priv->desc = d;
@@ -346,7 +347,7 @@ ParseException::ParseException(const char *e, class QoreStringNode *d)
    get_parse_location(priv->start_line, priv->end_line);
    const char *f = get_parse_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreNode(new QoreList()); //getCallStackList());
+   priv->callStack = new QoreList(); //getCallStackList());
 
    priv->err = new QoreStringNode(e);
    priv->desc = d;
@@ -363,7 +364,7 @@ ParseException::ParseException(int s_line, int e_line, const char *e, class Qore
    priv->end_line = e_line;
    const char *f = get_parse_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreNode(new QoreList()); //getCallStackList());
+   priv->callStack = new QoreList(); //getCallStackList());
 
    priv->err = new QoreStringNode(e);
    priv->desc = d;
@@ -401,19 +402,18 @@ void QoreException::del(class ExceptionSink *xsink)
    delete this;
 }
 
-QoreException::QoreException(class QoreNode *n) : priv(new qore_ex_private)
+QoreException::QoreException(QoreList *l) : priv(new qore_ex_private)
 {
    priv->type = ET_USER;
    get_pgm_counter(priv->start_line, priv->end_line);   
    const char *f = get_pgm_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreNode(new QoreList()); //getCallStackList());
+   priv->callStack = new QoreList(); //getCallStackList());
    priv->next = NULL;
 
    // must be a list
-   if (n)
+   if (l)
    {
-      class QoreList *l = n->val.list;
       priv->err = l->retrieve_entry(0);
       if (priv->err)
 	 priv->err->ref();
@@ -421,7 +421,7 @@ QoreException::QoreException(class QoreNode *n) : priv(new qore_ex_private)
       if (priv->desc)
 	 priv->desc->ref();
       if (l->size() > 3)
-	 priv->arg = new QoreNode(l->copyListFrom(2));
+	 priv->arg = l->copyListFrom(2);
       else
       {
 	 priv->arg = l->retrieve_entry(2);
@@ -441,9 +441,9 @@ QoreException::QoreException(class QoreException *old, class ExceptionSink *xsin
    priv->start_line = old->priv->start_line;
    priv->end_line   = old->priv->end_line;
    priv->file       = old->priv->file ? strdup(old->priv->file) : NULL;
-   priv->callStack  = old->priv->callStack->realCopy(xsink);
+   priv->callStack  = old->priv->callStack->copy();
    // insert current position as a rethrow entry in the new callstack
-   class QoreList *l = priv->callStack->val.list;
+   class QoreList *l = priv->callStack;
    const char *fn = NULL;
    QoreHashNode *n = reinterpret_cast<QoreHashNode *>(l->retrieve_entry(0));
    // get function name
@@ -504,7 +504,7 @@ class QoreHashNode *QoreException::makeExceptionObjectAndDelete(ExceptionSink *x
 
 void QoreException::addStackInfo(class QoreNode *n)
 {
-   priv->callStack->val.list->push(n);
+   priv->callStack->push(n);
 }
 
 // static member function
@@ -516,7 +516,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
    {
       printe("unhandled QORE %s exception thrown", e->priv->type == ET_USER ? "User" : "System");
 
-      class QoreList *cs = e->priv->callStack->val.list;
+      class QoreList *cs = e->priv->callStack;
       bool found = false;
       if (cs->size())
       {

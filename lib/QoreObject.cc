@@ -183,7 +183,7 @@ void QoreObject::tDeref()
       delete this;
 }
 
-class QoreNode *QoreObject::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreList *args, class ExceptionSink *xsink)
 {
    // get referenced object
    class AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink);
@@ -250,7 +250,7 @@ bool QoreObject::validInstanceOf(int cid) const
    return priv->myclass->getClass(cid);
 }
 
-class QoreNode *QoreObject::evalMethod(const QoreString *name, const class QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalMethod(const QoreString *name, const class QoreList *args, class ExceptionSink *xsink)
 {
    return priv->myclass->evalMethod(this, name->getBuffer(), args, xsink);
 }

@@ -221,7 +221,7 @@ class T {
       }
 
       // emits a signal; args are offset from 1
-      DLLLOCAL void emit_signal(const char *sig, class QoreList *args)
+      DLLLOCAL void emit_signal(const char *sig, const QoreList *args)
       {
 	 QByteArray theSignal = QMetaObject::normalizedSignature(sig);	 
 	 int id = metaObject()->indexOfSignal(theSignal);

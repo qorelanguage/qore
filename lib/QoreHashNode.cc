@@ -45,7 +45,7 @@ bool QoreHashNode::needs_eval() const
    return QoreHash::needsEval();
 }
 
-class QoreNode *QoreHashNode::realCopy(class ExceptionSink *xsink) const
+class QoreNode *QoreHashNode::realCopy() const
 {
    return copy();
 }

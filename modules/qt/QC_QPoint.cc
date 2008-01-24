@@ -31,7 +31,7 @@ int CID_QPOINT;
 class QoreClass *QC_QPoint = 0;
 
 
-static void QPOINT_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QPOINT_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreQPoint *qr;
 
@@ -56,31 +56,31 @@ static void QPOINT_copy(class QoreObject *self, class QoreObject *old, class Qor
 }
 
 //bool isNull () const
-static QoreNode *QPOINT_isNull(QoreObject *self, QoreQPoint *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_isNull(QoreObject *self, QoreQPoint *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->isNull());
 }
 
 //int manhattanLength () const
-static QoreNode *QPOINT_manhattanLength(QoreObject *self, QoreQPoint *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_manhattanLength(QoreObject *self, QoreQPoint *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->manhattanLength());
 }
 
 //int & rx ()
-//static QoreNode *QPOINT_rx(QoreObject *self, QoreQPoint *qp, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPOINT_rx(QoreObject *self, QoreQPoint *qp, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->rx());
 //}
 
 //int & ry ()
-//static QoreNode *QPOINT_ry(QoreObject *self, QoreQPoint *qp, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPOINT_ry(QoreObject *self, QoreQPoint *qp, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->ry());
 //}
 
 //void setX ( int x )
-static QoreNode *QPOINT_setX(QoreObject *self, QoreQPoint *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_setX(QoreObject *self, QoreQPoint *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -89,7 +89,7 @@ static QoreNode *QPOINT_setX(QoreObject *self, QoreQPoint *qp, const QoreNode *p
 }
 
 //void setY ( int y )
-static QoreNode *QPOINT_setY(QoreObject *self, QoreQPoint *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_setY(QoreObject *self, QoreQPoint *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int y = p ? p->getAsInt() : 0;
@@ -98,19 +98,19 @@ static QoreNode *QPOINT_setY(QoreObject *self, QoreQPoint *qp, const QoreNode *p
 }
 
 //int x () const
-static QoreNode *QPOINT_x(QoreObject *self, QoreQPoint *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_x(QoreObject *self, QoreQPoint *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->x());
 }
 
 //int y () const
-static QoreNode *QPOINT_y(QoreObject *self, QoreQPoint *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_y(QoreObject *self, QoreQPoint *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->y());
 }
 
 //QPoint unaryMinus () const
-static QoreNode *QPOINT_unaryMinus(QoreObject *self, QoreQPoint *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPOINT_unaryMinus(QoreObject *self, QoreQPoint *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return return_object(QC_QPoint, new QoreQPoint(-(*qp)));
 }

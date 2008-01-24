@@ -52,7 +52,7 @@ class ImportedFunctionCall {
       class UserFunction *func;
 
       DLLLOCAL ImportedFunctionCall(class QoreProgram *p, class UserFunction *f) { pgm = p; func = f; }
-      DLLLOCAL class QoreNode *eval(const class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *eval(const class QoreList *args, class ExceptionSink *xsink) const;
 };
 
 class SelfFunctionCall {
@@ -65,7 +65,7 @@ class SelfFunctionCall {
       DLLLOCAL SelfFunctionCall(class NamedScope *n);
       DLLLOCAL SelfFunctionCall(const QoreMethod *f);
       DLLLOCAL ~SelfFunctionCall();
-      DLLLOCAL class QoreNode *eval(const class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *eval(const class QoreList *args, class ExceptionSink *xsink) const;
       DLLLOCAL void resolve();
       DLLLOCAL char *takeName();
       DLLLOCAL class NamedScope *takeNScope();
@@ -80,23 +80,23 @@ class FunctionCall {
 	    class ImportedFunctionCall *ifunc;
 	    char *c_str;
       } f;
-      class QoreNode *args;
+      QoreList *args;
       int type;
 
-      DLLLOCAL FunctionCall(class UserFunction *u, class QoreNode *a);
-      DLLLOCAL FunctionCall(class BuiltinFunction *b, class QoreNode *a);
+      DLLLOCAL FunctionCall(class UserFunction *u, QoreList *a);
+      DLLLOCAL FunctionCall(class BuiltinFunction *b, QoreList *a);
 
       // "self" in-object function call constructors
-      DLLLOCAL FunctionCall(class QoreNode *a, char *name);
-      DLLLOCAL FunctionCall(class QoreNode *a, class NamedScope *n);
-      DLLLOCAL FunctionCall(const class QoreMethod *func, class QoreNode *a);
+      DLLLOCAL FunctionCall(QoreList *a, char *name);
+      DLLLOCAL FunctionCall(QoreList *a, class NamedScope *n);
+      DLLLOCAL FunctionCall(const class QoreMethod *func, QoreList *a);
 
       // normal function call constructor
-      DLLLOCAL FunctionCall(char *name, class QoreNode *a);
+      DLLLOCAL FunctionCall(char *name, QoreList *a);
       // method call constructor
       DLLLOCAL FunctionCall(char *n_c_str);
       
-      DLLLOCAL FunctionCall(class QoreProgram *p, class UserFunction *u, class QoreNode *a);
+      DLLLOCAL FunctionCall(class QoreProgram *p, class UserFunction *u, QoreList *a);
       DLLLOCAL ~FunctionCall();
 
       // to transform an "unresolved" function to a "method" type
@@ -131,14 +131,14 @@ class BuiltinFunction
       DLLLOCAL BuiltinFunction(q_constructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_destructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_copy_t m, int typ);
-      DLLLOCAL class QoreNode *evalMethod(class QoreObject *self, void *private_data, const class QoreNode *args, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalConstructor(class QoreObject *self, const class QoreNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *evalMethod(class QoreObject *self, void *private_data, const class QoreList *args, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalConstructor(class QoreObject *self, const class QoreList *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const;
       DLLLOCAL void evalDestructor(class QoreObject *self, void *private_data, const char *class_name, class ExceptionSink *xsink) const;
       DLLLOCAL void evalCopy(class QoreObject *self, class QoreObject *old, void *private_data, const char *class_name, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalSystemConstructor(class QoreObject *self, const class QoreNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalSystemConstructor(class QoreObject *self, const class QoreList *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL void evalSystemDestructor(class QoreObject *self, void *private_data, class ExceptionSink *xsink) const;
-      DLLLOCAL class QoreNode *evalWithArgs(class QoreObject *self, const class QoreNode *args, class ExceptionSink *xsink) const;
-      DLLLOCAL class QoreNode *eval(const class QoreNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *evalWithArgs(class QoreObject *self, const class QoreList *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *eval(const class QoreList *args, class ExceptionSink *xsink) const;
       DLLLOCAL int getType() const { return type; }
       DLLLOCAL const char *getName() const { return name; }
 };
@@ -172,8 +172,8 @@ class UserFunction : public ReferenceObject
 
       // the object owns the memory for "nme"
       DLLLOCAL UserFunction(char *nme, class Paramlist *parms, class StatementBlock *states, bool synced = false);
-      DLLLOCAL class QoreNode *eval(const class QoreNode *args, class QoreObject *self, class ExceptionSink *xsink, const char *class_name = 0) const;
-      DLLLOCAL class QoreNode *evalConstructor(const class QoreNode *args, class QoreObject *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *eval(const class QoreList *args, class QoreObject *self, class ExceptionSink *xsink, const char *class_name = 0) const;
+      DLLLOCAL class QoreNode *evalConstructor(const class QoreList *args, class QoreObject *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, class ExceptionSink *xsink) const;
       DLLLOCAL void evalCopy(class QoreObject *old, class QoreObject *self, const char *class_name, class ExceptionSink *xsink) const;
       DLLLOCAL bool isSynchronized() const 
       { 

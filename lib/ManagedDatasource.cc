@@ -246,7 +246,7 @@ class QoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreList *ar
       // return only hash of first row, if any
       if (rv && rv->type == NT_LIST)
       {
-	 class QoreNode *h = rv->val.list->shift();
+	 class QoreNode *h = (reinterpret_cast<QoreList *>(rv))->shift();
 	 rv->deref(xsink);
 	 rv = h;
       }

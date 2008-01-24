@@ -161,10 +161,11 @@ class T {
 	 if (!e_event || !qore_obj)
 	    return QOREQTYPE::event(event);
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(return_qevent(event));
 
-	 return dispatch_event_bool(qore_obj, e_event, args);
+	 return dispatch_event_bool(qore_obj, e_event, *args, &xsink);
       }
 
       DLLLOCAL virtual void leaveEvent(QEvent *event)
@@ -488,11 +489,11 @@ class T {
 	 if (!p_heightForWidth)
 	    return QOREQTYPE::heightForWidth(w);
 
-	 QoreList *args; 
-	 args = new QoreList();
+	 ExceptionSink xsink;
+	 ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)w));
 	 
-	 return dispatch_event_int(qore_obj, p_heightForWidth, args);
+	 return dispatch_event_int(qore_obj, p_heightForWidth, *args, &xsink);
       }
 
       DLLLOCAL virtual QVariant inputMethodQuery ( Qt::InputMethodQuery query ) const
@@ -500,11 +501,11 @@ class T {
 	 if (!p_inputMethodQuery)
 	    return QOREQTYPE::inputMethodQuery(query);
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+	 ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)query));
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, p_inputMethodQuery, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, p_inputMethodQuery, *args, &xsink), &xsink);
 	 if (xsink)
 	    return QOREQTYPE::inputMethodQuery(query);
 
@@ -538,10 +539,11 @@ class T {
 	    return;
 	 }
 	 
-	 class QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+	 ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode(visible));
 
-	 dispatch_event(qore_obj, p_setVisible, args);
+	 discard(dispatch_event_intern(qore_obj, p_setVisible, *args, &xsink), &xsink);
       }
 
       DLLLOCAL virtual QSize sizeHint() const

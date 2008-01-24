@@ -80,7 +80,7 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       // assign date representation to a DateTime * (no action for complex types = default implementation)
       DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
 
-      DLLEXPORT virtual class QoreNode *realCopy(class ExceptionSink *xsink) const;
+      DLLEXPORT virtual class QoreNode *realCopy() const;
 
       DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
       DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;

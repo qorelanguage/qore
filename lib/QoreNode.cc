@@ -33,15 +33,6 @@
 
 #define TRACK_REFS 1
 
-/*
-QoreNode::QoreNode()
-{
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=unknown (0->1)\n", this);
-#endif
-}
-*/
-
 #if TRACK_REFS
 
 #endif
@@ -99,15 +90,6 @@ QoreNode::QoreNode(QoreObject *o)
 #endif
 }
 
-QoreNode::QoreNode(QoreList *l)
-{
-   type = NT_LIST;
-   val.list = l;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
 QoreNode::QoreNode(double f)
 {
    type = NT_FLOAT;
@@ -139,12 +121,6 @@ QoreNode::~QoreNode()
 
    if (type == NT_COMPLEXCONTEXTREF) {
       delete val.complex_cref;
-      return;
-   }
-
-   if (type == NT_LIST) {
-      // FIXME: delete in deref(xsink) like object and hash
-      val.list->derefAndDelete(NULL);
       return;
    }
 
@@ -229,7 +205,7 @@ QoreNode::~QoreNode()
 
 }
 
-QoreNode::QoreNode(char *name, class QoreNode *a)
+QoreNode::QoreNode(char *name, QoreList *a)
 {
    type = NT_FUNCTION_CALL;
    val.fcall = new FunctionCall(name, a);
@@ -239,7 +215,7 @@ QoreNode::QoreNode(char *name, class QoreNode *a)
 }
 
 // for non-scoped in-object calls
-QoreNode::QoreNode(class QoreNode *a, char *name)
+QoreNode::QoreNode(QoreList *a, char *name)
 {
    type = NT_FUNCTION_CALL;
    val.fcall = new FunctionCall(a, name);
@@ -249,7 +225,7 @@ QoreNode::QoreNode(class QoreNode *a, char *name)
 }
 
 // for in-object base class calls
-QoreNode::QoreNode(class QoreNode *a, class NamedScope *n)
+QoreNode::QoreNode(QoreList *a, class NamedScope *n)
 {
    type = NT_FUNCTION_CALL;
    val.fcall = new FunctionCall(a, n);
@@ -258,7 +234,7 @@ QoreNode::QoreNode(class QoreNode *a, class NamedScope *n)
 #endif
 }
 
-QoreNode::QoreNode(class UserFunction *u, class QoreNode *a)
+QoreNode::QoreNode(UserFunction *u, QoreList *a)
 {
    type = NT_FUNCTION_CALL;
    val.fcall = new FunctionCall(u, a);
@@ -267,7 +243,7 @@ QoreNode::QoreNode(class UserFunction *u, class QoreNode *a)
 #endif
 }
 
-QoreNode::QoreNode(class BuiltinFunction *b, class QoreNode *a)
+QoreNode::QoreNode(BuiltinFunction *b, QoreList *a)
 {
    type = NT_FUNCTION_CALL;
    val.fcall = new FunctionCall(b, a);
@@ -276,7 +252,7 @@ QoreNode::QoreNode(class BuiltinFunction *b, class QoreNode *a)
 #endif
 }
 
-QoreNode::QoreNode(class NamedScope *n, class QoreNode *a)
+QoreNode::QoreNode(class NamedScope *n, QoreList *a)
 {
    type = NT_SCOPE_REF;
    val.socall = new ScopedObjectCall(n, a);
@@ -450,9 +426,7 @@ void QoreNode::deref(ExceptionSink *xsink)
 
    if (ROdereference())
    {
-      if (type == NT_LIST)
-	 val.list->dereference(xsink);
-      else if (type == NT_OBJECT)
+      if (type == NT_OBJECT)
 	 val.object->dereference(xsink);
       else if (type == NT_FUNCREF)
 	 val.funcref->del(xsink);
@@ -464,7 +438,7 @@ void QoreNode::deref(ExceptionSink *xsink)
    //traceout("QoreNode::deref()");
 }
 
-class QoreNode *QoreNode::realCopy(ExceptionSink *xsink) const
+class QoreNode *QoreNode::realCopy() const
 {
    assert(this);
    
@@ -494,10 +468,6 @@ class QoreNode *QoreNode::realCopy(ExceptionSink *xsink) const
 
    if (type == NT_BINARY) {
       return new QoreNode(val.bin->copy());
-   }
-
-   if (type == NT_LIST) {
-      return val.list->copy();
    }
 
    if (type == NT_OBJECT) {
@@ -543,12 +513,6 @@ class QoreNode *QoreNode::realCopy(ExceptionSink *xsink) const
    if (type == NT_CLASSREF)
       assert(false);
 
-   if (type == NT_FLIST)
-      assert(false);
-
-   if (type == NT_VLIST)
-      assert(false);
-
    QoreNode *rv = new QoreNode(type);
    memcpy(&rv->val, &val, sizeof(union node_u));
    return rv;
@@ -556,10 +520,6 @@ class QoreNode *QoreNode::realCopy(ExceptionSink *xsink) const
 
 bool QoreNode::needs_eval() const
 {
-   if (type == NT_LIST) {
-      return val.list->needsEval();
-   }
-
    if (type == NT_BACKQUOTE)
       return true;
 
@@ -601,10 +561,6 @@ bool QoreNode::needs_eval() const
 
 bool QoreNode::is_value() const
 {
-   if (type == NT_LIST) {
-      return !val.list->needsEval();
-   }
-
    if (type == NT_BACKQUOTE)
       return false;
 
@@ -639,12 +595,6 @@ bool QoreNode::is_value() const
       return false;
 
    if (type == NT_FUNCREFCALL)
-      return false;
-
-   if (type == NT_FLIST)
-      return false;
-
-   if (type == NT_VLIST)
       return false;
 
    if (type == NT_BAREWORD)
@@ -720,13 +670,6 @@ class QoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink)
  */
 class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
 {
-   if (type == NT_LIST) {
-      if (!val.list->needsEval())
-	 return RefSelf();
-      
-      return val.list->eval(xsink);
-   }
-
    if (type == NT_BACKQUOTE) {
       return backquoteEval(val.c_str, xsink);
    }
@@ -775,9 +718,6 @@ class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
    if (type == NT_FUNCREFCALL) {
       return val.funcrefcall->eval(xsink);
    }
-
-   if (type == NT_FLIST)
-      assert(false);
 
    if (type == NT_SCOPE_REF)
       assert(false);
@@ -880,9 +820,6 @@ QoreString *QoreNode::getAsString(bool &del, int foff, class ExceptionSink *xsin
       del = false;
       return val.boolval ? &TrueString : &FalseString;
    }
-   if (type == NT_LIST)
-      return val.list->getAsString(del, foff, xsink);
-
    if (type == NT_OBJECT)
       return val.object->getAsString(del, foff, xsink);
 
@@ -1077,18 +1014,20 @@ bool is_nothing(const QoreNode *n)
    return false;
 }
 
-static inline QoreNode *crlr_list_copy(const QoreNode *n, ExceptionSink *xsink)
+static inline QoreList *crlr_list_copy(const QoreList *n, ExceptionSink *xsink)
 {
    // if it's not an immediate list, then there can't be any
    // variable references in it at any level, so return copy
-   if (!n->val.list->needsEval())
-      return n->RefSelf();
+   if (!n->needs_eval()) {
+      n->ref();
+      return const_cast<QoreList *>(n);
+   }
 
    // otherwise process each list element
-   QoreList *l = new QoreList(1);
-   for (int i = 0; i < n->val.list->size(); i++)
-      l->push(copy_and_resolve_lvar_refs(n->val.list->retrieve_entry(i), xsink));
-   return new QoreNode(l);   
+   QoreList *l = new QoreList(true);
+   for (int i = 0; i < n->size(); i++)
+      l->push(copy_and_resolve_lvar_refs(n->retrieve_entry(i), xsink));
+   return l;
 }
 
 static inline QoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsink)
@@ -1115,9 +1054,9 @@ static inline QoreNode *crlr_tree_copy(const QoreNode *n, ExceptionSink *xsink)
 static inline QoreNode *crlr_fcall_copy(const QoreNode *n, ExceptionSink *xsink)
 {
    QoreNode *nn = new QoreNode(NT_FUNCTION_CALL);
-   QoreNode *na;
+   QoreList *na;
    if (n->val.fcall->args)
-      na = copy_and_resolve_lvar_refs(n->val.fcall->args, xsink);
+      na = crlr_list_copy(n->val.fcall->args, xsink);
    else
       na = NULL;
 
@@ -1158,8 +1097,11 @@ class QoreNode *copy_and_resolve_lvar_refs(const QoreNode *n, ExceptionSink *xsi
 {
    if (!n) return NULL;
 
-   if (n->type == NT_LIST)
-      return crlr_list_copy(n, xsink);
+   {
+      const QoreList *l = dynamic_cast<const QoreList *>(n);
+      if (l)
+	 return crlr_list_copy(l, xsink);
+   }
 
    {
       const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(n);
@@ -1254,29 +1196,6 @@ void QoreNode::getDateTimeRepresentation(DateTime &dt) const
       dt.setDate(0LL);
 }
 
-// "soft" comparison
-static inline bool list_is_equal_soft(class QoreList *l, class QoreList *r, ExceptionSink *xsink)
-{
-   if (l->size() != r->size())
-      return false;
-   for (int i = 0; i < l->size(); i++)
-   {
-      if (compareSoft(l->retrieve_entry(i), r->retrieve_entry(i), xsink) || *xsink)
-         return false;
-   }
-   return true;
-}
-
-static inline bool list_is_equal_hard(class QoreList *l, class QoreList *r, ExceptionSink *xsink)
-{
-  if (l->size() != r->size())
-      return false;
-   for (int i = 0; i < l->size(); i++)
-      if (compareHard(l->retrieve_entry(i), r->retrieve_entry(i), xsink) || *xsink)
-         return false;
-   return true;
-}
-
 bool QoreNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
 {
    if (is_nothing(this)) {
@@ -1303,8 +1222,6 @@ bool QoreNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
    if (type != v->type)
       return false;
 
-   if (type == NT_LIST)
-      return !list_is_equal_soft(val.list, v->val.list, xsink);
    if (type == NT_OBJECT)
       return !val.object->compareSoft(v->val.object, xsink);
    if (type == NT_BINARY)
@@ -1331,8 +1248,6 @@ bool QoreNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
    if (type == NT_BOOLEAN)
       return val.boolval == v->val.boolval;
 
-   if (type == NT_LIST)
-      return list_is_equal_hard(val.list, v->val.list, xsink);
    if (type == NT_OBJECT)
       return !val.object->compareHard(v->val.object, xsink);
    if (type == NT_BINARY)

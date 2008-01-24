@@ -60,7 +60,7 @@ class PenStyleNode : public SimpleQoreNode
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLLOCAL virtual class QoreNode *realCopy(class ExceptionSink *xsink) const;
+      DLLLOCAL virtual class QoreNode *realCopy() const;
 
       // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
       // the "val" passed

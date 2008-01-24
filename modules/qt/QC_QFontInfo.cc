@@ -32,7 +32,7 @@ class QoreClass *QC_QFontInfo = 0;
 
 //QFontInfo ( const QFont & font )
 //QFontInfo ( const QFontInfo & fi )
-static void QFONTINFO_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QFONTINFO_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
@@ -52,73 +52,73 @@ static void QFONTINFO_copy(class QoreObject *self, class QoreObject *old, class 
 }
 
 //bool bold () const
-static QoreNode *QFONTINFO_bold(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_bold(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfi->bold());
 }
 
 //bool exactMatch () const
-static QoreNode *QFONTINFO_exactMatch(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_exactMatch(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfi->exactMatch());
 }
 
 //QString family () const
-static QoreNode *QFONTINFO_family(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_family(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qfi->family().toUtf8().data(), QCS_UTF8);
 }
 
 //bool fixedPitch () const
-static QoreNode *QFONTINFO_fixedPitch(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_fixedPitch(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfi->fixedPitch());
 }
 
 //bool italic () const
-static QoreNode *QFONTINFO_italic(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_italic(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfi->italic());
 }
 
 //int pixelSize () const
-static QoreNode *QFONTINFO_pixelSize(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_pixelSize(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfi->pixelSize());
 }
 
 //int pointSize () const
-static QoreNode *QFONTINFO_pointSize(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_pointSize(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfi->pointSize());
 }
 
 //qreal pointSizeF () const
-static QoreNode *QFONTINFO_pointSizeF(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_pointSizeF(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qfi->pointSizeF());
 }
 
 //bool rawMode () const
-static QoreNode *QFONTINFO_rawMode(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_rawMode(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfi->rawMode());
 }
 
 //QFont::Style style () const
-static QoreNode *QFONTINFO_style(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_style(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfi->style());
 }
 
 //QFont::StyleHint styleHint () const
-static QoreNode *QFONTINFO_styleHint(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_styleHint(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfi->styleHint());
 }
 
 //int weight () const
-static QoreNode *QFONTINFO_weight(QoreObject *self, QoreQFontInfo *qfi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFONTINFO_weight(QoreObject *self, QoreQFontInfo *qfi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfi->weight());
 }

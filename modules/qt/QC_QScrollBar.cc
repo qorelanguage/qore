@@ -32,7 +32,7 @@ class QoreClass *QC_QScrollBar = 0;
 
 //QScrollBar ( QWidget * parent = 0 )
 //QScrollBar ( Qt::Orientation orientation, QWidget * parent = 0 )
-static void QSCROLLBAR_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QSCROLLBAR_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {

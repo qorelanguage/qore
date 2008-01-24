@@ -28,13 +28,15 @@ ExpressionStatement::ExpressionStatement(int start_line, int end_line, class Qor
    exp = v;
 
    // if it is a global variable declaration, then do not register
-   if ((exp->type == NT_VARREF
-	&& exp->val.vref->type == VT_GLOBAL)
-       || (exp->type == NT_VLIST && 
-	   exp->val.list->retrieve_entry(0)->val.vref->type == VT_GLOBAL))
+   if (exp->type == NT_VARREF && exp->val.vref->type == VT_GLOBAL)
       is_declaration = true;
-   else
-      is_declaration = false;
+   else {
+      QoreList *l = dynamic_cast<QoreList *>(exp);
+      if (l && l->isVariableList() && l->retrieve_entry(0)->val.vref->type == VT_GLOBAL)
+	 is_declaration = true;
+      else
+	 is_declaration = false;
+   }
 }
 
 ExpressionStatement::~ExpressionStatement()

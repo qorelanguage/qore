@@ -35,7 +35,7 @@ int CID_QCOMBOBOX;
 class QoreClass *QC_QComboBox = 0;
 
 //QComboBox ( QWidget * parent = 0 )
-static void QCOMBOBOX_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QCOMBOBOX_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -51,7 +51,7 @@ static void QCOMBOBOX_copy(class QoreObject *self, class QoreObject *old, class 
 
 //void addItem ( const QString & text, const QVariant & userData = QVariant() )
 //void addItem ( const QIcon & icon, const QString & text, const QVariant & userData = QVariant() )
-static QoreNode *QCOMBOBOX_addItem(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_addItem(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -88,15 +88,15 @@ static QoreNode *QCOMBOBOX_addItem(QoreObject *self, QoreQComboBox *qcb, const Q
 }
 
 //void addItems ( const QStringList & texts )
-static QoreNode *QCOMBOBOX_addItems(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_addItems(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_LIST) {
+   QoreList *p = test_list_param(params, 0);
+   if (!p) {
       xsink->raiseException("QCOMBOBOX-ADDITEMS-PARAM-ERROR", "expecting a list as first argument to QComboBox::addItems()");
       return 0;
    }
    QStringList texts;
-   ListIterator li_texts(p->val.list);
+   ListIterator li_texts(p);
    while (li_texts.next())
    {
       QoreStringNodeValueHelper str(li_texts.getValue());
@@ -110,37 +110,37 @@ static QoreNode *QCOMBOBOX_addItems(QoreObject *self, QoreQComboBox *qcb, const 
 }
 
 ////QCompleter * completer () const
-//static QoreNode *QCOMBOBOX_completer(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOMBOBOX_completer(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qcb->getQComboBox()->completer());
 //}
 
 //int count () const
-static QoreNode *QCOMBOBOX_count(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_count(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcb->getQComboBox()->count());
 }
 
 //int currentIndex () const
-static QoreNode *QCOMBOBOX_currentIndex(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_currentIndex(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcb->getQComboBox()->currentIndex());
 }
 
 //QString currentText () const
-static QoreNode *QCOMBOBOX_currentText(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_currentText(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qcb->getQComboBox()->currentText().toUtf8().data(), QCS_UTF8);
 }
 
 //bool duplicatesEnabled () const
-static QoreNode *QCOMBOBOX_duplicatesEnabled(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_duplicatesEnabled(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qcb->getQComboBox()->duplicatesEnabled());
 }
 
 //int findData ( const QVariant & data, int role = Qt::UserRole, Qt::MatchFlags flags = Qt::MatchExactly | Qt::MatchCaseSensitive ) const
-static QoreNode *QCOMBOBOX_findData(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_findData(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QVariant data;
@@ -154,7 +154,7 @@ static QoreNode *QCOMBOBOX_findData(QoreObject *self, QoreQComboBox *qcb, const 
 }
 
 //int findText ( const QString & text, Qt::MatchFlags flags = Qt::MatchExactly | Qt::MatchCaseSensitive ) const
-static QoreNode *QCOMBOBOX_findText(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_findText(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -167,20 +167,20 @@ static QoreNode *QCOMBOBOX_findText(QoreObject *self, QoreQComboBox *qcb, const 
 }
 
 //bool hasFrame () const
-static QoreNode *QCOMBOBOX_hasFrame(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_hasFrame(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qcb->getQComboBox()->hasFrame());
 }
 
 //virtual void hidePopup ()
-static QoreNode *QCOMBOBOX_hidePopup(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_hidePopup(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    qcb->getQComboBox()->hidePopup();
    return 0;
 }
 
 //QSize iconSize () const
-static QoreNode *QCOMBOBOX_iconSize(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_iconSize(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qcb->getQComboBox()->iconSize());
@@ -190,7 +190,7 @@ static QoreNode *QCOMBOBOX_iconSize(QoreObject *self, QoreQComboBox *qcb, const 
 
 //void insertItem ( int index, const QString & text, const QVariant & userData = QVariant() )
 //void insertItem ( int index, const QIcon & icon, const QString & text, const QVariant & userData = QVariant() )
-static QoreNode *QCOMBOBOX_insertItem(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_insertItem(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -221,17 +221,17 @@ static QoreNode *QCOMBOBOX_insertItem(QoreObject *self, QoreQComboBox *qcb, cons
 }
 
 //void insertItems ( int index, const QStringList & list )
-static QoreNode *QCOMBOBOX_insertItems(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_insertItems(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   p = get_param(params, 1);
-   if (!p || p->type != NT_LIST) {
+   QoreList *l = test_list_param(params, 1);
+   if (!l) {
       xsink->raiseException("QCOMBOBOX-INSERTITEMS-PARAM-ERROR", "expecting a list as second argument to QComboBox::insertItems()");
       return 0;
    }
    QStringList list;
-   ListIterator li_list(p->val.list);
+   ListIterator li_list(l);
    while (li_list.next())
    {
       QoreStringNodeValueHelper str(li_list.getValue());
@@ -245,19 +245,19 @@ static QoreNode *QCOMBOBOX_insertItems(QoreObject *self, QoreQComboBox *qcb, con
 }
 
 //InsertPolicy insertPolicy () const
-static QoreNode *QCOMBOBOX_insertPolicy(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_insertPolicy(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcb->getQComboBox()->insertPolicy());
 }
 
 //bool isEditable () const
-static QoreNode *QCOMBOBOX_isEditable(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_isEditable(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qcb->getQComboBox()->isEditable());
 }
 
 //QVariant itemData ( int index, int role = Qt::UserRole ) const
-static QoreNode *QCOMBOBOX_itemData(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_itemData(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -267,7 +267,7 @@ static QoreNode *QCOMBOBOX_itemData(QoreObject *self, QoreQComboBox *qcb, const 
 }
 
 //QAbstractItemDelegate * itemDelegate () const
-static QoreNode *QCOMBOBOX_itemDelegate(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_itemDelegate(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QAbstractItemDelegate *qt_qobj = qcb->getQComboBox()->itemDelegate();
    if (!qt_qobj)
@@ -280,7 +280,7 @@ static QoreNode *QCOMBOBOX_itemDelegate(QoreObject *self, QoreQComboBox *qcb, co
 }
 
 //QIcon itemIcon ( int index ) const
-static QoreNode *QCOMBOBOX_itemIcon(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_itemIcon(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -291,7 +291,7 @@ static QoreNode *QCOMBOBOX_itemIcon(QoreObject *self, QoreQComboBox *qcb, const 
 }
 
 //QString itemText ( int index ) const
-static QoreNode *QCOMBOBOX_itemText(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_itemText(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -299,7 +299,7 @@ static QoreNode *QCOMBOBOX_itemText(QoreObject *self, QoreQComboBox *qcb, const 
 }
 
 //QLineEdit * lineEdit () const
-static QoreNode *QCOMBOBOX_lineEdit(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_lineEdit(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QLineEdit *qt_qobj = qcb->getQComboBox()->lineEdit();
    if (!qt_qobj)
@@ -312,37 +312,37 @@ static QoreNode *QCOMBOBOX_lineEdit(QoreObject *self, QoreQComboBox *qcb, const 
 }
 
 //int maxCount () const
-static QoreNode *QCOMBOBOX_maxCount(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_maxCount(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcb->getQComboBox()->maxCount());
 }
 
 //int maxVisibleItems () const
-static QoreNode *QCOMBOBOX_maxVisibleItems(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_maxVisibleItems(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcb->getQComboBox()->maxVisibleItems());
 }
 
 //int minimumContentsLength () const
-static QoreNode *QCOMBOBOX_minimumContentsLength(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_minimumContentsLength(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcb->getQComboBox()->minimumContentsLength());
 }
 
 ////QAbstractItemModel * model () const
-//static QoreNode *QCOMBOBOX_model(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOMBOBOX_model(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qcb->getQComboBox()->model());
 //}
 
 //int modelColumn () const
-static QoreNode *QCOMBOBOX_modelColumn(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_modelColumn(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcb->getQComboBox()->modelColumn());
 }
 
 //void removeItem ( int index )
-static QoreNode *QCOMBOBOX_removeItem(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_removeItem(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -351,7 +351,7 @@ static QoreNode *QCOMBOBOX_removeItem(QoreObject *self, QoreQComboBox *qcb, cons
 }
 
 //QModelIndex rootModelIndex () const
-static QoreNode *QCOMBOBOX_rootModelIndex(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_rootModelIndex(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qmi = new QoreObject(QC_QModelIndex, getProgram());
    QoreQModelIndex *q_qmi = new QoreQModelIndex(qcb->getQComboBox()->rootModelIndex());
@@ -360,7 +360,7 @@ static QoreNode *QCOMBOBOX_rootModelIndex(QoreObject *self, QoreQComboBox *qcb, 
 }
 
 ////void setCompleter ( QCompleter * completer )
-//static QoreNode *QCOMBOBOX_setCompleter(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOMBOBOX_setCompleter(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QCompleter* completer = p;
@@ -369,7 +369,7 @@ static QoreNode *QCOMBOBOX_rootModelIndex(QoreObject *self, QoreQComboBox *qcb, 
 //}
 
 //void setDuplicatesEnabled ( bool enable )
-static QoreNode *QCOMBOBOX_setDuplicatesEnabled(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setDuplicatesEnabled(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
@@ -378,7 +378,7 @@ static QoreNode *QCOMBOBOX_setDuplicatesEnabled(QoreObject *self, QoreQComboBox 
 }
 
 //void setEditable ( bool editable )
-static QoreNode *QCOMBOBOX_setEditable(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setEditable(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool editable = p ? p->getAsBool() : false;
@@ -387,7 +387,7 @@ static QoreNode *QCOMBOBOX_setEditable(QoreObject *self, QoreQComboBox *qcb, con
 }
 
 //void setFrame ( bool )
-static QoreNode *QCOMBOBOX_setFrame(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setFrame(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -396,7 +396,7 @@ static QoreNode *QCOMBOBOX_setFrame(QoreObject *self, QoreQComboBox *qcb, const 
 }
 
 //void setIconSize ( const QSize & size )
-static QoreNode *QCOMBOBOX_setIconSize(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setIconSize(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
@@ -411,7 +411,7 @@ static QoreNode *QCOMBOBOX_setIconSize(QoreObject *self, QoreQComboBox *qcb, con
 }
 
 //void setInsertPolicy ( InsertPolicy policy )
-static QoreNode *QCOMBOBOX_setInsertPolicy(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setInsertPolicy(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QComboBox::InsertPolicy policy = (QComboBox::InsertPolicy)(p ? p->getAsInt() : 0);
@@ -420,7 +420,7 @@ static QoreNode *QCOMBOBOX_setInsertPolicy(QoreObject *self, QoreQComboBox *qcb,
 }
 
 //void setItemData ( int index, const QVariant & value, int role = Qt::UserRole )
-static QoreNode *QCOMBOBOX_setItemData(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setItemData(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -435,7 +435,7 @@ static QoreNode *QCOMBOBOX_setItemData(QoreObject *self, QoreQComboBox *qcb, con
 }
 
 //void setItemDelegate ( QAbstractItemDelegate * delegate )
-static QoreNode *QCOMBOBOX_setItemDelegate(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setItemDelegate(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)p->val.object->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
@@ -450,7 +450,7 @@ static QoreNode *QCOMBOBOX_setItemDelegate(QoreObject *self, QoreQComboBox *qcb,
 }
 
 //void setItemIcon ( int index, const QIcon & icon )
-static QoreNode *QCOMBOBOX_setItemIcon(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setItemIcon(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -467,7 +467,7 @@ static QoreNode *QCOMBOBOX_setItemIcon(QoreObject *self, QoreQComboBox *qcb, con
 }
 
 //void setItemText ( int index, const QString & text )
-static QoreNode *QCOMBOBOX_setItemText(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setItemText(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -481,7 +481,7 @@ static QoreNode *QCOMBOBOX_setItemText(QoreObject *self, QoreQComboBox *qcb, con
 }
 
 //void setLineEdit ( QLineEdit * edit )
-static QoreNode *QCOMBOBOX_setLineEdit(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setLineEdit(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQLineEdit *edit = (p && p->type == NT_OBJECT) ? (QoreQLineEdit *)p->val.object->getReferencedPrivateData(CID_QLINEEDIT, xsink) : 0;
@@ -496,7 +496,7 @@ static QoreNode *QCOMBOBOX_setLineEdit(QoreObject *self, QoreQComboBox *qcb, con
 }
 
 //void setMaxCount ( int max )
-static QoreNode *QCOMBOBOX_setMaxCount(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setMaxCount(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int max = p ? p->getAsInt() : 0;
@@ -505,7 +505,7 @@ static QoreNode *QCOMBOBOX_setMaxCount(QoreObject *self, QoreQComboBox *qcb, con
 }
 
 //void setMaxVisibleItems ( int maxItems )
-static QoreNode *QCOMBOBOX_setMaxVisibleItems(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setMaxVisibleItems(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int maxItems = p ? p->getAsInt() : 0;
@@ -514,7 +514,7 @@ static QoreNode *QCOMBOBOX_setMaxVisibleItems(QoreObject *self, QoreQComboBox *q
 }
 
 //void setMinimumContentsLength ( int characters )
-static QoreNode *QCOMBOBOX_setMinimumContentsLength(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setMinimumContentsLength(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int characters = p ? p->getAsInt() : 0;
@@ -523,7 +523,7 @@ static QoreNode *QCOMBOBOX_setMinimumContentsLength(QoreObject *self, QoreQCombo
 }
 
 ////void setModel ( QAbstractItemModel * model )
-//static QoreNode *QCOMBOBOX_setModel(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOMBOBOX_setModel(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QAbstractItemModel* model = p;
@@ -532,7 +532,7 @@ static QoreNode *QCOMBOBOX_setMinimumContentsLength(QoreObject *self, QoreQCombo
 //}
 
 //void setModelColumn ( int visibleColumn )
-static QoreNode *QCOMBOBOX_setModelColumn(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setModelColumn(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int visibleColumn = p ? p->getAsInt() : 0;
@@ -541,7 +541,7 @@ static QoreNode *QCOMBOBOX_setModelColumn(QoreObject *self, QoreQComboBox *qcb, 
 }
 
 //void setRootModelIndex ( const QModelIndex & index )
-static QoreNode *QCOMBOBOX_setRootModelIndex(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setRootModelIndex(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -556,7 +556,7 @@ static QoreNode *QCOMBOBOX_setRootModelIndex(QoreObject *self, QoreQComboBox *qc
 }
 
 //void setSizeAdjustPolicy ( SizeAdjustPolicy policy )
-static QoreNode *QCOMBOBOX_setSizeAdjustPolicy(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setSizeAdjustPolicy(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QComboBox::SizeAdjustPolicy policy = (QComboBox::SizeAdjustPolicy)(p ? p->getAsInt() : 0);
@@ -565,7 +565,7 @@ static QoreNode *QCOMBOBOX_setSizeAdjustPolicy(QoreObject *self, QoreQComboBox *
 }
 
 ////void setValidator ( const QValidator * validator )
-//static QoreNode *QCOMBOBOX_setValidator(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOMBOBOX_setValidator(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QValidator* validator = p;
@@ -574,7 +574,7 @@ static QoreNode *QCOMBOBOX_setSizeAdjustPolicy(QoreObject *self, QoreQComboBox *
 //}
 
 ////void setView ( QAbstractItemView * itemView )
-//static QoreNode *QCOMBOBOX_setView(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOMBOBOX_setView(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QAbstractItemView* itemView = p;
@@ -583,46 +583,46 @@ static QoreNode *QCOMBOBOX_setSizeAdjustPolicy(QoreObject *self, QoreQComboBox *
 //}
 
 //virtual void showPopup ()
-static QoreNode *QCOMBOBOX_showPopup(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_showPopup(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    qcb->getQComboBox()->showPopup();
    return 0;
 }
 
 //SizeAdjustPolicy sizeAdjustPolicy () const
-static QoreNode *QCOMBOBOX_sizeAdjustPolicy(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_sizeAdjustPolicy(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qcb->getQComboBox()->sizeAdjustPolicy());
 }
 
 ////const QValidator * validator () const
-//static QoreNode *QCOMBOBOX_validator(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOMBOBOX_validator(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qcb->getQComboBox()->validator());
 //}
 
 ////QAbstractItemView * view () const
-//static QoreNode *QCOMBOBOX_view(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QCOMBOBOX_view(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qcb->getQComboBox()->view());
 //}
 
 //void clear ()
-static QoreNode *QCOMBOBOX_clear(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_clear(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    qcb->getQComboBox()->clear();
    return 0;
 }
 
 //void clearEditText ()
-static QoreNode *QCOMBOBOX_clearEditText(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_clearEditText(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    qcb->getQComboBox()->clearEditText();
    return 0;
 }
 
 //void setCurrentIndex ( int index )
-static QoreNode *QCOMBOBOX_setCurrentIndex(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setCurrentIndex(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -631,7 +631,7 @@ static QoreNode *QCOMBOBOX_setCurrentIndex(QoreObject *self, QoreQComboBox *qcb,
 }
 
 //void setEditText ( const QString & text )
-static QoreNode *QCOMBOBOX_setEditText(QoreObject *self, QoreQComboBox *qcb, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QCOMBOBOX_setEditText(QoreObject *self, QoreQComboBox *qcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;

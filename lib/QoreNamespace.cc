@@ -1005,13 +1005,16 @@ int RootQoreNamespace::parseInitConstantValue(class QoreNode **val, int level)
 	 break;
    }
 
-   if ((*val)->type == NT_LIST) {
-      for (int i = 0; i < (*val)->val.list->size(); i++)
-      {
-	 if (parseInitConstantValue((*val)->val.list->get_entry_ptr(i), level + 1))
-	    return -1;
+   {
+      QoreList *l = dynamic_cast<QoreList *>(*val);
+      if (l) {
+	 for (int i = 0; i < l->size(); i++)
+	 {
+	    if (parseInitConstantValue(l->get_entry_ptr(i), level + 1))
+	       return -1;
+	 }
+	 return 0;
       }
-      return 0;
    }
 
    {

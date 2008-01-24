@@ -282,7 +282,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    return (int)(param - str);
 }
 
-class QoreStringNode *q_sprintf(const QoreNode *params, int field, int offset, class ExceptionSink *xsink)
+class QoreStringNode *q_sprintf(const QoreList *params, int field, int offset, class ExceptionSink *xsink)
 {
    int i, j, l;
    QoreStringNode *p;
@@ -298,7 +298,7 @@ class QoreStringNode *q_sprintf(const QoreNode *params, int field, int offset, c
    {
       int taken = 1;
       if ((p->getBuffer()[i] == '%') 
-	  && (j < params->val.list->size()))
+	  && (j < params->size()))
       {
 	 i += process_opt(buf, (char *)&p->getBuffer()[i], get_param(params, j++), field, &taken, xsink);
 	 if (!taken)
@@ -311,7 +311,7 @@ class QoreStringNode *q_sprintf(const QoreNode *params, int field, int offset, c
    return buf;
 }
 
-class QoreStringNode *q_vsprintf(const QoreNode *params, int field, int offset, class ExceptionSink *xsink)
+class QoreStringNode *q_vsprintf(const QoreList *params, int field, int offset, class ExceptionSink *xsink)
 {
    QoreStringNode *fmt;
    QoreNode *args;
@@ -320,6 +320,7 @@ class QoreStringNode *q_vsprintf(const QoreNode *params, int field, int offset, 
       return new QoreStringNode();
 
    args = get_param(params, offset + 1);
+   QoreList *arg_list = dynamic_cast<QoreList *>(args);
 
    QoreStringNode *buf = new QoreStringNode(fmt->getEncoding());
    int j = 0;
@@ -328,17 +329,15 @@ class QoreStringNode *q_vsprintf(const QoreNode *params, int field, int offset, 
    {
       int taken = 1;
       bool havearg = false;
-      class QoreNode *arg = NULL;
+      QoreNode *arg = NULL;
 
       if ((fmt->getBuffer()[i] == '%'))
       {
 	 if (args)
 	 {
-	    if (args->type == NT_LIST
-		&& j < args->val.list->size())
-	    {
+	    if (arg_list && j < arg_list->size()) {
 	       havearg = true;
-	       arg = get_param(args, j);
+	       arg = get_param(arg_list, j);
 	    }
 	    else if (!j)
 	    {
@@ -600,9 +599,9 @@ void delete_global_variables()
 {
    tracein("delete_global_variables()");
    if (QORE_ARGV)
-      QORE_ARGV->derefAndDelete(NULL);
+      QORE_ARGV->deref(NULL);
    if (ARGV)
-      ARGV->derefAndDelete(NULL);
+      ARGV->deref(NULL);
    if (ENV)
       ENV->derefAndDelete(NULL);
    traceout("delete_global_variables()");

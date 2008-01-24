@@ -33,7 +33,7 @@ class QoreClass *QC_QRegExpValidator = 0;
 
 //QRegExpValidator ( QObject * parent )
 //QRegExpValidator ( const QRegExp & rx, QObject * parent )
-static void QREGEXPVALIDATOR_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QREGEXPVALIDATOR_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -69,7 +69,7 @@ static void QREGEXPVALIDATOR_copy(class QoreObject *self, class QoreObject *old,
 }
 
 //const QRegExp & regExp () const
-static QoreNode *QREGEXPVALIDATOR_regExp(QoreObject *self, QoreQRegExpValidator *qrev, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QREGEXPVALIDATOR_regExp(QoreObject *self, QoreQRegExpValidator *qrev, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qre = new QoreObject(QC_QRegExp, getProgram());
    QoreQRegExp *q_qre = new QoreQRegExp(qrev->qobj->regExp());
@@ -78,7 +78,7 @@ static QoreNode *QREGEXPVALIDATOR_regExp(QoreObject *self, QoreQRegExpValidator 
 }
 
 //void setRegExp ( const QRegExp & rx )
-static QoreNode *QREGEXPVALIDATOR_setRegExp(QoreObject *self, QoreQRegExpValidator *qrev, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QREGEXPVALIDATOR_setRegExp(QoreObject *self, QoreQRegExpValidator *qrev, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQRegExp *rx = (p && p->type == NT_OBJECT) ? (QoreQRegExp *)p->val.object->getReferencedPrivateData(CID_QREGEXP, xsink) : 0;

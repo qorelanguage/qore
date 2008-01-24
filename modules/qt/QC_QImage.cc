@@ -38,7 +38,7 @@ QoreClass *QC_QImage = 0;
 //QImage ( const QString & fileName, const char * format = 0 )
 //QImage ( const char * fileName, const char * format = 0 )
 //QImage ( int width, int height, Format format )
-static void QIMAGE_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QIMAGE_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreQImage *qp;
    QoreNode *p = get_param(params, 0);
@@ -90,13 +90,13 @@ static void QIMAGE_copy(class QoreObject *self, class QoreObject *old, class Qor
 }
 
 //bool allGray () const
-static QoreNode *QIMAGE_allGray(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_allGray(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qi->allGray());
 }
 
 //QImage alphaChannel () const
-static QoreNode *QIMAGE_alphaChannel(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_alphaChannel(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->alphaChannel());
@@ -106,25 +106,25 @@ static QoreNode *QIMAGE_alphaChannel(QoreObject *self, QoreQImage *qi, const Qor
 
 //uchar * bits ()
 //const uchar * bits () const
-//static QoreNode *QIMAGE_bits(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QIMAGE_bits(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //}
 
 //int bytesPerLine () const
-static QoreNode *QIMAGE_bytesPerLine(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_bytesPerLine(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->bytesPerLine());
 }
 
 //qint64 cacheKey () const
-static QoreNode *QIMAGE_cacheKey(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_cacheKey(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->cacheKey());
 }
 
 //QRgb color ( int i ) const
-static QoreNode *QIMAGE_color(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_color(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int i = p ? p->getAsInt() : 0;
@@ -132,14 +132,14 @@ static QoreNode *QIMAGE_color(QoreObject *self, QoreQImage *qi, const QoreNode *
 }
 
 //QVector<QRgb> colorTable () const
-//static QoreNode *QIMAGE_colorTable(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QIMAGE_colorTable(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qi->colorTable());
 //}
 
 //QImage convertToFormat ( Format format, Qt::ImageConversionFlags flags = Qt::AutoColor ) const
 //QImage convertToFormat ( Format format, const QVector<QRgb> & colorTable, Qt::ImageConversionFlags flags = Qt::AutoColor ) const
-//static QoreNode *QIMAGE_convertToFormat(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QIMAGE_convertToFormat(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QImage::Format format = (QImage::Format)(p ? p->getAsInt() : 0);
@@ -157,7 +157,7 @@ static QoreNode *QIMAGE_color(QoreObject *self, QoreQImage *qi, const QoreNode *
 
 //QImage copy ( const QRect & rectangle = QRect() ) const
 //QImage copy ( int x, int y, int width, int height ) const
-static QoreNode *QIMAGE_QT_copy(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_QT_copy(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -187,7 +187,7 @@ static QoreNode *QIMAGE_QT_copy(QoreObject *self, QoreQImage *qi, const QoreNode
 }
 
 //QImage createAlphaMask ( Qt::ImageConversionFlags flags = Qt::AutoColor ) const
-static QoreNode *QIMAGE_createAlphaMask(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_createAlphaMask(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
@@ -198,7 +198,7 @@ static QoreNode *QIMAGE_createAlphaMask(QoreObject *self, QoreQImage *qi, const 
 }
 
 //QImage createHeuristicMask ( bool clipTight = true ) const
-static QoreNode *QIMAGE_createHeuristicMask(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_createHeuristicMask(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool clipTight = !is_nothing(p) ? p->getAsBool() : true;
@@ -209,7 +209,7 @@ static QoreNode *QIMAGE_createHeuristicMask(QoreObject *self, QoreQImage *qi, co
 }
 
 //QImage createMaskFromColor ( QRgb color, Qt::MaskMode mode = Qt::MaskInColor ) const
-static QoreNode *QIMAGE_createMaskFromColor(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_createMaskFromColor(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int64 color = p ? p->getAsBigInt() : 0;
@@ -222,31 +222,31 @@ static QoreNode *QIMAGE_createMaskFromColor(QoreObject *self, QoreQImage *qi, co
 }
 
 //DataPtr & data_ptr ()
-//static QoreNode *QIMAGE_data_ptr(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QIMAGE_data_ptr(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qi->data_ptr());
 //}
 
 //int depth () const
-static QoreNode *QIMAGE_depth(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_depth(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->depth());
 }
 
 //int dotsPerMeterX () const
-static QoreNode *QIMAGE_dotsPerMeterX(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_dotsPerMeterX(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->dotsPerMeterX());
 }
 
 //int dotsPerMeterY () const
-static QoreNode *QIMAGE_dotsPerMeterY(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_dotsPerMeterY(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->dotsPerMeterY());
 }
 
 //void fill ( uint pixelValue )
-static QoreNode *QIMAGE_fill(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_fill(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    unsigned pixelValue = p ? p->getAsBigInt() : 0;
@@ -255,25 +255,25 @@ static QoreNode *QIMAGE_fill(QoreObject *self, QoreQImage *qi, const QoreNode *p
 }
 
 //Format format () const
-static QoreNode *QIMAGE_format(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_format(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->format());
 }
 
 //bool hasAlphaChannel () const
-static QoreNode *QIMAGE_hasAlphaChannel(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_hasAlphaChannel(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qi->hasAlphaChannel());
 }
 
 //int height () const
-static QoreNode *QIMAGE_height(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_height(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->height());
 }
 
 //void invertPixels ( InvertMode mode = InvertRgb )
-static QoreNode *QIMAGE_invertPixels(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_invertPixels(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QImage::InvertMode mode = (QImage::InvertMode)(p ? p->getAsInt() : 0);
@@ -282,20 +282,20 @@ static QoreNode *QIMAGE_invertPixels(QoreObject *self, QoreQImage *qi, const Qor
 }
 
 //bool isGrayscale () const
-static QoreNode *QIMAGE_isGrayscale(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_isGrayscale(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qi->isGrayscale());
 }
 
 //bool isNull () const
-static QoreNode *QIMAGE_isNull(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_isNull(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qi->isNull());
 }
 
 //bool load ( const QString & fileName, const char * format = 0 )
 //bool load ( QIODevice * device, const char * format )
-static QoreNode *QIMAGE_load(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_load(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreStringNode *pstr = test_string_param(params, 0);
    if (!pstr) {
@@ -312,7 +312,7 @@ static QoreNode *QIMAGE_load(QoreObject *self, QoreQImage *qi, const QoreNode *p
 
 //bool loadFromData ( const uchar * data, int len, const char * format = 0 )
 //bool loadFromData ( const QByteArray & data, const char * format = 0 )
-static QoreNode *QIMAGE_loadFromData(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_loadFromData(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_BINARY, 0);
    if (!p) {
@@ -330,7 +330,7 @@ static QoreNode *QIMAGE_loadFromData(QoreObject *self, QoreQImage *qi, const Qor
 }
 
 //QImage mirrored ( bool horizontal = false, bool vertical = true ) const
-static QoreNode *QIMAGE_mirrored(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_mirrored(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool horizontal = p ? p->getAsBool() : false;
@@ -343,19 +343,19 @@ static QoreNode *QIMAGE_mirrored(QoreObject *self, QoreQImage *qi, const QoreNod
 }
 
 //int numBytes () const
-static QoreNode *QIMAGE_numBytes(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_numBytes(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->numBytes());
 }
 
 //int numColors () const
-static QoreNode *QIMAGE_numColors(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_numColors(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->numColors());
 }
 
 //QPoint offset () const
-static QoreNode *QIMAGE_offset(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_offset(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qi->offset());
@@ -365,7 +365,7 @@ static QoreNode *QIMAGE_offset(QoreObject *self, QoreQImage *qi, const QoreNode 
 
 //QRgb pixel ( const QPoint & position ) const
 //QRgb pixel ( int x, int y ) const
-static QoreNode *QIMAGE_pixel(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_pixel(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -386,7 +386,7 @@ static QoreNode *QIMAGE_pixel(QoreObject *self, QoreQImage *qi, const QoreNode *
 
 //int pixelIndex ( const QPoint & position ) const
 //int pixelIndex ( int x, int y ) const
-static QoreNode *QIMAGE_pixelIndex(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_pixelIndex(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -406,7 +406,7 @@ static QoreNode *QIMAGE_pixelIndex(QoreObject *self, QoreQImage *qi, const QoreN
 }
 
 //QRect rect () const
-static QoreNode *QIMAGE_rect(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_rect(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qi->rect());
@@ -415,7 +415,7 @@ static QoreNode *QIMAGE_rect(QoreObject *self, QoreQImage *qi, const QoreNode *p
 }
 
 //QImage rgbSwapped () const
-static QoreNode *QIMAGE_rgbSwapped(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_rgbSwapped(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->rgbSwapped());
@@ -425,7 +425,7 @@ static QoreNode *QIMAGE_rgbSwapped(QoreObject *self, QoreQImage *qi, const QoreN
 
 //bool save ( const QString & fileName, const char * format = 0, int quality = -1 ) const
 //bool save ( QIODevice * device, const char * format = 0, int quality = -1 ) const
-static QoreNode *QIMAGE_save(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_save(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreStringNode *pstr = test_string_param(params, 0);
    if (!pstr) {
@@ -445,7 +445,7 @@ static QoreNode *QIMAGE_save(QoreObject *self, QoreQImage *qi, const QoreNode *p
 
 //QImage scaled ( const QSize & size, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio, Qt::TransformationMode transformMode = Qt::FastTransformation ) const
 //QImage scaled ( int width, int height, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio, Qt::TransformationMode transformMode = Qt::FastTransformation ) const
-static QoreNode *QIMAGE_scaled(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_scaled(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
@@ -462,7 +462,7 @@ static QoreNode *QIMAGE_scaled(QoreObject *self, QoreQImage *qi, const QoreNode 
 }
 
 //QImage scaledToHeight ( int height, Qt::TransformationMode mode = Qt::FastTransformation ) const
-static QoreNode *QIMAGE_scaledToHeight(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_scaledToHeight(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int height = p ? p->getAsInt() : 0;
@@ -475,7 +475,7 @@ static QoreNode *QIMAGE_scaledToHeight(QoreObject *self, QoreQImage *qi, const Q
 }
 
 //QImage scaledToWidth ( int width, Qt::TransformationMode mode = Qt::FastTransformation ) const
-static QoreNode *QIMAGE_scaledToWidth(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_scaledToWidth(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
@@ -489,7 +489,7 @@ static QoreNode *QIMAGE_scaledToWidth(QoreObject *self, QoreQImage *qi, const Qo
 
 //uchar * scanLine ( int i )
 //const uchar * scanLine ( int i ) const
-//static QoreNode *QIMAGE_scanLine(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QIMAGE_scanLine(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int i = p ? p->getAsInt() : 0;
@@ -497,7 +497,7 @@ static QoreNode *QIMAGE_scaledToWidth(QoreObject *self, QoreQImage *qi, const Qo
 //}
 
 //void setAlphaChannel ( const QImage & alphaChannel )
-static QoreNode *QIMAGE_setAlphaChannel(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_setAlphaChannel(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQImage *alphaChannel = (p && p->type == NT_OBJECT) ? (QoreQImage *)p->val.object->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
@@ -512,7 +512,7 @@ static QoreNode *QIMAGE_setAlphaChannel(QoreObject *self, QoreQImage *qi, const 
 }
 
 //void setColor ( int index, QRgb colorValue )
-static QoreNode *QIMAGE_setColor(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_setColor(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -523,7 +523,7 @@ static QoreNode *QIMAGE_setColor(QoreObject *self, QoreQImage *qi, const QoreNod
 }
 
 //void setColorTable ( const QVector<QRgb> colors )
-//static QoreNode *QIMAGE_setColorTable(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QIMAGE_setColorTable(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QImage::QVector<QRgb> colors = (QImage::QVector<QRgb>)(p ? p->getAsInt() : 0);
@@ -532,7 +532,7 @@ static QoreNode *QIMAGE_setColor(QoreObject *self, QoreQImage *qi, const QoreNod
 //}
 
 //void setDotsPerMeterX ( int x )
-static QoreNode *QIMAGE_setDotsPerMeterX(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_setDotsPerMeterX(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -541,7 +541,7 @@ static QoreNode *QIMAGE_setDotsPerMeterX(QoreObject *self, QoreQImage *qi, const
 }
 
 //void setDotsPerMeterY ( int y )
-static QoreNode *QIMAGE_setDotsPerMeterY(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_setDotsPerMeterY(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int y = p ? p->getAsInt() : 0;
@@ -550,7 +550,7 @@ static QoreNode *QIMAGE_setDotsPerMeterY(QoreObject *self, QoreQImage *qi, const
 }
 
 //void setNumColors ( int numColors )
-static QoreNode *QIMAGE_setNumColors(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_setNumColors(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int numColors = p ? p->getAsInt() : 0;
@@ -559,7 +559,7 @@ static QoreNode *QIMAGE_setNumColors(QoreObject *self, QoreQImage *qi, const Qor
 }
 
 //void setOffset ( const QPoint & offset )
-static QoreNode *QIMAGE_setOffset(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_setOffset(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *offset = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -575,7 +575,7 @@ static QoreNode *QIMAGE_setOffset(QoreObject *self, QoreQImage *qi, const QoreNo
 
 //void setPixel ( const QPoint & position, uint index_or_rgb )
 //void setPixel ( int x, int y, uint index_or_rgb )
-static QoreNode *QIMAGE_setPixel(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_setPixel(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -601,7 +601,7 @@ static QoreNode *QIMAGE_setPixel(QoreObject *self, QoreQImage *qi, const QoreNod
 }
 
 //void setText ( const QString & key, const QString & text )
-static QoreNode *QIMAGE_setText(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_setText(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
@@ -622,7 +622,7 @@ static QoreNode *QIMAGE_setText(QoreObject *self, QoreQImage *qi, const QoreNode
 }
 
 //QSize size () const
-static QoreNode *QIMAGE_size(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_size(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qi->size());
@@ -631,7 +631,7 @@ static QoreNode *QIMAGE_size(QoreObject *self, QoreQImage *qi, const QoreNode *p
 }
 
 //QString text ( const QString & key = QString() ) const
-static QoreNode *QIMAGE_text(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_text(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    const char *key = p ? p->getBuffer() : "";
@@ -639,18 +639,18 @@ static QoreNode *QIMAGE_text(QoreObject *self, QoreQImage *qi, const QoreNode *p
 }
 
 //QStringList textKeys () const
-static QoreNode *QIMAGE_textKeys(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_textKeys(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qi->textKeys();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
-   return new QoreNode(l);
+   return l;
 }
 
 //QImage transformed ( const QMatrix & matrix, Qt::TransformationMode mode = Qt::FastTransformation ) const
 //QImage transformed ( const QTransform & matrix, Qt::TransformationMode mode = Qt::FastTransformation ) const
-//static QoreNode *QIMAGE_transformed(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QIMAGE_transformed(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QMatrix matrix = p;
@@ -664,7 +664,7 @@ static QoreNode *QIMAGE_textKeys(QoreObject *self, QoreQImage *qi, const QoreNod
 
 //bool valid ( const QPoint & pos ) const
 //bool valid ( int x, int y ) const
-static QoreNode *QIMAGE_valid(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_valid(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -684,7 +684,7 @@ static QoreNode *QIMAGE_valid(QoreObject *self, QoreQImage *qi, const QoreNode *
 }
 
 //int width () const
-static QoreNode *QIMAGE_width(QoreObject *self, QoreQImage *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QIMAGE_width(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->width());
 }

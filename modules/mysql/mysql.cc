@@ -659,7 +659,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 	       QoreList *l = new QoreList();
 	       while (!mysql_stmt_fetch(stmt))
 		  l->push(myres.getBoundColumnValue(ds->getQoreEncoding(), 0));
-	       v = new QoreNode(l);
+	       v = l;
 	    }
 	    else
 	    {
@@ -696,7 +696,7 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
       for (int i = 0; i < myres.getNumFields(); i++)
       {
 	 getLowerCaseName(&tstr, enc, myres.getFieldName(i));
-	 h->setKeyValue(&tstr, new QoreNode(new QoreList()), NULL);
+	 h->setKeyValue(&tstr, new QoreList(), NULL);
       }
 	 
       if (mysql_stmt_affected_rows(stmt))
@@ -707,8 +707,10 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 	 {
 	    HashIterator hi(h);
 	    int i = 0;
-	    while (hi.next())
-	       hi.getValue()->val.list->push(myres.getBoundColumnValue(enc, i++));
+	    while (hi.next()) {
+	       QoreList *l = reinterpret_cast<QoreList *>(hi.getValue());
+	       l->push(myres.getBoundColumnValue(enc, i++));
+	    }
 	 }
       }
       rv = h;
@@ -778,7 +780,7 @@ class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 	 }
       }
 
-      rv = new QoreNode(l);
+      rv = l;
    }
    else
    {
@@ -959,7 +961,8 @@ static class QoreHashNode *get_result_set(const Datasource *ds, MYSQL_RES *res)
 	       break;
 	 }
 	 //printd(5, "get_result_set() row %d col %d: %s (type=%d)=\"%s\"\n", rn, i, field[i].name, field[i].type, row[i]);
-	 h->getKeyValue(field[i].name)->val.list->push(n);
+	 QoreList *l = reinterpret_cast<QoreList *>(h->getKeyValue(field[i].name));
+	 l->push(n);
       }
       rn++;
    }

@@ -23,19 +23,20 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_list.h>
 
-static class QoreNode *f_sort(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_sort(const QoreList *params, ExceptionSink *xsink)
 {
    // get list as first argument
    QoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   if (lst->type != NT_LIST)
+   QoreList *l = dynamic_cast<QoreList *>(lst);
+   if (!l)
       return lst->RefSelf();
    
    // check for a function name or call reference in second argument
    QoreNode *fn = get_param(params, 1);
    if (is_nothing(fn))
-      return lst->val.list->sort();
+      return l->sort();
 
    {
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(fn);
@@ -44,7 +45,7 @@ static class QoreNode *f_sort(const QoreNode *params, ExceptionSink *xsink)
 	 if (!fr)
 	    return NULL;
       
-	 class QoreNode *rv = lst->val.list->sort(fr, xsink);
+	 class QoreNode *rv = l->sort(fr, xsink);
 	 fr->del(xsink);
 	 return rv;
       }
@@ -54,22 +55,23 @@ static class QoreNode *f_sort(const QoreNode *params, ExceptionSink *xsink)
       xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
-   return lst->val.list->sort(fn->val.funcref, xsink);
+   return l->sort(fn->val.funcref, xsink);
 }
 
-static class QoreNode *f_sortDescending(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_sortDescending(const QoreList *params, ExceptionSink *xsink)
 {
    // get list as first argument
    QoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   if (lst->type != NT_LIST)
+   QoreList *l = dynamic_cast<QoreList *>(lst);
+   if (!l)
       return lst->RefSelf();
    
    // check for a function name or call reference in second argument
    QoreNode *fn = get_param(params, 1);
    if (is_nothing(fn))
-      return lst->val.list->sortDescending();
+      return l->sortDescending();
 
    {
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(fn);
@@ -78,7 +80,7 @@ static class QoreNode *f_sortDescending(const QoreNode *params, ExceptionSink *x
 	 if (!fr)
 	    return NULL;
       
-	 class QoreNode *rv = lst->val.list->sortDescending(fr, xsink);
+	 class QoreNode *rv = l->sortDescending(fr, xsink);
 	 fr->del(xsink);
 	 return rv;
       }
@@ -89,22 +91,23 @@ static class QoreNode *f_sortDescending(const QoreNode *params, ExceptionSink *x
       xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
-   return lst->val.list->sortDescending(fn->val.funcref, xsink);
+   return l->sortDescending(fn->val.funcref, xsink);
 }
 
-static class QoreNode *f_sortStable(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_sortStable(const QoreList *params, ExceptionSink *xsink)
 {
    // get list as first argument
    QoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   if (lst->type != NT_LIST)
+   QoreList *l = dynamic_cast<QoreList *>(lst);
+   if (!l)
       return lst->RefSelf();
    
    // check for a function name or call reference in second argument
    QoreNode *fn = get_param(params, 1);
    if (is_nothing(fn))
-      return lst->val.list->sortStable();
+      return l->sortStable();
 
    {
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(fn);
@@ -113,7 +116,7 @@ static class QoreNode *f_sortStable(const QoreNode *params, ExceptionSink *xsink
 	 if (!fr)
 	    return NULL;
       
-	 class QoreNode *rv = lst->val.list->sortStable(fr, xsink);
+	 class QoreNode *rv = l->sortStable(fr, xsink);
 	 fr->del(xsink);
 	 return rv;
       }
@@ -124,22 +127,23 @@ static class QoreNode *f_sortStable(const QoreNode *params, ExceptionSink *xsink
       xsink->raiseException("SORTSTABLE-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
-   return lst->val.list->sortStable(fn->val.funcref, xsink);
+   return l->sortStable(fn->val.funcref, xsink);
 }
 
-static class QoreNode *f_sortDescendingStable(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_sortDescendingStable(const QoreList *params, ExceptionSink *xsink)
 {
    // get list as first argument
    QoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   if (lst->type != NT_LIST)
+   QoreList *l = dynamic_cast<QoreList *>(lst);
+   if (!l)
       return lst->RefSelf();
    
    // check for a function name or call reference in second argument
    QoreNode *fn = get_param(params, 1);
    if (is_nothing(fn))
-      return lst->val.list->sortDescendingStable();
+      return l->sortDescendingStable();
    
    {
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(fn);
@@ -148,7 +152,7 @@ static class QoreNode *f_sortDescendingStable(const QoreNode *params, ExceptionS
 	 if (!fr)
 	    return NULL;
       
-	 class QoreNode *rv = lst->val.list->sortDescendingStable(fr, xsink);
+	 class QoreNode *rv = l->sortDescendingStable(fr, xsink);
 	 fr->del(xsink);
 	 return rv;
       }
@@ -159,17 +163,15 @@ static class QoreNode *f_sortDescendingStable(const QoreNode *params, ExceptionS
       xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
-   return lst->val.list->sortDescendingStable(fn->val.funcref, xsink);
+   return l->sortDescendingStable(fn->val.funcref, xsink);
 }
 
-static class QoreNode *f_min(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_min(const QoreList *params, ExceptionSink *xsink)
 {   
-   QoreNode *p = test_param(params, NT_LIST, 0);
-   class QoreList *lst;
-   if (p)
+   QoreList *lst = test_list_param(params, 0);
+   if (lst)
    {
-      lst = p->val.list;
-      p = get_param(params, 1);
+      QoreNode *p = get_param(params, 1);
       if (is_nothing(p))
 	 return lst->min();
       
@@ -195,17 +197,15 @@ static class QoreNode *f_min(const QoreNode *params, ExceptionSink *xsink)
    }
    if (!num_params(params))
       return NULL;
-   return params->val.list->min();
+   return params->min();
 }
 
-static class QoreNode *f_max(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_max(const QoreList *params, ExceptionSink *xsink)
 {   
-   QoreNode *p = test_param(params, NT_LIST, 0);
-   class QoreList *lst;
-   if (p)
+   QoreList *lst = test_list_param(params, 0);
+   if (lst)
    {
-      lst = p->val.list;
-      p = get_param(params, 1);
+      QoreNode *p = get_param(params, 1);
       if (is_nothing(p))
 	 return lst->max();
       
@@ -231,22 +231,23 @@ static class QoreNode *f_max(const QoreNode *params, ExceptionSink *xsink)
    }
    if (!num_params(params))
       return NULL;
-   return params->val.list->max();
+   return params->max();
 }
 
-static class QoreNode *f_reverse(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_reverse(const QoreList *params, ExceptionSink *xsink)
 { 
-   class QoreNode *p = get_param(params, 0);
-   if (p)
+   QoreNode *p = get_param(params, 0);
    {
-      if (p->type == NT_LIST)
-	 return new QoreNode(p->val.list->reverse());
-
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(p);
-      if (str)
-	 return str->reverse();
+      QoreList *l = dynamic_cast<QoreList *>(p);
+      if (l)
+	 return l->reverse();
    }
-   return NULL;
+
+   QoreStringNode *str = dynamic_cast<QoreStringNode *>(p);
+   if (str)
+      return str->reverse();
+
+   return 0;
 }
 
 void init_list_functions()

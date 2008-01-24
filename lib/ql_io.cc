@@ -31,14 +31,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-static class QoreNode *f_print(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_print(const QoreList *params, ExceptionSink *xsink)
 {
    int i;
 
    if (!params)
       return NULL;
 
-   for (i = 0; i < params->val.list->size(); i++)
+   for (i = 0; i < params->size(); i++)
       print_node(stdout, get_param(params, i));
    return NULL;
 }
@@ -48,22 +48,22 @@ static class QoreNode *f_print(const QoreNode *params, ExceptionSink *xsink)
  * a hard limit that can't be broken: that is, the arguments output will be
  * truncated if they are larger than the width 
  */
-static class QoreNode *f_f_sprintf(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_f_sprintf(const QoreList *params, ExceptionSink *xsink)
 {
    return q_sprintf(params, 1, 0, xsink);
 }
 
-static class QoreNode *f_sprintf(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_sprintf(const QoreList *params, ExceptionSink *xsink)
 {
    return q_sprintf(params, 0, 0, xsink);
 }
 
-static class QoreNode *f_vsprintf(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_vsprintf(const QoreList *params, ExceptionSink *xsink)
 {
    return q_vsprintf(params, 0, 0, xsink);
 }
 
-static class QoreNode *f_f_printf(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_f_printf(const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *node;
 
@@ -71,7 +71,7 @@ static class QoreNode *f_f_printf(const QoreNode *params, ExceptionSink *xsink)
    return node;
 }
 
-static class QoreNode *f_printf(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_printf(const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *node;
 
@@ -81,7 +81,7 @@ static class QoreNode *f_printf(const QoreNode *params, ExceptionSink *xsink)
    return node;
 }
 
-static class QoreNode *f_vprintf(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_vprintf(const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *node;
 
@@ -91,7 +91,7 @@ static class QoreNode *f_vprintf(const QoreNode *params, ExceptionSink *xsink)
    return node;
 }
 
-static class QoreNode *f_flush(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_flush(const QoreList *params, ExceptionSink *xsink)
 {
    fflush(stdout);
    return NULL;

@@ -74,19 +74,21 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
       return;
    }
    
-   if (n->type == NT_LIST)
    {
-      s->sprintf("elements=%d\n", n->val.list->size());
-      ListIterator li(n->val.list);
-      int i = 0;
-      while (li.next()) {
-         strindent(s, indent);
-         s->sprintf("list element %d/%d: ", i++, n->val.list->size());
-         dni(s, li.getValue(), indent + 3, xsink);
-	 if (!li.last())
-	    s->concat('\n');
+      QoreList *l = dynamic_cast<QoreList *>(n);
+      if (l) {
+	 s->sprintf("elements=%d\n", l->size());
+	 ListIterator li(l);
+	 int i = 0;
+	 while (li.next()) {
+	    strindent(s, indent);
+	    s->sprintf("list element %d/%d: ", i++, l->size());
+	    dni(s, li.getValue(), indent + 3, xsink);
+	    if (!li.last())
+	       s->concat('\n');
+	 }
+	 return;
       }
-      return;
    }
    
    if (n->type == NT_OBJECT)
@@ -95,7 +97,7 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
                  n->val.object->getClass() ? n->val.object->getClass()->getName() : "<none>",
 		 n->val.object->isValid() ? "yes" : "no");
       {
-         QoreList *l = n->val.object->getMemberList(xsink);
+	 ReferenceHolder<QoreList> l(n->val.object->getMemberList(xsink), xsink);
          if (l)
          {
             for (int i = 0; i < l->size(); i++)
@@ -109,7 +111,6 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
 	       if (i != (l->size() - 1))
 		  s->concat('\n');
             }
-            l->derefAndDelete(xsink);
          }
       }
       return;
@@ -154,7 +155,7 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
 }
 
 //static 
-class QoreNode *f_dbg_node_info(const QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_dbg_node_info(const QoreList *params, ExceptionSink *xsink)
 {
    TempQoreStringNode s(new QoreStringNode());
    dni(*s, get_param(params, 0), 0, xsink);
@@ -164,14 +165,14 @@ class QoreNode *f_dbg_node_info(const QoreNode *params, ExceptionSink *xsink)
 }
 
 // returns a hash of all namespace information
-static class QoreNode *f_dbg_get_ns_info(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_dbg_get_ns_info(const QoreList *params, ExceptionSink *xsink)
 {
    return getRootNS()->getInfo();
 }
 
-static class QoreNode *f_dbg_global_vars(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_dbg_global_vars(const QoreList *params, ExceptionSink *xsink)
 {
-   return new QoreNode(getProgram()->getVarList());   
+   return getProgram()->getVarList();
 }
 
 void init_debug_functions()

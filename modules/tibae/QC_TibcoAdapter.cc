@@ -32,7 +32,7 @@
 int CID_TIBAE;
 
 // usage: new TibcoAdapter(session-name, properties, classlist, [, service, network, daemon])
-void TIBAE_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+void TIBAE_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    tracein("TIBAE_constructor");
 
@@ -127,7 +127,7 @@ void TIBAE_copy(class QoreObject *self, class QoreObject *old, class QoreApp *my
 }
 
 // usage: TIBAE_sendSubject(subject, function_name, message)
-class QoreNode *TIBAE_sendSubject(class QoreObject *self, class QoreApp *myQoreApp, const QoreNode *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_sendSubject(class QoreObject *self, class QoreApp *myQoreApp, const QoreList *params, class ExceptionSink *xsink)
 {
    QoreStringNode *p0, *p1;
    QoreNode *p2;
@@ -159,7 +159,7 @@ class QoreNode *TIBAE_sendSubject(class QoreObject *self, class QoreApp *myQoreA
 }
 
 // usage: Tibco::sendSubjectWithSyncReply(subject, function_name, message[, timeout])
-class QoreNode *TIBAE_sendSubjectWithSyncReply(class QoreObject *self, class QoreApp *myQoreApp, const QoreNode *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_sendSubjectWithSyncReply(class QoreObject *self, class QoreApp *myQoreApp, const QoreList *params, class ExceptionSink *xsink)
 {
    class QoreStringNode *p0, *p1;
    QoreNode *p2, *p3;
@@ -197,7 +197,7 @@ class QoreNode *TIBAE_sendSubjectWithSyncReply(class QoreObject *self, class Qor
 }
 
 // Tibco::receive(subject, [timeout])
-class QoreNode *TIBAE_receive(class QoreObject *self, class QoreApp *myQoreApp, const QoreNode *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_receive(class QoreObject *self, class QoreApp *myQoreApp, const QoreList *params, class ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 

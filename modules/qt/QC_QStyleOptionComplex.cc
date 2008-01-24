@@ -29,7 +29,7 @@ class QoreClass *QC_QStyleOptionComplex = 0;
 
 //QStyleOptionComplex ( int version = QStyleOptionComplex::Version, int type = SO_Complex )
 //QStyleOptionComplex ( const QStyleOptionComplex & other )
-static void QSTYLEOPTIONCOMPLEX_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONCOMPLEX_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int version = !is_nothing(p) ? p->getAsInt() : QStyleOptionComplex::Version;

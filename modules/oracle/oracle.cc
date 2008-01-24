@@ -473,7 +473,7 @@ static QoreHashNode *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Exce
    while (w)
    {
       printd(5, "ora_fetch() allocating list for '%s' column\n", w->name);
-      h->setKeyValue(w->name, new QoreNode(new QoreList()), xsink);
+      h->setKeyValue(w->name, new QoreList(), xsink);
       w = w->next;
    }
    
@@ -506,7 +506,8 @@ static QoreHashNode *ora_fetch(OCIStmt *stmthp, class Datasource *ds, class Exce
       while (w)
       {
 	 // get pointer to value of target node
-	 QoreNode **v = h->getKeyValue(w->name)->val.list->get_entry_ptr(num_rows);
+	 QoreList *l = reinterpret_cast<QoreList *>(h->getKeyValue(w->name));
+	 QoreNode **v = l->get_entry_ptr(num_rows);
 	 
 	 // dereference node if already present
 	 if (*v)
@@ -1107,9 +1108,7 @@ class QoreNode *OraBindGroup::selectRows(class ExceptionSink *xsink)
       if ((status = OCITransCommit(d_ora->svchp, d_ora->errhp, (ub4) 0)))
 	 ora_checkerr(d_ora->errhp, status, "OraBindGroup():commit", ds, xsink);
 
-   if (!l)
-      return NULL;
-   return new QoreNode(l);
+   return l;
 }
 
 static class QoreNode *oracle_exec(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)

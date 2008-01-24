@@ -58,6 +58,12 @@ class QoreQtEventDispatcher {
 	 return *rv ? rv->getAsInt() : false;
       }
 
+      DLLLOCAL static int dispatch_event_int(QoreObject *qore_obj, const QoreMethod *m, const QoreList *args, ExceptionSink *xsink)
+      {
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, args, xsink), xsink);
+	 return *rv ? rv->getAsInt() : false;
+      }
+
       DLLLOCAL static QString dispatch_event_qstring(QoreObject *qore_obj, const QoreMethod *m, QoreList *args)
       {
 	 class ExceptionSink xsink;
@@ -79,6 +85,12 @@ class QoreQtEventDispatcher {
 	 return *rv ? rv->getAsBool() : false;
       }
 
+      DLLLOCAL static bool dispatch_event_bool(QoreObject *qore_obj, const QoreMethod *m, const QoreList *args, ExceptionSink *xsink)
+      {
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, args, xsink), xsink);
+	 return *rv ? rv->getAsBool() : false;
+      }
+
       DLLLOCAL static const QoreMethod *findMethod(const QoreClass *qc, const char *n)
       {
 	 const QoreMethod *m = qc->findMethod(n);
@@ -92,30 +104,16 @@ class QoreQtEventDispatcher {
 	 QoreObject *peo = new QoreObject(qclass, getProgram());
 	 peo->setPrivate(qclass->getID(), data);
 	 QoreNode *a = new QoreNode(peo);
-	 QoreList *args = new QoreList();
+	 ReferenceHolder<QoreList> args(new QoreList(), xsink);
 	 args->push(a);
-	 QoreNode *na = new QoreNode(args);
 	 
 	 // call event method
-	 QoreNode *rv = m->eval(qore_obj, na, xsink);
-	 
-	 // delete arguments
-	 na->deref(xsink);
-
-	 return rv;
+	 return m->eval(qore_obj, *args, xsink);
       }
-      DLLLOCAL static QoreNode *dispatch_event_intern(QoreObject *qore_obj, const QoreMethod *m, class QoreList *args, class ExceptionSink *xsink)
+      DLLLOCAL static QoreNode *dispatch_event_intern(QoreObject *qore_obj, const QoreMethod *m, const QoreList *args, class ExceptionSink *xsink)
       {
-	 QoreNode *na = args ? new QoreNode(args) : 0;
-	 
 	 // call event method
-	 QoreNode *rv = m->eval(qore_obj, na, xsink);
-	 
-	 // delete arguments
-	 if (args)
-	    na->deref(xsink);
-
-	 return rv;
+	 return m->eval(qore_obj, args, xsink);
       }
 };
 

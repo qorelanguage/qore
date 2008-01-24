@@ -1075,7 +1075,7 @@ class QoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *QoreProgram::callFunction(const char *name, const QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreProgram::callFunction(const char *name, const QoreList *args, class ExceptionSink *xsink)
 {
    class UserFunction *ufc;
    QoreNode *fc;
@@ -1089,7 +1089,7 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreNode *args
    priv->plock.unlock();
 
    if (ufc) // we assign the args to NULL below so that the caller will delete
-      fc = new QoreNode(ufc, const_cast<QoreNode *>(args));
+      fc = new QoreNode(ufc, const_cast<QoreList *>(args));
    else
    {
       class BuiltinFunction *bfc;
@@ -1102,7 +1102,7 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreNode *args
 	    return NULL;
 	 }
 	 // we assign the args to NULL below so that the caller will delete
-	 fc = new QoreNode(bfc, const_cast<QoreNode *>(args));
+	 fc = new QoreNode(bfc, const_cast<QoreList *>(args));
       }
       else
       {
@@ -1124,10 +1124,10 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreNode *args
    return rv;
 }
 
-class QoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreNode *args, class ExceptionSink *xsink)
+class QoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreList *args, class ExceptionSink *xsink)
 {
    // we assign the args to NULL below so that the caller will delete
-   QoreNode *fc = new QoreNode(ufc, const_cast<QoreNode *>(args));
+   QoreNode *fc = new QoreNode(ufc, const_cast<QoreList *>(args));
 
    QoreNode *rv;
    {

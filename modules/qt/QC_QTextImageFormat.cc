@@ -30,7 +30,7 @@ int CID_QTEXTIMAGEFORMAT;
 class QoreClass *QC_QTextImageFormat = 0;
 
 //QTextImageFormat ()
-static void QTEXTIMAGEFORMAT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QTEXTIMAGEFORMAT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QTEXTIMAGEFORMAT, new QoreQTextImageFormat());
    return;
@@ -42,25 +42,25 @@ static void QTEXTIMAGEFORMAT_copy(class QoreObject *self, class QoreObject *old,
 }
 
 //qreal height () const
-static QoreNode *QTEXTIMAGEFORMAT_height(QoreObject *self, QoreQTextImageFormat *qtif, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTIMAGEFORMAT_height(QoreObject *self, QoreQTextImageFormat *qtif, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtif->height());
 }
 
 //bool isValid () const
-static QoreNode *QTEXTIMAGEFORMAT_isValid(QoreObject *self, QoreQTextImageFormat *qtif, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTIMAGEFORMAT_isValid(QoreObject *self, QoreQTextImageFormat *qtif, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qtif->isValid());
 }
 
 //QString name () const
-static QoreNode *QTEXTIMAGEFORMAT_name(QoreObject *self, QoreQTextImageFormat *qtif, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTIMAGEFORMAT_name(QoreObject *self, QoreQTextImageFormat *qtif, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qtif->name().toUtf8().data(), QCS_UTF8);
 }
 
 //void setHeight ( qreal height )
-static QoreNode *QTEXTIMAGEFORMAT_setHeight(QoreObject *self, QoreQTextImageFormat *qtif, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTIMAGEFORMAT_setHeight(QoreObject *self, QoreQTextImageFormat *qtif, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal height = p ? p->getAsFloat() : 0.0;
@@ -69,7 +69,7 @@ static QoreNode *QTEXTIMAGEFORMAT_setHeight(QoreObject *self, QoreQTextImageForm
 }
 
 //void setName ( const QString & name )
-static QoreNode *QTEXTIMAGEFORMAT_setName(QoreObject *self, QoreQTextImageFormat *qtif, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTIMAGEFORMAT_setName(QoreObject *self, QoreQTextImageFormat *qtif, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString name;
@@ -80,7 +80,7 @@ static QoreNode *QTEXTIMAGEFORMAT_setName(QoreObject *self, QoreQTextImageFormat
 }
 
 //void setWidth ( qreal width )
-static QoreNode *QTEXTIMAGEFORMAT_setWidth(QoreObject *self, QoreQTextImageFormat *qtif, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTIMAGEFORMAT_setWidth(QoreObject *self, QoreQTextImageFormat *qtif, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal width = p ? p->getAsFloat() : 0.0;
@@ -89,7 +89,7 @@ static QoreNode *QTEXTIMAGEFORMAT_setWidth(QoreObject *self, QoreQTextImageForma
 }
 
 //qreal width () const
-static QoreNode *QTEXTIMAGEFORMAT_width(QoreObject *self, QoreQTextImageFormat *qtif, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTIMAGEFORMAT_width(QoreObject *self, QoreQTextImageFormat *qtif, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qtif->width());
 }

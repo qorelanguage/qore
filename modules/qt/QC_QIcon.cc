@@ -33,7 +33,7 @@
 int CID_QICON;
 QoreClass *QC_QIcon = 0;
 
-static void QICON_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QICON_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreQIcon *qi;
 
@@ -75,7 +75,7 @@ static void QICON_copy(class QoreObject *self, class QoreObject *old, class Qore
 }
 
 //QSize actualSize ( const QSize & size, Mode mode = Normal, State state = Off ) const
-static QoreNode *QICON_actualSize(QoreObject *self, QoreQIcon *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QICON_actualSize(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
@@ -96,7 +96,7 @@ static QoreNode *QICON_actualSize(QoreObject *self, QoreQIcon *qi, const QoreNod
 }
 
 //void addFile ( const QString & fileName, const QSize & size = QSize(), Mode mode = Normal, State state = Off )
-static QoreNode *QICON_addFile(QoreObject *self, QoreQIcon *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QICON_addFile(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString fileName;
@@ -116,7 +116,7 @@ static QoreNode *QICON_addFile(QoreObject *self, QoreQIcon *qi, const QoreNode *
 }
 
 //void addPixmap ( const QPixmap & pixmap, Mode mode = Normal, State state = Off )
-static QoreNode *QICON_addPixmap(QoreObject *self, QoreQIcon *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QICON_addPixmap(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    AbstractPrivateData *apd_pixmap = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
@@ -137,26 +137,26 @@ static QoreNode *QICON_addPixmap(QoreObject *self, QoreQIcon *qi, const QoreNode
 }
 
 //qint64 cacheKey () const
-static QoreNode *QICON_cacheKey(QoreObject *self, QoreQIcon *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QICON_cacheKey(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qi->cacheKey());
 }
 
 //DataPtr & data_ptr ()
-//static QoreNode *QICON_data_ptr(QoreObject *self, QoreQIcon *qi, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QICON_data_ptr(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qi->data_ptr());
 //}
 
 //bool isNull () const
-static QoreNode *QICON_isNull(QoreObject *self, QoreQIcon *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QICON_isNull(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qi->isNull());
 }
 
 //void paint ( QPainter * painter, const QRect & rect, Qt::Alignment alignment = Qt::AlignCenter, Mode mode = Normal, State state = Off ) const
 //void paint ( QPainter * painter, int x, int y, int w, int h, Qt::Alignment alignment = Qt::AlignCenter, Mode mode = Normal, State state = Off ) const
-static QoreNode *QICON_paint(QoreObject *self, QoreQIcon *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QICON_paint(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQPainter *painter = (QoreQPainter *)(p ? p->val.object->getReferencedPrivateData(CID_QPAINTER, xsink) : 0);
@@ -207,7 +207,7 @@ static QoreNode *QICON_paint(QoreObject *self, QoreQIcon *qi, const QoreNode *pa
 //QPixmap pixmap ( const QSize & size, Mode mode = Normal, State state = Off ) const
 //QPixmap pixmap ( int w, int h, Mode mode = Normal, State state = Off ) const
 //QPixmap pixmap ( int extent, Mode mode = Normal, State state = Off ) const
-static QoreNode *QICON_pixmap(QoreObject *self, QoreQIcon *qi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QICON_pixmap(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {

@@ -417,7 +417,7 @@ QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list, Excep
 	    }
 	 }
 
-	 h->setKeyValue(col_name, new QoreNode(new QoreList()), 0);
+	 h->setKeyValue(col_name, new QoreList(), 0);
       }
 
       while (fetch_row_into_buffers(xsink)) {
@@ -428,18 +428,19 @@ QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list, Excep
    }
 
    ReferenceHolder<QoreNode> rv(xsink);
+   QoreList *l = 0;
    while (fetch_row_into_buffers(xsink)) {
       QoreHashNode *h = output_buffers_to_hash(placeholder_list, descriptions, out_buffers, xsink);
       if (*xsink)
 	 return 0;
       if (rv) {
-	 if (rv->type == NT_HASH) {
+	 if (!l) {
 	    // convert to list - several rows
-	    class QoreList *l = new QoreList();
+	    l = new QoreList();
 	    l->push(rv.release());
-	    rv = new QoreNode(l);
+	    rv = l;
 	 }
-	 rv->val.list->push(h);
+	 l->push(h);
       }
       else
 	 rv = h;
@@ -559,7 +560,8 @@ int command::append_buffers_to_list(PlaceholderList *placeholder_list, row_resul
 	 return -1;
       }
 
-      hi.getValue()->val.list->push(value);      
+      QoreList *l = reinterpret_cast<QoreList *>(hi.getValue());
+      l->push(value);      
    } // for
    
    return 0;

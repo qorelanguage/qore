@@ -80,11 +80,14 @@ int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMs
       return 0;
    }
 
-   if (v->type == NT_LIST) {
-      for (int i = 0; i < v->val.list->size(); i++)
-	 if (valueToField(key, v->val.list->retrieve_entry(i), msg, xsink))
-	    return -1;
-      return 0;
+   {
+      QoreList *l = dynamic_cast<QoreList *>(v);
+      if (l) {
+	 for (int i = 0; i < l->size(); i++)
+	    if (valueToField(key, l->retrieve_entry(i), msg, xsink))
+	       return -1;
+	 return 0;
+      }
    }
 
    {
@@ -198,14 +201,14 @@ QoreHashNode *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *
       if (ev != (QoreNode *)-1)
       {
 	 QoreNode **evp = h->getKeyValuePtr(key);
-	 if (ev->type != NT_LIST)
-	 {
+	 QoreList *l = dynamic_cast<QoreList *>(ev);
+	 if (!l) {
 	    //printd(5, "QoreTibrvTransport::msgToHash() making list\n");
-	    class QoreList *l = new QoreList();
+	    l = new QoreList();
 	    l->push(ev);
-	    ev = new QoreNode(l);
+	    ev = l;
 	 }
-	 ev->val.list->push(val);
+	 l->push(val);
 	 *evp = ev;
       }
       else
@@ -312,7 +315,7 @@ QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionS
 
 class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class ExceptionSink *xsink)
 {
-   class QoreList *l = new QoreList();
+   ReferenceHolder<QoreList> l(new QoreList(), xsink);
    tibrvLocalData data = field->getData();
 
    switch (field->getType())
@@ -399,10 +402,9 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
 
       default:
 	 xsink->raiseException("TIBRV-DEMARSHALLING-ERROR", "don't know how to convert a list of type %d", field->getType());
-	 l->derefAndDelete(xsink);
-	 return NULL;
+	 return 0;
    }
-   return new QoreNode(l);
+   return l.release();
 }
 
 int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char *type, class QoreNode *val, class ExceptionSink *xsink)

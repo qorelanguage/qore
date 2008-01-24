@@ -26,63 +26,69 @@
 
 #include <qore/QoreNode.h>
 
-static inline int num_params(const QoreNode *n)
+static inline int num_params(const QoreList *n)
 {
    if (!n)
       return 0;
-   return n->val.list->size();
+   return n->size();
 }
 
-static inline QoreNode *get_param(const QoreNode *n, int i)
+static inline QoreNode *get_param(const QoreList *n, int i)
 {
    if (!n) return NULL;
-   class QoreNode *p = n->val.list->retrieve_entry(i);
+   class QoreNode *p = n->retrieve_entry(i);
    return is_nothing(p) ? NULL : p;
 }
 
-static inline QoreNode *test_param(const QoreNode *n, class QoreType *type, int i)
+static inline QoreNode *test_param(const QoreList *n, class QoreType *type, int i)
 {
    if (!n) return NULL;
-   QoreNode *p = n->val.list->retrieve_entry(i);
+   QoreNode *p = n->retrieve_entry(i);
    if (is_nothing(p)) return NULL;
    return (p->type == type) ? p : NULL;
 }
 
-static inline QoreStringNode *test_string_param(const QoreNode *n, int i)
+static inline QoreStringNode *test_string_param(const QoreList *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<QoreStringNode *>(n->val.list->retrieve_entry(i));
+   return dynamic_cast<QoreStringNode *>(n->retrieve_entry(i));
 }
 
-static inline DateTimeNode *test_date_param(const QoreNode *n, int i)
+static inline DateTimeNode *test_date_param(const QoreList *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<DateTimeNode *>(n->val.list->retrieve_entry(i));
+   return dynamic_cast<DateTimeNode *>(n->retrieve_entry(i));
 }
 
-static inline QoreHashNode *test_hash_param(const QoreNode *n, int i)
+static inline QoreHashNode *test_hash_param(const QoreList *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<QoreHashNode *>(n->val.list->retrieve_entry(i));
+   return dynamic_cast<QoreHashNode *>(n->retrieve_entry(i));
+}
+
+static inline QoreList *test_list_param(const QoreList *n, int i)
+{
+   if (!n) return 0;
+   return dynamic_cast<QoreList *>(n->retrieve_entry(i));
 }
 
 /*
 // this will return only valid objects of the passed class ID
 // if an object is returned it will be locked and the caller
 // is reponsible for releasing the lock (exiting the gate)
-static inline QoreNode *test_object_param(const QoreNode *n, int cid, int i, class RMutex **gp)
+static inline QoreNode *test_object_param(const QoreList *n, int cid, int i, class RMutex **gp)
 {
    if (!n) return NULL;
-   QoreNode *p = n->val.list->retrieve_entry(i);
+   QoreNode *p = n->retrieve_entry(i);
    if (!p) return NULL;
    return (p->type == NT_OBJECT && p->val.object->validInstanceOf(cid, gp)) ? p : NULL;
 }
 */
 
-static inline int test_nothing_param(const QoreNode *n, int i)
+static inline bool test_nothing_param(const QoreList *n, int i)
 {
-   if (!n) return 1;
-   return is_nothing(n->val.list->retrieve_entry(i));
+   if (!n) return true;
+   return is_nothing(n->retrieve_entry(i));
 }
 
 #endif

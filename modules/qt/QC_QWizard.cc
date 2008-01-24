@@ -34,7 +34,7 @@ int CID_QWIZARD;
 class QoreClass *QC_QWizard = 0;
 
 //QWizard ( QWidget * parent = 0, Qt::WindowFlags flags = 0 )
-static void QWIZARD_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QWIZARD_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -53,7 +53,7 @@ static void QWIZARD_copy(class QoreObject *self, class QoreObject *old, class Qo
 }
 
 //int addPage ( QWizardPage * page )
-static QoreNode *QWIZARD_addPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_addPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQWizardPage *page = (p && p->type == NT_OBJECT) ? (QoreAbstractQWizardPage *)p->val.object->getReferencedPrivateData(CID_QWIZARDPAGE, xsink) : 0;
@@ -67,7 +67,7 @@ static QoreNode *QWIZARD_addPage(QoreObject *self, QoreAbstractQWizard *qw, cons
 }
 
 //QAbstractButton * button ( WizardButton which ) const
-static QoreNode *QWIZARD_button(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_button(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardButton which = (QWizard::WizardButton)(p ? p->getAsInt() : 0);
@@ -87,7 +87,7 @@ static QoreNode *QWIZARD_button(QoreObject *self, QoreAbstractQWizard *qw, const
 }
 
 //QString buttonText ( WizardButton which ) const
-static QoreNode *QWIZARD_buttonText(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_buttonText(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardButton which = (QWizard::WizardButton)(p ? p->getAsInt() : 0);
@@ -95,13 +95,13 @@ static QoreNode *QWIZARD_buttonText(QoreObject *self, QoreAbstractQWizard *qw, c
 }
 
 //int currentId () const
-static QoreNode *QWIZARD_currentId(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_currentId(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qw->getQWizard()->currentId());
 }
 
 //QWizardPage * currentPage () const
-static QoreNode *QWIZARD_currentPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_currentPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QWizardPage *qt_qobj = qw->getQWizard()->currentPage();
    if (!qt_qobj)
@@ -119,7 +119,7 @@ static QoreNode *QWIZARD_currentPage(QoreObject *self, QoreAbstractQWizard *qw, 
 }
 
 //QVariant field ( const QString & name ) const
-static QoreNode *QWIZARD_field(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_field(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString name;
@@ -129,7 +129,7 @@ static QoreNode *QWIZARD_field(QoreObject *self, QoreAbstractQWizard *qw, const 
 }
 
 //bool hasVisitedPage ( int id ) const
-static QoreNode *QWIZARD_hasVisitedPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_hasVisitedPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int id = p ? p->getAsInt() : 0;
@@ -137,19 +137,19 @@ static QoreNode *QWIZARD_hasVisitedPage(QoreObject *self, QoreAbstractQWizard *q
 }
 
 //virtual int nextId () const
-static QoreNode *QWIZARD_nextId(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_nextId(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qw->getQWizard()->nextId());
 }
 
 //WizardOptions options () const
-static QoreNode *QWIZARD_options(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_options(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qw->getQWizard()->options());
 }
 
 //QWizardPage * page ( int id ) const
-static QoreNode *QWIZARD_page(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_page(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int id = p ? p->getAsInt() : 0;
@@ -169,7 +169,7 @@ static QoreNode *QWIZARD_page(QoreObject *self, QoreAbstractQWizard *qw, const Q
 }
 
 //QPixmap pixmap ( WizardPixmap which ) const
-static QoreNode *QWIZARD_pixmap(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_pixmap(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardPixmap which = (QWizard::WizardPixmap)(p ? p->getAsInt() : 0);
@@ -180,7 +180,7 @@ static QoreNode *QWIZARD_pixmap(QoreObject *self, QoreAbstractQWizard *qw, const
 }
 
 //void setButton ( WizardButton which, QAbstractButton * button )
-static QoreNode *QWIZARD_setButton(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setButton(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardButton which = (QWizard::WizardButton)(p ? p->getAsInt() : 0);
@@ -198,7 +198,7 @@ static QoreNode *QWIZARD_setButton(QoreObject *self, QoreAbstractQWizard *qw, co
 
 /*
 //void setButtonLayout ( const QList<WizardButton> & layout )
-static QoreNode *QWIZARD_setButtonLayout(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setButtonLayout(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? QList<WizardButton> layout = p;
@@ -208,7 +208,7 @@ static QoreNode *QWIZARD_setButtonLayout(QoreObject *self, QoreAbstractQWizard *
 */
 
 //void setButtonText ( WizardButton which, const QString & text )
-static QoreNode *QWIZARD_setButtonText(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setButtonText(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardButton which = (QWizard::WizardButton)(p ? p->getAsInt() : 0);
@@ -221,7 +221,7 @@ static QoreNode *QWIZARD_setButtonText(QoreObject *self, QoreAbstractQWizard *qw
 }
 
 //void setDefaultProperty ( const char * className, const char * property, const char * changedSignal )
-static QoreNode *QWIZARD_setDefaultProperty(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setDefaultProperty(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreStringNode *str = test_string_param(params, 0);
    if (!str) {
@@ -249,7 +249,7 @@ static QoreNode *QWIZARD_setDefaultProperty(QoreObject *self, QoreAbstractQWizar
 }
 
 //void setField ( const QString & name, const QVariant & value )
-static QoreNode *QWIZARD_setField(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setField(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString name;
@@ -264,7 +264,7 @@ static QoreNode *QWIZARD_setField(QoreObject *self, QoreAbstractQWizard *qw, con
 }
 
 //void setOption ( WizardOption option, bool on = true )
-static QoreNode *QWIZARD_setOption(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setOption(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardOption option = (QWizard::WizardOption)(p ? p->getAsInt() : 0);
@@ -275,7 +275,7 @@ static QoreNode *QWIZARD_setOption(QoreObject *self, QoreAbstractQWizard *qw, co
 }
 
 //void setOptions ( WizardOptions options )
-static QoreNode *QWIZARD_setOptions(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setOptions(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardOptions options = (QWizard::WizardOptions)(p ? p->getAsInt() : 0);
@@ -284,7 +284,7 @@ static QoreNode *QWIZARD_setOptions(QoreObject *self, QoreAbstractQWizard *qw, c
 }
 
 //void setPage ( int id, QWizardPage * page )
-static QoreNode *QWIZARD_setPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int id = p ? p->getAsInt() : 0;
@@ -301,7 +301,7 @@ static QoreNode *QWIZARD_setPage(QoreObject *self, QoreAbstractQWizard *qw, cons
 }
 
 //void setPixmap ( WizardPixmap which, const QPixmap & pixmap )
-static QoreNode *QWIZARD_setPixmap(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setPixmap(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardPixmap which = (QWizard::WizardPixmap)(p ? p->getAsInt() : 0);
@@ -318,7 +318,7 @@ static QoreNode *QWIZARD_setPixmap(QoreObject *self, QoreAbstractQWizard *qw, co
 }
 
 //void setStartId ( int id )
-static QoreNode *QWIZARD_setStartId(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setStartId(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int id = p ? p->getAsInt() : 0;
@@ -327,7 +327,7 @@ static QoreNode *QWIZARD_setStartId(QoreObject *self, QoreAbstractQWizard *qw, c
 }
 
 //void setSubTitleFormat ( Qt::TextFormat format )
-static QoreNode *QWIZARD_setSubTitleFormat(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setSubTitleFormat(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::TextFormat format = (Qt::TextFormat)(p ? p->getAsInt() : 0);
@@ -336,7 +336,7 @@ static QoreNode *QWIZARD_setSubTitleFormat(QoreObject *self, QoreAbstractQWizard
 }
 
 //void setTitleFormat ( Qt::TextFormat format )
-static QoreNode *QWIZARD_setTitleFormat(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setTitleFormat(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::TextFormat format = (Qt::TextFormat)(p ? p->getAsInt() : 0);
@@ -345,7 +345,7 @@ static QoreNode *QWIZARD_setTitleFormat(QoreObject *self, QoreAbstractQWizard *q
 }
 
 //void setWizardStyle ( WizardStyle style )
-static QoreNode *QWIZARD_setWizardStyle(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_setWizardStyle(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardStyle style = (QWizard::WizardStyle)(p ? p->getAsInt() : 0);
@@ -354,19 +354,19 @@ static QoreNode *QWIZARD_setWizardStyle(QoreObject *self, QoreAbstractQWizard *q
 }
 
 //int startId () const
-static QoreNode *QWIZARD_startId(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_startId(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qw->getQWizard()->startId());
 }
 
 //Qt::TextFormat subTitleFormat () const
-static QoreNode *QWIZARD_subTitleFormat(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_subTitleFormat(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qw->getQWizard()->subTitleFormat());
 }
 
 //bool testOption ( WizardOption option ) const
-static QoreNode *QWIZARD_testOption(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_testOption(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardOption option = (QWizard::WizardOption)(p ? p->getAsInt() : 0);
@@ -374,49 +374,49 @@ static QoreNode *QWIZARD_testOption(QoreObject *self, QoreAbstractQWizard *qw, c
 }
 
 //Qt::TextFormat titleFormat () const
-static QoreNode *QWIZARD_titleFormat(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_titleFormat(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qw->getQWizard()->titleFormat());
 }
 
 //virtual bool validateCurrentPage ()
-static QoreNode *QWIZARD_validateCurrentPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_validateCurrentPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qw->getQWizard()->validateCurrentPage());
 }
 
 //QList<int> visitedPages () const
-static QoreNode *QWIZARD_visitedPages(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_visitedPages(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QList<int> ilist_rv = qw->getQWizard()->visitedPages();
    QoreList *l = new QoreList();
    for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)
       l->push(new QoreNode((int64)(*i)));
-   return new QoreNode(l);
+   return l;
 }
 
 //WizardStyle wizardStyle () const
-static QoreNode *QWIZARD_wizardStyle(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_wizardStyle(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qw->getQWizard()->wizardStyle());
 }
 
 //void back () const
-static QoreNode *QWIZARD_back(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_back(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    qw->getQWizard()->back();
    return 0;
 }
 
 //void next ()
-static QoreNode *QWIZARD_next(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_next(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    qw->getQWizard()->next();
    return 0;
 }
 
 //void restart ()
-static QoreNode *QWIZARD_restart(QoreObject *self, QoreAbstractQWizard *qw, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWIZARD_restart(QoreObject *self, QoreAbstractQWizard *qw, const QoreList *params, ExceptionSink *xsink)
 {
    qw->getQWizard()->restart();
    return 0;

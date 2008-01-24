@@ -29,7 +29,7 @@ class QoreClass *QC_QStyleOptionSizeGrip = 0;
 
 //QStyleOptionSizeGrip ()
 //QStyleOptionSizeGrip ( const QStyleOptionSizeGrip & other )
-static void QSTYLEOPTIONSIZEGRIP_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONSIZEGRIP_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONSIZEGRIP, new QoreQStyleOptionSizeGrip());
 }

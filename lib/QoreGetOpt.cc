@@ -105,10 +105,10 @@ int QoreGetOpt::add(const char *name, char short_opt, char *long_opt, class Qore
 static void inline addError(class QoreHash *h, QoreStringNode *err)
 {
    //printd(5, "addError() adding: %s\n", err->getBuffer());
-   class QoreNode **v = h->getKeyValuePtr("_ERRORS_");
+   QoreList **v = reinterpret_cast<QoreList **>(h->getKeyValuePtr("_ERRORS_"));
    if (!(*v))
-      (*v) = new QoreNode(new QoreList());
-   (*v)->val.list->push(err);
+      (*v) = new QoreList();
+   (*v)->push(err);
 }
 
 // private, static method
@@ -205,10 +205,13 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char
 
    if (n->option & QGO_OPT_LIST)
    {
-      if (!(*cv))
-	 (*cv) = new QoreNode(new QoreList());
+      QoreList *l = reinterpret_cast<QoreList *>(*cv);
+      if (!(*cv)) {
+	 l = new QoreList();
+	 (*cv) = l;
+      }
       //else printf("cv->type=%s\n", cv->getTypeName());
-      (*cv)->val.list->push(v);
+      l->push(v);
       return;
    }
    

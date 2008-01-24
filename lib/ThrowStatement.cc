@@ -30,15 +30,11 @@ ThrowStatement::ThrowStatement(int start_line, int end_line, class QoreNode *v) 
       args = NULL;
       return;
    }
-   if (v->type == NT_LIST)
-   {
-      // take list
-      args = v;
-      return;
+   args = dynamic_cast<QoreList *>(v);
+   if (!args) {
+      args = new QoreList(v->needs_eval());
+      args->push(v);
    }
-   class QoreList *l = new QoreList(1);
-   l->push(v);
-   args = new QoreNode(l);
 }
 
 ThrowStatement::~ThrowStatement()
@@ -49,23 +45,18 @@ ThrowStatement::~ThrowStatement()
 
 int ThrowStatement::execImpl(class QoreNode **return_value, ExceptionSink *xsink)
 {
-   class QoreNode *a;
-   if (args)
-      a = args->eval(xsink);
-   else
-      a = NULL;
+   QoreListEvalOptionalRefHolder a(args, xsink);
+   if (*xsink)
+      return 0;
    
-   xsink->raiseException(a);
-   if (a)
-      a->deref(NULL);
-
+   xsink->raiseException(*a);
    return 0;
 }
 
 int ThrowStatement::parseInitImpl(lvh_t oflag, int pflag)
 {
    if (args)
-      return process_node(&args, oflag, pflag);
+      return process_list_node(&args, oflag, pflag);
    return 0;
 }
 

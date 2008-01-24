@@ -114,7 +114,7 @@ static inline int process_type(const char *key, int &attributes, char *opt, clas
    return -1;
 }
 
-static void GETOPT_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void GETOPT_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreHashNode *p0 = test_hash_param(params, 0);
    if (!p0)
@@ -228,7 +228,7 @@ static void GETOPT_copy(class QoreObject *self, class QoreObject *old, class Get
    xsink->raiseException("GETOPT-COPY-ERROR", "copying GetOpt objects is not supported");
 }
 
-static class QoreNode *GETOPT_parse(class QoreObject *self, class GetOpt *g, const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GETOPT_parse(class QoreObject *self, class GetOpt *g, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    if (!p0)
@@ -236,27 +236,26 @@ static class QoreNode *GETOPT_parse(class QoreObject *self, class GetOpt *g, con
 
    class QoreList *l;
    class AutoVLock vl;
-   bool modify = false;
    if (p0->type == NT_REFERENCE)
    {
       class QoreNode **vp = get_var_value_ptr(p0->val.lvexp, &vl, xsink);
-      if (xsink->isEvent() || !(*vp) || (*vp)->type != NT_LIST)
-	 return NULL;
-      if ((*vp)->reference_count() > 1)
+      if (*xsink)
+	 return 0;
+      l = dynamic_cast<QoreList *>(*vp);
+      if (!l)
+	 return 0;
+      if (l->reference_count() > 1)
       {
-	 class QoreNode *n = (*vp)->realCopy(xsink);
+	 l = l->copy();
 	 (*vp)->deref(xsink);
-	 (*vp) = n;
+	 (*vp) = l;
       }
-      l = (*vp)->val.list;
-      modify = true;
+      return g->parse(l, true, xsink);
    }
-   else if (p0->type == NT_LIST)
-      l = p0->val.list;
-   else
-      return NULL;
+   else if (!(l = dynamic_cast<QoreList *>(p0)))
+      return 0;
 
-   return g->parse(l, modify, xsink);
+   return g->parse(l, false, xsink);
 }
 
 class QoreClass *initGetOptClass()

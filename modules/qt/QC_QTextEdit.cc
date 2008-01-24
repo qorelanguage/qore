@@ -39,7 +39,7 @@ class QoreClass *QC_QTextEdit = 0;
 
 //QTextEdit ( QWidget * parent = 0 )
 //QTextEdit ( const QString & text, QWidget * parent = 0 )
-static void QTEXTEDIT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QTEXTEDIT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -72,19 +72,19 @@ static void QTEXTEDIT_copy(class QoreObject *self, class QoreObject *old, class 
 }
 
 //bool acceptRichText () const
-static QoreNode *QTEXTEDIT_acceptRichText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_acceptRichText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qte->getQTextEdit()->acceptRichText());
 }
 
 //Qt::Alignment alignment () const
-static QoreNode *QTEXTEDIT_alignment(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_alignment(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->getQTextEdit()->alignment());
 }
 
 //QString anchorAt ( const QPoint & pos ) const
-static QoreNode *QTEXTEDIT_anchorAt(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_anchorAt(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -98,19 +98,19 @@ static QoreNode *QTEXTEDIT_anchorAt(QoreObject *self, QoreAbstractQTextEdit *qte
 }
 
 //AutoFormatting autoFormatting () const
-static QoreNode *QTEXTEDIT_autoFormatting(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_autoFormatting(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->getQTextEdit()->autoFormatting());
 }
 
 //bool canPaste () const
-static QoreNode *QTEXTEDIT_canPaste(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_canPaste(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qte->getQTextEdit()->canPaste());
 }
 
 //QMenu * createStandardContextMenu ()
-static QoreNode *QTEXTEDIT_createStandardContextMenu(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_createStandardContextMenu(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QMenu *qt_qobj = qte->getQTextEdit()->createStandardContextMenu();
    if (!qt_qobj)
@@ -128,7 +128,7 @@ static QoreNode *QTEXTEDIT_createStandardContextMenu(QoreObject *self, QoreAbstr
 }
 
 //QTextCharFormat currentCharFormat () const
-static QoreNode *QTEXTEDIT_currentCharFormat(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_currentCharFormat(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qtcf = new QoreObject(QC_QTextCharFormat, getProgram());
    QoreQTextCharFormat *q_qtcf = new QoreQTextCharFormat(qte->getQTextEdit()->currentCharFormat());
@@ -137,7 +137,7 @@ static QoreNode *QTEXTEDIT_currentCharFormat(QoreObject *self, QoreAbstractQText
 }
 
 //QFont currentFont () const
-static QoreNode *QTEXTEDIT_currentFont(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_currentFont(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qte->getQTextEdit()->currentFont());
@@ -147,7 +147,7 @@ static QoreNode *QTEXTEDIT_currentFont(QoreObject *self, QoreAbstractQTextEdit *
 
 /*
 //QTextCursor cursorForPosition ( const QPoint & pos ) const
-static QoreNode *QTEXTEDIT_cursorForPosition(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_cursorForPosition(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -164,7 +164,7 @@ static QoreNode *QTEXTEDIT_cursorForPosition(QoreObject *self, QoreAbstractQText
 /*
 //QRect cursorRect ( const QTextCursor & cursor ) const
 //QRect cursorRect () const
-static QoreNode *QTEXTEDIT_cursorRect(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_cursorRect(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -182,27 +182,27 @@ static QoreNode *QTEXTEDIT_cursorRect(QoreObject *self, QoreAbstractQTextEdit *q
 */
 
 //int cursorWidth () const
-static QoreNode *QTEXTEDIT_cursorWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_cursorWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->getQTextEdit()->cursorWidth());
 }
 
 /*
 //QTextDocument * document () const
-static QoreNode *QTEXTEDIT_document(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_document(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    ??? return new QoreNode((int64)qte->getQTextEdit()->document());
 }
 */
 
 //QString documentTitle () const
-static QoreNode *QTEXTEDIT_documentTitle(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_documentTitle(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qte->getQTextEdit()->documentTitle().toUtf8().data(), QCS_UTF8);
 }
 
 //void ensureCursorVisible ()
-static QoreNode *QTEXTEDIT_ensureCursorVisible(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_ensureCursorVisible(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    qte->getQTextEdit()->ensureCursorVisible();
    return 0;
@@ -210,14 +210,14 @@ static QoreNode *QTEXTEDIT_ensureCursorVisible(QoreObject *self, QoreAbstractQTe
 
 /*
 //QList<ExtraSelection> extraSelections () const
-static QoreNode *QTEXTEDIT_extraSelections(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_extraSelections(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    ??? return new QoreNode((int64)qte->getQTextEdit()->extraSelections());
 }
 */
 
 //bool find ( const QString & exp, QTextDocument::FindFlags options = 0 )
-static QoreNode *QTEXTEDIT_find(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_find(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString exp;
@@ -229,61 +229,61 @@ static QoreNode *QTEXTEDIT_find(QoreObject *self, QoreAbstractQTextEdit *qte, co
 }
 
 //QString fontFamily () const
-static QoreNode *QTEXTEDIT_fontFamily(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_fontFamily(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qte->getQTextEdit()->fontFamily().toUtf8().data(), QCS_UTF8);
 }
 
 //bool fontItalic () const
-static QoreNode *QTEXTEDIT_fontItalic(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_fontItalic(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qte->getQTextEdit()->fontItalic());
 }
 
 //qreal fontPointSize () const
-static QoreNode *QTEXTEDIT_fontPointSize(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_fontPointSize(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qte->getQTextEdit()->fontPointSize());
 }
 
 //bool fontUnderline () const
-static QoreNode *QTEXTEDIT_fontUnderline(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_fontUnderline(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qte->getQTextEdit()->fontUnderline());
 }
 
 //int fontWeight () const
-static QoreNode *QTEXTEDIT_fontWeight(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_fontWeight(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->getQTextEdit()->fontWeight());
 }
 
 //bool isReadOnly () const
-static QoreNode *QTEXTEDIT_isReadOnly(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_isReadOnly(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qte->getQTextEdit()->isReadOnly());
 }
 
 //bool isUndoRedoEnabled () const
-static QoreNode *QTEXTEDIT_isUndoRedoEnabled(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_isUndoRedoEnabled(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qte->getQTextEdit()->isUndoRedoEnabled());
 }
 
 //int lineWrapColumnOrWidth () const
-static QoreNode *QTEXTEDIT_lineWrapColumnOrWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_lineWrapColumnOrWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->getQTextEdit()->lineWrapColumnOrWidth());
 }
 
 //LineWrapMode lineWrapMode () const
-static QoreNode *QTEXTEDIT_lineWrapMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_lineWrapMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->getQTextEdit()->lineWrapMode());
 }
 
 //virtual QVariant loadResource ( int type, const QUrl & name )
-static QoreNode *QTEXTEDIT_loadResource(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_loadResource(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int type = p ? p->getAsInt() : 0;
@@ -299,7 +299,7 @@ static QoreNode *QTEXTEDIT_loadResource(QoreObject *self, QoreAbstractQTextEdit 
 }
 
 //void mergeCurrentCharFormat ( const QTextCharFormat & modifier )
-static QoreNode *QTEXTEDIT_mergeCurrentCharFormat(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_mergeCurrentCharFormat(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQTextCharFormat *modifier = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)p->val.object->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
@@ -314,7 +314,7 @@ static QoreNode *QTEXTEDIT_mergeCurrentCharFormat(QoreObject *self, QoreAbstract
 }
 
 //void moveCursor ( QTextCursor::MoveOperation operation, QTextCursor::MoveMode mode = QTextCursor::MoveAnchor )
-static QoreNode *QTEXTEDIT_moveCursor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_moveCursor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextCursor::MoveOperation operation = (QTextCursor::MoveOperation)(p ? p->getAsInt() : 0);
@@ -325,13 +325,13 @@ static QoreNode *QTEXTEDIT_moveCursor(QoreObject *self, QoreAbstractQTextEdit *q
 }
 
 //bool overwriteMode () const
-static QoreNode *QTEXTEDIT_overwriteMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_overwriteMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qte->getQTextEdit()->overwriteMode());
 }
 
 //void print ( QPrinter * printer ) const
-static QoreNode *QTEXTEDIT_print(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_print(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPrinter *printer = (p && p->type == NT_OBJECT) ? (QoreQPrinter *)p->val.object->getReferencedPrivateData(CID_QPRINTER, xsink) : 0;
@@ -346,7 +346,7 @@ static QoreNode *QTEXTEDIT_print(QoreObject *self, QoreAbstractQTextEdit *qte, c
 }
 
 //void setAcceptRichText ( bool accept )
-static QoreNode *QTEXTEDIT_setAcceptRichText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setAcceptRichText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool accept = p ? p->getAsBool() : false;
@@ -355,7 +355,7 @@ static QoreNode *QTEXTEDIT_setAcceptRichText(QoreObject *self, QoreAbstractQText
 }
 
 //void setAutoFormatting ( AutoFormatting features )
-static QoreNode *QTEXTEDIT_setAutoFormatting(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setAutoFormatting(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextEdit::AutoFormatting features = (QTextEdit::AutoFormatting)(p ? p->getAsInt() : 0);
@@ -364,7 +364,7 @@ static QoreNode *QTEXTEDIT_setAutoFormatting(QoreObject *self, QoreAbstractQText
 }
 
 //void setCurrentCharFormat ( const QTextCharFormat & format )
-static QoreNode *QTEXTEDIT_setCurrentCharFormat(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setCurrentCharFormat(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQTextCharFormat *format = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)p->val.object->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
@@ -379,7 +379,7 @@ static QoreNode *QTEXTEDIT_setCurrentCharFormat(QoreObject *self, QoreAbstractQT
 }
 
 //void setCursorWidth ( int width )
-static QoreNode *QTEXTEDIT_setCursorWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setCursorWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
@@ -389,7 +389,7 @@ static QoreNode *QTEXTEDIT_setCursorWidth(QoreObject *self, QoreAbstractQTextEdi
 
 /*
 //void setDocument ( QTextDocument * document )
-static QoreNode *QTEXTEDIT_setDocument(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setDocument(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? QTextDocument* document = p;
@@ -399,7 +399,7 @@ static QoreNode *QTEXTEDIT_setDocument(QoreObject *self, QoreAbstractQTextEdit *
 */
 
 //void setDocumentTitle ( const QString & title )
-static QoreNode *QTEXTEDIT_setDocumentTitle(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setDocumentTitle(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString title;
@@ -411,7 +411,7 @@ static QoreNode *QTEXTEDIT_setDocumentTitle(QoreObject *self, QoreAbstractQTextE
 
 /*
 //void setExtraSelections ( const QList<ExtraSelection> & selections )
-static QoreNode *QTEXTEDIT_setExtraSelections(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setExtraSelections(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? QList<ExtraSelection> selections = p;
@@ -421,7 +421,7 @@ static QoreNode *QTEXTEDIT_setExtraSelections(QoreObject *self, QoreAbstractQTex
 */
 
 //void setLineWrapColumnOrWidth ( int w )
-static QoreNode *QTEXTEDIT_setLineWrapColumnOrWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setLineWrapColumnOrWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int w = p ? p->getAsInt() : 0;
@@ -430,7 +430,7 @@ static QoreNode *QTEXTEDIT_setLineWrapColumnOrWidth(QoreObject *self, QoreAbstra
 }
 
 //void setLineWrapMode ( LineWrapMode mode )
-static QoreNode *QTEXTEDIT_setLineWrapMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setLineWrapMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextEdit::LineWrapMode mode = (QTextEdit::LineWrapMode)(p ? p->getAsInt() : 0);
@@ -439,7 +439,7 @@ static QoreNode *QTEXTEDIT_setLineWrapMode(QoreObject *self, QoreAbstractQTextEd
 }
 
 //void setOverwriteMode ( bool overwrite )
-static QoreNode *QTEXTEDIT_setOverwriteMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setOverwriteMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool overwrite = p ? p->getAsBool() : false;
@@ -448,7 +448,7 @@ static QoreNode *QTEXTEDIT_setOverwriteMode(QoreObject *self, QoreAbstractQTextE
 }
 
 //void setReadOnly ( bool ro )
-static QoreNode *QTEXTEDIT_setReadOnly(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setReadOnly(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool ro = p ? p->getAsBool() : false;
@@ -457,7 +457,7 @@ static QoreNode *QTEXTEDIT_setReadOnly(QoreObject *self, QoreAbstractQTextEdit *
 }
 
 //void setTabChangesFocus ( bool b )
-static QoreNode *QTEXTEDIT_setTabChangesFocus(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setTabChangesFocus(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -466,7 +466,7 @@ static QoreNode *QTEXTEDIT_setTabChangesFocus(QoreObject *self, QoreAbstractQTex
 }
 
 //void setTabStopWidth ( int width )
-static QoreNode *QTEXTEDIT_setTabStopWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setTabStopWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
@@ -476,7 +476,7 @@ static QoreNode *QTEXTEDIT_setTabStopWidth(QoreObject *self, QoreAbstractQTextEd
 
 /*
 //void setTextCursor ( const QTextCursor & cursor )
-static QoreNode *QTEXTEDIT_setTextCursor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setTextCursor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? QTextCursor cursor = p;
@@ -486,7 +486,7 @@ static QoreNode *QTEXTEDIT_setTextCursor(QoreObject *self, QoreAbstractQTextEdit
 */
 
 //void setTextInteractionFlags ( Qt::TextInteractionFlags flags )
-static QoreNode *QTEXTEDIT_setTextInteractionFlags(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setTextInteractionFlags(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::TextInteractionFlags flags = (Qt::TextInteractionFlags)(p ? p->getAsInt() : 0);
@@ -495,7 +495,7 @@ static QoreNode *QTEXTEDIT_setTextInteractionFlags(QoreObject *self, QoreAbstrac
 }
 
 //void setUndoRedoEnabled ( bool enable )
-static QoreNode *QTEXTEDIT_setUndoRedoEnabled(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setUndoRedoEnabled(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
@@ -504,7 +504,7 @@ static QoreNode *QTEXTEDIT_setUndoRedoEnabled(QoreObject *self, QoreAbstractQTex
 }
 
 //void setWordWrapMode ( QTextOption::WrapMode policy )
-static QoreNode *QTEXTEDIT_setWordWrapMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setWordWrapMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QTextOption::WrapMode policy = (QTextOption::WrapMode)(p ? p->getAsInt() : 0);
@@ -513,19 +513,19 @@ static QoreNode *QTEXTEDIT_setWordWrapMode(QoreObject *self, QoreAbstractQTextEd
 }
 
 //bool tabChangesFocus () const
-static QoreNode *QTEXTEDIT_tabChangesFocus(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_tabChangesFocus(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qte->getQTextEdit()->tabChangesFocus());
 }
 
 //int tabStopWidth () const
-static QoreNode *QTEXTEDIT_tabStopWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_tabStopWidth(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->getQTextEdit()->tabStopWidth());
 }
 
 //QColor textColor () const
-static QoreNode *QTEXTEDIT_textColor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_textColor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qte->getQTextEdit()->textColor());
@@ -535,38 +535,38 @@ static QoreNode *QTEXTEDIT_textColor(QoreObject *self, QoreAbstractQTextEdit *qt
 
 /*
 //QTextCursor textCursor () const
-static QoreNode *QTEXTEDIT_textCursor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_textCursor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    ??? return new QoreNode((int64)qte->getQTextEdit()->textCursor());
 }
 */
 
 //Qt::TextInteractionFlags textInteractionFlags () const
-static QoreNode *QTEXTEDIT_textInteractionFlags(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_textInteractionFlags(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->getQTextEdit()->textInteractionFlags());
 }
 
 //QString toHtml () const
-static QoreNode *QTEXTEDIT_toHtml(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_toHtml(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qte->getQTextEdit()->toHtml().toUtf8().data(), QCS_UTF8);
 }
 
 //QString toPlainText () const
-static QoreNode *QTEXTEDIT_toPlainText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_toPlainText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qte->getQTextEdit()->toPlainText().toUtf8().data(), QCS_UTF8);
 }
 
 //QTextOption::WrapMode wordWrapMode () const
-static QoreNode *QTEXTEDIT_wordWrapMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_wordWrapMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qte->getQTextEdit()->wordWrapMode());
 }
 
 //void append ( const QString & text )
-static QoreNode *QTEXTEDIT_append(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_append(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -577,28 +577,28 @@ static QoreNode *QTEXTEDIT_append(QoreObject *self, QoreAbstractQTextEdit *qte, 
 }
 
 //void clear ()
-static QoreNode *QTEXTEDIT_clear(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_clear(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    qte->getQTextEdit()->clear();
    return 0;
 }
 
 //void copy ()
-static QoreNode *QTEXTEDIT_qt_copy(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_qt_copy(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    qte->getQTextEdit()->copy();
    return 0;
 }
 
 //void cut ()
-static QoreNode *QTEXTEDIT_cut(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_cut(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    qte->getQTextEdit()->cut();
    return 0;
 }
 
 //void insertHtml ( const QString & text )
-static QoreNode *QTEXTEDIT_insertHtml(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_insertHtml(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -609,7 +609,7 @@ static QoreNode *QTEXTEDIT_insertHtml(QoreObject *self, QoreAbstractQTextEdit *q
 }
 
 //void insertPlainText ( const QString & text )
-static QoreNode *QTEXTEDIT_insertPlainText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_insertPlainText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -620,21 +620,21 @@ static QoreNode *QTEXTEDIT_insertPlainText(QoreObject *self, QoreAbstractQTextEd
 }
 
 //void paste ()
-static QoreNode *QTEXTEDIT_paste(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_paste(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    qte->getQTextEdit()->paste();
    return 0;
 }
 
 //void redo ()
-static QoreNode *QTEXTEDIT_redo(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_redo(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    qte->getQTextEdit()->redo();
    return 0;
 }
 
 //void scrollToAnchor ( const QString & name )
-static QoreNode *QTEXTEDIT_scrollToAnchor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_scrollToAnchor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString name;
@@ -645,14 +645,14 @@ static QoreNode *QTEXTEDIT_scrollToAnchor(QoreObject *self, QoreAbstractQTextEdi
 }
 
 //void selectAll ()
-static QoreNode *QTEXTEDIT_selectAll(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_selectAll(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    qte->getQTextEdit()->selectAll();
    return 0;
 }
 
 //void setAlignment ( Qt::Alignment a )
-static QoreNode *QTEXTEDIT_setAlignment(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setAlignment(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Alignment a = (Qt::Alignment)(p ? p->getAsInt() : 0);
@@ -661,7 +661,7 @@ static QoreNode *QTEXTEDIT_setAlignment(QoreObject *self, QoreAbstractQTextEdit 
 }
 
 //void setCurrentFont ( const QFont & f )
-static QoreNode *QTEXTEDIT_setCurrentFont(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setCurrentFont(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQFont *f = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
@@ -676,7 +676,7 @@ static QoreNode *QTEXTEDIT_setCurrentFont(QoreObject *self, QoreAbstractQTextEdi
 }
 
 //void setFontFamily ( const QString & fontFamily )
-static QoreNode *QTEXTEDIT_setFontFamily(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setFontFamily(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString fontFamily;
@@ -687,7 +687,7 @@ static QoreNode *QTEXTEDIT_setFontFamily(QoreObject *self, QoreAbstractQTextEdit
 }
 
 //void setFontItalic ( bool italic )
-static QoreNode *QTEXTEDIT_setFontItalic(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setFontItalic(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool italic = p ? p->getAsBool() : false;
@@ -696,7 +696,7 @@ static QoreNode *QTEXTEDIT_setFontItalic(QoreObject *self, QoreAbstractQTextEdit
 }
 
 //void setFontPointSize ( qreal s )
-static QoreNode *QTEXTEDIT_setFontPointSize(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setFontPointSize(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal s = p ? p->getAsFloat() : 0.0;
@@ -705,7 +705,7 @@ static QoreNode *QTEXTEDIT_setFontPointSize(QoreObject *self, QoreAbstractQTextE
 }
 
 //void setFontUnderline ( bool underline )
-static QoreNode *QTEXTEDIT_setFontUnderline(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setFontUnderline(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool underline = p ? p->getAsBool() : false;
@@ -714,7 +714,7 @@ static QoreNode *QTEXTEDIT_setFontUnderline(QoreObject *self, QoreAbstractQTextE
 }
 
 //void setFontWeight ( int weight )
-static QoreNode *QTEXTEDIT_setFontWeight(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setFontWeight(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int weight = p ? p->getAsInt() : 0;
@@ -723,7 +723,7 @@ static QoreNode *QTEXTEDIT_setFontWeight(QoreObject *self, QoreAbstractQTextEdit
 }
 
 //void setHtml ( const QString & text )
-static QoreNode *QTEXTEDIT_setHtml(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setHtml(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -734,7 +734,7 @@ static QoreNode *QTEXTEDIT_setHtml(QoreObject *self, QoreAbstractQTextEdit *qte,
 }
 
 //void setPlainText ( const QString & text )
-static QoreNode *QTEXTEDIT_setPlainText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setPlainText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -745,7 +745,7 @@ static QoreNode *QTEXTEDIT_setPlainText(QoreObject *self, QoreAbstractQTextEdit 
 }
 
 //void setText ( const QString & text )
-static QoreNode *QTEXTEDIT_setText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -756,7 +756,7 @@ static QoreNode *QTEXTEDIT_setText(QoreObject *self, QoreAbstractQTextEdit *qte,
 }
 
 //void setTextColor ( const QColor & c )
-static QoreNode *QTEXTEDIT_setTextColor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_setTextColor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQColor *c = (p && p->type == NT_OBJECT) ? (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
@@ -771,14 +771,14 @@ static QoreNode *QTEXTEDIT_setTextColor(QoreObject *self, QoreAbstractQTextEdit 
 }
 
 //void undo ()
-static QoreNode *QTEXTEDIT_undo(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_undo(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    qte->getQTextEdit()->undo();
    return 0;
 }
 
 //void zoomIn ( int range = 1 )
-static QoreNode *QTEXTEDIT_zoomIn(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_zoomIn(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int range = !is_nothing(p) ? p->getAsInt() : 1;
@@ -787,7 +787,7 @@ static QoreNode *QTEXTEDIT_zoomIn(QoreObject *self, QoreAbstractQTextEdit *qte, 
 }
 
 //void zoomOut ( int range = 1 )
-static QoreNode *QTEXTEDIT_zoomOut(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTEXTEDIT_zoomOut(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int range = !is_nothing(p) ? p->getAsInt() : 1;

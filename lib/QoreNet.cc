@@ -87,7 +87,7 @@ static QoreHashNode *he_to_hash(struct hostent &he)
       char **a = he.h_aliases;
       while (*a)
 	 l->push(new QoreStringNode(*(a++)));
-      h->setKeyValue("aliases", new QoreNode(l), 0);
+      h->setKeyValue("aliases", l, 0);
    }
    switch (he.h_addrtype)
    {
@@ -117,7 +117,7 @@ static QoreHashNode *he_to_hash(struct hostent &he)
 	 if (inet_ntop(he.h_addrtype, *(a++), buf, QORE_NET_ADDR_BUF_LEN))
 	    l->push(new QoreStringNode(buf));
       }
-      h->setKeyValue("addresses", new QoreNode(l), 0);
+      h->setKeyValue("addresses", l, 0);
    }
 
    return h;

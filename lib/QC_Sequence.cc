@@ -25,7 +25,7 @@
 
 int CID_SEQUENCE;
 
-static void SEQUENCE_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void SEQUENCE_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    int start;
    class QoreNode *p0 = get_param(params, 0);
@@ -41,12 +41,12 @@ static void SEQUENCE_copy(class QoreObject *self, class QoreObject *old, class Q
    self->setPrivate(CID_SEQUENCE, new QoreSequence(s->getCurrent()));
 }
 
-static class QoreNode *SEQUENCE_next(class QoreObject *self, class QoreSequence *s, const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *SEQUENCE_next(class QoreObject *self, class QoreSequence *s, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)s->next());
 }
 
-static class QoreNode *SEQUENCE_getCurrent(class QoreObject *self, class QoreSequence *s, const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *SEQUENCE_getCurrent(class QoreObject *self, class QoreSequence *s, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)s->getCurrent()); 
 }

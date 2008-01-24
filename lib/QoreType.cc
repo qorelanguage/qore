@@ -69,14 +69,16 @@ DLLEXPORT class QoreTypeManager QTM;
 // system types
 DLLEXPORT class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
    *NT_BOOLEAN, *NT_NULL, *NT_BINARY, *NT_LIST, *NT_HASH,
-   *NT_OBJECT, *NT_FLIST, *NT_BACKQUOTE, *NT_CONTEXTREF, *NT_COMPLEXCONTEXTREF,
+   *NT_OBJECT, *NT_BACKQUOTE, *NT_CONTEXTREF, *NT_COMPLEXCONTEXTREF,
    *NT_VARREF, *NT_TREE, *NT_FIND, *NT_FUNCTION_CALL, *NT_SELF_VARREF,
    *NT_SCOPE_REF, *NT_CONSTANT, *NT_BAREWORD, *NT_REFERENCE, *NT_CONTEXT_ROW,
-   *NT_REGEX_SUBST, *NT_REGEX_TRANS, *NT_VLIST, *NT_REGEX, *NT_CLASSREF,
+   *NT_REGEX_SUBST, *NT_REGEX_TRANS, *NT_REGEX, *NT_CLASSREF,
    *NT_OBJMETHREF, *NT_FUNCREF, *NT_FUNCREFCALL;
 
 // default value nodes for builtin types
-QoreNode *Nothing, *Null, *Zero, *ZeroFloat, *True, *False, *emptyList, *emptyHash;
+QoreNode *Nothing, *Null, *Zero, *ZeroFloat, *True, *False;
+QoreList *emptyList;
+QoreHashNode *emptyHash;
 QoreStringNode *NullString;
 DateTimeNode *ZeroDate;
 
@@ -123,7 +125,6 @@ QoreTypeManager::QoreTypeManager()
    add(NT_OBJECT = new QoreType("object"));
 
    // now parse types
-   add(NT_FLIST = new QoreType("flist"));
    add(NT_BACKQUOTE = new QoreType("backquote"));
    add(NT_CONTEXTREF = new QoreType("context reference"));
    add(NT_COMPLEXCONTEXTREF = new QoreType("complex context reference"));
@@ -139,7 +140,6 @@ QoreTypeManager::QoreTypeManager()
    add(NT_CONTEXT_ROW = new QoreType("get context row"));
    add(NT_REGEX_SUBST = new QoreType("regular expression substitution"));
    add(NT_REGEX_TRANS = new QoreType("transliteration"));
-   add(NT_VLIST = new QoreType("variable list"));
    add(NT_REGEX = new QoreType("regular expression"));
    add(NT_CLASSREF = new QoreType("class reference"));
    add(NT_OBJMETHREF = new QoreType("object method reference"));
@@ -165,7 +165,7 @@ void QoreTypeManager::init()
    NullString    = new QoreStringNode("");
    ZeroDate      = new DateTimeNode((int64)0);
    
-   emptyList     = new QoreNode(new QoreList());
+   emptyList     = new QoreList();
    emptyHash     = new QoreHashNode();
 }
 

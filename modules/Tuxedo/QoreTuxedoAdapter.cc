@@ -1616,7 +1616,7 @@ QoreHash* QoreTuxedoAdapter::loadFmlDescription(const vector<string>& files, boo
     QoreList* list = new QoreList();
     list->push(new QoreNode((int64)id));
     list->push(new QoreNode((int64)type));
-    result->setKeyValue(name, new QoreNode(list), xsink);
+    result->setKeyValue(name, list, xsink);
     if (xsink->isException()) {
       result->derefAndDelete(xsink);
       return 0;
@@ -1719,7 +1719,7 @@ static void do_test(bool is_fml32)
     QoreNode* val = it.getValue();
 
     assert(val->type == NT_LIST);
-    QoreList* l = val->val.list;
+    QoreList* l = reinterpret_cast<QoreList *>(val);
     assert(l->size() == 2);
     QoreNode* id = l->retrieve_entry(0);
     assert(id->type == NT_INT);
@@ -1810,7 +1810,7 @@ static pair<FLDID32, int>  fml_name2id(const char* name, QoreHash* description_i
   }
   // already known to be list with (int, int)
   assert(n->type == NT_LIST);
-  QoreList* l = n->val.list;
+  QoreList* l = reinterpret_cast<QoreList *>(n);
   assert(l->size() == 2);
   n = l->retrieve_entry(0);
   result.first = (FLDID32)n->val.intval;
@@ -1827,7 +1827,7 @@ static pair<string, int> fml_id2name(FLDID32 id, QoreHash* description_info, Exc
   while (it.next()) {
     QoreNode* n = it.getValue();
     assert(n->type == NT_LIST);
-    QoreList* l = n->val.list;
+    QoreList* l = reinterpret_cast<QoreList *>(n);
     assert(l->size() == 2);
     n = l->retrieve_entry(0);
     assert(n->type == NT_INT);
@@ -2045,10 +2045,11 @@ void QoreTuxedoAdapter::setFmlDataToSend(QoreHash* description_info, QoreHash* d
       return;
     }
 
-    if (value->type == NT_LIST) {
+    QoreList *l = dynamic_cast<QoreList *>(value);
+    if (l) {
       // explode the list members
-      for (int i = 0, cnt = value->val.list->size(); i != cnt; ++i) {
-        QoreNode* subvalue = value->val.list->retrieve_entry(i);
+      for (int i = 0, cnt = l->size(); i != cnt; ++i) {
+        QoreNode* subvalue = l->retrieve_entry(i);
         add_fml_value_into_send_buffer((char*)name.c_str(), id_type.first, id_type.second, subvalue, is_fml32, err_name, xsink);
         if (xsink->isException()) return;
       }
@@ -2352,7 +2353,7 @@ static void do_test2(bool is_fml32)
   // value 1
   QoreNode* n = extracted_data->retrieve_entry(0);
   assert(n->type == NT_LIST);
-  sublist = n->val.list;
+  sublist = reinterpret_cast<QoreList *>(n);
   assert(sublist->size() == 2);
   n = sublist->retrieve_entry(0);
   assert(n->type == NT_STRING);
@@ -2367,7 +2368,7 @@ static void do_test2(bool is_fml32)
   // value 2
   n = extracted_data->retrieve_entry(1);
   assert(n->type == NT_LIST);
-  sublist = n->val.list;
+  sublist = reinterpret_cast<QoreList *>(n);
   assert(sublist->size() == 2);
 
   n = sublist->retrieve_entry(0);
@@ -2386,7 +2387,7 @@ static void do_test2(bool is_fml32)
   // value 3
   n = extracted_data->retrieve_entry(2);
   assert(n->type == NT_LIST);
-  sublist = n->val.list;
+  sublist = reinterpret_cast<QoreList *>(n);
   assert(sublist->size() == 2);
 
   n = sublist->retrieve_entry(0);

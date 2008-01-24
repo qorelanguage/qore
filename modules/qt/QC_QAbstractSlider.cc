@@ -26,7 +26,7 @@
 
 int CID_QABSTRACTSLIDER;
 
-static void QABSTRACTSLIDER_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QABSTRACTSLIDER_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    xsink->raiseException("QABSTRACTSLIDER-CONSTRUCTOR-ERROR", "QAbstractSlider is an abstract class");
 }
@@ -37,54 +37,54 @@ static void QABSTRACTSLIDER_copy(class QoreObject *self, class QoreObject *old, 
 }
 
 //bool hasTracking () const
-static QoreNode *QABSTRACTSLIDER_hasTracking(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_hasTracking(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qas->getQAbstractSlider()->hasTracking());
 }
 
 //bool invertedAppearance () const
-static QoreNode *QABSTRACTSLIDER_invertedAppearance(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_invertedAppearance(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qas->getQAbstractSlider()->invertedAppearance());
 }
 
 //bool invertedControls () const
-static QoreNode *QABSTRACTSLIDER_invertedControls(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_invertedControls(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qas->getQAbstractSlider()->invertedControls());
 }
 
 //bool isSliderDown () const
-static QoreNode *QABSTRACTSLIDER_isSliderDown(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_isSliderDown(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qas->getQAbstractSlider()->isSliderDown());
 }
 
 //int maximum () const
-static QoreNode *QABSTRACTSLIDER_maximum(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_maximum(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qas->getQAbstractSlider()->maximum());
 }
 
 //int minimum () const
-static QoreNode *QABSTRACTSLIDER_minimum(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_minimum(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qas->getQAbstractSlider()->minimum());
 }
 //Qt::Orientation orientation () const
-static QoreNode *QABSTRACTSLIDER_orientation(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_orientation(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qas->getQAbstractSlider()->orientation());
 }
 
 //int pageStep () const
-static QoreNode *QABSTRACTSLIDER_pageStep(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_pageStep(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qas->getQAbstractSlider()->pageStep());
 }
 
 //void setInvertedAppearance ( bool )
-static QoreNode *QABSTRACTSLIDER_setInvertedAppearance(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setInvertedAppearance(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -93,7 +93,7 @@ static QoreNode *QABSTRACTSLIDER_setInvertedAppearance(QoreObject *self, QoreAbs
 }
 
 //void setInvertedControls ( bool )
-static QoreNode *QABSTRACTSLIDER_setInvertedControls(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setInvertedControls(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -102,7 +102,7 @@ static QoreNode *QABSTRACTSLIDER_setInvertedControls(QoreObject *self, QoreAbstr
 }
 
 //void setMaximum ( int )
-static QoreNode *QABSTRACTSLIDER_setMaximum(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setMaximum(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -111,7 +111,7 @@ static QoreNode *QABSTRACTSLIDER_setMaximum(QoreObject *self, QoreAbstractQAbstr
 }
 
 //void setMinimum ( int )
-static QoreNode *QABSTRACTSLIDER_setMinimum(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setMinimum(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -120,7 +120,7 @@ static QoreNode *QABSTRACTSLIDER_setMinimum(QoreObject *self, QoreAbstractQAbstr
 }
 
 //void setPageStep ( int )
-static QoreNode *QABSTRACTSLIDER_setPageStep(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setPageStep(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -129,7 +129,7 @@ static QoreNode *QABSTRACTSLIDER_setPageStep(QoreObject *self, QoreAbstractQAbst
 }
 
 //void setRange ( int min, int max )
-static QoreNode *QABSTRACTSLIDER_setRange(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setRange(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int min = p ? p->getAsInt() : 0;
@@ -140,7 +140,7 @@ static QoreNode *QABSTRACTSLIDER_setRange(QoreObject *self, QoreAbstractQAbstrac
 }
 
 //void setSingleStep ( int )
-static QoreNode *QABSTRACTSLIDER_setSingleStep(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setSingleStep(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -149,7 +149,7 @@ static QoreNode *QABSTRACTSLIDER_setSingleStep(QoreObject *self, QoreAbstractQAb
 }
 
 //void setSliderDown ( bool )
-static QoreNode *QABSTRACTSLIDER_setSliderDown(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setSliderDown(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -158,7 +158,7 @@ static QoreNode *QABSTRACTSLIDER_setSliderDown(QoreObject *self, QoreAbstractQAb
 }
 
 //void setSliderPosition ( int )
-static QoreNode *QABSTRACTSLIDER_setSliderPosition(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setSliderPosition(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -167,7 +167,7 @@ static QoreNode *QABSTRACTSLIDER_setSliderPosition(QoreObject *self, QoreAbstrac
 }
 
 //void setTracking ( bool enable )
-static QoreNode *QABSTRACTSLIDER_setTracking(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setTracking(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
@@ -176,19 +176,19 @@ static QoreNode *QABSTRACTSLIDER_setTracking(QoreObject *self, QoreAbstractQAbst
 }
 
 //int singleStep () const
-static QoreNode *QABSTRACTSLIDER_singleStep(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_singleStep(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qas->getQAbstractSlider()->singleStep());
 }
 
 //int sliderPosition () const
-static QoreNode *QABSTRACTSLIDER_sliderPosition(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_sliderPosition(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qas->getQAbstractSlider()->sliderPosition());
 }
 
 //void triggerAction ( SliderAction action )
-static QoreNode *QABSTRACTSLIDER_triggerAction(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_triggerAction(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QAbstractSlider::SliderAction action = (QAbstractSlider::SliderAction)(p ? p->getAsInt() : 0);
@@ -198,13 +198,13 @@ static QoreNode *QABSTRACTSLIDER_triggerAction(QoreObject *self, QoreAbstractQAb
 
 
 //int value () const
-static QoreNode *QABSTRACTSLIDER_value(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_value(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qas->getQAbstractSlider()->value());
 }
 
 //void setOrientation ( Qt::Orientation )
-static QoreNode *QABSTRACTSLIDER_setOrientation(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setOrientation(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
@@ -213,7 +213,7 @@ static QoreNode *QABSTRACTSLIDER_setOrientation(QoreObject *self, QoreAbstractQA
 }
 
 //void setValue ( int )
-static QoreNode *QABSTRACTSLIDER_setValue(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTSLIDER_setValue(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;

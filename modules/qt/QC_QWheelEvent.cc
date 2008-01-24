@@ -32,7 +32,7 @@ class QoreClass *QC_QWheelEvent = 0;
 
 //QWheelEvent ( const QPoint & pos, int delta, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Qt::Orientation orient = Qt::Vertical )
 //QWheelEvent ( const QPoint & pos, const QPoint & globalPos, int delta, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Qt::Orientation orient = Qt::Vertical )
-static void QWHEELEVENT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QWHEELEVENT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQPoint *pos = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -79,19 +79,19 @@ static void QWHEELEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //Qt::MouseButtons buttons () const
-static QoreNode *QWHEELEVENT_buttons(QoreObject *self, QoreQWheelEvent *qwe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWHEELEVENT_buttons(QoreObject *self, QoreQWheelEvent *qwe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qwe->buttons());
 }
 
 //int delta () const
-static QoreNode *QWHEELEVENT_delta(QoreObject *self, QoreQWheelEvent *qwe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWHEELEVENT_delta(QoreObject *self, QoreQWheelEvent *qwe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qwe->delta());
 }
 
 //const QPoint & globalPos () const
-static QoreNode *QWHEELEVENT_globalPos(QoreObject *self, QoreQWheelEvent *qwe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWHEELEVENT_globalPos(QoreObject *self, QoreQWheelEvent *qwe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qwe->globalPos());
@@ -100,25 +100,25 @@ static QoreNode *QWHEELEVENT_globalPos(QoreObject *self, QoreQWheelEvent *qwe, c
 }
 
 //int globalX () const
-static QoreNode *QWHEELEVENT_globalX(QoreObject *self, QoreQWheelEvent *qwe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWHEELEVENT_globalX(QoreObject *self, QoreQWheelEvent *qwe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qwe->globalX());
 }
 
 //int globalY () const
-static QoreNode *QWHEELEVENT_globalY(QoreObject *self, QoreQWheelEvent *qwe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWHEELEVENT_globalY(QoreObject *self, QoreQWheelEvent *qwe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qwe->globalY());
 }
 
 //Qt::Orientation orientation () const
-static QoreNode *QWHEELEVENT_orientation(QoreObject *self, QoreQWheelEvent *qwe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWHEELEVENT_orientation(QoreObject *self, QoreQWheelEvent *qwe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qwe->orientation());
 }
 
 //const QPoint & pos () const
-static QoreNode *QWHEELEVENT_pos(QoreObject *self, QoreQWheelEvent *qwe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWHEELEVENT_pos(QoreObject *self, QoreQWheelEvent *qwe, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qwe->pos());
@@ -127,13 +127,13 @@ static QoreNode *QWHEELEVENT_pos(QoreObject *self, QoreQWheelEvent *qwe, const Q
 }
 
 //int x () const
-static QoreNode *QWHEELEVENT_x(QoreObject *self, QoreQWheelEvent *qwe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWHEELEVENT_x(QoreObject *self, QoreQWheelEvent *qwe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qwe->x());
 }
 
 //int y () const
-static QoreNode *QWHEELEVENT_y(QoreObject *self, QoreQWheelEvent *qwe, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QWHEELEVENT_y(QoreObject *self, QoreQWheelEvent *qwe, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qwe->y());
 }

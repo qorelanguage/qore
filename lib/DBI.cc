@@ -479,7 +479,7 @@ class QoreHashNode *parseDatasource(const char *ds, class ExceptionSink *xsink)
    return h.release();
 }
 
-class QoreNode *f_parseDatasource(const QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_parseDatasource(const QoreList *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -489,16 +489,12 @@ class QoreNode *f_parseDatasource(const QoreNode *params, ExceptionSink *xsink)
    return parseDatasource(p0->getBuffer(), xsink);
 }
 
-class QoreNode *f_getDBIDriverList(const QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_getDBIDriverList(const QoreList *params, ExceptionSink *xsink)
 {
-   class QoreList *l = DBI.getDriverList();
-   if (l)
-      return new QoreNode(l);
-   
-   return NULL;
+   return DBI.getDriverList();
 }
 
-class QoreNode *f_getDBIDriverCapabilityList(const QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_getDBIDriverCapabilityList(const QoreList *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -509,15 +505,10 @@ class QoreNode *f_getDBIDriverCapabilityList(const QoreNode *params, ExceptionSi
    if (!dd)
       return NULL;
 
-   QoreList *l = dd->getCapList();
-
-   if (l)
-      return new QoreNode(l);
-
-   return NULL;
+   return dd->getCapList();
 }
 
-class QoreNode *f_getDBIDriverCapabilities(const QoreNode *params, ExceptionSink *xsink)
+class QoreNode *f_getDBIDriverCapabilities(const QoreList *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 

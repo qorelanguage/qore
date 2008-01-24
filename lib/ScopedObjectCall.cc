@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ScopedObjectCall.h>
 
-ScopedObjectCall::ScopedObjectCall(class NamedScope *n, class QoreNode *a) 
+ScopedObjectCall::ScopedObjectCall(NamedScope *n, QoreList *a) 
 { 
    name = n; 
    args = a; 

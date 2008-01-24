@@ -31,7 +31,7 @@ int CID_QTRANSLATOR;
 class QoreClass *QC_QTranslator = 0;
 
 //QTranslator ( QObject * parent = 0 )
-static void QTRANSLATOR_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QTRANSLATOR_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -48,13 +48,13 @@ static void QTRANSLATOR_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //virtual bool isEmpty () const
-static QoreNode *QTRANSLATOR_isEmpty(QoreObject *self, QoreQTranslator *qt, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTRANSLATOR_isEmpty(QoreObject *self, QoreQTranslator *qt, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qt->qobj->isEmpty());
 }
 
 //bool load ( const QString & filename, const QString & directory = QString(), const QString & search_delimiters = QString(), const QString & suffix = QString() )
-static QoreNode *QTRANSLATOR_load(QoreObject *self, QoreQTranslator *qt, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTRANSLATOR_load(QoreObject *self, QoreQTranslator *qt, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString filename;
@@ -77,7 +77,7 @@ static QoreNode *QTRANSLATOR_load(QoreObject *self, QoreQTranslator *qt, const Q
 
 //virtual QString translate ( const char * context, const char * sourceText, const char * comment = 0 ) const
 //QString translate ( const char * context, const char * sourceText, const char * comment, int n ) const
-static QoreNode *QTRANSLATOR_translate(QoreObject *self, QoreQTranslator *qt, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QTRANSLATOR_translate(QoreObject *self, QoreQTranslator *qt, const QoreList *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p) {

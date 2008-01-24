@@ -11,14 +11,15 @@ class T {
 	    return;
 	 }
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)control));
 	 args->push(return_object(QC_QStyleOptionComplex, new QoreQStyleOptionComplex(*option)));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 dispatch_event(qore_obj, m_drawComplexControl, args);
+	 discard(dispatch_event_intern(qore_obj, m_drawComplexControl, *args, &xsink), &xsink);
       }
       DLLLOCAL virtual void drawControl ( QStyle::ControlElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const 
       {
@@ -27,14 +28,15 @@ class T {
 	    return;
 	 }
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)element));
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 dispatch_event(qore_obj, m_drawControl, args);
+	 discard(dispatch_event_intern(qore_obj, m_drawControl, *args, &xsink), &xsink);
       }
       DLLLOCAL virtual void drawItemPixmap ( QPainter * painter, const QRect & rectangle, int alignment, const QPixmap & pixmap ) const 
       { 
@@ -43,13 +45,14 @@ class T {
 	    return;
 	 }
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreNode((int64)alignment));
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
 
-	 dispatch_event(qore_obj, m_drawItemPixmap, args);
+	 discard(dispatch_event_intern(qore_obj, m_drawItemPixmap, *args, &xsink), &xsink);
       }
       DLLLOCAL virtual void drawItemText ( QPainter * painter, const QRect & rectangle, int alignment, const QPalette & palette, bool enabled, const QString & text, QPalette::ColorRole textRole = QPalette::NoRole ) const 
       { 
@@ -58,7 +61,8 @@ class T {
 	    return;
 	 }
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreNode((int64)alignment));
@@ -67,20 +71,20 @@ class T {
 	 args->push(new QoreStringNode(text.toUtf8().data()));
 	 args->push(new QoreNode((int64)textRole));
 
-	 dispatch_event(qore_obj, m_drawItemText, args);
+	 discard(dispatch_event_intern(qore_obj, m_drawItemText, *args, &xsink), &xsink);
       }
       DLLLOCAL virtual QRect itemPixmapRect ( const QRect & rectangle, int alignment, const QPixmap & pixmap ) const 
       {
 	 if (!m_itemPixmapRect)
 	    return parent_itemPixmapRect(rectangle, alignment, pixmap); 
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreNode((int64)alignment));
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemPixmapRect, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemPixmapRect, *args, &xsink), &xsink);
 	 QoreQRect *qrect = (*rv && rv->type == NT_OBJECT) ? (QoreQRect *)rv->val.object->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
 	    xsink.raiseException("QSTYLE-ITEMPIXMAPRECT-ERROR", "%s::itemPixmapRect() did not return a QRect object (got type '%s' instead)",
@@ -98,14 +102,15 @@ class T {
 	    return;
 	 }
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)element));
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 dispatch_event(qore_obj, m_drawPrimitive, args);
+	 discard(dispatch_event_intern(qore_obj, m_drawPrimitive, *args, &xsink), &xsink);
       }
 
       DLLLOCAL virtual QStyle::SubControl hitTestComplexControl(QStyle::ComplexControl control, const QStyleOptionComplex *option, const QPoint &point, const QWidget *widget = 0) const
@@ -113,15 +118,15 @@ class T {
 	 if (!m_hitTestComplexControl)
 	    return parent_hitTestComplexControl(control, option, point, widget);
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)control));
 	 args->push(return_object(QC_QStyleOptionComplex, new QoreQStyleOptionComplex(*option)));
 	 args->push(return_object(QC_QPoint, new QoreQPoint(point)));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_hitTestComplexControl, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_hitTestComplexControl, *args, &xsink), &xsink);
 	 return (QStyle::SubControl)(*rv ? rv->getAsInt() : 0);
       }
 
@@ -130,14 +135,14 @@ class T {
 	 if (!m_standardPixmap)
 	    return parent_standardPixmap(standardPixmap, option, widget); 
 
-	 QoreList *args = new QoreList();	 
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)standardPixmap));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_standardPixmap, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_standardPixmap, *args, &xsink), &xsink);
 	 QoreQPixmap *qpixmap = (*rv && rv->type == NT_OBJECT) ? (QoreQPixmap *)rv->val.object->getReferencedPrivateData(CID_QPIXMAP, &xsink) : 0;
 	 if (!qpixmap) {
 	    xsink.raiseException("QSTYLE-STANDARDPIXMAP-ERROR", "%s::standardPixmap() did not return a QPixmap object (got type '%s' instead)",
@@ -153,13 +158,13 @@ class T {
 	 if (!m_generatedIconPixmap)
 	    return parent_generatedIconPixmap(mode, pixmap, option); 
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)mode));
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
 	 args->push(return_qstyleoption(option));
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_generatedIconPixmap, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_generatedIconPixmap, *args, &xsink), &xsink);
 	 QoreQPixmap *qpixmap = (*rv && rv->type == NT_OBJECT) ? (QoreQPixmap *)rv->val.object->getReferencedPrivateData(CID_QPIXMAP, &xsink) : 0;
 	 if (!qpixmap) {
 	    xsink.raiseException("QSTYLE-GENERATEDICONPIXMAP-ERROR", "%s::generatedIconPixmap() did not return a QPixmap object (got type '%s' instead)",
@@ -175,15 +180,15 @@ class T {
 	 if (!m_itemTextRect)
 	    return parent_itemTextRect(metrics, rectangle, alignment, enabled, text); 
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(return_object(QC_QFontMetrics, new QoreQFontMetrics(metrics)));
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreNode((int64)alignment));
 	 args->push(new QoreNode(enabled));
 	 args->push(new QoreStringNode(text.toUtf8().data()));
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemTextRect, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemTextRect, *args, &xsink), &xsink);
 	 QoreQRect *qrect = (*rv && rv->type == NT_OBJECT) ? (QoreQRect *)rv->val.object->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
 	    xsink.raiseException("QSTYLE-ITEMPIXMAPRECT-ERROR", "%s::itemPixmapRect() did not return a QRect object (got type '%s' instead)",
@@ -198,14 +203,14 @@ class T {
 	 if (!m_pixelMetric)
 	    return parent_pixelMetric(metric, option, widget); 
 
-	 QoreList *args = new QoreList();	 
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)metric));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_pixelMetric, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_pixelMetric, *args, &xsink), &xsink);
 	 return *rv ? rv->getAsInt() : 0;
       }
       DLLLOCAL virtual void polish ( QWidget * widget ) 
@@ -215,9 +220,10 @@ class T {
 	    return;
 	 }
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(return_qobject(widget));
-	 dispatch_event(qore_obj, m_polish, args);
+	 discard(dispatch_event_intern(qore_obj, m_polish, *args, &xsink), &xsink);
       }
       DLLLOCAL virtual void polish ( QApplication * application )
       {	
@@ -226,9 +232,10 @@ class T {
 	    return;
 	 }
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(return_qobject(application));
-	 dispatch_event(qore_obj, m_polish, args);
+	 discard(dispatch_event_intern(qore_obj, m_polish, *args, &xsink), &xsink);
       }
       DLLLOCAL virtual void polish ( QPalette & palette ) 
       {
@@ -239,14 +246,12 @@ class T {
 
 	 ExceptionSink xsink;
          LVarInstantiatorHelper lvh("arg0", return_object(QC_QPalette, new QoreQPalette(&palette)), &xsink);
-	 
-	 QoreList *args = new QoreList();
+
+	 ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(lvh.getArg());
 
-	 ReferenceHolder<QoreNode> na(new QoreNode(args), &xsink);
-
 	 // execute method and discard any return value
-         discard(m_polish->eval(qore_obj, *na, &xsink), &xsink);
+         discard(m_polish->eval(qore_obj, *args, &xsink), &xsink);
 
 /*
 	 QoreNode *out = lvh.getOutputValue();
@@ -263,15 +268,15 @@ class T {
          if (!m_sizeFromContents)
 	    return parent_sizeFromContents(type, option, contentsSize, widget); 
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)type));
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QSize, new QoreQSize(contentsSize)));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_sizeFromContents, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_sizeFromContents, *args, &xsink), &xsink);
 	 QoreQSize *qsize = (*rv && rv->type == NT_OBJECT) ? (QoreQSize *)rv->val.object->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
 	 if (!qsize) {
 	    xsink.raiseException("QSTYLE-SIZEFROMCONTENTS-ERROR", "%s::sizeFromContents() did not return a QSize object (got type '%s' instead)",
@@ -303,15 +308,15 @@ class T {
          if (!m_styleHint)
 	    return parent_styleHint(hint, option, widget, returnData); 
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)hint));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 	 // returnData not currently implemented
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_styleHint, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_styleHint, *args, &xsink), &xsink);
 	 return *rv ? rv->getAsInt() : 0;
       }
       DLLLOCAL virtual QRect subControlRect ( QStyle::ComplexControl control, const QStyleOptionComplex * option, QStyle::SubControl subControl, const QWidget * widget = 0 ) const 
@@ -319,15 +324,15 @@ class T {
          if (!m_subControlRect)
 	    return parent_subControlRect(control, option, subControl, widget); 
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)control));
 	 args->push(return_qstyleoption(option));
 	 args->push(new QoreNode((int64)subControl));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_subControlRect, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_subControlRect, *args, &xsink), &xsink);
 	 QoreQRect *qrect = (*rv && rv->type == NT_OBJECT) ? (QoreQRect *)rv->val.object->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
 	    xsink.raiseException("QSTYLE-SUBCONTROLRECT-ERROR", "%s::subControlRect() did not return a QRect object (got type '%s' instead)",
@@ -342,14 +347,14 @@ class T {
          if (!m_subElementRect)
 	    return parent_subElementRect(element, option, widget); 
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(new QoreNode((int64)element));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_subElementRect, args, &xsink), &xsink);
+	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_subElementRect, *args, &xsink), &xsink);
 	 QoreQRect *qrect = (*rv && rv->type == NT_OBJECT) ? (QoreQRect *)rv->val.object->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
 	    xsink.raiseException("QSTYLE-SUBELEMENTRECT-ERROR", "%s::subElementRect() did not return a QRect object (got type '%s' instead)",
@@ -366,9 +371,10 @@ class T {
             return;
          }
 
-	 QoreList *args = new QoreList();
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(return_qobject(widget));
-	 dispatch_event(qore_obj, m_unpolish, args);
+	 discard(dispatch_event_intern(qore_obj, m_unpolish, *args, &xsink), &xsink);
       }
       DLLLOCAL virtual void unpolish ( QApplication * application ) 
       {
@@ -376,9 +382,11 @@ class T {
 	    parent_unpolish(application); 
 	    return;
 	 }
-	 QoreList *args = new QoreList();
+
+	 ExceptionSink xsink;
+         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
 	 args->push(return_qobject(application));
-	 dispatch_event(qore_obj, m_unpolish, args);
+	 discard(dispatch_event_intern(qore_obj, m_unpolish, *args, &xsink), &xsink);
       }
 
    public:

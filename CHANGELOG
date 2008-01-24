@@ -1,3 +1,6 @@
+2007.01.24: David Nichols
+	* QoreList implemented as QoreNode subtype
+
 2007.01.23: David Nichols
 	* QoreHashNode created as QoreNode subtype
 	* almost all QoreType functions removed

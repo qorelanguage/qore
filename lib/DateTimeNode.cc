@@ -126,7 +126,7 @@ bool DateTimeNode::needs_eval() const
    return false;
 }
 
-class QoreNode *DateTimeNode::realCopy(class ExceptionSink *xsink) const
+class QoreNode *DateTimeNode::realCopy() const
 {
    return new DateTimeNode(*this);
 }

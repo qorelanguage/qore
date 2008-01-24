@@ -162,7 +162,7 @@ QoreStringNode *QoreStringNode::createAndConvertEncoding(const char *str, const 
    return 0;
 }
 
-class QoreNode *QoreStringNode::realCopy(class ExceptionSink *xsink) const
+class QoreNode *QoreStringNode::realCopy() const
 {
    return copy();
 }

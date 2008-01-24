@@ -24,16 +24,16 @@
 #include <qore/intern/ql_object.h>
 
 // returns a list of method names for the object passed as a parameter
-static QoreNode *f_getMethodList(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_getMethodList(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
    if (!p0)
       return NULL;
    
-   return new QoreNode(p0->val.object->getClass()->getMethodList());
+   return p0->val.object->getClass()->getMethodList();
 }
 
-static QoreNode *f_callObjectMethod(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_callObjectMethod(const QoreList *params, ExceptionSink *xsink)
 {
    // get object
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
@@ -45,37 +45,24 @@ static QoreNode *f_callObjectMethod(const QoreNode *params, ExceptionSink *xsink
    if (!p1)
       return NULL;
    
-   QoreNode *args;
+   ReferenceHolder<QoreList> args(xsink);
    
    // if there are arguments to pass
    if (get_param(params, 2))
    {
       // create argument list by copying current list
-      QoreList *l = params->val.list->copyListFrom(2);
-      if (xsink->isEvent())
-      {
-         if (l)
-	    l->derefAndDelete(xsink);
-         return NULL;
-      }
-      args = new QoreNode(l);
+      ReferenceHolder<QoreList> l(params->copyListFrom(2), xsink);
+      if (*xsink)
+	 return 0;
+      args = l.release();
    }
-   else
-      args = NULL;
 
-   QoreNode *rv;
    // make sure method call is internal (allows access to private methods) if this function was called internally
-   {
-      CodeContextHelper cch(NULL, p0->val.object, xsink);
-      //substituteObjectIfEqual(p0->val.object);
-      rv = p0->val.object->evalMethod(p1, args, xsink);
-      if (args)
-	 args->deref(xsink);
-   }
-   return rv;
+   CodeContextHelper cch(NULL, p0->val.object, xsink);
+   return p0->val.object->evalMethod(p1, *args, xsink);
 }
 
-static QoreNode *f_callObjectMethodArgs(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_callObjectMethodArgs(const QoreList *params, ExceptionSink *xsink)
 {
    // get object
    QoreNode *p0 = test_param(params, NT_OBJECT, 0);
@@ -86,34 +73,33 @@ static QoreNode *f_callObjectMethodArgs(const QoreNode *params, ExceptionSink *x
    QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
       return NULL;
-   
-   QoreNode *args, *p2;
-   
+
+   ReferenceHolder<QoreList> args(xsink);
+   QoreNode *p2;
+
+   bool new_args = false;
    // if there are arguments to pass
    if ((p2 = get_param(params, 2)))
    {
-      if (p2->type == NT_LIST)
-	 args = p2;
-      else
+      args = dynamic_cast<QoreList *>(p2);
+      if (!args)
       {
-	 args = new QoreNode(new QoreList());
-	 args->val.list->push(p2);
+	 args = new QoreList();
+	 args->push(p2);
+	 new_args = true;
       }
    }
-   else
-      args = NULL;
    
    // make sure method call is internal (allows access to private methods) if this function was called internally
    QoreNode *rv;
    {
       CodeContextHelper cch(NULL, p0->val.object, xsink);
       //substituteObjectIfEqual(p0->val.object);
-      rv = p0->val.object->evalMethod(p1, args, xsink);
-      if (p2 != args)
-      {
-	 args->val.list->shift();
-	 args->deref(xsink);
-      }
+      rv = p0->val.object->evalMethod(p1, *args, xsink);
+
+      // remove value (and borrowed reference) from list if necessary
+      if (new_args)
+	 args->shift();
    }
    
    return rv;

@@ -31,7 +31,7 @@ int CID_QMOUSEEVENT;
 
 class QoreClass *QC_QMouseEvent = 0;
 
-static void QMOUSEEVENT_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QMOUSEEVENT_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreQMouseEvent *qr;
 
@@ -86,19 +86,19 @@ static void QMOUSEEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //Qt::MouseButton button () const
-static QoreNode *QMOUSEEVENT_button(QoreObject *self, QoreQMouseEvent *qme, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOUSEEVENT_button(QoreObject *self, QoreQMouseEvent *qme, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qme->button());
 }
 
 //Qt::MouseButtons buttons () const
-static QoreNode *QMOUSEEVENT_buttons(QoreObject *self, QoreQMouseEvent *qme, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOUSEEVENT_buttons(QoreObject *self, QoreQMouseEvent *qme, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qme->buttons());
 }
 
 //const QPoint & globalPos () const
-static QoreNode *QMOUSEEVENT_globalPos(QoreObject *self, QoreQMouseEvent *qme, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOUSEEVENT_globalPos(QoreObject *self, QoreQMouseEvent *qme, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qme->globalPos());
@@ -107,19 +107,19 @@ static QoreNode *QMOUSEEVENT_globalPos(QoreObject *self, QoreQMouseEvent *qme, c
 }
 
 //int globalX () const
-static QoreNode *QMOUSEEVENT_globalX(QoreObject *self, QoreQMouseEvent *qme, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOUSEEVENT_globalX(QoreObject *self, QoreQMouseEvent *qme, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qme->globalX());
 }
 
 //int globalY () const
-static QoreNode *QMOUSEEVENT_globalY(QoreObject *self, QoreQMouseEvent *qme, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOUSEEVENT_globalY(QoreObject *self, QoreQMouseEvent *qme, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qme->globalY());
 }
 
 //const QPoint & pos () const
-static QoreNode *QMOUSEEVENT_pos(QoreObject *self, QoreQMouseEvent *qme, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOUSEEVENT_pos(QoreObject *self, QoreQMouseEvent *qme, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qme->pos());
@@ -128,13 +128,13 @@ static QoreNode *QMOUSEEVENT_pos(QoreObject *self, QoreQMouseEvent *qme, const Q
 }
 
 //int x () const
-static QoreNode *QMOUSEEVENT_x(QoreObject *self, QoreQMouseEvent *qme, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOUSEEVENT_x(QoreObject *self, QoreQMouseEvent *qme, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qme->x());
 }
 
 //int y () const
-static QoreNode *QMOUSEEVENT_y(QoreObject *self, QoreQMouseEvent *qme, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QMOUSEEVENT_y(QoreObject *self, QoreQMouseEvent *qme, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qme->y());
 }

@@ -47,18 +47,15 @@ static inline class QoreNode *map_minstance_to_node(const MInstance *min, Except
 // maps a TIBCO sequence to a QORE list
 static inline class QoreNode *map_msequence_to_node(const MSequence *ms, ExceptionSink *xsink)
 {
-   class QoreNode *rv = new QoreNode(NT_LIST);
-   rv->val.list = new QoreList();
+   ReferenceHolder<QoreList> rv(new QoreList(), xsink);
 
    for (unsigned i = 0; i < ms->size() && !xsink->isEvent(); i++)
-      rv->val.list->push(map_mdata_to_node((MData *)(*ms)[i], xsink));
+      rv->push(map_mdata_to_node((MData *)(*ms)[i], xsink));
 
    if (xsink->isEvent())
-   {
-      rv->deref(xsink);
-      return NULL;
-   }
-   return rv;
+      return 0;
+
+   return rv.release();
 }
 
 typedef MEnumerator<MString, MData *> ma_enumerator_t;

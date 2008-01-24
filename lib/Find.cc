@@ -43,7 +43,7 @@ Find::~Find()
 class QoreNode *Find::eval(ExceptionSink *xsink)
 {
    class Context *context;
-   class QoreNode *rv = NULL;
+   ReferenceHolder<QoreNode> rv(xsink);
    
    context = new Context(NULL, xsink, find_exp);
    if (xsink->isEvent())
@@ -53,7 +53,7 @@ class QoreNode *Find::eval(ExceptionSink *xsink)
       return NULL;
    }
    
-   int multi = 0;
+   QoreList *lrv = 0;
    for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++)
    {
       printd(4, "Find::eval() checking %d/%d\n", context->pos, context->max_pos);
@@ -63,29 +63,23 @@ class QoreNode *Find::eval(ExceptionSink *xsink)
 	 QoreNode *result = exp->eval(xsink);
 	 if (rv)
 	 {
-	    if (!multi)
+	    if (!lrv)
 	    {
-	       QoreList *l = new QoreList();
-	       l->push(rv);
-	       l->push(result);
-	       rv = new QoreNode(l);
-	       multi = 1;
+	       lrv = new QoreList();
+	       lrv->push(*rv);
+	       lrv->push(result);
+	       rv = lrv;
 	    }
 	    else
-	       rv->val.list->push(result);
+	       lrv->push(result);
 	 }
 	 else
 	    rv = result;
       }
    }
    if (xsink->isEvent())
-   {
-      if (rv)
-      {
-	 rv->deref(xsink);
-	 rv = NULL;
-      }
-   }
+      rv = NULL;
+
    context->deref(xsink);
-   return rv;
+   return rv.release();
 }

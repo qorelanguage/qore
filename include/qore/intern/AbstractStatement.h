@@ -36,7 +36,8 @@
 
 // all definitions in this file are private to the library and subject to change
 
-DLLLOCAL int process_node(class QoreNode **node, lvh_t oflag, int pflag);
+DLLLOCAL int process_node(QoreNode **node, lvh_t oflag, int pflag);
+DLLLOCAL int process_list_node(QoreList **node, lvh_t oflag, int pflag);
 
 class AbstractStatement
 {

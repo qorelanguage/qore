@@ -32,7 +32,7 @@ class QoreClass *QC_QDateEdit = 0;
 
 //QDateEdit ( QWidget * parent = 0 )
 //QDateEdit ( const QDate & date, QWidget * parent = 0 )
-static void QDATEEDIT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QDATEEDIT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {

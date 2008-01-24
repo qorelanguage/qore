@@ -263,14 +263,12 @@ class QoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreList 
 #endif
 
    // return only hash of first row, if any
-   if (rv && rv->type == NT_LIST)
+   QoreList *l = dynamic_cast<QoreList *>(rv);
+   if (l)
    {
-      class QoreNode *h = rv->val.list->shift();
+      QoreNode *h = l->shift();
       rv->deref(xsink);
-      if (h)
-	 rv = h;
-      else
-	 rv = NULL;
+      rv = h;
    }
    //printd(5, "DSP::selectRow() ds=%08p SQL=%s rv=%s (%08p)\n", ds, sql->getBuffer(), rv ? rv->getTypeName() : "(null)", rv);
    

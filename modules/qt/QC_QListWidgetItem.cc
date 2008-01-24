@@ -38,7 +38,7 @@ class QoreClass *QC_QListWidgetItem = 0;
 //QListWidgetItem ( const QString & text, QListWidget * parent = 0, int type = Type )
 //QListWidgetItem ( const QIcon & icon, const QString & text, QListWidget * parent = 0, int type = Type )
 //QListWidgetItem ( const QListWidgetItem & other )
-static void QLISTWIDGETITEM_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QLISTWIDGETITEM_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -98,7 +98,7 @@ static void QLISTWIDGETITEM_copy(class QoreObject *self, class QoreObject *old, 
 }
 
 //QBrush background () const
-static QoreNode *QLISTWIDGETITEM_background(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_background(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qlwi->getQListWidgetItem()->background());
@@ -107,13 +107,13 @@ static QoreNode *QLISTWIDGETITEM_background(QoreObject *self, QoreQListWidgetIte
 }
 
 //Qt::CheckState checkState () const
-static QoreNode *QLISTWIDGETITEM_checkState(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_checkState(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qlwi->getQListWidgetItem()->checkState());
 }
 
 //virtual QListWidgetItem * clone () const
-static QoreNode *QLISTWIDGETITEM_clone(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_clone(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qlwi = new QoreObject(self->getClass(CID_QLISTWIDGETITEM), getProgram());
    QoreQListWidgetItem *q_qlwi = new QoreQListWidgetItem(*qlwi);
@@ -122,7 +122,7 @@ static QoreNode *QLISTWIDGETITEM_clone(QoreObject *self, QoreQListWidgetItem *ql
 }
 
 //virtual QVariant data ( int role ) const
-static QoreNode *QLISTWIDGETITEM_data(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_data(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int role = p ? p->getAsInt() : 0;
@@ -130,13 +130,13 @@ static QoreNode *QLISTWIDGETITEM_data(QoreObject *self, QoreQListWidgetItem *qlw
 }
 
 //Qt::ItemFlags flags () const
-static QoreNode *QLISTWIDGETITEM_flags(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_flags(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qlwi->getQListWidgetItem()->flags());
 }
 
 //QFont font () const
-static QoreNode *QLISTWIDGETITEM_font(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_font(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qlwi->getQListWidgetItem()->font());
@@ -145,7 +145,7 @@ static QoreNode *QLISTWIDGETITEM_font(QoreObject *self, QoreQListWidgetItem *qlw
 }
 
 //QBrush foreground () const
-static QoreNode *QLISTWIDGETITEM_foreground(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_foreground(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qlwi->getQListWidgetItem()->foreground());
@@ -154,7 +154,7 @@ static QoreNode *QLISTWIDGETITEM_foreground(QoreObject *self, QoreQListWidgetIte
 }
 
 //QIcon icon () const
-static QoreNode *QLISTWIDGETITEM_icon(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_icon(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qlwi->getQListWidgetItem()->icon());
@@ -163,19 +163,19 @@ static QoreNode *QLISTWIDGETITEM_icon(QoreObject *self, QoreQListWidgetItem *qlw
 }
 
 //bool isHidden () const
-static QoreNode *QLISTWIDGETITEM_isHidden(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_isHidden(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qlwi->getQListWidgetItem()->isHidden());
 }
 
 //bool isSelected () const
-static QoreNode *QLISTWIDGETITEM_isSelected(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_isSelected(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qlwi->getQListWidgetItem()->isSelected());
 }
 
 //QListWidget * listWidget () const
-static QoreNode *QLISTWIDGETITEM_listWidget(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_listWidget(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QListWidget *qt_qobj = qlwi->getQListWidgetItem()->listWidget();
    if (!qt_qobj)
@@ -194,7 +194,7 @@ static QoreNode *QLISTWIDGETITEM_listWidget(QoreObject *self, QoreQListWidgetIte
 
 /*
 //virtual void read ( QDataStream & in )
-static QoreNode *QLISTWIDGETITEM_read(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_read(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? QDataStream in = p;
@@ -204,7 +204,7 @@ static QoreNode *QLISTWIDGETITEM_read(QoreObject *self, QoreQListWidgetItem *qlw
 */
 
 //void setBackground ( const QBrush & brush )
-static QoreNode *QLISTWIDGETITEM_setBackground(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setBackground(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QBrush brush;
@@ -215,7 +215,7 @@ static QoreNode *QLISTWIDGETITEM_setBackground(QoreObject *self, QoreQListWidget
 }
 
 //void setCheckState ( Qt::CheckState state )
-static QoreNode *QLISTWIDGETITEM_setCheckState(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setCheckState(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::CheckState state = (Qt::CheckState)(p ? p->getAsInt() : 0);
@@ -224,7 +224,7 @@ static QoreNode *QLISTWIDGETITEM_setCheckState(QoreObject *self, QoreQListWidget
 }
 
 //virtual void setData ( int role, const QVariant & value )
-static QoreNode *QLISTWIDGETITEM_setData(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setData(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int role = p ? p->getAsInt() : 0;
@@ -237,7 +237,7 @@ static QoreNode *QLISTWIDGETITEM_setData(QoreObject *self, QoreQListWidgetItem *
 }
 
 //void setFlags ( Qt::ItemFlags flags )
-static QoreNode *QLISTWIDGETITEM_setFlags(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setFlags(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::ItemFlags flags = (Qt::ItemFlags)(p ? p->getAsInt() : 0);
@@ -246,7 +246,7 @@ static QoreNode *QLISTWIDGETITEM_setFlags(QoreObject *self, QoreQListWidgetItem 
 }
 
 //void setFont ( const QFont & font )
-static QoreNode *QLISTWIDGETITEM_setFont(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setFont(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
@@ -261,7 +261,7 @@ static QoreNode *QLISTWIDGETITEM_setFont(QoreObject *self, QoreQListWidgetItem *
 }
 
 //void setForeground ( const QBrush & brush )
-static QoreNode *QLISTWIDGETITEM_setForeground(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setForeground(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QBrush brush;
@@ -272,7 +272,7 @@ static QoreNode *QLISTWIDGETITEM_setForeground(QoreObject *self, QoreQListWidget
 }
 
 //void setHidden ( bool hide )
-static QoreNode *QLISTWIDGETITEM_setHidden(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setHidden(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool hide = p ? p->getAsBool() : false;
@@ -281,7 +281,7 @@ static QoreNode *QLISTWIDGETITEM_setHidden(QoreObject *self, QoreQListWidgetItem
 }
 
 //void setIcon ( const QIcon & icon )
-static QoreNode *QLISTWIDGETITEM_setIcon(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setIcon(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
@@ -296,7 +296,7 @@ static QoreNode *QLISTWIDGETITEM_setIcon(QoreObject *self, QoreQListWidgetItem *
 }
 
 //void setSelected ( bool select )
-static QoreNode *QLISTWIDGETITEM_setSelected(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setSelected(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool select = p ? p->getAsBool() : false;
@@ -305,7 +305,7 @@ static QoreNode *QLISTWIDGETITEM_setSelected(QoreObject *self, QoreQListWidgetIt
 }
 
 //void setSizeHint ( const QSize & size )
-static QoreNode *QLISTWIDGETITEM_setSizeHint(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setSizeHint(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
@@ -320,7 +320,7 @@ static QoreNode *QLISTWIDGETITEM_setSizeHint(QoreObject *self, QoreQListWidgetIt
 }
 
 //void setStatusTip ( const QString & statusTip )
-static QoreNode *QLISTWIDGETITEM_setStatusTip(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setStatusTip(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString statusTip;
@@ -331,7 +331,7 @@ static QoreNode *QLISTWIDGETITEM_setStatusTip(QoreObject *self, QoreQListWidgetI
 }
 
 //void setText ( const QString & text )
-static QoreNode *QLISTWIDGETITEM_setText(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setText(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -342,7 +342,7 @@ static QoreNode *QLISTWIDGETITEM_setText(QoreObject *self, QoreQListWidgetItem *
 }
 
 //void setTextAlignment ( int alignment )
-static QoreNode *QLISTWIDGETITEM_setTextAlignment(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setTextAlignment(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int alignment = p ? p->getAsInt() : 0;
@@ -351,7 +351,7 @@ static QoreNode *QLISTWIDGETITEM_setTextAlignment(QoreObject *self, QoreQListWid
 }
 
 //void setToolTip ( const QString & toolTip )
-static QoreNode *QLISTWIDGETITEM_setToolTip(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setToolTip(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString toolTip;
@@ -362,7 +362,7 @@ static QoreNode *QLISTWIDGETITEM_setToolTip(QoreObject *self, QoreQListWidgetIte
 }
 
 //void setWhatsThis ( const QString & whatsThis )
-static QoreNode *QLISTWIDGETITEM_setWhatsThis(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_setWhatsThis(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString whatsThis;
@@ -373,7 +373,7 @@ static QoreNode *QLISTWIDGETITEM_setWhatsThis(QoreObject *self, QoreQListWidgetI
 }
 
 //QSize sizeHint () const
-static QoreNode *QLISTWIDGETITEM_sizeHint(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_sizeHint(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qlwi->getQListWidgetItem()->sizeHint());
@@ -382,44 +382,44 @@ static QoreNode *QLISTWIDGETITEM_sizeHint(QoreObject *self, QoreQListWidgetItem 
 }
 
 //QString statusTip () const
-static QoreNode *QLISTWIDGETITEM_statusTip(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_statusTip(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qlwi->getQListWidgetItem()->statusTip().toUtf8().data(), QCS_UTF8);
 }
 
 //QString text () const
-static QoreNode *QLISTWIDGETITEM_text(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_text(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qlwi->getQListWidgetItem()->text().toUtf8().data(), QCS_UTF8);
 }
 
 //int textAlignment () const
-static QoreNode *QLISTWIDGETITEM_textAlignment(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_textAlignment(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qlwi->getQListWidgetItem()->textAlignment());
 }
 
 //QString toolTip () const
-static QoreNode *QLISTWIDGETITEM_toolTip(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_toolTip(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qlwi->getQListWidgetItem()->toolTip().toUtf8().data(), QCS_UTF8);
 }
 
 //int type () const
-static QoreNode *QLISTWIDGETITEM_type(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_type(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qlwi->getQListWidgetItem()->type());
 }
 
 //QString whatsThis () const
-static QoreNode *QLISTWIDGETITEM_whatsThis(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_whatsThis(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qlwi->getQListWidgetItem()->whatsThis().toUtf8().data(), QCS_UTF8);
 }
 
 /*
 //virtual void write ( QDataStream & out ) const
-static QoreNode *QLISTWIDGETITEM_write(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGETITEM_write(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? QDataStream out = p;

@@ -1033,7 +1033,7 @@ class QoreNode *return_qevent(QEvent *event)
    return return_object(QC_QEvent, new QoreQEvent(*event));
 }
 
-static class QoreNode *f_QObject_connect(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_QObject_connect(const QoreList *params, class ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    class AbstractPrivateData *spd = p ? p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
@@ -1088,7 +1088,7 @@ static class QoreNode *f_QObject_connect(const QoreNode *params, class Exception
    return 0;
 }
 
-static class QoreNode *f_SLOT(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_SLOT(const QoreList *params, class ExceptionSink *xsink)
 {
    // get slot name
    QoreStringNode *p = test_string_param(params, 0);
@@ -1106,7 +1106,7 @@ static class QoreNode *f_SLOT(const QoreNode *params, class ExceptionSink *xsink
    return str;
 }
 
-static class QoreNode *f_SIGNAL(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_SIGNAL(const QoreList *params, class ExceptionSink *xsink)
 {
    // get slot name
    QoreStringNode *p = test_string_param(params, 0);
@@ -1124,7 +1124,7 @@ static class QoreNode *f_SIGNAL(const QoreNode *params, class ExceptionSink *xsi
    return str;
 }
 
-static class QoreNode *f_TR(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_TR(const QoreList *params, class ExceptionSink *xsink)
 {
    // get slot name
    QoreStringNode *p = test_string_param(params, 0);
@@ -1136,12 +1136,12 @@ static class QoreNode *f_TR(const QoreNode *params, class ExceptionSink *xsink)
    return new QoreStringNode(QObject::tr(p->getBuffer()).toUtf8().data(), QCS_UTF8);
 }
 
-static class QoreNode *f_QAPP(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_QAPP(const QoreList *params, class ExceptionSink *xsink)
 {
    return get_qore_qapp();
 }
 
-static class QoreNode *f_qDebug(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_qDebug(const QoreList *params, class ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
@@ -1151,7 +1151,7 @@ static class QoreNode *f_qDebug(const QoreNode *params, class ExceptionSink *xsi
    return 0;
 }
 
-static class QoreNode *f_qWarning(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_qWarning(const QoreList *params, class ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
@@ -1161,7 +1161,7 @@ static class QoreNode *f_qWarning(const QoreNode *params, class ExceptionSink *x
    return 0;
 }
 
-static class QoreNode *f_qCritical(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_qCritical(const QoreList *params, class ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
@@ -1171,7 +1171,7 @@ static class QoreNode *f_qCritical(const QoreNode *params, class ExceptionSink *
    return 0;
 }
 
-static class QoreNode *f_qFatal(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_qFatal(const QoreList *params, class ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
@@ -1181,25 +1181,25 @@ static class QoreNode *f_qFatal(const QoreNode *params, class ExceptionSink *xsi
    return 0;
 }
 
-static class QoreNode *f_qRound(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_qRound(const QoreList *params, class ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
    return new QoreNode((int64)qRound(p ? p->getAsFloat() : 0.0));
 }
 
-static class QoreNode *f_qsrand(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_qsrand(const QoreList *params, class ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
    qsrand(p ? p->getAsInt() : 0);
    return 0;
 }
 
-static class QoreNode *f_qrand(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_qrand(const QoreList *params, class ExceptionSink *xsink)
 {
    return new QoreNode((int64)qrand());
 }
 
-static QoreNode *f_QToolTip_font(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QToolTip_font(const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(QToolTip::font());
@@ -1208,14 +1208,14 @@ static QoreNode *f_QToolTip_font(const QoreNode *params, ExceptionSink *xsink)
 }
 
 //void hideText ()
-static QoreNode *f_QToolTip_hideText(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QToolTip_hideText(const QoreList *params, ExceptionSink *xsink)
 {
    QToolTip::hideText();
    return 0;
 }
 
 //QPalette palette ()
-static QoreNode *f_QToolTip_palette(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QToolTip_palette(const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
    QoreQPalette *q_qp = new QoreQPalette(QToolTip::palette());
@@ -1224,7 +1224,7 @@ static QoreNode *f_QToolTip_palette(const QoreNode *params, ExceptionSink *xsink
 }
 
 //void setFont ( const QFont & font )
-static QoreNode *f_QToolTip_setFont(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QToolTip_setFont(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
@@ -1239,7 +1239,7 @@ static QoreNode *f_QToolTip_setFont(const QoreNode *params, ExceptionSink *xsink
 }
 
 //void setPalette ( const QPalette & palette )
-static QoreNode *f_QToolTip_setPalette(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QToolTip_setPalette(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)p->val.object->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
@@ -1256,7 +1256,7 @@ static QoreNode *f_QToolTip_setPalette(const QoreNode *params, ExceptionSink *xs
 
 //void showText ( const QPoint & pos, const QString & text, QWidget * w, const QRect & rect ) 
 //void showText ( const QPoint & pos, const QString & text, QWidget * w = 0 )
-static class QoreNode *f_QToolTip_showText(const QoreNode *params, class ExceptionSink *xsink)
+static class QoreNode *f_QToolTip_showText(const QoreList *params, class ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQPoint *pos = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -1303,7 +1303,7 @@ static class QoreNode *f_QToolTip_showText(const QoreNode *params, class Excepti
 }
 
 //QStyle * create ( const QString & key )
-static QoreNode *f_QStyleFactory_create(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QStyleFactory_create(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString key;
@@ -1314,13 +1314,13 @@ static QoreNode *f_QStyleFactory_create(const QoreNode *params, ExceptionSink *x
 }
 
 //QStringList keys ()
-static QoreNode *f_QStyleFactory_keys(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QStyleFactory_keys(const QoreList *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = QStyleFactory::keys();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
-   return new QoreNode(l);
+   return l;
 }
 
 static QoreNamespace *qt_ns = new QoreNamespace("Qt");

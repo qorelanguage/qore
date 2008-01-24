@@ -28,7 +28,7 @@ int CID_QCLOSEEVENT;
 class QoreClass *QC_QCloseEvent = 0;
 
 //QCloseEvent ()
-static void QCLOSEEVENT_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QCLOSEEVENT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QCLOSEEVENT, new QoreQCloseEvent());
    return;

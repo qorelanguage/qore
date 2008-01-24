@@ -72,11 +72,9 @@ void QoreSignalHandler::del(int sig, class ExceptionSink *xsink)
 void QoreSignalHandler::runHandler(int sig, class ExceptionSink *xsink)
 {
    // create signal number argument
-   class QoreList *l = new QoreList();
-   l->push(new QoreNode((int64)sig));
-   class QoreNode *args = new QoreNode(l);
-   discard(funcref->exec(args, xsink), xsink);
-   args->deref(xsink);
+   ReferenceHolder<QoreList> args(new QoreList(), xsink);
+   args->push(new QoreNode((int64)sig));
+   discard(funcref->exec(*args, xsink), xsink);
 }
 
 QoreSignalManager::QoreSignalManager() 

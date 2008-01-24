@@ -26,7 +26,7 @@
 // rmutex class is depcreated and will be removed in the next major release
 int CID_GATE, CID_RMUTEX;
 
-static void GATE_constructor(class QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void GATE_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_GATE, new QoreGate());
 }
@@ -42,7 +42,7 @@ static void GATE_copy(class QoreObject *self, class QoreObject *old, class QoreG
    self->setPrivate(CID_GATE, new QoreGate());
 }
 
-static class QoreNode *GATE_enter(class QoreObject *self, class QoreGate *g, const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GATE_enter(class QoreObject *self, class QoreGate *g, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -55,22 +55,22 @@ static class QoreNode *GATE_enter(class QoreObject *self, class QoreGate *g, con
    return new QoreNode((int64)g->grab(xsink));
 }
 
-static class QoreNode *GATE_exit(class QoreObject *self, class QoreGate *g, const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GATE_exit(class QoreObject *self, class QoreGate *g, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)g->release(xsink));
 }
 
-static class QoreNode *GATE_tryEnter(class QoreObject *self, class QoreGate *g, const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GATE_tryEnter(class QoreObject *self, class QoreGate *g, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)g->tryGrab());
 }
 
-static class QoreNode *GATE_numInside(class QoreObject *self, class QoreGate *g, const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GATE_numInside(class QoreObject *self, class QoreGate *g, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)g->get_count());
 }
 
-static class QoreNode *GATE_numWaiting(class QoreObject *self, class QoreGate *g, const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *GATE_numWaiting(class QoreObject *self, class QoreGate *g, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)g->get_waiting());
 }

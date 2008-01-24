@@ -29,7 +29,7 @@ class QoreClass *QC_QStyleOptionToolButton = 0;
 
 //QStyleOptionToolButton ()
 //QStyleOptionToolButton ( const QStyleOptionToolButton & other )
-static void QSTYLEOPTIONTOOLBUTTON_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONTOOLBUTTON_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTOOLBUTTON, new QoreQStyleOptionToolButton());
 }

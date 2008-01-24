@@ -1156,10 +1156,10 @@ QoreHashNode *getAllCallStacks()
 	    // make hash entry
 	    str.clear();
 	    str.sprintf("%d", w->tid);
-	    h->setKeyValue(&str, new QoreNode(l), NULL);
+	    h->setKeyValue(&str, l, NULL);
 	 }
 	 else
-	    l->derefAndDelete(NULL);
+	    l->deref(NULL);
       }
       w = w->next;
    }   

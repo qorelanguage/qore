@@ -47,8 +47,6 @@ union node_u {
       char *c_str;
       // for binary objects
       class BinaryObject *bin;
-      // for Lists
-      class QoreList *list;
       // for Objects
       class QoreObject *object;
       // for variable references
@@ -98,6 +96,7 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(const std::string &str);
       DLLEXPORT QoreNode(class QoreHash *h);
       DLLEXPORT QoreNode();
+      DLLEXPORT QoreNode(class QoreList *l);
 
    protected:
       DLLLOCAL virtual ~QoreNode();
@@ -115,7 +114,6 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(double d);
       DLLEXPORT QoreNode(class BinaryObject *b);
       DLLEXPORT QoreNode(class QoreObject *o);
-      DLLEXPORT QoreNode(class QoreList *l);
 
       // get the value of the type in a string context (default implementation = del = false and returns NullString)
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
@@ -143,7 +141,7 @@ class QoreNode : public ReferenceObject
 
       // default implementation returns false
       DLLEXPORT virtual bool needs_eval() const;
-      DLLEXPORT virtual class QoreNode *realCopy(class ExceptionSink *xsink) const;
+      DLLEXPORT virtual class QoreNode *realCopy() const;
 
       // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
       // the "val" passed
@@ -168,12 +166,12 @@ class QoreNode : public ReferenceObject
       // returns true if the node represents a value (default implementation)
       DLLEXPORT virtual bool is_value() const;
       
-      DLLLOCAL QoreNode(char *fn, class QoreNode *a);
-      DLLLOCAL QoreNode(class QoreNode *a, char *fn);
-      DLLLOCAL QoreNode(class QoreNode *a, class NamedScope *n);
-      DLLLOCAL QoreNode(class UserFunction *u, class QoreNode *a);
-      DLLLOCAL QoreNode(class BuiltinFunction *b, class QoreNode *a);
-      DLLLOCAL QoreNode(class NamedScope *n, class QoreNode *a);
+      DLLLOCAL QoreNode(char *fn, class QoreList *n_args);
+      DLLLOCAL QoreNode(class QoreList *n_args, char *fn);
+      DLLLOCAL QoreNode(class QoreList *n_args, class NamedScope *n);
+      DLLLOCAL QoreNode(class UserFunction *u, class QoreList *n_args);
+      DLLLOCAL QoreNode(class BuiltinFunction *b, class QoreList *n_args);
+      DLLLOCAL QoreNode(class NamedScope *n, class QoreList *n_args);
       DLLLOCAL QoreNode(class NamedScope *n);
       DLLLOCAL QoreNode(class ClassRef *c);
       DLLLOCAL QoreNode(class VarRef *v);
@@ -209,7 +207,6 @@ class SimpleQoreNode : public QoreNode
       {
       }
       DLLEXPORT void deref();
-      //DLLEXPORT virtual class QoreNode *realCopy() const = 0;
 };
 
 // for getting relative time values or integer values
@@ -296,13 +293,15 @@ class QoreNodeEvalOptionalRefHolder {
       // takes the referenced value and leaves this object empty, value is referenced if necessary
       DLLLOCAL QoreNode *takeReferencedValue()
       {
-	 QoreNode *rv = val && !needs_deref ? val->RefSelf() : val;
+	 QoreNode *rv = val;
+	 if (val && !needs_deref)
+	    rv->ref();
 	 val = 0;
 	 needs_deref = false;
 	 return rv;
       }
-      DLLLOCAL QoreNode* operator->() { return val; }
-      DLLLOCAL QoreNode* operator*() { return val; }
+      DLLLOCAL QoreNode *operator->() { return val; }
+      DLLLOCAL QoreNode *operator*() { return val; }
       DLLLOCAL operator bool() const { return val != 0; }
 };
 

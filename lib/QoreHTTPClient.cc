@@ -933,7 +933,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 // add last field
 	 if (*str)
 	    l->push(new QoreStringNode(str, priv->m_socket.getEncoding()));
-	 ans->setKeyValue("content-type", new QoreNode(l), xsink);
+	 ans->setKeyValue("content-type", l, xsink);
       }
    }
 

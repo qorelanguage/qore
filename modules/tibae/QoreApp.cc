@@ -482,7 +482,6 @@ class QoreNode *QoreApp::map_mtree_to_node(MTree *msg, ExceptionSink *xsink)
 MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreNode *v, ExceptionSink *xsink)
 {
    // ensure value is a QORE list
-   tracein("QoreApp::instantiate_sequence()");
    // check if class info embedded
    if (v && v->type == NT_HASH)
    {
@@ -499,8 +498,9 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
       printd(1, "QoreApp::instantiate_sequence() '%s': ignoring class information provided (%s)\n", msd->getFullName().c_str(), cn);
       v = h->getKeyValue("^value^");
    }
+
 /*
-   else if (v && v->type == NT_OBJECT)
+   if (v && v->type == NT_OBJECT)
    {
       const char *cn;
       if (!(cn = get_class(v->val.object->data)))
@@ -516,31 +516,30 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
       v = v->val.object->retrieve_value("^value^");
    }
 */
-   else if (is_nothing(v))
-   {
-      traceout("QoreApp::instantiate_sequence()");
+
+   if (is_nothing(v))
       return new MSequence(mcr, msd->getFullName());
-   }
-   else if (v->type != NT_LIST)
+
+   QoreList *l = dynamic_cast<QoreList *>(v);
+
+   if (!l)
    {
-      xsink->raiseException("TIBCO-INVALID-TYPE-FOR-SEQUENCE",
-			    "cannot instantiate TIBCO sequence '%s' from node type '%s'",
+      xsink->raiseException("TIBCO-INVALID-TYPE-FOR-SEQUENCE", "cannot instantiate TIBCO sequence '%s' from node type '%s'",
 			    msd->getFullName().c_str(), v->getTypeName());
-      return NULL;
+      return 0;
    }
+
    MSequence *seq = new MSequence(mcr, msd->getFullName());
-   if (v)
-      for (int i = 0; i < v->val.list->size(); i++)
-      {
-         QoreNode *ne = v->val.list->retrieve_entry(i);
-         const MBaseClassDescription *mbcd = msd->getContainedClassDescription();
-         printd(5, "instantiate_class() implicitly instantiating %s\n", mbcd->getFullName().c_str());
-         MData *md;
-         seq->append(md = instantiate_class(ne, mbcd, xsink));
-         if (md)
-            delete md;
-      }
-   traceout("QoreApp::instantiate_sequence()");
+   for (int i = 0; i < l->size(); i++)
+   {
+      QoreNode *ne = l->retrieve_entry(i);
+      const MBaseClassDescription *mbcd = msd->getContainedClassDescription();
+      printd(5, "instantiate_class() implicitly instantiating %s\n", mbcd->getFullName().c_str());
+      MData *md;
+      seq->append(md = instantiate_class(ne, mbcd, xsink));
+      if (md)
+	 delete md;
+   }
    return seq;
 }
 

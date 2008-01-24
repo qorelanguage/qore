@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_type.h>
 
-static class QoreNode *f_boolean(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_boolean(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -36,7 +36,7 @@ static class QoreNode *f_boolean(const QoreNode *params, ExceptionSink *xsink)
       return boolean_false();
 }
 
-static class QoreNode *f_int(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_int(const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    if (!p0)
@@ -44,7 +44,7 @@ static class QoreNode *f_int(const QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(p0->getAsBigInt());
 }
 
-static class QoreNode *f_float(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_float(const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    if (!p0)
@@ -52,13 +52,13 @@ static class QoreNode *f_float(const QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(p0->getAsFloat());
 }
 
-static class QoreNode *f_string(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_string(const QoreList *params, ExceptionSink *xsink)
 {
    QoreStringNodeValueHelper str(get_param(params, 0));
    return str.takeReferencedValue();
 }
 
-static class QoreNode *f_binary(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_binary(const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    if (!p0)
@@ -79,13 +79,13 @@ static class QoreNode *f_binary(const QoreNode *params, ExceptionSink *xsink)
    return new QoreNode(new BinaryObject(str->giveBuffer(), len));
 }
 
-static class QoreNode *f_date(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_date(const QoreList *params, ExceptionSink *xsink)
 {
    DateTimeNodeValueHelper date(get_param(params, 0));
    return date.takeReferencedValue();
 }
 
-static class QoreNode *f_list(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_list(const QoreList *params, ExceptionSink *xsink)
 {
    class QoreList *l = new QoreList();
    if (num_params(params) > 1)
@@ -96,15 +96,15 @@ static class QoreNode *f_list(const QoreNode *params, ExceptionSink *xsink)
       if (!is_nothing(p0))
 	 l->push(p0->eval(xsink));
    }
-   return new QoreNode(l);
+   return l;
 }
 
-static class QoreNode *f_hash(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_hash(const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreHashNode();
 }
 
-static class QoreNode *f_type(const QoreNode *params, ExceptionSink *xsink)
+static class QoreNode *f_type(const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
    if (!p)

@@ -29,7 +29,7 @@ class QoreClass *QC_QStyleOptionComboBox = 0;
 
 //QStyleOptionComboBox ()
 //QStyleOptionComboBox ( const QStyleOptionComboBox & other )
-static void QSTYLEOPTIONCOMBOBOX_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONCOMBOBOX_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONCOMBOBOX, new QoreQStyleOptionComboBox());
 }

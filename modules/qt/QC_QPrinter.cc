@@ -31,7 +31,7 @@ int CID_QPRINTER;
 class QoreClass *QC_QPrinter = 0;
 
 //QPrinter ( PrinterMode mode = ScreenResolution )
-static void QPRINTER_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QPRINTER_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPrinter::PrinterMode mode = !is_nothing(p) ? (QPrinter::PrinterMode)p->getAsInt() : QPrinter::ScreenResolution;
@@ -45,97 +45,97 @@ static void QPRINTER_copy(class QoreObject *self, class QoreObject *old, class Q
 }
 
 //bool abort ()
-static QoreNode *QPRINTER_abort(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_abort(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->abort());
 }
 
 //bool collateCopies () const
-static QoreNode *QPRINTER_collateCopies(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_collateCopies(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->collateCopies());
 }
 
 //ColorMode colorMode () const
-static QoreNode *QPRINTER_colorMode(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_colorMode(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->colorMode());
 }
 
 //QString creator () const
-static QoreNode *QPRINTER_creator(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_creator(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qp->creator().toUtf8().data(), QCS_UTF8);
 }
 
 //QString docName () const
-static QoreNode *QPRINTER_docName(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_docName(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qp->docName().toUtf8().data(), QCS_UTF8);
 }
 
 //bool doubleSidedPrinting () const
-static QoreNode *QPRINTER_doubleSidedPrinting(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_doubleSidedPrinting(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->doubleSidedPrinting());
 }
 
 //bool fontEmbeddingEnabled () const
-static QoreNode *QPRINTER_fontEmbeddingEnabled(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_fontEmbeddingEnabled(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->fontEmbeddingEnabled());
 }
 
 //int fromPage () const
-static QoreNode *QPRINTER_fromPage(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_fromPage(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->fromPage());
 }
 
 //bool fullPage () const
-static QoreNode *QPRINTER_fullPage(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_fullPage(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->fullPage());
 }
 
 //bool newPage ()
-static QoreNode *QPRINTER_newPage(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_newPage(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qp->newPage());
 }
 
 //int numCopies () const
-static QoreNode *QPRINTER_numCopies(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_numCopies(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->numCopies());
 }
 
 //Orientation orientation () const
-static QoreNode *QPRINTER_orientation(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_orientation(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->orientation());
 }
 
 //QString outputFileName () const
-static QoreNode *QPRINTER_outputFileName(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_outputFileName(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qp->outputFileName().toUtf8().data(), QCS_UTF8);
 }
 
 //OutputFormat outputFormat () const
-static QoreNode *QPRINTER_outputFormat(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_outputFormat(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->outputFormat());
 }
 
 //PageOrder pageOrder () const
-static QoreNode *QPRINTER_pageOrder(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_pageOrder(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->pageOrder());
 }
 
 //QRect pageRect () const
-static QoreNode *QPRINTER_pageRect(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_pageRect(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qp->pageRect());
@@ -144,19 +144,19 @@ static QoreNode *QPRINTER_pageRect(QoreObject *self, QoreQPrinter *qp, const Qor
 }
 
 //PageSize pageSize () const
-static QoreNode *QPRINTER_pageSize(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_pageSize(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->pageSize());
 }
 
 ////virtual QPaintEngine * paintEngine () const
-//static QoreNode *QPRINTER_paintEngine(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPRINTER_paintEngine(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->paintEngine());
 //}
 
 //QRect paperRect () const
-static QoreNode *QPRINTER_paperRect(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_paperRect(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qp->paperRect());
@@ -165,55 +165,55 @@ static QoreNode *QPRINTER_paperRect(QoreObject *self, QoreQPrinter *qp, const Qo
 }
 
 //PaperSource paperSource () const
-static QoreNode *QPRINTER_paperSource(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_paperSource(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->paperSource());
 }
 
 ////QPrintEngine * printEngine () const
-//static QoreNode *QPRINTER_printEngine(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QPRINTER_printEngine(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qp->printEngine());
 //}
 
 //QString printProgram () const
-static QoreNode *QPRINTER_printProgram(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_printProgram(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qp->printProgram().toUtf8().data(), QCS_UTF8);
 }
 
 //PrintRange printRange () const
-static QoreNode *QPRINTER_printRange(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_printRange(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->printRange());
 }
 
 //QString printerName () const
-static QoreNode *QPRINTER_printerName(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_printerName(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qp->printerName().toUtf8().data(), QCS_UTF8);
 }
 
 //QString printerSelectionOption () const
-static QoreNode *QPRINTER_printerSelectionOption(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_printerSelectionOption(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qp->printerSelectionOption().toUtf8().data(), QCS_UTF8);
 }
 
 //PrinterState printerState () const
-static QoreNode *QPRINTER_printerState(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_printerState(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->printerState());
 }
 
 //int resolution () const
-static QoreNode *QPRINTER_resolution(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_resolution(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->resolution());
 }
 
 //void setCollateCopies ( bool collate )
-static QoreNode *QPRINTER_setCollateCopies(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setCollateCopies(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool collate = p ? p->getAsBool() : false;
@@ -222,7 +222,7 @@ static QoreNode *QPRINTER_setCollateCopies(QoreObject *self, QoreQPrinter *qp, c
 }
 
 //void setColorMode ( ColorMode newColorMode )
-static QoreNode *QPRINTER_setColorMode(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setColorMode(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPrinter::ColorMode newColorMode = (QPrinter::ColorMode)(p ? p->getAsInt() : 0);
@@ -231,7 +231,7 @@ static QoreNode *QPRINTER_setColorMode(QoreObject *self, QoreQPrinter *qp, const
 }
 
 //void setCreator ( const QString & creator )
-static QoreNode *QPRINTER_setCreator(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setCreator(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString creator;
@@ -242,7 +242,7 @@ static QoreNode *QPRINTER_setCreator(QoreObject *self, QoreQPrinter *qp, const Q
 }
 
 //void setDocName ( const QString & name )
-static QoreNode *QPRINTER_setDocName(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setDocName(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString name;
@@ -253,7 +253,7 @@ static QoreNode *QPRINTER_setDocName(QoreObject *self, QoreQPrinter *qp, const Q
 }
 
 //void setDoubleSidedPrinting ( bool doubleSided )
-static QoreNode *QPRINTER_setDoubleSidedPrinting(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setDoubleSidedPrinting(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool doubleSided = p ? p->getAsBool() : false;
@@ -262,7 +262,7 @@ static QoreNode *QPRINTER_setDoubleSidedPrinting(QoreObject *self, QoreQPrinter 
 }
 
 //void setFontEmbeddingEnabled ( bool enable )
-static QoreNode *QPRINTER_setFontEmbeddingEnabled(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setFontEmbeddingEnabled(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
@@ -271,7 +271,7 @@ static QoreNode *QPRINTER_setFontEmbeddingEnabled(QoreObject *self, QoreQPrinter
 }
 
 //void setFromTo ( int from, int to )
-static QoreNode *QPRINTER_setFromTo(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setFromTo(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int from = p ? p->getAsInt() : 0;
@@ -282,7 +282,7 @@ static QoreNode *QPRINTER_setFromTo(QoreObject *self, QoreQPrinter *qp, const Qo
 }
 
 //void setFullPage ( bool fp )
-static QoreNode *QPRINTER_setFullPage(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setFullPage(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool fp = p ? p->getAsBool() : false;
@@ -291,7 +291,7 @@ static QoreNode *QPRINTER_setFullPage(QoreObject *self, QoreQPrinter *qp, const 
 }
 
 //void setNumCopies ( int numCopies )
-static QoreNode *QPRINTER_setNumCopies(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setNumCopies(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int numCopies = p ? p->getAsInt() : 0;
@@ -300,7 +300,7 @@ static QoreNode *QPRINTER_setNumCopies(QoreObject *self, QoreQPrinter *qp, const
 }
 
 //void setOrientation ( Orientation orientation )
-static QoreNode *QPRINTER_setOrientation(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setOrientation(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPrinter::Orientation orientation = (QPrinter::Orientation)(p ? p->getAsInt() : 0);
@@ -309,7 +309,7 @@ static QoreNode *QPRINTER_setOrientation(QoreObject *self, QoreQPrinter *qp, con
 }
 
 //void setOutputFileName ( const QString & fileName )
-static QoreNode *QPRINTER_setOutputFileName(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setOutputFileName(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString fileName;
@@ -320,7 +320,7 @@ static QoreNode *QPRINTER_setOutputFileName(QoreObject *self, QoreQPrinter *qp, 
 }
 
 //void setOutputFormat ( OutputFormat format )
-static QoreNode *QPRINTER_setOutputFormat(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setOutputFormat(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPrinter::OutputFormat format = (QPrinter::OutputFormat)(p ? p->getAsInt() : 0);
@@ -329,7 +329,7 @@ static QoreNode *QPRINTER_setOutputFormat(QoreObject *self, QoreQPrinter *qp, co
 }
 
 //void setPageOrder ( PageOrder pageOrder )
-static QoreNode *QPRINTER_setPageOrder(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setPageOrder(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPrinter::PageOrder pageOrder = (QPrinter::PageOrder)(p ? p->getAsInt() : 0);
@@ -338,7 +338,7 @@ static QoreNode *QPRINTER_setPageOrder(QoreObject *self, QoreQPrinter *qp, const
 }
 
 //void setPageSize ( PageSize newPageSize )
-static QoreNode *QPRINTER_setPageSize(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setPageSize(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPrinter::PageSize newPageSize = (QPrinter::PageSize)(p ? p->getAsInt() : 0);
@@ -347,7 +347,7 @@ static QoreNode *QPRINTER_setPageSize(QoreObject *self, QoreQPrinter *qp, const 
 }
 
 //void setPaperSource ( PaperSource source )
-static QoreNode *QPRINTER_setPaperSource(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setPaperSource(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPrinter::PaperSource source = (QPrinter::PaperSource)(p ? p->getAsInt() : 0);
@@ -356,7 +356,7 @@ static QoreNode *QPRINTER_setPaperSource(QoreObject *self, QoreQPrinter *qp, con
 }
 
 //void setPrintProgram ( const QString & printProg )
-static QoreNode *QPRINTER_setPrintProgram(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setPrintProgram(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString printProg;
@@ -367,7 +367,7 @@ static QoreNode *QPRINTER_setPrintProgram(QoreObject *self, QoreQPrinter *qp, co
 }
 
 //void setPrintRange ( PrintRange range )
-static QoreNode *QPRINTER_setPrintRange(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setPrintRange(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QPrinter::PrintRange range = (QPrinter::PrintRange)(p ? p->getAsInt() : 0);
@@ -376,7 +376,7 @@ static QoreNode *QPRINTER_setPrintRange(QoreObject *self, QoreQPrinter *qp, cons
 }
 
 //void setPrinterName ( const QString & name )
-static QoreNode *QPRINTER_setPrinterName(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setPrinterName(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString name;
@@ -387,7 +387,7 @@ static QoreNode *QPRINTER_setPrinterName(QoreObject *self, QoreQPrinter *qp, con
 }
 
 //void setPrinterSelectionOption ( const QString & option )
-static QoreNode *QPRINTER_setPrinterSelectionOption(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setPrinterSelectionOption(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString option;
@@ -398,7 +398,7 @@ static QoreNode *QPRINTER_setPrinterSelectionOption(QoreObject *self, QoreQPrint
 }
 
 //void setResolution ( int dpi )
-static QoreNode *QPRINTER_setResolution(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setResolution(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int dpi = p ? p->getAsInt() : 0;
@@ -408,7 +408,7 @@ static QoreNode *QPRINTER_setResolution(QoreObject *self, QoreQPrinter *qp, cons
 
 #ifdef WINDOWS
 //void setWinPageSize ( int pageSize )
-static QoreNode *QPRINTER_setWinPageSize(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_setWinPageSize(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int pageSize = p ? p->getAsInt() : 0;
@@ -417,7 +417,7 @@ static QoreNode *QPRINTER_setWinPageSize(QoreObject *self, QoreQPrinter *qp, con
 }
 
 //QList<PaperSource> supportedPaperSources () const
-static QoreNode *QPRINTER_supportedPaperSources(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_supportedPaperSources(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QList<QPrinter::PaperSource> qlist = qp->supportedPaperSources();
 
@@ -425,29 +425,29 @@ static QoreNode *QPRINTER_supportedPaperSources(QoreObject *self, QoreQPrinter *
    for (QList<QPrinter::PaperSource>::iterator i = qlist.begin(), e = qlist.end(); i != e; ++i)
       l->push(new QoreNode((int64)*i));
 
-   return new QoreNode(l);
+   return l;
 }
 #endif
 
 //QList<int> supportedResolutions () const
-static QoreNode *QPRINTER_supportedResolutions(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_supportedResolutions(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QList<int> ilist_rv = qp->supportedResolutions();
    QoreList *l = new QoreList();
    for (QList<int>::iterator i = ilist_rv.begin(), e = ilist_rv.end(); i != e; ++i)
       l->push(new QoreNode((int64)(*i)));
-   return new QoreNode(l);
+   return l;
 }
 
 //int toPage () const
-static QoreNode *QPRINTER_toPage(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_toPage(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->toPage());
 }
 
 #ifdef WINDOWS
 //int winPageSize () const
-static QoreNode *QPRINTER_winPageSize(QoreObject *self, QoreQPrinter *qp, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QPRINTER_winPageSize(QoreObject *self, QoreQPrinter *qp, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qp->winPageSize());
 }

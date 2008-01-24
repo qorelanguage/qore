@@ -1073,6 +1073,7 @@ sub misc_tests()
 	       "host"    : "hostname" );
     my $ds = "user/123pass@word@dbname(utf8)%hostname";
     test_value($dh, parseDatasource($ds), "first parseDatasource()"); 
+    test_value((1, 2), simple_shift((1, 2)), "list arg function call");
 
     test_value(call_function("simple_shift", 1), 1, "call_function()");
     test_value(existsFunction("simple_shift"), True, "existsFunction()");

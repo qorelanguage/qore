@@ -35,7 +35,7 @@ class QoreClass *QC_QFileDialog = 0;
 
 //QFileDialog ( QWidget * parent, Qt::WindowFlags flags )
 //QFileDialog ( QWidget * parent = 0, const QString & caption = QString(), const QString & directory = QString(), const QString & filter = QString() )
-static void QFILEDIALOG_constructor(QoreObject *self, const QoreNode *params, ExceptionSink *xsink)
+static void QFILEDIALOG_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -82,25 +82,25 @@ static void QFILEDIALOG_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //AcceptMode acceptMode () const
-static QoreNode *QFILEDIALOG_acceptMode(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_acceptMode(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfd->qobj->acceptMode());
 }
 
 //bool confirmOverwrite () const
-static QoreNode *QFILEDIALOG_confirmOverwrite(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_confirmOverwrite(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfd->qobj->confirmOverwrite());
 }
 
 //QString defaultSuffix () const
-static QoreNode *QFILEDIALOG_defaultSuffix(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_defaultSuffix(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qfd->qobj->defaultSuffix().toUtf8().data(), QCS_UTF8);
 }
 
 //QDir directory () const
-static QoreNode *QFILEDIALOG_directory(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_directory(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(qfd->qobj->directory());
@@ -109,45 +109,45 @@ static QoreNode *QFILEDIALOG_directory(QoreObject *self, QoreQFileDialog *qfd, c
 }
 
 //FileMode fileMode () const
-static QoreNode *QFILEDIALOG_fileMode(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_fileMode(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfd->qobj->fileMode());
 }
 
 //QStringList filters () const
-static QoreNode *QFILEDIALOG_filters(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_filters(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qfd->qobj->filters();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
-   return new QoreNode(l);
+   return l;
 }
 
 //QStringList history () const
-static QoreNode *QFILEDIALOG_history(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_history(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qfd->qobj->history();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
-   return new QoreNode(l);
+   return l;
 }
 
 ////QFileIconProvider * iconProvider () const
-//static QoreNode *QFILEDIALOG_iconProvider(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QFILEDIALOG_iconProvider(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qfd->qobj->iconProvider());
 //}
 
 //bool isReadOnly () const
-static QoreNode *QFILEDIALOG_isReadOnly(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_isReadOnly(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfd->qobj->isReadOnly());
 }
 
 //QAbstractItemDelegate * itemDelegate () const
-static QoreNode *QFILEDIALOG_itemDelegate(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_itemDelegate(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QAbstractItemDelegate *qt_qobj = qfd->qobj->itemDelegate();
    if (!qt_qobj)
@@ -160,7 +160,7 @@ static QoreNode *QFILEDIALOG_itemDelegate(QoreObject *self, QoreQFileDialog *qfd
 }
 
 //QString labelText ( DialogLabel label ) const
-static QoreNode *QFILEDIALOG_labelText(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_labelText(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QFileDialog::DialogLabel label = (QFileDialog::DialogLabel)(p ? p->getAsInt() : 0);
@@ -168,19 +168,19 @@ static QoreNode *QFILEDIALOG_labelText(QoreObject *self, QoreQFileDialog *qfd, c
 }
 
 ////QAbstractProxyModel * proxyModel () const
-//static QoreNode *QFILEDIALOG_proxyModel(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QFILEDIALOG_proxyModel(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qfd->qobj->proxyModel());
 //}
 
 //bool resolveSymlinks () const
-static QoreNode *QFILEDIALOG_resolveSymlinks(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_resolveSymlinks(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode(qfd->qobj->resolveSymlinks());
 }
 
 //bool restoreState ( const QByteArray & state )
-static QoreNode *QFILEDIALOG_restoreState(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_restoreState(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QByteArray state;
@@ -190,7 +190,7 @@ static QoreNode *QFILEDIALOG_restoreState(QoreObject *self, QoreQFileDialog *qfd
 }
 
 //QByteArray saveState () const
-static QoreNode *QFILEDIALOG_saveState(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_saveState(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qfd->qobj->saveState());
@@ -199,7 +199,7 @@ static QoreNode *QFILEDIALOG_saveState(QoreObject *self, QoreQFileDialog *qfd, c
 }
 
 //void selectFile ( const QString & filename )
-static QoreNode *QFILEDIALOG_selectFile(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_selectFile(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString filename;
@@ -210,7 +210,7 @@ static QoreNode *QFILEDIALOG_selectFile(QoreObject *self, QoreQFileDialog *qfd, 
 }
 
 //void selectFilter ( const QString & filter )
-static QoreNode *QFILEDIALOG_selectFilter(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_selectFilter(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString filter;
@@ -221,23 +221,23 @@ static QoreNode *QFILEDIALOG_selectFilter(QoreObject *self, QoreQFileDialog *qfd
 }
 
 //QStringList selectedFiles () const
-static QoreNode *QFILEDIALOG_selectedFiles(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_selectedFiles(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qfd->qobj->selectedFiles();
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
-   return new QoreNode(l);
+   return l;
 }
 
 //QString selectedFilter () const
-static QoreNode *QFILEDIALOG_selectedFilter(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_selectedFilter(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qfd->qobj->selectedFilter().toUtf8().data(), QCS_UTF8);
 }
 
 //void setAcceptMode ( AcceptMode mode )
-static QoreNode *QFILEDIALOG_setAcceptMode(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setAcceptMode(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QFileDialog::AcceptMode mode = (QFileDialog::AcceptMode)(p ? p->getAsInt() : 0);
@@ -246,7 +246,7 @@ static QoreNode *QFILEDIALOG_setAcceptMode(QoreObject *self, QoreQFileDialog *qf
 }
 
 //void setConfirmOverwrite ( bool enabled )
-static QoreNode *QFILEDIALOG_setConfirmOverwrite(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setConfirmOverwrite(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enabled = p ? p->getAsBool() : false;
@@ -255,7 +255,7 @@ static QoreNode *QFILEDIALOG_setConfirmOverwrite(QoreObject *self, QoreQFileDial
 }
 
 //void setDefaultSuffix ( const QString & suffix )
-static QoreNode *QFILEDIALOG_setDefaultSuffix(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setDefaultSuffix(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString suffix;
@@ -267,7 +267,7 @@ static QoreNode *QFILEDIALOG_setDefaultSuffix(QoreObject *self, QoreQFileDialog 
 
 //void setDirectory ( const QString & directory )
 //void setDirectory ( const QDir & directory )
-static QoreNode *QFILEDIALOG_setDirectory(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setDirectory(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -289,7 +289,7 @@ static QoreNode *QFILEDIALOG_setDirectory(QoreObject *self, QoreQFileDialog *qfd
 }
 
 //void setFileMode ( FileMode mode )
-static QoreNode *QFILEDIALOG_setFileMode(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setFileMode(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QFileDialog::FileMode mode = (QFileDialog::FileMode)(p ? p->getAsInt() : 0);
@@ -298,7 +298,7 @@ static QoreNode *QFILEDIALOG_setFileMode(QoreObject *self, QoreQFileDialog *qfd,
 }
 
 //void setFilter ( const QString & filter )
-static QoreNode *QFILEDIALOG_setFilter(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setFilter(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString filter;
@@ -309,15 +309,15 @@ static QoreNode *QFILEDIALOG_setFilter(QoreObject *self, QoreQFileDialog *qfd, c
 }
 
 //void setFilters ( const QStringList & filters )
-static QoreNode *QFILEDIALOG_setFilters(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setFilters(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_LIST) {
+   QoreList *p = test_list_param(params, 0);
+   if (!p) {
       xsink->raiseException("QFILEDIALOG-SETFILTERS-PARAM-ERROR", "expecting a list as first argument to QFileDialog::setFilters()");
       return 0;
    }
    QStringList filters;
-   ListIterator li_filters(p->val.list);
+   ListIterator li_filters(p);
    while (li_filters.next())
    {
       QoreStringNodeValueHelper str(li_filters.getValue());
@@ -331,15 +331,15 @@ static QoreNode *QFILEDIALOG_setFilters(QoreObject *self, QoreQFileDialog *qfd, 
 }
 
 //void setHistory ( const QStringList & paths )
-static QoreNode *QFILEDIALOG_setHistory(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setHistory(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   if (!p || p->type != NT_LIST) {
+   QoreList *p = test_list_param(params, 0);
+   if (!p) {
       xsink->raiseException("QFILEDIALOG-SETHISTORY-PARAM-ERROR", "expecting a list as first argument to QFileDialog::setHistory()");
       return 0;
    }
    QStringList paths;
-   ListIterator li_paths(p->val.list);
+   ListIterator li_paths(p);
    while (li_paths.next())
    {
       QoreStringNodeValueHelper str(li_paths.getValue());
@@ -353,7 +353,7 @@ static QoreNode *QFILEDIALOG_setHistory(QoreObject *self, QoreQFileDialog *qfd, 
 }
 
 ////void setIconProvider ( QFileIconProvider * provider )
-//static QoreNode *QFILEDIALOG_setIconProvider(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QFILEDIALOG_setIconProvider(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QFileIconProvider* provider = p;
@@ -362,7 +362,7 @@ static QoreNode *QFILEDIALOG_setHistory(QoreObject *self, QoreQFileDialog *qfd, 
 //}
 
 //void setItemDelegate ( QAbstractItemDelegate * delegate )
-static QoreNode *QFILEDIALOG_setItemDelegate(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setItemDelegate(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)p->val.object->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
@@ -377,7 +377,7 @@ static QoreNode *QFILEDIALOG_setItemDelegate(QoreObject *self, QoreQFileDialog *
 }
 
 //void setLabelText ( DialogLabel label, const QString & text )
-static QoreNode *QFILEDIALOG_setLabelText(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setLabelText(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QFileDialog::DialogLabel label = (QFileDialog::DialogLabel)(p ? p->getAsInt() : 0);
@@ -390,7 +390,7 @@ static QoreNode *QFILEDIALOG_setLabelText(QoreObject *self, QoreQFileDialog *qfd
 }
 
 ////void setProxyModel ( QAbstractProxyModel * proxyModel )
-//static QoreNode *QFILEDIALOG_setProxyModel(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QFILEDIALOG_setProxyModel(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QAbstractProxyModel* proxyModel = p;
@@ -399,7 +399,7 @@ static QoreNode *QFILEDIALOG_setLabelText(QoreObject *self, QoreQFileDialog *qfd
 //}
 
 //void setReadOnly ( bool enabled )
-static QoreNode *QFILEDIALOG_setReadOnly(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setReadOnly(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enabled = p ? p->getAsBool() : false;
@@ -408,7 +408,7 @@ static QoreNode *QFILEDIALOG_setReadOnly(QoreObject *self, QoreQFileDialog *qfd,
 }
 
 //void setResolveSymlinks ( bool enabled )
-static QoreNode *QFILEDIALOG_setResolveSymlinks(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setResolveSymlinks(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enabled = p ? p->getAsBool() : false;
@@ -417,7 +417,7 @@ static QoreNode *QFILEDIALOG_setResolveSymlinks(QoreObject *self, QoreQFileDialo
 }
 
 ////void setSidebarUrls ( const QList<QUrl> & urls )
-//static QoreNode *QFILEDIALOG_setSidebarUrls(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QFILEDIALOG_setSidebarUrls(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QList<QUrl> urls = p;
@@ -426,7 +426,7 @@ static QoreNode *QFILEDIALOG_setResolveSymlinks(QoreObject *self, QoreQFileDialo
 //}
 
 //void setViewMode ( ViewMode mode )
-static QoreNode *QFILEDIALOG_setViewMode(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_setViewMode(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QFileDialog::ViewMode mode = (QFileDialog::ViewMode)(p ? p->getAsInt() : 0);
@@ -435,13 +435,13 @@ static QoreNode *QFILEDIALOG_setViewMode(QoreObject *self, QoreQFileDialog *qfd,
 }
 
 ////QList<QUrl> sidebarUrls () const
-//static QoreNode *QFILEDIALOG_sidebarUrls(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+//static QoreNode *QFILEDIALOG_sidebarUrls(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreNode((int64)qfd->qobj->sidebarUrls());
 //}
 
 //ViewMode viewMode () const
-static QoreNode *QFILEDIALOG_viewMode(QoreObject *self, QoreQFileDialog *qfd, const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *QFILEDIALOG_viewMode(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    return new QoreNode((int64)qfd->qobj->viewMode());
 }
@@ -498,7 +498,7 @@ QoreClass *initQFileDialogClass(QoreClass *qdialog)
 }
 
 //QString getExistingDirectory ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), Options options = ShowDirsOnly )
-static QoreNode *f_QFileDialog_getExistingDirectory(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QFileDialog_getExistingDirectory(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -519,7 +519,7 @@ static QoreNode *f_QFileDialog_getExistingDirectory(const QoreNode *params, Exce
 }
 
 //QString getOpenFileName ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, Options options = 0 )
-static QoreNode *f_QFileDialog_getOpenFileName(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QFileDialog_getOpenFileName(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -550,7 +550,7 @@ static QoreNode *f_QFileDialog_getOpenFileName(const QoreNode *params, Exception
 }
 
 //QStringList getOpenFileNames ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, Options options = 0 )
-static QoreNode *f_QFileDialog_getOpenFileNames(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QFileDialog_getOpenFileNames(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -580,11 +580,11 @@ static QoreNode *f_QFileDialog_getOpenFileNames(const QoreNode *params, Exceptio
    QoreList *l = new QoreList();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
-   return new QoreNode(l);
+   return l;
 }
 
 //QString getSaveFileName ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, Options options = 0 )
-static QoreNode *f_QFileDialog_getSaveFileName(const QoreNode *params, ExceptionSink *xsink)
+static QoreNode *f_QFileDialog_getSaveFileName(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;

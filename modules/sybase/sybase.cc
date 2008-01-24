@@ -67,7 +67,7 @@ static DBIDriver* DBID_SYBASE;
 
 #ifdef DEBUG
 // exported
-QoreNode* runSybaseTests(const QoreNode* params, ExceptionSink* xsink)
+QoreNode* runSybaseTests(const QoreList *params, ExceptionSink *xsink)
 {
    minitest::result res = minitest::execute_all_tests();
    if (res.all_tests_succeeded) {
@@ -82,7 +82,7 @@ QoreNode* runSybaseTests(const QoreNode* params, ExceptionSink* xsink)
    return 0;
 }
 
-QoreNode* runRecentSybaseTests(const QoreNode* params, ExceptionSink* xsink)
+QoreNode* runRecentSybaseTests(const QoreList *params, ExceptionSink *xsink)
 {
    minitest::result res = minitest::test_last_changed_files(1);
    if (res.all_tests_succeeded) {

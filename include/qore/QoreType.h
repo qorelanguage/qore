@@ -30,12 +30,14 @@
 #include <map>
 
 // global default values
-DLLEXPORT extern class QoreNode *False, *True, *Nothing, *Null, *Zero, *ZeroFloat, *emptyList, *emptyHash;
+DLLEXPORT extern class QoreNode *False, *True, *Nothing, *Null, *Zero, *ZeroFloat;
+DLLEXPORT extern class QoreList *emptyList;
+DLLEXPORT extern class QoreHashNode *emptyHash;
 DLLEXPORT extern class QoreStringNode *NullString;
 DLLEXPORT extern class DateTimeNode *ZeroDate;
 
-DLLEXPORT extern class QoreString NothingTypeString, NullTypeString, TrueString, FalseString, EmptyHashString, 
-   EmptyListString;
+DLLEXPORT extern class QoreString NothingTypeString, NullTypeString, TrueString, 
+   FalseString, EmptyHashString, EmptyListString;
 
 #define QTM_USER_START   200
 
