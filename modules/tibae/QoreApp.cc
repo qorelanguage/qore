@@ -507,6 +507,7 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
              msd->getFullName().c_str(), cn);
       v = v->val.hash->getKeyValue("^value^");
    }
+
 /*
    else if (v && v->type == NT_OBJECT)
    {
@@ -524,18 +525,21 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
       v = v->val.object->retrieve_value("^value^");
    }
 */
-   else if (is_nothing(v))
+
+   if (is_nothing(v))
    {
       traceout("QoreApp::instantiate_sequence()");
       return new MSequence(mcr, msd->getFullName());
    }
-   else if (v->type != NT_LIST)
+
+   if (v->type != NT_LIST)
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-SEQUENCE",
                          "cannot instantiate TIBCO sequence '%s' from node type '%s'",
                          msd->getFullName().c_str(), v->type->getName());
       return NULL;
    }
+
    MSequence *seq = new MSequence(mcr, msd->getFullName());
    if (v)
       for (int i = 0; i < v->val.list->size(); i++)

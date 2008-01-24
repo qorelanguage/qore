@@ -1,9 +1,16 @@
+2008.01.24: David Nichols
+	* fixed a bug in the "tibae" module where instantiating a sequence while
+	  giving an explicit class name skipped type checking that could result
+	  in a crash (backported from 0.7.0/trunk)
+
 2008.01.23: David Nichols
 	* fixed a bug in the ? : operator where immediate list values could be
 	  returned improperly (only the first element could be erroneously
 	  returned under some conditions) (backported from 0.7.0/trunk)
 	* fixed a potentially crashing bug in 
 	  makeFormattedXMLRPCCallStringArgs() (backported from 0.7.0/trunk)
+	* eliminated spurious double exceptions in rare cases with list 
+	  operators in Operator.cc (backported from 0.7.0/trunk)
 
 2008.01.21: David Nichols
 	* fixed a memory leak in QoreHTTPClient.cc processing 100 responses
