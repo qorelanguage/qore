@@ -1924,8 +1924,11 @@ static QoreNode *op_unshift(class QoreNode *left, class QoreNode *elem, bool ref
 
    class AutoVLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
+   if (*xsink)
+      return 0;
+
    // value is not a list, so throw exception
-   if (xsink->isEvent() || !(*val) || (*val)->type != NT_LIST)
+   if (!(*val) || (*val)->type != NT_LIST)
    {
       xsink->raiseException("UNSHIFT-ERROR", "first argument to unshift is not a list");
       return NULL;
@@ -2013,8 +2016,10 @@ static QoreNode *op_push(class QoreNode *left, class QoreNode *elem, bool ref_rv
 
    class AutoVLock vl;
    QoreNode **val = get_var_value_ptr(left, &vl, xsink);
+   if (*xsink)
+      return 0;
    // value is not a list, so throw exception
-   if (xsink->isEvent() || !(*val) || (*val)->type != NT_LIST)
+   if (!(*val) || (*val)->type != NT_LIST)
    {
       xsink->raiseException("PUSH-ERROR", "first argument to push is not a list");
       return NULL;
