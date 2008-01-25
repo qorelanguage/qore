@@ -1228,6 +1228,8 @@ bool QoreNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
       return !val.bin->compare(v->val.bin);
 
    assert(false);
+   // FIXME: pure virtual function!
+   return false;
 }
 
 bool QoreNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
@@ -1254,6 +1256,8 @@ bool QoreNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
       return !val.bin->compare(v->val.bin);
 
    assert(false);   
+   // FIXME: pure virtual function!
+   return false;
 }
 
 // returns the data type

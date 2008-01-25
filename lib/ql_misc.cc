@@ -907,7 +907,7 @@ static class QoreNode *f_splice(const QoreList *params, ExceptionSink *xsink)
    if (!lst)
       return 0;
 
-   ReferenceHolder<QoreList> l(l->copy(), xsink);
+   ReferenceHolder<QoreList> l(lst->copy(), xsink);
 
    if (!p3)
       if (is_nothing(p2))

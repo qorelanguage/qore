@@ -130,10 +130,12 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
 
    printd(5, "process_opt(): param=%s type=%d node=%08p node->type=%s refs=%d\n",
 	  param, type, node, node ? node->getTypeName() : "(null)", node ? node->reference_count() : -1);
+#ifdef DEBUG
    if (node && node->type == NT_STRING) {
       QoreStringNode *str = reinterpret_cast<QoreStringNode *>(node);
       printd(5, "process_opt() %08p (%d) \"%s\"\n", str->getBuffer(), str->strlen(), str->getBuffer());
    }
+#endif
   loop:
    switch (*(++param))
    {
