@@ -889,6 +889,7 @@ QoreNode *UserFunction::evalConstructor(const QoreList *args, QoreObject *self, 
    
    if (num_params < num_args)
    {
+      argv = new QoreList();
       for (i = 0; i < (num_args - num_params); i++)
          if (args->retrieve_entry(i + num_params))
          {
