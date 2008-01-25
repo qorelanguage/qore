@@ -203,6 +203,10 @@ QoreNode::~QoreNode()
       return;
    }
 
+   if (type == NT_OBJMETHREF) {
+      delete val.objmethref;
+      return;
+   }
 }
 
 QoreNode::QoreNode(char *name, QoreList *a)

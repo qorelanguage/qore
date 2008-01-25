@@ -1950,7 +1950,7 @@ exp:    scalar
 	      }
 	   }
 	   else if ($2->type == NT_TREE && $2->val.tree->op == OP_OBJECT_FUNC_REF
-		    && $2->val.tree->right->val.fcall->type == FC_METHOD)
+		    && $2->val.tree->right->val.fcall->type == FC_METHOD) // make a call reference
 	   {
 	      if ($2->val.tree->right->val.fcall->args)
 	      {
