@@ -36,7 +36,7 @@ class QoreClass *QC_QDragMoveEvent = 0;
 static void QDRAGMOVEEVENT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QDRAGMOVEEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as first argument to QDragMoveEvent::constructor()");
@@ -46,7 +46,7 @@ static void QDRAGMOVEEVENT_constructor(QoreObject *self, const QoreList *params,
    p = get_param(params, 1);
    Qt::DropActions actions = (Qt::DropActions)(p ? p->getAsInt() : 0);
    p = get_param(params, 2);
-   QoreQMimeData *data = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)p->val.object->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
+   QoreQMimeData *data = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
    if (!data) {
       if (!xsink->isException())
          xsink->raiseException("QDRAGMOVEEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QMimeData object as third argument to QDragMoveEvent::constructor()");
@@ -77,10 +77,10 @@ static QoreNode *QDRAGMOVEEVENT_accept(QoreObject *self, QoreQDragMoveEvent *qdm
       qdme->accept();
       return 0;
    }
-   QoreQRect *rectangle = p ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreQRect *rectangle = p ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!rectangle) {
       if (!xsink->isException())
-         xsink->raiseException("QDRAGMOVEEVENT-ACCEPT-PARAM-ERROR", "this version of QDragMoveEvent::accept() expects an object derived from QRect as the first argument", p->val.object->getClass()->getName());
+         xsink->raiseException("QDRAGMOVEEVENT-ACCEPT-PARAM-ERROR", "this version of QDragMoveEvent::accept() expects an object derived from QRect as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return 0;
    }
    ReferenceHolder<QoreQRect> rectangleHolder(rectangle, xsink);
@@ -94,7 +94,7 @@ static QoreNode *QDRAGMOVEEVENT_answerRect(QoreObject *self, QoreQDragMoveEvent 
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qdme->answerRect());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //void ignore ( const QRect & rectangle )
@@ -106,10 +106,10 @@ static QoreNode *QDRAGMOVEEVENT_ignore(QoreObject *self, QoreQDragMoveEvent *qdm
       qdme->ignore();
       return 0;
    }
-   QoreQRect *rectangle = p ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreQRect *rectangle = p ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!rectangle) {
       if (!xsink->isException())
-         xsink->raiseException("QDRAGMOVEEVENT-IGNORE-PARAM-ERROR", "this version of QDragMoveEvent::ignore() expects an object derived from QRect as the first argument", p->val.object->getClass()->getName());
+         xsink->raiseException("QDRAGMOVEEVENT-IGNORE-PARAM-ERROR", "this version of QDragMoveEvent::ignore() expects an object derived from QRect as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return 0;
    }
    ReferenceHolder<QoreQRect> rectangleHolder(rectangle, xsink);

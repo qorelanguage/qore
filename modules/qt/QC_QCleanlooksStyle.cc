@@ -43,7 +43,7 @@ static void QCLEANLOOKSSTYLE_copy(class QoreObject *self, class QoreObject *old,
 static QoreNode *QCLEANLOOKSSTYLE_drawItemText(QoreObject *self, QoreAbstractQCleanlooksStyle *qcs, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)p->val.object->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
+   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
    if (!painter) {
       if (!xsink->isException())
          xsink->raiseException("QCLEANLOOKSSTYLE-DRAWITEMTEXT-PARAM-ERROR", "expecting a QPainter object as first argument to QCleanlooksStyle::drawItemText()");
@@ -51,7 +51,7 @@ static QoreNode *QCLEANLOOKSSTYLE_drawItemText(QoreObject *self, QoreAbstractQCl
    }
    ReferenceHolder<AbstractPrivateData> painterHolder(static_cast<AbstractPrivateData *>(painter), xsink);
    p = get_param(params, 1);
-   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!rectangle) {
       if (!xsink->isException())
          xsink->raiseException("QCLEANLOOKSSTYLE-DRAWITEMTEXT-PARAM-ERROR", "expecting a QRect object as second argument to QCleanlooksStyle::drawItemText()");
@@ -61,7 +61,7 @@ static QoreNode *QCLEANLOOKSSTYLE_drawItemText(QoreObject *self, QoreAbstractQCl
    p = get_param(params, 2);
    int alignment = p ? p->getAsInt() : 0;
    p = get_param(params, 3);
-   QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)p->val.object->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!palette) {
       if (!xsink->isException())
          xsink->raiseException("QCLEANLOOKSSTYLE-DRAWITEMTEXT-PARAM-ERROR", "expecting a QPalette object as fourth argument to QCleanlooksStyle::drawItemText()");

@@ -37,8 +37,8 @@ static class QoreNode *f_tibrvSetDaemonCert(const QoreList *params, class Except
    const char *name = str ? str->getBuffer() : TIBRV_SECURE_DAEMON_ANY_NAME;
 
    // get certificate (SSLCertificate class)
-   QoreNode *pt = test_param(params, NT_OBJECT, 1);
-   class QoreSSLCertificate *sslc = pt ? (QoreSSLCertificate *)pt->val.object->getReferencedPrivateData(CID_SSLCERTIFICATE, xsink) : NULL;
+   QoreObject *pt = test_object_param(params, 1);
+   class QoreSSLCertificate *sslc = pt ? (QoreSSLCertificate *)pt->getReferencedPrivateData(CID_SSLCERTIFICATE, xsink) : NULL;
    if (*xsink)
       return NULL;
    class QoreString *pemcert = NULL;
@@ -68,8 +68,8 @@ static class QoreNode *f_tibrvSetDaemonCert(const QoreList *params, class Except
 static class QoreNode *f_tibrvSetUserCertWithKey(const QoreList *params, class ExceptionSink *xsink)
 {
    // get certificate (SSLCertificate class)
-   class QoreNode *pt = test_param(params, NT_OBJECT, 0);
-   class QoreSSLCertificate *cert = pt ? (QoreSSLCertificate *)pt->val.object->getReferencedPrivateData(CID_SSLCERTIFICATE, xsink) : NULL;
+   QoreObject *pt = test_object_param(params, 0);
+   QoreSSLCertificate *cert = pt ? (QoreSSLCertificate *)pt->getReferencedPrivateData(CID_SSLCERTIFICATE, xsink) : NULL;
    if (*xsink)
       return NULL;
    if (!cert)
@@ -82,8 +82,8 @@ static class QoreNode *f_tibrvSetUserCertWithKey(const QoreList *params, class E
    if (!pemcert)
       return NULL;
 
-   pt = test_param(params, NT_OBJECT, 1);
-   class QoreSSLPrivateKey *pk = pt ? (QoreSSLPrivateKey *)pt->val.object->getReferencedPrivateData(CID_SSLPRIVATEKEY, xsink) : NULL;
+   pt = test_object_param(params, 1);
+   class QoreSSLPrivateKey *pk = pt ? (QoreSSLPrivateKey *)pt->getReferencedPrivateData(CID_SSLPRIVATEKEY, xsink) : NULL;
    if (*xsink)
       return NULL;
    if (!pk)

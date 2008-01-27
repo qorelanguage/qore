@@ -34,7 +34,7 @@ class QoreClass *QC_QScrollArea = 0;
 static void QSCROLLAREA_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!is_nothing(p) && !parent) {
       if (!xsink->isException())
          xsink->raiseException("QSCROLLAREA-CONSTRUCTOR-PARAM-ERROR", "expecting either NOTHING or a QWidget object as first argument to QScrollArea::constructor()");
@@ -75,7 +75,7 @@ static QoreNode *QSCROLLAREA_ensureVisible(QoreObject *self, QoreQScrollArea *qs
 static QoreNode *QSCROLLAREA_ensureWidgetVisible(QoreObject *self, QoreQScrollArea *qsa, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *childWidget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *childWidget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!childWidget) {
       if (!xsink->isException())
          xsink->raiseException("QSCROLLAREA-ENSUREWIDGETVISIBLE-PARAM-ERROR", "expecting a QWidget object as first argument to QScrollArea::ensureWidgetVisible()");
@@ -103,7 +103,7 @@ static QoreNode *QSCROLLAREA_setAlignment(QoreObject *self, QoreQScrollArea *qsa
 static QoreNode *QSCROLLAREA_setWidget(QoreObject *self, QoreQScrollArea *qsa, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QSCROLLAREA-SETWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QScrollArea::setWidget()");
@@ -134,7 +134,7 @@ static QoreNode *QSCROLLAREA_takeWidget(QoreObject *self, QoreQScrollArea *qsa, 
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QWidget * widget () const
@@ -147,7 +147,7 @@ static QoreNode *QSCROLLAREA_widget(QoreObject *self, QoreQScrollArea *qsa, cons
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //bool widgetResizable () const

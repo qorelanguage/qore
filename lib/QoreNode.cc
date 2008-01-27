@@ -81,15 +81,6 @@ QoreNode::QoreNode(bool v)
 #endif
 }
 
-QoreNode::QoreNode(QoreObject *o)
-{
-   type = NT_OBJECT;
-   val.object = o;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1) object=%08p, class=%s\n", this, getTypeName(), o, o->getClass()->getName());
-#endif
-}
-
 QoreNode::QoreNode(double f)
 {
    type = NT_FLOAT;
@@ -386,8 +377,9 @@ void QoreNode::ref() const
 {
 #ifdef DEBUG
 #if TRACK_REFS
-   if (type == NT_OBJECT)
-      printd(5, "QoreNode::ref() %08p type=%s (%d->%d) object=%08p, class=%s\n", this, getTypeName(), references, references + 1, val.object, val.object->getClass()->getName());
+   const QoreObject *o = dynamic_cast<const QoreObject *>(this);
+   if (o)
+      printd(5, "QoreNode::ref() %08p type=%s (%d->%d) object=%08p, class=%s\n", this, getTypeName(), references, references + 1, o, o->getClass()->getName());
    else
       printd(5, "QoreNode::ref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
 #endif
@@ -407,7 +399,6 @@ void QoreNode::deref(ExceptionSink *xsink)
 #ifdef DEBUG
 #if TRACK_REFS
    if (type == NT_STRING) printd(5, "QoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
-   else if (type == NT_OBJECT) printd(5, "QoreNode::deref() %08p (%d->%d) object=%08p class=%s\n", this, references, references - 1, val.object, val.object->getClass()->getName());
    else
       printd(5, "QoreNode::deref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
 
@@ -430,9 +421,7 @@ void QoreNode::deref(ExceptionSink *xsink)
 
    if (ROdereference())
    {
-      if (type == NT_OBJECT)
-	 val.object->dereference(xsink);
-      else if (type == NT_FUNCREF)
+if (type == NT_FUNCREF)
 	 val.funcref->del(xsink);
 	 
       // now delete this QoreNode
@@ -445,6 +434,15 @@ void QoreNode::deref(ExceptionSink *xsink)
 class QoreNode *QoreNode::realCopy() const
 {
    assert(this);
+
+   if (type == NT_INT) 
+      return new QoreNode(val.intval);
+
+   if (type == NT_FLOAT) 
+      return new QoreNode(val.floatval);
+
+   if (type == NT_BOOLEAN) 
+      return new QoreNode(val.boolval);
    
    if (type == NT_BACKQUOTE) {
       QoreNode *n = new QoreNode(type);
@@ -472,11 +470,6 @@ class QoreNode *QoreNode::realCopy() const
 
    if (type == NT_BINARY) {
       return new QoreNode(val.bin->copy());
-   }
-
-   if (type == NT_OBJECT) {
-      // objects are not copied; they remain unique unless explicitly copied
-      return RefSelf();
    }
 
    if (type == NT_COMPLEXCONTEXTREF) {
@@ -824,8 +817,6 @@ QoreString *QoreNode::getAsString(bool &del, int foff, class ExceptionSink *xsin
       del = false;
       return val.boolval ? &TrueString : &FalseString;
    }
-   if (type == NT_OBJECT)
-      return val.object->getAsString(del, foff, xsink);
 
    if (type == NT_BINARY) {
       del = true;
@@ -1012,8 +1003,9 @@ bool is_nothing(const QoreNode *n)
    if (!n || (n->type == NT_NOTHING))
       return true;
    
-   if (n->type == NT_OBJECT && !n->val.object->isValid())
-      return true;
+   const QoreObject *o = dynamic_cast<const QoreObject *>(n);
+   if (o)
+      return !o->isValid();
    
    return false;
 }
@@ -1226,8 +1218,6 @@ bool QoreNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
    if (type != v->type)
       return false;
 
-   if (type == NT_OBJECT)
-      return !val.object->compareSoft(v->val.object, xsink);
    if (type == NT_BINARY)
       return !val.bin->compare(v->val.bin);
 
@@ -1254,8 +1244,6 @@ bool QoreNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
    if (type == NT_BOOLEAN)
       return val.boolval == v->val.boolval;
 
-   if (type == NT_OBJECT)
-      return !val.object->compareHard(v->val.object, xsink);
    if (type == NT_BINARY)
       return !val.bin->compare(v->val.bin);
 

@@ -376,14 +376,14 @@ static QoreNode *f_QLocale_c(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    QoreQLocale *q_ql = new QoreQLocale(QLocale::c());
    o_ql->setPrivate(CID_QLOCALE, q_ql);
-   return new QoreNode(o_ql);
+   return o_ql;
 }
 
 //void setDefault ( const QLocale & locale )
 static QoreNode *f_QLocale_setDefault(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)p->val.object->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
+   QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
    if (!locale) {
       if (!xsink->isException())
          xsink->raiseException("QLOCALE-SETDEFAULT-PARAM-ERROR", "expecting a QLocale object as first argument to QLocale::setDefault()");
@@ -400,7 +400,7 @@ static QoreNode *f_QLocale_system(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    QoreQLocale *q_ql = new QoreQLocale(QLocale::system());
    o_ql->setPrivate(CID_QLOCALE, q_ql);
-   return new QoreNode(o_ql);
+   return o_ql;
 }
 
 void initQLocaleStaticFunctions()

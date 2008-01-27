@@ -37,7 +37,7 @@ class QoreClass *QC_QTableView = 0;
 static void QTABLEVIEW_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -98,14 +98,14 @@ static QoreNode *QTABLEVIEW_horizontalHeader(QoreObject *self, QoreAbstractQTabl
    QoreQtQHeaderView *q_qhv = new QoreQtQHeaderView(o_qhv, hv);
    o_qhv->setPrivate(CID_QHEADERVIEW, q_qhv);
    //printd(5, "QTABLEVIEW_horizontalHeader() obj=%08p, QoreQtQHeaderView=%08p, QHeaderView=%08p\n", o_qhv, q_qhv, hv);
-   return new QoreNode(o_qhv);
+   return o_qhv;
 }
 
 //virtual QModelIndex indexAt ( const QPoint & pos ) const
 static QoreNode *QTABLEVIEW_indexAt(QoreObject *self, QoreAbstractQTableView *qtv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEVIEW-INDEXAT-PARAM-ERROR", "expecting a QPoint object as first argument to QTableView::indexAt()");
@@ -115,7 +115,7 @@ static QoreNode *QTABLEVIEW_indexAt(QoreObject *self, QoreAbstractQTableView *qt
    QoreObject *o_qmi = new QoreObject(QC_QModelIndex, getProgram());
    QoreQModelIndex *q_qmi = new QoreQModelIndex(qtv->getQTableView()->indexAt(*(static_cast<QPoint *>(pos))));
    o_qmi->setPrivate(CID_QMODELINDEX, q_qmi);
-   return new QoreNode(o_qmi);
+   return o_qmi;
 }
 
 //bool isColumnHidden ( int column ) const
@@ -224,7 +224,7 @@ static QoreNode *QTABLEVIEW_setGridStyle(QoreObject *self, QoreAbstractQTableVie
 static QoreNode *QTABLEVIEW_setHorizontalHeader(QoreObject *self, QoreAbstractQTableView *qtv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQHeaderView *header = (p && p->type == NT_OBJECT) ? (QoreAbstractQHeaderView *)p->val.object->getReferencedPrivateData(CID_QHEADERVIEW, xsink) : 0;
+   QoreAbstractQHeaderView *header = (p && p->type == NT_OBJECT) ? (QoreAbstractQHeaderView *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QHEADERVIEW, xsink) : 0;
    if (!header) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEVIEW-SETHORIZONTALHEADER-PARAM-ERROR", "expecting a QHeaderView object as first argument to QTableView::setHorizontalHeader()");
@@ -285,7 +285,7 @@ static QoreNode *QTABLEVIEW_setSpan(QoreObject *self, QoreAbstractQTableView *qt
 static QoreNode *QTABLEVIEW_setVerticalHeader(QoreObject *self, QoreAbstractQTableView *qtv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQHeaderView *header = (p && p->type == NT_OBJECT) ? (QoreAbstractQHeaderView *)p->val.object->getReferencedPrivateData(CID_QHEADERVIEW, xsink) : 0;
+   QoreAbstractQHeaderView *header = (p && p->type == NT_OBJECT) ? (QoreAbstractQHeaderView *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QHEADERVIEW, xsink) : 0;
    if (!header) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEVIEW-SETVERTICALHEADER-PARAM-ERROR", "expecting a QHeaderView object as first argument to QTableView::setVerticalHeader()");
@@ -328,7 +328,7 @@ static QoreNode *QTABLEVIEW_verticalHeader(QoreObject *self, QoreAbstractQTableV
    QoreObject *o_qhv = new QoreObject(QC_QHeaderView, getProgram());
    QoreQtQHeaderView *q_qhv = new QoreQtQHeaderView(o_qhv, qtv->getQTableView()->verticalHeader());
    o_qhv->setPrivate(CID_QHEADERVIEW, q_qhv);
-   return new QoreNode(o_qhv);
+   return o_qhv;
 }
 
 //bool wordWrap () const

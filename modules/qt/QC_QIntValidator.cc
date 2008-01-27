@@ -36,10 +36,10 @@ static void QINTVALIDATOR_constructor(QoreObject *self, const QoreList *params, 
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreAbstractQObject *parent = (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink);
+      QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
       if (!parent) {
          if (!xsink->isException())
-            xsink->raiseException("QINTVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "QIntValidator::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QINTVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "QIntValidator::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -50,10 +50,10 @@ static void QINTVALIDATOR_constructor(QoreObject *self, const QoreList *params, 
    p = get_param(params, 1);
    int maximum = p ? p->getAsInt() : 0;
    p = get_param(params, 2);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
-         xsink->raiseException("QINTVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "this version of QIntValidator::constructor() expects an object derived from QObject as the third argument", p->val.object->getClass()->getName());
+         xsink->raiseException("QINTVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "this version of QIntValidator::constructor() expects an object derived from QObject as the third argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);

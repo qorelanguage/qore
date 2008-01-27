@@ -68,7 +68,7 @@ static QoreNode *QTIME_addMSecs(QoreObject *self, QoreQTime *qt, const QoreList 
    QoreObject *o_qt = new QoreObject(self->getClass(CID_QTIME), getProgram());
    QoreQTime *q_qt = new QoreQTime(qt->addMSecs(ms));
    o_qt->setPrivate(CID_QTIME, q_qt);
-   return new QoreNode(o_qt);
+   return o_qt;
 }
 
 //QTime addSecs ( int s ) const
@@ -79,7 +79,7 @@ static QoreNode *QTIME_addSecs(QoreObject *self, QoreQTime *qt, const QoreList *
    QoreObject *o_qt = new QoreObject(self->getClass(CID_QTIME), getProgram());
    QoreQTime *q_qt = new QoreQTime(qt->addSecs(s));
    o_qt->setPrivate(CID_QTIME, q_qt);
-   return new QoreNode(o_qt);
+   return o_qt;
 }
 
 //int elapsed () const
@@ -122,7 +122,7 @@ static QoreNode *QTIME_msec(QoreObject *self, QoreQTime *qt, const QoreList *par
 static QoreNode *QTIME_msecsTo(QoreObject *self, QoreQTime *qt, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTime *t = (p && p->type == NT_OBJECT) ? (QoreQTime *)p->val.object->getReferencedPrivateData(CID_QTIME, xsink) : 0;
+   QoreQTime *t = (p && p->type == NT_OBJECT) ? (QoreQTime *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTIME, xsink) : 0;
    if (!t) {
       if (!xsink->isException())
          xsink->raiseException("QTIME-MSECSTO-PARAM-ERROR", "expecting a QTime object as first argument to QTime::msecsTo()");
@@ -148,7 +148,7 @@ static QoreNode *QTIME_second(QoreObject *self, QoreQTime *qt, const QoreList *p
 static QoreNode *QTIME_secsTo(QoreObject *self, QoreQTime *qt, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTime *t = (p && p->type == NT_OBJECT) ? (QoreQTime *)p->val.object->getReferencedPrivateData(CID_QTIME, xsink) : 0;
+   QoreQTime *t = (p && p->type == NT_OBJECT) ? (QoreQTime *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTIME, xsink) : 0;
    if (!t) {
       if (!xsink->isException())
          xsink->raiseException("QTIME-SECSTO-PARAM-ERROR", "expecting a QTime object as first argument to QTime::secsTo()");

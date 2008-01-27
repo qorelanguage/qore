@@ -117,7 +117,7 @@ static QoreNode *QURL_encodedQuery(QoreObject *self, QoreQUrl *qu, const QoreLis
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qu->encodedQuery());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //QString errorString () const
@@ -170,7 +170,7 @@ static QoreNode *QURL_isEmpty(QoreObject *self, QoreQUrl *qu, const QoreList *pa
 static QoreNode *QURL_isParentOf(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQUrl *childUrl = (p && p->type == NT_OBJECT) ? (QoreQUrl *)p->val.object->getReferencedPrivateData(CID_QURL, xsink) : 0;
+   QoreQUrl *childUrl = (p && p->type == NT_OBJECT) ? (QoreQUrl *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QURL, xsink) : 0;
    if (!childUrl) {
       if (!xsink->isException())
          xsink->raiseException("QURL-ISPARENTOF-PARAM-ERROR", "expecting a QUrl object as first argument to QUrl::isParentOf()");
@@ -276,7 +276,7 @@ static QoreNode *QURL_removeQueryItem(QoreObject *self, QoreQUrl *qu, const Qore
 static QoreNode *QURL_resolved(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQUrl *relative = (p && p->type == NT_OBJECT) ? (QoreQUrl *)p->val.object->getReferencedPrivateData(CID_QURL, xsink) : 0;
+   QoreQUrl *relative = (p && p->type == NT_OBJECT) ? (QoreQUrl *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QURL, xsink) : 0;
    if (!relative) {
       if (!xsink->isException())
          xsink->raiseException("QURL-RESOLVED-PARAM-ERROR", "expecting a QUrl object as first argument to QUrl::resolved()");
@@ -286,7 +286,7 @@ static QoreNode *QURL_resolved(QoreObject *self, QoreQUrl *qu, const QoreList *p
    QoreObject *o_qu = new QoreObject(self->getClass(CID_QURL), getProgram());
    QoreQUrl *q_qu = new QoreQUrl(qu->resolved(*(static_cast<QUrl *>(relative))));
    o_qu->setPrivate(CID_QURL, q_qu);
-   return new QoreNode(o_qu);
+   return o_qu;
 }
 
 //QString scheme () const
@@ -474,7 +474,7 @@ static QoreNode *QURL_toEncoded(QoreObject *self, QoreQUrl *qu, const QoreList *
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qu->toEncoded(options));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //QString toLocalFile () const

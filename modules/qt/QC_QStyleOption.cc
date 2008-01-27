@@ -58,7 +58,7 @@ static void QSTYLEOPTION_copy(class QoreObject *self, class QoreObject *old, cla
 static QoreNode *QSTYLEOPTION_initFrom(QoreObject *self, QoreQStyleOption *qso, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QSTYLEOPTION-INITFROM-PARAM-ERROR", "expecting a QWidget object as first argument to QStyleOption::initFrom()");
@@ -73,7 +73,7 @@ static QoreNode *QSTYLEOPTION_initFrom(QoreObject *self, QoreQStyleOption *qso, 
 static QoreNode *QSTYLEOPTION_setRect(QoreObject *self, QoreQStyleOption *qso, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQRect *rect = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreQRect *rect = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!rect) {
       if (!xsink->isException())
          xsink->raiseException("QSTYLEOPTION-SETRECT-PARAM-ERROR", "expecting a QRect object as first argument to QStyleOption::setRect()");
@@ -90,14 +90,14 @@ static QoreNode *QSTYLEOPTION_rect(QoreObject *self, QoreQStyleOption *qso, cons
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qso->rect);
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //void setPalette ( const QPalette & palette )
 static QoreNode *QSTYLEOPTION_setPalette(QoreObject *self, QoreQStyleOption *qso, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)p->val.object->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!palette) {
       if (!xsink->isException())
          xsink->raiseException("QSTYLEOPTION-SETPALETTE-PARAM-ERROR", "expecting a QPalette object as first argument to QStyleOption::setPalette()");
@@ -114,14 +114,14 @@ static QoreNode *QSTYLEOPTION_palette(QoreObject *self, QoreQStyleOption *qso, c
    QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
    QoreQPalette *q_qp = new QoreQPalette(&qso->palette);
    o_qp->setPrivate(CID_QPALETTE, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //void setFontMetrics ( const QFontMetrics & fontMetrics )
 static QoreNode *QSTYLEOPTION_setFontMetrics(QoreObject *self, QoreQStyleOption *qso, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQFontMetrics *fontMetrics = (p && p->type == NT_OBJECT) ? (QoreQFontMetrics *)p->val.object->getReferencedPrivateData(CID_QFONTMETRICS, xsink) : 0;
+   QoreQFontMetrics *fontMetrics = (p && p->type == NT_OBJECT) ? (QoreQFontMetrics *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONTMETRICS, xsink) : 0;
    if (!fontMetrics) {
       if (!xsink->isException())
          xsink->raiseException("QSTYLEOPTION-SETFONTMETRICS-PARAM-ERROR", "expecting a QFontMetrics object as first argument to QStyleOption::setFontMetrics()");
@@ -138,7 +138,7 @@ static QoreNode *QSTYLEOPTION_fontMetrics(QoreObject *self, QoreQStyleOption *qs
    QoreObject *o_qfm = new QoreObject(QC_QFontMetrics, getProgram());
    QoreQFontMetrics *q_qfm = new QoreQFontMetrics(qso->fontMetrics);
    o_qfm->setPrivate(CID_QFONTMETRICS, q_qfm);
-   return new QoreNode(o_qfm);
+   return o_qfm;
 }
 
 //void setState ( QStyle::State state )

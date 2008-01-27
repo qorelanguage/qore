@@ -39,7 +39,7 @@ class QoreClass *QC_QItemDelegate = 0;
 static void QITEMDELEGATE_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!is_nothing(p) && !parent) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-QITEMDELEGATE-PARAM-ERROR", "expecting either NOTHING or a QObject as first argument to QItemDelegate::constructor()");
@@ -59,7 +59,7 @@ static void QITEMDELEGATE_copy(class QoreObject *self, class QoreObject *old, cl
 static QoreNode *QITEMDELEGATE_createEditor(QoreObject *self, QoreAbstractQItemDelegate *qid, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-CREATEEDITOR-PARAM-ERROR", "expecting a QWidget object as first argument to QItemDelegate::createEditor()");
@@ -67,7 +67,7 @@ static QoreNode *QITEMDELEGATE_createEditor(QoreObject *self, QoreAbstractQItemD
    }
    ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
    p = get_param(params, 1);
-   QoreQStyleOptionViewItem *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionViewItem *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
+   QoreQStyleOptionViewItem *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionViewItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-CREATEEDITOR-PARAM-ERROR", "expecting a QStyleOptionViewItem object as second argument to QItemDelegate::createEditor()");
@@ -75,7 +75,7 @@ static QoreNode *QITEMDELEGATE_createEditor(QoreObject *self, QoreAbstractQItemD
    }
    ReferenceHolder<QoreQStyleOptionViewItem> optionHolder(option, xsink);
    p = get_param(params, 2);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-CREATEEDITOR-PARAM-ERROR", "expecting a QModelIndex object as third argument to QItemDelegate::createEditor()");
@@ -87,7 +87,7 @@ static QoreNode *QITEMDELEGATE_createEditor(QoreObject *self, QoreAbstractQItemD
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //bool hasClipping () const
@@ -106,7 +106,7 @@ static QoreNode *QITEMDELEGATE_hasClipping(QoreObject *self, QoreAbstractQItemDe
 static QoreNode *QITEMDELEGATE_paint(QoreObject *self, QoreAbstractQItemDelegate *qid, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)p->val.object->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
+   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
    if (!painter) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-PAINT-PARAM-ERROR", "expecting a QPainter object as first argument to QItemDelegate::paint()");
@@ -114,7 +114,7 @@ static QoreNode *QITEMDELEGATE_paint(QoreObject *self, QoreAbstractQItemDelegate
    }
    ReferenceHolder<QoreQPainter> painterHolder(painter, xsink);
    p = get_param(params, 1);
-   QoreQStyleOptionViewItem *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionViewItem *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
+   QoreQStyleOptionViewItem *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionViewItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-PAINT-PARAM-ERROR", "expecting a QStyleOptionViewItem object as second argument to QItemDelegate::paint()");
@@ -122,7 +122,7 @@ static QoreNode *QITEMDELEGATE_paint(QoreObject *self, QoreAbstractQItemDelegate
    }
    ReferenceHolder<QoreQStyleOptionViewItem> optionHolder(option, xsink);
    p = get_param(params, 2);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-PAINT-PARAM-ERROR", "expecting a QModelIndex object as third argument to QItemDelegate::paint()");
@@ -146,7 +146,7 @@ static QoreNode *QITEMDELEGATE_setClipping(QoreObject *self, QoreAbstractQItemDe
 static QoreNode *QITEMDELEGATE_setEditorData(QoreObject *self, QoreAbstractQItemDelegate *qid, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *editor = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *editor = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!editor) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-SETEDITORDATA-PARAM-ERROR", "expecting a QWidget object as first argument to QItemDelegate::setEditorData()");
@@ -154,7 +154,7 @@ static QoreNode *QITEMDELEGATE_setEditorData(QoreObject *self, QoreAbstractQItem
    }
    ReferenceHolder<QoreAbstractQWidget> editorHolder(editor, xsink);
    p = get_param(params, 1);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-SETEDITORDATA-PARAM-ERROR", "expecting a QModelIndex object as second argument to QItemDelegate::setEditorData()");
@@ -178,7 +178,7 @@ static QoreNode *QITEMDELEGATE_setEditorData(QoreObject *self, QoreAbstractQItem
 static QoreNode *QITEMDELEGATE_setModelData(QoreObject *self, QoreAbstractQItemDelegate *qid, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *editor = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *editor = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!editor) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-SETMODELDATA-PARAM-ERROR", "expecting a QWidget object as first argument to QItemDelegate::setModelData()");
@@ -186,7 +186,7 @@ static QoreNode *QITEMDELEGATE_setModelData(QoreObject *self, QoreAbstractQItemD
    }
    ReferenceHolder<AbstractPrivateData> editorHolder(static_cast<AbstractPrivateData *>(editor), xsink);
    p = get_param(params, 1);
-   QoreAbstractQAbstractItemModel *model = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemModel *)p->val.object->getReferencedPrivateData(CID_QABSTRACTITEMMODEL, xsink) : 0;
+   QoreAbstractQAbstractItemModel *model = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemModel *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTITEMMODEL, xsink) : 0;
    if (!model) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-SETMODELDATA-PARAM-ERROR", "expecting a QAbstractItemModel object as second argument to QItemDelegate::setModelData()");
@@ -194,7 +194,7 @@ static QoreNode *QITEMDELEGATE_setModelData(QoreObject *self, QoreAbstractQItemD
    }
    ReferenceHolder<AbstractPrivateData> modelHolder(static_cast<AbstractPrivateData *>(model), xsink);
    p = get_param(params, 2);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-SETMODELDATA-PARAM-ERROR", "expecting a QModelIndex object as third argument to QItemDelegate::setModelData()");
@@ -209,7 +209,7 @@ static QoreNode *QITEMDELEGATE_setModelData(QoreObject *self, QoreAbstractQItemD
 static QoreNode *QITEMDELEGATE_sizeHint(QoreObject *self, QoreAbstractQItemDelegate *qid, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQStyleOptionViewItem *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionViewItem *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
+   QoreQStyleOptionViewItem *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionViewItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-SIZEHINT-PARAM-ERROR", "expecting a QStyleOptionViewItem object as first argument to QItemDelegate::sizeHint()");
@@ -217,7 +217,7 @@ static QoreNode *QITEMDELEGATE_sizeHint(QoreObject *self, QoreAbstractQItemDeleg
    }
    ReferenceHolder<QoreQStyleOptionViewItem> optionHolder(option, xsink);
    p = get_param(params, 1);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-SIZEHINT-PARAM-ERROR", "expecting a QModelIndex object as second argument to QItemDelegate::sizeHint()");
@@ -227,14 +227,14 @@ static QoreNode *QITEMDELEGATE_sizeHint(QoreObject *self, QoreAbstractQItemDeleg
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qid->getQItemDelegate()->sizeHint(*(static_cast<QStyleOptionViewItem *>(option)), *(static_cast<QModelIndex *>(index))));
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //virtual void updateEditorGeometry ( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const
 static QoreNode *QITEMDELEGATE_updateEditorGeometry(QoreObject *self, QoreAbstractQItemDelegate *qid, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *editor = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *editor = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!editor) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-UPDATEEDITORGEOMETRY-PARAM-ERROR", "expecting a QWidget object as first argument to QItemDelegate::updateEditorGeometry()");
@@ -242,7 +242,7 @@ static QoreNode *QITEMDELEGATE_updateEditorGeometry(QoreObject *self, QoreAbstra
    }
    ReferenceHolder<QoreAbstractQWidget> editorHolder(editor, xsink);
    p = get_param(params, 1);
-   QoreQStyleOptionViewItem *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionViewItem *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
+   QoreQStyleOptionViewItem *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionViewItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-UPDATEEDITORGEOMETRY-PARAM-ERROR", "expecting a QStyleOptionViewItem object as second argument to QItemDelegate::updateEditorGeometry()");
@@ -250,7 +250,7 @@ static QoreNode *QITEMDELEGATE_updateEditorGeometry(QoreObject *self, QoreAbstra
    }
    ReferenceHolder<QoreQStyleOptionViewItem> optionHolder(option, xsink);
    p = get_param(params, 2);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QITEMDELEGATE-UPDATEEDITORGEOMETRY-PARAM-ERROR", "expecting a QModelIndex object as third argument to QItemDelegate::updateEditorGeometry()");

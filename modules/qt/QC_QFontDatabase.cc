@@ -89,7 +89,7 @@ static QoreNode *QFONTDATABASE_font(QoreObject *self, QoreQFontDatabase *qfd, co
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qfd->font(family, style, pointSize));
    o_qf->setPrivate(CID_QFONT, q_qf);
-   return new QoreNode(o_qf);
+   return o_qf;
 }
 
 //bool isBitmapScalable ( const QString & family, const QString & style = QString() ) const
@@ -228,9 +228,9 @@ static QoreNode *QFONTDATABASE_styleString(QoreObject *self, QoreQFontDatabase *
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
   
-   QoreQFontInfo *fontInfo = p ? (QoreQFontInfo *)p->val.object->getReferencedPrivateData(CID_QFONTINFO, xsink) : 0;
+   QoreQFontInfo *fontInfo = p ? (QoreQFontInfo *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONTINFO, xsink) : 0;
    if (!fontInfo) {
-      QoreQFont *font = p ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+      QoreQFont *font = p ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
       if (!font) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QFONTDATABASE-STYLESTRING-PARAM-ERROR", "QFontDatabase::styleString() was expecting a QFont or QFontInfo object as the first argument"); 

@@ -84,7 +84,7 @@ static QoreNode *QBYTEARRAY_append(QoreObject *self, QoreQByteArray *qba, const 
 
    // returns itself
    self->ref();
-   return new QoreNode(self);
+   return self;
 }
 
 //const char at ( int i ) const
@@ -235,7 +235,7 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 
    // return self
    self->ref();
-   return new QoreNode(self);
+   return self;
 }
 
 ////int indexOf ( const QByteArray & ba, int from = 0 ) const
@@ -295,7 +295,7 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->insert(i, ba));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -306,7 +306,7 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->insert(i, str));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -317,13 +317,13 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->insert(i, str));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   QByteArray::char ch = (QByteArray::char)(p ? p->getAsInt() : 0);
 //   QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //   QoreQByteArray *q_qba = new QoreQByteArray(qba->insert(i, ch));
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//   return new QoreNode(o_qba);
+//   return o_qba;
 //}
 
 //bool isEmpty () const
@@ -387,7 +387,7 @@ static QoreNode *QBYTEARRAY_left(QoreObject *self, QoreQByteArray *qba, const Qo
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->left(len));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //QByteArray leftJustified ( int width, char fill = ' ', bool truncate = false ) const
@@ -405,7 +405,7 @@ static QoreNode *QBYTEARRAY_leftJustified(QoreObject *self, QoreQByteArray *qba,
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->leftJustified(width, fill, truncate));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //int length () const
@@ -424,7 +424,7 @@ static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const Qor
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->mid(pos, len));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 ////QByteArray & prepend ( const QByteArray & ba )
@@ -440,7 +440,7 @@ static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const Qor
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->prepend(ba));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -451,13 +451,13 @@ static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const Qor
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->prepend(str));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   QByteArray::char ch = (QByteArray::char)(p ? p->getAsInt() : 0);
 //   QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //   QoreQByteArray *q_qba = new QoreQByteArray(qba->prepend(ch));
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//   return new QoreNode(o_qba);
+//   return o_qba;
 //}
 
 ////void push_back ( const QByteArray & other )
@@ -526,7 +526,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 
    // returns itself
    self->ref();
-   return new QoreNode(self);
+   return self;
 }
 
 ////QByteArray & replace ( int pos, int len, const QByteArray & after )
@@ -556,7 +556,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -567,7 +567,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -578,7 +578,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   int len = p ? p->getAsInt() : 0;
 //   p = get_param(params, 2);
@@ -588,7 +588,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //   QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //   QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, len, after));
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//   return new QoreNode(o_qba);
+//   return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -604,7 +604,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -615,7 +615,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -626,7 +626,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   int len = p ? p->getAsInt() : 0;
 //   p = get_param(params, 2);
@@ -636,7 +636,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //   QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //   QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, len, after));
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//   return new QoreNode(o_qba);
+//   return o_qba;
 //   }
 //   if (p && p->type == NT_???) {
 //      QByteArray before;
@@ -650,7 +650,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -661,7 +661,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -672,7 +672,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   int len = p ? p->getAsInt() : 0;
 //   p = get_param(params, 2);
@@ -682,7 +682,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //   QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //   QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, len, after));
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//   return new QoreNode(o_qba);
+//   return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -698,7 +698,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -709,7 +709,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -720,7 +720,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   int len = p ? p->getAsInt() : 0;
 //   p = get_param(params, 2);
@@ -730,7 +730,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //   QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //   QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, len, after));
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//   return new QoreNode(o_qba);
+//   return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -746,7 +746,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -757,7 +757,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -768,7 +768,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   int len = p ? p->getAsInt() : 0;
 //   p = get_param(params, 2);
@@ -778,7 +778,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //   QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //   QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, len, after));
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//   return new QoreNode(o_qba);
+//   return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -794,7 +794,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -805,7 +805,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -816,7 +816,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   int len = p ? p->getAsInt() : 0;
 //   p = get_param(params, 2);
@@ -826,7 +826,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //   QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //   QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(before, len, after));
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//   return new QoreNode(o_qba);
+//   return o_qba;
 //   }
 //   int pos = p ? p->getAsInt() : 0;
 //   p = get_param(params, 1);
@@ -837,7 +837,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(pos, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -848,7 +848,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(pos, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -859,7 +859,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //      QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //      QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(pos, after));
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//      return new QoreNode(o_qba);
+//      return o_qba;
 //   }
 //   int len = p ? p->getAsInt() : 0;
 //   p = get_param(params, 2);
@@ -869,7 +869,7 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //   QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
 //   QoreQByteArray *q_qba = new QoreQByteArray(qba->replace(pos, len, after));
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-//   return new QoreNode(o_qba);
+//   return o_qba;
 //}
 
 //void reserve ( int size )
@@ -898,7 +898,7 @@ static QoreNode *QBYTEARRAY_right(QoreObject *self, QoreQByteArray *qba, const Q
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->right(len));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //QByteArray rightJustified ( int width, char fill = ' ', bool truncate = false ) const
@@ -916,7 +916,7 @@ static QoreNode *QBYTEARRAY_rightJustified(QoreObject *self, QoreQByteArray *qba
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->rightJustified(width, fill, truncate));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //QByteArray & setNum ( int n, int base = 10 )
@@ -953,7 +953,7 @@ static QoreNode *QBYTEARRAY_setNum(QoreObject *self, QoreQByteArray *qba, const 
 
    // returns itself
    self->ref();
-   return new QoreNode(self);
+   return self;
 }
 
 //QByteArray simplified () const
@@ -962,7 +962,7 @@ static QoreNode *QBYTEARRAY_simplified(QoreObject *self, QoreQByteArray *qba, co
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->simplified());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //int size () const
@@ -1016,7 +1016,7 @@ static QoreNode *QBYTEARRAY_toBase64(QoreObject *self, QoreQByteArray *qba, cons
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->toBase64());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 ////double toDouble ( bool * ok = 0 ) const
@@ -1041,7 +1041,7 @@ static QoreNode *QBYTEARRAY_toHex(QoreObject *self, QoreQByteArray *qba, const Q
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->toHex());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 ////int toInt ( bool * ok = 0, int base = 10 ) const
@@ -1080,7 +1080,7 @@ static QoreNode *QBYTEARRAY_toLower(QoreObject *self, QoreQByteArray *qba, const
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->toLower());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 ////short toShort ( bool * ok = 0, int base = 10 ) const
@@ -1139,7 +1139,7 @@ static QoreNode *QBYTEARRAY_toUpper(QoreObject *self, QoreQByteArray *qba, const
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->toUpper());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //QByteArray trimmed () const
@@ -1148,7 +1148,7 @@ static QoreNode *QBYTEARRAY_trimmed(QoreObject *self, QoreQByteArray *qba, const
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->trimmed());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //void truncate ( int pos )

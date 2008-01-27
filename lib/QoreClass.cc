@@ -1269,7 +1269,7 @@ QoreNode *QoreClass::evalMemberGate(class QoreObject *self, const QoreString *nm
    return priv->memberGate->eval(self, *args, xsink);
 }
 
-QoreNode *QoreClass::execConstructor(const QoreList *args, ExceptionSink *xsink) const
+QoreObject *QoreClass::execConstructor(const QoreList *args, ExceptionSink *xsink) const
 {
    // create new object
    class QoreObject *o = new QoreObject(this, getProgram());
@@ -1301,12 +1301,11 @@ QoreNode *QoreClass::execConstructor(const QoreList *args, ExceptionSink *xsink)
       return NULL;
    }
 
-   QoreNode *rv = new QoreNode(o);
-   printd(5, "QoreClass::execConstructor() %s::constructor() o=%08p, returning %08p\n", priv->name, o, rv);
-   return rv;
+   printd(5, "QoreClass::execConstructor() %s::constructor() returning o=%08p\n", priv->name, o);
+   return o;
 }
 
-class QoreNode *QoreClass::execSystemConstructor(const QoreList *args, class ExceptionSink *xsink) const
+QoreObject *QoreClass::execSystemConstructor(const QoreList *args, class ExceptionSink *xsink) const
 {
    // create new object
    class QoreObject *o = new QoreObject(this, NULL);
@@ -1332,9 +1331,8 @@ class QoreNode *QoreClass::execSystemConstructor(const QoreList *args, class Exc
    // should never happen!
    assert(!xsink->isEvent());
 
-   QoreNode *rv = new QoreNode(o);
-   printd(5, "QoreClass::execSystemConstructor() %s::constructor() o=%08p, returning %08p\n", priv->name, o, rv);
-   return rv;
+   printd(5, "QoreClass::execSystemConstructor() %s::constructor() returning %08p\n", priv->name, o);
+   return o;
 }
 
 inline void QoreClass::execSubclassConstructor(class QoreObject *self, class BCEAList *bceal, class ExceptionSink *xsink) const
@@ -1429,7 +1427,7 @@ inline void QoreClass::execSubclassSystemDestructor(QoreObject *self, ExceptionS
    xsink->assimilate(&de);
 }
 
-class QoreNode *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const
+QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const
 {
    class QoreHash *h = old->copyData(xsink);
    if (*xsink)
@@ -1438,8 +1436,8 @@ class QoreNode *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const
    // save current program location in case there's an exception
    const char *o_fn = NULL;
    int o_ln = 0, o_eln = 0;
-   
-   class QoreObject *self = new QoreObject(this, getProgram(), h);
+
+   ReferenceHolder<QoreObject> self(new QoreObject(this, getProgram(), h), xsink);
 
    // execute superclass copy methods
    if (priv->scl)
@@ -1447,7 +1445,7 @@ class QoreNode *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const
       o_fn = get_pgm_file();
       get_pgm_counter(o_ln, o_eln);
 
-      priv->scl->sml.execCopyMethods(self, old, xsink);
+      priv->scl->sml.execCopyMethods(*self, old, xsink);
    }
    
    if (priv->copyMethod && !xsink->isEvent())
@@ -1456,17 +1454,12 @@ class QoreNode *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const
       if (o_fn)
 	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);
       
-      priv->copyMethod->evalCopy(self, old, xsink);
+      priv->copyMethod->evalCopy(*self, old, xsink);
       if (xsink->isException())
 	 xsink->addStackInfo(priv->copyMethod->getType(), old->getClass()->getName(), "copy", o_fn, o_ln, o_eln);
    }
 
-   if (!xsink->isEvent())
-      return new QoreNode(self);
-
-   self->dereference(xsink);
-
-   return NULL;
+   return *xsink ? 0 : self.release();
 }
 
 inline void QoreClass::execSubclassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const

@@ -36,7 +36,7 @@ class QoreClass *QC_QMoveEvent = 0;
 static void QMOVEEVENT_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QMOVEEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as first argument to QMoveEvent::constructor()");
@@ -44,7 +44,7 @@ static void QMOVEEVENT_constructor(class QoreObject *self, const QoreList *param
    }
    ReferenceHolder<QoreQPoint> holder(pos, xsink);
    p = get_param(params, 1);
-   QoreQPoint *oldPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *oldPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!oldPos) {
       if (!xsink->isException())
          xsink->raiseException("QMOVEEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as second argument to QMoveEvent::constructor()");
@@ -67,7 +67,7 @@ static QoreNode *QMOVEEVENT_oldPos(QoreObject *self, QoreQMoveEvent *qme, const 
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qme->oldPos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //const QPoint & pos () const
@@ -76,7 +76,7 @@ static QoreNode *QMOVEEVENT_pos(QoreObject *self, QoreQMoveEvent *qme, const Qor
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qme->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 class QoreClass *initQMoveEventClass(class QoreClass *qevent)

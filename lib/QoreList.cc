@@ -252,8 +252,9 @@ int QoreList::delete_entry(int ind, ExceptionSink *xsink)
    if (ind >= priv->length || ind < 0)
       return 1;
 
-   if (priv->entry[ind] && priv->entry[ind]->type == NT_OBJECT)
-      priv->entry[ind]->val.object->doDelete(xsink);
+   QoreObject *o = dynamic_cast<QoreObject *>(priv->entry[ind]);
+   if (o) 
+      o->doDelete(xsink);
 
    if (priv->entry[ind])
    {
@@ -274,8 +275,9 @@ void QoreList::pop_entry(int ind, ExceptionSink *xsink)
    if (ind >= priv->length || ind < 0)
       return;
 
-   if (priv->entry[ind] && priv->entry[ind]->type == NT_OBJECT)
-      priv->entry[ind]->val.object->doDelete(xsink);
+   QoreObject *o = dynamic_cast<QoreObject *>(priv->entry[ind]);
+   if (o) 
+      o->doDelete(xsink);
 
    if (priv->entry[ind])
    {

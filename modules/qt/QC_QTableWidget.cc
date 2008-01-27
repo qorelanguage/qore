@@ -39,11 +39,11 @@ static void QTABLEWIDGET_constructor(QoreObject *self, const QoreList *params, E
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQWidget *parent = (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink);
+      QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
          return;
       if (!parent) {
-         xsink->raiseException("QTABLEWIDGET-CONSTRUCTOR-ERROR", "QTableWidget::constructor() cannot handle arguments of class '%s'", p->val.object->getClass()->getName());
+         xsink->raiseException("QTABLEWIDGET-CONSTRUCTOR-ERROR", "QTableWidget::constructor() cannot handle arguments of class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -54,7 +54,7 @@ static void QTABLEWIDGET_constructor(QoreObject *self, const QoreList *params, E
    p = get_param(params, 1);
    int columns = p ? p->getAsInt() : 0;
    p = get_param(params, 2);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -81,14 +81,14 @@ static QoreNode *QTABLEWIDGET_cellWidget(QoreObject *self, QoreQTableWidget *qtw
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //void closePersistentEditor ( QTableWidgetItem * item )
 static QoreNode *QTABLEWIDGET_closePersistentEditor(QoreObject *self, QoreQTableWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-CLOSEPERSISTENTEDITOR-PARAM-ERROR", "expecting a QTableWidgetItem object as first argument to QTableWidget::closePersistentEditor()");
@@ -103,7 +103,7 @@ static QoreNode *QTABLEWIDGET_closePersistentEditor(QoreObject *self, QoreQTable
 static QoreNode *QTABLEWIDGET_column(QoreObject *self, QoreQTableWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-COLUMN-PARAM-ERROR", "expecting a QTableWidgetItem object as first argument to QTableWidget::column()");
@@ -131,7 +131,7 @@ static QoreNode *QTABLEWIDGET_currentItem(QoreObject *self, QoreQTableWidget *qt
    QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
    QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(qtw->qobj->currentItem());
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
-   return new QoreNode(o_qtwi);
+   return o_qtwi;
 }
 
 //int currentRow () const
@@ -144,7 +144,7 @@ static QoreNode *QTABLEWIDGET_currentRow(QoreObject *self, QoreQTableWidget *qtw
 static QoreNode *QTABLEWIDGET_editItem(QoreObject *self, QoreQTableWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-EDITITEM-PARAM-ERROR", "expecting a QTableWidgetItem object as first argument to QTableWidget::editItem()");
@@ -180,7 +180,7 @@ static QoreNode *QTABLEWIDGET_horizontalHeaderItem(QoreObject *self, QoreQTableW
    QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
    QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
-   return new QoreNode(o_qtwi);
+   return o_qtwi;
 }
 
 //QTableWidgetItem * item ( int row, int column ) const
@@ -198,7 +198,7 @@ static QoreNode *QTABLEWIDGET_item(QoreObject *self, QoreQTableWidget *qtw, cons
    QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
    QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
-   return new QoreNode(o_qtwi);
+   return o_qtwi;
 }
 
 //QTableWidgetItem * itemAt ( const QPoint & point ) const
@@ -207,10 +207,10 @@ static QoreNode *QTABLEWIDGET_itemAt(QoreObject *self, QoreQTableWidget *qtw, co
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())
-            xsink->raiseException("QTABLEWIDGET-ITEMAT-PARAM-ERROR", "QTableWidget::itemAt() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QTABLEWIDGET-ITEMAT-PARAM-ERROR", "QTableWidget::itemAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(point), xsink);
@@ -222,7 +222,7 @@ static QoreNode *QTABLEWIDGET_itemAt(QoreObject *self, QoreQTableWidget *qtw, co
       QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
       QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
       o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
-      return new QoreNode(o_qtwi);
+      return o_qtwi;
    }
    int ax = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
@@ -235,7 +235,7 @@ static QoreNode *QTABLEWIDGET_itemAt(QoreObject *self, QoreQTableWidget *qtw, co
    QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
    QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
-   return new QoreNode(o_qtwi);
+   return o_qtwi;
 }
 
 //const QTableWidgetItem * itemPrototype () const
@@ -248,14 +248,14 @@ static QoreNode *QTABLEWIDGET_itemPrototype(QoreObject *self, QoreQTableWidget *
    QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
    QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(const_cast<QTableWidgetItem *>(twi));
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
-   return new QoreNode(o_qtwi);
+   return o_qtwi;
 }
 
 //void openPersistentEditor ( QTableWidgetItem * item )
 static QoreNode *QTABLEWIDGET_openPersistentEditor(QoreObject *self, QoreQTableWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-OPENPERSISTENTEDITOR-PARAM-ERROR", "expecting a QTableWidgetItem object as first argument to QTableWidget::openPersistentEditor()");
@@ -281,7 +281,7 @@ static QoreNode *QTABLEWIDGET_removeCellWidget(QoreObject *self, QoreQTableWidge
 static QoreNode *QTABLEWIDGET_row(QoreObject *self, QoreQTableWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-ROW-PARAM-ERROR", "expecting a QTableWidgetItem object as first argument to QTableWidget::row()");
@@ -317,7 +317,7 @@ static QoreNode *QTABLEWIDGET_setCellWidget(QoreObject *self, QoreQTableWidget *
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 2);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-SETCELLWIDGET-PARAM-ERROR", "expecting a QWidget object as third argument to QTableWidget::setCellWidget()");
@@ -352,7 +352,7 @@ static QoreNode *QTABLEWIDGET_setCurrentCell(QoreObject *self, QoreQTableWidget 
 static QoreNode *QTABLEWIDGET_setCurrentItem(QoreObject *self, QoreQTableWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-SETCURRENTITEM-PARAM-ERROR", "expecting a QTableWidgetItem object as first argument to QTableWidget::setCurrentItem()");
@@ -369,7 +369,7 @@ static QoreNode *QTABLEWIDGET_setHorizontalHeaderItem(QoreObject *self, QoreQTab
    QoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-SETHORIZONTALHEADERITEM-PARAM-ERROR", "expecting a QTableWidgetItem object as second argument to QTableWidget::setHorizontalHeaderItem()");
@@ -410,7 +410,7 @@ static QoreNode *QTABLEWIDGET_setItem(QoreObject *self, QoreQTableWidget *qtw, c
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 2);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-SETITEM-PARAM-ERROR", "expecting a QTableWidgetItem object as third argument to QTableWidget::setItem()");
@@ -426,7 +426,7 @@ static QoreNode *QTABLEWIDGET_setItem(QoreObject *self, QoreQTableWidget *qtw, c
 static QoreNode *QTABLEWIDGET_setItemPrototype(QoreObject *self, QoreQTableWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-SETITEMPROTOTYPE-PARAM-ERROR", "expecting a QTableWidgetItem object as first argument to QTableWidget::setItemPrototype()");
@@ -463,7 +463,7 @@ static QoreNode *QTABLEWIDGET_setVerticalHeaderItem(QoreObject *self, QoreQTable
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-SETVERTICALHEADERITEM-PARAM-ERROR", "expecting a QTableWidgetItem object as second argument to QTableWidget::setVerticalHeaderItem()");
@@ -520,7 +520,7 @@ static QoreNode *QTABLEWIDGET_takeHorizontalHeaderItem(QoreObject *self, QoreQTa
    QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
    QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
-   return new QoreNode(o_qtwi);
+   return o_qtwi;
 }
 
 //QTableWidgetItem * takeItem ( int row, int column )
@@ -538,7 +538,7 @@ static QoreNode *QTABLEWIDGET_takeItem(QoreObject *self, QoreQTableWidget *qtw, 
    QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
    QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
-   return new QoreNode(o_qtwi);
+   return o_qtwi;
 }
 
 //QTableWidgetItem * takeVerticalHeaderItem ( int row )
@@ -554,7 +554,7 @@ static QoreNode *QTABLEWIDGET_takeVerticalHeaderItem(QoreObject *self, QoreQTabl
    QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
    QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
-   return new QoreNode(o_qtwi);
+   return o_qtwi;
 }
 
 //QTableWidgetItem * verticalHeaderItem ( int row ) const
@@ -570,7 +570,7 @@ static QoreNode *QTABLEWIDGET_verticalHeaderItem(QoreObject *self, QoreQTableWid
    QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
    QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(twi);
    o_qtwi->setPrivate(CID_QTABLEWIDGETITEM, q_qtwi);
-   return new QoreNode(o_qtwi);
+   return o_qtwi;
 }
 
 //int visualColumn ( int logicalColumn ) const
@@ -585,7 +585,7 @@ static QoreNode *QTABLEWIDGET_visualColumn(QoreObject *self, QoreQTableWidget *q
 static QoreNode *QTABLEWIDGET_visualItemRect(QoreObject *self, QoreQTableWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-VISUALITEMRECT-PARAM-ERROR", "expecting a QTableWidgetItem object as first argument to QTableWidget::visualItemRect()");
@@ -595,7 +595,7 @@ static QoreNode *QTABLEWIDGET_visualItemRect(QoreObject *self, QoreQTableWidget 
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qtw->qobj->visualItemRect(item->qore_obj));
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //int visualRow ( int logicalRow ) const
@@ -660,7 +660,7 @@ static QoreNode *QTABLEWIDGET_removeRow(QoreObject *self, QoreQTableWidget *qtw,
 static QoreNode *QTABLEWIDGET_scrollToItem(QoreObject *self, QoreQTableWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)p->val.object->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
+   QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGET-SCROLLTOITEM-PARAM-ERROR", "expecting a QTableWidgetItem object as first argument to QTableWidget::scrollToItem()");

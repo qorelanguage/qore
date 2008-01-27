@@ -44,7 +44,7 @@ static void QDATETIMEEDIT_constructor(QoreObject *self, const QoreList *params, 
 
    QoreQWidget *parent = 0;
    if (p->type == NT_OBJECT) {
-      parent = (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink);
+      parent = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
 	 return;
       ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
@@ -58,7 +58,7 @@ static void QDATETIMEEDIT_constructor(QoreObject *self, const QoreList *params, 
 
    // get parent widget as second argument if possible
    p = test_param(params, NT_OBJECT, 1);
-   parent = p ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   parent = p ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);

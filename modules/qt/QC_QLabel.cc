@@ -48,10 +48,10 @@ static void QLABEL_constructor(class QoreObject *self, const QoreList *params, E
    QoreAbstractQWidget *parent = 0;
    if (p && p->type == NT_OBJECT)
    {
-      parent = (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink);
+      parent = (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (!parent)
       {
-         xsink->raiseException("QLABEL-CONSTRUCTOR-ERROR", "object passed to QLabel::constructor() is not derived from QWidget (class: '%s')", p->val.object->getClass()->getName());
+         xsink->raiseException("QLABEL-CONSTRUCTOR-ERROR", "object passed to QLabel::constructor() is not derived from QWidget (class: '%s')", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return;
       }
    }
@@ -116,7 +116,7 @@ static QoreNode *QLABEL_movie(QoreObject *self, QoreQLabel *ql, const QoreList *
    else
       q_qm = new QoreQMovie(o_qm, mov->fileName(), mov->format());
    o_qm->setPrivate(CID_QMOVIE, q_qm);
-   return new QoreNode(o_qm);
+   return o_qm;
 }
 
 //bool openExternalLinks () const
@@ -131,7 +131,7 @@ static QoreNode *QLABEL_picture(QoreObject *self, QoreQLabel *ql, const QoreList
    QoreQPicture *q_qp = new QoreQPicture(*(ql->qobj->picture()));
    QoreObject *o_qp = new QoreObject(QC_QPicture, getProgram());
    o_qp->setPrivate(CID_QPICTURE, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //const QPixmap * pixmap () const
@@ -140,7 +140,7 @@ static QoreNode *QLABEL_pixmap(QoreObject *self, QoreQLabel *ql, const QoreList 
    QoreQPixmap *q_qp = new QoreQPixmap(*(ql->qobj->pixmap()));
    QoreObject *o_qp = new QoreObject(QC_QPixmap, getProgram());
    o_qp->setPrivate(CID_QPIXMAP, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //void setAlignment ( Qt::Alignment )
@@ -156,7 +156,7 @@ static QoreNode *QLABEL_setAlignment(QoreObject *self, QoreQLabel *ql, const Qor
 static QoreNode *QLABEL_setBuddy(QoreObject *self, QoreQLabel *ql, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *buddy = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *buddy = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!buddy) {
       if (!xsink->isException())
          xsink->raiseException("QLABEL-SETBUDDY-PARAM-ERROR", "expecting a QWidget object as first argument to QLabel::setBuddy()");
@@ -265,7 +265,7 @@ static QoreNode *QLABEL_clear(QoreObject *self, QoreQLabel *ql, const QoreList *
 static QoreNode *QLABEL_setMovie(QoreObject *self, QoreQLabel *ql, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQMovie *movie = (p && p->type == NT_OBJECT) ? (QoreQMovie *)p->val.object->getReferencedPrivateData(CID_QMOVIE, xsink) : 0;
+   QoreQMovie *movie = (p && p->type == NT_OBJECT) ? (QoreQMovie *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMOVIE, xsink) : 0;
    if (!movie) {
       if (!xsink->isException())
          xsink->raiseException("QLABEL-SETMOVIE-PARAM-ERROR", "expecting a QMovie object as first argument to QLabel::setMovie()");
@@ -295,7 +295,7 @@ static QoreNode *QLABEL_setNum(QoreObject *self, QoreQLabel *ql, const QoreList 
 static QoreNode *QLABEL_setPicture(QoreObject *self, QoreQLabel *ql, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPicture *picture = (p && p->type == NT_OBJECT) ? (QoreQPicture *)p->val.object->getReferencedPrivateData(CID_QPICTURE, xsink) : 0;
+   QoreQPicture *picture = (p && p->type == NT_OBJECT) ? (QoreQPicture *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPICTURE, xsink) : 0;
    if (!picture) {
       if (!xsink->isException())
          xsink->raiseException("QLABEL-SETPICTURE-PARAM-ERROR", "expecting a QPicture object as first argument to QLabel::setPicture()");
@@ -310,7 +310,7 @@ static QoreNode *QLABEL_setPicture(QoreObject *self, QoreQLabel *ql, const QoreL
 static QoreNode *QLABEL_setPixmap(QoreObject *self, QoreQLabel *ql, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+   AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!apd_qpixmap) {
       if (!xsink->isException())
          xsink->raiseException("QLABEL-SETPIXMAP-PARAM-ERROR", "expecting a QPixmap object as first argument to QLabel::setPixmap()");

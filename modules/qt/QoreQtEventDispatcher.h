@@ -103,9 +103,8 @@ class QoreQtEventDispatcher {
 	 // create argument list
 	 QoreObject *peo = new QoreObject(qclass, getProgram());
 	 peo->setPrivate(qclass->getID(), data);
-	 QoreNode *a = new QoreNode(peo);
 	 ReferenceHolder<QoreList> args(new QoreList(), xsink);
-	 args->push(a);
+	 args->push(peo);
 	 
 	 // call event method
 	 return m->eval(qore_obj, *args, xsink);

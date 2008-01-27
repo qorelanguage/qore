@@ -201,7 +201,7 @@ static QoreNode *QMETAOBJECT_superClass(QoreObject *self, QoreQMetaObject *qmo, 
    QoreObject *o_qmo = new QoreObject(self->getClass(CID_QMETAOBJECT), getProgram());
    QoreQMetaObject *q_qmo = new QoreQMetaObject(const_cast<QMetaObject *>(qmo->qobj->superClass()));
    o_qmo->setPrivate(CID_QMETAOBJECT, q_qmo);
-   return new QoreNode(o_qmo);
+   return o_qmo;
 }
 
 ////QMetaProperty userProperty () const

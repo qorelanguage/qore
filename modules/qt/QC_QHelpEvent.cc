@@ -36,7 +36,7 @@ static void QHELPEVENT_constructor(QoreObject *self, const QoreList *params, Exc
    QoreNode *p = get_param(params, 0);
    QHelpEvent::Type type = (QHelpEvent::Type)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QHELPEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as second argument to QHelpEvent::constructor()");
@@ -44,7 +44,7 @@ static void QHELPEVENT_constructor(QoreObject *self, const QoreList *params, Exc
    }
    ReferenceHolder<AbstractPrivateData> posHolder(static_cast<AbstractPrivateData *>(pos), xsink);
    p = get_param(params, 2);
-   QoreQPoint *globalPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *globalPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!globalPos) {
       if (!xsink->isException())
          xsink->raiseException("QHELPEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as third argument to QHelpEvent::constructor()");
@@ -66,7 +66,7 @@ static QoreNode *QHELPEVENT_globalPos(QoreObject *self, QoreQHelpEvent *qhe, con
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qhe->globalPos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //int globalX () const
@@ -87,7 +87,7 @@ static QoreNode *QHELPEVENT_pos(QoreObject *self, QoreQHelpEvent *qhe, const Qor
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qhe->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //int x () const

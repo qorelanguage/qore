@@ -347,11 +347,9 @@ class BGThreadParams {
 	    
 	    fc->val.tree->left->deref(xsink);
 	    fc->val.tree->left = n;
-	    if (n->type == NT_OBJECT)
-	    {
-	       obj = n->val.object;
+	    obj = dynamic_cast<QoreObject *>(n);
+	    if (obj)
 	       obj->ref();
-	    }
 	 }
  
 	 if (callobj)
@@ -384,7 +382,7 @@ class BGThreadParams {
       {
 	 if (obj)
 	 {
-	    obj->dereference(xsink);
+	    obj->deref(xsink);
 	    obj = NULL;
 	 }
       }
@@ -688,7 +686,7 @@ CodeContextHelper::~CodeContextHelper()
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    //printd(5, "CodeContextHelper::~CodeContextHelper() this=%08p current=(%s, %08p) restoring %s, %08p\n", this, td->current_code ? td->current_code : "null", td->current_obj, old_code ? old_code : "null", old_obj);
    if (td->current_obj)
-      td->current_obj->dereference(xsink);
+      td->current_obj->deref(xsink);
    td->current_code = old_code;
    td->current_obj = old_obj;
 }

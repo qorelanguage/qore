@@ -34,7 +34,7 @@ class QoreClass *QC_QInputDialog = 0;
 static QoreNode *f_QInputDialog_getDouble(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QINPUTDIALOG-GETDOUBLE-PARAM-ERROR", "expecting a QWidget object as first argument to QInputDialog::getDouble()");
@@ -84,7 +84,7 @@ static QoreNode *f_QInputDialog_getDouble(const QoreList *params, ExceptionSink 
 static QoreNode *f_QInputDialog_getInteger(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QINPUTDIALOG-GETINTEGER-PARAM-ERROR", "expecting a QWidget object as first argument to QInputDialog::getInteger()");
@@ -134,7 +134,7 @@ static QoreNode *f_QInputDialog_getInteger(const QoreList *params, ExceptionSink
 static QoreNode *f_QInputDialog_getItem(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QINPUTDIALOG-GETITEM-PARAM-ERROR", "expecting a QWidget object as first argument to QInputDialog::getItem()");
@@ -195,7 +195,7 @@ static QoreNode *f_QInputDialog_getItem(const QoreList *params, ExceptionSink *x
 static QoreNode *f_QInputDialog_getText(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QINPUTDIALOG-GETTEXT-PARAM-ERROR", "expecting a QWidget object as first argument to QInputDialog::getText()");

@@ -78,7 +78,7 @@ class T {
 	 if (!id) {
 	    assert(false);
 	    ExceptionSink xsink;
-	    qore_obj->dereference(&xsink);
+	    qore_obj->deref(&xsink);
 	    return -1;
 	 }
 

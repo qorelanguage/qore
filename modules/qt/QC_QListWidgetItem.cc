@@ -46,7 +46,7 @@ static void QLISTWIDGETITEM_constructor(QoreObject *self, const QoreList *params
       return;
    }
    
-   QoreQIcon *icon = p->type == NT_OBJECT ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreQIcon *icon = p->type == NT_OBJECT ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (*xsink)
       return;
 
@@ -75,7 +75,7 @@ static void QLISTWIDGETITEM_constructor(QoreObject *self, const QoreList *params
       }
    }
 
-   QoreQListWidget *parent = p && p->type == NT_OBJECT ? (QoreQListWidget *)p->val.object->getReferencedPrivateData(CID_QLISTWIDGET, xsink) : 0;
+   QoreQListWidget *parent = p && p->type == NT_OBJECT ? (QoreQListWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGET, xsink) : 0;
    if (*xsink)
       return;
 
@@ -103,7 +103,7 @@ static QoreNode *QLISTWIDGETITEM_background(QoreObject *self, QoreQListWidgetIte
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qlwi->getQListWidgetItem()->background());
    o_qb->setPrivate(CID_QBRUSH, q_qb);
-   return new QoreNode(o_qb);
+   return o_qb;
 }
 
 //Qt::CheckState checkState () const
@@ -118,7 +118,7 @@ static QoreNode *QLISTWIDGETITEM_clone(QoreObject *self, QoreQListWidgetItem *ql
    QoreObject *o_qlwi = new QoreObject(self->getClass(CID_QLISTWIDGETITEM), getProgram());
    QoreQListWidgetItem *q_qlwi = new QoreQListWidgetItem(*qlwi);
    o_qlwi->setPrivate(CID_QLISTWIDGETITEM, q_qlwi);
-   return new QoreNode(o_qlwi);
+   return o_qlwi;
 }
 
 //virtual QVariant data ( int role ) const
@@ -141,7 +141,7 @@ static QoreNode *QLISTWIDGETITEM_font(QoreObject *self, QoreQListWidgetItem *qlw
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qlwi->getQListWidgetItem()->font());
    o_qf->setPrivate(CID_QFONT, q_qf);
-   return new QoreNode(o_qf);
+   return o_qf;
 }
 
 //QBrush foreground () const
@@ -150,7 +150,7 @@ static QoreNode *QLISTWIDGETITEM_foreground(QoreObject *self, QoreQListWidgetIte
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qlwi->getQListWidgetItem()->foreground());
    o_qb->setPrivate(CID_QBRUSH, q_qb);
-   return new QoreNode(o_qb);
+   return o_qb;
 }
 
 //QIcon icon () const
@@ -159,7 +159,7 @@ static QoreNode *QLISTWIDGETITEM_icon(QoreObject *self, QoreQListWidgetItem *qlw
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qlwi->getQListWidgetItem()->icon());
    o_qi->setPrivate(CID_QICON, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //bool isHidden () const
@@ -189,7 +189,7 @@ static QoreNode *QLISTWIDGETITEM_listWidget(QoreObject *self, QoreQListWidgetIte
       QoreQtQListWidget *t_qobj = new QoreQtQListWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QLISTWIDGET, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 /*
@@ -249,7 +249,7 @@ static QoreNode *QLISTWIDGETITEM_setFlags(QoreObject *self, QoreQListWidgetItem 
 static QoreNode *QLISTWIDGETITEM_setFont(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
          xsink->raiseException("QLISTWIDGETITEM-SETFONT-PARAM-ERROR", "expecting a QFont object as first argument to QListWidgetItem::setFont()");
@@ -284,7 +284,7 @@ static QoreNode *QLISTWIDGETITEM_setHidden(QoreObject *self, QoreQListWidgetItem
 static QoreNode *QLISTWIDGETITEM_setIcon(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QLISTWIDGETITEM-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QListWidgetItem::setIcon()");
@@ -308,7 +308,7 @@ static QoreNode *QLISTWIDGETITEM_setSelected(QoreObject *self, QoreQListWidgetIt
 static QoreNode *QLISTWIDGETITEM_setSizeHint(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QLISTWIDGETITEM-SETSIZEHINT-PARAM-ERROR", "expecting a QSize object as first argument to QListWidgetItem::setSizeHint()");
@@ -378,7 +378,7 @@ static QoreNode *QLISTWIDGETITEM_sizeHint(QoreObject *self, QoreQListWidgetItem 
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qlwi->getQListWidgetItem()->sizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //QString statusTip () const

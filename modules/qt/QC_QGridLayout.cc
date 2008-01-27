@@ -33,7 +33,7 @@ static void QGRIDLAYOUT_constructor(class QoreObject *self, const QoreList *para
 {
    QoreQGridLayout *qw;
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!parent)
       qw = new QoreQGridLayout(self);
@@ -75,7 +75,7 @@ static void QGRIDLAYOUT_copy(class QoreObject *self, class QoreObject *old, clas
 QoreNode *QGRIDLAYOUT_addLayout(class QoreObject *self, QoreQGridLayout *ql, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQLayout *layout = p ? (QoreAbstractQLayout *)p->val.object->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
+   QoreAbstractQLayout *layout = p ? (QoreAbstractQLayout *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
    if (!layout)
    {
       if (!xsink->isException())
@@ -111,7 +111,7 @@ QoreNode *QGRIDLAYOUT_addLayout(class QoreObject *self, QoreQGridLayout *ql, con
 QoreNode *QGRIDLAYOUT_addWidget(class QoreObject *self, QoreQGridLayout *ql, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *widget = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *widget = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget)
    {
       if (!xsink->isException())

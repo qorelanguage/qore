@@ -66,7 +66,7 @@ static QoreNode *QDATE_addDays(QoreObject *self, QoreQDate *qd, const QoreList *
    QoreObject *o_qd = new QoreObject(self->getClass(CID_QDATE), getProgram());
    QoreQDate *q_qd = new QoreQDate(qd->addDays(ndays));
    o_qd->setPrivate(CID_QDATE, q_qd);
-   return new QoreNode(o_qd);
+   return o_qd;
 }
 
 //QDate addMonths ( int nmonths ) const
@@ -77,7 +77,7 @@ static QoreNode *QDATE_addMonths(QoreObject *self, QoreQDate *qd, const QoreList
    QoreObject *o_qd = new QoreObject(self->getClass(CID_QDATE), getProgram());
    QoreQDate *q_qd = new QoreQDate(qd->addMonths(nmonths));
    o_qd->setPrivate(CID_QDATE, q_qd);
-   return new QoreNode(o_qd);
+   return o_qd;
 }
 
 //QDate addYears ( int nyears ) const
@@ -88,7 +88,7 @@ static QoreNode *QDATE_addYears(QoreObject *self, QoreQDate *qd, const QoreList 
    QoreObject *o_qd = new QoreObject(self->getClass(CID_QDATE), getProgram());
    QoreQDate *q_qd = new QoreQDate(qd->addYears(nyears));
    o_qd->setPrivate(CID_QDATE, q_qd);
-   return new QoreNode(o_qd);
+   return o_qd;
 }
 
 //int day () const
@@ -125,7 +125,7 @@ static QoreNode *QDATE_daysInYear(QoreObject *self, QoreQDate *qd, const QoreLis
 static QoreNode *QDATE_daysTo(QoreObject *self, QoreQDate *qd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQDate *d = (p && p->type == NT_OBJECT) ? (QoreQDate *)p->val.object->getReferencedPrivateData(CID_QDATE, xsink) : 0;
+   QoreQDate *d = (p && p->type == NT_OBJECT) ? (QoreQDate *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDATE, xsink) : 0;
    if (!d) {
       if (!xsink->isException())
          xsink->raiseException("QDATE-DAYSTO-PARAM-ERROR", "expecting a QDate object as first argument to QDate::daysTo()");

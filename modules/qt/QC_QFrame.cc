@@ -32,7 +32,7 @@ static void QFRAME_constructor(class QoreObject *self, const QoreList *params, E
 {
    QoreQFrame *qw;
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!parent)
       qw = new QoreQFrame(self);
@@ -58,7 +58,7 @@ static QoreNode *QFRAME_frameRect(QoreObject *self, QoreAbstractQFrame *qf, cons
    QoreQRect *q_qr = new QoreQRect(qf->getQFrame()->frameRect());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //Shadow frameShadow () const
@@ -101,7 +101,7 @@ static QoreNode *QFRAME_midLineWidth(QoreObject *self, QoreAbstractQFrame *qf, c
 static QoreNode *QFRAME_setFrameRect(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQRect *qrect = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreQRect *qrect = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!qrect) {
       if (!xsink->isException())
          xsink->raiseException("QFRAME-SETFRAMERECT-PARAM-ERROR", "expecting a QRect object as first argument to QFrame::setFrameRect()");

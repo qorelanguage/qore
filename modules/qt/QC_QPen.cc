@@ -90,7 +90,7 @@ static QoreNode *QPEN_brush(QoreObject *self, QoreQPen *qp, const QoreList *para
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qp->brush());
    o_qb->setPrivate(CID_QBRUSH, q_qb);
-   return new QoreNode(o_qb);
+   return o_qb;
 }
 
 //Qt::PenCapStyle capStyle () const
@@ -105,7 +105,7 @@ static QoreNode *QPEN_color(QoreObject *self, QoreQPen *qp, const QoreList *para
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qp->color());
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //qreal dashOffset () const
@@ -174,7 +174,7 @@ static QoreNode *QPEN_setCapStyle(QoreObject *self, QoreQPen *qp, const QoreList
 static QoreNode *QPEN_setColor(QoreObject *self, QoreQPen *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+   QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
    if (!color) {
       if (!xsink->isException())
          xsink->raiseException("QPEN-SETCOLOR-PARAM-ERROR", "expecting a QColor object as first argument to QPen::setColor()");

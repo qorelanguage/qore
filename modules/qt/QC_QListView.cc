@@ -38,7 +38,7 @@ class QoreClass *QC_QListView = 0;
 static void QLISTVIEW_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -76,7 +76,7 @@ static QoreNode *QLISTVIEW_gridSize(QoreObject *self, QoreAbstractQListView *qlv
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qlv->getQListView()->gridSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //bool isRowHidden ( int row ) const
@@ -145,7 +145,7 @@ static QoreNode *QLISTVIEW_setFlow(QoreObject *self, QoreAbstractQListView *qlv,
 static QoreNode *QLISTVIEW_setGridSize(QoreObject *self, QoreAbstractQListView *qlv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QLISTVIEW-SETGRIDSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QListView::setGridSize()");
@@ -285,7 +285,7 @@ static QoreNode *QLISTVIEW_wordWrap(QoreObject *self, QoreAbstractQListView *qlv
 static QoreNode *QLISTVIEW_rectForIndex(QoreObject *self, QoreAbstractQListView *qlv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QLISTVIEW-RECTFORINDEX-PARAM-ERROR", "expecting a QModelIndex object as first argument to QListView::rectForIndex()");
@@ -295,14 +295,14 @@ static QoreNode *QLISTVIEW_rectForIndex(QoreObject *self, QoreAbstractQListView 
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qlv->rectForIndex(*(static_cast<QModelIndex *>(index))));
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //void setPositionForIndex ( const QPoint & position, const QModelIndex & index )
 static QoreNode *QLISTVIEW_setPositionForIndex(QoreObject *self, QoreAbstractQListView *qlv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!position) {
       if (!xsink->isException())
          xsink->raiseException("QLISTVIEW-SETPOSITIONFORINDEX-PARAM-ERROR", "expecting a QPoint object as first argument to QListView::setPositionForIndex()");
@@ -310,7 +310,7 @@ static QoreNode *QLISTVIEW_setPositionForIndex(QoreObject *self, QoreAbstractQLi
    }
    ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(position), xsink);
    p = get_param(params, 1);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QLISTVIEW-SETPOSITIONFORINDEX-PARAM-ERROR", "expecting a QModelIndex object as second argument to QListView::setPositionForIndex()");

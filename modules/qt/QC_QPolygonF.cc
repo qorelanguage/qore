@@ -39,7 +39,7 @@ static int qpolygonf_add_points(QoreQPolygonF *qp, QoreList *l, class ExceptionS
    while (li.next())
    {
       QoreNode *n = li.getValue();
-      QoreQPointF *point = (n && n->type == NT_OBJECT) ?  (QoreQPointF *)n->val.object->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+      QoreQPointF *point = (n && n->type == NT_OBJECT) ?  (QoreQPointF *)(reinterpret_cast<QoreObject *>(n))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
       if (!point) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QPOINT-LIST-TYPE-ERROR", "expecting only objects derived from QPointF, found other type ('%s')", n ? n->getTypeName() : "NOTHING");
@@ -65,14 +65,14 @@ static void QPOLYGONF_constructor(QoreObject *self, const QoreList *params, Exce
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQPolygonF *polygonf = (QoreQPolygonF *)p->val.object->getReferencedPrivateData(CID_QPOLYGONF, xsink);
+      QoreQPolygonF *polygonf = (QoreQPolygonF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGONF, xsink);
       if (!polygonf) {
-         QoreQRectF *rectangle = (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink);
+         QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
          if (!rectangle) {
-            QoreQPolygon *polygon = (QoreQPolygon *)p->val.object->getReferencedPrivateData(CID_QPOLYGON, xsink);
+            QoreQPolygon *polygon = (QoreQPolygon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGON, xsink);
             if (!polygon) {
                if (!xsink->isException())
-                  xsink->raiseException("QPOLYGONF-QPOLYGONF-PARAM-ERROR", "QPolygonF::QPolygonF() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+                  xsink->raiseException("QPOLYGONF-QPOLYGONF-PARAM-ERROR", "QPolygonF::QPolygonF() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
                return;
             }
             ReferenceHolder<QoreQPolygon> polygonHolder(polygon, xsink);
@@ -117,14 +117,14 @@ static QoreNode *QPOLYGONF_boundingRect(QoreObject *self, QoreQPolygonF *qpf, co
    QoreObject *o_qrf = new QoreObject(QC_QRectF, getProgram());
    QoreQRectF *q_qrf = new QoreQRectF(qpf->boundingRect());
    o_qrf->setPrivate(CID_QRECTF, q_qrf);
-   return new QoreNode(o_qrf);
+   return o_qrf;
 }
 
 //bool containsPoint ( const QPointF & point, Qt::FillRule fillRule ) const
 static QoreNode *QPOLYGONF_containsPoint(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPointF *point = (p && p->type == NT_OBJECT) ? (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+   QoreQPointF *point = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
    if (!point) {
       if (!xsink->isException())
          xsink->raiseException("QPOLYGONF-CONTAINSPOINT-PARAM-ERROR", "expecting a QPointF object as first argument to QPolygonF::containsPoint()");
@@ -140,7 +140,7 @@ static QoreNode *QPOLYGONF_containsPoint(QoreObject *self, QoreQPolygonF *qpf, c
 static QoreNode *QPOLYGONF_intersected(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPolygonF *r = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)p->val.object->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
+   QoreQPolygonF *r = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
    if (!r) {
       if (!xsink->isException())
          xsink->raiseException("QPOLYGONF-INTERSECTED-PARAM-ERROR", "expecting a QPolygonF object as first argument to QPolygonF::intersected()");
@@ -150,7 +150,7 @@ static QoreNode *QPOLYGONF_intersected(QoreObject *self, QoreQPolygonF *qpf, con
    QoreObject *o_qpf = new QoreObject(self->getClass(CID_QPOLYGONF), getProgram());
    QoreQPolygonF *q_qpf = new QoreQPolygonF(qpf->intersected(*(static_cast<QPolygonF *>(r))));
    o_qpf->setPrivate(CID_QPOLYGONF, q_qpf);
-   return new QoreNode(o_qpf);
+   return o_qpf;
 }
 
 //bool isClosed () const
@@ -163,7 +163,7 @@ static QoreNode *QPOLYGONF_isClosed(QoreObject *self, QoreQPolygonF *qpf, const 
 static QoreNode *QPOLYGONF_subtracted(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPolygonF *r = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)p->val.object->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
+   QoreQPolygonF *r = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
    if (!r) {
       if (!xsink->isException())
          xsink->raiseException("QPOLYGONF-SUBTRACTED-PARAM-ERROR", "expecting a QPolygonF object as first argument to QPolygonF::subtracted()");
@@ -173,7 +173,7 @@ static QoreNode *QPOLYGONF_subtracted(QoreObject *self, QoreQPolygonF *qpf, cons
    QoreObject *o_qpf = new QoreObject(self->getClass(CID_QPOLYGONF), getProgram());
    QoreQPolygonF *q_qpf = new QoreQPolygonF(qpf->subtracted(*(static_cast<QPolygonF *>(r))));
    o_qpf->setPrivate(CID_QPOLYGONF, q_qpf);
-   return new QoreNode(o_qpf);
+   return o_qpf;
 }
 
 //QPolygon toPolygon () const
@@ -182,7 +182,7 @@ static QoreNode *QPOLYGONF_toPolygon(QoreObject *self, QoreQPolygonF *qpf, const
    QoreObject *o_qp = new QoreObject(QC_QPolygon, getProgram());
    QoreQPolygon *q_qp = new QoreQPolygon(qpf->toPolygon());
    o_qp->setPrivate(CID_QPOLYGON, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //void translate ( const QPointF & offset )
@@ -191,10 +191,10 @@ static QoreNode *QPOLYGONF_translate(QoreObject *self, QoreQPolygonF *qpf, const
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPointF *offset = (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink);
+      QoreQPointF *offset = (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
       if (!offset) {
          if (!xsink->isException())
-            xsink->raiseException("QPOLYGONF-TRANSLATE-PARAM-ERROR", "QPolygonF::translate() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QPOLYGONF-TRANSLATE-PARAM-ERROR", "QPolygonF::translate() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<QoreQPointF> offsetHolder(offset, xsink);
@@ -212,7 +212,7 @@ static QoreNode *QPOLYGONF_translate(QoreObject *self, QoreQPolygonF *qpf, const
 static QoreNode *QPOLYGONF_united(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPolygonF *r = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)p->val.object->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
+   QoreQPolygonF *r = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
    if (!r) {
       if (!xsink->isException())
          xsink->raiseException("QPOLYGONF-UNITED-PARAM-ERROR", "expecting a QPolygonF object as first argument to QPolygonF::united()");
@@ -222,7 +222,7 @@ static QoreNode *QPOLYGONF_united(QoreObject *self, QoreQPolygonF *qpf, const Qo
    QoreObject *o_qpf = new QoreObject(self->getClass(CID_QPOLYGONF), getProgram());
    QoreQPolygonF *q_qpf = new QoreQPolygonF(qpf->united(*(static_cast<QPolygonF *>(r))));
    o_qpf->setPrivate(CID_QPOLYGONF, q_qpf);
-   return new QoreNode(o_qpf);
+   return o_qpf;
 }
 
 QoreClass *initQPolygonFClass()

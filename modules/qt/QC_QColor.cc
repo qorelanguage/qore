@@ -107,7 +107,7 @@ static QoreNode *QCOLOR_convertTo(QoreObject *self, QoreQColor *qc, const QoreLi
    QoreObject *nqc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    nqc->setPrivate(CID_QCOLOR, n_qc);
 
-   return new QoreNode(nqc);
+   return nqc;
 }
 
 //int cyan () const
@@ -556,7 +556,7 @@ static QoreNode *QCOLOR_light(QoreObject *self, QoreQColor *qc, const QoreList *
    QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->light(f));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //QColor lighter (int f = 150) const
@@ -567,7 +567,7 @@ static QoreNode *QCOLOR_lighter(QoreObject *self, QoreQColor *qc, const QoreList
    QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->lighter(f));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //QColor dark (int f = 200) const
@@ -578,7 +578,7 @@ static QoreNode *QCOLOR_dark(QoreObject *self, QoreQColor *qc, const QoreList *p
    QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->dark(f));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //QColor darker (int f = 200) const
@@ -589,7 +589,7 @@ static QoreNode *QCOLOR_darker(QoreObject *self, QoreQColor *qc, const QoreList 
    QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->darker(f));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 class QoreClass *initQColorClass()
@@ -700,7 +700,7 @@ static QoreNode *f_QColor_fromCmyk(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromCmyk(c, m, y, k, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //QColor fromCmykF ( qreal c, qreal m, qreal y, qreal k, qreal a = 1.0 )
@@ -719,7 +719,7 @@ static QoreNode *f_QColor_fromCmykF(const QoreList *params, ExceptionSink *xsink
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromCmykF(c, m, y, k, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //QColor fromHsv ( int h, int s, int v, int a = 255 )
@@ -736,7 +736,7 @@ static QoreNode *f_QColor_fromHsv(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromHsv(h, s, v, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //QColor fromHsvF ( qreal h, qreal s, qreal v, qreal a = 1.0 )
@@ -753,7 +753,7 @@ static QoreNode *f_QColor_fromHsvF(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromHsvF(h, s, v, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //QColor fromRgb ( QRgb rgb )
@@ -771,7 +771,7 @@ static QoreNode *f_QColor_fromRgb(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromRgb(r, g, b, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //QColor fromRgbF ( qreal r, qreal g, qreal b, qreal a = 1.0 )
@@ -788,7 +788,7 @@ static QoreNode *f_QColor_fromRgbF(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromRgbF(r, g, b, a));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //QColor fromRgba ( QRgb rgba )
@@ -799,7 +799,7 @@ static QoreNode *f_QColor_fromRgba(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromRgba(rgba));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 #ifdef Q_WS_X11

@@ -35,7 +35,7 @@ class QoreClass *QC_QDragEnterEvent = 0;
 static void QDRAGENTEREVENT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *point = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *point = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!point) {
       if (!xsink->isException())
          xsink->raiseException("QDRAGENTEREVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as first argument to QDragEnterEvent::constructor()");
@@ -45,7 +45,7 @@ static void QDRAGENTEREVENT_constructor(QoreObject *self, const QoreList *params
    p = get_param(params, 1);
    Qt::DropActions actions = (Qt::DropActions)(p ? p->getAsInt() : 0);
    p = get_param(params, 2);
-   QoreQMimeData *data = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)p->val.object->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
+   QoreQMimeData *data = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
    if (!data) {
       if (!xsink->isException())
          xsink->raiseException("QDRAGENTEREVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QMimeData object as third argument to QDragEnterEvent::constructor()");

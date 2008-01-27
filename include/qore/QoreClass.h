@@ -132,9 +132,9 @@ class QoreClass{
       DLLEXPORT void addPrivateMember(char *name);
       DLLEXPORT bool isPrivateMember(const char *str) const;
       DLLEXPORT class QoreNode *evalMethod(class QoreObject *self, const char *nme, const QoreList *args, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *execConstructor(const QoreList *args, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *execSystemConstructor(const QoreList *args, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *execCopy(class QoreObject *old, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreObject *execConstructor(const QoreList *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreObject *execSystemConstructor(const QoreList *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreObject *execCopy(class QoreObject *old, class ExceptionSink *xsink) const;
       DLLEXPORT const QoreMethod *findLocalMethod(const char *name) const;
       DLLEXPORT class QoreList *getMethodList() const;
       DLLEXPORT class QoreClass *getClass(int cid) const;

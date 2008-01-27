@@ -55,7 +55,7 @@ static QoreNode *QTEXTFRAMEFORMAT_borderBrush(QoreObject *self, QoreQTextFrameFo
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qtff->borderBrush());
    o_qb->setPrivate(CID_QBRUSH, q_qb);
-   return new QoreNode(o_qb);
+   return o_qb;
 }
 
 //BorderStyle borderStyle () const
@@ -76,7 +76,7 @@ static QoreNode *QTEXTFRAMEFORMAT_height(QoreObject *self, QoreQTextFrameFormat 
    QoreObject *o_qtl = new QoreObject(QC_QTextLength, getProgram());
    QoreQTextLength *q_qtl = new QoreQTextLength(qtff->height());
    o_qtl->setPrivate(CID_QTEXTLENGTH, q_qtl);
-   return new QoreNode(o_qtl);
+   return o_qtl;
 }
 
 //bool isValid () const
@@ -165,10 +165,10 @@ static QoreNode *QTEXTFRAMEFORMAT_setHeight(QoreObject *self, QoreQTextFrameForm
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQTextLength *height = (QoreQTextLength *)p->val.object->getReferencedPrivateData(CID_QTEXTLENGTH, xsink);
+      QoreQTextLength *height = (QoreQTextLength *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTLENGTH, xsink);
       if (!height) {
          if (!xsink->isException())
-            xsink->raiseException("QTEXTFRAMEFORMAT-SETHEIGHT-PARAM-ERROR", "QTextFrameFormat::setHeight() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QTEXTFRAMEFORMAT-SETHEIGHT-PARAM-ERROR", "QTextFrameFormat::setHeight() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<QoreQTextLength> heightHolder(height, xsink);
@@ -249,10 +249,10 @@ static QoreNode *QTEXTFRAMEFORMAT_setWidth(QoreObject *self, QoreQTextFrameForma
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQTextLength *width = (QoreQTextLength *)p->val.object->getReferencedPrivateData(CID_QTEXTLENGTH, xsink);
+      QoreQTextLength *width = (QoreQTextLength *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTLENGTH, xsink);
       if (!width) {
          if (!xsink->isException())
-            xsink->raiseException("QTEXTFRAMEFORMAT-SETWIDTH-PARAM-ERROR", "QTextFrameFormat::setWidth() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QTEXTFRAMEFORMAT-SETWIDTH-PARAM-ERROR", "QTextFrameFormat::setWidth() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<QoreQTextLength> widthHolder(width, xsink);
@@ -276,7 +276,7 @@ static QoreNode *QTEXTFRAMEFORMAT_width(QoreObject *self, QoreQTextFrameFormat *
    QoreObject *o_qtl = new QoreObject(QC_QTextLength, getProgram());
    QoreQTextLength *q_qtl = new QoreQTextLength(qtff->width());
    o_qtl->setPrivate(CID_QTEXTLENGTH, q_qtl);
-   return new QoreNode(o_qtl);
+   return o_qtl;
 }
 
 QoreClass *initQTextFrameFormatClass(QoreClass *qtextformat)

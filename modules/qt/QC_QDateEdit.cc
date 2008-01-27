@@ -40,7 +40,7 @@ static void QDATEEDIT_constructor(QoreObject *self, const QoreList *params, Exce
       return;
    }
 
-   QoreQWidget *parent = (p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (parent) {
       ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
       self->setPrivate(CID_QDATEEDIT, new QoreQDateEdit(self, parent->getQWidget()));
@@ -50,9 +50,9 @@ static void QDATEEDIT_constructor(QoreObject *self, const QoreList *params, Exce
    QDate date;
    if (get_qdate(p, date, xsink))
       return;
-   
-   QoreNode *p1 = test_param(params, NT_OBJECT, 1);
-   parent = (p1 && p1->type == NT_OBJECT) ? (QoreQWidget *)p1->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   QoreObject *p1 = test_object_param(params, 1);
+   parent = p1 ? (QoreQWidget *)p1->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
    
    self->setPrivate(CID_QDATEEDIT, new QoreQDateEdit(self, date, parent ? parent->getQWidget() : 0));      

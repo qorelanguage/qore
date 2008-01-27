@@ -35,7 +35,7 @@
 // actually be deleted
 
 // note that any of the methods below that involve locking cannot be const methods
-class QoreObject : public ReferenceObject
+class QoreObject : public QoreNode
 {
    private:
       struct qore_object_private *priv;
@@ -53,12 +53,37 @@ class QoreObject : public ReferenceObject
       DLLLOCAL class QoreHash *evalData(class ExceptionSink *xsink) const;
       
    protected:
-      DLLLOCAL ~QoreObject();
+      DLLLOCAL virtual ~QoreObject();
 
    public:
       DLLEXPORT QoreObject(const QoreClass *oc, class QoreProgram *p);
       DLLEXPORT QoreObject(const QoreClass *oc, class QoreProgram *p, class QoreHash *d);
 
+      // FIXME: move QoreString * to first argument
+      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+      // the ExceptionSink is only needed for QoreObject where a method may be executed
+      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+      DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+
+      DLLEXPORT virtual class QoreNode *realCopy() const;
+
+      // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
+      // the "val" passed
+      //DLLLOCAL virtual int compare(const QoreNode *val) const;
+      // the type passed must always be equal to the current type
+      DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
+
+      // returns the data type
+      DLLEXPORT virtual const QoreType *getType() const;
+      // returns the type name as a c string
+      DLLEXPORT virtual const char *getTypeName() const;
+      // deletes the object when the reference count = 0
+      DLLEXPORT virtual void deref(class ExceptionSink *xsink);
+      // returns true if the node represents a value (default implementation)
+      DLLEXPORT virtual bool is_value() const;
+      
       DLLEXPORT class QoreNode **getMemberValuePtr(const class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode **getMemberValuePtr(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *getMemberValueNoMethod(const class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
@@ -88,7 +113,7 @@ class QoreObject : public ReferenceObject
       DLLEXPORT void mergeDataToHash(class QoreHash *hash, class ExceptionSink *xsink);
       // sets private data to the passed key, used in constructors
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
-      DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink);
+      DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink) const;
       // caller owns the QoreNode (reference) returned
       DLLEXPORT class QoreNode *evalMethod(const class QoreString *name, const class QoreList *args, class ExceptionSink *xsink);
       DLLEXPORT const QoreClass *getClass(int cid) const;
@@ -100,8 +125,6 @@ class QoreObject : public ReferenceObject
       DLLEXPORT void tRef();
       DLLEXPORT void tDeref();
       DLLEXPORT void ref();
-      DLLEXPORT void dereference(class ExceptionSink *xsink);
-      DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       DLLLOCAL class QoreNode *evalMember(const QoreString *member, class ExceptionSink *xsink);
       DLLLOCAL void instantiateLVar(lvh_t id);

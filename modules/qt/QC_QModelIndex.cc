@@ -53,7 +53,7 @@ static QoreNode *QMODELINDEX_child(QoreObject *self, QoreQModelIndex *qmi, const
    QoreObject *o_qmi = new QoreObject(self->getClass(CID_QMODELINDEX), getProgram());
    QoreQModelIndex *q_qmi = new QoreQModelIndex(qmi->child(row, column));
    o_qmi->setPrivate(CID_QMODELINDEX, q_qmi);
-   return new QoreNode(o_qmi);
+   return o_qmi;
 }
 
 //int column () const
@@ -110,7 +110,7 @@ static QoreNode *QMODELINDEX_model(QoreObject *self, QoreQModelIndex *qmi, const
       QoreQtQAbstractItemModel *aim = new QoreQtQAbstractItemModel(rv_obj, const_cast<QAbstractItemModel *>(qt_qobj));
       rv_obj->setPrivate(CID_QABSTRACTITEMMODEL, aim);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QModelIndex parent () const
@@ -119,7 +119,7 @@ static QoreNode *QMODELINDEX_parent(QoreObject *self, QoreQModelIndex *qmi, cons
    QoreObject *o_qmi = new QoreObject(self->getClass(CID_QMODELINDEX), getProgram());
    QoreQModelIndex *q_qmi = new QoreQModelIndex(qmi->parent());
    o_qmi->setPrivate(CID_QMODELINDEX, q_qmi);
-   return new QoreNode(o_qmi);
+   return o_qmi;
 }
 
 //int row () const
@@ -138,7 +138,7 @@ static QoreNode *QMODELINDEX_sibling(QoreObject *self, QoreQModelIndex *qmi, con
    QoreObject *o_qmi = new QoreObject(self->getClass(CID_QMODELINDEX), getProgram());
    QoreQModelIndex *q_qmi = new QoreQModelIndex(qmi->sibling(row, column));
    o_qmi->setPrivate(CID_QMODELINDEX, q_qmi);
-   return new QoreNode(o_qmi);
+   return o_qmi;
 }
 
 QoreClass *initQModelIndexClass()

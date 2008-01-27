@@ -56,7 +56,7 @@ static void QSIZE_copy(class QoreObject *self, class QoreObject *old, class Qore
 static QoreNode *QSIZE_boundedTo(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *otherSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *otherSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!otherSize) {
       if (!xsink->isException())
          xsink->raiseException("QSIZE-BOUNDEDTO-PARAM-ERROR", "expecting a QSize object as first argument to QSize::boundedTo()");
@@ -66,14 +66,14 @@ static QoreNode *QSIZE_boundedTo(QoreObject *self, QoreQSize *qs, const QoreList
    QoreObject *o_qs = new QoreObject(self->getClass(CID_QSIZE), getProgram());
    QoreQSize *q_qs = new QoreQSize(qs->boundedTo(*(static_cast<QSize *>(otherSize))));
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //QSize expandedTo ( const QSize & otherSize ) const
 static QoreNode *QSIZE_expandedTo(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *otherSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *otherSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!otherSize) {
       if (!xsink->isException())
          xsink->raiseException("QSIZE-EXPANDEDTO-PARAM-ERROR", "expecting a QSize object as first argument to QSize::expandedTo()");
@@ -83,7 +83,7 @@ static QoreNode *QSIZE_expandedTo(QoreObject *self, QoreQSize *qs, const QoreLis
    QoreObject *o_qs = new QoreObject(self->getClass(CID_QSIZE), getProgram());
    QoreQSize *q_qs = new QoreQSize(qs->expandedTo(*(static_cast<QSize *>(otherSize))));
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //int height () const
@@ -128,10 +128,10 @@ static QoreNode *QSIZE_scale(QoreObject *self, QoreQSize *qs, const QoreList *pa
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQSize *size = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+      QoreQSize *size = (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
       if (!size) {
          if (!xsink->isException())
-            xsink->raiseException("QSIZE-SCALE-PARAM-ERROR", "QSize::scale() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QSIZE-SCALE-PARAM-ERROR", "QSize::scale() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<QoreQSize> sizeHolder(size, xsink);

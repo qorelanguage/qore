@@ -35,7 +35,7 @@ class QoreClass *QC_QDial = 0;
 static void QDIAL_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -103,7 +103,7 @@ static QoreNode *QDIAL_setWrapping(QoreObject *self, QoreQDial *qd, const QoreLi
 static QoreNode *QDIAL_initStyleOption(QoreObject *self, QoreQDial *qd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQStyleOptionSlider *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionSlider *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONSLIDER, xsink) : 0;
+   QoreQStyleOptionSlider *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionSlider *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONSLIDER, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QDIAL-INITSTYLEOPTION-PARAM-ERROR", "expecting a QStyleOptionSlider object as first argument to QDial::initStyleOption()");

@@ -36,10 +36,10 @@ static void QDOUBLEVALIDATOR_constructor(QoreObject *self, const QoreList *param
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreAbstractQObject *parent = (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink);
+      QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
       if (!parent) {
          if (!xsink->isException())
-            xsink->raiseException("QDOUBLEVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "QDoubleValidator::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QDOUBLEVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "QDoubleValidator::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -52,10 +52,10 @@ static void QDOUBLEVALIDATOR_constructor(QoreObject *self, const QoreList *param
    p = get_param(params, 2);
    int decimals = p ? p->getAsInt() : 0;
    p = get_param(params, 3);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
-         xsink->raiseException("QDOUBLEVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "this version of QDoubleValidator::constructor() expects an object derived from QObject as the fourth argument", p->val.object->getClass()->getName());
+         xsink->raiseException("QDOUBLEVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "this version of QDoubleValidator::constructor() expects an object derived from QObject as the fourth argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);

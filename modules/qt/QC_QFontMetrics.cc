@@ -40,7 +40,7 @@ static void QFONTMETRICS_constructor(QoreObject *self, const QoreList *params, E
 {
    QoreNode *p = get_param(params, 0);
 
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
 	 xsink->raiseException("QFONTMETRICS-CONSTRUCTOR-PARAM-ERROR", "QFontMetrics::constructor() expects an object derived from QFont as the first argument");
@@ -49,7 +49,7 @@ static void QFONTMETRICS_constructor(QoreObject *self, const QoreList *params, E
    ReferenceHolder<QoreQFont> fontHolder(font, xsink);
 
    p = test_param(params, NT_OBJECT, 1);
-   AbstractPrivateData *apd = p ? p->val.object->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
+   AbstractPrivateData *apd = p ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
    if (apd) {
       ReferenceHolder<AbstractPrivateData> holder(apd, xsink);
       QoreAbstractQPaintDevice *qpd = dynamic_cast<QoreAbstractQPaintDevice *>(apd);
@@ -86,10 +86,10 @@ static QoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFontMetric
 //{
 //   QoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_OBJECT) {
-//      QoreQRect *rect = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
+//      QoreQRect *rect = (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
 //      if (!rect) {
 //         if (!xsink->isException())
-//            xsink->raiseException("QFONTMETRICS-BOUNDINGRECT-PARAM-ERROR", "QFontMetrics::boundingRect() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+//            xsink->raiseException("QFONTMETRICS-BOUNDINGRECT-PARAM-ERROR", "QFontMetrics::boundingRect() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 //         return 0;
 //      }
 //      ReferenceHolder<QoreQRect> rectHolder(rect, xsink);
@@ -108,7 +108,7 @@ static QoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFontMetric
 //      QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
 //      QoreQRect *q_qr = new QoreQRect(qfm->boundingRect(*(static_cast<QRect *>(rect)), flags, text, tabStops, tabArray));
 //      o_qr->setPrivate(CID_QRECT, q_qr);
-//      return new QoreNode(o_qr);
+//      return o_qr;
 //   }
 //   if (p && p->type == NT_STRING) {
 //      if (!p || p->type != NT_STRING) {
@@ -119,7 +119,7 @@ static QoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFontMetric
 //      QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
 //      QoreQRect *q_qr = new QoreQRect(qfm->boundingRect(text));
 //      o_qr->setPrivate(CID_QRECT, q_qr);
-//      return new QoreNode(o_qr);
+//      return o_qr;
 //   }
 //   int x = p ? p->getAsInt() : 0;
 //   p = get_param(params, 1);
@@ -143,7 +143,7 @@ static QoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFontMetric
 //   QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
 //   QoreQRect *q_qr = new QoreQRect(qfm->boundingRect(x, y, width, height, flags, text, tabStops, tabArray));
 //   o_qr->setPrivate(CID_QRECT, q_qr);
-//   return new QoreNode(o_qr);
+//   return o_qr;
 //}
 
 //int charWidth ( const QString & text, int pos ) const
@@ -287,7 +287,7 @@ static QoreNode *QFONTMETRICS_rightBearing(QoreObject *self, QoreQFontMetrics *q
 //   QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
 //   QoreQSize *q_qs = new QoreQSize(qfm->size(flags, text, tabStops, tabArray));
 //   o_qs->setPrivate(CID_QSIZE, q_qs);
-//   return new QoreNode(o_qs);
+//   return o_qs;
 //}
 
 //int strikeOutPos () const
@@ -308,7 +308,7 @@ static QoreNode *QFONTMETRICS_tightBoundingRect(QoreObject *self, QoreQFontMetri
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qfm->tightBoundingRect(text));
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //int underlinePos () const

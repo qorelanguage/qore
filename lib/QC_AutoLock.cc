@@ -27,9 +27,9 @@ int CID_AUTOLOCK;
 
 static void AL_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   SmartMutex *m = p ? (SmartMutex *)p->val.object->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
-   if (xsink->isException())
+   QoreObject *p = test_object_param(params, 0);
+   SmartMutex *m = p ? (SmartMutex *)p->getReferencedPrivateData(CID_MUTEX, xsink) : 0;
+   if (*xsink)
       return;
 
    if (!m)

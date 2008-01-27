@@ -57,18 +57,17 @@ static class QoreNode *CONDITION_broadcast(class QoreObject *self, class Conditi
 
 static class QoreNode *CONDITION_wait(class QoreObject *self, class Condition *c, const QoreList *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_OBJECT, 0);
-   SmartMutex *m = p0 ? (SmartMutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
-   if (!p0 || !m)
+   QoreObject *p0 = test_object_param(params, 0);
+   SmartMutex *m = p0 ? (SmartMutex *)p0->getReferencedPrivateData(CID_MUTEX, xsink) : 0;
+   if (!m)
    {
-      if (!xsink->isException())
+      if (!*xsink)
 	 xsink->raiseException("CONDITION-WAIT-PARAMETER-EXCEPTION", "expecting a Mutex object as parameter to Condition::wait()");
-      return NULL;
+      return 0;
    }
    ReferenceHolder<SmartMutex> holder(m, xsink);
 
    int timeout = getMsZeroInt(get_param(params, 1));
-   QoreNode *rv;
 
    int rc;
    if (timeout)
@@ -79,23 +78,20 @@ static class QoreNode *CONDITION_wait(class QoreObject *self, class Condition *c
    if (rc && rc != ETIMEDOUT && !*xsink)
    {
       xsink->raiseException("CONDITION-WAIT-ERROR", strerror(errno));
-      rv = NULL;
+      return 0;
    }
-   else
-      rv = new QoreNode((int64)rc);
-
-   return rv;
+   return new QoreNode((int64)rc);
 }
 
 static class QoreNode *CONDITION_wait_count(class QoreObject *self, class Condition *c, const QoreList *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_OBJECT, 0);
-   SmartMutex *m = p0 ? (SmartMutex *)p0->val.object->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
-   if (!p0 || !m)
+   QoreObject *p0 = test_object_param(params, 0);
+   SmartMutex *m = p0 ? (SmartMutex *)p0->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
+   if (!m)
    {
-      if (!xsink->isException())
+      if (!*xsink)
 	 xsink->raiseException("CONDITION-WAIT-COUNT-PARAMETER-EXCEPTION", "expecting a Mutex object as parameter to Condition::wait_count()");
-      return NULL;
+      return 0;
    }
    ReferenceHolder<SmartMutex> holder(m, xsink);
 

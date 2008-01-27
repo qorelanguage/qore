@@ -91,29 +91,31 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
       }
    }
    
-   if (n->type == NT_OBJECT)
    {
-      s->sprintf("elements=%d (type=%s, valid=%s)\n", n->val.object->size(xsink),
-                 n->val.object->getClass() ? n->val.object->getClass()->getName() : "<none>",
-		 n->val.object->isValid() ? "yes" : "no");
-      {
-	 ReferenceHolder<QoreList> l(n->val.object->getMemberList(xsink), xsink);
-         if (l)
-         {
-            for (int i = 0; i < l->size(); i++)
-            {
-               strindent(s, indent);
-	       QoreStringNode *entry = reinterpret_cast<QoreStringNode *>(l->retrieve_entry(i));
-               s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
-               QoreNode *nn;
-               dni(s, nn = n->val.object->evalMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
-               discard(nn, xsink);
-	       if (i != (l->size() - 1))
-		  s->concat('\n');
-            }
-         }
+      QoreObject *o = dynamic_cast<QoreObject *>(n);
+      if (o) {
+	 s->sprintf("elements=%d (type=%s, valid=%s)\n", o->size(xsink),
+		    o->getClass() ? o->getClass()->getName() : "<none>",
+		    o->isValid() ? "yes" : "no");
+	 {
+	    ReferenceHolder<QoreList> l(o->getMemberList(xsink), xsink);
+	    if (l)
+	    {
+	       for (int i = 0; i < l->size(); i++)
+	       {
+		  strindent(s, indent);
+		  QoreStringNode *entry = reinterpret_cast<QoreStringNode *>(l->retrieve_entry(i));
+		  s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
+		  QoreNode *nn;
+		  dni(s, nn = o->evalMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
+		  discard(nn, xsink);
+		  if (i != (l->size() - 1))
+		     s->concat('\n');
+	       }
+	    }
+	 }
+	 return;
       }
-      return;
    }
    
    {

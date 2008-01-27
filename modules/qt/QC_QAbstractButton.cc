@@ -37,7 +37,7 @@ static void QABSTRACTBUTTON_constructor(QoreObject *self, const QoreList *params
    xsink->raiseException("QABSTRACTBUTTON-CONSTRUCTOR-ERROR", "QAbstractButton is an abstract class");
 /*
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
    self->setPrivate(CID_QABSTRACTBUTTON, new QoreQAbstractButton(self, parent ? parent->getQWidget() : 0));
    return;
@@ -85,7 +85,7 @@ static QoreNode *QABSTRACTBUTTON_icon(QoreObject *self, QoreAbstractQAbstractBut
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qab->getQAbstractButton()->icon());
    o_qi->setPrivate(CID_QICON, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //QSize iconSize () const
@@ -94,7 +94,7 @@ static QoreNode *QABSTRACTBUTTON_iconSize(QoreObject *self, QoreAbstractQAbstrac
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qab->getQAbstractButton()->iconSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //bool isCheckable () const
@@ -173,7 +173,7 @@ static QoreNode *QABSTRACTBUTTON_setDown(QoreObject *self, QoreAbstractQAbstract
 static QoreNode *QABSTRACTBUTTON_setIcon(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTBUTTON-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QAbstractButton::setIcon()");
@@ -218,7 +218,7 @@ static QoreNode *QABSTRACTBUTTON_shortcut(QoreObject *self, QoreAbstractQAbstrac
    QoreObject *o_qks = new QoreObject(QC_QKeySequence, getProgram());
    QoreQKeySequence *q_qks = new QoreQKeySequence(qab->getQAbstractButton()->shortcut());
    o_qks->setPrivate(CID_QKEYSEQUENCE, q_qks);
-   return new QoreNode(o_qks);
+   return o_qks;
 }
 
 //QString text () const
@@ -257,7 +257,7 @@ static QoreNode *QABSTRACTBUTTON_setChecked(QoreObject *self, QoreAbstractQAbstr
 static QoreNode *QABSTRACTBUTTON_setIconSize(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTBUTTON-SETICONSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QAbstractButton::setIconSize()");

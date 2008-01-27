@@ -86,7 +86,7 @@ class QoreSingleShotTimer : public QObject, public QoreQObjectExtension
 
 	 receiver->connectDynamic(qsst, "2timeout()", member, xsink);
 	 if (*xsink) {
-	    qore_obj->dereference(xsink);
+	    qore_obj->deref(xsink);
 	    return;
 	 }
 	 timerId = startTimer(msec);
@@ -103,7 +103,7 @@ protected:
 	 emit_signal("timeout()", 0);
 
 	 ExceptionSink xsink;
-	 qore_obj->dereference(&xsink);
+	 qore_obj->deref(&xsink);
       }
 };
 

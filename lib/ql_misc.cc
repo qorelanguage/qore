@@ -191,11 +191,11 @@ class QoreNode *f_parse(const QoreList *params, ExceptionSink *xsink)
 
 static class QoreNode *f_getClassName(const QoreList *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_OBJECT, 0);
+   QoreObject *p0 = test_object_param(params, 0);
    if (!p0)
       return NULL;
 
-   return new QoreStringNode(p0->val.object->getClass()->getName());
+   return new QoreStringNode(p0->getClass()->getName());
 }
 
 static class QoreNode *f_parseURL(const QoreList *params, ExceptionSink *xsink)

@@ -36,10 +36,10 @@ static void QPICTURE_constructor(class QoreObject *self, const QoreList *params,
 
    if (p && p->type == NT_OBJECT)
    {
-      QoreQPicture *pic = (QoreQPicture *)p->val.object->getReferencedPrivateData(CID_QPICTURE, xsink);
+      QoreQPicture *pic = (QoreQPicture *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPICTURE, xsink);
       if (!pic)
       {
-         xsink->raiseException("QPICTURE-CONSTRUCTOR-ERROR", "object passed to QPicture::constructor() is not derived from QWidget (class: '%s')", p->val.object->getClass()->getName());
+         xsink->raiseException("QPICTURE-CONSTRUCTOR-ERROR", "object passed to QPicture::constructor() is not derived from QWidget (class: '%s')", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return;
       }
     
@@ -68,7 +68,7 @@ static QoreNode *QPICTURE_boundingRect(QoreObject *self, QoreQPicture *qp, const
    QoreQRect *q_qr = new QoreQRect(qp->boundingRect());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //const char * data () const
@@ -115,7 +115,7 @@ static QoreNode *QPICTURE_load(QoreObject *self, QoreQPicture *qp, const QoreLis
 static QoreNode *QPICTURE_play(QoreObject *self, QoreQPicture *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)p->val.object->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
+   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
    if (!painter) {
       if (!xsink->isException())
          xsink->raiseException("QPICTURE-PLAY-PARAM-ERROR", "expecting a QPainter object as first argument to QPicture::play()");
@@ -144,7 +144,7 @@ static QoreNode *QPICTURE_save(QoreObject *self, QoreQPicture *qp, const QoreLis
 static QoreNode *QPICTURE_setBoundingRect(QoreObject *self, QoreQPicture *qp, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQRect *r = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreQRect *r = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!r) {
       if (!xsink->isException())
          xsink->raiseException("QPICTURE-SETBOUNDINGRECT-PARAM-ERROR", "expecting a QRect object as first argument to QPicture::setBoundingRect()");

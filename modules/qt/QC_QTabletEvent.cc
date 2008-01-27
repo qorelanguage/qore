@@ -37,7 +37,7 @@ static void QTABLETEVENT_constructor(QoreObject *self, const QoreList *params, E
    QoreNode *p = get_param(params, 0);
    QTabletEvent::Type type = (QTabletEvent::Type)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QTABLETEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as second argument to QTabletEvent::constructor()");
@@ -45,7 +45,7 @@ static void QTABLETEVENT_constructor(QoreObject *self, const QoreList *params, E
    }
    ReferenceHolder<QoreQPoint> posHolder(pos, xsink);
    p = get_param(params, 2);
-   QoreQPoint *globalPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *globalPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!globalPos) {
       if (!xsink->isException())
          xsink->raiseException("QTABLETEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as third argument to QTabletEvent::constructor()");
@@ -53,7 +53,7 @@ static void QTABLETEVENT_constructor(QoreObject *self, const QoreList *params, E
    }
    ReferenceHolder<QoreQPoint> globalPosHolder(globalPos, xsink);
    p = get_param(params, 3);
-   QoreQPointF *hiResGlobalPos = (p && p->type == NT_OBJECT) ? (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+   QoreQPointF *hiResGlobalPos = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
    if (!hiResGlobalPos) {
       if (!xsink->isException())
          xsink->raiseException("QTABLETEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPointF object as fourth argument to QTabletEvent::constructor()");
@@ -101,7 +101,7 @@ static QoreNode *QTABLETEVENT_globalPos(QoreObject *self, QoreQTabletEvent *qte,
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qte->globalPos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //int globalX () const
@@ -122,7 +122,7 @@ static QoreNode *QTABLETEVENT_hiResGlobalPos(QoreObject *self, QoreQTabletEvent 
    QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qte->hiResGlobalPos());
    o_qpf->setPrivate(CID_QPOINTF, q_qpf);
-   return new QoreNode(o_qpf);
+   return o_qpf;
 }
 
 //qreal hiResGlobalX () const
@@ -149,7 +149,7 @@ static QoreNode *QTABLETEVENT_pos(QoreObject *self, QoreQTabletEvent *qte, const
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qte->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //qreal pressure () const

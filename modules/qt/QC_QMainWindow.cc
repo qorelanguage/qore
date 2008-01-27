@@ -36,7 +36,7 @@ class QoreClass *QC_QMainWindow = 0;
 static void QMAINWINDOW_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!is_nothing(p) && !parent) {
       if (!xsink->isException())
          xsink->raiseException("QMAINWINDOW-CONSTRUCTOR-PARAM-ERROR", "expecting wither NOTHING or a QWidget object as first argument to QMainWindow::constructor()");
@@ -112,7 +112,7 @@ static QoreNode *QMAINWINDOW_centralWidget(QoreObject *self, QoreQMainWindow *qm
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //Qt::DockWidgetArea corner ( Qt::Corner corner ) const
@@ -133,7 +133,7 @@ static QoreNode *QMAINWINDOW_createPopupMenu(QoreObject *self, QoreQMainWindow *
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //DockOptions dockOptions () const
@@ -156,7 +156,7 @@ static QoreNode *QMAINWINDOW_iconSize(QoreObject *self, QoreQMainWindow *qmw, co
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qmw->qobj->iconSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 ////void insertToolBar ( QToolBar * before, QToolBar * toolbar )
@@ -207,7 +207,7 @@ static QoreNode *QMAINWINDOW_menuBar(QoreObject *self, QoreQMainWindow *qmw, con
       QoreQtQMenuBar *qmb = new QoreQtQMenuBar(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QMENUBAR, qmb);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QWidget * menuWidget () const
@@ -220,7 +220,7 @@ static QoreNode *QMAINWINDOW_menuWidget(QoreObject *self, QoreQMainWindow *qmw, 
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 ////void removeDockWidget ( QDockWidget * dockwidget )
@@ -270,14 +270,14 @@ static QoreNode *QMAINWINDOW_saveState(QoreObject *self, QoreQMainWindow *qmw, c
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qmw->qobj->saveState(version));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //void setCentralWidget ( QWidget * widget )
 static QoreNode *QMAINWINDOW_setCentralWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QMAINWINDOW-SETCENTRALWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QMainWindow::setCentralWidget()");
@@ -312,7 +312,7 @@ static QoreNode *QMAINWINDOW_setDockOptions(QoreObject *self, QoreQMainWindow *q
 static QoreNode *QMAINWINDOW_setIconSize(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *iconSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *iconSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!iconSize) {
       if (!xsink->isException())
          xsink->raiseException("QMAINWINDOW-SETICONSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QMainWindow::setIconSize()");
@@ -327,7 +327,7 @@ static QoreNode *QMAINWINDOW_setIconSize(QoreObject *self, QoreQMainWindow *qmw,
 static QoreNode *QMAINWINDOW_setMenuBar(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQMenuBar *menuBar = (p && p->type == NT_OBJECT) ? (QoreQMenuBar *)p->val.object->getReferencedPrivateData(CID_QMENUBAR, xsink) : 0;
+   QoreQMenuBar *menuBar = (p && p->type == NT_OBJECT) ? (QoreQMenuBar *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMENUBAR, xsink) : 0;
    if (!menuBar) {
       if (!xsink->isException())
          xsink->raiseException("QMAINWINDOW-SETMENUBAR-PARAM-ERROR", "expecting a QMenuBar object as first argument to QMainWindow::setMenuBar()");
@@ -342,7 +342,7 @@ static QoreNode *QMAINWINDOW_setMenuBar(QoreObject *self, QoreQMainWindow *qmw, 
 static QoreNode *QMAINWINDOW_setMenuWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *menuBar = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *menuBar = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!menuBar) {
       if (!xsink->isException())
          xsink->raiseException("QMAINWINDOW-SETMENUWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QMainWindow::setMenuWidget()");

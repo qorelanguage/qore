@@ -49,7 +49,7 @@ static void QLINEEDIT_constructor(QoreObject *self, const QoreList *params, Exce
    if (got_string)
       p = get_param(params, 1);
 
-   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent && !is_nothing(p)) {
       xsink->raiseException("QLINEEDIT-CONSTRUCTOR-ERROR", "expecting [widget] or string, [parent widget] as arguments to QLineEdit::constructor(), got type '%s'", p->getTypeName());
       return;
@@ -95,7 +95,7 @@ static QoreNode *QLINEEDIT_createStandardContextMenu(QoreObject *self, QoreQLine
    QoreObject *o_qm = new QoreObject(QC_QMenu, getProgram());
    QoreQMenu *q_qm = new QoreQMenu(o_qm, qle->qobj->createStandardContextMenu());
    o_qm->setPrivate(CID_QMENU, q_qm);
-   return new QoreNode(o_qm);
+   return o_qm;
 }
 
 //void cursorBackward ( bool mark, int steps = 1 )
@@ -130,7 +130,7 @@ static QoreNode *QLINEEDIT_cursorPosition(QoreObject *self, QoreQLineEdit *qle, 
 static QoreNode *QLINEEDIT_cursorPositionAt(QoreObject *self, QoreQLineEdit *qle, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QLINEEDIT-CURSORPOSITIONAT-PARAM-ERROR", "expecting a QPoint object as first argument to QLineEdit::cursorPositionAt()");
@@ -282,7 +282,7 @@ static QoreNode *QLINEEDIT_minimumSizeHint(QoreObject *self, QoreQLineEdit *qle,
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qle->qobj->minimumSizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 */
 
@@ -407,7 +407,7 @@ static QoreNode *QLINEEDIT_setSelection(QoreObject *self, QoreQLineEdit *qle, co
 static QoreNode *QLINEEDIT_setValidator(QoreObject *self, QoreQLineEdit *qle, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQValidator *v = (p && p->type == NT_OBJECT) ? (QoreQValidator *)p->val.object->getReferencedPrivateData(CID_QVALIDATOR, xsink) : 0;
+   QoreQValidator *v = (p && p->type == NT_OBJECT) ? (QoreQValidator *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QVALIDATOR, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> vHolder(static_cast<AbstractPrivateData *>(v), xsink);
@@ -421,7 +421,7 @@ static QoreNode *QLINEEDIT_sizeHint(QoreObject *self, QoreQLineEdit *qle, const 
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qle->sizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //QString text () const
@@ -445,7 +445,7 @@ static QoreNode *QLINEEDIT_validator(QoreObject *self, QoreQLineEdit *qle, const
       QoreQtQValidator *t_qobj = new QoreQtQValidator(rv_obj, const_cast<QValidator *>(qt_qobj));
       rv_obj->setPrivate(CID_QVALIDATOR, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 static QoreNode *QLINEEDIT_clear(QoreObject *self, QoreQLineEdit *qle, const QoreList *params, ExceptionSink *xsink)

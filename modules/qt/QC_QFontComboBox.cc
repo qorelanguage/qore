@@ -35,7 +35,7 @@ class QoreClass *QC_QFontComboBox = 0;
 static void QFONTCOMBOBOX_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!is_nothing(p) && !parent) {
       if (!xsink->isException())
          xsink->raiseException("QFONTCOMBOBOX-CONSTRUCTOR-PARAM-ERROR", "expecting a QWidget object as first argument to QFontComboBox::constructor()");
@@ -57,7 +57,7 @@ static QoreNode *QFONTCOMBOBOX_currentFont(QoreObject *self, QoreQFontComboBox *
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qfcb->qobj->currentFont());
    o_qf->setPrivate(CID_QFONT, q_qf);
-   return new QoreNode(o_qf);
+   return o_qf;
 }
 
 //FontFilters fontFilters () const
@@ -94,7 +94,7 @@ static QoreNode *QFONTCOMBOBOX_writingSystem(QoreObject *self, QoreQFontComboBox
 static QoreNode *QFONTCOMBOBOX_setCurrentFont(QoreObject *self, QoreQFontComboBox *qfcb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
          xsink->raiseException("QFONTCOMBOBOX-SETCURRENTFONT-PARAM-ERROR", "expecting a QFont object as first argument to QFontComboBox::setCurrentFont()");

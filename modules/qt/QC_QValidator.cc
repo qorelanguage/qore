@@ -35,7 +35,7 @@ class QoreClass *QC_QValidator = 0;
 static void QVALIDATOR_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "expecting a QObject object as first argument to QValidator::constructor()");
@@ -82,14 +82,14 @@ static QoreNode *QVALIDATOR_locale(QoreObject *self, QoreAbstractQValidator *qv,
    QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    QoreQLocale *q_ql = new QoreQLocale(qv->getQValidator()->locale());
    o_ql->setPrivate(CID_QLOCALE, q_ql);
-   return new QoreNode(o_ql);
+   return o_ql;
 }
 
 //void setLocale ( const QLocale & locale )
 static QoreNode *QVALIDATOR_setLocale(QoreObject *self, QoreAbstractQValidator *qv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)p->val.object->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
+   QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
    if (!locale) {
       if (!xsink->isException())
          xsink->raiseException("QVALIDATOR-SETLOCALE-PARAM-ERROR", "expecting a QLocale object as first argument to QValidator::setLocale()");

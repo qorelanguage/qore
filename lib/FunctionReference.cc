@@ -82,23 +82,17 @@ ParseObjectMethodReference::~ParseObjectMethodReference()
 class QoreNode *ParseObjectMethodReference::eval(class ExceptionSink *xsink) const
 {
    // evaluate lvalue expression
-   QoreNode *lv = exp->eval(xsink);
-   if (xsink->isEvent())
+   ReferenceHolder<QoreNode> lv(exp->eval(xsink), xsink);
+   if (*xsink)
+      return 0;
+
+   QoreObject *o = dynamic_cast<QoreObject *>(*lv);
+   if (!o)
    {
-      if (lv)
-	 lv->deref(xsink);
-      return NULL;
-   }
-   if (!lv || lv->type != NT_OBJECT)
-   {
-      if (lv)
-	 lv->deref(xsink);
       xsink->raiseException("OBJECT-METHOD-REFERENCE-ERROR", "expression does not evaluate to an object");
-      return NULL;
+      return 0;
    }
-   class QoreNode *rv = new QoreNode(new RunTimeObjectMethodReference(lv->val.object, method));
-   lv->deref(xsink);
-   return rv;
+   return new QoreNode(new RunTimeObjectMethodReference(o, method));
 }
 
 int ParseObjectMethodReference::parseInit(lvh_t oflag, int pflag)

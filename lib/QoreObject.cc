@@ -129,11 +129,11 @@ class KeyList
 
 };
 
-QoreObject::QoreObject(const QoreClass *oc, class QoreProgram *p) : priv(new qore_object_private(oc, p, new QoreHash()))
+QoreObject::QoreObject(const QoreClass *oc, class QoreProgram *p) : QoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, new QoreHash()))
 {
 }
 
-QoreObject::QoreObject(const QoreClass *oc, class QoreProgram *p, class QoreHash *h) : priv(new qore_object_private(oc, p, h))
+QoreObject::QoreObject(const QoreClass *oc, class QoreProgram *p, class QoreHash *h) : QoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, h))
 {
 }
 
@@ -228,7 +228,7 @@ void QoreObject::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class 
 void QoreObject::instantiateLVar(lvh_t id)
 {
    ref();
-   ::instantiateLVar(id, new QoreNode(this));
+   ::instantiateLVar(id, this);
 }
 
 void QoreObject::uninstantiateLVar(class ExceptionSink *xsink)
@@ -422,24 +422,21 @@ inline void QoreObject::doDeleteIntern(class ExceptionSink *xsink)
 }
 
 // does a deep dereference and execs destructor if necessary
-void QoreObject::dereference(ExceptionSink *xsink)
+void QoreObject::deref(ExceptionSink *xsink)
 {
-   printd(5, "QoreObject::dereference(this=%08p) class=%s %d->%d\n", this, priv->myclass->getName(), references, references - 1);
-   if (ROdereference())
-   {
+   printd(5, "QoreObject::deref() this=%08, class=%s %d->%d\n", this, priv->myclass->getName(), references, references - 1);
+   if (ROdereference()) {
       // FIXME: what the hell do we do if this happens?
       if (priv->g.enter(xsink) >= 0)
       {
 	 printd(5, "QoreObject::dereference() class=%s deleting this=%08p\n", priv->myclass->getName(), this);
-	 if (priv->status == OS_OK)
-	 {
+	 if (priv->status == OS_OK) {
 	    // reference for destructor
 	    ROreference();
 	    doDeleteIntern(xsink);
 	    ROdereference();
 	 }
-	 else
-	 {
+	 else {
 	    priv->g.exit();
 	    printd(5, "QoreObject::dereference() %08p class=%s data=%08p status=%d\n", this, priv->myclass->getName(), priv->data, priv->status);
 	 }
@@ -829,7 +826,7 @@ class QoreNode **QoreObject::getExistingValuePtr(const char *mem, class AutoVLoc
    return rv;
 }
 
-AbstractPrivateData *QoreObject::getReferencedPrivateData(int key, class ExceptionSink *xsink)
+AbstractPrivateData *QoreObject::getReferencedPrivateData(int key, class ExceptionSink *xsink) const
 { 
    AbstractPrivateData *rv = NULL;
 
@@ -976,3 +973,47 @@ QoreString *QoreObject::getAsString(bool &del, int foff, class ExceptionSink *xs
    del = true;
    return rv.release();
 }
+
+class QoreNode *QoreObject::realCopy() const
+{
+   return RefSelf();
+}
+
+// performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
+// the "val" passed
+//DLLLOCAL virtual int compare(const QoreNode *val) const;
+// the type passed must always be equal to the current type
+bool QoreObject::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+{
+   const QoreObject *o = dynamic_cast<const QoreObject *>(v);
+   if (!o)
+      return false;
+   return !compareSoft(o, xsink);
+}
+
+bool QoreObject::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+{
+   const QoreObject *o = dynamic_cast<const QoreObject *>(v);
+   if (!o)
+      return false;
+   return !compareHard(o, xsink);
+}
+
+// returns the data type
+const QoreType *QoreObject::getType() const
+{
+   return NT_OBJECT;
+}
+
+// returns the type name as a c string
+const char *QoreObject::getTypeName() const
+{
+   return "object";
+}
+
+// returns true if the node represents a value (default implementation)
+bool QoreObject::is_value() const
+{
+   return false;
+}
+

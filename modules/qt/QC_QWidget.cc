@@ -44,7 +44,7 @@ static void QWIDGET_constructor(class QoreObject *self, const QoreList *params, 
 {
    QoreQWidget *qw;
    static QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!parent)
       qw = new QoreQWidget(self);
@@ -98,7 +98,7 @@ static QoreNode *QWIDGET_activateWindow(class QoreObject *self, QoreAbstractQWid
 static QoreNode *QWIDGET_addAction(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-ADDACTION-PARAM-ERROR", "expecting a QAction object as first argument to QWidget::addAction()");
@@ -139,7 +139,7 @@ static QoreNode *QWIDGET_baseSize(QoreObject *self, QoreAbstractQWidget *qw, con
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qw->getQWidget()->baseSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //QWidget * childAt ( int x, int y ) const
@@ -149,10 +149,10 @@ static QoreNode *QWIDGET_childAt(QoreObject *self, QoreAbstractQWidget *qw, cons
    QWidget *qt_qobj;
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())
-            xsink->raiseException("QWIDGET-CHILDAT-PARAM-ERROR", "QWidget::childAt() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QWIDGET-CHILDAT-PARAM-ERROR", "QWidget::childAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(point), xsink);
@@ -175,7 +175,7 @@ static QoreNode *QWIDGET_childAt(QoreObject *self, QoreAbstractQWidget *qw, cons
       QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QWIDGET, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QRect childrenRect () const
@@ -185,7 +185,7 @@ static QoreNode *QWIDGET_childrenRect(QoreObject *self, QoreAbstractQWidget *qw,
    QoreQRect *q_qr = new QoreQRect(qw->getQWidget()->childrenRect());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //QRegion childrenRegion () const
@@ -195,7 +195,7 @@ static QoreNode *QWIDGET_childrenRegion(QoreObject *self, QoreAbstractQWidget *q
    QoreQRegion *q_qr = new QoreQRegion(qw->getQWidget()->childrenRegion());
    QoreObject *o_qr = new QoreObject(QC_QRegion, getProgram());
    o_qr->setPrivate(CID_QREGION, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //void clearFocus ()
@@ -219,7 +219,7 @@ static QoreNode *QWIDGET_contentsRect(QoreObject *self, QoreAbstractQWidget *qw,
    QoreQRect *q_qr = new QoreQRect(qw->getQWidget()->contentsRect());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //Qt::ContextMenuPolicy contextMenuPolicy () const
@@ -261,7 +261,7 @@ static QoreNode *QWIDGET_focusProxy(QoreObject *self, QoreAbstractQWidget *qw, c
       QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QWIDGET, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QWidget * focusWidget () const
@@ -279,7 +279,7 @@ static QoreNode *QWIDGET_focusWidget(QoreObject *self, QoreAbstractQWidget *qw, 
       QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QWIDGET, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //const QFont & font () const
@@ -288,7 +288,7 @@ static QoreNode *QWIDGET_font(QoreObject *self, QoreAbstractQWidget *qw, const Q
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qw->getQWidget()->font());
    o_qf->setPrivate(CID_QFONT, q_qf);
-   return new QoreNode(o_qf);
+   return o_qf;
 }
 
 //QFontInfo fontInfo () const
@@ -297,7 +297,7 @@ static QoreNode *QWIDGET_fontInfo(QoreObject *self, QoreAbstractQWidget *qw, con
    QoreObject *o_qfi = new QoreObject(QC_QFontInfo, getProgram());
    QoreQFontInfo *q_qfi = new QoreQFontInfo(qw->getQWidget()->fontInfo());
    o_qfi->setPrivate(CID_QFONTINFO, q_qfi);
-   return new QoreNode(o_qfi);
+   return o_qfi;
 }
 
 //QFontMetrics fontMetrics () const
@@ -306,7 +306,7 @@ static QoreNode *QWIDGET_fontMetrics(QoreObject *self, QoreAbstractQWidget *qw, 
    QoreObject *o_qfm = new QoreObject(QC_QFontMetrics, getProgram());
    QoreQFontMetrics *q_qfm = new QoreQFontMetrics(qw->getQWidget()->fontMetrics());
    o_qfm->setPrivate(CID_QFONTMETRICS, q_qfm);
-   return new QoreNode(o_qfm);
+   return o_qfm;
 }
 
 //QPalette::ColorRole foregroundRole () const
@@ -321,7 +321,7 @@ static QoreNode *QWIDGET_frameGeometry(QoreObject *self, QoreAbstractQWidget *qw
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qw->getQWidget()->frameGeometry());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //QSize frameSize () const
@@ -330,7 +330,7 @@ static QoreNode *QWIDGET_frameSize(QoreObject *self, QoreAbstractQWidget *qw, co
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qw->getQWidget()->frameSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //const QRect & geometry () const
@@ -340,7 +340,7 @@ static QoreNode *QWIDGET_geometry(QoreObject *self, QoreAbstractQWidget *qw, con
    QoreQRect *q_qr = new QoreQRect(qw->getQWidget()->geometry());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //void getContentsMargins ( int * left, int * top, int * right, int * bottom ) const
@@ -435,7 +435,7 @@ static QoreNode *QWIDGET_inputMethodQuery(QoreObject *self, QoreAbstractQWidget 
 static QoreNode *QWIDGET_insertAction(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQAction *before = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreAbstractQAction *before = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!before) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-INSERTACTION-PARAM-ERROR", "expecting a QAction object as first argument to QWidget::insertAction()");
@@ -443,7 +443,7 @@ static QoreNode *QWIDGET_insertAction(QoreObject *self, QoreAbstractQWidget *qw,
    }
    ReferenceHolder<QoreAbstractQAction> beforeHolder(before, xsink);
    p = get_param(params, 1);
-   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-INSERTACTION-PARAM-ERROR", "expecting a QAction object as second argument to QWidget::insertAction()");
@@ -469,7 +469,7 @@ static QoreNode *QWIDGET_isActiveWindow(class QoreObject *self, QoreAbstractQWid
 static QoreNode *QWIDGET_isAncestorOf(class QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *qwa = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *qwa = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!p || !qwa)
    {
       if (!xsink->isException())
@@ -491,7 +491,7 @@ static QoreNode *QWIDGET_isEnabled(class QoreObject *self, QoreAbstractQWidget *
 static QoreNode *QWIDGET_isEnabledTo(class QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *qwa = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *qwa = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!p || !qwa)
    {
       if (!xsink->isException())
@@ -543,7 +543,7 @@ static QoreNode *QWIDGET_isVisible(class QoreObject *self, QoreAbstractQWidget *
 static QoreNode *QWIDGET_isVisibleTo(class QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *qwa = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *qwa = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!p || !qwa)
    {
       if (!xsink->isException())
@@ -582,7 +582,7 @@ static QoreNode *QWIDGET_layout(QoreObject *self, QoreAbstractQWidget *qw, const
       QoreQtQLayout *t_qobj = new QoreQtQLayout(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QLAYOUT, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //Qt::LayoutDirection layoutDirection () const
@@ -597,7 +597,7 @@ static QoreNode *QWIDGET_locale(QoreObject *self, QoreAbstractQWidget *qw, const
    QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    QoreQLocale *q_ql = new QoreQLocale(qw->getQWidget()->locale());
    o_ql->setPrivate(CID_QLOCALE, q_ql);
-   return new QoreNode(o_ql);
+   return o_ql;
 }
 
 //Qt::HANDLE macCGHandle () const
@@ -614,7 +614,7 @@ static QoreNode *QWIDGET_locale(QoreObject *self, QoreAbstractQWidget *qw, const
 static QoreNode *QWIDGET_mapFrom(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MAPFROM-PARAM-ERROR", "expecting a QWidget object as first argument to QWidget::mapFrom()");
@@ -622,7 +622,7 @@ static QoreNode *QWIDGET_mapFrom(QoreObject *self, QoreAbstractQWidget *qw, cons
    }
    ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
    p = get_param(params, 1);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MAPFROM-PARAM-ERROR", "expecting a QPoint object as second argument to QWidget::mapFrom()");
@@ -632,14 +632,14 @@ static QoreNode *QWIDGET_mapFrom(QoreObject *self, QoreAbstractQWidget *qw, cons
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qw->getQWidget()->mapFrom(parent->getQWidget(), *(static_cast<QPoint *>(pos))));
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //QPoint mapFromGlobal ( const QPoint & pos ) const
 static QoreNode *QWIDGET_mapFromGlobal(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MAPFROMGLOBAL-PARAM-ERROR", "expecting a QPoint object as first argument to QWidget::mapFromGlobal()");
@@ -649,14 +649,14 @@ static QoreNode *QWIDGET_mapFromGlobal(QoreObject *self, QoreAbstractQWidget *qw
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qw->getQWidget()->mapFromGlobal(*(static_cast<QPoint *>(pos))));
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //QPoint mapFromParent ( const QPoint & pos ) const
 static QoreNode *QWIDGET_mapFromParent(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MAPFROMPARENT-PARAM-ERROR", "expecting a QPoint object as first argument to QWidget::mapFromParent()");
@@ -666,14 +666,14 @@ static QoreNode *QWIDGET_mapFromParent(QoreObject *self, QoreAbstractQWidget *qw
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qw->getQWidget()->mapFromParent(*(static_cast<QPoint *>(pos))));
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //QPoint mapTo ( QWidget * parent, const QPoint & pos ) const
 static QoreNode *QWIDGET_mapTo(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MAPTO-PARAM-ERROR", "expecting a QWidget object as first argument to QWidget::mapTo()");
@@ -681,7 +681,7 @@ static QoreNode *QWIDGET_mapTo(QoreObject *self, QoreAbstractQWidget *qw, const 
    }
    ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
    p = get_param(params, 1);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MAPTO-PARAM-ERROR", "expecting a QPoint object as second argument to QWidget::mapTo()");
@@ -691,14 +691,14 @@ static QoreNode *QWIDGET_mapTo(QoreObject *self, QoreAbstractQWidget *qw, const 
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qw->getQWidget()->mapTo(parent->getQWidget(), *(static_cast<QPoint *>(pos))));
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //QPoint mapToGlobal ( const QPoint & pos ) const
 static QoreNode *QWIDGET_mapToGlobal(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MAPTOGLOBAL-PARAM-ERROR", "expecting a QPoint object as first argument to QWidget::mapToGlobal()");
@@ -708,14 +708,14 @@ static QoreNode *QWIDGET_mapToGlobal(QoreObject *self, QoreAbstractQWidget *qw, 
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qw->getQWidget()->mapToGlobal(*(static_cast<QPoint *>(pos))));
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //QPoint mapToParent ( const QPoint & pos ) const
 static QoreNode *QWIDGET_mapToParent(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MAPTOPARENT-PARAM-ERROR", "expecting a QPoint object as first argument to QWidget::mapToParent()");
@@ -725,7 +725,7 @@ static QoreNode *QWIDGET_mapToParent(QoreObject *self, QoreAbstractQWidget *qw, 
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qw->getQWidget()->mapToParent(*(static_cast<QPoint *>(pos))));
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //QRegion mask () const
@@ -735,7 +735,7 @@ static QoreNode *QWIDGET_mask(QoreObject *self, QoreAbstractQWidget *qw, const Q
    QoreQRegion *q_qr = new QoreQRegion(qw->getQWidget()->mask());
    QoreObject *o_qr = new QoreObject(QC_QRegion, getProgram());
    o_qr->setPrivate(CID_QREGION, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //int maximumHeight () const
@@ -750,7 +750,7 @@ static QoreNode *QWIDGET_maximumSize(QoreObject *self, QoreAbstractQWidget *qw, 
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qw->getQWidget()->maximumSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //int maximumWidth () const
@@ -771,7 +771,7 @@ static QoreNode *QWIDGET_minimumSize(QoreObject *self, QoreAbstractQWidget *qw, 
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qw->getQWidget()->minimumSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //virtual QSize minimumSizeHint () const
@@ -780,7 +780,7 @@ static QoreNode *QWIDGET_minimumSizeHint(QoreObject *self, QoreAbstractQWidget *
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qw->minimumSizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //int minimumWidth () const
@@ -795,10 +795,10 @@ static QoreNode *QWIDGET_move(QoreObject *self, QoreAbstractQWidget *qw, const Q
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *qpoint = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *qpoint = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!qpoint) {
          if (!xsink->isException())
-            xsink->raiseException("QWIDGET-MOVE-PARAM-ERROR", "QWidget::move() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QWIDGET-MOVE-PARAM-ERROR", "QWidget::move() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> qpointHolder(static_cast<AbstractPrivateData *>(qpoint), xsink);
@@ -827,7 +827,7 @@ static QoreNode *QWIDGET_nextInFocusChain(QoreObject *self, QoreAbstractQWidget 
       QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QWIDGET, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QRect normalGeometry () const
@@ -837,7 +837,7 @@ static QoreNode *QWIDGET_normalGeometry(QoreObject *self, QoreAbstractQWidget *q
    QoreQRect *q_qr = new QoreQRect(qw->getQWidget()->normalGeometry());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //void overrideWindowFlags ( Qt::WindowFlags flags )
@@ -860,7 +860,7 @@ static QoreNode *QWIDGET_palette(QoreObject *self, QoreAbstractQWidget *qw, cons
    QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
    QoreQPalette *q_qp = new QoreQPalette(qw->getQWidget()->palette());
    o_qp->setPrivate(CID_QPALETTE, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 
@@ -879,7 +879,7 @@ static QoreNode *QWIDGET_parentWidget(QoreObject *self, QoreAbstractQWidget *qw,
       QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QWIDGET, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QPoint pos () const
@@ -888,7 +888,7 @@ static QoreNode *QWIDGET_pos(QoreObject *self, QoreAbstractQWidget *qw, const Qo
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qw->getQWidget()->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //QRect rect () const
@@ -898,7 +898,7 @@ static QoreNode *QWIDGET_rect(QoreObject *self, QoreAbstractQWidget *qw, const Q
    QoreQRect *q_qr = new QoreQRect(qw->getQWidget()->rect());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //virtual void releaseDC ( HDC hdc ) const
@@ -933,7 +933,7 @@ static QoreNode *QWIDGET_releaseShortcut(QoreObject *self, QoreAbstractQWidget *
 static QoreNode *QWIDGET_removeAction(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-REMOVEACTION-PARAM-ERROR", "expecting a QAction object as first argument to QWidget::removeAction()");
@@ -960,13 +960,13 @@ static QoreNode *QWIDGET_repaint(QoreObject *self, QoreAbstractQWidget *qw, cons
       return 0;
    }
    if (p->type == NT_OBJECT) {
-      QoreQRect *r = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
+      QoreQRect *r = (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
       if (!r) {
-	 QoreQRegion *rgn = (QoreQRegion *)p->val.object->getReferencedPrivateData(CID_QREGION, xsink);
+	 QoreQRegion *rgn = (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink);
 	 if (!rgn)
 	 {
 	    if (!xsink->isException())
-	       xsink->raiseException("QWIDGET-REPAINT-PARAM-ERROR", "QWidget::repaint() cannot handle arguments of class '%s'", p->val.object->getClass()->getName());
+	       xsink->raiseException("QWIDGET-REPAINT-PARAM-ERROR", "QWidget::repaint() cannot handle arguments of class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 	    return 0;
 	 }
 	 ReferenceHolder<QoreQRegion> holder(rgn, xsink);
@@ -995,10 +995,10 @@ static QoreNode *QWIDGET_resize(QoreObject *self, QoreAbstractQWidget *qw, const
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQSize *size = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+      QoreQSize *size = (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
       if (!size) {
          if (!xsink->isException())
-            xsink->raiseException("QWIDGET-RESIZE-PARAM-ERROR", "QWidget::resize() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QWIDGET-RESIZE-PARAM-ERROR", "QWidget::resize() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
@@ -1028,7 +1028,7 @@ static QoreNode *QWIDGET_saveGeometry(QoreObject *self, QoreAbstractQWidget *qw,
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qw->getQWidget()->saveGeometry());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //void scroll ( int dx, int dy )
@@ -1040,7 +1040,7 @@ static QoreNode *QWIDGET_scroll(QoreObject *self, QoreAbstractQWidget *qw, const
    p = get_param(params, 1);
    int dy = p ? p->getAsInt() : 0;
    p = test_param(params, NT_OBJECT, 2);
-   QoreQRect *r = (p && p->type == NT_OBJECT) ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreQRect *r = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!r)
       qw->getQWidget()->scroll(dx, dy);
    else
@@ -1116,10 +1116,10 @@ static QoreNode *QWIDGET_setBaseSize(QoreObject *self, QoreAbstractQWidget *qw, 
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQSize *qsize = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+      QoreQSize *qsize = (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
       if (!qsize) {
          if (!xsink->isException())
-            xsink->raiseException("QWIDGET-SETBASESIZE-PARAM-ERROR", "QWidget::setBaseSize() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QWIDGET-SETBASESIZE-PARAM-ERROR", "QWidget::setBaseSize() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<QoreQSize> qsizeHolder(qsize, xsink);
@@ -1238,7 +1238,7 @@ static QoreNode *QWIDGET_setFocusPolicy(class QoreObject *self, QoreAbstractQWid
 static QoreNode *QWIDGET_setFocusProxy(class QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    static QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *proxy = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *proxy = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!proxy)
    {
@@ -1256,7 +1256,7 @@ static QoreNode *QWIDGET_setFocusProxy(class QoreObject *self, QoreAbstractQWidg
 static QoreNode *QWIDGET_setFont(class QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQFont *qf = p ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : NULL;
+   QoreQFont *qf = p ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : NULL;
    if (!p || !qf)
    {
       if (!xsink->isException())
@@ -1327,7 +1327,7 @@ static QoreNode *QWIDGET_setGeometry(class QoreObject *self, QoreAbstractQWidget
 static QoreNode *QWIDGET_setLayout(class QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQLayout *qal = p ? (QoreAbstractQLayout *)p->val.object->getReferencedPrivateData(CID_QLAYOUT, xsink) : NULL;
+   QoreAbstractQLayout *qal = p ? (QoreAbstractQLayout *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLAYOUT, xsink) : NULL;
    if (!p || !qal)
    {
       if (!xsink->isException())
@@ -1353,7 +1353,7 @@ static QoreNode *QWIDGET_setLayoutDirection(QoreObject *self, QoreAbstractQWidge
 static QoreNode *QWIDGET_setLocale(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)p->val.object->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
+   QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
    if (!locale) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-SETLOCALE-PARAM-ERROR", "expecting a QLocale object as first argument to QWidget::setLocale()");
@@ -1369,9 +1369,9 @@ static QoreNode *QWIDGET_setLocale(QoreObject *self, QoreAbstractQWidget *qw, co
 static QoreNode *QWIDGET_setMask(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQRegion *region = p ? (QoreQRegion *)p->val.object->getReferencedPrivateData(CID_QREGION, xsink) : 0;
+   QoreQRegion *region = p ? (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink) : 0;
    if (!region) {
-      QoreQBitmap *bitmap = p ? (QoreQBitmap *)p->val.object->getReferencedPrivateData(CID_QBITMAP, xsink) : 0;
+      QoreQBitmap *bitmap = p ? (QoreQBitmap *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QBITMAP, xsink) : 0;
       if (!bitmap) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QWIDGET-SETMASK-PARAM-ERROR", "QWidget::setMask() was expecting QBitmap or QRegion as first argument");
@@ -1499,7 +1499,7 @@ static QoreNode *QWIDGET_setMouseTracking(class QoreObject *self, QoreAbstractQW
 static QoreNode *QWIDGET_setPalette(class QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    class QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQPalette *qp = p ? (QoreQPalette *)p->val.object->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   QoreQPalette *qp = p ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!qp)
    {
       if (!xsink->isException())
@@ -1517,7 +1517,7 @@ static QoreNode *QWIDGET_setPalette(class QoreObject *self, QoreAbstractQWidget 
 static QoreNode *QWIDGET_setParent(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!p || !parent)
    {
       if (!xsink->isException())
@@ -1598,7 +1598,7 @@ static QoreNode *QWIDGET_setStatusTip(class QoreObject *self, QoreAbstractQWidge
 static QoreNode *QWIDGET_setStyle(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQStyle *style = (p && p->type == NT_OBJECT) ? (QoreAbstractQStyle *)p->val.object->getReferencedPrivateData(CID_QSTYLE, xsink) : 0;
+   QoreAbstractQStyle *style = (p && p->type == NT_OBJECT) ? (QoreAbstractQStyle *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLE, xsink) : 0;
    if (!style) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-SETSTYLE-PARAM-ERROR", "expecting a QStyle object as first argument to QWidget::setStyle()");
@@ -1648,7 +1648,7 @@ static QoreNode *QWIDGET_setWindowFlags(QoreObject *self, QoreAbstractQWidget *q
 static QoreNode *QWIDGET_setWindowIcon(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-SETWINDOWICON-PARAM-ERROR", "expecting a QIcon object as first argument to QWidget::setWindowIcon()");
@@ -1715,7 +1715,7 @@ static QoreNode *QWIDGET_size(QoreObject *self, QoreAbstractQWidget *qw, const Q
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qw->getQWidget()->size());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //virtual QSize sizeHint () const
@@ -1724,7 +1724,7 @@ static QoreNode *QWIDGET_sizeHint(QoreObject *self, QoreAbstractQWidget *qw, con
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qw->sizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //QSize sizeIncrement () const
@@ -1733,7 +1733,7 @@ static QoreNode *QWIDGET_sizeIncrement(QoreObject *self, QoreAbstractQWidget *qw
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qw->getQWidget()->sizeIncrement());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //QSizePolicy sizePolicy () const
@@ -1748,7 +1748,7 @@ static QoreNode *QWIDGET_sizePolicy(QoreObject *self, QoreAbstractQWidget *qw, c
 static QoreNode *QWIDGET_stackUnder(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *w = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *w = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!p || !w)
    {
       if (!xsink->isException())
@@ -1781,7 +1781,7 @@ static QoreNode *QWIDGET_style(QoreObject *self, QoreAbstractQWidget *qw, const 
       QoreQtQStyle *t_qobj = new QoreQtQStyle(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QSTYLE, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QString styleSheet () const
@@ -1843,12 +1843,12 @@ static QoreNode *QWIDGET_update(QoreObject *self, QoreAbstractQWidget *qw, const
       return 0;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQRegion *rgn = (QoreQRegion *)p->val.object->getReferencedPrivateData(CID_QREGION, xsink);
+      QoreQRegion *rgn = (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink);
       if (!rgn) {
-         QoreQRect *r = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
+         QoreQRect *r = (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
          if (!r) {
             if (!xsink->isException())
-               xsink->raiseException("QWIDGET-UPDATE-PARAM-ERROR", "QWidget::update() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+               xsink->raiseException("QWIDGET-UPDATE-PARAM-ERROR", "QWidget::update() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
             return 0;
          }
          ReferenceHolder<QoreQRect> rHolder(r, xsink);
@@ -1890,7 +1890,7 @@ static QoreNode *QWIDGET_visibleRegion(QoreObject *self, QoreAbstractQWidget *qw
    QoreQRegion *q_qr = new QoreQRegion(qw->getQWidget()->visibleRegion());
    QoreObject *o_qr = new QoreObject(QC_QRegion, getProgram());
    o_qr->setPrivate(CID_QREGION, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //QString whatsThis () const
@@ -1926,7 +1926,7 @@ static QoreNode *QWIDGET_window(QoreObject *self, QoreAbstractQWidget *qw, const
       QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QWIDGET, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //Qt::WindowFlags windowFlags () const
@@ -1941,7 +1941,7 @@ static QoreNode *QWIDGET_windowIcon(QoreObject *self, QoreAbstractQWidget *qw, c
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qw->getQWidget()->windowIcon());
    o_qi->setPrivate(CID_QICON, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //QString windowIconText () const
@@ -2169,7 +2169,7 @@ static QoreNode *QWIDGET_showNormal(QoreObject *self, QoreAbstractQWidget *qw, c
 static QoreNode *QWIDGET_actionEvent(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQActionEvent *event = (p && p->type == NT_OBJECT) ? (QoreQActionEvent *)p->val.object->getReferencedPrivateData(CID_QACTIONEVENT, xsink) : 0;
+   QoreQActionEvent *event = (p && p->type == NT_OBJECT) ? (QoreQActionEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTIONEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-ACTIONEVENT-PARAM-ERROR", "expecting a QActionEvent object as first argument to QWidget::actionEvent()");
@@ -2184,7 +2184,7 @@ static QoreNode *QWIDGET_actionEvent(QoreObject *self, QoreAbstractQWidget *qw, 
 static QoreNode *QWIDGET_changeEvent(QoreObject *self, QoreAbstractQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)p->val.object->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-CHANGEEVENT-PARAM-ERROR", "expecting a QEvent object as first argument to QWidget::changeEvent()");
@@ -2199,7 +2199,7 @@ static QoreNode *QWIDGET_changeEvent(QoreObject *self, QoreAbstractQWidget *qw, 
 static QoreNode *QWIDGET_closeEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQCloseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQCloseEvent *)p->val.object->getReferencedPrivateData(CID_QCLOSEEVENT, xsink) : 0;
+   QoreQCloseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQCloseEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCLOSEEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-CLOSEEVENT-PARAM-ERROR", "expecting a QCloseEvent object as first argument to QWidget::closeEvent()");
@@ -2214,7 +2214,7 @@ static QoreNode *QWIDGET_closeEvent(QoreObject *self, QoreQWidget *qw, const Qor
 static QoreNode *QWIDGET_contextMenuEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQContextMenuEvent *event = (p && p->type == NT_OBJECT) ? (QoreQContextMenuEvent *)p->val.object->getReferencedPrivateData(CID_QCONTEXTMENUEVENT, xsink) : 0;
+   QoreQContextMenuEvent *event = (p && p->type == NT_OBJECT) ? (QoreQContextMenuEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCONTEXTMENUEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-CONTEXTMENUEVENT-PARAM-ERROR", "expecting a QContextMenuEvent object as first argument to QWidget::contextMenuEvent()");
@@ -2229,7 +2229,7 @@ static QoreNode *QWIDGET_contextMenuEvent(QoreObject *self, QoreQWidget *qw, con
 static QoreNode *QWIDGET_dragEnterEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQDragEnterEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDragEnterEvent *)p->val.object->getReferencedPrivateData(CID_QDRAGENTEREVENT, xsink) : 0;
+   QoreQDragEnterEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDragEnterEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDRAGENTEREVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-DRAGENTEREVENT-PARAM-ERROR", "expecting a QDragEnterEvent object as first argument to QWidget::dragEnterEvent()");
@@ -2244,7 +2244,7 @@ static QoreNode *QWIDGET_dragEnterEvent(QoreObject *self, QoreQWidget *qw, const
 static QoreNode *QWIDGET_dragLeaveEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQDragLeaveEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDragLeaveEvent *)p->val.object->getReferencedPrivateData(CID_QDRAGLEAVEEVENT, xsink) : 0;
+   QoreQDragLeaveEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDragLeaveEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDRAGLEAVEEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-DRAGLEAVEEVENT-PARAM-ERROR", "expecting a QDragLeaveEvent object as first argument to QWidget::dragLeaveEvent()");
@@ -2259,7 +2259,7 @@ static QoreNode *QWIDGET_dragLeaveEvent(QoreObject *self, QoreQWidget *qw, const
 static QoreNode *QWIDGET_dragMoveEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQDragMoveEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDragMoveEvent *)p->val.object->getReferencedPrivateData(CID_QDRAGMOVEEVENT, xsink) : 0;
+   QoreQDragMoveEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDragMoveEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDRAGMOVEEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-DRAGMOVEEVENT-PARAM-ERROR", "expecting a QDragMoveEvent object as first argument to QWidget::dragMoveEvent()");
@@ -2274,7 +2274,7 @@ static QoreNode *QWIDGET_dragMoveEvent(QoreObject *self, QoreQWidget *qw, const 
 static QoreNode *QWIDGET_dropEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQDropEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDropEvent *)p->val.object->getReferencedPrivateData(CID_QDROPEVENT, xsink) : 0;
+   QoreQDropEvent *event = (p && p->type == NT_OBJECT) ? (QoreQDropEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDROPEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-DROPEVENT-PARAM-ERROR", "expecting a QDropEvent object as first argument to QWidget::dropEvent()");
@@ -2289,7 +2289,7 @@ static QoreNode *QWIDGET_dropEvent(QoreObject *self, QoreQWidget *qw, const Qore
 static QoreNode *QWIDGET_enterEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)p->val.object->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-ENTEREVENT-PARAM-ERROR", "expecting a QEvent object as first argument to QWidget::enterEvent()");
@@ -2304,7 +2304,7 @@ static QoreNode *QWIDGET_enterEvent(QoreObject *self, QoreQWidget *qw, const Qor
 static QoreNode *QWIDGET_event(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)p->val.object->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-EVENT-PARAM-ERROR", "expecting a QEvent object as first argument to QWidget::event()");
@@ -2318,7 +2318,7 @@ static QoreNode *QWIDGET_event(QoreObject *self, QoreQWidget *qw, const QoreList
 static QoreNode *QWIDGET_focusInEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQFocusEvent *event = (p && p->type == NT_OBJECT) ? (QoreQFocusEvent *)p->val.object->getReferencedPrivateData(CID_QFOCUSEVENT, xsink) : 0;
+   QoreQFocusEvent *event = (p && p->type == NT_OBJECT) ? (QoreQFocusEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFOCUSEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-FOCUSINEVENT-PARAM-ERROR", "expecting a QFocusEvent object as first argument to QWidget::focusInEvent()");
@@ -2333,7 +2333,7 @@ static QoreNode *QWIDGET_focusInEvent(QoreObject *self, QoreQWidget *qw, const Q
 static QoreNode *QWIDGET_focusOutEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQFocusEvent *event = (p && p->type == NT_OBJECT) ? (QoreQFocusEvent *)p->val.object->getReferencedPrivateData(CID_QFOCUSEVENT, xsink) : 0;
+   QoreQFocusEvent *event = (p && p->type == NT_OBJECT) ? (QoreQFocusEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFOCUSEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-FOCUSOUTEVENT-PARAM-ERROR", "expecting a QFocusEvent object as first argument to QWidget::focusOutEvent()");
@@ -2348,7 +2348,7 @@ static QoreNode *QWIDGET_focusOutEvent(QoreObject *self, QoreQWidget *qw, const 
 static QoreNode *QWIDGET_hideEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQHideEvent *event = (p && p->type == NT_OBJECT) ? (QoreQHideEvent *)p->val.object->getReferencedPrivateData(CID_QHIDEEVENT, xsink) : 0;
+   QoreQHideEvent *event = (p && p->type == NT_OBJECT) ? (QoreQHideEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QHIDEEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-HIDEEVENT-PARAM-ERROR", "expecting a QHideEvent object as first argument to QWidget::hideEvent()");
@@ -2363,7 +2363,7 @@ static QoreNode *QWIDGET_hideEvent(QoreObject *self, QoreQWidget *qw, const Qore
 static QoreNode *QWIDGET_inputMethodEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQInputMethodEvent *event = (p && p->type == NT_OBJECT) ? (QoreQInputMethodEvent *)p->val.object->getReferencedPrivateData(CID_QINPUTMETHODEVENT, xsink) : 0;
+   QoreQInputMethodEvent *event = (p && p->type == NT_OBJECT) ? (QoreQInputMethodEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QINPUTMETHODEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-INPUTMETHODEVENT-PARAM-ERROR", "expecting a QInputMethodEvent object as first argument to QWidget::inputMethodEvent()");
@@ -2378,7 +2378,7 @@ static QoreNode *QWIDGET_inputMethodEvent(QoreObject *self, QoreQWidget *qw, con
 static QoreNode *QWIDGET_keyPressEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQKeyEvent *event = (p && p->type == NT_OBJECT) ? (QoreQKeyEvent *)p->val.object->getReferencedPrivateData(CID_QKEYEVENT, xsink) : 0;
+   QoreQKeyEvent *event = (p && p->type == NT_OBJECT) ? (QoreQKeyEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QKEYEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-KEYPRESSEVENT-PARAM-ERROR", "expecting a QKeyEvent object as first argument to QWidget::keyPressEvent()");
@@ -2393,7 +2393,7 @@ static QoreNode *QWIDGET_keyPressEvent(QoreObject *self, QoreQWidget *qw, const 
 static QoreNode *QWIDGET_keyReleaseEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQKeyEvent *event = (p && p->type == NT_OBJECT) ? (QoreQKeyEvent *)p->val.object->getReferencedPrivateData(CID_QKEYEVENT, xsink) : 0;
+   QoreQKeyEvent *event = (p && p->type == NT_OBJECT) ? (QoreQKeyEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QKEYEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-KEYRELEASEEVENT-PARAM-ERROR", "expecting a QKeyEvent object as first argument to QWidget::keyReleaseEvent()");
@@ -2408,7 +2408,7 @@ static QoreNode *QWIDGET_keyReleaseEvent(QoreObject *self, QoreQWidget *qw, cons
 static QoreNode *QWIDGET_leaveEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)p->val.object->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-LEAVEEVENT-PARAM-ERROR", "expecting a QEvent object as first argument to QWidget::leaveEvent()");
@@ -2433,7 +2433,7 @@ static QoreNode *QWIDGET_leaveEvent(QoreObject *self, QoreQWidget *qw, const Qor
 static QoreNode *QWIDGET_mouseDoubleClickEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)p->val.object->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
+   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MOUSEDOUBLECLICKEVENT-PARAM-ERROR", "expecting a QMouseEvent object as first argument to QWidget::mouseDoubleClickEvent()");
@@ -2448,7 +2448,7 @@ static QoreNode *QWIDGET_mouseDoubleClickEvent(QoreObject *self, QoreQWidget *qw
 static QoreNode *QWIDGET_mouseMoveEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)p->val.object->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
+   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MOUSEMOVEEVENT-PARAM-ERROR", "expecting a QMouseEvent object as first argument to QWidget::mouseMoveEvent()");
@@ -2463,7 +2463,7 @@ static QoreNode *QWIDGET_mouseMoveEvent(QoreObject *self, QoreQWidget *qw, const
 static QoreNode *QWIDGET_mousePressEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)p->val.object->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
+   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MOUSEPRESSEVENT-PARAM-ERROR", "expecting a QMouseEvent object as first argument to QWidget::mousePressEvent()");
@@ -2478,7 +2478,7 @@ static QoreNode *QWIDGET_mousePressEvent(QoreObject *self, QoreQWidget *qw, cons
 static QoreNode *QWIDGET_mouseReleaseEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)p->val.object->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
+   QoreQMouseEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMouseEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMOUSEEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MOUSERELEASEEVENT-PARAM-ERROR", "expecting a QMouseEvent object as first argument to QWidget::mouseReleaseEvent()");
@@ -2493,7 +2493,7 @@ static QoreNode *QWIDGET_mouseReleaseEvent(QoreObject *self, QoreQWidget *qw, co
 static QoreNode *QWIDGET_moveEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQMoveEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMoveEvent *)p->val.object->getReferencedPrivateData(CID_QMOVEEVENT, xsink) : 0;
+   QoreQMoveEvent *event = (p && p->type == NT_OBJECT) ? (QoreQMoveEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMOVEEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-MOVEEVENT-PARAM-ERROR", "expecting a QMoveEvent object as first argument to QWidget::moveEvent()");
@@ -2508,7 +2508,7 @@ static QoreNode *QWIDGET_moveEvent(QoreObject *self, QoreQWidget *qw, const Qore
 static QoreNode *QWIDGET_paintEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPaintEvent *event = (p && p->type == NT_OBJECT) ? (QoreQPaintEvent *)p->val.object->getReferencedPrivateData(CID_QPAINTEVENT, xsink) : 0;
+   QoreQPaintEvent *event = (p && p->type == NT_OBJECT) ? (QoreQPaintEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-PAINTEVENT-PARAM-ERROR", "expecting a QPaintEvent object as first argument to QWidget::paintEvent()");
@@ -2531,7 +2531,7 @@ static QoreNode *QWIDGET_paintEvent(QoreObject *self, QoreQWidget *qw, const Qor
 static QoreNode *QWIDGET_resizeEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQResizeEvent *event = (p && p->type == NT_OBJECT) ? (QoreQResizeEvent *)p->val.object->getReferencedPrivateData(CID_QRESIZEEVENT, xsink) : 0;
+   QoreQResizeEvent *event = (p && p->type == NT_OBJECT) ? (QoreQResizeEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRESIZEEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-RESIZEEVENT-PARAM-ERROR", "expecting a QResizeEvent object as first argument to QWidget::resizeEvent()");
@@ -2546,7 +2546,7 @@ static QoreNode *QWIDGET_resizeEvent(QoreObject *self, QoreQWidget *qw, const Qo
 static QoreNode *QWIDGET_showEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQShowEvent *event = (p && p->type == NT_OBJECT) ? (QoreQShowEvent *)p->val.object->getReferencedPrivateData(CID_QSHOWEVENT, xsink) : 0;
+   QoreQShowEvent *event = (p && p->type == NT_OBJECT) ? (QoreQShowEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSHOWEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-SHOWEVENT-PARAM-ERROR", "expecting a QShowEvent object as first argument to QWidget::showEvent()");
@@ -2561,7 +2561,7 @@ static QoreNode *QWIDGET_showEvent(QoreObject *self, QoreQWidget *qw, const Qore
 static QoreNode *QWIDGET_tabletEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTabletEvent *event = (p && p->type == NT_OBJECT) ? (QoreQTabletEvent *)p->val.object->getReferencedPrivateData(CID_QTABLETEVENT, xsink) : 0;
+   QoreQTabletEvent *event = (p && p->type == NT_OBJECT) ? (QoreQTabletEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLETEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-TABLETEVENT-PARAM-ERROR", "expecting a QTabletEvent object as first argument to QWidget::tabletEvent()");
@@ -2576,7 +2576,7 @@ static QoreNode *QWIDGET_tabletEvent(QoreObject *self, QoreQWidget *qw, const Qo
 static QoreNode *QWIDGET_wheelEvent(QoreObject *self, QoreQWidget *qw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWheelEvent *event = (p && p->type == NT_OBJECT) ? (QoreQWheelEvent *)p->val.object->getReferencedPrivateData(CID_QWHEELEVENT, xsink) : 0;
+   QoreQWheelEvent *event = (p && p->type == NT_OBJECT) ? (QoreQWheelEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWHEELEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QWIDGET-WHEELEVENT-PARAM-ERROR", "expecting a QWheelEvent object as first argument to QWidget::wheelEvent()");

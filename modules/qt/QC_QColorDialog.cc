@@ -46,19 +46,19 @@ static QoreNode *f_QColorDialog_customCount(const QoreList *params, ExceptionSin
 static QoreNode *f_QColorDialog_getColor(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQColor *initial = (p && p->type == NT_OBJECT) ? (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+   QoreQColor *initial = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> initialHolder(static_cast<AbstractPrivateData *>(initial), xsink);
    p = get_param(params, 1);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColorDialog::getColor(initial ? *(static_cast<QColor *>(initial)) : Qt::white, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 /*
@@ -70,7 +70,7 @@ static QoreNode *f_QColorDialog_getRgba(const QoreList *params, ExceptionSink *x
    p = get_param(params, 1);
    ??? bool* ok = p;
    p = get_param(params, 2);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);

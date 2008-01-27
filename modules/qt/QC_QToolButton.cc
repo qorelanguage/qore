@@ -36,7 +36,7 @@ class QoreClass *QC_QToolButton = 0;
 static void QTOOLBUTTON_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -71,7 +71,7 @@ static QoreNode *QTOOLBUTTON_defaultAction(QoreObject *self, QoreAbstractQToolBu
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QMenu * menu () const
@@ -84,7 +84,7 @@ static QoreNode *QTOOLBUTTON_menu(QoreObject *self, QoreAbstractQToolButton *qtb
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //ToolButtonPopupMode popupMode () const
@@ -115,7 +115,7 @@ static QoreNode *QTOOLBUTTON_setAutoRaise(QoreObject *self, QoreAbstractQToolBut
 static QoreNode *QTOOLBUTTON_setMenu(QoreObject *self, QoreAbstractQToolButton *qtb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreAbstractQMenu *)p->val.object->getReferencedPrivateData(CID_QMENU, xsink) : 0;
+   QoreAbstractQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreAbstractQMenu *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMENU, xsink) : 0;
    if (!menu) {
       if (!xsink->isException())
          xsink->raiseException("QTOOLBUTTON-SETMENU-PARAM-ERROR", "expecting a QMenu object as first argument to QToolButton::setMenu()");
@@ -145,7 +145,7 @@ static QoreNode *QTOOLBUTTON_toolButtonStyle(QoreObject *self, QoreAbstractQTool
 static QoreNode *QTOOLBUTTON_setDefaultAction(QoreObject *self, QoreAbstractQToolButton *qtb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreAbstractQAction *action = (p && p->type == NT_OBJECT) ? (QoreAbstractQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QTOOLBUTTON-SETDEFAULTACTION-PARAM-ERROR", "expecting a QAction object as first argument to QToolButton::setDefaultAction()");
@@ -177,7 +177,7 @@ static QoreNode *QTOOLBUTTON_showMenu(QoreObject *self, QoreAbstractQToolButton 
 static QoreNode *QTOOLBUTTON_initStyleOption(QoreObject *self, QoreAbstractQToolButton *qtb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQStyleOptionToolButton *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionToolButton *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONTOOLBUTTON, xsink) : 0;
+   QoreQStyleOptionToolButton *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionToolButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONTOOLBUTTON, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QTOOLBUTTON-INITSTYLEOPTION-PARAM-ERROR", "expecting a QStyleOptionToolButton object as first argument to QToolButton::initStyleOption()");

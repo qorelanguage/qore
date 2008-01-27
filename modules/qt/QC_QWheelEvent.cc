@@ -35,7 +35,7 @@ class QoreClass *QC_QWheelEvent = 0;
 static void QWHEELEVENT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQPoint *pos = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
 	 xsink->raiseException("QWHEELEVENT-CONSTRUCTOR-PARAM-ERROR", "QWheelEvent::constructor() was expecting a QPoint object as the first argument");
@@ -48,10 +48,10 @@ static void QWHEELEVENT_constructor(QoreObject *self, const QoreList *params, Ex
    p = get_param(params, 1);
    int offset = 1;
    if (p && p->type == NT_OBJECT) {
-      globalPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+      globalPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
       if (!globalPos) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QWHEELEVENT-CONSTRUCTOR-PARAM-ERROR", "this version of QWheelEvent::constructor() expects an object derived from QPoint as the second argument", p->val.object->getClass()->getName());
+	    xsink->raiseException("QWHEELEVENT-CONSTRUCTOR-PARAM-ERROR", "this version of QWheelEvent::constructor() expects an object derived from QPoint as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 	 return;
       }
       p = get_param(params, ++offset);
@@ -96,7 +96,7 @@ static QoreNode *QWHEELEVENT_globalPos(QoreObject *self, QoreQWheelEvent *qwe, c
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qwe->globalPos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //int globalX () const
@@ -123,7 +123,7 @@ static QoreNode *QWHEELEVENT_pos(QoreObject *self, QoreQWheelEvent *qwe, const Q
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qwe->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //int x () const

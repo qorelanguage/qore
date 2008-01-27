@@ -311,30 +311,33 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNod
 	 return instantiate_class(val, mbcd, xsink);
       }
    }
+
 /*
-   if (v->type == NT_OBJECT)
    {
-      // class instantiation (normally for TIBCO m_any type)
-      const char *cn;
-      if (!(cn = get_class(v->val.object->data)))
-      {
-         xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type '%s': can't instantiate class from object wi
+      QoreObject *o = dynamic_cast<QoreObject *>(v);
+      if (o) {
+	 // class instantiation (normally for TIBCO m_any type)
+	 const char *cn;
+	 if (!(cn = get_class(o->data)))
+	 {
+	    xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type '%s': can't instantiate class from object wi
 thout '^class^' entry", pcd->getFullName().c_str());
-         return NULL;
-      }
-      else
-      {
-         const MBaseClassDescription *mbcd = find_class(cn, xsink);
-         if (xsink->isEvent())
-            return NULL;
-         QoreNode *val;
-         if (!(val = v->val.object->retrieve_value("^value^")))
-         {
-            xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for c
+	    return NULL;
+	 }
+	 else
+	 {
+	    const MBaseClassDescription *mbcd = find_class(cn, xsink);
+	    if (xsink->isEvent())
+	       return NULL;
+	    QoreNode *val;
+	    if (!(val = o->retrieve_value("^value^")))
+	    {
+	       xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for c
 lass '%s'", pcd->getFullName().c_str(), cn);
-            return NULL;
-         }
-         return instantiate_class(val, mbcd, xsink);
+	       return NULL;
+	    }
+	    return instantiate_class(val, mbcd, xsink);
+	 }
       }
    }
 */
@@ -499,24 +502,6 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
       v = h->getKeyValue("^value^");
    }
 
-/*
-   if (v && v->type == NT_OBJECT)
-   {
-      const char *cn;
-      if (!(cn = get_class(v->val.object->data)))
-      {
-         xsink->raiseException("TIBCO-MISSING-CLASS-NAME",
-                            "can't instantiate sequence of type '%s' from object without '^class^' entry",
-                            msd->getFullName().c_str());
-
-         return NULL;
-      }
-      printd(1, "QoreApp::instantiate_sequence() '%s': ignoring class information provided (%s)\n",
-             msd->getFullName().c_str(), cn);
-      v = v->val.object->retrieve_value("^value^");
-   }
-*/
-
    if (is_nothing(v))
       return new MSequence(mcr, msd->getFullName());
 
@@ -554,10 +539,6 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Qo
    QoreHashNode *h;
    if (v->type == NT_HASH)
       h = reinterpret_cast<QoreHashNode *>(v);
-/*
-   else if (v->type == NT_OBJECT)
-      h = v->val.object->data;
-*/
    else
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-CLASS",
@@ -630,10 +611,6 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
    QoreHashNode *h;
    if (v->type == NT_HASH)
       h = reinterpret_cast<QoreHashNode *>(v);
-/*
-   else if (v->type == NT_OBJECT)
-      h = v->val.object->data;
-*/
    else
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-UNION",

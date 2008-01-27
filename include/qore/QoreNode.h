@@ -47,8 +47,6 @@ union node_u {
       char *c_str;
       // for binary objects
       class BinaryObject *bin;
-      // for Objects
-      class QoreObject *object;
       // for variable references
       class VarRef *vref;
       // for find expressions
@@ -97,6 +95,7 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(class QoreHash *h);
       DLLEXPORT QoreNode();
       DLLEXPORT QoreNode(class QoreList *l);
+      DLLEXPORT QoreNode(class QoreObject *o);
 
    protected:
       DLLLOCAL virtual ~QoreNode();
@@ -113,7 +112,6 @@ class QoreNode : public ReferenceObject
 
       DLLEXPORT QoreNode(double d);
       DLLEXPORT QoreNode(class BinaryObject *b);
-      DLLEXPORT QoreNode(class QoreObject *o);
 
       // get the value of the type in a string context (default implementation = del = false and returns NullString)
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be

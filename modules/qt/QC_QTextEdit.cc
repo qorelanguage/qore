@@ -47,7 +47,7 @@ static void QTEXTEDIT_constructor(QoreObject *self, const QoreList *params, Exce
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQWidget *parent = (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink);
+      QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
          return;
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -58,7 +58,7 @@ static void QTEXTEDIT_constructor(QoreObject *self, const QoreList *params, Exce
    if (get_qstring(p, text, xsink))
       return;
    p = get_param(params, 1);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -87,7 +87,7 @@ static QoreNode *QTEXTEDIT_alignment(QoreObject *self, QoreAbstractQTextEdit *qt
 static QoreNode *QTEXTEDIT_anchorAt(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTEDIT-ANCHORAT-PARAM-ERROR", "expecting a QPoint object as first argument to QTextEdit::anchorAt()");
@@ -124,7 +124,7 @@ static QoreNode *QTEXTEDIT_createStandardContextMenu(QoreObject *self, QoreAbstr
       QoreQtQMenu *t_qobj = new QoreQtQMenu(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QMENU, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QTextCharFormat currentCharFormat () const
@@ -133,7 +133,7 @@ static QoreNode *QTEXTEDIT_currentCharFormat(QoreObject *self, QoreAbstractQText
    QoreObject *o_qtcf = new QoreObject(QC_QTextCharFormat, getProgram());
    QoreQTextCharFormat *q_qtcf = new QoreQTextCharFormat(qte->getQTextEdit()->currentCharFormat());
    o_qtcf->setPrivate(CID_QTEXTCHARFORMAT, q_qtcf);
-   return new QoreNode(o_qtcf);
+   return o_qtcf;
 }
 
 //QFont currentFont () const
@@ -142,7 +142,7 @@ static QoreNode *QTEXTEDIT_currentFont(QoreObject *self, QoreAbstractQTextEdit *
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qte->getQTextEdit()->currentFont());
    o_qf->setPrivate(CID_QFONT, q_qf);
-   return new QoreNode(o_qf);
+   return o_qf;
 }
 
 /*
@@ -150,7 +150,7 @@ static QoreNode *QTEXTEDIT_currentFont(QoreObject *self, QoreAbstractQTextEdit *
 static QoreNode *QTEXTEDIT_cursorForPosition(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTEDIT-CURSORFORPOSITION-PARAM-ERROR", "expecting a QPoint object as first argument to QTextEdit::cursorForPosition()");
@@ -171,13 +171,13 @@ static QoreNode *QTEXTEDIT_cursorRect(QoreObject *self, QoreAbstractQTextEdit *q
       QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
       QoreQRect *q_qr = new QoreQRect(qte->getQTextEdit()->cursorRect());
       o_qr->setPrivate(CID_QRECT, q_qr);
-      return new QoreNode(o_qr);
+      return o_qr;
    }
    ??? QTextCursor cursor = p;
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qte->getQTextEdit()->cursorRect(cursor));
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 */
 
@@ -288,7 +288,7 @@ static QoreNode *QTEXTEDIT_loadResource(QoreObject *self, QoreAbstractQTextEdit 
    QoreNode *p = get_param(params, 0);
    int type = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   QoreQUrl *name = (p && p->type == NT_OBJECT) ? (QoreQUrl *)p->val.object->getReferencedPrivateData(CID_QURL, xsink) : 0;
+   QoreQUrl *name = (p && p->type == NT_OBJECT) ? (QoreQUrl *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QURL, xsink) : 0;
    if (!name) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTEDIT-LOADRESOURCE-PARAM-ERROR", "expecting a QUrl object as second argument to QTextEdit::loadResource()");
@@ -302,7 +302,7 @@ static QoreNode *QTEXTEDIT_loadResource(QoreObject *self, QoreAbstractQTextEdit 
 static QoreNode *QTEXTEDIT_mergeCurrentCharFormat(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTextCharFormat *modifier = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)p->val.object->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
+   QoreQTextCharFormat *modifier = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
    if (!modifier) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTEDIT-MERGECURRENTCHARFORMAT-PARAM-ERROR", "expecting a QTextCharFormat object as first argument to QTextEdit::mergeCurrentCharFormat()");
@@ -334,7 +334,7 @@ static QoreNode *QTEXTEDIT_overwriteMode(QoreObject *self, QoreAbstractQTextEdit
 static QoreNode *QTEXTEDIT_print(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPrinter *printer = (p && p->type == NT_OBJECT) ? (QoreQPrinter *)p->val.object->getReferencedPrivateData(CID_QPRINTER, xsink) : 0;
+   QoreQPrinter *printer = (p && p->type == NT_OBJECT) ? (QoreQPrinter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPRINTER, xsink) : 0;
    if (!printer) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTEDIT-PRINT-PARAM-ERROR", "expecting a QPrinter object as first argument to QTextEdit::print()");
@@ -367,7 +367,7 @@ static QoreNode *QTEXTEDIT_setAutoFormatting(QoreObject *self, QoreAbstractQText
 static QoreNode *QTEXTEDIT_setCurrentCharFormat(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTextCharFormat *format = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)p->val.object->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
+   QoreQTextCharFormat *format = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
    if (!format) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTEDIT-SETCURRENTCHARFORMAT-PARAM-ERROR", "expecting a QTextCharFormat object as first argument to QTextEdit::setCurrentCharFormat()");
@@ -530,7 +530,7 @@ static QoreNode *QTEXTEDIT_textColor(QoreObject *self, QoreAbstractQTextEdit *qt
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qte->getQTextEdit()->textColor());
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 /*
@@ -664,7 +664,7 @@ static QoreNode *QTEXTEDIT_setAlignment(QoreObject *self, QoreAbstractQTextEdit 
 static QoreNode *QTEXTEDIT_setCurrentFont(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQFont *f = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreQFont *f = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!f) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTEDIT-SETCURRENTFONT-PARAM-ERROR", "expecting a QFont object as first argument to QTextEdit::setCurrentFont()");
@@ -759,7 +759,7 @@ static QoreNode *QTEXTEDIT_setText(QoreObject *self, QoreAbstractQTextEdit *qte,
 static QoreNode *QTEXTEDIT_setTextColor(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQColor *c = (p && p->type == NT_OBJECT) ? (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+   QoreQColor *c = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
    if (!c) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTEDIT-SETTEXTCOLOR-PARAM-ERROR", "expecting a QColor object as first argument to QTextEdit::setTextColor()");

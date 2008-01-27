@@ -45,7 +45,7 @@ static QoreNode *QRESIZEEVENT_oldSize(QoreObject *self, QoreQResizeEvent *qre, c
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qre->oldSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //const QSize & size () const
@@ -54,7 +54,7 @@ static QoreNode *QRESIZEEVENT_size(QoreObject *self, QoreQResizeEvent *qre, cons
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qre->size());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 class QoreClass *initQResizeEventClass(class QoreClass *qevent)

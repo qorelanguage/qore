@@ -35,7 +35,7 @@ class QoreClass *QC_QCalendarWidget = 0;
 static void QCALENDARWIDGET_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
    self->setPrivate(CID_QCALENDARWIDGET, new QoreQCalendarWidget(self, parent ? parent->getQWidget() : 0));
    return;
@@ -78,7 +78,7 @@ static QoreNode *QCALENDARWIDGET_headerTextFormat(QoreObject *self, QoreQCalenda
    QoreObject *o_qtcf = new QoreObject(QC_QTextCharFormat, getProgram());
    QoreQTextCharFormat *q_qtcf = new QoreQTextCharFormat(qcw->qobj->headerTextFormat());
    o_qtcf->setPrivate(CID_QTEXTCHARFORMAT, q_qtcf);
-   return new QoreNode(o_qtcf);
+   return o_qtcf;
 }
 
 //HorizontalHeaderFormat horizontalHeaderFormat () const
@@ -164,7 +164,7 @@ static QoreNode *QCALENDARWIDGET_setDateTextFormat(QoreObject *self, QoreQCalend
    if (get_qdate(p, date, xsink))
       return 0;
    p = get_param(params, 1);
-   QoreQTextCharFormat *format = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)p->val.object->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
+   QoreQTextCharFormat *format = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
    if (!format) {
       if (!xsink->isException())
          xsink->raiseException("QCALENDARWIDGET-SETDATETEXTFORMAT-PARAM-ERROR", "expecting a QTextCharFormat object as second argument to QCalendarWidget::setDateTextFormat()");
@@ -188,7 +188,7 @@ static QoreNode *QCALENDARWIDGET_setFirstDayOfWeek(QoreObject *self, QoreQCalend
 static QoreNode *QCALENDARWIDGET_setHeaderTextFormat(QoreObject *self, QoreQCalendarWidget *qcw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTextCharFormat *format = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)p->val.object->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
+   QoreQTextCharFormat *format = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
    if (!format) {
       if (!xsink->isException())
          xsink->raiseException("QCALENDARWIDGET-SETHEADERTEXTFORMAT-PARAM-ERROR", "expecting a QTextCharFormat object as first argument to QCalendarWidget::setHeaderTextFormat()");
@@ -254,7 +254,7 @@ static QoreNode *QCALENDARWIDGET_setWeekdayTextFormat(QoreObject *self, QoreQCal
    QoreNode *p = get_param(params, 0);
    Qt::DayOfWeek dayOfWeek = (Qt::DayOfWeek)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
-   QoreQTextCharFormat *format = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)p->val.object->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
+   QoreQTextCharFormat *format = (p && p->type == NT_OBJECT) ? (QoreQTextCharFormat *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTCHARFORMAT, xsink) : 0;
    if (!format) {
       if (!xsink->isException())
          xsink->raiseException("QCALENDARWIDGET-SETWEEKDAYTEXTFORMAT-PARAM-ERROR", "expecting a QTextCharFormat object as second argument to QCalendarWidget::setWeekdayTextFormat()");
@@ -279,7 +279,7 @@ static QoreNode *QCALENDARWIDGET_weekdayTextFormat(QoreObject *self, QoreQCalend
    QoreObject *o_qtcf = new QoreObject(QC_QTextCharFormat, getProgram());
    QoreQTextCharFormat *q_qtcf = new QoreQTextCharFormat(qcw->qobj->weekdayTextFormat(dayOfWeek));
    o_qtcf->setPrivate(CID_QTEXTCHARFORMAT, q_qtcf);
-   return new QoreNode(o_qtcf);
+   return o_qtcf;
 }
 
 //int yearShown () const

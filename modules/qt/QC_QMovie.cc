@@ -45,7 +45,7 @@ static void QMOVIE_constructor(QoreObject *self, const QoreList *params, Excepti
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreAbstractQObject *parent = (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink);
+      QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
       if (*xsink)
          return;
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -60,7 +60,7 @@ static void QMOVIE_constructor(QoreObject *self, const QoreList *params, Excepti
    if (get_qbytearray(p, format, xsink, true))
       format = QByteArray();
    p = get_param(params, 2);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -80,7 +80,7 @@ static QoreNode *QMOVIE_backgroundColor(QoreObject *self, QoreQMovie *qm, const 
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qm->qobj->backgroundColor());
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //CacheMode cacheMode () const
@@ -101,7 +101,7 @@ static QoreNode *QMOVIE_currentImage(QoreObject *self, QoreQMovie *qm, const Qor
    QoreObject *o_qi = new QoreObject(QC_QImage, getProgram());
    QoreQImage *q_qi = new QoreQImage(qm->qobj->currentImage());
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //QPixmap currentPixmap () const
@@ -110,7 +110,7 @@ static QoreNode *QMOVIE_currentPixmap(QoreObject *self, QoreQMovie *qm, const Qo
    QoreObject *o_qp = new QoreObject(QC_QPixmap, getProgram());
    QoreQPixmap *q_qp = new QoreQPixmap(qm->qobj->currentPixmap());
    o_qp->setPrivate(CID_QPIXMAP, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 /*
@@ -133,7 +133,7 @@ static QoreNode *QMOVIE_format(QoreObject *self, QoreQMovie *qm, const QoreList 
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qm->qobj->format());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //int frameCount () const
@@ -148,7 +148,7 @@ static QoreNode *QMOVIE_frameRect(QoreObject *self, QoreQMovie *qm, const QoreLi
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qm->qobj->frameRect());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //bool isValid () const
@@ -183,14 +183,14 @@ static QoreNode *QMOVIE_scaledSize(QoreObject *self, QoreQMovie *qm, const QoreL
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qm->qobj->scaledSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //void setBackgroundColor ( const QColor & color )
 static QoreNode *QMOVIE_setBackgroundColor(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+   QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
    if (!color) {
       if (!xsink->isException())
          xsink->raiseException("QMOVIE-SETBACKGROUNDCOLOR-PARAM-ERROR", "expecting a QColor object as first argument to QMovie::setBackgroundColor()");
@@ -248,7 +248,7 @@ static QoreNode *QMOVIE_setFormat(QoreObject *self, QoreQMovie *qm, const QoreLi
 static QoreNode *QMOVIE_setScaledSize(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QMOVIE-SETSCALEDSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QMovie::setScaledSize()");

@@ -66,7 +66,7 @@ static QoreNode *QMIMEDATA_data(QoreObject *self, QoreQMimeData *qmd, const Qore
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qmd->qobj->data(mimeType));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //virtual QStringList formats () const

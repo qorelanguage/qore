@@ -478,7 +478,7 @@ static QoreNode *f_QDir_current(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(QDir::current());
    o_qd->setPrivate(CID_QDIR, q_qd);
-   return new QoreNode(o_qd);
+   return o_qd;
 }
 
 //QString currentPath ()
@@ -509,7 +509,7 @@ static QoreNode *f_QDir_home(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(QDir::home());
    o_qd->setPrivate(CID_QDIR, q_qd);
-   return new QoreNode(o_qd);
+   return o_qd;
 }
 
 //QString homePath ()
@@ -559,7 +559,7 @@ static QoreNode *f_QDir_root(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(QDir::root());
    o_qd->setPrivate(CID_QDIR, q_qd);
-   return new QoreNode(o_qd);
+   return o_qd;
 }
 
 //QString rootPath ()
@@ -632,7 +632,7 @@ static QoreNode *f_QDir_temp(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(QDir::temp());
    o_qd->setPrivate(CID_QDIR, q_qd);
-   return new QoreNode(o_qd);
+   return o_qd;
 }
 
 //QString tempPath ()

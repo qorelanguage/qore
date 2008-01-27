@@ -36,12 +36,12 @@ static void QPAINTEVENT_constructor(class QoreObject *self, const QoreList *para
 
    QoreNode *p = test_param(params, NT_OBJECT, 0);
       
-   QoreQRect *rectangle = p ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreQRect *rectangle = p ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (*xsink)
       return;
    if (!rectangle)
    {
-      QoreQRegion *region = p ? (QoreQRegion *)p->val.object->getReferencedPrivateData(CID_QREGION, xsink) : 0;
+      QoreQRegion *region = p ? (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink) : 0;
       if (!region) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QPAINTEVENT-CONSTRUCTOR-ERROR", "Expecting a QRect or QRegion object as argument to QPaintEvent::constructor()");
@@ -69,7 +69,7 @@ static QoreNode *QPAINTEVENT_rect(QoreObject *self, QoreQPaintEvent *qpe, const 
    QoreQRect *q_qr = new QoreQRect(qpe->rect());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //const QRegion & region () const
@@ -78,7 +78,7 @@ static QoreNode *QPAINTEVENT_region(QoreObject *self, QoreQPaintEvent *qpe, cons
    QoreQRegion *q_qr = new QoreQRegion(qpe->region());
    QoreObject *o_qr = new QoreObject(QC_QRegion, getProgram());
    o_qr->setPrivate(CID_QREGION, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 class QoreClass *initQPaintEventClass(class QoreClass *qevent)

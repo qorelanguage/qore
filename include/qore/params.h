@@ -54,6 +54,12 @@ static inline QoreStringNode *test_string_param(const QoreList *n, int i)
    return dynamic_cast<QoreStringNode *>(n->retrieve_entry(i));
 }
 
+static inline QoreObject *test_object_param(const QoreList *n, int i)
+{
+   if (!n) return 0;
+   return dynamic_cast<QoreObject *>(n->retrieve_entry(i));
+}
+
 static inline DateTimeNode *test_date_param(const QoreList *n, int i)
 {
    if (!n) return 0;

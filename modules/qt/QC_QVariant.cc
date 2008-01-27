@@ -82,36 +82,36 @@ static void QVARIANT_constructor(QoreObject *self, const QoreList *params, Excep
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *qpoint = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *qpoint = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!qpoint) {
-         QoreQPointF *qpointf = (QoreQPointF *)p->val.object->getReferencedPrivateData(CID_QPOINTF, xsink);
+         QoreQPointF *qpointf = (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
          if (!qpointf) {
-            QoreQLine *qline = (QoreQLine *)p->val.object->getReferencedPrivateData(CID_QLINE, xsink);
+            QoreQLine *qline = (QoreQLine *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINE, xsink);
             if (!qline) {
-               QoreQLineF *qlinef = (QoreQLineF *)p->val.object->getReferencedPrivateData(CID_QLINEF, xsink);
+               QoreQLineF *qlinef = (QoreQLineF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINEF, xsink);
                if (!qlinef) {
-                  QoreQRect *qrect = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
+                  QoreQRect *qrect = (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
                   if (!qrect) {
-                     QoreQRectF *qrectf = (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink);
+                     QoreQRectF *qrectf = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
                      if (!qrectf) {
-                        QoreQUrl *qurl = (QoreQUrl *)p->val.object->getReferencedPrivateData(CID_QURL, xsink);
+                        QoreQUrl *qurl = (QoreQUrl *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QURL, xsink);
                         if (!qurl) {
-                           QoreQLocale *qlocale = (QoreQLocale *)p->val.object->getReferencedPrivateData(CID_QLOCALE, xsink);
+                           QoreQLocale *qlocale = (QoreQLocale *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLOCALE, xsink);
                            if (!qlocale) {
-                              QoreQSize *qsize = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+                              QoreQSize *qsize = (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
                               if (!qsize) {
-				 QoreQByteArray *qba = (QoreQByteArray *)p->val.object->getReferencedPrivateData(CID_QBYTEARRAY, xsink);
+				 QoreQByteArray *qba = (QoreQByteArray *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QBYTEARRAY, xsink);
 				 if (!qba) {
-				    QoreQDateTime *qdt = (QoreQDateTime *)p->val.object->getReferencedPrivateData(CID_QDATETIME, xsink);
+				    QoreQDateTime *qdt = (QoreQDateTime *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDATETIME, xsink);
 				    if (!qdt) {
-				       QoreQDate *qd = (QoreQDate *)p->val.object->getReferencedPrivateData(CID_QDATE, xsink);
+				       QoreQDate *qd = (QoreQDate *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDATE, xsink);
 				       if (!qd) {
-					  QoreQTime *qt = (QoreQTime *)p->val.object->getReferencedPrivateData(CID_QTIME, xsink);
+					  QoreQTime *qt = (QoreQTime *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTIME, xsink);
 					  if (!qt) {
-					     QoreQChar *qchar = (QoreQChar *)p->val.object->getReferencedPrivateData(CID_QCHAR, xsink);
+					     QoreQChar *qchar = (QoreQChar *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCHAR, xsink);
 					     if (!qchar) {
 						if (!xsink->isException())
-						   xsink->raiseException("QVARIANT-CONSTRUCTOR-PARAM-ERROR", "QVariant::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+						   xsink->raiseException("QVARIANT-CONSTRUCTOR-PARAM-ERROR", "QVariant::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 						return;
 					     }
 					     ReferenceHolder<QoreQChar> qcharHolder(qchar, xsink);
@@ -303,7 +303,7 @@ static QoreNode *QVARIANT_toByteArray(QoreObject *self, QoreQVariant *qv, const 
       return 0;
    QoreQByteArray *q_qba = new QoreQByteArray(qv->toByteArray());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //QChar toChar () const
@@ -363,7 +363,7 @@ static QoreNode *QVARIANT_toLine(QoreObject *self, QoreQVariant *qv, const QoreL
       return 0;
    QoreQLine *q_ql = new QoreQLine(qv->toLine());
    o_ql->setPrivate(CID_QLINE, q_ql);
-   return new QoreNode(o_ql);
+   return o_ql;
 }
 
 //QLineF toLineF () const
@@ -374,7 +374,7 @@ static QoreNode *QVARIANT_toLineF(QoreObject *self, QoreQVariant *qv, const Qore
       return 0;
    QoreQLineF *q_qlf = new QoreQLineF(qv->toLineF());
    o_qlf->setPrivate(CID_QLINEF, q_qlf);
-   return new QoreNode(o_qlf);
+   return o_qlf;
 }
 
 ////QList<QVariant> toList () const
@@ -391,7 +391,7 @@ static QoreNode *QVARIANT_toLocale(QoreObject *self, QoreQVariant *qv, const Qor
       return 0;
    QoreQLocale *q_ql = new QoreQLocale(qv->toLocale());
    o_ql->setPrivate(CID_QLOCALE, q_ql);
-   return new QoreNode(o_ql);
+   return o_ql;
 }
 
 ////qlonglong toLongLong ( bool * ok = 0 ) const
@@ -414,7 +414,7 @@ static QoreNode *QVARIANT_toPoint(QoreObject *self, QoreQVariant *qv, const Qore
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qv->toPoint());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //QPointF toPointF () const
@@ -423,7 +423,7 @@ static QoreNode *QVARIANT_toPointF(QoreObject *self, QoreQVariant *qv, const Qor
    QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qv->toPointF());
    o_qpf->setPrivate(CID_QPOINTF, q_qpf);
-   return new QoreNode(o_qpf);
+   return o_qpf;
 }
 
 //QRect toRect () const
@@ -432,7 +432,7 @@ static QoreNode *QVARIANT_toRect(QoreObject *self, QoreQVariant *qv, const QoreL
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qv->toRect());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //QRectF toRectF () const
@@ -441,7 +441,7 @@ static QoreNode *QVARIANT_toRectF(QoreObject *self, QoreQVariant *qv, const Qore
    QoreObject *o_qrf = new QoreObject(QC_QRectF, getProgram());
    QoreQRectF *q_qrf = new QoreQRectF(qv->toRectF());
    o_qrf->setPrivate(CID_QRECTF, q_qrf);
-   return new QoreNode(o_qrf);
+   return o_qrf;
 }
 
 ////QRegExp toRegExp () const
@@ -458,7 +458,7 @@ static QoreNode *QVARIANT_toSize(QoreObject *self, QoreQVariant *qv, const QoreL
       return 0;
    QoreQSize *q_qs = new QoreQSize(qv->toSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 ////QSizeF toSizeF () const
@@ -510,7 +510,7 @@ static QoreNode *QVARIANT_toUrl(QoreObject *self, QoreQVariant *qv, const QoreLi
       return 0;
    QoreQUrl *q_qu = new QoreQUrl(qv->toUrl());
    o_qu->setPrivate(CID_QURL, q_qu);
-   return new QoreNode(o_qu);
+   return o_qu;
 }
 
 //Type type () const

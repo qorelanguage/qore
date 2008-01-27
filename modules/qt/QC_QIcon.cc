@@ -47,10 +47,10 @@ static void QICON_constructor(class QoreObject *self, const QoreList *params, Ex
       }
 
       if (p->type == NT_OBJECT) {
-	 AbstractPrivateData *apd_pixmap = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+	 AbstractPrivateData *apd_pixmap = (p && p->type == NT_OBJECT) ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
 	 if (!apd_pixmap) {
 	    if (!xsink->isException())
-	       xsink->raiseException("QICON-ADDPIXMAP-PARAM-ERROR", "QIcon::constructor() does not know how to handle arguments of class '%s'", p->val.object->getClass()->getName());
+	       xsink->raiseException("QICON-ADDPIXMAP-PARAM-ERROR", "QIcon::constructor() does not know how to handle arguments of class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 	    return;
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(apd_pixmap, xsink);
@@ -78,7 +78,7 @@ static void QICON_copy(class QoreObject *self, class QoreObject *old, class Qore
 static QoreNode *QICON_actualSize(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QICON-ACTUALSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QIcon::actualSize()");
@@ -92,7 +92,7 @@ static QoreNode *QICON_actualSize(QoreObject *self, QoreQIcon *qi, const QoreLis
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qi->actualSize(*(static_cast<QSize *>(size)), mode, state));
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //void addFile ( const QString & fileName, const QSize & size = QSize(), Mode mode = Normal, State state = Off )
@@ -103,7 +103,7 @@ static QoreNode *QICON_addFile(QoreObject *self, QoreQIcon *qi, const QoreList *
    if (get_qstring(p, fileName, xsink))
       return 0;
    p = get_param(params, 1);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
@@ -119,7 +119,7 @@ static QoreNode *QICON_addFile(QoreObject *self, QoreQIcon *qi, const QoreList *
 static QoreNode *QICON_addPixmap(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   AbstractPrivateData *apd_pixmap = (p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+   AbstractPrivateData *apd_pixmap = (p && p->type == NT_OBJECT) ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!apd_pixmap) {
       if (!xsink->isException())
          xsink->raiseException("QICON-ADDPIXMAP-PARAM-ERROR", "expecting a QPixmap object as first argument to QIcon::addPixmap()");
@@ -159,7 +159,7 @@ static QoreNode *QICON_isNull(QoreObject *self, QoreQIcon *qi, const QoreList *p
 static QoreNode *QICON_paint(QoreObject *self, QoreQIcon *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQPainter *painter = (QoreQPainter *)(p ? p->val.object->getReferencedPrivateData(CID_QPAINTER, xsink) : 0);
+   QoreQPainter *painter = (QoreQPainter *)(p ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0);
    if (!painter) {
       if (!xsink->isException())
 	 xsink->raiseException("QICON-PAINT-PARAM-ERROR", "QIcon::paint() was expecting an object derived from QPainter as the first argument");
@@ -170,10 +170,10 @@ static QoreNode *QICON_paint(QoreObject *self, QoreQIcon *qi, const QoreList *pa
    p = get_param(params, 1);
    if (p && p->type == NT_OBJECT) {
 
-      QoreQRect *rect = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
+      QoreQRect *rect = (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rect) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QICON-PAINT-PARAM-ERROR", "QIcon::paint() does not know how to handle arguments of class '%s' as passed as the second argument", p->val.object->getClass()->getName());
+	    xsink->raiseException("QICON-PAINT-PARAM-ERROR", "QIcon::paint() does not know how to handle arguments of class '%s' as passed as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 	 return 0;
       }
 
@@ -211,10 +211,10 @@ static QoreNode *QICON_pixmap(QoreObject *self, QoreQIcon *qi, const QoreList *p
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQSize *size = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+      QoreQSize *size = (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
       if (!size) {
          if (!xsink->isException())
-            xsink->raiseException("QICON-PIXMAP-PARAM-ERROR", "QIcon::pixmap() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QICON-PIXMAP-PARAM-ERROR", "QIcon::pixmap() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
@@ -225,7 +225,7 @@ static QoreNode *QICON_pixmap(QoreObject *self, QoreQIcon *qi, const QoreList *p
       QoreObject *o_qp = new QoreObject(QC_QPixmap, getProgram());
       QoreQPixmap *q_qp = new QoreQPixmap(qi->pixmap(*(static_cast<QSize *>(size)), mode, state));
       o_qp->setPrivate(CID_QPIXMAP, q_qp);
-      return new QoreNode(o_qp);
+      return o_qp;
    }
 
    QoreObject *o_qp;
@@ -253,7 +253,7 @@ static QoreNode *QICON_pixmap(QoreObject *self, QoreQIcon *qi, const QoreList *p
       QoreQPixmap *q_qp = new QoreQPixmap(qi->pixmap(w, h, mode, state));
       o_qp->setPrivate(CID_QPIXMAP, q_qp);
    }
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 class QoreClass *initQIconClass()

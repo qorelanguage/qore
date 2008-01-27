@@ -846,12 +846,12 @@ class QoreClass *QoreNamespaceList::parseFindScopedClass(class NamedScope *name,
    return oc;
 }
 
-class QoreNode *get_file_constant(class QoreClass *fc, int fd)
+QoreObject *get_file_constant(class QoreClass *fc, int fd)
 {
    class ExceptionSink xsink;
 
-   class QoreNode *rv = fc->execSystemConstructor(NULL, &xsink);
-   class File *f = (File *)rv->val.object->getReferencedPrivateData(CID_FILE, &xsink);
+   QoreObject *rv = fc->execSystemConstructor(NULL, &xsink);
+   class File *f = (File *)rv->getReferencedPrivateData(CID_FILE, &xsink);
    f->makeSpecial(fd);
    f->deref();
 

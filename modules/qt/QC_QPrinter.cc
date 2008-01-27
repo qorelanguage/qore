@@ -140,7 +140,7 @@ static QoreNode *QPRINTER_pageRect(QoreObject *self, QoreQPrinter *qp, const Qor
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qp->pageRect());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //PageSize pageSize () const
@@ -161,7 +161,7 @@ static QoreNode *QPRINTER_paperRect(QoreObject *self, QoreQPrinter *qp, const Qo
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qp->paperRect());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //PaperSource paperSource () const

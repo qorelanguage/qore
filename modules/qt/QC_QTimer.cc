@@ -34,7 +34,7 @@ static void QTIMER_constructor(class QoreObject *self, const QoreList *params, E
 {
    QoreQTimer *qw;
    QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
 
    if (!parent)
       qw = new QoreQTimer(self);
@@ -148,7 +148,7 @@ static QoreNode *f_QTimer_singleShot(const QoreList *params, ExceptionSink *xsin
    QoreNode *p = get_param(params, 0);
    int msec = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!receiver) {
       if (!xsink->isException())
          xsink->raiseException("QTIMER-SINGLESHOT-PARAM-ERROR", "expecting a QObject object as second argument to QTimer::singleShot()");

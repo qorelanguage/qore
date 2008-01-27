@@ -62,7 +62,7 @@ static QoreNode *QTEXTCHARFORMAT_font(QoreObject *self, QoreQTextCharFormat *qtc
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qtcf->font());
    o_qf->setPrivate(CID_QFONT, q_qf);
-   return new QoreNode(o_qf);
+   return o_qf;
 }
 
 //QString fontFamily () const
@@ -160,7 +160,7 @@ static QoreNode *QTEXTCHARFORMAT_setAnchorHref(QoreObject *self, QoreQTextCharFo
 static QoreNode *QTEXTCHARFORMAT_setFont(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTCHARFORMAT-SETFONT-PARAM-ERROR", "expecting a QFont object as first argument to QTextCharFormat::setFont()");
@@ -251,7 +251,7 @@ static QoreNode *QTEXTCHARFORMAT_setFontWeight(QoreObject *self, QoreQTextCharFo
 static QoreNode *QTEXTCHARFORMAT_setTextOutline(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPen *pen = (p && p->type == NT_OBJECT) ? (QoreQPen *)p->val.object->getReferencedPrivateData(CID_QPEN, xsink) : 0;
+   QoreQPen *pen = (p && p->type == NT_OBJECT) ? (QoreQPen *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPEN, xsink) : 0;
    if (!pen) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTCHARFORMAT-SETTEXTOUTLINE-PARAM-ERROR", "expecting a QPen object as first argument to QTextCharFormat::setTextOutline()");
@@ -278,7 +278,7 @@ static QoreNode *QTEXTCHARFORMAT_setToolTip(QoreObject *self, QoreQTextCharForma
 static QoreNode *QTEXTCHARFORMAT_setUnderlineColor(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)p->val.object->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+   QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
    if (!color) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTCHARFORMAT-SETUNDERLINECOLOR-PARAM-ERROR", "expecting a QColor object as first argument to QTextCharFormat::setUnderlineColor()");
@@ -313,7 +313,7 @@ static QoreNode *QTEXTCHARFORMAT_textOutline(QoreObject *self, QoreQTextCharForm
    QoreObject *o_qp = new QoreObject(QC_QPen, getProgram());
    QoreQPen *q_qp = new QoreQPen(qtcf->textOutline());
    o_qp->setPrivate(CID_QPEN, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //QString toolTip () const
@@ -328,7 +328,7 @@ static QoreNode *QTEXTCHARFORMAT_underlineColor(QoreObject *self, QoreQTextCharF
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qtcf->underlineColor());
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //UnderlineStyle underlineStyle () const

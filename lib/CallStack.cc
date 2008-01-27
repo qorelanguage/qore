@@ -44,7 +44,7 @@ void CallNode::objectDeref(class ExceptionSink *xsink)
    {
       printd(5, "CallNode::~CallNode() popping class=%s obj=%08p\n", obj->getClass()->getName(), obj);
       // deref object
-      obj->dereference(xsink);
+      obj->deref(xsink);
    }
 }
 

@@ -41,7 +41,7 @@ static void QSHORTCUT_constructor(class QoreObject *self, const QoreList *params
    QoreQShortcut *qs;
    QoreNode *p = get_param(params, 0);
 
-   QoreAbstractQWidget *parent = (QoreAbstractQWidget *)((p && p->type == NT_OBJECT) ? p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
+   QoreAbstractQWidget *parent = (QoreAbstractQWidget *)((p && p->type == NT_OBJECT) ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
    if (!parent) {
       QKeySequence key;
 
@@ -49,7 +49,7 @@ static void QSHORTCUT_constructor(class QoreObject *self, const QoreList *params
 	 return;
 
       p = test_param(params, NT_OBJECT, 1);
-      parent = (QoreAbstractQWidget *)(p ? p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
+      parent = (QoreAbstractQWidget *)(p ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
       if (!parent) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QSHORTCUT-CONSTRUCTOR-PARAM-ERROR", "QShortcut::constructor() was expecting an object derived from QWidget as the second argument when the first argument is a QKeySequence object");
@@ -125,7 +125,7 @@ static QoreNode *QSHORTCUT_key(QoreObject *self, QoreQShortcut *qs, const QoreLi
    QoreObject *o_qks = new QoreObject(QC_QKeySequence, getProgram());
    QoreQKeySequence *q_qks = new QoreQKeySequence(qs->qobj->key());
    o_qks->setPrivate(CID_QKEYSEQUENCE, q_qks);
-   return new QoreNode(o_qks);
+   return o_qks;
 }
 
 //QWidget * parentWidget () const
@@ -165,7 +165,7 @@ static QoreNode *QSHORTCUT_setEnabled(QoreObject *self, QoreQShortcut *qs, const
 static QoreNode *QSHORTCUT_setKey(QoreObject *self, QoreQShortcut *qs, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQKeySequence *key = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)p->val.object->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
+   QoreQKeySequence *key = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
    if (!key) {
       if (!xsink->isException())
          xsink->raiseException("QSHORTCUT-SETKEY-PARAM-ERROR", "expecting a QKeySequence object as first argument to QShortcut::setKey()");

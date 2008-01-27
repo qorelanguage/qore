@@ -41,10 +41,10 @@ static void QPOINTF_constructor(QoreObject *self, const QoreList *params, Except
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())
-            xsink->raiseException("QPOINTF-QPOINTF-PARAM-ERROR", "QPointF::QPointF() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QPOINTF-QPOINTF-PARAM-ERROR", "QPointF::QPointF() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return;
       }
       ReferenceHolder<QoreQPoint> pointHolder(point, xsink);
@@ -106,7 +106,7 @@ static QoreNode *QPOINTF_toPoint(QoreObject *self, QoreQPointF *qpf, const QoreL
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qpf->toPoint());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //qreal x () const

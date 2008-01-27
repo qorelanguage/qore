@@ -210,15 +210,16 @@ int get_qdate(const QoreNode *n, QDate &date, class ExceptionSink *xsink)
       }
    }
    
-   class QoreQDate *qd = (n && n->type == NT_OBJECT) ? (QoreQDate *)n->val.object->getReferencedPrivateData(CID_QDATE, xsink) : 0;
+   const QoreObject *o = dynamic_cast<const QoreObject *>(n);
+   QoreQDate *qd = o ? (QoreQDate *)o->getReferencedPrivateData(CID_QDATE, xsink) : 0;
    if (*xsink)
       return -1;
    if (!qd) {
-      class QoreQDateTime *qdt = (n && n->type == NT_OBJECT) ? (QoreQDateTime *)n->val.object->getReferencedPrivateData(CID_QDATETIME, xsink) : 0;
+      QoreQDateTime *qdt = o ? (QoreQDateTime *)o->getReferencedPrivateData(CID_QDATETIME, xsink) : 0;
       if (!qdt) {
 	 if (!*xsink) {
-	    if (n && n->type == NT_OBJECT) 
-	       xsink->raiseException("DATE-ERROR", "class '%s' is not derived from QDate or QDateTime", n->val.object->getClass()->getName());
+	    if (o) 
+	       xsink->raiseException("DATE-ERROR", "class '%s' is not derived from QDate or QDateTime", o->getClass()->getName());
 	    else
 	       xsink->raiseException("DATE-ERROR", "cannot convert type '%s' to QDate", n ? n->getTypeName() : "NOTHING");
 	 }
@@ -247,20 +248,22 @@ int get_qdatetime(const QoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
 	 }
       }
    
-      if (n->type == NT_OBJECT) {
-	 class QoreQDate *qd = (QoreQDate *)n->val.object->getReferencedPrivateData(CID_QDATE, xsink);
+      const QoreObject *o = dynamic_cast<const QoreObject *>(n);
+
+      if (o) {
+	 QoreQDate *qd = (QoreQDate *)o->getReferencedPrivateData(CID_QDATE, xsink);
 	 if (*xsink)
 	    return -1;
 	 if (!qd) {
-	    class QoreQDateTime *qdt = (QoreQDateTime *)n->val.object->getReferencedPrivateData(CID_QDATETIME, xsink);
+	    class QoreQDateTime *qdt = (QoreQDateTime *)o->getReferencedPrivateData(CID_QDATETIME, xsink);
 	    if (*xsink)
 	       return -1;
 	    if (!qdt) {
-	       class QoreQTime *qt = (QoreQTime *)n->val.object->getReferencedPrivateData(CID_QTIME, xsink);
+	       class QoreQTime *qt = (QoreQTime *)o->getReferencedPrivateData(CID_QTIME, xsink);
 	       if (*xsink)
 		  return -1;
 	       if (!qt)
-		  xsink->raiseException("DATETIME-ERROR", "class '%s' is not derived from QDate, QTime, or QDateTime", n->val.object->getClass()->getName());
+		  xsink->raiseException("DATETIME-ERROR", "class '%s' is not derived from QDate, QTime, or QDateTime", o->getClass()->getName());
 	       ReferenceHolder<QoreQTime> tHolder(qt, xsink);
 	       dt.setDate(QDate());
 	       dt.setTime(*(static_cast<QTime *>(qt)));
@@ -291,15 +294,16 @@ int get_qtime(const QoreNode *n, QTime &time, class ExceptionSink *xsink)
       }
    }
    
-   class QoreQTime *qt = (n && n->type == NT_OBJECT) ? (QoreQTime *)n->val.object->getReferencedPrivateData(CID_QTIME, xsink) : 0;
+   const QoreObject *o = dynamic_cast<const QoreObject *>(n);
+   class QoreQTime *qt = o ? (QoreQTime *)o->getReferencedPrivateData(CID_QTIME, xsink) : 0;
    if (*xsink)
       return -1;
    if (!qt) {
-      class QoreQDateTime *qdt = (n && n->type == NT_OBJECT) ? (QoreQDateTime *)n->val.object->getReferencedPrivateData(CID_QDATETIME, xsink) : 0;
+      class QoreQDateTime *qdt = o ? (QoreQDateTime *)o->getReferencedPrivateData(CID_QDATETIME, xsink) : 0;
       if (!qdt) {
 	 if (!*xsink) {
 	    if (n && n->type == NT_OBJECT) 
-	       xsink->raiseException("QTIME-ERROR", "class '%s' is not derived from QTime or QDateTime", n->val.object->getClass()->getName());
+	       xsink->raiseException("QTIME-ERROR", "class '%s' is not derived from QTime or QDateTime", o->getClass()->getName());
 	    else
 	       xsink->raiseException("QTIME-ERROR", "cannot convert type '%s' to QTime", n ? n->getTypeName() : "NOTHING");
 	 }
@@ -318,18 +322,21 @@ int get_qtime(const QoreNode *n, QTime &time, class ExceptionSink *xsink)
 
 int get_qbytearray(const QoreNode *n, QByteArray &ba, class ExceptionSink *xsink, bool suppress_exception)
 {
-   if (n && n->type == NT_OBJECT) {
-      class QoreQByteArray *qba = (QoreQByteArray *)n->val.object->getReferencedPrivateData(CID_QBYTEARRAY, xsink);
-      if (*xsink)
+   {
+      const QoreObject *o = dynamic_cast<const QoreObject *>(n);
+      if (o) {
+	 QoreQByteArray *qba = (QoreQByteArray *)o->getReferencedPrivateData(CID_QBYTEARRAY, xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!qba) {
+	    if (!suppress_exception)
+	       xsink->raiseException("QBYTEARRAY-ERROR", "class '%s' is not derived from QByteArray", o->getClass()->getName());
+	    return -1;
+	 }
+	 ReferenceHolder<QoreQByteArray> qbaHolder(qba, xsink);
+	 ba = *qba;
 	 return 0;
-      if (!qba) {
-	 if (!suppress_exception)
-	    xsink->raiseException("QBYTEARRAY-ERROR", "class '%s' is not derived from QByteArray", n->val.object->getClass()->getName());
-	 return -1;
       }
-      ReferenceHolder<QoreQByteArray> qbaHolder(qba, xsink);
-      ba = *qba;
-      return 0;
    }
    if (n && n->type == NT_BINARY) {
       QByteArray nba((const char *)n->val.bin->getPtr(), n->val.bin->size());
@@ -355,26 +362,29 @@ int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
 {
    //printd(5, "get_variant() n=%08p %s\n", n, n ? n->getTypeName() : "n/a");
    if (n) {
-      if (n->type == NT_OBJECT) {
-	 class QoreQVariant *qv = (QoreQVariant *)n->val.object->getReferencedPrivateData(CID_QVARIANT, xsink);
-	 if (*xsink)
+      {
+	 const QoreObject *o = dynamic_cast<const QoreObject *>(n);
+	 if (o) {
+	    QoreQVariant *qv = (QoreQVariant *)o->getReferencedPrivateData(CID_QVARIANT, xsink);
+	    if (*xsink)
+	       return -1;
+	    if (qv) {
+	       ReferenceHolder<QoreQVariant> qvHolder(qv, xsink);
+	       qva = *qv;
+	       return 0;
+	    }
+	    QoreQLocale *qlocale = (QoreQLocale *)o->getReferencedPrivateData(CID_QLOCALE, xsink);
+	    if (*xsink)
+	       return -1;
+	    if (qlocale) {
+	       ReferenceHolder<QoreQLocale> qlocaleHolder(qlocale, xsink);
+	       qva = *qlocale;
+	       return 0;
+	    }
+	    if (!suppress_exception)
+	       xsink->raiseException("QVARIANT-ERROR", "cannot convert class '%s' to QVariant", o->getClass()->getName());
 	    return -1;
-	 if (qv) {
-	    ReferenceHolder<QoreQVariant> qvHolder(qv, xsink);
-	    qva = *qv;
-	    return 0;
 	 }
-	 class QoreQLocale *qlocale = (QoreQLocale *)n->val.object->getReferencedPrivateData(CID_QLOCALE, xsink);
-	 if (*xsink)
-	    return -1;
-	 if (qlocale) {
-	    ReferenceHolder<QoreQLocale> qlocaleHolder(qlocale, xsink);
-	    qva = *qlocale;
-	    return 0;
-	 }
-	 if (!suppress_exception)
-	    xsink->raiseException("QVARIANT-ERROR", "cannot convert class '%s' to QVariant", n->val.object->getClass()->getName());
-	 return -1;
       }
 
       {
@@ -418,13 +428,14 @@ int get_qchar(const QoreNode *n, QChar &c, class ExceptionSink *xsink, bool supp
       }
    }
 
-   class QoreQChar *qc = (n && n->type == NT_OBJECT) ? (QoreQChar *)n->val.object->getReferencedPrivateData(CID_QCHAR, xsink) : 0;
+   const QoreObject *o = dynamic_cast<const QoreObject *>(n);
+   QoreQChar *qc = o ? (QoreQChar *)o->getReferencedPrivateData(CID_QCHAR, xsink) : 0;
    if (*xsink)
       return -1;
    if (!qc) {
       if (!suppress_exception) {
-	 if (n && n->type == NT_OBJECT) 
-	    xsink->raiseException("QCHAR-ERROR", "class '%s' is not derived from QChar", n->val.object->getClass()->getName());
+	 if (o) 
+	    xsink->raiseException("QCHAR-ERROR", "class '%s' is not derived from QChar", o->getClass()->getName());
 	 else
 	    xsink->raiseException("QCHAR-ERROR", "cannot convert type '%s' to QChar", n ? n->getTypeName() : "NOTHING");
       }
@@ -469,17 +480,18 @@ int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, boo
       }
    }
 
-   class QoreQChar *qc = (n && n->type == NT_OBJECT) ? (QoreQChar *)n->val.object->getReferencedPrivateData(CID_QCHAR, xsink) : 0;
+   const QoreObject *o = dynamic_cast<const QoreObject *>(n);
+   class QoreQChar *qc = o ? (QoreQChar *)o->getReferencedPrivateData(CID_QCHAR, xsink) : 0;
    if (*xsink)
       return -1;
    if (!qc) {
-      class QoreQVariant *qv = (n && n->type == NT_OBJECT) ? (QoreQVariant *)n->val.object->getReferencedPrivateData(CID_QVARIANT, xsink) : 0;
+      class QoreQVariant *qv = o ? (QoreQVariant *)o->getReferencedPrivateData(CID_QVARIANT, xsink) : 0;
       if (*xsink)
 	 return -1;
       if (!qv) {
 	 if (!suppress_exception) {
-	    if (n && n->type == NT_OBJECT) 
-	       xsink->raiseException("QSTRING-ERROR", "class '%s' is not derived from QChar or QVariant", n->val.object->getClass()->getName());
+	    if (o)
+	       xsink->raiseException("QSTRING-ERROR", "class '%s' is not derived from QChar or QVariant", o->getClass()->getName());
 	    else
 	       xsink->raiseException("QSTRING-ERROR", "cannot convert type '%s' to QString", n ? n->getTypeName() : "NOTHING");
 	 }
@@ -502,18 +514,21 @@ int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, boo
 
 int get_qkeysequence(const QoreNode *n, QKeySequence &ks, class ExceptionSink *xsink, bool suppress_exception)
 {
-   if (n && n->type == NT_OBJECT) {
-      class QoreQKeySequence *qks = (QoreQKeySequence *)n->val.object->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink);
-      if (*xsink)
+   {
+      const QoreObject *o = dynamic_cast<const QoreObject *>(n);
+      if (o) {
+	 QoreQKeySequence *qks = (QoreQKeySequence *)o->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!qks) {
+	    if (!suppress_exception)
+	       xsink->raiseException("QKEYSEQUENCE-ERROR", "class '%s' is not derived from QKeySequence", o->getClass()->getName());
+	    return -1;
+	 }
+	 ReferenceHolder<QoreQKeySequence> qksHolder(qks, xsink);
+	 ks = *qks;
 	 return 0;
-      if (!qks) {
-	 if (!suppress_exception)
-	    xsink->raiseException("QKEYSEQUENCE-ERROR", "class '%s' is not derived from QKeySequence", n->val.object->getClass()->getName());
-	 return -1;
       }
-      ReferenceHolder<QoreQKeySequence> qksHolder(qks, xsink);
-      ks = *qks;
-      return 0;
    }
    if (n && n->type == NT_STRING) {
       QString str;
@@ -536,44 +551,48 @@ int get_qkeysequence(const QoreNode *n, QKeySequence &ks, class ExceptionSink *x
 
 int get_qbrush(const QoreNode *n, QBrush &brush, class ExceptionSink *xsink)
 {
-   //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->getTypeName() : "n/a", n && n->type == NT_OBJECT ? n->val.object->getClass()->getName() : "n/a");
+   //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->getTypeName() : "n/a", n && n->type == NT_OBJECT ? n->getClass()->getName() : "n/a");
    if (n) {
-      if (n->type == NT_OBJECT) {
-	 class QoreQBrush *qb = (QoreQBrush *)n->val.object->getReferencedPrivateData(CID_QBRUSH, xsink);
-	 if (*xsink)
-	    return -1;
-	 if (!qb) {
-	    class QoreQPixmap *pixmap = (QoreQPixmap *)n->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink);
+      {
+	 const QoreObject *o = dynamic_cast<const QoreObject *>(n);
+	 if (o) {
+	    class QoreQBrush *qb = (QoreQBrush *)o->getReferencedPrivateData(CID_QBRUSH, xsink);
 	    if (*xsink)
 	       return -1;
-	    if (!pixmap) {
-	       class QoreQImage *image = (QoreQImage *)n->val.object->getReferencedPrivateData(CID_QIMAGE, xsink);
+	    if (!qb) {
+	       class QoreQPixmap *pixmap = (QoreQPixmap *)o->getReferencedPrivateData(CID_QPIXMAP, xsink);
 	       if (*xsink)
 		  return -1;
-	       if (!image) {
-		  class QoreQColor *color = (QoreQColor *)n->val.object->getReferencedPrivateData(CID_QCOLOR, xsink);
+	       if (!pixmap) {
+		  class QoreQImage *image = (QoreQImage *)o->getReferencedPrivateData(CID_QIMAGE, xsink);
 		  if (*xsink)
 		     return -1;
-		  if (!color) {
-		     xsink->raiseException("QBRUSH-ERROR", "class '%s' cannot produce a QBrush object", n->val.object->getClass()->getName());
-		     return -1;
+		  if (!image) {
+		     class QoreQColor *color = (QoreQColor *)o->getReferencedPrivateData(CID_QCOLOR, xsink);
+		     if (*xsink)
+			return -1;
+		     if (!color) {
+			xsink->raiseException("QBRUSH-ERROR", "class '%s' cannot produce a QBrush object", o->getClass()->getName());
+			return -1;
+		     }
+		     ReferenceHolder<QoreQColor> colorHolder(color, xsink);
+		     brush = QBrush(*color);
+		     return 0;
 		  }
-		  ReferenceHolder<QoreQColor> colorHolder(color, xsink);
-		  brush = QBrush(*color);
+		  ReferenceHolder<QoreQImage> imageHolder(image, xsink);
+		  brush = QBrush(*image);
 		  return 0;
 	       }
-	       ReferenceHolder<QoreQImage> imageHolder(image, xsink);
-	       brush = QBrush(*image);
+	       ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
+	       brush = QBrush(*pixmap);
 	       return 0;
 	    }
-	    ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
-	    brush = QBrush(*pixmap);
+	    ReferenceHolder<QoreQBrush> qbHolder(qb, xsink);
+	    brush = *(qb->getQBrush());
 	    return 0;
 	 }
-	 ReferenceHolder<QoreQBrush> qbHolder(qb, xsink);
-	 brush = *(qb->getQBrush());
-	 return 0;
       }
+
       {
 	 const BrushStyleNode *bs = dynamic_cast<const BrushStyleNode *>(n);
 	 if (bs) {
@@ -595,7 +614,7 @@ class QoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data)
 {
    QoreObject *qore_object = new QoreObject(qclass, getProgram());
    qore_object->setPrivate(qclass->getID(), data);
-   return new QoreNode(qore_object);
+   return qore_object;
 }
 
 class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink)
@@ -614,7 +633,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
       qc = QC_QCleanlooksStyle;
       obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQCleanlooksStyle(obj, qcls));
-      return new QoreNode(obj);
+      return obj;
    }
 
    QPlastiqueStyle *qps = dynamic_cast<QPlastiqueStyle *>(qs);
@@ -622,7 +641,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
       qc = QC_QPlastiqueStyle;
       obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQPlastiqueStyle(obj, qps));
-      return new QoreNode(obj);
+      return obj;
    }
 
 #ifdef WINDOWS
@@ -631,7 +650,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
       qc = QC_QWindowsXPStyle;
       obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQWindowsXPStyle(obj, qxps));
-      return new QoreNode(obj);
+      return obj;
    }
 #endif
 
@@ -641,7 +660,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
       qc = QC_QMacStyle;
       obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQMacStyle(obj, qms));
-      return new QoreNode(obj);
+      return obj;
    }
 #endif
 
@@ -650,7 +669,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
       qc = QC_QWindowsStyle;
       obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQWindowsStyle(obj, qws));
-      return new QoreNode(obj);
+      return obj;
    }
 
    QCDEStyle *qcs = dynamic_cast<QCDEStyle *>(qs);
@@ -658,7 +677,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
       qc = QC_QCDEStyle;
       obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQCDEStyle(obj, qcs));
-      return new QoreNode(obj);
+      return obj;
    }
 
    QMotifStyle *qmts = dynamic_cast<QMotifStyle *>(qs);
@@ -666,13 +685,13 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
       qc = QC_QMotifStyle;
       obj = new QoreObject(qc, getProgram());
       obj->setPrivate(qc->getID(), new QoreQtQMotifStyle(obj, qmts));
-      return new QoreNode(obj);
+      return obj;
    }
 
    // otherwise return a QStyle object
    obj = new QoreObject(QC_QStyle, getProgram());
    obj->setPrivate(CID_QSTYLE, new QoreQtQStyle(obj, qs));
-   return new QoreNode(obj);
+   return obj;
 }
 
 class QoreNode *return_qstyleoption(const QStyleOption *qso)
@@ -845,7 +864,7 @@ static QoreNode *return_qwidget_intern(QWidget *w)
    // assign as QWidget
    QoreObject *qo = new QoreObject(QC_QWidget, getProgram());
    qo->setPrivate(CID_QWIDGET, new QoreQtQWidget(qo, w));
-   return new QoreNode(qo);
+   return qo;
 }
 
 // returns a QoreNode tagged as the appropriate QObject subclass
@@ -859,7 +878,7 @@ class QoreNode *return_qobject(QObject *o)
    QoreObject *qo = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (qo) {
       qo->ref();
-      return new QoreNode(qo);
+      return qo;
    }
 
    // see what subclass it is
@@ -870,7 +889,7 @@ class QoreNode *return_qobject(QObject *o)
    // assign as QObject
    qo = new QoreObject(QC_QObject, getProgram());
    qo->setPrivate(CID_QOBJECT, new QoreQtQObject(qo, o));
-   return new QoreNode(qo);
+   return qo;
 }
 
 // returns a QoreNode tagged as the appropriate QWidget subclass
@@ -884,7 +903,7 @@ class QoreNode *return_qwidget(QWidget *w)
    QoreObject *qo = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    if (qo) {
       qo->ref();
-      return new QoreNode(qo);
+      return qo;
    }
 
    return return_qwidget_intern(w);
@@ -903,7 +922,7 @@ class QoreNode *return_qaction(QAction *action)
       QoreQtQAction *t_qobj = new QoreQtQAction(rv_obj, action);
       rv_obj->setPrivate(CID_QACTION, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 class QoreNode *return_qevent(QEvent *event)
@@ -1035,8 +1054,8 @@ class QoreNode *return_qevent(QEvent *event)
 
 static class QoreNode *f_QObject_connect(const QoreList *params, class ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_OBJECT, 0);
-   class AbstractPrivateData *spd = p ? p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
+   QoreObject *p = test_object_param(params, 0);
+   class AbstractPrivateData *spd = p ? p->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
    QoreAbstractQObject *sender = spd ? dynamic_cast<QoreAbstractQObject *>(spd) : 0;
    assert(!spd || sender);
    if (!sender) {
@@ -1053,13 +1072,13 @@ static class QoreNode *f_QObject_connect(const QoreList *params, class Exception
    }
    const char *signal = str->getBuffer();
 
-   p = get_param(params, 2);
-   if (!p || p->type != NT_OBJECT)
+   QoreObject *o = test_object_param(params, 2);
+   if (!o)
    {
       xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing receiving object as third argument");
       return 0;      
    }
-   class AbstractPrivateData *rpd = p ? p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
+   class AbstractPrivateData *rpd = o ? o->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
    QoreAbstractQObject *receiver = rpd ? dynamic_cast<QoreAbstractQObject *>(rpd) : 0;
    assert(!rpd || receiver);
    if (!receiver) {
@@ -1204,7 +1223,7 @@ static QoreNode *f_QToolTip_font(const QoreList *params, ExceptionSink *xsink)
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(QToolTip::font());
    o_qf->setPrivate(CID_QFONT, q_qf);
-   return new QoreNode(o_qf);
+   return o_qf;
 }
 
 //void hideText ()
@@ -1220,14 +1239,14 @@ static QoreNode *f_QToolTip_palette(const QoreList *params, ExceptionSink *xsink
    QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
    QoreQPalette *q_qp = new QoreQPalette(QToolTip::palette());
    o_qp->setPrivate(CID_QPALETTE, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //void setFont ( const QFont & font )
 static QoreNode *f_QToolTip_setFont(const QoreList *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQFont *font = p ? (QoreQFont *)p->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
          xsink->raiseException("QTOOLTIP-SETFONT-PARAM-ERROR", "expecting a QFont object as first argument to QToolTip_setFont()");
@@ -1241,8 +1260,8 @@ static QoreNode *f_QToolTip_setFont(const QoreList *params, ExceptionSink *xsink
 //void setPalette ( const QPalette & palette )
 static QoreNode *f_QToolTip_setPalette(const QoreList *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)p->val.object->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPalette *palette = p ? (QoreQPalette *)p->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!palette) {
       if (!xsink->isException())
          xsink->raiseException("QTOOLTIP-SETPALETTE-PARAM-ERROR", "expecting a QPalette object as first argument to QToolTip_setPalette()");
@@ -1258,8 +1277,8 @@ static QoreNode *f_QToolTip_setPalette(const QoreList *params, ExceptionSink *xs
 //void showText ( const QPoint & pos, const QString & text, QWidget * w = 0 )
 static class QoreNode *f_QToolTip_showText(const QoreList *params, class ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQPoint *pos = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *pos = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
 	 xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "QToolTip_showText() was expecting a QPoint as the first argument");
@@ -1273,22 +1292,22 @@ static class QoreNode *f_QToolTip_showText(const QoreList *params, class Excepti
    }
    const char *text = str->getBuffer();
 
-   p = test_param(params, NT_OBJECT, 2);
-   QoreQWidget *w = p ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   p = test_object_param(params, 2);
+   QoreQWidget *w = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (p && !w) {
       if (!xsink->isException())
-	 xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "QToolTip_showText() does not know how to handle arguments of class '%s' as passed as the third argument", p->val.object->getClass()->getName());
+	 xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "QToolTip_showText() does not know how to handle arguments of class '%s' as passed as the third argument", p->getClass()->getName());
       return 0;
    }
    ReferenceHolder<QoreQWidget> wHolder(w, xsink);
 
    QoreQRect *rect = 0;
    if (w) {
-      p = test_param(params, NT_OBJECT, 3);
-      rect = p ? (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+      p = test_object_param(params, 3);
+      rect = p ? (QoreQRect *)p->getReferencedPrivateData(CID_QRECT, xsink) : 0;
       if (!rect && p) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "this version of QToolTip_showText() does not know how to handle arguments of class '%s' as passed as the fourth argument", p->val.object->getClass()->getName());
+	    xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "this version of QToolTip_showText() does not know how to handle arguments of class '%s' as passed as the fourth argument", p->getClass()->getName());
 	 return 0;
       }
    }

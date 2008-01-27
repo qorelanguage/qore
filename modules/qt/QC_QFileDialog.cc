@@ -43,7 +43,7 @@ static void QFILEDIALOG_constructor(QoreObject *self, const QoreList *params, Ex
       return;
    }
    
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
 
@@ -105,7 +105,7 @@ static QoreNode *QFILEDIALOG_directory(QoreObject *self, QoreQFileDialog *qfd, c
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(qfd->qobj->directory());
    o_qd->setPrivate(CID_QDIR, q_qd);
-   return new QoreNode(o_qd);
+   return o_qd;
 }
 
 //FileMode fileMode () const
@@ -156,7 +156,7 @@ static QoreNode *QFILEDIALOG_itemDelegate(QoreObject *self, QoreQFileDialog *qfd
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QString labelText ( DialogLabel label ) const
@@ -195,7 +195,7 @@ static QoreNode *QFILEDIALOG_saveState(QoreObject *self, QoreQFileDialog *qfd, c
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qfd->qobj->saveState());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //void selectFile ( const QString & filename )
@@ -271,10 +271,10 @@ static QoreNode *QFILEDIALOG_setDirectory(QoreObject *self, QoreQFileDialog *qfd
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQDir *directory = (QoreQDir *)p->val.object->getReferencedPrivateData(CID_QDIR, xsink);
+      QoreQDir *directory = (QoreQDir *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDIR, xsink);
       if (!directory) {
          if (!xsink->isException())
-            xsink->raiseException("QFILEDIALOG-SETDIRECTORY-PARAM-ERROR", "QFileDialog::setDirectory() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QFILEDIALOG-SETDIRECTORY-PARAM-ERROR", "QFileDialog::setDirectory() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> directoryHolder(static_cast<AbstractPrivateData *>(directory), xsink);
@@ -365,7 +365,7 @@ static QoreNode *QFILEDIALOG_setHistory(QoreObject *self, QoreQFileDialog *qfd, 
 static QoreNode *QFILEDIALOG_setItemDelegate(QoreObject *self, QoreQFileDialog *qfd, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)p->val.object->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
+   QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
    if (!delegate) {
       if (!xsink->isException())
          xsink->raiseException("QFILEDIALOG-SETITEMDELEGATE-PARAM-ERROR", "expecting a QAbstractItemDelegate object as first argument to QFileDialog::setItemDelegate()");
@@ -501,7 +501,7 @@ QoreClass *initQFileDialogClass(QoreClass *qdialog)
 static QoreNode *f_QFileDialog_getExistingDirectory(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -522,7 +522,7 @@ static QoreNode *f_QFileDialog_getExistingDirectory(const QoreList *params, Exce
 static QoreNode *f_QFileDialog_getOpenFileName(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -553,7 +553,7 @@ static QoreNode *f_QFileDialog_getOpenFileName(const QoreList *params, Exception
 static QoreNode *f_QFileDialog_getOpenFileNames(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -587,7 +587,7 @@ static QoreNode *f_QFileDialog_getOpenFileNames(const QoreList *params, Exceptio
 static QoreNode *f_QFileDialog_getSaveFileName(const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);

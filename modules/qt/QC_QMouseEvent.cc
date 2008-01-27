@@ -40,7 +40,7 @@ static void QMOUSEEVENT_constructor(class QoreObject *self, const QoreList *para
 
    p = test_param(params, NT_OBJECT, 1);
         
-   QoreQPoint *point = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *point = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (*xsink)
       return;
    if (!point) {
@@ -52,11 +52,11 @@ static void QMOUSEEVENT_constructor(class QoreObject *self, const QoreList *para
    int offset = 0;
    QoreQPoint *globalPos = 0;
    if (p && p->type == NT_OBJECT) {
-      globalPos = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+      globalPos = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
       if (*xsink)
 	 return;
       if (!globalPos) {
-	 xsink->raiseException("QMOUSEEVENT-CONSTRUCTOR-ERROR", "object in third argument is not derived from QPoint (class: '%s')", p->val.object->getClass()->getName());
+	 xsink->raiseException("QMOUSEEVENT-CONSTRUCTOR-ERROR", "object in third argument is not derived from QPoint (class: '%s')", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 	 return;
       }
 
@@ -103,7 +103,7 @@ static QoreNode *QMOUSEEVENT_globalPos(QoreObject *self, QoreQMouseEvent *qme, c
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qme->globalPos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //int globalX () const
@@ -124,7 +124,7 @@ static QoreNode *QMOUSEEVENT_pos(QoreObject *self, QoreQMouseEvent *qme, const Q
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qme->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //int x () const

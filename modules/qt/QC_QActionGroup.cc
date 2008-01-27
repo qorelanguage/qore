@@ -35,7 +35,7 @@ QoreClass *QC_QActionGroup = 0;
 static void QACTIONGROUP_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent)
    {
       if (!xsink->isException())
@@ -66,7 +66,7 @@ static QoreNode *QACTIONGROUP_actions(QoreObject *self, QoreQActionGroup *qag, c
       QoreQtQAction *q_qa = new QoreQtQAction(o_qa, *i);
       o_qa->setPrivate(CID_QACTION, q_qa);
       
-      l->push(new QoreNode(o_qa));
+      l->push(o_qa);
    }
 
    return l;
@@ -79,12 +79,12 @@ static QoreNode *QACTIONGROUP_addAction(QoreObject *self, QoreQActionGroup *qag,
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQAction *action = (QoreQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink);
+      QoreQAction *action = (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink);
       if (!action) {
-         QoreQIcon *icon = (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink);
+         QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
          if (!icon) {
             if (!xsink->isException())
-               xsink->raiseException("QACTIONGROUP-ADDACTION-PARAM-ERROR", "QActionGroup::addAction() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+               xsink->raiseException("QACTIONGROUP-ADDACTION-PARAM-ERROR", "QActionGroup::addAction() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
             return 0;
          }
          ReferenceHolder<QoreQIcon> iconHolder(icon, xsink);
@@ -96,13 +96,13 @@ static QoreNode *QACTIONGROUP_addAction(QoreObject *self, QoreQActionGroup *qag,
          QoreObject *o_qa = new QoreObject(QC_QAction, getProgram());
          QoreQtQAction *q_qa = new QoreQtQAction(o_qa, qag->qobj->addAction(*(static_cast<QIcon *>(icon)), text));
          o_qa->setPrivate(CID_QACTION, q_qa);
-         return new QoreNode(o_qa);
+         return o_qa;
       }
       ReferenceHolder<QoreQAction> actionHolder(action, xsink);
       QoreObject *o_qa = new QoreObject(QC_QAction, getProgram());
       QoreQtQAction *q_qa = new QoreQtQAction(o_qa, qag->qobj->addAction(static_cast<QAction *>(action->qobj)));
       o_qa->setPrivate(CID_QACTION, q_qa);
-      return new QoreNode(o_qa);
+      return o_qa;
    }
    QString text;
    if (get_qstring(p, text, xsink))
@@ -111,7 +111,7 @@ static QoreNode *QACTIONGROUP_addAction(QoreObject *self, QoreQActionGroup *qag,
    QoreObject *o_qa = new QoreObject(QC_QAction, getProgram());
    QoreQtQAction *q_qa = new QoreQtQAction(o_qa, qag->qobj->addAction(text));
    o_qa->setPrivate(CID_QACTION, q_qa);
-   return new QoreNode(o_qa);
+   return o_qa;
 }
 
 //QAction * checkedAction () const
@@ -124,7 +124,7 @@ static QoreNode *QACTIONGROUP_checkedAction(QoreObject *self, QoreQActionGroup *
    QoreObject *o_qa = new QoreObject(QC_QAction, getProgram());
    QoreQtQAction *q_qa = new QoreQtQAction(o_qa, qa);
    o_qa->setPrivate(CID_QACTION, q_qa);
-   return new QoreNode(o_qa);
+   return o_qa;
 }
 
 //bool isEnabled () const
@@ -149,7 +149,7 @@ static QoreNode *QACTIONGROUP_isVisible(QoreObject *self, QoreQActionGroup *qag,
 static QoreNode *QACTIONGROUP_removeAction(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)p->val.object->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QACTIONGROUP-REMOVEACTION-PARAM-ERROR", "expecting a QAction object as first argument to QActionGroup::removeAction()");

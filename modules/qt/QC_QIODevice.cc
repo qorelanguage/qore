@@ -145,7 +145,7 @@ static QoreNode *QIODEVICE_peek(QoreObject *self, QoreAbstractQIODevice *qiod, c
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qiod->getQIODevice()->peek(maxSize));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //virtual qint64 pos () const
@@ -174,7 +174,7 @@ static QoreNode *QIODEVICE_read(QoreObject *self, QoreAbstractQIODevice *qiod, c
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qiod->getQIODevice()->read(maxSize));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //QByteArray readAll ()
@@ -183,7 +183,7 @@ static QoreNode *QIODEVICE_readAll(QoreObject *self, QoreAbstractQIODevice *qiod
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qiod->getQIODevice()->readAll());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //QByteArray readLine ( qint64 maxSize = 0 )
@@ -194,7 +194,7 @@ static QoreNode *QIODEVICE_readLine(QoreObject *self, QoreAbstractQIODevice *qio
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qiod->getQIODevice()->readLine(maxSize));
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //virtual bool reset ()

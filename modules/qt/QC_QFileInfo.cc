@@ -45,10 +45,10 @@ static void QFILEINFO_constructor(QoreObject *self, const QoreList *params, Exce
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQDir *dir = (QoreQDir *)p->val.object->getReferencedPrivateData(CID_QDIR, xsink);
+      QoreQDir *dir = (QoreQDir *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDIR, xsink);
       if (!dir) {
          if (!xsink->isException())
-            xsink->raiseException("QFILEINFO-CONSTRUCTOR-PARAM-ERROR", "QFileInfo::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QFILEINFO-CONSTRUCTOR-PARAM-ERROR", "QFileInfo::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> dirHolder(static_cast<AbstractPrivateData *>(dir), xsink);
@@ -77,7 +77,7 @@ static QoreNode *QFILEINFO_absoluteDir(QoreObject *self, QoreQFileInfo *qfi, con
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(qfi->absoluteDir());
    o_qd->setPrivate(CID_QDIR, q_qd);
-   return new QoreNode(o_qd);
+   return o_qd;
 }
 
 //QString absoluteFilePath () const
@@ -149,7 +149,7 @@ static QoreNode *QFILEINFO_dir(QoreObject *self, QoreQFileInfo *qfi, const QoreL
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(qfi->dir());
    o_qd->setPrivate(CID_QDIR, q_qd);
-   return new QoreNode(o_qd);
+   return o_qd;
 }
 
 //bool exists () const
@@ -327,10 +327,10 @@ static QoreNode *QFILEINFO_setFile(QoreObject *self, QoreQFileInfo *qfi, const Q
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQDir *dir = (QoreQDir *)p->val.object->getReferencedPrivateData(CID_QDIR, xsink);
+      QoreQDir *dir = (QoreQDir *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDIR, xsink);
       if (!dir) {
          if (!xsink->isException())
-            xsink->raiseException("QFILEINFO-SETFILE-PARAM-ERROR", "QFileInfo::setFile() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QFILEINFO-SETFILE-PARAM-ERROR", "QFileInfo::setFile() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> dirHolder(static_cast<AbstractPrivateData *>(dir), xsink);

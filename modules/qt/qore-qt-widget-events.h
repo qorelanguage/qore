@@ -559,7 +559,8 @@ class T {
 	    discard(rv, &xsink);
 	    return QOREQTYPE::sizeHint();
 	 }
-	 QoreQSize *qs = (rv && rv->type == NT_OBJECT) ? (QoreQSize *)rv->val.object->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
+         QoreObject *o = dynamic_cast<QoreObject *>(rv);
+	 QoreQSize *qs = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
 	 discard(rv, &xsink);
 
 	 if (!qs) {
@@ -585,7 +586,8 @@ class T {
 	    discard(rv, &xsink);
 	    return QOREQTYPE::minimumSizeHint();
 	 }
-	 QoreQSize *qs = (rv && rv->type == NT_OBJECT) ? (QoreQSize *)rv->val.object->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
+         QoreObject *o = dynamic_cast<QoreObject *>(rv);
+	 QoreQSize *qs = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
 	 discard(rv, &xsink);
 
 	 if (!qs) {

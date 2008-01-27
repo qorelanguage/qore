@@ -43,12 +43,12 @@ static void QACTION_constructor(QoreObject *self, const QoreList *params, Except
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQIcon *icon = (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink);
+      QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
-         QoreAbstractQObject *parent = (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink);
+         QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
          if (!parent) {
             if (!xsink->isException())
-               xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "QAction::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+               xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "QAction::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
             return;
          }
          ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -61,10 +61,10 @@ static void QACTION_constructor(QoreObject *self, const QoreList *params, Except
       if (get_qstring(p, text, xsink))
          return;
       p = get_param(params, 2);
-      QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+      QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
       if (!parent) {
          if (!xsink->isException())
-            xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "this version of QAction::constructor() expects an object derived from QObject as the third argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "this version of QAction::constructor() expects an object derived from QObject as the third argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -75,10 +75,10 @@ static void QACTION_constructor(QoreObject *self, const QoreList *params, Except
    if (get_qstring(p, text, xsink))
       return;
    p = get_param(params, 1);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
-         xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "this version of QAction::constructor() expects an object derived from QObject as the second argument", p->val.object->getClass()->getName());
+         xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "this version of QAction::constructor() expects an object derived from QObject as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -101,7 +101,7 @@ static QoreNode *QACTION_actionGroup(QoreObject *self, QoreAbstractQAction *qa, 
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //void activate ( ActionEvent event )
@@ -137,7 +137,7 @@ static QoreNode *QACTION_font(QoreObject *self, QoreAbstractQAction *qa, const Q
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qa->getQAction()->font());
    o_qf->setPrivate(CID_QFONT, q_qf);
-   return new QoreNode(o_qf);
+   return o_qf;
 }
 
 //QIcon icon () const
@@ -146,7 +146,7 @@ static QoreNode *QACTION_icon(QoreObject *self, QoreAbstractQAction *qa, const Q
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qa->getQAction()->icon());
    o_qi->setPrivate(CID_QICON, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //QString iconText () const
@@ -195,7 +195,7 @@ static QoreNode *QACTION_menu(QoreObject *self, QoreAbstractQAction *qa, const Q
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //MenuRole menuRole () const
@@ -214,14 +214,14 @@ static QoreNode *QACTION_parentWidget(QoreObject *self, QoreAbstractQAction *qa,
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //void setActionGroup ( QActionGroup * group )
 static QoreNode *QACTION_setActionGroup(QoreObject *self, QoreAbstractQAction *qa, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQActionGroup *group = (p && p->type == NT_OBJECT) ? (QoreQActionGroup *)p->val.object->getReferencedPrivateData(CID_QACTIONGROUP, xsink) : 0;
+   QoreQActionGroup *group = (p && p->type == NT_OBJECT) ? (QoreQActionGroup *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTIONGROUP, xsink) : 0;
    if (!group) {
       if (!xsink->isException())
          xsink->raiseException("QACTION-SETACTIONGROUP-PARAM-ERROR", "expecting a QActionGroup object as first argument to QAction::setActionGroup()");
@@ -265,7 +265,7 @@ static QoreNode *QACTION_setData(QoreObject *self, QoreAbstractQAction *qa, cons
 static QoreNode *QACTION_setFont(QoreObject *self, QoreAbstractQAction *qa, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
          xsink->raiseException("QACTION-SETFONT-PARAM-ERROR", "expecting a QFont object as first argument to QAction::setFont()");
@@ -280,7 +280,7 @@ static QoreNode *QACTION_setFont(QoreObject *self, QoreAbstractQAction *qa, cons
 static QoreNode *QACTION_setIcon(QoreObject *self, QoreAbstractQAction *qa, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QACTION-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QAction::setIcon()");
@@ -306,7 +306,7 @@ static QoreNode *QACTION_setIconText(QoreObject *self, QoreAbstractQAction *qa, 
 static QoreNode *QACTION_setMenu(QoreObject *self, QoreAbstractQAction *qa, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreAbstractQMenu *)p->val.object->getReferencedPrivateData(CID_QMENU, xsink) : 0;
+   QoreAbstractQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreAbstractQMenu *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMENU, xsink) : 0;
    if (!menu) {
       if (!xsink->isException())
          xsink->raiseException("QACTION-SETMENU-PARAM-ERROR", "expecting a QMenu object as first argument to QAction::setMenu()");
@@ -434,7 +434,7 @@ static QoreNode *QACTION_shortcut(QoreObject *self, QoreAbstractQAction *qa, con
    QoreObject *o_qks = new QoreObject(QC_QKeySequence, getProgram());
    QoreQKeySequence *q_qks = new QoreQKeySequence(qa->getQAction()->shortcut());
    o_qks->setPrivate(CID_QKEYSEQUENCE, q_qks);
-   return new QoreNode(o_qks);
+   return o_qks;
 }
 
 //Qt::ShortcutContext shortcutContext () const
@@ -452,7 +452,7 @@ static QoreNode *QACTION_shortcuts(QoreObject *self, QoreAbstractQAction *qa, co
       QoreObject *o_qks = new QoreObject(QC_QKeySequence, getProgram());
       QoreQKeySequence *q_qks = new QoreQKeySequence(*i);
       o_qks->setPrivate(CID_QKEYSEQUENCE, q_qks);
-      l->push(new QoreNode(o_qks));
+      l->push(o_qks);
    }
    return l;
 }
@@ -461,7 +461,7 @@ static QoreNode *QACTION_shortcuts(QoreObject *self, QoreAbstractQAction *qa, co
 static QoreNode *QACTION_showStatusText(QoreObject *self, QoreAbstractQAction *qa, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);

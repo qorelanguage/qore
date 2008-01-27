@@ -43,7 +43,7 @@ static void QDIALOGBUTTONBOX_constructor(QoreObject *self, const QoreList *param
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQWidget *parent = (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink);
+      QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
          return;
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -61,11 +61,11 @@ static void QDIALOGBUTTONBOX_constructor(QoreObject *self, const QoreList *param
    p = get_param(params, 1);
    if (num_params(params) == 2) {
       if (p && p->type == NT_OBJECT) {
-	 QoreQWidget *parent = (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink);
+	 QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
 	 if (*xsink)
 	    return;
 	 if (!parent) {
-	    xsink->raiseException("QDIALOGBUTTONBOX-CONSTRUCTOR-ERROR", "expecting an object derived from QWidget as ssecond argument of this version of QDialogButtonBox::constructor(), got class '%s' instead", p->val.object->getClass()->getName());
+	    xsink->raiseException("QDIALOGBUTTONBOX-CONSTRUCTOR-ERROR", "expecting an object derived from QWidget as ssecond argument of this version of QDialogButtonBox::constructor(), got class '%s' instead", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 	    return;
 	 }
 	 ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -80,7 +80,7 @@ static void QDIALOGBUTTONBOX_constructor(QoreObject *self, const QoreList *param
    QDialogButtonBox::StandardButtons buttons = (QDialogButtonBox::StandardButtons)arg;
    Qt::Orientation orientation = !is_nothing(p) ? (Qt::Orientation)p->getAsInt() : Qt::Horizontal;
    p = get_param(params, 2);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -99,10 +99,10 @@ static QoreNode *QDIALOGBUTTONBOX_addButton(QoreObject *self, QoreQDialogButtonB
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQAbstractButton *button = (QoreQAbstractButton *)p->val.object->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink);
+      QoreQAbstractButton *button = (QoreQAbstractButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink);
       if (!button) {
          if (!xsink->isException())
-            xsink->raiseException("QDIALOGBUTTONBOX-ADDBUTTON-PARAM-ERROR", "QDialogButtonBox::addButton() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QDIALOGBUTTONBOX-ADDBUTTON-PARAM-ERROR", "QDialogButtonBox::addButton() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> buttonHolder(static_cast<AbstractPrivateData *>(button), xsink);
@@ -136,7 +136,7 @@ static QoreNode *QDIALOGBUTTONBOX_addButton(QoreObject *self, QoreQDialogButtonB
       QoreQtQPushButton *t_qobj = new QoreQtQPushButton(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QPUSHBUTTON, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QPushButton * button ( StandardButton which ) const
@@ -156,14 +156,14 @@ static QoreNode *QDIALOGBUTTONBOX_button(QoreObject *self, QoreQDialogButtonBox 
       QoreQtQPushButton *t_qobj = new QoreQtQPushButton(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QPUSHBUTTON, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //ButtonRole buttonRole ( QAbstractButton * button ) const
 static QoreNode *QDIALOGBUTTONBOX_buttonRole(QoreObject *self, QoreQDialogButtonBox *qdbb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)p->val.object->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
+   QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
    if (!button) {
       if (!xsink->isException())
          xsink->raiseException("QDIALOGBUTTONBOX-BUTTONROLE-PARAM-ERROR", "expecting a QAbstractButton object as first argument to QDialogButtonBox::buttonRole()");
@@ -204,7 +204,7 @@ static QoreNode *QDIALOGBUTTONBOX_orientation(QoreObject *self, QoreQDialogButto
 static QoreNode *QDIALOGBUTTONBOX_removeButton(QoreObject *self, QoreQDialogButtonBox *qdbb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)p->val.object->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
+   QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
    if (!button) {
       if (!xsink->isException())
          xsink->raiseException("QDIALOGBUTTONBOX-REMOVEBUTTON-PARAM-ERROR", "expecting a QAbstractButton object as first argument to QDialogButtonBox::removeButton()");
@@ -246,7 +246,7 @@ static QoreNode *QDIALOGBUTTONBOX_setStandardButtons(QoreObject *self, QoreQDial
 static QoreNode *QDIALOGBUTTONBOX_standardButton(QoreObject *self, QoreQDialogButtonBox *qdbb, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)p->val.object->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
+   QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
    if (!button) {
       if (!xsink->isException())
          xsink->raiseException("QDIALOGBUTTONBOX-STANDARDBUTTON-PARAM-ERROR", "expecting a QAbstractButton object as first argument to QDialogButtonBox::standardButton()");

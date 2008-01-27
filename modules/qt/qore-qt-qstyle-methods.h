@@ -85,7 +85,9 @@ class T {
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemPixmapRect, *args, &xsink), &xsink);
-	 QoreQRect *qrect = (*rv && rv->type == NT_OBJECT) ? (QoreQRect *)rv->val.object->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
+
+         QoreObject *o = dynamic_cast<QoreObject *>(*rv);
+	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
 	    xsink.raiseException("QSTYLE-ITEMPIXMAPRECT-ERROR", "%s::itemPixmapRect() did not return a QRect object (got type '%s' instead)",
 				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
@@ -143,7 +145,8 @@ class T {
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_standardPixmap, *args, &xsink), &xsink);
-	 QoreQPixmap *qpixmap = (*rv && rv->type == NT_OBJECT) ? (QoreQPixmap *)rv->val.object->getReferencedPrivateData(CID_QPIXMAP, &xsink) : 0;
+         QoreObject *o = dynamic_cast<QoreObject *>(*rv);
+	 QoreQPixmap *qpixmap = o ? (QoreQPixmap *)o->getReferencedPrivateData(CID_QPIXMAP, &xsink) : 0;
 	 if (!qpixmap) {
 	    xsink.raiseException("QSTYLE-STANDARDPIXMAP-ERROR", "%s::standardPixmap() did not return a QPixmap object (got type '%s' instead)",
 				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
@@ -165,7 +168,8 @@ class T {
 	 args->push(return_qstyleoption(option));
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_generatedIconPixmap, *args, &xsink), &xsink);
-	 QoreQPixmap *qpixmap = (*rv && rv->type == NT_OBJECT) ? (QoreQPixmap *)rv->val.object->getReferencedPrivateData(CID_QPIXMAP, &xsink) : 0;
+         QoreObject *o = dynamic_cast<QoreObject *>(*rv);
+	 QoreQPixmap *qpixmap = o ? (QoreQPixmap *)o->getReferencedPrivateData(CID_QPIXMAP, &xsink) : 0;
 	 if (!qpixmap) {
 	    xsink.raiseException("QSTYLE-GENERATEDICONPIXMAP-ERROR", "%s::generatedIconPixmap() did not return a QPixmap object (got type '%s' instead)",
 				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
@@ -189,7 +193,8 @@ class T {
 	 args->push(new QoreStringNode(text.toUtf8().data()));
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemTextRect, *args, &xsink), &xsink);
-	 QoreQRect *qrect = (*rv && rv->type == NT_OBJECT) ? (QoreQRect *)rv->val.object->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
+         QoreObject *o = dynamic_cast<QoreObject *>(*rv);
+	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
 	    xsink.raiseException("QSTYLE-ITEMPIXMAPRECT-ERROR", "%s::itemPixmapRect() did not return a QRect object (got type '%s' instead)",
 				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
@@ -255,7 +260,8 @@ class T {
 
 /*
 	 QoreNode *out = lvh.getOutputValue();
-	 QoreQPalette *qp = (out && out->type == NT_OBJECT) ? (QoreQPalette *)out->val.object->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
+         QoreObject *o = dynamic_cast<QoreObject *>(out);
+	 QoreQPalette *qp = o ? (QoreQPalette *)o->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
 	 if (!qp) {
 	    xsink.raiseException("QSTYLE-POLISH-ERROR", "palette argument was returned as type '%s'", out ? out->getTypeName() : 0);
 	    return;
@@ -277,7 +283,8 @@ class T {
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_sizeFromContents, *args, &xsink), &xsink);
-	 QoreQSize *qsize = (*rv && rv->type == NT_OBJECT) ? (QoreQSize *)rv->val.object->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
+         QoreObject *o = dynamic_cast<QoreObject *>(*rv);
+	 QoreQSize *qsize = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
 	 if (!qsize) {
 	    xsink.raiseException("QSTYLE-SIZEFROMCONTENTS-ERROR", "%s::sizeFromContents() did not return a QSize object (got type '%s' instead)",
 				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
@@ -293,7 +300,8 @@ class T {
 
 	 ExceptionSink xsink;
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_standardPalette, 0, &xsink), &xsink);
-	 QoreQPalette *qpalette = (*rv && rv->type == NT_OBJECT) ? (QoreQPalette *)rv->val.object->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
+         QoreObject *o = dynamic_cast<QoreObject *>(*rv);
+	 QoreQPalette *qpalette = o ? (QoreQPalette *)o->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
 	 if (!qpalette) {
 	    xsink.raiseException("QSTYLE-STANDARDPALETTE-ERROR", "%s::standardPalette() did not return a QPalette object (got type '%s' instead)",
 				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
@@ -333,7 +341,8 @@ class T {
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_subControlRect, *args, &xsink), &xsink);
-	 QoreQRect *qrect = (*rv && rv->type == NT_OBJECT) ? (QoreQRect *)rv->val.object->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
+         QoreObject *o = dynamic_cast<QoreObject *>(*rv);
+	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
 	    xsink.raiseException("QSTYLE-SUBCONTROLRECT-ERROR", "%s::subControlRect() did not return a QRect object (got type '%s' instead)",
 				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");
@@ -355,7 +364,8 @@ class T {
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_subElementRect, *args, &xsink), &xsink);
-	 QoreQRect *qrect = (*rv && rv->type == NT_OBJECT) ? (QoreQRect *)rv->val.object->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
+         QoreObject *o = dynamic_cast<QoreObject *>(*rv);
+	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
 	    xsink.raiseException("QSTYLE-SUBELEMENTRECT-ERROR", "%s::subElementRect() did not return a QRect object (got type '%s' instead)",
 				 qore_obj->getClass()->getName(), *rv ? rv->getTypeName() : "NOTHING");

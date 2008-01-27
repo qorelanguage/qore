@@ -56,7 +56,7 @@ static QoreNode *QABSTRACTITEMVIEW_alternatingRowColors(QoreObject *self, QoreAb
 static QoreNode *QABSTRACTITEMVIEW_closePersistentEditor(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-CLOSEPERSISTENTEDITOR-PARAM-ERROR", "expecting a QModelIndex object as first argument to QAbstractItemView::closePersistentEditor()");
@@ -73,7 +73,7 @@ static QoreNode *QABSTRACTITEMVIEW_currentIndex(QoreObject *self, QoreAbstractQA
    QoreObject *o_qmi = new QoreObject(QC_QModelIndex, getProgram());
    QoreQModelIndex *q_qmi = new QoreQModelIndex(qaiv->getQAbstractItemView()->currentIndex());
    o_qmi->setPrivate(CID_QMODELINDEX, q_qmi);
-   return new QoreNode(o_qmi);
+   return o_qmi;
 }
 
 //DragDropMode dragDropMode () const
@@ -118,14 +118,14 @@ static QoreNode *QABSTRACTITEMVIEW_iconSize(QoreObject *self, QoreAbstractQAbstr
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qaiv->getQAbstractItemView()->iconSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //virtual QModelIndex indexAt ( const QPoint & point ) const = 0
 static QoreNode *QABSTRACTITEMVIEW_indexAt(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *point = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *point = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!point) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-INDEXAT-PARAM-ERROR", "expecting a QPoint object as first argument to QAbstractItemView::indexAt()");
@@ -135,14 +135,14 @@ static QoreNode *QABSTRACTITEMVIEW_indexAt(QoreObject *self, QoreAbstractQAbstra
    QoreObject *o_qmi = new QoreObject(QC_QModelIndex, getProgram());
    QoreQModelIndex *q_qmi = new QoreQModelIndex(qaiv->getQAbstractItemView()->indexAt(*(static_cast<QPoint *>(point))));
    o_qmi->setPrivate(CID_QMODELINDEX, q_qmi);
-   return new QoreNode(o_qmi);
+   return o_qmi;
 }
 
 //QWidget * indexWidget ( const QModelIndex & index ) const
 static QoreNode *QABSTRACTITEMVIEW_indexWidget(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-INDEXWIDGET-PARAM-ERROR", "expecting a QModelIndex object as first argument to QAbstractItemView::indexWidget()");
@@ -156,7 +156,7 @@ static QoreNode *QABSTRACTITEMVIEW_indexWidget(QoreObject *self, QoreAbstractQAb
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QAbstractItemDelegate * itemDelegate () const
@@ -172,12 +172,12 @@ static QoreNode *QABSTRACTITEMVIEW_itemDelegate(QoreObject *self, QoreAbstractQA
       QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
       assert(rv_obj);
       rv_obj->ref();
-      return new QoreNode(rv_obj);
+      return rv_obj;
    }
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
-         xsink->raiseException("QABSTRACTITEMVIEW-ITEMDELEGATE-PARAM-ERROR", "this version of QAbstractItemView::itemDelegate() expects an object derived from QModelIndex as the first argument", p->val.object->getClass()->getName());
+         xsink->raiseException("QABSTRACTITEMVIEW-ITEMDELEGATE-PARAM-ERROR", "this version of QAbstractItemView::itemDelegate() expects an object derived from QModelIndex as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> indexHolder(static_cast<AbstractPrivateData *>(index), xsink);
@@ -188,7 +188,7 @@ static QoreNode *QABSTRACTITEMVIEW_itemDelegate(QoreObject *self, QoreAbstractQA
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QAbstractItemDelegate * itemDelegateForColumn ( int column ) const
@@ -203,7 +203,7 @@ static QoreNode *QABSTRACTITEMVIEW_itemDelegateForColumn(QoreObject *self, QoreA
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QAbstractItemDelegate * itemDelegateForRow ( int row ) const
@@ -218,7 +218,7 @@ static QoreNode *QABSTRACTITEMVIEW_itemDelegateForRow(QoreObject *self, QoreAbst
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //virtual void keyboardSearch ( const QString & search )
@@ -242,7 +242,7 @@ static QoreNode *QABSTRACTITEMVIEW_keyboardSearch(QoreObject *self, QoreAbstract
 static QoreNode *QABSTRACTITEMVIEW_openPersistentEditor(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-OPENPERSISTENTEDITOR-PARAM-ERROR", "expecting a QModelIndex object as first argument to QAbstractItemView::openPersistentEditor()");
@@ -259,14 +259,14 @@ static QoreNode *QABSTRACTITEMVIEW_rootIndex(QoreObject *self, QoreAbstractQAbst
    QoreObject *o_qmi = new QoreObject(QC_QModelIndex, getProgram());
    QoreQModelIndex *q_qmi = new QoreQModelIndex(qaiv->getQAbstractItemView()->rootIndex());
    o_qmi->setPrivate(CID_QMODELINDEX, q_qmi);
-   return new QoreNode(o_qmi);
+   return o_qmi;
 }
 
 //virtual void scrollTo ( const QModelIndex & index, ScrollHint hint = EnsureVisible ) = 0
 static QoreNode *QABSTRACTITEMVIEW_scrollTo(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-SCROLLTO-PARAM-ERROR", "expecting a QModelIndex object as first argument to QAbstractItemView::scrollTo()");
@@ -373,7 +373,7 @@ static QoreNode *QABSTRACTITEMVIEW_setHorizontalScrollMode(QoreObject *self, Qor
 static QoreNode *QABSTRACTITEMVIEW_setIconSize(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-SETICONSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QAbstractItemView::setIconSize()");
@@ -388,7 +388,7 @@ static QoreNode *QABSTRACTITEMVIEW_setIconSize(QoreObject *self, QoreAbstractQAb
 static QoreNode *QABSTRACTITEMVIEW_setIndexWidget(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-SETINDEXWIDGET-PARAM-ERROR", "expecting a QModelIndex object as first argument to QAbstractItemView::setIndexWidget()");
@@ -396,7 +396,7 @@ static QoreNode *QABSTRACTITEMVIEW_setIndexWidget(QoreObject *self, QoreAbstract
    }
    ReferenceHolder<AbstractPrivateData> indexHolder(static_cast<AbstractPrivateData *>(index), xsink);
    p = get_param(params, 1);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-SETINDEXWIDGET-PARAM-ERROR", "expecting a QWidget object as second argument to QAbstractItemView::setIndexWidget()");
@@ -411,7 +411,7 @@ static QoreNode *QABSTRACTITEMVIEW_setIndexWidget(QoreObject *self, QoreAbstract
 static QoreNode *QABSTRACTITEMVIEW_setItemDelegate(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)p->val.object->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
+   QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
    if (!delegate) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-SETITEMDELEGATE-PARAM-ERROR", "expecting a QAbstractItemDelegate object as first argument to QAbstractItemView::setItemDelegate()");
@@ -428,7 +428,7 @@ static QoreNode *QABSTRACTITEMVIEW_setItemDelegateForColumn(QoreObject *self, Qo
    QoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)p->val.object->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
+   QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
    if (!delegate) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-SETITEMDELEGATEFORCOLUMN-PARAM-ERROR", "expecting a QAbstractItemDelegate object as second argument to QAbstractItemView::setItemDelegateForColumn()");
@@ -445,7 +445,7 @@ static QoreNode *QABSTRACTITEMVIEW_setItemDelegateForRow(QoreObject *self, QoreA
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)p->val.object->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
+   QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
    if (!delegate) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-SETITEMDELEGATEFORROW-PARAM-ERROR", "expecting a QAbstractItemDelegate object as second argument to QAbstractItemView::setItemDelegateForRow()");
@@ -537,7 +537,7 @@ static QoreNode *QABSTRACTITEMVIEW_sizeHintForColumn(QoreObject *self, QoreAbstr
 static QoreNode *QABSTRACTITEMVIEW_sizeHintForIndex(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-SIZEHINTFORINDEX-PARAM-ERROR", "expecting a QModelIndex object as first argument to QAbstractItemView::sizeHintForIndex()");
@@ -547,7 +547,7 @@ static QoreNode *QABSTRACTITEMVIEW_sizeHintForIndex(QoreObject *self, QoreAbstra
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qaiv->getQAbstractItemView()->sizeHintForIndex(*(static_cast<QModelIndex *>(index))));
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //virtual int sizeHintForRow ( int row ) const
@@ -580,7 +580,7 @@ static QoreNode *QABSTRACTITEMVIEW_verticalScrollMode(QoreObject *self, QoreAbst
 static QoreNode *QABSTRACTITEMVIEW_visualRect(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)p->val.object->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTITEMVIEW-VISUALRECT-PARAM-ERROR", "expecting a QModelIndex object as first argument to QAbstractItemView::visualRect()");
@@ -590,7 +590,7 @@ static QoreNode *QABSTRACTITEMVIEW_visualRect(QoreObject *self, QoreAbstractQAbs
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qaiv->getQAbstractItemView()->visualRect(*(static_cast<QModelIndex *>(index))));
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 QoreClass *initQAbstractItemViewClass(QoreClass *qabstractscrollarea)

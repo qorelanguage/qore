@@ -37,18 +37,18 @@ static void QSLIDER_constructor(class QoreObject *self, const QoreList *params, 
 
    if (p0 && p0->type == NT_OBJECT)
    {
-      parent = p0 ? (QoreAbstractQWidget *)p0->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      parent = p0 ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p0))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!parent) {
-	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as first parameter of QSlider::constructor() is not a subclass of QWidget", p0->val.object->getClass()->getName());
+	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as first parameter of QSlider::constructor() is not a subclass of QWidget", (reinterpret_cast<QoreObject *>(p0))->getClass()->getName());
 	 return;
       }
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
       qs = new QoreQSlider(self, parent->getQWidget());
    }
    else if (p1 && p1->type == NT_OBJECT) {
-      parent = p1 ? (QoreAbstractQWidget *)p1->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      parent = p1 ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p1))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!parent) {
-	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as second parameter of QSlider::constructor() is not a subclass of QWidget", p1->val.object->getClass()->getName());
+	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as second parameter of QSlider::constructor() is not a subclass of QWidget", (reinterpret_cast<QoreObject *>(p1))->getClass()->getName());
 	 return;
       }
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);

@@ -35,7 +35,7 @@ class QoreClass *QC_QDropEvent = 0;
 static void QDROPEVENT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QDROPEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as first argument to QDropEvent::constructor()");
@@ -45,7 +45,7 @@ static void QDROPEVENT_constructor(QoreObject *self, const QoreList *params, Exc
    p = get_param(params, 1);
    Qt::DropActions actions = (Qt::DropActions)(p ? p->getAsInt() : 0);
    p = get_param(params, 2);
-   QoreQMimeData *data = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)p->val.object->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
+   QoreQMimeData *data = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
    if (!data) {
       if (!xsink->isException())
          xsink->raiseException("QDROPEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QMimeData object as third argument to QDropEvent::constructor()");
@@ -96,7 +96,7 @@ static QoreNode *QDROPEVENT_mimeData(QoreObject *self, QoreQDropEvent *qde, cons
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //Qt::MouseButtons mouseButtons () const
@@ -111,7 +111,7 @@ static QoreNode *QDROPEVENT_pos(QoreObject *self, QoreQDropEvent *qde, const Qor
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qde->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //Qt::DropActions possibleActions () const
@@ -145,7 +145,7 @@ static QoreNode *QDROPEVENT_source(QoreObject *self, QoreQDropEvent *qde, const 
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 QoreClass *initQDropEventClass(QoreClass *qevent)

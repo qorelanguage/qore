@@ -1,3 +1,6 @@
+2007.01.27: David Nichol
+	* QoreObject implemented as QoreNode subtype
+
 2007.01.24: David Nichols
 	* QoreList implemented as QoreNode subtype
 

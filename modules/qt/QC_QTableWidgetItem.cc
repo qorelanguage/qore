@@ -43,10 +43,10 @@ static void QTABLEWIDGETITEM_constructor(QoreObject *self, const QoreList *param
    QoreNode *p = get_param(params, 0);
    //printd(0, "QTableWidgetItem() self=%08p, p=%s\n", self, p ? p->getTypeName() : "(null)");
    if (p && p->type == NT_OBJECT) {
-      QoreQIcon *icon = (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink);
+      QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
          if (!xsink->isException())
-            xsink->raiseException("QTABLEWIDGETITEM-CONSTRUCTOR-PARAM-ERROR", "QTableWidgetItem::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QTABLEWIDGETITEM-CONSTRUCTOR-PARAM-ERROR", "QTableWidgetItem::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
@@ -84,7 +84,7 @@ static QoreNode *QTABLEWIDGETITEM_background(QoreObject *self, QoreQTableWidgetI
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qtwi->qore_obj->background());
    o_qb->setPrivate(CID_QBRUSH, q_qb);
-   return new QoreNode(o_qb);
+   return o_qb;
 }
 
 //Qt::CheckState checkState () const
@@ -125,7 +125,7 @@ static QoreNode *QTABLEWIDGETITEM_font(QoreObject *self, QoreQTableWidgetItem *q
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qtwi->qore_obj->font());
    o_qf->setPrivate(CID_QFONT, q_qf);
-   return new QoreNode(o_qf);
+   return o_qf;
 }
 
 //QBrush foreground () const
@@ -134,7 +134,7 @@ static QoreNode *QTABLEWIDGETITEM_foreground(QoreObject *self, QoreQTableWidgetI
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qtwi->qore_obj->foreground());
    o_qb->setPrivate(CID_QBRUSH, q_qb);
-   return new QoreNode(o_qb);
+   return o_qb;
 }
 
 //QIcon icon () const
@@ -143,7 +143,7 @@ static QoreNode *QTABLEWIDGETITEM_icon(QoreObject *self, QoreQTableWidgetItem *q
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qtwi->qore_obj->icon());
    o_qi->setPrivate(CID_QICON, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //bool isSelected () const
@@ -213,7 +213,7 @@ static QoreNode *QTABLEWIDGETITEM_setFlags(QoreObject *self, QoreQTableWidgetIte
 static QoreNode *QTABLEWIDGETITEM_setFont(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)p->val.object->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGETITEM-SETFONT-PARAM-ERROR", "expecting a QFont object as first argument to QTableWidgetItem::setFont()");
@@ -239,7 +239,7 @@ static QoreNode *QTABLEWIDGETITEM_setForeground(QoreObject *self, QoreQTableWidg
 static QoreNode *QTABLEWIDGETITEM_setIcon(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGETITEM-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QTableWidgetItem::setIcon()");
@@ -263,7 +263,7 @@ static QoreNode *QTABLEWIDGETITEM_setSelected(QoreObject *self, QoreQTableWidget
 static QoreNode *QTABLEWIDGETITEM_setSizeHint(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGETITEM-SETSIZEHINT-PARAM-ERROR", "expecting a QSize object as first argument to QTableWidgetItem::setSizeHint()");
@@ -333,7 +333,7 @@ static QoreNode *QTABLEWIDGETITEM_sizeHint(QoreObject *self, QoreQTableWidgetIte
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qtwi->qore_obj->sizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //QString statusTip () const

@@ -60,7 +60,7 @@ static QoreNode *QCLIPBOARD_image(QoreObject *self, QoreQClipboard *qc, const Qo
    QoreObject *o_qi = new QoreObject(QC_QImage, getProgram());
    QoreQImage *q_qi = new QoreQImage(qc->qobj->image(mode));
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //const QMimeData * mimeData ( Mode mode = Clipboard ) const
@@ -75,7 +75,7 @@ static QoreNode *QCLIPBOARD_mimeData(QoreObject *self, QoreQClipboard *qc, const
    QoreObject *rv_obj = reinterpret_cast<QoreObject *>(qv_ptr.toULongLong());
    assert(rv_obj);
    rv_obj->ref();
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //bool ownsClipboard () const
@@ -104,14 +104,14 @@ static QoreNode *QCLIPBOARD_pixmap(QoreObject *self, QoreQClipboard *qc, const Q
    QoreObject *o_qp = new QoreObject(QC_QPixmap, getProgram());
    QoreQPixmap *q_qp = new QoreQPixmap(qc->qobj->pixmap(mode));
    o_qp->setPrivate(CID_QPIXMAP, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //void setImage ( const QImage & image, Mode mode = Clipboard )
 static QoreNode *QCLIPBOARD_setImage(QoreObject *self, QoreQClipboard *qc, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)p->val.object->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
+   QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
    if (!image) {
       if (!xsink->isException())
          xsink->raiseException("QCLIPBOARD-SETIMAGE-PARAM-ERROR", "expecting a QImage object as first argument to QClipboard::setImage()");
@@ -128,7 +128,7 @@ static QoreNode *QCLIPBOARD_setImage(QoreObject *self, QoreQClipboard *qc, const
 static QoreNode *QCLIPBOARD_setMimeData(QoreObject *self, QoreQClipboard *qc, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQMimeData *src = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)p->val.object->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
+   QoreQMimeData *src = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
    if (!src) {
       if (!xsink->isException())
          xsink->raiseException("QCLIPBOARD-SETMIMEDATA-PARAM-ERROR", "expecting a QMimeData object as first argument to QClipboard::setMimeData()");
@@ -145,7 +145,7 @@ static QoreNode *QCLIPBOARD_setMimeData(QoreObject *self, QoreQClipboard *qc, co
 static QoreNode *QCLIPBOARD_setPixmap(QoreObject *self, QoreQClipboard *qc, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+   QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!pixmap) {
       if (!xsink->isException())
          xsink->raiseException("QCLIPBOARD-SETPIXMAP-PARAM-ERROR", "expecting a QPixmap object as first argument to QClipboard::setPixmap()");

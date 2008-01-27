@@ -86,7 +86,7 @@ static QoreNode *QRECTF_adjusted(QoreObject *self, QoreQRectF *qrf, const QoreLi
    QoreQRectF *q_qrf = new QoreQRectF(qrf->adjusted(dx1, dy1, dx2, dy2));
    QoreObject *o_qrf = new QoreObject(self->getClass(CID_QRECTF), getProgram());
    o_qrf->setPrivate(CID_QRECTF, q_qrf);
-   return new QoreNode(o_qrf);
+   return o_qrf;
 }
 
 //qreal bottom () const
@@ -127,11 +127,11 @@ static QoreNode *QRECTF_contains(QoreObject *self, QoreQRectF *qrf, const QoreLi
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRectF *rectangle = (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink);
+      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectangle)
       {
          if (!xsink->isException())
-            xsink->raiseException("QRECTF-CONTAINS-PARAM-ERROR", "QRectF::contains() cannot handle arguments of class '%s'", p->val.object->getClass()->getName());
+            xsink->raiseException("QRECTF-CONTAINS-PARAM-ERROR", "QRectF::contains() cannot handle arguments of class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
 
@@ -185,7 +185,7 @@ static QoreNode *QRECTF_height(QoreObject *self, QoreQRectF *qrf, const QoreList
 static QoreNode *QRECTF_intersected(QoreObject *self, QoreQRectF *qrf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!p || !rectangle)
    {
       if (!xsink->isException())
@@ -197,14 +197,14 @@ static QoreNode *QRECTF_intersected(QoreObject *self, QoreQRectF *qrf, const Qor
    QoreQRectF *q_qrf = new QoreQRectF(qrf->intersected(*((QRectF *)rectangle)));
    QoreObject *o_qrf = new QoreObject(self->getClass(CID_QRECTF), getProgram());
    o_qrf->setPrivate(CID_QRECTF, q_qrf);
-   return new QoreNode(o_qrf);
+   return o_qrf;
 }
 
 //bool intersects ( const QRectF & rectangle ) const
 static QoreNode *QRECTF_intersects(QoreObject *self, QoreQRectF *qrf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!p || !rectangle)
    {
       if (!xsink->isException())
@@ -347,7 +347,7 @@ static QoreNode *QRECTF_normalized(QoreObject *self, QoreQRectF *qrf, const Qore
    QoreQRectF *q_qrf = new QoreQRectF(qrf->normalized());
    QoreObject *o_qrf = new QoreObject(self->getClass(CID_QRECTF), getProgram());
    o_qrf->setPrivate(CID_QRECTF, q_qrf);
-   return new QoreNode(o_qrf);
+   return o_qrf;
 }
 
 //qreal right () const
@@ -516,7 +516,7 @@ static QoreNode *QRECTF_toAlignedRect(QoreObject *self, QoreQRectF *qrf, const Q
    QoreQRect *q_qr = new QoreQRect(qrf->toAlignedRect());
    QoreObject *o_qr = new QoreObject(self->getClass(CID_QRECT), getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //QRect toRect () const
@@ -526,7 +526,7 @@ static QoreNode *QRECTF_toRect(QoreObject *self, QoreQRectF *qrf, const QoreList
    QoreQRect *q_qr = new QoreQRect(qrf->toRect());
    QoreObject *o_qr = new QoreObject(self->getClass(CID_QRECT), getProgram());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //qreal top () const
@@ -578,7 +578,7 @@ static QoreNode *QRECTF_translated(QoreObject *self, QoreQRectF *qrf, const Qore
    QoreQRectF *q_qrf = new QoreQRectF(qrf->translated(dx, dy));
    QoreObject *o_qrf = new QoreObject(self->getClass(CID_QRECTF), getProgram());
    o_qrf->setPrivate(CID_QRECTF, q_qrf);
-   return new QoreNode(o_qrf);
+   return o_qrf;
 }
 
 //QRectF translated ( const QPointF & offset ) const
@@ -590,14 +590,14 @@ static QoreNode *QRECTF_translated(QoreObject *self, QoreQRectF *qrf, const Qore
 //   QoreQRectF *q_qrf = new QoreQRectF(qrf->translated(offset));
 //   QoreObject *o_qrf = new QoreObject(self->getClass(CID_QRECTF), getProgram());
 //   o_qrf->setPrivate(CID_QRECTF, q_qrf);
-//   return new QoreNode(o_qrf);
+//   return o_qrf;
 //}
 
 //QRectF united ( const QRectF & rectangle ) const
 static QoreNode *QRECTF_united(QoreObject *self, QoreQRectF *qrf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)p->val.object->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!p || !rectangle)
    {
       if (!xsink->isException())
@@ -609,7 +609,7 @@ static QoreNode *QRECTF_united(QoreObject *self, QoreQRectF *qrf, const QoreList
    QoreQRectF *q_qrf = new QoreQRectF(qrf->united(*((QRectF *)rectangle)));
    QoreObject *o_qrf = new QoreObject(self->getClass(CID_QRECTF), getProgram());
    o_qrf->setPrivate(CID_QRECTF, q_qrf);
-   return new QoreNode(o_qrf);
+   return o_qrf;
 }
 
 //qreal width () const

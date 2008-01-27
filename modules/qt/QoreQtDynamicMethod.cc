@@ -224,7 +224,7 @@ void QoreQtDynamicSlot::call(void **arguments)
 	 QoreQFont *q_qf = new QoreQFont(*qfont);
 	 o_qf->setPrivate(CID_QFONT, q_qf);
 
-	 args->push(new QoreNode(o_qf));
+	 args->push(o_qf);
       }
       else if (type_list[i] == QQT_TYPE_P_QLISTWIDGETITEM) {
 	 QListWidgetItem *qlwi = *(reinterpret_cast<QListWidgetItem **>(arguments[i + 1]));
@@ -233,7 +233,7 @@ void QoreQtDynamicSlot::call(void **arguments)
 	 QoreQListWidgetItem *q_qlwi = new QoreQListWidgetItem(qlwi);
 	 o_qlwi->setPrivate(CID_QLISTWIDGETITEM, q_qlwi);
 
-	 args->push(new QoreNode(o_qlwi));
+	 args->push(o_qlwi);
       }
       else {
 	 printd(0, "QoreQtDynamicSlot::call() ignoring argument %d type %d\n", i, type_list[i]);
@@ -375,7 +375,7 @@ void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, c
       }
       else if (!strcmp(str, "QWidget*"))
       {
-	 QoreQWidget *widget = (n && n->type == NT_OBJECT) ? (QoreQWidget *)n->val.object->getReferencedPrivateData(CID_QWIDGET, &xsink) : 0;
+	 QoreQWidget *widget = (n && n->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(n))->getReferencedPrivateData(CID_QWIDGET, &xsink) : 0;
 	 sig_args[i + 1] = arg_list[i].set(widget);
       }
       else {

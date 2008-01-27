@@ -327,10 +327,15 @@ static bool op_log_eq_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink
 
 static bool op_log_eq_object(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   if ((left->type != NT_OBJECT) || (right->type != NT_OBJECT))
+   QoreObject *l = dynamic_cast<QoreObject *>(left);
+   if (!l)
       return false;
-   
-   return !left->val.object->compareSoft(right->val.object, xsink);
+
+   QoreObject *r = dynamic_cast<QoreObject *>(right);
+   if (!r)
+      return false;
+
+   return !l->compareSoft(r, xsink);
 }
 
 static bool op_log_eq_nothing(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
@@ -374,13 +379,15 @@ static bool op_log_ne_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink
 
 static bool op_log_ne_object(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   bool b;
-   
-   if ((left->type != NT_OBJECT) || (right->type != NT_OBJECT))
-      b = true;
-   else
-      b = left->val.object->compareSoft(right->val.object, xsink);
-   return b;
+   QoreObject *l = dynamic_cast<QoreObject *>(left);
+   if (!l)
+      return true;
+
+   QoreObject *r = dynamic_cast<QoreObject *>(right);
+   if (!r)
+      return true;
+
+   return l->compareSoft(r, xsink);
 }
 
 static bool op_log_ne_nothing(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
@@ -433,7 +440,8 @@ static bool op_instanceof(class QoreNode *l, class QoreNode *r, ExceptionSink *x
    if (*xsink || !nl)
       return false;
 
-   if (nl->type == NT_OBJECT && nl->val.object->validInstanceOf(r->val.classref->getID()))
+   QoreObject *o = dynamic_cast<QoreObject *>(*nl);
+   if (o && o->validInstanceOf(r->val.classref->getID()))
       return true;
 
    return false;  
@@ -550,8 +558,11 @@ static int64 op_elements(QoreNode *left, class QoreNode *null, ExceptionSink *xs
 	 return l->size();
    }
 
-   if (np->type == NT_OBJECT)
-      return np->val.object->size(xsink);
+   {
+      QoreObject *o = dynamic_cast<QoreObject *>(*np);
+      if (o)
+	 return o->size(xsink);
+   }
 
    {
       QoreHashNode *h = dynamic_cast<QoreHashNode *>(*np);
@@ -582,8 +593,11 @@ static QoreList *get_keys(QoreNode *p, ExceptionSink *xsink)
 	 return h->getKeys();
    }
 
-   if (p->type == NT_OBJECT)
-      return p->val.object->getMemberList(xsink);
+   {
+      QoreObject *o = dynamic_cast<QoreObject *>(p);
+      if (p)
+	 return o->getMemberList(xsink);
+   }
 
    return 0;
 }
@@ -696,13 +710,12 @@ static class QoreNode *op_list_ref(QoreNode *left, QoreNode *index, ExceptionSin
 static class QoreNode *op_object_ref(QoreNode *left, class QoreNode *member, bool ref_rv, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder op(left, xsink);
-   if (*xsink)
+   if (*xsink || !op)
       return 0;
 
    QoreHashNode *h = 0;
-
-   // return NULL if left side is not an object (or exception)
-   if (!op || ((!(h = dynamic_cast<QoreHashNode *>(*op))) && op->type != NT_OBJECT))
+   QoreObject *o = 0;
+   if (((!(h = dynamic_cast<QoreHashNode *>(*op))) && (!(o = dynamic_cast<QoreObject *>(*op)))))
       return NULL;
 
    // evaluate member expression
@@ -715,7 +728,7 @@ static class QoreNode *op_object_ref(QoreNode *left, class QoreNode *member, boo
    if (h)
       return h->evalKey(key->getBuffer(), xsink);
 
-   return op->val.object->evalMember(*key, xsink);
+   return o->evalMember(*key, xsink);
 }
 
 static class QoreNode *op_object_method_call(QoreNode *left, class QoreNode *func, bool ref_rv, ExceptionSink *xsink)
@@ -735,7 +748,8 @@ static class QoreNode *op_object_method_call(QoreNode *left, class QoreNode *fun
       }
    }
 
-   if (!op || op->type != NT_OBJECT)
+   QoreObject *o = dynamic_cast<QoreObject *>(*op);
+   if (!o)
    {
       //printd(5, "op=%08p (%s) func=%08p (%s)\n", op, op ? op->getTypeName() : "n/a", func, func ? func->getTypeName() : "n/a");
       xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
@@ -743,14 +757,14 @@ static class QoreNode *op_object_method_call(QoreNode *left, class QoreNode *fun
       return 0;
    }
 
-   return op->val.object->getClass()->evalMethod(op->val.object, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
+   return o->getClass()->evalMethod(o, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
 }
 
 static class QoreNode *op_new_object(QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
    tracein("op_new_object()");
 
-   class QoreNode *rv = left->val.socall->oc->execConstructor(left->val.socall->args, xsink);
+   QoreNode *rv = left->val.socall->oc->execConstructor(left->val.socall->args, xsink);
    printd(5, "op_new_object() returning node=%08p (type=%s)\n", rv, left->val.socall->oc->getName());
    // if there's an exception, the constructor will delete the object without the destructor
    traceout("op_new_object()");
@@ -900,21 +914,22 @@ static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_
       else if (new_right->type == NT_OBJECT)
       {
 	 ensure_unique(v, xsink);
-	 new_right->val.object->mergeDataToHash(reinterpret_cast<QoreHashNode *>(*v), xsink);
+	 reinterpret_cast<QoreObject *>(*new_right)->mergeDataToHash(reinterpret_cast<QoreHashNode *>(*v), xsink);
       }
    }
    // do hash/object plus-equals if left side is an object
    else if (*v && ((*v)->type == NT_OBJECT))
    {
+      QoreObject *o = reinterpret_cast<QoreObject *>(*v);
       // do not need ensure_unique() for objects
       if (new_right->type == NT_OBJECT)
       {
-	 class QoreHash *h = new_right->val.object->copyData(xsink);
+	 QoreHash *h = reinterpret_cast<QoreObject *>(*new_right)->copyData(xsink);
 	 if (h)
-	    (*v)->val.object->assimilate(h, xsink);
+	    o->assimilate(h, xsink);
       }
       else if (new_right->type == NT_HASH)
-	 (*v)->val.object->merge(reinterpret_cast<QoreHashNode *>(*new_right), xsink);
+	 o->merge(reinterpret_cast<QoreHashNode *>(*new_right), xsink);
    }
    // do string plus-equals if left-hand side is a string
    else if ((*v) && ((*v)->type == NT_STRING))
@@ -1517,9 +1532,10 @@ static class QoreNode *op_plus_hash_object(QoreNode *left, QoreNode *right, Exce
 {
    QoreHashNode *lh = dynamic_cast<QoreHashNode *>(left);
    if (lh) {
-      if (right->type == NT_OBJECT) {
+      QoreObject *r = dynamic_cast<QoreObject *>(right);
+      if (r) {
 	 ReferenceHolder<QoreHashNode> rv(lh->copy(), xsink);
-	 right->val.object->mergeDataToHash(*rv, xsink);
+	 r->mergeDataToHash(*rv, xsink);
 	 if (*xsink)
 	    return 0;
 
@@ -1527,18 +1543,20 @@ static class QoreNode *op_plus_hash_object(QoreNode *left, QoreNode *right, Exce
       }
       return left->RefSelf();
    }
-   return right->type == NT_OBJECT ? right->RefSelf() : 0;
+   QoreObject *r = dynamic_cast<QoreObject *>(right);
+   return r ? right->RefSelf() : 0;
 }
 
 // note that this will return a hash
 static class QoreNode *op_plus_object_hash(QoreNode *left, QoreNode *right, ExceptionSink *xsink)
 {
-   if (left->type == NT_OBJECT) {
+   QoreObject *l = dynamic_cast<QoreObject *>(left);
+   if (l) {
       QoreHashNode *rh = dynamic_cast<QoreHashNode *>(right);
       if (!rh)
 	 return left->RefSelf();
 
-      ReferenceHolder<QoreHashNode> h(left->val.object->copyDataNode(xsink), xsink);
+      ReferenceHolder<QoreHashNode> h(l->copyDataNode(xsink), xsink);
       if (*xsink)
 	 return 0;
       
@@ -1548,7 +1566,8 @@ static class QoreNode *op_plus_object_hash(QoreNode *left, QoreNode *right, Exce
       
       return h.release();
    }
-   return right->type == NT_HASH ? right->RefSelf() : 0;
+   QoreHashNode *r = dynamic_cast<QoreHashNode *>(right);
+   return r ? right->RefSelf() : 0;
 }
 
 static int64 op_cmp_double(double left, double right)
@@ -1603,26 +1622,11 @@ static class QoreNode *op_post_inc(QoreNode *left, bool ref_rv, ExceptionSink *x
    if (xsink->isEvent())
       return NULL;
 
+   // reference for return value is reference for variable assignment (if not null)
    rv = *n;
 
-   // acquire new value if necessary
-   if (!(*n))
-      (*n) = new QoreNode((int64)0);
-   else if ((*n)->type != NT_INT)
-   {
-      class QoreNode *nv = new QoreNode((*n)->getAsBigInt());
-
-      // get unique value if necessary
-      if (!nv->is_unique())
-      {
-	 (*n) = nv->realCopy();
-	 nv->deref(xsink);
-      }	 
-      else
-	 (*n) = nv;
-   }
-   else // copy value to get a node with reference count 1
-      (*n) = (*n)->realCopy();
+   // acquire new value
+   (*n) = new QoreNode((*n) ? (*n)->getAsBigInt() : (int64)0);
 
    // increment value
    (*n)->val.intval++;
@@ -1644,32 +1648,11 @@ static class QoreNode *op_post_dec(QoreNode *left, bool ref_rv, ExceptionSink *x
    if (xsink->isEvent())
       return NULL;
 
-   // acquire new value if necessary
-   if (!(*n))
-   {
-      (*n) = new QoreNode((int64)0);
-      rv = NULL;
-   }
-   else if ((*n)->type != NT_INT)
-   {
-      class QoreNode *nv = new QoreNode((*n)->getAsBigInt());
-      rv = *n;
+   // reference for return value is reference for variable assignment (if not null)
+   rv = *n;
 
-      // get unique value if necessary
-      if (!nv->is_unique())
-      {
-	 (*n) = nv->realCopy();
-	 nv->deref(xsink);
-      }	 
-      else
-	 (*n) = nv;
-   }
-   else
-   {
-      // copy value and dereference original
-      rv = (*n);
-      (*n) = (*n)->realCopy();
-   }
+   // acquire new value
+   (*n) = new QoreNode((*n) ? (*n)->getAsBigInt() : (int64)0);
 
    // decrement value
    (*n)->val.intval--;
@@ -1684,7 +1667,6 @@ static class QoreNode *op_post_dec(QoreNode *left, bool ref_rv, ExceptionSink *x
 static class QoreNode *op_pre_inc(QoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
    class QoreNode **n;
-   // tracein("op_pre_inc()");
 
    class AutoVLock vl;
    n = get_var_value_ptr(left, &vl, xsink);
@@ -1694,28 +1676,18 @@ static class QoreNode *op_pre_inc(QoreNode *left, bool ref_rv, ExceptionSink *xs
    // acquire new value if necessary
    if (!(*n))
       (*n) = new QoreNode((int64)0);
-   else
-   {
-      if ((*n)->type != NT_INT)
-      {
-	 class QoreNode *nv = new QoreNode((*n)->getAsBigInt());
-	 (*n)->deref(xsink);
-	 (*n) = nv;
-      }
-
-      ensure_unique(n, xsink);
+   else {
+      ensure_unique_int(n, xsink);
+      if (*xsink)
+	 return 0;
    }
 
    // increment value
    (*n)->val.intval++;
 
-   // traceout("op_pre_dec()");
-
    //printd(5, "op_pre_inc() ref_rv=%s\n", ref_rv ? "true" : "false");
    // reference for return value
-   if (ref_rv)
-      return (*n)->RefSelf();
-   return NULL;
+   return ref_rv ? (*n)->RefSelf() : 0;
 }
 
 // variable assignment
@@ -1732,16 +1704,10 @@ static class QoreNode *op_pre_dec(QoreNode *left, bool ref_rv, ExceptionSink *xs
    // acquire new value if necessary
    if (!(*n))
       (*n) = new QoreNode((int64)0);
-   else
-   {
-      if ((*n)->type != NT_INT)
-      {
-	 class QoreNode *nv = new QoreNode((*n)->getAsBigInt());
-	 (*n)->deref(xsink);
-	 (*n) = nv;
-      }
-      
-      ensure_unique(n, xsink);
+   else {
+      ensure_unique_int(n, xsink);
+      if (*xsink)
+	 return 0;
    }
 
    // decrement value
@@ -1750,9 +1716,7 @@ static class QoreNode *op_pre_dec(QoreNode *left, bool ref_rv, ExceptionSink *xs
    // traceout("op_pre_dec()");
 
    // reference return value
-   if (ref_rv)
-      return (*n)->RefSelf();
-   return NULL;
+   return ref_rv ? (*n)->RefSelf() : 0;
 }
 
 // unshift lvalue, element
@@ -2492,21 +2456,21 @@ bool VarRefOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args
 {
    assert(left);
    ReferenceHolder<QoreNode> rv(op_func(left, true, xsink), xsink);
-   return rv->getAsBool();
+   return *rv ? rv->getAsBool() : false;
 }
 
 int64 VarRefOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
    assert(left);
    ReferenceHolder<QoreNode> rv(op_func(left, true, xsink), xsink);
-   return rv->getAsBigInt();
+   return *rv ? rv->getAsBigInt() : 0;
 }
 
 double VarRefOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
    assert(left);
    ReferenceHolder<QoreNode> rv(op_func(left, true, xsink), xsink);
-   return rv->getAsFloat();
+   return *rv ? rv->getAsFloat() : 0.0;
 }
 
 class QoreNode *StringStringStringOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
@@ -2525,9 +2489,7 @@ bool StringStringStringOperatorFunction::bool_eval(QoreNode *left, QoreNode *rig
    QoreStringValueHelper r(right);
 
    TempQoreStringNode rv(op_func(*l, *r, xsink));
-   if (!*rv)
-      return 0;
-   return rv->getAsBool();
+   return *rv ? rv->getAsBool() : false;
 }
 
 int64 StringStringStringOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
@@ -2536,9 +2498,7 @@ int64 StringStringStringOperatorFunction::bigint_eval(QoreNode *left, QoreNode *
    QoreStringValueHelper r(right);
 
    TempQoreStringNode rv(op_func(*l, *r, xsink));
-   if (!*rv)
-      return 0;
-   return rv->getAsBigInt();
+   return *rv ? rv->getAsBigInt() : 0;
 }
 
 double StringStringStringOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
@@ -2547,9 +2507,7 @@ double StringStringStringOperatorFunction::float_eval(QoreNode *left, QoreNode *
    QoreStringValueHelper r(right);
 
    TempQoreStringNode rv(op_func(*l, *r, xsink));
-   if (!*rv)
-      return 0;
-   return rv->getAsFloat();
+   return *rv ? rv->getAsFloat() : 0.0;
 }
 
 class QoreNode *ListStringRegexOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const

@@ -65,7 +65,7 @@ static QoreNode *QTEXTFORMAT_background(QoreObject *self, QoreQTextFormat *qtf, 
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qtf->background());
    o_qb->setPrivate(CID_QBRUSH, q_qb);
-   return new QoreNode(o_qb);
+   return o_qb;
 }
 
 //bool boolProperty ( int propertyId ) const
@@ -84,7 +84,7 @@ static QoreNode *QTEXTFORMAT_brushProperty(QoreObject *self, QoreQTextFormat *qt
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qtf->brushProperty(propertyId));
    o_qb->setPrivate(CID_QBRUSH, q_qb);
-   return new QoreNode(o_qb);
+   return o_qb;
 }
 
 //void clearBackground ()
@@ -118,7 +118,7 @@ static QoreNode *QTEXTFORMAT_colorProperty(QoreObject *self, QoreQTextFormat *qt
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qtf->colorProperty(propertyId));
    o_qc->setPrivate(CID_QCOLOR, q_qc);
-   return new QoreNode(o_qc);
+   return o_qc;
 }
 
 //qreal doubleProperty ( int propertyId ) const
@@ -135,7 +135,7 @@ static QoreNode *QTEXTFORMAT_foreground(QoreObject *self, QoreQTextFormat *qtf, 
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qtf->foreground());
    o_qb->setPrivate(CID_QBRUSH, q_qb);
-   return new QoreNode(o_qb);
+   return o_qb;
 }
 
 //bool hasProperty ( int propertyId ) const
@@ -210,7 +210,7 @@ static QoreNode *QTEXTFORMAT_lengthProperty(QoreObject *self, QoreQTextFormat *q
    QoreObject *o_qtl = new QoreObject(QC_QTextLength, getProgram());
    QoreQTextLength *q_qtl = new QoreQTextLength(qtf->lengthProperty(propertyId));
    o_qtl->setPrivate(CID_QTEXTLENGTH, q_qtl);
-   return new QoreNode(o_qtl);
+   return o_qtl;
 }
 
 ////QVector<QTextLength> lengthVectorProperty ( int propertyId ) const
@@ -225,7 +225,7 @@ static QoreNode *QTEXTFORMAT_lengthProperty(QoreObject *self, QoreQTextFormat *q
 static QoreNode *QTEXTFORMAT_merge(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTextFormat *other = (p && p->type == NT_OBJECT) ? (QoreQTextFormat *)p->val.object->getReferencedPrivateData(CID_QTEXTFORMAT, xsink) : 0;
+   QoreQTextFormat *other = (p && p->type == NT_OBJECT) ? (QoreQTextFormat *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTFORMAT, xsink) : 0;
    if (!other) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTFORMAT-MERGE-PARAM-ERROR", "expecting a QTextFormat object as first argument to QTextFormat::merge()");
@@ -256,7 +256,7 @@ static QoreNode *QTEXTFORMAT_penProperty(QoreObject *self, QoreQTextFormat *qtf,
    QoreObject *o_qp = new QoreObject(QC_QPen, getProgram());
    QoreQPen *q_qp = new QoreQPen(qtf->penProperty(propertyId));
    o_qp->setPrivate(CID_QPEN, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 ////QMap<int, QVariant> properties () const
@@ -354,7 +354,7 @@ static QoreNode *QTEXTFORMAT_toBlockFormat(QoreObject *self, QoreQTextFormat *qt
    QoreObject *o_qtbf = new QoreObject(QC_QTextBlockFormat, getProgram());
    QoreQTextBlockFormat *q_qtbf = new QoreQTextBlockFormat(qtf->toBlockFormat());
    o_qtbf->setPrivate(CID_QTEXTBLOCKFORMAT, q_qtbf);
-   return new QoreNode(o_qtbf);
+   return o_qtbf;
 }
 
 //QTextCharFormat toCharFormat () const
@@ -363,7 +363,7 @@ static QoreNode *QTEXTFORMAT_toCharFormat(QoreObject *self, QoreQTextFormat *qtf
    QoreObject *o_qtcf = new QoreObject(QC_QTextCharFormat, getProgram());
    QoreQTextCharFormat *q_qtcf = new QoreQTextCharFormat(qtf->toCharFormat());
    o_qtcf->setPrivate(CID_QTEXTCHARFORMAT, q_qtcf);
-   return new QoreNode(o_qtcf);
+   return o_qtcf;
 }
 
 //QTextFrameFormat toFrameFormat () const
@@ -372,7 +372,7 @@ static QoreNode *QTEXTFORMAT_toFrameFormat(QoreObject *self, QoreQTextFormat *qt
    QoreObject *o_qtff = new QoreObject(QC_QTextFrameFormat, getProgram());
    QoreQTextFrameFormat *q_qtff = new QoreQTextFrameFormat(qtf->toFrameFormat());
    o_qtff->setPrivate(CID_QTEXTFRAMEFORMAT, q_qtff);
-   return new QoreNode(o_qtff);
+   return o_qtff;
 }
 
 //QTextImageFormat toImageFormat () const
@@ -381,7 +381,7 @@ static QoreNode *QTEXTFORMAT_toImageFormat(QoreObject *self, QoreQTextFormat *qt
    QoreObject *o_qtif = new QoreObject(QC_QTextImageFormat, getProgram());
    QoreQTextImageFormat *q_qtif = new QoreQTextImageFormat(qtf->toImageFormat());
    o_qtif->setPrivate(CID_QTEXTIMAGEFORMAT, q_qtif);
-   return new QoreNode(o_qtif);
+   return o_qtif;
 }
 
 //QTextListFormat toListFormat () const
@@ -390,7 +390,7 @@ static QoreNode *QTEXTFORMAT_toListFormat(QoreObject *self, QoreQTextFormat *qtf
    QoreObject *o_qtlf = new QoreObject(QC_QTextListFormat, getProgram());
    QoreQTextListFormat *q_qtlf = new QoreQTextListFormat(qtf->toListFormat());
    o_qtlf->setPrivate(CID_QTEXTLISTFORMAT, q_qtlf);
-   return new QoreNode(o_qtlf);
+   return o_qtlf;
 }
 
 //QTextTableFormat toTableFormat () const
@@ -399,7 +399,7 @@ static QoreNode *QTEXTFORMAT_toTableFormat(QoreObject *self, QoreQTextFormat *qt
    QoreObject *o_qttf = new QoreObject(QC_QTextTableFormat, getProgram());
    QoreQTextTableFormat *q_qttf = new QoreQTextTableFormat(qtf->toTableFormat());
    o_qttf->setPrivate(CID_QTEXTTABLEFORMAT, q_qttf);
-   return new QoreNode(o_qttf);
+   return o_qttf;
 }
 
 //int type () const

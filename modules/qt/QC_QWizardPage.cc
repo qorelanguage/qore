@@ -35,8 +35,8 @@ class QoreClass *QC_QWizardPage = 0;
 //QWizardPage ( QWidget * parent = 0 )
 static void QWIZARDPAGE_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *parent = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -103,7 +103,7 @@ static QoreNode *QWIZARDPAGE_pixmap(QoreObject *self, QoreAbstractQWizardPage *q
    QoreObject *o_qp = new QoreObject(QC_QPixmap, getProgram());
    QoreQPixmap *q_qp = new QoreQPixmap(qwp->getQWizardPage()->pixmap(which));
    o_qp->setPrivate(CID_QPIXMAP, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //void setButtonText ( QWizard::WizardButton which, const QString & text )
@@ -142,8 +142,8 @@ static QoreNode *QWIZARDPAGE_setPixmap(QoreObject *self, QoreAbstractQWizardPage
 {
    QoreNode *p = get_param(params, 0);
    QWizard::WizardPixmap which = (QWizard::WizardPixmap)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+   QoreObject *o = test_object_param(params, 1);
+   QoreQPixmap *pixmap = o ? (QoreQPixmap *)o->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!pixmap) {
       if (!xsink->isException())
          xsink->raiseException("QWIZARDPAGE-SETPIXMAP-PARAM-ERROR", "expecting a QPixmap object as second argument to QWizardPage::setPixmap()");
@@ -211,18 +211,18 @@ static QoreNode *QWIZARDPAGE_registerField(QoreObject *self, QoreAbstractQWizard
    QString name;
    if (get_qstring(p, name, xsink))
       return 0;
-   p = get_param(params, 1);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *o = test_object_param(params, 1);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QWIZARDPAGE-REGISTERFIELD-PARAM-ERROR", "expecting a QWidget object as second argument to QWizardPage::registerField()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   p = get_param(params, 2);
-   const char *property = (p && p->type == NT_STRING) ? (reinterpret_cast<QoreStringNode *>(p))->getBuffer() : 0;
-   p = get_param(params, 3);
-   const char *changedSignal = (p && p->type == NT_STRING) ? (reinterpret_cast<QoreStringNode *>(p))->getBuffer() : 0;
+   QoreStringNode *str = test_string_param(params, 2);
+   const char *property = str ? str->getBuffer() : 0;
+   str = test_string_param(params, 3);
+   const char *changedSignal = str ? str->getBuffer() : 0;
    qwp->registerField(name, static_cast<QWidget *>(widget->getQWidget()), property, changedSignal);
    return 0;
 }
@@ -257,7 +257,7 @@ static QoreNode *QWIZARDPAGE_wizard(QoreObject *self, QoreAbstractQWizardPage *q
       QoreQtQWizard *t_qobj = new QoreQtQWizard(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QWIZARD, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 QoreClass *initQWizardPageClass(QoreClass *qwidget)

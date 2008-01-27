@@ -64,7 +64,7 @@ class CounterTest {
 	if (!$.obj.key.500.hello)
 	    print("OK\n");
 	else
-	    printf("ERROR (%d)\n", $.obj.key.500.hello);
+	    printf("ERROR (%d) %d\n", $.obj.key.500.hello, $.c.getCount());
     }
 
     private do_threads()
@@ -82,7 +82,6 @@ class CounterTest {
     {
 	for (my $i = 0; $i < $.iters; $i++)
 	    $.obj.key.500.hello++;
-	#printf("add() %d\n", $obj.key.500.hello);
 	$.c.dec();
     }
 
@@ -90,7 +89,6 @@ class CounterTest {
     {
 	for (my $i = 0; $i < $.iters; $i++)
 	    $.obj.key.500.hello--;
-	#printf("subtract() %d\n", $obj.key.500.hello);
 	$.c.dec();
     }
 }

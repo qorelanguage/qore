@@ -40,10 +40,10 @@ static void QSTYLEOPTIONVIEWITEMV2_constructor(QoreObject *self, const QoreList 
       self->setPrivate(CID_QSTYLEOPTIONVIEWITEMV2, new QoreQStyleOptionViewItemV2());
       return;
    }
-   QoreQStyleOptionViewItem *other = p ? (QoreQStyleOptionViewItem *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
+   QoreQStyleOptionViewItem *other = p ? (QoreQStyleOptionViewItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
    if (!other) {
       if (!xsink->isException())
-         xsink->raiseException("QSTYLEOPTIONVIEWITEMV2-QSTYLEOPTIONVIEWITEMV2-PARAM-ERROR", "this version of QStyleOptionViewItemV2::QStyleOptionViewItemV2() expects an object derived from QStyleOptionViewItem as the first argument", p->val.object->getClass()->getName());
+         xsink->raiseException("QSTYLEOPTIONVIEWITEMV2-QSTYLEOPTIONVIEWITEMV2-PARAM-ERROR", "this version of QStyleOptionViewItemV2::QStyleOptionViewItemV2() expects an object derived from QStyleOptionViewItem as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return;
    }
    ReferenceHolder<QoreQStyleOptionViewItem> otherHolder(other, xsink);

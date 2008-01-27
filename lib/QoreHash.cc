@@ -676,8 +676,9 @@ void QoreHash::deleteKey(const char *key, ExceptionSink *xsink)
    // dereference node if present
    if (m->node)
    {
-      if (m->node->type == NT_OBJECT)
-         m->node->val.object->doDelete(xsink);
+      QoreObject *o = dynamic_cast<QoreObject *>(m->node);
+      if (o)
+         o->doDelete(xsink);
       m->node->deref(xsink);
    }
 

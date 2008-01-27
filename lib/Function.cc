@@ -751,26 +751,22 @@ QoreNode *UserFunction::eval(const QoreList *args, QoreObject *self, class Excep
 }
 
 // this function will set up user copy constructor calls
-void UserFunction::evalCopy(QoreObject *oold, QoreObject *self, const char *class_name, ExceptionSink *xsink) const
+void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class_name, ExceptionSink *xsink) const
 {
    tracein("UserFunction::evalCopy()");
-   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name, params->num_params, oold);
+   printd(2, "UserFunction::evalCopy(): function='%s', num_params=%d, oldobj=%08p\n", name, params->num_params, old);
 
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
    int o_ln, o_eln;
    get_pgm_counter(o_ln, o_eln);
 
-   // create QoreNode for "old" for either param or argv list
-   oold->ref();
-   QoreNode *old = new QoreNode(oold);
-
    // instantiate local vars from param list
    for (int i = 0; i < params->num_params; i++)
    {
-      class QoreNode *n = (i ? NULL : old);
+      QoreObject *n = (i ? NULL : old);
       printd(5, "UserFunction::evalCopy(): instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
-      instantiateLVar(params->ids[i], n);
+      instantiateLVar(params->ids[i], n ? n->RefSelf() : 0);
    }
 
    QoreList *argv;
@@ -778,6 +774,7 @@ void UserFunction::evalCopy(QoreObject *oold, QoreObject *self, const char *clas
    if (!params->num_params)
    {
       argv = new QoreList();
+      old->ref();
       argv->push(old);
    }
    else

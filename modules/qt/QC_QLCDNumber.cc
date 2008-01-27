@@ -35,10 +35,10 @@ static void QLCDNUMBER_constructor(class QoreObject *self, const QoreList *param
    {
       int num_digits = p->getAsInt();
       p = test_param(params, NT_OBJECT, 1);
-      QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (p && !parent)
       {
-	 xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is second argument is not derived from QWidget (class: '%s')", p->val.object->getClass()->getName());
+	 xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is second argument is not derived from QWidget (class: '%s')", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 	 return;
       }
       if (!parent)
@@ -51,10 +51,10 @@ static void QLCDNUMBER_constructor(class QoreObject *self, const QoreList *param
    }
    else {
       p = test_param(params, NT_OBJECT, 0);
-      QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (p && !parent)
       {
-	 xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is not derived from QWidget (class: '%s')", p->val.object->getClass()->getName());
+	 xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is not derived from QWidget (class: '%s')", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 	 return;
       }
 

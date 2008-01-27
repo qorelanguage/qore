@@ -44,11 +44,11 @@ static void QIMAGE_constructor(class QoreObject *self, const QoreList *params, E
    QoreNode *p = get_param(params, 0);
 
    if (p && p->type == NT_OBJECT) {
-      QoreQSize *size = (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink);
+      QoreObject *o = reinterpret_cast<QoreObject *>(p); 
+      QoreQSize *size = (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, xsink);
       if (!size) {
          if (!xsink->isException())
-            xsink->raiseException("QIMAGE-CONSTRUCTOR-PARAM-ERROR", "QImage::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->
-val.object->getClass()->getName());
+            xsink->raiseException("QIMAGE-CONSTRUCTOR-PARAM-ERROR", "QImage::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", o->getClass()->getName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> sizeHolder(static_cast<AbstractPrivateData *>(size), xsink);
@@ -101,7 +101,7 @@ static QoreNode *QIMAGE_alphaChannel(QoreObject *self, QoreQImage *qi, const Qor
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->alphaChannel());
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //uchar * bits ()
@@ -152,7 +152,7 @@ static QoreNode *QIMAGE_color(QoreObject *self, QoreQImage *qi, const QoreList *
 //   QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
 //   QoreQImage *q_qi = new QoreQImage(qi->convertToFormat(format, flags));
 //   o_qi->setPrivate(CID_QIMAGE, q_qi);
-//   return new QoreNode(o_qi);
+//   return o_qi;
 //}
 
 //QImage copy ( const QRect & rectangle = QRect() ) const
@@ -161,17 +161,17 @@ static QoreNode *QIMAGE_QT_copy(QoreObject *self, QoreQImage *qi, const QoreList
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRect *rectangle = (QoreQRect *)p->val.object->getReferencedPrivateData(CID_QRECT, xsink);
+      QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rectangle) {
          if (!xsink->isException())
-            xsink->raiseException("QIMAGE-COPY-PARAM-ERROR", "QImage::copy() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QIMAGE-COPY-PARAM-ERROR", "QImage::copy() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<QoreQRect> rectangleHolder(rectangle, xsink);
       QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
       QoreQImage *q_qi = new QoreQImage(qi->copy(*(static_cast<QRect *>(rectangle))));
       o_qi->setPrivate(CID_QIMAGE, q_qi);
-      return new QoreNode(o_qi);
+      return o_qi;
    }
    int x = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
@@ -183,7 +183,7 @@ static QoreNode *QIMAGE_QT_copy(QoreObject *self, QoreQImage *qi, const QoreList
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->copy(x, y, width, height));
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //QImage createAlphaMask ( Qt::ImageConversionFlags flags = Qt::AutoColor ) const
@@ -194,7 +194,7 @@ static QoreNode *QIMAGE_createAlphaMask(QoreObject *self, QoreQImage *qi, const 
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->createAlphaMask(flags));
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //QImage createHeuristicMask ( bool clipTight = true ) const
@@ -205,7 +205,7 @@ static QoreNode *QIMAGE_createHeuristicMask(QoreObject *self, QoreQImage *qi, co
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->createHeuristicMask(clipTight));
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //QImage createMaskFromColor ( QRgb color, Qt::MaskMode mode = Qt::MaskInColor ) const
@@ -218,7 +218,7 @@ static QoreNode *QIMAGE_createMaskFromColor(QoreObject *self, QoreQImage *qi, co
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->createMaskFromColor(color, mode));
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //DataPtr & data_ptr ()
@@ -339,7 +339,7 @@ static QoreNode *QIMAGE_mirrored(QoreObject *self, QoreQImage *qi, const QoreLis
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->mirrored(horizontal, vertical));
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //int numBytes () const
@@ -360,7 +360,7 @@ static QoreNode *QIMAGE_offset(QoreObject *self, QoreQImage *qi, const QoreList 
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qi->offset());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //QRgb pixel ( const QPoint & position ) const
@@ -369,10 +369,10 @@ static QoreNode *QIMAGE_pixel(QoreObject *self, QoreQImage *qi, const QoreList *
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *position = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!position) {
          if (!xsink->isException())
-            xsink->raiseException("QIMAGE-PIXEL-PARAM-ERROR", "QImage::pixel() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QIMAGE-PIXEL-PARAM-ERROR", "QImage::pixel() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<QoreQPoint> positionHolder(position, xsink);
@@ -390,10 +390,10 @@ static QoreNode *QIMAGE_pixelIndex(QoreObject *self, QoreQImage *qi, const QoreL
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *position = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!position) {
          if (!xsink->isException())
-            xsink->raiseException("QIMAGE-PIXELINDEX-PARAM-ERROR", "QImage::pixelIndex() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QIMAGE-PIXELINDEX-PARAM-ERROR", "QImage::pixelIndex() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<QoreQPoint> positionHolder(position, xsink);
@@ -411,7 +411,7 @@ static QoreNode *QIMAGE_rect(QoreObject *self, QoreQImage *qi, const QoreList *p
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qi->rect());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //QImage rgbSwapped () const
@@ -420,7 +420,7 @@ static QoreNode *QIMAGE_rgbSwapped(QoreObject *self, QoreQImage *qi, const QoreL
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->rgbSwapped());
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //bool save ( const QString & fileName, const char * format = 0, int quality = -1 ) const
@@ -458,7 +458,7 @@ static QoreNode *QIMAGE_scaled(QoreObject *self, QoreQImage *qi, const QoreList 
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->scaled(width, height, aspectRatioMode, transformMode));
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //QImage scaledToHeight ( int height, Qt::TransformationMode mode = Qt::FastTransformation ) const
@@ -471,7 +471,7 @@ static QoreNode *QIMAGE_scaledToHeight(QoreObject *self, QoreQImage *qi, const Q
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->scaledToHeight(height, mode));
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //QImage scaledToWidth ( int width, Qt::TransformationMode mode = Qt::FastTransformation ) const
@@ -484,7 +484,7 @@ static QoreNode *QIMAGE_scaledToWidth(QoreObject *self, QoreQImage *qi, const Qo
    QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
    QoreQImage *q_qi = new QoreQImage(qi->scaledToWidth(width, mode));
    o_qi->setPrivate(CID_QIMAGE, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //uchar * scanLine ( int i )
@@ -500,7 +500,7 @@ static QoreNode *QIMAGE_scaledToWidth(QoreObject *self, QoreQImage *qi, const Qo
 static QoreNode *QIMAGE_setAlphaChannel(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQImage *alphaChannel = (p && p->type == NT_OBJECT) ? (QoreQImage *)p->val.object->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
+   QoreQImage *alphaChannel = (p && p->type == NT_OBJECT) ? (QoreQImage *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
    if (!alphaChannel) {
       if (!xsink->isException())
          xsink->raiseException("QIMAGE-SETALPHACHANNEL-PARAM-ERROR", "expecting a QImage object as first argument to QImage::setAlphaChannel()");
@@ -562,7 +562,7 @@ static QoreNode *QIMAGE_setNumColors(QoreObject *self, QoreQImage *qi, const Qor
 static QoreNode *QIMAGE_setOffset(QoreObject *self, QoreQImage *qi, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPoint *offset = (p && p->type == NT_OBJECT) ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *offset = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!offset) {
       if (!xsink->isException())
          xsink->raiseException("QIMAGE-SETOFFSET-PARAM-ERROR", "expecting a QPoint object as first argument to QImage::setOffset()");
@@ -579,10 +579,10 @@ static QoreNode *QIMAGE_setPixel(QoreObject *self, QoreQImage *qi, const QoreLis
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *position = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!position) {
          if (!xsink->isException())
-            xsink->raiseException("QIMAGE-SETPIXEL-PARAM-ERROR", "QImage::setPixel() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QIMAGE-SETPIXEL-PARAM-ERROR", "QImage::setPixel() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<QoreQPoint> positionHolder(position, xsink);
@@ -627,7 +627,7 @@ static QoreNode *QIMAGE_size(QoreObject *self, QoreQImage *qi, const QoreList *p
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qi->size());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //QString text ( const QString & key = QString() ) const
@@ -659,7 +659,7 @@ static QoreNode *QIMAGE_textKeys(QoreObject *self, QoreQImage *qi, const QoreLis
 //   QoreObject *o_qi = new QoreObject(self->getClass(CID_QIMAGE), getProgram());
 //   QoreQImage *q_qi = new QoreQImage(qi->transformed(matrix, mode));
 //   o_qi->setPrivate(CID_QIMAGE, q_qi);
-//   return new QoreNode(o_qi);
+//   return o_qi;
 //}
 
 //bool valid ( const QPoint & pos ) const
@@ -668,10 +668,10 @@ static QoreNode *QIMAGE_valid(QoreObject *self, QoreQImage *qi, const QoreList *
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *pos = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *pos = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!pos) {
          if (!xsink->isException())
-            xsink->raiseException("QIMAGE-VALID-PARAM-ERROR", "QImage::valid() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QIMAGE-VALID-PARAM-ERROR", "QImage::valid() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<QoreQPoint> posHolder(pos, xsink);

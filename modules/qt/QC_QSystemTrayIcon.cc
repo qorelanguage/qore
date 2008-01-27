@@ -43,9 +43,9 @@ static void QSYSTEMTRAYICON_constructor(QoreObject *self, const QoreList *params
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQIcon *icon = (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink);
+      QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
-         QoreAbstractQObject *parent = (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink);
+         QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
          if (*xsink)
             return;
          ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -54,7 +54,7 @@ static void QSYSTEMTRAYICON_constructor(QoreObject *self, const QoreList *params
       }
       ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
       p = get_param(params, 1);
-      QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+      QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
       if (*xsink)
          return;
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -83,7 +83,7 @@ static QoreNode *QSYSTEMTRAYICON_contextMenu(QoreObject *self, QoreQSystemTrayIc
       QoreQtQMenu *t_qobj = new QoreQtQMenu(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QMENU, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //QRect geometry () const
@@ -92,7 +92,7 @@ static QoreNode *QSYSTEMTRAYICON_geometry(QoreObject *self, QoreQSystemTrayIcon 
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qsti->qobj->geometry());
    o_qr->setPrivate(CID_QRECT, q_qr);
-   return new QoreNode(o_qr);
+   return o_qr;
 }
 
 //QIcon icon () const
@@ -101,7 +101,7 @@ static QoreNode *QSYSTEMTRAYICON_icon(QoreObject *self, QoreQSystemTrayIcon *qst
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qsti->qobj->icon());
    o_qi->setPrivate(CID_QICON, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //bool isVisible () const
@@ -114,7 +114,7 @@ static QoreNode *QSYSTEMTRAYICON_isVisible(QoreObject *self, QoreQSystemTrayIcon
 static QoreNode *QSYSTEMTRAYICON_setContextMenu(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreQMenu *)p->val.object->getReferencedPrivateData(CID_QMENU, xsink) : 0;
+   QoreQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreQMenu *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMENU, xsink) : 0;
    if (!menu) {
       if (!xsink->isException())
          xsink->raiseException("QSYSTEMTRAYICON-SETCONTEXTMENU-PARAM-ERROR", "expecting a QMenu object as first argument to QSystemTrayIcon::setContextMenu()");
@@ -129,7 +129,7 @@ static QoreNode *QSYSTEMTRAYICON_setContextMenu(QoreObject *self, QoreQSystemTra
 static QoreNode *QSYSTEMTRAYICON_setIcon(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QSYSTEMTRAYICON-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QSystemTrayIcon::setIcon()");

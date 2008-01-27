@@ -81,7 +81,7 @@ static QoreNode *QKEYSEQUENCE_isEmpty(QoreObject *self, QoreQKeySequence *qks, c
 static QoreNode *QKEYSEQUENCE_matches(QoreObject *self, QoreQKeySequence *qks, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQKeySequence *seq = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)p->val.object->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
+   QoreQKeySequence *seq = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
    if (!seq) {
       if (!xsink->isException())
          xsink->raiseException("QKEYSEQUENCE-MATCHES-PARAM-ERROR", "expecting a QKeySequence object as first argument to QKeySequence::matches()");

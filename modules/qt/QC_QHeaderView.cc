@@ -38,7 +38,7 @@ static void QHEADERVIEW_constructor(QoreObject *self, const QoreList *params, Ex
    QoreNode *p = get_param(params, 0);
    Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -143,10 +143,10 @@ static QoreNode *QHEADERVIEW_logicalIndexAt(QoreObject *self, QoreAbstractQHeade
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *pos = (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *pos = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!pos) {
          if (!xsink->isException())
-            xsink->raiseException("QHEADERVIEW-LOGICALINDEXAT-PARAM-ERROR", "QHeaderView::logicalIndexAt() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QHEADERVIEW-LOGICALINDEXAT-PARAM-ERROR", "QHeaderView::logicalIndexAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> posHolder(static_cast<AbstractPrivateData *>(pos), xsink);
@@ -236,7 +236,7 @@ static QoreNode *QHEADERVIEW_saveState(QoreObject *self, QoreAbstractQHeaderView
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qhv->getQHeaderView()->saveState());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //int sectionPosition ( int logicalIndex ) const
@@ -420,7 +420,7 @@ static QoreNode *QHEADERVIEW_sizeHint(QoreObject *self, QoreAbstractQHeaderView 
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qhv->getQHeaderView()->sizeHint());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //Qt::SortOrder sortIndicatorOrder () const

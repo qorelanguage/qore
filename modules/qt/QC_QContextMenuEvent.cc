@@ -37,7 +37,7 @@ static void QCONTEXTMENUEVENT_constructor(QoreObject *self, const QoreList *para
    QoreNode *p = get_param(params, 0);
    QContextMenuEvent::Reason reason = (QContextMenuEvent::Reason)(p ? p->getAsInt() : 0);
    p = test_param(params, NT_OBJECT, 1);
-   QoreQPoint *pos = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *pos = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
 	 xsink->raiseException("QCONTEXTMENUEVENT-CONSTRUCTOR-PARAM-ERROR", "QContextMenuEvent::constructor() expects a QPoint object as the second parameter");
@@ -45,10 +45,10 @@ static void QCONTEXTMENUEVENT_constructor(QoreObject *self, const QoreList *para
    }
    ReferenceHolder<QoreQPoint> posHolder(pos, xsink);
    p = test_param(params, NT_OBJECT, 2);
-   QoreQPoint *globalPos = p ? (QoreQPoint *)p->val.object->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *globalPos = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!globalPos && p) {
       if (!xsink->isException())
-	 xsink->raiseException("QCONTEXTMENUEVENT-CONSTRUCTOR-PARAM-ERROR", "QContextMenuEvent::constructor() does not know how to handle arguments of class '%s' as the third parameter", p->val.object->getClass()->getName());
+	 xsink->raiseException("QCONTEXTMENUEVENT-CONSTRUCTOR-PARAM-ERROR", "QContextMenuEvent::constructor() does not know how to handle arguments of class '%s' as the third parameter", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return;
    }
    ReferenceHolder<QoreQPoint> globalPosHolder(globalPos, xsink);
@@ -70,7 +70,7 @@ static QoreNode *QCONTEXTMENUEVENT_globalPos(QoreObject *self, QoreQContextMenuE
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qcme->globalPos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //int globalX () const
@@ -91,7 +91,7 @@ static QoreNode *QCONTEXTMENUEVENT_pos(QoreObject *self, QoreQContextMenuEvent *
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qcme->pos());
    o_qp->setPrivate(CID_QPOINT, q_qp);
-   return new QoreNode(o_qp);
+   return o_qp;
 }
 
 //Reason reason () const

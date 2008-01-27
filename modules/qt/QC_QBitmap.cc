@@ -34,10 +34,10 @@ static void QBITMAP_constructor(class QoreObject *self, const QoreList *params, 
    QoreNode *p = get_param(params, 0);
 
    if (p && p->type == NT_OBJECT) {
-      AbstractPrivateData *apd = p->val.object->getReferencedPrivateData(CID_QPIXMAP, xsink);
+      AbstractPrivateData *apd = (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink);
       if (!apd) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QBITMAP-CONSTRUCTOR-PARAM-ERROR", "QBitmap::cosntructor() cannot handle arguments of class '%s' (expecting an object derived from QPixmap)", p->val.object->getClass()->getName());
+	    xsink->raiseException("QBITMAP-CONSTRUCTOR-PARAM-ERROR", "QBitmap::cosntructor() cannot handle arguments of class '%s' (expecting an object derived from QPixmap)", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
 	 return;
       }
       ReferenceHolder<AbstractPrivateData> holder(apd, xsink);
@@ -87,7 +87,7 @@ static QoreNode *QBITMAP_clear(QoreObject *self, QoreQBitmap *qb, const QoreList
 //   QoreObject *o_qb = new QoreObject(self->getClass(CID_QBITMAP), getProgram());
 //   QoreQBitmap *q_qb = new QoreQBitmap(qb->transformed(matrix));
 //   o_qb->setPrivate(CID_QBITMAP, q_qb);
-//   return new QoreNode(o_qb);
+//   return o_qb;
 //}
 
 

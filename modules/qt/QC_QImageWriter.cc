@@ -43,10 +43,10 @@ static void QIMAGEWRITER_constructor(QoreObject *self, const QoreList *params, E
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreAbstractQIODevice *device = (QoreAbstractQIODevice *)p->val.object->getReferencedPrivateData(CID_QIODEVICE, xsink);
+      QoreAbstractQIODevice *device = (QoreAbstractQIODevice *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIODEVICE, xsink);
       if (!device) {
          if (!xsink->isException())
-            xsink->raiseException("QIMAGEWRITER-CONSTRUCTOR-PARAM-ERROR", "QImageWriter::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QIMAGEWRITER-CONSTRUCTOR-PARAM-ERROR", "QImageWriter::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> deviceHolder(static_cast<AbstractPrivateData *>(device), xsink);
@@ -100,7 +100,7 @@ static QoreNode *QIMAGEWRITER_device(QoreObject *self, QoreQImageWriter *qiw, co
       QoreQtQIODevice *t_qobj = new QoreQtQIODevice(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QIODEVICE, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 /*
@@ -129,7 +129,7 @@ static QoreNode *QIMAGEWRITER_format(QoreObject *self, QoreQImageWriter *qiw, co
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qiw->format());
    o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
-   return new QoreNode(o_qba);
+   return o_qba;
 }
 
 //float gamma () const
@@ -157,7 +157,7 @@ static QoreNode *QIMAGEWRITER_setCompression(QoreObject *self, QoreQImageWriter 
 static QoreNode *QIMAGEWRITER_setDevice(QoreObject *self, QoreQImageWriter *qiw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreAbstractQIODevice *device = (p && p->type == NT_OBJECT) ? (QoreAbstractQIODevice *)p->val.object->getReferencedPrivateData(CID_QIODEVICE, xsink) : 0;
+   QoreAbstractQIODevice *device = (p && p->type == NT_OBJECT) ? (QoreAbstractQIODevice *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIODEVICE, xsink) : 0;
    if (!device) {
       if (!xsink->isException())
          xsink->raiseException("QIMAGEWRITER-SETDEVICE-PARAM-ERROR", "expecting a QIODevice object as first argument to QImageWriter::setDevice()");
@@ -235,7 +235,7 @@ static QoreNode *QIMAGEWRITER_supportsOption(QoreObject *self, QoreQImageWriter 
 static QoreNode *QIMAGEWRITER_write(QoreObject *self, QoreQImageWriter *qiw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)p->val.object->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
+   QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
    if (!image) {
       if (!xsink->isException())
          xsink->raiseException("QIMAGEWRITER-WRITE-PARAM-ERROR", "expecting a QImage object as first argument to QImageWriter::write()");

@@ -37,7 +37,7 @@ class QoreClass *QC_QTabWidget = 0;
 static void QTABWIDGET_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -55,10 +55,10 @@ static void QTABWIDGET_copy(class QoreObject *self, class QoreObject *old, class
 static QoreNode *QTABWIDGET_addTab(QoreObject *self, QoreQTabWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *child = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *child = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!child) {
       if (!xsink->isException())
-	 xsink->raiseException("QTABWIDGET-ADDTAB-PARAM-ERROR", "QTabWidget::addTab() does not know how to handle arguments of class '%s' as passed as the first argument", p->val.object->getClass()->getName());
+	 xsink->raiseException("QTABWIDGET-ADDTAB-PARAM-ERROR", "QTabWidget::addTab() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> childHolder(static_cast<AbstractPrivateData *>(child), xsink);
@@ -66,10 +66,10 @@ static QoreNode *QTABWIDGET_addTab(QoreObject *self, QoreQTabWidget *qtw, const 
    p = get_param(params, 1);
    QString label;
    if (get_qstring(p, label, xsink, true)) {
-      QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+      QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
       if (!icon) {
          if (!xsink->isException())
-            xsink->raiseException("QTABWIDGET-ADDTAB-PARAM-ERROR", "this version of QTabWidget::addTab() expects an object derived from QIcon as the second argument", p->val.object->getClass()->getName());
+            xsink->raiseException("QTABWIDGET-ADDTAB-PARAM-ERROR", "this version of QTabWidget::addTab() expects an object derived from QIcon as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
@@ -105,7 +105,7 @@ static QoreNode *QTABWIDGET_cornerWidget(QoreObject *self, QoreQTabWidget *qtw, 
       QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QWIDGET, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //int count () const
@@ -135,7 +135,7 @@ static QoreNode *QTABWIDGET_currentWidget(QoreObject *self, QoreQTabWidget *qtw,
       QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QWIDGET, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //Qt::TextElideMode elideMode () const
@@ -150,14 +150,14 @@ static QoreNode *QTABWIDGET_iconSize(QoreObject *self, QoreQTabWidget *qtw, cons
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qtw->qobj->iconSize());
    o_qs->setPrivate(CID_QSIZE, q_qs);
-   return new QoreNode(o_qs);
+   return o_qs;
 }
 
 //int indexOf ( QWidget * w ) const
 static QoreNode *QTABWIDGET_indexOf(QoreObject *self, QoreQTabWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *w = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *w = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!w) {
       if (!xsink->isException())
          xsink->raiseException("QTABWIDGET-INDEXOF-PARAM-ERROR", "expecting a QWidget object as first argument to QTabWidget::indexOf()");
@@ -174,10 +174,10 @@ static QoreNode *QTABWIDGET_insertTab(QoreObject *self, QoreQTabWidget *qtw, con
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
-	 xsink->raiseException("QTABWIDGET-INSERTTAB-PARAM-ERROR", "QTabWidget::insertTab() does not know how to handle arguments of class '%s' as passed as the second argument", p->val.object->getClass()->getName());
+	 xsink->raiseException("QTABWIDGET-INSERTTAB-PARAM-ERROR", "QTabWidget::insertTab() does not know how to handle arguments of class '%s' as passed as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -189,10 +189,10 @@ static QoreNode *QTABWIDGET_insertTab(QoreObject *self, QoreQTabWidget *qtw, con
    if (*xsink)
       return 0;
 
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
-	 xsink->raiseException("QTABWIDGET-INSERTTAB-PARAM-ERROR", "this version of QTabWidget::insertTab() expects an object derived from QIcon as the third argument", p->val.object->getClass()->getName());
+	 xsink->raiseException("QTABWIDGET-INSERTTAB-PARAM-ERROR", "this version of QTabWidget::insertTab() expects an object derived from QIcon as the third argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
@@ -223,7 +223,7 @@ static QoreNode *QTABWIDGET_removeTab(QoreObject *self, QoreQTabWidget *qtw, con
 static QoreNode *QTABWIDGET_setCornerWidget(QoreObject *self, QoreQTabWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QTABWIDGET-SETCORNERWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QTabWidget::setCornerWidget()");
@@ -249,7 +249,7 @@ static QoreNode *QTABWIDGET_setElideMode(QoreObject *self, QoreQTabWidget *qtw, 
 static QoreNode *QTABWIDGET_setIconSize(QoreObject *self, QoreQTabWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)p->val.object->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QTABWIDGET-SETICONSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QTabWidget::setIconSize()");
@@ -277,7 +277,7 @@ static QoreNode *QTABWIDGET_setTabIcon(QoreObject *self, QoreQTabWidget *qtw, co
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)p->val.object->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QTABWIDGET-SETTABICON-PARAM-ERROR", "expecting a QIcon object as second argument to QTabWidget::setTabIcon()");
@@ -362,7 +362,7 @@ static QoreNode *QTABWIDGET_tabIcon(QoreObject *self, QoreQTabWidget *qtw, const
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qtw->qobj->tabIcon(index));
    o_qi->setPrivate(CID_QICON, q_qi);
-   return new QoreNode(o_qi);
+   return o_qi;
 }
 
 //TabPosition tabPosition () const
@@ -424,7 +424,7 @@ static QoreNode *QTABWIDGET_widget(QoreObject *self, QoreQTabWidget *qtw, const 
       QoreQtQWidget *t_qobj = new QoreQtQWidget(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QWIDGET, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //void setCurrentIndex ( int index )
@@ -440,7 +440,7 @@ static QoreNode *QTABWIDGET_setCurrentIndex(QoreObject *self, QoreQTabWidget *qt
 static QoreNode *QTABWIDGET_setCurrentWidget(QoreObject *self, QoreQTabWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)p->val.object->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QTABWIDGET-SETCURRENTWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QTabWidget::setCurrentWidget()");
@@ -455,7 +455,7 @@ static QoreNode *QTABWIDGET_setCurrentWidget(QoreObject *self, QoreQTabWidget *q
 static QoreNode *QTABWIDGET_initStyleOption(QoreObject *self, QoreQTabWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQStyleOptionTabWidgetFrame *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionTabWidgetFrame *)p->val.object->getReferencedPrivateData(CID_QSTYLEOPTIONTABWIDGETFRAME, xsink) : 0;
+   QoreQStyleOptionTabWidgetFrame *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionTabWidgetFrame *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONTABWIDGETFRAME, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QTABWIDGET-INITSTYLEOPTION-PARAM-ERROR", "expecting a QStyleOptionTabWidgetFrame object as first argument to QTabWidget::initStyleOption()");
@@ -470,7 +470,7 @@ static QoreNode *QTABWIDGET_initStyleOption(QoreObject *self, QoreQTabWidget *qt
 static QoreNode *QTABWIDGET_paintEvent(QoreObject *self, QoreQTabWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQPaintEvent *event = (p && p->type == NT_OBJECT) ? (QoreQPaintEvent *)p->val.object->getReferencedPrivateData(CID_QPAINTEVENT, xsink) : 0;
+   QoreQPaintEvent *event = (p && p->type == NT_OBJECT) ? (QoreQPaintEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QTABWIDGET-PAINTEVENT-PARAM-ERROR", "expecting a QPaintEvent object as first argument to QTabWidget::paintEvent()");
@@ -485,7 +485,7 @@ static QoreNode *QTABWIDGET_paintEvent(QoreObject *self, QoreQTabWidget *qtw, co
 static QoreNode *QTABWIDGET_setTabBar(QoreObject *self, QoreQTabWidget *qtw, const QoreList *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
-   QoreQTabBar *tb = (p && p->type == NT_OBJECT) ? (QoreQTabBar *)p->val.object->getReferencedPrivateData(CID_QTABBAR, xsink) : 0;
+   QoreQTabBar *tb = (p && p->type == NT_OBJECT) ? (QoreQTabBar *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABBAR, xsink) : 0;
    if (!tb) {
       if (!xsink->isException())
          xsink->raiseException("QTABWIDGET-SETTABBAR-PARAM-ERROR", "expecting a QTabBar object as first argument to QTabWidget::setTabBar()");
@@ -511,7 +511,7 @@ static QoreNode *QTABWIDGET_tabBar(QoreObject *self, QoreQTabWidget *qtw, const 
       QoreQtQTabBar *t_qobj = new QoreQtQTabBar(rv_obj, qt_qobj);
       rv_obj->setPrivate(CID_QTABBAR, t_qobj);
    }
-   return new QoreNode(rv_obj);
+   return rv_obj;
 }
 
 //virtual void tabInserted ( int index )

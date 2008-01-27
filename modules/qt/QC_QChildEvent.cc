@@ -36,7 +36,7 @@ static void QCHILDEVENT_constructor(QoreObject *self, const QoreList *params, Ex
    QoreNode *p = get_param(params, 0);
    QChildEvent::Type type = (QChildEvent::Type)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
-   QoreAbstractQObject *child = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)p->val.object->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreAbstractQObject *child = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!child) {
       if (!xsink->isException())
          xsink->raiseException("QCHILDEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QObject object as second argument to QChildEvent::constructor()");

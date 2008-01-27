@@ -390,21 +390,19 @@ static void addXMLElement(const char *key, QoreString *str, QoreNode *n, int ind
 	 // close node
 	 str->concat('>');
 
-	 if (n->type == NT_OBJECT)
-	 {
+	 QoreObject *o = dynamic_cast<QoreObject *>(n);
+	 if (o) {
 	    // get snapshot of data
-	    class QoreHash *h = n->val.object->copyData(xsink);
+	    TempQoreHash h(o->copyData(xsink), xsink);
 	    if (!*xsink)
 	    {
 	       if (format)
 		  str->concat('\n');
-	       makeXMLString(str, h, indent + 2, ccs, format, xsink);
+	       makeXMLString(str, *h, indent + 2, ccs, format, xsink);
 	       // indent closing entry
 	       if (format)
                   str->addch(' ', indent);
 	    }
-	    if (h)
-	       h->dereference(xsink);
 	 }
 	 else 
 	    concatSimpleValue(str, n, xsink);
