@@ -94,7 +94,7 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(bool v);
 
    protected:
-      DLLLOCAL virtual ~QoreNode();
+      DLLEXPORT virtual ~QoreNode();
 
    public:
       union node_u val;

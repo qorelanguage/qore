@@ -24,7 +24,7 @@
 
 #define _QORE_BINARYNODE_H
 
-#include <Qore/QoreNode.h>
+#include <qore/QoreNode.h>
 
 class BinaryNode : public SimpleQoreNode
 {

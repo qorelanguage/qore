@@ -436,7 +436,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
 	    // read LOB data in streaming callback mode
 	    ora_checkerr(d_ora->errhp,
 			 OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)val.ptr, &amt, 1, buf, LOB_BLOCK_SIZE,
-				    b, read_blob_callback, (ub2)0, (ub1)0), "oraReadBLOBCallback()", ds, xsink);
+				    *b, read_blob_callback, (ub2)0, (ub1)0), "oraReadBLOBCallback()", ds, xsink);
 	    rv = *xsink ? 0 : b.release();
 	 }
 	 free(buf);
@@ -854,7 +854,7 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
       return;
    }
 
-   if (n == NT_FLOAT)
+   if (ntype == NT_FLOAT)
    {
       ora_checkerr(d_ora->errhp, 
 		   OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &data.v.value->val.floatval, sizeof(double), SQLT_BDOUBLE, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindValue()", ds, xsink);
