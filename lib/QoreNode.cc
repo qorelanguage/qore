@@ -760,7 +760,7 @@ int QoreNode::getAsString(QoreString &str, int foff, class ExceptionSink *xsink)
    else if (type == NT_NULL)
       str.concat(&NullTypeString);
    else if (type == NT_FLOAT)
-      str.concat(val.floatval);
+      str.sprintf("%.9g", val.floatval);
    else 
       str.sprintf("%s (0x%08p)", getTypeName(), this);
 
