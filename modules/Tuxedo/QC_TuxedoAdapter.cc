@@ -473,7 +473,6 @@ TEST()
 //-----------------------------------------------------------------------------
 static QoreNode* cancelAsyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
-  char* err_name = (char*)"TUXEDO-ADAPTER-CANCEL-ASYNC_CALL";
   adapter->switchToSavedContext();
 
   QoreNode* n = get_param(params, 0);
@@ -488,7 +487,6 @@ static QoreNode* cancelAsyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, c
 static QoreNode* waitForAsyncReply(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
-  char* err_name = (char*)"TUXEDO-ADAPTER-WAIT-FOR-ASYNC-REPLY";
   QoreNode* n = get_param(params, 0);
   int handle = n ? n->getAsInt() : 0;
 
@@ -608,7 +606,6 @@ static QoreNode* sendConversationData(QoreObject* self, QoreTuxedoAdapter* adapt
 //-----------------------------------------------------------------------------
 static QoreNode* receiveConversationData(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
-   char* err_name = (char*)"TUXEDO-ADAPTER-RECEIVE-CONVERSATION-DATA";
    QoreNode* n = get_param(params, 0);
    long handle = (long)(n ? n->getAsBigInt() : 0);
 
@@ -933,7 +930,7 @@ static QoreNode* isTransactionRunning(QoreObject* self, QoreTuxedoAdapter* adapt
   if (res == -1) {
     return xsink->raiseExceptionArg("TUXEDO-ERROR", make_tuxedo_err_hash(tperrno, "tpgetlev"), "tpgetlev() failed with error %d.", tperrno);
   }
-  return new QoreNode(res != 0);
+  return new QoreBoolNode(res != 0);
 }
 
 //-----------------------------------------------------------------------------

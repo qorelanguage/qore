@@ -189,7 +189,7 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
       {
 #ifdef CS_BIGINT_TYPE
 	 datafmt.datatype = CS_BIGINT_TYPE;
-	 err = ct_param(m_cmd, &datafmt, &(reinterpret_cast<const QoreBigIntNode *>(val)->val), sizeof(int64), 0);
+	 err = ct_param(m_cmd, &datafmt, &(reinterpret_cast<QoreBigIntNode *>(val)->val), sizeof(int64), 0);
 #else
 	 int64 ival = reinterpret_cast<const QoreBigIntNode *>(val)->val;
 	 // if it's a 32-bit integer, bind as integer

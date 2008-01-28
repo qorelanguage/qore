@@ -809,11 +809,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     //-------------------------------------------
     if (key == "aretxtransactionschained") {
       QoreNode* n = iter.getValue();
-      if (!n || n->type != NT_BOOLEAN) {
-        xsink->raiseException(err_name, "Settings 'AreTxTransactionsChained' needs to be a boolean.");
-        return;
-      }
-      Tx_transactions_chained = n->val.boolval;
+      Tx_transactions_chained = n ? n->getAsBool() : false;
       Tx_transactions_chained_set = true;
       continue;
     }
@@ -1042,13 +1038,8 @@ long QoreTuxedoAdapter::get_flags(QoreHash* settings, long* pflags, long default
 static bool is_fml32_requested(QoreHash* settings, bool default_is_fml32, bool default_is_fml32_set, const char* err_name, ExceptionSink* xsink)
 {
   QoreNode* n = settings->getKeyValue((char*)"use_fml32");
-  if (n) {
-    if (n->type != NT_BOOLEAN) {
-      xsink->raiseException(err_name, "Settings 'use_fml32' needs to be a boolean.");
-      return false;
-    }
-    return n->val.boolval;
-  }
+  if (n)
+     return n->getAsBool();
   if (default_is_fml32_set) return default_is_fml32;
   xsink->raiseException(err_name, "Neither settings 'use_fml32' nor 'DefaultFmlType' constructor parameter were specified.");
   return false;
@@ -2249,7 +2240,7 @@ static void do_test2(bool is_fml32)
   typed_names->setKeyValue("a_carray", new QoreBigIntNode(FLD_CARRAY), &xsink);
 
   QoreTuxedoAdapter adapter;
-  QoreHash* res = adapter.generateFmlDescription(500, typed_names, is_fml32, &xsink);
+  QoreHashNode* res = adapter.generateFmlDescription(500, typed_names, is_fml32, &xsink);
   if (xsink) {
     assert(false);
   }
@@ -2335,11 +2326,9 @@ static void do_test2(bool is_fml32)
   }
   delete extracted_data;
 
-  // cleanup
-  QoreNode* aux = new QoreNode(res);
-  aux->deref(&xsink);
-  aux = new QoreNode(data);
-  aux->deref(&xsink);
+  // cleanup;
+  res->deref(&xsink);
+  data->derefAndDelete(&xsink);
 */
   typed_names->derefAndDelete(&xsink);
 }
