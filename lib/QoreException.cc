@@ -31,7 +31,7 @@ struct qore_ex_private {
       int type;
       int start_line, end_line;
       char *file;
-      QoreList *callStack;
+      QoreListNode *callStack;
       QoreNode *err, *desc, *arg;
       class QoreException *next;
 
@@ -266,7 +266,7 @@ void ExceptionSink::raiseException(QoreException *e)
    insert(e);
 }
 
-void ExceptionSink::raiseException(QoreList *n)
+void ExceptionSink::raiseException(QoreListNode *n)
 {
    insert(new QoreException(n));
 }
@@ -329,7 +329,7 @@ QoreException::QoreException(const char *e, class QoreStringNode *d) : priv(new 
    get_pgm_counter(priv->start_line, priv->end_line);
    const char *f = get_pgm_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreList(); //getCallStackList());
+   priv->callStack = new QoreListNode(); //getCallStackList());
 
    priv->err = new QoreStringNode(e);
    priv->desc = d;
@@ -347,7 +347,7 @@ ParseException::ParseException(const char *e, class QoreStringNode *d)
    get_parse_location(priv->start_line, priv->end_line);
    const char *f = get_parse_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreList(); //getCallStackList());
+   priv->callStack = new QoreListNode(); //getCallStackList());
 
    priv->err = new QoreStringNode(e);
    priv->desc = d;
@@ -364,7 +364,7 @@ ParseException::ParseException(int s_line, int e_line, const char *e, class Qore
    priv->end_line = e_line;
    const char *f = get_parse_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreList(); //getCallStackList());
+   priv->callStack = new QoreListNode(); //getCallStackList());
 
    priv->err = new QoreStringNode(e);
    priv->desc = d;
@@ -402,13 +402,13 @@ void QoreException::del(class ExceptionSink *xsink)
    delete this;
 }
 
-QoreException::QoreException(QoreList *l) : priv(new qore_ex_private)
+QoreException::QoreException(QoreListNode *l) : priv(new qore_ex_private)
 {
    priv->type = ET_USER;
    get_pgm_counter(priv->start_line, priv->end_line);   
    const char *f = get_pgm_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreList(); //getCallStackList());
+   priv->callStack = new QoreListNode(); //getCallStackList());
    priv->next = NULL;
 
    // must be a list
@@ -443,7 +443,7 @@ QoreException::QoreException(class QoreException *old, class ExceptionSink *xsin
    priv->file       = old->priv->file ? strdup(old->priv->file) : NULL;
    priv->callStack  = old->priv->callStack->copy();
    // insert current position as a rethrow entry in the new callstack
-   class QoreList *l = priv->callStack;
+   class QoreListNode *l = priv->callStack;
    const char *fn = NULL;
    QoreHashNode *n = reinterpret_cast<QoreHashNode *>(l->retrieve_entry(0));
    // get function name
@@ -474,8 +474,8 @@ QoreHashNode *QoreException::makeExceptionObject()
 
    h->setKeyValue("type", new QoreStringNode(priv->type == ET_USER ? "User" : "System"), NULL);
    h->setKeyValue("file", new QoreStringNode(priv->file), NULL);
-   h->setKeyValue("line", new QoreNode((int64)priv->start_line), NULL);
-   h->setKeyValue("endline", new QoreNode((int64)priv->end_line), NULL);
+   h->setKeyValue("line", new QoreBigIntNode(priv->start_line), NULL);
+   h->setKeyValue("endline", new QoreBigIntNode(priv->end_line), NULL);
    h->setKeyValue("callstack", priv->callStack->RefSelf(), NULL);
 
    if (priv->err)
@@ -516,7 +516,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
    {
       printe("unhandled QORE %s exception thrown", e->priv->type == ET_USER ? "User" : "System");
 
-      class QoreList *cs = e->priv->callStack;
+      class QoreListNode *cs = e->priv->callStack;
       bool found = false;
       if (cs->size())
       {
@@ -526,8 +526,8 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 QoreHashNode *h;
 	 while (true) {
 	    h = reinterpret_cast<QoreHashNode *>(cs->retrieve_entry(i));
-	    assert(h);
-	    if (h->getKeyValue("typecode")->val.intval != CT_RETHROW)
+	    assert(h);	    
+	    if ((reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("typecode")))->val != CT_RETHROW)
 	       break;
 	    i++;
 	    if (i == cs->size())
@@ -631,8 +631,8 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	    {
 	       QoreStringNode *fn = reinterpret_cast<QoreStringNode *>(h->getKeyValue("file"));
 	       const char *fns = fn ? fn->getBuffer() : NULL;
-	       int start_line = h->getKeyValue("line")->val.intval;
-	       int end_line = h->getKeyValue("endline")->val.intval;
+	       int start_line = reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("line"))->val;
+	       int end_line = reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("endline"))->val;
 	       if (!strcmp(type, "rethrow"))
 	       {
 		  if (fn)
@@ -707,10 +707,10 @@ class QoreHashNode *QoreException::getStackHash(int type, const char *class_name
    str->concat(code);
    
    h->setKeyValue("function", str, NULL);
-   h->setKeyValue("line",     new QoreNode((int64)start_line), NULL);
-   h->setKeyValue("endline",  new QoreNode((int64)end_line), NULL);
+   h->setKeyValue("line",     new QoreBigIntNode(start_line), NULL);
+   h->setKeyValue("endline",  new QoreBigIntNode(end_line), NULL);
    h->setKeyValue("file",     file ? new QoreStringNode(file) : NULL, NULL);
-   h->setKeyValue("typecode", new QoreNode((int64)type), NULL);
+   h->setKeyValue("typecode", new QoreBigIntNode(type), NULL);
    const char *tstr = 0;
    switch (type)
    {

@@ -32,7 +32,7 @@ class QoreNode *AbstractFunctionReference::eval(const QoreNode *n)
    return n->RefSelf();
 }
 
-FunctionReferenceCall::FunctionReferenceCall(class QoreNode *n_exp, class QoreList *n_args) : exp(n_exp), args(n_args)
+FunctionReferenceCall::FunctionReferenceCall(class QoreNode *n_exp, class QoreListNode *n_args) : exp(n_exp), args(n_args)
 {
    //printd(0, "FunctionReferenceCall");
 }
@@ -162,7 +162,7 @@ RunTimeObjectScopedMethodReference::~RunTimeObjectScopedMethodReference()
    obj->tDeref();
 }
 
-class QoreNode *RunTimeObjectScopedMethodReference::exec(const QoreList *args, class ExceptionSink *xsink) const
+class QoreNode *RunTimeObjectScopedMethodReference::exec(const QoreListNode *args, class ExceptionSink *xsink) const
 {
    return method->eval(obj, args, xsink);
 }
@@ -191,7 +191,7 @@ RunTimeObjectMethodReference::~RunTimeObjectMethodReference()
    free(method);
 }
 
-class QoreNode *RunTimeObjectMethodReference::exec(const QoreList *args, class ExceptionSink *xsink) const
+class QoreNode *RunTimeObjectMethodReference::exec(const QoreListNode *args, class ExceptionSink *xsink) const
 {
    return obj->getClass()->evalMethod(obj, method, args, xsink);
 }
@@ -253,14 +253,14 @@ void FunctionReference::del(class ExceptionSink *xsink)
     delete this;
 }
 
-class QoreNode *fr_user_s::eval(const QoreList *args, class ExceptionSink *xsink) const
+class QoreNode *fr_user_s::eval(const QoreListNode *args, class ExceptionSink *xsink) const
 {
    ProgramContextHelper pch(pgm);
    class QoreNode *rv = uf->eval(args, NULL, xsink);
    return rv;
 }
 
-class QoreNode *FunctionReference::exec(const QoreList *args, class ExceptionSink *xsink) const
+class QoreNode *FunctionReference::exec(const QoreListNode *args, class ExceptionSink *xsink) const
 {
    if (type == FC_USER)
       return f.user.eval(args, xsink);

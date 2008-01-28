@@ -33,7 +33,7 @@ int CID_QMAINWINDOW;
 class QoreClass *QC_QMainWindow = 0;
 
 //QMainWindow ( QWidget * parent = 0, Qt::WindowFlags flags = 0 )
-static void QMAINWINDOW_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QMAINWINDOW_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -56,7 +56,7 @@ static void QMAINWINDOW_copy(class QoreObject *self, class QoreObject *old, clas
 
 ////void addDockWidget ( Qt::DockWidgetArea area, QDockWidget * dockwidget )
 ////void addDockWidget ( Qt::DockWidgetArea area, QDockWidget * dockwidget, Qt::Orientation orientation )
-//static QoreNode *QMAINWINDOW_addDockWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_addDockWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   Qt::DockWidgetArea area = (Qt::DockWidgetArea)(p ? p->getAsInt() : 0);
@@ -69,7 +69,7 @@ static void QMAINWINDOW_copy(class QoreObject *self, class QoreObject *old, clas
 ////void addToolBar ( Qt::ToolBarArea area, QToolBar * toolbar )
 ////void addToolBar ( QToolBar * toolbar )
 ////QToolBar * addToolBar ( const QString & title )
-//static QoreNode *QMAINWINDOW_addToolBar(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_addToolBar(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
@@ -94,7 +94,7 @@ static void QMAINWINDOW_copy(class QoreObject *self, class QoreObject *old, clas
 //}
 
 //void addToolBarBreak ( Qt::ToolBarArea area = Qt::TopToolBarArea )
-static QoreNode *QMAINWINDOW_addToolBarBreak(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_addToolBarBreak(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::ToolBarArea area = (Qt::ToolBarArea)(p ? p->getAsInt() : 0);
@@ -103,7 +103,7 @@ static QoreNode *QMAINWINDOW_addToolBarBreak(QoreObject *self, QoreQMainWindow *
 }
 
 //QWidget * centralWidget () const
-static QoreNode *QMAINWINDOW_centralWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_centralWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = qmw->qobj->centralWidget();
    if (!qt_qobj)
@@ -116,15 +116,15 @@ static QoreNode *QMAINWINDOW_centralWidget(QoreObject *self, QoreQMainWindow *qm
 }
 
 //Qt::DockWidgetArea corner ( Qt::Corner corner ) const
-static QoreNode *QMAINWINDOW_corner(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_corner(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Corner corner = (Qt::Corner)(p ? p->getAsInt() : 0);
-   return new QoreNode((int64)qmw->qobj->corner(corner));
+   return new QoreBigIntNode(qmw->qobj->corner(corner));
 }
 
 //virtual QMenu * createPopupMenu ()
-static QoreNode *QMAINWINDOW_createPopupMenu(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_createPopupMenu(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QMenu *qt_qobj = qmw->qobj->createPopupMenu();
    if (!qt_qobj)
@@ -137,21 +137,21 @@ static QoreNode *QMAINWINDOW_createPopupMenu(QoreObject *self, QoreQMainWindow *
 }
 
 //DockOptions dockOptions () const
-static QoreNode *QMAINWINDOW_dockOptions(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_dockOptions(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qmw->qobj->dockOptions());
+   return new QoreBigIntNode(qmw->qobj->dockOptions());
 }
 
 ////Qt::DockWidgetArea dockWidgetArea ( QDockWidget * dockwidget ) const
-//static QoreNode *QMAINWINDOW_dockWidgetArea(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_dockWidgetArea(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QDockWidget* dockwidget = p;
-//   return new QoreNode((int64)qmw->qobj->dockWidgetArea(dockwidget));
+//   return new QoreBigIntNode(qmw->qobj->dockWidgetArea(dockwidget));
 //}
 
 //QSize iconSize () const
-static QoreNode *QMAINWINDOW_iconSize(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_iconSize(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qmw->qobj->iconSize());
@@ -160,7 +160,7 @@ static QoreNode *QMAINWINDOW_iconSize(QoreObject *self, QoreQMainWindow *qmw, co
 }
 
 ////void insertToolBar ( QToolBar * before, QToolBar * toolbar )
-//static QoreNode *QMAINWINDOW_insertToolBar(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_insertToolBar(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QToolBar* before = p;
@@ -171,7 +171,7 @@ static QoreNode *QMAINWINDOW_iconSize(QoreObject *self, QoreQMainWindow *qmw, co
 //}
 
 ////void insertToolBarBreak ( QToolBar * before )
-//static QoreNode *QMAINWINDOW_insertToolBarBreak(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_insertToolBarBreak(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QToolBar* before = p;
@@ -180,19 +180,19 @@ static QoreNode *QMAINWINDOW_iconSize(QoreObject *self, QoreQMainWindow *qmw, co
 //}
 
 //bool isAnimated () const
-static QoreNode *QMAINWINDOW_isAnimated(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_isAnimated(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qmw->qobj->isAnimated());
+   return new QoreBoolNode(qmw->qobj->isAnimated());
 }
 
 //bool isDockNestingEnabled () const
-static QoreNode *QMAINWINDOW_isDockNestingEnabled(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_isDockNestingEnabled(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qmw->qobj->isDockNestingEnabled());
+   return new QoreBoolNode(qmw->qobj->isDockNestingEnabled());
 }
 
 //QMenuBar * menuBar () const
-static QoreNode *QMAINWINDOW_menuBar(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_menuBar(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QMenuBar *qt_qobj = qmw->qobj->menuBar();
    if (!qt_qobj)
@@ -211,7 +211,7 @@ static QoreNode *QMAINWINDOW_menuBar(QoreObject *self, QoreQMainWindow *qmw, con
 }
 
 //QWidget * menuWidget () const
-static QoreNode *QMAINWINDOW_menuWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_menuWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = qmw->qobj->menuWidget();
    if (!qt_qobj)
@@ -224,7 +224,7 @@ static QoreNode *QMAINWINDOW_menuWidget(QoreObject *self, QoreQMainWindow *qmw, 
 }
 
 ////void removeDockWidget ( QDockWidget * dockwidget )
-//static QoreNode *QMAINWINDOW_removeDockWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_removeDockWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QDockWidget* dockwidget = p;
@@ -233,7 +233,7 @@ static QoreNode *QMAINWINDOW_menuWidget(QoreObject *self, QoreQMainWindow *qmw, 
 //}
 
 ////void removeToolBar ( QToolBar * toolbar )
-//static QoreNode *QMAINWINDOW_removeToolBar(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_removeToolBar(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QToolBar* toolbar = p;
@@ -242,7 +242,7 @@ static QoreNode *QMAINWINDOW_menuWidget(QoreObject *self, QoreQMainWindow *qmw, 
 //}
 
 ////void removeToolBarBreak ( QToolBar * before )
-//static QoreNode *QMAINWINDOW_removeToolBarBreak(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_removeToolBarBreak(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QToolBar* before = p;
@@ -251,7 +251,7 @@ static QoreNode *QMAINWINDOW_menuWidget(QoreObject *self, QoreQMainWindow *qmw, 
 //}
 
 //bool restoreState ( const QByteArray & state, int version = 0 )
-static QoreNode *QMAINWINDOW_restoreState(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_restoreState(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QByteArray state;
@@ -259,11 +259,11 @@ static QoreNode *QMAINWINDOW_restoreState(QoreObject *self, QoreQMainWindow *qmw
       return 0;
    p = get_param(params, 1);
    int version = p ? p->getAsInt() : 0;
-   return new QoreNode(qmw->qobj->restoreState(state, version));
+   return new QoreBoolNode(qmw->qobj->restoreState(state, version));
 }
 
 //QByteArray saveState ( int version = 0 ) const
-static QoreNode *QMAINWINDOW_saveState(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_saveState(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int version = p ? p->getAsInt() : 0;
@@ -274,7 +274,7 @@ static QoreNode *QMAINWINDOW_saveState(QoreObject *self, QoreQMainWindow *qmw, c
 }
 
 //void setCentralWidget ( QWidget * widget )
-static QoreNode *QMAINWINDOW_setCentralWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_setCentralWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -289,7 +289,7 @@ static QoreNode *QMAINWINDOW_setCentralWidget(QoreObject *self, QoreQMainWindow 
 }
 
 //void setCorner ( Qt::Corner corner, Qt::DockWidgetArea area )
-static QoreNode *QMAINWINDOW_setCorner(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_setCorner(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Corner corner = (Qt::Corner)(p ? p->getAsInt() : 0);
@@ -300,7 +300,7 @@ static QoreNode *QMAINWINDOW_setCorner(QoreObject *self, QoreQMainWindow *qmw, c
 }
 
 //void setDockOptions ( DockOptions options )
-static QoreNode *QMAINWINDOW_setDockOptions(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_setDockOptions(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMainWindow::DockOptions options = (QMainWindow::DockOptions)(p ? p->getAsInt() : 0);
@@ -309,7 +309,7 @@ static QoreNode *QMAINWINDOW_setDockOptions(QoreObject *self, QoreQMainWindow *q
 }
 
 //void setIconSize ( const QSize & iconSize )
-static QoreNode *QMAINWINDOW_setIconSize(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_setIconSize(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQSize *iconSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
@@ -324,7 +324,7 @@ static QoreNode *QMAINWINDOW_setIconSize(QoreObject *self, QoreQMainWindow *qmw,
 }
 
 //void setMenuBar ( QMenuBar * menuBar )
-static QoreNode *QMAINWINDOW_setMenuBar(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_setMenuBar(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQMenuBar *menuBar = (p && p->type == NT_OBJECT) ? (QoreQMenuBar *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMENUBAR, xsink) : 0;
@@ -339,7 +339,7 @@ static QoreNode *QMAINWINDOW_setMenuBar(QoreObject *self, QoreQMainWindow *qmw, 
 }
 
 //void setMenuWidget ( QWidget * menuBar )
-static QoreNode *QMAINWINDOW_setMenuWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_setMenuWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *menuBar = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -354,7 +354,7 @@ static QoreNode *QMAINWINDOW_setMenuWidget(QoreObject *self, QoreQMainWindow *qm
 }
 
 ////void setStatusBar ( QStatusBar * statusbar )
-//static QoreNode *QMAINWINDOW_setStatusBar(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_setStatusBar(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QStatusBar* statusbar = p;
@@ -363,7 +363,7 @@ static QoreNode *QMAINWINDOW_setMenuWidget(QoreObject *self, QoreQMainWindow *qm
 //}
 
 //void setToolButtonStyle ( Qt::ToolButtonStyle toolButtonStyle )
-static QoreNode *QMAINWINDOW_setToolButtonStyle(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_setToolButtonStyle(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::ToolButtonStyle toolButtonStyle = (Qt::ToolButtonStyle)(p ? p->getAsInt() : 0);
@@ -372,7 +372,7 @@ static QoreNode *QMAINWINDOW_setToolButtonStyle(QoreObject *self, QoreQMainWindo
 }
 
 //void setUnifiedTitleAndToolBarOnMac ( bool set )
-static QoreNode *QMAINWINDOW_setUnifiedTitleAndToolBarOnMac(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_setUnifiedTitleAndToolBarOnMac(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool set = p ? p->getAsBool() : false;
@@ -381,7 +381,7 @@ static QoreNode *QMAINWINDOW_setUnifiedTitleAndToolBarOnMac(QoreObject *self, Qo
 }
 
 ////void splitDockWidget ( QDockWidget * first, QDockWidget * second, Qt::Orientation orientation )
-//static QoreNode *QMAINWINDOW_splitDockWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_splitDockWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QDockWidget* first = p;
@@ -394,13 +394,13 @@ static QoreNode *QMAINWINDOW_setUnifiedTitleAndToolBarOnMac(QoreObject *self, Qo
 //}
 
 ////QStatusBar * statusBar () const
-//static QoreNode *QMAINWINDOW_statusBar(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_statusBar(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)qmw->qobj->statusBar());
+//   ??? return new QoreBigIntNode(qmw->qobj->statusBar());
 //}
 
 ////void tabifyDockWidget ( QDockWidget * first, QDockWidget * second )
-//static QoreNode *QMAINWINDOW_tabifyDockWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_tabifyDockWidget(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QDockWidget* first = p;
@@ -411,35 +411,35 @@ static QoreNode *QMAINWINDOW_setUnifiedTitleAndToolBarOnMac(QoreObject *self, Qo
 //}
 
 ////Qt::ToolBarArea toolBarArea ( QToolBar * toolbar ) const
-//static QoreNode *QMAINWINDOW_toolBarArea(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_toolBarArea(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QToolBar* toolbar = p;
-//   return new QoreNode((int64)qmw->qobj->toolBarArea(toolbar));
+//   return new QoreBigIntNode(qmw->qobj->toolBarArea(toolbar));
 //}
 
 ////bool toolBarBreak ( QToolBar * toolbar ) const
-//static QoreNode *QMAINWINDOW_toolBarBreak(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMAINWINDOW_toolBarBreak(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QToolBar* toolbar = p;
-//   return new QoreNode(qmw->qobj->toolBarBreak(toolbar));
+//   return new QoreBoolNode(qmw->qobj->toolBarBreak(toolbar));
 //}
 
 //Qt::ToolButtonStyle toolButtonStyle () const
-static QoreNode *QMAINWINDOW_toolButtonStyle(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_toolButtonStyle(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qmw->qobj->toolButtonStyle());
+   return new QoreBigIntNode(qmw->qobj->toolButtonStyle());
 }
 
 //bool unifiedTitleAndToolBarOnMac () const
-static QoreNode *QMAINWINDOW_unifiedTitleAndToolBarOnMac(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_unifiedTitleAndToolBarOnMac(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qmw->qobj->unifiedTitleAndToolBarOnMac());
+   return new QoreBoolNode(qmw->qobj->unifiedTitleAndToolBarOnMac());
 }
 
 //void setAnimated ( bool enabled )
-static QoreNode *QMAINWINDOW_setAnimated(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_setAnimated(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enabled = p ? p->getAsBool() : false;
@@ -448,7 +448,7 @@ static QoreNode *QMAINWINDOW_setAnimated(QoreObject *self, QoreQMainWindow *qmw,
 }
 
 //void setDockNestingEnabled ( bool enabled )
-static QoreNode *QMAINWINDOW_setDockNestingEnabled(QoreObject *self, QoreQMainWindow *qmw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMAINWINDOW_setDockNestingEnabled(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enabled = p ? p->getAsBool() : false;

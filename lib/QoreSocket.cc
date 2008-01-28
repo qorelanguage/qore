@@ -1123,14 +1123,14 @@ int QoreSocket::send(int fd, int size)
    return rc;
 }
 
-class BinaryObject *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
+class BinaryNode *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
 {
    if (!priv->sock)
       return NULL;
 
    int bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
-   class BinaryObject *b = new BinaryObject();
+   SimpleRefHolder<BinaryNode> b(new BinaryNode());
 
    char *buf = (char *)malloc(sizeof(char) * bs);
    int br = 0; // bytes received
@@ -1140,10 +1140,8 @@ class BinaryObject *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
       if ((*rc) <= 0)
       {
 	 if (*rc || !br || (!*rc && bufsize > 0))
-	 {
-	    delete b;
-	    b = NULL;
-	 }
+	    b = 0; // free binary object
+
 	 break;
       }
       b->append(buf, *rc);
@@ -1162,7 +1160,7 @@ class BinaryObject *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
    if (bufsize <= 0 && !(*rc))
       *rc = 1;
    printd(5, "QoreSocket::recvBinary() received %d byte(s), bufsize=%d, strlen=%d\n", br, bufsize, b->size());
-   return b;
+   return b.release();
 }
 
 class QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc)
@@ -1288,19 +1286,19 @@ static void do_headers(QoreString &hdr, const QoreHash *headers, int size)
 	 class QoreNode *v = hi.getValue();
 	 if (v)
 	 {
-	    {
-	       QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
-	       if (str) {
-		  hdr.sprintf("%s: %s\r\n", hi.getKey(), str->getBuffer());
-		  continue;
-	       }
+	    const QoreType *vtype = v->getType();
+
+	    if (vtype == NT_STRING) {
+	       QoreStringNode *str = reinterpret_cast<QoreStringNode *>(v);
+	       hdr.sprintf("%s: %s\r\n", hi.getKey(), str->getBuffer());
+	       continue;
 	    }
-	    if (v->type == NT_INT)
-	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), v->val.intval);
-	    else if (v->type == NT_FLOAT)
+	    if (vtype == NT_INT)
+	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), (reinterpret_cast<QoreBigIntNode *>(v))->val);
+	    else if (vtype == NT_FLOAT)
 	       hdr.sprintf("%s: %f\r\n", hi.getKey(), v->val.floatval);
-	    else if (v->type == NT_BOOLEAN)
-	       hdr.sprintf("%s: %d\r\n", hi.getKey(), v->val.boolval);
+	    else if (vtype == NT_BOOLEAN)
+	       hdr.sprintf("%s: %d\r\n", hi.getKey(), reinterpret_cast<QoreBoolNode *>(v)->b);
 	 }
       }
    }
@@ -1503,7 +1501,7 @@ class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 	 t2++;
 	 if (isdigit(*(t2)))
 	 {
-	    h->setKeyValue("status_code", new QoreNode((int64)atoi(t2)), NULL);
+	    h->setKeyValue("status_code", new QoreBigIntNode(atoi(t2)), NULL);
 	    if (strlen(t2) > 4)
 	       h->setKeyValue("status_message", new QoreStringNode(t2 + 4), NULL);
 	 }
@@ -1545,7 +1543,7 @@ void QoreSocket::doException(int rc, const char *meth, class ExceptionSink *xsin
 // receive a binary message in HTTP chunked format
 class QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
 {
-   class BinaryObject *b = new BinaryObject;
+   SimpleRefHolder<BinaryNode> b(new BinaryNode());
    class QoreString str; // for reading the size of each chunk
    
    int rc;
@@ -1561,9 +1559,8 @@ class QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Exc
 	 rc = recv(&c, 1, 0, timeout);
 	 if (rc <= 0)
 	 {
-	    delete b;
 	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
-	    return NULL;
+	    return 0;
 	 }
 	 
 	 if (!state && c == '\r')
@@ -1592,7 +1589,6 @@ class QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Exc
 	 break;
       if (size < 0)
       {
-	 delete b;
 	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%d)", size);
 	 return NULL;
       }
@@ -1608,7 +1604,6 @@ class QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Exc
 	 rc = recv((char *)str.getBuffer() + br, bs, 0, timeout);
 	 if (rc <= 0)
 	 {
-	    delete b;
 	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
 	    return NULL;
 	 }
@@ -1632,7 +1627,6 @@ class QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Exc
 	 rc = recv(crlf, 2 - br, 0, timeout);
 	 if (rc <= 0)
 	 {
-	    delete b;
 	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
 	    return NULL;
 	 }
@@ -1647,12 +1641,11 @@ class QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Exc
    TempQoreStringNode hdr(readHTTPData(timeout, &rc, 1));
    if (!hdr)
    {
-      delete b;
       doException(rc, "readHTTPChunkedBodyBinary", xsink);
       return NULL;
    }
    class QoreHashNode *h = new QoreHashNode();
-   h->setKeyValue("body", new QoreNode(b), xsink);
+   h->setKeyValue("body", b.release(), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
       return h;
@@ -2146,7 +2139,7 @@ int QoreSocket::send(const class QoreString *msg, class ExceptionSink *xsink)
    return rc;
 }
 
-int QoreSocket::send(const class BinaryObject *b)
+int QoreSocket::send(const class BinaryNode *b)
 {
    return send((char *)b->getPtr(), b->size());
 }

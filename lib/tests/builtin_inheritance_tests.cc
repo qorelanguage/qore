@@ -74,7 +74,7 @@ static void BUILTININHERITANCETESTBASE_destructor(QoreObject *self, BuiltinInher
 
 static QoreNode* BUILTININHERITANCETESTBASE_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
-  return new QoreNode((int64)1);
+  return new QoreBigIntNode(1);
 }
 
 //-----------------------------------------------------------------------------
@@ -103,7 +103,7 @@ static void BUILTININHERITANCETESTBASE2_destructor(QoreObject *self, BuiltinInhe
 
 static QoreNode* BUILTININHERITANCETESTBASE2_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
-  return new QoreNode((int64)11);
+  return new QoreBigIntNode(11);
 }
 
 //-----------------------------------------------------------------------------
@@ -143,7 +143,7 @@ static void BUILTININHERITANCETESTDESCENDANT2_destructor(QoreObject *self, Built
 
 static QoreNode* BUILTININHERITANCETESTDESCENDANT2_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
-  return new QoreNode((int64)2);
+  return new QoreBigIntNode(2);
 }
 
 //-----------------------------------------------------------------------------
@@ -182,7 +182,7 @@ static QoreNode* BUILTININHERITANCETESTDESCENDANT3_getnum(QoreObject *self, clas
   ReferenceHolder<BuiltinInheritanceTestBase> base_holder(base, xsink);
   assert(base->a_value == 1024);
 
-  return new QoreNode((int64)3);
+  return new QoreBigIntNode(3);
 }
 
 //-----------------------------------------------------------------------------
@@ -201,7 +201,7 @@ QoreClass* initBuiltinInheritanceTestDescendant3(QoreClass* base)
 //-----------------------------------------------------------------------------
 static QoreNode* BUILTININHERITANCETESTDESCENDANT4_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
-  return new QoreNode((int64)4);
+  return new QoreBigIntNode(4);
 }
 
 //-----------------------------------------------------------------------------
@@ -220,7 +220,7 @@ QoreClass* initBuiltinInheritanceTestDescendant4(QoreClass* base)
 //-----------------------------------------------------------------------------
 static QoreNode* BUILTININHERITANCETESTDESCENDANT_MULTI_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
 {
-  return new QoreNode((int64)100);
+  return new QoreBigIntNode(100);
 }
 
 //-----------------------------------------------------------------------------

@@ -71,8 +71,8 @@ class QoreProgram : public AbstractPrivateData
 
    public:
       DLLEXPORT QoreProgram();
-      DLLEXPORT class QoreNode *callFunction(const char *name, const class QoreList *args, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *callFunction(class UserFunction *func, const class QoreList *args, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *callFunction(const char *name, const class QoreListNode *args, class ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *callFunction(class UserFunction *func, const class QoreListNode *args, class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *run(class ExceptionSink *xsink);
       DLLEXPORT class QoreNode *runTopLevel(class ExceptionSink *xsink);
       DLLEXPORT void parseFileAndRun(const char *filename);
@@ -109,11 +109,11 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT int getParseOptions() const;
       DLLEXPORT void setParseOptions(int po, class ExceptionSink *xsink);
       DLLEXPORT void disableParseOptions(int po, class ExceptionSink *xsink);
-      DLLEXPORT class QoreList *getUserFunctionList();
+      DLLEXPORT class QoreListNode *getUserFunctionList();
       DLLEXPORT bool checkWarning(int code) const;
       DLLEXPORT int getWarningMask() const;
       DLLEXPORT bool checkFeature(const char *f) const;
-      DLLEXPORT class QoreList *getFeatureList() const;
+      DLLEXPORT class QoreListNode *getFeatureList() const;
       DLLEXPORT class UserFunction *findUserFunction(const char *name);
       
       DLLLOCAL QoreProgram(class QoreProgram *pgm, int po, bool ec = false, const char *ecn = NULL);
@@ -141,7 +141,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void depDeref(class ExceptionSink *xsink);
       DLLLOCAL void addFeature(const char *f);
       DLLLOCAL void addFile(char *f);
-      DLLLOCAL class QoreList *getVarList();
+      DLLLOCAL class QoreListNode *getVarList();
       // increment atomic thread counter
       DLLLOCAL void tc_inc();
       // decrement atomic thread counter

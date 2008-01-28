@@ -64,7 +64,7 @@ class T {
          return 0;
       }
 
-      DLLLOCAL virtual void emit_signal(const char *sig, const QoreList *args)
+      DLLLOCAL virtual void emit_signal(const char *sig, const QoreListNode *args)
       {
          QByteArray theSignal = QMetaObject::normalizedSignature(sig);   
          int id = qobj->metaObject()->indexOfSignal(theSignal);

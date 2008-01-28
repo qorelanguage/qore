@@ -30,7 +30,7 @@ int CID_QPAINTEVENT;
 
 class QoreClass *QC_QPaintEvent = 0;
 
-static void QPAINTEVENT_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QPAINTEVENT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQPaintEvent *qr;
 
@@ -64,7 +64,7 @@ static void QPAINTEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //const QRect & rect () const
-static QoreNode *QPAINTEVENT_rect(QoreObject *self, QoreQPaintEvent *qpe, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPAINTEVENT_rect(QoreObject *self, QoreQPaintEvent *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQRect *q_qr = new QoreQRect(qpe->rect());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
@@ -73,7 +73,7 @@ static QoreNode *QPAINTEVENT_rect(QoreObject *self, QoreQPaintEvent *qpe, const 
 }
 
 //const QRegion & region () const
-static QoreNode *QPAINTEVENT_region(QoreObject *self, QoreQPaintEvent *qpe, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPAINTEVENT_region(QoreObject *self, QoreQPaintEvent *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQRegion *q_qr = new QoreQRegion(qpe->region());
    QoreObject *o_qr = new QoreObject(QC_QRegion, getProgram());

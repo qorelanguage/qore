@@ -86,7 +86,7 @@ class QoreString {
       DLLEXPORT QoreString(int64);
       DLLEXPORT QoreString(double);
       DLLEXPORT QoreString(const class DateTime *);
-      DLLEXPORT QoreString(const class BinaryObject *);
+      DLLEXPORT QoreString(const class BinaryNode *);
       // takes ownership of the char * passed
       DLLEXPORT QoreString(char *nbuf, int nlen, int nallocated, const class QoreEncoding *enc);
       DLLEXPORT ~QoreString();
@@ -109,14 +109,14 @@ class QoreString {
       // in the following method, size refers to the number of characters, not bytes
       DLLEXPORT void concat(const QoreString *, int size, class ExceptionSink *xsink);
       DLLEXPORT void concatBase64(const char *buf, int size);
-      DLLEXPORT void concatBase64(const class BinaryObject *bin);
+      DLLEXPORT void concatBase64(const class BinaryNode *bin);
       DLLEXPORT void concatBase64(const class QoreString *str);
-      DLLEXPORT class BinaryObject *parseBase64(class ExceptionSink *xsink) const;
+      DLLEXPORT class BinaryNode *parseBase64(class ExceptionSink *xsink) const;
       DLLEXPORT class QoreString *parseBase64ToString(class ExceptionSink *xsink) const;
       DLLEXPORT void concatHex(const char *buf, int size);
-      DLLEXPORT void concatHex(const class BinaryObject *bin);
+      DLLEXPORT void concatHex(const class BinaryNode *bin);
       DLLEXPORT void concatHex(const class QoreString *str);
-      DLLEXPORT class BinaryObject *parseHex(class ExceptionSink *xsink) const;
+      DLLEXPORT class BinaryNode *parseHex(class ExceptionSink *xsink) const;
       DLLEXPORT void concat(const class DateTime *d);
       DLLEXPORT void concatISO8601DateTime(const class DateTime *d);
       DLLEXPORT void concat(const char *);

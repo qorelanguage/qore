@@ -41,13 +41,6 @@ extern char **static_argv;
 
 typedef std::map<int, const char *> qt_enum_map_t;
 
-static inline class QoreNode *make_enum(class QoreType *enum_type, int code)
-{
-   QoreNode *n = new QoreNode(enum_type);
-   n->val.intval = code;
-   return n;
-}
-
 DLLLOCAL int get_qdate(const QoreNode *n, QDate &date, class ExceptionSink *xsink);
 DLLLOCAL int get_qtime(const QoreNode *n, QTime &time, class ExceptionSink *xsink);
 DLLLOCAL int get_qdatetime(const QoreNode *n, QDateTime &dt, class ExceptionSink *xsink);

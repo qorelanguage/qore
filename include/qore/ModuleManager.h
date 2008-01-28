@@ -102,7 +102,7 @@ class ModuleManager
       // to add a directory to the QORE_AUTO_MODULE_DIR list, can only be called before init()
       DLLEXPORT static void addAutoModuleDirList(const char *strlist);
       // retuns a list of module information hashes
-      DLLEXPORT static class QoreList *getModuleList();
+      DLLEXPORT static class QoreListNode *getModuleList();
       // loads the named module at parse time, returns a non-NULL QoreString if an error occured
       DLLEXPORT static class QoreStringNode *parseLoadModule(const char *name, class QoreProgram *pgm = NULL);
       // loads the named module at run time, returns -1 if an exception was raised, 0 for OK

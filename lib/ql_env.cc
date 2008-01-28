@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static class QoreNode *f_getenv(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_getenv(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -36,7 +36,7 @@ static class QoreNode *f_getenv(const QoreList *params, ExceptionSink *xsink)
    return Env.getAsStringNode(p0->getBuffer());
 }
 
-static class QoreNode *f_setenv(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_setenv(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    QoreNode *p1;
@@ -46,15 +46,15 @@ static class QoreNode *f_setenv(const QoreList *params, ExceptionSink *xsink)
       return NULL;
 
    QoreStringValueHelper t(p1);
-   return new QoreNode((int64)Env.set(p0->getBuffer(), t->getBuffer()));
+   return new QoreBigIntNode(Env.set(p0->getBuffer(), t->getBuffer()));
 }
 
-static class QoreNode *f_unsetenv(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_unsetenv(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
-   return new QoreNode((int64)Env.unset(p0->getBuffer()));
+   return new QoreBigIntNode(Env.unset(p0->getBuffer()));
 }
 
 void init_env_functions()

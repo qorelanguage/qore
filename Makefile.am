@@ -19,7 +19,9 @@ noinst_HEADERS = \
 	include/qore/ReferenceObject.h \
 	include/qore/AbstractPrivateData.h \
 	include/qore/QoreType.h \
-	include/qore/QoreList.h \
+	include/qore/QoreListNode.h \
+	include/qore/QoreBigIntNode.h \
+	include/qore/QoreBoolNode.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
 	include/qore/BuiltinFunctionList.h \
@@ -51,7 +53,7 @@ noinst_HEADERS = \
 	include/qore/QoreLib.h \
 	include/qore/QoreCondition.h \
 	include/qore/QoreCounter.h \
-	include/qore/BinaryObject.h \
+	include/qore/BinaryNode.h \
 	include/qore/hash_map.h \
 	include/qore/QoreFtpClient.h \
 	include/qore/StringList.h \

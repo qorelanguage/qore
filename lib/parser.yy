@@ -118,15 +118,15 @@ static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class 
    return new QoreNode(new Tree(left, op, right));
 }
 
-static QoreList *makeArgs(QoreNode *arg)
+static QoreListNode *makeArgs(QoreNode *arg)
 {
    if (!arg)
       return 0;
-   QoreList *l = dynamic_cast<QoreList *>(arg);
+   QoreListNode *l = dynamic_cast<QoreListNode *>(arg);
    if (l && !l->isFinalized())
       return l;
 
-   l = new QoreList(arg->needs_eval());
+   l = new QoreListNode(arg->needs_eval());
    l->push(arg);
    return l;
 }
@@ -220,18 +220,18 @@ static void addNSNode(class QoreNamespace *ns, struct NSNode *n)
    delete n;
 }
 
-static QoreList *make_list(class QoreNode *a1, class QoreNode *a2)
+static QoreListNode *make_list(class QoreNode *a1, class QoreNode *a2)
 {
-   QoreList *l = new QoreList(1);
+   QoreListNode *l = new QoreListNode(1);
    l->push(a1);
    l->push(a2);
    return l;
 }
 
-static QoreList *splice_expressions(class QoreNode *a1, class QoreNode *a2)
+static QoreListNode *splice_expressions(class QoreNode *a1, class QoreNode *a2)
 {
    //tracein("splice_expressions()");
-   QoreList *l = dynamic_cast<QoreList *>(a1);
+   QoreListNode *l = dynamic_cast<QoreListNode *>(a1);
    if (l && !l->isFinalized())
    {
       //printd(5, "LIST x\n");
@@ -346,7 +346,7 @@ static int check_lvalue(class QoreNode *node)
 static inline int check_vars(class QoreNode *n)
 {
    {
-      QoreList *l = dynamic_cast<QoreList *>(n);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(n);
       if (l) {
 	 for (int i = 0; i < l->size(); i++)
 	    if (l->retrieve_entry(i)->type != NT_VARREF)
@@ -368,7 +368,7 @@ bool needsEval(class QoreNode *n)
       return false;
 
    {
-      QoreList *l = dynamic_cast<QoreList *>(n);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(n);
       if (l) {
 	 for (int i = 0; i <l->size(); i++) {
 	    if (needsEval(l->retrieve_entry(i)))
@@ -494,10 +494,10 @@ struct MethodNode {
       double decimal;
       class QoreStringNode *String;
       char *string;
-      class BinaryObject *binary;
+      class BinaryNode *binary;
       class QoreNode *node;
       QoreHashNode *hash;
-      QoreList *list;
+      QoreListNode *list;
       class AbstractStatement *statement;
       class StatementBlock *sblock;
       class ContextModList *cmods;
@@ -715,8 +715,8 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 %type <bcanode>     base_constructor
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { if ($$) delete $$; } BINARY REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
-%destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME
+%destructor { if ($$) delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
+%destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY
 %destructor { if ($$) $$->deref(NULL); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
 
@@ -890,7 +890,7 @@ statement:
 	   // if the expression has no effect and it's not a variable declaration
 	   if (!hasEffect($1)
 	       && ($1->type != NT_VARREF || $1->val.vref->type == VT_UNRESOLVED)
-	       && ($1->type != NT_LIST || !(reinterpret_cast<QoreList *>($1))->isVariableList()))
+	       && ($1->type != NT_LIST || !(reinterpret_cast<QoreListNode *>($1))->isVariableList()))
 	      parse_error("statement has no effect (%s)", $1->type->getName());
 	   if ($1->type == NT_TREE)
 	      $1->val.tree->ignoreReturnValue();
@@ -1407,11 +1407,11 @@ list:
         { $$ = splice_expressions($1, $3); }
         | exp ','
         {
-	   QoreList *l = dynamic_cast<QoreList *>($1);
+	   QoreListNode *l = dynamic_cast<QoreListNode *>($1);
 	   if (!l) {
 	      parse_error("problem in parsing ',' in list: left is not a list (type: '%s'", $1->getTypeName());
 	      // so we don't insert null values in the parse tree
-	      l = new QoreList();
+	      l = new QoreListNode();
 	   }
 	   $$ = l;
         }
@@ -1446,7 +1446,7 @@ hash_element:
 exp:    scalar
         { $$ = $1; }
         | BINARY
-        { $$ = new QoreNode($1); }
+        { $$ = $1; }
         | list
         { $$ = $1; }
 	| '(' hash ')'
@@ -1613,7 +1613,7 @@ exp:    scalar
 	}
 	| exp '=' exp
         {
-	   QoreList *l = dynamic_cast<QoreList *>($1);
+	   QoreListNode *l = dynamic_cast<QoreListNode *>($1);
 	   if (l) {
 	      bool ok = true;
 	      for (int i = 0; i < l->size(); i++)
@@ -1658,7 +1658,7 @@ exp:    scalar
         { $$ = makeTree(OP_KEYS, $2, NULL); }
         | TOK_UNSHIFT exp  // unshift list, element
         {
-	   QoreList *l = dynamic_cast<QoreList *>($2);
+	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->type->getName());
 	      $$ = makeErrorTree(OP_UNSHIFT, $2, NULL);
@@ -1687,7 +1687,7 @@ exp:    scalar
 	}
         | TOK_PUSH exp  // push lvalue-list, element
         {
-	   QoreList *l = dynamic_cast<QoreList *>($2);
+	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->type->getName());
 	      $$ = makeErrorTree(OP_PUSH, $2, NULL);
@@ -1737,7 +1737,7 @@ exp:    scalar
 	}
         | TOK_SPLICE exp  // splice lvalue-list, offset, [length, list]
         {
-	   QoreList *l = dynamic_cast<QoreList *>($2);
+	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
 	   if (!l || l->size() < 2 || l->size() > 4) {
 	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (%s)", $2->type->getName());
 	      $$ = makeErrorTree(OP_SPLICE, $2, NULL);
@@ -2028,11 +2028,11 @@ exp:    scalar
 	| '(' exp ')'                
         { 
 	   $$ = $2;
-	   QoreList *l = dynamic_cast<QoreList *>($2);
+	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
 	   if (l)
 	      l->setFinalized(); 
 	}
-        | '(' ')' { QoreList *l = new QoreList(); l->setFinalized(); $$ = l; }
+        | '(' ')' { QoreListNode *l = new QoreListNode(); l->setFinalized(); $$ = l; }
 	;
 
 string:
@@ -2049,7 +2049,7 @@ string:
 
 scalar:
 	QFLOAT        { $$ = new QoreNode(NT_FLOAT); $$->val.floatval = $1; }
-        | INTEGER     { $$ = new QoreNode($1); }
+        | INTEGER     { $$ = new QoreBigIntNode($1); }
         | string      { $$ = $1; }
         | DATETIME    { $$ = $1; }
         | TOK_NULL    { $$ = new QoreNode(NT_NULL); }

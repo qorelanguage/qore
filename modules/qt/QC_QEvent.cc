@@ -30,7 +30,7 @@ int CID_QEVENT;
 
 class QoreClass *QC_QEvent = 0;
 
-static void QEVENT_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QEVENT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
 
@@ -45,27 +45,27 @@ static void QEVENT_copy(class QoreObject *self, class QoreObject *old, class Qor
 }
 
 //void accept ()
-static QoreNode *QEVENT_accept(QoreObject *self, QoreQEvent *qe, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QEVENT_accept(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
    qe->accept();
    return 0;
 }
 
 //void ignore ()
-static QoreNode *QEVENT_ignore(QoreObject *self, QoreQEvent *qe, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QEVENT_ignore(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
    qe->ignore();
    return 0;
 }
 
 //bool isAccepted () const
-static QoreNode *QEVENT_isAccepted(QoreObject *self, QoreQEvent *qe, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QEVENT_isAccepted(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qe->isAccepted());
+   return new QoreBoolNode(qe->isAccepted());
 }
 
 //void setAccepted ( bool accepted )
-static QoreNode *QEVENT_setAccepted(QoreObject *self, QoreQEvent *qe, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QEVENT_setAccepted(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool accepted = p ? p->getAsBool() : false;
@@ -74,15 +74,15 @@ static QoreNode *QEVENT_setAccepted(QoreObject *self, QoreQEvent *qe, const Qore
 }
 
 //bool spontaneous () const
-static QoreNode *QEVENT_spontaneous(QoreObject *self, QoreQEvent *qe, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QEVENT_spontaneous(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qe->spontaneous());
+   return new QoreBoolNode(qe->spontaneous());
 }
 
 //Type type () const
-static QoreNode *QEVENT_type(QoreObject *self, QoreQEvent *qe, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QEVENT_type(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qe->type());
+   return new QoreBigIntNode(qe->type());
 }
 
 static class QoreClass *initQEventClass()
@@ -140,146 +140,146 @@ QoreNamespace *initQEventNS()
    ns->addSystemClass(initQHelpEventClass(qevent));
 
    // Type enum
-   ns->addConstant("None",                     new QoreNode((int64)QEvent::None));
-   ns->addConstant("Timer",                    new QoreNode((int64)QEvent::Timer));
-   ns->addConstant("MouseButtonPress",         new QoreNode((int64)QEvent::MouseButtonPress));
-   ns->addConstant("MouseButtonRelease",       new QoreNode((int64)QEvent::MouseButtonRelease));
-   ns->addConstant("MouseButtonDblClick",      new QoreNode((int64)QEvent::MouseButtonDblClick));
-   ns->addConstant("MouseMove",                new QoreNode((int64)QEvent::MouseMove));
-   ns->addConstant("KeyPress",                 new QoreNode((int64)QEvent::KeyPress));
-   ns->addConstant("KeyRelease",               new QoreNode((int64)QEvent::KeyRelease));
-   ns->addConstant("FocusIn",                  new QoreNode((int64)QEvent::FocusIn));
-   ns->addConstant("FocusOut",                 new QoreNode((int64)QEvent::FocusOut));
-   ns->addConstant("Enter",                    new QoreNode((int64)QEvent::Enter));
-   ns->addConstant("Leave",                    new QoreNode((int64)QEvent::Leave));
-   ns->addConstant("Paint",                    new QoreNode((int64)QEvent::Paint));
-   ns->addConstant("Move",                     new QoreNode((int64)QEvent::Move));
-   ns->addConstant("Resize",                   new QoreNode((int64)QEvent::Resize));
-   ns->addConstant("Create",                   new QoreNode((int64)QEvent::Create));
-   ns->addConstant("Destroy",                  new QoreNode((int64)QEvent::Destroy));
-   ns->addConstant("Show",                     new QoreNode((int64)QEvent::Show));
-   ns->addConstant("Hide",                     new QoreNode((int64)QEvent::Hide));
-   ns->addConstant("Close",                    new QoreNode((int64)QEvent::Close));
-   ns->addConstant("Quit",                     new QoreNode((int64)QEvent::Quit));
-   ns->addConstant("ParentChange",             new QoreNode((int64)QEvent::ParentChange));
-   ns->addConstant("ParentAboutToChange",      new QoreNode((int64)QEvent::ParentAboutToChange));
-   ns->addConstant("ThreadChange",             new QoreNode((int64)QEvent::ThreadChange));
-   ns->addConstant("WindowActivate",           new QoreNode((int64)QEvent::WindowActivate));
-   ns->addConstant("WindowDeactivate",         new QoreNode((int64)QEvent::WindowDeactivate));
-   ns->addConstant("ShowToParent",             new QoreNode((int64)QEvent::ShowToParent));
-   ns->addConstant("HideToParent",             new QoreNode((int64)QEvent::HideToParent));
-   ns->addConstant("Wheel",                    new QoreNode((int64)QEvent::Wheel));
-   ns->addConstant("WindowTitleChange",        new QoreNode((int64)QEvent::WindowTitleChange));
-   ns->addConstant("WindowIconChange",         new QoreNode((int64)QEvent::WindowIconChange));
-   ns->addConstant("ApplicationWindowIconChange", new QoreNode((int64)QEvent::ApplicationWindowIconChange));
-   ns->addConstant("ApplicationFontChange",    new QoreNode((int64)QEvent::ApplicationFontChange));
-   ns->addConstant("ApplicationLayoutDirectionChange", new QoreNode((int64)QEvent::ApplicationLayoutDirectionChange));
-   ns->addConstant("ApplicationPaletteChange", new QoreNode((int64)QEvent::ApplicationPaletteChange));
-   ns->addConstant("PaletteChange",            new QoreNode((int64)QEvent::PaletteChange));
-   ns->addConstant("Clipboard",                new QoreNode((int64)QEvent::Clipboard));
-   ns->addConstant("Speech",                   new QoreNode((int64)QEvent::Speech));
-   ns->addConstant("MetaCall",                 new QoreNode((int64)QEvent::MetaCall));
-   ns->addConstant("SockAct",                  new QoreNode((int64)QEvent::SockAct));
-   ns->addConstant("WinEventAct",              new QoreNode((int64)QEvent::WinEventAct));
-   ns->addConstant("DeferredDelete",           new QoreNode((int64)QEvent::DeferredDelete));
-   ns->addConstant("DragEnter",                new QoreNode((int64)QEvent::DragEnter));
-   ns->addConstant("DragMove",                 new QoreNode((int64)QEvent::DragMove));
-   ns->addConstant("DragLeave",                new QoreNode((int64)QEvent::DragLeave));
-   ns->addConstant("Drop",                     new QoreNode((int64)QEvent::Drop));
-   ns->addConstant("DragResponse",             new QoreNode((int64)QEvent::DragResponse));
-   ns->addConstant("ChildAdded",               new QoreNode((int64)QEvent::ChildAdded));
-   ns->addConstant("ChildPolished",            new QoreNode((int64)QEvent::ChildPolished));
-   ns->addConstant("ChildRemoved",             new QoreNode((int64)QEvent::ChildRemoved));
-   ns->addConstant("ShowWindowRequest",        new QoreNode((int64)QEvent::ShowWindowRequest));
-   ns->addConstant("PolishRequest",            new QoreNode((int64)QEvent::PolishRequest));
-   ns->addConstant("Polish",                   new QoreNode((int64)QEvent::Polish));
-   ns->addConstant("LayoutRequest",            new QoreNode((int64)QEvent::LayoutRequest));
-   ns->addConstant("UpdateRequest",            new QoreNode((int64)QEvent::UpdateRequest));
-   ns->addConstant("UpdateLater",              new QoreNode((int64)QEvent::UpdateLater));
-   ns->addConstant("EmbeddingControl",         new QoreNode((int64)QEvent::EmbeddingControl));
-   ns->addConstant("ActivateControl",          new QoreNode((int64)QEvent::ActivateControl));
-   ns->addConstant("DeactivateControl",        new QoreNode((int64)QEvent::DeactivateControl));
-   ns->addConstant("ContextMenu",              new QoreNode((int64)QEvent::ContextMenu));
-   ns->addConstant("InputMethod",              new QoreNode((int64)QEvent::InputMethod));
-   ns->addConstant("AccessibilityPrepare",     new QoreNode((int64)QEvent::AccessibilityPrepare));
-   ns->addConstant("TabletMove",               new QoreNode((int64)QEvent::TabletMove));
-   ns->addConstant("LocaleChange",             new QoreNode((int64)QEvent::LocaleChange));
-   ns->addConstant("LanguageChange",           new QoreNode((int64)QEvent::LanguageChange));
-   ns->addConstant("LayoutDirectionChange",    new QoreNode((int64)QEvent::LayoutDirectionChange));
-   ns->addConstant("Style",                    new QoreNode((int64)QEvent::Style));
-   ns->addConstant("TabletPress",              new QoreNode((int64)QEvent::TabletPress));
-   ns->addConstant("TabletRelease",            new QoreNode((int64)QEvent::TabletRelease));
-   ns->addConstant("OkRequest",                new QoreNode((int64)QEvent::OkRequest));
-   ns->addConstant("HelpRequest",              new QoreNode((int64)QEvent::HelpRequest));
-   ns->addConstant("IconDrag",                 new QoreNode((int64)QEvent::IconDrag));
-   ns->addConstant("FontChange",               new QoreNode((int64)QEvent::FontChange));
-   ns->addConstant("EnabledChange",            new QoreNode((int64)QEvent::EnabledChange));
-   ns->addConstant("ActivationChange",         new QoreNode((int64)QEvent::ActivationChange));
-   ns->addConstant("StyleChange",              new QoreNode((int64)QEvent::StyleChange));
-   ns->addConstant("IconTextChange",           new QoreNode((int64)QEvent::IconTextChange));
-   ns->addConstant("ModifiedChange",           new QoreNode((int64)QEvent::ModifiedChange));
-   ns->addConstant("MouseTrackingChange",      new QoreNode((int64)QEvent::MouseTrackingChange));
-   ns->addConstant("WindowBlocked",            new QoreNode((int64)QEvent::WindowBlocked));
-   ns->addConstant("WindowUnblocked",          new QoreNode((int64)QEvent::WindowUnblocked));
-   ns->addConstant("WindowStateChange",        new QoreNode((int64)QEvent::WindowStateChange));
-   ns->addConstant("ToolTip",                  new QoreNode((int64)QEvent::ToolTip));
-   ns->addConstant("WhatsThis",                new QoreNode((int64)QEvent::WhatsThis));
-   ns->addConstant("StatusTip",                new QoreNode((int64)QEvent::StatusTip));
-   ns->addConstant("ActionChanged",            new QoreNode((int64)QEvent::ActionChanged));
-   ns->addConstant("ActionAdded",              new QoreNode((int64)QEvent::ActionAdded));
-   ns->addConstant("ActionRemoved",            new QoreNode((int64)QEvent::ActionRemoved));
-   ns->addConstant("FileOpen",                 new QoreNode((int64)QEvent::FileOpen));
-   ns->addConstant("Shortcut",                 new QoreNode((int64)QEvent::Shortcut));
-   ns->addConstant("ShortcutOverride",         new QoreNode((int64)QEvent::ShortcutOverride));
-   ns->addConstant("WhatsThisClicked",         new QoreNode((int64)QEvent::WhatsThisClicked));
-   ns->addConstant("ToolBarChange",            new QoreNode((int64)QEvent::ToolBarChange));
-   ns->addConstant("ApplicationActivate",      new QoreNode((int64)QEvent::ApplicationActivate));
-   ns->addConstant("ApplicationActivated",     new QoreNode((int64)QEvent::ApplicationActivated));
-   ns->addConstant("ApplicationDeactivate",    new QoreNode((int64)QEvent::ApplicationDeactivate));
-   ns->addConstant("ApplicationDeactivated",   new QoreNode((int64)QEvent::ApplicationDeactivated));
-   ns->addConstant("QueryWhatsThis",           new QoreNode((int64)QEvent::QueryWhatsThis));
-   ns->addConstant("EnterWhatsThisMode",       new QoreNode((int64)QEvent::EnterWhatsThisMode));
-   ns->addConstant("LeaveWhatsThisMode",       new QoreNode((int64)QEvent::LeaveWhatsThisMode));
-   ns->addConstant("ZOrderChange",             new QoreNode((int64)QEvent::ZOrderChange));
-   ns->addConstant("HoverEnter",               new QoreNode((int64)QEvent::HoverEnter));
-   ns->addConstant("HoverLeave",               new QoreNode((int64)QEvent::HoverLeave));
-   ns->addConstant("HoverMove",                new QoreNode((int64)QEvent::HoverMove));
-   ns->addConstant("AccessibilityHelp",        new QoreNode((int64)QEvent::AccessibilityHelp));
-   ns->addConstant("AccessibilityDescription", new QoreNode((int64)QEvent::AccessibilityDescription));
+   ns->addConstant("None",                     new QoreBigIntNode(QEvent::None));
+   ns->addConstant("Timer",                    new QoreBigIntNode(QEvent::Timer));
+   ns->addConstant("MouseButtonPress",         new QoreBigIntNode(QEvent::MouseButtonPress));
+   ns->addConstant("MouseButtonRelease",       new QoreBigIntNode(QEvent::MouseButtonRelease));
+   ns->addConstant("MouseButtonDblClick",      new QoreBigIntNode(QEvent::MouseButtonDblClick));
+   ns->addConstant("MouseMove",                new QoreBigIntNode(QEvent::MouseMove));
+   ns->addConstant("KeyPress",                 new QoreBigIntNode(QEvent::KeyPress));
+   ns->addConstant("KeyRelease",               new QoreBigIntNode(QEvent::KeyRelease));
+   ns->addConstant("FocusIn",                  new QoreBigIntNode(QEvent::FocusIn));
+   ns->addConstant("FocusOut",                 new QoreBigIntNode(QEvent::FocusOut));
+   ns->addConstant("Enter",                    new QoreBigIntNode(QEvent::Enter));
+   ns->addConstant("Leave",                    new QoreBigIntNode(QEvent::Leave));
+   ns->addConstant("Paint",                    new QoreBigIntNode(QEvent::Paint));
+   ns->addConstant("Move",                     new QoreBigIntNode(QEvent::Move));
+   ns->addConstant("Resize",                   new QoreBigIntNode(QEvent::Resize));
+   ns->addConstant("Create",                   new QoreBigIntNode(QEvent::Create));
+   ns->addConstant("Destroy",                  new QoreBigIntNode(QEvent::Destroy));
+   ns->addConstant("Show",                     new QoreBigIntNode(QEvent::Show));
+   ns->addConstant("Hide",                     new QoreBigIntNode(QEvent::Hide));
+   ns->addConstant("Close",                    new QoreBigIntNode(QEvent::Close));
+   ns->addConstant("Quit",                     new QoreBigIntNode(QEvent::Quit));
+   ns->addConstant("ParentChange",             new QoreBigIntNode(QEvent::ParentChange));
+   ns->addConstant("ParentAboutToChange",      new QoreBigIntNode(QEvent::ParentAboutToChange));
+   ns->addConstant("ThreadChange",             new QoreBigIntNode(QEvent::ThreadChange));
+   ns->addConstant("WindowActivate",           new QoreBigIntNode(QEvent::WindowActivate));
+   ns->addConstant("WindowDeactivate",         new QoreBigIntNode(QEvent::WindowDeactivate));
+   ns->addConstant("ShowToParent",             new QoreBigIntNode(QEvent::ShowToParent));
+   ns->addConstant("HideToParent",             new QoreBigIntNode(QEvent::HideToParent));
+   ns->addConstant("Wheel",                    new QoreBigIntNode(QEvent::Wheel));
+   ns->addConstant("WindowTitleChange",        new QoreBigIntNode(QEvent::WindowTitleChange));
+   ns->addConstant("WindowIconChange",         new QoreBigIntNode(QEvent::WindowIconChange));
+   ns->addConstant("ApplicationWindowIconChange", new QoreBigIntNode(QEvent::ApplicationWindowIconChange));
+   ns->addConstant("ApplicationFontChange",    new QoreBigIntNode(QEvent::ApplicationFontChange));
+   ns->addConstant("ApplicationLayoutDirectionChange", new QoreBigIntNode(QEvent::ApplicationLayoutDirectionChange));
+   ns->addConstant("ApplicationPaletteChange", new QoreBigIntNode(QEvent::ApplicationPaletteChange));
+   ns->addConstant("PaletteChange",            new QoreBigIntNode(QEvent::PaletteChange));
+   ns->addConstant("Clipboard",                new QoreBigIntNode(QEvent::Clipboard));
+   ns->addConstant("Speech",                   new QoreBigIntNode(QEvent::Speech));
+   ns->addConstant("MetaCall",                 new QoreBigIntNode(QEvent::MetaCall));
+   ns->addConstant("SockAct",                  new QoreBigIntNode(QEvent::SockAct));
+   ns->addConstant("WinEventAct",              new QoreBigIntNode(QEvent::WinEventAct));
+   ns->addConstant("DeferredDelete",           new QoreBigIntNode(QEvent::DeferredDelete));
+   ns->addConstant("DragEnter",                new QoreBigIntNode(QEvent::DragEnter));
+   ns->addConstant("DragMove",                 new QoreBigIntNode(QEvent::DragMove));
+   ns->addConstant("DragLeave",                new QoreBigIntNode(QEvent::DragLeave));
+   ns->addConstant("Drop",                     new QoreBigIntNode(QEvent::Drop));
+   ns->addConstant("DragResponse",             new QoreBigIntNode(QEvent::DragResponse));
+   ns->addConstant("ChildAdded",               new QoreBigIntNode(QEvent::ChildAdded));
+   ns->addConstant("ChildPolished",            new QoreBigIntNode(QEvent::ChildPolished));
+   ns->addConstant("ChildRemoved",             new QoreBigIntNode(QEvent::ChildRemoved));
+   ns->addConstant("ShowWindowRequest",        new QoreBigIntNode(QEvent::ShowWindowRequest));
+   ns->addConstant("PolishRequest",            new QoreBigIntNode(QEvent::PolishRequest));
+   ns->addConstant("Polish",                   new QoreBigIntNode(QEvent::Polish));
+   ns->addConstant("LayoutRequest",            new QoreBigIntNode(QEvent::LayoutRequest));
+   ns->addConstant("UpdateRequest",            new QoreBigIntNode(QEvent::UpdateRequest));
+   ns->addConstant("UpdateLater",              new QoreBigIntNode(QEvent::UpdateLater));
+   ns->addConstant("EmbeddingControl",         new QoreBigIntNode(QEvent::EmbeddingControl));
+   ns->addConstant("ActivateControl",          new QoreBigIntNode(QEvent::ActivateControl));
+   ns->addConstant("DeactivateControl",        new QoreBigIntNode(QEvent::DeactivateControl));
+   ns->addConstant("ContextMenu",              new QoreBigIntNode(QEvent::ContextMenu));
+   ns->addConstant("InputMethod",              new QoreBigIntNode(QEvent::InputMethod));
+   ns->addConstant("AccessibilityPrepare",     new QoreBigIntNode(QEvent::AccessibilityPrepare));
+   ns->addConstant("TabletMove",               new QoreBigIntNode(QEvent::TabletMove));
+   ns->addConstant("LocaleChange",             new QoreBigIntNode(QEvent::LocaleChange));
+   ns->addConstant("LanguageChange",           new QoreBigIntNode(QEvent::LanguageChange));
+   ns->addConstant("LayoutDirectionChange",    new QoreBigIntNode(QEvent::LayoutDirectionChange));
+   ns->addConstant("Style",                    new QoreBigIntNode(QEvent::Style));
+   ns->addConstant("TabletPress",              new QoreBigIntNode(QEvent::TabletPress));
+   ns->addConstant("TabletRelease",            new QoreBigIntNode(QEvent::TabletRelease));
+   ns->addConstant("OkRequest",                new QoreBigIntNode(QEvent::OkRequest));
+   ns->addConstant("HelpRequest",              new QoreBigIntNode(QEvent::HelpRequest));
+   ns->addConstant("IconDrag",                 new QoreBigIntNode(QEvent::IconDrag));
+   ns->addConstant("FontChange",               new QoreBigIntNode(QEvent::FontChange));
+   ns->addConstant("EnabledChange",            new QoreBigIntNode(QEvent::EnabledChange));
+   ns->addConstant("ActivationChange",         new QoreBigIntNode(QEvent::ActivationChange));
+   ns->addConstant("StyleChange",              new QoreBigIntNode(QEvent::StyleChange));
+   ns->addConstant("IconTextChange",           new QoreBigIntNode(QEvent::IconTextChange));
+   ns->addConstant("ModifiedChange",           new QoreBigIntNode(QEvent::ModifiedChange));
+   ns->addConstant("MouseTrackingChange",      new QoreBigIntNode(QEvent::MouseTrackingChange));
+   ns->addConstant("WindowBlocked",            new QoreBigIntNode(QEvent::WindowBlocked));
+   ns->addConstant("WindowUnblocked",          new QoreBigIntNode(QEvent::WindowUnblocked));
+   ns->addConstant("WindowStateChange",        new QoreBigIntNode(QEvent::WindowStateChange));
+   ns->addConstant("ToolTip",                  new QoreBigIntNode(QEvent::ToolTip));
+   ns->addConstant("WhatsThis",                new QoreBigIntNode(QEvent::WhatsThis));
+   ns->addConstant("StatusTip",                new QoreBigIntNode(QEvent::StatusTip));
+   ns->addConstant("ActionChanged",            new QoreBigIntNode(QEvent::ActionChanged));
+   ns->addConstant("ActionAdded",              new QoreBigIntNode(QEvent::ActionAdded));
+   ns->addConstant("ActionRemoved",            new QoreBigIntNode(QEvent::ActionRemoved));
+   ns->addConstant("FileOpen",                 new QoreBigIntNode(QEvent::FileOpen));
+   ns->addConstant("Shortcut",                 new QoreBigIntNode(QEvent::Shortcut));
+   ns->addConstant("ShortcutOverride",         new QoreBigIntNode(QEvent::ShortcutOverride));
+   ns->addConstant("WhatsThisClicked",         new QoreBigIntNode(QEvent::WhatsThisClicked));
+   ns->addConstant("ToolBarChange",            new QoreBigIntNode(QEvent::ToolBarChange));
+   ns->addConstant("ApplicationActivate",      new QoreBigIntNode(QEvent::ApplicationActivate));
+   ns->addConstant("ApplicationActivated",     new QoreBigIntNode(QEvent::ApplicationActivated));
+   ns->addConstant("ApplicationDeactivate",    new QoreBigIntNode(QEvent::ApplicationDeactivate));
+   ns->addConstant("ApplicationDeactivated",   new QoreBigIntNode(QEvent::ApplicationDeactivated));
+   ns->addConstant("QueryWhatsThis",           new QoreBigIntNode(QEvent::QueryWhatsThis));
+   ns->addConstant("EnterWhatsThisMode",       new QoreBigIntNode(QEvent::EnterWhatsThisMode));
+   ns->addConstant("LeaveWhatsThisMode",       new QoreBigIntNode(QEvent::LeaveWhatsThisMode));
+   ns->addConstant("ZOrderChange",             new QoreBigIntNode(QEvent::ZOrderChange));
+   ns->addConstant("HoverEnter",               new QoreBigIntNode(QEvent::HoverEnter));
+   ns->addConstant("HoverLeave",               new QoreBigIntNode(QEvent::HoverLeave));
+   ns->addConstant("HoverMove",                new QoreBigIntNode(QEvent::HoverMove));
+   ns->addConstant("AccessibilityHelp",        new QoreBigIntNode(QEvent::AccessibilityHelp));
+   ns->addConstant("AccessibilityDescription", new QoreBigIntNode(QEvent::AccessibilityDescription));
 #ifdef QT_KEYPAD_NAVIGATION
-   ns->addConstant("EnterEditFocus",           new QoreNode((int64)QEvent::EnterEditFocus));
-   ns->addConstant("LeaveEditFocus",           new QoreNode((int64)QEvent::LeaveEditFocus));
+   ns->addConstant("EnterEditFocus",           new QoreBigIntNode(QEvent::EnterEditFocus));
+   ns->addConstant("LeaveEditFocus",           new QoreBigIntNode(QEvent::LeaveEditFocus));
 #endif
-   ns->addConstant("AcceptDropsChange",        new QoreNode((int64)QEvent::AcceptDropsChange));
-   ns->addConstant("MenubarUpdated",           new QoreNode((int64)QEvent::MenubarUpdated));
-   ns->addConstant("ZeroTimerEvent",           new QoreNode((int64)QEvent::ZeroTimerEvent));
-   ns->addConstant("GraphicsSceneMouseMove",   new QoreNode((int64)QEvent::GraphicsSceneMouseMove));
-   ns->addConstant("GraphicsSceneMousePress",  new QoreNode((int64)QEvent::GraphicsSceneMousePress));
-   ns->addConstant("GraphicsSceneMouseRelease", new QoreNode((int64)QEvent::GraphicsSceneMouseRelease));
-   ns->addConstant("GraphicsSceneMouseDoubleClick", new QoreNode((int64)QEvent::GraphicsSceneMouseDoubleClick));
-   ns->addConstant("GraphicsSceneContextMenu", new QoreNode((int64)QEvent::GraphicsSceneContextMenu));
-   ns->addConstant("GraphicsSceneHoverEnter",  new QoreNode((int64)QEvent::GraphicsSceneHoverEnter));
-   ns->addConstant("GraphicsSceneHoverMove",   new QoreNode((int64)QEvent::GraphicsSceneHoverMove));
-   ns->addConstant("GraphicsSceneHoverLeave",  new QoreNode((int64)QEvent::GraphicsSceneHoverLeave));
-   ns->addConstant("GraphicsSceneHelp",        new QoreNode((int64)QEvent::GraphicsSceneHelp));
-   ns->addConstant("GraphicsSceneDragEnter",   new QoreNode((int64)QEvent::GraphicsSceneDragEnter));
-   ns->addConstant("GraphicsSceneDragMove",    new QoreNode((int64)QEvent::GraphicsSceneDragMove));
-   ns->addConstant("GraphicsSceneDragLeave",   new QoreNode((int64)QEvent::GraphicsSceneDragLeave));
-   ns->addConstant("GraphicsSceneDrop",        new QoreNode((int64)QEvent::GraphicsSceneDrop));
-   ns->addConstant("GraphicsSceneWheel",       new QoreNode((int64)QEvent::GraphicsSceneWheel));
-   ns->addConstant("KeyboardLayoutChange",     new QoreNode((int64)QEvent::KeyboardLayoutChange));
-   ns->addConstant("DynamicPropertyChange",    new QoreNode((int64)QEvent::DynamicPropertyChange));
-   ns->addConstant("TabletEnterProximity",     new QoreNode((int64)QEvent::TabletEnterProximity));
-   ns->addConstant("TabletLeaveProximity",     new QoreNode((int64)QEvent::TabletLeaveProximity));
-   ns->addConstant("NonClientAreaMouseMove",   new QoreNode((int64)QEvent::NonClientAreaMouseMove));
-   ns->addConstant("NonClientAreaMouseButtonPress", new QoreNode((int64)QEvent::NonClientAreaMouseButtonPress));
-   ns->addConstant("NonClientAreaMouseButtonRelease", new QoreNode((int64)QEvent::NonClientAreaMouseButtonRelease));
-   ns->addConstant("NonClientAreaMouseButtonDblClick", new QoreNode((int64)QEvent::NonClientAreaMouseButtonDblClick));
-   ns->addConstant("MacSizeChange",            new QoreNode((int64)QEvent::MacSizeChange));
-   ns->addConstant("ContentsRectChange",       new QoreNode((int64)QEvent::ContentsRectChange));
-   ns->addConstant("MacGLWindowChange",        new QoreNode((int64)QEvent::MacGLWindowChange));
-   ns->addConstant("User",                     new QoreNode((int64)QEvent::User));
-   ns->addConstant("MaxUser",                  new QoreNode((int64)QEvent::MaxUser));
+   ns->addConstant("AcceptDropsChange",        new QoreBigIntNode(QEvent::AcceptDropsChange));
+   ns->addConstant("MenubarUpdated",           new QoreBigIntNode(QEvent::MenubarUpdated));
+   ns->addConstant("ZeroTimerEvent",           new QoreBigIntNode(QEvent::ZeroTimerEvent));
+   ns->addConstant("GraphicsSceneMouseMove",   new QoreBigIntNode(QEvent::GraphicsSceneMouseMove));
+   ns->addConstant("GraphicsSceneMousePress",  new QoreBigIntNode(QEvent::GraphicsSceneMousePress));
+   ns->addConstant("GraphicsSceneMouseRelease", new QoreBigIntNode(QEvent::GraphicsSceneMouseRelease));
+   ns->addConstant("GraphicsSceneMouseDoubleClick", new QoreBigIntNode(QEvent::GraphicsSceneMouseDoubleClick));
+   ns->addConstant("GraphicsSceneContextMenu", new QoreBigIntNode(QEvent::GraphicsSceneContextMenu));
+   ns->addConstant("GraphicsSceneHoverEnter",  new QoreBigIntNode(QEvent::GraphicsSceneHoverEnter));
+   ns->addConstant("GraphicsSceneHoverMove",   new QoreBigIntNode(QEvent::GraphicsSceneHoverMove));
+   ns->addConstant("GraphicsSceneHoverLeave",  new QoreBigIntNode(QEvent::GraphicsSceneHoverLeave));
+   ns->addConstant("GraphicsSceneHelp",        new QoreBigIntNode(QEvent::GraphicsSceneHelp));
+   ns->addConstant("GraphicsSceneDragEnter",   new QoreBigIntNode(QEvent::GraphicsSceneDragEnter));
+   ns->addConstant("GraphicsSceneDragMove",    new QoreBigIntNode(QEvent::GraphicsSceneDragMove));
+   ns->addConstant("GraphicsSceneDragLeave",   new QoreBigIntNode(QEvent::GraphicsSceneDragLeave));
+   ns->addConstant("GraphicsSceneDrop",        new QoreBigIntNode(QEvent::GraphicsSceneDrop));
+   ns->addConstant("GraphicsSceneWheel",       new QoreBigIntNode(QEvent::GraphicsSceneWheel));
+   ns->addConstant("KeyboardLayoutChange",     new QoreBigIntNode(QEvent::KeyboardLayoutChange));
+   ns->addConstant("DynamicPropertyChange",    new QoreBigIntNode(QEvent::DynamicPropertyChange));
+   ns->addConstant("TabletEnterProximity",     new QoreBigIntNode(QEvent::TabletEnterProximity));
+   ns->addConstant("TabletLeaveProximity",     new QoreBigIntNode(QEvent::TabletLeaveProximity));
+   ns->addConstant("NonClientAreaMouseMove",   new QoreBigIntNode(QEvent::NonClientAreaMouseMove));
+   ns->addConstant("NonClientAreaMouseButtonPress", new QoreBigIntNode(QEvent::NonClientAreaMouseButtonPress));
+   ns->addConstant("NonClientAreaMouseButtonRelease", new QoreBigIntNode(QEvent::NonClientAreaMouseButtonRelease));
+   ns->addConstant("NonClientAreaMouseButtonDblClick", new QoreBigIntNode(QEvent::NonClientAreaMouseButtonDblClick));
+   ns->addConstant("MacSizeChange",            new QoreBigIntNode(QEvent::MacSizeChange));
+   ns->addConstant("ContentsRectChange",       new QoreBigIntNode(QEvent::ContentsRectChange));
+   ns->addConstant("MacGLWindowChange",        new QoreBigIntNode(QEvent::MacGLWindowChange));
+   ns->addConstant("User",                     new QoreBigIntNode(QEvent::User));
+   ns->addConstant("MaxUser",                  new QoreBigIntNode(QEvent::MaxUser));
 
    return ns;
 }

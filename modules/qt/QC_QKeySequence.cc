@@ -26,7 +26,7 @@
 int CID_QKEYSEQUENCE;
 QoreClass *QC_QKeySequence = 0;
 
-static void QKEYSEQUENCE_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QKEYSEQUENCE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQKeySequence *qks;
 
@@ -60,25 +60,25 @@ static void QKEYSEQUENCE_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //uint count () const
-static QoreNode *QKEYSEQUENCE_count(QoreObject *self, QoreQKeySequence *qks, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QKEYSEQUENCE_count(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qks->count());
+   return new QoreBigIntNode(qks->count());
 }
 
 //DataPtr & data_ptr ()
-//static QoreNode *QKEYSEQUENCE_data_ptr(QoreObject *self, QoreQKeySequence *qks, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QKEYSEQUENCE_data_ptr(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)qks->data_ptr());
+//   ??? return new QoreBigIntNode(qks->data_ptr());
 //}
 
 //bool isEmpty () const
-static QoreNode *QKEYSEQUENCE_isEmpty(QoreObject *self, QoreQKeySequence *qks, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QKEYSEQUENCE_isEmpty(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qks->isEmpty());
+   return new QoreBoolNode(qks->isEmpty());
 }
 
 //SequenceMatch matches ( const QKeySequence & seq ) const
-static QoreNode *QKEYSEQUENCE_matches(QoreObject *self, QoreQKeySequence *qks, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QKEYSEQUENCE_matches(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQKeySequence *seq = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
@@ -88,11 +88,11 @@ static QoreNode *QKEYSEQUENCE_matches(QoreObject *self, QoreQKeySequence *qks, c
       return 0;
    }
    ReferenceHolder<QoreQKeySequence> holder(seq, xsink);
-   return new QoreNode((int64)qks->matches(*(static_cast<QKeySequence *>(seq))));
+   return new QoreBigIntNode(qks->matches(*(static_cast<QKeySequence *>(seq))));
 }
 
 //QString toString ( SequenceFormat format = PortableText ) const
-static QoreNode *QKEYSEQUENCE_toString(QoreObject *self, QoreQKeySequence *qks, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QKEYSEQUENCE_toString(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QKeySequence::SequenceFormat format = (QKeySequence::SequenceFormat)(p ? p->getAsInt() : 0);

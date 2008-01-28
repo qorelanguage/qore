@@ -105,7 +105,7 @@ unsigned command::get_column_count(ExceptionSink* xsink)
 }
 
 // FIXME: use ct_setparam to avoid copying data
-int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink *xsink)
+int command::set_params(sybase_query &query, const QoreListNode *args, ExceptionSink *xsink)
 {
    unsigned nparams = query.param_list.size();
    //printd(5, "query=%s\n", query.m_cmd.getBuffer());
@@ -128,7 +128,7 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
       datafmt.count = 1;
       
       CS_RETCODE err;
-      
+
       if (!val || is_null(val) || is_nothing(val))
       {
 #ifdef FREETDS
@@ -144,8 +144,11 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
 	    m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_param() for 'null' failed for parameter %u with error %d", i, (int)err);
 	    return -1;
 	 }
+	 continue;
       }
-      else if (val->type == NT_STRING)
+      
+      const QoreType *ntype = val ? val->getType() : 0;
+      if (ntype == NT_STRING)
       {
 	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(val);
 	 // ensure we bind with the proper encoding for the connection
@@ -163,8 +166,10 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
 	    m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_param() for string parameter %u failed with error", i, (int)err);
 	    return -1;
 	 }
+	 continue;
       }
-      else if (val->type == NT_DATE)
+
+      if (ntype == NT_DATE)
       {
 	 DateTimeNode *date = reinterpret_cast<DateTimeNode *>(val);
 	 CS_DATETIME dt;
@@ -177,14 +182,16 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
 	    m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_param() for date/time parameter %u failed with error", i, (int)err);
 	    return -1;
 	 }
+	 continue;
       }
-      else if (val->type == NT_INT)
+
+      if (ntype == NT_INT)
       {
 #ifdef CS_BIGINT_TYPE
 	 datafmt.datatype = CS_BIGINT_TYPE;
-	 err = ct_param(m_cmd, &datafmt, &val->val.intval, sizeof(int64), 0);
+	 err = ct_param(m_cmd, &datafmt, &(reinterpret_cast<const QoreBigIntNode *>(val)->val), sizeof(int64), 0);
 #else
-	 int64 ival = val->val.intval;
+	 int64 ival = reinterpret_cast<const QoreBigIntNode *>(val)->val;
 	 // if it's a 32-bit integer, bind as integer
 	 if (ival <= 2147483647 && ival >= -2147483647)
 	 {
@@ -201,11 +208,13 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
 #endif
 
 	 if (err != CS_SUCCEED) {
-	    m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_param() for integer parameter %u (%lld) failed with error", i, val->val.intval, (int)err);
+	    m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_param() for integer parameter %u (%lld) failed with error", i, reinterpret_cast<const QoreBigIntNode *>(val)->val, (int)err);
 	    return -1;
 	 }
+	 continue;
       }
-      else if (val->type == NT_BOOLEAN)
+
+      if (ntype == NT_BOOLEAN)
       {
 	 CS_BIT bval = val->getAsBool();
 	 datafmt.datatype = CS_BIT_TYPE;
@@ -214,8 +223,10 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
 	    m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_param() for boolean parameter %u (%s) failed with error", i, bval ? "True" : "False", (int)err);
 	    return -1;
 	 }
+	 continue;
       }
-      else if (val->type == NT_FLOAT)
+
+      if (ntype == NT_FLOAT)
       {
 	 CS_FLOAT fval = val->val.floatval;
 	 datafmt.datatype = CS_FLOAT_TYPE;
@@ -224,23 +235,25 @@ int command::set_params(sybase_query &query, const QoreList *args, ExceptionSink
 	    m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_param() for float parameter %u (%g) failed with error", i, val->val.floatval, (int)err);
 	    return -1;
 	 }
-     }
-      else if (val->type == NT_BINARY)
+	 continue;
+      }
+
+      if (ntype == NT_BINARY)
       {
+	 BinaryNode *b = reinterpret_cast<BinaryNode *>(val);
 	 datafmt.datatype = CS_BINARY_TYPE;
-	 datafmt.maxlength = val->val.bin->size();
+	 datafmt.maxlength = b->size();
 	 datafmt.count = 1;
-	 err = ct_param(m_cmd, &datafmt, (void *)val->val.bin->getPtr(), val->val.bin->size(), 0);
+	 err = ct_param(m_cmd, &datafmt, (void *)b->getPtr(), b->size(), 0);
 	 if (err != CS_SUCCEED) {
 	    m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_param() for binary parameter %u failed with error", i, (int)err);
 	    return -1;
 	 }
+	 continue;
       }
-      else
-      {
-	 xsink->raiseException("DBI:SYBASE:BIND-ERROR", "do not know how to bind values of type '%s'", val->getTypeName());
-	 return -1;
-      }
+
+      xsink->raiseException("DBI:SYBASE:BIND-ERROR", "do not know how to bind values of type '%s'", val->getTypeName());
+      return -1;
    }
    return 0;
 }
@@ -355,12 +368,12 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
       if (param_result)
 	 rv = param_result.release();
       else if (rowcount != -1)
-	 return new QoreNode((int64)rowcount);
+	 return new QoreBigIntNode(rowcount);
 
       if (rowcount != -1) {
 	 QoreHashNode *h = dynamic_cast<QoreHashNode *>(rv);
 	 if (h)
-	    h->setKeyValue("rowcount", new QoreNode((int64)rowcount), xsink);
+	    h->setKeyValue("rowcount", new QoreBigIntNode(rowcount), xsink);
       }
       return rv;
    }
@@ -377,7 +390,7 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
       h->setKeyValue("params", param_result.release(), xsink);
 
    if (rowcount != -1)
-      h->setKeyValue("rowcount", new QoreNode((int64)rowcount), xsink);
+      h->setKeyValue("rowcount", new QoreBigIntNode(rowcount), xsink);
 
    return h;
 }
@@ -417,7 +430,7 @@ QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list, Excep
 	    }
 	 }
 
-	 h->setKeyValue(col_name, new QoreList(), 0);
+	 h->setKeyValue(col_name, new QoreListNode(), 0);
       }
 
       while (fetch_row_into_buffers(xsink)) {
@@ -428,7 +441,7 @@ QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list, Excep
    }
 
    ReferenceHolder<QoreNode> rv(xsink);
-   QoreList *l = 0;
+   QoreListNode *l = 0;
    while (fetch_row_into_buffers(xsink)) {
       QoreHashNode *h = output_buffers_to_hash(placeholder_list, descriptions, out_buffers, xsink);
       if (*xsink)
@@ -436,7 +449,7 @@ QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list, Excep
       if (rv) {
 	 if (!l) {
 	    // convert to list - several rows
-	    l = new QoreList();
+	    l = new QoreListNode();
 	    l->push(rv.release());
 	    rv = l;
 	 }
@@ -560,7 +573,7 @@ int command::append_buffers_to_list(PlaceholderList *placeholder_list, row_resul
 	 return -1;
       }
 
-      QoreList *l = reinterpret_cast<QoreList *>(hi.getValue());
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(hi.getValue());
       l->push(value);      
    } // for
    
@@ -642,33 +655,32 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
 	   return 0;
 	}
 	memcpy(block, value, size);
-	BinaryObject* bin = new BinaryObject(block, size);
-	return new QoreNode(bin);
+	return new BinaryNode(block, size);
      }
 
     case CS_TINYINT_TYPE:
     {
       CS_TINYINT* value = (CS_TINYINT*)(buffer.value);
-      return new QoreNode((int64)*value);
+      return new QoreBigIntNode(*value);
     }
 
     case CS_SMALLINT_TYPE:
     {
       CS_SMALLINT* value = (CS_SMALLINT*)(buffer.value);
-      return new QoreNode((int64)*value);
+      return new QoreBigIntNode(*value);
     }
 
     case CS_INT_TYPE:
     {
       CS_INT* value = (CS_INT*)(buffer.value);
-      return new QoreNode((int64)*value);
+      return new QoreBigIntNode(*value);
     }
 
 #ifdef CS_BIGINT_TYPE
     case CS_BIGINT_TYPE:
     {
        int64 *value = (int64 *)(buffer.value);
-       return new QoreNode(*value);
+       return new QoreBigIntNode(*value);
     }
 #endif
 
@@ -687,7 +699,7 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
     case CS_BIT_TYPE:
     {
       CS_BIT* value = (CS_BIT*)(buffer.value);
-      return new QoreNode(*value != 0);
+      return new QoreBoolNode(*value != 0);
     }
 
     case CS_DATETIME_TYPE:

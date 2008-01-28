@@ -113,7 +113,7 @@ bool QoreRegex::exec(const QoreString *target, class ExceptionSink *xsink)
 }
 
 #define OVEC_LATELEM 20
-class QoreList *QoreRegex::extractSubstrings(const QoreString *target, class ExceptionSink *xsink)
+class QoreListNode *QoreRegex::extractSubstrings(const QoreString *target, class ExceptionSink *xsink)
 {
    ConstTempEncodingHelper t(target, QCS_UTF8, xsink);
    if (!t)
@@ -131,7 +131,7 @@ class QoreList *QoreRegex::extractSubstrings(const QoreString *target, class Exc
    if (rc < 1)
       return NULL;
    
-   class QoreList *l = new QoreList();
+   class QoreListNode *l = new QoreListNode();
    
    if (rc > 1)
    {

@@ -31,15 +31,14 @@ int CID_SOCKET;
 
 static inline class QoreNode *doReadResult(int rc, int64 val, char *method_name, class ExceptionSink *xsink)
 {
-   class QoreNode *rv = NULL;
-   if (rc <= 0)
-      QoreSocket::doException(rc, method_name, xsink);
-   else
-      rv = new QoreNode(val);
-   return rv;
+   if (rc > 0)
+      return new QoreBigIntNode(val);
+
+   QoreSocket::doException(rc, method_name, xsink);
+   return 0;
 }
 
-static void SOCKET_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void SOCKET_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_SOCKET, new mySocket());
 }
@@ -55,7 +54,7 @@ static void SOCKET_copy(class QoreObject *self, class QoreObject *old, void *obj
 // * connect("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * connect("filename");
-static QoreNode *SOCKET_connect(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_connect(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    // if parameters are not correct
@@ -76,7 +75,7 @@ static QoreNode *SOCKET_connect(class QoreObject *self, class mySocket *s, const
 // * connectSSL("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * connectSSL("filename");
-static QoreNode *SOCKET_connectSSL(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_connectSSL(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    // if parameters are not correct
@@ -99,11 +98,13 @@ static QoreNode *SOCKET_connectSSL(class QoreObject *self, class mySocket *s, co
 // * Socket::bind("filename");
 // for INET (tcp) sockets
 // * Socket::bind("iterface:port");
-static QoreNode *SOCKET_bind(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_bind(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
    // if parameters are not correct
-   if (!(p0 = get_param(params, 0)) || ((p0->type != NT_STRING && p0->type != NT_INT)))
+   p0 = get_param(params, 0);
+   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   if (!p0 || (p0_type != NT_STRING && p0_type != NT_INT))
    {
       xsink->raiseException("SOCKET-BIND-PARAMETER-ERROR", "no parameter passed to Socket::bind() call, expecing string for UNIX socket ('path/file') or int for INET socket (port number)");
       return NULL;
@@ -115,16 +116,16 @@ static QoreNode *SOCKET_bind(class QoreObject *self, class mySocket *s, const Qo
       rua = false;
 
    // create and bind tcp socket to all interfaces on port given
-   if (p0->type == NT_INT)
-      return new QoreNode((int64)s->bind(p0->val.intval, rua));
+   if (p0_type == NT_INT)
+      return new QoreBigIntNode(s->bind((reinterpret_cast<QoreBigIntNode *>(p0))->val, rua));
    else
-      return new QoreNode((int64)s->bind((reinterpret_cast<QoreStringNode *>(p0))->getBuffer(), rua));
+      return new QoreBigIntNode(s->bind((reinterpret_cast<QoreStringNode *>(p0))->getBuffer(), rua));
 }
 
 // Socket::accept()
 // returns a new Socket object, connection source address is in $.source
 // member of new object, hostname in $.source_host
-static QoreNode *SOCKET_accept(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_accept(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    class SocketSource source;
    mySocket *n = s->accept(&source, xsink);
@@ -143,7 +144,7 @@ static QoreNode *SOCKET_accept(class QoreObject *self, class mySocket *s, const 
 // accepts a new connection, negotiates an SSL connection, and returns the new socket
 // the connection source string is in the "$.source" member of new object,
 // hostname in "$.source_host"
-static QoreNode *SOCKET_acceptSSL(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_acceptSSL(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    class SocketSource source;
    mySocket *n = s->acceptSSL(&source, xsink);
@@ -158,7 +159,7 @@ static QoreNode *SOCKET_acceptSSL(class QoreObject *self, class mySocket *s, con
    return ns;
 }
 
-static QoreNode *SOCKET_listen(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_listen(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    int rc = s->listen();
 
@@ -168,10 +169,10 @@ static QoreNode *SOCKET_listen(class QoreObject *self, class mySocket *s, const 
       return NULL;
    }
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static QoreNode *SOCKET_send(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_send(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    if (!p0 || (p0->type != NT_STRING && p0->type != NT_BINARY))
@@ -183,9 +184,9 @@ static QoreNode *SOCKET_send(class QoreObject *self, class mySocket *s, const Qo
    int rc;
 
    if (p0->type == NT_STRING)
-      rc = s->send((reinterpret_cast<QoreStringNode *>(p0)), xsink);
+      rc = s->send((reinterpret_cast<const QoreStringNode *>(p0)), xsink);
    else
-      rc = s->send(p0->val.bin);
+      rc = s->send(reinterpret_cast<const BinaryNode *>(p0));
       
    if (rc == -2)
    {
@@ -193,10 +194,10 @@ static QoreNode *SOCKET_send(class QoreObject *self, class mySocket *s, const Qo
       return NULL;
    }
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static QoreNode *SOCKET_sendBinary(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_sendBinary(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    if (!p0 || (p0->type != NT_STRING && p0->type != NT_BINARY))
@@ -209,11 +210,11 @@ static QoreNode *SOCKET_sendBinary(class QoreObject *self, class mySocket *s, co
 
    // send strings with no conversions
    if (p0->type == NT_STRING) {
-      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p0);
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
       rc = s->send(str->getBuffer(), str->strlen());
    }
    else
-      rc = s->send(p0->val.bin);
+      rc = s->send(reinterpret_cast<const BinaryNode *>(p0));
 
    if (rc == -2)
    {
@@ -221,10 +222,10 @@ static QoreNode *SOCKET_sendBinary(class QoreObject *self, class mySocket *s, co
       return NULL;
    }
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static QoreNode *SOCKET_sendi1(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_sendi1(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    char i;
    QoreNode *p0 = get_param(params, 0);
@@ -241,10 +242,10 @@ static QoreNode *SOCKET_sendi1(class QoreObject *self, class mySocket *s, const 
       return NULL;
    }
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static QoreNode *SOCKET_sendi2(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_sendi2(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    short i;
    QoreNode *p0 = get_param(params, 0);
@@ -261,10 +262,10 @@ static QoreNode *SOCKET_sendi2(class QoreObject *self, class mySocket *s, const 
       return  NULL;
    }
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static QoreNode *SOCKET_sendi4(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_sendi4(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    int i;
    QoreNode *p0 = get_param(params, 0);
@@ -281,10 +282,10 @@ static QoreNode *SOCKET_sendi4(class QoreObject *self, class mySocket *s, const 
       return NULL;
    }
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static QoreNode *SOCKET_sendi8(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_sendi8(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    int64 i;
    QoreNode *p0 = get_param(params, 0);
@@ -301,10 +302,10 @@ static QoreNode *SOCKET_sendi8(class QoreObject *self, class mySocket *s, const 
       return NULL;
    }
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static QoreNode *SOCKET_sendi2LSB(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_sendi2LSB(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    short i;
    QoreNode *p0 = get_param(params, 0);
@@ -321,10 +322,10 @@ static QoreNode *SOCKET_sendi2LSB(class QoreObject *self, class mySocket *s, con
       return NULL;
    }
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static QoreNode *SOCKET_sendi4LSB(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_sendi4LSB(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    int i;
    QoreNode *p0 = get_param(params, 0);
@@ -341,10 +342,10 @@ static QoreNode *SOCKET_sendi4LSB(class QoreObject *self, class mySocket *s, con
       return NULL;
    }
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static QoreNode *SOCKET_sendi8LSB(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_sendi8LSB(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    int64 i;
    QoreNode *p0 = get_param(params, 0);
@@ -361,10 +362,10 @@ static QoreNode *SOCKET_sendi8LSB(class QoreObject *self, class mySocket *s, con
       return NULL;
    }
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static QoreNode *SOCKET_recv(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recv(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    int bs;
@@ -385,7 +386,7 @@ static QoreNode *SOCKET_recv(class QoreObject *self, class mySocket *s, const Qo
    return 0;
 }
 
-static QoreNode *SOCKET_recvi1(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvi1(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -395,7 +396,7 @@ static QoreNode *SOCKET_recvi1(class QoreObject *self, class mySocket *s, const 
    return doReadResult(rc, (int64)b, "recvi1", xsink);
 }
 
-static QoreNode *SOCKET_recvi2(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvi2(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -405,7 +406,7 @@ static QoreNode *SOCKET_recvi2(class QoreObject *self, class mySocket *s, const 
    return doReadResult(rc, (int64)b, "recvi2", xsink);
 }
 
-static QoreNode *SOCKET_recvi4(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvi4(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -415,7 +416,7 @@ static QoreNode *SOCKET_recvi4(class QoreObject *self, class mySocket *s, const 
    return doReadResult(rc, (int64)b, "recvi4", xsink);
 }
 
-static QoreNode *SOCKET_recvi8(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvi8(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -425,7 +426,7 @@ static QoreNode *SOCKET_recvi8(class QoreObject *self, class mySocket *s, const 
    return doReadResult(rc, b, "recvi8", xsink);
 }
 
-static QoreNode *SOCKET_recvi2LSB(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvi2LSB(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -435,7 +436,7 @@ static QoreNode *SOCKET_recvi2LSB(class QoreObject *self, class mySocket *s, con
    return doReadResult(rc, (int64)b, "recvi2LSB", xsink);
 }
 
-static QoreNode *SOCKET_recvi4LSB(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvi4LSB(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -445,7 +446,7 @@ static QoreNode *SOCKET_recvi4LSB(class QoreObject *self, class mySocket *s, con
    return doReadResult(rc, (int64)b, "recvi4LSB", xsink);
 }
 
-static QoreNode *SOCKET_recvi8LSB(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvi8LSB(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -455,7 +456,7 @@ static QoreNode *SOCKET_recvi8LSB(class QoreObject *self, class mySocket *s, con
    return doReadResult(rc, b, "recvi8LSB", xsink);
 }
 
-static QoreNode *SOCKET_recvu1(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvu1(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -465,7 +466,7 @@ static QoreNode *SOCKET_recvu1(class QoreObject *self, class mySocket *s, const 
    return doReadResult(rc, (int64)b, "recvu1", xsink);
 }
 
-static QoreNode *SOCKET_recvu2(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvu2(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -475,7 +476,7 @@ static QoreNode *SOCKET_recvu2(class QoreObject *self, class mySocket *s, const 
    return doReadResult(rc, (int64)b, "recvu2", xsink);
 }
 
-static QoreNode *SOCKET_recvu4(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvu4(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -485,7 +486,7 @@ static QoreNode *SOCKET_recvu4(class QoreObject *self, class mySocket *s, const 
    return doReadResult(rc, (int64)b, "recvu4", xsink);
 }
 
-static QoreNode *SOCKET_recvu2LSB(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvu2LSB(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -495,7 +496,7 @@ static QoreNode *SOCKET_recvu2LSB(class QoreObject *self, class mySocket *s, con
    return doReadResult(rc, (int64)b, "recvu2LSB", xsink);
 }
 
-static QoreNode *SOCKET_recvu4LSB(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvu4LSB(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 0));
@@ -505,7 +506,7 @@ static QoreNode *SOCKET_recvu4LSB(class QoreObject *self, class mySocket *s, con
    return doReadResult(rc, (int64)b, "recvu4LSB", xsink);
 }
 
-static QoreNode *SOCKET_recvBinary(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_recvBinary(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    int bs = 0;
@@ -521,17 +522,17 @@ static QoreNode *SOCKET_recvBinary(class QoreObject *self, class mySocket *s, co
    int timeout = getMsMinusOneInt(get_param(params, 1));
 
    int rc;
-   BinaryObject *b = s->recvBinary(bs, timeout, &rc);
+   BinaryNode *b = s->recvBinary(bs, timeout, &rc);
 
    if (rc > 0)
-      return new QoreNode(b);
+      return b;
 
    QoreSocket::doException(rc, "recvBinary", xsink);
    return NULL;
 }
 
 // params: method, path, http_version, hash (http headers), data
-static QoreNode *SOCKET_sendHTTPMessage(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_sendHTTPMessage(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -574,14 +575,15 @@ static QoreNode *SOCKET_sendHTTPMessage(class QoreObject *self, class mySocket *
    if (p4)
       if (p4->type == NT_STRING)
       {
-	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p4);
+	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p4);
 	 ptr = str->getBuffer();
 	 size = str->strlen();
       }
       else if (p4->type == NT_BINARY)
       {
-	 ptr = p4->val.bin->getPtr();
-	 size = p4->val.bin->size();
+	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p4);
+	 ptr = b->getPtr();
+	 size = b->size();
       }
 
    int rc = s->sendHTTPMessage(method, path, http_version, headers, ptr, size);
@@ -594,7 +596,7 @@ static QoreNode *SOCKET_sendHTTPMessage(class QoreObject *self, class mySocket *
 }
 
 // params: status_code, status_desc, http_version, hash (http headers), data
-static QoreNode *SOCKET_sendHTTPResponse(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_sendHTTPResponse(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    int status_code;
    QoreNode *p0 = get_param(params, 0);
@@ -648,8 +650,9 @@ static QoreNode *SOCKET_sendHTTPResponse(class QoreObject *self, class mySocket 
       }
       else if (p4->type == NT_BINARY)
       {
-	 ptr = p4->val.bin->getPtr();
-	 size = p4->val.bin->size();
+	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p4);
+	 ptr = b->getPtr();
+	 size = b->size();
       }
 
    int rc = s->sendHTTPResponse(status_code, status_desc, http_version, headers, ptr, size);
@@ -661,7 +664,7 @@ static QoreNode *SOCKET_sendHTTPResponse(class QoreObject *self, class mySocket 
    return NULL;
 }
 
-static QoreNode *SOCKET_readHTTPHeader(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_readHTTPHeader(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    int timeout = getMsMinusOneInt(get_param(params, 0));
    int rc;
@@ -675,7 +678,7 @@ static QoreNode *SOCKET_readHTTPHeader(class QoreObject *self, class mySocket *s
    return rv;
 }
 
-static QoreNode *SOCKET_readHTTPChunkedBody(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_readHTTPChunkedBody(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    int timeout = getMsMinusOneInt(get_param(params, 0));
 
@@ -683,7 +686,7 @@ static QoreNode *SOCKET_readHTTPChunkedBody(class QoreObject *self, class mySock
    return s->readHTTPChunkedBody(timeout, xsink);
 }
 
-static QoreNode *SOCKET_readHTTPChunkedBodyBinary(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_readHTTPChunkedBodyBinary(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    int timeout = getMsMinusOneInt(get_param(params, 0));
 
@@ -691,32 +694,32 @@ static QoreNode *SOCKET_readHTTPChunkedBodyBinary(class QoreObject *self, class 
    return s->readHTTPChunkedBodyBinary(timeout, xsink);
 }
 
-static QoreNode *SOCKET_close(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_close(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)s->close());
+   return new QoreBigIntNode(s->close());
 }
 
-static QoreNode *SOCKET_shutdown(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_shutdown(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)s->shutdown());
+   return new QoreBigIntNode(s->shutdown());
 }
 
-static QoreNode *SOCKET_shutdownSSL(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_shutdownSSL(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)s->shutdownSSL(xsink));
+   return new QoreBigIntNode(s->shutdownSSL(xsink));
 }
 
-static QoreNode *SOCKET_getPort(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_getPort(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)s->getPort());
+   return new QoreBigIntNode(s->getPort());
 }
 
-static QoreNode *SOCKET_getSocket(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_getSocket(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)s->getSocket());
+   return new QoreBigIntNode(s->getSocket());
 }
 
-static QoreNode *SOCKET_setSendTimeout(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_setSendTimeout(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -726,10 +729,10 @@ static QoreNode *SOCKET_setSendTimeout(class QoreObject *self, class mySocket *s
       return NULL;
    }
 
-   return new QoreNode((int64)s->setSendTimeout(p0->getAsInt()));
+   return new QoreBigIntNode(s->setSendTimeout(p0->getAsInt()));
 }
 
-static QoreNode *SOCKET_setRecvTimeout(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_setRecvTimeout(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
 
@@ -739,20 +742,20 @@ static QoreNode *SOCKET_setRecvTimeout(class QoreObject *self, class mySocket *s
       return NULL;
    }
 
-   return new QoreNode((int64)s->setRecvTimeout(p0->getAsInt()));
+   return new QoreBigIntNode(s->setRecvTimeout(p0->getAsInt()));
 }
 
-static QoreNode *SOCKET_getSendTimeout(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_getSendTimeout(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)s->getSendTimeout());
+   return new QoreBigIntNode(s->getSendTimeout());
 }
 
-static QoreNode *SOCKET_getRecvTimeout(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_getRecvTimeout(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)s->getRecvTimeout());
+   return new QoreBigIntNode(s->getRecvTimeout());
 }
 
-static QoreNode *SOCKET_setCharset(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_setCharset(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -766,23 +769,23 @@ static QoreNode *SOCKET_setCharset(class QoreObject *self, class mySocket *s, co
    return NULL; 
 }
 
-static QoreNode *SOCKET_getCharset(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_getCharset(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(s->getEncoding()->getCode());
 }
 
-static QoreNode *SOCKET_isDataAvailable(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_isDataAvailable(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   return new QoreNode(s->isDataAvailable(p0 ? p0->getAsInt() : 0));
+   return new QoreBoolNode(s->isDataAvailable(p0 ? p0->getAsInt() : 0));
 }
 
-static QoreNode *SOCKET_isOpen(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_isOpen(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->isOpen());
+   return new QoreBoolNode(s->isOpen());
 }
 
-static QoreNode *SOCKET_getSSLCipherName(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_getSSLCipherName(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *str = s->getSSLCipherName();
    if (str)
@@ -791,7 +794,7 @@ static QoreNode *SOCKET_getSSLCipherName(class QoreObject *self, class mySocket 
    return NULL;
 }
 
-static QoreNode *SOCKET_getSSLCipherVersion(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_getSSLCipherVersion(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *str = s->getSSLCipherVersion();
    if (str)
@@ -800,18 +803,18 @@ static QoreNode *SOCKET_getSSLCipherVersion(class QoreObject *self, class mySock
    return NULL;
 }
 
-static QoreNode *SOCKET_isSecure(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_isSecure(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(s->isSecure());
+   return new QoreBoolNode(s->isSecure());
 }
 
-static QoreNode *SOCKET_verifyPeerCertificate(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_verifyPeerCertificate(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *c = getSSLCVCode(s->verifyPeerCertificate());
    return c ? new QoreStringNode(c) : NULL;
 }
 
-static QoreNode *SOCKET_setCertificate(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_setCertificate(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // first check parameters
    QoreNode *p0 = get_param(params, 0);
@@ -844,7 +847,7 @@ static QoreNode *SOCKET_setCertificate(class QoreObject *self, class mySocket *s
 }
 
 // syntax: object|string
-static QoreNode *SOCKET_setPrivateKey(class QoreObject *self, class mySocket *s, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *SOCKET_setPrivateKey(class QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    // first check parameters
    QoreNode *p0 = get_param(params, 0);

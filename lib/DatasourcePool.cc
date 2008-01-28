@@ -220,7 +220,7 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, class ExceptionSink *xsink
    return ds;
 }
 
-class QoreNode *DatasourcePool::select(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class QoreNode *rv = NULL;
@@ -243,7 +243,7 @@ class QoreNode *DatasourcePool::select(const QoreString *sql, const QoreList *ar
 }
 
 // FIXME: should be a native DBI driver method
-class QoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class QoreNode *rv;
@@ -263,7 +263,7 @@ class QoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreList 
 #endif
 
    // return only hash of first row, if any
-   QoreList *l = dynamic_cast<QoreList *>(rv);
+   QoreListNode *l = dynamic_cast<QoreListNode *>(rv);
    if (l)
    {
       QoreNode *h = l->shift();
@@ -275,7 +275,7 @@ class QoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreList 
    return rv;
 }
 
-class QoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class QoreNode *rv;
@@ -314,7 +314,7 @@ int DatasourcePool::beginTransaction(class ExceptionSink *xsink)
    return rc;
 }
 
-class QoreNode *DatasourcePool::exec(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class Datasource *ds = getDS(new_ds, xsink);

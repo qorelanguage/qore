@@ -37,7 +37,7 @@
 #include <errno.h>
 #include <typeinfo>
 
-extern class QoreList *ARGV, *QORE_ARGV;
+extern class QoreListNode *ARGV, *QORE_ARGV;
 extern class QoreHash *ENV;
 
 class SBNode {
@@ -104,10 +104,10 @@ struct qore_program_private {
       {
       }
 
-      DLLLOCAL class QoreList *getVarList()
+      DLLLOCAL class QoreListNode *getVarList()
       {
 	 plock.lock();
-	 class QoreList *l = global_var_list.getVarList();
+	 class QoreListNode *l = global_var_list.getVarList();
 	 plock.unlock();
 	 return l;
       }
@@ -135,9 +135,9 @@ struct qore_program_private {
 	 sb_tail = sbn;
       }
 
-      class QoreList *getFeatureList() const
+      class QoreListNode *getFeatureList() const
       {
-	 class QoreList *l = new QoreList();
+	 class QoreListNode *l = new QoreListNode();
 	 
 	 for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
 	    l->push(new QoreStringNode(*i));
@@ -170,27 +170,27 @@ int get_warning_code(const char *str)
 
 DLLLOCAL void addProgramConstants(class QoreNamespace *ns)
 {
-   ns->addConstant("PO_DEFAULT",                  new QoreNode((int64)PO_DEFAULT));
-   ns->addConstant("PO_NO_GLOBAL_VARS",           new QoreNode((int64)PO_NO_GLOBAL_VARS));
-   ns->addConstant("PO_NO_SUBROUTINE_DEFS",       new QoreNode((int64)PO_NO_SUBROUTINE_DEFS));  
-   ns->addConstant("PO_NO_THREAD_CONTROL",        new QoreNode((int64)PO_NO_THREAD_CONTROL));
-   ns->addConstant("PO_NO_THREAD_CLASSES",        new QoreNode((int64)PO_NO_THREAD_CLASSES));
-   ns->addConstant("PO_NO_THREADS",               new QoreNode((int64)PO_NO_THREADS));
-   ns->addConstant("PO_NO_TOP_LEVEL_STATEMENTS",  new QoreNode((int64)PO_NO_TOP_LEVEL_STATEMENTS));  
-   ns->addConstant("PO_NO_CLASS_DEFS",            new QoreNode((int64)PO_NO_CLASS_DEFS));
-   ns->addConstant("PO_NO_NAMESPACE_DEFS",        new QoreNode((int64)PO_NO_NAMESPACE_DEFS));
-   ns->addConstant("PO_NO_CONSTANT_DEFS",         new QoreNode((int64)PO_NO_CONSTANT_DEFS));
-   ns->addConstant("PO_NO_NEW",                   new QoreNode((int64)PO_NO_NEW));
-   ns->addConstant("PO_NO_SYSTEM_CLASSES",        new QoreNode((int64)PO_NO_SYSTEM_CLASSES));
-   ns->addConstant("PO_NO_USER_CLASSES",          new QoreNode((int64)PO_NO_USER_CLASSES));
-   ns->addConstant("PO_NO_CHILD_PO_RESTRICTIONS", new QoreNode((int64)PO_NO_CHILD_PO_RESTRICTIONS));
-   ns->addConstant("PO_NO_EXTERNAL_PROCESS",      new QoreNode((int64)PO_NO_EXTERNAL_PROCESS));
-   ns->addConstant("PO_REQUIRE_OUR",              new QoreNode((int64)PO_REQUIRE_OUR));
-   ns->addConstant("PO_NO_PROCESS_CONTROL",       new QoreNode((int64)PO_NO_PROCESS_CONTROL));
-   ns->addConstant("PO_NO_NETWORK",               new QoreNode((int64)PO_NO_NETWORK));
-   ns->addConstant("PO_NO_FILESYSTEM",            new QoreNode((int64)PO_NO_FILESYSTEM));
-   ns->addConstant("PO_LOCK_WARNINGS",            new QoreNode((int64)PO_LOCK_WARNINGS));
-   ns->addConstant("PO_NO_GUI",                   new QoreNode((int64)PO_NO_GUI));
+   ns->addConstant("PO_DEFAULT",                  new QoreBigIntNode(PO_DEFAULT));
+   ns->addConstant("PO_NO_GLOBAL_VARS",           new QoreBigIntNode(PO_NO_GLOBAL_VARS));
+   ns->addConstant("PO_NO_SUBROUTINE_DEFS",       new QoreBigIntNode(PO_NO_SUBROUTINE_DEFS));  
+   ns->addConstant("PO_NO_THREAD_CONTROL",        new QoreBigIntNode(PO_NO_THREAD_CONTROL));
+   ns->addConstant("PO_NO_THREAD_CLASSES",        new QoreBigIntNode(PO_NO_THREAD_CLASSES));
+   ns->addConstant("PO_NO_THREADS",               new QoreBigIntNode(PO_NO_THREADS));
+   ns->addConstant("PO_NO_TOP_LEVEL_STATEMENTS",  new QoreBigIntNode(PO_NO_TOP_LEVEL_STATEMENTS));  
+   ns->addConstant("PO_NO_CLASS_DEFS",            new QoreBigIntNode(PO_NO_CLASS_DEFS));
+   ns->addConstant("PO_NO_NAMESPACE_DEFS",        new QoreBigIntNode(PO_NO_NAMESPACE_DEFS));
+   ns->addConstant("PO_NO_CONSTANT_DEFS",         new QoreBigIntNode(PO_NO_CONSTANT_DEFS));
+   ns->addConstant("PO_NO_NEW",                   new QoreBigIntNode(PO_NO_NEW));
+   ns->addConstant("PO_NO_SYSTEM_CLASSES",        new QoreBigIntNode(PO_NO_SYSTEM_CLASSES));
+   ns->addConstant("PO_NO_USER_CLASSES",          new QoreBigIntNode(PO_NO_USER_CLASSES));
+   ns->addConstant("PO_NO_CHILD_PO_RESTRICTIONS", new QoreBigIntNode(PO_NO_CHILD_PO_RESTRICTIONS));
+   ns->addConstant("PO_NO_EXTERNAL_PROCESS",      new QoreBigIntNode(PO_NO_EXTERNAL_PROCESS));
+   ns->addConstant("PO_REQUIRE_OUR",              new QoreBigIntNode(PO_REQUIRE_OUR));
+   ns->addConstant("PO_NO_PROCESS_CONTROL",       new QoreBigIntNode(PO_NO_PROCESS_CONTROL));
+   ns->addConstant("PO_NO_NETWORK",               new QoreBigIntNode(PO_NO_NETWORK));
+   ns->addConstant("PO_NO_FILESYSTEM",            new QoreBigIntNode(PO_NO_FILESYSTEM));
+   ns->addConstant("PO_LOCK_WARNINGS",            new QoreBigIntNode(PO_LOCK_WARNINGS));
+   ns->addConstant("PO_NO_GUI",                   new QoreBigIntNode(PO_NO_GUI));
 }
 
 inline SBNode::~SBNode()
@@ -562,7 +562,7 @@ int QoreProgram::getParseOptions() const
    return priv->parse_options; 
 }
 
-class QoreList *QoreProgram::getUserFunctionList()
+class QoreListNode *QoreProgram::getUserFunctionList()
 {
    AutoLocker al(&priv->plock);
    return priv->user_func_list.getList(); 
@@ -1075,7 +1075,7 @@ class QoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *QoreProgram::callFunction(const char *name, const QoreList *args, class ExceptionSink *xsink)
+class QoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, class ExceptionSink *xsink)
 {
    class UserFunction *ufc;
    QoreNode *fc;
@@ -1089,7 +1089,7 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreList *args
    priv->plock.unlock();
 
    if (ufc) // we assign the args to NULL below so that the caller will delete
-      fc = new QoreNode(ufc, const_cast<QoreList *>(args));
+      fc = new QoreNode(ufc, const_cast<QoreListNode *>(args));
    else
    {
       class BuiltinFunction *bfc;
@@ -1102,7 +1102,7 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreList *args
 	    return NULL;
 	 }
 	 // we assign the args to NULL below so that the caller will delete
-	 fc = new QoreNode(bfc, const_cast<QoreList *>(args));
+	 fc = new QoreNode(bfc, const_cast<QoreListNode *>(args));
       }
       else
       {
@@ -1124,10 +1124,10 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreList *args
    return rv;
 }
 
-class QoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreList *args, class ExceptionSink *xsink)
+class QoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreListNode *args, class ExceptionSink *xsink)
 {
    // we assign the args to NULL below so that the caller will delete
-   QoreNode *fc = new QoreNode(ufc, const_cast<QoreList *>(args));
+   QoreNode *fc = new QoreNode(ufc, const_cast<QoreListNode *>(args));
 
    QoreNode *rv;
    {
@@ -1319,12 +1319,12 @@ void QoreProgram::addFile(char *f)
    priv->fileList.push_back(f);
 }
 
-class QoreList *QoreProgram::getFeatureList() const
+class QoreListNode *QoreProgram::getFeatureList() const
 {
    return priv->getFeatureList();
 }
 
-class QoreList *QoreProgram::getVarList()
+class QoreListNode *QoreProgram::getVarList()
 {
    return priv->getVarList();
 }

@@ -29,7 +29,7 @@
 class ThrowStatement : public AbstractStatement
 {
    private:
-      QoreList *args;
+      QoreListNode *args;
       
       DLLLOCAL virtual int execImpl(class QoreNode **return_value, ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);

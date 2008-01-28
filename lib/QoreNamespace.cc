@@ -1006,7 +1006,7 @@ int RootQoreNamespace::parseInitConstantValue(class QoreNode **val, int level)
    }
 
    {
-      QoreList *l = dynamic_cast<QoreList *>(*val);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
       if (l) {
 	 for (int i = 0; i < l->size(); i++)
 	 {
@@ -1643,31 +1643,31 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    qns->addConstant("ET_User",       new QoreStringNode("User"));
 
    // create constants for call types
-   qns->addConstant("CT_User",       new QoreNode((int64)CT_USER));
-   qns->addConstant("CT_Builtin",    new QoreNode((int64)CT_BUILTIN));
-   qns->addConstant("CT_NewThread",  new QoreNode((int64)CT_NEWTHREAD));
-   qns->addConstant("CT_Rethrow",    new QoreNode((int64)CT_RETHROW));
+   qns->addConstant("CT_User",       new QoreBigIntNode(CT_USER));
+   qns->addConstant("CT_Builtin",    new QoreBigIntNode(CT_BUILTIN));
+   qns->addConstant("CT_NewThread",  new QoreBigIntNode(CT_NEWTHREAD));
+   qns->addConstant("CT_Rethrow",    new QoreBigIntNode(CT_RETHROW));
 
    // create constants for version and platform information
    qns->addConstant("VersionString", new QoreStringNode(qore_version_string));
-   qns->addConstant("VersionMajor",  new QoreNode((int64)qore_version_major));
-   qns->addConstant("VersionMinor",  new QoreNode((int64)qore_version_minor));
-   qns->addConstant("VersionSub",    new QoreNode((int64)qore_version_sub));
-   qns->addConstant("Build",         new QoreNode((int64)qore_build_number));
+   qns->addConstant("VersionMajor",  new QoreBigIntNode(qore_version_major));
+   qns->addConstant("VersionMinor",  new QoreBigIntNode(qore_version_minor));
+   qns->addConstant("VersionSub",    new QoreBigIntNode(qore_version_sub));
+   qns->addConstant("Build",         new QoreBigIntNode(qore_build_number));
    qns->addConstant("PlatformCPU",   new QoreStringNode(TARGET_ARCH));
    qns->addConstant("PlatformOS",    new QoreStringNode(TARGET_OS));
 
    // add constants for regex() function options
-   qns->addConstant("RE_Caseless",   new QoreNode((int64)PCRE_CASELESS));
-   qns->addConstant("RE_DotAll",     new QoreNode((int64)PCRE_DOTALL));
-   qns->addConstant("RE_Extended",   new QoreNode((int64)PCRE_EXTENDED));
-   qns->addConstant("RE_MultiLine",  new QoreNode((int64)PCRE_MULTILINE));
+   qns->addConstant("RE_Caseless",   new QoreBigIntNode(PCRE_CASELESS));
+   qns->addConstant("RE_DotAll",     new QoreBigIntNode(PCRE_DOTALL));
+   qns->addConstant("RE_Extended",   new QoreBigIntNode(PCRE_EXTENDED));
+   qns->addConstant("RE_MultiLine",  new QoreBigIntNode(PCRE_MULTILINE));
    // note that the following constant is > 32-bits so it can't collide with PCRE constants
-   qns->addConstant("RE_Global",     new QoreNode((int64)QRE_GLOBAL));
+   qns->addConstant("RE_Global",     new QoreBigIntNode(QRE_GLOBAL));
 
    // network constants
-   qns->addConstant("AF_INET",       new QoreNode((int64)AF_INET));
-   qns->addConstant("AF_INET6",      new QoreNode((int64)AF_INET6));
+   qns->addConstant("AF_INET",       new QoreBigIntNode(AF_INET));
+   qns->addConstant("AF_INET6",      new QoreBigIntNode(AF_INET6));
 
    // create Qore::SQL namespace
    qns->addInitialNamespace(getSQLNamespace());

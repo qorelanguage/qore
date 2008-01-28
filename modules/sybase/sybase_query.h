@@ -93,7 +93,7 @@ struct sybase_query {
       PlaceholderList placeholder_list;
 
       // returns 0=OK, -1=err (exception raised)
-      DLLLOCAL int init(QoreString *n_cmd, const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL int init(QoreString *n_cmd, const QoreListNode *args, class ExceptionSink *xsink);
 };
 
 #endif

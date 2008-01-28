@@ -158,7 +158,7 @@ class KeyNode {
 class Query : public ReferenceObject
 {
       class KeyNode *keys;
-      class QPartQoreList *qpl;
+      class QPartQoreListNode *qpl;
       class Datasource *datasource;
       class QoreString *last;
       char *name;
@@ -387,13 +387,13 @@ class QPartList
    public:
       int len;
       QPartNode **pl;
-      inline QPartQoreList(char *query, ExceptionSink *xsink);
-      inline ~QPartQoreList();
+      inline QPartQoreListNode(char *query, ExceptionSink *xsink);
+      inline ~QPartQoreListNode();
       inline QoreString *getSQL(ExceptionSink *xsink, int dyn);
 };
 
 #define QP_BLOCK 10
-inline void QPartQoreList::check_alloc()
+inline void QPartQoreListNode::check_alloc()
 {
    if (len == allocated)
    {
@@ -402,13 +402,13 @@ inline void QPartQoreList::check_alloc()
    }
 }
 
-inline void QPartQoreList::addString(char *str, char *end)
+inline void QPartQoreListNode::addString(char *str, char *end)
 {
    check_alloc();
    char s = *end;
    *end = '\0';
    char *ns = strdup(str);
-   printd(5, "QPartQoreList::addString() adding \"%s\"\n", ns);
+   printd(5, "QPartQoreListNode::addString() adding \"%s\"\n", ns);
    *end = s;
    pl[len++] = new QPartNode(ns);
 }
@@ -420,7 +420,7 @@ static inline char *find_end(char *p)
    return p;
 }
 
-inline void QPartQoreList::addQueryReference(char *&p, ExceptionSink *xsink)
+inline void QPartQoreListNode::addQueryReference(char *&p, ExceptionSink *xsink)
 {
    check_alloc();
    char *ep;
@@ -459,7 +459,7 @@ inline void QPartQoreList::addQueryReference(char *&p, ExceptionSink *xsink)
    p = ls;
 }
 
-inline void QPartQoreList::addVariableReference(char *&p, ExceptionSink *xsink)
+inline void QPartQoreListNode::addVariableReference(char *&p, ExceptionSink *xsink)
 {
    check_alloc();
    char *ep = p + 1;
@@ -467,16 +467,16 @@ inline void QPartQoreList::addVariableReference(char *&p, ExceptionSink *xsink)
       ep++;
    char s = *ep;
    *ep = '\0';
-   printd(5, "QPartQoreList::addVariableReference() adding \"%s\"\n", p);
+   printd(5, "QPartQoreListNode::addVariableReference() adding \"%s\"\n", p);
    // note: do not do a strdup on p, it will be duplicated later
    pl[len++] = new QPartNode(p + 1, xsink);
    *ep = s;
    p = ep;
 }
 
-inline QPartQoreList::QPartQoreList(char *query, ExceptionSink *xsink)
+inline QPartQoreListNode::QPartQoreListNode(char *query, ExceptionSink *xsink)
 {
-   tracein("QPartQoreList::QPartQoreList()");
+   tracein("QPartQoreListNode::QPartQoreListNode()");
 
    len = 0;
    allocated = 0;
@@ -484,7 +484,7 @@ inline QPartQoreList::QPartQoreList(char *query, ExceptionSink *xsink)
 
    char *p = query;
    char *last = query;
-   printd(5, "QPartQoreList::QPartQoreList() \"%s\"\n", query);
+   printd(5, "QPartQoreListNode::QPartQoreListNode() \"%s\"\n", query);
    while (*p)
    {
       if (*p == '^' || *p == '~' || *p == '$')
@@ -510,14 +510,14 @@ inline QPartQoreList::QPartQoreList(char *query, ExceptionSink *xsink)
       addString(last, p);
 }
 
-inline QPartQoreList::~QPartQoreList()
+inline QPartQoreListNode::~QPartQoreListNode()
 {
    for (int i = 0; i < len; i++)
       delete pl[i];
    free(pl);
 }
 
-inline QoreString *QPartQoreList::getSQL(ExceptionSink *xsink, int dyn)
+inline QoreString *QPartQoreListNode::getSQL(ExceptionSink *xsink, int dyn)
 {
    QoreString *str = new QoreString();
    for (int i = 0; i < len; i++)
@@ -537,7 +537,7 @@ inline QoreString *QPartQoreList::getSQL(ExceptionSink *xsink, int dyn)
 	    str->concat('\'');
 	 if (n->type == NT_STRING)
 	 {
-	    printd(5, "QPartQoreList::getSQL() adding node value \"%s\"\n",
+	    printd(5, "QPartQoreListNode::getSQL() adding node value \"%s\"\n",
 		   n->val.String->getBuffer());
 	    str->concat(n->val.String);
 	 }
@@ -550,7 +550,7 @@ inline QoreString *QPartQoreList::getSQL(ExceptionSink *xsink, int dyn)
 	       {
 		  if (v->type == NT_STRING)
 		  {
-		     printd(5, "QPartQoreList::getSQL() adding list %d/%d node value \"%s\"\n",
+		     printd(5, "QPartQoreListNode::getSQL() adding list %d/%d node value \"%s\"\n",
 			    j, n->val.list->size(),
 			    v->val.String->getBuffer());
 		     str->concat(v->val.String);
@@ -558,7 +558,7 @@ inline QoreString *QPartQoreList::getSQL(ExceptionSink *xsink, int dyn)
 		  else
 		  {
 		     QoreNode *t = v->convert(NT_STRING);
-		     printd(5, "QPartQoreList::getSQL() adding list %d/%d node value \"%s\"\n",
+		     printd(5, "QPartQoreListNode::getSQL() adding list %d/%d node value \"%s\"\n",
 			    j, n->val.list->size(),
 			    t->val.String->getBuffer());
 		     str->concat(t->val.String);
@@ -579,7 +579,7 @@ inline QoreString *QPartQoreList::getSQL(ExceptionSink *xsink, int dyn)
 	 else
 	 {
 	    QoreNode *t = n->convert(NT_STRING);
-	    printd(5, "QPartQoreList::getSQL() adding node value \"%s\"\n",
+	    printd(5, "QPartQoreListNode::getSQL() adding node value \"%s\"\n",
 		   t->val.String->getBuffer());
 	    str->concat(t->val.String);
 	    t->deref(NULL);
@@ -588,7 +588,7 @@ inline QoreString *QPartQoreList::getSQL(ExceptionSink *xsink, int dyn)
 	 if (pl[i]->sflag)
 	    str->concat('\'');	 
       }
-   printd(5, "QPartQoreList::getSQL() (len=%d) returning \"%s\"\n", 
+   printd(5, "QPartQoreListNode::getSQL() (len=%d) returning \"%s\"\n", 
 	  len, str->getBuffer());
    return str;
 }
@@ -605,7 +605,7 @@ inline Query::Query(char *nme, class Datasource *ds, char *qstr, int stc, Except
    num_keys = 0;
    keys_allocated = 0;
    keys = NULL;
-   qpl = new QPartQoreList(qstr, xsink);
+   qpl = new QPartQoreListNode(qstr, xsink);
    if (xsink->isEvent())
    {
       delete qpl;
@@ -678,7 +678,7 @@ inline void Query::setSQL(char *qstr, ExceptionSink *xsink)
 {
    if (qpl)
       delete qpl;
-   qpl = new QPartQoreList(qstr, xsink);
+   qpl = new QPartQoreListNode(qstr, xsink);
    if (xsink->isEvent())
    {
       delete qpl;

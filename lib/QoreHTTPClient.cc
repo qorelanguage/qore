@@ -173,15 +173,16 @@ int QoreHTTPClient::setOptions(const QoreHash* opts, ExceptionSink* xsink)
 	 while (hi.next())
 	 {
 	    class QoreNode *v = hi.getValue();
-	    if (!v || (v->type != NT_HASH && n->type != NT_INT))
+	    const QoreType *vtype = v ? v->getType() : 0;
+	    if (!v || (vtype != NT_HASH && vtype != NT_INT))
 	    {
 	       xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());
 	       return -1;
 	    }
 	    bool need_ssl = false;
 	    int need_port;
-	    if (v->type == NT_INT)
-	       need_port = v->val.intval;
+	    if (vtype == NT_INT)
+	       need_port = (reinterpret_cast<QoreBigIntNode *>(v))->val;
 	    else
 	    {
 	       QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(v);
@@ -925,7 +926,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       p = strchr(str, ';');
       if (p)
       {
-	 class QoreList *l = new QoreList();
+	 class QoreListNode *l = new QoreListNode();
 	 do {
 	    l->push(new QoreStringNode(str, p - str, priv->m_socket.getEncoding()));
 	    str = p + 1;
@@ -957,7 +958,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    v = ans->getKeyValue("content-length");
    int len = v ? v->getAsInt() : 0;
 
-   class QoreNode *body = NULL;   
+   QoreNode *body = 0;
    if (te && !strcasecmp((reinterpret_cast<QoreStringNode *>(te))->getBuffer(), "chunked")) // check for chunked response body
    {
       class QoreHash *nah;
@@ -977,9 +978,9 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 
       if (content_encoding)
       {
-	 class BinaryObject *bobj = priv->m_socket.recvBinary(len, priv->timeout, &rc);
+	 SimpleRefHolder<BinaryNode> bobj(priv->m_socket.recvBinary(len, priv->timeout, &rc));
 	 if (rc > 0 && bobj)
-	    body = new QoreNode(bobj);
+	    body = bobj.release();
       }
       else
       {
@@ -1018,8 +1019,8 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    // add body to result hash and process content encoding if necessary
    if (body && content_encoding)
    {
-      class BinaryObject *bobj = body->val.bin;
-      class QoreStringNode *str = NULL;
+      BinaryNode *bobj = reinterpret_cast<BinaryNode *>(body);
+      QoreStringNode *str = NULL;
       if (!strcasecmp(content_encoding, "deflate") || !strcasecmp(content_encoding, "x-deflate"))
 	 str = qore_inflate_to_string(bobj, priv->m_socket.getEncoding(), xsink);
       else if (!strcasecmp(content_encoding, "gzip") || !strcasecmp(content_encoding, "x-gzip"))
@@ -1029,7 +1030,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "don't know how to handle content-encoding '%s'", content_encoding);
 	 ans = 0;
       }
-      body->deref(xsink);
+      bobj->deref();
       body = str;
    }
    

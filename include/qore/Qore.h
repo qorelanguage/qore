@@ -26,13 +26,15 @@
 
 #include <qore/common.h>
 #include <qore/QoreNode.h>
-#include <qore/QoreList.h>
+#include <qore/QoreListNode.h>
 #include <qore/QoreProgram.h>
 #include <qore/ModuleManager.h>
 #include <qore/QoreLib.h>
 #include <qore/QoreStringNode.h>
 #include <qore/DateTimeNode.h>
 #include <qore/QoreHashNode.h>
+#include <qore/QoreBigIntNode.h>
+#include <qore/QoreBoolNode.h>
 #include <qore/QoreNet.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreFile.h>
@@ -42,7 +44,7 @@
 #include <qore/QoreObject.h>
 #include <qore/QoreNamespace.h>
 #include <qore/QoreException.h>
-#include <qore/BinaryObject.h>
+#include <qore/BinaryNode.h>
 #include <qore/support.h>
 #include <qore/QoreString.h>
 #include <qore/DateTime.h>

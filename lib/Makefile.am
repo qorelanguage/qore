@@ -28,6 +28,9 @@ libqore_la_SOURCES = \
 	QoreStringNode.cc \
 	DateTimeNode.cc \
 	QoreHashNode.cc \
+	BinaryNode.cc \
+	QoreBigIntNode.cc \
+	QoreBoolNode.cc \
 	Function.cc \
 	BuiltinFunctionList.cc \
 	UserFunctionList.cc \
@@ -70,7 +73,7 @@ libqore_la_SOURCES = \
 	QoreString.cc \
 	QoreHash.cc \
 	QoreObject.cc \
-	QoreList.cc \
+	QoreListNode.cc \
 	qore-main.cc \
 	QoreGetOpt.cc \
 	QoreFtpClient.cc \

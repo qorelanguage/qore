@@ -157,13 +157,13 @@ class QoreNode *Context::evalValue(char *field, class ExceptionSink *xsink)
       return NULL;
    }
    ReferenceHolder<QoreNode> val(v, xsink);
-   QoreList *l = dynamic_cast<QoreList *>(v);
+   QoreListNode *l = dynamic_cast<QoreListNode *>(v);
    if (!l)
       return 0;
 
    QoreNode *rv = l->retrieve_entry(row_list[pos]);
    if (rv) rv->ref();
-   //printd(5, "Context::evalValue(%s) this=%08p pos=%d rv=%08p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->type == NT_INT ? rv->val.intval : -1);
+   //printd(5, "Context::evalValue(%s) this=%08p pos=%d rv=%08p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->type == NT_INT ? ((QoreBigIntNode *)rv)->val : -1);
    //printd(5, "Context::evalValue(%s) pos=%d, val=%s\n", field, pos, rv && rv->type == NT_STRING ? rv->val.String->getBuffer() : "?");
    return rv;
 }
@@ -187,7 +187,7 @@ class QoreHashNode *Context::getRow(class ExceptionSink *xsink)
 	 return 0;
       assert(*v && v->type == NT_LIST);
       // set key value to list entry
-      QoreList *l = reinterpret_cast<QoreList *>(*v);
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(*v);
       h->setKeyValue(key, l->eval_entry(row_list[pos], xsink), NULL);
    }
    
@@ -360,7 +360,7 @@ Context::Context(char *nme, ExceptionSink *xsink, class QoreNode *exp, class Qor
 
       ReferenceHolder<QoreNode> fkv(value->evalFirstKeyValue(xsink), xsink);
 
-      QoreList *l = dynamic_cast<QoreList *>(*fkv);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(*fkv);
       if (l) {
 	 max_pos = l->size();
 	 row_list = (int *)malloc(sizeof(int) * max_pos);

@@ -29,9 +29,9 @@ class ScopedObjectCall
 public:
    class NamedScope *name;
    class QoreClass *oc;
-   QoreList *args;
+   QoreListNode *args;
    
-   DLLLOCAL ScopedObjectCall(NamedScope *n, QoreList *a);
+   DLLLOCAL ScopedObjectCall(NamedScope *n, QoreListNode *a);
    DLLLOCAL ~ScopedObjectCall();
 };
 

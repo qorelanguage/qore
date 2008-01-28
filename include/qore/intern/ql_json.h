@@ -26,8 +26,8 @@
 
 #define _QORE_QL_JSON_H
 
-DLLEXPORT class QoreString *makeJSONRPC11RequestStringArgs(const QoreList *params, ExceptionSink *xsink);
-DLLEXPORT class QoreString *makeJSONRPC11RequestString(const QoreList *params, ExceptionSink *xsink);
+DLLEXPORT class QoreString *makeJSONRPC11RequestStringArgs(const QoreListNode *params, ExceptionSink *xsink);
+DLLEXPORT class QoreString *makeJSONRPC11RequestString(const QoreListNode *params, ExceptionSink *xsink);
 DLLEXPORT class QoreNode *parseJSONValue(const QoreString *str, class ExceptionSink *xsink);
 
 DLLLOCAL void init_json_functions();

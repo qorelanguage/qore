@@ -47,7 +47,7 @@ static inline class QoreNode *map_minstance_to_node(const MInstance *min, Except
 // maps a TIBCO sequence to a QORE list
 static inline class QoreNode *map_msequence_to_node(const MSequence *ms, ExceptionSink *xsink)
 {
-   ReferenceHolder<QoreList> rv(new QoreList(), xsink);
+   ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
 
    for (unsigned i = 0; i < ms->size() && !xsink->isEvent(); i++)
       rv->push(map_mdata_to_node((MData *)(*ms)[i], xsink));
@@ -118,7 +118,7 @@ class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    
    const MInteger *mi;
    if ((mi = MInteger::downCast(md)))
-      return new QoreNode((int64)mi->getMi8());
+      return new QoreBigIntNode(mi->getMi8());
    
    const MStringData *msd;
    if ((msd = MStringData::downCast(md)))
@@ -141,14 +141,14 @@ class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    
    const MBool *mb;
    if ((mb = MBool::downCast(md)))
-      return new QoreNode((bool)mb->getAsBoolean());
+      return new QoreBoolNode((bool)mb->getAsBoolean());
 
    const MBinary *mbin;
    if ((mbin = MBinary::downCast(md)))
    {
-      BinaryObject *b = new BinaryObject();
+      BinaryNode *b = new BinaryNode();
       b->append(mbin->getData(), mbin->size());
-      return new QoreNode(b);
+      return b;
    }
 
    const MInterval *mint;

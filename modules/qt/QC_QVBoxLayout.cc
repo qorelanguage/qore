@@ -28,7 +28,7 @@
 
 int CID_QVBOXLAYOUT;
 
-static void QVBOXL_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QVBOXL_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQVBoxLayout *qw;
    QoreNode *p = test_param(params, NT_OBJECT, 0);

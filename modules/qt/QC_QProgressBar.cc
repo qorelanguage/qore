@@ -31,7 +31,7 @@ int CID_QPROGRESSBAR;
 class QoreClass *QC_QProgressBar = 0;
 
 //QProgressBar ( QWidget * parent = 0 )
-static void QPROGRESSBAR_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QPROGRESSBAR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -48,49 +48,49 @@ static void QPROGRESSBAR_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //Qt::Alignment alignment () const
-static QoreNode *QPROGRESSBAR_alignment(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_alignment(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qpb->qobj->alignment());
+   return new QoreBigIntNode(qpb->qobj->alignment());
 }
 
 //QString format () const
-static QoreNode *QPROGRESSBAR_format(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_format(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qpb->qobj->format().toUtf8().data(), QCS_UTF8);
 }
 
 //bool invertedAppearance ()
-static QoreNode *QPROGRESSBAR_invertedAppearance(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_invertedAppearance(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qpb->qobj->invertedAppearance());
+   return new QoreBoolNode(qpb->qobj->invertedAppearance());
 }
 
 //bool isTextVisible () const
-static QoreNode *QPROGRESSBAR_isTextVisible(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_isTextVisible(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qpb->qobj->isTextVisible());
+   return new QoreBoolNode(qpb->qobj->isTextVisible());
 }
 
 //int maximum () const
-static QoreNode *QPROGRESSBAR_maximum(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_maximum(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qpb->qobj->maximum());
+   return new QoreBigIntNode(qpb->qobj->maximum());
 }
 
 //int minimum () const
-static QoreNode *QPROGRESSBAR_minimum(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_minimum(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qpb->qobj->minimum());
+   return new QoreBigIntNode(qpb->qobj->minimum());
 }
 
 //Qt::Orientation orientation () const
-static QoreNode *QPROGRESSBAR_orientation(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_orientation(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qpb->qobj->orientation());
+   return new QoreBigIntNode(qpb->qobj->orientation());
 }
 
 //void setAlignment ( Qt::Alignment alignment )
-static QoreNode *QPROGRESSBAR_setAlignment(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_setAlignment(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
@@ -99,7 +99,7 @@ static QoreNode *QPROGRESSBAR_setAlignment(QoreObject *self, QoreQProgressBar *q
 }
 
 //void setFormat ( const QString & format )
-static QoreNode *QPROGRESSBAR_setFormat(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_setFormat(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString format;
@@ -110,7 +110,7 @@ static QoreNode *QPROGRESSBAR_setFormat(QoreObject *self, QoreQProgressBar *qpb,
 }
 
 //void setInvertedAppearance ( bool invert )
-static QoreNode *QPROGRESSBAR_setInvertedAppearance(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_setInvertedAppearance(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool invert = p ? p->getAsBool() : false;
@@ -119,7 +119,7 @@ static QoreNode *QPROGRESSBAR_setInvertedAppearance(QoreObject *self, QoreQProgr
 }
 
 //void setTextDirection ( QProgressBar::Direction textDirection )
-static QoreNode *QPROGRESSBAR_setTextDirection(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_setTextDirection(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QProgressBar::Direction textDirection = (QProgressBar::Direction)(p ? p->getAsInt() : 0);
@@ -128,7 +128,7 @@ static QoreNode *QPROGRESSBAR_setTextDirection(QoreObject *self, QoreQProgressBa
 }
 
 //void setTextVisible ( bool visible )
-static QoreNode *QPROGRESSBAR_setTextVisible(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_setTextVisible(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool visible = p ? p->getAsBool() : false;
@@ -137,32 +137,32 @@ static QoreNode *QPROGRESSBAR_setTextVisible(QoreObject *self, QoreQProgressBar 
 }
 
 //virtual QString text () const
-static QoreNode *QPROGRESSBAR_text(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_text(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qpb->qobj->text().toUtf8().data(), QCS_UTF8);
 }
 
 //QProgressBar::Direction textDirection ()
-static QoreNode *QPROGRESSBAR_textDirection(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_textDirection(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qpb->qobj->textDirection());
+   return new QoreBigIntNode(qpb->qobj->textDirection());
 }
 
 //int value () const
-static QoreNode *QPROGRESSBAR_value(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_value(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qpb->qobj->value());
+   return new QoreBigIntNode(qpb->qobj->value());
 }
 
 //void reset ()
-static QoreNode *QPROGRESSBAR_reset(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_reset(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    qpb->qobj->reset();
    return 0;
 }
 
 //void setMaximum ( int maximum )
-static QoreNode *QPROGRESSBAR_setMaximum(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_setMaximum(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int maximum = p ? p->getAsInt() : 0;
@@ -171,7 +171,7 @@ static QoreNode *QPROGRESSBAR_setMaximum(QoreObject *self, QoreQProgressBar *qpb
 }
 
 //void setMinimum ( int minimum )
-static QoreNode *QPROGRESSBAR_setMinimum(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_setMinimum(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int minimum = p ? p->getAsInt() : 0;
@@ -180,7 +180,7 @@ static QoreNode *QPROGRESSBAR_setMinimum(QoreObject *self, QoreQProgressBar *qpb
 }
 
 //void setOrientation ( Qt::Orientation )
-static QoreNode *QPROGRESSBAR_setOrientation(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_setOrientation(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
@@ -189,7 +189,7 @@ static QoreNode *QPROGRESSBAR_setOrientation(QoreObject *self, QoreQProgressBar 
 }
 
 //void setRange ( int minimum, int maximum )
-static QoreNode *QPROGRESSBAR_setRange(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_setRange(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int minimum = p ? p->getAsInt() : 0;
@@ -200,7 +200,7 @@ static QoreNode *QPROGRESSBAR_setRange(QoreObject *self, QoreQProgressBar *qpb, 
 }
 
 //void setValue ( int value )
-static QoreNode *QPROGRESSBAR_setValue(QoreObject *self, QoreQProgressBar *qpb, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPROGRESSBAR_setValue(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int value = p ? p->getAsInt() : 0;

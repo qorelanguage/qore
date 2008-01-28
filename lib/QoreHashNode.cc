@@ -40,6 +40,11 @@ QoreString *QoreHashNode::getAsString(bool &del, int foff, class ExceptionSink *
    return QoreHash::getAsString(del, foff, xsink);
 }
 
+int QoreHashNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
+{
+   return QoreHash::getAsString(str, foff, xsink);
+}
+
 bool QoreHashNode::needs_eval() const
 {
    return QoreHash::needsEval();

@@ -123,14 +123,14 @@ int mySocket::send(const char *buf, int size)
 }
 
 // send a null-terminated string
-int mySocket::send(class QoreString *msg, class ExceptionSink *xsink)
+int mySocket::send(const QoreString *msg, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->send(msg, xsink);
 }
 
 // send a binary object
-int mySocket::send(class BinaryObject *b)
+int mySocket::send(const BinaryNode *b)
 {
    SafeLocker sl(this);
    return socket->send(b);
@@ -194,7 +194,7 @@ class QoreStringNode *mySocket::recv(int bufsize, int timeout, int *rc)
 }
 
 // receive a certain number of bytes as a binary object
-class BinaryObject *mySocket::recvBinary(int bufsize, int timeout, int *rc)
+class BinaryNode *mySocket::recvBinary(int bufsize, int timeout, int *rc)
 {
    SafeLocker sl(this);
    return socket->recvBinary(bufsize, timeout, rc);

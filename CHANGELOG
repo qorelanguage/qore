@@ -1,15 +1,22 @@
-2007.01.27: David Nichol
-	* QoreObject implemented as QoreNode subtype
+2007.01.28: David Nichols
+	* BinaryObject implemented as QoreNode subclass
+	* QoreList renamed to QoreListNode
+	* BinaryObject renamed to BinaryNode
+	* implemented QoreBigIntNode as QoreNode subclass for 64-bit integer 
+	  type
+
+2007.01.27: David Nichols
+	* QoreObject implemented as QoreNode subclass
 
 2007.01.24: David Nichols
-	* QoreList implemented as QoreNode subtype
+	* QoreList implemented as QoreNode subclass
 
 2007.01.23: David Nichols
-	* QoreHashNode created as QoreNode subtype
+	* QoreHashNode created as QoreNode subclass
 	* almost all QoreType functions removed
 
 2007.01.15: David Nichols
-	* DateTimeNode created as QoreNode subtype
+	* DateTimeNode created as QoreNode subclass
 	* bugfixes related to new API and type system changes
 
 2007.01.14: David Nichols

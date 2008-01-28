@@ -42,9 +42,9 @@ class BaseHelper {
       unsigned char *input;
       int input_len;
 
-      DLLLOCAL int getInput(char *err, const QoreList *params, class ExceptionSink *xsink, bool include_null = true)
+      DLLLOCAL int getInput(char *err, const QoreListNode *params, class ExceptionSink *xsink, bool include_null = true)
       {
-	 class QoreNode *pt = get_param(params, 0);
+	 QoreNode *pt = get_param(params, 0);
 
 	 if (is_nothing(pt))
 	 {
@@ -52,17 +52,18 @@ class BaseHelper {
 	    return -1;
 	 }
 	 {
-	    QoreStringNode *str = dynamic_cast<QoreStringNode *>(pt);
+	    const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(pt);
 	    if (str) {
 	       input = (unsigned char *)str->getBuffer();
 	       input_len = str->strlen() + include_null;
 	       return 0;
 	    }
 	 }
-	 if (pt->type == NT_BINARY)
-	 {
-	    input = (unsigned char *)pt->val.bin->getPtr();
-	    input_len = pt->val.bin->size();
+
+	 const BinaryNode *b = dynamic_cast<const BinaryNode *>(pt);
+	 if (b) {
+	    input = (unsigned char *)b->getPtr();
+	    input_len = b->size();
 	    return 0;
 	 }
 	 
@@ -78,7 +79,7 @@ class DigestHelper : public BaseHelper
       unsigned int md_len;
 
    public:
-      DLLLOCAL int getData(char *err, const QoreList *params, class ExceptionSink *xsink)
+      DLLLOCAL int getData(char *err, const QoreListNode *params, class ExceptionSink *xsink)
       {
 	 return getInput(err, params, xsink, false);
       }
@@ -110,9 +111,9 @@ class DigestHelper : public BaseHelper
 	 return str;
       }
 
-      DLLLOCAL class BinaryObject *getBinary() const
+      DLLLOCAL class BinaryNode *getBinary() const
       {
-	 class BinaryObject *b = new BinaryObject();
+	 class BinaryNode *b = new BinaryNode();
 	 b->append(md_value, md_len);
 	 return b;
       }      
@@ -129,7 +130,7 @@ class CryptoHelper : public BaseHelper
 	 return n == 1 ? "first" : (n == 2 ? "second" : "third");
       }
 
-      DLLLOCAL int getKey(char *err, const QoreList *params, int n, class ExceptionSink *xsink)
+      DLLLOCAL int getKey(char *err, const QoreListNode *params, int n, class ExceptionSink *xsink)
       {
 	 class QoreNode *pt = get_param(params, n);
 
@@ -140,7 +141,7 @@ class CryptoHelper : public BaseHelper
 	 }
 
 	 {
-	    QoreStringNode *str = dynamic_cast<QoreStringNode *>(pt);
+	    const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(pt);
 	    if (str) {
 	       key[n - 1] = (unsigned char *)str->getBuffer();
 	       keylen[n - 1] = str->strlen();
@@ -148,10 +149,10 @@ class CryptoHelper : public BaseHelper
 	    }
 	 }
 	 
-	 if (pt->type == NT_BINARY)
-	 {
-	    key[n - 1] = (unsigned char *)pt->val.bin->getPtr();
-	    keylen[n - 1] = pt->val.bin->size();
+	 const BinaryNode *b = dynamic_cast<const BinaryNode *>(pt);
+	 if (b) {
+	    key[n - 1] = (unsigned char *)b->getPtr();
+	    keylen[n - 1] = b->size();
 	    return 0;
 	 }
 
@@ -160,7 +161,7 @@ class CryptoHelper : public BaseHelper
       }
 
       // get initialization vector
-      DLLLOCAL int getIV(char *err, const QoreList *params, int n, class ExceptionSink *xsink)
+      DLLLOCAL int getIV(char *err, const QoreListNode *params, int n, class ExceptionSink *xsink)
       {
 	 class QoreNode *pt = get_param(params, n);
 	 if (is_nothing(pt))
@@ -170,7 +171,7 @@ class CryptoHelper : public BaseHelper
 	 }
 
 	 {
-	    QoreStringNode *str = dynamic_cast<QoreStringNode *>(pt);
+	    const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(pt);
 	    if (str) {
 	       if (str->strlen() < 8)
 	       {
@@ -182,14 +183,14 @@ class CryptoHelper : public BaseHelper
 	    }
 	 }
 
-	 if (pt->type == NT_BINARY)
-	 {
-	    if (pt->val.bin->size() < 8)
+	 const BinaryNode *b = dynamic_cast<const BinaryNode *>(pt);
+	 if (b) {
+	    if (b->size() < 8)
 	    {
-	       xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", pt->val.bin->size());
+	       xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", b->size());
 	       return -1;
 	    }
-	    iv = (unsigned char *)pt->val.bin->getPtr();
+	    iv = (unsigned char *)b->getPtr();
 	    return 0;
 	 }
 
@@ -212,9 +213,9 @@ class CryptoHelper : public BaseHelper
 	    free(output);
       }
 
-      DLLLOCAL class BinaryObject *getBinary()
+      DLLLOCAL class BinaryNode *getBinary()
       {
-	 class BinaryObject *b = new BinaryObject(output, output_len);
+	 class BinaryNode *b = new BinaryNode(output, output_len);
 	 output = NULL;
 	 return b;
       }
@@ -234,21 +235,21 @@ class CryptoHelper : public BaseHelper
 	 return str;
       }
 
-      DLLLOCAL int getSingleKey(char *err, const QoreList *params, class ExceptionSink *xsink)
+      DLLLOCAL int getSingleKey(char *err, const QoreListNode *params, class ExceptionSink *xsink)
       {
 	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getIV(err, params, 2, xsink))
 	    return -1;
 	 return 0;
       }
 
-      DLLLOCAL int getTwoKeys(char *err, const QoreList *params, class ExceptionSink *xsink)
+      DLLLOCAL int getTwoKeys(char *err, const QoreListNode *params, class ExceptionSink *xsink)
       {
 	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getKey(err, params, 2, xsink) || getIV(err, params, 3, xsink))
 	    return -1;
 	 return 0;
       }
 
-      DLLLOCAL int getThreeKeys(char *err, const QoreList *params, class ExceptionSink *xsink)
+      DLLLOCAL int getThreeKeys(char *err, const QoreListNode *params, class ExceptionSink *xsink)
       {
 	 if (getInput(err, params, xsink) || getKey(err, params, 1, xsink) || getKey(err, params, 2, xsink) || getKey(err, params, 3, xsink) || getIV(err, params, 4, xsink))
 	    return -1;
@@ -324,7 +325,7 @@ class CryptoHelper : public BaseHelper
 
 };
 
-static class QoreNode *f_blowfish_encrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_blowfish_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -332,10 +333,10 @@ static class QoreNode *f_blowfish_encrypt_cbc(const QoreList *params, ExceptionS
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QC_ENCRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_blowfish_decrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_blowfish_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -343,10 +344,10 @@ static class QoreNode *f_blowfish_decrypt_cbc(const QoreList *params, ExceptionS
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QC_DECRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_blowfish_decrypt_cbc_to_string(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_blowfish_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -357,7 +358,7 @@ static class QoreNode *f_blowfish_decrypt_cbc_to_string(const QoreList *params, 
    return ch.getString();
 }
 
-static class QoreNode *f_des_encrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_des_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -366,10 +367,10 @@ static class QoreNode *f_des_encrypt_cbc(const QoreList *params, ExceptionSink *
        || ch.doCipher(EVP_des_cbc(), "DES", QC_ENCRYPT, xsink))
 	    return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_des_decrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_des_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -378,10 +379,10 @@ static class QoreNode *f_des_decrypt_cbc(const QoreList *params, ExceptionSink *
        || ch.doCipher(EVP_des_cbc(), "DES", QC_DECRYPT, xsink))
 	    return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_des_decrypt_cbc_to_string(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_des_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -394,7 +395,7 @@ static class QoreNode *f_des_decrypt_cbc_to_string(const QoreList *params, Excep
 }
 
 // params (data, [key, [input_vector]])
-static class QoreNode *f_des_ede_encrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_des_ede_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -403,10 +404,10 @@ static class QoreNode *f_des_ede_encrypt_cbc(const QoreList *params, ExceptionSi
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QC_ENCRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_des_ede_decrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_des_ede_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -415,10 +416,10 @@ static class QoreNode *f_des_ede_decrypt_cbc(const QoreList *params, ExceptionSi
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QC_DECRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_des_ede_decrypt_cbc_to_string(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_des_ede_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -431,7 +432,7 @@ static class QoreNode *f_des_ede_decrypt_cbc_to_string(const QoreList *params, E
 }
 
 // params (data, [key, [input_vector]])
-static class QoreNode *f_des_ede3_encrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_des_ede3_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -440,10 +441,10 @@ static class QoreNode *f_des_ede3_encrypt_cbc(const QoreList *params, ExceptionS
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QC_ENCRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_des_ede3_decrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_des_ede3_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -452,10 +453,10 @@ static class QoreNode *f_des_ede3_decrypt_cbc(const QoreList *params, ExceptionS
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QC_DECRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_des_ede3_decrypt_cbc_to_string(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_des_ede3_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -468,7 +469,7 @@ static class QoreNode *f_des_ede3_decrypt_cbc_to_string(const QoreList *params, 
 }
 
 // params (data, key, [input_vector])
-static class QoreNode *f_desx_encrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_desx_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -477,10 +478,10 @@ static class QoreNode *f_desx_encrypt_cbc(const QoreList *params, ExceptionSink 
        || ch.doCipher(EVP_desx_cbc(), "DESX", QC_ENCRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_desx_decrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_desx_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -489,10 +490,10 @@ static class QoreNode *f_desx_decrypt_cbc(const QoreList *params, ExceptionSink 
        || ch.doCipher(EVP_desx_cbc(), "DESX", QC_DECRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_desx_decrypt_cbc_to_string(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_desx_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -504,7 +505,7 @@ static class QoreNode *f_desx_decrypt_cbc_to_string(const QoreList *params, Exce
    return ch.getString();
 }
 
-static class QoreNode *f_rc4_encrypt(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rc4_encrypt(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -512,10 +513,10 @@ static class QoreNode *f_rc4_encrypt(const QoreList *params, ExceptionSink *xsin
        || ch.doCipher(EVP_rc4(), "rc4", QC_ENCRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_rc4_decrypt(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rc4_decrypt(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -523,10 +524,10 @@ static class QoreNode *f_rc4_decrypt(const QoreList *params, ExceptionSink *xsin
        || ch.doCipher(EVP_rc4(), "rc4", QC_DECRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_rc4_decrypt_to_string(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rc4_decrypt_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -537,7 +538,7 @@ static class QoreNode *f_rc4_decrypt_to_string(const QoreList *params, Exception
    return ch.getString();
 }
 
-static class QoreNode *f_rc2_encrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rc2_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -545,10 +546,10 @@ static class QoreNode *f_rc2_encrypt_cbc(const QoreList *params, ExceptionSink *
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QC_ENCRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_rc2_decrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rc2_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -556,10 +557,10 @@ static class QoreNode *f_rc2_decrypt_cbc(const QoreList *params, ExceptionSink *
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QC_DECRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_rc2_decrypt_cbc_to_string(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rc2_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -570,7 +571,7 @@ static class QoreNode *f_rc2_decrypt_cbc_to_string(const QoreList *params, Excep
    return ch.getString();
 }
 
-static class QoreNode *f_cast5_encrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_cast5_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -578,10 +579,10 @@ static class QoreNode *f_cast5_encrypt_cbc(const QoreList *params, ExceptionSink
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QC_ENCRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_cast5_decrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_cast5_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -589,10 +590,10 @@ static class QoreNode *f_cast5_decrypt_cbc(const QoreList *params, ExceptionSink
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QC_DECRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_cast5_decrypt_cbc_to_string(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_cast5_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -604,7 +605,7 @@ static class QoreNode *f_cast5_decrypt_cbc_to_string(const QoreList *params, Exc
 }
 
 #ifndef OPENSSL_NO_RC5
-static class QoreNode *f_rc5_encrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rc5_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -612,10 +613,10 @@ static class QoreNode *f_rc5_encrypt_cbc(const QoreList *params, ExceptionSink *
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QC_ENCRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_rc5_decrypt_cbc(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rc5_decrypt_cbc(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -623,10 +624,10 @@ static class QoreNode *f_rc5_decrypt_cbc(const QoreList *params, ExceptionSink *
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QC_DECRYPT, xsink))
       return NULL;
 
-   return new QoreNode(ch.getBinary());
+   return ch.getBinary();
 }
 
-static class QoreNode *f_rc5_decrypt_cbc_to_string(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rc5_decrypt_cbc_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    class CryptoHelper ch;
 
@@ -639,7 +640,7 @@ static class QoreNode *f_rc5_decrypt_cbc_to_string(const QoreList *params, Excep
 #endif
 
 #define MD2_ERR "MD2-DIGEST-ERROR"
-static class QoreNode *f_MD2(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_MD2(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(MD2_ERR, params, xsink) || dh.doDigest(MD2_ERR, EVP_md2(), xsink))
@@ -649,7 +650,7 @@ static class QoreNode *f_MD2(const QoreList *params, ExceptionSink *xsink)
 }
 
 #define MD4_ERR "MD4-DIGEST-ERROR"
-static class QoreNode *f_MD4(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_MD4(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(MD4_ERR, params, xsink) || dh.doDigest(MD4_ERR, EVP_md4(), xsink))
@@ -659,7 +660,7 @@ static class QoreNode *f_MD4(const QoreList *params, ExceptionSink *xsink)
 }
 
 #define MD5_ERR "MD5-DIGEST-ERROR"
-static class QoreNode *f_MD5(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_MD5(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(MD5_ERR, params, xsink) || dh.doDigest(MD5_ERR, EVP_md5(), xsink))
@@ -669,7 +670,7 @@ static class QoreNode *f_MD5(const QoreList *params, ExceptionSink *xsink)
 }
 
 #define SHA_ERR "SHA-DIGEST-ERROR"
-static class QoreNode *f_SHA(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_SHA(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(SHA_ERR, params, xsink) || dh.doDigest(SHA_ERR, EVP_sha(), xsink))
@@ -679,7 +680,7 @@ static class QoreNode *f_SHA(const QoreList *params, ExceptionSink *xsink)
 }
 
 #define SHA1_ERR "SHA1-DIGEST-ERROR"
-static class QoreNode *f_SHA1(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_SHA1(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(SHA1_ERR, params, xsink) || dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
@@ -689,7 +690,7 @@ static class QoreNode *f_SHA1(const QoreList *params, ExceptionSink *xsink)
 }
 
 #define DSS_ERR "DSS-DIGEST-ERROR"
-static class QoreNode *f_DSS(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_DSS(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(DSS_ERR, params, xsink) || dh.doDigest(DSS_ERR, EVP_dss(), xsink))
@@ -699,7 +700,7 @@ static class QoreNode *f_DSS(const QoreList *params, ExceptionSink *xsink)
 }
 
 #define DSS1_ERR "DSS1-DIGEST-ERROR"
-static class QoreNode *f_DSS1(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_DSS1(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(DSS1_ERR, params, xsink) || dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
@@ -710,7 +711,7 @@ static class QoreNode *f_DSS1(const QoreList *params, ExceptionSink *xsink)
 
 #ifndef OPENSSL_NO_MDC2
 #define MDC2_ERR "MDC2-DIGEST-ERROR"
-static class QoreNode *f_MDC2(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_MDC2(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(MDC2_ERR, params, xsink) || dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
@@ -721,7 +722,7 @@ static class QoreNode *f_MDC2(const QoreList *params, ExceptionSink *xsink)
 #endif
 
 #define RIPEMD160_ERR "RIPEMD160-DIGEST-ERROR"
-static class QoreNode *f_RIPEMD160(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_RIPEMD160(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(RIPEMD160_ERR, params, xsink) || dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
@@ -730,94 +731,94 @@ static class QoreNode *f_RIPEMD160(const QoreList *params, ExceptionSink *xsink)
    return dh.getString();
 }
 
-static class QoreNode *f_MD2_bin(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_MD2_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(MD2_ERR, params, xsink) || dh.doDigest(MD2_ERR, EVP_md2(), xsink))
       return NULL;
    
-   return new QoreNode(dh.getBinary());
+   return dh.getBinary();
 }
 
-static class QoreNode *f_MD4_bin(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_MD4_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(MD4_ERR, params, xsink) || dh.doDigest(MD4_ERR, EVP_md4(), xsink))
       return NULL;
    
-   return new QoreNode(dh.getBinary());
+   return dh.getBinary();
 }
 
-static class QoreNode *f_MD5_bin(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_MD5_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(MD5_ERR, params, xsink) || dh.doDigest(MD5_ERR, EVP_md5(), xsink))
       return NULL;
    
-   return new QoreNode(dh.getBinary());
+   return dh.getBinary();
 }
 
-static class QoreNode *f_SHA_bin(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_SHA_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(SHA_ERR, params, xsink) || dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return NULL;
    
-   return new QoreNode(dh.getBinary());
+   return dh.getBinary();
 }
 
-static class QoreNode *f_SHA1_bin(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_SHA1_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(SHA1_ERR, params, xsink) || dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
       return NULL;
    
-   return new QoreNode(dh.getBinary());
+   return dh.getBinary();
 }
 
-static class QoreNode *f_DSS_bin(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_DSS_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(DSS_ERR, params, xsink) || dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return NULL;
    
-   return new QoreNode(dh.getBinary());
+   return dh.getBinary();
 }
 
-static class QoreNode *f_DSS1_bin(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_DSS1_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(DSS1_ERR, params, xsink) || dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return NULL;
    
-   return new QoreNode(dh.getBinary());
+   return dh.getBinary();
 }
 
 #ifndef OPENSSL_NO_MDC2
-static class QoreNode *f_MDC2_bin(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_MDC2_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(MDC2_ERR, params, xsink) || dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
       return NULL;
    
-   return new QoreNode(dh.getBinary());
+   return dh.getBinary();
 }
 #endif
 
-static class QoreNode *f_RIPEMD160_bin(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_RIPEMD160_bin(const QoreListNode *params, ExceptionSink *xsink)
 {
    class DigestHelper dh;
    if (dh.getData(RIPEMD160_ERR, params, xsink) || dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
       return NULL;
    
-   return new QoreNode(dh.getBinary());
+   return dh.getBinary();
 }
 
-static class QoreNode *f_des_random_key(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_des_random_key(const QoreListNode *params, ExceptionSink *xsink)
 {
    DES_cblock *db = (DES_cblock *)malloc(sizeof(DES_cblock));
    DES_random_key(db);
-   return new QoreNode(new BinaryObject(db, sizeof(DES_cblock)));
+   return new BinaryNode(db, sizeof(DES_cblock));
 }
 
 void init_crypto_functions()

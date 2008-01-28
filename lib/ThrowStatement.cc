@@ -30,9 +30,9 @@ ThrowStatement::ThrowStatement(int start_line, int end_line, class QoreNode *v) 
       args = NULL;
       return;
    }
-   args = dynamic_cast<QoreList *>(v);
+   args = dynamic_cast<QoreListNode *>(v);
    if (!args) {
-      args = new QoreList(v->needs_eval());
+      args = new QoreListNode(v->needs_eval());
       args->push(v);
    }
 }
@@ -45,7 +45,7 @@ ThrowStatement::~ThrowStatement()
 
 int ThrowStatement::execImpl(class QoreNode **return_value, ExceptionSink *xsink)
 {
-   QoreListEvalOptionalRefHolder a(args, xsink);
+   QoreListNodeEvalOptionalRefHolder a(args, xsink);
    if (*xsink)
       return 0;
    

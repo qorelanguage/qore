@@ -64,7 +64,7 @@ public:
 static inline QoreHashNode *make_tuxedo_err_hash(int terrno, const char *errstr)
 {
    QoreHashNode *h = new QoreHashNode();
-   h->setKeyValue((char*)"error", new QoreNode((int64)terrno), 0);
+   h->setKeyValue((char*)"error", new QoreBigIntNode(terrno), 0);
    h->setKeyValue((char*)"Tuxedo call", new QoreStringNode(errstr), 0);
    return h;
 }

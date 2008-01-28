@@ -66,7 +66,7 @@ QoreStringNode::QoreStringNode(char c) : SimpleQoreNode(NT_STRING), QoreString(c
 {
 }
 
-QoreStringNode::QoreStringNode(const class BinaryObject *b) : SimpleQoreNode(NT_STRING), QoreString(b)
+QoreStringNode::QoreStringNode(const class BinaryNode *b) : SimpleQoreNode(NT_STRING), QoreString(b)
 {
 }
 
@@ -103,14 +103,24 @@ double QoreStringNode::getAsFloat() const
    return atof(getBuffer());
 }
 
-QoreString *QoreStringNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    del = true;
    QoreString *str = new QoreString(getEncoding());
    str->concat('"');
-   str->concat(static_cast<const QoreString *>(this));
+   str->concat(this);
    str->concat('"');
    return str;
+}
+
+int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
+{
+   str.concat('"');
+   str.concat(this, xsink);
+   if (*xsink)
+      return -1;
+   str.concat('"');
+   return 0;
 }
 
 bool QoreStringNode::getAsBool() const
@@ -215,16 +225,18 @@ class QoreStringNode *QoreStringNode::reverse() const
 
 class QoreStringNode *QoreStringNode::parseBase64ToString(class ExceptionSink *xsink) const
 {
-   class BinaryObject *b = ::parseBase64(priv->buf, priv->len, xsink);
+   SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
    if (!b)
-      return NULL;
+      return 0;
 
    qore_string_private *p = new qore_string_private;
    p->len = b->size() - 1;
    p->buf = (char *)b->giveBuffer();
    p->charset = QCS_DEFAULT;
 
-   delete b;
+   // free memory allocated to binary object
+   b = 0;
+
    // check for null termination
    if (p->buf[p->len])
    {

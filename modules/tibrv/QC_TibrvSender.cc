@@ -29,7 +29,7 @@
 int CID_TIBRVSENDER;
 
 // syntax: [desc, service, network, daemon] 
-void TIBRVSENDER_constructor(class QoreObject *self, const QoreList *params, class ExceptionSink *xsink)
+void TIBRVSENDER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVSENDER_constructor");
 
@@ -62,7 +62,7 @@ void TIBRVSENDER_copy(class QoreObject *self, class QoreObject *old, class QoreT
    xsink->raiseException("TIBRVSENDER-COPY-ERROR", "copying TibrvSender objects is curently not supported");
 }
 
-static QoreNode *TIBRVSENDER_sendSubject(class QoreObject *self, class QoreTibrvSender *trvs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *TIBRVSENDER_sendSubject(class QoreObject *self, class QoreTibrvSender *trvs, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -84,7 +84,7 @@ static QoreNode *TIBRVSENDER_sendSubject(class QoreObject *self, class QoreTibrv
    return NULL;
 }
 
-static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class QoreObject *self, class QoreTibrvSender *trvs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class QoreObject *self, class QoreTibrvSender *trvs, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -104,7 +104,7 @@ static QoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class QoreObject *self, cl
    return trvs->sendSubjectWithSyncReply(subject, h, timeout, xsink);
 }
 
-class QoreNode *TIBRVSENDER_setStringEncoding(class QoreObject *self, class QoreTibrvSender *trvs, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *TIBRVSENDER_setStringEncoding(class QoreObject *self, class QoreTibrvSender *trvs, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -118,7 +118,7 @@ class QoreNode *TIBRVSENDER_setStringEncoding(class QoreObject *self, class Qore
    return NULL;
 }
 
-class QoreNode *TIBRVSENDER_getStringEncoding(class QoreObject *self, class QoreTibrvSender *trvs, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *TIBRVSENDER_getStringEncoding(class QoreObject *self, class QoreTibrvSender *trvs, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(trvs->getStringEncoding()->getCode());
 }

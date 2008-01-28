@@ -31,7 +31,7 @@ static inline void strindent(QoreString *s, int indent)
       s->concat(' ');
 }
 
-static void dni(QoreStringNode *s, class QoreNode *n, int indent, class ExceptionSink *xsink)
+static void dni(QoreStringNode *s, const QoreNode *n, int indent, class ExceptionSink *xsink)
 {
    if (!n)
    {
@@ -41,21 +41,21 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
    
    s->sprintf("node=%08p refs=%d type=%s ", n, n->reference_count(), n->getTypeName());
 
-   {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
-      if (str) {
-	 s->sprintf("val=(enc=%s, %d:%d) \"%s\"", str->getEncoding()->getCode(), str->length(), str->strlen(), str->getBuffer());
-	 return;
-      }
+   const QoreType *ntype = n->getType();
+
+   if (ntype == NT_STRING) {
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(n);
+      s->sprintf("val=(enc=%s, %d:%d) \"%s\"", str->getEncoding()->getCode(), str->length(), str->strlen(), str->getBuffer());
+      return;
    }
    
    if (n->type == NT_BOOLEAN) {
-      s->sprintf("val=%s", n->val.boolval ? "True" : "False");
+      s->sprintf("val=%s", reinterpret_cast<const QoreBoolNode *>(n)->b ? "True" : "False");
       return;
    }
 
    if (n->type == NT_INT) {
-      s->sprintf("val=%lld", n->val.intval);
+      s->sprintf("val=%lld", (reinterpret_cast<const QoreBigIntNode *>(n))->val);
       return;
    }
   
@@ -75,10 +75,10 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
    }
    
    {
-      QoreList *l = dynamic_cast<QoreList *>(n);
+      const QoreListNode *l = dynamic_cast<const QoreListNode *>(n);
       if (l) {
 	 s->sprintf("elements=%d\n", l->size());
-	 ListIterator li(l);
+	 ConstListIterator li(l);
 	 int i = 0;
 	 while (li.next()) {
 	    strindent(s, indent);
@@ -92,13 +92,13 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
    }
    
    {
-      QoreObject *o = dynamic_cast<QoreObject *>(n);
+      const QoreObject *o = dynamic_cast<const QoreObject *>(n);
       if (o) {
 	 s->sprintf("elements=%d (type=%s, valid=%s)\n", o->size(xsink),
 		    o->getClass() ? o->getClass()->getName() : "<none>",
 		    o->isValid() ? "yes" : "no");
 	 {
-	    ReferenceHolder<QoreList> l(o->getMemberList(xsink), xsink);
+	    ReferenceHolder<QoreListNode> l(o->getMemberList(xsink), xsink);
 	    if (l)
 	    {
 	       for (int i = 0; i < l->size(); i++)
@@ -119,12 +119,12 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
    }
    
    {
-      QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
+      const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(n);
       if (h) {
 	 s->sprintf("elements=%d\n", h->size());
 	 {
 	    int i = 0;
-	    HashIterator hi(h);
+	    ConstHashIterator hi(h);
 	    while (hi.next())
 	    {
 	       strindent(s, indent);
@@ -139,7 +139,7 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
    }
    
    {
-      DateTimeNode *date = dynamic_cast<DateTimeNode *>(n);
+      const DateTimeNode *date = dynamic_cast<const DateTimeNode *>(n);
       if (date) {
 	 s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%03d (rel=%s)", 
 		    date->getYear(), date->getMonth(), date->getDay(), date->getHour(),
@@ -148,16 +148,19 @@ static void dni(QoreStringNode *s, class QoreNode *n, int indent, class Exceptio
       }
    }
 
-   if (n->type == NT_BINARY) {
-      s->sprintf("ptr=%08p len=%d", n->val.bin->getPtr(), n->val.bin->size());
-      return;
+   {
+      const BinaryNode *b = dynamic_cast<const BinaryNode *>(n);
+      if (b) {
+	 s->sprintf("ptr=%08p len=%d", b->getPtr(), b->size());
+	 return;
+      }
    }
 
    s->sprintf("don't know how to print type '%s' :-(", n->getTypeName());
 }
 
 //static 
-class QoreNode *f_dbg_node_info(const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink)
 {
    TempQoreStringNode s(new QoreStringNode());
    dni(*s, get_param(params, 0), 0, xsink);
@@ -167,12 +170,12 @@ class QoreNode *f_dbg_node_info(const QoreList *params, ExceptionSink *xsink)
 }
 
 // returns a hash of all namespace information
-static class QoreNode *f_dbg_get_ns_info(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_dbg_get_ns_info(const QoreListNode *params, ExceptionSink *xsink)
 {
    return getRootNS()->getInfo();
 }
 
-static class QoreNode *f_dbg_global_vars(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_dbg_global_vars(const QoreListNode *params, ExceptionSink *xsink)
 {
    return getProgram()->getVarList();
 }

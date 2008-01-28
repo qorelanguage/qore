@@ -37,14 +37,14 @@
 
 static void remove_pending_calls(MApp* app);
 
-static const char *get_class(QoreHash *h)
+static const char *get_class(const QoreHash *h)
 {
    QoreNode *t;
 
    if (!(t = h->getKeyValue("^class^")))
       return NULL;
    
-   QoreStringNode *str = dynamic_cast<QoreStringNode *>(t);
+   const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(t);
    if (!str)
       return NULL;
    return str->getBuffer();
@@ -223,14 +223,16 @@ class MData *QoreApp::do_type(int type_code, QoreNode *v, ExceptionSink *xsink)
 
       case TIBAE_BINARY:
       {
-	 if (!v || v->type != NT_BINARY)
+	 const BinaryNode *b = dynamic_cast<const BinaryNode *>(v);
+	 if (!b)
 	 {
 	    xsink->raiseException("TIBCO-TYPE-ERROR", "expecting binary object to serialize as TIBCO_BINARY, got '%s'", 
 				  v ? v->getTypeName() : "NOTHING");
 	    return 0;
 	 }
 
-	 return new MBinary(v->val.bin->getPtr(), v->val.bin->size());
+
+	 return new MBinary(b->getPtr(), b->size());
       }
 
       case TIBAE_INTERVAL:
@@ -283,126 +285,125 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, QoreNod
    if (!v)
       return NULL;
 
-   {
-      QoreHashNode *h = dynamic_cast<QoreHashNode *>(v);
-      if (h) {
-	 // check to see if type is specified
-	 class QoreNode *t = h->getKeyValue("^type^");
-	 if (!is_nothing(t))
-	    return do_type(t->getAsInt(), h->getKeyValue("^value^"), xsink);
-	 
-	 // class instantiation (normally for TIBCO m_any type)
-	 const char *cn;
-	 if (!(cn = get_class(h)))
-	 {
-	    xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type '%s': can't instantiate class from object without '^class^' key", pcd->getFullName().c_str());
-	    return NULL;
-	 }
-	 
+   const QoreType *ntype = v->getType();
+
+   if (ntype == NT_HASH) {
+      const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(v);
+      // check to see if type is specified
+      class QoreNode *t = h->getKeyValue("^type^");
+      if (!is_nothing(t))
+	 return do_type(t->getAsInt(), h->getKeyValue("^value^"), xsink);
+      
+      // class instantiation (normally for TIBCO m_any type)
+      const char *cn;
+      if (!(cn = get_class(h)))
+      {
+	 xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type '%s': can't instantiate class from object without '^class^' key", pcd->getFullName().c_str());
+	 return NULL;
+      }
+      
+      const MBaseClassDescription *mbcd = find_class(cn, xsink);
+      if (xsink->isEvent())
+	 return NULL;
+      QoreNode *val;
+      if (!(val = h->getKeyValue("^value^")))
+      {
+	 xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for class '%s'", pcd->getFullName().c_str(), cn);
+	 return NULL;
+      }
+      return instantiate_class(val, mbcd, xsink);
+   }
+
+/*
+   if (ntype == NT_OBJECT) {
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(v);
+      // class instantiation (normally for TIBCO m_any type)
+      const char *cn;
+      if (!(cn = get_class(o->data)))
+      {
+	 xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type '%s': can't instantiate class from object wi
+thout '^class^' entry", pcd->getFullName().c_str());
+	 return NULL;
+      }
+      else
+      {
 	 const MBaseClassDescription *mbcd = find_class(cn, xsink);
 	 if (xsink->isEvent())
 	    return NULL;
 	 QoreNode *val;
-	 if (!(val = h->getKeyValue("^value^")))
+	 if (!(val = o->retrieve_value("^value^")))
 	 {
-	    xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for class '%s'", pcd->getFullName().c_str(), cn);
+	    xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for c
+lass '%s'", pcd->getFullName().c_str(), cn);
 	    return NULL;
 	 }
 	 return instantiate_class(val, mbcd, xsink);
       }
    }
-
-/*
-   {
-      QoreObject *o = dynamic_cast<QoreObject *>(v);
-      if (o) {
-	 // class instantiation (normally for TIBCO m_any type)
-	 const char *cn;
-	 if (!(cn = get_class(o->data)))
-	 {
-	    xsink->raiseException("TIBCO-MISSING-CLASS-NAME", "instantiating type '%s': can't instantiate class from object wi
-thout '^class^' entry", pcd->getFullName().c_str());
-	    return NULL;
-	 }
-	 else
-	 {
-	    const MBaseClassDescription *mbcd = find_class(cn, xsink);
-	    if (xsink->isEvent())
-	       return NULL;
-	    QoreNode *val;
-	    if (!(val = o->retrieve_value("^value^")))
-	    {
-	       xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for c
-lass '%s'", pcd->getFullName().c_str(), cn);
-	       return NULL;
-	    }
-	    return instantiate_class(val, mbcd, xsink);
-	 }
-      }
-   }
 */
 
-   if (v->type == NT_BOOLEAN)
-      return new MBool(v->val.boolval);
-
-   {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
-      if (str) {
-	 printd(3, "data=%08p val='%s'\n", str->getBuffer(), str->getBuffer());
-#if (TIBCO_SDK == 4)
-	 return new MStringData(str->getBuffer());
-#else
-	 // it appears that all MString data must be UTF-8, no matter how we use the MStringData constructor
-	 // furthermore, it appears that we have to trick the SDK into thinking that the data is ASCII, so
-	 // no conversions are attempted
-	 TempEncodingHelper t(str, QCS_UTF8, xsink);
-	 if (!t)
-	    return 0;
-
-	 //md = new MStringData(t->getBuffer(), MEncoding::M_UTF8);
-	 return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
-#endif
-      }
+   if (ntype == NT_BOOLEAN) {
+      return new MBool(reinterpret_cast<const QoreBoolNode *>(v)->b);
    }
 
-   if (v->type == NT_INT)
+   if (ntype == NT_STRING) {
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v);
+      printd(3, "data=%08p val='%s'\n", str->getBuffer(), str->getBuffer());
+#if (TIBCO_SDK == 4)
+      return new MStringData(str->getBuffer());
+#else
+      // it appears that all MString data must be UTF-8, no matter how we use the MStringData constructor
+      // furthermore, it appears that we have to trick the SDK into thinking that the data is ASCII, so
+      // no conversions are attempted
+      TempEncodingHelper t(str, QCS_UTF8, xsink);
+      if (!t)
+	 return 0;
+      
+      //md = new MStringData(t->getBuffer(), MEncoding::M_UTF8);
+      return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
+#endif
+   }
+
+   if (ntype == NT_INT)
    {
-      int64 i = v->val.intval;
+      const QoreBigIntNode *b = reinterpret_cast<const QoreBigIntNode *>(v);
+      int64 i = b->val;
       // see if it's a 32-bit integer
       if ((int)i == i)
 	 return new MInteger((int)i);
       // otherwise return i8
-      return new MInteger(v->val.intval);
+      return new MInteger(b->val);
    }
-   if (v->type == NT_FLOAT)
+
+   if (ntype == NT_FLOAT) {
       return new MReal(v->val.floatval);
-
-   {
-      DateTimeNode *date = dynamic_cast<DateTimeNode *>(v);
-      if (date) {
-	 const char *type = pcd->getShortName().c_str();
-	 if (!strcmp(type, "dateTime") || !strcmp(type, "any"))
-	    return get_mdatetime(date);
-	 else if (!strcmp(type, "date"))
-	    return new MDate(date->getYear(), date->getMonth(), date->getDay());
-	 
-	 xsink->raiseException("TIBCO-DATE-INSTANTIATION-ERROR", "cannot map from QORE type 'date' to TIBCO type '%s'",
-			       pcd->getShortName().c_str());
-	 return 0;
-      }
    }
 
-   if (v->type == NT_BINARY)
-      return new MBinary(v->val.bin->getPtr(), v->val.bin->size());
+   if (ntype == NT_DATE) {
+      const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(v);
+      const char *type = pcd->getShortName().c_str();
+      if (!strcmp(type, "dateTime") || !strcmp(type, "any"))
+	 return get_mdatetime(date);
+      else if (!strcmp(type, "date"))
+	 return new MDate(date->getYear(), date->getMonth(), date->getDay());
+	 
+      xsink->raiseException("TIBCO-DATE-INSTANTIATION-ERROR", "cannot map from QORE type 'date' to TIBCO type '%s'",
+			    pcd->getShortName().c_str());
+      return 0;
+   }
 
-   if (v->type == NT_NOTHING || v->type == NT_NULL)
+   if (ntype == NT_BINARY) {
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(v);
+      return new MBinary(b->getPtr(), b->size());
+   }
+
+   if (ntype == NT_NOTHING || ntype == NT_NULL)
       return NULL;
 
-   xsink->raiseException("TIBCO-UNSUPPORTED-TYPE", "unsupported QORE type '%s' (TIBCO type '%s')",
-                  v->getTypeName(), pcd->getShortName().c_str());
+   xsink->raiseException("TIBCO-UNSUPPORTED-TYPE", "unsupported QORE type '%s' (TIBCO type '%s')", v->getTypeName(), pcd->getShortName().c_str());
 
    //traceout("QoreApp::do_primitive_type()");
-   return NULL;
+   return 0;
 }
 
 MTree *QoreApp::make_MTree(const char *class_name, QoreNode *value, ExceptionSink *xsink)
@@ -488,7 +489,7 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
    // check if class info embedded
    if (v && v->type == NT_HASH)
    {
-      QoreHashNode *h = reinterpret_cast<QoreHashNode *>(v);
+      const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(v);
       const char *cn;
       if (!(cn = get_class(h)))
       {
@@ -505,7 +506,7 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, QoreN
    if (is_nothing(v))
       return new MSequence(mcr, msd->getFullName());
 
-   QoreList *l = dynamic_cast<QoreList *>(v);
+   const QoreListNode *l = dynamic_cast<const QoreListNode *>(v);
 
    if (!l)
    {
@@ -536,9 +537,9 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Qo
       traceout("QoreApp::instantiate_modeledclass()");
       return new MInstance(mcr, mcd->getFullName());
    }
-   QoreHashNode *h;
+   const QoreHashNode *h;
    if (v->type == NT_HASH)
-      h = reinterpret_cast<QoreHashNode *>(v);
+      h = reinterpret_cast<const QoreHashNode *>(v);
    else
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-CLASS",
@@ -552,7 +553,7 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Qo
    //printd(5, "QoreApp::instantiate_modeledclass() %s=%s\n", mcd->getShortName().c_str(), ma->getName().c_str());
 
    // get list of hash elements for object
-   HashIterator hi(h);
+   ConstHashIterator hi(h);
 
    try {
       // instantiate each member
@@ -608,9 +609,9 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
       traceout("QoreApp::instantiate_union()");
       return new MUnion(mcr, mud->getFullName());
    }
-   QoreHashNode *h;
+   const QoreHashNode *h;
    if (v->type == NT_HASH)
-      h = reinterpret_cast<QoreHashNode *>(v);
+      h = reinterpret_cast<const QoreHashNode *>(v);
    else
    {
       xsink->raiseException("TIBCO-INVALID-TYPE-FOR-UNION",

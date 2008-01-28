@@ -28,7 +28,7 @@ int CID_QCLEANLOOKSSTYLE;
 class QoreClass *QC_QCleanlooksStyle = 0;
 
 //QCleanlooksStyle ()
-static void QCLEANLOOKSSTYLE_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QCLEANLOOKSSTYLE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QCLEANLOOKSSTYLE, new QoreQCleanlooksStyle(self));
    return;
@@ -40,7 +40,7 @@ static void QCLEANLOOKSSTYLE_copy(class QoreObject *self, class QoreObject *old,
 }
 
 //virtual void drawItemText ( QPainter * painter, const QRect & rectangle, int alignment, const QPalette & palette, bool enabled, const QString & text, QPalette::ColorRole textRole = QPalette::NoRole ) const
-static QoreNode *QCLEANLOOKSSTYLE_drawItemText(QoreObject *self, QoreAbstractQCleanlooksStyle *qcs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QCLEANLOOKSSTYLE_drawItemText(QoreObject *self, QoreAbstractQCleanlooksStyle *qcs, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;

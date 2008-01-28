@@ -29,7 +29,7 @@ class QoreClass *QC_QStyleOptionTabWidgetFrame = 0;
 
 //QStyleOptionTabWidgetFrame ()
 //QStyleOptionTabWidgetFrame ( const QStyleOptionTabWidgetFrame & other )
-static void QSTYLEOPTIONTABWIDGETFRAME_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONTABWIDGETFRAME_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTABWIDGETFRAME, new QoreQStyleOptionTabWidgetFrame());
 }

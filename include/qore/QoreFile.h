@@ -68,7 +68,7 @@ class QoreFile {
       DLLEXPORT int sync();
       DLLEXPORT class QoreStringNode *readLine(class ExceptionSink *xsink);
       DLLEXPORT int write(const class QoreString *str, class ExceptionSink *xsink);
-      DLLEXPORT int write(const class BinaryObject *b, class ExceptionSink *xsink);
+      DLLEXPORT int write(const class BinaryNode *b, class ExceptionSink *xsink);
       DLLEXPORT int write(const void *data, unsigned len, class ExceptionSink *xsink);
       DLLEXPORT int writei1(char i, class ExceptionSink *xsink);
       DLLEXPORT int writei2(short i, class ExceptionSink *xsink);
@@ -90,7 +90,7 @@ class QoreFile {
       DLLEXPORT int readi4LSB(int *val, class ExceptionSink *xsink);
       DLLEXPORT int readi8LSB(int64 *val, class ExceptionSink *xsink);
       DLLEXPORT class QoreStringNode *read(int size, class ExceptionSink *xsink);
-      DLLEXPORT class BinaryObject *readBinary(int size, class ExceptionSink *xsink);
+      DLLEXPORT class BinaryNode *readBinary(int size, class ExceptionSink *xsink);
       DLLEXPORT int setPos(int pos);
       DLLEXPORT int getPos();
       DLLEXPORT class QoreStringNode *getchar();

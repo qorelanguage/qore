@@ -31,7 +31,7 @@ int CID_DATASOURCEPOOL;
 #define DP_MAX 20
 
 // usage: DatasourcePool(db name, [username, password, dbname, charset, hostname, min, max])
-static void DSP_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void DSP_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pstr = test_string_param(params, 0);
    if (!pstr)
@@ -107,166 +107,166 @@ static void DSP_copy(class QoreObject *self, class QoreObject *old, class Dataso
    xsink->raiseException("COPY-ERROR", "DatasourcePool objects may not be copied");
 }
 
-static QoreNode *DSP_commit(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_commit(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)ds->commit(xsink));
+   return new QoreBigIntNode(ds->commit(xsink));
 }
 
-static QoreNode *DSP_rollback(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_rollback(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)ds->rollback(xsink));
+   return new QoreBigIntNode(ds->rollback(xsink));
 }
 
-static QoreNode *DSP_exec(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_exec(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   ReferenceHolder<QoreList> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->exec(p0, *args, xsink);
 }
 
-static QoreNode *DSP_vexec(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_vexec(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
    
-   QoreList *args = test_list_param(params, 1);
+   QoreListNode *args = test_list_param(params, 1);
    return ds->exec(p0, args, xsink);
 }
 
-static QoreNode *DSP_select(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_select(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p)
       return NULL;
 
-   ReferenceHolder<QoreList> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->select(p, *args, xsink);
 }
 
-static QoreNode *DSP_selectRow(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_selectRow(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p)
       return NULL;
    
-   ReferenceHolder<QoreList> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->selectRow(p, *args, xsink);
 }
 
-static QoreNode *DSP_selectRows(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_selectRows(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p)
       return NULL;
 
-   ReferenceHolder<QoreList> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->selectRows(p, *args, xsink);
 }
 
-static QoreNode *DSP_vselect(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_vselect(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
       return NULL;
    
-   QoreList *args = test_list_param(params, 1);
+   QoreListNode *args = test_list_param(params, 1);
    return ds->select(p0, args, xsink);
 }
 
-static QoreNode *DSP_vselectRow(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_vselectRow(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
       return NULL;
    
-   QoreList *args = test_list_param(params, 1);
+   QoreListNode *args = test_list_param(params, 1);
    return ds->selectRow(p0, args, xsink);
 }
 
-static QoreNode *DSP_vselectRows(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_vselectRows(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
       return NULL;
    
-   QoreList *args = test_list_param(params, 1);
+   QoreListNode *args = test_list_param(params, 1);
    return ds->selectRows(p0, args, xsink);
 }
 
-static QoreNode *DSP_beginTransaction(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_beginTransaction(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    ds->beginTransaction(xsink);
    return NULL;
 }
 
-static QoreNode *DSP_getUserName(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getUserName(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    return ds->getPendingUsername();
 }
 
-static QoreNode *DSP_getPassword(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getPassword(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    return ds->getPendingPassword();
 }
 
-static QoreNode *DSP_getDBName(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getDBName(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    return ds->getPendingDBName();
 }
 
-static QoreNode *DSP_getDBCharset(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getDBCharset(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    return ds->getPendingDBEncoding();
 }
 
-static QoreNode *DSP_getOSCharset(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getOSCharset(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreEncoding *enc = ds->getQoreEncoding();
    return new QoreStringNode(enc ? enc->getCode() : "(unknown)");
 }
 
-static QoreNode *DSP_getHostName(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getHostName(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    return ds->getPendingHostName();
 }
 
-static QoreNode *DSP_getDriverName(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getDriverName(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(ds->getDriverName());
 }
 
-static QoreNode *DSP_getMinimum(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getMinimum(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)ds->getMin());
+   return new QoreBigIntNode(ds->getMin());
 }
 
-static QoreNode *DSP_getMaximum(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getMaximum(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)ds->getMax());
+   return new QoreBigIntNode(ds->getMax());
 }
 
-static QoreNode *DSP_toString(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_toString(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    return ds->toString();
 }
 
-static QoreNode *DSP_getServerVersion(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getServerVersion(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    return ds->getServerVersion(xsink);
 }
 
-static QoreNode *DSP_getClientVersion(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_getClientVersion(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    return ds->getClientVersion(xsink);
 }
 
-static QoreNode *DSP_inTransaction(class QoreObject *self, class DatasourcePool *ds, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *DSP_inTransaction(class QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(ds->inTransaction());
+   return new QoreBoolNode(ds->inTransaction());
 }
 
 class QoreClass *initDatasourcePoolClass()

@@ -7,9 +7,9 @@ TEST()
 {
   printf("testing CaseNodeWithOperator::LessOrEqual 1\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
-  QoreNode* lhs = new QoreNode((int64)1);
+  QoreNode* lhs = new QoreBigIntNode(1);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(b);
@@ -22,7 +22,7 @@ TEST()
 {
   printf("testing CaseNodeWithOperator::LessOrEqual 2\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode(1.0);
   ExceptionSink xsink;
@@ -37,9 +37,9 @@ TEST()
 {
   printf("testing OP_LOG_LE 3\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
-  QoreNode* lhs = new QoreNode((int64)0);
+  QoreNode* lhs = new QoreBigIntNode(0);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(b);
@@ -52,7 +52,7 @@ TEST()
 {
   printf("testing OP_LOG_LE 4\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode(0.0);
   ExceptionSink xsink;
@@ -68,7 +68,7 @@ TEST()
 /*
   printf("testing CaseNodeWithOperator with non-numeric\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode("aa");
   ExceptionSink xsink;
@@ -84,9 +84,9 @@ TEST()
 {
   printf("testing OP_LOG_LE 5\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
-  QoreNode* lhs = new QoreNode((int64)2);
+  QoreNode* lhs = new QoreBigIntNode(2);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(!b);
@@ -99,7 +99,7 @@ TEST()
 {
   printf("testing OP_LOG_LE 6\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LE);
   QoreNode* lhs = new QoreNode(2.1);
   ExceptionSink xsink;
@@ -114,9 +114,9 @@ TEST()
 {
   printf("testing OP_LOG_LT 1\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
-  QoreNode* lhs = new QoreNode((int64)1);
+  QoreNode* lhs = new QoreBigIntNode(1);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(!b);
@@ -129,7 +129,7 @@ TEST()
 {
   printf("testing OP_LOG_LT 2\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
   QoreNode* lhs = new QoreNode(1.0);
   ExceptionSink xsink;
@@ -144,9 +144,9 @@ TEST()
 {
   printf("testing OP_LOG_LT 3\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
-  QoreNode* lhs = new QoreNode((int64)0);
+  QoreNode* lhs = new QoreBigIntNode(0);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(b);
@@ -159,7 +159,7 @@ TEST()
 {
   printf("testing OP_LOG_LT 4\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
   QoreNode* lhs = new QoreNode(-0.1);
   ExceptionSink xsink;
@@ -174,9 +174,9 @@ TEST()
 {
   printf("testing OP_LOG_LT 5\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
-  QoreNode* lhs = new QoreNode((int64)11);
+  QoreNode* lhs = new QoreBigIntNode(11);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(!b);
@@ -189,7 +189,7 @@ TEST()
 {
   printf("testing OP_LOG_LT 6\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_LT);
   QoreNode* lhs = new QoreNode(1.01);
   ExceptionSink xsink;
@@ -204,9 +204,9 @@ TEST()
 {
   printf("testing OP_LOG_GE 1\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
-  QoreNode* lhs = new QoreNode((int64)1);
+  QoreNode* lhs = new QoreBigIntNode(1);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(b);
@@ -219,7 +219,7 @@ TEST()
 {
   printf("testing OP_LOG_GE 2\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
   QoreNode* lhs = new QoreNode(1.0);
   ExceptionSink xsink;
@@ -234,9 +234,9 @@ TEST()
 {
   printf("testing OP_LOG_GE 3\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
-  QoreNode* lhs = new QoreNode((int64)0);
+  QoreNode* lhs = new QoreBigIntNode(0);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(!b);
@@ -249,7 +249,7 @@ TEST()
 {
   printf("testing OP_LOG_GE 4\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
   QoreNode* lhs = new QoreNode(-1.0);
   ExceptionSink xsink;
@@ -264,9 +264,9 @@ TEST()
 {
   printf("testing OP_LOG_GE 5\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
-  QoreNode* lhs = new QoreNode((int64)2);
+  QoreNode* lhs = new QoreBigIntNode(2);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(b);
@@ -279,7 +279,7 @@ TEST()
 {
   printf("testing OP_LOG_GE 6\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GE);
   QoreNode* lhs = new QoreNode(2.0);
   ExceptionSink xsink;
@@ -294,9 +294,9 @@ TEST()
 {
   printf("testing OP_LOG_GT 1\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
-  QoreNode* lhs = new QoreNode((int64)1);
+  QoreNode* lhs = new QoreBigIntNode(1);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(!b);
@@ -309,7 +309,7 @@ TEST()
 {
   printf("testing OP_LOG_GT 2\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode(1.0);
   ExceptionSink xsink;
@@ -324,9 +324,9 @@ TEST()
 {
   printf("testing OP_LOG_GT 3\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
-  QoreNode* lhs = new QoreNode((int64)0);
+  QoreNode* lhs = new QoreBigIntNode(0);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(!b);
@@ -339,7 +339,7 @@ TEST()
 {
   printf("testing OP_LOG_GT 4\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode(0.0);
   ExceptionSink xsink;
@@ -354,9 +354,9 @@ TEST()
 {
   printf("testing OP_LOG_GT 5\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
-  QoreNode* lhs = new QoreNode((int64)2);
+  QoreNode* lhs = new QoreBigIntNode(2);
   ExceptionSink xsink;
   bool b = cmp.matches(lhs, &xsink);
   assert(b);
@@ -369,7 +369,7 @@ TEST()
 {
   printf("testing OP_LOG_GT 6\n");
 
-  QoreNode* n = new QoreNode((int64)1);
+  QoreNode* n = new QoreBigIntNode(1);
   CaseNodeWithOperator cmp(n, 0, OP_LOG_GT);
   QoreNode* lhs = new QoreNode(2.2);
   ExceptionSink xsink;

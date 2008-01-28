@@ -5,8 +5,8 @@ namespace List_tests {
 
 TEST()
 {
-  printf("testing QoreList::derefAndDelete()\n");
-  QoreList* l = new List;
+  printf("testing QoreListNode::derefAndDelete()\n");
+  QoreListNode* l = new List;
   QoreNode* val1 = new QoreNode(true);
   QoreNode* val2 = new QoreNode(1.1);
   l->push(val1);

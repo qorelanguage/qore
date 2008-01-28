@@ -31,7 +31,7 @@ int CID_QINPUTDIALOG;
 class QoreClass *QC_QInputDialog = 0;
 
 //double getDouble ( QWidget * parent, const QString & title, const QString & label, double value = 0, double minValue = -2147483647, double maxValue = 2147483647, int decimals = 1, bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getDouble(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QInputDialog_getDouble(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -74,14 +74,14 @@ static QoreNode *f_QInputDialog_getDouble(const QoreList *params, ExceptionSink 
 
       if (*vp)
 	 (*vp)->deref(xsink);
-      (*vp) = new QoreNode(ok);
+      (*vp) = new QoreBoolNode(ok);
    }
 
    return new QoreNode(rv);
 }
 
 //int getInteger ( QWidget * parent, const QString & title, const QString & label, int value = 0, int minValue = -2147483647, int maxValue = 2147483647, int step = 1, bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getInteger(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QInputDialog_getInteger(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -124,14 +124,14 @@ static QoreNode *f_QInputDialog_getInteger(const QoreList *params, ExceptionSink
 
       if (*vp)
 	 (*vp)->deref(xsink);
-      (*vp) = new QoreNode(ok);
+      (*vp) = new QoreBoolNode(ok);
    }
 
-   return new QoreNode(rv);
+   return new QoreBigIntNode(rv);
 }
 
 //QString getItem ( QWidget * parent, const QString & title, const QString & label, const QStringList & list, int current = 0, bool editable = true, bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getItem(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QInputDialog_getItem(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -149,7 +149,7 @@ static QoreNode *f_QInputDialog_getItem(const QoreList *params, ExceptionSink *x
    QString label;
    if (get_qstring(p, label, xsink))
       return 0;
-   QoreList *l = test_list_param(params, 3);
+   QoreListNode *l = test_list_param(params, 3);
    if (!l) {
       xsink->raiseException("QINPUTDIALOG-GETITEM-PARAM-ERROR", "expecting a list as fourth argument to QInputDialog::getItem()");
       return 0;
@@ -185,14 +185,14 @@ static QoreNode *f_QInputDialog_getItem(const QoreList *params, ExceptionSink *x
 
       if (*vp)
 	 (*vp)->deref(xsink);
-      (*vp) = new QoreNode(ok);
+      (*vp) = new QoreBoolNode(ok);
    }
 
    return new QoreStringNode(rv.toUtf8().data(), QCS_UTF8);
 }
 
 //QString getText ( QWidget * parent, const QString & title, const QString & label, QLineEdit::EchoMode mode = QLineEdit::Normal, const QString & text = QString(), bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getText(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QInputDialog_getText(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -233,7 +233,7 @@ static QoreNode *f_QInputDialog_getText(const QoreList *params, ExceptionSink *x
 
       if (*vp)
 	 (*vp)->deref(xsink);
-      (*vp) = new QoreNode(ok);
+      (*vp) = new QoreBoolNode(ok);
    }
 
    return new QoreStringNode(rv.toUtf8().data(), QCS_UTF8);

@@ -24,7 +24,7 @@
 #include <qore/intern/ql_object.h>
 
 // returns a list of method names for the object passed as a parameter
-static QoreNode *f_getMethodList(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_getMethodList(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p0 = test_object_param(params, 0);
    if (!p0)
@@ -33,7 +33,7 @@ static QoreNode *f_getMethodList(const QoreList *params, ExceptionSink *xsink)
    return p0->getClass()->getMethodList();
 }
 
-static QoreNode *f_callObjectMethod(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_callObjectMethod(const QoreListNode *params, ExceptionSink *xsink)
 {
    // get object
    QoreObject *p0 = test_object_param(params, 0);
@@ -45,13 +45,13 @@ static QoreNode *f_callObjectMethod(const QoreList *params, ExceptionSink *xsink
    if (!p1)
       return NULL;
    
-   ReferenceHolder<QoreList> args(xsink);
+   ReferenceHolder<QoreListNode> args(xsink);
    
    // if there are arguments to pass
    if (get_param(params, 2))
    {
       // create argument list by copying current list
-      ReferenceHolder<QoreList> l(params->copyListFrom(2), xsink);
+      ReferenceHolder<QoreListNode> l(params->copyListFrom(2), xsink);
       if (*xsink)
 	 return 0;
       args = l.release();
@@ -62,7 +62,7 @@ static QoreNode *f_callObjectMethod(const QoreList *params, ExceptionSink *xsink
    return p0->evalMethod(p1, *args, xsink);
 }
 
-static QoreNode *f_callObjectMethodArgs(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_callObjectMethodArgs(const QoreListNode *params, ExceptionSink *xsink)
 {
    // get object
    QoreObject *p0 = test_object_param(params, 0);
@@ -74,17 +74,17 @@ static QoreNode *f_callObjectMethodArgs(const QoreList *params, ExceptionSink *x
    if (!p1)
       return NULL;
 
-   ReferenceHolder<QoreList> args(xsink);
+   ReferenceHolder<QoreListNode> args(xsink);
    QoreNode *p2;
 
    bool new_args = false;
    // if there are arguments to pass
    if ((p2 = get_param(params, 2)))
    {
-      args = dynamic_cast<QoreList *>(p2);
+      args = dynamic_cast<QoreListNode *>(p2);
       if (!args)
       {
-	 args = new QoreList();
+	 args = new QoreListNode();
 	 args->push(p2);
 	 new_args = true;
       }

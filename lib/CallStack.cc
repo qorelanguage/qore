@@ -62,10 +62,10 @@ class QoreHashNode *CallNode::getInfo() const
    str->concat(func);
 
    h->setKeyValue("function", str, NULL);
-   h->setKeyValue("line",     new QoreNode((int64)start_line), NULL);
-   h->setKeyValue("endline",  new QoreNode((int64)end_line), NULL);
+   h->setKeyValue("line",     new QoreBigIntNode(start_line), NULL);
+   h->setKeyValue("endline",  new QoreBigIntNode(end_line), NULL);
    h->setKeyValue("file",     new QoreStringNode(file_name), NULL);
-   h->setKeyValue("typecode", new QoreNode((int64)type), NULL);
+   h->setKeyValue("typecode", new QoreBigIntNode(type), NULL);
    // CT_RETHROW is only aded manually
    switch (type)
    {
@@ -121,9 +121,9 @@ void CallStack::pop(class ExceptionSink *xsink)
    traceout("CallStack::pop()");
 }
 
-class QoreList *CallStack::getCallStack() const
+class QoreListNode *CallStack::getCallStack() const
 {
-   class QoreList *l = new QoreList();
+   class QoreListNode *l = new QoreListNode();
    CallNode *c = tail;
    while (c)
    {

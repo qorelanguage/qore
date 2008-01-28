@@ -164,10 +164,10 @@ struct qore_method_private {
 class BCEANode
 {
    public:
-      QoreList *args;
+      QoreListNode *args;
       bool execed;
       
-      DLLLOCAL inline BCEANode(QoreList *arg);
+      DLLLOCAL inline BCEANode(QoreListNode *arg);
       DLLLOCAL inline BCEANode();
 };
 
@@ -194,11 +194,11 @@ class BCEAList : public bceamap_t
    public:
       DLLLOCAL inline void deref(class ExceptionSink *xsink);
       // evaluates arguments, returns -1 if an exception was thrown
-      DLLLOCAL inline int add(class QoreClass *qc, QoreList *arg, class ExceptionSink *xsink);
-      DLLLOCAL inline QoreList *findArgs(const QoreClass *qc, bool *aexeced);
+      DLLLOCAL inline int add(class QoreClass *qc, QoreListNode *arg, class ExceptionSink *xsink);
+      DLLLOCAL inline QoreListNode *findArgs(const QoreClass *qc, bool *aexeced);
 };
 
-inline BCEANode::BCEANode(QoreList *arg)
+inline BCEANode::BCEANode(QoreListNode *arg)
 {
    args = arg;
    execed = false;
@@ -210,7 +210,7 @@ inline BCEANode::BCEANode()
    execed = true;
 }
 
-QoreList *BCEAList::findArgs(const QoreClass *qc, bool *aexeced)
+QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced)
 {
    bceamap_t::iterator i = find(qc);
    if (i != end())
@@ -230,7 +230,7 @@ QoreList *BCEAList::findArgs(const QoreClass *qc, bool *aexeced)
    return NULL;
 }
 
-inline int BCEAList::add(class QoreClass *qc, QoreList *arg, class ExceptionSink *xsink)
+inline int BCEAList::add(class QoreClass *qc, QoreListNode *arg, class ExceptionSink *xsink)
 {
    // see if class already exists in the list
    bceamap_t::iterator i = find(qc);
@@ -692,14 +692,14 @@ const QoreMethod *QoreClass::parseFindMethod(const char *nme)
    return NULL;
 }
 
-void QoreClass::addBuiltinBaseClass(QoreClass *qc, QoreList *xargs)
+void QoreClass::addBuiltinBaseClass(QoreClass *qc, QoreListNode *xargs)
 {
    if (!priv->scl)
       priv->scl = new BCList();
    priv->scl->push_back(new BCNode(qc, xargs));
 }
 
-void QoreClass::addDefaultBuiltinBaseClass(QoreClass *qc, QoreList *xargs)
+void QoreClass::addDefaultBuiltinBaseClass(QoreClass *qc, QoreListNode *xargs)
 {
    addBuiltinBaseClass(qc, xargs);
    // make sure no methodID has already been assigned
@@ -800,7 +800,7 @@ bool QoreMethod::inMethod(const QoreObject *self) const
    return ::inMethod(priv->func.builtin->getName(), self);
 }
 
-void QoreMethod::evalSystemConstructor(QoreObject *self, const QoreList *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
+void QoreMethod::evalSystemConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
 {
    // type must be OTF_BUILTIN
    priv->func.builtin->evalSystemConstructor(self, args, bcl, bceal, xsink);
@@ -1018,7 +1018,7 @@ QoreClass *QoreClass::getClass(int cid) const
    return priv->scl ? priv->scl->sml.getClass(cid) : NULL;
 }
 
-class QoreNode *QoreMethod::eval(QoreObject *self, const QoreList *args, ExceptionSink *xsink) const
+class QoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
 {
    QoreNode *rv = NULL;
 
@@ -1037,7 +1037,7 @@ class QoreNode *QoreMethod::eval(QoreObject *self, const QoreList *args, Excepti
       else
       {
 	 // evalute arguments before calling builtin method
-	 QoreListEvalOptionalRefHolder new_args(args, xsink);
+	 QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
 	 if (*xsink)
 	    return 0;
 
@@ -1060,7 +1060,7 @@ class QoreNode *QoreMethod::eval(QoreObject *self, const QoreList *args, Excepti
    return rv;
 }
 
-void QoreMethod::evalConstructor(QoreObject *self, const QoreList *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
+void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
 {
    tracein("QoreMethod::evalConstructor()");
 #ifdef DEBUG
@@ -1068,7 +1068,7 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreList *args, class B
    printd(5, "QoreMethod::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", oname, priv->name, self, self->getProgram());
 #endif
 
-   QoreListEvalOptionalRefHolder new_args(args, xsink);
+   QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
    if (*xsink)
       return;
 
@@ -1172,7 +1172,7 @@ inline void QoreClass::addDomain(int dom)
    priv->domain |= dom;
 }
 
-QoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreList *args, class ExceptionSink *xsink) const
+QoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, class ExceptionSink *xsink) const
 {
    tracein("QoreClass::evalMethod()");
    const QoreMethod *w;
@@ -1220,11 +1220,11 @@ QoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreLis
    return w->eval(self, args, xsink);
 }
 
-QoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, const QoreList *args, ExceptionSink *xsink) const
+QoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const
 {
    printd(5, "QoreClass::evalMethodGate() method=%s args=%08p\n", nme, args);
 
-   ReferenceHolder<QoreList> args_holder(xsink);
+   ReferenceHolder<QoreListNode> args_holder(xsink);
 
    // build new argument list
    if (args)
@@ -1237,7 +1237,7 @@ QoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, const Qor
 	 return 0;
    }
    else
-      args_holder = new QoreList();
+      args_holder = new QoreListNode();
    
    args_holder->insert(new QoreStringNode(nme));
 
@@ -1264,12 +1264,12 @@ QoreNode *QoreClass::evalMemberGate(class QoreObject *self, const QoreString *nm
    if (!priv->memberGate || priv->memberGate->inMethod(self))
       return 0;
 
-   ReferenceHolder<QoreList> args(new QoreList(), xsink);
+   ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
    args->push(new QoreStringNode(*nme));
    return priv->memberGate->eval(self, *args, xsink);
 }
 
-QoreObject *QoreClass::execConstructor(const QoreList *args, ExceptionSink *xsink) const
+QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *xsink) const
 {
    // create new object
    class QoreObject *o = new QoreObject(this, getProgram());
@@ -1305,7 +1305,7 @@ QoreObject *QoreClass::execConstructor(const QoreList *args, ExceptionSink *xsin
    return o;
 }
 
-QoreObject *QoreClass::execSystemConstructor(const QoreList *args, class ExceptionSink *xsink) const
+QoreObject *QoreClass::execSystemConstructor(const QoreListNode *args, class ExceptionSink *xsink) const
 {
    // create new object
    class QoreObject *o = new QoreObject(this, NULL);
@@ -1345,7 +1345,7 @@ inline void QoreClass::execSubclassConstructor(class QoreObject *self, class BCE
    else // no lock is sent with constructor, because no variable has been assigned yet
    {
       bool already_executed;
-      QoreList *args = bceal->findArgs(this, &already_executed);
+      QoreListNode *args = bceal->findArgs(this, &already_executed);
       if (!already_executed)
 	 priv->constructor->evalConstructor(self, args, priv->scl, bceal, xsink);
    }
@@ -1361,7 +1361,7 @@ inline void QoreClass::execSubclassSystemConstructor(class QoreObject *self, cla
    else // no lock is sent with constructor, because no variable has been assigned yet
    {
       bool already_executed;
-      QoreList *args = bceal->findArgs(this, &already_executed);
+      QoreListNode *args = bceal->findArgs(this, &already_executed);
       if (!already_executed)
 	 priv->system_constructor->evalSystemConstructor(self, args, priv->scl, bceal, xsink);
    }
@@ -1672,9 +1672,9 @@ void QoreClass::setCopy(q_copy_t m)
    priv->copyMethod = o;
 }
 
-QoreList *QoreClass::getMethodList() const
+QoreListNode *QoreClass::getMethodList() const
 {
-   QoreList *l = new QoreList();
+   QoreListNode *l = new QoreListNode();
 
    for (hm_method_t::const_iterator i = priv->hm.begin(); i != priv->hm.end(); i++)
       l->push(new QoreStringNode(i->first));

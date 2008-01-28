@@ -32,7 +32,7 @@ class QoreClass *QC_QDoubleValidator = 0;
 
 //QDoubleValidator ( QObject * parent )
 //QDoubleValidator ( double bottom, double top, int decimals, QObject * parent )
-static void QDOUBLEVALIDATOR_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QDOUBLEVALIDATOR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -69,25 +69,25 @@ static void QDOUBLEVALIDATOR_copy(class QoreObject *self, class QoreObject *old,
 }
 
 //double bottom () const
-static QoreNode *QDOUBLEVALIDATOR_bottom(QoreObject *self, QoreQDoubleValidator *qdv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLEVALIDATOR_bottom(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qdv->qobj->bottom());
 }
 
 //int decimals () const
-static QoreNode *QDOUBLEVALIDATOR_decimals(QoreObject *self, QoreQDoubleValidator *qdv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLEVALIDATOR_decimals(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qdv->qobj->decimals());
+   return new QoreBigIntNode(qdv->qobj->decimals());
 }
 
 //Notation notation () const
-static QoreNode *QDOUBLEVALIDATOR_notation(QoreObject *self, QoreQDoubleValidator *qdv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLEVALIDATOR_notation(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qdv->qobj->notation());
+   return new QoreBigIntNode(qdv->qobj->notation());
 }
 
 //void setBottom ( double )
-static QoreNode *QDOUBLEVALIDATOR_setBottom(QoreObject *self, QoreQDoubleValidator *qdv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLEVALIDATOR_setBottom(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    double bottom = p ? p->getAsFloat() : 0.0;
@@ -96,7 +96,7 @@ static QoreNode *QDOUBLEVALIDATOR_setBottom(QoreObject *self, QoreQDoubleValidat
 }
 
 //void setDecimals ( int )
-static QoreNode *QDOUBLEVALIDATOR_setDecimals(QoreObject *self, QoreQDoubleValidator *qdv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLEVALIDATOR_setDecimals(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -105,7 +105,7 @@ static QoreNode *QDOUBLEVALIDATOR_setDecimals(QoreObject *self, QoreQDoubleValid
 }
 
 //void setNotation ( Notation )
-static QoreNode *QDOUBLEVALIDATOR_setNotation(QoreObject *self, QoreQDoubleValidator *qdv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLEVALIDATOR_setNotation(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QDoubleValidator::Notation notation = (QDoubleValidator::Notation)(p ? p->getAsInt() : 0);
@@ -114,7 +114,7 @@ static QoreNode *QDOUBLEVALIDATOR_setNotation(QoreObject *self, QoreQDoubleValid
 }
 
 //virtual void setRange ( double minimum, double maximum, int decimals = 0 )
-static QoreNode *QDOUBLEVALIDATOR_setRange(QoreObject *self, QoreQDoubleValidator *qdv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLEVALIDATOR_setRange(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    double minimum = p ? p->getAsFloat() : 0.0;
@@ -127,7 +127,7 @@ static QoreNode *QDOUBLEVALIDATOR_setRange(QoreObject *self, QoreQDoubleValidato
 }
 
 //void setTop ( double )
-static QoreNode *QDOUBLEVALIDATOR_setTop(QoreObject *self, QoreQDoubleValidator *qdv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLEVALIDATOR_setTop(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    double top = p ? p->getAsFloat() : 0.0;
@@ -136,7 +136,7 @@ static QoreNode *QDOUBLEVALIDATOR_setTop(QoreObject *self, QoreQDoubleValidator 
 }
 
 //double top () const
-static QoreNode *QDOUBLEVALIDATOR_top(QoreObject *self, QoreQDoubleValidator *qdv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDOUBLEVALIDATOR_top(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qdv->qobj->top());
 }

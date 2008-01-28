@@ -31,7 +31,7 @@ ExpressionStatement::ExpressionStatement(int start_line, int end_line, class Qor
    if (exp->type == NT_VARREF && exp->val.vref->type == VT_GLOBAL)
       is_declaration = true;
    else {
-      QoreList *l = dynamic_cast<QoreList *>(exp);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(exp);
       if (l && l->isVariableList() && l->retrieve_entry(0)->val.vref->type == VT_GLOBAL)
 	 is_declaration = true;
       else

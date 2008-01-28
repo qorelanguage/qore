@@ -42,7 +42,7 @@ class QoreClass *QC_QTextFormat = 0;
 //QTextFormat ()
 //QTextFormat ( int type )
 //QTextFormat ( const QTextFormat & other )
-static void QTEXTFORMAT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QTEXTFORMAT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -60,7 +60,7 @@ static void QTEXTFORMAT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //QBrush background () const
-static QoreNode *QTEXTFORMAT_background(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_background(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qtf->background());
@@ -69,15 +69,15 @@ static QoreNode *QTEXTFORMAT_background(QoreObject *self, QoreQTextFormat *qtf, 
 }
 
 //bool boolProperty ( int propertyId ) const
-static QoreNode *QTEXTFORMAT_boolProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_boolProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
-   return new QoreNode(qtf->boolProperty(propertyId));
+   return new QoreBoolNode(qtf->boolProperty(propertyId));
 }
 
 //QBrush brushProperty ( int propertyId ) const
-static QoreNode *QTEXTFORMAT_brushProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_brushProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
@@ -88,21 +88,21 @@ static QoreNode *QTEXTFORMAT_brushProperty(QoreObject *self, QoreQTextFormat *qt
 }
 
 //void clearBackground ()
-static QoreNode *QTEXTFORMAT_clearBackground(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_clearBackground(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    qtf->clearBackground();
    return 0;
 }
 
 //void clearForeground ()
-static QoreNode *QTEXTFORMAT_clearForeground(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_clearForeground(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    qtf->clearForeground();
    return 0;
 }
 
 //void clearProperty ( int propertyId )
-static QoreNode *QTEXTFORMAT_clearProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_clearProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
@@ -111,7 +111,7 @@ static QoreNode *QTEXTFORMAT_clearProperty(QoreObject *self, QoreQTextFormat *qt
 }
 
 //QColor colorProperty ( int propertyId ) const
-static QoreNode *QTEXTFORMAT_colorProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_colorProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
@@ -122,7 +122,7 @@ static QoreNode *QTEXTFORMAT_colorProperty(QoreObject *self, QoreQTextFormat *qt
 }
 
 //qreal doubleProperty ( int propertyId ) const
-static QoreNode *QTEXTFORMAT_doubleProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_doubleProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
@@ -130,7 +130,7 @@ static QoreNode *QTEXTFORMAT_doubleProperty(QoreObject *self, QoreQTextFormat *q
 }
 
 //QBrush foreground () const
-static QoreNode *QTEXTFORMAT_foreground(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_foreground(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qtf->foreground());
@@ -139,71 +139,71 @@ static QoreNode *QTEXTFORMAT_foreground(QoreObject *self, QoreQTextFormat *qtf, 
 }
 
 //bool hasProperty ( int propertyId ) const
-static QoreNode *QTEXTFORMAT_hasProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_hasProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
-   return new QoreNode(qtf->hasProperty(propertyId));
+   return new QoreBoolNode(qtf->hasProperty(propertyId));
 }
 
 //int intProperty ( int propertyId ) const
-static QoreNode *QTEXTFORMAT_intProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_intProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
-   return new QoreNode((int64)qtf->intProperty(propertyId));
+   return new QoreBigIntNode(qtf->intProperty(propertyId));
 }
 
 //bool isBlockFormat () const
-static QoreNode *QTEXTFORMAT_isBlockFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_isBlockFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qtf->isBlockFormat());
+   return new QoreBoolNode(qtf->isBlockFormat());
 }
 
 //bool isCharFormat () const
-static QoreNode *QTEXTFORMAT_isCharFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_isCharFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qtf->isCharFormat());
+   return new QoreBoolNode(qtf->isCharFormat());
 }
 
 //bool isFrameFormat () const
-static QoreNode *QTEXTFORMAT_isFrameFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_isFrameFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qtf->isFrameFormat());
+   return new QoreBoolNode(qtf->isFrameFormat());
 }
 
 //bool isImageFormat () const
-static QoreNode *QTEXTFORMAT_isImageFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_isImageFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qtf->isImageFormat());
+   return new QoreBoolNode(qtf->isImageFormat());
 }
 
 //bool isListFormat () const
-static QoreNode *QTEXTFORMAT_isListFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_isListFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qtf->isListFormat());
+   return new QoreBoolNode(qtf->isListFormat());
 }
 
 //bool isTableFormat () const
-static QoreNode *QTEXTFORMAT_isTableFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_isTableFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qtf->isTableFormat());
+   return new QoreBoolNode(qtf->isTableFormat());
 }
 
 //bool isValid () const
-static QoreNode *QTEXTFORMAT_isValid(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_isValid(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qtf->isValid());
+   return new QoreBoolNode(qtf->isValid());
 }
 
 //Qt::LayoutDirection layoutDirection () const
-static QoreNode *QTEXTFORMAT_layoutDirection(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_layoutDirection(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qtf->layoutDirection());
+   return new QoreBigIntNode(qtf->layoutDirection());
 }
 
 //QTextLength lengthProperty ( int propertyId ) const
-static QoreNode *QTEXTFORMAT_lengthProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_lengthProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
@@ -214,15 +214,15 @@ static QoreNode *QTEXTFORMAT_lengthProperty(QoreObject *self, QoreQTextFormat *q
 }
 
 ////QVector<QTextLength> lengthVectorProperty ( int propertyId ) const
-//static QoreNode *QTEXTFORMAT_lengthVectorProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QTEXTFORMAT_lengthVectorProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int propertyId = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)qtf->lengthVectorProperty(propertyId));
+//   ??? return new QoreBigIntNode(qtf->lengthVectorProperty(propertyId));
 //}
 
 //void merge ( const QTextFormat & other )
-static QoreNode *QTEXTFORMAT_merge(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_merge(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQTextFormat *other = (p && p->type == NT_OBJECT) ? (QoreQTextFormat *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTFORMAT, xsink) : 0;
@@ -237,19 +237,19 @@ static QoreNode *QTEXTFORMAT_merge(QoreObject *self, QoreQTextFormat *qtf, const
 }
 
 //int objectIndex () const
-static QoreNode *QTEXTFORMAT_objectIndex(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_objectIndex(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qtf->objectIndex());
+   return new QoreBigIntNode(qtf->objectIndex());
 }
 
 //int objectType () const
-static QoreNode *QTEXTFORMAT_objectType(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_objectType(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qtf->objectType());
+   return new QoreBigIntNode(qtf->objectType());
 }
 
 //QPen penProperty ( int propertyId ) const
-static QoreNode *QTEXTFORMAT_penProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_penProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
@@ -260,27 +260,27 @@ static QoreNode *QTEXTFORMAT_penProperty(QoreObject *self, QoreQTextFormat *qtf,
 }
 
 ////QMap<int, QVariant> properties () const
-//static QoreNode *QTEXTFORMAT_properties(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QTEXTFORMAT_properties(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)qtf->properties());
+//   ??? return new QoreBigIntNode(qtf->properties());
 //}
 
 ////QVariant property ( int propertyId ) const
-//static QoreNode *QTEXTFORMAT_property(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QTEXTFORMAT_property(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int propertyId = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)qtf->property(propertyId));
+//   ??? return new QoreBigIntNode(qtf->property(propertyId));
 //}
 
 //int propertyCount () const
-static QoreNode *QTEXTFORMAT_propertyCount(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_propertyCount(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qtf->propertyCount());
+   return new QoreBigIntNode(qtf->propertyCount());
 }
 
 //void setBackground ( const QBrush & brush )
-static QoreNode *QTEXTFORMAT_setBackground(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_setBackground(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QBrush brush;
@@ -291,7 +291,7 @@ static QoreNode *QTEXTFORMAT_setBackground(QoreObject *self, QoreQTextFormat *qt
 }
 
 //void setForeground ( const QBrush & brush )
-static QoreNode *QTEXTFORMAT_setForeground(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_setForeground(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QBrush brush;
@@ -302,7 +302,7 @@ static QoreNode *QTEXTFORMAT_setForeground(QoreObject *self, QoreQTextFormat *qt
 }
 
 //void setLayoutDirection ( Qt::LayoutDirection direction )
-static QoreNode *QTEXTFORMAT_setLayoutDirection(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_setLayoutDirection(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::LayoutDirection direction = (Qt::LayoutDirection)(p ? p->getAsInt() : 0);
@@ -311,7 +311,7 @@ static QoreNode *QTEXTFORMAT_setLayoutDirection(QoreObject *self, QoreQTextForma
 }
 
 //void setObjectIndex ( int index )
-static QoreNode *QTEXTFORMAT_setObjectIndex(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_setObjectIndex(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -320,7 +320,7 @@ static QoreNode *QTEXTFORMAT_setObjectIndex(QoreObject *self, QoreQTextFormat *q
 }
 
 //void setObjectType ( int type )
-static QoreNode *QTEXTFORMAT_setObjectType(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_setObjectType(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int type = p ? p->getAsInt() : 0;
@@ -330,7 +330,7 @@ static QoreNode *QTEXTFORMAT_setObjectType(QoreObject *self, QoreQTextFormat *qt
 
 ////void setProperty ( int propertyId, const QVariant & value )
 ////void setProperty ( int propertyId, const QVector<QTextLength> & value )
-//static QoreNode *QTEXTFORMAT_setProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QTEXTFORMAT_setProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int propertyId = p ? p->getAsInt() : 0;
@@ -341,7 +341,7 @@ static QoreNode *QTEXTFORMAT_setObjectType(QoreObject *self, QoreQTextFormat *qt
 //}
 
 //QString stringProperty ( int propertyId ) const
-static QoreNode *QTEXTFORMAT_stringProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_stringProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
@@ -349,7 +349,7 @@ static QoreNode *QTEXTFORMAT_stringProperty(QoreObject *self, QoreQTextFormat *q
 }
 
 //QTextBlockFormat toBlockFormat () const
-static QoreNode *QTEXTFORMAT_toBlockFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_toBlockFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qtbf = new QoreObject(QC_QTextBlockFormat, getProgram());
    QoreQTextBlockFormat *q_qtbf = new QoreQTextBlockFormat(qtf->toBlockFormat());
@@ -358,7 +358,7 @@ static QoreNode *QTEXTFORMAT_toBlockFormat(QoreObject *self, QoreQTextFormat *qt
 }
 
 //QTextCharFormat toCharFormat () const
-static QoreNode *QTEXTFORMAT_toCharFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_toCharFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qtcf = new QoreObject(QC_QTextCharFormat, getProgram());
    QoreQTextCharFormat *q_qtcf = new QoreQTextCharFormat(qtf->toCharFormat());
@@ -367,7 +367,7 @@ static QoreNode *QTEXTFORMAT_toCharFormat(QoreObject *self, QoreQTextFormat *qtf
 }
 
 //QTextFrameFormat toFrameFormat () const
-static QoreNode *QTEXTFORMAT_toFrameFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_toFrameFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qtff = new QoreObject(QC_QTextFrameFormat, getProgram());
    QoreQTextFrameFormat *q_qtff = new QoreQTextFrameFormat(qtf->toFrameFormat());
@@ -376,7 +376,7 @@ static QoreNode *QTEXTFORMAT_toFrameFormat(QoreObject *self, QoreQTextFormat *qt
 }
 
 //QTextImageFormat toImageFormat () const
-static QoreNode *QTEXTFORMAT_toImageFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_toImageFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qtif = new QoreObject(QC_QTextImageFormat, getProgram());
    QoreQTextImageFormat *q_qtif = new QoreQTextImageFormat(qtf->toImageFormat());
@@ -385,7 +385,7 @@ static QoreNode *QTEXTFORMAT_toImageFormat(QoreObject *self, QoreQTextFormat *qt
 }
 
 //QTextListFormat toListFormat () const
-static QoreNode *QTEXTFORMAT_toListFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_toListFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qtlf = new QoreObject(QC_QTextListFormat, getProgram());
    QoreQTextListFormat *q_qtlf = new QoreQTextListFormat(qtf->toListFormat());
@@ -394,7 +394,7 @@ static QoreNode *QTEXTFORMAT_toListFormat(QoreObject *self, QoreQTextFormat *qtf
 }
 
 //QTextTableFormat toTableFormat () const
-static QoreNode *QTEXTFORMAT_toTableFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_toTableFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qttf = new QoreObject(QC_QTextTableFormat, getProgram());
    QoreQTextTableFormat *q_qttf = new QoreQTextTableFormat(qtf->toTableFormat());
@@ -403,9 +403,9 @@ static QoreNode *QTEXTFORMAT_toTableFormat(QoreObject *self, QoreQTextFormat *qt
 }
 
 //int type () const
-static QoreNode *QTEXTFORMAT_type(QoreObject *self, QoreQTextFormat *qtf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QTEXTFORMAT_type(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qtf->type());
+   return new QoreBigIntNode(qtf->type());
 }
 
 QoreClass *initQTextFormatClass()

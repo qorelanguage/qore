@@ -71,10 +71,10 @@ class myQDoubleValidator : public QDoubleValidator, public QoreQValidatorExtensi
 	    QDoubleValidator::setRange(minimum, maximum, decimals);
 	    return;
 	 }
-	 QoreList *args = new QoreList();
+	 QoreListNode *args = new QoreListNode();
 	 args->push(new QoreNode(minimum));
 	 args->push(new QoreNode(maximum));
-	 args->push(new QoreNode((int64)decimals));
+	 args->push(new QoreBigIntNode(decimals));
 
 	 ExceptionSink xsink;
 	 discard(dispatch_event_intern(qore_obj, m_setRange, args, &xsink), &xsink);

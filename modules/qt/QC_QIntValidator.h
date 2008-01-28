@@ -70,9 +70,9 @@ class myQIntValidator : public QIntValidator, public QoreQValidatorExtension
             QIntValidator::setRange(bottom, top);
             return;
          }
-         QoreList *args = new QoreList();
-         args->push(new QoreNode((int64)bottom));
-         args->push(new QoreNode((int64)top));
+         QoreListNode *args = new QoreListNode();
+         args->push(new QoreBigIntNode(bottom));
+         args->push(new QoreBigIntNode(top));
 
          ExceptionSink xsink;
          discard(dispatch_event_intern(qore_obj, m_setRange, args, &xsink), &xsink);

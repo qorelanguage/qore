@@ -34,7 +34,7 @@ class QoreClass *QC_QUrl = 0;
 //QUrl ( const QString & url )
 //QUrl ( const QUrl & other )
 //QUrl ( const QString & url, ParsingMode parsingMode )
-static void QURL_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QURL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -61,7 +61,7 @@ static void QURL_copy(class QoreObject *self, class QoreObject *old, class QoreQ
 }
 
 //void addQueryItem ( const QString & key, const QString & value )
-static QoreNode *QURL_addQueryItem(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_addQueryItem(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString key;
@@ -79,40 +79,40 @@ static QoreNode *QURL_addQueryItem(QoreObject *self, QoreQUrl *qu, const QoreLis
 }
 
 //QStringList allQueryItemValues ( const QString & key ) const
-static QoreNode *QURL_allQueryItemValues(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_allQueryItemValues(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
    QStringList strlist_rv = qu->allQueryItemValues(key);
-   QoreList *l = new QoreList();
+   QoreListNode *l = new QoreListNode();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return l;
 }
 
 //QString authority () const
-static QoreNode *QURL_authority(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_authority(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qu->authority().toUtf8().data(), QCS_UTF8);
 }
 
 //void clear ()
-static QoreNode *QURL_clear(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_clear(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    qu->clear();
    return 0;
 }
 
 ////DataPtr & data_ptr ()
-//static QoreNode *QURL_data_ptr(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QURL_data_ptr(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)qu->data_ptr());
+//   ??? return new QoreBigIntNode(qu->data_ptr());
 //}
 
 //QByteArray encodedQuery () const
-static QoreNode *QURL_encodedQuery(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_encodedQuery(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qu->encodedQuery());
@@ -121,53 +121,53 @@ static QoreNode *QURL_encodedQuery(QoreObject *self, QoreQUrl *qu, const QoreLis
 }
 
 //QString errorString () const
-static QoreNode *QURL_errorString(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_errorString(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qu->errorString().toUtf8().data(), QCS_UTF8);
 }
 
 //QString fragment () const
-static QoreNode *QURL_fragment(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_fragment(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qu->fragment().toUtf8().data(), QCS_UTF8);
 }
 
 //bool hasFragment () const
-static QoreNode *QURL_hasFragment(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_hasFragment(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qu->hasFragment());
+   return new QoreBoolNode(qu->hasFragment());
 }
 
 //bool hasQuery () const
-static QoreNode *QURL_hasQuery(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_hasQuery(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qu->hasQuery());
+   return new QoreBoolNode(qu->hasQuery());
 }
 
 //bool hasQueryItem ( const QString & key ) const
-static QoreNode *QURL_hasQueryItem(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_hasQueryItem(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
-   return new QoreNode(qu->hasQueryItem(key));
+   return new QoreBoolNode(qu->hasQueryItem(key));
 }
 
 //QString host () const
-static QoreNode *QURL_host(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_host(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qu->host().toUtf8().data(), QCS_UTF8);
 }
 
 //bool isEmpty () const
-static QoreNode *QURL_isEmpty(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_isEmpty(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qu->isEmpty());
+   return new QoreBoolNode(qu->isEmpty());
 }
 
 //bool isParentOf ( const QUrl & childUrl ) const
-static QoreNode *QURL_isParentOf(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_isParentOf(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQUrl *childUrl = (p && p->type == NT_OBJECT) ? (QoreQUrl *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QURL, xsink) : 0;
@@ -177,47 +177,47 @@ static QoreNode *QURL_isParentOf(QoreObject *self, QoreQUrl *qu, const QoreList 
       return 0;
    }
    ReferenceHolder<QoreQUrl> childUrlHolder(childUrl, xsink);
-   return new QoreNode(qu->isParentOf(*(static_cast<QUrl *>(childUrl))));
+   return new QoreBoolNode(qu->isParentOf(*(static_cast<QUrl *>(childUrl))));
 }
 
 //bool isRelative () const
-static QoreNode *QURL_isRelative(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_isRelative(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qu->isRelative());
+   return new QoreBoolNode(qu->isRelative());
 }
 
 //bool isValid () const
-static QoreNode *QURL_isValid(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_isValid(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qu->isValid());
+   return new QoreBoolNode(qu->isValid());
 }
 
 //QString password () const
-static QoreNode *QURL_password(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_password(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qu->password().toUtf8().data(), QCS_UTF8);
 }
 
 //QString path () const
-static QoreNode *QURL_path(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_path(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qu->path().toUtf8().data(), QCS_UTF8);
 }
 
 //int port () const
 //int port ( int defaultPort ) const
-static QoreNode *QURL_port(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_port(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
-      return new QoreNode((int64)qu->port());
+      return new QoreBigIntNode(qu->port());
    }
    int defaultPort = p ? p->getAsInt() : 0;
-   return new QoreNode((int64)qu->port(defaultPort));
+   return new QoreBigIntNode(qu->port(defaultPort));
 }
 
 //QString queryItemValue ( const QString & key ) const
-static QoreNode *QURL_queryItemValue(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_queryItemValue(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString key;
@@ -227,13 +227,13 @@ static QoreNode *QURL_queryItemValue(QoreObject *self, QoreQUrl *qu, const QoreL
 }
 
 ////QList<QPair<QString, QString> > queryItems () const
-//static QoreNode *QURL_queryItems(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QURL_queryItems(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)qu->queryItems());
+//   ??? return new QoreBigIntNode(qu->queryItems());
 //}
 
 //char queryPairDelimiter () const
-static QoreNode *QURL_queryPairDelimiter(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_queryPairDelimiter(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char c_rv = qu->queryPairDelimiter();
    QoreStringNode *rv_str = new QoreStringNode();
@@ -242,7 +242,7 @@ static QoreNode *QURL_queryPairDelimiter(QoreObject *self, QoreQUrl *qu, const Q
 }
 
 //char queryValueDelimiter () const
-static QoreNode *QURL_queryValueDelimiter(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_queryValueDelimiter(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char c_rv = qu->queryValueDelimiter();
    QoreStringNode *rv_str = new QoreStringNode();
@@ -251,7 +251,7 @@ static QoreNode *QURL_queryValueDelimiter(QoreObject *self, QoreQUrl *qu, const 
 }
 
 //void removeAllQueryItems ( const QString & key )
-static QoreNode *QURL_removeAllQueryItems(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_removeAllQueryItems(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString key;
@@ -262,7 +262,7 @@ static QoreNode *QURL_removeAllQueryItems(QoreObject *self, QoreQUrl *qu, const 
 }
 
 //void removeQueryItem ( const QString & key )
-static QoreNode *QURL_removeQueryItem(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_removeQueryItem(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString key;
@@ -273,7 +273,7 @@ static QoreNode *QURL_removeQueryItem(QoreObject *self, QoreQUrl *qu, const Qore
 }
 
 //QUrl resolved ( const QUrl & relative ) const
-static QoreNode *QURL_resolved(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_resolved(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQUrl *relative = (p && p->type == NT_OBJECT) ? (QoreQUrl *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QURL, xsink) : 0;
@@ -290,13 +290,13 @@ static QoreNode *QURL_resolved(QoreObject *self, QoreQUrl *qu, const QoreList *p
 }
 
 //QString scheme () const
-static QoreNode *QURL_scheme(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_scheme(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qu->scheme().toUtf8().data(), QCS_UTF8);
 }
 
 //void setAuthority ( const QString & authority )
-static QoreNode *QURL_setAuthority(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setAuthority(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString authority;
@@ -307,7 +307,7 @@ static QoreNode *QURL_setAuthority(QoreObject *self, QoreQUrl *qu, const QoreLis
 }
 
 //void setEncodedQuery ( const QByteArray & query )
-static QoreNode *QURL_setEncodedQuery(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setEncodedQuery(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QByteArray query;
@@ -319,7 +319,7 @@ static QoreNode *QURL_setEncodedQuery(QoreObject *self, QoreQUrl *qu, const Qore
 
 //void setEncodedUrl ( const QByteArray & encodedUrl )
 //void setEncodedUrl ( const QByteArray & encodedUrl, ParsingMode parsingMode )
-static QoreNode *QURL_setEncodedUrl(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setEncodedUrl(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QByteArray encodedUrl;
@@ -332,7 +332,7 @@ static QoreNode *QURL_setEncodedUrl(QoreObject *self, QoreQUrl *qu, const QoreLi
 }
 
 //void setFragment ( const QString & fragment )
-static QoreNode *QURL_setFragment(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setFragment(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString fragment;
@@ -343,7 +343,7 @@ static QoreNode *QURL_setFragment(QoreObject *self, QoreQUrl *qu, const QoreList
 }
 
 //void setHost ( const QString & host )
-static QoreNode *QURL_setHost(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setHost(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString host;
@@ -354,7 +354,7 @@ static QoreNode *QURL_setHost(QoreObject *self, QoreQUrl *qu, const QoreList *pa
 }
 
 //void setPassword ( const QString & password )
-static QoreNode *QURL_setPassword(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setPassword(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString password;
@@ -365,7 +365,7 @@ static QoreNode *QURL_setPassword(QoreObject *self, QoreQUrl *qu, const QoreList
 }
 
 //void setPath ( const QString & path )
-static QoreNode *QURL_setPath(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setPath(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString path;
@@ -376,7 +376,7 @@ static QoreNode *QURL_setPath(QoreObject *self, QoreQUrl *qu, const QoreList *pa
 }
 
 //void setPort ( int port )
-static QoreNode *QURL_setPort(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setPort(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int port = p ? p->getAsInt() : 0;
@@ -385,7 +385,7 @@ static QoreNode *QURL_setPort(QoreObject *self, QoreQUrl *qu, const QoreList *pa
 }
 
 //void setQueryDelimiters ( char valueDelimiter, char pairDelimiter )
-static QoreNode *QURL_setQueryDelimiters(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setQueryDelimiters(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *str = test_string_param(params, 0);
    if (!str) {
@@ -405,7 +405,7 @@ static QoreNode *QURL_setQueryDelimiters(QoreObject *self, QoreQUrl *qu, const Q
 }
 
 ////void setQueryItems ( const QList<QPair<QString, QString> > & query )
-//static QoreNode *QURL_setQueryItems(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QURL_setQueryItems(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QUrl::const^QList<QPair<QString const^qlist<qpair<qstring = (QUrl::const^QList<QPair<QString)(p ? p->getAsInt() : 0);
@@ -416,7 +416,7 @@ static QoreNode *QURL_setQueryDelimiters(QoreObject *self, QoreQUrl *qu, const Q
 //}
 
 //void setScheme ( const QString & scheme )
-static QoreNode *QURL_setScheme(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setScheme(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString scheme;
@@ -428,7 +428,7 @@ static QoreNode *QURL_setScheme(QoreObject *self, QoreQUrl *qu, const QoreList *
 
 //void setUrl ( const QString & url )
 //void setUrl ( const QString & url, ParsingMode parsingMode )
-static QoreNode *QURL_setUrl(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setUrl(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString url;
@@ -445,7 +445,7 @@ static QoreNode *QURL_setUrl(QoreObject *self, QoreQUrl *qu, const QoreList *par
 }
 
 //void setUserInfo ( const QString & userInfo )
-static QoreNode *QURL_setUserInfo(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setUserInfo(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString userInfo;
@@ -456,7 +456,7 @@ static QoreNode *QURL_setUserInfo(QoreObject *self, QoreQUrl *qu, const QoreList
 }
 
 //void setUserName ( const QString & userName )
-static QoreNode *QURL_setUserName(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_setUserName(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString userName;
@@ -467,7 +467,7 @@ static QoreNode *QURL_setUserName(QoreObject *self, QoreQUrl *qu, const QoreList
 }
 
 //QByteArray toEncoded ( FormattingOptions options = None ) const
-static QoreNode *QURL_toEncoded(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_toEncoded(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QUrl::FormattingOptions options = (QUrl::FormattingOptions)(p ? p->getAsInt() : 0);
@@ -478,13 +478,13 @@ static QoreNode *QURL_toEncoded(QoreObject *self, QoreQUrl *qu, const QoreList *
 }
 
 //QString toLocalFile () const
-static QoreNode *QURL_toLocalFile(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_toLocalFile(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qu->toLocalFile().toUtf8().data(), QCS_UTF8);
 }
 
 //QString toString ( FormattingOptions options = None ) const
-static QoreNode *QURL_toString(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_toString(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QUrl::FormattingOptions options = (QUrl::FormattingOptions)(p ? p->getAsInt() : 0);
@@ -492,13 +492,13 @@ static QoreNode *QURL_toString(QoreObject *self, QoreQUrl *qu, const QoreList *p
 }
 
 //QString userInfo () const
-static QoreNode *QURL_userInfo(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_userInfo(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qu->userInfo().toUtf8().data(), QCS_UTF8);
 }
 
 //QString userName () const
-static QoreNode *QURL_userName(QoreObject *self, QoreQUrl *qu, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QURL_userName(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qu->userName().toUtf8().data(), QCS_UTF8);
 }

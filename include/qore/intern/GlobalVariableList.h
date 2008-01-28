@@ -45,7 +45,7 @@ public:
    DLLLOCAL class Var *newVar(class Var *v, bool readonly);
    DLLLOCAL class Var *findVar(const char *name);
    DLLLOCAL class Var *checkVar(const char *name, int *new_vars);
-   DLLLOCAL class QoreList *getVarList() const;
+   DLLLOCAL class QoreListNode *getVarList() const;
 };
 
 #endif

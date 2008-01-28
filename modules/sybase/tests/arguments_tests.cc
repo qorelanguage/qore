@@ -10,7 +10,7 @@ TEST()
 {
   ExceptionSink xsink;
   std::vector<char> arg_types;
-  QoreList* args = 0;
+  QoreListNode* args = 0;
 
   std::vector<argument_t> res = extract_language_command_arguments(args, arg_types, &xsink);
   assert(!xsink.isException());
@@ -23,7 +23,7 @@ TEST()
   ExceptionSink xsink;
   std::vector<char> arg_types;
   arg_types.push_back('d'); // error
-  QoreList* args = 0;
+  QoreListNode* args = 0;
 
   std::vector<argument_t> res = extract_language_command_arguments(args, arg_types, &xsink);
   assert(xsink.isException());
@@ -34,7 +34,7 @@ TEST()
 {
   ExceptionSink xsink;
   std::vector<char> arg_types;
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false)); // error
 
   std::vector<argument_t> res = extract_language_command_arguments(args, arg_types, &xsink);
@@ -47,7 +47,7 @@ TEST()
   ExceptionSink xsink;
   std::vector<char> arg_types;
   arg_types.push_back('d');
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false)); // error - not int
 
   std::vector<argument_t> res = extract_language_command_arguments(args, arg_types, &xsink);
@@ -60,7 +60,7 @@ TEST()
   ExceptionSink xsink;
   std::vector<char> arg_types;
   arg_types.push_back('s');
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false));
 
   std::vector<argument_t> res = extract_language_command_arguments(args, arg_types, &xsink);
@@ -75,9 +75,9 @@ TEST()
   arg_types.push_back('s');
   arg_types.push_back('d');
   arg_types.push_back('s');
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false));
-  args->push(new QoreNode((int64)12));
+  args->push(new QoreBigIntNode(12));
   args->push(new QoreNode("aaa"));
 
   std::vector<argument_t> res = extract_language_command_arguments(args, arg_types, &xsink);
@@ -92,15 +92,15 @@ TEST()
   arg_types.push_back('s');
   arg_types.push_back('d');
   arg_types.push_back('s');
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false));
-  args->push(new QoreNode((int64)12));
+  args->push(new QoreBigIntNode(12));
   args->push(new QoreNode("aaa"));
   
   // types
-  args->push(new QoreNode((int64)CS_BIT_TYPE));
-  args->push(new QoreNode((int64)CS_SMALLINT_TYPE));
-  args->push(new QoreNode((int64)CS_CHAR_TYPE));
+  args->push(new QoreBigIntNode(CS_BIT_TYPE));
+  args->push(new QoreBigIntNode(CS_SMALLINT_TYPE));
+  args->push(new QoreBigIntNode(CS_CHAR_TYPE));
 
   std::vector<argument_t> res = extract_language_command_arguments(args, arg_types, &xsink);
   assert(!xsink.isException());
@@ -114,15 +114,15 @@ TEST()
   arg_types.push_back('s');
   arg_types.push_back('d');
   arg_types.push_back('d'); // error
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false));
-  args->push(new QoreNode((int64)12));
+  args->push(new QoreBigIntNode(12));
   args->push(new QoreNode("aaa"));
 
   // types
-  args->push(new QoreNode((int64)CS_BIT_TYPE));
-  args->push(new QoreNode((int64)CS_SMALLINT_TYPE));
-  args->push(new QoreNode((int64)CS_CHAR_TYPE));
+  args->push(new QoreBigIntNode(CS_BIT_TYPE));
+  args->push(new QoreBigIntNode(CS_SMALLINT_TYPE));
+  args->push(new QoreBigIntNode(CS_CHAR_TYPE));
 
   std::vector<argument_t> res = extract_language_command_arguments(args, arg_types, &xsink);
   assert(xsink.isException());
@@ -135,16 +135,16 @@ TEST()
   arg_types.push_back('s');
   arg_types.push_back('d');
   arg_types.push_back('s');
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false));
-  args->push(new QoreNode((int64)12));
+  args->push(new QoreBigIntNode(12));
   args->push(new QoreNode("aaa"));
 
   // types
-  args->push(new QoreNode((int64)CS_BIT_TYPE));
-  args->push(new QoreNode((int64)CS_SMALLINT_TYPE));
-  args->push(new QoreNode((int64)CS_CHAR_TYPE));
-  args->push(new QoreNode((int64)CS_CHAR_TYPE)); // error
+  args->push(new QoreBigIntNode(CS_BIT_TYPE));
+  args->push(new QoreBigIntNode(CS_SMALLINT_TYPE));
+  args->push(new QoreBigIntNode(CS_CHAR_TYPE));
+  args->push(new QoreBigIntNode(CS_CHAR_TYPE)); // error
 
   std::vector<argument_t> res = extract_language_command_arguments(args, arg_types, &xsink);
   assert(xsink.isException());
@@ -157,15 +157,15 @@ TEST()
   arg_types.push_back('s');
   arg_types.push_back('d');
   arg_types.push_back('s');
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false));
-  args->push(new QoreNode((int64)12));
+  args->push(new QoreBigIntNode(12));
   args->push(new QoreNode("aaa"));
 
   // types
-  args->push(new QoreNode((int64)CS_BIT_TYPE));
-  args->push(new QoreNode((int64)CS_SMALLINT_TYPE));
-  args->push(new QoreNode((int64)CS_CHAR_TYPE));
+  args->push(new QoreBigIntNode(CS_BIT_TYPE));
+  args->push(new QoreBigIntNode(CS_SMALLINT_TYPE));
+  args->push(new QoreBigIntNode(CS_CHAR_TYPE));
 
   std::vector<argument_t> res = extract_language_command_arguments(args, arg_types, &xsink);
   assert(!xsink.isException());
@@ -179,7 +179,7 @@ TEST()
 {
   ExceptionSink xsink;
   std::vector<processed_procedure_call_t::parameter_t> arg_types;
-  QoreList* args = 0;
+  QoreListNode* args = 0;
 
   std::vector<argument_t> res = extract_procedure_call_arguments(args, arg_types, &xsink);
   assert(!xsink.isException());
@@ -190,7 +190,7 @@ TEST()
 {
   ExceptionSink xsink;
   std::vector<processed_procedure_call_t::parameter_t> arg_types;
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false));
 
   std::vector<argument_t> res = extract_procedure_call_arguments(args, arg_types, &xsink);
@@ -202,9 +202,9 @@ TEST()
   ExceptionSink xsink;
   std::vector<processed_procedure_call_t::parameter_t> arg_types;
   arg_types.push_back(std::make_pair(false, std::string("s")));
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false));
-  args->push(new QoreNode((int64)CS_BIT_TYPE));
+  args->push(new QoreBigIntNode(CS_BIT_TYPE));
 
   std::vector<argument_t> res = extract_procedure_call_arguments(args, arg_types, &xsink);
   assert(!xsink.isException());
@@ -216,9 +216,9 @@ TEST()
   ExceptionSink xsink;
   std::vector<processed_procedure_call_t::parameter_t> arg_types;
   arg_types.push_back(std::make_pair(false, std::string("d")));
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false)); // error
-  args->push(new QoreNode((int64)CS_BIT_TYPE));
+  args->push(new QoreBigIntNode(CS_BIT_TYPE));
 
   std::vector<argument_t> res = extract_procedure_call_arguments(args, arg_types, &xsink);
   assert(xsink.isException());
@@ -235,16 +235,16 @@ TEST()
   arg_types.push_back(std::make_pair(false, std::string("s")));
 
 
-  QoreList* args = new List;
+  QoreListNode* args = new List;
   args->push(new QoreNode(false));
-  args->push(new QoreNode((int64)123));
+  args->push(new QoreBigIntNode(123));
   args->push(new QoreNode("aaa"));
 
-  args->push(new QoreNode((int64)CS_BIT_TYPE));
-  args->push(new QoreNode((int64)CS_CHAR_TYPE)); // placeholder
-  args->push(new QoreNode((int64)CS_INT_TYPE));  // placeholder
-  args->push(new QoreNode((int64)CS_SMALLINT_TYPE));
-  args->push(new QoreNode((int64)CS_CHAR_TYPE));
+  args->push(new QoreBigIntNode(CS_BIT_TYPE));
+  args->push(new QoreBigIntNode(CS_CHAR_TYPE)); // placeholder
+  args->push(new QoreBigIntNode(CS_INT_TYPE));  // placeholder
+  args->push(new QoreBigIntNode(CS_SMALLINT_TYPE));
+  args->push(new QoreBigIntNode(CS_CHAR_TYPE));
 
 
   std::vector<argument_t> res = extract_procedure_call_arguments(args, arg_types, &xsink);

@@ -76,8 +76,11 @@ DLLEXPORT class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
    *NT_OBJMETHREF, *NT_FUNCREF, *NT_FUNCREFCALL;
 
 // default value nodes for builtin types
-QoreNode *Nothing, *Null, *Zero, *ZeroFloat, *True, *False;
-QoreList *emptyList;
+QoreNode *Nothing, *Null;
+QoreBigIntNode *Zero;
+QoreNode *ZeroFloat;
+QoreBoolNode *True, *False;
+QoreListNode *emptyList;
 QoreHashNode *emptyHash;
 QoreStringNode *NullString;
 DateTimeNode *ZeroDate;
@@ -156,27 +159,27 @@ QoreTypeManager::QoreTypeManager()
 void QoreTypeManager::init()
 {
    // initialize global default values
-   False         = new QoreNode(false);
-   True          = new QoreNode(true);
+   False         = new QoreBoolNode(false);
+   True          = new QoreBoolNode(true);
    Nothing       = new QoreNode(NT_NOTHING);
    Null          = new QoreNode(NT_NULL);
-   Zero          = new QoreNode((int64)0);
+   Zero          = new QoreBigIntNode(0);
    ZeroFloat     = new QoreNode(0.0);
    NullString    = new QoreStringNode("");
    ZeroDate      = new DateTimeNode((int64)0);
    
-   emptyList     = new QoreList();
+   emptyList     = new QoreListNode();
    emptyHash     = new QoreHashNode();
 }
 
 void QoreTypeManager::del()
 {
    // dereference global default values
-   True->deref(NULL);
-   False->deref(NULL);
+   True->deref();
+   False->deref();
    Nothing->deref(NULL);
    Null->deref(NULL);
-   Zero->deref(NULL);
+   Zero->deref();
    ZeroFloat->deref(NULL);
    NullString->deref();
    ZeroDate->deref();

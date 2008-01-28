@@ -12,4 +12,4 @@ else
     cns=Qt
 fi
 
-sed "s/ //g" t| cut -f1 -d=| cut -f1 -d,| grep -v ^$ | while read a; do printf "   $ns->addConstant(%-27s new QoreNode((int64)$cns::%s));\n" \"$a\", $a; done
+sed "s/ //g" t| cut -f1 -d=| cut -f1 -d,| grep -v ^$ | while read a; do printf "   $ns->addConstant(%-27s new QoreBigIntNode($cns::%s));\n" \"$a\", $a; done

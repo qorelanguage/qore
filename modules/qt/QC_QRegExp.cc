@@ -32,7 +32,7 @@ class QoreClass *QC_QRegExp = 0;
 //QRegExp ()
 //QRegExp ( const QString & pattern, Qt::CaseSensitivity cs = Qt::CaseSensitive, PatternSyntax syntax = RegExp )
 //QRegExp ( const QRegExp & rx )
-static void QREGEXP_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QREGEXP_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -56,7 +56,7 @@ static void QREGEXP_copy(class QoreObject *self, class QoreObject *old, class Qo
 }
 
 //QString cap ( int nth = 0 )
-static QoreNode *QREGEXP_cap(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_cap(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int nth = !is_nothing(p) ? p->getAsInt() : 0;
@@ -64,39 +64,39 @@ static QoreNode *QREGEXP_cap(QoreObject *self, QoreQRegExp *qre, const QoreList 
 }
 
 //QStringList capturedTexts ()
-static QoreNode *QREGEXP_capturedTexts(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_capturedTexts(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qre->capturedTexts();
-   QoreList *l = new QoreList();
+   QoreListNode *l = new QoreListNode();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return l;
 }
 
 //Qt::CaseSensitivity caseSensitivity () const
-static QoreNode *QREGEXP_caseSensitivity(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_caseSensitivity(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qre->caseSensitivity());
+   return new QoreBigIntNode(qre->caseSensitivity());
 }
 
 //QString errorString ()
-static QoreNode *QREGEXP_errorString(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_errorString(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qre->errorString().toUtf8().data(), QCS_UTF8);
 }
 
 //bool exactMatch ( const QString & str ) const
-static QoreNode *QREGEXP_exactMatch(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_exactMatch(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString str;
    if (get_qstring(p, str, xsink))
       return 0;
-   return new QoreNode(qre->exactMatch(str));
+   return new QoreBoolNode(qre->exactMatch(str));
 }
 
 //int indexIn ( const QString & str, int offset = 0, CaretMode caretMode = CaretAtZero ) const
-static QoreNode *QREGEXP_indexIn(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_indexIn(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString str;
@@ -106,29 +106,29 @@ static QoreNode *QREGEXP_indexIn(QoreObject *self, QoreQRegExp *qre, const QoreL
    int offset = !is_nothing(p) ? p->getAsInt() : 0;
    p = get_param(params, 2);
    QRegExp::CaretMode caretMode = !is_nothing(p) ? (QRegExp::CaretMode)p->getAsInt() : QRegExp::CaretAtZero;
-   return new QoreNode((int64)qre->indexIn(str, offset, caretMode));
+   return new QoreBigIntNode(qre->indexIn(str, offset, caretMode));
 }
 
 //bool isEmpty () const
-static QoreNode *QREGEXP_isEmpty(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_isEmpty(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qre->isEmpty());
+   return new QoreBoolNode(qre->isEmpty());
 }
 
 //bool isMinimal () const
-static QoreNode *QREGEXP_isMinimal(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_isMinimal(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qre->isMinimal());
+   return new QoreBoolNode(qre->isMinimal());
 }
 
 //bool isValid () const
-static QoreNode *QREGEXP_isValid(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_isValid(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qre->isValid());
+   return new QoreBoolNode(qre->isValid());
 }
 
 //int lastIndexIn ( const QString & str, int offset = -1, CaretMode caretMode = CaretAtZero ) const
-static QoreNode *QREGEXP_lastIndexIn(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_lastIndexIn(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString str;
@@ -138,43 +138,43 @@ static QoreNode *QREGEXP_lastIndexIn(QoreObject *self, QoreQRegExp *qre, const Q
    int offset = !is_nothing(p) ? p->getAsInt() : -1;
    p = get_param(params, 2);
    QRegExp::CaretMode caretMode = !is_nothing(p) ? (QRegExp::CaretMode)p->getAsInt() : QRegExp::CaretAtZero;
-   return new QoreNode((int64)qre->lastIndexIn(str, offset, caretMode));
+   return new QoreBigIntNode(qre->lastIndexIn(str, offset, caretMode));
 }
 
 //int matchedLength () const
-static QoreNode *QREGEXP_matchedLength(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_matchedLength(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qre->matchedLength());
+   return new QoreBigIntNode(qre->matchedLength());
 }
 
 //int numCaptures () const
-static QoreNode *QREGEXP_numCaptures(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_numCaptures(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qre->numCaptures());
+   return new QoreBigIntNode(qre->numCaptures());
 }
 
 //QString pattern () const
-static QoreNode *QREGEXP_pattern(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_pattern(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qre->pattern().toUtf8().data(), QCS_UTF8);
 }
 
 //PatternSyntax patternSyntax () const
-static QoreNode *QREGEXP_patternSyntax(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_patternSyntax(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qre->patternSyntax());
+   return new QoreBigIntNode(qre->patternSyntax());
 }
 
 //int pos ( int nth = 0 )
-static QoreNode *QREGEXP_pos(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_pos(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int nth = !is_nothing(p) ? p->getAsInt() : 0;
-   return new QoreNode((int64)qre->pos(nth));
+   return new QoreBigIntNode(qre->pos(nth));
 }
 
 //void setCaseSensitivity ( Qt::CaseSensitivity cs )
-static QoreNode *QREGEXP_setCaseSensitivity(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_setCaseSensitivity(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::CaseSensitivity cs = (Qt::CaseSensitivity)(p ? p->getAsInt() : 0);
@@ -183,7 +183,7 @@ static QoreNode *QREGEXP_setCaseSensitivity(QoreObject *self, QoreQRegExp *qre, 
 }
 
 //void setMinimal ( bool minimal )
-static QoreNode *QREGEXP_setMinimal(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_setMinimal(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool minimal = p ? p->getAsBool() : false;
@@ -192,7 +192,7 @@ static QoreNode *QREGEXP_setMinimal(QoreObject *self, QoreQRegExp *qre, const Qo
 }
 
 //void setPattern ( const QString & pattern )
-static QoreNode *QREGEXP_setPattern(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_setPattern(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString pattern;
@@ -203,7 +203,7 @@ static QoreNode *QREGEXP_setPattern(QoreObject *self, QoreQRegExp *qre, const Qo
 }
 
 //void setPatternSyntax ( PatternSyntax syntax )
-static QoreNode *QREGEXP_setPatternSyntax(QoreObject *self, QoreQRegExp *qre, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QREGEXP_setPatternSyntax(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QRegExp::PatternSyntax syntax = (QRegExp::PatternSyntax)(p ? p->getAsInt() : 0);

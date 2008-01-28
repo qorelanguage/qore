@@ -29,7 +29,7 @@
 int CID_TIBRVFTMEMBER;
 
 // syntax: subject, [desc, service, network, daemon] 
-static void TIBRVFTMEMBER_constructor(class QoreObject *self, const QoreList *params, class ExceptionSink *xsink)
+static void TIBRVFTMEMBER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)
 {
    tracein("TIBRVFTMEMBER_constructor");
 
@@ -139,24 +139,24 @@ static void TIBRVFTMEMBER_copy(class QoreObject *self, class QoreObject *old, cl
    xsink->raiseException("TIBRVFTMEMBER-COPY-ERROR", "copying TibrvFtMember objects is curently not supported");
 }
 
-static QoreNode *TIBRVFTMEMBER_getEvent(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *TIBRVFTMEMBER_getEvent(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
 {
    return ftm->getEvent(xsink);
 }
 
-static QoreNode *TIBRVFTMEMBER_stop(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *TIBRVFTMEMBER_stop(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
 {
    ftm->stop();
    return NULL;
 }
 
-class QoreNode *TIBRVFTMEMBER_getGroupName(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *TIBRVFTMEMBER_getGroupName(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *name = ftm->getGroupName();
    return name ? new QoreStringNode((char *)name) : 0;
 }
 
-class QoreNode *TIBRVFTMEMBER_setWeight(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *TIBRVFTMEMBER_setWeight(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreNode *pt = get_param(params, 0);
    int weight = pt ? pt->getAsInt() : 0;

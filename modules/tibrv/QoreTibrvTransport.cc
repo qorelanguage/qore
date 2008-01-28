@@ -70,74 +70,68 @@ int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMs
       return 0;
    }
 
-   if (v->type == NT_INT) {
-      msg->addI64(key, v->val.intval);
+   const QoreType *ntype = v->getType();
+   if (ntype == NT_INT) {
+      msg->addI64(key, reinterpret_cast<const QoreBigIntNode *>(v)->val);
       return 0;
    }
 
-   if (v->type == NT_FLOAT) {
+   if (ntype == NT_FLOAT) {
       msg->addF64(key, v->val.floatval);
       return 0;
    }
 
-   {
-      QoreList *l = dynamic_cast<QoreList *>(v);
-      if (l) {
-	 for (int i = 0; i < l->size(); i++)
-	    if (valueToField(key, l->retrieve_entry(i), msg, xsink))
-	       return -1;
-	 return 0;
-      }
-   }
-
-   {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
-      if (str) {
-	 TempEncodingHelper t(str, enc, xsink);
-	 if (*xsink)
+   if (ntype == NT_LIST) {
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(v);
+      for (int i = 0; i < l->size(); i++)
+	 if (valueToField(key, l->retrieve_entry(i), msg, xsink))
 	    return -1;
-
-	 msg->addString(key, t->getBuffer());
-	 return 0;
-      }
+      return 0;
    }
 
-   {
-      DateTimeNode *date = dynamic_cast<DateTimeNode *>(v);
-      if (date) {
-	 TibrvMsgDateTime dt;
-	 dt.sec = date->getEpochSeconds();
-	 msg->addDateTime(key, dt);
-	 return 0;
-      }
+   if (ntype == NT_STRING) {
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(v);
+      TempEncodingHelper t(str, enc, xsink);
+      if (*xsink)
+	 return -1;
+
+      msg->addString(key, t->getBuffer());
+      return 0;
    }
 
-   {
+   if (ntype == NT_DATE) {
+      DateTimeNode *date = reinterpret_cast<DateTimeNode *>(v);
+      TibrvMsgDateTime dt;
+      dt.sec = date->getEpochSeconds();
+      msg->addDateTime(key, dt);
+      return 0;
+   }
+
+   if (ntype == NT_HASH) {
       QoreHashNode *h = dynamic_cast<QoreHashNode *>(v);
-      if (h) {
-	 //check if it's a type-encoded hash
-	 class QoreNode *t;
-	 if (h->size() == 2 && (t = h->getKeyValue("^type^")) && (t->type == NT_STRING))
-	    doEncodedType(msg, key, (reinterpret_cast<QoreStringNode *>(t))->getBuffer(), h->getKeyValue("^value^"), xsink);
-	 else
-	 {
-	    TibrvMsg m;
-	    hashToMsg(&m, h, xsink);
-	    if (xsink->isException())
-	       return -1;
-	    msg->addMsg(key, m);
-	 }
-	 return 0;
+      //check if it's a type-encoded hash
+      class QoreNode *t;
+      if (h->size() == 2 && (t = h->getKeyValue("^type^")) && (t->type == NT_STRING))
+	 doEncodedType(msg, key, (reinterpret_cast<QoreStringNode *>(t))->getBuffer(), h->getKeyValue("^value^"), xsink);
+      else
+      {
+	 TibrvMsg m;
+	 hashToMsg(&m, h, xsink);
+	 if (xsink->isException())
+	    return -1;
+	 msg->addMsg(key, m);
       }
+      return 0;
    }
 
-   if (v->type == NT_BOOLEAN) {
-      msg->addBool(key, (tibrv_bool)v->val.boolval);
+   if (ntype == NT_BOOLEAN) {
+      msg->addBool(key, (tibrv_bool)(reinterpret_cast<const QoreBoolNode *>(v)->b));
       return 0;
    }
    
-   if (v->type == NT_BINARY) {
-      msg->addOpaque(key, v->val.bin->getPtr(), v->val.bin->size());
+   if (ntype == NT_BINARY) {
+      BinaryNode *b = reinterpret_cast<BinaryNode *>(v);
+      msg->addOpaque(key, b->getPtr(), b->size());
       return 0;
    }
 
@@ -201,10 +195,10 @@ QoreHashNode *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *
       if (ev != (QoreNode *)-1)
       {
 	 QoreNode **evp = h->getKeyValuePtr(key);
-	 QoreList *l = dynamic_cast<QoreList *>(ev);
+	 QoreListNode *l = dynamic_cast<QoreListNode *>(ev);
 	 if (!l) {
 	    //printd(5, "QoreTibrvTransport::msgToHash() making list\n");
-	    l = new QoreList();
+	    l = new QoreListNode();
 	    l->push(ev);
 	    ev = l;
 	 }
@@ -233,28 +227,28 @@ QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionS
 	 return new QoreStringNode((char *)data.str, enc);
 
       case TIBRVMSG_I8:
-	 return new QoreNode((int64)data.i8);
+	 return new QoreBigIntNode(data.i8);
 
       case TIBRVMSG_U8:
-	 return new QoreNode((int64)data.u8);
+	 return new QoreBigIntNode(data.u8);
 
       case TIBRVMSG_I16:
-	 return new QoreNode((int64)data.i16);
+	 return new QoreBigIntNode(data.i16);
 
       case TIBRVMSG_U16:
-	 return new QoreNode((int64)data.u16);
+	 return new QoreBigIntNode(data.u16);
 
       case TIBRVMSG_I32:
-	 return new QoreNode((int64)data.i32);
+	 return new QoreBigIntNode(data.i32);
 
       case TIBRVMSG_U32:
-	 return new QoreNode((int64)data.u32);
+	 return new QoreBigIntNode(data.u32);
 
       case TIBRVMSG_I64:
-	 return new QoreNode((int64)data.i64);
+	 return new QoreBigIntNode(data.i64);
 
-      case TIBRVMSG_U64:
-	 return new QoreNode((int64)data.u64);
+      case TIBRVMSG_U64: // WARNING: we lose precision here!!!
+	 return new QoreBigIntNode((int64)data.u64);
 
       case TIBRVMSG_F32:
 	 return new QoreNode((double)data.f32);
@@ -263,7 +257,7 @@ QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionS
 	 return new QoreNode(data.f64);
 
       case TIBRVMSG_IPPORT16:
-	 return new QoreNode((int64)ntohs(data.ipport16));
+	 return new QoreBigIntNode(ntohs(data.ipport16));
 
       case TIBRVMSG_IPADDR32:
       {
@@ -277,7 +271,7 @@ QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionS
       }
 
       case TIBRVMSG_BOOL:
-	 return new QoreNode((bool)data.boolean);
+	 return new QoreBoolNode((bool)data.boolean);
 
       case TIBRVMSG_MSG:
       {
@@ -293,7 +287,7 @@ QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionS
       {
 	 void *ptr = malloc(field->size);
 	 memcpy(ptr, data.buf, field->size);
-	 return new QoreNode(new BinaryObject(ptr, field->size));
+	 return new BinaryNode(ptr, field->size);
       }
 
       case TIBRVMSG_XML:
@@ -315,7 +309,7 @@ QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionS
 
 class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class ExceptionSink *xsink)
 {
-   ReferenceHolder<QoreList> l(new QoreList(), xsink);
+   ReferenceHolder<QoreListNode> l(new QoreListNode(), xsink);
    tibrvLocalData data = field->getData();
 
    switch (field->getType())
@@ -324,7 +318,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
       {
 	 char *c = (char *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreNode((int64)c[i]));
+	    l->push(new QoreBigIntNode(c[i]));
 	 break;
       }
 
@@ -332,14 +326,14 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
       {
 	 unsigned char *c = (unsigned char *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreNode((int64)c[i]));
+	    l->push(new QoreBigIntNode(c[i]));
 	 break;
       }
       case TIBRVMSG_I16:
       {
 	 short *c = (short *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreNode((int64)c[i]));
+	    l->push(new QoreBigIntNode(c[i]));
 	 break;
       }
 
@@ -347,7 +341,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
       {
 	 unsigned short *c = (unsigned short *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreNode((int64)c[i]));
+	    l->push(new QoreBigIntNode(c[i]));
 	 break;
       }
 
@@ -355,7 +349,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
       {
 	 int *c = (int *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreNode((int64)c[i]));
+	    l->push(new QoreBigIntNode(c[i]));
 	 break;
       }
 
@@ -363,7 +357,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
       {
 	 unsigned *c = (unsigned *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreNode((int64)c[i]));
+	    l->push(new QoreBigIntNode(c[i]));
 	 break;
       }
 
@@ -372,7 +366,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
       {
 	 int64 *c = (int64 *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreNode(c[i]));
+	    l->push(new QoreBigIntNode(c[i]));
 	 break;
       }
 
@@ -396,7 +390,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
       {
 	 tibrv_bool *c = (tibrv_bool *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreNode((bool)c[i]));
+	    l->push(new QoreBoolNode((bool)c[i]));
 	 break;
       }
 

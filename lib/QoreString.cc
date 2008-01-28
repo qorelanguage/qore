@@ -197,7 +197,7 @@ QoreString::QoreString(const DateTime *d) : priv(new qore_string_private)
    priv->charset = QCS_DEFAULT;
 }
 
-QoreString::QoreString(const BinaryObject *b) : priv(new qore_string_private)
+QoreString::QoreString(const BinaryNode *b) : priv(new qore_string_private)
 {
    priv->allocated = b->size() + (b->size() * 4) / 10 + 10; // estimate for base64 encoding
    priv->buf = (char *)malloc(sizeof(char) * priv->allocated);
@@ -638,7 +638,7 @@ void QoreString::concatBase64(const char *bbuf, int size)
    }
 }
 
-void QoreString::concatBase64(const BinaryObject *b)
+void QoreString::concatBase64(const BinaryNode *b)
 {
    concatBase64((char *)b->getPtr(), b->size());
 }
@@ -1390,7 +1390,7 @@ void QoreString::concatISO8601DateTime(const DateTime *d)
    sprintf("%04d%02d%02dT%02d:%02d:%02d", d->getYear(), d->getMonth(), d->getDay(), d->getHour(), d->getMinute(), d->getSecond());
 }
 
-void QoreString::concatHex(const BinaryObject *b)
+void QoreString::concatHex(const BinaryNode *b)
 {
    concatHex((char *)b->getPtr(), b->size());
 }
@@ -1401,7 +1401,7 @@ void QoreString::concatHex(const QoreString *str)
 }
 
 // endian-agnostic base64 string -> binary object function
-class BinaryObject *QoreString::parseBase64(class ExceptionSink *xsink) const
+class BinaryNode *QoreString::parseBase64(class ExceptionSink *xsink) const
 {
    return ::parseBase64(priv->buf, priv->len, xsink);
 }
@@ -1409,7 +1409,7 @@ class BinaryObject *QoreString::parseBase64(class ExceptionSink *xsink) const
 // FIXME: implement possibility to specify character encoding
 class QoreString *QoreString::parseBase64ToString(class ExceptionSink *xsink) const
 {
-   class BinaryObject *b = ::parseBase64(priv->buf, priv->len, xsink);
+   SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
    if (!b)
       return NULL;
 
@@ -1418,7 +1418,9 @@ class QoreString *QoreString::parseBase64ToString(class ExceptionSink *xsink) co
    p->buf = (char *)b->giveBuffer();
    p->charset = QCS_DEFAULT;
 
-   delete b;
+   // free binary object
+   b = 0;
+
    // check for null termination
    if (p->buf[p->len])
    {
@@ -1431,7 +1433,7 @@ class QoreString *QoreString::parseBase64ToString(class ExceptionSink *xsink) co
    return new QoreString(p);
 }
 
-class BinaryObject *QoreString::parseHex(class ExceptionSink *xsink) const
+class BinaryNode *QoreString::parseHex(class ExceptionSink *xsink) const
 {
    return ::parseHex(priv->buf, priv->len, xsink);
 }

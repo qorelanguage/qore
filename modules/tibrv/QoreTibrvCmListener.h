@@ -94,7 +94,7 @@ class QoreTibrvCmMsgCallback : public TibrvCmMsgCallback
 	    
 	    tibrv_u64 seq;
 	    if (TibrvCmMsg::getSequence(msg, seq) == TIBRV_OK)
-	       h->setKeyValue("cmSequence", new QoreNode((int64)seq), NULL);
+	       h->setKeyValue("cmSequence", new QoreBigIntNode((int64)seq), NULL);
 	 }
       }
 

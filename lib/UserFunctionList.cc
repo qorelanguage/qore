@@ -70,11 +70,11 @@ class UserFunction *UserFunctionList::find(const char *name)
    return NULL;
 }
 
-class QoreList *UserFunctionList::getList()
+class QoreListNode *UserFunctionList::getList()
 {
    tracein("UserFunctionList::getList()");
    
-   class QoreList *l = new QoreList();
+   class QoreListNode *l = new QoreListNode();
    hm_uf_t::iterator i = fmap.begin();
    while (i != fmap.end())
    {

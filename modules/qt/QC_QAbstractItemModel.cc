@@ -33,7 +33,7 @@ int CID_QABSTRACTITEMMODEL;
 class QoreClass *QC_QAbstractItemModel = 0;
 
 //QAbstractItemModel ( QObject * parent = 0 )
-static void QABSTRACTITEMMODEL_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QABSTRACTITEMMODEL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    xsink->raiseException("QABSTRACTITEMMODEL-CONSTRUCTOR-ERROR", "QAbstractItemModel is an abstract class");
    return;
@@ -45,7 +45,7 @@ static void QABSTRACTITEMMODEL_copy(class QoreObject *self, class QoreObject *ol
 }
 
 //virtual QModelIndex buddy ( const QModelIndex & index ) const
-static QoreNode *QABSTRACTITEMMODEL_buddy(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_buddy(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -62,7 +62,7 @@ static QoreNode *QABSTRACTITEMMODEL_buddy(QoreObject *self, QoreAbstractQAbstrac
 }
 
 //virtual bool canFetchMore ( const QModelIndex & parent ) const
-static QoreNode *QABSTRACTITEMMODEL_canFetchMore(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_canFetchMore(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *parent = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -72,11 +72,11 @@ static QoreNode *QABSTRACTITEMMODEL_canFetchMore(QoreObject *self, QoreAbstractQ
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->canFetchMore(*(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->canFetchMore(*(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual int columnCount ( const QModelIndex & parent = QModelIndex() ) const = 0
-static QoreNode *QABSTRACTITEMMODEL_columnCount(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_columnCount(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *parent = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -86,11 +86,11 @@ static QoreNode *QABSTRACTITEMMODEL_columnCount(QoreObject *self, QoreAbstractQA
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode((int64)qaim->getQAbstractItemModel()->columnCount(*(static_cast<QModelIndex *>(parent))));
+   return new QoreBigIntNode(qaim->getQAbstractItemModel()->columnCount(*(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const = 0
-static QoreNode *QABSTRACTITEMMODEL_data(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_data(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -106,7 +106,7 @@ static QoreNode *QABSTRACTITEMMODEL_data(QoreObject *self, QoreAbstractQAbstract
 }
 
 //virtual bool dropMimeData ( const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent )
-static QoreNode *QABSTRACTITEMMODEL_dropMimeData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_dropMimeData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQMimeData *data = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
@@ -130,11 +130,11 @@ static QoreNode *QABSTRACTITEMMODEL_dropMimeData(QoreObject *self, QoreAbstractQ
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->dropMimeData(static_cast<QMimeData *>(data->qobj), action, row, column, *(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->dropMimeData(static_cast<QMimeData *>(data->qobj), action, row, column, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual void fetchMore ( const QModelIndex & parent )
-static QoreNode *QABSTRACTITEMMODEL_fetchMore(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_fetchMore(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *parent = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -149,7 +149,7 @@ static QoreNode *QABSTRACTITEMMODEL_fetchMore(QoreObject *self, QoreAbstractQAbs
 }
 
 //virtual Qt::ItemFlags flags ( const QModelIndex & index ) const
-static QoreNode *QABSTRACTITEMMODEL_flags(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_flags(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -159,11 +159,11 @@ static QoreNode *QABSTRACTITEMMODEL_flags(QoreObject *self, QoreAbstractQAbstrac
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> indexHolder(index, xsink);
-   return new QoreNode((int64)qaim->getQAbstractItemModel()->flags(*(static_cast<QModelIndex *>(index))));
+   return new QoreBigIntNode(qaim->getQAbstractItemModel()->flags(*(static_cast<QModelIndex *>(index))));
 }
 
 //virtual bool hasChildren ( const QModelIndex & parent = QModelIndex() ) const
-static QoreNode *QABSTRACTITEMMODEL_hasChildren(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_hasChildren(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *parent = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -173,11 +173,11 @@ static QoreNode *QABSTRACTITEMMODEL_hasChildren(QoreObject *self, QoreAbstractQA
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->hasChildren(*(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->hasChildren(*(static_cast<QModelIndex *>(parent))));
 }
 
 //bool hasIndex ( int row, int column, const QModelIndex & parent = QModelIndex() ) const
-static QoreNode *QABSTRACTITEMMODEL_hasIndex(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_hasIndex(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -191,11 +191,11 @@ static QoreNode *QABSTRACTITEMMODEL_hasIndex(QoreObject *self, QoreAbstractQAbst
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->hasIndex(row, column, *(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->hasIndex(row, column, *(static_cast<QModelIndex *>(parent))));
 }
 
 ////virtual QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const
-static QoreNode *QABSTRACTITEMMODEL_headerData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_headerData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
   {
    QoreNode *p = get_param(params, 0);
    int section = p ? p->getAsInt() : 0;
@@ -207,7 +207,7 @@ static QoreNode *QABSTRACTITEMMODEL_headerData(QoreObject *self, QoreAbstractQAb
 }
 
 //virtual QModelIndex index ( int row, int column, const QModelIndex & parent = QModelIndex() ) const = 0
-static QoreNode *QABSTRACTITEMMODEL_index(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_index(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -228,7 +228,7 @@ static QoreNode *QABSTRACTITEMMODEL_index(QoreObject *self, QoreAbstractQAbstrac
 }
 
 //bool insertColumn ( int column, const QModelIndex & parent = QModelIndex() )
-static QoreNode *QABSTRACTITEMMODEL_insertColumn(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_insertColumn(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
@@ -240,11 +240,11 @@ static QoreNode *QABSTRACTITEMMODEL_insertColumn(QoreObject *self, QoreAbstractQ
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->insertColumn(column, *(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->insertColumn(column, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual bool insertColumns ( int column, int count, const QModelIndex & parent = QModelIndex() )
-static QoreNode *QABSTRACTITEMMODEL_insertColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_insertColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
@@ -258,11 +258,11 @@ static QoreNode *QABSTRACTITEMMODEL_insertColumns(QoreObject *self, QoreAbstract
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->insertColumns(column, count, *(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->insertColumns(column, count, *(static_cast<QModelIndex *>(parent))));
 }
 
 //bool insertRow ( int row, const QModelIndex & parent = QModelIndex() )
-static QoreNode *QABSTRACTITEMMODEL_insertRow(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_insertRow(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -274,11 +274,11 @@ static QoreNode *QABSTRACTITEMMODEL_insertRow(QoreObject *self, QoreAbstractQAbs
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->insertRow(row, *(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->insertRow(row, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual bool insertRows ( int row, int count, const QModelIndex & parent = QModelIndex() )
-static QoreNode *QABSTRACTITEMMODEL_insertRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_insertRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -292,11 +292,11 @@ static QoreNode *QABSTRACTITEMMODEL_insertRows(QoreObject *self, QoreAbstractQAb
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->insertRows(row, count, *(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->insertRows(row, count, *(static_cast<QModelIndex *>(parent))));
 }
 
 ////virtual QMap<int, QVariant> itemData ( const QModelIndex & index ) const
-//static QoreNode *QABSTRACTITEMMODEL_itemData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QABSTRACTITEMMODEL_itemData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -306,11 +306,11 @@ static QoreNode *QABSTRACTITEMMODEL_insertRows(QoreObject *self, QoreAbstractQAb
 //      return 0;
 //   }
 //   ReferenceHolder<QoreQModelIndex> indexHolder(index, xsink);
-//   ??? return new QoreNode((int64)qaim->getQAbstractItemModel()->itemData(*(static_cast<QModelIndex *>(index))));
+//   ??? return new QoreBigIntNode(qaim->getQAbstractItemModel()->itemData(*(static_cast<QModelIndex *>(index))));
 //}
 
 ////virtual QModelIndexList match ( const QModelIndex & start, int role, const QVariant & value, int hits = 1, Qt::MatchFlags flags = Qt::MatchFlags( Qt::MatchStartsWith | Qt::MatchWrap ) ) const
-//static QoreNode *QABSTRACTITEMMODEL_match(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QABSTRACTITEMMODEL_match(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QoreQModelIndex *start = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -328,29 +328,29 @@ static QoreNode *QABSTRACTITEMMODEL_insertRows(QoreObject *self, QoreAbstractQAb
 //   int hits = !is_nothing(p) ? p->getAsInt() : 1;
 //   p = get_param(params, 4);
 //   Qt::MatchFlags flags = (Qt::MatchFlags)(p ? p->getAsInt() : 0);
-//   ??? return new QoreNode((int64)qaim->getQAbstractItemModel()->match(*(static_cast<QModelIndex *>(start)), role, value, hits, flags));
+//   ??? return new QoreBigIntNode(qaim->getQAbstractItemModel()->match(*(static_cast<QModelIndex *>(start)), role, value, hits, flags));
 //}
 
 ////virtual QMimeData * mimeData ( const QModelIndexList & indexes ) const
-//static QoreNode *QABSTRACTITEMMODEL_mimeData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QABSTRACTITEMMODEL_mimeData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QModelIndexList indexes = p;
-//   ??? return new QoreNode((int64)qaim->getQAbstractItemModel()->mimeData(indexes));
+//   ??? return new QoreBigIntNode(qaim->getQAbstractItemModel()->mimeData(indexes));
 //}
 
 ////virtual QStringList mimeTypes () const
-static QoreNode *QABSTRACTITEMMODEL_mimeTypes(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_mimeTypes(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qaim->getQAbstractItemModel()->mimeTypes();
-   QoreList *l = new QoreList();
+   QoreListNode *l = new QoreListNode();
    for (QStringList::iterator i = strlist_rv.begin(), e = strlist_rv.end(); i != e; ++i)
       l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
    return l;
 }
 
 //virtual QModelIndex parent ( const QModelIndex & index ) const = 0
-static QoreNode *QABSTRACTITEMMODEL_parent(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_parent(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -367,7 +367,7 @@ static QoreNode *QABSTRACTITEMMODEL_parent(QoreObject *self, QoreAbstractQAbstra
 }
 
 //bool removeColumn ( int column, const QModelIndex & parent = QModelIndex() )
-static QoreNode *QABSTRACTITEMMODEL_removeColumn(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_removeColumn(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
@@ -379,11 +379,11 @@ static QoreNode *QABSTRACTITEMMODEL_removeColumn(QoreObject *self, QoreAbstractQ
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->removeColumn(column, *(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->removeColumn(column, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual bool removeColumns ( int column, int count, const QModelIndex & parent = QModelIndex() )
-static QoreNode *QABSTRACTITEMMODEL_removeColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_removeColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
@@ -397,11 +397,11 @@ static QoreNode *QABSTRACTITEMMODEL_removeColumns(QoreObject *self, QoreAbstract
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->removeColumns(column, count, *(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->removeColumns(column, count, *(static_cast<QModelIndex *>(parent))));
 }
 
 //bool removeRow ( int row, const QModelIndex & parent = QModelIndex() )
-static QoreNode *QABSTRACTITEMMODEL_removeRow(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_removeRow(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -413,11 +413,11 @@ static QoreNode *QABSTRACTITEMMODEL_removeRow(QoreObject *self, QoreAbstractQAbs
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->removeRow(row, *(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->removeRow(row, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual bool removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() )
-static QoreNode *QABSTRACTITEMMODEL_removeRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_removeRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -431,11 +431,11 @@ static QoreNode *QABSTRACTITEMMODEL_removeRows(QoreObject *self, QoreAbstractQAb
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode(qaim->getQAbstractItemModel()->removeRows(row, count, *(static_cast<QModelIndex *>(parent))));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->removeRows(row, count, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual int rowCount ( const QModelIndex & parent = QModelIndex() ) const = 0
-static QoreNode *QABSTRACTITEMMODEL_rowCount(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_rowCount(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *parent = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -445,11 +445,11 @@ static QoreNode *QABSTRACTITEMMODEL_rowCount(QoreObject *self, QoreAbstractQAbst
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreNode((int64)qaim->getQAbstractItemModel()->rowCount(*(static_cast<QModelIndex *>(parent))));
+   return new QoreBigIntNode(qaim->getQAbstractItemModel()->rowCount(*(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual bool setData ( const QModelIndex & index, const QVariant & value, int role = Qt::EditRole )
-static QoreNode *QABSTRACTITEMMODEL_setData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_setData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -465,11 +465,11 @@ static QoreNode *QABSTRACTITEMMODEL_setData(QoreObject *self, QoreAbstractQAbstr
       return 0;
    p = get_param(params, 2);
    int role = !is_nothing(p) ? p->getAsInt() : Qt::EditRole;
-   return new QoreNode(qaim->getQAbstractItemModel()->setData(*(static_cast<QModelIndex *>(index)), value, role));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->setData(*(static_cast<QModelIndex *>(index)), value, role));
 }
 
 //virtual bool setHeaderData ( int section, Qt::Orientation orientation, const QVariant & value, int role = Qt::EditRole )
-static QoreNode *QABSTRACTITEMMODEL_setHeaderData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_setHeaderData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int section = p ? p->getAsInt() : 0;
@@ -481,11 +481,11 @@ static QoreNode *QABSTRACTITEMMODEL_setHeaderData(QoreObject *self, QoreAbstract
       return 0;
    p = get_param(params, 3);
    int role = !is_nothing(p) ? p->getAsInt() : Qt::EditRole;
-   return new QoreNode(qaim->getQAbstractItemModel()->setHeaderData(section, orientation, value, role));
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->setHeaderData(section, orientation, value, role));
 }
 
 ////virtual bool setItemData ( const QModelIndex & index, const QMap<int, QVariant> & roles )
-//static QoreNode *QABSTRACTITEMMODEL_setItemData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QABSTRACTITEMMODEL_setItemData(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -499,11 +499,11 @@ static QoreNode *QABSTRACTITEMMODEL_setHeaderData(QoreObject *self, QoreAbstract
 //   QAbstractItemModel::const^QMap<int const^qmap<int = (QAbstractItemModel::const^QMap<int)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 2);
 //   ??? QVariant> roles = p;
-//   return new QoreNode(qaim->getQAbstractItemModel()->setItemData(*(static_cast<QModelIndex *>(index)), const^qmap<int, roles));
+//   return new QoreBoolNode(qaim->getQAbstractItemModel()->setItemData(*(static_cast<QModelIndex *>(index)), const^qmap<int, roles));
 //}
 
 //void setSupportedDragActions ( Qt::DropActions actions )
-static QoreNode *QABSTRACTITEMMODEL_setSupportedDragActions(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_setSupportedDragActions(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::DropActions actions = (Qt::DropActions)(p ? p->getAsInt() : 0);
@@ -512,7 +512,7 @@ static QoreNode *QABSTRACTITEMMODEL_setSupportedDragActions(QoreObject *self, Qo
 }
 
 //QModelIndex sibling ( int row, int column, const QModelIndex & index ) const
-static QoreNode *QABSTRACTITEMMODEL_sibling(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_sibling(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -533,7 +533,7 @@ static QoreNode *QABSTRACTITEMMODEL_sibling(QoreObject *self, QoreAbstractQAbstr
 }
 
 //virtual void sort ( int column, Qt::SortOrder order = Qt::AscendingOrder )
-static QoreNode *QABSTRACTITEMMODEL_sort(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_sort(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
@@ -544,7 +544,7 @@ static QoreNode *QABSTRACTITEMMODEL_sort(QoreObject *self, QoreAbstractQAbstract
 }
 
 //virtual QSize span ( const QModelIndex & index ) const
-static QoreNode *QABSTRACTITEMMODEL_span(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_span(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -561,32 +561,32 @@ static QoreNode *QABSTRACTITEMMODEL_span(QoreObject *self, QoreAbstractQAbstract
 }
 
 //Qt::DropActions supportedDragActions () const
-static QoreNode *QABSTRACTITEMMODEL_supportedDragActions(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_supportedDragActions(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qaim->getQAbstractItemModel()->supportedDragActions());
+   return new QoreBigIntNode(qaim->getQAbstractItemModel()->supportedDragActions());
 }
 
 //virtual Qt::DropActions supportedDropActions () const
-static QoreNode *QABSTRACTITEMMODEL_supportedDropActions(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_supportedDropActions(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qaim->getQAbstractItemModel()->supportedDropActions());
+   return new QoreBigIntNode(qaim->getQAbstractItemModel()->supportedDropActions());
 }
 
 //virtual void revert ()
-static QoreNode *QABSTRACTITEMMODEL_revert(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_revert(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    qaim->getQAbstractItemModel()->revert();
    return 0;
 }
 
 //virtual bool submit ()
-static QoreNode *QABSTRACTITEMMODEL_submit(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_submit(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qaim->getQAbstractItemModel()->submit());
+   return new QoreBoolNode(qaim->getQAbstractItemModel()->submit());
 }
 
 //void beginInsertColumns ( const QModelIndex & parent, int first, int last )
-static QoreNode *QABSTRACTITEMMODEL_beginInsertColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_beginInsertColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *parent = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -605,7 +605,7 @@ static QoreNode *QABSTRACTITEMMODEL_beginInsertColumns(QoreObject *self, QoreAbs
 }
 
 //void beginInsertRows ( const QModelIndex & parent, int first, int last )
-static QoreNode *QABSTRACTITEMMODEL_beginInsertRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_beginInsertRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *parent = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -624,7 +624,7 @@ static QoreNode *QABSTRACTITEMMODEL_beginInsertRows(QoreObject *self, QoreAbstra
 }
 
 //void beginRemoveColumns ( const QModelIndex & parent, int first, int last )
-static QoreNode *QABSTRACTITEMMODEL_beginRemoveColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_beginRemoveColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *parent = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -643,7 +643,7 @@ static QoreNode *QABSTRACTITEMMODEL_beginRemoveColumns(QoreObject *self, QoreAbs
 }
 
 //void beginRemoveRows ( const QModelIndex & parent, int first, int last )
-static QoreNode *QABSTRACTITEMMODEL_beginRemoveRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_beginRemoveRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *parent = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -662,7 +662,7 @@ static QoreNode *QABSTRACTITEMMODEL_beginRemoveRows(QoreObject *self, QoreAbstra
 }
 
 //void changePersistentIndex ( const QModelIndex & from, const QModelIndex & to )
-static QoreNode *QABSTRACTITEMMODEL_changePersistentIndex(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_changePersistentIndex(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQModelIndex *from = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
@@ -685,7 +685,7 @@ static QoreNode *QABSTRACTITEMMODEL_changePersistentIndex(QoreObject *self, Qore
 }
 
 ////void changePersistentIndexList ( const QModelIndexList & from, const QModelIndexList & to )
-//static QoreNode *QABSTRACTITEMMODEL_changePersistentIndexList(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QABSTRACTITEMMODEL_changePersistentIndexList(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QModelIndexList from = p;
@@ -697,7 +697,7 @@ static QoreNode *QABSTRACTITEMMODEL_changePersistentIndex(QoreObject *self, Qore
 
 ////QModelIndex createIndex ( int row, int column, void * ptr = 0 ) const
 ////QModelIndex createIndex ( int row, int column, quint32 id ) const
-//static QoreNode *QABSTRACTITEMMODEL_createIndex(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QABSTRACTITEMMODEL_createIndex(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int row = p ? p->getAsInt() : 0;
@@ -719,41 +719,41 @@ static QoreNode *QABSTRACTITEMMODEL_changePersistentIndex(QoreObject *self, Qore
 //}
 
 //void endInsertColumns ()
-static QoreNode *QABSTRACTITEMMODEL_endInsertColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_endInsertColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    qaim->endInsertColumns();
    return 0;
 }
 
 //void endInsertRows ()
-static QoreNode *QABSTRACTITEMMODEL_endInsertRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_endInsertRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    qaim->endInsertRows();
    return 0;
 }
 
 //void endRemoveColumns ()
-static QoreNode *QABSTRACTITEMMODEL_endRemoveColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_endRemoveColumns(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    qaim->endRemoveColumns();
    return 0;
 }
 
 //void endRemoveRows ()
-static QoreNode *QABSTRACTITEMMODEL_endRemoveRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_endRemoveRows(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    qaim->endRemoveRows();
    return 0;
 }
 
 ////QModelIndexList persistentIndexList () const
-//static QoreNode *QABSTRACTITEMMODEL_persistentIndexList(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QABSTRACTITEMMODEL_persistentIndexList(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)qaim->persistentIndexList());
+//   ??? return new QoreBigIntNode(qaim->persistentIndexList());
 //}
 
 //void reset ()
-static QoreNode *QABSTRACTITEMMODEL_reset(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QABSTRACTITEMMODEL_reset(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
    qaim->reset();
    return 0;

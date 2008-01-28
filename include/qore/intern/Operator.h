@@ -64,10 +64,10 @@ typedef int64 (*op_bigint_str_str_func_t)(const QoreString *l, const QoreString 
 typedef QoreHashNode *(*op_hash_string_func_t)(const QoreHashNode *l, const QoreString *r, ExceptionSink *xsink);
 typedef QoreStringNode *(*op_str_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink *xsink);
 // FIXME: change to const QoreRegex
-// should be QoreList (return value)
+// should be QoreListNode (return value)
 typedef QoreNode *(*op_list_str_regex_func_t)(const QoreString *l, QoreRegex *r, ExceptionSink *xsink);
 typedef QoreNode *(*op_varref_func_t)(QoreNode *vref, bool ref_rv, ExceptionSink *xsink);
-typedef QoreHashNode *(*op_hash_list_func_t)(const QoreHashNode *l, const QoreList *r, ExceptionSink *xsink);
+typedef QoreHashNode *(*op_hash_list_func_t)(const QoreHashNode *l, const QoreListNode *r, ExceptionSink *xsink);
 typedef QoreNode *(*op_noconvert_func_t)(QoreNode *l, QoreNode *r);
 typedef QoreNode *(*op_node_int_func_t)(QoreNode *l, int r, ExceptionSink *xsink);
 typedef QoreNode *(*op_node_func_t)(QoreNode *l, QoreNode *r, ExceptionSink *xsink);
@@ -84,7 +84,7 @@ typedef int64 (*op_compare_float_func_t)(double l, double r);
 typedef bool (*op_bool_date_func_t)(const DateTimeNode *l, const DateTimeNode *r);
 typedef DateTimeNode *(*op_date_func_t)(const DateTimeNode *l, const DateTimeNode *r);
 
-typedef bool (*op_bool_bin_func_t)(const BinaryObject *l, const BinaryObject *r);
+typedef bool (*op_bool_bin_func_t)(const BinaryNode *l, const BinaryNode *r);
 typedef bool (*op_simple_bool_func_t)(QoreNode *l, QoreNode *r);
 
 typedef QoreNode *(* op_func_t)(QoreNode *l, QoreNode *r, bool ref_rv, ExceptionSink *xsink);

@@ -28,7 +28,7 @@ int CID_QHIDEEVENT;
 class QoreClass *QC_QHideEvent = 0;
 
 //QHideEvent ()
-static void QHIDEEVENT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QHIDEEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QHIDEEVENT, new QoreQHideEvent());
    return;

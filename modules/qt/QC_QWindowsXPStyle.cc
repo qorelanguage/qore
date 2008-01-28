@@ -28,7 +28,7 @@ int CID_QWINDOWSXPSTYLE;
 class QoreClass *QC_QWindowsXPStyle = 0;
 
 //QWindowsXPStyle ()
-static void QWINDOWSXPSTYLE_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QWINDOWSXPSTYLE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QWINDOWSXPSTYLE, new QoreQWindowsXPStyle(self));
    return;

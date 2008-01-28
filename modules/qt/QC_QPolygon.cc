@@ -32,7 +32,7 @@ int CID_QPOLYGON;
 class QoreClass *QC_QPolygon = 0;
 
 // returns 0 for OK, -1 for error
-static int qpolygon_add_points(QoreQPolygon *qp, QoreList *l, class ExceptionSink *xsink)
+static int qpolygon_add_points(QoreQPolygon *qp, QoreListNode *l, class ExceptionSink *xsink)
 {
    ListIterator li(l);
    while (li.next())
@@ -55,7 +55,7 @@ static int qpolygon_add_points(QoreQPolygon *qp, QoreList *l, class ExceptionSin
 ////QPolygon ( const QPolygon & polygon )
 ////QPolygon ( const QVector<QPoint> & points )
 ////QPolygon ( const QRect & rectangle, bool closed = false )
-static void QPOLYGON_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QPOLYGON_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -82,7 +82,7 @@ static void QPOLYGON_constructor(QoreObject *self, const QoreList *params, Excep
       return;
    }
    {
-      QoreList *l = dynamic_cast<QoreList *>(p);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(p);
       if (l) {
 	 QoreQPolygon *polygon = new QoreQPolygon();
 	 ReferenceHolder<QoreQPolygon> polygonHolder(polygon, xsink);
@@ -106,7 +106,7 @@ static void QPOLYGON_copy(class QoreObject *self, class QoreObject *old, class Q
 }
 
 //QRect boundingRect () const
-static QoreNode *QPOLYGON_boundingRect(QoreObject *self, QoreQPolygon *qp, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGON_boundingRect(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qp->boundingRect());
@@ -115,7 +115,7 @@ static QoreNode *QPOLYGON_boundingRect(QoreObject *self, QoreQPolygon *qp, const
 }
 
 //bool containsPoint ( const QPoint & pt, Qt::FillRule fillRule ) const
-static QoreNode *QPOLYGON_containsPoint(QoreObject *self, QoreQPolygon *qp, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGON_containsPoint(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *pt = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -127,11 +127,11 @@ static QoreNode *QPOLYGON_containsPoint(QoreObject *self, QoreQPolygon *qp, cons
    ReferenceHolder<QoreQPoint> holder(pt, xsink);
    p = get_param(params, 1);
    Qt::FillRule fillRule = (Qt::FillRule)(p ? p->getAsInt() : 0);
-   return new QoreNode(qp->containsPoint(*(static_cast<QPoint *>(pt)), fillRule));
+   return new QoreBoolNode(qp->containsPoint(*(static_cast<QPoint *>(pt)), fillRule));
 }
 
 //QPolygon intersected ( const QPolygon & r ) const
-static QoreNode *QPOLYGON_intersected(QoreObject *self, QoreQPolygon *qp, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGON_intersected(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPolygon *r = (p && p->type == NT_OBJECT) ? (QoreQPolygon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGON, xsink) : 0;
@@ -149,7 +149,7 @@ static QoreNode *QPOLYGON_intersected(QoreObject *self, QoreQPolygon *qp, const 
 
 ////void point ( int index, int * x, int * y ) const
 //QPoint point ( int index ) const
-static QoreNode *QPOLYGON_point(QoreObject *self, QoreQPolygon *qp, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGON_point(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -161,7 +161,7 @@ static QoreNode *QPOLYGON_point(QoreObject *self, QoreQPolygon *qp, const QoreLi
 
 //void putPoints ( int index, int nPoints, int firstx, int firsty, ... )
 //void putPoints ( int index, int nPoints, const QPolygon & fromPolygon, int fromIndex = 0 )
-static QoreNode *QPOLYGON_putPoints(QoreObject *self, QoreQPolygon *qp, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGON_putPoints(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -188,7 +188,7 @@ static QoreNode *QPOLYGON_putPoints(QoreObject *self, QoreQPolygon *qp, const Qo
 
 //void setPoint ( int index, int x, int y )
 //void setPoint ( int index, const QPoint & point )
-static QoreNode *QPOLYGON_setPoint(QoreObject *self, QoreQPolygon *qp, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGON_setPoint(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
@@ -215,9 +215,9 @@ static QoreNode *QPOLYGON_setPoint(QoreObject *self, QoreQPolygon *qp, const Qor
 ////void setPoints ( int nPoints, const int * points )
 ////void setPoints ( int nPoints, int firstx, int firsty, ... )
 // qore alternative: setPoints(list of QPoints)
-static QoreNode *QPOLYGON_setPoints(QoreObject *self, QoreQPolygon *qp, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGON_setPoints(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreList *p = test_list_param(params, 0);
+   QoreListNode *p = test_list_param(params, 0);
 
    if (p)
       qpolygon_add_points(qp, p, xsink);
@@ -228,7 +228,7 @@ static QoreNode *QPOLYGON_setPoints(QoreObject *self, QoreQPolygon *qp, const Qo
 }
 
 //QPolygon subtracted ( const QPolygon & r ) const
-static QoreNode *QPOLYGON_subtracted(QoreObject *self, QoreQPolygon *qp, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGON_subtracted(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPolygon *r = (p && p->type == NT_OBJECT) ? (QoreQPolygon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGON, xsink) : 0;
@@ -246,7 +246,7 @@ static QoreNode *QPOLYGON_subtracted(QoreObject *self, QoreQPolygon *qp, const Q
 
 //void translate ( int dx, int dy )
 //void translate ( const QPoint & offset )
-static QoreNode *QPOLYGON_translate(QoreObject *self, QoreQPolygon *qp, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGON_translate(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -268,7 +268,7 @@ static QoreNode *QPOLYGON_translate(QoreObject *self, QoreQPolygon *qp, const Qo
 }
 
 //QPolygon united ( const QPolygon & r ) const
-static QoreNode *QPOLYGON_united(QoreObject *self, QoreQPolygon *qp, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGON_united(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPolygon *r = (p && p->type == NT_OBJECT) ? (QoreQPolygon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGON, xsink) : 0;

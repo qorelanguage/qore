@@ -51,7 +51,7 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       // copies str
       DLLEXPORT QoreStringNode(const std::string &str, const class QoreEncoding *enc = QCS_DEFAULT);
       // copies binary object and makes a base64-encoded string out of it
-      DLLEXPORT QoreStringNode(const class BinaryObject *b);
+      DLLEXPORT QoreStringNode(const class BinaryNode *b);
       // takes ownership of the nbuf passed
       DLLEXPORT QoreStringNode(char *nbuf, int nlen, int nallocated, const class QoreEncoding *enc);
       // copies str
@@ -67,7 +67,12 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       DLLEXPORT virtual double getAsFloat() const;
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+      // the ExceptionSink is only needed for QoreObject where a method may be executed
+      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+      // returns -1 for exception raised, 0 = OK
+      DLLEXPORT int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+      DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       // get the value of the type in a string context (0 (NULL) for complex types = default implementation)
       // if del is true, then the returned QoreString should be deleted, if false, then it should not
@@ -88,7 +93,7 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       // returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
       DLLEXPORT virtual const char *getTypeName() const;
-      
+
       DLLEXPORT QoreStringNode *convertEncoding(const class QoreEncoding *nccs, class ExceptionSink *xsink) const;
       DLLEXPORT QoreStringNode *substr(int offset) const;
       DLLEXPORT QoreStringNode *substr(int offset, int length) const;

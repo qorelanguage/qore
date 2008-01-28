@@ -67,7 +67,7 @@ class QoreMethod {
       DLLLOCAL QoreMethod& operator=(const QoreMethod&);
 
    public:
-      DLLEXPORT class QoreNode *eval(class QoreObject *self, const QoreList *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *eval(class QoreObject *self, const QoreListNode *args, class ExceptionSink *xsink) const;
       DLLEXPORT bool isSynchronized() const;
       DLLEXPORT int getType() const;
       DLLEXPORT bool isPrivate() const;
@@ -77,9 +77,9 @@ class QoreMethod {
       DLLLOCAL QoreMethod(const class QoreClass *p_class, class BuiltinMethod *b, bool n_priv = false);
       DLLLOCAL ~QoreMethod();
       DLLLOCAL bool inMethod(const class QoreObject *self) const;
-      DLLLOCAL void evalConstructor(class QoreObject *self, const QoreList *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalConstructor(class QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL void evalDestructor(class QoreObject *self, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalSystemConstructor(class QoreObject *self, const QoreList *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalSystemConstructor(class QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL void evalSystemDestructor(class QoreObject *self, class ExceptionSink *xsink) const;
       DLLLOCAL void evalCopy(class QoreObject *self, class QoreObject *old, class ExceptionSink *xsink) const;
       DLLLOCAL class QoreMethod *copy(const class QoreClass *p_class) const;
@@ -111,7 +111,7 @@ class QoreClass{
       DLLLOCAL void checkSpecialIntern(const QoreMethod *m);
       // checks for all special methods
       DLLLOCAL void checkSpecial(const QoreMethod *m);
-      DLLLOCAL class QoreNode *evalMethodGate(class QoreObject *self, const char *nme, const QoreList *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class QoreNode *evalMethodGate(class QoreObject *self, const char *nme, const QoreListNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL const QoreMethod *resolveSelfMethodIntern(const char *nme);
       DLLLOCAL void delete_pending_methods();
       DLLLOCAL BCAList *getBaseClassConstructorArgumentList() const;
@@ -131,12 +131,12 @@ class QoreClass{
       // this method takes ownership of *name
       DLLEXPORT void addPrivateMember(char *name);
       DLLEXPORT bool isPrivateMember(const char *str) const;
-      DLLEXPORT class QoreNode *evalMethod(class QoreObject *self, const char *nme, const QoreList *args, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreObject *execConstructor(const QoreList *args, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreObject *execSystemConstructor(const QoreList *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreNode *evalMethod(class QoreObject *self, const char *nme, const QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreObject *execConstructor(const QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class QoreObject *execSystemConstructor(const QoreListNode *args, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreObject *execCopy(class QoreObject *old, class ExceptionSink *xsink) const;
       DLLEXPORT const QoreMethod *findLocalMethod(const char *name) const;
-      DLLEXPORT class QoreList *getMethodList() const;
+      DLLEXPORT class QoreListNode *getMethodList() const;
       DLLEXPORT class QoreClass *getClass(int cid) const;
       DLLEXPORT int numMethods() const;
       DLLEXPORT bool hasCopy() const;
@@ -153,12 +153,12 @@ class QoreClass{
       // (there would be too much overhead to use user-level qore interfaces to call private methods)
       // but base class constructor arguments can be given
       // this function takes over the reference for the xargs argument
-      DLLEXPORT void addBuiltinBaseClass(class QoreClass *qc, class QoreList *xargs = NULL);
+      DLLEXPORT void addBuiltinBaseClass(class QoreClass *qc, class QoreListNode *xargs = NULL);
 
       // this method will do the same as above but will also ensure that the given class' private data
       // will be used in all object methods - in this case the class cannot have any private data
       // this function takes over the reference for the xargs argument
-      DLLEXPORT void addDefaultBuiltinBaseClass(class QoreClass *qc, class QoreList *xargs = NULL);
+      DLLEXPORT void addDefaultBuiltinBaseClass(class QoreClass *qc, class QoreListNode *xargs = NULL);
 
       // this method adds a base class placeholder for a subclass - where the subclass' private data 
       // object is actually a subclass of the parent class and all methods are virtual, so the

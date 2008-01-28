@@ -71,9 +71,9 @@ class mySocket : public AbstractPrivateData, public LockedObject
       // send a buffer of a particular size
       DLLLOCAL int send(const char *buf, int size);
       // send a null-terminated string
-      DLLLOCAL int send(class QoreString *msg, class ExceptionSink *xsink);
+      DLLLOCAL int send(const class QoreString *msg, class ExceptionSink *xsink);
       // send a binary object
-      DLLLOCAL int send(class BinaryObject *b);
+      DLLLOCAL int send(const class BinaryNode *b);
       // send from a file descriptor
       DLLLOCAL int send(int fd, int size = -1);
       // send bytes and convert to network order
@@ -87,7 +87,7 @@ class mySocket : public AbstractPrivateData, public LockedObject
       // receive a certain number of bytes as a string
       DLLLOCAL class QoreStringNode *recv(int bufsize, int timeout, int *rc);
       // receive a certain number of bytes as a binary object
-      DLLLOCAL class BinaryObject *recvBinary(int bufsize, int timeout, int *rc);
+      DLLLOCAL class BinaryNode *recvBinary(int bufsize, int timeout, int *rc);
       // receive a message
       DLLLOCAL class QoreStringNode *recv(int timeout, int *rc);
       // receive and write data to a file descriptor

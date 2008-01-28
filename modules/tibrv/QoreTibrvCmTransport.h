@@ -193,7 +193,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
 class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 {
    private:
-      class QoreList *l;
+      class QoreListNode *l;
       class ExceptionSink xsink;
 
       virtual void *onLedgerMsg(TibrvCmTransport *cmTransport, const char *subject, TibrvMsg &msg, void *closure)
@@ -201,7 +201,7 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 	 class QoreTibrvCmTransport *cmt = (class QoreTibrvCmTransport *)closure;
 
 	 if (!l)
-	    l = new QoreList();
+	    l = new QoreListNode();
 	 
 	 ReferenceHolder<QoreHashNode> h(cmt->msgToHash(&msg, &xsink), &xsink);
 	 if (xsink.isException())
@@ -236,7 +236,7 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
 	 }
       }
       
-      inline QoreList *getLedger(class ExceptionSink *xs)
+      inline QoreListNode *getLedger(class ExceptionSink *xs)
       {
          if (xsink.isException())
          {
@@ -244,7 +244,7 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
             return NULL;
          }
 
-	 QoreList *rv = l;
+	 QoreListNode *rv = l;
 	 l = NULL;
 	 return rv;
       }

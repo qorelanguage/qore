@@ -180,28 +180,28 @@ void QoreQtDynamicSlot::call(void **arguments)
    //printd(5, "0=%08p, 1=%08p, 2=%08p\n", arguments[0], arguments[1], arguments[2]);
 
    ExceptionSink xsink;
-   ReferenceHolder<QoreList> args(type_list.empty() ? 0 : new QoreList(), &xsink);
+   ReferenceHolder<QoreListNode> args(type_list.empty() ? 0 : new QoreListNode(), &xsink);
    for (int i = 0, e = type_list.size(); i < e; ++i)
    {
       if (type_list[i] == QQT_TYPE_INT) {
 	 int *ptr = reinterpret_cast<int *>(arguments[i + 1]);
-	 args->push(new QoreNode((int64)*ptr));
+	 args->push(new QoreBigIntNode(*ptr));
       }
       else if (type_list[i] == QQT_TYPE_LONG) {
 	 long *ptr = reinterpret_cast<long *>(arguments[i + 1]);
-	 args->push(new QoreNode((int64)*ptr));
+	 args->push(new QoreBigIntNode(*ptr));
       }
       else if (type_list[i] == QQT_TYPE_BOOL) {
 	 bool *ptr = reinterpret_cast<bool *>(arguments[i + 1]);
-	 args->push(new QoreNode(*ptr));
+	 args->push(new QoreBoolNode(*ptr));
       }
       else if (type_list[i] == QQT_TYPE_FLOAT) {
 	 float *ptr = reinterpret_cast<float *>(arguments[i + 1]);
-	 args->push(new QoreNode(*ptr));
+	 args->push(new QoreNode((double)*ptr));
       }
       else if (type_list[i] == QQT_TYPE_DOUBLE) {
 	 double *ptr = reinterpret_cast<double *>(arguments[i + 1]);
-	 args->push(new QoreNode(*ptr));
+	 args->push(new QoreNode((double)*ptr));
       }
       else if (type_list[i] == QQT_TYPE_P_CHAR) {
 	 char **ptr = reinterpret_cast<char **>(arguments[i + 1]);
@@ -293,7 +293,7 @@ QoreQtDynamicSignal::QoreQtDynamicSignal(const char *sig, ExceptionSink *xsink)
    }
 }
 
-void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, const QoreList *args)
+void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, const QoreListNode *args)
 {
    int num_args = type_list.size();
    void *sig_args[num_args + 1];
@@ -339,7 +339,7 @@ void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, const QoreList *args
    QMetaObject::activate(obj, id, id, sig_args);
 }
 
-void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, const QoreList *args)
+void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, const QoreListNode *args)
 {
    QList<QByteArray> params = qmm.parameterTypes();
 

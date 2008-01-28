@@ -127,7 +127,7 @@ class QoreSocket
       // send a null-terminated string
       DLLEXPORT int send(const class QoreString *msg, class ExceptionSink *xsink);
       // send a binary object
-      DLLEXPORT int send(const class BinaryObject *msg);
+      DLLEXPORT int send(const class BinaryNode *msg);
       // send from a file descriptor
       DLLEXPORT int send(int fd, int size = -1);
       // send integer value in network byte order
@@ -153,8 +153,8 @@ class QoreSocket
       DLLEXPORT int recvu4LSB(int timeout, unsigned int *val);
       // receive a certain number of bytes (caller owns QoreString returned)
       DLLEXPORT class QoreStringNode *recv(int bufsize, int timeout, int *prc);
-      // receive a certain number of bytes as a binary object (caller owns BinaryObject returned)
-      DLLEXPORT class BinaryObject *recvBinary(int bufsize, int timeout, int *prc);
+      // receive a certain number of bytes as a binary object (caller owns BinaryNode returned)
+      DLLEXPORT class BinaryNode *recvBinary(int bufsize, int timeout, int *prc);
       // receive a message (caller owns QoreString returned)
       DLLEXPORT class QoreStringNode *recv(int timeout, int *prc);
       // receive and write data to a file descriptor

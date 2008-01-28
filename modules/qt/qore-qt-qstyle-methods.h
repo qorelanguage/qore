@@ -12,8 +12,8 @@ class T {
 	 }
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)control));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(control));
 	 args->push(return_object(QC_QStyleOptionComplex, new QoreQStyleOptionComplex(*option)));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
@@ -29,8 +29,8 @@ class T {
 	 }
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)element));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(element));
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
@@ -46,10 +46,10 @@ class T {
 	 }
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
-	 args->push(new QoreNode((int64)alignment));
+	 args->push(new QoreBigIntNode(alignment));
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
 
 	 discard(dispatch_event_intern(qore_obj, m_drawItemPixmap, *args, &xsink), &xsink);
@@ -62,14 +62,14 @@ class T {
 	 }
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
-	 args->push(new QoreNode((int64)alignment));
+	 args->push(new QoreBigIntNode(alignment));
 	 args->push(return_object(QC_QPalette, new QoreQPalette(palette)));
-	 args->push(new QoreNode(enabled));
+	 args->push(new QoreBoolNode(enabled));
 	 args->push(new QoreStringNode(text.toUtf8().data()));
-	 args->push(new QoreNode((int64)textRole));
+	 args->push(new QoreBigIntNode(textRole));
 
 	 discard(dispatch_event_intern(qore_obj, m_drawItemText, *args, &xsink), &xsink);
       }
@@ -79,9 +79,9 @@ class T {
 	    return parent_itemPixmapRect(rectangle, alignment, pixmap); 
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
-	 args->push(new QoreNode((int64)alignment));
+	 args->push(new QoreBigIntNode(alignment));
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemPixmapRect, *args, &xsink), &xsink);
@@ -105,8 +105,8 @@ class T {
 	 }
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)element));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(element));
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QPainter, new QoreQPainter(painter)));
 	 if (widget)
@@ -121,8 +121,8 @@ class T {
 	    return parent_hitTestComplexControl(control, option, point, widget);
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)control));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(control));
 	 args->push(return_object(QC_QStyleOptionComplex, new QoreQStyleOptionComplex(*option)));
 	 args->push(return_object(QC_QPoint, new QoreQPoint(point)));
 	 if (widget)
@@ -138,8 +138,8 @@ class T {
 	    return parent_standardPixmap(standardPixmap, option, widget); 
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)standardPixmap));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(standardPixmap));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
@@ -162,8 +162,8 @@ class T {
 	    return parent_generatedIconPixmap(mode, pixmap, option); 
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)mode));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(mode));
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
 	 args->push(return_qstyleoption(option));
 
@@ -185,11 +185,11 @@ class T {
 	    return parent_itemTextRect(metrics, rectangle, alignment, enabled, text); 
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(return_object(QC_QFontMetrics, new QoreQFontMetrics(metrics)));
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
-	 args->push(new QoreNode((int64)alignment));
-	 args->push(new QoreNode(enabled));
+	 args->push(new QoreBigIntNode(alignment));
+	 args->push(new QoreBoolNode(enabled));
 	 args->push(new QoreStringNode(text.toUtf8().data()));
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemTextRect, *args, &xsink), &xsink);
@@ -209,8 +209,8 @@ class T {
 	    return parent_pixelMetric(metric, option, widget); 
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)metric));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(metric));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
@@ -226,7 +226,7 @@ class T {
 	 }
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(return_qobject(widget));
 	 discard(dispatch_event_intern(qore_obj, m_polish, *args, &xsink), &xsink);
       }
@@ -238,7 +238,7 @@ class T {
 	 }
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(return_qobject(application));
 	 discard(dispatch_event_intern(qore_obj, m_polish, *args, &xsink), &xsink);
       }
@@ -252,7 +252,7 @@ class T {
 	 ExceptionSink xsink;
          LVarInstantiatorHelper lvh("arg0", return_object(QC_QPalette, new QoreQPalette(&palette)), &xsink);
 
-	 ReferenceHolder<QoreList> args(new QoreList(), &xsink);
+	 ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(lvh.getArg());
 
 	 // execute method and discard any return value
@@ -275,8 +275,8 @@ class T {
 	    return parent_sizeFromContents(type, option, contentsSize, widget); 
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)type));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(type));
 	 args->push(return_qstyleoption(option));
 	 args->push(return_object(QC_QSize, new QoreQSize(contentsSize)));
 	 if (widget)
@@ -317,8 +317,8 @@ class T {
 	    return parent_styleHint(hint, option, widget, returnData); 
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)hint));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(hint));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
@@ -333,10 +333,10 @@ class T {
 	    return parent_subControlRect(control, option, subControl, widget); 
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)control));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(control));
 	 args->push(return_qstyleoption(option));
-	 args->push(new QoreNode((int64)subControl));
+	 args->push(new QoreBigIntNode(subControl));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
@@ -357,8 +357,8 @@ class T {
 	    return parent_subElementRect(element, option, widget); 
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)element));
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(element));
 	 args->push(return_qstyleoption(option));
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
@@ -382,7 +382,7 @@ class T {
          }
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(return_qobject(widget));
 	 discard(dispatch_event_intern(qore_obj, m_unpolish, *args, &xsink), &xsink);
       }
@@ -394,7 +394,7 @@ class T {
 	 }
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(return_qobject(application));
 	 discard(dispatch_event_intern(qore_obj, m_unpolish, *args, &xsink), &xsink);
       }

@@ -34,7 +34,7 @@ int CID_QLISTWIDGET;
 class QoreClass *QC_QListWidget = 0;
 
 //QListWidget ( QWidget * parent = 0 )
-static void QLISTWIDGET_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QLISTWIDGET_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -52,7 +52,7 @@ static void QLISTWIDGET_copy(class QoreObject *self, class QoreObject *old, clas
 
 //void addItem ( const QString & label )
 //void addItem ( QListWidgetItem * item )
-static QoreNode *QLISTWIDGET_addItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_addItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -75,9 +75,9 @@ static QoreNode *QLISTWIDGET_addItem(QoreObject *self, QoreAbstractQListWidget *
 }
 
 //void addItems ( const QStringList & labels )
-static QoreNode *QLISTWIDGET_addItems(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_addItems(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreList *p = test_list_param(params, 0);
+   QoreListNode *p = test_list_param(params, 0);
    if (!p) {
       xsink->raiseException("QLISTWIDGET-ADDITEMS-PARAM-ERROR", "expecting a list as first argument to QListWidget::addItems()");
       return 0;
@@ -97,7 +97,7 @@ static QoreNode *QLISTWIDGET_addItems(QoreObject *self, QoreAbstractQListWidget 
 }
 
 //void closePersistentEditor ( QListWidgetItem * item )
-static QoreNode *QLISTWIDGET_closePersistentEditor(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_closePersistentEditor(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQListWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQListWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink) : 0;
@@ -112,13 +112,13 @@ static QoreNode *QLISTWIDGET_closePersistentEditor(QoreObject *self, QoreAbstrac
 }
 
 //int count () const
-static QoreNode *QLISTWIDGET_count(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_count(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qlw->getQListWidget()->count());
+   return new QoreBigIntNode(qlw->getQListWidget()->count());
 }
 
 //QListWidgetItem * currentItem () const
-static QoreNode *QLISTWIDGET_currentItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_currentItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qlwi = new QoreObject(QC_QListWidgetItem, getProgram());
    QoreQListWidgetItem *q_qlwi = new QoreQListWidgetItem(qlw->getQListWidget()->currentItem());
@@ -127,13 +127,13 @@ static QoreNode *QLISTWIDGET_currentItem(QoreObject *self, QoreAbstractQListWidg
 }
 
 //int currentRow () const
-static QoreNode *QLISTWIDGET_currentRow(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_currentRow(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qlw->getQListWidget()->currentRow());
+   return new QoreBigIntNode(qlw->getQListWidget()->currentRow());
 }
 
 //void editItem ( QListWidgetItem * item )
-static QoreNode *QLISTWIDGET_editItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_editItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQListWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQListWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink) : 0;
@@ -149,7 +149,7 @@ static QoreNode *QLISTWIDGET_editItem(QoreObject *self, QoreAbstractQListWidget 
 
 /*
 //QList<QListWidgetItem *> findItems ( const QString & text, Qt::MatchFlags flags ) const
-static QoreNode *QLISTWIDGET_findItems(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_findItems(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString text;
@@ -157,13 +157,13 @@ static QoreNode *QLISTWIDGET_findItems(QoreObject *self, QoreAbstractQListWidget
       return 0;
    p = get_param(params, 1);
    Qt::MatchFlags flags = (Qt::MatchFlags)(p ? p->getAsInt() : 0);
-   ??? return new QoreNode((int64)qlw->getQListWidget()->findItems(text, flags));
+   ??? return new QoreBigIntNode(qlw->getQListWidget()->findItems(text, flags));
 }
 */
 
  //void insertItem ( int row, QListWidgetItem * item )
  //void insertItem ( int row, const QString & label )
-static QoreNode *QLISTWIDGET_insertItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_insertItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -184,11 +184,11 @@ static QoreNode *QLISTWIDGET_insertItem(QoreObject *self, QoreAbstractQListWidge
 }
 
 //void insertItems ( int row, const QStringList & labels )
-static QoreNode *QLISTWIDGET_insertItems(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_insertItems(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
-   QoreList *l = test_list_param(params, 1);
+   QoreListNode *l = test_list_param(params, 1);
    if (!l) {
       xsink->raiseException("QLISTWIDGET-INSERTITEMS-PARAM-ERROR", "expecting a list as second argument to QListWidget::insertItems()");
       return 0;
@@ -208,13 +208,13 @@ static QoreNode *QLISTWIDGET_insertItems(QoreObject *self, QoreAbstractQListWidg
 }
 
 //bool isSortingEnabled () const
-static QoreNode *QLISTWIDGET_isSortingEnabled(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_isSortingEnabled(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qlw->getQListWidget()->isSortingEnabled());
+   return new QoreBoolNode(qlw->getQListWidget()->isSortingEnabled());
 }
 
 //QListWidgetItem * item ( int row ) const
-static QoreNode *QLISTWIDGET_item(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_item(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -226,7 +226,7 @@ static QoreNode *QLISTWIDGET_item(QoreObject *self, QoreAbstractQListWidget *qlw
 
 //QListWidgetItem * itemAt ( const QPoint & p ) const
 //QListWidgetItem * itemAt ( int x, int y ) const
-static QoreNode *QLISTWIDGET_itemAt(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_itemAt(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -252,7 +252,7 @@ static QoreNode *QLISTWIDGET_itemAt(QoreObject *self, QoreAbstractQListWidget *q
 }
 
 //QWidget * itemWidget ( QListWidgetItem * item ) const
-static QoreNode *QLISTWIDGET_itemWidget(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_itemWidget(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQListWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQListWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink) : 0;
@@ -278,7 +278,7 @@ static QoreNode *QLISTWIDGET_itemWidget(QoreObject *self, QoreAbstractQListWidge
 }
 
 //void openPersistentEditor ( QListWidgetItem * item )
-static QoreNode *QLISTWIDGET_openPersistentEditor(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_openPersistentEditor(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQListWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQListWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink) : 0;
@@ -293,7 +293,7 @@ static QoreNode *QLISTWIDGET_openPersistentEditor(QoreObject *self, QoreAbstract
 }
 
 //void removeItemWidget ( QListWidgetItem * item )
-static QoreNode *QLISTWIDGET_removeItemWidget(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_removeItemWidget(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQListWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQListWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink) : 0;
@@ -308,7 +308,7 @@ static QoreNode *QLISTWIDGET_removeItemWidget(QoreObject *self, QoreAbstractQLis
 }
 
 //int row ( const QListWidgetItem * item ) const
-static QoreNode *QLISTWIDGET_row(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_row(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQListWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQListWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink) : 0;
@@ -318,19 +318,19 @@ static QoreNode *QLISTWIDGET_row(QoreObject *self, QoreAbstractQListWidget *qlw,
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> itemHolder(static_cast<AbstractPrivateData *>(item), xsink);
-   return new QoreNode((int64)qlw->getQListWidget()->row(item->getQListWidgetItem()));
+   return new QoreBigIntNode(qlw->getQListWidget()->row(item->getQListWidgetItem()));
 }
 
 /*
 //QList<QListWidgetItem *> selectedItems () const
-static QoreNode *QLISTWIDGET_selectedItems(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_selectedItems(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   ??? return new QoreNode((int64)qlw->getQListWidget()->selectedItems());
+   ??? return new QoreBigIntNode(qlw->getQListWidget()->selectedItems());
 }
 */
 
  //void setCurrentItem ( QListWidgetItem * item )
-static QoreNode *QLISTWIDGET_setCurrentItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_setCurrentItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQListWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQListWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink) : 0;
@@ -345,7 +345,7 @@ static QoreNode *QLISTWIDGET_setCurrentItem(QoreObject *self, QoreAbstractQListW
 }
 
 //void setCurrentRow ( int row )
-static QoreNode *QLISTWIDGET_setCurrentRow(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_setCurrentRow(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -354,7 +354,7 @@ static QoreNode *QLISTWIDGET_setCurrentRow(QoreObject *self, QoreAbstractQListWi
 }
 
 //void setItemWidget ( QListWidgetItem * item, QWidget * widget )
-static QoreNode *QLISTWIDGET_setItemWidget(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_setItemWidget(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQListWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQListWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink) : 0;
@@ -377,7 +377,7 @@ static QoreNode *QLISTWIDGET_setItemWidget(QoreObject *self, QoreAbstractQListWi
 }
 
 //void setSortingEnabled ( bool enable )
-static QoreNode *QLISTWIDGET_setSortingEnabled(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_setSortingEnabled(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
@@ -386,7 +386,7 @@ static QoreNode *QLISTWIDGET_setSortingEnabled(QoreObject *self, QoreAbstractQLi
 }
 
 //void sortItems ( Qt::SortOrder order = Qt::AscendingOrder )
-static QoreNode *QLISTWIDGET_sortItems(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_sortItems(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::SortOrder order = !is_nothing(p) ? (Qt::SortOrder)p->getAsInt() : Qt::AscendingOrder;
@@ -395,7 +395,7 @@ static QoreNode *QLISTWIDGET_sortItems(QoreObject *self, QoreAbstractQListWidget
 }
 
 //QListWidgetItem * takeItem ( int row )
-static QoreNode *QLISTWIDGET_takeItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_takeItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
@@ -406,7 +406,7 @@ static QoreNode *QLISTWIDGET_takeItem(QoreObject *self, QoreAbstractQListWidget 
 }
 
 //QRect visualItemRect ( const QListWidgetItem * item ) const
-static QoreNode *QLISTWIDGET_visualItemRect(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_visualItemRect(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQListWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQListWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink) : 0;
@@ -423,14 +423,14 @@ static QoreNode *QLISTWIDGET_visualItemRect(QoreObject *self, QoreAbstractQListW
 }
 
 //void clear ()
-static QoreNode *QLISTWIDGET_clear(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_clear(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    qlw->getQListWidget()->clear();
    return 0;
 }
 
 //void scrollToItem ( const QListWidgetItem * item, QAbstractItemView::ScrollHint hint = EnsureVisible )
-static QoreNode *QLISTWIDGET_scrollToItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLISTWIDGET_scrollToItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQListWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQListWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink) : 0;

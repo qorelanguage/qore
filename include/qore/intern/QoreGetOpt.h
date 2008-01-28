@@ -65,19 +65,19 @@ class QoreGetOpt {
       getopt_node_list_t node_list;
       
       DLLLOCAL static class QoreNode *parseDate(const char *val);
-      DLLLOCAL void processLongArg(const char *arg, class QoreList *l, class QoreHash *h, int &i, bool modify);
-      DLLLOCAL int processShortArg(const char *arg, class QoreList *l, class QoreHash *h, int &i, int &j, bool modify);
+      DLLLOCAL void processLongArg(const char *arg, class QoreListNode *l, class QoreHash *h, int &i, bool modify);
+      DLLLOCAL int processShortArg(const char *arg, class QoreListNode *l, class QoreHash *h, int &i, int &j, bool modify);
       DLLLOCAL QoreGetOptNode *find(const char *opt) const;
       DLLLOCAL class QoreGetOptNode *find(char opt) const;
       DLLLOCAL void doOption(class QoreGetOptNode *n, class QoreHash *h, const char *val);
-      DLLLOCAL char *getNextArgument(class QoreList *l, class QoreHash *h, int &i, const char *lopt, char sopt);
+      DLLLOCAL char *getNextArgument(class QoreListNode *l, class QoreHash *h, int &i, const char *lopt, char sopt);
 
    public:
       DLLLOCAL QoreGetOpt();
       DLLLOCAL ~QoreGetOpt();
       // returns 0 for OK
       DLLLOCAL int add(const char *name, char short_opt, char *long_opt, class QoreType *argtype = NULL, int option = QGO_OPT_NONE);
-      DLLLOCAL class QoreHashNode *parse(class QoreList *l, bool ml, class ExceptionSink *xsink);
+      DLLLOCAL class QoreHashNode *parse(class QoreListNode *l, bool ml, class ExceptionSink *xsink);
 };
 
 #endif // _QORE_QOREGETOPT_H

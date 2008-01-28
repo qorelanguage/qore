@@ -29,7 +29,7 @@ class QoreClass *QC_QStyleOptionTab = 0;
 
 //QStyleOptionTab ()
 //QStyleOptionTab ( const QStyleOptionTab & other )
-static void QSTYLEOPTIONTAB_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONTAB_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QSTYLEOPTIONTAB, new QoreQStyleOptionTab());
 }

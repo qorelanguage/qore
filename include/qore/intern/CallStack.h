@@ -48,7 +48,7 @@ class CallStack {
    public:      
       DLLLOCAL CallStack();
       DLLLOCAL ~CallStack();
-      DLLLOCAL class QoreList *getCallStack() const;
+      DLLLOCAL class QoreListNode *getCallStack() const;
       DLLLOCAL void push(const char *f, int t, class QoreObject *o);
       DLLLOCAL void pop(class ExceptionSink *xsink);
       DLLLOCAL void substituteObjectIfEqual(class QoreObject *o);

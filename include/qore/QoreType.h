@@ -30,8 +30,11 @@
 #include <map>
 
 // global default values
-DLLEXPORT extern class QoreNode *False, *True, *Nothing, *Null, *Zero, *ZeroFloat;
-DLLEXPORT extern class QoreList *emptyList;
+DLLEXPORT extern class QoreBoolNode *False, *True;
+DLLEXPORT extern class QoreNode *Nothing, *Null;
+//DLLEXPORT extern class QoreBigIntNode *Zero;
+//DLLEXPORT extern class QoreNode *ZeroFloat;
+DLLEXPORT extern class QoreListNode *emptyList;
 DLLEXPORT extern class QoreHashNode *emptyHash;
 DLLEXPORT extern class QoreStringNode *NullString;
 DLLEXPORT extern class DateTimeNode *ZeroDate;
@@ -103,16 +106,18 @@ static inline class QoreNode *boolean_true()
    return True;
 }
 
-static inline class QoreNode *zero()
+static inline class QoreBigIntNode *zero()
 {
-   Zero->ref();
-   return Zero;
+   return new QoreBigIntNode();
+   //Zero->ref();
+   //return Zero;
 }
 
 static inline class QoreNode *zero_float()
 {
-   ZeroFloat->ref();
-   return ZeroFloat;
+   return new QoreNode(0.0);
+   //ZeroFloat->ref();
+   //return ZeroFloat;
 }
 
 static inline DateTimeNode *zero_date()

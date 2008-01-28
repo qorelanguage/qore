@@ -488,15 +488,15 @@ static inline class QoreNode **do_list_val_ptr(Tree *tree, class AutoVLock *vlp,
 
    // if the variable's value is not already a list, then make it one
    // printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->getTypeName() : "(null)");
-   QoreList *l;
+   QoreListNode *l;
    if (!(*val))
-      l = new QoreList();
+      l = new QoreListNode();
    else {
-      l = dynamic_cast<QoreList *>(*val);
+      l = dynamic_cast<QoreListNode *>(*val);
       if (!l)
       {
 	 (*val)->deref(xsink);
-	 l = new QoreList();
+	 l = new QoreListNode();
       }
       else if (l->reference_count() > 1) // otherwise if it's a list and the reference_count > 1, then duplicate it
       {
@@ -625,7 +625,7 @@ class QoreNode *getNoEvalVarValue(class QoreNode *n, class AutoVLock *vl, class 
    if (n->val.tree->op == OP_LIST_REF)
    {
       // if it's not a list then return NULL
-      QoreList *l = dynamic_cast<QoreList *>(val);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(val);
       if (!l)
 	 return 0;
       
@@ -674,7 +674,7 @@ class QoreNode *getExistingVarValue(class QoreNode *n, ExceptionSink *xsink, cla
       // if it's a list reference
       if (n->val.tree->op == OP_LIST_REF)
       {
-	 QoreList *l = dynamic_cast<QoreList *>(val);
+	 QoreListNode *l = dynamic_cast<QoreListNode *>(val);
 	 // if it's not a list then return NULL
 	 if (!l)
 	    return 0;
@@ -743,7 +743,7 @@ static class QoreNode **getUniqueExistingVarValuePtr(class QoreNode *n, Exceptio
 
       // if it's a list reference
       if (n->val.tree->op == OP_LIST_REF) {
-	 QoreList *l = dynamic_cast<QoreList *>(*val);
+	 QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
          // if it's not a list then return NULL
          if (!l)
             return NULL;
@@ -840,7 +840,7 @@ void delete_var_node(class QoreNode *lvalue, ExceptionSink *xsink)
    // list, then resize the list...
    if (lvalue->val.tree->op == OP_LIST_REF)
    {
-      QoreList *l = dynamic_cast<QoreList *>(*val);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
       // if it's not a list then return
       if (!l)
 	 return;

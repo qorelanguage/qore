@@ -267,7 +267,7 @@ int QoreFile::write(const QoreString *str, class ExceptionSink *xsink)
    return ::write(priv->fd, wstr->getBuffer(), wstr->strlen());
 }
 
-int QoreFile::write(const BinaryObject *b, class ExceptionSink *xsink)
+int QoreFile::write(const BinaryNode *b, class ExceptionSink *xsink)
 {
    if (check_write_open(xsink))
       return -1;
@@ -306,7 +306,7 @@ class QoreStringNode *QoreFile::read(int size, class ExceptionSink *xsink)
    return str;
 }
 
-class BinaryObject *QoreFile::readBinary(int size, class ExceptionSink *xsink)
+class BinaryNode *QoreFile::readBinary(int size, class ExceptionSink *xsink)
 {
    if (!size)
       return NULL;
@@ -318,7 +318,7 @@ class BinaryObject *QoreFile::readBinary(int size, class ExceptionSink *xsink)
    if (!buf)
       return NULL;
    
-   return new BinaryObject(buf, size);
+   return new BinaryNode(buf, size);
 }
 
 int QoreFile::writei1(char i, class ExceptionSink *xsink)

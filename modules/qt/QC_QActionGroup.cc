@@ -32,7 +32,7 @@
 int CID_QACTIONGROUP;
 QoreClass *QC_QActionGroup = 0;
 
-static void QACTIONGROUP_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QACTIONGROUP_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -55,11 +55,11 @@ static void QACTIONGROUP_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //QList<QAction *> actions () const
-static QoreNode *QACTIONGROUP_actions(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_actions(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
    QList<QAction *> al = qag->qobj->actions();
 
-   QoreList *l = new QoreList();
+   QoreListNode *l = new QoreListNode();
    for (QList<QAction *>::iterator i = al.begin(), e = al.end(); i != e; ++i)
    {
       QoreObject *o_qa = new QoreObject(QC_QAction, getProgram());
@@ -75,7 +75,7 @@ static QoreNode *QACTIONGROUP_actions(QoreObject *self, QoreQActionGroup *qag, c
 //QAction * addAction ( QAction * action )
 //QAction * addAction ( const QString & text )
 //QAction * addAction ( const QIcon & icon, const QString & text )
-static QoreNode *QACTIONGROUP_addAction(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_addAction(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -115,7 +115,7 @@ static QoreNode *QACTIONGROUP_addAction(QoreObject *self, QoreQActionGroup *qag,
 }
 
 //QAction * checkedAction () const
-static QoreNode *QACTIONGROUP_checkedAction(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_checkedAction(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
    QAction *qa = qag->qobj->checkedAction();
    if (!qa)
@@ -128,25 +128,25 @@ static QoreNode *QACTIONGROUP_checkedAction(QoreObject *self, QoreQActionGroup *
 }
 
 //bool isEnabled () const
-static QoreNode *QACTIONGROUP_isEnabled(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_isEnabled(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qag->qobj->isEnabled());
+   return new QoreBoolNode(qag->qobj->isEnabled());
 }
 
 //bool isExclusive () const
-static QoreNode *QACTIONGROUP_isExclusive(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_isExclusive(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qag->qobj->isExclusive());
+   return new QoreBoolNode(qag->qobj->isExclusive());
 }
 
 //bool isVisible () const
-static QoreNode *QACTIONGROUP_isVisible(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_isVisible(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qag->qobj->isVisible());
+   return new QoreBoolNode(qag->qobj->isVisible());
 }
 
 //void removeAction ( QAction * action )
-static QoreNode *QACTIONGROUP_removeAction(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_removeAction(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
@@ -162,7 +162,7 @@ static QoreNode *QACTIONGROUP_removeAction(QoreObject *self, QoreQActionGroup *q
 
 //slots
 //void setDisabled ( bool b )
-static QoreNode *QACTIONGROUP_setDisabled(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_setDisabled(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -171,7 +171,7 @@ static QoreNode *QACTIONGROUP_setDisabled(QoreObject *self, QoreQActionGroup *qa
 }
 
 //void setEnabled ( bool )
-static QoreNode *QACTIONGROUP_setEnabled(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_setEnabled(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -180,7 +180,7 @@ static QoreNode *QACTIONGROUP_setEnabled(QoreObject *self, QoreQActionGroup *qag
 }
 
 //void setExclusive ( bool )
-static QoreNode *QACTIONGROUP_setExclusive(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_setExclusive(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -189,7 +189,7 @@ static QoreNode *QACTIONGROUP_setExclusive(QoreObject *self, QoreQActionGroup *q
 }
 
 //void setVisible ( bool )
-static QoreNode *QACTIONGROUP_setVisible(QoreObject *self, QoreQActionGroup *qag, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QACTIONGROUP_setVisible(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;

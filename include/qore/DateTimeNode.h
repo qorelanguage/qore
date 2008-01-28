@@ -68,9 +68,11 @@ class DateTimeNode : public SimpleQoreNode, public DateTime
       DLLEXPORT virtual double getAsFloat() const;
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+      // returns -1 for exception raised, 0 = OK
+      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       DLLEXPORT virtual bool needs_eval() const;

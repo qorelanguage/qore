@@ -9,7 +9,7 @@ class T {
 	 if (!m_createEditor)
 	    return QOREQTYPE::createEditor(parent, option, index);
 
-	 QoreList *args = new QoreList();
+	 QoreListNode *args = new QoreListNode();
 
 	 args->push(return_qobject(parent));
 
@@ -47,7 +47,7 @@ class T {
 	 if (!m_editorEvent)
 	    return QOREQTYPE::editorEvent(event, model, option, index);
 
-	 QoreList *args = new QoreList();
+	 QoreListNode *args = new QoreListNode();
 	 QoreObject *o = new QoreObject(QC_QEvent, getProgram());
 	 o->setPrivate(CID_QEVENT, new QoreQEvent(*event));
 	 args->push(o);
@@ -75,7 +75,7 @@ class T {
 	    return;
 	 }
 
-	 QoreList *args = new QoreList();
+	 QoreListNode *args = new QoreListNode();
 	 QoreObject *o = new QoreObject(QC_QPainter, getProgram());
 	 o->setPrivate(CID_QPAINTER, new QoreQPainter(painter));
 	 args->push(o);
@@ -96,7 +96,7 @@ class T {
 	 if (!m_setEditorData)
 	    return QOREQTYPE::setEditorData(editor, index);
 
-	 QoreList *args = new QoreList();
+	 QoreListNode *args = new QoreListNode();
 
 	 args->push(return_qobject(editor));
 
@@ -114,7 +114,7 @@ class T {
 	    return;
 	 }
 
-	 QoreList *args = new QoreList();
+	 QoreListNode *args = new QoreListNode();
 
 	 QoreObject *qw = 0;
 	 if (editor) {
@@ -142,7 +142,7 @@ class T {
 	 if (!m_sizeHint)
 	    return QOREQTYPE::sizeHint(option, index);
 
-	 QoreList *args = new QoreList();
+	 QoreListNode *args = new QoreListNode();
 
 	 QoreObject *o = new QoreObject(QC_QStyleOptionViewItem, getProgram());
 	 o->setPrivate(CID_QSTYLEOPTIONVIEWITEM, new QoreQStyleOptionViewItem(option));
@@ -181,7 +181,7 @@ class T {
 	    return;
 	 }
 
-	 QoreList *args = new QoreList();
+	 QoreListNode *args = new QoreListNode();
 
 	 QoreObject *o = 0;
 	 if (editor) {

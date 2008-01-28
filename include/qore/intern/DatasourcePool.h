@@ -77,11 +77,11 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       DLLLOCAL virtual ~DatasourcePool();
       DLLLOCAL void destructor(class ExceptionSink *xsink);
       DLLLOCAL virtual void cleanup(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *select(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRow(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRows(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *select(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *selectRow(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *selectRows(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL int beginTransaction(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *exec(const QoreString *sql, const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *exec(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL int commit(class ExceptionSink *xsink);
       DLLLOCAL int rollback(class ExceptionSink *xsink);
       DLLLOCAL class QoreStringNode *toString();

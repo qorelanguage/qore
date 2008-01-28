@@ -183,7 +183,7 @@ void QoreObject::tDeref()
       delete this;
 }
 
-class QoreNode *QoreObject::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreList *args, class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreListNode *args, class ExceptionSink *xsink)
 {
    // get referenced object
    class AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink);
@@ -250,7 +250,7 @@ bool QoreObject::validInstanceOf(int cid) const
    return priv->myclass->getClass(cid);
 }
 
-class QoreNode *QoreObject::evalMethod(const QoreString *name, const class QoreList *args, class ExceptionSink *xsink)
+class QoreNode *QoreObject::evalMethod(const QoreString *name, const class QoreListNode *args, class ExceptionSink *xsink)
 {
    return priv->myclass->evalMethod(this, name->getBuffer(), args, xsink);
 }
@@ -590,9 +590,9 @@ void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink)
    priv->g.exit();
 }
 
-class QoreList *QoreObject::getMemberList(class ExceptionSink *xsink) const
+class QoreListNode *QoreObject::getMemberList(class ExceptionSink *xsink) const
 {
-   class QoreList *lst;
+   class QoreListNode *lst;
    if (priv->g.enter(xsink) < 0)
       return NULL;
    if (priv->status == OS_DELETED)
@@ -871,7 +871,7 @@ void QoreObject::setPrivate(int key, AbstractPrivateData *pd)
    addVirtualPrivateData(pd);
 }
 
-void QoreObject::addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink) const
+void QoreObject::addPrivateDataToString(QoreString *str, ExceptionSink *xsink) const
 {
    str->concat('(');
    if (priv->g.enter(xsink) < 0)
@@ -920,29 +920,39 @@ void QoreObject::defaultSystemDestructor(int classID, class ExceptionSink *xsink
 QoreString *QoreObject::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
 {
    del = false;
-   TempQoreHash h(copyData(xsink), xsink);
-   if (*xsink)
-      return 0;
 
    TempString rv(new QoreString());
-   rv->sprintf("class %s: ", priv->myclass->getName());
+   if (getAsString(*(*rv), foff, xsink))
+      return 0;
+
+   del = true;
+   return rv.release();
+}
+
+int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
+{
+   TempQoreHash h(copyData(xsink), xsink);
+   if (*xsink)
+      return -1;
+
+   str.sprintf("class %s: ", priv->myclass->getName());
 
    if (foff != FMT_NONE)
    {
-      addPrivateDataToString(*rv, xsink);
+      addPrivateDataToString(&str, xsink);
       if (*xsink)
-         return 0;
+         return -1;
 
-      rv->concat(' ');
+      str.concat(' ');
    }
    if (!h->size())
-      rv->concat("<NO MEMBERS>");
+      str.concat("<NO MEMBERS>");
    else
    {
       if (foff != FMT_NONE)
-         rv->sprintf(" (%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
+         str.sprintf(" (%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
       else
-         rv->concat('(');
+         str.concat('(');
 
       class HashIterator hi(*h);
 
@@ -951,27 +961,27 @@ QoreString *QoreObject::getAsString(bool &del, int foff, class ExceptionSink *xs
       {
          if (first)
             if (foff != FMT_NONE)
-               rv->concat('\n');
+               str.concat('\n');
             else
-               rv->concat(", ");
+               str.concat(", ");
          else
             first = true;
 
          if (foff != FMT_NONE)
-            rv->addch(' ', foff + 2);
+            str.addch(' ', foff + 2);
 
-         QoreNodeAsStringHelper elem(hi.getValue(), foff != FMT_NONE ? foff + 2 : foff, xsink);
-         if (*xsink)
-            return 0;
+         str.sprintf("%s : ", hi.getKey());
 
-         rv->sprintf("%s : %s", hi.getKey(), elem->getBuffer());
+	 QoreNode *n = hi.getValue();
+	 if (!n) n = Nothing;
+	 if (getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
+	    return -1;
       }
       if (foff == FMT_NONE)
-         rv->concat(')');
+         str.concat(')');
    }
 
-   del = true;
-   return rv.release();
+   return 0;
 }
 
 class QoreNode *QoreObject::realCopy() const

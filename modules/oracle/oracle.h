@@ -257,7 +257,7 @@ class OraBindGroup {
       bool hasOutput;
 
       DLLLOCAL void parseOld(class QoreHash *h, class ExceptionSink *xsink);
-      DLLLOCAL void parseQuery(const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL void parseQuery(const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL QoreHashNode *getOutputHash(class ExceptionSink *xsink);
 
       DLLLOCAL inline void add(class OraBindNode *c)
@@ -271,7 +271,7 @@ class OraBindGroup {
       }
 
    public:
-      DLLLOCAL OraBindGroup(class Datasource *ods, const QoreString *ostr, const QoreList *args, ExceptionSink *xsink);
+      DLLLOCAL OraBindGroup(class Datasource *ods, const QoreString *ostr, const QoreListNode *args, ExceptionSink *xsink);
       DLLLOCAL inline ~OraBindGroup()
       {
 	 // free OCI handle

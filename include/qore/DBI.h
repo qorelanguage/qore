@@ -59,9 +59,9 @@
 // require writing to the Datasource)
 typedef int (*q_dbi_open_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_close_t)(class Datasource *);
-typedef class QoreNode *(*q_dbi_select_t)(class Datasource *, const class QoreString *, const class QoreList *, class ExceptionSink *xsink);
-typedef class QoreNode *(*q_dbi_select_rows_t)(class Datasource *, const class QoreString *, const class QoreList *, class ExceptionSink *xsink);
-typedef class QoreNode *(*q_dbi_exec_t)(class Datasource *, const class QoreString *, const class QoreList *args, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_select_t)(class Datasource *, const class QoreString *, const class QoreListNode *, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_select_rows_t)(class Datasource *, const class QoreString *, const class QoreListNode *, class ExceptionSink *xsink);
+typedef class QoreNode *(*q_dbi_exec_t)(class Datasource *, const class QoreString *, const class QoreListNode *args, class ExceptionSink *xsink);
 typedef int (*q_dbi_commit_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_rollback_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_begin_transaction_t)(class Datasource *, class ExceptionSink *xsink);
@@ -157,9 +157,9 @@ class DBIDriver {
       DLLLOCAL ~DBIDriver();
       DLLLOCAL int init(class Datasource *ds, class ExceptionSink *xsink);
       DLLLOCAL int close(class Datasource *ds);
-      DLLLOCAL class QoreNode *select(class Datasource *ds, const class QoreString *sql, const class QoreList *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRows(class Datasource *ds, const class QoreString *sql, const class QoreList *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *execSQL(class Datasource *ds, const class QoreString *sql, const class QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *select(class Datasource *ds, const class QoreString *sql, const class QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *selectRows(class Datasource *ds, const class QoreString *sql, const class QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *execSQL(class Datasource *ds, const class QoreString *sql, const class QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL int commit(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int rollback(class Datasource *, class ExceptionSink *xsink);
       DLLLOCAL int beginTransaction(class Datasource *, class ExceptionSink *xsink);
@@ -169,7 +169,7 @@ class DBIDriver {
       DLLLOCAL class QoreNode *getClientVersion(const class Datasource *, class ExceptionSink *xsink);
 
       DLLLOCAL int getCaps() const;
-      DLLLOCAL class QoreList *getCapList() const;
+      DLLLOCAL class QoreListNode *getCapList() const;
 };
 
 struct qore_dbi_dlist_private;
@@ -187,7 +187,7 @@ public:
 
       DLLLOCAL DBIDriverList();
       DLLLOCAL ~DBIDriverList();
-      DLLLOCAL class QoreList *getDriverList() const;
+      DLLLOCAL class QoreListNode *getDriverList() const;
 };
 
 // 

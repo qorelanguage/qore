@@ -204,9 +204,9 @@ TEST()
   }
 
   QoreString cmd("exec my_sample_rpc2 (%d)");
-  QoreList* args = new List;
-  args->push(new QoreNode((int64)100));
-  args->push(new QoreNode((int64)CS_INT_TYPE));
+  QoreListNode* args = new List;
+  args->push(new QoreBigIntNode(100));
+  args->push(new QoreBigIntNode(CS_INT_TYPE));
 
   QoreNode* res = conn.exec_rpc(&cmd, args, &xsink);
   if (xsink.isException()) {
@@ -232,10 +232,10 @@ TEST()
   }
 
   QoreString cmd("exec my_sample_rpc3 (%d, :sintparam)");
-  QoreList* args = new List;
-  args->push(new QoreNode((int64)100));
-  args->push(new QoreNode((int64)CS_INT_TYPE));
-  args->push(new QoreNode((int64)CS_INT_TYPE));
+  QoreListNode* args = new List;
+  args->push(new QoreBigIntNode(100));
+  args->push(new QoreBigIntNode(CS_INT_TYPE));
+  args->push(new QoreBigIntNode(CS_INT_TYPE));
 
   QoreNode* res = conn.exec_rpc(&cmd, args, &xsink);
   if (xsink.isException()) {

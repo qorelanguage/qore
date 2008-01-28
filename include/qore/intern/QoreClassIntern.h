@@ -42,16 +42,16 @@ class BCANode
       class QoreClass *sclass;
       class NamedScope *ns;
       char *name;
-      QoreList *argexp;
+      QoreListNode *argexp;
 
-      DLLLOCAL inline BCANode(class NamedScope *n, QoreList *arg)
+      DLLLOCAL inline BCANode(class NamedScope *n, QoreListNode *arg)
       {
 	 ns = n;
 	 name = NULL;
 	 argexp = arg;
       }
       // this method takes ownership of *n
-      DLLLOCAL inline BCANode(char *n, QoreList *arg)
+      DLLLOCAL inline BCANode(char *n, QoreListNode *arg)
       {
 	 ns = NULL;
 	 name = n;
@@ -101,7 +101,7 @@ class BCNode
       class NamedScope *cname;
       char *cstr;
       QoreClass *sclass;
-      QoreList *args;
+      QoreListNode *args;
       bool hasargs;
       bool priv;
       bool is_virtual;
@@ -114,7 +114,7 @@ class BCNode
       {
       }
       // for builtin base classes
-      DLLLOCAL BCNode(QoreClass *qc, QoreList *xargs = 0, bool n_virtual  = false) 
+      DLLLOCAL BCNode(QoreClass *qc, QoreListNode *xargs = 0, bool n_virtual  = false) 
 	 : cname(0), cstr(0), sclass(qc), args(xargs), hasargs(xargs ? true : false), priv(false), is_virtual(n_virtual)
       {
       }

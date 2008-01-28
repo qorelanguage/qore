@@ -212,9 +212,9 @@ class QorePGConnection
 
       DLLLOCAL int commit(class Datasource *ds, ExceptionSink *xsink);
       DLLLOCAL int rollback(class Datasource *ds, ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *select(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *select_rows(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *exec(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *select(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *select_rows(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class QoreNode *exec(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL int begin_transaction(class Datasource *ds, ExceptionSink *xsink);
       DLLLOCAL bool has_interval_day() const { return interval_has_day; }
       DLLLOCAL bool has_integer_datetimes() const { return integer_datetimes; }
@@ -274,7 +274,7 @@ class QorePGResult {
 
       DLLLOCAL class QoreNode *getNode(int row, int col, class ExceptionSink *xsink);
       // returns 0 for OK, -1 for error
-      DLLLOCAL int parse(class QoreString *str, const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL int parse(class QoreString *str, const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL int add(class QoreNode *v, class ExceptionSink *xsink);
       DLLLOCAL class QoreNode *getArray(int type, qore_pg_data_func_t func, char *&array_data, int current, int ndim, int dim[]);
       //DLLLOCAL int bind();
@@ -286,11 +286,11 @@ class QorePGResult {
       DLLLOCAL ~QorePGResult();
 
       // returns 0 for OK, -1 for error
-      DLLLOCAL int exec(PGconn *pc, const QoreString *str, const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL int exec(PGconn *pc, const QoreString *str, const QoreListNode *args, class ExceptionSink *xsink);
       // returns 0 for OK, -1 for error
       DLLLOCAL int exec(PGconn *pc, const char *cmd, class ExceptionSink *xsink);
       DLLLOCAL class QoreHashNode *getHash(class ExceptionSink *xsink);
-      DLLLOCAL class QoreList *getQoreList(class ExceptionSink *xsink);
+      DLLLOCAL class QoreListNode *getQoreListNode(class ExceptionSink *xsink);
       DLLLOCAL int rowsAffected();
       DLLLOCAL bool hasResultData();
       DLLLOCAL bool checkIntegerDateTimes(PGconn *pc, class ExceptionSink *xsink);
@@ -314,9 +314,9 @@ class QorePGBindArray {
       // returns -1 for exception, 0 for OK
       DLLLOCAL int check_oid(QoreHash *h, class ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int new_dimension(QoreList *l, int current, class ExceptionSink *xsink);
+      DLLLOCAL int new_dimension(QoreListNode *l, int current, class ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int process_list(QoreList *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink);
+      DLLLOCAL int process_list(QoreListNode *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
       DLLLOCAL int bind(class QoreNode *n, const QoreEncoding *enc, class ExceptionSink *xsink);
       DLLLOCAL void check_size(int size);
@@ -325,7 +325,7 @@ class QorePGBindArray {
       DLLLOCAL QorePGBindArray(class QorePGConnection *r_conn);
       DLLLOCAL ~QorePGBindArray();
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int create_data(class QoreList *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink);
+      DLLLOCAL int create_data(class QoreListNode *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink);
       DLLLOCAL int getOid() const;
       DLLLOCAL int getArrayOid() const;
       DLLLOCAL int getSize() const;

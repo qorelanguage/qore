@@ -277,7 +277,7 @@ static inline int getBaseLVType(class QoreNode *n)
    }
 }
 
-int process_list_node_intern(QoreList *l, lvh_t oflag, int pflag)
+int process_list_node_intern(QoreListNode *l, lvh_t oflag, int pflag)
 {
    int lvids = 0;
 
@@ -288,7 +288,7 @@ int process_list_node_intern(QoreList *l, lvh_t oflag, int pflag)
 }
 
 // this function will put variables on the local stack but will not pop them
-int process_list_node(QoreList **node, lvh_t oflag, int pflag)
+int process_list_node(QoreListNode **node, lvh_t oflag, int pflag)
 {
    if (!(*node))
       return 0;
@@ -480,7 +480,7 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    }
 
    {
-      QoreList *l = dynamic_cast<QoreList *>(*node);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(*node);
       if (l) 
 	 return process_list_node_intern(l, oflag, pflag); 
    }
@@ -657,7 +657,7 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
       {
 	 if ((*i)->args)
 	 {
-	    QoreList *l = (*i)->args;
+	    QoreListNode *l = (*i)->args;
 	    for (int j = 0; j < l->size(); j++)
 	    {
 	       class QoreNode **n = l->get_entry_ptr(j);

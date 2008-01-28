@@ -162,7 +162,7 @@ class T {
 	    return QOREQTYPE::event(event);
 
 	 ExceptionSink xsink;
-         ReferenceHolder<QoreList> args(new QoreList(), &xsink);
+         ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(return_qevent(event));
 
 	 return dispatch_event_bool(qore_obj, e_event, *args, &xsink);
@@ -490,8 +490,8 @@ class T {
 	    return QOREQTYPE::heightForWidth(w);
 
 	 ExceptionSink xsink;
-	 ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)w));
+	 ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(w));
 	 
 	 return dispatch_event_int(qore_obj, p_heightForWidth, *args, &xsink);
       }
@@ -502,8 +502,8 @@ class T {
 	    return QOREQTYPE::inputMethodQuery(query);
 
 	 ExceptionSink xsink;
-	 ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode((int64)query));
+	 ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBigIntNode(query));
 
 	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, p_inputMethodQuery, *args, &xsink), &xsink);
 	 if (xsink)
@@ -540,8 +540,8 @@ class T {
 	 }
 	 
 	 ExceptionSink xsink;
-	 ReferenceHolder<QoreList> args(new QoreList(), &xsink);
-	 args->push(new QoreNode(visible));
+	 ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+	 args->push(new QoreBoolNode(visible));
 
 	 discard(dispatch_event_intern(qore_obj, p_setVisible, *args, &xsink), &xsink);
       }

@@ -27,7 +27,7 @@
 int CID_QMETAOBJECT;
 class QoreClass *QC_QMetaObject = 0;
 
-static void QMETAOBJECT_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QMETAOBJECT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    xsink->raiseException("QMETAOBJECT-CONSTRUCTOR-ERROR", "objects of this class cannot be manually constructed");
 }
@@ -38,53 +38,53 @@ static void QMETAOBJECT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 ////QMetaClassInfo classInfo ( int index ) const
-//static QoreNode *QMETAOBJECT_classInfo(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMETAOBJECT_classInfo(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int index = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)qmo->qobj->classInfo(index));
+//   ??? return new QoreBigIntNode(qmo->qobj->classInfo(index));
 //}
 
 //int classInfoCount () const
-static QoreNode *QMETAOBJECT_classInfoCount(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_classInfoCount(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qmo->qobj->classInfoCount());
+   return new QoreBigIntNode(qmo->qobj->classInfoCount());
 }
 
 //int classInfoOffset () const
-static QoreNode *QMETAOBJECT_classInfoOffset(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_classInfoOffset(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qmo->qobj->classInfoOffset());
+   return new QoreBigIntNode(qmo->qobj->classInfoOffset());
 }
 
 //const char * className () const
-static QoreNode *QMETAOBJECT_className(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_className(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qmo->qobj->className());
 }
 
 ////QMetaEnum enumerator ( int index ) const
-//static QoreNode *QMETAOBJECT_enumerator(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMETAOBJECT_enumerator(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int index = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)qmo->qobj->enumerator(index));
+//   ??? return new QoreBigIntNode(qmo->qobj->enumerator(index));
 //}
 
 //int enumeratorCount () const
-static QoreNode *QMETAOBJECT_enumeratorCount(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_enumeratorCount(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qmo->qobj->enumeratorCount());
+   return new QoreBigIntNode(qmo->qobj->enumeratorCount());
 }
 
 //int enumeratorOffset () const
-static QoreNode *QMETAOBJECT_enumeratorOffset(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_enumeratorOffset(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qmo->qobj->enumeratorOffset());
+   return new QoreBigIntNode(qmo->qobj->enumeratorOffset());
 }
 
 //int indexOfClassInfo ( const char * name ) const
-static QoreNode *QMETAOBJECT_indexOfClassInfo(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_indexOfClassInfo(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
@@ -92,11 +92,11 @@ static QoreNode *QMETAOBJECT_indexOfClassInfo(QoreObject *self, QoreQMetaObject 
       return 0;
    }
    const char *name = p->getBuffer();
-   return new QoreNode((int64)qmo->qobj->indexOfClassInfo(name));
+   return new QoreBigIntNode(qmo->qobj->indexOfClassInfo(name));
 }
 
 //int indexOfEnumerator ( const char * name ) const
-static QoreNode *QMETAOBJECT_indexOfEnumerator(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_indexOfEnumerator(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
@@ -104,11 +104,11 @@ static QoreNode *QMETAOBJECT_indexOfEnumerator(QoreObject *self, QoreQMetaObject
       return 0;
    }
    const char *name = p->getBuffer();
-   return new QoreNode((int64)qmo->qobj->indexOfEnumerator(name));
+   return new QoreBigIntNode(qmo->qobj->indexOfEnumerator(name));
 }
 
 //int indexOfMethod ( const char * method ) const
-static QoreNode *QMETAOBJECT_indexOfMethod(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_indexOfMethod(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
@@ -116,11 +116,11 @@ static QoreNode *QMETAOBJECT_indexOfMethod(QoreObject *self, QoreQMetaObject *qm
       return 0;
    }
    const char *method = p->getBuffer();
-   return new QoreNode((int64)qmo->qobj->indexOfMethod(method));
+   return new QoreBigIntNode(qmo->qobj->indexOfMethod(method));
 }
 
 //int indexOfProperty ( const char * name ) const
-static QoreNode *QMETAOBJECT_indexOfProperty(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_indexOfProperty(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
@@ -128,11 +128,11 @@ static QoreNode *QMETAOBJECT_indexOfProperty(QoreObject *self, QoreQMetaObject *
       return 0;
    }
    const char *name = p->getBuffer();
-   return new QoreNode((int64)qmo->qobj->indexOfProperty(name));
+   return new QoreBigIntNode(qmo->qobj->indexOfProperty(name));
 }
 
 //int indexOfSignal ( const char * signal ) const
-static QoreNode *QMETAOBJECT_indexOfSignal(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_indexOfSignal(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
@@ -140,11 +140,11 @@ static QoreNode *QMETAOBJECT_indexOfSignal(QoreObject *self, QoreQMetaObject *qm
       return 0;
    }
    const char *signal = p->getBuffer();
-   return new QoreNode((int64)qmo->qobj->indexOfSignal(signal));
+   return new QoreBigIntNode(qmo->qobj->indexOfSignal(signal));
 }
 
 //int indexOfSlot ( const char * slot ) const
-static QoreNode *QMETAOBJECT_indexOfSlot(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_indexOfSlot(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
@@ -152,51 +152,51 @@ static QoreNode *QMETAOBJECT_indexOfSlot(QoreObject *self, QoreQMetaObject *qmo,
       return 0;
    }
    const char *slot = p->getBuffer();
-   return new QoreNode((int64)qmo->qobj->indexOfSlot(slot));
+   return new QoreBigIntNode(qmo->qobj->indexOfSlot(slot));
 }
 
 ////QMetaMethod method ( int index ) const
-//static QoreNode *QMETAOBJECT_method(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMETAOBJECT_method(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int index = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)qmo->qobj->method(index));
+//   ??? return new QoreBigIntNode(qmo->qobj->method(index));
 //}
 
 //int methodCount () const
-static QoreNode *QMETAOBJECT_methodCount(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_methodCount(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qmo->qobj->methodCount());
+   return new QoreBigIntNode(qmo->qobj->methodCount());
 }
 
 //int methodOffset () const
-static QoreNode *QMETAOBJECT_methodOffset(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_methodOffset(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qmo->qobj->methodOffset());
+   return new QoreBigIntNode(qmo->qobj->methodOffset());
 }
 
 ////QMetaProperty property ( int index ) const
-//static QoreNode *QMETAOBJECT_property(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMETAOBJECT_property(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   int index = p ? p->getAsInt() : 0;
-//   ??? return new QoreNode((int64)qmo->qobj->property(index));
+//   ??? return new QoreBigIntNode(qmo->qobj->property(index));
 //}
 
 //int propertyCount () const
-static QoreNode *QMETAOBJECT_propertyCount(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_propertyCount(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qmo->qobj->propertyCount());
+   return new QoreBigIntNode(qmo->qobj->propertyCount());
 }
 
 //int propertyOffset () const
-static QoreNode *QMETAOBJECT_propertyOffset(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_propertyOffset(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qmo->qobj->propertyOffset());
+   return new QoreBigIntNode(qmo->qobj->propertyOffset());
 }
 
 //const QMetaObject * superClass () const
-static QoreNode *QMETAOBJECT_superClass(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMETAOBJECT_superClass(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qmo = new QoreObject(self->getClass(CID_QMETAOBJECT), getProgram());
    QoreQMetaObject *q_qmo = new QoreQMetaObject(const_cast<QMetaObject *>(qmo->qobj->superClass()));
@@ -205,9 +205,9 @@ static QoreNode *QMETAOBJECT_superClass(QoreObject *self, QoreQMetaObject *qmo, 
 }
 
 ////QMetaProperty userProperty () const
-//static QoreNode *QMETAOBJECT_userProperty(QoreObject *self, QoreQMetaObject *qmo, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QMETAOBJECT_userProperty(QoreObject *self, QoreQMetaObject *qmo, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)qmo->qobj->userProperty());
+//   ??? return new QoreBigIntNode(qmo->qobj->userProperty());
 //}
 
 QoreClass *initQMetaObjectClass()

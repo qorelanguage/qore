@@ -79,11 +79,11 @@ class Datasource
       DLLEXPORT void setAutoCommit(bool ac);
       DLLEXPORT int open(ExceptionSink *xsink);
       // not "const" to allow for reconnects
-      DLLEXPORT class QoreNode *select(const class QoreString *query_str, const QoreList *args, ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *select(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
       // not "const" to allow for reconnects
-      DLLEXPORT class QoreNode *selectRows(const class QoreString *query_str, const QoreList *args, ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *selectRows(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
       // not "const" to allow for reconnects and also to change transaction status
-      DLLEXPORT class QoreNode *exec(const class QoreString *query_str, const QoreList *args, ExceptionSink *xsink);
+      DLLEXPORT class QoreNode *exec(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
       // not "const" to allow for reconnects
       DLLEXPORT int commit(ExceptionSink *xsink);
       // not "const" to allow for reconnects
@@ -91,7 +91,7 @@ class Datasource
       DLLEXPORT int close();
       DLLEXPORT void reset(ExceptionSink *xsink);
       // caller owns the pointer returned
-      DLLEXPORT QoreList *getCapabilityList() const;
+      DLLEXPORT QoreListNode *getCapabilityList() const;
       DLLEXPORT int getCapabilities() const;
       // caller owns the QoreNode reference returned
       DLLEXPORT QoreNode *getPendingUsername() const;

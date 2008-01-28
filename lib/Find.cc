@@ -53,7 +53,7 @@ class QoreNode *Find::eval(ExceptionSink *xsink)
       return NULL;
    }
    
-   QoreList *lrv = 0;
+   QoreListNode *lrv = 0;
    for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++)
    {
       printd(4, "Find::eval() checking %d/%d\n", context->pos, context->max_pos);
@@ -65,7 +65,7 @@ class QoreNode *Find::eval(ExceptionSink *xsink)
 	 {
 	    if (!lrv)
 	    {
-	       lrv = new QoreList();
+	       lrv = new QoreListNode();
 	       lrv->push(*rv);
 	       lrv->push(result);
 	       rv = lrv;

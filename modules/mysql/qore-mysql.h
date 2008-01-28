@@ -152,7 +152,7 @@ class MyBindGroup {
       //bool locked;
 
       // returns -1 for error, 0 for OK
-      DLLLOCAL inline int parse(const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL inline int parse(const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL inline void add(class MyBindNode *c)
       {
 	 len++;
@@ -167,7 +167,7 @@ class MyBindGroup {
       DLLLOCAL class QoreNode *execIntern(class ExceptionSink *xsink);
 
    public:
-      DLLLOCAL MyBindGroup(Datasource *ods, const class QoreString *ostr, const QoreList *args, class ExceptionSink *xsink);
+      DLLLOCAL MyBindGroup(Datasource *ods, const class QoreString *ostr, const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL ~MyBindGroup();
 
       DLLLOCAL inline void add(class QoreNode *v)

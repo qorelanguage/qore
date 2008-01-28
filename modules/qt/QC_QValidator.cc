@@ -32,7 +32,7 @@ int CID_QVALIDATOR;
 class QoreClass *QC_QValidator = 0;
 
 //QValidator ( QObject * parent )
-static void QVALIDATOR_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QVALIDATOR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -52,7 +52,7 @@ static void QVALIDATOR_copy(class QoreObject *self, class QoreObject *old, class
 }
 
 //virtual void fixup ( QString & input ) const
-static QoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidator *qv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = test_param(params, NT_REFERENCE, 0);
    if (!p) {
@@ -77,7 +77,7 @@ static QoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidator *qv, 
 }
 
 //QLocale locale () const
-static QoreNode *QVALIDATOR_locale(QoreObject *self, QoreAbstractQValidator *qv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QVALIDATOR_locale(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    QoreQLocale *q_ql = new QoreQLocale(qv->getQValidator()->locale());
@@ -86,7 +86,7 @@ static QoreNode *QVALIDATOR_locale(QoreObject *self, QoreAbstractQValidator *qv,
 }
 
 //void setLocale ( const QLocale & locale )
-static QoreNode *QVALIDATOR_setLocale(QoreObject *self, QoreAbstractQValidator *qv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QVALIDATOR_setLocale(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
@@ -101,7 +101,7 @@ static QoreNode *QVALIDATOR_setLocale(QoreObject *self, QoreAbstractQValidator *
 }
 
 //virtual State validate ( QString & input, int & pos ) const = 0
-static QoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *qv, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = test_param(params, NT_REFERENCE, 0);
    if (!p0) {
@@ -138,9 +138,9 @@ static QoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *q
 
    if (*vp1)
       (*vp1)->deref(xsink);
-   (*vp1) = new QoreNode((int64)pos);
+   (*vp1) = new QoreBigIntNode(pos);
 
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
 

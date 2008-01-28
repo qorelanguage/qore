@@ -27,7 +27,7 @@
 
 int CID_WINDOW;
 
-void WC_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+void WC_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2, *p3;
    p0 = get_param(params, 0);
@@ -52,15 +52,15 @@ static void WC_copy(class QoreObject *self, class QoreObject *old, class Window 
    xsink->raiseException("WINDOW-COPY-ERROR", "copying Window objects is currently unsupported");
 }
 
-class QoreNode *WC_keypad(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_keypad(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
    bool b = p0 ? p0->getAsBool() : false;
 
-   return new QoreNode((int64)w->keypad(b));
+   return new QoreBigIntNode(w->keypad(b));
 }
 
-class QoreNode *WC_addstr(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_addstr(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    int rc;
    QoreStringNode *p0 = test_string_param(params, 0);
@@ -69,10 +69,10 @@ class QoreNode *WC_addstr(class QoreObject *self, class Window *w, const QoreLis
    else
       rc = 0;
    
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-class QoreNode *WC_mvaddstr(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_mvaddstr(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    int rc;
    QoreStringNode *p2 = test_string_param(params, 2);
@@ -85,35 +85,35 @@ class QoreNode *WC_mvaddstr(class QoreObject *self, class Window *w, const QoreL
    else
       rc = 0;
    
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-class QoreNode *WC_printw(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_printw(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
-   return new QoreNode((int64)w->qaddstr(str->getBuffer()));
+   return new QoreBigIntNode(w->qaddstr(str->getBuffer()));
 }
 
-class QoreNode *WC_mvprintw(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_mvprintw(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 2, xsink));
    class QoreNode *p0 = get_param(params, 0);
    class QoreNode *p1 = get_param(params, 1);
 
-   return new QoreNode((int64)w->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, str->getBuffer()));
+   return new QoreBigIntNode(w->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, str->getBuffer()));
 }
 
-class QoreNode *WC_refresh(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_refresh(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)w->qrefresh());
+   return new QoreBigIntNode(w->qrefresh());
 }
 
-class QoreNode *WC_getch(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_getch(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)w->qgetch());
+   return new QoreBigIntNode(w->qgetch());
 }
 
-class QoreNode *WC_border(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_border(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7;
    p0 = get_param(params, 0);
@@ -133,185 +133,185 @@ class QoreNode *WC_border(class QoreObject *self, class Window *w, const QoreLis
    int bl = p6 ? p6->getAsInt() : 0;
    int br = p7 ? p7->getAsInt() : 0;
 
-   return new QoreNode((int64)w->qborder(ls, rs, ts, bs, tl, tr, bl, br));
+   return new QoreBigIntNode(w->qborder(ls, rs, ts, bs, tl, tr, bl, br));
 }
 
-class QoreNode *WC_setColor(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_setColor(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    QoreNode *p1 = get_param(params, 1);
-   return new QoreNode((int64)w->setColor(p0 ? p0->getAsInt() : COLOR_WHITE,
+   return new QoreBigIntNode(w->setColor(p0 ? p0->getAsInt() : COLOR_WHITE,
 					  p1 ? p1->getAsInt() : COLOR_BLACK));
 }
 
-class QoreNode *WC_setBackgroundColor(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_setBackgroundColor(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   return new QoreNode((int64)w->setBackgroundColor(p0 ? p0->getAsInt() : COLOR_BLACK));
+   return new QoreBigIntNode(w->setBackgroundColor(p0 ? p0->getAsInt() : COLOR_BLACK));
 }
 
-class QoreNode *WC_setForegroundColor(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_setForegroundColor(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   return new QoreNode((int64)w->setForegroundColor(p0 ? p0->getAsInt() : COLOR_WHITE));
+   return new QoreBigIntNode(w->setForegroundColor(p0 ? p0->getAsInt() : COLOR_WHITE));
 }
 
-class QoreNode *WC_attrset(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_attrset(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   return new QoreNode((int64)w->qattrset(p0 ? p0->getAsInt() : 0));
+   return new QoreBigIntNode(w->qattrset(p0 ? p0->getAsInt() : 0));
 }
 
-class QoreNode *WC_attron(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_attron(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   return new QoreNode((int64)w->qattron(p0 ? p0->getAsInt() : 0));
+   return new QoreBigIntNode(w->qattron(p0 ? p0->getAsInt() : 0));
 }
 
-class QoreNode *WC_attroff(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_attroff(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   return new QoreNode((int64)w->qattroff(p0 ? p0->getAsInt() : 0));
+   return new QoreBigIntNode(w->qattroff(p0 ? p0->getAsInt() : 0));
 }
 
-class QoreNode *WC_moveWindow(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = get_param(params, 0);
-   QoreNode *p1 = get_param(params, 1);
-   return new QoreNode((int64)w->moveWindow(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
-}
-
-class QoreNode *WC_move(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_moveWindow(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    QoreNode *p1 = get_param(params, 1);
-   return new QoreNode((int64)w->qmove(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
+   return new QoreBigIntNode(w->moveWindow(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
 }
 
-class QoreNode *WC_scrollok(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_move(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   return new QoreNode((int64)w->scrollok(p0 ? p0->getAsBool() : 0));
+   QoreNode *p1 = get_param(params, 1);
+   return new QoreBigIntNode(w->qmove(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
 }
 
-class QoreNode *WC_idlok(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_scrollok(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   return new QoreNode((int64)w->idlok(p0 ? p0->getAsBool() : 0));
+   return new QoreBigIntNode(w->scrollok(p0 ? p0->getAsBool() : 0));
 }
 
-class QoreNode *WC_clearok(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_idlok(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   return new QoreNode((int64)w->clearok(p0 ? p0->getAsBool() : 0));
+   return new QoreBigIntNode(w->idlok(p0 ? p0->getAsBool() : 0));
 }
 
-class QoreNode *WC_idcok(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_clearok(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   return new QoreBigIntNode(w->clearok(p0 ? p0->getAsBool() : 0));
+}
+
+class QoreNode *WC_idcok(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    w->idcok(p0 ? p0->getAsBool() : 0);
    return NULL;
 }
 
-class QoreNode *WC_immedok(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_immedok(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    w->immedok(p0 ? p0->getAsBool() : 0);
    return NULL;
 }
 
-class QoreNode *WC_erase(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_erase(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    w->qerase();
    return NULL;
 }
 
-class QoreNode *WC_clear(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_clear(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    w->qclear();
    return NULL;
 }
 
-class QoreNode *WC_setscrreg(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_setscrreg(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    QoreNode *p1 = get_param(params, 1);
-   return new QoreNode((int64)w->qsetscrreg(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
+   return new QoreBigIntNode(w->qsetscrreg(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
 }
 
-class QoreNode *WC_redraw(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_redraw(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)w->redraw());
+   return new QoreBigIntNode(w->redraw());
 }
 
-class QoreNode *WC_scroll(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_scroll(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)w->qscroll());
+   return new QoreBigIntNode(w->qscroll());
 }
 
-class QoreNode *WC_scrl(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
-{
-   QoreNode *p0 = get_param(params, 0);
-   return new QoreNode((int64)w->qscrl(p0 ? p0->getAsInt() : 0));
-}
-
-class QoreNode *WC_hline(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_scrl(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   QoreNode *p1 = get_param(params, 1);
-   return new QoreNode((int64)w->qhline(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
+   return new QoreBigIntNode(w->qscrl(p0 ? p0->getAsInt() : 0));
 }
 
-class QoreNode *WC_vline(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_hline(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    QoreNode *p1 = get_param(params, 1);
-   return new QoreNode((int64)w->qvline(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
+   return new QoreBigIntNode(w->qhline(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
 }
 
-class QoreNode *WC_mvhline(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_vline(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    QoreNode *p1 = get_param(params, 1);
-   QoreNode *p2 = get_param(params, 2);
-   QoreNode *p3 = get_param(params, 3);
-   return new QoreNode((int64)w->qmvhline(p0 ? p0->getAsInt() : 0, 
-					  p1 ? p1->getAsInt() : 0,
-					  p2 ? p2->getAsInt() : 0,
-					  p3 ? p3->getAsInt() : 0));
+   return new QoreBigIntNode(w->qvline(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
 }
 
-class QoreNode *WC_mvvline(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_mvhline(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    QoreNode *p1 = get_param(params, 1);
    QoreNode *p2 = get_param(params, 2);
    QoreNode *p3 = get_param(params, 3);
-   return new QoreNode((int64)w->qmvvline(p0 ? p0->getAsInt() : 0, 
+   return new QoreBigIntNode(w->qmvhline(p0 ? p0->getAsInt() : 0, 
 					  p1 ? p1->getAsInt() : 0,
 					  p2 ? p2->getAsInt() : 0,
 					  p3 ? p3->getAsInt() : 0));
 }
 
-class QoreNode *WC_addch(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_mvvline(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
+{
+   QoreNode *p0 = get_param(params, 0);
+   QoreNode *p1 = get_param(params, 1);
+   QoreNode *p2 = get_param(params, 2);
+   QoreNode *p3 = get_param(params, 3);
+   return new QoreBigIntNode(w->qmvvline(p0 ? p0->getAsInt() : 0, 
+					  p1 ? p1->getAsInt() : 0,
+					  p2 ? p2->getAsInt() : 0,
+					  p3 ? p3->getAsInt() : 0));
+}
+
+class QoreNode *WC_addch(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *rv;
    QoreNode *p0 = get_param(params, 0);
    if (!is_nothing(p0) && (p0->type != NT_STRING || (reinterpret_cast<QoreStringNode *>(p0))->strlen()))
-      rv = new QoreNode((int64)w->qaddch(getChar(p0)));
+      rv = new QoreBigIntNode(w->qaddch(getChar(p0)));
    else
       rv = NULL;
    return rv;
 }
 
-class QoreNode *WC_mvaddch(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_mvaddch(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *rv;
    QoreNode *p0 = get_param(params, 0);
    QoreNode *p1 = get_param(params, 1);
    QoreNode *p2 = get_param(params, 2);
    if (!is_nothing(p2) && (p2->type != NT_STRING || (reinterpret_cast<QoreStringNode *>(p2))->strlen()))
-      rv = new QoreNode((int64)w->qmvaddch(p0 ? p0->getAsInt() : 0,
+      rv = new QoreBigIntNode(w->qmvaddch(p0 ? p0->getAsInt() : 0,
 					   p1 ? p1->getAsInt() : 0,
 					   getChar(p2)));
    else
@@ -320,62 +320,62 @@ class QoreNode *WC_mvaddch(class QoreObject *self, class Window *w, const QoreLi
    return rv;
 }
 
-class QoreNode *WC_clrtoeol(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_clrtoeol(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    w->qclrtoeol();
    return NULL;
 }
 
-class QoreNode *WC_clrtobot(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_clrtobot(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    w->qclrtobot();
    return NULL;
 }
 
-class QoreNode *WC_getLines(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_getLines(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)w->getLines());
+   return new QoreBigIntNode(w->getLines());
 }
 
-class QoreNode *WC_getColumns(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_getColumns(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)w->getColumns());
+   return new QoreBigIntNode(w->getColumns());
 }
 
 #ifdef HAVE_WRESIZE
-class QoreNode *WC_resize(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_resize(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    QoreNode *p1 = get_param(params, 1);
-   return new QoreNode((int64)w->resize(p0 ? p0->getAsInt() : 0,
+   return new QoreBigIntNode(w->resize(p0 ? p0->getAsInt() : 0,
 					p1 ? p1->getAsInt() : 0));
 }
 #endif
 
-class QoreNode *WC_getY(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_getY(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)w->getY());
+   return new QoreBigIntNode(w->getY());
 }
 
-class QoreNode *WC_getX(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_getX(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)w->getX());
+   return new QoreBigIntNode(w->getX());
 }
 
-class QoreNode *WC_getBegY(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_getBegY(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)w->getBegY());
+   return new QoreBigIntNode(w->getBegY());
 }
 
-class QoreNode *WC_getBegX(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_getBegX(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)w->getBegX());
+   return new QoreBigIntNode(w->getBegX());
 }
 
-class QoreNode *WC_nodelay(class QoreObject *self, class Window *w, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *WC_nodelay(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
-   return new QoreNode((int64)w->nodelay(p0 ? p0->getAsBool() : 0));
+   return new QoreBigIntNode(w->nodelay(p0 ? p0->getAsBool() : 0));
 }
 
 class QoreClass *initWindowClass()

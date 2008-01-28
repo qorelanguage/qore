@@ -83,7 +83,7 @@ static QoreHashNode *he_to_hash(struct hostent &he)
       h->setKeyValue("name", new QoreStringNode(he.h_name), 0); // official host name
    if (he.h_aliases)
    {
-      class QoreList *l = new QoreList();
+      class QoreListNode *l = new QoreListNode();
       char **a = he.h_aliases;
       while (*a)
 	 l->push(new QoreStringNode(*(a++)));
@@ -93,24 +93,24 @@ static QoreHashNode *he_to_hash(struct hostent &he)
    {
       case AF_INET:
 	 h->setKeyValue("typename", new QoreStringNode("ipv4"), 0);
-	 h->setKeyValue("type", new QoreNode((int64)AF_INET), 0);
+	 h->setKeyValue("type", new QoreBigIntNode(AF_INET), 0);
 	 break;
 
       case AF_INET6:
 	 h->setKeyValue("typename", new QoreStringNode("ipv6"), 0);
-	 h->setKeyValue("type", new QoreNode((int64)AF_INET6), 0);
+	 h->setKeyValue("type", new QoreBigIntNode(AF_INET6), 0);
 	 break;
 
       default:
 	 h->setKeyValue("typename", new QoreStringNode("unknown"), 0);
    }
-   h->setKeyValue("len", new QoreNode((int64)he.h_length), 0);
+   h->setKeyValue("len", new QoreBigIntNode(he.h_length), 0);
 
    if (he.h_addr_list)
    {
       char buf[QORE_NET_ADDR_BUF_LEN];
 
-      class QoreList *l = new QoreList();
+      class QoreListNode *l = new QoreListNode();
       char **a = he.h_addr_list;
       while (*a)
       {

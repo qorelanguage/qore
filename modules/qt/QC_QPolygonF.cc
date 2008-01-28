@@ -33,7 +33,7 @@ int CID_QPOLYGONF;
 class QoreClass *QC_QPolygonF = 0;
 
 // returns 0 for OK, -1 for error
-static int qpolygonf_add_points(QoreQPolygonF *qp, QoreList *l, class ExceptionSink *xsink)
+static int qpolygonf_add_points(QoreQPolygonF *qp, QoreListNode *l, class ExceptionSink *xsink)
 {
    ListIterator li(l);
    while (li.next())
@@ -57,7 +57,7 @@ static int qpolygonf_add_points(QoreQPolygonF *qp, QoreList *l, class ExceptionS
 ////QPolygonF ( const QVector<QPointF> & points )
 //QPolygonF ( const QRectF & rectangle )
 //QPolygonF ( const QPolygon & polygon )
-static void QPOLYGONF_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QPOLYGONF_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -88,7 +88,7 @@ static void QPOLYGONF_constructor(QoreObject *self, const QoreList *params, Exce
       return;
    }
    {
-      QoreList *l = dynamic_cast<QoreList *>(p);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(p);
       if (l) {
 	 QoreQPolygonF *polygon = new QoreQPolygonF();
 	 ReferenceHolder<QoreQPolygonF> polygonHolder(polygon, xsink);
@@ -112,7 +112,7 @@ static void QPOLYGONF_copy(class QoreObject *self, class QoreObject *old, class 
 }
 
 //QRectF boundingRect () const
-static QoreNode *QPOLYGONF_boundingRect(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGONF_boundingRect(QoreObject *self, QoreQPolygonF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qrf = new QoreObject(QC_QRectF, getProgram());
    QoreQRectF *q_qrf = new QoreQRectF(qpf->boundingRect());
@@ -121,7 +121,7 @@ static QoreNode *QPOLYGONF_boundingRect(QoreObject *self, QoreQPolygonF *qpf, co
 }
 
 //bool containsPoint ( const QPointF & point, Qt::FillRule fillRule ) const
-static QoreNode *QPOLYGONF_containsPoint(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGONF_containsPoint(QoreObject *self, QoreQPolygonF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPointF *point = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
@@ -133,11 +133,11 @@ static QoreNode *QPOLYGONF_containsPoint(QoreObject *self, QoreQPolygonF *qpf, c
    ReferenceHolder<QoreQPointF> holder(point, xsink);
    p = get_param(params, 1);
    Qt::FillRule fillRule = (Qt::FillRule)(p ? p->getAsInt() : 0);
-   return new QoreNode(qpf->containsPoint(*(static_cast<QPointF *>(point)), fillRule));
+   return new QoreBoolNode(qpf->containsPoint(*(static_cast<QPointF *>(point)), fillRule));
 }
 
 //QPolygonF intersected ( const QPolygonF & r ) const
-static QoreNode *QPOLYGONF_intersected(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGONF_intersected(QoreObject *self, QoreQPolygonF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPolygonF *r = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
@@ -154,13 +154,13 @@ static QoreNode *QPOLYGONF_intersected(QoreObject *self, QoreQPolygonF *qpf, con
 }
 
 //bool isClosed () const
-static QoreNode *QPOLYGONF_isClosed(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGONF_isClosed(QoreObject *self, QoreQPolygonF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qpf->isClosed());
+   return new QoreBoolNode(qpf->isClosed());
 }
 
 //QPolygonF subtracted ( const QPolygonF & r ) const
-static QoreNode *QPOLYGONF_subtracted(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGONF_subtracted(QoreObject *self, QoreQPolygonF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPolygonF *r = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
@@ -177,7 +177,7 @@ static QoreNode *QPOLYGONF_subtracted(QoreObject *self, QoreQPolygonF *qpf, cons
 }
 
 //QPolygon toPolygon () const
-static QoreNode *QPOLYGONF_toPolygon(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGONF_toPolygon(QoreObject *self, QoreQPolygonF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPolygon, getProgram());
    QoreQPolygon *q_qp = new QoreQPolygon(qpf->toPolygon());
@@ -187,7 +187,7 @@ static QoreNode *QPOLYGONF_toPolygon(QoreObject *self, QoreQPolygonF *qpf, const
 
 //void translate ( const QPointF & offset )
 //void translate ( qreal dx, qreal dy )
-static QoreNode *QPOLYGONF_translate(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGONF_translate(QoreObject *self, QoreQPolygonF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -209,7 +209,7 @@ static QoreNode *QPOLYGONF_translate(QoreObject *self, QoreQPolygonF *qpf, const
 }
 
 //QPolygonF united ( const QPolygonF & r ) const
-static QoreNode *QPOLYGONF_united(QoreObject *self, QoreQPolygonF *qpf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QPOLYGONF_united(QoreObject *self, QoreQPolygonF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPolygonF *r = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;

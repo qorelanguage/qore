@@ -32,7 +32,7 @@
 int CID_TIBAE;
 
 // usage: new TibcoAdapter(session-name, properties, classlist, [, service, network, daemon])
-void TIBAE_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+void TIBAE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    tracein("TIBAE_constructor");
 
@@ -64,7 +64,7 @@ void TIBAE_constructor(class QoreObject *self, const QoreList *params, Exception
 	 service = str->getBuffer();
       else if (p->type == NT_INT)
       {
-	 tmp.sprintf("%lld", p->val.intval);
+	 tmp.sprintf("%lld", reinterpret_cast<QoreBigIntNode *>(p)->val);
 	 service = tmp.getBuffer();
       }
    }
@@ -127,7 +127,7 @@ void TIBAE_copy(class QoreObject *self, class QoreObject *old, class QoreApp *my
 }
 
 // usage: TIBAE_sendSubject(subject, function_name, message)
-class QoreNode *TIBAE_sendSubject(class QoreObject *self, class QoreApp *myQoreApp, const QoreList *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_sendSubject(class QoreObject *self, class QoreApp *myQoreApp, const QoreListNode *params, class ExceptionSink *xsink)
 {
    QoreStringNode *p0, *p1;
    QoreNode *p2;
@@ -159,7 +159,7 @@ class QoreNode *TIBAE_sendSubject(class QoreObject *self, class QoreApp *myQoreA
 }
 
 // usage: Tibco::sendSubjectWithSyncReply(subject, function_name, message[, timeout])
-class QoreNode *TIBAE_sendSubjectWithSyncReply(class QoreObject *self, class QoreApp *myQoreApp, const QoreList *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_sendSubjectWithSyncReply(class QoreObject *self, class QoreApp *myQoreApp, const QoreListNode *params, class ExceptionSink *xsink)
 {
    class QoreStringNode *p0, *p1;
    QoreNode *p2, *p3;
@@ -197,7 +197,7 @@ class QoreNode *TIBAE_sendSubjectWithSyncReply(class QoreObject *self, class Qor
 }
 
 // Tibco::receive(subject, [timeout])
-class QoreNode *TIBAE_receive(class QoreObject *self, class QoreApp *myQoreApp, const QoreList *params, class ExceptionSink *xsink)
+class QoreNode *TIBAE_receive(class QoreObject *self, class QoreApp *myQoreApp, const QoreListNode *params, class ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -254,16 +254,15 @@ static QoreNode* TIBAE_operationsCallWithSyncResult(QoreObject* self, QoreApp* m
    const char* client_name = "";
   
    int next_item = 3;
-   QoreNode* n = test_param(params, NT_INT, 3);
-   if (n) {
-      timeout = (unsigned)n->val.intval;
+   QoreNode* n = get_param(params, 3);
+   const QoreType *ntype = n ? n->getType() : 0;
+   if (ntype == NT_INT) {
+      timeout = (unsigned)(reinterpret_cast<const QoreBigIntNode *>(n)->val);
       ++next_item;
-   } else {
-      DateTimeNode *date = test_date_param(params, 3);
-      if (date) {
-	 timeout = (unsigned)date->getRelativeMilliseconds();
-	 ++next_item;
-      }
+   } else if (ntype == NT_DATE) {
+      const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(n);
+      timeout = (unsigned)date->getRelativeMilliseconds();
+      ++next_item;
    }
    QoreStringNode *nstr = test_string_param(params, next_item);
    if (nstr) {
@@ -332,16 +331,15 @@ static QoreNode* TIBAE_operationsAsyncCall(QoreObject* self, QoreApp* myQoreApp,
    const char* client_name = "";
 
    int next_item = 3;
-   QoreNode* n = test_param(params, NT_INT, 3);
-   if (n) {
-      timeout = (unsigned)n->val.intval;
+   QoreNode *n = get_param(params, 3);
+   const QoreType *ntype = n ? n->getType() : 0;
+   if (ntype == NT_INT) {
+      timeout = (unsigned)(reinterpret_cast<const QoreBigIntNode *>(n)->val);
       ++next_item;
-   } else {
-      DateTimeNode *date = test_date_param(params, 3);
-      if (date) {
-	 timeout = (unsigned)date->getRelativeMilliseconds();
-	 ++next_item;
-      }
+   } else if (ntype == NT_DATE) {
+      const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(n);
+      timeout = (unsigned)date->getRelativeMilliseconds();
+      ++next_item;
    }
    QoreStringNode *nstr = test_string_param(params, next_item);
    if (nstr) {

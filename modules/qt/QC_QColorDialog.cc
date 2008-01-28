@@ -29,21 +29,21 @@
 #include "qore-qt.h"
 
 //QRgb customColor ( int i )
-static QoreNode *f_QColorDialog_customColor(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_customColor(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int i = p ? p->getAsInt() : 0;
-   return new QoreNode((int64)QColorDialog::customColor(i));
+   return new QoreBigIntNode(QColorDialog::customColor(i));
 }
 
 //int customCount ()
-static QoreNode *f_QColorDialog_customCount(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_customCount(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QColorDialog::customCount());
+   return new QoreBigIntNode(QColorDialog::customCount());
 }
 
 //QColor getColor ( const QColor & initial = Qt::white, QWidget * parent = 0 )
-static QoreNode *f_QColorDialog_getColor(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_getColor(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQColor *initial = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
@@ -63,7 +63,7 @@ static QoreNode *f_QColorDialog_getColor(const QoreList *params, ExceptionSink *
 
 /*
 //QRgb getRgba ( QRgb initial = 0xffffffff, bool * ok = 0, QWidget * parent = 0 )
-static QoreNode *f_QColorDialog_getRgba(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_getRgba(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int64 initial = !is_nothing(p) ? p->getAsBigInt() : 0xffffffff;
@@ -74,12 +74,12 @@ static QoreNode *f_QColorDialog_getRgba(const QoreList *params, ExceptionSink *x
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   return new QoreNode((int64)QColorDialog::getRgba(initial, ok, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));
+   return new QoreBigIntNode(QColorDialog::getRgba(initial, ok, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));
 }
 */
 
 //void setCustomColor ( int number, QRgb color )
-static QoreNode *f_QColorDialog_setCustomColor(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_setCustomColor(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int number = p ? p->getAsInt() : 0;
@@ -90,7 +90,7 @@ static QoreNode *f_QColorDialog_setCustomColor(const QoreList *params, Exception
 }
 
 //void setStandardColor ( int number, QRgb color )
-static QoreNode *f_QColorDialog_setStandardColor(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QColorDialog_setStandardColor(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int number = p ? p->getAsInt() : 0;

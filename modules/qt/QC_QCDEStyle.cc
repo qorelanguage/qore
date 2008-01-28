@@ -28,7 +28,7 @@ int CID_QCDESTYLE;
 class QoreClass *QC_QCDEStyle = 0;
 
 //QCDEStyle ( bool useHighlightCols = false )
-static void QCDESTYLE_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QCDESTYLE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool useHighlightCols = p ? p->getAsBool() : false;

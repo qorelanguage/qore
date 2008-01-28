@@ -38,8 +38,8 @@ int qore_target_bits       = TARGET_BITS;
 char qore_target_os[]      = TARGET_OS;
 char qore_target_arch[]    = TARGET_ARCH;
 
-DLLLOCAL class QoreList *ARGV = NULL;
-DLLLOCAL class QoreList *QORE_ARGV = NULL;
+DLLLOCAL class QoreListNode *ARGV = NULL;
+DLLLOCAL class QoreListNode *QORE_ARGV = NULL;
 
 #ifndef HAVE_LOCALTIME_R
 DLLLOCAL class LockedObject lck_localtime;
@@ -202,7 +202,6 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
 	    val = 0;
 	 else
 	    val = node->getAsBigInt();
-	 // printd(5, "int arg=%lld\n", arg->val.intval);
 	 // recreate the sprintf format argument
 	 f = fmt;
 	 *(f++) = '%';
@@ -284,7 +283,7 @@ static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int 
    return (int)(param - str);
 }
 
-class QoreStringNode *q_sprintf(const QoreList *params, int field, int offset, class ExceptionSink *xsink)
+class QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, class ExceptionSink *xsink)
 {
    int i, j, l;
    QoreStringNode *p;
@@ -313,7 +312,7 @@ class QoreStringNode *q_sprintf(const QoreList *params, int field, int offset, c
    return buf;
 }
 
-class QoreStringNode *q_vsprintf(const QoreList *params, int field, int offset, class ExceptionSink *xsink)
+class QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, class ExceptionSink *xsink)
 {
    QoreStringNode *fmt;
    QoreNode *args;
@@ -322,7 +321,7 @@ class QoreStringNode *q_vsprintf(const QoreList *params, int field, int offset, 
       return new QoreStringNode();
 
    args = get_param(params, offset + 1);
-   QoreList *arg_list = dynamic_cast<QoreList *>(args);
+   QoreListNode *arg_list = dynamic_cast<QoreListNode *>(args);
 
    QoreStringNode *buf = new QoreStringNode(fmt->getEncoding());
    int j = 0;
@@ -372,7 +371,7 @@ static inline char getBase64Value(char c, class ExceptionSink *xsink)
    return -1;
 }
 
-class BinaryObject *parseBase64(const char *buf, int len, class ExceptionSink *xsink)
+class BinaryNode *parseBase64(const char *buf, int len, class ExceptionSink *xsink)
 {
    char *binbuf = (char *)malloc(sizeof(char) * (len + 3));
    int blen = 0;
@@ -432,7 +431,7 @@ class BinaryObject *parseBase64(const char *buf, int len, class ExceptionSink *x
       binbuf[blen++] = b | c;
       pos += 4;
    }
-   return new BinaryObject(binbuf, blen);
+   return new BinaryNode(binbuf, blen);
 }
 
 int get_nibble(char c, class ExceptionSink *xsink)
@@ -448,10 +447,10 @@ int get_nibble(char c, class ExceptionSink *xsink)
    return -1;
 }
 
-class BinaryObject *parseHex(const char *buf, int len, class ExceptionSink *xsink)
+class BinaryNode *parseHex(const char *buf, int len, class ExceptionSink *xsink)
 {
    if (!len)
-      return new BinaryObject();
+      return new BinaryNode();
 
    if ((len / 2) * 2 != len)
    {
@@ -481,7 +480,7 @@ class BinaryObject *parseHex(const char *buf, int len, class ExceptionSink *xsin
       buf++;
       binbuf[blen++] = b << 4 | l;
    }
-   return new BinaryObject(binbuf, blen);
+   return new BinaryNode(binbuf, blen);
 }
 
 static inline int parse_get_nibble(char c)
@@ -499,10 +498,10 @@ static inline int parse_get_nibble(char c)
 
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
-class BinaryObject *parseHex(const char *buf, int len)
+class BinaryNode *parseHex(const char *buf, int len)
 {
    if (!buf || !(*buf))
-      return new BinaryObject();
+      return new BinaryNode();
 
    char *binbuf = (char *)malloc(sizeof(char) * (len / 2));
    int blen = 0;
@@ -536,7 +535,7 @@ class BinaryObject *parseHex(const char *buf, int len)
       buf++;
       binbuf[blen++] = b << 4 | l;
    }
-   return new BinaryObject(binbuf, blen);
+   return new BinaryNode(binbuf, blen);
 }
 
 char *make_class_name(const char *str)
@@ -564,8 +563,8 @@ void print_node(FILE *fp, class QoreNode *node)
 
 void qore_setup_argv(int pos, int argc, char *argv[])
 {
-   ARGV = new QoreList();
-   QORE_ARGV = new QoreList();
+   ARGV = new QoreListNode();
+   QORE_ARGV = new QoreListNode();
    int end = argc - pos;
    for (int i = 0; i < argc; i++)
    {

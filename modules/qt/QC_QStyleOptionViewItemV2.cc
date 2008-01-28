@@ -33,7 +33,7 @@ class QoreClass *QC_QStyleOptionViewItemV2 = 0;
 //QStyleOptionViewItemV2 ()
 //QStyleOptionViewItemV2 ( const QStyleOptionViewItemV2 & other )
 //QStyleOptionViewItemV2 ( const QStyleOptionViewItem & other )
-static void QSTYLEOPTIONVIEWITEMV2_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QSTYLEOPTIONVIEWITEMV2_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {

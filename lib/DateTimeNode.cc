@@ -121,6 +121,12 @@ QoreString *DateTimeNode::getAsString(bool &del, int foff, class ExceptionSink *
    return str;
 }
 
+int DateTimeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
+{
+   getString(&str);
+   return 0;
+}
+
 bool DateTimeNode::needs_eval() const
 {
    return false;

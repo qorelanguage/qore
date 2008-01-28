@@ -148,7 +148,7 @@ class QoreHash
       DLLEXPORT class QoreNode *takeKeyValue(const class QoreString *key, class ExceptionSink *xsink);
       // "takes" the value of the key from the hash and removes the key from the hash and returns the value
       DLLEXPORT class QoreNode *takeKeyValue(const char *key);
-      DLLEXPORT class QoreList *getKeys() const;
+      DLLEXPORT class QoreListNode *getKeys() const;
       DLLEXPORT bool compareSoft(const QoreHash *h, class ExceptionSink *xsink) const;
       DLLEXPORT bool compareHard(const QoreHash *h, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink) const;
@@ -156,6 +156,11 @@ class QoreHash
       DLLEXPORT void derefAndDelete(class ExceptionSink *xsink);
       DLLEXPORT int size() const;
       DLLEXPORT bool needsEval() const;
+      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+      // the ExceptionSink is only needed for QoreObject where a method may be executed
+      // returns -1 for exception raised, 0 = OK
+      DLLEXPORT int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       DLLLOCAL void clearNeedsEval();

@@ -69,7 +69,7 @@ class QoreNode *QoreSSLCertificate::doPurposeValue(int id, int ca) const
    if (!rc)
       return boolean_false();
    
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
 X509 *QoreSSLCertificate::getData() const 
@@ -129,14 +129,14 @@ class QoreStringNode *QoreSSLCertificate::getSignatureType() const
    return ASN1_OBJECT_to_QoreStringNode(priv->cert->sig_alg->algorithm);
 }
 
-class BinaryObject *QoreSSLCertificate::getSignature() const
+class BinaryNode *QoreSSLCertificate::getSignature() const
 {
    int len = priv->cert->signature->length;
    char *buf = (char *)malloc(len);
    if (!buf)
       return NULL;
    memcpy(buf, priv->cert->signature->data, len);
-   return new BinaryObject(buf, len);
+   return new BinaryNode(buf, len);
 }
 
 class QoreStringNode *QoreSSLCertificate::getPublicKeyAlgorithm() const
@@ -144,14 +144,14 @@ class QoreStringNode *QoreSSLCertificate::getPublicKeyAlgorithm() const
    return ASN1_OBJECT_to_QoreStringNode(priv->cert->cert_info->key->algor->algorithm);
 }
 
-class BinaryObject *QoreSSLCertificate::getPublicKey() const
+class BinaryNode *QoreSSLCertificate::getPublicKey() const
 {
    int len = priv->cert->cert_info->key->public_key->length;
    char *buf = (char *)malloc(len);
    if (!buf)
       return NULL;
    memcpy(buf, priv->cert->cert_info->key->public_key->data, len);
-   return new BinaryObject(buf, len);
+   return new BinaryNode(buf, len);
 }
 
 class QoreHashNode *QoreSSLCertificate::getPurposeHash() const
@@ -219,9 +219,9 @@ QoreHashNode *QoreSSLCertificate::getInfo() const
 {
    QoreHashNode *h = new QoreHashNode();
    // get version
-   h->setKeyValue("version", new QoreNode(getVersion()), NULL);
+   h->setKeyValue("version", new QoreBigIntNode(getVersion()), NULL);
    // get serial number
-   h->setKeyValue("serialNumber", new QoreNode(getSerialNumber()), NULL);
+   h->setKeyValue("serialNumber", new QoreBigIntNode(getSerialNumber()), NULL);
    // do subject
    h->setKeyValue("subject", getSubjectHash(), NULL);
    // do issuer

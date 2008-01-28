@@ -160,8 +160,8 @@ class QoreHashNode *ModuleInfo::getHash() const
    h->setKeyValue("desc", new QoreStringNode(desc), NULL);
    h->setKeyValue("version", new QoreStringNode(version), NULL);
    h->setKeyValue("author", new QoreStringNode(author), NULL);
-   h->setKeyValue("api_major", new QoreNode((int64)api_major), NULL);
-   h->setKeyValue("api_minor", new QoreNode((int64)api_minor), NULL);
+   h->setKeyValue("api_major", new QoreBigIntNode(api_major), NULL);
+   h->setKeyValue("api_minor", new QoreBigIntNode(api_minor), NULL);
    if (url)
       h->setKeyValue("url", new QoreStringNode(url), NULL);
    return h;
@@ -575,13 +575,13 @@ void ModuleManager::cleanup()
    traceout("ModuleManager::cleanup()");
 }
 
-class QoreList *ModuleManager::getModuleList()
+class QoreListNode *ModuleManager::getModuleList()
 {
-   class QoreList *l = NULL;
+   class QoreListNode *l = NULL;
    AutoLocker al(&mutex);
    if (!map.empty())
    {
-      l = new QoreList();
+      l = new QoreListNode();
       for (module_map_t::iterator i = map.begin(); i != map.end(); i++)
 	 if (!i->second->isBuiltin())
 	    l->push(i->second->getHash());

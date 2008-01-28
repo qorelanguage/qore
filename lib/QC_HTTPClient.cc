@@ -33,7 +33,7 @@
 int CID_HTTPCLIENT;
 
 //-----------------------------------------------------------------------------
-static void HC_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void HC_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    SimpleRefHolder<QoreHTTPClient> client(new QoreHTTPClient());
    QoreHashNode *n = test_hash_param(params, 0);
@@ -49,7 +49,7 @@ static void HC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, E
    xsink->raiseException("HTTPCLIENT-COPY-ERROR", "copying HTTPClient objects is not yet supported.");
 }
 
-static class QoreNode *HC_setHTTPVersion(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_setHTTPVersion(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *p = test_string_param(params, 0);
    if (!p)
@@ -61,55 +61,55 @@ static class QoreNode *HC_setHTTPVersion(class QoreObject *self, class QoreHTTPC
    return NULL;
 }
 
-static class QoreNode *HC_getHTTPVersion(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_getHTTPVersion(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(client->getHTTPVersion());
 }
 
-static class QoreNode *HC_setSecure(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_setSecure(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreNode *n = get_param(params, 0);
    client->setSecure(n ? n->getAsBool() : false);
    return NULL;
 }
 
-static class QoreNode *HC_isSecure(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_isSecure(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(client->isSecure());
+   return new QoreBoolNode(client->isSecure());
 }
 
-static class QoreNode *HC_verifyPeerCertificate(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_verifyPeerCertificate(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *c = getSSLCVCode(client->verifyPeerCertificate());
    return c ? new QoreStringNode(c) : NULL;
 }
 
-static class QoreNode *HC_getSSLCipherName(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_getSSLCipherName(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *str = client->getSSLCipherName();
    return str ? new QoreStringNode(str) : NULL;
 }
 
-static class QoreNode *HC_getSSLCipherVersion(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_getSSLCipherVersion(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *str = client->getSSLCipherVersion();
    return str ? new QoreStringNode(str) : NULL;
 }
 
-static class QoreNode *HC_connect(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_connect(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
    return NULL;
 }
 
-static class QoreNode *HC_disconnect(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_disconnect(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->disconnect();
    return NULL;
 }
 
 // send(data, method, path, headers, [getbody])
-static class QoreNode *HC_send(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_send(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    const void *ptr = NULL;
    int size = 0;
@@ -118,15 +118,16 @@ static class QoreNode *HC_send(class QoreObject *self, class QoreHTTPClient *cli
    {
       if (p->type == NT_STRING)
       {
-	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p);
+	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
 	 assert(str);
 	 ptr = str->getBuffer();
 	 size = str->strlen();
       }
       else if (p->type == NT_BINARY)
       {
-         ptr = p->val.bin->getPtr();
-         size = p->val.bin->size();
+	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
+         ptr = b->getPtr();
+         size = b->size();
       }
       // ignore other types - no exception raised
    }
@@ -151,7 +152,7 @@ static class QoreNode *HC_send(class QoreObject *self, class QoreHTTPClient *cli
 }
 
 // get(path, headers)
-static class QoreNode *HC_get(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_get(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *pstr = test_string_param(params, 0);
    if (!pstr)
@@ -166,7 +167,7 @@ static class QoreNode *HC_get(class QoreObject *self, class QoreHTTPClient *clie
 }
 
 // head(path, headers)
-static class QoreNode *HC_head(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_head(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *pstr = test_string_param(params, 0);
    if (!pstr)
@@ -181,7 +182,7 @@ static class QoreNode *HC_head(class QoreObject *self, class QoreHTTPClient *cli
 }
 
 // post(path, data, headers)
-static class QoreNode *HC_post(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_post(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *pstr = test_string_param(params, 0);
    if (!pstr)
@@ -198,14 +199,15 @@ static class QoreNode *HC_post(class QoreObject *self, class QoreHTTPClient *cli
    {
       if (p->type == NT_STRING)
       {
-	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p);
+	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
 	 ptr = str->getBuffer();
 	 size = str->strlen();
       }
       else if (p->type == NT_BINARY)
       {
-         ptr = p->val.bin->getPtr();
-         size = p->val.bin->size();
+	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
+         ptr = b->getPtr();
+         size = b->size();
       }
       else
       {
@@ -218,18 +220,18 @@ static class QoreNode *HC_post(class QoreObject *self, class QoreHTTPClient *cli
    return client->post(path, ph, ptr, size, xsink);
 }
 
-static class QoreNode *HC_setTimeout(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_setTimeout(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->setTimeout(getMsZeroInt(get_param(params, 0)));
    return NULL;
 }
 
-static class QoreNode *HC_getTimeout(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_getTimeout(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)client->getTimeout());
+   return new QoreBigIntNode(client->getTimeout());
 }
 
-static class QoreNode *HC_setEncoding(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_setEncoding(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -243,12 +245,12 @@ static class QoreNode *HC_setEncoding(class QoreObject *self, class QoreHTTPClie
    return NULL; 
 }
 
-static class QoreNode *HC_getEncoding(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *HC_getEncoding(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(client->getEncoding()->getCode());
 }
 
-class QoreNode *f_setURL(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_setURL(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *n = test_string_param(params, 0);
    if (!n || !n->strlen())
@@ -258,12 +260,12 @@ class QoreNode *f_setURL(class QoreObject *self, class QoreHTTPClient *client, c
    return NULL;
 }
 
-class QoreNode *f_getURL(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_getURL(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    return client->getURL();
 }
 
-class QoreNode *f_setProxyURL(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_setProxyURL(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *n = test_string_param(params, 0);
    if (!n)
@@ -273,39 +275,39 @@ class QoreNode *f_setProxyURL(class QoreObject *self, class QoreHTTPClient *clie
    return NULL;
 }
 
-class QoreNode *f_getProxyURL(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_getProxyURL(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    return client->getProxyURL();
 }
 
-class QoreNode *f_clearProxyURL(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_clearProxyURL(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->clearProxyURL();
    return NULL;
 }
 
-class QoreNode *f_setProxySecure(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_setProxySecure(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreNode *n = get_param(params, 0);
    client->setProxySecure(n ? n->getAsBool() : false);
    return NULL;
 }
 
-class QoreNode *f_isProxySecure(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_isProxySecure(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(client->isProxySecure());
+   return new QoreBoolNode(client->isProxySecure());
 }
 
-class QoreNode *f_setMaxRedirects(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_setMaxRedirects(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreNode *n = get_param(params, 0);
    client->setMaxRedirects(n ? n->getAsInt() : 0);
    return NULL;
 }
 
-class QoreNode *f_getMaxRedirects(class QoreObject *self, class QoreHTTPClient *client, const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_getMaxRedirects(class QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)client->getMaxRedirects());
+   return new QoreBigIntNode(client->getMaxRedirects());
 }
 
 //-----------------------------------------------------------------------------

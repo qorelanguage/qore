@@ -37,7 +37,7 @@ class QoreClass *QC_QMovie = 0;
 //QMovie ( QObject * parent = 0 )
 //QMovie ( QIODevice * device, const QByteArray & format = QByteArray(), QObject * parent = 0 )
 //QMovie ( const QString & fileName, const QByteArray & format = QByteArray(), QObject * parent = 0 )
-static void QMOVIE_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QMOVIE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -75,7 +75,7 @@ static void QMOVIE_copy(class QoreObject *self, class QoreObject *old, class Qor
 }
 
 //QColor backgroundColor () const
-static QoreNode *QMOVIE_backgroundColor(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_backgroundColor(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qm->qobj->backgroundColor());
@@ -84,19 +84,19 @@ static QoreNode *QMOVIE_backgroundColor(QoreObject *self, QoreQMovie *qm, const 
 }
 
 //CacheMode cacheMode () const
-static QoreNode *QMOVIE_cacheMode(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_cacheMode(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qm->qobj->cacheMode());
+   return new QoreBigIntNode(qm->qobj->cacheMode());
 }
 
 //int currentFrameNumber () const
-static QoreNode *QMOVIE_currentFrameNumber(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_currentFrameNumber(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qm->qobj->currentFrameNumber());
+   return new QoreBigIntNode(qm->qobj->currentFrameNumber());
 }
 
 //QImage currentImage () const
-static QoreNode *QMOVIE_currentImage(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_currentImage(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qi = new QoreObject(QC_QImage, getProgram());
    QoreQImage *q_qi = new QoreQImage(qm->qobj->currentImage());
@@ -105,7 +105,7 @@ static QoreNode *QMOVIE_currentImage(QoreObject *self, QoreQMovie *qm, const Qor
 }
 
 //QPixmap currentPixmap () const
-static QoreNode *QMOVIE_currentPixmap(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_currentPixmap(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPixmap, getProgram());
    QoreQPixmap *q_qp = new QoreQPixmap(qm->qobj->currentPixmap());
@@ -115,20 +115,20 @@ static QoreNode *QMOVIE_currentPixmap(QoreObject *self, QoreQMovie *qm, const Qo
 
 /*
 //QIODevice * device () const
-static QoreNode *QMOVIE_device(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_device(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   ??? return new QoreNode((int64)qm->qobj->device());
+   ??? return new QoreBigIntNode(qm->qobj->device());
 }
 */
 
 //QString fileName () const
-static QoreNode *QMOVIE_fileName(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_fileName(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qm->qobj->fileName().toUtf8().data(), QCS_UTF8);
 }
 
 //QByteArray format () const
-static QoreNode *QMOVIE_format(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_format(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qm->qobj->format());
@@ -137,13 +137,13 @@ static QoreNode *QMOVIE_format(QoreObject *self, QoreQMovie *qm, const QoreList 
 }
 
 //int frameCount () const
-static QoreNode *QMOVIE_frameCount(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_frameCount(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qm->qobj->frameCount());
+   return new QoreBigIntNode(qm->qobj->frameCount());
 }
 
 //QRect frameRect () const
-static QoreNode *QMOVIE_frameRect(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_frameRect(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qm->qobj->frameRect());
@@ -152,33 +152,33 @@ static QoreNode *QMOVIE_frameRect(QoreObject *self, QoreQMovie *qm, const QoreLi
 }
 
 //bool isValid () const
-static QoreNode *QMOVIE_isValid(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_isValid(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qm->qobj->isValid());
+   return new QoreBoolNode(qm->qobj->isValid());
 }
 
 //bool jumpToFrame ( int frameNumber )
-static QoreNode *QMOVIE_jumpToFrame(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_jumpToFrame(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int frameNumber = p ? p->getAsInt() : 0;
-   return new QoreNode(qm->qobj->jumpToFrame(frameNumber));
+   return new QoreBoolNode(qm->qobj->jumpToFrame(frameNumber));
 }
 
 //int loopCount () const
-static QoreNode *QMOVIE_loopCount(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_loopCount(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qm->qobj->loopCount());
+   return new QoreBigIntNode(qm->qobj->loopCount());
 }
 
 //int nextFrameDelay () const
-static QoreNode *QMOVIE_nextFrameDelay(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_nextFrameDelay(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qm->qobj->nextFrameDelay());
+   return new QoreBigIntNode(qm->qobj->nextFrameDelay());
 }
 
 //QSize scaledSize ()
-static QoreNode *QMOVIE_scaledSize(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_scaledSize(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qm->qobj->scaledSize());
@@ -187,7 +187,7 @@ static QoreNode *QMOVIE_scaledSize(QoreObject *self, QoreQMovie *qm, const QoreL
 }
 
 //void setBackgroundColor ( const QColor & color )
-static QoreNode *QMOVIE_setBackgroundColor(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_setBackgroundColor(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
@@ -202,7 +202,7 @@ static QoreNode *QMOVIE_setBackgroundColor(QoreObject *self, QoreQMovie *qm, con
 }
 
 //void setCacheMode ( CacheMode mode )
-static QoreNode *QMOVIE_setCacheMode(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_setCacheMode(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QMovie::CacheMode mode = (QMovie::CacheMode)(p ? p->getAsInt() : 0);
@@ -212,7 +212,7 @@ static QoreNode *QMOVIE_setCacheMode(QoreObject *self, QoreQMovie *qm, const Qor
 
 /*
 //void setDevice ( QIODevice * device )
-static QoreNode *QMOVIE_setDevice(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_setDevice(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    ??? QIODevice* device = p;
@@ -222,7 +222,7 @@ static QoreNode *QMOVIE_setDevice(QoreObject *self, QoreQMovie *qm, const QoreLi
 */
 
 //void setFileName ( const QString & fileName )
-static QoreNode *QMOVIE_setFileName(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_setFileName(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QString fileName;
@@ -234,7 +234,7 @@ static QoreNode *QMOVIE_setFileName(QoreObject *self, QoreQMovie *qm, const Qore
 }
 
 //void setFormat ( const QByteArray & format )
-static QoreNode *QMOVIE_setFormat(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_setFormat(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QByteArray format;
@@ -245,7 +245,7 @@ static QoreNode *QMOVIE_setFormat(QoreObject *self, QoreQMovie *qm, const QoreLi
 }
 
 //void setScaledSize ( const QSize & size )
-static QoreNode *QMOVIE_setScaledSize(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_setScaledSize(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
@@ -260,25 +260,25 @@ static QoreNode *QMOVIE_setScaledSize(QoreObject *self, QoreQMovie *qm, const Qo
 }
 
 //int speed () const
-static QoreNode *QMOVIE_speed(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_speed(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qm->qobj->speed());
+   return new QoreBigIntNode(qm->qobj->speed());
 }
 
 //MovieState state () const
-static QoreNode *QMOVIE_state(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_state(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qm->qobj->state());
+   return new QoreBigIntNode(qm->qobj->state());
 }
 
 //bool jumpToNextFrame ()
-static QoreNode *QMOVIE_jumpToNextFrame(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_jumpToNextFrame(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qm->qobj->jumpToNextFrame());
+   return new QoreBoolNode(qm->qobj->jumpToNextFrame());
 }
 
 //void setPaused ( bool paused )
-static QoreNode *QMOVIE_setPaused(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_setPaused(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool paused = p ? p->getAsBool() : false;
@@ -287,7 +287,7 @@ static QoreNode *QMOVIE_setPaused(QoreObject *self, QoreQMovie *qm, const QoreLi
 }
 
 //void setSpeed ( int percentSpeed )
-static QoreNode *QMOVIE_setSpeed(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_setSpeed(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int percentSpeed = p ? p->getAsInt() : 0;
@@ -296,14 +296,14 @@ static QoreNode *QMOVIE_setSpeed(QoreObject *self, QoreQMovie *qm, const QoreLis
 }
 
 //void start ()
-static QoreNode *QMOVIE_start(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_start(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    qm->qobj->start();
    return 0;
 }
 
 //void stop ()
-static QoreNode *QMOVIE_stop(QoreObject *self, QoreQMovie *qm, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QMOVIE_stop(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    qm->qobj->stop();
    return 0;
@@ -351,9 +351,9 @@ QoreClass *initQMovieClass(QoreClass *qobject)
    return QC_QMovie;
 }
 
-static QoreNode *f_QMovie_supportedFormats(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QMovie_supportedFormats(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreList *ql = new QoreList();
+   QoreListNode *ql = new QoreListNode();
 
    QList<QByteArray> l = QMovie::supportedFormats();
    for (QList<QByteArray>::iterator i = l.begin(), e=l.end(); i != e; ++i)

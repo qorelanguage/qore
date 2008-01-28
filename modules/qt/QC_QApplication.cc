@@ -54,7 +54,7 @@ class QoreNode *get_qore_qapp()
    return qore_qapp;
 }
 
-static void QA_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QA_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    AutoLocker al(&qapp_lock);
    if (qore_qapp) {
@@ -72,7 +72,7 @@ static void QA_copy(class QoreObject *self, class QoreObject *old, class QoreQAp
    xsink->raiseException("QAPPLICATION-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-static class QoreNode *QA_exec(class QoreObject *self, class QoreQApplication *qa, const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *QA_exec(class QoreObject *self, class QoreQApplication *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
    qa->qobj->exec();
    return 0;
@@ -97,7 +97,7 @@ class QoreClass *initQApplicationClass(class QoreClass *qcoreapplication)
 }
 
 //QWidget * activeModalWidget ()
-static QoreNode *f_QApplication_activeModalWidget(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_activeModalWidget(const QoreListNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = QApplication::activeModalWidget();
    if (!qt_qobj)
@@ -110,7 +110,7 @@ static QoreNode *f_QApplication_activeModalWidget(const QoreList *params, Except
 }
 
 //QWidget * activePopupWidget ()
-static QoreNode *f_QApplication_activePopupWidget(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_activePopupWidget(const QoreListNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = QApplication::activePopupWidget();
    if (!qt_qobj)
@@ -123,7 +123,7 @@ static QoreNode *f_QApplication_activePopupWidget(const QoreList *params, Except
 }
 
 //QWidget * activeWindow ()
-static QoreNode *f_QApplication_activeWindow(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_activeWindow(const QoreListNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = QApplication::activeWindow();
    if (!qt_qobj)
@@ -136,7 +136,7 @@ static QoreNode *f_QApplication_activeWindow(const QoreList *params, ExceptionSi
 }
 
 //void alert ( QWidget * widget, int msec = 0 )
-static QoreNode *f_QApplication_alert(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_alert(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -152,21 +152,21 @@ static QoreNode *f_QApplication_alert(const QoreList *params, ExceptionSink *xsi
    return 0;
 }
 
-////QWidgetQoreList allWidgets ()
-//static QoreNode *f_QApplication_allWidgets(const QoreList *params, ExceptionSink *xsink)
+////QWidgetQoreListNode allWidgets ()
+//static QoreNode *f_QApplication_allWidgets(const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)QApplication::allWidgets());
+//   ??? return new QoreBigIntNode(QApplication::allWidgets());
 //}
 
 //void beep ()
-static QoreNode *f_QApplication_beep(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_beep(const QoreListNode *params, ExceptionSink *xsink)
 {
    QApplication::beep();
    return 0;
 }
 
 ////void changeOverrideCursor ( const QCursor & cursor )
-//static QoreNode *f_QApplication_changeOverrideCursor(const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *f_QApplication_changeOverrideCursor(const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QCursor cursor = p;
@@ -174,7 +174,7 @@ static QoreNode *f_QApplication_beep(const QoreList *params, ExceptionSink *xsin
 //   return 0;
 //}
 
-static QoreNode *f_QApplication_clipboard(const QoreList *params, class ExceptionSink *xsink)
+static QoreNode *f_QApplication_clipboard(const QoreListNode *params, class ExceptionSink *xsink)
 {
    static LockedObject lClipboard;
 
@@ -190,19 +190,19 @@ static QoreNode *f_QApplication_clipboard(const QoreList *params, class Exceptio
 }
 
 //int colorSpec ()
-static QoreNode *f_QApplication_colorSpec(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_colorSpec(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::colorSpec());
+   return new QoreBigIntNode(QApplication::colorSpec());
 }
 
 //int cursorFlashTime ()
-static QoreNode *f_QApplication_cursorFlashTime(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_cursorFlashTime(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::cursorFlashTime());
+   return new QoreBigIntNode(QApplication::cursorFlashTime());
 }
 
 //QDesktopWidget * desktop ()
-static QoreNode *f_QApplication_desktop(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_desktop(const QoreListNode *params, ExceptionSink *xsink)
 {
    QDesktopWidget *qt_qobj = QApplication::desktop();
    if (!qt_qobj)
@@ -220,25 +220,25 @@ static QoreNode *f_QApplication_desktop(const QoreList *params, ExceptionSink *x
 }
 
 //bool desktopSettingsAware ()
-static QoreNode *f_QApplication_desktopSettingsAware(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_desktopSettingsAware(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(QApplication::desktopSettingsAware());
+   return new QoreBoolNode(QApplication::desktopSettingsAware());
 }
 
 //int doubleClickInterval ()
-static QoreNode *f_QApplication_doubleClickInterval(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_doubleClickInterval(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::doubleClickInterval());
+   return new QoreBigIntNode(QApplication::doubleClickInterval());
 }
 
 //int exec ()
-static QoreNode *f_QApplication_exec(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_exec(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::exec());
+   return new QoreBigIntNode(QApplication::exec());
 }
 
 //QWidget * focusWidget ()
-static QoreNode *f_QApplication_focusWidget(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_focusWidget(const QoreListNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = QApplication::focusWidget();
    if (!qt_qobj)
@@ -253,7 +253,7 @@ static QoreNode *f_QApplication_focusWidget(const QoreList *params, ExceptionSin
 //QFont font ()
 //QFont font ( const QWidget * widget )
 //QFont font ( const char * className )
-static QoreNode *f_QApplication_font(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_font(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -288,7 +288,7 @@ static QoreNode *f_QApplication_font(const QoreList *params, ExceptionSink *xsin
 }
 
 //QFontMetrics fontMetrics ()
-static QoreNode *f_QApplication_fontMetrics(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_fontMetrics(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qfm = new QoreObject(QC_QFontMetrics, getProgram());
    QoreQFontMetrics *q_qfm = new QoreQFontMetrics(QApplication::fontMetrics());
@@ -297,7 +297,7 @@ static QoreNode *f_QApplication_fontMetrics(const QoreList *params, ExceptionSin
 }
 
 //QSize globalStrut ()
-static QoreNode *f_QApplication_globalStrut(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_globalStrut(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(QApplication::globalStrut());
@@ -306,39 +306,39 @@ static QoreNode *f_QApplication_globalStrut(const QoreList *params, ExceptionSin
 }
 
 //bool isEffectEnabled ( Qt::UIEffect effect )
-static QoreNode *f_QApplication_isEffectEnabled(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_isEffectEnabled(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::UIEffect effect = (Qt::UIEffect)(p ? p->getAsInt() : 0);
-   return new QoreNode(QApplication::isEffectEnabled(effect));
+   return new QoreBoolNode(QApplication::isEffectEnabled(effect));
 }
 
 //bool isLeftToRight ()
-static QoreNode *f_QApplication_isLeftToRight(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_isLeftToRight(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(QApplication::isLeftToRight());
+   return new QoreBoolNode(QApplication::isLeftToRight());
 }
 
 //bool isRightToLeft ()
-static QoreNode *f_QApplication_isRightToLeft(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_isRightToLeft(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(QApplication::isRightToLeft());
+   return new QoreBoolNode(QApplication::isRightToLeft());
 }
 
 //Qt::LayoutDirection keyboardInputDirection ()
-static QoreNode *f_QApplication_keyboardInputDirection(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_keyboardInputDirection(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::keyboardInputDirection());
+   return new QoreBigIntNode(QApplication::keyboardInputDirection());
 }
 
 //int keyboardInputInterval ()
-static QoreNode *f_QApplication_keyboardInputInterval(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_keyboardInputInterval(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::keyboardInputInterval());
+   return new QoreBigIntNode(QApplication::keyboardInputInterval());
 }
 
 //QLocale keyboardInputLocale ()
-static QoreNode *f_QApplication_keyboardInputLocale(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_keyboardInputLocale(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    QoreQLocale *q_ql = new QoreQLocale(QApplication::keyboardInputLocale());
@@ -347,41 +347,41 @@ static QoreNode *f_QApplication_keyboardInputLocale(const QoreList *params, Exce
 }
 
 //Qt::KeyboardModifiers keyboardModifiers ()
-static QoreNode *f_QApplication_keyboardModifiers(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_keyboardModifiers(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::keyboardModifiers());
+   return new QoreBigIntNode(QApplication::keyboardModifiers());
 }
 
 #ifdef QT_KEYPAD_NAVIGATION
 //bool keypadNavigationEnabled ()
-static QoreNode *f_QApplication_keypadNavigationEnabled(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_keypadNavigationEnabled(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(QApplication::keypadNavigationEnabled());
+   return new QoreBoolNode(QApplication::keypadNavigationEnabled());
 }
 #endif
 
 //Qt::LayoutDirection layoutDirection ()
-static QoreNode *f_QApplication_layoutDirection(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_layoutDirection(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::layoutDirection());
+   return new QoreBigIntNode(QApplication::layoutDirection());
 }
 
 //Qt::MouseButtons mouseButtons ()
-static QoreNode *f_QApplication_mouseButtons(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_mouseButtons(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::mouseButtons());
+   return new QoreBigIntNode(QApplication::mouseButtons());
 }
 
 ////QCursor * overrideCursor ()
-//static QoreNode *f_QApplication_overrideCursor(const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *f_QApplication_overrideCursor(const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)QApplication::overrideCursor());
+//   ??? return new QoreBigIntNode(QApplication::overrideCursor());
 //}
 
 //QPalette palette ()
 //QPalette palette ( const QWidget * widget )
 //QPalette palette ( const char * className )
-static QoreNode *f_QApplication_palette(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_palette(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -416,20 +416,20 @@ static QoreNode *f_QApplication_palette(const QoreList *params, ExceptionSink *x
 }
 
 //bool quitOnLastWindowClosed ()
-static QoreNode *f_QApplication_quitOnLastWindowClosed(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_quitOnLastWindowClosed(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(QApplication::quitOnLastWindowClosed());
+   return new QoreBoolNode(QApplication::quitOnLastWindowClosed());
 }
 
 ////QDecoration & qwsDecoration ()
-//static QoreNode *f_QApplication_qwsDecoration(const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *f_QApplication_qwsDecoration(const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)QApplication::qwsDecoration());
+//   ??? return new QoreBigIntNode(QApplication::qwsDecoration());
 //}
 
 ////void qwsSetDecoration ( QDecoration * decoration )
 ////QDecoration * qwsSetDecoration ( const QString & decoration )
-//static QoreNode *f_QApplication_qwsSetDecoration(const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *f_QApplication_qwsSetDecoration(const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QDecoration* decoration = p;
@@ -438,14 +438,14 @@ static QoreNode *f_QApplication_quitOnLastWindowClosed(const QoreList *params, E
 //}
 
 //void restoreOverrideCursor ()
-static QoreNode *f_QApplication_restoreOverrideCursor(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_restoreOverrideCursor(const QoreListNode *params, ExceptionSink *xsink)
 {
    QApplication::restoreOverrideCursor();
    return 0;
 }
 
 //void setActiveWindow ( QWidget * active )
-static QoreNode *f_QApplication_setActiveWindow(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setActiveWindow(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *active = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -460,7 +460,7 @@ static QoreNode *f_QApplication_setActiveWindow(const QoreList *params, Exceptio
 }
 
 //void setColorSpec ( int spec )
-static QoreNode *f_QApplication_setColorSpec(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setColorSpec(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int spec = p ? p->getAsInt() : 0;
@@ -469,7 +469,7 @@ static QoreNode *f_QApplication_setColorSpec(const QoreList *params, ExceptionSi
 }
 
 //void setCursorFlashTime ( int )
-static QoreNode *f_QApplication_setCursorFlashTime(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setCursorFlashTime(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -478,7 +478,7 @@ static QoreNode *f_QApplication_setCursorFlashTime(const QoreList *params, Excep
 }
 
 //void setDesktopSettingsAware ( bool on )
-static QoreNode *f_QApplication_setDesktopSettingsAware(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setDesktopSettingsAware(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
@@ -487,7 +487,7 @@ static QoreNode *f_QApplication_setDesktopSettingsAware(const QoreList *params, 
 }
 
 //void setDoubleClickInterval ( int )
-static QoreNode *f_QApplication_setDoubleClickInterval(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setDoubleClickInterval(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -496,7 +496,7 @@ static QoreNode *f_QApplication_setDoubleClickInterval(const QoreList *params, E
 }
 
 //void setEffectEnabled ( Qt::UIEffect effect, bool enable = true )
-static QoreNode *f_QApplication_setEffectEnabled(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setEffectEnabled(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::UIEffect effect = (Qt::UIEffect)(p ? p->getAsInt() : 0);
@@ -507,7 +507,7 @@ static QoreNode *f_QApplication_setEffectEnabled(const QoreList *params, Excepti
 }
 
 //void setFont ( const QFont & font, const char * className = 0 )
-static QoreNode *f_QApplication_setFont(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setFont(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
@@ -524,7 +524,7 @@ static QoreNode *f_QApplication_setFont(const QoreList *params, ExceptionSink *x
 }
 
 ////void setGlobalStrut ( const QSize & )
-//static QoreNode *f_QApplication_setGlobalStrut(const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *f_QApplication_setGlobalStrut(const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? const^QSize const^qsize = p;
@@ -533,7 +533,7 @@ static QoreNode *f_QApplication_setFont(const QoreList *params, ExceptionSink *x
 //}
 
 //void setKeyboardInputInterval ( int )
-static QoreNode *f_QApplication_setKeyboardInputInterval(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setKeyboardInputInterval(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -543,7 +543,7 @@ static QoreNode *f_QApplication_setKeyboardInputInterval(const QoreList *params,
 
 #ifdef QT_KEYPAD_NAVIGATION
 //void setKeypadNavigationEnabled ( bool enable )
-static QoreNode *f_QApplication_setKeypadNavigationEnabled(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setKeypadNavigationEnabled(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
@@ -553,7 +553,7 @@ static QoreNode *f_QApplication_setKeypadNavigationEnabled(const QoreList *param
 #endif
 
 //void setLayoutDirection ( Qt::LayoutDirection direction )
-static QoreNode *f_QApplication_setLayoutDirection(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setLayoutDirection(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::LayoutDirection direction = (Qt::LayoutDirection)(p ? p->getAsInt() : 0);
@@ -562,7 +562,7 @@ static QoreNode *f_QApplication_setLayoutDirection(const QoreList *params, Excep
 }
 
 ////void setOverrideCursor ( const QCursor & cursor )
-//static QoreNode *f_QApplication_setOverrideCursor(const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *f_QApplication_setOverrideCursor(const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? QCursor cursor = p;
@@ -571,7 +571,7 @@ static QoreNode *f_QApplication_setLayoutDirection(const QoreList *params, Excep
 //}
 
 //void setPalette ( const QPalette & palette, const char * className = 0 )
-static QoreNode *f_QApplication_setPalette(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setPalette(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
@@ -588,7 +588,7 @@ static QoreNode *f_QApplication_setPalette(const QoreList *params, ExceptionSink
 }
 
 //void setQuitOnLastWindowClosed ( bool quit )
-static QoreNode *f_QApplication_setQuitOnLastWindowClosed(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setQuitOnLastWindowClosed(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool quit = p ? p->getAsBool() : false;
@@ -597,7 +597,7 @@ static QoreNode *f_QApplication_setQuitOnLastWindowClosed(const QoreList *params
 }
 
 //void setStartDragDistance ( int l )
-static QoreNode *f_QApplication_setStartDragDistance(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setStartDragDistance(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int l = p ? p->getAsInt() : 0;
@@ -606,7 +606,7 @@ static QoreNode *f_QApplication_setStartDragDistance(const QoreList *params, Exc
 }
 
 //void setStartDragTime ( int ms )
-static QoreNode *f_QApplication_setStartDragTime(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setStartDragTime(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int ms = p ? p->getAsInt() : 0;
@@ -616,7 +616,7 @@ static QoreNode *f_QApplication_setStartDragTime(const QoreList *params, Excepti
 
 //void setStyle ( QStyle * style )
 //QStyle * setStyle ( const QString & style )
-static QoreNode *f_QApplication_setStyle(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setStyle(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -637,7 +637,7 @@ static QoreNode *f_QApplication_setStyle(const QoreList *params, ExceptionSink *
 }
 
 //void setWheelScrollLines ( int )
-static QoreNode *f_QApplication_setWheelScrollLines(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setWheelScrollLines(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -646,7 +646,7 @@ static QoreNode *f_QApplication_setWheelScrollLines(const QoreList *params, Exce
 }
 
 //void setWindowIcon ( const QIcon & icon )
-static QoreNode *f_QApplication_setWindowIcon(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_setWindowIcon(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
@@ -661,19 +661,19 @@ static QoreNode *f_QApplication_setWindowIcon(const QoreList *params, ExceptionS
 }
 
 //int startDragDistance ()
-static QoreNode *f_QApplication_startDragDistance(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_startDragDistance(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::startDragDistance());
+   return new QoreBigIntNode(QApplication::startDragDistance());
 }
 
 //int startDragTime ()
-static QoreNode *f_QApplication_startDragTime(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_startDragTime(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::startDragTime());
+   return new QoreBigIntNode(QApplication::startDragTime());
 }
 
 //QStyle * style ()
-static QoreNode *f_QApplication_style(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_style(const QoreListNode *params, ExceptionSink *xsink)
 {
    QStyle *qt_qobj = QApplication::style();
    if (!qt_qobj)
@@ -692,7 +692,7 @@ static QoreNode *f_QApplication_style(const QoreList *params, ExceptionSink *xsi
 }
 
 //void syncX ()
-static QoreNode *f_QApplication_syncX(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_syncX(const QoreListNode *params, ExceptionSink *xsink)
 {
    QApplication::syncX();
    return 0;
@@ -700,7 +700,7 @@ static QoreNode *f_QApplication_syncX(const QoreList *params, ExceptionSink *xsi
 
 //QWidget * topLevelAt ( const QPoint & point )
 //QWidget * topLevelAt ( int x, int y )
-static QoreNode *f_QApplication_topLevelAt(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_topLevelAt(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -733,27 +733,27 @@ static QoreNode *f_QApplication_topLevelAt(const QoreList *params, ExceptionSink
    return rv_obj;
 }
 
-////QWidgetQoreList topLevelWidgets ()
-//static QoreNode *f_QApplication_topLevelWidgets(const QoreList *params, ExceptionSink *xsink)
+////QWidgetQoreListNode topLevelWidgets ()
+//static QoreNode *f_QApplication_topLevelWidgets(const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)QApplication::topLevelWidgets());
+//   ??? return new QoreBigIntNode(QApplication::topLevelWidgets());
 //}
 
 ////Type type ()
-//static QoreNode *f_QApplication_type(const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *f_QApplication_type(const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)QApplication::type());
+//   ??? return new QoreBigIntNode(QApplication::type());
 //}
 
 //int wheelScrollLines ()
-static QoreNode *f_QApplication_wheelScrollLines(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_wheelScrollLines(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)QApplication::wheelScrollLines());
+   return new QoreBigIntNode(QApplication::wheelScrollLines());
 }
 
 //QWidget * widgetAt ( const QPoint & point )
 //QWidget * widgetAt ( int x, int y )
-static QoreNode *f_QApplication_widgetAt(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_widgetAt(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -787,7 +787,7 @@ static QoreNode *f_QApplication_widgetAt(const QoreList *params, ExceptionSink *
 }
 
 //QIcon windowIcon ()
-static QoreNode *f_QApplication_windowIcon(const QoreList *params, ExceptionSink *xsink)
+static QoreNode *f_QApplication_windowIcon(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(QApplication::windowIcon());

@@ -28,7 +28,7 @@
 
 int CID_QFRAME;
 
-static void QFRAME_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QFRAME_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQFrame *qw;
    QoreNode *p = test_param(params, NT_OBJECT, 0);
@@ -53,7 +53,7 @@ static void QFRAME_copy(class QoreObject *self, class QoreObject *old, class Qor
 }
 
 //QRect frameRect () const
-static QoreNode *QFRAME_frameRect(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_frameRect(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQRect *q_qr = new QoreQRect(qf->getQFrame()->frameRect());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
@@ -62,43 +62,43 @@ static QoreNode *QFRAME_frameRect(QoreObject *self, QoreAbstractQFrame *qf, cons
 }
 
 //Shadow frameShadow () const
-static QoreNode *QFRAME_frameShadow(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_frameShadow(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qf->getQFrame()->frameShadow());
+   return new QoreBigIntNode(qf->getQFrame()->frameShadow());
 }
 
 //Shape frameShape () const
-static QoreNode *QFRAME_frameShape(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_frameShape(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qf->getQFrame()->frameShape());
+   return new QoreBigIntNode(qf->getQFrame()->frameShape());
 }
 
 //int frameStyle () const
-static QoreNode *QFRAME_frameStyle(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_frameStyle(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qf->getQFrame()->frameStyle());
+   return new QoreBigIntNode(qf->getQFrame()->frameStyle());
 }
 
 //int frameWidth () const
-static QoreNode *QFRAME_frameWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_frameWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qf->getQFrame()->frameWidth());
+   return new QoreBigIntNode(qf->getQFrame()->frameWidth());
 }
 
 //int lineWidth () const
-static QoreNode *QFRAME_lineWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_lineWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qf->getQFrame()->lineWidth());
+   return new QoreBigIntNode(qf->getQFrame()->lineWidth());
 }
 
 //int midLineWidth () const
-static QoreNode *QFRAME_midLineWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_midLineWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qf->getQFrame()->midLineWidth());
+   return new QoreBigIntNode(qf->getQFrame()->midLineWidth());
 }
 
 //void setFrameRect ( const QRect & )
-static QoreNode *QFRAME_setFrameRect(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_setFrameRect(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQRect *qrect = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
@@ -113,7 +113,7 @@ static QoreNode *QFRAME_setFrameRect(QoreObject *self, QoreAbstractQFrame *qf, c
 }
 
 //void setFrameShadow ( Shadow )
-static QoreNode *QFRAME_setFrameShadow(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_setFrameShadow(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QFrame::Shadow shadow = (QFrame::Shadow)(p ? p->getAsInt() : 0);
@@ -122,7 +122,7 @@ static QoreNode *QFRAME_setFrameShadow(QoreObject *self, QoreAbstractQFrame *qf,
 }
 
 //void setFrameShape ( Shape )
-static QoreNode *QFRAME_setFrameShape(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_setFrameShape(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QFrame::Shape shape = (QFrame::Shape)(p ? p->getAsInt() : 0);
@@ -131,7 +131,7 @@ static QoreNode *QFRAME_setFrameShape(QoreObject *self, QoreAbstractQFrame *qf, 
 }
 
 //void setFrameStyle ( int style )
-static QoreNode *QFRAME_setFrameStyle(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_setFrameStyle(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int style = p ? p->getAsInt() : 0;
@@ -140,7 +140,7 @@ static QoreNode *QFRAME_setFrameStyle(QoreObject *self, QoreAbstractQFrame *qf, 
 }
 
 //void setLineWidth ( int )
-static QoreNode *QFRAME_setLineWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_setLineWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
@@ -149,7 +149,7 @@ static QoreNode *QFRAME_setLineWidth(QoreObject *self, QoreAbstractQFrame *qf, c
 }
 
 //void setMidLineWidth ( int )
-static QoreNode *QFRAME_setMidLineWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QFRAME_setMidLineWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;

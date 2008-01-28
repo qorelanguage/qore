@@ -30,7 +30,7 @@ int CID_QINPUTEVENT;
 
 class QoreClass *QC_QInputEvent = 0;
 
-static void QINPUTEVENT_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QINPUTEVENT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    xsink->raiseException("QINPUTEVENT-CONSTRUCTOR-ERROR", "QInputEvent is an abstract base class");
 }
@@ -41,9 +41,9 @@ static void QINPUTEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //Qt::KeyboardModifiers modifiers () const
-static QoreNode *QINPUTEVENT_modifiers(QoreObject *self, QoreQInputEvent *qie, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QINPUTEVENT_modifiers(QoreObject *self, QoreQInputEvent *qie, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qie->modifiers());
+   return new QoreBigIntNode(qie->modifiers());
 }
 
 class QoreClass *initQInputEventClass(class QoreClass *qevent)

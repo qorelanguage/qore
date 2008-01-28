@@ -23,8 +23,8 @@ class T {
 	    return;
 	 }
 	 
-	 class QoreList *args = new QoreList();
-	 args->push(new QoreNode((int64)r));
+	 class QoreListNode *args = new QoreListNode();
+	 args->push(new QoreBigIntNode(r));
 
 	 dispatch_event(qore_obj, m_done, args);
       }

@@ -32,7 +32,7 @@ int CID_QDROPEVENT;
 class QoreClass *QC_QDropEvent = 0;
 
 //QDropEvent ( const QPoint & pos, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Type type = Drop )
-static void QDROPEVENT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QDROPEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -68,26 +68,26 @@ static void QDROPEVENT_copy(class QoreObject *self, class QoreObject *old, class
 }
 
 //void acceptProposedAction ()
-static QoreNode *QDROPEVENT_acceptProposedAction(QoreObject *self, QoreQDropEvent *qde, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_acceptProposedAction(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
    qde->acceptProposedAction();
    return 0;
 }
 
 //Qt::DropAction dropAction () const
-static QoreNode *QDROPEVENT_dropAction(QoreObject *self, QoreQDropEvent *qde, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_dropAction(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qde->dropAction());
+   return new QoreBigIntNode(qde->dropAction());
 }
 
 //Qt::KeyboardModifiers keyboardModifiers () const
-static QoreNode *QDROPEVENT_keyboardModifiers(QoreObject *self, QoreQDropEvent *qde, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_keyboardModifiers(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qde->keyboardModifiers());
+   return new QoreBigIntNode(qde->keyboardModifiers());
 }
 
 //const QMimeData * mimeData () const
-static QoreNode *QDROPEVENT_mimeData(QoreObject *self, QoreQDropEvent *qde, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_mimeData(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
    const QMimeData *qt_qobj = qde->mimeData();
    if (!qt_qobj)
@@ -100,13 +100,13 @@ static QoreNode *QDROPEVENT_mimeData(QoreObject *self, QoreQDropEvent *qde, cons
 }
 
 //Qt::MouseButtons mouseButtons () const
-static QoreNode *QDROPEVENT_mouseButtons(QoreObject *self, QoreQDropEvent *qde, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_mouseButtons(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qde->mouseButtons());
+   return new QoreBigIntNode(qde->mouseButtons());
 }
 
 //const QPoint & pos () const
-static QoreNode *QDROPEVENT_pos(QoreObject *self, QoreQDropEvent *qde, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_pos(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qde->pos());
@@ -115,19 +115,19 @@ static QoreNode *QDROPEVENT_pos(QoreObject *self, QoreQDropEvent *qde, const Qor
 }
 
 //Qt::DropActions possibleActions () const
-static QoreNode *QDROPEVENT_possibleActions(QoreObject *self, QoreQDropEvent *qde, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_possibleActions(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qde->possibleActions());
+   return new QoreBigIntNode(qde->possibleActions());
 }
 
 //Qt::DropAction proposedAction () const
-static QoreNode *QDROPEVENT_proposedAction(QoreObject *self, QoreQDropEvent *qde, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_proposedAction(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qde->proposedAction());
+   return new QoreBigIntNode(qde->proposedAction());
 }
 
 //void setDropAction ( Qt::DropAction action )
-static QoreNode *QDROPEVENT_setDropAction(QoreObject *self, QoreQDropEvent *qde, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_setDropAction(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    Qt::DropAction action = (Qt::DropAction)(p ? p->getAsInt() : 0);
@@ -136,7 +136,7 @@ static QoreNode *QDROPEVENT_setDropAction(QoreObject *self, QoreQDropEvent *qde,
 }
 
 //QWidget * source () const
-static QoreNode *QDROPEVENT_source(QoreObject *self, QoreQDropEvent *qde, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDROPEVENT_source(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = qde->source();
    if (!qt_qobj)

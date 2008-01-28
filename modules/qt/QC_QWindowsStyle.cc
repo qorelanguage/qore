@@ -32,7 +32,7 @@ int CID_QWINDOWSSTYLE;
 class QoreClass *QC_QWindowsStyle = 0;
 
 //QWindowsStyle ()
-static void QWINDOWSSTYLE_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QWINDOWSSTYLE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QWINDOWSSTYLE, new QoreQWindowsStyle(self));
    return;
@@ -44,7 +44,7 @@ static void QWINDOWSSTYLE_copy(class QoreObject *self, class QoreObject *old, cl
 }
 
 //virtual void drawComplexControl ( ComplexControl control, const QStyleOptionComplex * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
-static QoreNode *QWINDOWSSTYLE_drawComplexControl(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QWINDOWSSTYLE_drawComplexControl(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWindowsStyle::ComplexControl control = (QWindowsStyle::ComplexControl)(p ? p->getAsInt() : 0);
@@ -74,7 +74,7 @@ static QoreNode *QWINDOWSSTYLE_drawComplexControl(QoreObject *self, QoreAbstract
 }
 
 //virtual void drawControl ( ControlElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
-static QoreNode *QWINDOWSSTYLE_drawControl(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QWINDOWSSTYLE_drawControl(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWindowsStyle::ControlElement element = (QWindowsStyle::ControlElement)(p ? p->getAsInt() : 0);
@@ -104,7 +104,7 @@ static QoreNode *QWINDOWSSTYLE_drawControl(QoreObject *self, QoreAbstractQWindow
 }
 
 //virtual void drawPrimitive ( PrimitiveElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
-static QoreNode *QWINDOWSSTYLE_drawPrimitive(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QWINDOWSSTYLE_drawPrimitive(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWindowsStyle::PrimitiveElement element = (QWindowsStyle::PrimitiveElement)(p ? p->getAsInt() : 0);
@@ -134,7 +134,7 @@ static QoreNode *QWINDOWSSTYLE_drawPrimitive(QoreObject *self, QoreAbstractQWind
 }
 
 //virtual QPixmap generatedIconPixmap ( QIcon::Mode iconMode, const QPixmap & pixmap, const QStyleOption * option ) const = 0
-static QoreNode *QWINDOWSSTYLE_generatedIconPixmap(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QWINDOWSSTYLE_generatedIconPixmap(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QIcon::Mode iconMode = (QIcon::Mode)(p ? p->getAsInt() : 0);
@@ -161,7 +161,7 @@ static QoreNode *QWINDOWSSTYLE_generatedIconPixmap(QoreObject *self, QoreAbstrac
 }
 
 //virtual SubControl hitTestComplexControl ( ComplexControl control, const QStyleOptionComplex * option, const QPoint & position, const QWidget * widget = 0 ) const = 0
-static QoreNode *QWINDOWSSTYLE_hitTestComplexControl(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QWINDOWSSTYLE_hitTestComplexControl(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWindowsStyle::ComplexControl control = (QWindowsStyle::ComplexControl)(p ? p->getAsInt() : 0);
@@ -186,11 +186,11 @@ static QoreNode *QWINDOWSSTYLE_hitTestComplexControl(QoreObject *self, QoreAbstr
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   return new QoreNode((int64)qws->hitTestComplexControl(control, static_cast<QStyleOptionComplex *>(option), *(static_cast<QPoint *>(position)), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
+   return new QoreBigIntNode(qws->hitTestComplexControl(control, static_cast<QStyleOptionComplex *>(option), *(static_cast<QPoint *>(position)), widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
 }
 
 //virtual int pixelMetric ( PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) const = 0
-static QoreNode *QWINDOWSSTYLE_pixelMetric(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QWINDOWSSTYLE_pixelMetric(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWindowsStyle::PixelMetric metric = (QWindowsStyle::PixelMetric)(p ? p->getAsInt() : 0);
@@ -204,11 +204,11 @@ static QoreNode *QWINDOWSSTYLE_pixelMetric(QoreObject *self, QoreAbstractQWindow
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   return new QoreNode((int64)qws->pixelMetric(metric, option ? static_cast<QStyleOption *>(option) : 0, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
+   return new QoreBigIntNode(qws->pixelMetric(metric, option ? static_cast<QStyleOption *>(option) : 0, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
 }
 
 //virtual QSize sizeFromContents ( ContentsType type, const QStyleOption * option, const QSize & contentsSize, const QWidget * widget = 0 ) const = 0
-static QoreNode *QWINDOWSSTYLE_sizeFromContents(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QWINDOWSSTYLE_sizeFromContents(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWindowsStyle::ContentsType type = (QWindowsStyle::ContentsType)(p ? p->getAsInt() : 0);
@@ -240,7 +240,7 @@ static QoreNode *QWINDOWSSTYLE_sizeFromContents(QoreObject *self, QoreAbstractQW
 }
 
 //virtual int styleHint ( StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0, QStyleHintReturn * returnData = 0 ) const = 0
-static QoreNode *QWINDOWSSTYLE_styleHint(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QWINDOWSSTYLE_styleHint(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWindowsStyle::StyleHint hint = (QWindowsStyle::StyleHint)(p ? p->getAsInt() : 0);
@@ -256,11 +256,11 @@ static QoreNode *QWINDOWSSTYLE_styleHint(QoreObject *self, QoreAbstractQWindowsS
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
 //   o = test_object_param(params, 3);
 //   ??? QStyleHintReturn* returnData = p;
-   return new QoreNode((int64)qws->styleHint(hint, option ? static_cast<QStyleOption *>(option) : 0, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
+   return new QoreBigIntNode(qws->styleHint(hint, option ? static_cast<QStyleOption *>(option) : 0, widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
 }
 
 //virtual QRect subControlRect ( ComplexControl control, const QStyleOptionComplex * option, SubControl subControl, const QWidget * widget = 0 ) const = 0
-static QoreNode *QWINDOWSSTYLE_subControlRect(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QWINDOWSSTYLE_subControlRect(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWindowsStyle::ComplexControl control = (QWindowsStyle::ComplexControl)(p ? p->getAsInt() : 0);
@@ -286,7 +286,7 @@ static QoreNode *QWINDOWSSTYLE_subControlRect(QoreObject *self, QoreAbstractQWin
 }
 
 //virtual QRect subElementRect ( SubElement element, const QStyleOption * option, const QWidget * widget = 0 ) const = 0
-static QoreNode *QWINDOWSSTYLE_subElementRect(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QWINDOWSSTYLE_subElementRect(QoreObject *self, QoreAbstractQWindowsStyle *qws, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QWindowsStyle::SubElement element = (QWindowsStyle::SubElement)(p ? p->getAsInt() : 0);

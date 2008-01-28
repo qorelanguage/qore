@@ -29,7 +29,7 @@ int CID_QSIZE;
 class QoreClass *QC_QSize = 0;
 
 
-static void QSIZE_constructor(class QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QSIZE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQSize *qr;
 
@@ -53,7 +53,7 @@ static void QSIZE_copy(class QoreObject *self, class QoreObject *old, class Qore
 }
 
 //QSize boundedTo ( const QSize & otherSize ) const
-static QoreNode *QSIZE_boundedTo(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_boundedTo(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQSize *otherSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
@@ -70,7 +70,7 @@ static QoreNode *QSIZE_boundedTo(QoreObject *self, QoreQSize *qs, const QoreList
 }
 
 //QSize expandedTo ( const QSize & otherSize ) const
-static QoreNode *QSIZE_expandedTo(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_expandedTo(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQSize *otherSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
@@ -87,44 +87,44 @@ static QoreNode *QSIZE_expandedTo(QoreObject *self, QoreQSize *qs, const QoreLis
 }
 
 //int height () const
-static QoreNode *QSIZE_height(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_height(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qs->height());
+   return new QoreBigIntNode(qs->height());
 }
 
 //bool isEmpty () const
-static QoreNode *QSIZE_isEmpty(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_isEmpty(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qs->isEmpty());
+   return new QoreBoolNode(qs->isEmpty());
 }
 
 //bool isNull () const
-static QoreNode *QSIZE_isNull(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_isNull(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qs->isNull());
+   return new QoreBoolNode(qs->isNull());
 }
 
 //bool isValid () const
-static QoreNode *QSIZE_isValid(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_isValid(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qs->isValid());
+   return new QoreBoolNode(qs->isValid());
 }
 
 //int & rheight ()
-//static QoreNode *QSIZE_rheight(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QSIZE_rheight(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)qs->rheight());
+//   ??? return new QoreBigIntNode(qs->rheight());
 //}
 
 //int & rwidth ()
-//static QoreNode *QSIZE_rwidth(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QSIZE_rwidth(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   ??? return new QoreNode((int64)qs->rwidth());
+//   ??? return new QoreBigIntNode(qs->rwidth());
 //}
 
 //void scale ( int width, int height, Qt::AspectRatioMode mode )
 //void scale ( const QSize & size, Qt::AspectRatioMode mode )
-static QoreNode *QSIZE_scale(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_scale(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -150,7 +150,7 @@ static QoreNode *QSIZE_scale(QoreObject *self, QoreQSize *qs, const QoreList *pa
 }
 
 //void setHeight ( int height )
-static QoreNode *QSIZE_setHeight(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_setHeight(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int height = p ? p->getAsInt() : 0;
@@ -159,7 +159,7 @@ static QoreNode *QSIZE_setHeight(QoreObject *self, QoreQSize *qs, const QoreList
 }
 
 //void setWidth ( int width )
-static QoreNode *QSIZE_setWidth(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_setWidth(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
@@ -168,16 +168,16 @@ static QoreNode *QSIZE_setWidth(QoreObject *self, QoreQSize *qs, const QoreList 
 }
 
 //void transpose ()
-static QoreNode *QSIZE_transpose(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_transpose(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    qs->transpose();
    return 0;
 }
 
 //int width () const
-static QoreNode *QSIZE_width(QoreObject *self, QoreQSize *qs, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QSIZE_width(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qs->width());
+   return new QoreBigIntNode(qs->width());
 }
 
 class QoreClass *initQSizeClass()

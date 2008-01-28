@@ -31,7 +31,7 @@ int CID_QBASICTIMER;
 class QoreClass *QC_QBasicTimer = 0;
 
 //QBasicTimer ()
-static void QBASICTIMER_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QBASICTIMER_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QBASICTIMER, new QoreQBasicTimer());
    return;
@@ -43,13 +43,13 @@ static void QBASICTIMER_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //bool isActive () const
-static QoreNode *QBASICTIMER_isActive(QoreObject *self, QoreQBasicTimer *qbt, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QBASICTIMER_isActive(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qbt->isActive());
+   return new QoreBoolNode(qbt->isActive());
 }
 
 //void start ( int msec, QObject * object )
-static QoreNode *QBASICTIMER_start(QoreObject *self, QoreQBasicTimer *qbt, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QBASICTIMER_start(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int msec = p ? p->getAsInt() : 0;
@@ -66,16 +66,16 @@ static QoreNode *QBASICTIMER_start(QoreObject *self, QoreQBasicTimer *qbt, const
 }
 
 //void stop ()
-static QoreNode *QBASICTIMER_stop(QoreObject *self, QoreQBasicTimer *qbt, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QBASICTIMER_stop(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
 {
    qbt->stop();
    return 0;
 }
 
 //int timerId () const
-static QoreNode *QBASICTIMER_timerId(QoreObject *self, QoreQBasicTimer *qbt, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QBASICTIMER_timerId(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qbt->timerId());
+   return new QoreBigIntNode(qbt->timerId());
 }
 
 QoreClass *initQBasicTimerClass()

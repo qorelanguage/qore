@@ -235,7 +235,7 @@ class QoreHashNode *QoreURL::getHash()
       priv->host = NULL;
    }
    if (priv->port)
-      h->setKeyValue("port", new QoreNode((int64)priv->port), NULL);
+      h->setKeyValue("port", new QoreBigIntNode(priv->port), NULL);
    
    return h;
 }

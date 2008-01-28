@@ -715,7 +715,7 @@ void popCall(class ExceptionSink *xsink)
    thread_list[gettid()].callStack->pop(xsink);
 }
 
-class QoreList *getCallStackList()
+class QoreListNode *getCallStackList()
 {
    return thread_list[gettid()].callStack->getCallStack();
 }
@@ -1043,7 +1043,7 @@ static class QoreNode *op_background(class QoreNode *left, class QoreNode *right
 
    printd(5, "create_thread() created thread with TID %d\n", ptid);
    if (ref_rv)
-      return new QoreNode((int64)tid);
+      return new QoreBigIntNode(tid);
    return NULL;
 }
 
@@ -1122,14 +1122,14 @@ void delete_qore_threads()
    traceout("delete_qore_threads()");
 }
 
-QoreList *get_thread_list()
+QoreListNode *get_thread_list()
 {
-   QoreList *l = new QoreList();
+   QoreListNode *l = new QoreListNode();
    lThreadList.lock();
    tid_node *w = tid_head;
    while (w)
    {
-      l->push(new QoreNode((int64)w->tid));
+      l->push(new QoreBigIntNode(w->tid));
       w = w->next;
    }
    lThreadList.unlock();
@@ -1148,7 +1148,7 @@ QoreHashNode *getAllCallStacks()
       // get call stack
       if (thread_list[w->tid].callStack)
       {
-	 QoreList *l = thread_list[w->tid].callStack->getCallStack();
+	 QoreListNode *l = thread_list[w->tid].callStack->getCallStack();
 	 if (l->size())
 	 {
 	    // make hash entry

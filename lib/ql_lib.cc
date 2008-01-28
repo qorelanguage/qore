@@ -43,7 +43,7 @@
 #  include "tests/ReferenceHolder_tests.cc"
 #endif
 
-static class QoreNode *f_exit(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_exit(const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0;
 
@@ -54,13 +54,13 @@ static class QoreNode *f_exit(const QoreList *params, ExceptionSink *xsink)
    return NULL;
 }
 
-static class QoreNode *f_abort(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_abort(const QoreListNode *params, ExceptionSink *xsink)
 {
    abort();
    return NULL;
 }
 
-static class QoreNode *f_exec(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_exec(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -75,7 +75,7 @@ static class QoreNode *f_exec(const QoreList *params, ExceptionSink *xsink)
 }
 
 // executes a command and returns exit status
-static class QoreNode *f_system(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_system(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -112,59 +112,59 @@ static class QoreNode *f_system(const QoreList *params, ExceptionSink *xsink)
 	    rc = -1;
       }
    }
-   return new QoreNode((int64)rc);
+   return new QoreBigIntNode(rc);
 }
 
-static class QoreNode *f_getuid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_getuid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)getuid());
+   return new QoreBigIntNode(getuid());
 }
 
-static class QoreNode *f_geteuid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_geteuid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)getuid());
+   return new QoreBigIntNode(getuid());
 }
 
-static class QoreNode *f_getgid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_getgid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)getgid());
+   return new QoreBigIntNode(getgid());
 }
 
-static class QoreNode *f_getegid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_getegid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)getgid());
+   return new QoreBigIntNode(getgid());
 }
 
-static class QoreNode *f_sleep(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsink)
 {
    int timeout = getSecZeroInt(get_param(params, 0));
    if (!timeout)
       return NULL;
    
-   return new QoreNode((int64)sleep(timeout));
+   return new QoreBigIntNode(sleep(timeout));
 }
 
-static class QoreNode *f_usleep(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_usleep(const QoreListNode *params, ExceptionSink *xsink)
 {
    int timeout = getMicroSecZeroInt(get_param(params, 0));
    if (!timeout)
       return NULL;
 
-   return new QoreNode((int64)usleep(timeout));
+   return new QoreBigIntNode(usleep(timeout));
 }
 
-static class QoreNode *f_getpid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_getpid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)getpid());
+   return new QoreBigIntNode(getpid());
 }
 
-static class QoreNode *f_getppid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_getppid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)getppid());   
+   return new QoreBigIntNode(getppid());   
 }
 
 extern int num_threads;
-static class QoreNode *f_fork(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_fork(const QoreListNode *params, ExceptionSink *xsink)
 {
    int sh = (QoreSignalManager::thread_running ? 1 : 0);
    if (num_threads > (1 + sh))
@@ -184,13 +184,13 @@ static class QoreNode *f_fork(const QoreList *params, ExceptionSink *xsink)
    QoreSignalManager::pre_fork_block_and_stop();
    //printd(5, "stopped signal thread, about to fork pid %d\n", getpid()); fflush(stdout);
    int pid = fork();
-   class QoreNode *rv = new QoreNode((int64)pid);
+   class QoreNode *rv = new QoreBigIntNode(pid);
    // release signal handler lock
    QoreSignalManager::post_fork_unblock_and_start(!pid, xsink);
    return rv;
 }
 
-static class QoreNode *f_kill(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_kill(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0, *p1;
    if (!(p0 = get_param(params, 0)))
@@ -202,39 +202,39 @@ static class QoreNode *f_kill(const QoreList *params, ExceptionSink *xsink)
    if ((p1 = get_param(params, 1)))
       sig = p1->getAsInt();
    else sig = SIGHUP;
-   return new QoreNode((int64)kill(pid, sig));
+   return new QoreBigIntNode(kill(pid, sig));
 }
 
 /*
-static class QoreNode *f_wait(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_wait(const QoreListNode *params, ExceptionSink *xsink)
 {
 }
 
-static class QoreNode *f_waitpid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_waitpid(const QoreListNode *params, ExceptionSink *xsink)
 {
 }
 */
 
-static QoreList *map_sbuf_to_list(struct stat *sbuf)
+static QoreListNode *map_sbuf_to_list(struct stat *sbuf)
 {
-   QoreList *l = new QoreList();
+   QoreListNode *l = new QoreListNode();
 
-   l->push(new QoreNode((int64)sbuf->st_dev));
-   l->push(new QoreNode((int64)sbuf->st_ino));
-   l->push(new QoreNode((int64)sbuf->st_mode));
-   l->push(new QoreNode((int64)sbuf->st_nlink));
-   l->push(new QoreNode((int64)sbuf->st_uid));
-   l->push(new QoreNode((int64)sbuf->st_gid));
-   l->push(new QoreNode((int64)sbuf->st_rdev));
-   l->push(new QoreNode((int64)sbuf->st_size));
+   l->push(new QoreBigIntNode(sbuf->st_dev));
+   l->push(new QoreBigIntNode(sbuf->st_ino));
+   l->push(new QoreBigIntNode(sbuf->st_mode));
+   l->push(new QoreBigIntNode(sbuf->st_nlink));
+   l->push(new QoreBigIntNode(sbuf->st_uid));
+   l->push(new QoreBigIntNode(sbuf->st_gid));
+   l->push(new QoreBigIntNode(sbuf->st_rdev));
+   l->push(new QoreBigIntNode(sbuf->st_size));
    
    struct tm tms;
    l->push(new DateTimeNode(q_localtime(&sbuf->st_atime, &tms)));
    l->push(new DateTimeNode(q_localtime(&sbuf->st_mtime, &tms)));
    l->push(new DateTimeNode(q_localtime(&sbuf->st_ctime, &tms)));
 
-   l->push(new QoreNode((int64)sbuf->st_blksize));
-   l->push(new QoreNode((int64)sbuf->st_blocks));
+   l->push(new QoreBigIntNode(sbuf->st_blksize));
+   l->push(new QoreBigIntNode(sbuf->st_blocks));
 
    return l;
 }
@@ -243,22 +243,22 @@ static class QoreHashNode *map_sbuf_to_hash(struct stat *sbuf)
 {
    QoreHashNode *h = new QoreHashNode();
 
-   h->setKeyValue("dev",     new QoreNode((int64)sbuf->st_dev), NULL);
-   h->setKeyValue("inode",   new QoreNode((int64)sbuf->st_ino), NULL);
-   h->setKeyValue("mode",    new QoreNode((int64)sbuf->st_mode), NULL);
-   h->setKeyValue("nlink",   new QoreNode((int64)sbuf->st_nlink), NULL);
-   h->setKeyValue("uid",     new QoreNode((int64)sbuf->st_uid), NULL);
-   h->setKeyValue("gid",     new QoreNode((int64)sbuf->st_gid), NULL);
-   h->setKeyValue("rdev",    new QoreNode((int64)sbuf->st_rdev), NULL);
-   h->setKeyValue("size",    new QoreNode((int64)sbuf->st_size), NULL);
+   h->setKeyValue("dev",     new QoreBigIntNode(sbuf->st_dev), NULL);
+   h->setKeyValue("inode",   new QoreBigIntNode(sbuf->st_ino), NULL);
+   h->setKeyValue("mode",    new QoreBigIntNode(sbuf->st_mode), NULL);
+   h->setKeyValue("nlink",   new QoreBigIntNode(sbuf->st_nlink), NULL);
+   h->setKeyValue("uid",     new QoreBigIntNode(sbuf->st_uid), NULL);
+   h->setKeyValue("gid",     new QoreBigIntNode(sbuf->st_gid), NULL);
+   h->setKeyValue("rdev",    new QoreBigIntNode(sbuf->st_rdev), NULL);
+   h->setKeyValue("size",    new QoreBigIntNode(sbuf->st_size), NULL);
    
    struct tm tms;
    h->setKeyValue("atime",   new DateTimeNode(q_localtime(&sbuf->st_atime, &tms)), NULL);
    h->setKeyValue("mtime",   new DateTimeNode(q_localtime(&sbuf->st_mtime, &tms)), NULL);
    h->setKeyValue("ctime",   new DateTimeNode(q_localtime(&sbuf->st_ctime, &tms)), NULL);
 
-   h->setKeyValue("blksize", new QoreNode((int64)sbuf->st_blksize), NULL);
-   h->setKeyValue("blocks",  new QoreNode((int64)sbuf->st_blocks), NULL);
+   h->setKeyValue("blksize", new QoreBigIntNode(sbuf->st_blksize), NULL);
+   h->setKeyValue("blocks",  new QoreBigIntNode(sbuf->st_blocks), NULL);
 
    char *type;
    if (S_ISBLK(sbuf->st_mode))
@@ -284,7 +284,7 @@ static class QoreHashNode *map_sbuf_to_hash(struct stat *sbuf)
    return h;
 }
 
-static class QoreNode *f_stat(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_stat(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -301,7 +301,7 @@ static class QoreNode *f_stat(const QoreList *params, ExceptionSink *xsink)
    return map_sbuf_to_list(&sbuf);
 }
 
-static class QoreNode *f_lstat(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_lstat(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -318,7 +318,7 @@ static class QoreNode *f_lstat(const QoreList *params, ExceptionSink *xsink)
    return map_sbuf_to_list(&sbuf);
 }
 
-static class QoreNode *f_hstat(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_hstat(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -335,7 +335,7 @@ static class QoreNode *f_hstat(const QoreList *params, ExceptionSink *xsink)
    return map_sbuf_to_hash(&sbuf);
 }
 
-static class QoreNode *f_hlstat(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_hlstat(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -352,7 +352,7 @@ static class QoreNode *f_hlstat(const QoreList *params, ExceptionSink *xsink)
    return map_sbuf_to_hash(&sbuf);
 }
 
-static class QoreNode *f_glob(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_glob(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -365,7 +365,7 @@ static class QoreNode *f_glob(const QoreList *params, ExceptionSink *xsink)
       return NULL;
    }
 
-   QoreList *l = new QoreList();
+   QoreListNode *l = new QoreListNode();
    for (int i = 0; i < (int)globbuf.gl_pathc; i++)
       l->push(new QoreStringNode(globbuf.gl_pathv[i]));
    
@@ -373,30 +373,30 @@ static class QoreNode *f_glob(const QoreList *params, ExceptionSink *xsink)
    return l;
 }
 
-static class QoreNode *f_unlink(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_unlink(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   return new QoreNode((int64)unlink(p0->getBuffer()));
+   return new QoreBigIntNode(unlink(p0->getBuffer()));
 }
 
-static class QoreNode *f_umask(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_umask(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
    if (!(p0 = get_param(params, 0)))
       return NULL;
    
-   return new QoreNode((int64)umask(p0->getAsInt()));
+   return new QoreBigIntNode(umask(p0->getAsInt()));
 }
 
-static class QoreNode *f_rand(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rand(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)random());
+   return new QoreBigIntNode(random());
 }
 
-static class QoreNode *f_srand(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_srand(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0;
    if (!(p0 = get_param(params, 0)))
@@ -406,7 +406,7 @@ static class QoreNode *f_srand(const QoreList *params, ExceptionSink *xsink)
    return NULL;
 }
 
-static class QoreNode *f_gethostname(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_gethostname(const QoreListNode *params, ExceptionSink *xsink)
 {
    char buf[HOSTNAMEBUFSIZE + 1];
 
@@ -415,13 +415,13 @@ static class QoreNode *f_gethostname(const QoreList *params, ExceptionSink *xsin
    return new QoreStringNode(buf);
 }
 
-static class QoreNode *f_errno(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_errno(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)errno);
+   return new QoreBigIntNode(errno);
 }
 
 
-static class QoreNode *f_strerror(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_strerror(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    if (!p0)
@@ -437,7 +437,7 @@ static class QoreNode *f_strerror(const QoreList *params, ExceptionSink *xsink)
 #endif
 }
 
-static class QoreNode *f_basename(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_basename(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -448,7 +448,7 @@ static class QoreNode *f_basename(const QoreList *params, ExceptionSink *xsink)
    return new QoreStringNode(p, len, len + 1, p0->getEncoding());
 }
 
-static class QoreNode *f_mkdir(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_mkdir(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -464,10 +464,10 @@ static class QoreNode *f_mkdir(const QoreList *params, ExceptionSink *xsink)
    else
       mode = 0777;
 
-   return new QoreNode((int64)mkdir(p0->getBuffer(), mode));
+   return new QoreBigIntNode(mkdir(p0->getBuffer(), mode));
 }
 
-static class QoreNode *f_rmdir(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_rmdir(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -476,11 +476,11 @@ static class QoreNode *f_rmdir(const QoreList *params, ExceptionSink *xsink)
       return NULL;
    }
 
-   return new QoreNode((int64)rmdir(p0->getBuffer()));
+   return new QoreBigIntNode(rmdir(p0->getBuffer()));
 }
 
 // usage: chmod(path, mode)
-static class QoreNode *f_chmod(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_chmod(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -496,10 +496,10 @@ static class QoreNode *f_chmod(const QoreList *params, ExceptionSink *xsink)
       return NULL;
    }
 
-   return new QoreNode((int64)chmod(p0->getBuffer(), p1->getAsInt()));
+   return new QoreBigIntNode(chmod(p0->getBuffer(), p1->getAsInt()));
 }
 
-static class QoreNode *f_chdir(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_chdir(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -508,10 +508,10 @@ static class QoreNode *f_chdir(const QoreList *params, ExceptionSink *xsink)
       return NULL;
    }
 
-   return new QoreNode((int64)chdir(p0->getBuffer()));
+   return new QoreBigIntNode(chdir(p0->getBuffer()));
 }
 
-static class QoreNode *f_getcwd(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_getcwd(const QoreListNode *params, ExceptionSink *xsink)
 {
    int bs = 512;
    char *buf = (char *)malloc(sizeof(char) * bs);
@@ -527,7 +527,7 @@ static class QoreNode *f_getcwd(const QoreList *params, ExceptionSink *xsink)
 /*
 // need an easier to use function here
 // usage: mknod(path, mode)
-static class QoreNode *f_mknod(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_mknod(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -550,11 +550,11 @@ static class QoreNode *f_mknod(const QoreList *params, ExceptionSink *xsink)
       return NULL;
    }
 
-   return new QoreNode((int64)mknod(p0->getBuffer(), p1->getAsInt(), p2->getAsInt()));
+   return new QoreBigIntNode(mknod(p0->getBuffer(), p1->getAsInt(), p2->getAsInt()));
 }
 */
 
-static class QoreNode *f_mkfifo(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_mkfifo(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -564,16 +564,13 @@ static class QoreNode *f_mkfifo(const QoreList *params, ExceptionSink *xsink)
    int mode;
 
    QoreNode *p1;
-   p1 = test_param(params, NT_INT, 1);
-   if (p1)
-      mode = p1->val.intval;
-   else
-      mode = 0600;
+   p1 = get_param(params, 1);
+   mode = p1 ? p1->getAsInt() : 0600;
 
-   return new QoreNode((int64)mkfifo(fn, mode));
+   return new QoreBigIntNode(mkfifo(fn, mode));
 }
 
-static class QoreNode *f_setuid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_setuid(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
 
@@ -583,11 +580,11 @@ static class QoreNode *f_setuid(const QoreList *params, ExceptionSink *xsink)
       return NULL;
    }
 
-   return new QoreNode((int64)setuid(p0->getAsInt()));
+   return new QoreBigIntNode(setuid(p0->getAsInt()));
 }
 
 #ifdef HAVE_SETEUID
-static class QoreNode *f_seteuid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_seteuid(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    
@@ -597,11 +594,11 @@ static class QoreNode *f_seteuid(const QoreList *params, ExceptionSink *xsink)
       return NULL;
    }
    
-   return new QoreNode((int64)seteuid(p0->getAsInt()));
+   return new QoreBigIntNode(seteuid(p0->getAsInt()));
 }
 #endif
 
-static class QoreNode *f_setgid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_setgid(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    
@@ -611,11 +608,11 @@ static class QoreNode *f_setgid(const QoreList *params, ExceptionSink *xsink)
       return NULL;
    }
    
-   return new QoreNode((int64)setgid(p0->getAsInt()));
+   return new QoreBigIntNode(setgid(p0->getAsInt()));
 }
 
 #ifdef HAVE_SETEGID
-static class QoreNode *f_setegid(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_setegid(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
    
@@ -625,11 +622,11 @@ static class QoreNode *f_setegid(const QoreList *params, ExceptionSink *xsink)
       return NULL;
    }
    
-   return new QoreNode((int64)setegid(p0->getAsInt()));
+   return new QoreBigIntNode(setegid(p0->getAsInt()));
 }
 #endif
 
-static class QoreNode *f_gethostbyname(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_gethostbyname(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p)
@@ -638,7 +635,7 @@ static class QoreNode *f_gethostbyname(const QoreList *params, ExceptionSink *xs
    return q_gethostbyname_to_string(p->getBuffer());
 }
 
-static class QoreNode *f_gethostbyaddr(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_gethostbyaddr(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -651,7 +648,7 @@ static class QoreNode *f_gethostbyaddr(const QoreList *params, ExceptionSink *xs
    return q_gethostbyaddr_to_string(xsink, p0->getBuffer(), type);
 }
 
-static class QoreNode *f_gethostbyname_long(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_gethostbyname_long(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p)
@@ -660,7 +657,7 @@ static class QoreNode *f_gethostbyname_long(const QoreList *params, ExceptionSin
    return q_gethostbyname_to_hash(p->getBuffer());
 }
 
-static class QoreNode *f_gethostbyaddr_long(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_gethostbyaddr_long(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -674,7 +671,7 @@ static class QoreNode *f_gethostbyaddr_long(const QoreList *params, ExceptionSin
 }
 
 #ifdef DEBUG
-static QoreNode* runQoreTests(const QoreList *params, ExceptionSink *xsink)
+static QoreNode* runQoreTests(const QoreListNode *params, ExceptionSink *xsink)
 {
    minitest::result res = minitest::execute_all_tests();
    if (res.all_tests_succeeded) {
@@ -687,7 +684,7 @@ static QoreNode* runQoreTests(const QoreList *params, ExceptionSink *xsink)
    return 0;
 }
 
-static QoreNode* runRecentQoreTests(const QoreList *params, ExceptionSink *xsink)
+static QoreNode* runRecentQoreTests(const QoreListNode *params, ExceptionSink *xsink)
 {
    minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
    if (res.all_tests_succeeded) {

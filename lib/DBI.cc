@@ -198,9 +198,9 @@ int DBIDriver::getCaps() const
    return priv->caps;
 }
 
-QoreList *DBIDriver::getCapList() const
+QoreListNode *DBIDriver::getCapList() const
 {
-   QoreList *l = new QoreList();
+   QoreListNode *l = new QoreListNode();
    for (int i = 0; i < NUM_DBI_CAPS; i++)
       if (priv->caps & dbi_cap_list[i].cap)
 	 l->push(new QoreStringNode(dbi_cap_list[i].desc));
@@ -217,17 +217,17 @@ int DBIDriver::close(Datasource *ds)
    return priv->f.close(ds);
 }
 
-class QoreNode *DBIDriver::select(Datasource *ds, const class QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::select(Datasource *ds, const class QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    return priv->f.select(ds, sql, args, xsink);
 }
 
-class QoreNode *DBIDriver::selectRows(Datasource *ds, const class QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::selectRows(Datasource *ds, const class QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    return priv->f.selectRows(ds, sql, args, xsink);
 }
 
-class QoreNode *DBIDriver::execSQL(Datasource *ds, const class QoreString *sql, const QoreList *args, class ExceptionSink *xsink)
+class QoreNode *DBIDriver::execSQL(Datasource *ds, const class QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    return priv->f.execSQL(ds, sql, args, xsink);
 }
@@ -306,12 +306,12 @@ struct qore_dbi_dlist_private {
 	 return 0;
       }
 
-      DLLLOCAL class QoreList *getDriverList() const
+      DLLLOCAL class QoreListNode *getDriverList() const
       {
 	 if (l.empty())
 	    return 0;
 	 
-	 class QoreList *lst = new QoreList();
+	 class QoreListNode *lst = new QoreListNode();
 	 
 	 for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
 	    lst->push(new QoreStringNode((*i)->getName()));
@@ -358,7 +358,7 @@ class DBIDriver *DBIDriverList::registerDriver(const char *name, const struct qo
    return dd;
 }
 
-class QoreList *DBIDriverList::getDriverList() const
+class QoreListNode *DBIDriverList::getDriverList() const
 {
    return priv->getDriverList();
 }
@@ -479,7 +479,7 @@ class QoreHashNode *parseDatasource(const char *ds, class ExceptionSink *xsink)
    return h.release();
 }
 
-class QoreNode *f_parseDatasource(const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -489,12 +489,12 @@ class QoreNode *f_parseDatasource(const QoreList *params, ExceptionSink *xsink)
    return parseDatasource(p0->getBuffer(), xsink);
 }
 
-class QoreNode *f_getDBIDriverList(const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_getDBIDriverList(const QoreListNode *params, ExceptionSink *xsink)
 {
    return DBI.getDriverList();
 }
 
-class QoreNode *f_getDBIDriverCapabilityList(const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -508,7 +508,7 @@ class QoreNode *f_getDBIDriverCapabilityList(const QoreList *params, ExceptionSi
    return dd->getCapList();
 }
 
-class QoreNode *f_getDBIDriverCapabilities(const QoreList *params, ExceptionSink *xsink)
+class QoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -519,7 +519,7 @@ class QoreNode *f_getDBIDriverCapabilities(const QoreList *params, ExceptionSink
    if (!dd)
       return NULL;
 
-   return new QoreNode((int64)dd->getCaps());
+   return new QoreBigIntNode(dd->getCaps());
 }
 
 void init_dbi_functions()
@@ -549,12 +549,12 @@ class QoreNamespace *getSQLNamespace()
    SQLNS->addConstant("DSInformix", new QoreStringNode("informix"));
 
    // for DBI driver capabilities
-   SQLNS->addConstant("DBI_CAP_CHARSET_SUPPORT",        new QoreNode((int64)DBI_CAP_CHARSET_SUPPORT));
-   SQLNS->addConstant("DBI_CAP_TRANSACTION_MANAGEMENT", new QoreNode((int64)DBI_CAP_TRANSACTION_MANAGEMENT));
-   SQLNS->addConstant("DBI_CAP_STORED_PROCEDURES",      new QoreNode((int64)DBI_CAP_STORED_PROCEDURES));
-   SQLNS->addConstant("DBI_CAP_LOB_SUPPORT",            new QoreNode((int64)DBI_CAP_LOB_SUPPORT));
-   SQLNS->addConstant("DBI_CAP_BIND_BY_VALUE",          new QoreNode((int64)DBI_CAP_BIND_BY_VALUE));
-   SQLNS->addConstant("DBI_CAP_BIND_BY_PLACEHOLDER",    new QoreNode((int64)DBI_CAP_BIND_BY_PLACEHOLDER));
+   SQLNS->addConstant("DBI_CAP_CHARSET_SUPPORT",        new QoreBigIntNode(DBI_CAP_CHARSET_SUPPORT));
+   SQLNS->addConstant("DBI_CAP_TRANSACTION_MANAGEMENT", new QoreBigIntNode(DBI_CAP_TRANSACTION_MANAGEMENT));
+   SQLNS->addConstant("DBI_CAP_STORED_PROCEDURES",      new QoreBigIntNode(DBI_CAP_STORED_PROCEDURES));
+   SQLNS->addConstant("DBI_CAP_LOB_SUPPORT",            new QoreBigIntNode(DBI_CAP_LOB_SUPPORT));
+   SQLNS->addConstant("DBI_CAP_BIND_BY_VALUE",          new QoreBigIntNode(DBI_CAP_BIND_BY_VALUE));
+   SQLNS->addConstant("DBI_CAP_BIND_BY_PLACEHOLDER",    new QoreBigIntNode(DBI_CAP_BIND_BY_PLACEHOLDER));
 
    // for column types for binding
    SQLNS->addConstant("VARCHAR", new QoreStringNode("string"));

@@ -33,7 +33,7 @@ class QoreClass *QC_QLine = 0;
 //QLine ()
 //QLine ( const QPoint & p1, const QPoint & p2 )
 //QLine ( int x1, int y1, int x2, int y2 )
-static void QLINE_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QLINE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -77,7 +77,7 @@ static void QLINE_copy(class QoreObject *self, class QoreObject *old, class Qore
 }
 
 //QPoint p1 () const
-static QoreNode *QLINE_p1(QoreObject *self, QoreQLine *ql, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINE_p1(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(ql->p1());
@@ -86,7 +86,7 @@ static QoreNode *QLINE_p1(QoreObject *self, QoreQLine *ql, const QoreList *param
 }
 
 //QPoint p2 () const
-static QoreNode *QLINE_p2(QoreObject *self, QoreQLine *ql, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINE_p2(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(ql->p2());
@@ -95,50 +95,50 @@ static QoreNode *QLINE_p2(QoreObject *self, QoreQLine *ql, const QoreList *param
 }
 
 //int x1 () const
-static QoreNode *QLINE_x1(QoreObject *self, QoreQLine *ql, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINE_x1(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)ql->x1());
+   return new QoreBigIntNode(ql->x1());
 }
 
 //int x2 () const
-static QoreNode *QLINE_x2(QoreObject *self, QoreQLine *ql, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINE_x2(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)ql->x2());
+   return new QoreBigIntNode(ql->x2());
 }
 
 //int y1 () const
-static QoreNode *QLINE_y1(QoreObject *self, QoreQLine *ql, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINE_y1(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)ql->y1());
+   return new QoreBigIntNode(ql->y1());
 }
 
 //int y2 () const
-static QoreNode *QLINE_y2(QoreObject *self, QoreQLine *ql, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINE_y2(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)ql->y2());
+   return new QoreBigIntNode(ql->y2());
 }
 
 //int dx () const
-static QoreNode *QLINE_dx(QoreObject *self, QoreQLine *ql, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINE_dx(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)ql->dx());
+   return new QoreBigIntNode(ql->dx());
 }
 
 //int dy () const
-static QoreNode *QLINE_dy(QoreObject *self, QoreQLine *ql, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINE_dy(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)ql->dy());
+   return new QoreBigIntNode(ql->dy());
 }
 
 //bool isNull () const
-static QoreNode *QLINE_isNull(QoreObject *self, QoreQLine *ql, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINE_isNull(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(ql->isNull());
+   return new QoreBoolNode(ql->isNull());
 }
 
 //void translate ( const QPoint & offset )
 //void translate ( int dx, int dy )
-static QoreNode *QLINE_translate(QoreObject *self, QoreQLine *ql, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINE_translate(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {

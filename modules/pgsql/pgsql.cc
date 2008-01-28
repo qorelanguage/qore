@@ -73,21 +73,21 @@ static int qore_pgsql_begin_transaction(class Datasource *ds, ExceptionSink *xsi
    return pc->begin_transaction(ds, xsink);
 }
 
-static class QoreNode *qore_pgsql_select_rows(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)
+static class QoreNode *qore_pgsql_select_rows(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
    return pc->select_rows(ds, qstr, args, xsink);
 }
 
-static class QoreNode *qore_pgsql_select(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)
+static class QoreNode *qore_pgsql_select(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
    return pc->select(ds, qstr, args, xsink);
 }
 
-static class QoreNode *qore_pgsql_exec(class Datasource *ds, const QoreString *qstr, const QoreList *args, class ExceptionSink *xsink)
+static class QoreNode *qore_pgsql_exec(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
@@ -153,10 +153,10 @@ static int qore_pgsql_close(class Datasource *ds)
 static class QoreNode *qore_pgsql_get_server_version(class Datasource *ds, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
-   return new QoreNode((int64)pc->get_server_version());
+   return new QoreBigIntNode(pc->get_server_version());
 }
 
-static class QoreNode *f_pgsql_bind(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_pgsql_bind(const QoreListNode *params, class ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
    int type = p? p->getAsInt() : 0;
@@ -167,7 +167,7 @@ static class QoreNode *f_pgsql_bind(const QoreList *params, class ExceptionSink 
    }
    p = get_param(params, 1);
    class QoreHashNode *h = new QoreHashNode();
-   h->setKeyValue("^pgtype^", new QoreNode((int64)type), xsink);
+   h->setKeyValue("^pgtype^", new QoreBigIntNode(type), xsink);
    h->setKeyValue("^value^", p ? p->RefSelf() : NULL, xsink);
    return h;
 }
@@ -178,117 +178,117 @@ static void init_namespace()
 {
    pgsql_ns = new QoreNamespace("PGSQL");
 
-   pgsql_ns->addConstant("PG_TYPE_BOOL",                new QoreNode((int64)BOOLOID));
-   pgsql_ns->addConstant("PG_TYPE_BYTEA",               new QoreNode((int64)BYTEAOID));
-   pgsql_ns->addConstant("PG_TYPE_CHAR",                new QoreNode((int64)CHAROID));
-   pgsql_ns->addConstant("PG_TYPE_NAME",                new QoreNode((int64)NAMEOID));
-   pgsql_ns->addConstant("PG_TYPE_INT8",                new QoreNode((int64)INT8OID));
-   pgsql_ns->addConstant("PG_TYPE_INT2",                new QoreNode((int64)INT2OID));
-   pgsql_ns->addConstant("PG_TYPE_INT2VECTOR",          new QoreNode((int64)INT2VECTOROID));
-   pgsql_ns->addConstant("PG_TYPE_INT4",                new QoreNode((int64)INT4OID));
-   pgsql_ns->addConstant("PG_TYPE_REGPROC",             new QoreNode((int64)REGPROCOID));
-   pgsql_ns->addConstant("PG_TYPE_TEXT",                new QoreNode((int64)TEXTOID));
-   pgsql_ns->addConstant("PG_TYPE_OID",                 new QoreNode((int64)OIDOID));
-   pgsql_ns->addConstant("PG_TYPE_TID",                 new QoreNode((int64)TIDOID));
-   pgsql_ns->addConstant("PG_TYPE_XID",                 new QoreNode((int64)XIDOID));
-   pgsql_ns->addConstant("PG_TYPE_CID",                 new QoreNode((int64)CIDOID));
-   pgsql_ns->addConstant("PG_TYPE_VECTOROID",           new QoreNode((int64)OIDVECTOROID));
+   pgsql_ns->addConstant("PG_TYPE_BOOL",                new QoreBigIntNode(BOOLOID));
+   pgsql_ns->addConstant("PG_TYPE_BYTEA",               new QoreBigIntNode(BYTEAOID));
+   pgsql_ns->addConstant("PG_TYPE_CHAR",                new QoreBigIntNode(CHAROID));
+   pgsql_ns->addConstant("PG_TYPE_NAME",                new QoreBigIntNode(NAMEOID));
+   pgsql_ns->addConstant("PG_TYPE_INT8",                new QoreBigIntNode(INT8OID));
+   pgsql_ns->addConstant("PG_TYPE_INT2",                new QoreBigIntNode(INT2OID));
+   pgsql_ns->addConstant("PG_TYPE_INT2VECTOR",          new QoreBigIntNode(INT2VECTOROID));
+   pgsql_ns->addConstant("PG_TYPE_INT4",                new QoreBigIntNode(INT4OID));
+   pgsql_ns->addConstant("PG_TYPE_REGPROC",             new QoreBigIntNode(REGPROCOID));
+   pgsql_ns->addConstant("PG_TYPE_TEXT",                new QoreBigIntNode(TEXTOID));
+   pgsql_ns->addConstant("PG_TYPE_OID",                 new QoreBigIntNode(OIDOID));
+   pgsql_ns->addConstant("PG_TYPE_TID",                 new QoreBigIntNode(TIDOID));
+   pgsql_ns->addConstant("PG_TYPE_XID",                 new QoreBigIntNode(XIDOID));
+   pgsql_ns->addConstant("PG_TYPE_CID",                 new QoreBigIntNode(CIDOID));
+   pgsql_ns->addConstant("PG_TYPE_VECTOROID",           new QoreBigIntNode(OIDVECTOROID));
 #ifdef PG_TYPE_RELTYPE_OID
-   pgsql_ns->addConstant("PG_TYPE_TYPE_RELTYPE",        new QoreNode((int64)PG_TYPE_RELTYPE_OID));
+   pgsql_ns->addConstant("PG_TYPE_TYPE_RELTYPE",        new QoreBigIntNode(PG_TYPE_RELTYPE_OID));
 #endif
 #ifdef PG_ATTRIBUTE_RELTYPE_OID
-   pgsql_ns->addConstant("PG_TYPE_ATTRIBUTE_RELTYPE",   new QoreNode((int64)PG_ATTRIBUTE_RELTYPE_OID));
+   pgsql_ns->addConstant("PG_TYPE_ATTRIBUTE_RELTYPE",   new QoreBigIntNode(PG_ATTRIBUTE_RELTYPE_OID));
 #endif
 #ifdef PG_PROC_RELTYPE_OID
-   pgsql_ns->addConstant("PG_TYPE_PROC_RELTYPE",        new QoreNode((int64)PG_PROC_RELTYPE_OID));
+   pgsql_ns->addConstant("PG_TYPE_PROC_RELTYPE",        new QoreBigIntNode(PG_PROC_RELTYPE_OID));
 #endif
 #ifdef PG_CLASS_RELTYPE_OID
-   pgsql_ns->addConstant("PG_TYPE_CLASS_RELTYPE",       new QoreNode((int64)PG_CLASS_RELTYPE_OID));
+   pgsql_ns->addConstant("PG_TYPE_CLASS_RELTYPE",       new QoreBigIntNode(PG_CLASS_RELTYPE_OID));
 #endif
-   pgsql_ns->addConstant("PG_TYPE_POINT",               new QoreNode((int64)POINTOID));
-   pgsql_ns->addConstant("PG_TYPE_LSEG",                new QoreNode((int64)LSEGOID));
-   pgsql_ns->addConstant("PG_TYPE_PATH",                new QoreNode((int64)PATHOID));
-   pgsql_ns->addConstant("PG_TYPE_BOX",                 new QoreNode((int64)BOXOID));
-   pgsql_ns->addConstant("PG_TYPE_POLYGON",             new QoreNode((int64)POLYGONOID));
-   pgsql_ns->addConstant("PG_TYPE_LINE",                new QoreNode((int64)LINEOID));
-   pgsql_ns->addConstant("PG_TYPE_FLOAT4",              new QoreNode((int64)FLOAT4OID));
-   pgsql_ns->addConstant("PG_TYPE_FLOAT8",              new QoreNode((int64)FLOAT8OID));
-   pgsql_ns->addConstant("PG_TYPE_ABSTIME",             new QoreNode((int64)ABSTIMEOID));
-   pgsql_ns->addConstant("PG_TYPE_RELTIME",             new QoreNode((int64)RELTIMEOID));
-   pgsql_ns->addConstant("PG_TYPE_TINTERVAL",           new QoreNode((int64)TINTERVALOID));
-   pgsql_ns->addConstant("PG_TYPE_UNKNOWN",             new QoreNode((int64)UNKNOWNOID));
-   pgsql_ns->addConstant("PG_TYPE_CIRCLE",              new QoreNode((int64)CIRCLEOID));
-   pgsql_ns->addConstant("PG_TYPE_CASH",                new QoreNode((int64)CASHOID));
-   pgsql_ns->addConstant("PG_TYPE_MACADDR",             new QoreNode((int64)MACADDROID));
-   pgsql_ns->addConstant("PG_TYPE_INET",                new QoreNode((int64)INETOID));
-   pgsql_ns->addConstant("PG_TYPE_CIDR",                new QoreNode((int64)CIDROID));
-   pgsql_ns->addConstant("PG_TYPE_ACLITEM",             new QoreNode((int64)ACLITEMOID));
-   pgsql_ns->addConstant("PG_TYPE_BPCHAR",              new QoreNode((int64)BPCHAROID));
-   pgsql_ns->addConstant("PG_TYPE_VARCHAR",             new QoreNode((int64)VARCHAROID));
-   pgsql_ns->addConstant("PG_TYPE_DATE",                new QoreNode((int64)DATEOID));
-   pgsql_ns->addConstant("PG_TYPE_TIME",                new QoreNode((int64)TIMEOID));
-   pgsql_ns->addConstant("PG_TYPE_TIMESTAMP",           new QoreNode((int64)TIMESTAMPOID));
-   pgsql_ns->addConstant("PG_TYPE_TIMESTAMPTZ",         new QoreNode((int64)TIMESTAMPTZOID));
-   pgsql_ns->addConstant("PG_TYPE_INTERVAL",            new QoreNode((int64)INTERVALOID));
-   pgsql_ns->addConstant("PG_TYPE_TIMETZ",              new QoreNode((int64)TIMETZOID));
-   pgsql_ns->addConstant("PG_TYPE_BIT",                 new QoreNode((int64)BITOID));
-   pgsql_ns->addConstant("PG_TYPE_VARBIT",              new QoreNode((int64)VARBITOID));
-   pgsql_ns->addConstant("PG_TYPE_NUMERIC",             new QoreNode((int64)NUMERICOID));
-   pgsql_ns->addConstant("PG_TYPE_REFCURSOR",           new QoreNode((int64)REFCURSOROID));
-   pgsql_ns->addConstant("PG_TYPE_REGPROCEDURE",        new QoreNode((int64)REGPROCEDUREOID));
-   pgsql_ns->addConstant("PG_TYPE_REGOPER",             new QoreNode((int64)REGOPEROID));
-   pgsql_ns->addConstant("PG_TYPE_REGOPERATOR",         new QoreNode((int64)REGOPERATOROID));
-   pgsql_ns->addConstant("PG_TYPE_REGCLASS",            new QoreNode((int64)REGCLASSOID));
-   pgsql_ns->addConstant("PG_TYPE_REGTYPE",             new QoreNode((int64)REGTYPEOID));
-   pgsql_ns->addConstant("PG_TYPE_RECORD",              new QoreNode((int64)RECORDOID));
-   pgsql_ns->addConstant("PG_TYPE_CSTRING",             new QoreNode((int64)CSTRINGOID));
-   pgsql_ns->addConstant("PG_TYPE_ANY",                 new QoreNode((int64)ANYOID));
-   pgsql_ns->addConstant("PG_TYPE_VOID",                new QoreNode((int64)VOIDOID));
-   pgsql_ns->addConstant("PG_TYPE_TRIGGER",             new QoreNode((int64)TRIGGEROID));
-   pgsql_ns->addConstant("PG_TYPE_LANGUAGE_HANDLER",    new QoreNode((int64)LANGUAGE_HANDLEROID));
-   pgsql_ns->addConstant("PG_TYPE_INTERNAL",            new QoreNode((int64)INTERNALOID));
-   pgsql_ns->addConstant("PG_TYPE_OPAQUE",              new QoreNode((int64)OPAQUEOID));
-   pgsql_ns->addConstant("PG_TYPE_ANYELEMENT",          new QoreNode((int64)ANYELEMENTOID));
+   pgsql_ns->addConstant("PG_TYPE_POINT",               new QoreBigIntNode(POINTOID));
+   pgsql_ns->addConstant("PG_TYPE_LSEG",                new QoreBigIntNode(LSEGOID));
+   pgsql_ns->addConstant("PG_TYPE_PATH",                new QoreBigIntNode(PATHOID));
+   pgsql_ns->addConstant("PG_TYPE_BOX",                 new QoreBigIntNode(BOXOID));
+   pgsql_ns->addConstant("PG_TYPE_POLYGON",             new QoreBigIntNode(POLYGONOID));
+   pgsql_ns->addConstant("PG_TYPE_LINE",                new QoreBigIntNode(LINEOID));
+   pgsql_ns->addConstant("PG_TYPE_FLOAT4",              new QoreBigIntNode(FLOAT4OID));
+   pgsql_ns->addConstant("PG_TYPE_FLOAT8",              new QoreBigIntNode(FLOAT8OID));
+   pgsql_ns->addConstant("PG_TYPE_ABSTIME",             new QoreBigIntNode(ABSTIMEOID));
+   pgsql_ns->addConstant("PG_TYPE_RELTIME",             new QoreBigIntNode(RELTIMEOID));
+   pgsql_ns->addConstant("PG_TYPE_TINTERVAL",           new QoreBigIntNode(TINTERVALOID));
+   pgsql_ns->addConstant("PG_TYPE_UNKNOWN",             new QoreBigIntNode(UNKNOWNOID));
+   pgsql_ns->addConstant("PG_TYPE_CIRCLE",              new QoreBigIntNode(CIRCLEOID));
+   pgsql_ns->addConstant("PG_TYPE_CASH",                new QoreBigIntNode(CASHOID));
+   pgsql_ns->addConstant("PG_TYPE_MACADDR",             new QoreBigIntNode(MACADDROID));
+   pgsql_ns->addConstant("PG_TYPE_INET",                new QoreBigIntNode(INETOID));
+   pgsql_ns->addConstant("PG_TYPE_CIDR",                new QoreBigIntNode(CIDROID));
+   pgsql_ns->addConstant("PG_TYPE_ACLITEM",             new QoreBigIntNode(ACLITEMOID));
+   pgsql_ns->addConstant("PG_TYPE_BPCHAR",              new QoreBigIntNode(BPCHAROID));
+   pgsql_ns->addConstant("PG_TYPE_VARCHAR",             new QoreBigIntNode(VARCHAROID));
+   pgsql_ns->addConstant("PG_TYPE_DATE",                new QoreBigIntNode(DATEOID));
+   pgsql_ns->addConstant("PG_TYPE_TIME",                new QoreBigIntNode(TIMEOID));
+   pgsql_ns->addConstant("PG_TYPE_TIMESTAMP",           new QoreBigIntNode(TIMESTAMPOID));
+   pgsql_ns->addConstant("PG_TYPE_TIMESTAMPTZ",         new QoreBigIntNode(TIMESTAMPTZOID));
+   pgsql_ns->addConstant("PG_TYPE_INTERVAL",            new QoreBigIntNode(INTERVALOID));
+   pgsql_ns->addConstant("PG_TYPE_TIMETZ",              new QoreBigIntNode(TIMETZOID));
+   pgsql_ns->addConstant("PG_TYPE_BIT",                 new QoreBigIntNode(BITOID));
+   pgsql_ns->addConstant("PG_TYPE_VARBIT",              new QoreBigIntNode(VARBITOID));
+   pgsql_ns->addConstant("PG_TYPE_NUMERIC",             new QoreBigIntNode(NUMERICOID));
+   pgsql_ns->addConstant("PG_TYPE_REFCURSOR",           new QoreBigIntNode(REFCURSOROID));
+   pgsql_ns->addConstant("PG_TYPE_REGPROCEDURE",        new QoreBigIntNode(REGPROCEDUREOID));
+   pgsql_ns->addConstant("PG_TYPE_REGOPER",             new QoreBigIntNode(REGOPEROID));
+   pgsql_ns->addConstant("PG_TYPE_REGOPERATOR",         new QoreBigIntNode(REGOPERATOROID));
+   pgsql_ns->addConstant("PG_TYPE_REGCLASS",            new QoreBigIntNode(REGCLASSOID));
+   pgsql_ns->addConstant("PG_TYPE_REGTYPE",             new QoreBigIntNode(REGTYPEOID));
+   pgsql_ns->addConstant("PG_TYPE_RECORD",              new QoreBigIntNode(RECORDOID));
+   pgsql_ns->addConstant("PG_TYPE_CSTRING",             new QoreBigIntNode(CSTRINGOID));
+   pgsql_ns->addConstant("PG_TYPE_ANY",                 new QoreBigIntNode(ANYOID));
+   pgsql_ns->addConstant("PG_TYPE_VOID",                new QoreBigIntNode(VOIDOID));
+   pgsql_ns->addConstant("PG_TYPE_TRIGGER",             new QoreBigIntNode(TRIGGEROID));
+   pgsql_ns->addConstant("PG_TYPE_LANGUAGE_HANDLER",    new QoreBigIntNode(LANGUAGE_HANDLEROID));
+   pgsql_ns->addConstant("PG_TYPE_INTERNAL",            new QoreBigIntNode(INTERNALOID));
+   pgsql_ns->addConstant("PG_TYPE_OPAQUE",              new QoreBigIntNode(OPAQUEOID));
+   pgsql_ns->addConstant("PG_TYPE_ANYELEMENT",          new QoreBigIntNode(ANYELEMENTOID));
 
    // array types
-   pgsql_ns->addConstant("PG_TYPE_INT4ARRAY",           new QoreNode((int64)QPGT_INT4ARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_CIRCLEARRAY",         new QoreNode((int64)QPGT_CIRCLEARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_MONEYARRAY",          new QoreNode((int64)QPGT_MONEYARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_BOOLARRAY",           new QoreNode((int64)QPGT_BOOLARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_BYTEAARRAY",          new QoreNode((int64)QPGT_BYTEAARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_NAMEARRAY",           new QoreNode((int64)QPGT_NAMEARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_INT2ARRAY",           new QoreNode((int64)QPGT_INT2ARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_TEXTARRAY",           new QoreNode((int64)QPGT_TEXTARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_OIDARRAY",            new QoreNode((int64)QPGT_OIDARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_TIDARRAY",            new QoreNode((int64)QPGT_TIDARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_XIDARRAY",            new QoreNode((int64)QPGT_XIDARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_CIDARRAY",            new QoreNode((int64)QPGT_CIDARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_BPCHARARRAY",         new QoreNode((int64)QPGT_BPCHARARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_VARCHARARRAY",        new QoreNode((int64)QPGT_VARCHARARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_INT8ARRAY",           new QoreNode((int64)QPGT_INT8ARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_POINTARRAY",          new QoreNode((int64)QPGT_POINTARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_LSEGARRAY",           new QoreNode((int64)QPGT_LSEGARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_PATHARRAY",           new QoreNode((int64)QPGT_PATHARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_BOXARRAY",            new QoreNode((int64)QPGT_BOXARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_FLOAT4ARRAY",         new QoreNode((int64)QPGT_FLOAT4ARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_FLOAT8ARRAY",         new QoreNode((int64)QPGT_FLOAT8ARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_ABSTIMEARRAY",        new QoreNode((int64)QPGT_ABSTIMEARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_RELTIMEARRAY",        new QoreNode((int64)QPGT_RELTIMEARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_TINTERVALARRAY",      new QoreNode((int64)QPGT_TINTERVALARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_POLYGONARRAY",        new QoreNode((int64)QPGT_POLYGONARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_MACADDRARRAY",        new QoreNode((int64)QPGT_MACADDRARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_INETARRAY",           new QoreNode((int64)QPGT_INETARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_CIDRARRAY",           new QoreNode((int64)QPGT_CIDRARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_TIMESTAMPARRAY",      new QoreNode((int64)QPGT_TIMESTAMPARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_DATEARRAY",           new QoreNode((int64)QPGT_DATEARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_TIMEARRAY",           new QoreNode((int64)QPGT_TIMEARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_TIMESTAMPTZARRAY",    new QoreNode((int64)QPGT_TIMESTAMPTZARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_INTERVALARRAY",       new QoreNode((int64)QPGT_INTERVALARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_NUMERICARRAY",        new QoreNode((int64)QPGT_NUMERICARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_TIMETZARRAY",         new QoreNode((int64)QPGT_TIMETZARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_BITARRAY",            new QoreNode((int64)QPGT_BITARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_VARBITARRAY",         new QoreNode((int64)QPGT_VARBITARRAYOID));
-   pgsql_ns->addConstant("PG_TYPE_ANYARRAY",            new QoreNode((int64)ANYARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_INT4ARRAY",           new QoreBigIntNode(QPGT_INT4ARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_CIRCLEARRAY",         new QoreBigIntNode(QPGT_CIRCLEARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_MONEYARRAY",          new QoreBigIntNode(QPGT_MONEYARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_BOOLARRAY",           new QoreBigIntNode(QPGT_BOOLARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_BYTEAARRAY",          new QoreBigIntNode(QPGT_BYTEAARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_NAMEARRAY",           new QoreBigIntNode(QPGT_NAMEARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_INT2ARRAY",           new QoreBigIntNode(QPGT_INT2ARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_TEXTARRAY",           new QoreBigIntNode(QPGT_TEXTARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_OIDARRAY",            new QoreBigIntNode(QPGT_OIDARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_TIDARRAY",            new QoreBigIntNode(QPGT_TIDARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_XIDARRAY",            new QoreBigIntNode(QPGT_XIDARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_CIDARRAY",            new QoreBigIntNode(QPGT_CIDARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_BPCHARARRAY",         new QoreBigIntNode(QPGT_BPCHARARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_VARCHARARRAY",        new QoreBigIntNode(QPGT_VARCHARARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_INT8ARRAY",           new QoreBigIntNode(QPGT_INT8ARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_POINTARRAY",          new QoreBigIntNode(QPGT_POINTARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_LSEGARRAY",           new QoreBigIntNode(QPGT_LSEGARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_PATHARRAY",           new QoreBigIntNode(QPGT_PATHARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_BOXARRAY",            new QoreBigIntNode(QPGT_BOXARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_FLOAT4ARRAY",         new QoreBigIntNode(QPGT_FLOAT4ARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_FLOAT8ARRAY",         new QoreBigIntNode(QPGT_FLOAT8ARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_ABSTIMEARRAY",        new QoreBigIntNode(QPGT_ABSTIMEARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_RELTIMEARRAY",        new QoreBigIntNode(QPGT_RELTIMEARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_TINTERVALARRAY",      new QoreBigIntNode(QPGT_TINTERVALARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_POLYGONARRAY",        new QoreBigIntNode(QPGT_POLYGONARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_MACADDRARRAY",        new QoreBigIntNode(QPGT_MACADDRARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_INETARRAY",           new QoreBigIntNode(QPGT_INETARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_CIDRARRAY",           new QoreBigIntNode(QPGT_CIDRARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_TIMESTAMPARRAY",      new QoreBigIntNode(QPGT_TIMESTAMPARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_DATEARRAY",           new QoreBigIntNode(QPGT_DATEARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_TIMEARRAY",           new QoreBigIntNode(QPGT_TIMEARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_TIMESTAMPTZARRAY",    new QoreBigIntNode(QPGT_TIMESTAMPTZARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_INTERVALARRAY",       new QoreBigIntNode(QPGT_INTERVALARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_NUMERICARRAY",        new QoreBigIntNode(QPGT_NUMERICARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_TIMETZARRAY",         new QoreBigIntNode(QPGT_TIMETZARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_BITARRAY",            new QoreBigIntNode(QPGT_BITARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_VARBITARRAY",         new QoreBigIntNode(QPGT_VARBITARRAYOID));
+   pgsql_ns->addConstant("PG_TYPE_ANYARRAY",            new QoreBigIntNode(ANYARRAYOID));
 }
 
 static class QoreStringNode *pgsql_module_init()

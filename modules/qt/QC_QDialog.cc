@@ -31,7 +31,7 @@ int CID_QDIALOG;
 class QoreClass *QC_QDialog = 0;
 
 //QDialog ( QWidget * parent = 0, Qt::WindowFlags f = 0 )
-static void QDIALOG_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QDIALOG_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -50,19 +50,19 @@ static void QDIALOG_copy(class QoreObject *self, class QoreObject *old, class Qo
 }
 
 //bool isSizeGripEnabled () const
-static QoreNode *QDIALOG_isSizeGripEnabled(QoreObject *self, QoreAbstractQDialog *qd, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDIALOG_isSizeGripEnabled(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qd->getQDialog()->isSizeGripEnabled());
+   return new QoreBoolNode(qd->getQDialog()->isSizeGripEnabled());
 }
 
 //int result () const
-static QoreNode *QDIALOG_result(QoreObject *self, QoreAbstractQDialog *qd, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDIALOG_result(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qd->getQDialog()->result());
+   return new QoreBigIntNode(qd->getQDialog()->result());
 }
 
 //void setModal ( bool modal )
-static QoreNode *QDIALOG_setModal(QoreObject *self, QoreAbstractQDialog *qd, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDIALOG_setModal(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool modal = p ? p->getAsBool() : false;
@@ -71,7 +71,7 @@ static QoreNode *QDIALOG_setModal(QoreObject *self, QoreAbstractQDialog *qd, con
 }
 
 //void setResult ( int i )
-static QoreNode *QDIALOG_setResult(QoreObject *self, QoreAbstractQDialog *qd, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDIALOG_setResult(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int i = p ? p->getAsInt() : 0;
@@ -80,7 +80,7 @@ static QoreNode *QDIALOG_setResult(QoreObject *self, QoreAbstractQDialog *qd, co
 }
 
 //void setSizeGripEnabled ( bool )
-static QoreNode *QDIALOG_setSizeGripEnabled(QoreObject *self, QoreAbstractQDialog *qd, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDIALOG_setSizeGripEnabled(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
@@ -89,14 +89,14 @@ static QoreNode *QDIALOG_setSizeGripEnabled(QoreObject *self, QoreAbstractQDialo
 }
 
 //virtual void accept ()
-static QoreNode *QDIALOG_accept(QoreObject *self, QoreAbstractQDialog *qd, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDIALOG_accept(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    qd->accept();
    return 0;
 }
 
 //virtual void done ( int r )
-static QoreNode *QDIALOG_done(QoreObject *self, QoreAbstractQDialog *qd, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDIALOG_done(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    int r = p ? p->getAsInt() : 0;
@@ -105,13 +105,13 @@ static QoreNode *QDIALOG_done(QoreObject *self, QoreAbstractQDialog *qd, const Q
 }
 
 //int exec ()
-static QoreNode *QDIALOG_exec(QoreObject *self, QoreAbstractQDialog *qd, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDIALOG_exec(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qd->getQDialog()->exec());
+   return new QoreBigIntNode(qd->getQDialog()->exec());
 }
 
 //virtual void reject ()
-static QoreNode *QDIALOG_reject(QoreObject *self, QoreAbstractQDialog *qd, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QDIALOG_reject(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    qd->reject();
    return 0;

@@ -160,7 +160,7 @@ class QoreHashNode *QoreSSLPrivateKey::getInfo() const
 {
    class QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("type", new QoreStringNode(getType()), NULL);
-   h->setKeyValue("version", new QoreNode(getVersion()), NULL);
-   h->setKeyValue("bitLength", new QoreNode(getBitLength()), NULL);
+   h->setKeyValue("version", new QoreBigIntNode(getVersion()), NULL);
+   h->setKeyValue("bitLength", new QoreBigIntNode(getBitLength()), NULL);
    return h;
 }

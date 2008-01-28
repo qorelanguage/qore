@@ -61,7 +61,7 @@ int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSin
       tlist->deref(xsink);
       tlist = NULL;
    }
-   QoreList *l_tlist = dynamic_cast<QoreList *>(tlist);
+   QoreListNode *l_tlist = dynamic_cast<QoreListNode *>(tlist);
 
    // execute "foreach" body
    if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
@@ -164,7 +164,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
    else
       tlist = NULL;
 
-   QoreList *l_tlist = dynamic_cast<QoreList *>(tlist);
+   QoreListNode *l_tlist = dynamic_cast<QoreListNode *>(tlist);
 
    AutoVLock vl;
 
@@ -175,7 +175,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
       int i = 0;
 
       if (l_tlist)
-	 ln = new QoreList();
+	 ln = new QoreListNode();
 
       while (true)
       {
@@ -241,7 +241,7 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
 
 	    // assign new value to referenced variable
 	    if (l_tlist)
-	       (reinterpret_cast<QoreList *>(ln))->set_entry(i, nv, NULL);
+	       (reinterpret_cast<QoreListNode *>(ln))->set_entry(i, nv, NULL);
 	    else
 	       ln = nv;
 

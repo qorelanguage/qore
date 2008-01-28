@@ -37,16 +37,9 @@
 #define FMT_NORMAL 0
 
 union node_u {
-      int64 intval;
-      // for boolean values
-      bool boolval;
-      char c_char;
-      int c_int;
       double floatval;
       // to initialize unresolved function calls, backquote expressions, etc
       char *c_str;
-      // for binary objects
-      class BinaryObject *bin;
       // for variable references
       class VarRef *vref;
       // for find expressions
@@ -59,8 +52,6 @@ union node_u {
       class NamedScope *scoped_ref;
       // for complex context references
       class ComplexContextRef *complex_cref;
-      // for a pointer to objects
-      void *ptr;
       // for an expression with an operator
       class Tree *tree;
       // for references to an lvalue
@@ -94,8 +85,13 @@ class QoreNode : public ReferenceObject
       DLLEXPORT QoreNode(const std::string &str);
       DLLEXPORT QoreNode(class QoreHash *h);
       DLLEXPORT QoreNode();
-      DLLEXPORT QoreNode(class QoreList *l);
+      DLLEXPORT QoreNode(class QoreListNode *l);
       DLLEXPORT QoreNode(class QoreObject *o);
+      DLLEXPORT QoreNode(class BinaryNode *b);
+      DLLEXPORT QoreNode(int64 v);
+      DLLEXPORT QoreNode(long v);
+      DLLEXPORT QoreNode(const QoreType *t, int64 v);
+      DLLEXPORT QoreNode(bool v);
 
    protected:
       DLLLOCAL virtual ~QoreNode();
@@ -105,13 +101,7 @@ class QoreNode : public ReferenceObject
       const QoreType *type;
 
       DLLEXPORT QoreNode(const QoreType *t);
-      DLLEXPORT QoreNode(const QoreType *t, int64 v);
-      DLLEXPORT QoreNode(long v);
-      DLLEXPORT QoreNode(int64 v);
-      DLLEXPORT QoreNode(bool v);
-
       DLLEXPORT QoreNode(double d);
-      DLLEXPORT QoreNode(class BinaryObject *b);
 
       // get the value of the type in a string context (default implementation = del = false and returns NullString)
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
@@ -130,11 +120,12 @@ class QoreNode : public ReferenceObject
       DLLEXPORT virtual int64 getAsBigInt() const;
       DLLEXPORT virtual double getAsFloat() const;
 
-      // FIXME: move QoreString * to first argument
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+      // returns -1 for exception raised, 0 = OK
+      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       // default implementation returns false
@@ -164,12 +155,12 @@ class QoreNode : public ReferenceObject
       // returns true if the node represents a value (default implementation)
       DLLEXPORT virtual bool is_value() const;
       
-      DLLLOCAL QoreNode(char *fn, class QoreList *n_args);
-      DLLLOCAL QoreNode(class QoreList *n_args, char *fn);
-      DLLLOCAL QoreNode(class QoreList *n_args, class NamedScope *n);
-      DLLLOCAL QoreNode(class UserFunction *u, class QoreList *n_args);
-      DLLLOCAL QoreNode(class BuiltinFunction *b, class QoreList *n_args);
-      DLLLOCAL QoreNode(class NamedScope *n, class QoreList *n_args);
+      DLLLOCAL QoreNode(char *fn, class QoreListNode *n_args);
+      DLLLOCAL QoreNode(class QoreListNode *n_args, char *fn);
+      DLLLOCAL QoreNode(class QoreListNode *n_args, class NamedScope *n);
+      DLLLOCAL QoreNode(class UserFunction *u, class QoreListNode *n_args);
+      DLLLOCAL QoreNode(class BuiltinFunction *b, class QoreListNode *n_args);
+      DLLLOCAL QoreNode(class NamedScope *n, class QoreListNode *n_args);
       DLLLOCAL QoreNode(class NamedScope *n);
       DLLLOCAL QoreNode(class ClassRef *c);
       DLLLOCAL QoreNode(class VarRef *v);

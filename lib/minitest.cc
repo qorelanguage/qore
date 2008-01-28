@@ -62,12 +62,13 @@ void run_Qore_test(QoreString& str, const char* file, int line, const char* deta
     assert(false); // this would be Qore bug
   }
 
-  if (rv->type != NT_BOOLEAN) {
+  QoreBoolNode *b = dynamic_cast<QoreBoolNode *>(*rv);
+  if (!b) {
     printf("The Qore function 'test' should return boolean (true on success),\nfile %s, line %d.\n", file, line);
     assert(false);
   }
 
-  if (!rv->val.boolval) {
+  if (!b->b) {
     printf("Qore test program failed by returning 'False',\nfile %s, line %d.\n", file, line);
     if (details && details[0]) {
       printf("Details: %s\n", details);

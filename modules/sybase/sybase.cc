@@ -67,7 +67,7 @@ static DBIDriver* DBID_SYBASE;
 
 #ifdef DEBUG
 // exported
-QoreNode* runSybaseTests(const QoreList *params, ExceptionSink *xsink)
+QoreNode* runSybaseTests(const QoreListNode *params, ExceptionSink *xsink)
 {
    minitest::result res = minitest::execute_all_tests();
    if (res.all_tests_succeeded) {
@@ -82,7 +82,7 @@ QoreNode* runSybaseTests(const QoreList *params, ExceptionSink *xsink)
    return 0;
 }
 
-QoreNode* runRecentSybaseTests(const QoreList *params, ExceptionSink *xsink)
+QoreNode* runRecentSybaseTests(const QoreListNode *params, ExceptionSink *xsink)
 {
    minitest::result res = minitest::test_last_changed_files(1);
    if (res.all_tests_succeeded) {
@@ -160,20 +160,20 @@ static int sybase_close(Datasource *ds)
 }
 
 //------------------------------------------------------------------------------
-static QoreNode* sybase_select(Datasource *ds, const QoreString *qstr, const QoreList *args, ExceptionSink *xsink)
+static QoreNode* sybase_select(Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    return conn->exec(qstr, args, xsink);
 }
 
-static QoreNode* sybase_select_rows(Datasource *ds, const QoreString *qstr, const QoreList *args, ExceptionSink *xsink)
+static QoreNode* sybase_select_rows(Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    //printd(5, "sybase_select_rows(ds=%08p, qstr='%s', args=%08p)\n", ds, qstr->getBuffer(), args);
    return conn->exec_rows(qstr, args, xsink);
 }
 
-static QoreNode* sybase_exec(Datasource *ds, const QoreString *qstr, const QoreList *args, ExceptionSink *xsink)
+static QoreNode* sybase_exec(Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    return conn->exec(qstr, args, xsink);
@@ -207,58 +207,58 @@ static class QoreNode *sybase_get_server_version(Datasource *ds, ExceptionSink *
 // constants are not needed now as specifying placeholder buffer types is not necessary
 static void add_constants(QoreNamespace* ns)
 {
-   ns->addConstant("CS_CHAR_TYPE", new QoreNode((int64)CS_CHAR_TYPE));
-   ns->addConstant("CS_BINARY_TYPE", new QoreNode((int64)CS_BINARY_TYPE));
-   ns->addConstant("CS_LONGCHAR_TYPE", new QoreNode((int64)CS_LONGCHAR_TYPE));
-   ns->addConstant("CS_LONGBINARY_TYPE", new QoreNode((int64)CS_LONGBINARY_TYPE));
-   ns->addConstant("CS_TEXT_TYPE", new QoreNode((int64)CS_TEXT_TYPE));
-   ns->addConstant("CS_IMAGE_TYPE", new QoreNode((int64)CS_IMAGE_TYPE));
-   ns->addConstant("CS_TINYINT_TYPE", new QoreNode((int64)CS_TINYINT_TYPE));
-   ns->addConstant("CS_SMALLINT_TYPE", new QoreNode((int64)CS_SMALLINT_TYPE));
-   ns->addConstant("CS_INT_TYPE", new QoreNode((int64)CS_INT_TYPE));
-   ns->addConstant("CS_REAL_TYPE", new QoreNode((int64)CS_REAL_TYPE));
-   ns->addConstant("CS_FLOAT_TYPE", new QoreNode((int64)CS_FLOAT_TYPE));
-   ns->addConstant("CS_BIT_TYPE", new QoreNode((int64)CS_BIT_TYPE));
-   ns->addConstant("CS_DATETIME_TYPE", new QoreNode((int64)CS_DATETIME_TYPE));
-   ns->addConstant("CS_DATETIME4_TYPE", new QoreNode((int64)CS_DATETIME4_TYPE));
-   ns->addConstant("CS_MONEY_TYPE", new QoreNode((int64)CS_MONEY_TYPE));
-   ns->addConstant("CS_MONEY4_TYPE", new QoreNode((int64)CS_MONEY4_TYPE));
-   ns->addConstant("CS_NUMERIC_TYPE", new QoreNode((int64)CS_NUMERIC_TYPE));
-   ns->addConstant("CS_DECIMAL_TYPE", new QoreNode((int64)CS_DECIMAL_TYPE));
-   ns->addConstant("CS_VARCHAR_TYPE", new QoreNode((int64)CS_VARCHAR_TYPE));
-   ns->addConstant("CS_VARBINARY_TYPE", new QoreNode((int64)CS_VARBINARY_TYPE));
-   ns->addConstant("CS_LONG_TYPE", new QoreNode((int64)CS_LONG_TYPE));
-   ns->addConstant("CS_SENSITIVITY_TYPE", new QoreNode((int64)CS_SENSITIVITY_TYPE));
-   ns->addConstant("CS_BOUNDARY_TYPE", new QoreNode((int64)CS_BOUNDARY_TYPE));
-   ns->addConstant("CS_VOID_TYPE", new QoreNode((int64)CS_VOID_TYPE));
-   ns->addConstant("CS_USHORT_TYPE", new QoreNode((int64)CS_USHORT_TYPE));
-   ns->addConstant("CS_UNICHAR_TYPE", new QoreNode((int64)CS_UNICHAR_TYPE));
+   ns->addConstant("CS_CHAR_TYPE", new QoreBigIntNode(CS_CHAR_TYPE));
+   ns->addConstant("CS_BINARY_TYPE", new QoreBigIntNode(CS_BINARY_TYPE));
+   ns->addConstant("CS_LONGCHAR_TYPE", new QoreBigIntNode(CS_LONGCHAR_TYPE));
+   ns->addConstant("CS_LONGBINARY_TYPE", new QoreBigIntNode(CS_LONGBINARY_TYPE));
+   ns->addConstant("CS_TEXT_TYPE", new QoreBigIntNode(CS_TEXT_TYPE));
+   ns->addConstant("CS_IMAGE_TYPE", new QoreBigIntNode(CS_IMAGE_TYPE));
+   ns->addConstant("CS_TINYINT_TYPE", new QoreBigIntNode(CS_TINYINT_TYPE));
+   ns->addConstant("CS_SMALLINT_TYPE", new QoreBigIntNode(CS_SMALLINT_TYPE));
+   ns->addConstant("CS_INT_TYPE", new QoreBigIntNode(CS_INT_TYPE));
+   ns->addConstant("CS_REAL_TYPE", new QoreBigIntNode(CS_REAL_TYPE));
+   ns->addConstant("CS_FLOAT_TYPE", new QoreBigIntNode(CS_FLOAT_TYPE));
+   ns->addConstant("CS_BIT_TYPE", new QoreBigIntNode(CS_BIT_TYPE));
+   ns->addConstant("CS_DATETIME_TYPE", new QoreBigIntNode(CS_DATETIME_TYPE));
+   ns->addConstant("CS_DATETIME4_TYPE", new QoreBigIntNode(CS_DATETIME4_TYPE));
+   ns->addConstant("CS_MONEY_TYPE", new QoreBigIntNode(CS_MONEY_TYPE));
+   ns->addConstant("CS_MONEY4_TYPE", new QoreBigIntNode(CS_MONEY4_TYPE));
+   ns->addConstant("CS_NUMERIC_TYPE", new QoreBigIntNode(CS_NUMERIC_TYPE));
+   ns->addConstant("CS_DECIMAL_TYPE", new QoreBigIntNode(CS_DECIMAL_TYPE));
+   ns->addConstant("CS_VARCHAR_TYPE", new QoreBigIntNode(CS_VARCHAR_TYPE));
+   ns->addConstant("CS_VARBINARY_TYPE", new QoreBigIntNode(CS_VARBINARY_TYPE));
+   ns->addConstant("CS_LONG_TYPE", new QoreBigIntNode(CS_LONG_TYPE));
+   ns->addConstant("CS_SENSITIVITY_TYPE", new QoreBigIntNode(CS_SENSITIVITY_TYPE));
+   ns->addConstant("CS_BOUNDARY_TYPE", new QoreBigIntNode(CS_BOUNDARY_TYPE));
+   ns->addConstant("CS_VOID_TYPE", new QoreBigIntNode(CS_VOID_TYPE));
+   ns->addConstant("CS_USHORT_TYPE", new QoreBigIntNode(CS_USHORT_TYPE));
+   ns->addConstant("CS_UNICHAR_TYPE", new QoreBigIntNode(CS_UNICHAR_TYPE));
 #ifdef CS_BLOB_TYPE
-   ns->addConstant("CS_BLOB_TYPE", new QoreNode((int64)CS_BLOB_TYPE));
+   ns->addConstant("CS_BLOB_TYPE", new QoreBigIntNode(CS_BLOB_TYPE));
 #endif
 #ifdef CS_DATE_TYPE
-   ns->addConstant("CS_DATE_TYPE", new QoreNode((int64)CS_DATE_TYPE));
+   ns->addConstant("CS_DATE_TYPE", new QoreBigIntNode(CS_DATE_TYPE));
 #endif
 #ifdef CS_TIME_TYPE
-   ns->addConstant("CS_TIME_TYPE", new QoreNode((int64)CS_TIME_TYPE));
+   ns->addConstant("CS_TIME_TYPE", new QoreBigIntNode(CS_TIME_TYPE));
 #endif
 #ifdef CS_UNITEXT_TYPE
-   ns->addConstant("CS_UNITEXT_TYPE", new QoreNode((int64)CS_UNITEXT_TYPE));
+   ns->addConstant("CS_UNITEXT_TYPE", new QoreBigIntNode(CS_UNITEXT_TYPE));
 #endif
 #ifdef CS_BIGINT_TYPE
-   ns->addConstant("CS_BIGINT_TYPE", new QoreNode((int64)CS_BIGINT_TYPE));
+   ns->addConstant("CS_BIGINT_TYPE", new QoreBigIntNode(CS_BIGINT_TYPE));
 #endif
 #ifdef CS_USMALLINT_TYPE
-   ns->addConstant("CS_USMALLINT_TYPE", new QoreNode((int64)CS_USMALLINT_TYPE));
+   ns->addConstant("CS_USMALLINT_TYPE", new QoreBigIntNode(CS_USMALLINT_TYPE));
 #endif
 #ifdef CS_UINT_TYPE
-   ns->addConstant("CS_UINT_TYPE", new QoreNode((int64)CS_UINT_TYPE));
+   ns->addConstant("CS_UINT_TYPE", new QoreBigIntNode(CS_UINT_TYPE));
 #endif
 #ifdef CS_UBIGINT_TYPE
-   ns->addConstant("CS_UBIGINT_TYPE", new QoreNode((int64)CS_UBIGINT_TYPE));
+   ns->addConstant("CS_UBIGINT_TYPE", new QoreBigIntNode(CS_UBIGINT_TYPE));
 #endif
 #ifdef CS_XML_TYPE
-   ns->addConstant("CS_XML_TYPE", new QoreNode((int64)CS_XML_TYPE));
+   ns->addConstant("CS_XML_TYPE", new QoreBigIntNode(CS_XML_TYPE));
 #endif
 }
 

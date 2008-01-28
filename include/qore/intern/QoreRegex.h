@@ -46,7 +46,7 @@ class QoreRegex : public QoreRegexBase
       DLLLOCAL void parse();
       DLLLOCAL void parseRT(class QoreString *pattern, class ExceptionSink *xsink);
       DLLLOCAL bool exec(const QoreString *target, class ExceptionSink *xsink);
-      DLLLOCAL class QoreList *extractSubstrings(const QoreString *target, class ExceptionSink *xsink);
+      DLLLOCAL class QoreListNode *extractSubstrings(const QoreString *target, class ExceptionSink *xsink);
       DLLLOCAL class QoreString *getString();
 };
 

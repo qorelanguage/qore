@@ -123,9 +123,9 @@ class Var *GlobalVariableList::checkVar(const char *name, int *new_var)
    return var;
 }
 
-class QoreList *GlobalVariableList::getVarList() const
+class QoreListNode *GlobalVariableList::getVarList() const
 {
-   QoreList *l = new QoreList();
+   QoreListNode *l = new QoreListNode();
    
    for (map_var_t::const_iterator i = vmap.begin(); i != vmap.end(); i++)
       l->push(new QoreStringNode(i->first));

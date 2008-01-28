@@ -54,9 +54,9 @@ DLLLOCAL extern class LockedObject lck_gmtime;
 DLLLOCAL extern char table64[64];
 
 DLLLOCAL int get_nibble(char c, class ExceptionSink *xsink);
-DLLLOCAL class BinaryObject *parseBase64(const char *buf, int len, class ExceptionSink *xsink);
-DLLLOCAL class BinaryObject *parseHex(const char *buf, int len, class ExceptionSink *xsink);
-DLLLOCAL class BinaryObject *parseHex(const char *buf, int len);
+DLLLOCAL class BinaryNode *parseBase64(const char *buf, int len, class ExceptionSink *xsink);
+DLLLOCAL class BinaryNode *parseHex(const char *buf, int len, class ExceptionSink *xsink);
+DLLLOCAL class BinaryNode *parseHex(const char *buf, int len);
 DLLLOCAL void print_node(FILE *fp, class QoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);

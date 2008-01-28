@@ -102,7 +102,7 @@ char *remove_trailing_blanks(char *str)
 #ifdef DEBUG
 void showCallStack()
 {
-   QoreList *callStack = getCallStackList();
+   QoreListNode *callStack = getCallStackList();
    int sl, el;
    get_pgm_counter(sl, el);
    if (sl == el)
@@ -114,12 +114,12 @@ void showCallStack()
       printe("call stack:\n");
       for (int i = 0; i < callStack->size(); i++)
       {
-         class QoreHashNode *h = reinterpret_cast<QoreHashNode *>(callStack->retrieve_entry(i));
+         QoreHashNode *h = reinterpret_cast<QoreHashNode *>(callStack->retrieve_entry(i));
 	 QoreStringNode *func = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
 	 QoreStringNode *file = reinterpret_cast<QoreStringNode *>(h->getKeyValue("file"));
 	 QoreStringNode *type = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));
          printe(" %2d: %s() (%s line %d, %s)\n", i + 1, func->getBuffer(), file->getBuffer(), 
-		(int)h->getKeyValue("line")->val.intval, type->getBuffer());
+		(int)(reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("line")))->val, type->getBuffer());
       }
    }
 }

@@ -68,11 +68,11 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
       // caller owns value returned
       DLLLOCAL class QoreStringNode *getSignatureType() const;
       // caller owns value returned
-      DLLLOCAL class BinaryObject *getSignature() const;
+      DLLLOCAL class BinaryNode *getSignature() const;
       // caller owns value returned
       DLLLOCAL class QoreStringNode *getPublicKeyAlgorithm() const;
       // caller owns value returned
-      DLLLOCAL class BinaryObject *getPublicKey() const;
+      DLLLOCAL class BinaryNode *getPublicKey() const;
       // caller owns value returned
       DLLLOCAL class QoreHashNode *getInfo() const;
 };

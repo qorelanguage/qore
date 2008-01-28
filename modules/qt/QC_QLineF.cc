@@ -35,7 +35,7 @@ class QoreClass *QC_QLineF = 0;
 //QLineF ( const QPointF & p1, const QPointF & p2 )
 //QLineF ( qreal x1, qreal y1, qreal x2, qreal y2 )
 //QLineF ( const QLine & line )
-static void QLINEF_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QLINEF_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
@@ -85,7 +85,7 @@ static void QLINEF_copy(class QoreObject *self, class QoreObject *old, class Qor
 }
 
 //QPointF p1 () const
-static QoreNode *QLINEF_p1(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_p1(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qlf->p1());
@@ -94,7 +94,7 @@ static QoreNode *QLINEF_p1(QoreObject *self, QoreQLineF *qlf, const QoreList *pa
 }
 
 //QPointF p2 () const
-static QoreNode *QLINEF_p2(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_p2(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qlf->p2());
@@ -103,31 +103,31 @@ static QoreNode *QLINEF_p2(QoreObject *self, QoreQLineF *qlf, const QoreList *pa
 }
 
 //qreal x1 () const
-static QoreNode *QLINEF_x1(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_x1(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->x1());
 }
 
 //qreal x2 () const
-static QoreNode *QLINEF_x2(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_x2(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->x2());
 }
 
 //qreal y1 () const
-static QoreNode *QLINEF_y1(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_y1(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->y1());
 }
 
 //qreal y2 () const
-static QoreNode *QLINEF_y2(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_y2(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->y2());
 }
 
 //qreal angle ( const QLineF & line ) const
-static QoreNode *QLINEF_angle(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_angle(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QoreQLineF *line = (p && p->type == NT_OBJECT) ? (QoreQLineF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINEF, xsink) : 0;
@@ -141,19 +141,19 @@ static QoreNode *QLINEF_angle(QoreObject *self, QoreQLineF *qlf, const QoreList 
 }
 
 //qreal dx () const
-static QoreNode *QLINEF_dx(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_dx(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->dx());
 }
 
 //qreal dy () const
-static QoreNode *QLINEF_dy(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_dy(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->dy());
 }
 
 ////IntersectType intersect ( const QLineF & line, QPointF * intersectionPoint ) const
-//static QoreNode *QLINEF_intersect(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+//static QoreNode *QLINEF_intersect(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   QoreNode *p = get_param(params, 0);
 //   QoreQLineF *line = (p && p->type == NT_OBJECT) ? (QoreQLineF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINEF, xsink) : 0;
@@ -171,23 +171,23 @@ static QoreNode *QLINEF_dy(QoreObject *self, QoreQLineF *qlf, const QoreList *pa
 //      return 0;
 //   }
 //   ReferenceHolder<QoreQPointF> intersectionPointHolder(intersectionPoint, xsink);
-//   ??? return new QoreNode((int64)qlf->intersect(*(static_cast<QLineF *>(line)), *(*(static_cast<QPointF *>(intersectionPoint)))));
+//   ??? return new QoreBigIntNode(qlf->intersect(*(static_cast<QLineF *>(line)), *(*(static_cast<QPointF *>(intersectionPoint)))));
 //}
 
 //bool isNull () const
-static QoreNode *QLINEF_isNull(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_isNull(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qlf->isNull());
+   return new QoreBoolNode(qlf->isNull());
 }
 
 //qreal length () const
-static QoreNode *QLINEF_length(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_length(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreNode((double)qlf->length());
 }
 
 //QLineF normalVector () const
-static QoreNode *QLINEF_normalVector(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_normalVector(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qlf = new QoreObject(self->getClass(CID_QLINEF), getProgram());
    QoreQLineF *q_qlf = new QoreQLineF(qlf->normalVector());
@@ -196,7 +196,7 @@ static QoreNode *QLINEF_normalVector(QoreObject *self, QoreQLineF *qlf, const Qo
 }
 
 //QPointF pointAt ( qreal t ) const
-static QoreNode *QLINEF_pointAt(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_pointAt(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
@@ -207,7 +207,7 @@ static QoreNode *QLINEF_pointAt(QoreObject *self, QoreQLineF *qlf, const QoreLis
 }
 
 //void setLength ( qreal length )
-static QoreNode *QLINEF_setLength(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_setLength(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    qreal length = p ? p->getAsFloat() : 0.0;
@@ -216,7 +216,7 @@ static QoreNode *QLINEF_setLength(QoreObject *self, QoreQLineF *qlf, const QoreL
 }
 
 //QLine toLine () const
-static QoreNode *QLINEF_toLine(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_toLine(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_ql = new QoreObject(QC_QLine, getProgram());
    QoreQLine *q_ql = new QoreQLine(qlf->toLine());
@@ -226,7 +226,7 @@ static QoreNode *QLINEF_toLine(QoreObject *self, QoreQLineF *qlf, const QoreList
 
 //void translate ( const QPointF & offset )
 //void translate ( qreal dx, qreal dy )
-static QoreNode *QLINEF_translate(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_translate(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
@@ -248,7 +248,7 @@ static QoreNode *QLINEF_translate(QoreObject *self, QoreQLineF *qlf, const QoreL
 }
 
 //QLineF unitVector () const
-static QoreNode *QLINEF_unitVector(QoreObject *self, QoreQLineF *qlf, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QLINEF_unitVector(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qlf = new QoreObject(self->getClass(CID_QLINEF), getProgram());
    QoreQLineF *q_qlf = new QoreQLineF(qlf->unitVector());

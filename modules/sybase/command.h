@@ -67,7 +67,7 @@ class command
       // returns the number of columns in the result
       DLLLOCAL unsigned get_column_count(ExceptionSink *xsink);
       // returns 0=OK, -1=error (exception raised)
-      DLLLOCAL int set_params(sybase_query &query, const QoreList *args, ExceptionSink *xsink);
+      DLLLOCAL int set_params(sybase_query &query, const QoreListNode *args, ExceptionSink *xsink);
       DLLLOCAL QoreNode *read_output(PlaceholderList &placeholder_list, bool list, ExceptionSink* xsink);
 };
 

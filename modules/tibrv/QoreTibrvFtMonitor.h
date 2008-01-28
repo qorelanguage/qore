@@ -43,7 +43,7 @@ class QoreTibrvFtMonitorCallback : public TibrvFtMonitorCallback
 	 //printd(5, "onFtAction %s: %d\n", groupName, action);
 	 h = new QoreHashNode();
 	 h->setKeyValue("group", new QoreStringNode(groupName), NULL);
-	 h->setKeyValue("numActiveMembers", new QoreNode((int64)numActiveMembers), NULL);
+	 h->setKeyValue("numActiveMembers", new QoreBigIntNode(numActiveMembers), NULL);
       }
 
    public:
@@ -99,7 +99,7 @@ class QoreTibrvFtMonitor : public AbstractPrivateData, public QoreTibrvTransport
 	    if (status == TIBRV_INVALID_QUEUE)
 	    {
 	       QoreHashNode *h = new QoreHashNode();
-	       h->setKeyValue("action", new QoreNode((int64)-1), NULL);
+	       h->setKeyValue("action", new QoreBigIntNode(-1), NULL);
 	       return h;
 	    }
 	    

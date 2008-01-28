@@ -373,9 +373,9 @@ class QoreNode *QoreHash::getKeyValue(const QoreString *key, class ExceptionSink
 }
 
 // retrieve keys in order they were inserted
-class QoreList *QoreHash::getKeys() const
+class QoreListNode *QoreHash::getKeys() const
 {
-   class QoreList *list = new QoreList();
+   class QoreListNode *list = new QoreListNode();
    class HashMember *where = member_list;
    
    while (where)
@@ -718,6 +718,45 @@ bool QoreHash::needsEval() const
 void QoreHash::clearNeedsEval()
 {
    needs_eval = false;
+}
+
+int QoreHash::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
+{
+   str.concat("hash: ");
+   if (foff != FMT_NONE) {
+      int elements = size();
+      str.sprintf("(%d member%s)\n", elements, elements == 1 ? "" : "s");
+   }
+   else
+      str.concat('(');
+   
+   class ConstHashIterator hi(this);
+   
+   bool first = false;
+   while (hi.next()) {
+      if (first)
+	 if (foff != FMT_NONE)
+	    str.concat('\n');
+	 else
+	    str.concat(", ");
+      else
+	 first = true;
+      
+      if (foff != FMT_NONE)
+	 str.addch(' ', foff + 2);
+
+      str.sprintf("%s : ", hi.getKey());
+
+      QoreNode *n = hi.getValue();
+      if (!n) n = Nothing;
+      if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
+	 return -1;
+   }
+   
+   if (foff == FMT_NONE)
+      str.concat(')');
+
+   return 0;
 }
 
 QoreString *QoreHash::getAsString(bool &del, int foff, class ExceptionSink *xsink) const

@@ -23,13 +23,13 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_list.h>
 
-static class QoreNode *f_sort(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_sort(const QoreListNode *params, ExceptionSink *xsink)
 {
    // get list as first argument
    QoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   QoreList *l = dynamic_cast<QoreList *>(lst);
+   QoreListNode *l = dynamic_cast<QoreListNode *>(lst);
    if (!l)
       return lst->RefSelf();
    
@@ -58,13 +58,13 @@ static class QoreNode *f_sort(const QoreList *params, ExceptionSink *xsink)
    return l->sort(fn->val.funcref, xsink);
 }
 
-static class QoreNode *f_sortDescending(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_sortDescending(const QoreListNode *params, ExceptionSink *xsink)
 {
    // get list as first argument
    QoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   QoreList *l = dynamic_cast<QoreList *>(lst);
+   QoreListNode *l = dynamic_cast<QoreListNode *>(lst);
    if (!l)
       return lst->RefSelf();
    
@@ -94,13 +94,13 @@ static class QoreNode *f_sortDescending(const QoreList *params, ExceptionSink *x
    return l->sortDescending(fn->val.funcref, xsink);
 }
 
-static class QoreNode *f_sortStable(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_sortStable(const QoreListNode *params, ExceptionSink *xsink)
 {
    // get list as first argument
    QoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   QoreList *l = dynamic_cast<QoreList *>(lst);
+   QoreListNode *l = dynamic_cast<QoreListNode *>(lst);
    if (!l)
       return lst->RefSelf();
    
@@ -130,13 +130,13 @@ static class QoreNode *f_sortStable(const QoreList *params, ExceptionSink *xsink
    return l->sortStable(fn->val.funcref, xsink);
 }
 
-static class QoreNode *f_sortDescendingStable(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_sortDescendingStable(const QoreListNode *params, ExceptionSink *xsink)
 {
    // get list as first argument
    QoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   QoreList *l = dynamic_cast<QoreList *>(lst);
+   QoreListNode *l = dynamic_cast<QoreListNode *>(lst);
    if (!l)
       return lst->RefSelf();
    
@@ -166,9 +166,9 @@ static class QoreNode *f_sortDescendingStable(const QoreList *params, ExceptionS
    return l->sortDescendingStable(fn->val.funcref, xsink);
 }
 
-static class QoreNode *f_min(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_min(const QoreListNode *params, ExceptionSink *xsink)
 {   
-   QoreList *lst = test_list_param(params, 0);
+   QoreListNode *lst = test_list_param(params, 0);
    if (lst)
    {
       QoreNode *p = get_param(params, 1);
@@ -200,9 +200,9 @@ static class QoreNode *f_min(const QoreList *params, ExceptionSink *xsink)
    return params->min();
 }
 
-static class QoreNode *f_max(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_max(const QoreListNode *params, ExceptionSink *xsink)
 {   
-   QoreList *lst = test_list_param(params, 0);
+   QoreListNode *lst = test_list_param(params, 0);
    if (lst)
    {
       QoreNode *p = get_param(params, 1);
@@ -234,11 +234,11 @@ static class QoreNode *f_max(const QoreList *params, ExceptionSink *xsink)
    return params->max();
 }
 
-static class QoreNode *f_reverse(const QoreList *params, ExceptionSink *xsink)
+static class QoreNode *f_reverse(const QoreListNode *params, ExceptionSink *xsink)
 { 
    QoreNode *p = get_param(params, 0);
    {
-      QoreList *l = dynamic_cast<QoreList *>(p);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(p);
       if (l)
 	 return l->reverse();
    }

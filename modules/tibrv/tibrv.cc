@@ -30,7 +30,7 @@
 #include <tibrv/sdcpp.h>
 
 // params: name, certificate
-static class QoreNode *f_tibrvSetDaemonCert(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrvSetDaemonCert(const QoreListNode *params, class ExceptionSink *xsink)
 {
    // get daemon name (format: "ssl:<host>:<port_number>")
    QoreStringNode *str = test_string_param(params, 0);
@@ -65,7 +65,7 @@ static class QoreNode *f_tibrvSetDaemonCert(const QoreList *params, class Except
 }
 
 // params: certificate, key, password
-static class QoreNode *f_tibrvSetUserCertWithKey(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrvSetUserCertWithKey(const QoreListNode *params, class ExceptionSink *xsink)
 {
    // get certificate (SSLCertificate class)
    QoreObject *pt = test_object_param(params, 0);
@@ -119,77 +119,77 @@ static QoreHashNode *tibrv_hash_helper(char *key, class QoreNode *val)
    return h;
 }
 
-static class QoreNode *f_tibrv_i8(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_i8(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("i8", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_u8(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_u8(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("u8", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_i16(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_i16(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("i16", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_u16(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_u16(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("u16", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_i32(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_i32(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("i32", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_u32(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_u32(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("u32", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_i64(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_i64(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("i64", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_u64(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_u64(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("u64", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_f32(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_f32(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("f32", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_f64(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_f64(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("f64", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_ipport16(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_ipport16(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("ipport16", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_ipaddr32(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_ipaddr32(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("ipaddr32", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_xml(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_xml(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("xml", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrv_bool(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrv_bool(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return tibrv_hash_helper("bool", get_param(params, 0));
 }
 
-static class QoreNode *f_tibrvGetVersion(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibrvGetVersion(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return new QoreStringNode(Tibrv::version());
 }

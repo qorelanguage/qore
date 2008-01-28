@@ -65,10 +65,10 @@ static void init_namespace()
    tibns->addSystemClass(initTibrvDistributedQueueClass());
 
    // add constants for fault tolerant events
-   tibns->addConstant("TIBRVFT_PREPARE_TO_ACTIVATE", new QoreNode((int64)TIBRVFT_PREPARE_TO_ACTIVATE));
-   tibns->addConstant("TIBRVFT_ACTIVATE", new QoreNode((int64)TIBRVFT_ACTIVATE));
-   tibns->addConstant("TIBRVFT_DEACTIVATE", new QoreNode((int64)TIBRVFT_DEACTIVATE));
-   tibns->addConstant("TIBRVFT_QORE_STOP", new QoreNode((int64)-1));
+   tibns->addConstant("TIBRVFT_PREPARE_TO_ACTIVATE", new QoreBigIntNode(TIBRVFT_PREPARE_TO_ACTIVATE));
+   tibns->addConstant("TIBRVFT_ACTIVATE", new QoreBigIntNode(TIBRVFT_ACTIVATE));
+   tibns->addConstant("TIBRVFT_DEACTIVATE", new QoreBigIntNode(TIBRVFT_DEACTIVATE));
+   tibns->addConstant("TIBRVFT_QORE_STOP", new QoreBigIntNode(-1));
 }
 
 class QoreStringNode *tibrv_module_init()

@@ -41,7 +41,7 @@ public:
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit();
-   DLLLOCAL class QoreList *getList();
+   DLLLOCAL class QoreListNode *getList();
 };
 
 #endif

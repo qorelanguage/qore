@@ -44,7 +44,7 @@ DLLEXPORT qore_module_ns_init_t qore_module_ns_init = tibae_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = tibae_module_delete;
 #endif
 
-static class QoreNode *f_tibae_type(const QoreList *params, class ExceptionSink *xsink)
+static class QoreNode *f_tibae_type(const QoreListNode *params, class ExceptionSink *xsink)
 {
    class QoreNode *p = get_param(params, 0);
    int type = p->getAsInt();
@@ -54,7 +54,7 @@ static class QoreNode *f_tibae_type(const QoreList *params, class ExceptionSink 
       return 0;
    }
    QoreHashNode *h = new QoreHashNode();
-   h->setKeyValue("^type^", new QoreNode((int64)type), xsink);
+   h->setKeyValue("^type^", new QoreBigIntNode(type), xsink);
    p = get_param(params, 1);
    if (p)
       p->ref();
@@ -69,26 +69,26 @@ static void setup_namespace()
    tibns->addSystemClass(initTibcoAdapterClass());
 
    // add constants
-   tibns->addConstant("TIBAE_BINARY",      new QoreNode((int64)TIBAE_BINARY));
-   tibns->addConstant("TIBAE_BOOLEAN",     new QoreNode((int64)TIBAE_BOOLEAN));
-   tibns->addConstant("TIBAE_BYTE",        new QoreNode((int64)TIBAE_BYTE));
-   tibns->addConstant("TIBAE_CHAR",        new QoreNode((int64)TIBAE_CHAR));
-   tibns->addConstant("TIBAE_DATE",        new QoreNode((int64)TIBAE_DATE));
-   tibns->addConstant("TIBAE_DATETIME",    new QoreNode((int64)TIBAE_DATETIME));
-   tibns->addConstant("TIBAE_FIXED",       new QoreNode((int64)TIBAE_FIXED));
-   tibns->addConstant("TIBAE_I1",          new QoreNode((int64)TIBAE_I1));
-   tibns->addConstant("TIBAE_I2",          new QoreNode((int64)TIBAE_I2));
-   tibns->addConstant("TIBAE_I4",          new QoreNode((int64)TIBAE_I4));
-   tibns->addConstant("TIBAE_I8",          new QoreNode((int64)TIBAE_I8));
-   tibns->addConstant("TIBAE_INTERVAL",    new QoreNode((int64)TIBAE_INTERVAL));
-   tibns->addConstant("TIBAE_R4",          new QoreNode((int64)TIBAE_R4));
-   tibns->addConstant("TIBAE_R8",          new QoreNode((int64)TIBAE_R8));
-   tibns->addConstant("TIBAE_STRING",      new QoreNode((int64)TIBAE_STRING));
-   tibns->addConstant("TIBAE_TIME",        new QoreNode((int64)TIBAE_TIME));
-   tibns->addConstant("TIBAE_U1",          new QoreNode((int64)TIBAE_U1));
-   tibns->addConstant("TIBAE_U2",          new QoreNode((int64)TIBAE_U2));
-   tibns->addConstant("TIBAE_U4",          new QoreNode((int64)TIBAE_U4));
-   tibns->addConstant("TIBAE_U8",          new QoreNode((int64)TIBAE_U8));
+   tibns->addConstant("TIBAE_BINARY",      new QoreBigIntNode(TIBAE_BINARY));
+   tibns->addConstant("TIBAE_BOOLEAN",     new QoreBigIntNode(TIBAE_BOOLEAN));
+   tibns->addConstant("TIBAE_BYTE",        new QoreBigIntNode(TIBAE_BYTE));
+   tibns->addConstant("TIBAE_CHAR",        new QoreBigIntNode(TIBAE_CHAR));
+   tibns->addConstant("TIBAE_DATE",        new QoreBigIntNode(TIBAE_DATE));
+   tibns->addConstant("TIBAE_DATETIME",    new QoreBigIntNode(TIBAE_DATETIME));
+   tibns->addConstant("TIBAE_FIXED",       new QoreBigIntNode(TIBAE_FIXED));
+   tibns->addConstant("TIBAE_I1",          new QoreBigIntNode(TIBAE_I1));
+   tibns->addConstant("TIBAE_I2",          new QoreBigIntNode(TIBAE_I2));
+   tibns->addConstant("TIBAE_I4",          new QoreBigIntNode(TIBAE_I4));
+   tibns->addConstant("TIBAE_I8",          new QoreBigIntNode(TIBAE_I8));
+   tibns->addConstant("TIBAE_INTERVAL",    new QoreBigIntNode(TIBAE_INTERVAL));
+   tibns->addConstant("TIBAE_R4",          new QoreBigIntNode(TIBAE_R4));
+   tibns->addConstant("TIBAE_R8",          new QoreBigIntNode(TIBAE_R8));
+   tibns->addConstant("TIBAE_STRING",      new QoreBigIntNode(TIBAE_STRING));
+   tibns->addConstant("TIBAE_TIME",        new QoreBigIntNode(TIBAE_TIME));
+   tibns->addConstant("TIBAE_U1",          new QoreBigIntNode(TIBAE_U1));
+   tibns->addConstant("TIBAE_U2",          new QoreBigIntNode(TIBAE_U2));
+   tibns->addConstant("TIBAE_U4",          new QoreBigIntNode(TIBAE_U4));
+   tibns->addConstant("TIBAE_U8",          new QoreBigIntNode(TIBAE_U8));
 }
 
 class QoreStringNode *tibae_module_init()

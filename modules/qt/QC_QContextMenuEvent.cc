@@ -32,7 +32,7 @@ class QoreClass *QC_QContextMenuEvent = 0;
 
 //QContextMenuEvent ( Reason reason, const QPoint & pos, const QPoint & globalPos )
 //QContextMenuEvent ( Reason reason, const QPoint & pos )
-static void QCONTEXTMENUEVENT_constructor(QoreObject *self, const QoreList *params, ExceptionSink *xsink)
+static void QCONTEXTMENUEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p = get_param(params, 0);
    QContextMenuEvent::Reason reason = (QContextMenuEvent::Reason)(p ? p->getAsInt() : 0);
@@ -65,7 +65,7 @@ static void QCONTEXTMENUEVENT_copy(class QoreObject *self, class QoreObject *old
 }
 
 //const QPoint & globalPos () const
-static QoreNode *QCONTEXTMENUEVENT_globalPos(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QCONTEXTMENUEVENT_globalPos(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qcme->globalPos());
@@ -74,19 +74,19 @@ static QoreNode *QCONTEXTMENUEVENT_globalPos(QoreObject *self, QoreQContextMenuE
 }
 
 //int globalX () const
-static QoreNode *QCONTEXTMENUEVENT_globalX(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QCONTEXTMENUEVENT_globalX(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qcme->globalX());
+   return new QoreBigIntNode(qcme->globalX());
 }
 
 //int globalY () const
-static QoreNode *QCONTEXTMENUEVENT_globalY(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QCONTEXTMENUEVENT_globalY(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qcme->globalY());
+   return new QoreBigIntNode(qcme->globalY());
 }
 
 //const QPoint & pos () const
-static QoreNode *QCONTEXTMENUEVENT_pos(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QCONTEXTMENUEVENT_pos(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qcme->pos());
@@ -95,21 +95,21 @@ static QoreNode *QCONTEXTMENUEVENT_pos(QoreObject *self, QoreQContextMenuEvent *
 }
 
 //Reason reason () const
-static QoreNode *QCONTEXTMENUEVENT_reason(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QCONTEXTMENUEVENT_reason(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qcme->reason());
+   return new QoreBigIntNode(qcme->reason());
 }
 
 //int x () const
-static QoreNode *QCONTEXTMENUEVENT_x(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QCONTEXTMENUEVENT_x(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qcme->x());
+   return new QoreBigIntNode(qcme->x());
 }
 
 //int y () const
-static QoreNode *QCONTEXTMENUEVENT_y(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreList *params, ExceptionSink *xsink)
+static QoreNode *QCONTEXTMENUEVENT_y(QoreObject *self, QoreQContextMenuEvent *qcme, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((int64)qcme->y());
+   return new QoreBigIntNode(qcme->y());
 }
 
 QoreClass *initQContextMenuEventClass(QoreClass *qinputevent)
