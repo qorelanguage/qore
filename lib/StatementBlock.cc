@@ -479,17 +479,18 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    // for the "new" operator
    if (ntype == NT_SCOPE_REF)
    {
+      ScopedObjectCallNode *c = reinterpret_cast<ScopedObjectCallNode *>(*node);
       // find object class
-      if (((*node)->val.socall->oc = getRootNS()->parseFindScopedClass((*node)->val.socall->name)))
+      if ((c->oc = getRootNS()->parseFindScopedClass(c->name)))
       {
 	 // check if parse options allow access to this class
-	 if ((*node)->val.socall->oc->getDomain() & getProgram()->getParseOptions())
-	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", (*node)->val.socall->oc->getName());
+	 if (c->oc->getDomain() & getProgram()->getParseOptions())
+	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", c->oc->getName());
       }
-      delete (*node)->val.socall->name;
-      (*node)->val.socall->name = NULL;
-      if ((*node)->val.socall->args)
-	 lvids += process_list_node(&((*node)->val.socall->args), oflag, pflag);
+      delete c->name;
+      c->name = NULL;
+      if (c->args)
+	 lvids += process_list_node(&(c->args), oflag, pflag);
       
       return lvids;
    }

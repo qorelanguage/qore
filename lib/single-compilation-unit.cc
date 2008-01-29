@@ -9,7 +9,7 @@
 #include "ComplexContextrefNode.cc"
 #include "ContextRowNode.cc"
 #include "ClassRef.cc"
-#include "ScopedObjectCall.cc"
+#include "ScopedObjectCallNode.cc"
 #include "QoreNode.cc"
 #include "QoreStringNode.cc"
 #include "DateTimeNode.cc"

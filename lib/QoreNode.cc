@@ -47,11 +47,6 @@ QoreNode::~QoreNode()
    printd(5, "QoreNode::~QoreNode() type=%s\n", getTypeName());
 #endif
 
-   if (type == NT_SCOPE_REF) {
-      delete val.socall;
-      return;
-   }
-
    if (type == NT_CONSTANT) {
       delete val.scoped_ref;
       return;
@@ -86,15 +81,6 @@ QoreNode::~QoreNode()
       delete val.objmethref;
       return;
    }
-}
-
-QoreNode::QoreNode(NamedScope *n, QoreListNode *a)
-{
-   type = NT_SCOPE_REF;
-   val.socall = new ScopedObjectCall(n, a);
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
-#endif
 }
 
 QoreNode::QoreNode(class NamedScope *n)
@@ -229,9 +215,6 @@ class QoreNode *QoreNode::realCopy() const
    // FIXME: pure virtual function
    assert(this);
 
-   if (type == NT_SCOPE_REF)
-      assert(false);
-
    if (type == NT_CONSTANT)
       assert(false);
 
@@ -295,9 +278,6 @@ bool QoreNode::is_value() const
    if (type == NT_OBJMETHREF)
       return false;
 
-   if (type == NT_SCOPE_REF)
-      return false;
-
    return true;
 }
 
@@ -318,9 +298,6 @@ class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
    if (type == NT_FUNCREFCALL) {
       return val.funcrefcall->eval(xsink);
    }
-
-   if (type == NT_SCOPE_REF)
-      assert(false);
 
    if (type == NT_CONSTANT)
       assert(false);

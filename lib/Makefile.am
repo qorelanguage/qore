@@ -31,7 +31,7 @@ libqore_la_SOURCES = \
 	VarRefNode.cc \
 	FunctionCallNode.cc \
 	ClassRef.cc \
-	ScopedObjectCall.cc \
+	ScopedObjectCallNode.cc \
 	QoreNode.cc \
 	QoreStringNode.cc \
 	DateTimeNode.cc \

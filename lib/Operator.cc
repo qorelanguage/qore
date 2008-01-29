@@ -768,9 +768,11 @@ static class QoreNode *op_object_method_call(QoreNode *left, class QoreNode *fun
 static class QoreNode *op_new_object(QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
    tracein("op_new_object()");
-
-   QoreNode *rv = left->val.socall->oc->execConstructor(left->val.socall->args, xsink);
-   printd(5, "op_new_object() returning node=%08p (type=%s)\n", rv, left->val.socall->oc->getName());
+   
+   assert(left->getType() == NT_SCOPE_REF);
+   ScopedObjectCallNode *c = reinterpret_cast<ScopedObjectCallNode *>(left);
+   QoreNode *rv = c->oc->execConstructor(c->args, xsink);
+   printd(5, "op_new_object() returning node=%08p (type=%s)\n", rv, c->oc->getName());
    // if there's an exception, the constructor will delete the object without the destructor
    traceout("op_new_object()");
    return rv;

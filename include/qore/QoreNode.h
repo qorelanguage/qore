@@ -20,9 +20,6 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// FIXME: add derefWithObjectDelete() method to QoreNode to do a delete in addition to a deref if the qorenode is an object
-//        and use this method instead of calling QoreObject::doDelete directly in places around the library
-
 #ifndef _QORE_NODE_H
 
 #define _QORE_NODE_H
@@ -37,8 +34,6 @@
 #define FMT_NORMAL 0
 
 union node_u {
-      // for Scoped Function Valls
-      class ScopedObjectCall *socall;
       // for constant references
       class NamedScope *scoped_ref;
       // for complex context references
@@ -91,6 +86,7 @@ class QoreNode : public ReferenceObject
       DLLLOCAL QoreNode(class UserFunction *u, class QoreListNode *n_args);
       DLLLOCAL QoreNode(class BuiltinFunction *b, class QoreListNode *n_args);
       DLLLOCAL QoreNode(class FunctionCall *fc);
+      DLLLOCAL QoreNode(class NamedScope *n, class QoreListNode *n_args);
 
    protected:
       DLLEXPORT virtual ~QoreNode();
@@ -162,7 +158,6 @@ class QoreNode : public ReferenceObject
       // returns true if the node represents a value (default implementation)
       DLLEXPORT virtual bool is_value() const;
       
-      DLLLOCAL QoreNode(class NamedScope *n, class QoreListNode *n_args);
       DLLLOCAL QoreNode(class NamedScope *n);
       DLLLOCAL QoreNode(class ClassRef *c);
       DLLLOCAL QoreNode(class RegexSubst *rs);

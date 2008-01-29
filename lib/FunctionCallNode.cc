@@ -127,7 +127,7 @@ void FunctionCallNode::parseMakeMethod()
 // makes a "new" operator call from a function call
 class QoreNode *FunctionCallNode::parseMakeNewObject()
 {
-   class QoreNode *rv = new QoreNode(new NamedScope(f.c_str), args);
+   ScopedObjectCallNode *rv = new ScopedObjectCallNode(new NamedScope(f.c_str), args);
    f.c_str = NULL;
    args = NULL;
    return rv;

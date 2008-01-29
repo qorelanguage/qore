@@ -1812,7 +1812,7 @@ exp:    scalar
 	      $1->val.scoped_ref = 0;
 	      $1->deref(0);
 	      printd(5, "parsing scoped class call (for new) %s()\n", ns->ostr);
-	      $$ = new QoreNode(ns, makeArgs($3));	      
+	      $$ = new ScopedObjectCallNode(ns, makeArgs($3));	      
 	   }
 	   else if (t == NT_SELF_VARREF)
 	   {

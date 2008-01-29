@@ -73,7 +73,7 @@
 #include <qore/intern/QoreLibIntern.h>
 #include <qore/intern/Variable.h>
 #include <qore/intern/NamedScope.h>
-#include <qore/intern/ScopedObjectCall.h>
+#include <qore/intern/ScopedObjectCallNode.h>
 #include <qore/intern/ClassRef.h>
 #include <qore/intern/Context.h>
 #include <qore/intern/Operator.h>
