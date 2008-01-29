@@ -2170,7 +2170,7 @@ QoreHashNode *QoreTuxedoAdapter::getFmlDataFromBuffer(QoreHash* description_info
       }
       double val;
       memcpy(&val, value_buffer, sizeof(double));
-      result_value = new QoreDoubleNode(val);
+      result_value = new QoreFloatNode(val);
       break;
     }
 

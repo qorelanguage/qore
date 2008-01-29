@@ -30,6 +30,8 @@
 
 #include <string>
 
+#include <assert.h>
+
 #define FMT_NONE   -1
 #define FMT_NORMAL 0
 
