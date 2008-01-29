@@ -60,43 +60,43 @@ static void QMATRIX_copy(class QoreObject *self, class QoreObject *old, class Qo
 //qreal m11 () const
 static QoreNode *QMATRIX_m11(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qm->m11());
+   return new QoreFloatNode((double)qm->m11());
 }
 
 //qreal m12 () const
 static QoreNode *QMATRIX_m12(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qm->m12());
+   return new QoreFloatNode((double)qm->m12());
 }
 
 //qreal m21 () const
 static QoreNode *QMATRIX_m21(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qm->m21());
+   return new QoreFloatNode((double)qm->m21());
 }
 
 //qreal m22 () const
 static QoreNode *QMATRIX_m22(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qm->m22());
+   return new QoreFloatNode((double)qm->m22());
 }
 
 //qreal det () const
 static QoreNode *QMATRIX_det(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qm->det());
+   return new QoreFloatNode((double)qm->det());
 }
 
 //qreal dx () const
 static QoreNode *QMATRIX_dx(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qm->dx());
+   return new QoreFloatNode((double)qm->dx());
 }
 
 //qreal dy () const
 static QoreNode *QMATRIX_dy(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qm->dy());
+   return new QoreFloatNode((double)qm->dy());
 }
 
 //QMatrix inverted ( bool * invertible = 0 ) const

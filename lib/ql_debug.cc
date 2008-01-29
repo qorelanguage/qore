@@ -49,97 +49,92 @@ static void dni(QoreStringNode *s, const QoreNode *n, int indent, class Exceptio
       return;
    }
    
-   if (n->type == NT_BOOLEAN) {
+   if (ntype == NT_BOOLEAN) {
       s->sprintf("val=%s", reinterpret_cast<const QoreBoolNode *>(n)->b ? "True" : "False");
       return;
    }
 
-   if (n->type == NT_INT) {
+   if (ntype == NT_INT) {
       s->sprintf("val=%lld", (reinterpret_cast<const QoreBigIntNode *>(n))->val);
       return;
    }
   
-   if (n->type == NT_NOTHING) {
+   if (ntype == NT_NOTHING) {
       s->sprintf("val=NOTHING");
       return;
    }
 
-   if (n->type == NT_NULL) {
+   if (ntype == NT_NULL) {
       s->sprintf("val=SQL NULL");
       return;
    }
 
-   if (n->type == NT_FLOAT) {
-      s->sprintf("val=%f", n->val.floatval);
+   if (ntype == NT_FLOAT) {
+      s->sprintf("val=%f", reinterpret_cast<const QoreFloatNode *>(n)->f);
       return;
    }
    
-   {
-      const QoreListNode *l = dynamic_cast<const QoreListNode *>(n);
-      if (l) {
-	 s->sprintf("elements=%d\n", l->size());
-	 ConstListIterator li(l);
-	 int i = 0;
-	 while (li.next()) {
-	    strindent(s, indent);
-	    s->sprintf("list element %d/%d: ", i++, l->size());
-	    dni(s, li.getValue(), indent + 3, xsink);
-	    if (!li.last())
-	       s->concat('\n');
-	 }
-	 return;
+   if (ntype == NT_LIST) {
+      const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);
+      s->sprintf("elements=%d\n", l->size());
+      ConstListIterator li(l);
+      int i = 0;
+      while (li.next()) {
+	 strindent(s, indent);
+	 s->sprintf("list element %d/%d: ", i++, l->size());
+	 dni(s, li.getValue(), indent + 3, xsink);
+	 if (!li.last())
+	    s->concat('\n');
       }
+      return;
    }
    
-   {
-      const QoreObject *o = dynamic_cast<const QoreObject *>(n);
-      if (o) {
-	 s->sprintf("elements=%d (type=%s, valid=%s)\n", o->size(xsink),
-		    o->getClass() ? o->getClass()->getName() : "<none>",
-		    o->isValid() ? "yes" : "no");
+   if (ntype == NT_OBJECT) {
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
+      s->sprintf("elements=%d (type=%s, valid=%s)\n", o->size(xsink),
+		 o->getClass() ? o->getClass()->getName() : "<none>",
+		 o->isValid() ? "yes" : "no");
+      {
+	 // FIXME: this is inefficient, use copyData and a hashiterator instead
+	 ReferenceHolder<QoreListNode> l(o->getMemberList(xsink), xsink);
+	 if (l)
 	 {
-	    ReferenceHolder<QoreListNode> l(o->getMemberList(xsink), xsink);
-	    if (l)
-	    {
-	       for (int i = 0; i < l->size(); i++)
-	       {
-		  strindent(s, indent);
-		  QoreStringNode *entry = reinterpret_cast<QoreStringNode *>(l->retrieve_entry(i));
-		  s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
-		  QoreNode *nn;
-		  dni(s, nn = o->evalMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
-		  discard(nn, xsink);
-		  if (i != (l->size() - 1))
-		     s->concat('\n');
-	       }
-	    }
-	 }
-	 return;
-      }
-   }
-   
-   {
-      const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(n);
-      if (h) {
-	 s->sprintf("elements=%d\n", h->size());
-	 {
-	    int i = 0;
-	    ConstHashIterator hi(h);
-	    while (hi.next())
+	    for (int i = 0; i < l->size(); i++)
 	    {
 	       strindent(s, indent);
-	       s->sprintf("key %d/%d \"%s\" = ", i++, h->size(), hi.getKey());
-	       dni(s, hi.getValue(), indent + 3, xsink);
-	       if (!hi.last())
+	       QoreStringNode *entry = reinterpret_cast<QoreStringNode *>(l->retrieve_entry(i));
+	       s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
+	       QoreNode *nn;
+	       dni(s, nn = o->evalMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
+	       discard(nn, xsink);
+	       if (i != (l->size() - 1))
 		  s->concat('\n');
 	    }
 	 }
-	 return;
       }
+      return;
    }
-   
-   {
-      const DateTimeNode *date = dynamic_cast<const DateTimeNode *>(n);
+
+   if (ntype == NT_HASH) {
+      const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(n);
+      s->sprintf("elements=%d\n", h->size());
+      {
+	 int i = 0;
+	 ConstHashIterator hi(h);
+	 while (hi.next())
+	 {
+	    strindent(s, indent);
+	    s->sprintf("key %d/%d \"%s\" = ", i++, h->size(), hi.getKey());
+	    dni(s, hi.getValue(), indent + 3, xsink);
+	    if (!hi.last())
+	       s->concat('\n');
+	 }
+      }
+      return;
+   }
+
+   if (ntype == NT_DATE) {
+      const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(n);
       if (date) {
 	 s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%03d (rel=%s)", 
 		    date->getYear(), date->getMonth(), date->getDay(), date->getHour(),
@@ -148,12 +143,10 @@ static void dni(QoreStringNode *s, const QoreNode *n, int indent, class Exceptio
       }
    }
 
-   {
-      const BinaryNode *b = dynamic_cast<const BinaryNode *>(n);
-      if (b) {
-	 s->sprintf("ptr=%08p len=%d", b->getPtr(), b->size());
-	 return;
-      }
+   if (ntype == NT_BINARY) {
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(n);
+      s->sprintf("ptr=%08p len=%d", b->getPtr(), b->size());
+      return;
    }
 
    s->sprintf("don't know how to print type '%s' :-(", n->getTypeName());

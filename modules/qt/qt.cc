@@ -406,7 +406,7 @@ int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
       }
 
       if (ntype == NT_FLOAT) {
-	 qva.setValue(n->val.floatval);
+	 qva.setValue(reinterpret_cast<const QoreFloatNode *>(n)->f);
 	 return 0;
       }
    }
@@ -473,11 +473,11 @@ int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, boo
 
    if (!suppress_exception) {
       if (ntype == NT_INT) {
-	 str.setNum((reinterpret_cast<const QoreBigIntNode *>(n))->val);
+	 str.setNum(reinterpret_cast<const QoreBigIntNode *>(n)->val);
 	 return 0;
       }
       if (ntype == NT_FLOAT) {
-	 str.setNum(n->val.floatval);
+	 str.setNum(reinterpret_cast<const QoreFloatNode *>(n)->f);
 	 return 0;
       }
    }
@@ -784,7 +784,7 @@ class QoreNode *return_qvariant(const QVariant &qv)
 	 return new DateTimeNode(rv_d.year(), rv_d.month(), rv_d.day(), rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());
       }
       case QVariant::Double:
-	 return new QoreNode(qv.toDouble());
+	 return new QoreFloatNode(qv.toDouble());
       case QVariant::Font:
 	 return return_object(QC_QFont, new QoreQFont(qv.value<QFont>()));
       case QVariant::Icon:

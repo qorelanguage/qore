@@ -21,10 +21,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/Find.h>
-
-// TEMP!! FIXME: DELETEME:!
-#include <qore/intern/QT_backquote.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -45,69 +41,11 @@ QoreNode::QoreNode(const QoreType *t)
 #endif
 }
 
-QoreNode::QoreNode(double f)
-{
-   type = NT_FLOAT;
-   val.floatval = f;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
 QoreNode::~QoreNode()
 {
 #if 0
    printd(5, "QoreNode::~QoreNode() type=%s\n", getTypeName());
 #endif
-
-   if (type == NT_COMPLEXCONTEXTREF) {
-      delete val.complex_cref;
-      return;
-   }
-
-   if (type == NT_VARREF) {
-      delete val.vref;
-      return;
-   }
-
-   if (type == NT_BACKQUOTE) {
-      if (val.c_str)
-	 free(val.c_str);
-      return;
-   }
-
-   if (type == NT_SELF_VARREF) {
-      if (val.c_str)
-	 free(val.c_str);
-      return;
-   }
-
-   if (type == NT_BAREWORD) {
-      if (val.c_str)
-	 free(val.c_str);
-      return;
-   }
-
-   if (type == NT_CONTEXTREF) {
-      if (val.c_str)
-	 free(val.c_str);
-      return;
-   }
-
-   if (type == NT_TREE) {
-      delete val.tree;
-      return;
-   }
-
-   if (type == NT_FIND) {
-      delete val.find;
-      return;
-   }
-
-   if (type == NT_FUNCTION_CALL) {
-      delete val.fcall;
-      return;
-   }
 
    if (type == NT_SCOPE_REF) {
       delete val.socall;
@@ -150,59 +88,12 @@ QoreNode::~QoreNode()
    }
 }
 
-QoreNode::QoreNode(char *name, QoreListNode *a)
-{
-   type = NT_FUNCTION_CALL;
-   val.fcall = new FunctionCall(name, a);
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-// for non-scoped in-object calls
-QoreNode::QoreNode(QoreListNode *a, char *name)
-{
-   type = NT_FUNCTION_CALL;
-   val.fcall = new FunctionCall(a, name);
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-// for in-object base class calls
-QoreNode::QoreNode(QoreListNode *a, class NamedScope *n)
-{
-   type = NT_FUNCTION_CALL;
-   val.fcall = new FunctionCall(a, n);
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(UserFunction *u, QoreListNode *a)
-{
-   type = NT_FUNCTION_CALL;
-   val.fcall = new FunctionCall(u, a);
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(BuiltinFunction *b, QoreListNode *a)
-{
-   type = NT_FUNCTION_CALL;
-   val.fcall = new FunctionCall(b, a);
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(class NamedScope *n, QoreListNode *a)
+QoreNode::QoreNode(NamedScope *n, QoreListNode *a)
 {
    type = NT_SCOPE_REF;
    val.socall = new ScopedObjectCall(n, a);
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
+   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, type->getName());
 #endif
 }
 
@@ -219,24 +110,6 @@ QoreNode::QoreNode(class ClassRef *c)
 {
    type = NT_CLASSREF;
    val.classref = c;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(class VarRef *v)
-{
-   type = NT_VARREF;
-   val.vref = v;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(class QoreNode *l, class Operator *o, class QoreNode *r)
-{
-   type = NT_TREE;
-   val.tree = new Tree(l, o, r);
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
 #endif
@@ -269,24 +142,6 @@ QoreNode::QoreNode(class QoreRegex *r)
 #endif
 }
 
-QoreNode::QoreNode(class Tree *t)
-{
-   type = NT_TREE;
-   val.tree = t;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(class ComplexContextRef *ccref)
-{
-   type = NT_COMPLEXCONTEXTREF;
-   val.complex_cref = ccref;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
 QoreNode::QoreNode(class FunctionReferenceCall *frc)
 {
    type = NT_FUNCREFCALL;
@@ -309,15 +164,6 @@ QoreNode::QoreNode(class AbstractParseObjectMethodReference *objmethref)
 {
    type = NT_OBJMETHREF;
    val.objmethref = objmethref;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(class FunctionCall *fc)
-{
-   type = NT_FUNCTION_CALL;
-   val.fcall = fc;
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
 #endif
@@ -380,51 +226,8 @@ if (type == NT_FUNCREF)
 
 class QoreNode *QoreNode::realCopy() const
 {
+   // FIXME: pure virtual function
    assert(this);
-
-   if (type == NT_FLOAT) 
-      return new QoreNode(val.floatval);
-
-   if (type == NT_BACKQUOTE) {
-      QoreNode *n = new QoreNode(type);
-      n->val.c_str = val.c_str ? strdup(val.c_str) : 0;
-      return n;
-   }
-
-   if (type == NT_CONTEXTREF) {
-      QoreNode *n = new QoreNode(type);
-      n->val.c_str = val.c_str ? strdup(val.c_str) : 0;
-      return n;
-   }
-
-   if (type == NT_SELF_VARREF) {
-      QoreNode *n = new QoreNode(type);
-      n->val.c_str = val.c_str ? strdup(val.c_str) : 0;
-      return n;
-   }
-
-   if (type == NT_BAREWORD) {
-      QoreNode *n = new QoreNode(type);
-      n->val.c_str = val.c_str ? strdup(val.c_str) : 0;
-      return n;
-   }
-
-   if (type == NT_COMPLEXCONTEXTREF) {
-      return new QoreNode(val.complex_cref->copy());
-   }
-
-   if (type == NT_VARREF) {
-      return new QoreNode(val.vref->copy());
-   }
-
-   if (type == NT_TREE)
-      assert(false);
-
-   if (type == NT_FIND)
-      assert(false);
-
-   if (type == NT_FUNCTION_CALL)
-      assert(false);
 
    if (type == NT_SCOPE_REF)
       assert(false);
@@ -454,33 +257,6 @@ class QoreNode *QoreNode::realCopy() const
 
 bool QoreNode::needs_eval() const
 {
-   if (type == NT_BACKQUOTE)
-      return true;
-
-   if (type == NT_CONTEXTREF)
-      return true;
-
-   if (type == NT_COMPLEXCONTEXTREF)
-      return true;
-
-   if (type == NT_VARREF)
-      return true;
-
-   if (type == NT_TREE)
-      return true;
-
-   if (type == NT_FIND)
-      return true;
-
-   if (type == NT_FUNCTION_CALL)
-      return true;
-
-   if (type == NT_SELF_VARREF)
-      return true;
-
-   if (type == NT_CONTEXT_ROW)
-      return true;
-
    if (type == NT_OBJMETHREF)
       return true;
 
@@ -495,33 +271,6 @@ bool QoreNode::needs_eval() const
 
 bool QoreNode::is_value() const
 {
-   if (type == NT_BACKQUOTE)
-      return false;
-
-   if (type == NT_CONTEXTREF)
-      return false;
-
-   if (type == NT_COMPLEXCONTEXTREF)
-      return false;
-
-   if (type == NT_VARREF)
-      return false;
-
-   if (type == NT_TREE)
-      return false;
-
-   if (type == NT_FIND)
-      return false;
-
-   if (type == NT_FUNCTION_CALL)
-      return false;
-
-   if (type == NT_SELF_VARREF)
-      return false;
-
-   if (type == NT_CONTEXT_ROW)
-      return false;
-
    if (type == NT_OBJMETHREF)
       return false;
 
@@ -529,9 +278,6 @@ bool QoreNode::is_value() const
       return false;
 
    if (type == NT_FUNCREFCALL)
-      return false;
-
-   if (type == NT_BAREWORD)
       return false;
 
    if (type == NT_CONSTANT)
@@ -555,92 +301,12 @@ bool QoreNode::is_value() const
    return true;
 }
 
-#ifndef READ_BLOCK
-#define READ_BLOCK 1024
-#endif
-
-class QoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink)
-{
-   // execute command in a new process and read stdout in parent
-   FILE *p = popen(cmd, "r");
-   if (!p)
-   {
-      // could not fork or create pipe
-      xsink->raiseException("BACKQUOTE-ERROR", strerror(errno));
-      return 0;
-   }
-
-   // allocate buffer for return value
-   TempQoreStringNode s(new QoreStringNode());
-
-   // read in result string
-   while (1)
-   {
-      char buf[READ_BLOCK];
-      int size = fread(buf, 1, READ_BLOCK, p);
-
-      // break if no data is available or an error occurred
-      if (!size || size == -1)
-         break;
-
-      s->concat(buf, size);
-
-      // break if there is no more data
-      if (size != READ_BLOCK)
-         break;
-   }
-
-   // wait for child process to terminate and close pipe
-   pclose(p);
-
-   if (!s->strlen())
-      return 0;
-
-   return s.release();
-}
 
 /*
   QoreNode::eval(): return value requires a dereference
  */
 class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
 {
-   if (type == NT_BACKQUOTE) {
-      return backquoteEval(val.c_str, xsink);
-   }
-
-   if (type == NT_CONTEXTREF) {
-      return evalContextRef(val.c_str, xsink);
-   }
-
-   if (type == NT_COMPLEXCONTEXTREF) {
-      return evalComplexContextRef(val.complex_cref, xsink);
-   }
-
-   if (type == NT_VARREF) {
-      return val.vref->eval(xsink);
-   }
-
-   if (type == NT_TREE) {
-      return val.tree->eval(xsink);
-   }
-
-   if (type == NT_FIND) {
-      return val.find->eval(xsink);
-   }
-
-   if (type == NT_FUNCTION_CALL) {
-      return val.fcall->eval(xsink);
-   }
-
-   if (type == NT_SELF_VARREF) {
-      assert(getStackObject());
-      return getStackObject()->evalMemberNoMethod(val.c_str, xsink);
-   }
-
-   if (type == NT_CONTEXT_ROW) {
-      return evalContextRow(xsink);
-   }
-
    if (type == NT_OBJMETHREF) {
       return val.objmethref->eval(xsink);
    }
@@ -657,9 +323,6 @@ class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
       assert(false);
 
    if (type == NT_CONSTANT)
-      assert(false);
-
-   if (type == NT_BAREWORD)
       assert(false);
 
    if (type == NT_REGEX_SUBST)
@@ -681,9 +344,6 @@ class QoreNode *QoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const
      return const_cast<QoreNode *>(this);
     */
 
-   if (type == NT_VARREF) 
-      return val.vref->eval(needs_deref, xsink);
-
    if (!needs_eval())
    {
       needs_deref = false;
@@ -695,6 +355,8 @@ class QoreNode *QoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const
 
 int64 QoreNode::bigIntEval(ExceptionSink *xsink) const
 {
+   // return getAsBigInt();
+
    if (!needs_eval())
       return getAsBigInt();
 
@@ -707,6 +369,8 @@ int64 QoreNode::bigIntEval(ExceptionSink *xsink) const
 
 int QoreNode::integerEval(ExceptionSink *xsink) const
 {
+   // return getAsInt();
+
    if (!needs_eval())
       return getAsInt();
 
@@ -719,8 +383,7 @@ int QoreNode::integerEval(ExceptionSink *xsink) const
 
 bool QoreNode::boolEval(ExceptionSink *xsink) const
 {
-   if (type == NT_TREE)
-      return val.tree->bool_eval(xsink);
+   //return getAsBool();
 
    if (!needs_eval())
       return getAsBool();
@@ -732,70 +395,54 @@ bool QoreNode::boolEval(ExceptionSink *xsink) const
    return rv->getAsBool();
 }
 
+double QoreNode::floatEval(class ExceptionSink *xsink) const
+{
+   // return getAsFloat()
+
+   if (!needs_eval())
+      return getAsFloat();
+
+   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   if (*xsink || !rv)
+      return 0.0;
+
+   return rv->getAsFloat();
+}
+
+// FIXME: pure virtual function
 QoreString *QoreNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
 {
-   if (type == NT_NOTHING) {
-      del = false;
-      return &NothingTypeString;
-   }
-   if (type == NT_NULL) {
-      del = false;
-      return &NullTypeString;
-   }
-   if (type == NT_FLOAT) {
-      del = true;
-      return new QoreString(val.floatval);
-   }
-
    del = true;
    QoreString *rv = new QoreString();
    rv->sprintf("%s (0x%08p)", getTypeName(), this);
    return rv;
 }
 
+// FIXME: pure virtual function
 int QoreNode::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
 {
-   if (type == NT_NOTHING)
-      str.concat(&NothingTypeString);
-   else if (type == NT_NULL)
-      str.concat(&NullTypeString);
-   else if (type == NT_FLOAT)
-      str.sprintf("%.9g", val.floatval);
-   else 
-      str.sprintf("%s (0x%08p)", getTypeName(), this);
+   str.sprintf("%s (0x%08p)", getTypeName(), this);
 
    return 0;
 }
 
 bool QoreNode::getAsBool() const
 {
-   if (type == NT_FLOAT)
-      return (bool)val.floatval;
-
    return false;
 }
 
 int QoreNode::getAsInt() const
 {
-   if (type == NT_FLOAT)
-      return (int)val.floatval;
-
    return 0;
 }
 
 int64 QoreNode::getAsBigInt() const
 {
-   if (type == NT_FLOAT)
-      return (int64)val.floatval;
-
    return 0;
 }
 
 double QoreNode::getAsFloat() const
 {
-   if (type == NT_FLOAT)
-      return val.floatval;
-
    return 0.0;
 }
 
@@ -920,7 +567,7 @@ int getMicroSecZeroInt(const class QoreNode *a)
 
 bool is_nothing(const QoreNode *n)
 {
-   if (!n || (n->type == NT_NOTHING))
+   if (!n || (dynamic_cast<const QoreNothingNode *>(n)))
       return true;
    
    const QoreObject *o = dynamic_cast<const QoreObject *>(n);
@@ -960,45 +607,36 @@ static inline QoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsi
    return h;
 }
 
-static inline QoreNode *crlr_tree_copy(const QoreNode *n, ExceptionSink *xsink)
+static inline QoreNode *crlr_tree_copy(const QoreTreeNode *n, ExceptionSink *xsink)
 {
-   class Tree *t = new Tree(copy_and_resolve_lvar_refs(n->val.tree->left, xsink), n->val.tree->op, 
-			    n->val.tree->right ? copy_and_resolve_lvar_refs(n->val.tree->right, xsink) : NULL);
-   return new QoreNode(t);
+   return new QoreTreeNode(copy_and_resolve_lvar_refs(n->left, xsink), n->op,
+			   n->right ? copy_and_resolve_lvar_refs(n->right, xsink) : NULL);
 }
 
-static inline QoreNode *crlr_fcall_copy(const QoreNode *n, ExceptionSink *xsink)
+static inline QoreNode *crlr_fcall_copy(const FunctionCallNode *n, ExceptionSink *xsink)
 {
-   QoreNode *nn = new QoreNode(NT_FUNCTION_CALL);
-   QoreListNode *na;
-   if (n->val.fcall->args)
-      na = crlr_list_copy(n->val.fcall->args, xsink);
-   else
-      na = NULL;
+   QoreListNode *na = n->args ? crlr_list_copy(n->args, xsink) : 0;
 
-   switch (n->val.fcall->type)
+   switch (n->getFunctionType())
    {
       case FC_USER:
-	 nn->val.fcall = new FunctionCall(n->val.fcall->f.ufunc, na);
-	 break;
+	 return new FunctionCallNode(n->f.ufunc, na);
       case FC_BUILTIN:
-	 nn->val.fcall = new FunctionCall(n->val.fcall->f.bfunc, na);
-	 break;
+	 return new FunctionCallNode(n->f.bfunc, na);
       case FC_SELF:
-	 nn->val.fcall = new FunctionCall(n->val.fcall->f.sfunc->func, na);
-	 break;
+	 return new FunctionCallNode(n->f.sfunc->func, na);
       case FC_UNRESOLVED:
-	 nn->val.fcall = new FunctionCall(strdup(n->val.fcall->f.c_str), na);
-	 break;
+	 return new FunctionCallNode(strdup(n->f.c_str), na);
       case FC_IMPORTED:
-	 nn->val.fcall = new FunctionCall(n->val.fcall->f.ifunc->pgm, n->val.fcall->f.ifunc->func, na);
-	 break;
-      case FC_METHOD:
-	 nn->val.fcall = new FunctionCall(strdup(n->val.fcall->f.c_str), na);
-	 nn->val.fcall->type = FC_METHOD;
-	 break;
+	 return new FunctionCallNode(n->f.ifunc->pgm, n->f.ifunc->func, na);
+      case FC_METHOD: {
+	 FunctionCallNode *nn = new FunctionCallNode(strdup(n->f.c_str), na);
+	 nn->ftype = FC_METHOD;
+	 return nn;
+      }
    }
-   return nn;
+   assert(false);
+   return 0;
 }
 
 static inline class QoreNode *eval_notnull(const class QoreNode *n, ExceptionSink *xsink)
@@ -1011,31 +649,27 @@ static inline class QoreNode *eval_notnull(const class QoreNode *n, ExceptionSin
 
 class QoreNode *copy_and_resolve_lvar_refs(const QoreNode *n, ExceptionSink *xsink)
 {
-   if (!n) return NULL;
+   if (!n) return 0;
 
-   {
-      const QoreListNode *l = dynamic_cast<const QoreListNode *>(n);
-      if (l)
-	 return crlr_list_copy(l, xsink);
-   }
+   const QoreType *ntype = n->getType();
 
-   {
-      const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(n);
-      if (h)
-	 return crlr_hash_copy(h, xsink);
-   }
+   if (ntype == NT_LIST)
+      return crlr_list_copy(reinterpret_cast<const QoreListNode *>(n), xsink);
 
-   if (n->type == NT_TREE)
-      return crlr_tree_copy(n, xsink);
+   if (ntype == NT_HASH)
+      return crlr_hash_copy(reinterpret_cast<const QoreHashNode *>(n), xsink);
 
-   if (n->type == NT_FUNCTION_CALL)
-      return crlr_fcall_copy(n, xsink);
+   if (ntype == NT_TREE)
+      return crlr_tree_copy(reinterpret_cast<const QoreTreeNode *>(n), xsink);
+
+   if (ntype == NT_FUNCTION_CALL)
+      return crlr_fcall_copy(reinterpret_cast<const FunctionCallNode *>(n), xsink);
 
    // must make sure to return a value here or it could cause a segfault - parse expressions expect non-NULL values for the operands
-   if (n->type == NT_FIND || n->type == NT_SELF_VARREF)
+   if (ntype == NT_FIND || ntype == NT_SELF_VARREF)
       return eval_notnull(n, xsink);
 
-   if (n->type == NT_VARREF && n->val.vref->type == VT_LOCAL)
+   if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode *>(n)->type == VT_LOCAL)
       return eval_notnull(n, xsink);
 
    return n->RefSelf();
@@ -1044,15 +678,6 @@ class QoreNode *copy_and_resolve_lvar_refs(const QoreNode *n, ExceptionSink *xsi
 // get the value of the type in a string context, empty string for complex types (default implementation)
 QoreString *QoreNode::getStringRepresentation(bool &del) const
 {
-   //del = false;
-   //return null_string();
-
-   // delete the following
-   if (type == NT_FLOAT) {
-      del = true;
-      return new QoreString(val.floatval);
-   }
-
    del = false;
    return NullString;
 }
@@ -1060,20 +685,11 @@ QoreString *QoreNode::getStringRepresentation(bool &del) const
 // empty default implementation
 void QoreNode::getStringRepresentation(QoreString &str) const
 {
-   // delete this code
-   if (type == NT_FLOAT)
-      str.sprintf("%g", val.floatval);
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
-class DateTime *QoreNode::getDateTimeRepresentation(bool &del) const
+DateTime *QoreNode::getDateTimeRepresentation(bool &del) const
 {
-   // delete the following
-   if (type == NT_FLOAT) {
-      del = true;
-      return new DateTime((int64)(val.floatval));
-   }   
-
    del = false;
    return ZeroDate;
 }
@@ -1081,32 +697,12 @@ class DateTime *QoreNode::getDateTimeRepresentation(bool &del) const
 // assign date representation to a DateTime (no action for complex types = default implementation)
 void QoreNode::getDateTimeRepresentation(DateTime &dt) const
 {
-   if (type == NT_FLOAT)
-      dt.setDate((int64)(val.floatval));
-   else
-      dt.setDate(0LL);
+   dt.setDate(0LL);
 }
 
 bool QoreNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
 {
-   if (is_nothing(this)) {
-      if (is_nothing(v))
-	 return true;
-      return false;
-   }
-   if (is_nothing(v))
-      return false;
-
-   if (is_null(this))
-      if (is_null(v))
-	 return true;
-      else
-	 return false;
-
-   if (type == NT_FLOAT)
-      return val.floatval == v->getAsFloat();
-   // the following types can't be converted
-   if (type != v->type)
+   if (!v || type != v->type)
       return false;
 
    assert(false);
@@ -1116,17 +712,8 @@ bool QoreNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
 
 bool QoreNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
 {
-   if (type != v->type)
+   if (!v || type != v->type)
       return false;
-
-   if (is_nothing(this))
-      return true;
-
-   if (is_null(this))
-      return true;
-
-   if (type == NT_FLOAT)
-      return val.floatval == v->val.floatval;
 
    assert(false);   
    // FIXME: pure virtual function!

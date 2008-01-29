@@ -70,7 +70,7 @@ static QoreNode *QCOLOR_alpha(QoreObject *self, QoreQColor *qc, const QoreListNo
 //qreal alphaF () const
 static QoreNode *QCOLOR_alphaF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->alphaF());
+   return new QoreFloatNode(qc->alphaF());
 }
 
 //int black () const
@@ -82,7 +82,7 @@ static QoreNode *QCOLOR_black(QoreObject *self, QoreQColor *qc, const QoreListNo
 //qreal blackF () const
 static QoreNode *QCOLOR_blackF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->blackF());
+   return new QoreFloatNode(qc->blackF());
 }
 
 //int blue () const
@@ -94,7 +94,7 @@ static QoreNode *QCOLOR_blue(QoreObject *self, QoreQColor *qc, const QoreListNod
 //qreal blueF () const
 static QoreNode *QCOLOR_blueF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->blueF());
+   return new QoreFloatNode(qc->blueF());
 }
 
 //QColor convertTo ( Spec colorSpec ) const
@@ -119,7 +119,7 @@ static QoreNode *QCOLOR_cyan(QoreObject *self, QoreQColor *qc, const QoreListNod
 //qreal cyanF () const
 static QoreNode *QCOLOR_cyanF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->cyanF());
+   return new QoreFloatNode(qc->cyanF());
 }
 
 //QColor darker ( int factor = 200 ) const
@@ -233,7 +233,7 @@ static QoreNode *QCOLOR_green(QoreObject *self, QoreQColor *qc, const QoreListNo
 //qreal greenF () const
 static QoreNode *QCOLOR_greenF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->greenF());
+   return new QoreFloatNode(qc->greenF());
 }
 
 //int hue () const
@@ -245,7 +245,7 @@ static QoreNode *QCOLOR_hue(QoreObject *self, QoreQColor *qc, const QoreListNode
 //qreal hueF () const
 static QoreNode *QCOLOR_hueF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->hueF());
+   return new QoreFloatNode(qc->hueF());
 }
 
 //bool isValid () const
@@ -263,7 +263,7 @@ static QoreNode *QCOLOR_magenta(QoreObject *self, QoreQColor *qc, const QoreList
 //qreal magentaF () const
 static QoreNode *QCOLOR_magentaF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->magentaF());
+   return new QoreFloatNode(qc->magentaF());
 }
 
 //QString name () const
@@ -281,7 +281,7 @@ static QoreNode *QCOLOR_red(QoreObject *self, QoreQColor *qc, const QoreListNode
 //qreal redF () const
 static QoreNode *QCOLOR_redF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->redF());
+   return new QoreFloatNode(qc->redF());
 }
 
 //QRgb rgb () const
@@ -305,7 +305,7 @@ static QoreNode *QCOLOR_saturation(QoreObject *self, QoreQColor *qc, const QoreL
 //qreal saturationF () const
 static QoreNode *QCOLOR_saturationF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->saturationF());
+   return new QoreFloatNode(qc->saturationF());
 }
 
 //void setAlpha ( int alpha )
@@ -533,7 +533,7 @@ static QoreNode *QCOLOR_value(QoreObject *self, QoreQColor *qc, const QoreListNo
 //qreal valueF () const
 static QoreNode *QCOLOR_valueF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->valueF());
+   return new QoreFloatNode(qc->valueF());
 }
 
 //int yellow () const
@@ -545,7 +545,7 @@ static QoreNode *QCOLOR_yellow(QoreObject *self, QoreQColor *qc, const QoreListN
 //qreal yellowF () const
 static QoreNode *QCOLOR_yellowF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qc->yellowF());
+   return new QoreFloatNode(qc->yellowF());
 }
 
 //QColor light (int f = 150) const

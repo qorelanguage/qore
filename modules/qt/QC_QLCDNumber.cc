@@ -103,7 +103,7 @@ static class QoreNode *QLCDNUMBER_smallDecimalPoint(class QoreObject *self, clas
 
 static class QoreNode *QLCDNUMBER_value(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qlcdn->qobj->value());
+   return new QoreFloatNode(qlcdn->qobj->value());
 }
 
 static class QoreNode *QLCDNUMBER_intValue(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
@@ -124,7 +124,7 @@ static class QoreNode *QLCDNUMBER_checkOverflow(class QoreObject *self, class Qo
    class QoreNode *p = get_param(params, 0);
    bool rc;
    if (p && p->type == NT_FLOAT)
-      rc = qlcdn->qobj->checkOverflow(p->val.floatval);
+      rc = qlcdn->qobj->checkOverflow(reinterpret_cast<const QoreFloatNode *>(p)->f);
    else
       rc = qlcdn->qobj->checkOverflow(p ? p->getAsInt() : 0);
    return new QoreBoolNode(rc);
@@ -137,7 +137,7 @@ static QoreNode *QLCDNUMBER_display(QoreObject *self, QoreQLCDNumber *qlcdn, con
 {
    QoreNode *p = get_param(params, 0);
    if (p && p->type == NT_FLOAT)
-      qlcdn->qobj->display(p->val.floatval);
+      qlcdn->qobj->display(reinterpret_cast<const QoreFloatNode *>(p)->f);
    else if (p && p->type == NT_STRING)
       qlcdn->qobj->display((reinterpret_cast<QoreStringNode *>(p))->getBuffer());
    else {

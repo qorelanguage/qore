@@ -135,7 +135,7 @@ static QoreNode *QIMAGEWRITER_format(QoreObject *self, QoreQImageWriter *qiw, co
 //float gamma () const
 static QoreNode *QIMAGEWRITER_gamma(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qiw->gamma());
+   return new QoreFloatNode((double)qiw->gamma());
 }
 
 //int quality () const

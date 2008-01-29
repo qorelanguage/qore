@@ -225,12 +225,9 @@ static QoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreLi
     return xsink->raiseException(err_name, "Service name string cannot be empty.");
   }
   QoreNode* data = get_param(params, 1);
-  if (!data) {
-    return xsink->raiseException(err_name, "Data expected as the second parameter.");    
-  }
-  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+  const QoreType *dtype = data ? data->getType() : 0;
+  if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
-  }
 
   // optional settings are either (1) integer flags or (2) hash with flags, suggested out data type, FML/FML32 selector
   QoreHashNode *call_settings = 0;
@@ -326,12 +323,9 @@ static QoreNode* asyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const Q
     return xsink->raiseException(err_name, "Service name string cannot be empty.");
   }
   QoreNode* data = get_param(params, 1);
-  if (!data) {
-    return xsink->raiseException(err_name, "Data expected as the second parameter.");
-  }
-  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+  const QoreType *dtype = data ? data->getType() : 0;
+  if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
-  }
 
   // optional settings are either (1) integer flags or (2) hash with flags and FML/FML32 selector
   QoreHashNode *acall_settings = 0;
@@ -521,12 +515,9 @@ static QoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, 
     return xsink->raiseException(err_name, "Service name string cannot be empty.");
   }
   QoreNode* data = get_param(params, 1);
-  if (!data) {
-    return xsink->raiseException(err_name, "Data expected as the second parameter.");
-  }
-  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+  const QoreType *dtype = data ? data->getType() : 0;
+  if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
-  }
 
   // optional settings are either (1) integer flags or (2) hash with flags and FML/FML32 selector
   QoreHashNode *connect_settings = 0;
@@ -572,12 +563,9 @@ static QoreNode* sendConversationData(QoreObject* self, QoreTuxedoAdapter* adapt
   long handle = (long)(n ? n->getAsBigInt() : 0);
 
   QoreNode* data = get_param(params, 1);
-  if (!data) {
-    return xsink->raiseException(err_name, "Data expected as the second parameter.");
-  }
-  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+  const QoreType *dtype = data ? data->getType() : 0;
+  if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
-  }
 
   // optional settings are either (1) integer flags or (2) hash with flags and FML/FML32 selector
   QoreHashNode *send_settings = 0;
@@ -645,12 +633,9 @@ static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const Qor
   if (!queue_name || !queue_name[0]) return xsink->raiseException(err_name, "Queue name cannot be empty.");
 
   QoreNode* data = get_param(params, 2);
-  if (!data) {
-    return xsink->raiseException(err_name, "Data expected as the third parameter.");
-  }
-  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+  const QoreType *dtype = data ? data->getType() : 0;
+  if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
-  }
 
   // optional settings are either (1) integer flags or (2) hash with flags,  FML/FML32 selector and queue control parameters
   QoreHashNode *enqueue_settings = 0;
@@ -944,12 +929,9 @@ static QoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const Q
     return xsink->raiseException(err_name, "Event name string cannot be empty.");
   }
   QoreNode* data = get_param(params, 1);
-  if (!data) {
-    return xsink->raiseException(err_name, "Data expected as the second parameter.");
-  }
-  if (!(data->type == NT_NOTHING || data->type == NT_STRING || data->type == NT_BINARY || data->type == NT_HASH)) {
+  const QoreType *dtype = data ? data->getType() : 0;
+  if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
-  }
 
   // optional settings are either (1) integer flags or (2) hash with flags, FML or FML32 selector 
   QoreHashNode *post_settings = 0;

@@ -1289,16 +1289,16 @@ static void do_headers(QoreString &hdr, const QoreHash *headers, int size)
 	    const QoreType *vtype = v->getType();
 
 	    if (vtype == NT_STRING) {
-	       QoreStringNode *str = reinterpret_cast<QoreStringNode *>(v);
+	       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v);
 	       hdr.sprintf("%s: %s\r\n", hi.getKey(), str->getBuffer());
 	       continue;
 	    }
 	    if (vtype == NT_INT)
-	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), (reinterpret_cast<QoreBigIntNode *>(v))->val);
+	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), (reinterpret_cast<const QoreBigIntNode *>(v))->val);
 	    else if (vtype == NT_FLOAT)
-	       hdr.sprintf("%s: %f\r\n", hi.getKey(), v->val.floatval);
+	       hdr.sprintf("%s: %f\r\n", hi.getKey(), reinterpret_cast<const QoreFloatNode *>(v)->f);
 	    else if (vtype == NT_BOOLEAN)
-	       hdr.sprintf("%s: %d\r\n", hi.getKey(), reinterpret_cast<QoreBoolNode *>(v)->b);
+	       hdr.sprintf("%s: %d\r\n", hi.getKey(), reinterpret_cast<const QoreBoolNode *>(v)->b);
 	 }
       }
    }

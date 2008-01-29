@@ -105,25 +105,25 @@ static QoreNode *QLINEF_p2(QoreObject *self, QoreQLineF *qlf, const QoreListNode
 //qreal x1 () const
 static QoreNode *QLINEF_x1(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qlf->x1());
+   return new QoreFloatNode((double)qlf->x1());
 }
 
 //qreal x2 () const
 static QoreNode *QLINEF_x2(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qlf->x2());
+   return new QoreFloatNode((double)qlf->x2());
 }
 
 //qreal y1 () const
 static QoreNode *QLINEF_y1(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qlf->y1());
+   return new QoreFloatNode((double)qlf->y1());
 }
 
 //qreal y2 () const
 static QoreNode *QLINEF_y2(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qlf->y2());
+   return new QoreFloatNode((double)qlf->y2());
 }
 
 //qreal angle ( const QLineF & line ) const
@@ -137,19 +137,19 @@ static QoreNode *QLINEF_angle(QoreObject *self, QoreQLineF *qlf, const QoreListN
       return 0;
    }
    ReferenceHolder<QoreQLineF> lineHolder(line, xsink);
-   return new QoreNode((double)qlf->angle(*(static_cast<QLineF *>(line))));
+   return new QoreFloatNode((double)qlf->angle(*(static_cast<QLineF *>(line))));
 }
 
 //qreal dx () const
 static QoreNode *QLINEF_dx(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qlf->dx());
+   return new QoreFloatNode((double)qlf->dx());
 }
 
 //qreal dy () const
 static QoreNode *QLINEF_dy(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qlf->dy());
+   return new QoreFloatNode((double)qlf->dy());
 }
 
 ////IntersectType intersect ( const QLineF & line, QPointF * intersectionPoint ) const
@@ -183,7 +183,7 @@ static QoreNode *QLINEF_isNull(QoreObject *self, QoreQLineF *qlf, const QoreList
 //qreal length () const
 static QoreNode *QLINEF_length(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qlf->length());
+   return new QoreFloatNode((double)qlf->length());
 }
 
 //QLineF normalVector () const

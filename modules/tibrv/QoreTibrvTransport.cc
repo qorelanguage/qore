@@ -77,7 +77,7 @@ int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMs
    }
 
    if (ntype == NT_FLOAT) {
-      msg->addF64(key, v->val.floatval);
+      msg->addF64(key, reinterpret_cast<const QoreFloatNode *>(v)->f);
       return 0;
    }
 
@@ -251,10 +251,10 @@ QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionS
 	 return new QoreBigIntNode((int64)data.u64);
 
       case TIBRVMSG_F32:
-	 return new QoreNode((double)data.f32);
+	 return new QoreFloatNode((double)data.f32);
  
       case TIBRVMSG_F64:
-	 return new QoreNode(data.f64);
+	 return new QoreFloatNode(data.f64);
 
       case TIBRVMSG_IPPORT16:
 	 return new QoreBigIntNode(ntohs(data.ipport16));
@@ -374,7 +374,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
       {
 	 float *c = (float *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreNode((double)c[i]));
+	    l->push(new QoreFloatNode((double)c[i]));
 	 break;
       }
 
@@ -382,7 +382,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
       {
 	 double *c = (double *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreNode(c[i]));
+	    l->push(new QoreFloatNode(c[i]));
 	 break;
       }
 

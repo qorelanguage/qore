@@ -189,7 +189,7 @@ static void concatSimpleValue(QoreString *str, QoreNode *n, class ExceptionSink 
    }
 
    if (ntype == NT_FLOAT) {
-      str->sprintf("%.9g", n->val.floatval);
+      str->sprintf("%.9g", reinterpret_cast<QoreFloatNode *>(n)->f);
       return;
    }
 
@@ -231,7 +231,7 @@ static void concatSimpleCDataValue(QoreString *str, QoreNode *n, class Exception
    }
 
    if (ntype == NT_FLOAT) {
-      str->sprintf("%.9g", n->val.floatval);
+      str->sprintf("%.9g", reinterpret_cast<QoreFloatNode *>(n)->f);
       return;
    }
 
@@ -698,17 +698,17 @@ static void addXMLRPCValueIntern(QoreString *str, const QoreNode *n, int indent,
    else if (ntype == NT_STRING)
    {
       str->concat("<string>");
-      str->concatAndHTMLEncode((QoreStringNode *)n, xsink);
+      str->concatAndHTMLEncode(reinterpret_cast<const QoreStringNode *>(n), xsink);
       str->concat("</string>");
    }
 
    else if (ntype == NT_FLOAT)
-      str->sprintf("<double>%f</double>", n->val.floatval);
+      str->sprintf("<double>%f</double>", reinterpret_cast<const QoreFloatNode *>(n)->f);
 	
    else if (ntype == NT_DATE)
    {
       str->concat("<dateTime.iso8601>");
-      str->concatISO8601DateTime((DateTimeNode *)n);
+      str->concatISO8601DateTime(reinterpret_cast<const DateTimeNode *>(n));
       str->concat("</dateTime.iso8601>");
    }
 
@@ -1678,7 +1678,7 @@ static void getXMLRPCDouble(xmlTextReader *reader, class XmlRpcValue *v, Excepti
       if (str)
       {
 	 //printd(5, "** got float '%s'\n", str);
-	 v->set(new QoreNode(atof(str)));
+	 v->set(new QoreFloatNode(atof(str)));
       }
 
       // advance to next position

@@ -1257,7 +1257,7 @@ static QoreNode *QPAINTER_layoutDirection(QoreObject *self, QoreQPainter *qp, co
 //qreal opacity () const
 static QoreNode *QPAINTER_opacity(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qp->getQPainter()->opacity());
+   return new QoreFloatNode(qp->getQPainter()->opacity());
 }
 
 //QPaintEngine * paintEngine () const

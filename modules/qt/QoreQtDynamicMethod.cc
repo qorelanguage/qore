@@ -197,11 +197,11 @@ void QoreQtDynamicSlot::call(void **arguments)
       }
       else if (type_list[i] == QQT_TYPE_FLOAT) {
 	 float *ptr = reinterpret_cast<float *>(arguments[i + 1]);
-	 args->push(new QoreNode((double)*ptr));
+	 args->push(new QoreFloatNode((double)*ptr));
       }
       else if (type_list[i] == QQT_TYPE_DOUBLE) {
 	 double *ptr = reinterpret_cast<double *>(arguments[i + 1]);
-	 args->push(new QoreNode((double)*ptr));
+	 args->push(new QoreFloatNode((double)*ptr));
       }
       else if (type_list[i] == QQT_TYPE_P_CHAR) {
 	 char **ptr = reinterpret_cast<char **>(arguments[i + 1]);

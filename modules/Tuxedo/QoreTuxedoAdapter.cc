@@ -1098,9 +1098,9 @@ void QoreTuxedoAdapter::setSendBuffer(QoreNode* n, QoreHash* settings, const cha
 //-----------------------------------------------------------------------------
 QoreNode* QoreTuxedoAdapter::buffer2node(char* buffer, long buffer_size, const char* err_name, ExceptionSink* xsink)
 {
-  if (!buffer || buffer_size == 0) {
-    return new QoreNode(NT_NOTHING);
-  }
+  if (!buffer || buffer_size == 0)
+     return 0;
+
   char type[20];
   char subtype[20];
   int res = tptypes(buffer, type, subtype);
@@ -1836,11 +1836,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
 
     case FLD_FLOAT: 
     {
-       if (value->type != NT_FLOAT) {
-	  xsink->raiseException(err_name, "Value [ %s ] needs to be float.", value_name);
-	  return;
-       }
-       double val = value->val.floatval;
+       double val = value ? value->getAsFloat() : 0.0;
        if (val < FLT_MIN || val > FLT_MAX) {
 	  xsink->raiseException(err_name, "Value [ %s ] doesn't contain value fitting float type.", value_name);
 	  return;
@@ -1853,11 +1849,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
 
      case FLD_DOUBLE: 
      {
-	if (value->type != NT_FLOAT) {
-	   xsink->raiseException(err_name, "Value [ %s ] needs to be float.", value_name);
-	   return;
-	}
-	double_value = value->val.floatval;
+	double_value = value ? value->getAsFloat() : 0.0;
 	ptr_val = (char*)&double_value;
 	value_length = sizeof(double);
 	break;
@@ -2166,7 +2158,7 @@ QoreHashNode *QoreTuxedoAdapter::getFmlDataFromBuffer(QoreHash* description_info
       }
       float val;
       memcpy(&val, value_buffer, sizeof(float));
-      result_value = new QoreNode(val);
+      result_value = new QoreFloatNode(val);
       break;
     }
 
@@ -2178,7 +2170,7 @@ QoreHashNode *QoreTuxedoAdapter::getFmlDataFromBuffer(QoreHash* description_info
       }
       double val;
       memcpy(&val, value_buffer, sizeof(double));
-      result_value = new QoreNode(val);
+      result_value = new QoreDoubleNode(val);
       break;
     }
 
@@ -2324,9 +2316,9 @@ static void do_test2(bool is_fml32)
   if (strcmp(s, "string2") != 0) {
     assert(false);
   }
-  delete extracted_data;
+  extracted_data->deref(&xsink);
 
-  // cleanup;
+  // cleanup
   res->deref(&xsink);
   data->derefAndDelete(&xsink);
 */

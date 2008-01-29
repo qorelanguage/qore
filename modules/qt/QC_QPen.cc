@@ -111,7 +111,7 @@ static QoreNode *QPEN_color(QoreObject *self, QoreQPen *qp, const QoreListNode *
 //qreal dashOffset () const
 static QoreNode *QPEN_dashOffset(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qp->dashOffset());
+   return new QoreFloatNode((double)qp->dashOffset());
 }
 
 ////QVector<qreal> dashPattern () const
@@ -147,7 +147,7 @@ static QoreNode *QPEN_joinStyle(QoreObject *self, QoreQPen *qp, const QoreListNo
 //qreal miterLimit () const
 static QoreNode *QPEN_miterLimit(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qp->miterLimit());
+   return new QoreFloatNode((double)qp->miterLimit());
 }
 
 //void setBrush ( const QBrush & brush )
@@ -278,7 +278,7 @@ static QoreNode *QPEN_width(QoreObject *self, QoreQPen *qp, const QoreListNode *
 //qreal widthF () const
 static QoreNode *QPEN_widthF(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qp->widthF());
+   return new QoreFloatNode((double)qp->widthF());
 }
 
 QoreClass *initQPenClass()

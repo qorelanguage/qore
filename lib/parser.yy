@@ -39,7 +39,6 @@
 #include <qore/intern/TryStatement.h>
 #include <qore/intern/ThrowStatement.h>
 #include <qore/intern/StatementBlock.h>
-#include <qore/intern/Find.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/RegexSubst.h>
 #include <qore/intern/QoreRegex.h>
@@ -48,7 +47,6 @@
 #include <qore/intern/CaseNodeWithOperator.h>
 #include <qore/intern/CaseNodeRegex.h>
 #include <qore/intern/OnBlockExitStatement.h>
-#include <qore/intern/Tree.h>
 #include <qore/intern/FunctionReference.h>
 #include <qore/intern/ObjectMethodReference.h>
 
@@ -87,9 +85,9 @@ class HashElement {
       DLLLOCAL ~HashElement();
 };
 
-static class QoreNode *makeErrorTree(class Operator *op, class QoreNode *left, class QoreNode *right)
+static QoreTreeNode *makeErrorTree(class Operator *op, class QoreNode *left, class QoreNode *right)
 {
-   return new QoreNode(left, op, right);
+   return new QoreTreeNode(left, op, right);
 }
 
 static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class QoreNode *right)
@@ -115,7 +113,7 @@ static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class 
       return n_node ? n_node : nothing();
    }
    // otherwise, put nodes and operator into tree for runtime evaluation
-   return new QoreNode(new Tree(left, op, right));
+   return new QoreTreeNode(left, op, right);
 }
 
 static QoreListNode *makeArgs(QoreNode *arg)
@@ -308,16 +306,21 @@ static inline class QoreClass *parseFindClass(char *name)
 
 static QoreNode *process_dot(class QoreNode *l, class QoreNode *r)
 {
-   if (r->type == NT_BAREWORD)
+   const QoreType *rtype = r->getType();
+   if (rtype == NT_BAREWORD)
    {
-      class QoreNode *rv = makeTree(OP_OBJECT_REF, l, new QoreStringNode(r->val.c_str));
-      r->deref(NULL);
+      BarewordNode *b = reinterpret_cast<BarewordNode *>(r);
+      class QoreNode *rv = makeTree(OP_OBJECT_REF, l, b->makeQoreStringNode());
+      b->deref();
       return rv;
    }
-   else if (r->type == NT_FUNCTION_CALL && r->val.fcall->getType() == FC_UNRESOLVED)
-   {
-      r->val.fcall->parseMakeMethod();
-      return makeTree(OP_OBJECT_FUNC_REF, l, r);
+   else if (rtype == NT_FUNCTION_CALL) {
+      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(r);
+      if (f->getFunctionType() == FC_UNRESOLVED)
+      {
+	 f->parseMakeMethod();
+	 return makeTree(OP_OBJECT_FUNC_REF, l, r);
+      }
    }
 
    return makeTree(OP_OBJECT_REF, l, r);
@@ -326,19 +329,20 @@ static QoreNode *process_dot(class QoreNode *l, class QoreNode *r)
 // returns 0 for OK, -1 for error
 static int check_lvalue(class QoreNode *node)
 {
-   //printd(5, "type=%s\n", node->type->getName());
-   if (node->type == NT_VARREF)
-   {
+   const QoreType *ntype = node->getType();
+   //printd(5, "type=%s\n", node->getTypeName());
+   if (ntype == NT_VARREF)
       return 0;
-   }
-   if (node->type == NT_TREE)
+
+   if (ntype == NT_TREE)
    {
-      if (node->val.tree->op == OP_LIST_REF || node->val.tree->op == OP_OBJECT_REF)
-	 return check_lvalue(node->val.tree->left);
+      QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(node);
+      if (t->op == OP_LIST_REF || t->op == OP_OBJECT_REF)
+	 return check_lvalue(t->left);
       else
 	 return -1;
    }
-   if (node->type == NT_SELF_VARREF)
+   if (ntype == NT_SELF_VARREF)
       return 0;
    return -1;
 }
@@ -349,7 +353,7 @@ static inline int check_vars(class QoreNode *n)
       QoreListNode *l = dynamic_cast<QoreListNode *>(n);
       if (l) {
 	 for (int i = 0; i < l->size(); i++)
-	    if (l->retrieve_entry(i)->type != NT_VARREF)
+	    if (l->retrieve_entry(i)->getType() != NT_VARREF)
 	       return 1;
 	 return 0;
       }
@@ -363,59 +367,58 @@ bool needsEval(class QoreNode *n)
    if (!n)
       return false;
 
+   const QoreType *ntype = n->getType();
+
    // if it's a constant
-   if (n->type == NT_BAREWORD || n->type == NT_CONSTANT)
+   if (ntype == NT_BAREWORD || ntype == NT_CONSTANT)
       return false;
 
-   {
-      QoreListNode *l = dynamic_cast<QoreListNode *>(n);
-      if (l) {
-	 for (int i = 0; i <l->size(); i++) {
-	    if (needsEval(l->retrieve_entry(i)))
-	       return true;
-	 }
-	 // here we set needs_eval to false so the list won't be evaluated again
-	 l->clearNeedsEval();
-	 return false;
+   if (ntype == NT_LIST) {
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
+      for (int i = 0; i <l->size(); i++) {
+	 if (needsEval(l->retrieve_entry(i)))
+	    return true;
       }
+      // here we set needs_eval to false so the list won't be evaluated again
+      l->clearNeedsEval();
+      return false;
    }
 
-   {
-      QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
-      if (h) {
-	 class HashIterator hi(h);
-	 while (hi.next())
-	    if (needsEval(hi.getValue()))
-	       return true;
-	 // here we set needs_eval to false so the hash won't be evaluated again
-	 h->clearNeedsEval();
-	 return false;
-      }
+   if (ntype == NT_HASH) {
+      QoreHashNode *h = reinterpret_cast<QoreHashNode *>(n);
+      class HashIterator hi(h);
+      while (hi.next())
+	 if (needsEval(hi.getValue()))
+	    return true;
+      // here we set needs_eval to false so the hash won't be evaluated again
+      h->clearNeedsEval();
+      return false;
    }
    
-   if (n->type == NT_TREE)
+   if (ntype == NT_TREE)
    {
-      if (needsEval(n->val.tree->left) || (n->val.tree->right && needsEval(n->val.tree->right)))
-      {
+      QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
+
+      if (needsEval(tree->left) || (tree->right && needsEval(tree->right)))
 	 return true;
-      }
-      return n->val.tree->op->hasEffect();
+      return tree->op->hasEffect();
    }
 
-   //printd(5, "needsEval() type %s = true\n", n->type->getName());
+   //printd(5, "needsEval() type %s = true\n", n->getTypeName());
    return n->needs_eval();
 }
 
 static bool hasEffect(class QoreNode *n)
 {
    // check for expressions with no effect
-   if (n->type == NT_FUNCTION_CALL || n->type == NT_FIND || n->type == NT_FUNCREFCALL)
+   const QoreType *ntype = n->getType();
+   if (ntype == NT_FUNCTION_CALL || ntype == NT_FIND || ntype == NT_FUNCREFCALL)
       return true;
 
-   if (n->type == NT_TREE)
-      return n->val.tree->op->hasEffect();
+   if (ntype == NT_TREE)
+      return reinterpret_cast<QoreTreeNode *>(n)->op->hasEffect();
 
-   //printd(5, "hasEffect() node %08p type=%s op=%d ok=%d\n", n, n->type->getName(), n->type == NT_TREE ? n->val.tree->op : -1, ok);
+   //printd(5, "hasEffect() node %08p type=%s\n", n, n->getTypeName());
    return false;
 }
 
@@ -888,12 +891,13 @@ statement:
 	exp ';'
         {
 	   // if the expression has no effect and it's not a variable declaration
+	   const QoreType *t = $1 ? $1->getType() : 0;
 	   if (!hasEffect($1)
-	       && ($1->type != NT_VARREF || $1->val.vref->type == VT_UNRESOLVED)
-	       && ($1->type != NT_LIST || !(reinterpret_cast<QoreListNode *>($1))->isVariableList()))
-	      parse_error("statement has no effect (%s)", $1->type->getName());
-	   if ($1->type == NT_TREE)
-	      $1->val.tree->ignoreReturnValue();
+	       && (t != NT_VARREF || reinterpret_cast<VarRefNode *>($1)->type == VT_UNRESOLVED)
+	       && (t != NT_LIST || !reinterpret_cast<QoreListNode *>($1)->isVariableList()))
+	      parse_error("statement has no effect (%s)", $1 ? $1->getTypeName() : "NOTHING");
+	   if (t == NT_TREE)
+	      reinterpret_cast<QoreTreeNode *>($1)->ignoreReturnValue();
 	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, $1);
 	}
         | try_statement
@@ -953,7 +957,8 @@ statement:
         | TOK_FOREACH exp TOK_IN '(' exp ')' statement_or_block
         {
 	   $$ = new ForEachStatement(@1.first_line, @7.last_line, $2, $5, $7);
-	   if ($2->type != NT_VARREF && $2->type != NT_SELF_VARREF)
+	   const QoreType *t = $2 ? $2->getType() : 0;
+	   if (t != NT_VARREF && t != NT_SELF_VARREF)
 	      parse_error("foreach variable expression is not a variable reference");
 	}
         | return_statement ';' { $$ = $1; }
@@ -1137,14 +1142,12 @@ try_statement:
 	   char *param = NULL;
 	   if ($5)
 	   {
-	      if ($5->type == NT_VARREF)
-	      {
-		 param = $5->val.vref->name;
-		 $5->val.vref->name = NULL;
-	      }
+	      VarRefNode *v = dynamic_cast<VarRefNode *>($5);
+	      if (v)
+		 param = v->takeName();
 	      else
 		 parse_error("only one parameter accepted in catch block for exception hash");
-	      $5->deref(NULL);
+	      $5->deref(0);
 	   }
 	   $$ = new TryStatement(@1.first_line, @7.last_line, $2, $7, param);
 	}
@@ -1454,28 +1457,27 @@ exp:    scalar
         | SCOPED_REF
         { $$ = new QoreNode(new NamedScope($1)); }
         | VAR_REF
-        { $$ = new QoreNode(NT_VARREF); $$->val.vref = new VarRef($1, VT_UNRESOLVED); }
+        { $$ = new VarRefNode($1, VT_UNRESOLVED); }
         | TOK_MY VAR_REF
-        {
-	   $$ = new QoreNode(new VarRef($2, VT_LOCAL)); 
-	}
+        { $$ = new VarRefNode($2, VT_LOCAL); }
         | TOK_MY '(' list ')' 
         {
 	   $3->setVariableList();
 	   for (int i = 0; i < $3->size(); i++)
 	   {
-	      class QoreNode *n = $3->retrieve_entry(i);
-	      if (n->type != NT_VARREF)
-		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n->type->getName());
+	      QoreNode *n = $3->retrieve_entry(i);
+	      VarRefNode *v = dynamic_cast<VarRefNode *>(n);
+	      if (!v)
+		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else
-		 n->val.vref->type = VT_LOCAL;
+		 v->type = VT_LOCAL;
 	   }
 	   $$ = $3;
 	}
         | TOK_OUR VAR_REF
         {
 	   getProgram()->addGlobalVarDef($2);
-	   $$ = new QoreNode(new VarRef($2, VT_GLOBAL)); 
+	   $$ = new VarRefNode($2, VT_GLOBAL); 
 	}
         | TOK_OUR '(' list ')'
         { 
@@ -1483,33 +1485,27 @@ exp:    scalar
 	   for (int i = 0; i < $3->size(); i++)
 	   {
 	      class QoreNode *n = $3->retrieve_entry(i);
-	      if (n->type != NT_VARREF)
-		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n->type->getName());
+	      VarRefNode *v = dynamic_cast<VarRefNode *>(n);
+	      if (!v)
+		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else
 	      {
-		 n->val.vref->type = VT_GLOBAL;
-		 getProgram()->addGlobalVarDef(n->val.vref->name);
+		 v->type = VT_GLOBAL;
+		 getProgram()->addGlobalVarDef(v->name);
 	      }
 	   }
 	   $$ = $3;
 	}
 	| IDENTIFIER
-        { $$ = new QoreNode(NT_BAREWORD); $$->val.c_str = $1; }
+        { $$ = new BarewordNode($1); }
 	| CONTEXT_REF
-        { 
-	   $$ = new QoreNode(NT_CONTEXTREF); 
-	   $$->val.c_str = $1;
-	   //printd(5, "context ref, %s, %08p, %08p, create\n", $1, $$, $1);
-	}
+        { $$ = new ContextrefNode($1); }
         | TOK_CONTEXT_ROW
-        { $$ = new QoreNode(NT_CONTEXT_ROW); }
+        { $$ = new ContextRowNode(); }
         | COMPLEX_CONTEXT_REF
-        { $$ = new QoreNode(NT_COMPLEXCONTEXTREF); $$->val.complex_cref = new ComplexContextRef($1); } 
+        { $$ = new ComplexContextrefNode($1); } 
         | TOK_FIND exp TOK_IN exp TOK_WHERE '(' exp ')'
-        {
-	   $$ = new QoreNode(NT_FIND);
-	   $$->val.find = new Find($2, $4, $7);
-	}
+        { $$ = new FindNode($2, $4, $7); }
 	| exp PLUS_EQUALS exp
         {
 	   if (check_lvalue($1))
@@ -1621,7 +1617,7 @@ exp:    scalar
 		 QoreNode *n = l->retrieve_entry(i);
 		 if (check_lvalue(n))
 		 {
-		    parse_error("element %d in list assignment is not an lvalue (%s)", i, n->type->getName());
+		    parse_error("element %d in list assignment is not an lvalue (%s)", i, n->getTypeName());
 		    ok = false;
 		 }
 	      }
@@ -1634,7 +1630,7 @@ exp:    scalar
 	   {
 	      if (check_lvalue($1))
 	      {
-		 parse_error("left-hand side of assignment is not an lvalue (%s)", $1->type->getName());
+		 parse_error("left-hand side of assignment is not an lvalue (%s)", $1->getTypeName());
 		 $$ = makeErrorTree(OP_ASSIGNMENT, $1, $3);
 	      }
 	      else
@@ -1660,7 +1656,7 @@ exp:    scalar
         {
 	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
 	   if (!l || l->size() != 2) {
-	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->type->getName());
+	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->getTypeName());
 	      $$ = makeErrorTree(OP_UNSHIFT, $2, NULL);
 	   }
 	   else {
@@ -1689,7 +1685,7 @@ exp:    scalar
         {
 	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
 	   if (!l || l->size() != 2) {
-	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->type->getName());
+	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->getTypeName());
 	      $$ = makeErrorTree(OP_PUSH, $2, NULL);
 	   }
 	   else
@@ -1739,7 +1735,7 @@ exp:    scalar
         {
 	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
 	   if (!l || l->size() < 2 || l->size() > 4) {
-	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (%s)", $2->type->getName());
+	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (%s)", $2->getTypeName());
 	      $$ = makeErrorTree(OP_SPLICE, $2, NULL);
 	   }
 	   else
@@ -1755,7 +1751,7 @@ exp:    scalar
 	   }
 	}
         | exp '?' exp ':' exp
-        { $$ = new QoreNode($1, OP_QUESTION_MARK, make_list($3, $5)); } 
+        { $$ = new QoreTreeNode($1, OP_QUESTION_MARK, make_list($3, $5)); } 
         | P_INCREMENT exp   // pre-increment
         {
 	   if (check_lvalue($2))
@@ -1798,17 +1794,18 @@ exp:    scalar
         }
 	| exp '(' myexp ')'
         {
-	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->type->getName(), $1, $3 ? $3->type->getName() : "n/a", $3); 
-	   if ($1->type == NT_BAREWORD)
+	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
+	   const QoreType *t = $1 ? $1->getType() : 0;
+	   if (t == NT_BAREWORD)
 	   {
+	      BarewordNode *b = reinterpret_cast<BarewordNode *>($1);
 	      // take string from node and delete node
-	      char *str = $1->val.c_str;
-	      $1->val.c_str = 0;
-	      $1->deref(0);
-	      printd(5, "parsing call %s() args=%08p %s\n", str, $3, $3 ? $3->type->getName() : "n/a");
-	      $$ = new QoreNode(str, makeArgs($3));
+	      char *str = b->takeString();
+	      b->deref();
+	      printd(5, "parsing call %s() args=%08p %s\n", str, $3, $3 ? $3->getTypeName() : "n/a");
+	      $$ = new FunctionCallNode(str, makeArgs($3));
 	   }
-	   else if ($1->type == NT_CONSTANT)
+	   else if (t == NT_CONSTANT)
 	   {
 	      // take NamedScope from node and delete node
 	      NamedScope *ns = $1->val.scoped_ref;
@@ -1817,33 +1814,44 @@ exp:    scalar
 	      printd(5, "parsing scoped class call (for new) %s()\n", ns->ostr);
 	      $$ = new QoreNode(ns, makeArgs($3));	      
 	   }
-	   else if ($1->type == NT_SELF_VARREF)
+	   else if (t == NT_SELF_VARREF)
 	   {
+	      SelfVarrefNode *v = reinterpret_cast<SelfVarrefNode *>($1);
 	      // take string from node and delete node
-	      char *str = $1->val.c_str;
-	      $1->val.c_str = 0;
-	      $1->deref(0);
+	      char *str = v->takeString();
+	      v->deref();
 	      printd(5, "parsing in-object method call %s()\n", str);
-	      $$ = new QoreNode(makeArgs($3), str);
+	      $$ = new FunctionCallNode(makeArgs($3), str);
 	   }
-	   else if ($1->type == NT_TREE && $1->val.tree->op == OP_OBJECT_REF && $1->val.tree->right && $1->val.tree->right->type == NT_STRING)
-	   {
-	      // create an object method call node
-	      // take the string
-	      class QoreStringNode *str = reinterpret_cast<QoreStringNode *>($1->val.tree->right);
-	      char *cstr = str->giveBuffer();
-	      str->deref();
+	   else {
+	      QoreTreeNode *tree;
+	      
+	      if (t == NT_TREE) {
+		 tree = reinterpret_cast<QoreTreeNode *>($1);
+		 if (!(tree->op == OP_OBJECT_REF && tree->right && tree->right->type == NT_STRING))
+		    tree = 0;
+	      }
+	      else
+		 tree = 0;
 
-	      //printd(5, "method call to %s: tree=%s, args=%08p %s\n", cstr, $1->val.tree->left->type->getName(), $3, $3 ? $3->type->getName() : "n/a");
-
-	      FunctionCall *fc = new FunctionCall(cstr);
-	      fc->args = makeArgs($3);
-	      $1->val.tree->right = new QoreNode(fc);
-	      $1->val.tree->op = OP_OBJECT_FUNC_REF;
-	      $$ = $1;
+	      if (tree) {
+		 // create an object method call node
+		 // take the string
+		 class QoreStringNode *str = reinterpret_cast<QoreStringNode *>(tree->right);
+		 char *cstr = str->giveBuffer();
+		 str->deref();
+		 
+		 //printd(5, "method call to %s: tree=%s, args=%08p %s\n", cstr, tree->left->getTypeName(), $3, $3 ? $3->getTypeName() : "n/a");
+		 
+		 FunctionCallNode *fc = new FunctionCallNode(cstr);
+		 fc->args = makeArgs($3);
+		 tree->right = fc;
+		 tree->op = OP_OBJECT_FUNC_REF;
+		 $$ = $1;
+	      }
+	      else
+		 $$ = new QoreNode(new FunctionReferenceCall($1, makeArgs($3)));
 	   }
-	   else
-	      $$ = new QoreNode(new FunctionReferenceCall($1, makeArgs($3)));
 	}
         | BASE_CLASS_CALL '(' myexp ')'
         {
@@ -1851,14 +1859,14 @@ exp:    scalar
 	   if (!strcmp($1->getIdentifier(), "copy"))
 	      parse_error("illegal call to base class copy method '%s'", $1->ostr);
 
-	   $$ = new QoreNode(makeArgs($3), $1);
+	   $$ = new FunctionCallNode(makeArgs($3), $1);
 	}
         | KW_IDENTIFIER_OPENPAREN myexp ')'
         {
 	   printd(5, "parsing call %s()\n", $1);
-	   $$ = new QoreNode($1, makeArgs($2));
+	   $$ = new FunctionCallNode($1, makeArgs($2));
         }
-        | SELF_REF                   { $$ = new QoreNode(NT_SELF_VARREF); $$->val.c_str = $1; }
+        | SELF_REF                   { $$ = new SelfVarrefNode($1); }
 	| exp LOGICAL_AND exp	     { $$ = makeTree(OP_LOG_AND, $1, $3); }
 	| exp LOGICAL_OR exp	     { $$ = makeTree(OP_LOG_OR, $1, $3); }
 	| exp '|' exp		     { $$ = makeTree(OP_BIN_OR, $1, $3); }
@@ -1900,7 +1908,7 @@ exp:    scalar
 	}
         | exp REGEX_MATCH REGEX_EXTRACT
         {
-	   //printd(5, "REGEX_EXTRACT: '%s'\n", (new QoreNode($3))->type->getName());
+	   //printd(5, "REGEX_EXTRACT: '%s'\n", (new QoreNode($3))->getTypeName());
 	   $$ = makeTree(OP_REGEX_EXTRACT, $1, new QoreNode($3));
 	}
 	| exp '>' exp		     { $$ = makeTree(OP_LOG_GT, $1, $3); }
@@ -1924,80 +1932,92 @@ exp:    scalar
         | '!' exp                    { $$ = makeTree(OP_NOT, $2, NULL); }
         | '\\' exp
         {
-	   if ($2->type == NT_FUNCTION_CALL)
+	   const QoreType *t = $2 ? $2->getType() : 0;
+
+	   if (t == NT_FUNCTION_CALL)
 	   {
-	      if ($2->val.fcall->args)
+	      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>($2);
+	      if (f->args)
 	      {
 		 parse_error("argument given to call reference");
 		 $$ = $2;
 	      }
 	      else
 	      {
-		 if ($2->val.fcall->type == FC_UNRESOLVED)
-		    $$ = new QoreNode(new FunctionReference($2->val.fcall->takeName()));
+		 if (f->getFunctionType() == FC_UNRESOLVED)
+		    $$ = new QoreNode(new FunctionReference(f->takeName()));
 		 else // must be self call
 		 {
-		    assert($2->val.fcall->type == FC_SELF);
-		    if ($2->val.fcall->f.sfunc->name)
-		       $$ = new QoreNode(new ParseSelfMethodReference($2->val.fcall->f.sfunc->takeName()));
+		    assert(f->getFunctionType() == FC_SELF);
+		    if (f->f.sfunc->name)
+		       $$ = new QoreNode(new ParseSelfMethodReference(f->f.sfunc->takeName()));
 		    else
 		    {
-		       assert($2->val.fcall->f.sfunc->ns);
-		       $$ = new QoreNode(new ParseScopedSelfMethodReference($2->val.fcall->f.sfunc->takeNScope()));
+		       assert(f->f.sfunc->ns);
+		       $$ = new QoreNode(new ParseScopedSelfMethodReference(f->f.sfunc->takeNScope()));
 		    }
 		 }
-		 $2->deref(NULL);
+		 f->deref();
 	      }
 	   }
-	   else if ($2->type == NT_TREE && $2->val.tree->op == OP_OBJECT_FUNC_REF
-		    && $2->val.tree->right->val.fcall->type == FC_METHOD) // make a call reference
-	   {
-	      if ($2->val.tree->right->val.fcall->args)
-	      {
-		 parse_error("argument given to call reference");
-		 $$ = $2;
+	   else {
+	      bool make_ref = true;
+
+	      if (t == NT_TREE) {
+		 QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>($2);
+		 if (tree->op == OP_OBJECT_FUNC_REF) {
+		    assert(tree->right->getType() == NT_FUNCTION_CALL);
+		    FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(tree->right);
+		    if (f->getFunctionType() == FC_METHOD) {
+		       if (f->args) {
+			  parse_error("argument given to call reference");
+			  $$ = $2;
+		       }
+		       else { // rewrite as a call reference
+			  // take components of tree and delete tree
+			  class QoreNode *exp = tree->left;
+			  tree->left = 0;
+			  char *meth = f->takeName();
+			  f->deref();
+			  tree->right = 0;
+			  $2->deref(0);
+			  $$ = new QoreNode(new ParseObjectMethodReference(exp, meth));
+			  //printd(5, "made parse object method reference: exp=%08p meth=%s (node=%08p)\n", exp, meth, $$);
+			  make_ref = false;
+		       }
+		    }
+		 }
 	      }
-	      else
-	      {
-		 // take components of tree and delete tree
-		 class QoreNode *exp = $2->val.tree->left;
-		 $2->val.tree->left = 0;
-		 char *meth = $2->val.tree->right->val.fcall->takeName();
-		 delete $2->val.tree->right->val.fcall;
-		 $2->val.tree->right->val.fcall = 0;
-		 //$2->val.tree->right = 0;
-		 $2->deref(0);
-		 $$ = new QoreNode(new ParseObjectMethodReference(exp, meth));
-		 //printd(5, "made parse object method reference: exp=%08p meth=%s (node=%08p)\n", exp, meth, $$);
+
+	      if (make_ref) {
+		 //printd(5, "type=%s\n", $2->getTypeName());
+		 $$ = new QoreNode(NT_REFERENCE);
+		 $$->val.lvexp = $2;
+		 if (check_lvalue($2))
+		    parse_error("argument to reference operator is not an lvalue or a function or method");
 	      }
-	   }
-	   else
-	   {
-	      //printd(5, "type=%s\n", $2->type->getName());
-	      $$ = new QoreNode(NT_REFERENCE);
-	      $$->val.lvexp = $2;
-	      if (check_lvalue($2))
-		 parse_error("argument to reference operator is not an lvalue or a function or method");
 	   }
 	}
         | TOK_NEW exp //function_call
         {
-	   if ($2->type == NT_SCOPE_REF)
+	   const QoreType *t = $2 ? $2->getType() : 0;
+	   if (t == NT_SCOPE_REF)
 	   { 
 	      $$ = makeTree(OP_NEW, $2, NULL); 
 	      // see if new can be used
 	      if (checkParseOption(PO_NO_NEW))
 		 parse_error("illegal use of the \"new\" operator (conflicts with parse option NO_NEW)");
 	   }
-	   else if ($2->type != NT_FUNCTION_CALL)
+	   else if (t != NT_FUNCTION_CALL)
 	   {
-	      parse_error("invalid expression after 'new' operator (%s)", $2 ? $2->type->getName() : "<nothing>");
+	      parse_error("invalid expression after 'new' operator (%s)", $2 ? $2->getTypeName() : "<nothing>");
 	      $$ = $2;
 	   }
 	   else
 	   {
-	      $$ = makeTree(OP_NEW, $2->val.fcall->parseMakeNewObject(), NULL);
-	      $2->deref(NULL);
+	      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>($2);
+	      $$ = makeTree(OP_NEW, f->parseMakeNewObject(), NULL);
+	      f->deref();
 	      // see if new can be used
 	      if (checkParseOption(PO_NO_NEW))
 		 parse_error("illegal use of the \"new\" operator (conflicts with parse option NO_NEW)");
@@ -2014,8 +2034,7 @@ exp:    scalar
 	}
         | BACKQUOTE
         {
-	   $$ = new QoreNode(NT_BACKQUOTE);
-	   $$->val.c_str = $1;
+	   $$ = new BackquoteNode($1);
 	   if (checkParseOption(PO_NO_EXTERNAL_PROCESS))
 	      parse_error("illegal use of backquote operator (conflicts with parse option NO_EXTERNAL_PROCESS)");
 	}
@@ -2048,12 +2067,12 @@ string:
 	}
 
 scalar:
-	QFLOAT        { $$ = new QoreNode(NT_FLOAT); $$->val.floatval = $1; }
+	QFLOAT        { $$ = new QoreFloatNode($1); }
         | INTEGER     { $$ = new QoreBigIntNode($1); }
         | string      { $$ = $1; }
         | DATETIME    { $$ = $1; }
-        | TOK_NULL    { $$ = new QoreNode(NT_NULL); }
-        | TOK_NOTHING { $$ = new QoreNode(NT_NOTHING); }
+        | TOK_NULL    { $$ = new QoreNullNode(); }
+        | TOK_NOTHING { $$ = new QoreNothingNode(); }
 	;
 
 %%

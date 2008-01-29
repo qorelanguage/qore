@@ -737,7 +737,7 @@ void QoreProgram::endThread(class ExceptionSink *xsink)
 }
 
 // called during parsing (priv->plock already grabbed)
-void QoreProgram::resolveFunction(class FunctionCall *f)
+void QoreProgram::resolveFunction(FunctionCallNode *f)
 {
    tracein("QoreProgram::resolveFunction()");
    char *fname = f->f.c_str;
@@ -746,7 +746,7 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
    if ((ufc = priv->user_func_list.find(fname)))
    {
       printd(5, "resolved user function call to %s\n", fname);
-      f->type = FC_USER;
+      f->ftype = FC_USER;
       f->f.ufunc = ufc;
       free(fname);
       traceout("QoreProgram::resolveFunction()");
@@ -758,7 +758,7 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
    {
       printd(5, "resolved imported function call to %s (pgm=%08p, func=%08p)\n",
 	     fname, ifn->pgm, ifn->func);
-      f->type = FC_IMPORTED;
+      f->ftype = FC_IMPORTED;
       f->f.ifunc = new ImportedFunctionCall(ifn->pgm, ifn->func);
       free(fname);
       traceout("QoreProgram::resolveFunction()");
@@ -769,7 +769,7 @@ void QoreProgram::resolveFunction(class FunctionCall *f)
    if ((bfc = builtinFunctions.find(fname)))
    {
       printd(5, "resolved builtin function call to %s\n", fname);
-      f->type = FC_BUILTIN;
+      f->ftype = FC_BUILTIN;
       f->f.bfunc = bfc;
 
       // check parse options to see if access is allowed
@@ -1078,7 +1078,7 @@ class QoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)
 class QoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, class ExceptionSink *xsink)
 {
    class UserFunction *ufc;
-   QoreNode *fc;
+   FunctionCallNode *fc;
 
    printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
    // need to grab parse lock for safe acces to the user function map and imported function map
@@ -1089,7 +1089,7 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *
    priv->plock.unlock();
 
    if (ufc) // we assign the args to NULL below so that the caller will delete
-      fc = new QoreNode(ufc, const_cast<QoreListNode *>(args));
+      fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args));
    else
    {
       class BuiltinFunction *bfc;
@@ -1102,7 +1102,7 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *
 	    return NULL;
 	 }
 	 // we assign the args to NULL below so that the caller will delete
-	 fc = new QoreNode(bfc, const_cast<QoreListNode *>(args));
+	 fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args));
       }
       else
       {
@@ -1114,12 +1114,12 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *
    QoreNode *rv;
    {
       ProgramContextHelper pch(this);
-      rv = fc->val.fcall->eval(xsink);
+      rv = fc->eval(xsink);
    }
 
    // let caller delete function arguments if necessary
-   fc->val.fcall->args = NULL;
-   fc->deref(xsink);
+   fc->args = NULL;
+   fc->deref();
 
    return rv;
 }
@@ -1127,17 +1127,17 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *
 class QoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreListNode *args, class ExceptionSink *xsink)
 {
    // we assign the args to NULL below so that the caller will delete
-   QoreNode *fc = new QoreNode(ufc, const_cast<QoreListNode *>(args));
+   FunctionCallNode *fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args));
 
    QoreNode *rv;
    {
       ProgramContextHelper pch(this);
-      rv = fc->val.fcall->eval(xsink);
+      rv = fc->eval(xsink);
    }
    
    // let caller delete function arguments if necessary
-   fc->val.fcall->args = NULL;
-   fc->deref(xsink);
+   fc->args = NULL;
+   fc->deref();
 
    return rv;
 }

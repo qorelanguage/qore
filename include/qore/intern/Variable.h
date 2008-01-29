@@ -112,29 +112,6 @@ class Var : public ReferenceObject
       DLLLOCAL class QoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
 };
 
-class VarRef {
-   public:
-      char *name;
-      int type;
-      union var_u {
-	    lvh_t id;          // for local variables
-	    class Var *var;    // for global variables
-      } ref;
-
-      DLLLOCAL VarRef(char *n, int t);
-      DLLLOCAL VarRef() {}
-      DLLLOCAL ~VarRef();
-      DLLLOCAL void resolve();
-      // returns -1 if the variable did not already exist
-      DLLLOCAL int resolveExisting();
-      DLLLOCAL class VarRef *copy();
-      DLLLOCAL class QoreNode *eval(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink);
-      DLLLOCAL void setValue(class QoreNode *val, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
-};
-
 DLLLOCAL class QoreNode *getNoEvalVarValue(class QoreNode *n, class AutoVLock *vl, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *getExistingVarValue(class QoreNode *n, class ExceptionSink *xsink, class AutoVLock *vl, class QoreNode **pt);
 DLLLOCAL void delete_var_node(class QoreNode *node, class ExceptionSink *xsink);

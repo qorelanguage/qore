@@ -50,7 +50,7 @@ static void QTEXTLENGTH_copy(class QoreObject *self, class QoreObject *old, clas
 //qreal rawValue () const
 static QoreNode *QTEXTLENGTH_rawValue(QoreObject *self, QoreQTextLength *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qtl->rawValue());
+   return new QoreFloatNode((double)qtl->rawValue());
 }
 
 //Type type () const
@@ -64,7 +64,7 @@ static QoreNode *QTEXTLENGTH_value(QoreObject *self, QoreQTextLength *qtl, const
 {
    QoreNode *p = get_param(params, 0);
    qreal maximumLength = p ? p->getAsFloat() : 0.0;
-   return new QoreNode((double)qtl->value(maximumLength));
+   return new QoreFloatNode((double)qtl->value(maximumLength));
 }
 
 QoreClass *initQTextLengthClass()

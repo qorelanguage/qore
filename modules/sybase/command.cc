@@ -216,7 +216,7 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
 
       if (ntype == NT_BOOLEAN)
       {
-	 CS_BIT bval = val->getAsBool();
+	 CS_BIT bval = reinterpret_cast<const QoreBoolNode *>(val)->b;
 	 datafmt.datatype = CS_BIT_TYPE;
 	 err = ct_param(m_cmd, &datafmt, &bval, sizeof(val), 0);
 	 if (err != CS_SUCCEED) {
@@ -228,11 +228,11 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
 
       if (ntype == NT_FLOAT)
       {
-	 CS_FLOAT fval = val->val.floatval;
+	 CS_FLOAT fval = reinterpret_cast<const QoreFloatNode *>(val)->f;
 	 datafmt.datatype = CS_FLOAT_TYPE;
 	 err = ct_param(m_cmd, &datafmt, &fval, sizeof(CS_FLOAT), 0); 
 	 if (err != CS_SUCCEED) {
-	    m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_param() for float parameter %u (%g) failed with error", i, val->val.floatval, (int)err);
+	    m_conn.do_exception(xsink, "DBI:SYBASE:EXEC-ERROR", "ct_param() for float parameter %u (%g) failed with error", i, fval, (int)err);
 	    return -1;
 	 }
 	 continue;
@@ -240,7 +240,7 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
 
       if (ntype == NT_BINARY)
       {
-	 BinaryNode *b = reinterpret_cast<BinaryNode *>(val);
+	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(val);
 	 datafmt.datatype = CS_BINARY_TYPE;
 	 datafmt.maxlength = b->size();
 	 datafmt.count = 1;
@@ -687,13 +687,13 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
     case CS_REAL_TYPE:
     {
       CS_REAL* value = (CS_REAL*)(buffer.value);
-      return new QoreNode((double)*value);
+      return new QoreFloatNode((double)*value);
     }
 
     case CS_FLOAT_TYPE:
     {
       CS_FLOAT* value = (CS_FLOAT*)(buffer.value);
-      return new QoreNode((double)*value);
+      return new QoreFloatNode((double)*value);
     }
 
     case CS_BIT_TYPE:
@@ -727,7 +727,7 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
       if (xsink->isException()) {
         return 0;
       }
-      return new QoreNode(d);
+      return new QoreFloatNode(d);
     }
 
     case CS_MONEY4_TYPE:
@@ -737,7 +737,7 @@ class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_
       if (xsink->isException()) {
         return 0;
       }
-      return new QoreNode(d);
+      return new QoreFloatNode(d);
     }
 
     // numeric/decimal are retrieved as strings

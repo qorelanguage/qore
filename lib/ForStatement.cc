@@ -100,8 +100,9 @@ int ForStatement::parseInitImpl(lvh_t oflag, int pflag)
    {
       lvids += process_node(&assignment, oflag, pflag);
       // enable optimizations when return value is ignored for operator expressions
-      if (assignment->type == NT_TREE)
-	 assignment->val.tree->ignoreReturnValue();
+      QoreTreeNode *tree = dynamic_cast<QoreTreeNode *>(assignment);
+      if (tree)
+	 tree->ignoreReturnValue();
    }
    if (cond)
       lvids += process_node(&cond, oflag, pflag);
@@ -109,8 +110,10 @@ int ForStatement::parseInitImpl(lvh_t oflag, int pflag)
    {
       lvids += process_node(&iterator, oflag, pflag);
       // enable optimizations when return value is ignored for operator expressions
-      if (iterator->type == NT_TREE)
-	 iterator->val.tree->ignoreReturnValue();
+
+      QoreTreeNode *tree = dynamic_cast<QoreTreeNode *>(iterator);
+      if (tree)
+	 tree->ignoreReturnValue();
    }
    if (code)
       code->parseInitImpl(oflag, pflag);

@@ -176,8 +176,11 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char
 	 else
 	 {
 	    if (!(*cv))
-	       (*cv) = new QoreNode((double)0.0);
-	    (*cv)->val.floatval++;
+	       (*cv) = new QoreFloatNode(0.0);
+	    else {
+	       QoreFloatNode *f = reinterpret_cast<QoreFloatNode *>(*cv);
+	       f->f++;
+	    }
 	 }
       }
       else if (!*cv)
@@ -191,7 +194,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char
    else if (n->argtype == NT_INT)
       v = new QoreBigIntNode(strtoll(val, NULL, 10));
    else if (n->argtype == NT_FLOAT)
-      v = new QoreNode(strtod(val, NULL));
+      v = new QoreFloatNode(strtod(val, NULL));
    else if (n->argtype == NT_DATE)
       v = parseDate(val);
    else if (n->argtype == NT_BOOLEAN)
@@ -224,10 +227,11 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char
    {
       if (n->argtype == NT_INT) {
 	 QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(*cv);
-	 b->val += (reinterpret_cast<QoreBigIntNode *>(v))->val;
+	 b->val += reinterpret_cast<QoreBigIntNode *>(v)->val;
       }
       else { // float
-	 (*cv)->val.floatval += v->val.floatval;
+	 QoreFloatNode *f = reinterpret_cast<QoreFloatNode *>(*cv);
+	 f->f += reinterpret_cast<const QoreFloatNode *>(v)->f;
       }
       v->deref(NULL);
       return;

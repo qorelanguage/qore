@@ -1,7 +1,7 @@
 /*
   Function.h
 
-  Qore programming language
+  Qore Programming Language
 
   Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
@@ -46,68 +46,6 @@
 
 class QoreNode *doPartialEval(class QoreNode *n, bool *is_self_ref, class ExceptionSink *xsink);
 
-class ImportedFunctionCall {
-   public:
-      class QoreProgram *pgm;
-      class UserFunction *func;
-
-      DLLLOCAL ImportedFunctionCall(class QoreProgram *p, class UserFunction *f) { pgm = p; func = f; }
-      DLLLOCAL class QoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;
-};
-
-class SelfFunctionCall {
-  public:
-      char *name;
-      class NamedScope *ns;
-      const class QoreMethod *func;
-
-      DLLLOCAL SelfFunctionCall(char *n);
-      DLLLOCAL SelfFunctionCall(class NamedScope *n);
-      DLLLOCAL SelfFunctionCall(const QoreMethod *f);
-      DLLLOCAL ~SelfFunctionCall();
-      DLLLOCAL class QoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;
-      DLLLOCAL void resolve();
-      DLLLOCAL char *takeName();
-      DLLLOCAL class NamedScope *takeNScope();
-};
-
-class FunctionCall {
-   public:
-      union uFCall {
-	    class UserFunction *ufunc;
-	    class BuiltinFunction *bfunc;
-	    class SelfFunctionCall *sfunc;
-	    class ImportedFunctionCall *ifunc;
-	    char *c_str;
-      } f;
-      QoreListNode *args;
-      int type;
-
-      DLLLOCAL FunctionCall(class UserFunction *u, QoreListNode *a);
-      DLLLOCAL FunctionCall(class BuiltinFunction *b, QoreListNode *a);
-
-      // "self" in-object function call constructors
-      DLLLOCAL FunctionCall(QoreListNode *a, char *name);
-      DLLLOCAL FunctionCall(QoreListNode *a, class NamedScope *n);
-      DLLLOCAL FunctionCall(const class QoreMethod *func, QoreListNode *a);
-
-      // normal function call constructor
-      DLLLOCAL FunctionCall(char *name, QoreListNode *a);
-      // method call constructor
-      DLLLOCAL FunctionCall(char *n_c_str);
-      
-      DLLLOCAL FunctionCall(class QoreProgram *p, class UserFunction *u, QoreListNode *a);
-      DLLLOCAL ~FunctionCall();
-
-      // to transform an "unresolved" function to a "method" type
-      DLLLOCAL void parseMakeMethod();
-      DLLLOCAL class QoreNode *parseMakeNewObject();
-      DLLLOCAL class QoreNode *eval(class ExceptionSink *) const;
-      DLLLOCAL int existsUserParam(int i) const;
-      DLLLOCAL int getType() const;
-      DLLLOCAL const char *getName() const;
-      DLLLOCAL char *takeName();
-};
 
 // object definitions and interfaces
 class BuiltinFunction

@@ -177,7 +177,7 @@ static QoreNode *QFONT_pointSize(QoreObject *self, QoreQFont *qf, const QoreList
 //qreal pointSizeF () const
 static QoreNode *QFONT_pointSizeF(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qf->pointSizeF());
+   return new QoreFloatNode(qf->pointSizeF());
 }
 
 //bool rawMode () const

@@ -47,13 +47,13 @@ static QoreNode *QTEXTTABLEFORMAT_alignment(QoreObject *self, QoreQTextTableForm
 //qreal cellPadding () const
 static QoreNode *QTEXTTABLEFORMAT_cellPadding(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qttf->cellPadding());
+   return new QoreFloatNode((double)qttf->cellPadding());
 }
 
 //qreal cellSpacing () const
 static QoreNode *QTEXTTABLEFORMAT_cellSpacing(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qttf->cellSpacing());
+   return new QoreFloatNode((double)qttf->cellSpacing());
 }
 
 //void clearColumnWidthConstraints ()

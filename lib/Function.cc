@@ -1,7 +1,7 @@
 /*
   Function.cc
 
-  Qore Programming language
+  Qore Programming Language
 
   Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
@@ -9,20 +9,18 @@
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/Function.h>
-#include <qore/intern/StatementBlock.h>
 #include <qore/intern/QoreClassIntern.h>
 
 #include <stdio.h>
@@ -144,167 +142,6 @@ class QoreNode *ImportedFunctionCall::eval(const QoreListNode *args, class Excep
    return rv;
 }
 
-FunctionCall::FunctionCall(class UserFunction *u, QoreListNode *a)
-{
-   type = FC_USER;
-   f.ufunc = u;
-   args = a;
-}
-
-FunctionCall::FunctionCall(class BuiltinFunction *b, QoreListNode *a)
-{
-   type = FC_BUILTIN;
-   f.bfunc = b;
-   args = a;
-}
-
-FunctionCall::FunctionCall(QoreListNode *a, char *name)
-{
-   printd(5, "FunctionCall::FunctionCall(a=%08p, name=%s) FC_SELF this=%08p\n", a, name, this);
-   type = FC_SELF;
-   f.sfunc = new SelfFunctionCall(name);
-   args = a;
-}
-
-FunctionCall::FunctionCall(QoreListNode *a, class NamedScope *n)
-{
-   printd(5, "FunctionCall::FunctionCall(a=%08p, n=%s) FC_SELF this=%08p\n", a, n->ostr, this);
-   type = FC_SELF;
-   f.sfunc = new SelfFunctionCall(n);
-   args = a;
-}
-
-FunctionCall::FunctionCall(const QoreMethod *m, QoreListNode *a)
-{
-   printd(5, "FunctionCall::FunctionCall(a=%08p, method=%08p %s) FC_SELF this=%08p\n", a, m, m->getName(), this);
-   type = FC_SELF;
-   f.sfunc = new SelfFunctionCall(m);
-   args = a;
-}
-
-FunctionCall::FunctionCall(char *name, QoreListNode *a)
-{
-   type = FC_UNRESOLVED;
-   f.c_str = name;
-   args = a;
-}
-
-FunctionCall::FunctionCall(class QoreProgram *p, class UserFunction *u, QoreListNode *a)
-{
-   type = FC_IMPORTED;
-   f.ifunc = new ImportedFunctionCall(p, u);
-   args = a;
-}
-
-FunctionCall::FunctionCall(char *n_c_str)
-{
-   type = FC_METHOD;
-   f.c_str = n_c_str;
-   args = 0;
-}
-
-FunctionCall::~FunctionCall()
-{
-   printd(5, "FunctionCall::~FunctionCall(): type=%d args=%08p (%s)\n",
-	  type, args, (type == FC_UNRESOLVED && f.c_str) ? f.c_str : "(null)");
-
-   // there could be an object here in the case of a background expression
-   if (args)
-   {
-      ExceptionSink xsink;
-      args->deref(&xsink);
-   }
-
-   switch (type)
-   {
-      case FC_USER:
-      case FC_BUILTIN:
-	 break;
-      case FC_SELF:
-	 delete f.sfunc;
-	 break;
-      case FC_METHOD:
-      case FC_UNRESOLVED:
-	 if (f.c_str)
-	    free(f.c_str);
-	 break;
-      case FC_IMPORTED:
-	 delete f.ifunc;
-	 break;
-   }
-}
-
-char *FunctionCall::takeName()
-{
-   char *str = f.c_str;
-   f.c_str = 0;
-   return str;
-}
-
-void FunctionCall::parseMakeMethod()
-{
-   type = FC_METHOD;
-}
-
-// makes a "new" operator call from a function call
-class QoreNode *FunctionCall::parseMakeNewObject()
-{
-   class QoreNode *rv = new QoreNode(new NamedScope(f.c_str), args);
-   f.c_str = NULL;
-   args = NULL;
-   return rv;
-}
-
-class QoreNode *FunctionCall::eval(class ExceptionSink *xsink) const
-{
-   switch (type)
-   {
-      case FC_USER:
-	 return f.ufunc->eval(args, NULL, xsink);
-      case FC_BUILTIN:
-	 return f.bfunc->eval(args, xsink);
-      case FC_SELF:
-	 return f.sfunc->eval(args, xsink);
-      case FC_IMPORTED:
-	 return f.ifunc->eval(args, xsink);
-   }
-
-   assert(false);
-   return NULL;
-}
-
-int FunctionCall::existsUserParam(int i) const
-{
-   if (type == FC_USER)
-      return f.ufunc->params->num_params > i;
-   if (type == FC_IMPORTED)
-      return f.ifunc->func->params->num_params > i;
-   return 1;
-}
-
-int FunctionCall::getType() const
-{
-   return type;
-}
-
-const char *FunctionCall::getName() const
-{
-   switch (type)
-   {
-      case FC_USER:
-	 return f.ufunc->getName();
-      case FC_BUILTIN:
-	 return f.bfunc->getName();
-      case FC_SELF:
-	 return f.sfunc->name;
-      case FC_IMPORTED:
-	 return f.ifunc->func->getName();
-      case FC_UNRESOLVED:
-      case FC_METHOD:
-	 return f.c_str ? f.c_str : (char *)"copy";
-   }
-   return NULL;   
-}
 
 Paramlist::Paramlist(QoreNode *params)
 {
@@ -322,7 +159,7 @@ Paramlist::Paramlist(QoreNode *params)
    {
       num_params = 1;
       names = new char *[1];
-      names[0] = strdup(params->val.vref->name);
+      names[0] = strdup(reinterpret_cast<VarRefNode *>(params)->name);
       return;
    }
 
@@ -348,7 +185,7 @@ Paramlist::Paramlist(QoreNode *params)
 	 break;
       }
       else
-	 names[i] = strdup(l->retrieve_entry(i)->val.vref->name);
+	 names[i] = strdup(reinterpret_cast<VarRefNode *>(l->retrieve_entry(i))->name);
    }
 }
 
@@ -972,24 +809,22 @@ QoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreObject *se
 QoreNode *doPartialEval(class QoreNode *n, bool *is_self_ref, class ExceptionSink *xsink)
 {
    QoreNode *rv = NULL;
-   if (n->type == NT_TREE)
+   const QoreType *ntype = n->getType();
+   if (ntype == NT_TREE)
    {
-      QoreNode *nn = n->val.tree->right->eval(xsink);
-      if (xsink->isEvent())
-      {
-	 discard(nn, xsink);
-	 return NULL;
-      }
-      class Tree *t = new Tree(doPartialEval(n->val.tree->left, is_self_ref, xsink), n->val.tree->op, nn ? nn : nothing());
-      if (!t->left)
-	 delete t;
-      else
-	 rv = new QoreNode(t);
+      QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
+      ReferenceHolder<QoreNode> nn(tree->right->eval(xsink), xsink);
+      if (*xsink)
+	 return 0;
+
+      SimpleRefHolder<QoreTreeNode> t(new QoreTreeNode(doPartialEval(tree->left, is_self_ref, xsink), tree->op, nn ? nn.release() : nothing()));
+      if (t->left)
+	 rv = t.release();
    }
    else
    {
       rv = n->RefSelf();
-      if (n->type == NT_SELF_VARREF)
+      if (ntype == NT_SELF_VARREF)
 	 (*is_self_ref) = true;
    }
    return rv;

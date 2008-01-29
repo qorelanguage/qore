@@ -45,7 +45,7 @@ static class QoreNode *f_int(const QoreListNode *params, ExceptionSink *xsink)
 static class QoreNode *f_float(const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreNode *p0 = get_param(params, 0);
-   return new QoreNode(p0 ? p0->getAsFloat() : 0.0);
+   return new QoreFloatNode(p0 ? p0->getAsFloat() : 0.0);
 }
 
 static class QoreNode *f_string(const QoreListNode *params, ExceptionSink *xsink)

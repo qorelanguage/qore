@@ -481,8 +481,7 @@ static int parseInitConstantHash(class QoreHashNode *h, int level)
 	 // FIXME: add new entry points to RootQoreNamespace so it's not necessary to create these temporary QoreNode values
 	 if (k[0] == HE_TAG_CONST)
 	 {
-	    n = new QoreNode(NT_BAREWORD);
-	    n->val.c_str = strdup(k + 1);
+	    n = new BarewordNode(strdup(k + 1));
 	 }
 	 else
 	    n = new QoreNode(new NamedScope(strdup(k + 1)));
@@ -991,12 +990,13 @@ int RootQoreNamespace::parseInitConstantValue(class QoreNode **val, int level)
 
    while (true)
    {
-      if ((*val)->type == NT_BAREWORD)
+      const QoreType *vtype = (*val)->getType();
+      if (vtype == NT_BAREWORD)
       {
 	 if (resolveSimpleConstant(val, level + 1))
 	    return -1;
       }
-      else if ((*val)->type == NT_CONSTANT)
+      else if (vtype == NT_CONSTANT)
       {
 	 if (resolveScopedConstant(val, level + 1))
 	    return -1;
@@ -1005,42 +1005,40 @@ int RootQoreNamespace::parseInitConstantValue(class QoreNode **val, int level)
 	 break;
    }
 
-   {
-      QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
-      if (l) {
-	 for (int i = 0; i < l->size(); i++)
-	 {
-	    if (parseInitConstantValue(l->get_entry_ptr(i), level + 1))
-	       return -1;
-	 }
-	 return 0;
-      }
-   }
-
-   {
-      QoreHashNode *h = dynamic_cast<QoreHashNode *>(*val);
-      if (h) {
-	 if (parseInitConstantHash(h, level))
+   const QoreType *vtype = (*val)->getType();
+   if (vtype == NT_LIST) {
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
+      for (int i = 0; i < l->size(); i++)
+      {
+	 if (parseInitConstantValue(l->get_entry_ptr(i), level + 1))
 	    return -1;
-	 return 0;
       }
+      return 0;
    }
 
-   if ((*val)->type == NT_TREE)
-   {
-      if (parseInitConstantValue(&((*val)->val.tree->left), level + 1))
+   if (vtype == NT_HASH) {
+      QoreHashNode *h = reinterpret_cast<QoreHashNode *>(*val);
+      if (parseInitConstantHash(h, level))
 	 return -1;
-      if ((*val)->val.tree->right)
-	 if (parseInitConstantValue(&((*val)->val.tree->right), level + 1))
+      return 0;
+   }
+
+   if (vtype == NT_TREE)
+   {
+      QoreTreeNode *tree =reinterpret_cast<QoreTreeNode *>(*val);
+      if (parseInitConstantValue(&(tree->left), level + 1))
+	 return -1;
+      if (tree->right)
+	 if (parseInitConstantValue(&(tree->right), level + 1))
 	    return -1;
       return 0;
    }
 
    // if it's an expression or container type, then evaluate in case it contains immediate expressions
-   if ((*val)->type == NT_TREE || (*val)->type == NT_LIST || (*val)->type == NT_HASH)
+   if (vtype == NT_TREE || vtype == NT_LIST || vtype == NT_HASH)
    {
-      class ExceptionSink xsink;
-      class QoreNode *n = (*val)->eval(&xsink);
+      ExceptionSink xsink;
+      QoreNode *n = (*val)->eval(&xsink);
       (*val)->deref(&xsink);
       *val = n;
    }
@@ -1050,17 +1048,19 @@ int RootQoreNamespace::parseInitConstantValue(class QoreNode **val, int level)
 // returns 0 for success, non-zero for error
 int RootQoreNamespace::resolveSimpleConstant(class QoreNode **node, int level) const
 {
-   printd(5, "RootQoreNamespace::resolveSimpleConstant(%s, %d)\n", (*node)->val.c_str, level);
+   assert(*node && (*node)->type == NT_BAREWORD);
+   BarewordNode *b = reinterpret_cast<BarewordNode *>(*node);
+   printd(5, "RootQoreNamespace::resolveSimpleConstant(%s, %d)\n", b->str, level);
 
    // if constant is not found, then a parse error will be raised
-   class QoreNode *rv = findConstantValue((*node)->val.c_str, level);
+   class QoreNode *rv = findConstantValue(b->str, level);
    if (!rv)
       return -1;
 
    printd(5, "RootQoreNamespace::resolveSimpleConstant(%s, %d) %08p %s-> %08p %s\n", 
-	  (*node)->val.c_str, level, *node, (*node)->getTypeName(), rv, rv->getTypeName());
+	  b->str, level, *node, (*node)->getTypeName(), rv, rv->getTypeName());
    
-   (*node)->deref(NULL);
+   b->deref();
    *node = rv->RefSelf();
    return 0;
 }

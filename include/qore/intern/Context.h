@@ -67,21 +67,7 @@ class Context {
       DLLLOCAL void deref(class ExceptionSink *xsink);
 };
 
-class ComplexContextRef 
-{
-   public:
-      char *name;
-      char *member;
-      int stack_offset;
-
-      DLLLOCAL ComplexContextRef(char *str); 
-      DLLLOCAL ComplexContextRef(char *n, char *m, int so); 
-      DLLLOCAL ~ComplexContextRef();
-      DLLLOCAL class ComplexContextRef *copy();
-};
-
 DLLLOCAL class QoreNode *evalContextRef(char *key, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *evalComplexContextRef(class ComplexContextRef *c, class ExceptionSink *xsink);
 DLLLOCAL class QoreNode *evalContextRow(class ExceptionSink *xsink);
 
 #endif

@@ -1,9 +1,16 @@
+2007.01.29: David Nichols
+	* implemented QoreFloatNode as QoreNode subclass for flating-point
+	  values
+	* implemented QoreNullNode and QoreNothingNode as QoreNode subclasses
+	* implemented many parse types as QoreNode subclasses
+
 2007.01.28: David Nichols
 	* BinaryObject implemented as QoreNode subclass
 	* QoreList renamed to QoreListNode
 	* BinaryObject renamed to BinaryNode
 	* implemented QoreBigIntNode as QoreNode subclass for 64-bit integer 
 	  type
+	* implemented QoreBoolNode as QoreNode subclass for boolean values
 
 2007.01.27: David Nichols
 	* QoreObject implemented as QoreNode subclass

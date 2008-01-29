@@ -71,7 +71,7 @@ static void QDOUBLEVALIDATOR_copy(class QoreObject *self, class QoreObject *old,
 //double bottom () const
 static QoreNode *QDOUBLEVALIDATOR_bottom(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qdv->qobj->bottom());
+   return new QoreFloatNode((double)qdv->qobj->bottom());
 }
 
 //int decimals () const
@@ -138,7 +138,7 @@ static QoreNode *QDOUBLEVALIDATOR_setTop(QoreObject *self, QoreQDoubleValidator 
 //double top () const
 static QoreNode *QDOUBLEVALIDATOR_top(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qdv->qobj->top());
+   return new QoreFloatNode((double)qdv->qobj->top());
 }
 
 QoreClass *initQDoubleValidatorClass(QoreClass *qvalidator)

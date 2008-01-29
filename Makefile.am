@@ -22,6 +22,9 @@ noinst_HEADERS = \
 	include/qore/QoreListNode.h \
 	include/qore/QoreBigIntNode.h \
 	include/qore/QoreBoolNode.h \
+	include/qore/QoreFloatNode.h \
+	include/qore/QoreNothingNode.h \
+	include/qore/QoreNullNode.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
 	include/qore/BuiltinFunctionList.h \
@@ -79,7 +82,14 @@ noinst_HEADERS = \
 	include/qore/intern/Variable.h \
 	include/qore/intern/UserFunctionList.h \
 	include/qore/intern/TypeConstants.h \
-	include/qore/intern/Tree.h \
+	include/qore/intern/QoreTreeNode.h \
+	include/qore/intern/BarewordNode.h \
+	include/qore/intern/SelfVarrefNode.h \
+	include/qore/intern/BackquoteNode.h \
+	include/qore/intern/ContextrefNode.h \
+	include/qore/intern/ContextRowNode.h \
+	include/qore/intern/ComplexContextrefNode.h \
+	include/qore/intern/FunctionCallNode.h \
 	include/qore/intern/SmartMutex.h \
 	include/qore/intern/Sequence.h \
 	include/qore/intern/ScopedObjectCall.h \
@@ -108,7 +118,7 @@ noinst_HEADERS = \
 	include/qore/intern/FunctionReference.h \
 	include/qore/intern/DatasourcePool.h \
 	include/qore/intern/Function.h \
-	include/qore/intern/Find.h \
+	include/qore/intern/FindNode.h \
 	include/qore/intern/ExecArgList.h \
 	include/qore/intern/ErrnoConstants.h \
 	include/qore/intern/Context.h \
@@ -182,20 +192,6 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AutoLock.h \
 	include/qore/intern/QC_AutoReadLock.h \
 	include/qore/intern/QC_AutoWriteLock.h \
-	include/qore/intern/QT_NOTHING.h \
-	include/qore/intern/QT_bigint.h \
-	include/qore/intern/QT_float.h \
-	include/qore/intern/QT_string.h \
-	include/qore/intern/QT_date.h \
-	include/qore/intern/QT_boolean.h \
-	include/qore/intern/QT_NULL.h \
-	include/qore/intern/QT_binary.h \
-	include/qore/intern/QT_list.h \
-	include/qore/intern/QT_hash.h \
-	include/qore/intern/QT_object.h \
-	include/qore/intern/QT_backquote.h \
-	include/qore/intern/QT_context.h \
-	include/qore/intern/QT_varref.h \
 	modules/oracle/oracle-config.h \
 	modules/oracle/oracle.h \
 	modules/oracle/oracle-module.h \

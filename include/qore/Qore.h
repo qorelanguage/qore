@@ -25,6 +25,7 @@
 #define _QORE_QORE_H
 
 #include <qore/common.h>
+#include <qore/ReferenceHolder.h>
 #include <qore/QoreNode.h>
 #include <qore/QoreListNode.h>
 #include <qore/QoreProgram.h>
@@ -35,6 +36,9 @@
 #include <qore/QoreHashNode.h>
 #include <qore/QoreBigIntNode.h>
 #include <qore/QoreBoolNode.h>
+#include <qore/QoreFloatNode.h>
+#include <qore/QoreNothingNode.h>
+#include <qore/QoreNullNode.h>
 #include <qore/QoreNet.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreFile.h>
@@ -59,7 +63,6 @@
 #include <qore/Datasource.h>
 #include <qore/QoreClass.h>
 #include <qore/ScopeGuard.h>
-#include <qore/ReferenceHolder.h>
 #include <qore/Environment.h>
 #include <qore/AutoVLock.h>
 
@@ -74,12 +77,21 @@
 #include <qore/intern/ClassRef.h>
 #include <qore/intern/Context.h>
 #include <qore/intern/Operator.h>
-#include <qore/intern/Tree.h>
+#include <qore/intern/QoreTreeNode.h>
+#include <qore/intern/BarewordNode.h>
+#include <qore/intern/SelfVarrefNode.h>
+#include <qore/intern/BackquoteNode.h>
+#include <qore/intern/ContextrefNode.h>
+#include <qore/intern/ContextRowNode.h>
+#include <qore/intern/ComplexContextrefNode.h>
+#include <qore/intern/FindNode.h>
 #include <qore/intern/VRMutex.h>
 #include <qore/intern/VLock.h>
 #include <qore/intern/qore_thread_intern.h>
 #include <qore/intern/FunctionReference.h>
 #include <qore/intern/StatementBlock.h>
+#include <qore/intern/VarRefNode.h>
+#include <qore/intern/FunctionCallNode.h>
 
 DLLLOCAL extern int qore_library_options;
 #endif

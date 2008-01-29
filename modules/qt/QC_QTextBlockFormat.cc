@@ -48,7 +48,7 @@ static QoreNode *QTEXTBLOCKFORMAT_alignment(QoreObject *self, QoreQTextBlockForm
 //qreal bottomMargin () const
 static QoreNode *QTEXTBLOCKFORMAT_bottomMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qtbf->bottomMargin());
+   return new QoreFloatNode((double)qtbf->bottomMargin());
 }
 
 //int indent () const
@@ -66,7 +66,7 @@ static QoreNode *QTEXTBLOCKFORMAT_isValid(QoreObject *self, QoreQTextBlockFormat
 //qreal leftMargin () const
 static QoreNode *QTEXTBLOCKFORMAT_leftMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qtbf->leftMargin());
+   return new QoreFloatNode((double)qtbf->leftMargin());
 }
 
 //bool nonBreakableLines () const
@@ -84,7 +84,7 @@ static QoreNode *QTEXTBLOCKFORMAT_pageBreakPolicy(QoreObject *self, QoreQTextBlo
 //qreal rightMargin () const
 static QoreNode *QTEXTBLOCKFORMAT_rightMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qtbf->rightMargin());
+   return new QoreFloatNode((double)qtbf->rightMargin());
 }
 
 //void setAlignment ( Qt::Alignment alignment )
@@ -171,13 +171,13 @@ static QoreNode *QTEXTBLOCKFORMAT_setTopMargin(QoreObject *self, QoreQTextBlockF
 //qreal textIndent () const
 static QoreNode *QTEXTBLOCKFORMAT_textIndent(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qtbf->textIndent());
+   return new QoreFloatNode((double)qtbf->textIndent());
 }
 
 //qreal topMargin () const
 static QoreNode *QTEXTBLOCKFORMAT_topMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qtbf->topMargin());
+   return new QoreFloatNode((double)qtbf->topMargin());
 }
 
 QoreClass *initQTextBlockFormatClass(QoreClass *qtextformat)

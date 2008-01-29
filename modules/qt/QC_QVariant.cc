@@ -340,7 +340,7 @@ static QoreNode *QVARIANT_toDouble(QoreObject *self, QoreQVariant *qv, const Qor
       xsink->raiseException("QVARIANT-TODOUBLE-ERROR", "conversion to double failed");
       return 0;      
    }
-   return new QoreNode((double)rc);
+   return new QoreFloatNode((double)rc);
 }
 
 //int toInt ( bool * ok = 0 ) const

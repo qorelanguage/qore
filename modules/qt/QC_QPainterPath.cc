@@ -260,7 +260,7 @@ static QoreNode *QPAINTERPATH_angleAtPercent(QoreObject *self, QoreQPainterPath 
 {
    QoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
-   return new QoreNode((double)qpp->angleAtPercent(t));
+   return new QoreFloatNode((double)qpp->angleAtPercent(t));
 }
 
 //void arcMoveTo ( const QRectF & rectangle, qreal angle )
@@ -527,7 +527,7 @@ static QoreNode *QPAINTERPATH_isEmpty(QoreObject *self, QoreQPainterPath *qpp, c
 //qreal length () const
 static QoreNode *QPAINTERPATH_length(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qpp->length());
+   return new QoreFloatNode((double)qpp->length());
 }
 
 //void lineTo ( const QPointF & endPoint )
@@ -581,7 +581,7 @@ static QoreNode *QPAINTERPATH_percentAtLength(QoreObject *self, QoreQPainterPath
 {
    QoreNode *p = get_param(params, 0);
    qreal len = p ? p->getAsFloat() : 0.0;
-   return new QoreNode((double)qpp->percentAtLength(len));
+   return new QoreFloatNode((double)qpp->percentAtLength(len));
 }
 
 //QPointF pointAtPercent ( qreal t ) const
@@ -657,7 +657,7 @@ static QoreNode *QPAINTERPATH_slopeAtPercent(QoreObject *self, QoreQPainterPath 
 {
    QoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
-   return new QoreNode((double)qpp->slopeAtPercent(t));
+   return new QoreFloatNode((double)qpp->slopeAtPercent(t));
 }
 
 //QPainterPath subtracted ( const QPainterPath & p ) const

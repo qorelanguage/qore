@@ -92,7 +92,7 @@ static QoreNode *QTEXTCHARFORMAT_fontOverline(QoreObject *self, QoreQTextCharFor
 //qreal fontPointSize () const
 static QoreNode *QTEXTCHARFORMAT_fontPointSize(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qtcf->fontPointSize());
+   return new QoreFloatNode((double)qtcf->fontPointSize());
 }
 
 //bool fontStrikeOut () const

@@ -21,7 +21,15 @@ libqore_la_SOURCES = \
 	parser.yy \
 	scanner.ll \
 	Operator.cc \
-	Tree.cc \
+	QoreTreeNode.cc \
+	BarewordNode.cc \
+	SelfVarrefNode.cc \
+	BackquoteNode.cc \
+	ContextrefNode.cc \
+	ComplexContextrefNode.cc \
+	ContextRowNode.cc \
+	VarRefNode.cc \
+	FunctionCallNode.cc \
 	ClassRef.cc \
 	ScopedObjectCall.cc \
 	QoreNode.cc \
@@ -31,6 +39,9 @@ libqore_la_SOURCES = \
 	BinaryNode.cc \
 	QoreBigIntNode.cc \
 	QoreBoolNode.cc \
+	QoreFloatNode.cc \
+	QoreNullNode.cc \
+	QoreNothingNode.cc \
 	Function.cc \
 	BuiltinFunctionList.cc \
 	UserFunctionList.cc \
@@ -60,7 +71,7 @@ libqore_la_SOURCES = \
 	QoreException.cc \
 	QoreClass.cc \
 	Context.cc \
-	Find.cc \
+	FindNode.cc \
 	charset.cc \
 	QoreProgram.cc \
 	QoreNamespace.cc \

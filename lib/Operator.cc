@@ -67,7 +67,7 @@ static inline void ensure_unique_float(class QoreNode **v, class ExceptionSink *
    {
       double f = (*v)->getAsFloat();
       (*v)->deref(xsink);
-      (*v) = new QoreNode(f);
+      (*v) = new QoreFloatNode(f);
    }
    else
       ensure_unique(v, xsink);
@@ -211,13 +211,6 @@ static bool op_log_ge_float(double left, double right)
 
 static bool op_log_eq_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
-   //   tracein("op_log_eq_string()");
-   /*
-    printd(5, "OLES() %08p %08p\n", left, right);
-    printd(5, "OLES() %d %d %08p %08p\n", //\"%s\" == \"%s\"\n", 
-	   left->type, right->type, left->val.c_str, right->val.c_str);
-    */
-   //   traceout("op_log_eq_string()");
    return !left->compareSoft(right, xsink);
 }
 
@@ -746,14 +739,17 @@ static class QoreNode *op_object_method_call(QoreNode *left, class QoreNode *fun
    if (*xsink)
       return 0;
 
+   assert(func && func->getType() == NT_FUNCTION_CALL);
+   FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(func);
+
    {
       // FIXME: this is an ugly hack!
       QoreHashNode *h = dynamic_cast<QoreHashNode *>(*op);
       if (h) {
 	 // see if the hash member is a call reference
-	 QoreNode *c = h->getKeyValue(func->val.fcall->f.c_str);
+	 QoreNode *c = h->getKeyValue(f->f.c_str);
 	 if (c && c->type == NT_FUNCREF)
-	    return c->val.funcref->exec(func->val.fcall->args, xsink);
+	    return c->val.funcref->exec(f->args, xsink);
       }
    }
 
@@ -762,11 +758,11 @@ static class QoreNode *op_object_method_call(QoreNode *left, class QoreNode *fun
    {
       //printd(5, "op=%08p (%s) func=%08p (%s)\n", op, op ? op->getTypeName() : "n/a", func, func ? func->getTypeName() : "n/a");
       xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
-			    func->val.fcall->f.c_str, op ? op->getTypeName() : "NOTHING" );
+			    f->f.c_str, op ? op->getTypeName() : "NOTHING" );
       return 0;
    }
 
-   return o->getClass()->evalMethod(o, func->val.fcall->f.c_str, func->val.fcall->args, xsink);
+   return o->getClass()->evalMethod(o, f->f.c_str, f->args, xsink);
 }
 
 static class QoreNode *op_new_object(QoreNode *left, class QoreNode *x, bool ref_rv, ExceptionSink *xsink)
@@ -903,7 +899,8 @@ static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_
    // already referenced value can be passed to list->push()
    // if necessary
    // do list plus-equals if left-hand side is a list
-   if (*v && ((*v)->type == NT_LIST))
+   const QoreType *vtype = *v ? (*v)->getType() : 0;
+   if (vtype == NT_LIST)
    {
       ensure_unique(v, xsink);
       QoreListNode *l = reinterpret_cast<QoreListNode *>(*v);
@@ -913,7 +910,7 @@ static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_
 	 l->push(new_right.takeReferencedValue());
    }
    // do hash plus-equals if left side is a hash
-   else if (*v && ((*v)->type == NT_HASH))
+   else if (vtype == NT_HASH)
    {
       if (new_right->type == NT_HASH)
       {
@@ -927,7 +924,7 @@ static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_
       }
    }
    // do hash/object plus-equals if left side is an object
-   else if (*v && ((*v)->type == NT_OBJECT))
+   else if (vtype == NT_OBJECT)
    {
       QoreObject *o = reinterpret_cast<QoreObject *>(*v);
       // do not need ensure_unique() for objects
@@ -941,7 +938,7 @@ static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_
 	 o->merge(reinterpret_cast<QoreHashNode *>(*new_right), xsink);
    }
    // do string plus-equals if left-hand side is a string
-   else if ((*v) && ((*v)->type == NT_STRING))
+   else if (vtype == NT_STRING)
    {
       QoreStringValueHelper str(*new_right);
 
@@ -949,12 +946,13 @@ static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_
       QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
       (*vs)->concat(*str, xsink);
    }
-   else if ((*v) && ((*v)->type == NT_FLOAT))
+   else if (vtype == NT_FLOAT)
    {
       ensure_unique(v, xsink);
-      (*v)->val.floatval += new_right->getAsFloat();
+      QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
+      (*vf)->f += new_right->getAsFloat();
    }
-   else if ((*v) && ((*v)->type == NT_DATE))
+   else if (vtype == NT_DATE)
    {
       DateTimeValueHelper date(*new_right);
 
@@ -963,7 +961,7 @@ static class QoreNode *op_plus_equals(QoreNode *left, QoreNode *right, bool ref_
       (*v)->deref(xsink);
       (*v) = nd;
    }
-   else if (is_nothing(*v))
+   else if (!vtype || vtype == NT_NOTHING)
    {
       if (*v)
 	 (*v)->deref(xsink); // exception not possible here
@@ -1013,12 +1011,14 @@ static class QoreNode *op_minus_equals(QoreNode *left, QoreNode *right, bool ref
       return 0;
 
    // do float minus-equals if left side is a float
-   if ((*v) && ((*v)->type == NT_FLOAT))
+   const QoreType *vtype = *v ? (*v)->getType() : 0;
+   if (vtype == NT_FLOAT)
    {
       ensure_unique(v, xsink);
-      (*v)->val.floatval -= new_right->getAsFloat();
+      QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
+      (*vf)->f -= new_right->getAsFloat();
    }
-   else if ((*v) && ((*v)->type == NT_DATE))
+   else if (vtype == NT_DATE)
    {
       DateTimeValueHelper date(*new_right);
 
@@ -1028,7 +1028,7 @@ static class QoreNode *op_minus_equals(QoreNode *left, QoreNode *right, bool ref
       (*v)->deref(xsink);
       (*v) = nd;
    }
-   else if ((*v) && ((*v)->type == NT_HASH))
+   else if (vtype == NT_HASH)
    {
       if (new_right->type == NT_HASH) {
 	 // do nothing
@@ -1070,7 +1070,7 @@ static class QoreNode *op_minus_equals(QoreNode *left, QoreNode *right, bool ref
 	    val = 0.0;
 
 	 // assign negative argument
-	 (*v) = new QoreNode(val - new_right->getAsFloat());
+	 (*v) = new QoreFloatNode(val - new_right->getAsFloat());
       }
       else
       {
@@ -1220,7 +1220,7 @@ static class QoreNode *op_multiply_equals(QoreNode *left, QoreNode *right, bool 
    if (res && res->type == NT_FLOAT)
    {
       if (!(*v))
-	 (*v) = new QoreNode((double)0.0);
+	 (*v) = new QoreFloatNode(0.0);
       else
       {
 	 ensure_unique_float(v, xsink);
@@ -1228,7 +1228,8 @@ static class QoreNode *op_multiply_equals(QoreNode *left, QoreNode *right, bool 
 	    return 0;
 	 
 	 // multiply current value with arg val
-	 (*v)->val.floatval *= res->val.floatval;
+	 QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
+	 (*vf)->f *= (reinterpret_cast<QoreFloatNode *>(*res))->f;
       }
    }
    else if ((*v) && (*v)->type == NT_FLOAT)
@@ -1236,12 +1237,13 @@ static class QoreNode *op_multiply_equals(QoreNode *left, QoreNode *right, bool 
       if (res)
       {
 	 ensure_unique(v, xsink);
-	 (*v)->val.floatval *= res->getAsFloat();
+	 QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
+	 (*vf)->f *= res->getAsFloat();
       }
       else // if factor is NOTHING, assign 0.0
       {
 	 (*v)->deref(xsink);
-	 (*v) = new QoreNode((double)0.0);
+	 (*v) = new QoreFloatNode(0.0);
       }
    }
    else // do integer multiply equals
@@ -1294,19 +1296,22 @@ static class QoreNode *op_divide_equals(QoreNode *left, QoreNode *right, bool re
    // is either side a float?
    if (res && res->type == NT_FLOAT)
    {
-      if (!res->val.floatval) {
+      QoreFloatNode *rf = reinterpret_cast<QoreFloatNode *>(*res);
+
+      if (!rf->f) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression!");
 	 return 0;
       }
 
       if (!(*v))
-	 (*v) = new QoreNode((double)0.0);
+	 (*v) = new QoreFloatNode(0.0);
       else
       {
 	 ensure_unique_float(v, xsink);
-	 
+
+	 QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
 	 // divide current value with arg val
-	 (*v)->val.floatval /= res->val.floatval;
+	 (*vf)->f /= rf->f;
       }
    }
    else if ((*v) && (*v)->type == NT_FLOAT)
@@ -1320,7 +1325,9 @@ static class QoreNode *op_divide_equals(QoreNode *left, QoreNode *right, bool re
 	 }
 	 else {
 	    ensure_unique(v, xsink);
-	    (*v)->val.floatval /= val;
+
+	    QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
+	    (*vf)->f /= val;
 	 }
       }
       else // if factor is NOTHING, raise exception
@@ -2105,7 +2112,7 @@ static QoreNode *get_node_type(QoreNode *n, const QoreType *t)
       return new QoreBigIntNode(n->getAsBigInt());
 
    if (t == NT_FLOAT)
-      return new QoreNode(n->getAsFloat());
+      return new QoreFloatNode(n->getAsFloat());
 
    if (t == NT_BOOLEAN)
       return new QoreBoolNode(n->getAsBool());
@@ -2943,7 +2950,7 @@ QoreNode *FloatFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool
       return 0;
 
    double f = op_func(left->getAsFloat(), right->getAsFloat());
-   return new QoreNode(f);
+   return new QoreFloatNode(f);
 }
 
 bool FloatFloatOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
@@ -2968,7 +2975,7 @@ QoreNode *DivideFloatOperatorFunction::eval(QoreNode *left, QoreNode *right, boo
       return 0;
 
    double f = op_func(left->getAsFloat(), right->getAsFloat(), xsink);
-   return *xsink ? 0 : new QoreNode(f);
+   return *xsink ? 0 : new QoreFloatNode(f);
 }
 
 bool DivideFloatOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
@@ -2993,7 +3000,7 @@ QoreNode *UnaryMinusFloatOperatorFunction::eval(QoreNode *left, QoreNode *right,
       return 0;
 
    double f = -left->getAsFloat();
-   return new QoreNode(f);
+   return new QoreFloatNode(f);
 }
 
 bool UnaryMinusFloatOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
@@ -3358,7 +3365,7 @@ QoreNode *FloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_
       double rv = op_func(left, right, xsink);
       if (!ref_rv || xsink->isException())
 	 return NULL;
-      return new QoreNode(rv);
+      return new QoreFloatNode(rv);
    }
 
    ReferenceHolder<QoreNode> r(xsink);
@@ -3372,7 +3379,7 @@ QoreNode *FloatOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_
    double rv = op_func(left, right, xsink);
    if (!ref_rv || xsink->isException())
       return NULL;
-   return new QoreNode(rv);
+   return new QoreFloatNode(rv);
 }
 
 bool FloatOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const

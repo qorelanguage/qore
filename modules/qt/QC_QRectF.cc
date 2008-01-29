@@ -92,7 +92,7 @@ static QoreNode *QRECTF_adjusted(QoreObject *self, QoreQRectF *qrf, const QoreLi
 //qreal bottom () const
 static QoreNode *QRECTF_bottom(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qrf->bottom());
+   return new QoreFloatNode(qrf->bottom());
 }
 
 //QPointF bottomLeft () const
@@ -178,7 +178,7 @@ static QoreNode *QRECTF_contains(QoreObject *self, QoreQRectF *qrf, const QoreLi
 //qreal height () const
 static QoreNode *QRECTF_height(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qrf->height());
+   return new QoreFloatNode(qrf->height());
 }
 
 //QRectF intersected ( const QRectF & rectangle ) const
@@ -236,7 +236,7 @@ static QoreNode *QRECTF_isValid(QoreObject *self, QoreQRectF *qrf, const QoreLis
 //qreal left () const
 static QoreNode *QRECTF_left(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qrf->left());
+   return new QoreFloatNode(qrf->left());
 }
 
 //void moveBottom ( qreal y )
@@ -353,7 +353,7 @@ static QoreNode *QRECTF_normalized(QoreObject *self, QoreQRectF *qrf, const Qore
 //qreal right () const
 static QoreNode *QRECTF_right(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qrf->right());
+   return new QoreFloatNode(qrf->right());
 }
 
 //void setBottom ( qreal y )
@@ -532,7 +532,7 @@ static QoreNode *QRECTF_toRect(QoreObject *self, QoreQRectF *qrf, const QoreList
 //qreal top () const
 static QoreNode *QRECTF_top(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qrf->top());
+   return new QoreFloatNode(qrf->top());
 }
 
 //QPointF topLeft () const
@@ -615,19 +615,19 @@ static QoreNode *QRECTF_united(QoreObject *self, QoreQRectF *qrf, const QoreList
 //qreal width () const
 static QoreNode *QRECTF_width(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qrf->width());
+   return new QoreFloatNode(qrf->width());
 }
 
 //qreal x () const
 static QoreNode *QRECTF_x(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qrf->x());
+   return new QoreFloatNode(qrf->x());
 }
 
 //qreal y () const
 static QoreNode *QRECTF_y(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qrf->y());
+   return new QoreFloatNode(qrf->y());
 }
 
 class QoreClass *initQRectFClass()

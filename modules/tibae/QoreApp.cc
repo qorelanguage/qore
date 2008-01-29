@@ -376,7 +376,7 @@ lass '%s'", pcd->getFullName().c_str(), cn);
    }
 
    if (ntype == NT_FLOAT) {
-      return new MReal(v->val.floatval);
+      return new MReal(reinterpret_cast<const QoreFloatNode *>(v)->f);
    }
 
    if (ntype == NT_DATE) {

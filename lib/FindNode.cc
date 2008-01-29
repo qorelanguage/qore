@@ -1,5 +1,5 @@
 /*
- Find.cc
+ FindNode.cc
  
  Qore Programming Language
  
@@ -21,26 +21,58 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/intern/Find.h>
+#include <qore/intern/FindNode.h>
 
-Find::Find(class QoreNode *expr, class QoreNode *find_expr, class QoreNode *w)
+FindNode::FindNode(class QoreNode *expr, class QoreNode *find_expr, class QoreNode *w) : ParseNode(NT_FIND)
 {
    exp = expr;
    find_exp = find_expr;
    where = w;
 }
 
-Find::~Find()
+FindNode::~FindNode()
 {
    if (find_exp)
-      find_exp->deref(NULL);
+      find_exp->deref(0);
    if (exp)
-      exp->deref(NULL);
+      exp->deref(0);
    if (where)
-      where->deref(NULL);
+      where->deref(0);
 }
 
-class QoreNode *Find::eval(ExceptionSink *xsink)
+// get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+// the ExceptionSink is only needed for QoreObject where a method may be executed
+// use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+// returns -1 for exception raised, 0 = OK
+int FindNode::getAsString(QoreString &qstr, int foff, class ExceptionSink *xsink) const
+{
+   qstr.sprintf("find expression (0x%08p)", this);
+   return 0;
+}
+
+// if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+QoreString *FindNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+{
+   del = true;
+   QoreString *rv = new QoreString();
+   getAsString(*rv, foff, xsink);
+   return rv;
+}
+
+// returns the data type
+const QoreType *FindNode::getType() const
+{
+   return NT_FIND;
+}
+
+// returns the type name as a c string
+const char *FindNode::getTypeName() const
+{
+   return "find expression";
+}
+
+// eval(): return value requires a deref(xsink)
+QoreNode *FindNode::eval(ExceptionSink *xsink) const
 {
    class Context *context;
    ReferenceHolder<QoreNode> rv(xsink);
@@ -56,10 +88,10 @@ class QoreNode *Find::eval(ExceptionSink *xsink)
    QoreListNode *lrv = 0;
    for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++)
    {
-      printd(4, "Find::eval() checking %d/%d\n", context->pos, context->max_pos);
+      printd(4, "FindNode::eval() checking %d/%d\n", context->pos, context->max_pos);
       if (context->check_condition(where, xsink) && !xsink->isEvent())
       {
-	 printd(4, "Find::eval() GOT IT: %d\n", context->pos);
+	 printd(4, "FindNode::eval() GOT IT: %d\n", context->pos);
 	 QoreNode *result = exp->eval(xsink);
 	 if (rv)
 	 {

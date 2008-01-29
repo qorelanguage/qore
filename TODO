@@ -1,5 +1,7 @@
 see docs/roadmap.html
 
+* try implementing QoreNode::ref(), is_unique(), reference_count() as virtual (disable access to reference_count) and making Null and Nothing as not-reference counted objects and see if it improves performance
+* remove QoreNothingNode and use 0 everywhere instead
 * implement function class hierarchies for returning different types (bool, int64, double, node)
 * change get/test_*params() to return const values
 * implement optimized foreach statement for hash key iteration

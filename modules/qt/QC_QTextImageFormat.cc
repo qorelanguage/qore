@@ -44,7 +44,7 @@ static void QTEXTIMAGEFORMAT_copy(class QoreObject *self, class QoreObject *old,
 //qreal height () const
 static QoreNode *QTEXTIMAGEFORMAT_height(QoreObject *self, QoreQTextImageFormat *qtif, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qtif->height());
+   return new QoreFloatNode((double)qtif->height());
 }
 
 //bool isValid () const
@@ -91,7 +91,7 @@ static QoreNode *QTEXTIMAGEFORMAT_setWidth(QoreObject *self, QoreQTextImageForma
 //qreal width () const
 static QoreNode *QTEXTIMAGEFORMAT_width(QoreObject *self, QoreQTextImageFormat *qtif, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qtif->width());
+   return new QoreFloatNode((double)qtif->width());
 }
 
 QoreClass *initQTextImageFormatClass(QoreClass *qtextcharformat)

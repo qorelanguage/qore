@@ -112,13 +112,13 @@ static QoreNode *QPOINTF_toPoint(QoreObject *self, QoreQPointF *qpf, const QoreL
 //qreal x () const
 static QoreNode *QPOINTF_x(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qpf->x());
+   return new QoreFloatNode((double)qpf->x());
 }
 
 //qreal y () const
 static QoreNode *QPOINTF_y(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qpf->y());
+   return new QoreFloatNode((double)qpf->y());
 }
 
 QoreClass *initQPointFClass()

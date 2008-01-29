@@ -128,13 +128,13 @@ static QoreNode *QTABLETEVENT_hiResGlobalPos(QoreObject *self, QoreQTabletEvent 
 //qreal hiResGlobalX () const
 static QoreNode *QTABLETEVENT_hiResGlobalX(QoreObject *self, QoreQTabletEvent *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qte->hiResGlobalX());
+   return new QoreFloatNode((double)qte->hiResGlobalX());
 }
 
 //qreal hiResGlobalY () const
 static QoreNode *QTABLETEVENT_hiResGlobalY(QoreObject *self, QoreQTabletEvent *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qte->hiResGlobalY());
+   return new QoreFloatNode((double)qte->hiResGlobalY());
 }
 
 //PointerType pointerType () const
@@ -155,19 +155,19 @@ static QoreNode *QTABLETEVENT_pos(QoreObject *self, QoreQTabletEvent *qte, const
 //qreal pressure () const
 static QoreNode *QTABLETEVENT_pressure(QoreObject *self, QoreQTabletEvent *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qte->pressure());
+   return new QoreFloatNode((double)qte->pressure());
 }
 
 //qreal rotation () const
 static QoreNode *QTABLETEVENT_rotation(QoreObject *self, QoreQTabletEvent *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qte->rotation());
+   return new QoreFloatNode((double)qte->rotation());
 }
 
 //qreal tangentialPressure () const
 static QoreNode *QTABLETEVENT_tangentialPressure(QoreObject *self, QoreQTabletEvent *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qte->tangentialPressure());
+   return new QoreFloatNode((double)qte->tangentialPressure());
 }
 
 //qint64 uniqueId () const

@@ -1959,7 +1959,7 @@ static QoreNode *QWIDGET_windowModality(QoreObject *self, QoreAbstractQWidget *q
 //qreal windowOpacity () const
 static QoreNode *QWIDGET_windowOpacity(QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode(qw->getQWidget()->windowOpacity());
+   return new QoreFloatNode(qw->getQWidget()->windowOpacity());
 }
 
 //QString windowRole () const

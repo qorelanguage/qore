@@ -332,24 +332,27 @@ class BGThreadParams {
 	 // get and reference the current stack object, if any, for the new call stack
 	 callobj = getStackObject();
 
-	 if (callobj && fc->type == NT_FUNCTION_CALL && fc->val.fcall->type == FC_SELF)
+	 const QoreType *fctype = fc->getType();
+	 if (callobj && fctype == NT_FUNCTION_CALL && reinterpret_cast<FunctionCallNode *>(fc)->getFunctionType() == FC_SELF)
 	 {
 	    // we reference the object so it won't go out of scope while the thread is running
 	    obj = callobj;
 	    obj->ref();
 	 }
-	 else if (fc->type == NT_TREE && fc->val.tree->op == OP_OBJECT_FUNC_REF)
-	 {
-	    // evaluate object
-	    class QoreNode *n = fc->val.tree->left->eval(xsink);
-	    if (!n || xsink->isEvent())
-	       return;
-	    
-	    fc->val.tree->left->deref(xsink);
-	    fc->val.tree->left = n;
-	    obj = dynamic_cast<QoreObject *>(n);
-	    if (obj)
-	       obj->ref();
+	 else if (fctype == NT_TREE) {
+	    QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(fc);
+	    if (tree->op == OP_OBJECT_FUNC_REF) {
+	       // evaluate object
+	       QoreNode *n = tree->left->eval(xsink);
+	       if (!n || xsink->isEvent())
+		  return;
+
+	       tree->left->deref(xsink);
+	       tree->left = n;
+	       obj = dynamic_cast<QoreObject *>(n);
+	       if (obj)
+		  obj->ref();
+	    }
 	 }
  
 	 if (callobj)

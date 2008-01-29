@@ -129,7 +129,7 @@ class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    
    const MReal *mr;
    if ((mr = MReal::downCast(md)))
-      return new QoreNode(mr->getAsDouble());
+      return new QoreFloatNode(mr->getAsDouble());
    
    const MDateTime *mdt;
    if ((mdt = MDateTime::downCast(md)))

@@ -72,8 +72,8 @@ class myQDoubleValidator : public QDoubleValidator, public QoreQValidatorExtensi
 	    return;
 	 }
 	 QoreListNode *args = new QoreListNode();
-	 args->push(new QoreNode(minimum));
-	 args->push(new QoreNode(maximum));
+	 args->push(new QoreFloatNode(minimum));
+	 args->push(new QoreFloatNode(maximum));
 	 args->push(new QoreBigIntNode(decimals));
 
 	 ExceptionSink xsink;

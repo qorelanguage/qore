@@ -1024,7 +1024,7 @@ static QoreNode *QBYTEARRAY_toBase64(QoreObject *self, QoreQByteArray *qba, cons
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
-//   return new QoreNode((double)qba->toDouble(ok));
+//   return new QoreFloatNode((double)qba->toDouble(ok));
 //}
 
 ////float toFloat ( bool * ok = 0 ) const
@@ -1032,7 +1032,7 @@ static QoreNode *QBYTEARRAY_toBase64(QoreObject *self, QoreQByteArray *qba, cons
 //{
 //   QoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
-//   return new QoreNode((double)qba->toFloat(ok));
+//   return new QoreFloatNode((double)qba->toFloat(ok));
 //}
 
 //QByteArray toHex () const

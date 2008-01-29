@@ -333,7 +333,7 @@ static class QoreNode *getJSONValue(const char *&buf, int &line_number, const Qo
 	 buf++;
       }
       if (has_dot)
-	 return new QoreNode(atof(str.getBuffer()));
+	 return new QoreFloatNode(atof(str.getBuffer()));
       return new QoreBigIntNode(strtoll(str.getBuffer(), NULL, 10));
    }
    
@@ -448,7 +448,7 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
 
    if (vtype == NT_FLOAT)
    {
-      str->sprintf("%.9g", v->val.floatval);
+      str->sprintf("%.9g", reinterpret_cast<const QoreFloatNode *>(v)->f);
       return 0;
    }
 

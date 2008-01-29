@@ -24,7 +24,6 @@
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/OnBlockExitStatement.h>
 #include <qore/intern/ParserSupport.h>
-#include <qore/intern/Find.h>
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/ObjectMethodReference.h>
 #include <qore/minitest.hpp>
@@ -235,33 +234,40 @@ lvh_t find_local_var(char *name)
 static inline void checkSelf(class QoreNode *n, lvh_t selfid)
 {
    // if it's a variable reference
-   if (n->type == NT_VARREF)
+   const QoreType *ntype = n->getType();
+   if (ntype == NT_VARREF)
    {
-      if (n->val.vref->type == VT_LOCAL && n->val.vref->ref.id == selfid)
+      VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
+      if (v->type == VT_LOCAL && v->ref.id == selfid)
 	 parse_error("illegal assignment to $self in an object context");
       return;
    }
    
-   if (n->type != NT_TREE)
+   if (ntype != NT_TREE)
       return;
 
-   // otherwise it's a tree: go to root expression 
-   while (n->val.tree->left->type == NT_TREE)
-      n = n->val.tree->left;
+   QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
 
-   if (n->val.tree->left->type != NT_VARREF)
+   // otherwise it's a tree: go to root expression 
+   while (tree->left->type == NT_TREE) {
+      n = tree->left;
+      tree = reinterpret_cast<QoreTreeNode *>(n);
+   }
+
+   VarRefNode *v = dynamic_cast<VarRefNode *>(tree->left);
+   if (!v)
       return;
 
    // left must be variable reference, check if the tree is
    // a list reference; if so, it's invalid
-   if (n->val.tree->left->val.vref->type == VT_LOCAL && n->val.tree->left->val.vref->ref.id == selfid
-       && n->val.tree->op == OP_LIST_REF)
+   if (v->type == VT_LOCAL && v->ref.id == selfid  && tree->op == OP_LIST_REF)
       parse_error("illegal conversion of $self to a list");
 }
 
 static inline void checkLocalVariableChange(class QoreNode *n)
 {
-   if (n->type == NT_VARREF && n->val.vref->type == VT_LOCAL)
+   VarRefNode *v = dynamic_cast<VarRefNode *>(n);
+   if (v && v->type == VT_LOCAL)
       parse_error("illegal local variable modification in background expression");
 }
 
@@ -269,11 +275,13 @@ static inline int getBaseLVType(class QoreNode *n)
 {
    while (true)
    {
-      if (n->type == NT_SELF_VARREF)
+      const QoreType *ntype = n->getType();
+      if (ntype == NT_SELF_VARREF)
 	 return VT_OBJECT;
-      if (n->type == NT_VARREF)
-	 return n->val.vref->type;
-      n = n->val.tree->left;
+      if (ntype == NT_VARREF)
+	 return reinterpret_cast<VarRefNode *>(n)->type;
+      // must be a tree
+      n = reinterpret_cast<QoreTreeNode *>(n)->left;
    }
 }
 
@@ -308,7 +316,8 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    if (!(*node))
       return 0;
 
-   if ((*node)->type == NT_REFERENCE)
+   const QoreType *ntype = (*node)->getType();
+   if (ntype == NT_REFERENCE)
    {
       // otherwise throw a parse exception if an illegal reference is used
       if (!(current_pflag & PF_REFERENCE_OK))
@@ -333,44 +342,45 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       return lvids;
    }
    
-   if ((*node)->type == NT_VARREF)
+   if (ntype == NT_VARREF)
    {
+      VarRefNode *v = reinterpret_cast<VarRefNode *>(*node);
       // if it is a new variable being declared
-      if ((*node)->val.vref->type == VT_LOCAL)
+      if (v->type == VT_LOCAL)
       {
-	 (*node)->val.vref->ref.id = push_local_var((*node)->val.vref->name);
+	 v->ref.id = push_local_var(v->name);
 	 lvids++;
-	 //printd(5, "process_node(): local var %s declared (id=%08p)\n", (*node)->val.vref->name, (*node)->val.vref->ref.id);
+	 //printd(5, "process_node(): local var %s declared (id=%08p)\n", v->name, v->ref.id);
       }
-      else if ((*node)->val.vref->type == VT_GLOBAL)
-	 (*node)->val.vref->ref.var = getProgram()->createVar((*node)->val.vref->name);
+      else if (v->type == VT_GLOBAL)
+	 v->ref.var = getProgram()->createVar(v->name);
       else // otherwise reference must be resolved
-	 (*node)->val.vref->resolve();
+	 v->resolve();
 
       return lvids;
    }
 
-   if ((*node)->type == NT_BAREWORD)
+   if (ntype == NT_BAREWORD)
    {
       // resolve simple constant
-      printd(5, "process_node() resolving simple constant \"%s\"\n", (*node)->val.c_str);
+      printd(5, "process_node() resolving simple constant \"%s\"\n", reinterpret_cast<BarewordNode *>(*node)->str);
       getRootNS()->resolveSimpleConstant(node, 1);
       return lvids;
    }
 
-   if ((*node)->type == NT_CONSTANT)
+   if (ntype == NT_CONSTANT)
    {
       printd(5, "process_node() resolving scoped constant \"%s\"\n", (*node)->val.scoped_ref->ostr);
       getRootNS()->resolveScopedConstant(node, 1);
       return lvids;
    }
 
-   if ((*node)->type == NT_COMPLEXCONTEXTREF)
+   if (ntype == NT_COMPLEXCONTEXTREF)
    {
+      ComplexContextrefNode *c = reinterpret_cast<ComplexContextrefNode *>(*node);
       if (!getCVarStack())
       {
-	 parse_error("complex context reference \"%s.%s\" encountered out of context", 
-		     (*node)->val.complex_cref->name, (*node)->val.complex_cref->member);
+	 parse_error("complex context reference \"%s:%s\" encountered out of context", c->name, c->member);
 	 return lvids;
       }
       
@@ -379,7 +389,7 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       class CVNode *cvn = getCVarStack();
       while (cvn)
       {
-	 if (cvn->name && !strcmp((*node)->val.complex_cref->name, cvn->name))
+	 if (cvn->name && !strcmp(c->name, cvn->name))
 	 {
 	    found = 1;
 	    break;
@@ -388,70 +398,75 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
 	 stack_offset++;
       }
       if (!found)
-	 parse_error("\"%s\" does not match any current context", (*node)->val.complex_cref->name);
+	 parse_error("\"%s\" does not match any current context", c->name);
       else
-	 (*node)->val.complex_cref->stack_offset = stack_offset;
+	 c->stack_offset = stack_offset;
 
       return lvids;
    }
 
-   if ((*node)->type == NT_CONTEXTREF)
+   if (ntype == NT_CONTEXTREF)
    {
       if (!getCVarStack())
-	 parse_error("context reference \"%s\" out of context", (*node)->val.c_str);
+	 parse_error("context reference \"%s\" out of context", reinterpret_cast<ContextrefNode *>((*node))->str);
       return lvids;
    }
 
-   if ((*node)->type == NT_CONTEXT_ROW)
+   if (ntype == NT_CONTEXT_ROW)
    {
       if (!getCVarStack())
 	 parse_error("context row reference \"%%\" encountered out of context");
       return lvids;
    }
 
-   if ((*node)->type == NT_TREE)
+   if (ntype == NT_TREE)
    {
+      QoreTreeNode *tree =reinterpret_cast<QoreTreeNode *>(*node);
+
       // set "parsing background" flag if the background operator is being parsed
-      if ((*node)->val.tree->op == OP_BACKGROUND)
+      if (tree->op == OP_BACKGROUND)
 	 pflag |= PF_BACKGROUND;
 
       // process left branch of tree
-      lvids += process_node(&((*node)->val.tree->left), oflag, pflag);
+      lvids += process_node(&(tree->left), oflag, pflag);
       // process right branch if it exists
-      if ((*node)->val.tree->right)
-	 lvids += process_node(&((*node)->val.tree->right), oflag, pflag);
+      if (tree->right)
+	 lvids += process_node(&(tree->right), oflag, pflag);
       
       // check for illegal changes to local variables in background expressions
-      if (pflag & PF_BACKGROUND && (*node)->val.tree->op->needsLValue())
-	 checkLocalVariableChange((*node)->val.tree->left);	 
+      if (pflag & PF_BACKGROUND && tree->op->needsLValue())
+	 checkLocalVariableChange(tree->left);	 
 
       // throw a parse exception if an assignment is attempted on $self
-      if ((*node)->val.tree->op == OP_ASSIGNMENT && oflag)
-	    checkSelf((*node)->val.tree->left, oflag);
+      if (tree->op == OP_ASSIGNMENT && oflag)
+	 checkSelf(tree->left, oflag);
+
       return lvids;
    }
 
-   if ((*node)->type == NT_FUNCTION_CALL)
+   if (ntype == NT_FUNCTION_CALL)
    {
-      if ((*node)->val.fcall->type == FC_SELF)
+      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(*node);
+
+      if (f->getFunctionType() == FC_SELF)
       {
 	 if (!oflag)
 	    parse_error("cannot call member function \"%s\" out of an object member function definition", 
-			(*node)->val.fcall->f.sfunc->name);
+			f->f.sfunc->name);
 	 else
-	    (*node)->val.fcall->f.sfunc->resolve();
+	    f->f.sfunc->resolve();
       }
-      else if ((*node)->val.fcall->type == FC_UNRESOLVED)
-	 getProgram()->resolveFunction((*node)->val.fcall);
+      else if (f->getFunctionType() == FC_UNRESOLVED)
+	 getProgram()->resolveFunction(f);
       
-      if ((*node)->val.fcall->args)
-	 for (i = 0; i < (*node)->val.fcall->args->size(); i++)
+      if (f->args)
+	 for (i = 0; i < f->args->size(); i++)
 	 {
-	    class QoreNode **n = (*node)->val.fcall->args->get_entry_ptr(i);
+	    class QoreNode **n = f->args->get_entry_ptr(i);
 	    if ((*n)->type == NT_REFERENCE)
 	    {
-	       if (!(*node)->val.fcall->existsUserParam(i))
-		  parse_error("not enough parameters in \"%s\" to accept reference expression", (*node)->val.fcall->getName());
+	       if (!f->existsUserParam(i))
+		  parse_error("not enough parameters in \"%s\" to accept reference expression", f->getName());
 	       lvids += process_node(n, oflag, pflag | PF_REFERENCE_OK);
 	    }
 	    else
@@ -462,7 +477,7 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    }
 
    // for the "new" operator
-   if ((*node)->type == NT_SCOPE_REF)
+   if (ntype == NT_SCOPE_REF)
    {
       // find object class
       if (((*node)->val.socall->oc = getRootNS()->parseFindScopedClass((*node)->val.socall->name)))
@@ -479,84 +494,81 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       return lvids;
    }
 
-   {
-      QoreListNode *l = dynamic_cast<QoreListNode *>(*node);
-      if (l) 
-	 return process_list_node_intern(l, oflag, pflag); 
+   if (ntype == NT_LIST) {
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(*node);
+      return process_list_node_intern(l, oflag, pflag); 
    }
 
-   {
-      QoreHashNode *h = dynamic_cast<QoreHashNode *>(*node);
-      if (h) {
-	 HashIterator hi(h);
-	 while (hi.next()) {
-	    const char *k = hi.getKey();
-	    class QoreNode **value = hi.getValuePtr();
-
-	    // resolve constant references in keys
-	    if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST)
+   if (ntype == NT_HASH) {
+      QoreHashNode *h = reinterpret_cast<QoreHashNode *>(*node);
+      HashIterator hi(h);
+      while (hi.next()) {
+	 const char *k = hi.getKey();
+	 class QoreNode **value = hi.getValuePtr();
+	 
+	 // resolve constant references in keys
+	 if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST)
+	 {
+	    QoreNode *rv;
+	    if (k[0] == HE_TAG_CONST)
+	       rv = getRootNS()->findConstantValue(k + 1, 1);
+	    else
 	    {
-	       QoreNode *rv;
-	       if (k[0] == HE_TAG_CONST)
-		  rv = getRootNS()->findConstantValue(k + 1, 1);
-	       else
-	       {
-		  class NamedScope *nscope = new NamedScope(strdup(k + 1));
-		  rv = getRootNS()->findConstantValue(nscope, 1);
-		  delete nscope;
-	       }
-	       if (rv)
-	       {
-		  QoreStringValueHelper t(rv);
-		  
-		  // reference value for new hash key
-		  (*value)->ref();
-		  // not possible to have an exception here
-		  h->setKeyValue(t->getBuffer(), *value, 0);
-		  
-		  // now reget new value ptr
-		  value = h->getKeyValuePtr(t->getBuffer());
-	       }
-	       else
-		  value = 0;
-
-	       // delete the old key (not possible to have an exception here)
-	       hi.deleteKey(0);
+	       class NamedScope *nscope = new NamedScope(strdup(k + 1));
+	       rv = getRootNS()->findConstantValue(nscope, 1);
+	       delete nscope;
 	    }
-	    if (value)
-	       lvids += process_node(value, oflag, pflag);
+	    if (rv)
+	    {
+	       QoreStringValueHelper t(rv);
+	       
+	       // reference value for new hash key
+	       (*value)->ref();
+	       // not possible to have an exception here
+	       h->setKeyValue(t->getBuffer(), *value, 0);
+	       
+	       // now reget new value ptr
+	       value = h->getKeyValuePtr(t->getBuffer());
+	    }
+	    else
+	       value = 0;
+	    
+	    // delete the old key (not possible to have an exception here)
+	    hi.deleteKey(0);
 	 }
-	 return lvids;
+	 if (value)
+	    lvids += process_node(value, oflag, pflag);
       }
+      return lvids;
    }
 
-   if ((*node)->type == NT_FIND)
-   {
+   if (ntype == NT_FIND) {
+      FindNode *f = reinterpret_cast<FindNode *>(*node);
       push_cvar(NULL);
-      lvids += process_node(&((*node)->val.find->find_exp), oflag, pflag);
-      lvids += process_node(&((*node)->val.find->where),    oflag, pflag);
-      lvids += process_node(&((*node)->val.find->exp),      oflag, pflag);
+      lvids += process_node(&(f->find_exp), oflag, pflag);
+      lvids += process_node(&(f->where),    oflag, pflag);
+      lvids += process_node(&(f->exp),      oflag, pflag);
       pop_cvar();
       return lvids;
    }
 
-   if ((*node)->type == NT_SELF_VARREF)
+   if (ntype == NT_SELF_VARREF)
    {
-      //printd(0, "process_node() SELF_REF '%s'  oflag=%d\n", (*node)->val.c_str, oflag);
+      SelfVarrefNode *v = reinterpret_cast<SelfVarrefNode *>(*node);
+      //printd(0, "process_node() SELF_REF '%s'  oflag=%d\n", v->str, oflag);
       if (!oflag)
-	 parse_error("cannot reference member \"%s\" out of an object member function definition", 
-		     (*node)->val.c_str);
+	 parse_error("cannot reference member \"%s\" out of an object member function definition", v->str);
       
       return lvids;
    }
    
-   if ((*node)->type == NT_CLASSREF)
+   if (ntype == NT_CLASSREF)
       (*node)->val.classref->resolve();
-   else if ((*node)->type == NT_OBJMETHREF)
+   else if (ntype == NT_OBJMETHREF)
       (*node)->val.objmethref->parseInit(oflag, pflag);
-   else if ((*node)->type == NT_FUNCREF)
+   else if (ntype == NT_FUNCREF)
       (*node)->val.funcref->resolve();
-   else if ((*node)->type == NT_FUNCREFCALL)
+   else if (ntype == NT_FUNCREFCALL)
       (*node)->val.funcrefcall->parseInit(oflag, pflag);
    
    return lvids;

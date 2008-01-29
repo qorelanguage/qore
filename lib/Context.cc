@@ -41,33 +41,6 @@ struct node_row_list_s {
    int allocated;
 };
 
-ComplexContextRef::ComplexContextRef(char *str)
-{
-   char *c = strchr(str, ':');
-   *c = '\0';
-   name = strdup(str);
-   member = strdup(c + 1);
-   free(str);
-}
-
-ComplexContextRef::ComplexContextRef(char *n, char *m, int so)
-{
-   name = strdup(n);
-   member = strdup(m);
-   stack_offset = so;
-}
-
-ComplexContextRef::~ComplexContextRef()
-{ 
-   free(name); 
-   free(member); 
-}
-
-class ComplexContextRef *ComplexContextRef::copy()
-{
-   return new ComplexContextRef(name, member, stack_offset);
-}
-
 Context::~Context()
 {
    tracein("Context::~Context()");
@@ -577,17 +550,3 @@ int Context::next_summary()
    row_list = group_values[group_pos].row_list;
    return 1;
 }
-
-class QoreNode *evalComplexContextRef(class ComplexContextRef *c, class ExceptionSink *xsink)
-{
-   int count = 0;
-
-   Context *cs = get_context_stack();
-   while (count != c->stack_offset)
-   {
-      count++;
-      cs = cs->next;
-   }
-   return cs->evalValue(c->member, xsink);
-}
-

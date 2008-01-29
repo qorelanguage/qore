@@ -126,7 +126,7 @@ static QoreNode *QTEXTFORMAT_doubleProperty(QoreObject *self, QoreQTextFormat *q
 {
    QoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
-   return new QoreNode((double)qtf->doubleProperty(propertyId));
+   return new QoreFloatNode((double)qtf->doubleProperty(propertyId));
 }
 
 //QBrush foreground () const

@@ -21,28 +21,11 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/Find.h>
 #include <qore/intern/RegexSubst.h>
 #include <qore/intern/RegexTrans.h>
 #include <qore/intern/QoreRegex.h>
 #include <qore/intern/ObjectMethodReference.h>
 #include <qore/intern/FunctionReference.h>
-
-// get type functions
-#include <qore/intern/QT_NOTHING.h>
-#include <qore/intern/QT_bigint.h>
-#include <qore/intern/QT_float.h>
-#include <qore/intern/QT_string.h>
-#include <qore/intern/QT_date.h>
-#include <qore/intern/QT_boolean.h>
-#include <qore/intern/QT_NULL.h>
-#include <qore/intern/QT_binary.h>
-#include <qore/intern/QT_list.h>
-#include <qore/intern/QT_hash.h>
-#include <qore/intern/QT_object.h>
-#include <qore/intern/QT_backquote.h>
-#include <qore/intern/QT_context.h>
-#include <qore/intern/QT_varref.h>
 
 #include <string.h>
 #include <assert.h>
@@ -76,9 +59,8 @@ DLLEXPORT class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
    *NT_OBJMETHREF, *NT_FUNCREF, *NT_FUNCREFCALL;
 
 // default value nodes for builtin types
-QoreNode *Nothing, *Null;
-QoreBigIntNode *Zero;
-QoreNode *ZeroFloat;
+QoreNothingNode *Nothing;
+QoreNullNode *Null;
 QoreBoolNode *True, *False;
 QoreListNode *emptyList;
 QoreHashNode *emptyHash;
@@ -161,10 +143,8 @@ void QoreTypeManager::init()
    // initialize global default values
    False         = new QoreBoolNode(false);
    True          = new QoreBoolNode(true);
-   Nothing       = new QoreNode(NT_NOTHING);
-   Null          = new QoreNode(NT_NULL);
-   Zero          = new QoreBigIntNode(0);
-   ZeroFloat     = new QoreNode(0.0);
+   Nothing       = new QoreNothingNode();
+   Null          = new QoreNullNode();
    NullString    = new QoreStringNode("");
    ZeroDate      = new DateTimeNode((int64)0);
    
@@ -177,10 +157,8 @@ void QoreTypeManager::del()
    // dereference global default values
    True->deref();
    False->deref();
-   Nothing->deref(NULL);
-   Null->deref(NULL);
-   Zero->deref();
-   ZeroFloat->deref(NULL);
+   Nothing->deref();
+   Null->deref();
    NullString->deref();
    ZeroDate->deref();
    emptyList->deref(NULL);

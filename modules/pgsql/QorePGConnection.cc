@@ -81,13 +81,13 @@ static class QoreNode *qpg_data_text(char *data, int type, int len, class QorePG
 static class QoreNode *qpg_data_float4(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    float fv = MSBf4(*((float *)data));
-   return new QoreNode((double)fv);
+   return new QoreFloatNode((double)fv);
 }
 
 static class QoreNode *qpg_data_float8(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    double fv = MSBf8(*((double *)data));
-   return new QoreNode(fv);
+   return new QoreFloatNode(fv);
 }
 
 static class QoreNode *qpg_data_abstime(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
@@ -243,7 +243,7 @@ static class QoreNode *qpg_data_numeric(char *data, int type, int len, class Qor
 
 static class QoreNode *qpg_data_cash(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
-   return new QoreNode((double)ntohl(*((uint32_t *)data)) / 100.0);
+   return new QoreFloatNode((double)ntohl(*((uint32_t *)data)) / 100.0);
 }
 
 static class QoreNode *qpg_data_macaddr(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
@@ -775,7 +775,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
 
    if (ntype == NT_FLOAT) {
       paramTypes[nParams]   = FLOAT8OID;
-      pb->assign(v->val.floatval);
+      pb->assign(reinterpret_cast<const QoreFloatNode *>(v)->f);
       paramValues[nParams]  = (char *)&pb->f8;
       paramLengths[nParams] = sizeof(double);
 
@@ -1186,7 +1186,7 @@ int QorePGBindArray::bind(class QoreNode *n, const QoreEncoding *enc, class Exce
    {
       check_size(8);
       double *f8 = (double *)ptr;
-      *f8 = f8MSB(n->val.floatval);
+      *f8 = f8MSB(reinterpret_cast<const QoreFloatNode *>(n)->f);
       ptr += 8;
       return 0;
    }

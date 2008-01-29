@@ -357,7 +357,7 @@ class QoreNode *OraColumn::getValue(class Datasource *ds, class ExceptionSink *x
       case SQLT_BDOUBLE:
       case SQLT_IBFLOAT:
       case SQLT_IBDOUBLE:
-	 return new QoreNode(val.f8);
+	 return new QoreFloatNode(val.f8);
 
       case SQLT_DAT:
 	 return convert_date_time(val.date);
@@ -977,7 +977,7 @@ class QoreNode *OraBindNode::getValue(class Datasource *ds, class ExceptionSink 
    else if (buftype == SQLT_INT)
       return new QoreBigIntNode(buf.i8);
    else if (buftype == SQLT_BDOUBLE)
-      return new QoreNode(buf.f8);
+      return new QoreFloatNode(buf.f8);
    else if (buftype == SQLT_RSET)
       return ora_fetch((OCIStmt *)buf.ptr, ds, xsink);
    else if (buftype == SQLT_LVB)

@@ -77,7 +77,7 @@ static QoreNode *f_QInputDialog_getDouble(const QoreListNode *params, ExceptionS
       (*vp) = new QoreBoolNode(ok);
    }
 
-   return new QoreNode(rv);
+   return new QoreFloatNode(rv);
 }
 
 //int getInteger ( QWidget * parent, const QString & title, const QString & label, int value = 0, int minValue = -2147483647, int maxValue = 2147483647, int step = 1, bool * ok = 0, Qt::WindowFlags f = 0 )

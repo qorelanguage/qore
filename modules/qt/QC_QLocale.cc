@@ -187,7 +187,7 @@ static QoreNode *QLOCALE_toDouble(QoreObject *self, QoreQLocale *ql, const QoreL
       return 0;
    }
       
-   return new QoreNode(rv);
+   return new QoreFloatNode(rv);
 }
 
 //qlonglong toLongLong ( const QString & s, bool * ok = 0, int base = 0 ) const

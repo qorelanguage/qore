@@ -28,11 +28,11 @@ ExpressionStatement::ExpressionStatement(int start_line, int end_line, class Qor
    exp = v;
 
    // if it is a global variable declaration, then do not register
-   if (exp->type == NT_VARREF && exp->val.vref->type == VT_GLOBAL)
+   if (exp->type == NT_VARREF && reinterpret_cast<VarRefNode *>(exp)->type == VT_GLOBAL)
       is_declaration = true;
    else {
       QoreListNode *l = dynamic_cast<QoreListNode *>(exp);
-      if (l && l->isVariableList() && l->retrieve_entry(0)->val.vref->type == VT_GLOBAL)
+      if (l && l->isVariableList() && reinterpret_cast<VarRefNode *>(l->retrieve_entry(0))->type == VT_GLOBAL)
 	 is_declaration = true;
       else
 	 is_declaration = false;
@@ -43,7 +43,7 @@ ExpressionStatement::~ExpressionStatement()
 {
    // this should never be NULL, but in case the implementation changes...
    if (exp)
-      exp->deref(NULL);
+      exp->deref(0);
 }
 
 int ExpressionStatement::execImpl(class QoreNode **return_value, ExceptionSink *xsink)

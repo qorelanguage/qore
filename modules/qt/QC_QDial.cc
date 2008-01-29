@@ -57,7 +57,7 @@ static QoreNode *QDIAL_notchSize(QoreObject *self, QoreQDial *qd, const QoreList
 //qreal notchTarget () const
 static QoreNode *QDIAL_notchTarget(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qd->qobj->notchTarget());
+   return new QoreFloatNode((double)qd->qobj->notchTarget());
 }
 
 //bool notchesVisible () const

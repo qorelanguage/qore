@@ -424,7 +424,7 @@ class QoreNode *MyResult::getBoundColumnValue(const QoreEncoding *csid, int i)
    else if (bindbuf[i].buffer_type == MYSQL_TYPE_LONGLONG)
       n = new QoreBigIntNode(*((int64 *)bindbuf[i].buffer));
    else if (bindbuf[i].buffer_type == MYSQL_TYPE_DOUBLE)
-      n = new QoreNode(*((double *)bindbuf[i].buffer));
+      n = new QoreFloatNode(*((double *)bindbuf[i].buffer));
    else if (bindbuf[i].buffer_type == MYSQL_TYPE_STRING)
    {
       //printf("string (%d): '%s'\n", mlen[i], (char *)bindbuf[i].buffer);
@@ -875,7 +875,7 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
    if (ntype == NT_FLOAT)
    {
       buf->buffer_type = MYSQL_TYPE_DOUBLE;
-      buf->buffer = (char *)&data.value->val.floatval;
+      buf->buffer = (char *)&(reinterpret_cast<const QoreFloatNode *>(data.value)->f);
       return 0;
    }
 
@@ -920,7 +920,7 @@ static class QoreHashNode *get_result_set(const Datasource *ds, MYSQL_RES *res)
 	       // for floating point values
 	    case FIELD_TYPE_FLOAT:
 	    case FIELD_TYPE_DOUBLE:
-	       n = new QoreNode(atof(row[i]));
+	       n = new QoreFloatNode(atof(row[i]));
 	       break;
 	       
 	       // for datetime values

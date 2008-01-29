@@ -243,7 +243,7 @@ static QoreNode *QTEXTEDIT_fontItalic(QoreObject *self, QoreAbstractQTextEdit *q
 //qreal fontPointSize () const
 static QoreNode *QTEXTEDIT_fontPointSize(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreNode((double)qte->getQTextEdit()->fontPointSize());
+   return new QoreFloatNode((double)qte->getQTextEdit()->fontPointSize());
 }
 
 //bool fontUnderline () const

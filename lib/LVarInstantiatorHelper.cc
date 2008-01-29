@@ -35,9 +35,9 @@ struct lvih_intern {
 	 printd(5, "LVarInstantiatorHelper::LVarInstantiatorHelper() instantiating '%s' %08p (val=%08p type='%s') \n", new_name, new_name, val, val ? val->getTypeName() : "n/a");
 	 lv = instantiateLVar(new_name, val);
 	 ref = new QoreNode(NT_REFERENCE);
-	 VarRef *vr = new VarRef(new_name, VT_LOCAL);
+	 VarRefNode *vr = new VarRefNode(new_name, VT_LOCAL);
 	 vr->ref.id = new_name;
-	 ref->val.lvexp = new QoreNode(vr);
+	 ref->val.lvexp = vr;
       }
 
       DLLLOCAL ~lvih_intern()
