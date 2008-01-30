@@ -219,13 +219,15 @@ static QoreListNode *map_sbuf_to_list(struct stat *sbuf)
 {
    QoreListNode *l = new QoreListNode();
 
-   l->push(new QoreBigIntNode(sbuf->st_dev));
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   l->push(new QoreBigIntNode((int64)sbuf->st_dev));
    l->push(new QoreBigIntNode(sbuf->st_ino));
    l->push(new QoreBigIntNode(sbuf->st_mode));
    l->push(new QoreBigIntNode(sbuf->st_nlink));
    l->push(new QoreBigIntNode(sbuf->st_uid));
    l->push(new QoreBigIntNode(sbuf->st_gid));
-   l->push(new QoreBigIntNode(sbuf->st_rdev));
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   l->push(new QoreBigIntNode((int64)sbuf->st_rdev));
    l->push(new QoreBigIntNode(sbuf->st_size));
    
    struct tm tms;
@@ -243,13 +245,15 @@ static class QoreHashNode *map_sbuf_to_hash(struct stat *sbuf)
 {
    QoreHashNode *h = new QoreHashNode();
 
-   h->setKeyValue("dev",     new QoreBigIntNode(sbuf->st_dev), NULL);
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   h->setKeyValue("dev",     new QoreBigIntNode((int64)sbuf->st_dev), NULL);
    h->setKeyValue("inode",   new QoreBigIntNode(sbuf->st_ino), NULL);
    h->setKeyValue("mode",    new QoreBigIntNode(sbuf->st_mode), NULL);
    h->setKeyValue("nlink",   new QoreBigIntNode(sbuf->st_nlink), NULL);
    h->setKeyValue("uid",     new QoreBigIntNode(sbuf->st_uid), NULL);
    h->setKeyValue("gid",     new QoreBigIntNode(sbuf->st_gid), NULL);
-   h->setKeyValue("rdev",    new QoreBigIntNode(sbuf->st_rdev), NULL);
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   h->setKeyValue("rdev",    new QoreBigIntNode((int64)sbuf->st_rdev), NULL);
    h->setKeyValue("size",    new QoreBigIntNode(sbuf->st_size), NULL);
    
    struct tm tms;
