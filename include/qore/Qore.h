@@ -92,6 +92,7 @@
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/VarRefNode.h>
 #include <qore/intern/FunctionCallNode.h>
+#include <qore/intern/ReferenceNode.h>
 
 DLLLOCAL extern int qore_library_options;
 #endif

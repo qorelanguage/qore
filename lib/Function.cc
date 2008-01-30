@@ -480,10 +480,11 @@ QoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self, class E
       printd(4, "UserFunction::eval() %d: instantiating param lvar %d (%08p %s)\n", i, params->ids[i], n, n ? n->getTypeName() : "(null)");
       if (n)
       {
-         if (n->type == NT_REFERENCE)
+	 ReferenceNode *r = dynamic_cast<ReferenceNode *>(n);
+         if (r)
          {
 	    bool is_self_ref = false;
-            n = doPartialEval(n->val.lvexp, &is_self_ref, xsink);
+            n = doPartialEval(r->lvexp, &is_self_ref, xsink);
 	    //printd(5, "UserFunction::eval() ref self_ref=%d, self=%08p (%s) so=%08p (%s)\n", is_self_ref, self, self ? self->getClass()->name : "NULL", getStackObject(), getStackObject() ? getStackObject()->getClass()->name : "NULL");
             if (!*xsink)
 	       instantiateLVar(params->ids[i], n, is_self_ref ? getStackObject() : NULL);
@@ -687,10 +688,11 @@ QoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreObject *se
       printd(4, "UserFunction::evalConstructor() %d: instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
       if (n)
       {
-         if (n->type == NT_REFERENCE)
+	 ReferenceNode *r = dynamic_cast<ReferenceNode *>(n);
+         if (r)
          {
 	    bool is_self_ref = false;
-            n = doPartialEval(n->val.lvexp, &is_self_ref, xsink);
+            n = doPartialEval(r->lvexp, &is_self_ref, xsink);
             if (!xsink->isEvent())
 	       instantiateLVar(params->ids[i], n, is_self_ref ? getStackObject() : NULL);
          }

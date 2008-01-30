@@ -44,7 +44,7 @@ ForEachStatement::~ForEachStatement()
 
 int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
 {
-   if (list->type == NT_REFERENCE)
+   if (is_ref)
       return execRef(return_value, xsink);
 
    int i, rc = 0;
@@ -139,7 +139,7 @@ int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSin
    return rc;
 }
 
-int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink *xsink)
+int ForEachStatement::execRef(QoreNode **return_value, class ExceptionSink *xsink)
 {
    int i, rc = 0;
 
@@ -151,7 +151,9 @@ int ForEachStatement::execRef(class QoreNode **return_value, class ExceptionSink
    // get list evaluation (although may be a single node)
    class QoreNode *tlist, *vr;
    bool is_self_ref = false;
-   vr = doPartialEval(list->val.lvexp, &is_self_ref, xsink);
+
+   ReferenceNode *r = reinterpret_cast<ReferenceNode *>(list);
+   vr = doPartialEval(r->lvexp, &is_self_ref, xsink);
    if (!xsink->isEvent())
    {
       tlist = vr->eval(xsink);
@@ -311,6 +313,8 @@ int ForEachStatement::parseInitImpl(lvh_t oflag, int pflag)
    
    // save local variables 
    lvars = new LVList(lvids);
+
+   is_ref = (list->getType() == NT_REFERENCE);
 
    return 0;
 }

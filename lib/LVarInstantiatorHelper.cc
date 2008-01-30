@@ -27,22 +27,21 @@
 struct lvih_intern {
       LVar *lv;
       ExceptionSink *xsink;
-      QoreNode *ref;
+      ReferenceNode *ref;
 
       DLLLOCAL lvih_intern(const char *name, QoreNode *val, ExceptionSink *xs) : xsink(xs)
       {
 	 char *new_name = strdup(name);
 	 printd(5, "LVarInstantiatorHelper::LVarInstantiatorHelper() instantiating '%s' %08p (val=%08p type='%s') \n", new_name, new_name, val, val ? val->getTypeName() : "n/a");
 	 lv = instantiateLVar(new_name, val);
-	 ref = new QoreNode(NT_REFERENCE);
 	 VarRefNode *vr = new VarRefNode(new_name, VT_LOCAL);
 	 vr->ref.id = new_name;
-	 ref->val.lvexp = vr;
+	 ref = new ReferenceNode(vr);
       }
 
       DLLLOCAL ~lvih_intern()
       {
-	 ref->deref(xsink);
+	 ref->deref();
 	 uninstantiateLVar(xsink);
       }
 
@@ -51,7 +50,7 @@ struct lvih_intern {
 	 // there will be no locking here, because it's our temporary local "variable"
 	 class AutoVLock vl;
 	 ExceptionSink xsink2;
-	 class QoreNode **vp = get_var_value_ptr(ref->val.lvexp, &vl, &xsink2);
+	 class QoreNode **vp = get_var_value_ptr(ref->lvexp, &vl, &xsink2);
 
 	 // no exception should be possible here
 	 assert(!xsink2);

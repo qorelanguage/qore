@@ -57,11 +57,6 @@ QoreNode::~QoreNode()
       return;
    }
 
-   if (type == NT_REFERENCE) {
-      val.lvexp->deref(NULL);
-      return;
-   }
-
    if (type == NT_REGEX_SUBST) {
       delete val.resub;
       return;
@@ -218,9 +213,6 @@ class QoreNode *QoreNode::realCopy() const
    if (type == NT_CONSTANT)
       assert(false);
 
-   if (type == NT_REFERENCE)
-      assert(false);
-
    if (type == NT_REGEX_SUBST)
       assert(false);
 
@@ -264,9 +256,6 @@ bool QoreNode::is_value() const
       return false;
 
    if (type == NT_CONSTANT)
-      return false;
-
-   if (type == NT_REFERENCE)
       return false;
 
    if (type == NT_REGEX)

@@ -75,7 +75,6 @@ class DateTimeNode : public SimpleQoreNode, public DateTime
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLEXPORT virtual bool needs_eval() const;
       DLLEXPORT virtual class QoreNode *realCopy() const;
 
       // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than

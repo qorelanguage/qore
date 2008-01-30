@@ -30,6 +30,7 @@ libqore_la_SOURCES = \
 	ContextRowNode.cc \
 	VarRefNode.cc \
 	FunctionCallNode.cc \
+	ReferenceNode.cc \
 	ClassRef.cc \
 	ScopedObjectCallNode.cc \
 	QoreNode.cc \

@@ -326,12 +326,13 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
       }
       else
       {
-	 lvids = process_node(&((*node)->val.lvexp), oflag, pflag);
+	 ReferenceNode *r = reinterpret_cast<ReferenceNode *>(*node);
+	 lvids = process_node(&(r->lvexp), oflag, pflag);
 	 // if a background expression is being parsed, then check that no references to local variables
 	 // or object members are being used
 	 if (pflag & PF_BACKGROUND)
 	 {
-	    int vtype = getBaseLVType((*node)->val.lvexp);
+	    int vtype = getBaseLVType(r->lvexp);
 
 	    if (vtype == VT_LOCAL)
 	       parse_error("the reference operator cannot be used with local variables in a background expression");
@@ -463,7 +464,7 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
 	 for (i = 0; i < f->args->size(); i++)
 	 {
 	    class QoreNode **n = f->args->get_entry_ptr(i);
-	    if ((*n)->type == NT_REFERENCE)
+	    if ((*n)->getType() == NT_REFERENCE)
 	    {
 	       if (!f->existsUserParam(i))
 		  parse_error("not enough parameters in \"%s\" to accept reference expression", f->getName());

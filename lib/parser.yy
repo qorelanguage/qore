@@ -1991,8 +1991,7 @@ exp:    scalar
 
 	      if (make_ref) {
 		 //printd(5, "type=%s\n", $2->getTypeName());
-		 $$ = new QoreNode(NT_REFERENCE);
-		 $$->val.lvexp = $2;
+		 $$ = new ReferenceNode($2);
 		 if (check_lvalue($2))
 		    parse_error("argument to reference operator is not an lvalue or a function or method");
 	      }

@@ -35,7 +35,7 @@ static void dni(QoreStringNode *s, const QoreNode *n, int indent, class Exceptio
 {
    if (!n)
    {
-      s->concat("node=NULL\n");
+      s->concat("node=NULL");
       return;
    }
    

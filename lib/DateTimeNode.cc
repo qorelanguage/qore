@@ -127,11 +127,6 @@ int DateTimeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
    return 0;
 }
 
-bool DateTimeNode::needs_eval() const
-{
-   return false;
-}
-
 class QoreNode *DateTimeNode::realCopy() const
 {
    return new DateTimeNode(*this);

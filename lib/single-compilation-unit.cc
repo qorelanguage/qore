@@ -4,6 +4,7 @@
 #include "QoreTreeNode.cc"
 #include "BarewordNode.cc"
 #include "SelfVarrefNode.cc"
+#include "ReferenceNode.cc"
 #include "BackquoteNode.cc"
 #include "ContextrefNode.cc"
 #include "ComplexContextrefNode.cc"

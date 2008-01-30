@@ -93,6 +93,7 @@ noinst_HEADERS = \
 	include/qore/intern/SmartMutex.h \
 	include/qore/intern/Sequence.h \
 	include/qore/intern/ScopedObjectCallNode.h \
+	include/qore/intern/ReferenceNode.h \
 	include/qore/intern/RWLock.h \
 	include/qore/intern/RMutex.h \
 	include/qore/intern/SSLSocketHelper.h \

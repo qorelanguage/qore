@@ -238,7 +238,8 @@ static class QoreNode *GETOPT_parse(class QoreObject *self, class GetOpt *g, con
    class AutoVLock vl;
    if (p0->type == NT_REFERENCE)
    {
-      class QoreNode **vp = get_var_value_ptr(p0->val.lvexp, &vl, xsink);
+      ReferenceNode *r = reinterpret_cast<ReferenceNode *>(p0);
+      class QoreNode **vp = get_var_value_ptr(r->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
       l = dynamic_cast<QoreListNode *>(*vp);

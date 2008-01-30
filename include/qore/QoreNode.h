@@ -226,7 +226,7 @@ class ParseNode : public SimpleQoreNode
       {
 	 return false;
       }
-      DLLLOCAL virtual class QoreNode *eval(class ExceptionSink *xsink) const = 0;
+      DLLLOCAL virtual QoreNode *eval(class ExceptionSink *xsink) const = 0;
       DLLLOCAL virtual QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const
       {
 	 ReferenceHolder<QoreNode> rv(eval(xsink), xsink);

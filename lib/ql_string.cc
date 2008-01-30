@@ -556,19 +556,19 @@ static class QoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsink)
    if (!p)
       return 0;
 
-   {
-      QoreStringNode *pstr = dynamic_cast<QoreStringNode *>(p);
-      if (pstr) {
-	 QoreStringNode *str = pstr->copy();
-	 str->chomp();
-	 return str;
-      }
+   const QoreType *ptype = p->getType();
+   if (ptype == NT_STRING) {
+      QoreStringNode *pstr = reinterpret_cast<QoreStringNode *>(p);
+      QoreStringNode *str = pstr->copy();
+      str->chomp();
+      return str;
    } 
-   if (p->type != NT_REFERENCE)
+   if (ptype != NT_REFERENCE)
       return 0;
 
+   ReferenceNode *r = reinterpret_cast<ReferenceNode *>(p);
    class AutoVLock vl;
-   class QoreStringNode **vp = get_string_var_value_ptr(p->val.lvexp, &vl, xsink);
+   class QoreStringNode **vp = get_string_var_value_ptr(r->lvexp, &vl, xsink);
    if (*xsink || !(*vp))
       return 0;
    if (!(*vp)->is_unique())
@@ -590,20 +590,22 @@ static class QoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink)
    class QoreStringNode *p1 = test_string_param(params, 1);
    const char *chars = p1 ? p1->getBuffer() : 0;
 
-   {
-      QoreStringNode *pstr = dynamic_cast<QoreStringNode *>(p0);
-      if (pstr) {
-	 class QoreStringNode *str = pstr->copy();
-	 str->trim(chars);
-	 return str;
-      }
+   const QoreType *p0_type = p0->getType();
+
+   if (p0_type == NT_STRING) {
+      QoreStringNode *pstr = reinterpret_cast<QoreStringNode *>(p0);
+      class QoreStringNode *str = pstr->copy();
+      str->trim(chars);
+      return str;
    }
 
-   if (p0->type != NT_REFERENCE)
+   if (p0_type != NT_REFERENCE)
       return 0;
 
+   ReferenceNode *r = reinterpret_cast<ReferenceNode *>(p0);
+
    class AutoVLock vl;
-   class QoreStringNode **vp = get_string_var_value_ptr(p0->val.lvexp, &vl, xsink);
+   class QoreStringNode **vp = get_string_var_value_ptr(r->lvexp, &vl, xsink);
    if (*xsink || !(*vp))
       return 0;
    if (!(*vp)->is_unique())

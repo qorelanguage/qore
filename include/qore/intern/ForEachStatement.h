@@ -33,8 +33,9 @@ class ForEachStatement : public AbstractStatement
       class QoreNode *list;
       class StatementBlock *code;
       class LVList *lvars;
+      bool is_ref;
    
-      DLLLOCAL int execRef(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL int execRef(QoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
