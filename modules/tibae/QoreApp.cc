@@ -355,7 +355,7 @@ lass '%s'", pcd->getFullName().c_str(), cn);
       // it appears that all MString data must be UTF-8, no matter how we use the MStringData constructor
       // furthermore, it appears that we have to trick the SDK into thinking that the data is ASCII, so
       // no conversions are attempted
-      TempEncodingHelper t(str, QCS_UTF8, xsink);
+      ConstTempEncodingHelper t(str, QCS_UTF8, xsink);
       if (!t)
 	 return 0;
       
@@ -630,7 +630,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, QoreNode *v, Exc
    MUnion *mu = new MUnion(mcr, mud->getFullName());
    if (h->size())
    {
-      HashIterator hi(h);
+      ConstHashIterator hi(h);
       // get the first entry
       hi.next();
       const char *key = hi.getKey();

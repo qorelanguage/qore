@@ -231,7 +231,7 @@ class QoreNode *TIBAE_receive(class QoreObject *self, class QoreApp *myQoreApp, 
 //
 // Returns hash with data send as a reply to this call.
 //
-static QoreNode* TIBAE_operationsCallWithSyncResult(QoreObject* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+static QoreNode* TIBAE_operationsCallWithSyncResult(QoreObject* self, QoreApp* myQoreApp, const QoreListNode *params, ExceptionSink *xsink)
 {
    char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
       "[timeout (integer in millis or date/time), ] [client name (string)]";
@@ -276,7 +276,7 @@ static QoreNode* TIBAE_operationsCallWithSyncResult(QoreObject* self, QoreApp* m
 // The same parameters as for TIBAE_operationsCallWithSyncResult, 
 // except for the timeout (not needed), always returns 0.
 //
-static QoreNode* TIBAE_operationsOneWayCall(QoreObject* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+static QoreNode* TIBAE_operationsOneWayCall(QoreObject* self, QoreApp* myQoreApp, const QoreListNode *params, ExceptionSink *xsink)
 {
    char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
       "[client name (string)]";
@@ -308,7 +308,7 @@ static QoreNode* TIBAE_operationsOneWayCall(QoreObject* self, QoreApp* myQoreApp
 
 // The same parameters as for TIBAE_operationsCallWithSyncResult (including timeout).
 // Always return 0. To get the reply use combination of class name + method name passed to this call.
-static QoreNode* TIBAE_operationsAsyncCall(QoreObject* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+static QoreNode* TIBAE_operationsAsyncCall(QoreObject* self, QoreApp* myQoreApp, const QoreListNode *params, ExceptionSink *xsink)
 {
    char* err = "Invalid parameters. Expected: class name (string), method name (string), data (hash), "
       "[timeout (integer in millis or date/time), ] [client name (string)]";
@@ -358,7 +358,7 @@ static QoreNode* TIBAE_operationsAsyncCall(QoreObject* self, QoreApp* myQoreApp,
 //
 // Returns hash with retrieved values.
 //
-static QoreNode* TIBAE_operationsGetAsyncCallResult(QoreObject* self, QoreApp* myQoreApp, QoreNode* params, ExceptionSink *xsink)
+static QoreNode* TIBAE_operationsGetAsyncCallResult(QoreObject* self, QoreApp* myQoreApp, const QoreListNode *params, ExceptionSink *xsink)
 {
    char* err = "Invalid parameters. Expected: class name (string), method name (string)";
    char* func = "TIBCO-OPERATIONS-GET-ASYNC-RESULT";
