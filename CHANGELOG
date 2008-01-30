@@ -1,3 +1,7 @@
+2008.01.28: David Nichols
+	* fixed a bug in QoreHTTPClient processing the protocol parameter as an
+	  integer port number (backported from 0.7.0/trunk)
+
 2008.01.24: David Nichols
 	* fixed a bug in the "tibae" module where instantiating a sequence while
 	  giving an explicit class name skipped type checking that could result
