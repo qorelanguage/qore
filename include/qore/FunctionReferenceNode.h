@@ -110,11 +110,22 @@ class UserFunctionReferenceNode : public ResolvedFunctionReferenceNode
       QoreProgram *pgm;
 
    public:
-      DLLLOCAL UserFunctionReferenceNode(class UserFunction *n_uf);
+      //DLLLOCAL UserFunctionReferenceNode(class UserFunction *n_uf);
       DLLLOCAL UserFunctionReferenceNode(class UserFunction *n_uf, class QoreProgram *n_pgm);
       DLLLOCAL virtual QoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL virtual QoreProgram *getProgram() const;
-      DLLLOCAL void deref(ExceptionSink *xsink);
+      DLLLOCAL virtual void deref(ExceptionSink *xsink);
+};
+
+class StaticUserFunctionReferenceNode : public ResolvedFunctionReferenceNode
+{
+      UserFunction *uf;
+      QoreProgram *pgm;
+
+   public:
+      DLLLOCAL StaticUserFunctionReferenceNode(class UserFunction *n_uf, class QoreProgram *n_pgm);
+      DLLLOCAL virtual QoreNode *eval(ExceptionSink *xsink) const;
+      DLLLOCAL virtual QoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 class BuiltinFunctionReferenceNode : public ResolvedFunctionReferenceNode

@@ -601,13 +601,13 @@ class QoreNamespace *QoreProgram::getQoreNS() const
 
 void QoreProgram::depRef()
 {
-   //printd(5, "QoreProgram::depRef() this=%08p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() + 1);
+   printd(1, "QoreProgram::depRef() this=%08p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() + 1);
    priv->dc.ROreference();
 }
 
 void QoreProgram::depDeref(class ExceptionSink *xsink)
 {
-   //printd(5, "QoreProgram::depDeref() this=%08p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() - 1);
+   printd(1, "QoreProgram::depDeref() this=%08p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() - 1);
    if (priv->dc.ROdereference())
    {
       del(xsink);
@@ -796,7 +796,7 @@ AbstractFunctionReferenceNode *QoreProgram::resolveFunctionReference(UnresolvedF
       if ((ufc = priv->user_func_list.find(fname)))
       {
 	 printd(5, "resolved function reference to user function %s\n", fname);
-	 return new UserFunctionReferenceNode(ufc, this);
+	 return new StaticUserFunctionReferenceNode(ufc, this);
       }
    }
    

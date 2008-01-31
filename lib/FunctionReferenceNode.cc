@@ -338,13 +338,9 @@ void UnresolvedFunctionReferenceNode::deref(ExceptionSink *xsink)
    delete this;
 }
 
-UserFunctionReferenceNode::UserFunctionReferenceNode(UserFunction *n_uf) : uf(n_uf), pgm(getProgram())
-{
-   pgm->depRef();
-}
-
 UserFunctionReferenceNode::UserFunctionReferenceNode(UserFunction *n_uf, QoreProgram *n_pgm) : uf(n_uf), pgm(n_pgm)
 {
+   //printd(5, "UserFunctionReferenceNode::UserFunctionReferenceNode() this=%08p (%s) calling QoreProgram::depRef() pgm=%08p\n", this, uf->getName(), pgm);
    pgm->depRef();
 }
 
@@ -355,9 +351,10 @@ QoreProgram *UserFunctionReferenceNode::getProgram() const
 
 void UserFunctionReferenceNode::deref(ExceptionSink *xsink)
 {
+   //printd(5, "UserFunctionReferenceNode::deref() this=%08p pgm=%08p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
    if (ROdereference())
    {
-      //printd(5, "UserFunctionReferenceNode::deref() this=%08p pgm=%08p (%s)\n", this, pgm);
+      //printd(5, "UserFunctionReferenceNode::deref() this=%08p calling QoreProgram::depDeref() pgm=%08p\n", this, pgm);
       pgm->depDeref(xsink);
       delete this;	 
    }
@@ -367,6 +364,21 @@ QoreNode *UserFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSin
 {
    ProgramContextHelper pch(pgm);
    return uf->eval(args, 0, xsink);
+}
+
+StaticUserFunctionReferenceNode::StaticUserFunctionReferenceNode(UserFunction *n_uf, QoreProgram *n_pgm) : uf(n_uf), pgm(n_pgm)
+{
+}
+
+QoreNode *StaticUserFunctionReferenceNode::eval(ExceptionSink *xsink) const
+{
+   return new UserFunctionReferenceNode(uf, pgm);
+}
+
+QoreNode *StaticUserFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
 }
 
 BuiltinFunctionReferenceNode::BuiltinFunctionReferenceNode(BuiltinFunction *n_bf) : bf(n_bf)
