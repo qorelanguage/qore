@@ -36,8 +36,6 @@
 #define FMT_NORMAL 0
 
 union node_u {
-      // for function references
-      class AbstractFunctionReference *funcref;
       // for function reference calls
       class FunctionReferenceCall *funcrefcall;
 };
@@ -85,6 +83,8 @@ class QoreNode : public ReferenceObject
       DLLLOCAL QoreNode(class ClassRefNode *c);
       DLLLOCAL QoreNode(class AbstractParseObjectMethodReference *objmethref);
       DLLLOCAL QoreNode(class AbstractParseObjectMethodReferenceNode *objmethref);
+      DLLLOCAL QoreNode(class AbstractFunctionReference *afr);
+      DLLLOCAL QoreNode(class AbstractFunctionReferenceNode *afr);
 
    protected:
       DLLEXPORT virtual ~QoreNode();
@@ -157,7 +157,6 @@ class QoreNode : public ReferenceObject
       DLLEXPORT virtual bool is_value() const;
       
       DLLLOCAL QoreNode(class FunctionReferenceCall *frc);
-      DLLLOCAL QoreNode(class AbstractFunctionReference *afr);
       
       DLLEXPORT class QoreNode *RefSelf() const;
       DLLEXPORT void ref() const;

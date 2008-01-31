@@ -117,7 +117,7 @@ noinst_HEADERS = \
 	include/qore/intern/ManagedDatasource.h \
 	include/qore/intern/ImportedFunctionList.h \
 	include/qore/intern/GlobalVariableList.h \
-	include/qore/intern/FunctionReference.h \
+	include/qore/intern/FunctionReferenceNode.h \
 	include/qore/intern/DatasourcePool.h \
 	include/qore/intern/Function.h \
 	include/qore/intern/FindNode.h \

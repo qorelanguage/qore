@@ -89,7 +89,7 @@
 #include <qore/intern/VRMutex.h>
 #include <qore/intern/VLock.h>
 #include <qore/intern/qore_thread_intern.h>
-#include <qore/intern/FunctionReference.h>
+#include <qore/intern/FunctionReferenceNode.h>
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/VarRefNode.h>
 #include <qore/intern/FunctionCallNode.h>

@@ -62,15 +62,6 @@ QoreNode::QoreNode(class FunctionReferenceCall *frc)
 #endif
 }
 
-QoreNode::QoreNode(class AbstractFunctionReference *afr)
-{
-   type = NT_FUNCREF;
-   val.funcref = afr;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
 void QoreNode::ref() const
 {
 #ifdef DEBUG
@@ -116,9 +107,6 @@ void QoreNode::deref(ExceptionSink *xsink)
 
    if (ROdereference())
    {
-if (type == NT_FUNCREF)
-	 val.funcref->del(xsink);
-	 
       // now delete this QoreNode
       delete this;
    }
@@ -138,9 +126,6 @@ class QoreNode *QoreNode::realCopy() const
 
 bool QoreNode::needs_eval() const
 {
-   if (type == NT_FUNCREF)
-      return true;
-
    if (type == NT_FUNCREFCALL)
       return true;
 
@@ -149,9 +134,6 @@ bool QoreNode::needs_eval() const
 
 bool QoreNode::is_value() const
 {
-   if (type == NT_FUNCREF)
-      return false;
-
    if (type == NT_FUNCREFCALL)
       return false;
 
@@ -163,10 +145,6 @@ bool QoreNode::is_value() const
  */
 class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
 {
-   if (type == NT_FUNCREF) {
-      return val.funcref->eval(this);
-   }
-
    if (type == NT_FUNCREFCALL) {
       return val.funcrefcall->eval(xsink);
    }

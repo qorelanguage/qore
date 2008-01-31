@@ -48,14 +48,14 @@
 
 class QoreSignalHandler {
    private:
-      class AbstractFunctionReference *funcref;
+      class AbstractFunctionReferenceNode *funcref;
    
    public:
       enum sh_status_e { SH_OK = 0, SH_InProgress = 1, SH_Delete = 2 };
       sh_status_e status;
 
       DLLLOCAL void init();
-      DLLLOCAL void set(int sig, class AbstractFunctionReference *n_funcref);
+      DLLLOCAL void set(int sig, class AbstractFunctionReferenceNode *n_funcref);
       DLLLOCAL void del(int sig, class ExceptionSink *xsink);
       DLLLOCAL void runHandler(int sig, class ExceptionSink *xsink);
       DLLLOCAL bool isSet() const
@@ -98,7 +98,7 @@ class QoreSignalManager
       DLLLOCAL QoreSignalManager();
       DLLLOCAL static void init(bool disable_signal_mask = false);
       DLLLOCAL static void del();
-      DLLLOCAL static int setHandler(int sig, class AbstractFunctionReference *fr, class ExceptionSink *xsink);
+      DLLLOCAL static int setHandler(int sig, class AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink);
       DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);
       DLLLOCAL static void addSignalConstants(class QoreNamespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);

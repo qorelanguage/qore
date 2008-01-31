@@ -38,24 +38,23 @@ static class QoreNode *f_sort(const QoreListNode *params, ExceptionSink *xsink)
    if (is_nothing(fn))
       return l->sort();
 
-   {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(fn);
-      if (str) {
-	 class FunctionReference *fr = getFunctionReference(str, xsink);
-	 if (!fr)
-	    return NULL;
+   const QoreType *fntype = fn->getType();
+   
+   if (fntype == NT_STRING) {
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(fn);
+      ReferenceHolder<AbstractFunctionReferenceNode> fr(getFunctionReference(str, xsink), xsink);
+      if (!fr)
+	 return NULL;
       
-	 class QoreNode *rv = l->sort(fr, xsink);
-	 fr->del(xsink);
-	 return rv;
-      }
+      return l->sort(*fr, xsink);
    }
-   if (fn->type != NT_FUNCREF)
+
+   if (fntype != NT_FUNCREF)
    {
       xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
-   return l->sort(fn->val.funcref, xsink);
+   return l->sort(reinterpret_cast<AbstractFunctionReferenceNode *>(fn), xsink);
 }
 
 static class QoreNode *f_sortDescending(const QoreListNode *params, ExceptionSink *xsink)
@@ -73,25 +72,23 @@ static class QoreNode *f_sortDescending(const QoreListNode *params, ExceptionSin
    if (is_nothing(fn))
       return l->sortDescending();
 
-   {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(fn);
-      if (str) {
-	 class FunctionReference *fr = getFunctionReference(str, xsink);
-	 if (!fr)
-	    return NULL;
+   const QoreType *fntype = fn->getType();
+   
+   if (fntype == NT_STRING) {
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(fn);
+      ReferenceHolder<AbstractFunctionReferenceNode> fr(getFunctionReference(str, xsink), xsink);
+      if (!fr)
+	 return NULL;
       
-	 class QoreNode *rv = l->sortDescending(fr, xsink);
-	 fr->del(xsink);
-	 return rv;
-      }
+      return l->sortDescending(*fr, xsink);
    }
    
-   if (fn->type != NT_FUNCREF)
+   if (fntype != NT_FUNCREF)
    {
       xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
-   return l->sortDescending(fn->val.funcref, xsink);
+   return l->sortDescending(reinterpret_cast<AbstractFunctionReferenceNode *>(fn), xsink);
 }
 
 static class QoreNode *f_sortStable(const QoreListNode *params, ExceptionSink *xsink)
@@ -109,25 +106,23 @@ static class QoreNode *f_sortStable(const QoreListNode *params, ExceptionSink *x
    if (is_nothing(fn))
       return l->sortStable();
 
-   {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(fn);
-      if (str) {
-	 class FunctionReference *fr = getFunctionReference(str, xsink);
-	 if (!fr)
-	    return NULL;
+   const QoreType *fntype = fn->getType();
+   
+   if (fntype == NT_STRING) {
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(fn);
+      ReferenceHolder<AbstractFunctionReferenceNode> fr(getFunctionReference(str, xsink), xsink);
+      if (!fr)
+	 return NULL;
       
-	 class QoreNode *rv = l->sortStable(fr, xsink);
-	 fr->del(xsink);
-	 return rv;
-      }
+      return l->sortStable(*fr, xsink);
    }
       
-   if (fn->type != NT_FUNCREF)
+   if (fntype != NT_FUNCREF)
    {
       xsink->raiseException("SORTSTABLE-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
-   return l->sortStable(fn->val.funcref, xsink);
+   return l->sortStable(reinterpret_cast<AbstractFunctionReferenceNode *>(fn), xsink);
 }
 
 static class QoreNode *f_sortDescendingStable(const QoreListNode *params, ExceptionSink *xsink)
@@ -144,26 +139,24 @@ static class QoreNode *f_sortDescendingStable(const QoreListNode *params, Except
    QoreNode *fn = get_param(params, 1);
    if (is_nothing(fn))
       return l->sortDescendingStable();
+
+   const QoreType *fntype = fn->getType();
    
-   {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(fn);
-      if (str) {
-	 class FunctionReference *fr = getFunctionReference(str, xsink);
-	 if (!fr)
-	    return NULL;
+   if (fntype == NT_STRING) {
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(fn);
+      ReferenceHolder<AbstractFunctionReferenceNode> fr(getFunctionReference(str, xsink), xsink);
+      if (!fr)
+	 return NULL;
       
-	 class QoreNode *rv = l->sortDescendingStable(fr, xsink);
-	 fr->del(xsink);
-	 return rv;
-      }
+      return l->sortDescendingStable(*fr, xsink);
    }
 
-   if (fn->type != NT_FUNCREF)
+   if (fntype != NT_FUNCREF)
    {
       xsink->raiseException("SORT-PARAMETER-ERROR", "second argument is present and is not a call reference or string (%s)", fn->getTypeName());
       return NULL;
    }
-   return l->sortDescendingStable(fn->val.funcref, xsink);
+   return l->sortDescendingStable(reinterpret_cast<AbstractFunctionReferenceNode *>(fn), xsink);
 }
 
 static class QoreNode *f_min(const QoreListNode *params, ExceptionSink *xsink)
@@ -174,26 +167,24 @@ static class QoreNode *f_min(const QoreListNode *params, ExceptionSink *xsink)
       QoreNode *p = get_param(params, 1);
       if (is_nothing(p))
 	 return lst->min();
+
+      const QoreType *ptype = p->getType();
       
-      {
-	 QoreStringNode *str = dynamic_cast<QoreStringNode *>(p);
-	 if (str) {
-	    class FunctionReference *fr = getFunctionReference(str, xsink);
-	    if (!fr)
-	       return NULL;
-	    
-	    class QoreNode *rv = lst->min(fr, xsink);
-	    fr->del(xsink);
-	    return rv;
-	 }
+      if (ptype == NT_STRING) {
+	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p);
+	 ReferenceHolder<AbstractFunctionReferenceNode> fr(getFunctionReference(str, xsink), xsink);
+	 if (!fr)
+	    return NULL;
+	 
+	 return lst->min(*fr, xsink);
       }
 
-      if (p->type != NT_FUNCREF)
+      if (ptype != NT_FUNCREF)
       {
 	 xsink->raiseException("MIN-PARAM-ERROR", "second argument is present and is not a call reference or string (%s)", p->getTypeName());
 	 return NULL;
       }
-      return lst->min(p->val.funcref, xsink);
+      return lst->min(reinterpret_cast<AbstractFunctionReferenceNode *>(p), xsink);
    }
    if (!num_params(params))
       return NULL;
@@ -209,25 +200,23 @@ static class QoreNode *f_max(const QoreListNode *params, ExceptionSink *xsink)
       if (is_nothing(p))
 	 return lst->max();
       
-      {
-	 QoreStringNode *str = dynamic_cast<QoreStringNode *>(p);
-	 if (str) {
-	    class FunctionReference *fr = getFunctionReference(str, xsink);
-	    if (!fr)
-	       return NULL;
-	    
-	    class QoreNode *rv = lst->max(fr, xsink);
-	    fr->del(xsink);
-	    return rv;
-	 }
+      const QoreType *ptype = p->getType();
+      
+      if (ptype == NT_STRING) {
+	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p);
+	 ReferenceHolder<AbstractFunctionReferenceNode> fr(getFunctionReference(str, xsink), xsink);
+	 if (!fr)
+	    return NULL;
+	 
+	 return lst->max(*fr, xsink);
       }
 
-      if (p->type != NT_FUNCREF)
+      if (ptype != NT_FUNCREF)
       {
 	 xsink->raiseException("MAX-PARAM-ERROR", "second argument is present and is not a call reference or string (%s)", p->getTypeName());
 	 return NULL;
       }
-      return lst->max(p->val.funcref, xsink);
+      return lst->max(reinterpret_cast<AbstractFunctionReferenceNode *>(p), xsink);
    }
    if (!num_params(params))
       return NULL;

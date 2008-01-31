@@ -45,9 +45,9 @@ class QoreListNode : public QoreNode
       DLLLOCAL void check_offset(int &offset, int &len);
       DLLLOCAL void deref_intern(class ExceptionSink *xisnk);
       // qsort sorts the list in-place (unstable)
-      DLLLOCAL int qsort(const class AbstractFunctionReference *fr, int left, int right, bool ascending, class ExceptionSink *xsink);
+      DLLLOCAL int qsort(const class AbstractFunctionReferenceNode *fr, int left, int right, bool ascending, class ExceptionSink *xsink);
       // mergesort sorts the list in-place (stable)
-      DLLLOCAL int mergesort(const class AbstractFunctionReference *fr, bool ascending, class ExceptionSink *xsink);
+      DLLLOCAL int mergesort(const class AbstractFunctionReferenceNode *fr, bool ascending, class ExceptionSink *xsink);
 
       DLLEXPORT virtual ~QoreListNode();
 
@@ -108,17 +108,17 @@ class QoreListNode : public QoreNode
       DLLEXPORT QoreListNode *copy() const;
       DLLEXPORT QoreListNode *copyListFrom(int offset) const;
       DLLEXPORT QoreListNode *sort() const;
-      DLLEXPORT QoreListNode *sort(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreListNode *sort(const class AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
       DLLEXPORT QoreListNode *sortStable() const;
-      DLLEXPORT QoreListNode *sortStable(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreListNode *sortStable(const class AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
       DLLEXPORT QoreListNode *sortDescending() const;
-      DLLEXPORT QoreListNode *sortDescending(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreListNode *sortDescending(const class AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
       DLLEXPORT QoreListNode *sortDescendingStable() const;
-      DLLEXPORT QoreListNode *sortDescendingStable(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreListNode *sortDescendingStable(const class AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
       DLLEXPORT QoreNode *min() const;
       DLLEXPORT QoreNode *max() const;
-      DLLEXPORT QoreNode *min(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
-      DLLEXPORT QoreNode *max(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreNode *min(const class AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreNode *max(const class AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
       // the "l" QoreNode will be referenced for the assignment in the QoreListNode

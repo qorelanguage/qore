@@ -787,7 +787,7 @@ void QoreProgram::resolveFunction(FunctionCallNode *f)
 }
 
 // called during parsing (priv->plock already grabbed)
-void QoreProgram::resolveFunctionReference(class FunctionReference *fr)
+void QoreProgram::resolveFunctionReference(class FunctionReferenceNode *fr)
 {
    tracein("QoreProgram::resolveFunctionReference()");
    char *fname = fr->f.str;
@@ -807,7 +807,7 @@ void QoreProgram::resolveFunctionReference(class FunctionReference *fr)
    {
       printd(5, "resolved function reference to imported function %s (pgm=%08p, func=%08p)\n",
 	     fname, ifn->pgm, ifn->func);
-      fr->type = FC_IMPORTED;
+      fr->frtype = FC_IMPORTED;
       fr->f.ifunc = new ImportedFunctionCall(ifn->pgm, ifn->func);
       free(fname);
       traceout("QoreProgram::resolveFunction()");
@@ -818,7 +818,7 @@ void QoreProgram::resolveFunctionReference(class FunctionReference *fr)
    if ((bfc = builtinFunctions.find(fname)))
    {
       printd(5, "resolved function reference to builtin function to %s\n", fname);
-      fr->type = FC_BUILTIN;
+      fr->frtype = FC_BUILTIN;
       fr->f.bf = bfc;
       
       // check parse options to see if access is allowed

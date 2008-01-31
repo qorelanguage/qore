@@ -44,7 +44,6 @@
 #include <qore/intern/CaseNodeWithOperator.h>
 #include <qore/intern/CaseNodeRegex.h>
 #include <qore/intern/OnBlockExitStatement.h>
-#include <qore/intern/FunctionReference.h>
 
 #include "parser.h"
 
@@ -1940,7 +1939,7 @@ exp:    scalar
 	      else
 	      {
 		 if (f->getFunctionType() == FC_UNRESOLVED)
-		    $$ = new QoreNode(new FunctionReference(f->takeName()));
+		    $$ = new FunctionReferenceNode(f->takeName());
 		 else // must be self call
 		 {
 		    assert(f->getFunctionType() == FC_SELF);

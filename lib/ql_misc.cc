@@ -53,46 +53,40 @@ class qore_gz_header : public gz_header
 
 static class QoreNode *f_call_function(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
-
-   p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_FUNCREF && p0->type != NT_STRING))
-   {
-      xsink->raiseException("CALL-FUNCTION-PARAMETER-ERROR",
-			    "invalid argument passed to call_function(), first argument must be either function name or call reference");
-      return NULL;
+   QoreNode *p0 = get_param(params, 0);
+   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   if (p0_type != NT_FUNCREF && p0_type != NT_STRING) {
+      xsink->raiseException("CALL-FUNCTION-PARAMETER-ERROR", "invalid argument passed to call_function(), first argument must be either function name or call reference");
+      return 0;
    }
-
+   
    ReferenceHolder<QoreListNode> args(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_params(params) > 1)
       args = params->copyListFrom(1);
 
-   {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(p0);
-      if (str)
-	 return getProgram()->callFunction(str->getBuffer(), *args, xsink);
+   if (p0_type == NT_STRING) {
+      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p0);
+      return getProgram()->callFunction(str->getBuffer(), *args, xsink);
    }
 
-   return p0->val.funcref->exec(*args, xsink);
+   // must be a function reference
+   return reinterpret_cast<AbstractFunctionReferenceNode *>(p0)->exec(*args, xsink);
 }
 
 static class QoreNode *f_call_function_args(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
-   QoreListNode *args;
-
-   p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_FUNCREF && p0->type != NT_STRING))
-   {
+   QoreNode *p0 = get_param(params, 0);
+   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   if (p0_type != NT_FUNCREF && p0_type != NT_STRING) {
       xsink->raiseException("CALL-FUNCTION-ARGS-PARAMETER-ERROR",
 			    "invalid argument passed to call_function_args(), first argument must be either function name or call reference");
       return NULL;
    }
    
-   p1 = get_param(params, 1);
+   QoreNode *p1 = get_param(params, 1);
 
-   args = dynamic_cast<QoreListNode *>(p1);
+   QoreListNode *args = dynamic_cast<QoreListNode *>(p1);
    if (!args && p1) 
    {
       args = new QoreListNode();
@@ -101,10 +95,10 @@ static class QoreNode *f_call_function_args(const QoreListNode *params, Exceptio
    }
 
    class QoreNode *rv;
-   if (p0->type == NT_STRING)
-      rv = getProgram()->callFunction((reinterpret_cast<QoreStringNode *>(p0))->getBuffer(), args, xsink);
+   if (p0_type == NT_STRING)
+      rv = getProgram()->callFunction((reinterpret_cast<const QoreStringNode *>(p0))->getBuffer(), args, xsink);
    else
-      rv = p0->val.funcref->exec(args, xsink);
+      rv = reinterpret_cast<const AbstractFunctionReferenceNode *>(p0)->exec(args, xsink);
 
    if (p1 != args)
    {
@@ -119,16 +113,18 @@ static class QoreNode *f_call_function_args(const QoreListNode *params, Exceptio
 static class QoreNode *f_existsFunction(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreNode *p0 = get_param(params, 0);
+
+   const QoreType *p0_type = p0 ? p0->getType() : 0;
    // always return true if the argument is a call reference
-   if (p0 && p0->type == NT_FUNCREF)
+   if (p0_type == NT_FUNCREF)
       return boolean_true();
-   if (!p0 || p0->type != NT_STRING)
+   if (p0_type != NT_STRING)
       return 0;
 
-   QoreStringNode *str = reinterpret_cast<QoreStringNode *>(p0);
-   if (getProgram()->existsFunction(str->getBuffer()))
+   const char *str = reinterpret_cast<const QoreStringNode *>(p0)->getBuffer();
+   if (getProgram()->existsFunction(str))
       return boolean_true();
-   if (builtinFunctions.find(str->getBuffer()))
+   if (builtinFunctions.find(str))
       return boolean_true();
    return boolean_false();
 }
@@ -1010,16 +1006,16 @@ static class QoreNode *f_set_signal_handler(const QoreListNode *params, Exceptio
    if (!signal || signal > QORE_SIGNAL_MAX)
    {
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
-      return NULL;
+      return 0;
    }
-   QoreNode *p1 = test_param(params, NT_FUNCREF, 1);
+   AbstractFunctionReferenceNode *p1 = test_funcref_param(params, 1);
    if (!p1)
    {
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "expecting call reference as second argument to set_signal_handler()");
-      return NULL;
+      return 0;
    }
-   QoreSignalManager::setHandler(signal, p1->val.funcref, xsink);
-   return NULL;
+   QoreSignalManager::setHandler(signal, p1, xsink);
+   return 0;
 }
 
 static class QoreNode *f_remove_signal_handler(const QoreListNode *params, ExceptionSink *xsink)

@@ -25,10 +25,10 @@
 #define _QORE_QORELIBINTERN_H
 
 #ifndef HAVE_GETHOSTBYNAME_R
-DLLLOCAL extern class LockedObject lck_gethostbyname;
+DLLLOCAL extern LockedObject lck_gethostbyname;
 #endif
 #ifndef HAVE_GETHOSTBYADDR_R
-DLLLOCAL extern class LockedObject lck_gethostbyaddr;
+DLLLOCAL extern LockedObject lck_gethostbyaddr;
 #endif
 
 #ifndef UNIX_PATH_MAX
@@ -44,28 +44,28 @@ DLLLOCAL extern class LockedObject lck_gethostbyaddr;
 #endif
 
 #ifndef HAVE_LOCALTIME_R
-DLLLOCAL extern class LockedObject lck_localtime;
+DLLLOCAL extern LockedObject lck_localtime;
 #endif
 
 #ifndef HAVE_GMTIME_R
-DLLLOCAL extern class LockedObject lck_gmtime;
+DLLLOCAL extern LockedObject lck_gmtime;
 #endif
 
 DLLLOCAL extern char table64[64];
 
-DLLLOCAL int get_nibble(char c, class ExceptionSink *xsink);
-DLLLOCAL class BinaryNode *parseBase64(const char *buf, int len, class ExceptionSink *xsink);
-DLLLOCAL class BinaryNode *parseHex(const char *buf, int len, class ExceptionSink *xsink);
-DLLLOCAL class BinaryNode *parseHex(const char *buf, int len);
-DLLLOCAL void print_node(FILE *fp, class QoreNode *node);
+DLLLOCAL int get_nibble(char c, ExceptionSink *xsink);
+DLLLOCAL BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink);
+DLLLOCAL BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink);
+DLLLOCAL BinaryNode *parseHex(const char *buf, int len);
+DLLLOCAL void print_node(FILE *fp, QoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);
-DLLLOCAL class FunctionReference *getFunctionReference(class QoreString *str, class ExceptionSink *xsink);
+DLLLOCAL AbstractFunctionReferenceNode *getFunctionReference(QoreString *str, ExceptionSink *xsink);
 
 // the following functions are implemented in support.cc
 DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
 DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(const char *err, const char *fmt, ...);
-DLLLOCAL class QoreString *findFileInEnvPath(const char *file, const char *varname);
+DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 
 #endif

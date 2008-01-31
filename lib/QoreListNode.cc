@@ -21,7 +21,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/FunctionReference.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -445,7 +444,7 @@ QoreListNode *QoreListNode::sortDescending() const
    return rv;
 }
 
-QoreListNode *QoreListNode::sortDescending(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
+QoreListNode *QoreListNode::sortDescending(const AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const
 {   
    ReferenceHolder<QoreListNode> rv(copy(), xsink);
    if (priv->length)
@@ -475,7 +474,7 @@ static inline QoreListNode *do_args(QoreNode *e1, QoreNode *e2)
 }
 
 // mergesort for controlled and interruptible sorts (stable)
-int QoreListNode::mergesort(const class AbstractFunctionReference *fr, bool ascending, class ExceptionSink *xsink)
+int QoreListNode::mergesort(const AbstractFunctionReferenceNode *fr, bool ascending, class ExceptionSink *xsink)
 {
    //printd(5, "List::mergesort() ENTER this=%08p, pgm=%08p, f=%08p priv->length=%d\n", this, pgm, f, priv->length);
    
@@ -532,7 +531,7 @@ int QoreListNode::mergesort(const class AbstractFunctionReference *fr, bool asce
 
 // quicksort for controlled and interruptible sorts (unstable)
 // I am so smart that I did not comment this code
-int QoreListNode::qsort(const class AbstractFunctionReference *fr, int left, int right, bool ascending, class ExceptionSink *xsink)
+int QoreListNode::qsort(const AbstractFunctionReferenceNode *fr, int left, int right, bool ascending, class ExceptionSink *xsink)
 {
    int l_hold = left;
    int r_hold = right;
@@ -594,7 +593,7 @@ int QoreListNode::qsort(const class AbstractFunctionReference *fr, int left, int
    return rc;
 }
 
-QoreListNode *QoreListNode::sort(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
+QoreListNode *QoreListNode::sort(const AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const
 {   
    ReferenceHolder<QoreListNode> rv(copy(), xsink);
    if (priv->length)
@@ -620,7 +619,7 @@ QoreListNode *QoreListNode::sortDescendingStable() const
    return rv;
 }
 
-QoreListNode *QoreListNode::sortDescendingStable(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
+QoreListNode *QoreListNode::sortDescendingStable(const AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const
 {   
    ReferenceHolder<QoreListNode> rv(copy(), xsink);
    if (priv->length)
@@ -630,7 +629,7 @@ QoreListNode *QoreListNode::sortDescendingStable(const class AbstractFunctionRef
    return rv.release();
 }
 
-QoreListNode *QoreListNode::sortStable(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
+QoreListNode *QoreListNode::sortStable(const AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const
 {   
    ReferenceHolder<QoreListNode> rv(copy(), xsink);
    if (priv->length)
@@ -824,7 +823,7 @@ class QoreNode *QoreListNode::max() const
    return rv ? rv->RefSelf() : NULL;
 }
 
-class QoreNode *QoreListNode::min(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
+class QoreNode *QoreListNode::min(const AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const
 {
    class QoreNode *rv = NULL;
 
@@ -847,7 +846,7 @@ class QoreNode *QoreListNode::min(const class AbstractFunctionReference *fr, cla
    return rv ? rv->RefSelf() : NULL;
 }
 
-class QoreNode *QoreListNode::max(const class AbstractFunctionReference *fr, class ExceptionSink *xsink) const
+class QoreNode *QoreListNode::max(const AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink) const
 {
    class QoreNode *rv = NULL;
 

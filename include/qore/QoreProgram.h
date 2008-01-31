@@ -119,7 +119,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL QoreProgram(class QoreProgram *pgm, int po, bool ec = false, const char *ecn = NULL);
       DLLLOCAL void registerUserFunction(class UserFunction *u);
       DLLLOCAL void resolveFunction(class FunctionCallNode *f);      
-      DLLLOCAL void resolveFunctionReference(class FunctionReference *fr);      
+      DLLLOCAL void resolveFunctionReference(class FunctionReferenceNode *fr);      
       DLLLOCAL void addGlobalVarDef(const char *name);
       DLLLOCAL void addStatement(class AbstractStatement *s);
       DLLLOCAL class Var *findVar(const char *name);
