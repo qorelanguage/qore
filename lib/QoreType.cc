@@ -21,10 +21,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/RegexSubst.h>
-#include <qore/intern/RegexTrans.h>
-#include <qore/intern/QoreRegex.h>
-#include <qore/intern/ObjectMethodReference.h>
 #include <qore/intern/FunctionReference.h>
 
 #include <string.h>

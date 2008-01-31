@@ -33,9 +33,6 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ParserSupport.h>
-#include <qore/intern/RegexSubst.h>
-#include <qore/intern/RegexTrans.h>
-#include <qore/intern/QoreRegex.h>
 
 #include "parser.h"
 
@@ -229,7 +226,7 @@ static inline char *trim(char *str)
    return n;
 }
 
-static inline bool isRegexModifier(class QoreRegex *qr, int c)
+static inline bool isRegexModifier(QoreRegexNode *qr, int c)
 {
    if (c == 'i')
       qr->setCaseInsensitive();
@@ -244,7 +241,7 @@ static inline bool isRegexModifier(class QoreRegex *qr, int c)
    return true;
 }
 
-static inline bool isRegexSubstModifier(class RegexSubst *qr, int c)
+static inline bool isRegexSubstModifier(RegexSubstNode *qr, int c)
 {
    if (c == 'g')
       qr->setGlobal();
@@ -595,7 +592,7 @@ by					return TOK_BY;
 switch                                  return TOK_SWITCH;
 case                                    BEGIN(case_state); return TOK_CASE;
 <case_state>{
-   \/                                   yylval->Regex = new QoreRegex(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   \/                                   yylval->Regex = new QoreRegexNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WS}+                                /* ignore */
    [^\/]                                yyless(0); BEGIN(INITIAL);
 }
@@ -689,17 +686,17 @@ P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yyte
 					   }
                                         }
 <regex_googleplex>{
-   s\/                                  yylval->RegexSubst = new RegexSubst(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
-   x\/                                  yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
-   tr\/                                 yylval->RegexTrans = new RegexTrans(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
-   m\/                                  yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
-   \/                                   yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   s\/                                  yylval->RegexSubst = new RegexSubstNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
+   x\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
+   tr\/                                 yylval->RegexTrans = new RegexTransNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
+   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
+   \/                                   yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^sxmt\/]                            parse_error("missing regular expression after =~"); BEGIN(INITIAL);
 }
 <regex_negative_universe>{
-   m\/                                  yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
-   \/                                   yylval->Regex      = new QoreRegex();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
+   \/                                   yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^m\/]                               parse_error("missing regular expression after !~"); BEGIN(INITIAL);
 }

@@ -36,22 +36,6 @@
 #define FMT_NORMAL 0
 
 union node_u {
-      // for constant references
-      class NamedScope *scoped_ref;
-      // for complex context references
-      class ComplexContextRef *complex_cref;
-      // for references to an lvalue
-      class QoreNode *lvexp;
-      // for regular expression substitutions
-      class RegexSubst *resub;
-      // for regular expression matches
-      class QoreRegex *regex;
-      // for regular expression translations
-      class RegexTrans *retrans;
-      // for class references
-      class ClassRef *classref;
-      // for object method references
-      class AbstractParseObjectMethodReference *objmethref;
       // for function references
       class AbstractFunctionReference *funcref;
       // for function reference calls
@@ -89,6 +73,18 @@ class QoreNode : public ReferenceObject
       DLLLOCAL QoreNode(class BuiltinFunction *b, class QoreListNode *n_args);
       DLLLOCAL QoreNode(class FunctionCall *fc);
       DLLLOCAL QoreNode(class NamedScope *n, class QoreListNode *n_args);
+      DLLLOCAL QoreNode(class NamedScope *n);
+      DLLLOCAL QoreNode(class ComplexContextRef *ccref);
+      DLLLOCAL QoreNode(class LVRef *lvref);
+      DLLLOCAL QoreNode(class RegexSubst *rs);
+      DLLLOCAL QoreNode(class RegexSubstNode *rs);
+      DLLLOCAL QoreNode(class QoreRegex *r);
+      DLLLOCAL QoreNode(class QoreRegexNode *r);
+      DLLLOCAL QoreNode(class RegexTrans *rt);
+      DLLLOCAL QoreNode(class ClassRef *c);
+      DLLLOCAL QoreNode(class ClassRefNode *c);
+      DLLLOCAL QoreNode(class AbstractParseObjectMethodReference *objmethref);
+      DLLLOCAL QoreNode(class AbstractParseObjectMethodReferenceNode *objmethref);
 
    protected:
       DLLEXPORT virtual ~QoreNode();
@@ -160,16 +156,8 @@ class QoreNode : public ReferenceObject
       // returns true if the node represents a value (default implementation)
       DLLEXPORT virtual bool is_value() const;
       
-      DLLLOCAL QoreNode(class NamedScope *n);
-      DLLLOCAL QoreNode(class ClassRef *c);
-      DLLLOCAL QoreNode(class RegexSubst *rs);
-      DLLLOCAL QoreNode(class RegexTrans *rt);
-      DLLLOCAL QoreNode(class ComplexContextRef *ccref);
-      DLLLOCAL QoreNode(class LVRef *lvref);
-      DLLLOCAL QoreNode(class QoreRegex *r);
       DLLLOCAL QoreNode(class FunctionReferenceCall *frc);
       DLLLOCAL QoreNode(class AbstractFunctionReference *afr);
-      DLLLOCAL QoreNode(class AbstractParseObjectMethodReference *objmethref);
       
       DLLEXPORT class QoreNode *RefSelf() const;
       DLLEXPORT void ref() const;
@@ -259,6 +247,8 @@ class ParseNode : public SimpleQoreNode
       }
 };
 
+// these objects will never be copied or referenced therefore they can have 
+// public destructors - the deref() functions just call "delete this;"
 class ParseNoEvalNode : public ParseNode
 {
    private:
@@ -305,6 +295,16 @@ class ParseNoEvalNode : public ParseNode
       {
 	 assert(false);
 	 return 0.0;
+      }
+      DLLLOCAL virtual void deref()
+      {
+	 assert(is_unique());
+	 delete this;
+      }
+      DLLLOCAL virtual void deref(class ExceptionSink *xsink)
+      {
+	 assert(is_unique());
+	 delete this;
       }
 };
 

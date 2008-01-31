@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/FunctionReference.h>
-#include <qore/intern/ObjectMethodReference.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -66,11 +65,11 @@ int FunctionReferenceCall::parseInit(lvh_t oflag, int pflag)
    return lvids;
 }
 
-ParseObjectMethodReference::ParseObjectMethodReference(class QoreNode *n_exp, char *n_method) : exp(n_exp), method(n_method)
+ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(class QoreNode *n_exp, char *n_method) : exp(n_exp), method(n_method)
 {
 }
 
-ParseObjectMethodReference::~ParseObjectMethodReference()
+ParseObjectMethodReferenceNode::~ParseObjectMethodReferenceNode()
 {
    if (exp)
       exp->deref(NULL);
@@ -79,7 +78,7 @@ ParseObjectMethodReference::~ParseObjectMethodReference()
 }
 
 // returns a RunTimeObjectMethodReference or NULL if there's an exception
-class QoreNode *ParseObjectMethodReference::eval(class ExceptionSink *xsink) const
+QoreNode *ParseObjectMethodReferenceNode::eval(class ExceptionSink *xsink) const
 {
    // evaluate lvalue expression
    ReferenceHolder<QoreNode> lv(exp->eval(xsink), xsink);
@@ -95,50 +94,50 @@ class QoreNode *ParseObjectMethodReference::eval(class ExceptionSink *xsink) con
    return new QoreNode(new RunTimeObjectMethodReference(o, method));
 }
 
-int ParseObjectMethodReference::parseInit(lvh_t oflag, int pflag)
+int ParseObjectMethodReferenceNode::parseInit(lvh_t oflag, int pflag)
 {
    return process_node(&exp, oflag, pflag);
 }
 
-ParseSelfMethodReference::ParseSelfMethodReference(char *n_method) : method(n_method)
+ParseSelfMethodReferenceNode::ParseSelfMethodReferenceNode(char *n_method) : method(n_method)
 {
 }
 
-ParseSelfMethodReference::~ParseSelfMethodReference()
+ParseSelfMethodReferenceNode::~ParseSelfMethodReferenceNode()
 {
    if (method)
       free(method);
 }
 
 // returns a RunTimeObjectMethodReference or NULL if there's an exception
-class QoreNode *ParseSelfMethodReference::eval(class ExceptionSink *xsink) const
+class QoreNode *ParseSelfMethodReferenceNode::eval(class ExceptionSink *xsink) const
 {
    return new QoreNode(new RunTimeObjectMethodReference(getStackObject(), method));
 }
 
-int ParseSelfMethodReference::parseInit(lvh_t oflag, int pflag)
+int ParseSelfMethodReferenceNode::parseInit(lvh_t oflag, int pflag)
 {
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);
    return 0;
 }
 
-ParseScopedSelfMethodReference::ParseScopedSelfMethodReference(class NamedScope *n_nscope) : nscope(n_nscope), method(0)
+ParseScopedSelfMethodReferenceNode::ParseScopedSelfMethodReferenceNode(class NamedScope *n_nscope) : nscope(n_nscope), method(0)
 {
 }
 
-ParseScopedSelfMethodReference::~ParseScopedSelfMethodReference()
+ParseScopedSelfMethodReferenceNode::~ParseScopedSelfMethodReferenceNode()
 {
    delete nscope;
 }
 
 // returns a RunTimeObjectMethodReference or NULL if there's an exception
-class QoreNode *ParseScopedSelfMethodReference::eval(class ExceptionSink *xsink) const
+class QoreNode *ParseScopedSelfMethodReferenceNode::eval(class ExceptionSink *xsink) const
 {
    return new QoreNode(new RunTimeObjectScopedMethodReference(getStackObject(), method));
 }
 
-int ParseScopedSelfMethodReference::parseInit(lvh_t oflag, int pflag)
+int ParseScopedSelfMethodReferenceNode::parseInit(lvh_t oflag, int pflag)
 {
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);

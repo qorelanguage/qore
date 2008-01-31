@@ -31,7 +31,8 @@ libqore_la_SOURCES = \
 	VarRefNode.cc \
 	FunctionCallNode.cc \
 	ReferenceNode.cc \
-	ClassRef.cc \
+	ConstantNode.cc \
+	ClassRefNode.cc \
 	ScopedObjectCallNode.cc \
 	QoreNode.cc \
 	QoreStringNode.cc \
@@ -112,10 +113,10 @@ libqore_la_SOURCES = \
 	mySocket.cc \
 	QoreCondition.cc \
 	QoreQueue.cc \
-	QoreRegex.cc \
+	QoreRegexNode.cc \
 	QoreRegexBase.cc \
-	RegexSubst.cc \
-	RegexTrans.cc \
+	RegexSubstNode.cc \
+	RegexTransNode.cc \
 	Sequence.cc \
 	ReferenceObject.cc \
 	Environment.cc \

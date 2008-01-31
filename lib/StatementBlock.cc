@@ -25,7 +25,6 @@
 #include <qore/intern/OnBlockExitStatement.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/ObjectMethodReference.h>
 #include <qore/minitest.hpp>
 
 #include <stdio.h>
@@ -371,7 +370,7 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
 
    if (ntype == NT_CONSTANT)
    {
-      printd(5, "process_node() resolving scoped constant \"%s\"\n", (*node)->val.scoped_ref->ostr);
+      printd(5, "process_node() resolving scoped constant \"%s\"\n", reinterpret_cast<ConstantNode *>(*node)->scoped_ref->ostr);
       getRootNS()->resolveScopedConstant(node, 1);
       return lvids;
    }
@@ -565,9 +564,9 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    }
    
    if (ntype == NT_CLASSREF)
-      (*node)->val.classref->resolve();
+      reinterpret_cast<ClassRefNode *>(*node)->resolve();
    else if (ntype == NT_OBJMETHREF)
-      (*node)->val.objmethref->parseInit(oflag, pflag);
+      reinterpret_cast<AbstractParseObjectMethodReferenceNode *>(*node)->parseInit(oflag, pflag);
    else if (ntype == NT_FUNCREF)
       (*node)->val.funcref->resolve();
    else if (ntype == NT_FUNCREFCALL)

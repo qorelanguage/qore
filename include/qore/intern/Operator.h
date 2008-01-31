@@ -58,14 +58,12 @@ class OperatorList : public oplist_t
 DLLLOCAL extern class OperatorList oplist;
 
 typedef bool (*op_bool_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink *xsink);
-// FIXME: change to const QoreRegex
-typedef bool (*op_bool_str_regex_func_t)(const QoreString *l, QoreRegex *r, ExceptionSink *xsink);
+typedef bool (*op_bool_str_regex_func_t)(const QoreString *l, const QoreRegexNode *r, ExceptionSink *xsink);
 typedef int64 (*op_bigint_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink *xsink);
 typedef QoreHashNode *(*op_hash_string_func_t)(const QoreHashNode *l, const QoreString *r, ExceptionSink *xsink);
 typedef QoreStringNode *(*op_str_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink *xsink);
-// FIXME: change to const QoreRegex
 // should be QoreListNode (return value)
-typedef QoreNode *(*op_list_str_regex_func_t)(const QoreString *l, QoreRegex *r, ExceptionSink *xsink);
+typedef QoreNode *(*op_list_str_regex_func_t)(const QoreString *l, const QoreRegexNode *r, ExceptionSink *xsink);
 typedef QoreNode *(*op_varref_func_t)(QoreNode *vref, bool ref_rv, ExceptionSink *xsink);
 typedef QoreHashNode *(*op_hash_list_func_t)(const QoreHashNode *l, const QoreListNode *r, ExceptionSink *xsink);
 typedef QoreNode *(*op_noconvert_func_t)(QoreNode *l, QoreNode *r);

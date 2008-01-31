@@ -484,7 +484,7 @@ static int parseInitConstantHash(class QoreHashNode *h, int level)
 	    n = new BarewordNode(strdup(k + 1));
 	 }
 	 else
-	    n = new QoreNode(new NamedScope(strdup(k + 1)));
+	    n = new ConstantNode(strdup(k + 1));
 	 if (rns->parseInitConstantValue(n.getPtrPtr(), level + 1))
 	    return -1;
 
@@ -1067,14 +1067,16 @@ int RootQoreNamespace::resolveSimpleConstant(class QoreNode **node, int level) c
 
 int RootQoreNamespace::resolveScopedConstant(class QoreNode **node, int level) const
 {
-   printd(5, "resolveScopedConstant(%s, %d)\n", (*node)->val.scoped_ref->ostr, level);
+   assert(node && (*node)->getType() == NT_CONSTANT);
+   ConstantNode *c = reinterpret_cast<ConstantNode *>(*node);
+   printd(5, "resolveScopedConstant(%s, %d)\n", c->scoped_ref->ostr, level);
 
    // if constant is not found, then a parse error will be raised
-   class QoreNode *rv = findConstantValue((*node)->val.scoped_ref, level);
+   class QoreNode *rv = findConstantValue(c->scoped_ref, level);
    if (!rv)
       return -1;
 
-   (*node)->deref(NULL);
+   c->deref();
    *node = rv->RefSelf();
    return 0;
 }

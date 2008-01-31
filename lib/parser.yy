@@ -40,15 +40,11 @@
 #include <qore/intern/ThrowStatement.h>
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/ParserSupport.h>
-#include <qore/intern/RegexSubst.h>
-#include <qore/intern/QoreRegex.h>
-#include <qore/intern/RegexTrans.h>
 #include <qore/intern/SwitchStatement.h>
 #include <qore/intern/CaseNodeWithOperator.h>
 #include <qore/intern/CaseNodeRegex.h>
 #include <qore/intern/OnBlockExitStatement.h>
 #include <qore/intern/FunctionReference.h>
-#include <qore/intern/ObjectMethodReference.h>
 
 #include "parser.h"
 
@@ -515,8 +511,8 @@ struct MethodNode {
       class NSNode *nsn;
       class ObjClassDef *objdef;
       class DateTimeNode *datetime;
-      class RegexSubst *RegexSubst;
-      class RegexTrans *RegexTrans;
+      class RegexSubstNode *RegexSubst;
+      class RegexTransNode *RegexTrans;
       class SwitchStatement *switchstmt;
       class CaseNode *casenode;
       class BCList *sclist;
@@ -524,7 +520,7 @@ struct MethodNode {
       class BCAList *bcalist;
       class BCANode *bcanode;
       class NamedScope *nscope;
-      class QoreRegex *Regex;
+      class QoreRegexNode *Regex;
 }
 
 %{
@@ -719,7 +715,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
 
  // destructor actions for elements that need deleting when parse errors occur
 %destructor { if ($$) delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
-%destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY
+%destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY 
 %destructor { if ($$) $$->deref(NULL); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
 
@@ -1455,7 +1451,7 @@ exp:    scalar
 	| '(' hash ')'
 	{ $$ = $2; }
         | SCOPED_REF
-        { $$ = new QoreNode(new NamedScope($1)); }
+        { $$ = new ConstantNode($1); }
         | VAR_REF
         { $$ = new VarRefNode($1, VT_UNRESOLVED); }
         | TOK_MY VAR_REF
@@ -1644,11 +1640,11 @@ exp:    scalar
         { $$ = makeTree(OP_ELEMENTS, $2, NULL); }
         | exp TOK_INSTANCEOF IDENTIFIER
         {
-	   $$ = makeTree(OP_INSTANCEOF, $1, new QoreNode(new ClassRef(new NamedScope($3))));
+	   $$ = makeTree(OP_INSTANCEOF, $1, new ClassRefNode($3));
 	}
         | exp TOK_INSTANCEOF SCOPED_REF
         {
-	   $$ = makeTree(OP_INSTANCEOF, $1, new QoreNode(new ClassRef(new NamedScope($3))));
+	   $$ = makeTree(OP_INSTANCEOF, $1, new ClassRefNode($3));
 	}
         | TOK_KEYS exp
         { $$ = makeTree(OP_KEYS, $2, NULL); }
@@ -1807,10 +1803,10 @@ exp:    scalar
 	   }
 	   else if (t == NT_CONSTANT)
 	   {
+	      ConstantNode *c = reinterpret_cast<ConstantNode *>($1);
 	      // take NamedScope from node and delete node
-	      NamedScope *ns = $1->val.scoped_ref;
-	      $1->val.scoped_ref = 0;
-	      $1->deref(0);
+	      NamedScope *ns = c->takeName();
+	      c->deref();
 	      printd(5, "parsing scoped class call (for new) %s()\n", ns->ostr);
 	      $$ = new ScopedObjectCallNode(ns, makeArgs($3));	      
 	   }
@@ -1874,23 +1870,23 @@ exp:    scalar
 	| exp '^' exp		     { $$ = makeTree(OP_BIN_XOR, $1, $3); }
         | exp REGEX_MATCH REGEX
         {
-	   $$ = makeTree(OP_REGEX_MATCH, $1, new QoreNode($3));
+	   $$ = makeTree(OP_REGEX_MATCH, $1, $3);
 	}
         | exp REGEX_NMATCH REGEX
         {
-	   $$ = makeTree(OP_REGEX_NMATCH, $1, new QoreNode($3));
+	   $$ = makeTree(OP_REGEX_NMATCH, $1, $3);
 	}
         | exp REGEX_MATCH REGEX_SUBST
         {
 	   if (check_lvalue($1))
 	   {
 	      parse_error("left-hand side of regular expression substitution operator is not an lvalue");
-	      $$ = makeErrorTree(OP_REGEX_SUBST, $1, new QoreNode($3));
+	      $$ = makeErrorTree(OP_REGEX_SUBST, $1, $3);
 	   }
 	   else
 	   {
 	      //printf("REGEX_SUBST: '%s'\n", $3->getPattern()->getBuffer());
-	      $$ = makeTree(OP_REGEX_SUBST, $1, new QoreNode($3));
+	      $$ = makeTree(OP_REGEX_SUBST, $1, $3);
 	   }
 	}
         | exp REGEX_MATCH REGEX_TRANS
@@ -1898,18 +1894,17 @@ exp:    scalar
 	   if (check_lvalue($1))
 	   {
 	      parse_error("left-hand side of transliteration operator is not an lvalue");
-	      $$ = makeErrorTree(OP_REGEX_TRANS, $1, new QoreNode($3));
+	      $$ = makeErrorTree(OP_REGEX_TRANS, $1, $3);
 	   }
 	   else
 	   {
-	      //printf("REGEX_SUBST: '%s'\n", $3->getPattern()->getBuffer());
-	      $$ = makeTree(OP_REGEX_TRANS, $1, new QoreNode($3));
+	      $$ = makeTree(OP_REGEX_TRANS, $1, $3);
 	   }
 	}
         | exp REGEX_MATCH REGEX_EXTRACT
         {
 	   //printd(5, "REGEX_EXTRACT: '%s'\n", (new QoreNode($3))->getTypeName());
-	   $$ = makeTree(OP_REGEX_EXTRACT, $1, new QoreNode($3));
+	   $$ = makeTree(OP_REGEX_EXTRACT, $1, $3);
 	}
 	| exp '>' exp		     { $$ = makeTree(OP_LOG_GT, $1, $3); }
 	| exp '<' exp		     { $$ = makeTree(OP_LOG_LT, $1, $3); }
@@ -1950,11 +1945,11 @@ exp:    scalar
 		 {
 		    assert(f->getFunctionType() == FC_SELF);
 		    if (f->f.sfunc->name)
-		       $$ = new QoreNode(new ParseSelfMethodReference(f->f.sfunc->takeName()));
+		       $$ = new ParseSelfMethodReferenceNode(f->f.sfunc->takeName());
 		    else
 		    {
 		       assert(f->f.sfunc->ns);
-		       $$ = new QoreNode(new ParseScopedSelfMethodReference(f->f.sfunc->takeNScope()));
+		       $$ = new ParseScopedSelfMethodReferenceNode(f->f.sfunc->takeNScope());
 		    }
 		 }
 		 f->deref();
@@ -1981,7 +1976,7 @@ exp:    scalar
 			  f->deref();
 			  tree->right = 0;
 			  $2->deref(0);
-			  $$ = new QoreNode(new ParseObjectMethodReference(exp, meth));
+			  $$ = new ParseObjectMethodReferenceNode(exp, meth);
 			  //printd(5, "made parse object method reference: exp=%08p meth=%s (node=%08p)\n", exp, meth, $$);
 			  make_ref = false;
 		       }

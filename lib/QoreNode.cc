@@ -47,80 +47,10 @@ QoreNode::~QoreNode()
    printd(5, "QoreNode::~QoreNode() type=%s\n", getTypeName());
 #endif
 
-   if (type == NT_CONSTANT) {
-      delete val.scoped_ref;
+   if (type == NT_FUNCREFCALL) {
+      delete val.funcrefcall;
       return;
    }
-
-   if (type == NT_CLASSREF) {
-      delete val.classref;
-      return;
-   }
-
-   if (type == NT_REGEX_SUBST) {
-      delete val.resub;
-      return;
-   }
-
-   if (type == NT_REGEX_TRANS) {
-      delete val.retrans;
-      return;
-   }
-
-   if (type == NT_REGEX) {
-      delete val.regex;
-      return;
-   }
-
-   if (type == NT_OBJMETHREF) {
-      delete val.objmethref;
-      return;
-   }
-}
-
-QoreNode::QoreNode(class NamedScope *n)
-{
-   type = NT_CONSTANT;
-   val.scoped_ref = n;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(class ClassRef *c)
-{
-   type = NT_CLASSREF;
-   val.classref = c;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(class RegexSubst *rs)
-{
-   type = NT_REGEX_SUBST;
-   val.resub = rs;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(class RegexTrans *rt)
-{
-   type = NT_REGEX_TRANS;
-   val.retrans = rt;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(class QoreRegex *r)
-{
-   type = NT_REGEX;
-   val.regex = r;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
 }
 
 QoreNode::QoreNode(class FunctionReferenceCall *frc)
@@ -136,15 +66,6 @@ QoreNode::QoreNode(class AbstractFunctionReference *afr)
 {
    type = NT_FUNCREF;
    val.funcref = afr;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
-}
-
-QoreNode::QoreNode(class AbstractParseObjectMethodReference *objmethref)
-{
-   type = NT_OBJMETHREF;
-   val.objmethref = objmethref;
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
 #endif
@@ -210,21 +131,6 @@ class QoreNode *QoreNode::realCopy() const
    // FIXME: pure virtual function
    assert(this);
 
-   if (type == NT_CONSTANT)
-      assert(false);
-
-   if (type == NT_REGEX_SUBST)
-      assert(false);
-
-   if (type == NT_REGEX_TRANS)
-      assert(false);
-
-   if (type == NT_REGEX)
-      assert(false);
-
-   if (type == NT_CLASSREF)
-      assert(false);
-
    QoreNode *rv = new QoreNode(type);
    memcpy(&rv->val, &val, sizeof(union node_u));
    return rv;
@@ -232,9 +138,6 @@ class QoreNode *QoreNode::realCopy() const
 
 bool QoreNode::needs_eval() const
 {
-   if (type == NT_OBJMETHREF)
-      return true;
-
    if (type == NT_FUNCREF)
       return true;
 
@@ -246,40 +149,20 @@ bool QoreNode::needs_eval() const
 
 bool QoreNode::is_value() const
 {
-   if (type == NT_OBJMETHREF)
-      return false;
-
    if (type == NT_FUNCREF)
       return false;
 
    if (type == NT_FUNCREFCALL)
       return false;
 
-   if (type == NT_CONSTANT)
-      return false;
-
-   if (type == NT_REGEX)
-      return false;
-
-   if (type == NT_CLASSREF)
-      return false;
-
-   if (type == NT_OBJMETHREF)
-      return false;
-
    return true;
 }
-
 
 /*
   QoreNode::eval(): return value requires a dereference
  */
 class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
 {
-   if (type == NT_OBJMETHREF) {
-      return val.objmethref->eval(xsink);
-   }
-
    if (type == NT_FUNCREF) {
       return val.funcref->eval(this);
    }
@@ -287,15 +170,6 @@ class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
    if (type == NT_FUNCREFCALL) {
       return val.funcrefcall->eval(xsink);
    }
-
-   if (type == NT_CONSTANT)
-      assert(false);
-
-   if (type == NT_REGEX_SUBST)
-      assert(false);
-
-   if (type == NT_REGEX_TRANS)
-      assert(false);
 
    return RefSelf();
 }

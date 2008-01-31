@@ -24,7 +24,7 @@
 #define QORE_CASENODEREGEX_H
 
 #include <qore/intern/SwitchStatement.h>
-#include <qore/intern/QoreRegex.h>
+#include <qore/intern/QoreRegexNode.h>
 
 // Class supporting:
 // switch ($a) {
@@ -33,8 +33,8 @@
 class CaseNodeRegex : public CaseNode
 {
 protected:
-   class QoreRegex *re;
-
+   QoreRegexNode *re;
+   
    DLLLOCAL virtual bool isCaseNodeImpl() const
    {
       return false;
@@ -45,7 +45,7 @@ protected:
    }
    
 public:
-   DLLLOCAL CaseNodeRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) 
+   DLLLOCAL CaseNodeRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) 
    {
    }
    DLLLOCAL virtual ~CaseNodeRegex()
@@ -58,7 +58,7 @@ public:
 class CaseNodeNegRegex : public CaseNodeRegex
 {
 public:
-   DLLLOCAL CaseNodeNegRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) 
+   DLLLOCAL CaseNodeNegRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) 
    {
    }
    DLLLOCAL virtual bool matches(QoreNode *lhs_value, class ExceptionSink *xsink);

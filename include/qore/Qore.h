@@ -74,7 +74,8 @@
 #include <qore/intern/Variable.h>
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/ScopedObjectCallNode.h>
-#include <qore/intern/ClassRef.h>
+#include <qore/intern/ConstantNode.h>
+#include <qore/intern/ClassRefNode.h>
 #include <qore/intern/Context.h>
 #include <qore/intern/Operator.h>
 #include <qore/intern/QoreTreeNode.h>
@@ -93,6 +94,10 @@
 #include <qore/intern/VarRefNode.h>
 #include <qore/intern/FunctionCallNode.h>
 #include <qore/intern/ReferenceNode.h>
+#include <qore/intern/RegexSubstNode.h>
+#include <qore/intern/QoreRegexNode.h>
+#include <qore/intern/RegexTransNode.h>
+#include <qore/intern/ObjectMethodReferenceNode.h>
 
 DLLLOCAL extern int qore_library_options;
 #endif

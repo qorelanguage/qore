@@ -22,8 +22,6 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ql_string.h>
-#include <qore/intern/QoreRegex.h>
-#include <qore/intern/RegexSubst.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -418,7 +416,7 @@ static class QoreNode *f_regex(const QoreListNode *params, ExceptionSink *xsink)
    QoreNode *p2 = get_param(params, 2);
    int options = p2 ? p2->getAsInt() : 0;
 
-   QoreRegex qr(p1, options, xsink);
+   QoreRegexNode qr(p1, options, xsink);
    if (*xsink)
       return NULL;
 
@@ -446,7 +444,7 @@ static class QoreNode *f_regex_subst(const QoreListNode *params, ExceptionSink *
    else
       global = false;
 
-   class RegexSubst qrs(p1, options, xsink);
+   RegexSubstNode qrs(p1, options, xsink);
    if (*xsink)
       return 0;
 
@@ -465,7 +463,7 @@ static class QoreNode *f_regex_extract(const QoreListNode *params, ExceptionSink
    QoreNode *p2 = get_param(params, 2);
    int options = p2 ? p2->getAsInt() : 0;
    
-   QoreRegex qr(p1, options, xsink);
+   QoreRegexNode qr(p1, options, xsink);
    if (*xsink)
       return 0;
    

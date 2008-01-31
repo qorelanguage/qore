@@ -21,9 +21,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/RegexSubst.h>
-#include <qore/intern/RegexTrans.h>
-#include <qore/intern/QoreRegex.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -266,12 +263,12 @@ static bool op_absolute_log_neq(QoreNode *left, QoreNode *right, ExceptionSink *
    return !op_absolute_log_eq(left, right, xsink);
 }
 
-static bool op_regex_match(const QoreString *left, QoreRegex *right, ExceptionSink *xsink)
+static bool op_regex_match(const QoreString *left, const QoreRegexNode *right, ExceptionSink *xsink)
 {
    return right->exec(left, xsink);
 }
 
-static bool op_regex_nmatch(const QoreString *left, QoreRegex *right, ExceptionSink *xsink)
+static bool op_regex_nmatch(const QoreString *left, const QoreRegexNode *right, ExceptionSink *xsink)
 {
    return !right->exec(left, xsink);
 }
@@ -439,8 +436,9 @@ static bool op_instanceof(class QoreNode *l, class QoreNode *r, ExceptionSink *x
    if (*xsink || !nl)
       return false;
 
+   assert(r && r->getType() == NT_CLASSREF);
    QoreObject *o = dynamic_cast<QoreObject *>(*nl);
-   if (o && o->validInstanceOf(r->val.classref->getID()))
+   if (o && o->validInstanceOf(reinterpret_cast<const ClassRefNode *>(r)->getID()))
       return true;
 
    return false;  
@@ -642,7 +640,9 @@ static class QoreNode *op_regex_subst(QoreNode *left, QoreNode *right, bool ref_
       return NULL;
 
    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-   QoreStringNode *nv = right->val.resub->exec((*vs), xsink);
+   assert(right && right->getType() == NT_REGEX_SUBST);
+   RegexSubstNode *rs = reinterpret_cast<RegexSubstNode *>(right);
+   QoreStringNode *nv = rs->exec((*vs), xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -666,8 +666,9 @@ static class QoreNode *op_regex_trans(QoreNode *left, QoreNode *right, bool ref_
    if (!(*v) || (*v)->type != NT_STRING)
       return NULL;
 
+   assert(right && right->getType() == NT_REGEX_TRANS);
    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-   QoreStringNode *nv = right->val.retrans->exec((*vs), xsink);
+   QoreStringNode *nv = reinterpret_cast<const RegexTransNode *>(right)->exec((*vs), xsink);
    if (*xsink)
       return NULL;
 
@@ -2094,7 +2095,7 @@ static QoreHashNode *op_minus_hash_list(const QoreHashNode *h, const QoreListNod
    return x.release();
 }
 
-static class QoreNode *op_regex_extract(const QoreString *left, QoreRegex *right, ExceptionSink *xsink)
+static class QoreNode *op_regex_extract(const QoreString *left, const QoreRegexNode *right, ExceptionSink *xsink)
 {
    return right->extractSubstrings(left, xsink);
 }
@@ -2517,11 +2518,16 @@ double StringStringStringOperatorFunction::float_eval(QoreNode *left, QoreNode *
 class QoreNode *ListStringRegexOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    assert(right && right->type == NT_REGEX);
-   // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
+
+   // conditionally evaluate left-hand node only
+   QoreNodeEvalOptionalRefHolder le(left, xsink);
+   if (*xsink) return 0;
+   
+   // return immediately if the return value is ignored, this statement will have no effect and there can be no (other) side-effects
    if (!ref_rv) return 0;
 
-   QoreStringValueHelper l(left);
-   return op_func(*l, right->val.regex, xsink);
+   QoreStringValueHelper l(*le);
+   return op_func(*l, reinterpret_cast<const QoreRegexNode *>(right), xsink);
 }
 
 bool ListStringRegexOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
@@ -3157,37 +3163,57 @@ double LogicOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int ar
 
 QoreNode *BoolStrRegexOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
-   QoreStringValueHelper l(left);
    assert(right && right->type == NT_REGEX);
 
-   bool rv = op_func(*l, right->val.regex, xsink);
-   if (!ref_rv || *xsink)
-      return 0;
-   return new QoreBoolNode(rv);
+   // conditionally evaluate left-hand node only
+   QoreNodeEvalOptionalRefHolder le(left, xsink);
+   if (*xsink) return 0;
+
+   // return immediately if the return value is ignored, this statement will have no effect and there can be no (other) side-effects
+   if (!ref_rv) return 0;
+
+   QoreStringValueHelper l(*le);
+   bool rv = op_func(*l, reinterpret_cast<const QoreRegexNode *>(right), xsink);
+   return *xsink ? 0 : new QoreBoolNode(rv);
 }
 
 bool BoolStrRegexOperatorFunction::bool_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   QoreStringValueHelper l(left);
    assert(right && right->type == NT_REGEX);
 
-   return op_func(*l, right->val.regex, xsink);
+   // conditionally evaluate left-hand node only
+   QoreNodeEvalOptionalRefHolder le(left, xsink);
+   if (*xsink) return 0;
+
+   QoreStringValueHelper l(*le);
+
+   return op_func(*l, reinterpret_cast<const QoreRegexNode *>(right), xsink);
 }
 
 int64 BoolStrRegexOperatorFunction::bigint_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   QoreStringValueHelper l(left);
    assert(right && right->type == NT_REGEX);
 
-   return (int64)op_func(*l, right->val.regex, xsink);
+   // conditionally evaluate left-hand node only
+   QoreNodeEvalOptionalRefHolder le(left, xsink);
+   if (*xsink) return 0;
+
+   QoreStringValueHelper l(*le);
+
+   return (int64)op_func(*l, reinterpret_cast<const QoreRegexNode *>(right), xsink);
 }
 
 double BoolStrRegexOperatorFunction::float_eval(QoreNode *left, QoreNode *right, int args, ExceptionSink *xsink) const
 {
-   QoreStringValueHelper l(left);
    assert(right && right->type == NT_REGEX);
 
-   return (double)op_func(*l, right->val.regex, xsink);
+   // conditionally evaluate left-hand node only
+   QoreNodeEvalOptionalRefHolder le(left, xsink);
+   if (*xsink) return 0;
+
+   QoreStringValueHelper l(*le);
+
+   return (double)op_func(*l, reinterpret_cast<const QoreRegexNode *>(right), xsink);
 }
 
 QoreNode *BigIntStrStrOperatorFunction::eval(QoreNode *left, QoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
@@ -3880,10 +3906,10 @@ void OperatorList::init()
    OP_ABSOLUTE_NE = add(new Operator(2, "!==", "absolute logical-not-equals", 0, false));
    OP_ABSOLUTE_NE->addFunction(NT_ALL, NT_ALL, op_absolute_log_neq);
    
-   OP_REGEX_MATCH = add(new Operator(2, "=~", "regular expression match", 1, false));
+   OP_REGEX_MATCH = add(new Operator(2, "=~", "regular expression match", 0, false));
    OP_REGEX_MATCH->addFunction(op_regex_match);
    
-   OP_REGEX_NMATCH = add(new Operator(2, "!~", "regular expression negative match", 1, false));
+   OP_REGEX_NMATCH = add(new Operator(2, "!~", "regular expression negative match", 0, false));
    OP_REGEX_NMATCH->addFunction(op_regex_nmatch);
 
    OP_EXISTS = add(new Operator(1, "exists", "exists", 0, false));
@@ -4043,7 +4069,7 @@ void OperatorList::init()
    OP_REGEX_TRANS = add(new Operator(2, "transliteration", "transliteration", 0, true, true));
    OP_REGEX_TRANS->addFunction(NT_ALL, NT_REGEX_TRANS, op_regex_trans);
 
-   OP_REGEX_EXTRACT = add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 1, false));
+   OP_REGEX_EXTRACT = add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 0, false));
    OP_REGEX_EXTRACT->addFunction(op_regex_extract);
 
    OP_CHOMP = add(new Operator(1, "chomp", "chomp EOL marker from lvalue", 0, true, true));

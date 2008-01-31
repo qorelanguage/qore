@@ -1,5 +1,5 @@
 /*
- BarewordNode.h
+ ConstantNode.h
  
  Qore Programming Language
  
@@ -20,38 +20,34 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_BAREWORDNODE_H
+#ifndef _QORE_CONSTANTNODE_H
 
-#define _QORE_BAREWORDNODE_H
+#define _QORE_CONSTANTNODE_H
 
-class BarewordNode : public ParseNoEvalNode 
+class ConstantNode : public ParseNoEvalNode 
 {
-   protected:
-      
    public:
-      char *str;
+      NamedScope *scoped_ref;
 
-      // object takes over ownership of str
-      DLLLOCAL BarewordNode(char *c_str);
-      DLLLOCAL virtual ~BarewordNode();
+      // object takes over ownership of NamedScope
+      DLLLOCAL ConstantNode(char *ref);
+      DLLLOCAL virtual ~ConstantNode();
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
       // returns -1 for exception raised, 0 = OK
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       // returns the data type
       DLLLOCAL virtual const QoreType *getType() const;
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 
-      // takes the string and returns a QoreStringNode, gives the memory to the new QoreStringNode
-      DLLLOCAL QoreStringNode *makeQoreStringNode();
-      // returns the string, caller now owns the memory
-      DLLLOCAL char *takeString();
+      // caller owns NamedScope returned
+      DLLLOCAL NamedScope *takeName();
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*
- RegexTrans.cc
+ RegexTransNode.cc
  
  regex-like transliteration class definition
  
@@ -23,53 +23,84 @@
  */
 
 #include <qore/Qore.h>
-#include <qore/intern/RegexTrans.h>
+#include <qore/intern/RegexTransNode.h>
 
 #include <stdlib.h>
 #include <strings.h>
 #include <ctype.h>
 
 // constructor used when parsing
-RegexTrans::RegexTrans()
+RegexTransNode::RegexTransNode() : ParseNoEvalNode(NT_REGEX_TRANS)
 {
-   //printd(5, "RegexTrans::RegexTrans() this=%08p\n", this);
+   //printd(5, "RegexTransNode::RegexTransNode() this=%08p\n", this);
    source = new QoreString();
    target = new QoreString();
    sr = tr = false;
 }
 
-RegexTrans::~RegexTrans()
+RegexTransNode::~RegexTransNode()
 {
-   //printd(5, "RegexTrans::~RegexTrans() this=%08p\n", this);
+   //printd(5, "RegexTransNode::~RegexTransNode() this=%08p\n", this);
    if (source)
       delete source;
    if (target)
       delete target;
 }
 
-void RegexTrans::setTargetRange() 
+// get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+// the ExceptionSink is only needed for QoreObject where a method may be executed
+// use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+// returns -1 for exception raised, 0 = OK
+int RegexTransNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
+{
+   str.sprintf("transliteration expression (0x%08p)", this);
+   return 0;
+}
+
+// if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+QoreString *RegexTransNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
+{
+   del = true;
+   QoreString *rv = new QoreString();
+   getAsString(*rv, foff, xsink);
+   return rv;
+}
+
+// returns the data type
+const QoreType *RegexTransNode::getType() const
+{
+   return NT_REGEX_TRANS;
+}
+
+// returns the type name as a c string
+const char *RegexTransNode::getTypeName() const
+{
+   return "transliteration expression";
+}
+
+void RegexTransNode::setTargetRange() 
 { 
    tr = true; 
 }
 
-void RegexTrans::setSourceRange() 
+void RegexTransNode::setSourceRange() 
 { 
    sr = true; 
 }
 
-void RegexTrans::finishSource()
+void RegexTransNode::finishSource()
 {
    if (sr)
       parse_error("no end character for character range at end of source pattern in transliteration");
 }
 
-void RegexTrans::finishTarget()
+void RegexTransNode::finishTarget()
 {
    if (tr)
       parse_error("no end character for character range at end of target pattern in transliteration");
 }
 
-void RegexTrans::doRange(class QoreString *str, char end)
+void RegexTransNode::doRange(class QoreString *str, char end)
 {
    if (!str->strlen())
    {
@@ -88,7 +119,7 @@ void RegexTrans::doRange(class QoreString *str, char end)
    while (start <= end);
 }
 
-void RegexTrans::concatSource(char c)
+void RegexTransNode::concatSource(char c)
 {
    if (sr)
    {
@@ -99,7 +130,7 @@ void RegexTrans::concatSource(char c)
       source->concat(c);
 }
 
-void RegexTrans::concatTarget(char c)
+void RegexTransNode::concatTarget(char c)
 {
    if (tr)
    {
@@ -110,7 +141,7 @@ void RegexTrans::concatTarget(char c)
       target->concat(c);
 }
 
-class QoreStringNode *RegexTrans::exec(const QoreString *str, class ExceptionSink *xsink) const
+QoreStringNode *RegexTransNode::exec(const QoreString *str, class ExceptionSink *xsink) const
 {
    //printd(5, "source='%s' target='%s' ('%s')\n", source->getBuffer(), target->getBuffer(), str->getBuffer());
    ConstTempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
@@ -136,5 +167,3 @@ class QoreStringNode *RegexTrans::exec(const QoreString *str, class ExceptionSin
 
    return ns;
 }
-
-

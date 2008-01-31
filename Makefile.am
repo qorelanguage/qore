@@ -90,6 +90,7 @@ noinst_HEADERS = \
 	include/qore/intern/ContextRowNode.h \
 	include/qore/intern/ComplexContextrefNode.h \
 	include/qore/intern/FunctionCallNode.h \
+	include/qore/intern/ConstantNode.h \
 	include/qore/intern/SmartMutex.h \
 	include/qore/intern/Sequence.h \
 	include/qore/intern/ScopedObjectCallNode.h \
@@ -98,9 +99,9 @@ noinst_HEADERS = \
 	include/qore/intern/RMutex.h \
 	include/qore/intern/SSLSocketHelper.h \
 	include/qore/intern/QoreSignal.h \
-	include/qore/intern/RegexSubst.h \
-	include/qore/intern/RegexTrans.h \
-	include/qore/intern/QoreRegex.h \
+	include/qore/intern/RegexSubstNode.h \
+	include/qore/intern/RegexTransNode.h \
+	include/qore/intern/QoreRegexNode.h \
 	include/qore/intern/QoreRegexBase.h \
 	include/qore/intern/QoreQueue.h \
 	include/qore/intern/QoreNumber.h \
@@ -110,7 +111,7 @@ noinst_HEADERS = \
 	include/qore/intern/QException.h \
 	include/qore/intern/ParserSupport.h \
 	include/qore/intern/Operator.h \
-	include/qore/intern/ObjectMethodReference.h \
+	include/qore/intern/ObjectMethodReferenceNode.h \
 	include/qore/intern/NamedScope.h \
 	include/qore/intern/QoreNamespaceList.h \
 	include/qore/intern/ManagedDatasource.h \
@@ -126,7 +127,7 @@ noinst_HEADERS = \
 	include/qore/intern/ConstantList.h \
 	include/qore/intern/CaseNodeWithOperator.h \
 	include/qore/intern/CaseNodeRegex.h \
-	include/qore/intern/ClassRef.h \
+	include/qore/intern/ClassRefNode.h \
 	include/qore/intern/CallStack.h \
 	include/qore/intern/BuiltinMethod.h \
 	include/qore/intern/AbstractStatement.h \

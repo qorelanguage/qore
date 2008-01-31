@@ -26,15 +26,13 @@
 
 class ScopedObjectCallNode : public ParseNoEvalNode
 {
-   protected:
-      DLLLOCAL virtual ~ScopedObjectCallNode();
-
    public:
       class NamedScope *name;
       class QoreClass *oc;
       QoreListNode *args;
       
       DLLLOCAL ScopedObjectCallNode(NamedScope *n, QoreListNode *a);
+      DLLLOCAL virtual ~ScopedObjectCallNode();
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed
