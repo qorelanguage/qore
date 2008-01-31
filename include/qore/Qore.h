@@ -54,7 +54,6 @@
 #include <qore/DateTime.h>
 #include <qore/QoreType.h>
 #include <qore/charset.h>
-#include <qore/params.h>
 #include <qore/BuiltinFunctionList.h>
 #include <qore/qore_thread.h>
 #include <qore/LockedObject.h>
@@ -65,6 +64,9 @@
 #include <qore/ScopeGuard.h>
 #include <qore/Environment.h>
 #include <qore/AutoVLock.h>
+#include <qore/FunctionReferenceNode.h>
+#include <qore/ReferenceNode.h>
+#include <qore/params.h>
 
 // include private definitions if compiling the library
 #ifdef _QORE_LIB_INTERN
@@ -89,11 +91,9 @@
 #include <qore/intern/VRMutex.h>
 #include <qore/intern/VLock.h>
 #include <qore/intern/qore_thread_intern.h>
-#include <qore/intern/FunctionReferenceNode.h>
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/VarRefNode.h>
 #include <qore/intern/FunctionCallNode.h>
-#include <qore/intern/ReferenceNode.h>
 #include <qore/intern/RegexSubstNode.h>
 #include <qore/intern/QoreRegexNode.h>
 #include <qore/intern/RegexTransNode.h>

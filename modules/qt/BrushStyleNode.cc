@@ -80,6 +80,12 @@ QoreString *BrushStyleNode::getAsString(bool &del, int foff, class ExceptionSink
    return getStringRepresentation(del);
 }
 
+int BrushStyleNode::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
+{
+   getStringRepresentation(str);
+   return 0;
+}
+
 class QoreNode *BrushStyleNode::realCopy() const
 {
    return new BrushStyleNode(val);

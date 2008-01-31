@@ -568,9 +568,9 @@ int process_node(class QoreNode **node, lvh_t oflag, int pflag)
    else if (ntype == NT_OBJMETHREF)
       reinterpret_cast<AbstractParseObjectMethodReferenceNode *>(*node)->parseInit(oflag, pflag);
    else if (ntype == NT_FUNCREF)
-      reinterpret_cast<AbstractFunctionReferenceNode *>(*node)->resolve();
+      (*node) = reinterpret_cast<UnresolvedFunctionReferenceNode *>(*node)->resolve();
    else if (ntype == NT_FUNCREFCALL)
-      (*node)->val.funcrefcall->parseInit(oflag, pflag);
+      reinterpret_cast<FunctionReferenceCallNode *>(*node)->parseInit(oflag, pflag);
    
    return lvids;
 }

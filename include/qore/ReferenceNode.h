@@ -29,34 +29,35 @@
 class ReferenceNode : public SimpleQoreNode
 {
    protected:
-      DLLLOCAL virtual ~ReferenceNode();
+      DLLEXPORT virtual ~ReferenceNode();
 
    public:
+      // FIXME: make private and provide functions to access
       QoreNode *lvexp; // lvalue expression for reference
 
-      DLLLOCAL ReferenceNode(QoreNode *exp);
+      DLLEXPORT ReferenceNode(QoreNode *exp);
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
       // returns -1 for exception raised, 0 = OK
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+      DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLLOCAL virtual class QoreNode *realCopy() const;
+      DLLEXPORT virtual class QoreNode *realCopy() const;
 
       // the type passed must always be equal to the current type
-      DLLLOCAL virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
 
       // returns the data type
-      DLLLOCAL virtual const QoreType *getType() const;
+      DLLEXPORT virtual const QoreType *getType() const;
       // returns the type name as a c string
-      DLLLOCAL virtual const char *getTypeName() const;
+      DLLEXPORT virtual const char *getTypeName() const;
 
       // returns true if the node represents a value (default implementation)
-      DLLLOCAL virtual bool is_value() const;
+      DLLEXPORT virtual bool is_value() const;
 };
 
 #endif

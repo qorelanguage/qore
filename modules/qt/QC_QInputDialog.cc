@@ -58,7 +58,7 @@ static QoreNode *f_QInputDialog_getDouble(const QoreListNode *params, ExceptionS
    p = get_param(params, 6);
    int decimals = !is_nothing(p) ? p->getAsInt() : 1;
 
-   QoreNode *pr = test_param(params, NT_REFERENCE, 7);
+   ReferenceNode *pr = test_reference_param(params, 7);
 
    p = get_param(params, 8);
    Qt::WindowFlags f = (Qt::WindowFlags)(!is_nothing(p) ? p->getAsInt() : 0);
@@ -68,7 +68,7 @@ static QoreNode *f_QInputDialog_getDouble(const QoreListNode *params, ExceptionS
 
    if (pr) {
       class AutoVLock vl;
-      class QoreNode **vp = get_var_value_ptr(pr->val.lvexp, &vl, xsink);
+      class QoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -108,7 +108,7 @@ static QoreNode *f_QInputDialog_getInteger(const QoreListNode *params, Exception
    p = get_param(params, 6);
    int step = !is_nothing(p) ? p->getAsInt() : 1;
 
-   QoreNode *pr = test_param(params, NT_REFERENCE, 7);
+   ReferenceNode *pr = test_reference_param(params, 7);
 
    p = get_param(params, 8);
    Qt::WindowFlags f = (Qt::WindowFlags)(!is_nothing(p) ? p->getAsInt() : 0);
@@ -118,7 +118,7 @@ static QoreNode *f_QInputDialog_getInteger(const QoreListNode *params, Exception
 
    if (pr) {
       class AutoVLock vl;
-      class QoreNode **vp = get_var_value_ptr(pr->val.lvexp, &vl, xsink);
+      class QoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -169,7 +169,7 @@ static QoreNode *f_QInputDialog_getItem(const QoreListNode *params, ExceptionSin
    p = get_param(params, 5);
    bool editable = !is_nothing(p) ? p->getAsBool() : true;
 
-   QoreNode *pr = test_param(params, NT_REFERENCE, 6);
+   ReferenceNode *pr = test_reference_param(params, 6);
 
    p = get_param(params, 7);
    Qt::WindowFlags f = (Qt::WindowFlags)(!is_nothing(p) ? p->getAsInt() : 0);
@@ -179,7 +179,7 @@ static QoreNode *f_QInputDialog_getItem(const QoreListNode *params, ExceptionSin
 
    if (pr) {
       class AutoVLock vl;
-      class QoreNode **vp = get_var_value_ptr(pr->val.lvexp, &vl, xsink);
+      class QoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -217,7 +217,7 @@ static QoreNode *f_QInputDialog_getText(const QoreListNode *params, ExceptionSin
    if (get_qstring(p, text, xsink, true))
       text = QString();
 
-   QoreNode *pr = test_param(params, NT_REFERENCE, 5);
+   ReferenceNode *pr = test_reference_param(params, 5);
 
    p = get_param(params, 6);
    Qt::WindowFlags f = (Qt::WindowFlags)(!is_nothing(p) ? p->getAsInt() : 0);
@@ -227,7 +227,7 @@ static QoreNode *f_QInputDialog_getText(const QoreListNode *params, ExceptionSin
 
    if (pr) {
       class AutoVLock vl;
-      class QoreNode **vp = get_var_value_ptr(pr->val.lvexp, &vl, xsink);
+      class QoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
 

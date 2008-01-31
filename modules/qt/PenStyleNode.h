@@ -53,12 +53,12 @@ class PenStyleNode : public SimpleQoreNode
       DLLLOCAL virtual int64 getAsBigInt() const;
       DLLLOCAL virtual double getAsFloat() const;
 
-      // FIXME: move QoreString * to first argument
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       // the ExceptionSink is only needed for QoreObject where a method may be executed
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
       DLLLOCAL virtual class QoreNode *realCopy() const;
 

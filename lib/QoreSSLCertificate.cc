@@ -235,9 +235,9 @@ QoreHashNode *QoreSSLCertificate::getInfo() const
    // get signature type
    h->setKeyValue("signatureType", getSignatureType(), NULL);
    // get signature
-   //h->setKeyValue("signature", new QoreNode(getSignature()), NULL);
+   //h->setKeyValue("signature", getSignature(), NULL);
    // get public key
-   //h->setKeyValue("publicKey", new QoreNode(getPublicKey()), NULL);
+   //h->setKeyValue("publicKey", getPublicKey(), NULL);
    
    return h;
 }

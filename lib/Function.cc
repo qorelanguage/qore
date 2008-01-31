@@ -554,7 +554,7 @@ QoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self, class E
 	 {
 	    // execute function
 	    val = statements->exec(xsink);
-	    
+
 	    // exit gate if necessary
 	    if (synchronized)
 	       gate->exit();

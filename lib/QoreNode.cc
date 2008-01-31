@@ -46,20 +46,6 @@ QoreNode::~QoreNode()
 #if 0
    printd(5, "QoreNode::~QoreNode() type=%s\n", getTypeName());
 #endif
-
-   if (type == NT_FUNCREFCALL) {
-      delete val.funcrefcall;
-      return;
-   }
-}
-
-QoreNode::QoreNode(class FunctionReferenceCall *frc)
-{
-   type = NT_FUNCREFCALL;
-   val.funcrefcall = frc;
-#if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
-#endif
 }
 
 void QoreNode::ref() const
@@ -114,29 +100,13 @@ void QoreNode::deref(ExceptionSink *xsink)
    //traceout("QoreNode::deref()");
 }
 
-class QoreNode *QoreNode::realCopy() const
-{
-   // FIXME: pure virtual function
-   assert(this);
-
-   QoreNode *rv = new QoreNode(type);
-   memcpy(&rv->val, &val, sizeof(union node_u));
-   return rv;
-}
-
 bool QoreNode::needs_eval() const
 {
-   if (type == NT_FUNCREFCALL)
-      return true;
-
    return false;
 }
 
 bool QoreNode::is_value() const
 {
-   if (type == NT_FUNCREFCALL)
-      return false;
-
    return true;
 }
 
@@ -145,10 +115,6 @@ bool QoreNode::is_value() const
  */
 class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
 {
-   if (type == NT_FUNCREFCALL) {
-      return val.funcrefcall->eval(xsink);
-   }
-
    return RefSelf();
 }
 
@@ -225,23 +191,6 @@ double QoreNode::floatEval(class ExceptionSink *xsink) const
       return 0.0;
 
    return rv->getAsFloat();
-}
-
-// FIXME: pure virtual function
-QoreString *QoreNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
-{
-   del = true;
-   QoreString *rv = new QoreString();
-   rv->sprintf("%s (0x%08p)", getTypeName(), this);
-   return rv;
-}
-
-// FIXME: pure virtual function
-int QoreNode::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
-{
-   str.sprintf("%s (0x%08p)", getTypeName(), this);
-
-   return 0;
 }
 
 bool QoreNode::getAsBool() const
@@ -516,26 +465,6 @@ DateTime *QoreNode::getDateTimeRepresentation(bool &del) const
 void QoreNode::getDateTimeRepresentation(DateTime &dt) const
 {
    dt.setDate(0LL);
-}
-
-bool QoreNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
-{
-   if (!v || type != v->type)
-      return false;
-
-   assert(false);
-   // FIXME: pure virtual function!
-   return false;
-}
-
-bool QoreNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
-{
-   if (!v || type != v->type)
-      return false;
-
-   assert(false);   
-   // FIXME: pure virtual function!
-   return false;
 }
 
 // returns the data type

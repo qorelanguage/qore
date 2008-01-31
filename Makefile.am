@@ -57,6 +57,8 @@ noinst_HEADERS = \
 	include/qore/QoreCondition.h \
 	include/qore/QoreCounter.h \
 	include/qore/BinaryNode.h \
+	include/qore/ReferenceNode.h \
+	include/qore/FunctionReferenceNode.h \
 	include/qore/hash_map.h \
 	include/qore/QoreFtpClient.h \
 	include/qore/StringList.h \
@@ -94,7 +96,6 @@ noinst_HEADERS = \
 	include/qore/intern/SmartMutex.h \
 	include/qore/intern/Sequence.h \
 	include/qore/intern/ScopedObjectCallNode.h \
-	include/qore/intern/ReferenceNode.h \
 	include/qore/intern/RWLock.h \
 	include/qore/intern/RMutex.h \
 	include/qore/intern/SSLSocketHelper.h \
@@ -117,7 +118,6 @@ noinst_HEADERS = \
 	include/qore/intern/ManagedDatasource.h \
 	include/qore/intern/ImportedFunctionList.h \
 	include/qore/intern/GlobalVariableList.h \
-	include/qore/intern/FunctionReferenceNode.h \
 	include/qore/intern/DatasourcePool.h \
 	include/qore/intern/Function.h \
 	include/qore/intern/FindNode.h \

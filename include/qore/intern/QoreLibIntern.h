@@ -60,7 +60,7 @@ DLLLOCAL BinaryNode *parseHex(const char *buf, int len);
 DLLLOCAL void print_node(FILE *fp, QoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);
-DLLLOCAL AbstractFunctionReferenceNode *getFunctionReference(QoreString *str, ExceptionSink *xsink);
+DLLLOCAL ResolvedFunctionReferenceNode *getFunctionReference(QoreString *str, ExceptionSink *xsink);
 
 // the following functions are implemented in support.cc
 DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);

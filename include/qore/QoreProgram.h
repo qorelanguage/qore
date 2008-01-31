@@ -28,6 +28,8 @@
 
 #include <qore/AbstractPrivateData.h>
 
+class AbstractFunctionReferenceNode;
+
 // the two-layered reference counting is to eliminate problems from circular references
 // when a program has a global variable that contains an object that references the program...
 // objects now reference the dependency counter, so when the object's counter reaches zero and
@@ -119,7 +121,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL QoreProgram(class QoreProgram *pgm, int po, bool ec = false, const char *ecn = NULL);
       DLLLOCAL void registerUserFunction(class UserFunction *u);
       DLLLOCAL void resolveFunction(class FunctionCallNode *f);      
-      DLLLOCAL void resolveFunctionReference(class FunctionReferenceNode *fr);      
+      DLLLOCAL AbstractFunctionReferenceNode *resolveFunctionReference(class UnresolvedFunctionReferenceNode *fr);      
       DLLLOCAL void addGlobalVarDef(const char *name);
       DLLLOCAL void addStatement(class AbstractStatement *s);
       DLLLOCAL class Var *findVar(const char *name);

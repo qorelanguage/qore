@@ -669,7 +669,7 @@ char *q_dirname(const char *path)
    return x;
 }
 
-AbstractFunctionReferenceNode *getFunctionReference(class QoreString *str, class ExceptionSink *xsink)
+ResolvedFunctionReferenceNode *getFunctionReference(class QoreString *str, class ExceptionSink *xsink)
 {
    class QoreProgram *pgm = getProgram();
    class UserFunction *f = pgm->findUserFunction(str->getBuffer());
@@ -678,5 +678,5 @@ AbstractFunctionReferenceNode *getFunctionReference(class QoreString *str, class
       xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", str->getBuffer());
       return 0;
    }
-   return new FunctionReferenceNode(f, pgm);
+   return new UserFunctionReferenceNode(f, pgm);
 }

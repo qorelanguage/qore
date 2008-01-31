@@ -756,8 +756,7 @@ void QoreProgram::resolveFunction(FunctionCallNode *f)
    class ImportedFunctionNode *ifn;
    if ((ifn = priv->imported_func_list.findNode(fname)))
    {
-      printd(5, "resolved imported function call to %s (pgm=%08p, func=%08p)\n",
-	     fname, ifn->pgm, ifn->func);
+      printd(5, "resolved imported function call to %s (pgm=%08p, func=%08p)\n", fname, ifn->pgm, ifn->func);
       f->ftype = FC_IMPORTED;
       f->f.ifunc = new ImportedFunctionCall(ifn->pgm, ifn->func);
       free(fname);
@@ -786,53 +785,46 @@ void QoreProgram::resolveFunction(FunctionCallNode *f)
    traceout("QoreProgram::resolveFunction()");
 }
 
-// called during parsing (priv->plock already grabbed)
-void QoreProgram::resolveFunctionReference(class FunctionReferenceNode *fr)
+// called during parsing (plock already grabbed)
+AbstractFunctionReferenceNode *QoreProgram::resolveFunctionReference(UnresolvedFunctionReferenceNode *fr)
 {
-   tracein("QoreProgram::resolveFunctionReference()");
-   char *fname = fr->f.str;
-   
-   class UserFunction *ufc;
-   if ((ufc = priv->user_func_list.find(fname)))
-   {
-      printd(5, "resolved function reference to user function %s\n", fname);
-      fr->set_static(ufc, this);
-      free(fname);
-      traceout("QoreProgram::resolveFunction()");
-      return;
+   SimpleRefHolder<UnresolvedFunctionReferenceNode> fr_holder(fr);
+   char *fname = fr->str;
+
+   {   
+      class UserFunction *ufc;
+      if ((ufc = priv->user_func_list.find(fname)))
+      {
+	 printd(5, "resolved function reference to user function %s\n", fname);
+	 return new UserFunctionReferenceNode(ufc, this);
+      }
    }
    
-   class ImportedFunctionNode *ifn;
-   if ((ifn = priv->imported_func_list.findNode(fname)))
    {
-      printd(5, "resolved function reference to imported function %s (pgm=%08p, func=%08p)\n",
-	     fname, ifn->pgm, ifn->func);
-      fr->frtype = FC_IMPORTED;
-      fr->f.ifunc = new ImportedFunctionCall(ifn->pgm, ifn->func);
-      free(fname);
-      traceout("QoreProgram::resolveFunction()");
-      return;
+      class ImportedFunctionNode *ifn;
+      if ((ifn = priv->imported_func_list.findNode(fname)))
+      {
+	 printd(5, "resolved function reference to imported function %s (pgm=%08p, func=%08p)\n", fname, ifn->pgm, ifn->func);
+	 return new ImportedFunctionReferenceNode(new ImportedFunctionCall(ifn->pgm, ifn->func));
+      }
    }
    
    class BuiltinFunction *bfc;
    if ((bfc = builtinFunctions.find(fname)))
    {
       printd(5, "resolved function reference to builtin function to %s\n", fname);
-      fr->frtype = FC_BUILTIN;
-      fr->f.bf = bfc;
       
       // check parse options to see if access is allowed
       if (bfc->getType() & priv->parse_options)
 	 parse_error("parse options do not allow access to builtin function '%s'", fname);
-      
-      free(fname);
-      traceout("QoreProgram::resolveFunction()");
-      return;
+      else 
+	 return new BuiltinFunctionReferenceNode(bfc);
    }
-   
-   // cannot find function, throw exception
-   parse_error("reference to function '%s()' cannot be resolved", fname);
-   traceout("QoreProgram::resolveFunction()");
+   else
+      // cannot find function, throw exception
+      parse_error("reference to function '%s()' cannot be resolved", fname);
+
+   return fr_holder.release();
 }
 
 void QoreProgram::parse(FILE *fp, const char *name, class ExceptionSink *xsink, class ExceptionSink *wS, int wm)

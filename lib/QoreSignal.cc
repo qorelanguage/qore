@@ -50,7 +50,7 @@ extern "C" void sighandler(int sig) //, siginfo_t *info, ucontext_t *uap)
 */
 
 // must be called in the signal lock
-void QoreSignalHandler::set(int sig, AbstractFunctionReferenceNode *n_funcref)
+void QoreSignalHandler::set(int sig, ResolvedFunctionReferenceNode *n_funcref)
 {
    funcref = n_funcref;
    funcref->ref();
@@ -385,7 +385,7 @@ int QoreSignalManager::start_signal_thread(class ExceptionSink *xsink)
    return rc;
 }
 
-int QoreSignalManager::setHandler(int sig, AbstractFunctionReferenceNode *fr, class ExceptionSink *xsink)
+int QoreSignalManager::setHandler(int sig, ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
    if (!enabled())

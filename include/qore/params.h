@@ -84,6 +84,18 @@ static inline QoreListNode *test_list_param(const QoreListNode *n, int i)
    return dynamic_cast<QoreListNode *>(n->retrieve_entry(i));
 }
 
+static inline ResolvedFunctionReferenceNode *test_funcref_param(const QoreListNode *n, int i)
+{
+   if (!n) return 0;
+   return dynamic_cast<ResolvedFunctionReferenceNode *>(n->retrieve_entry(i));
+}
+
+static inline ReferenceNode *test_reference_param(const QoreListNode *n, int i)
+{
+   if (!n) return 0;
+   return dynamic_cast<ReferenceNode *>(n->retrieve_entry(i));
+}
+
 /*
 // this will return only valid objects of the passed class ID
 // if an object is returned it will be locked and the caller

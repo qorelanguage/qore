@@ -54,13 +54,13 @@ static void QVALIDATOR_copy(class QoreObject *self, class QoreObject *old, class
 //virtual void fixup ( QString & input ) const
 static QoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_REFERENCE, 0);
+   ReferenceNode *p = test_reference_param(params, 0);
    if (!p) {
       xsink->raiseException("QVALIDATOR-FIXUP-ERROR", "expecting a reference as sole argument to QValidator::fixup()");
       return 0;
    }
    class AutoVLock vl;
-   class QoreNode **vp = get_var_value_ptr(p->val.lvexp, &vl, xsink);
+   class QoreNode **vp = get_var_value_ptr(p->lvexp, &vl, xsink);
    if (*xsink)
       return 0;
 
@@ -103,20 +103,20 @@ static QoreNode *QVALIDATOR_setLocale(QoreObject *self, QoreAbstractQValidator *
 //virtual State validate ( QString & input, int & pos ) const = 0
 static QoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = test_param(params, NT_REFERENCE, 0);
+   ReferenceNode *p0 = test_reference_param(params, 0);
    if (!p0) {
       xsink->raiseException("QVALIDATOR-VALIDATE-ERROR", "expecting a reference as first argument to QValidator::validate()");
       return 0;
    }
    
-   QoreNode *p1 = test_param(params, NT_REFERENCE, 1);
+   ReferenceNode *p1 = test_reference_param(params, 1);
    if (!p1) {
       xsink->raiseException("QVALIDATOR-VALIDATE-ERROR", "expecting a reference as second argument to QValidator::validate()");
       return 0;
    }
    
    class AutoVLock vl;
-   class QoreNode **vp0 = get_var_value_ptr(p0->val.lvexp, &vl, xsink);
+   class QoreNode **vp0 = get_var_value_ptr(p0->lvexp, &vl, xsink);
    if (*xsink)
       return 0;
    
@@ -124,7 +124,7 @@ static QoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *q
    if (get_qstring(*vp0, input, xsink))
       return 0;
    
-   class QoreNode **vp1 = get_var_value_ptr(p1->val.lvexp, &vl, xsink);
+   class QoreNode **vp1 = get_var_value_ptr(p1->lvexp, &vl, xsink);
    if (*xsink)
       return 0;
 

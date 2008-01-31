@@ -59,6 +59,7 @@ class BrushStyleNode : public SimpleQoreNode
       // the ExceptionSink is only needed for QoreObject where a method may be executed
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
       DLLLOCAL virtual class QoreNode *realCopy() const;
 

@@ -1,3 +1,6 @@
+2007.01.31: David Nichols
+	* QoreNode is now an abstract base class
+
 2007.01.29: David Nichols
 	* implemented QoreFloatNode as QoreNode subclass for flating-point
 	  values

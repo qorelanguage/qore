@@ -1845,7 +1845,7 @@ exp:    scalar
 		 $$ = $1;
 	      }
 	      else
-		 $$ = new QoreNode(new FunctionReferenceCall($1, makeArgs($3)));
+		 $$ = new FunctionReferenceCallNode($1, makeArgs($3));
 	   }
 	}
         | BASE_CLASS_CALL '(' myexp ')'
@@ -1901,10 +1901,7 @@ exp:    scalar
 	   }
 	}
         | exp REGEX_MATCH REGEX_EXTRACT
-        {
-	   //printd(5, "REGEX_EXTRACT: '%s'\n", (new QoreNode($3))->getTypeName());
-	   $$ = makeTree(OP_REGEX_EXTRACT, $1, $3);
-	}
+        { $$ = makeTree(OP_REGEX_EXTRACT, $1, $3); }
 	| exp '>' exp		     { $$ = makeTree(OP_LOG_GT, $1, $3); }
 	| exp '<' exp		     { $$ = makeTree(OP_LOG_LT, $1, $3); }
 	| exp LOGICAL_CMP exp	     { $$ = makeTree(OP_LOG_CMP, $1, $3); }
@@ -1939,7 +1936,7 @@ exp:    scalar
 	      else
 	      {
 		 if (f->getFunctionType() == FC_UNRESOLVED)
-		    $$ = new FunctionReferenceNode(f->takeName());
+		    $$ = new UnresolvedFunctionReferenceNode(f->takeName());
 		 else // must be self call
 		 {
 		    assert(f->getFunctionType() == FC_SELF);

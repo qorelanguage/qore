@@ -748,7 +748,7 @@ static class QoreNode *op_object_method_call(QoreNode *left, class QoreNode *fun
       QoreHashNode *h = dynamic_cast<QoreHashNode *>(*op);
       if (h) {
 	 // see if the hash member is a call reference
-	 AbstractFunctionReferenceNode *r = dynamic_cast<AbstractFunctionReferenceNode *>(h->getKeyValue(f->f.c_str));
+	 ResolvedFunctionReferenceNode *r = dynamic_cast<ResolvedFunctionReferenceNode *>(h->getKeyValue(f->f.c_str));
 	 if (r)
 	    return r->exec(f->args, xsink);
       }

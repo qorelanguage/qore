@@ -80,6 +80,12 @@ QoreString *PenStyleNode::getAsString(bool &del, int foff, class ExceptionSink *
    return getStringRepresentation(del);
 }
 
+int PenStyleNode::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
+{
+   getStringRepresentation(str);
+   return 0;
+}
+
 class QoreNode *PenStyleNode::realCopy() const
 {
    return new PenStyleNode(val);

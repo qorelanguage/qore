@@ -57,6 +57,8 @@ class OperatorList : public oplist_t
 
 DLLLOCAL extern class OperatorList oplist;
 
+class QoreRegexNode;
+
 typedef bool (*op_bool_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink *xsink);
 typedef bool (*op_bool_str_regex_func_t)(const QoreString *l, const QoreRegexNode *r, ExceptionSink *xsink);
 typedef int64 (*op_bigint_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink *xsink);
