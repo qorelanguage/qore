@@ -1270,6 +1270,8 @@ sub context_tests()
     $t = find %age in $q where (%name == "david");
     test_value($t, 37, "find");
 
+    $t = find %age in $q where (%name == "david" || %name == "isabella");
+    test_value($t, (37, 1), "list find"); 
     context ($q) {
 	test_value(%%, ("name" : "david", "age" : 37), "context row");
 	break;
