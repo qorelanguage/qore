@@ -974,7 +974,7 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
 
 	 QoreNode *n = hi.getValue();
 	 if (!n) n = Nothing;
-	 if (getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
+	 if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
 	    return -1;
       }
       if (foff == FMT_NONE)

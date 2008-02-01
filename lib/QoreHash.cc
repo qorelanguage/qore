@@ -722,6 +722,10 @@ void QoreHash::clearNeedsEval()
 
 int QoreHash::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
 {
+   if (!size()) {
+      str.concat(&EmptyHashString);
+      return 0;
+   }
    str.concat("hash: ");
    if (foff != FMT_NONE) {
       int elements = size();

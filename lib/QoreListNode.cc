@@ -884,6 +884,10 @@ QoreListNode *QoreListNode::reverse() const
 
 int QoreListNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
+   if (!size()) {
+      str.concat(&EmptyListString);
+      return 0;
+   }
    str.concat("list: ");
    if (foff != FMT_NONE)
       str.sprintf("(%d element%s)\n", priv->length, priv->length == 1 ? "" : "s");
