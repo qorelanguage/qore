@@ -477,7 +477,7 @@ QoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self, class E
    for (i = 0; i < num_params; i++)
    {
       QoreNode *n = args ? args->retrieve_entry(i) : NULL;
-      printd(4, "UserFunction::eval() %d: instantiating param lvar %d (%08p %s)\n", i, params->ids[i], n, n ? n->getTypeName() : "(null)");
+      printd(4, "UserFunction::eval() %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->ids[i], params->ids[i], n, n ? n->getTypeName() : "(null)");
       if (n)
       {
 	 ReferenceNode *r = dynamic_cast<ReferenceNode *>(n);

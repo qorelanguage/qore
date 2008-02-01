@@ -170,6 +170,7 @@ QoreNode *QoreListNode::eval(bool &needs_deref, class ExceptionSink *xsink) cons
 // deletes the object when the reference count = 0
 void QoreListNode::deref(class ExceptionSink *xsink)
 {
+   printd(1, "QoreListNode::deref() this=%08p %d -> %d\n", this, reference_count(), reference_count() - 1);
    if (ROdereference()) {
       deref_intern(xsink);
       delete this;

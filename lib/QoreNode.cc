@@ -35,7 +35,7 @@
 
 QoreNode::QoreNode(const QoreType *t) 
 {
-   type = t; 
+   type = t;
 #if TRACK_REFS
    printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
 #endif

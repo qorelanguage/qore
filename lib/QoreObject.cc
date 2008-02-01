@@ -424,7 +424,7 @@ inline void QoreObject::doDeleteIntern(class ExceptionSink *xsink)
 // does a deep dereference and execs destructor if necessary
 void QoreObject::deref(ExceptionSink *xsink)
 {
-   printd(5, "QoreObject::deref() this=%08, class=%s %d->%d\n", this, priv->myclass->getName(), references, references - 1);
+   printd(5, "QoreObject::deref() this=%08p, class=%s %d->%d\n", this, priv->myclass->getName(), references, references - 1);
    if (ROdereference()) {
       // FIXME: what the hell do we do if this happens?
       if (priv->g.enter(xsink) >= 0)
