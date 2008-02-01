@@ -1031,7 +1031,7 @@ class QoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, Exc
    {
       // switch to new program for imported objects
       ProgramContextHelper pch(self->getProgram());
-      
+
       if (priv->type == OTF_USER)
 	 rv = priv->func.userFunc->eval(args, self, xsink, priv->parent_class->getName());
       else
@@ -1045,7 +1045,7 @@ class QoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, Exc
 	 const char *o_fn = get_pgm_file();
 	 int o_ln, o_eln;
 	 get_pgm_counter(o_ln, o_eln);
-	 
+
 	 rv = self->evalBuiltinMethodWithPrivateData(priv->func.builtin, *new_args, xsink);      
 	 if (xsink->isException())
 	    xsink->addStackInfo(CT_BUILTIN, self->getClass()->getName(), priv->name, o_fn, o_ln, o_eln);

@@ -46,6 +46,12 @@ ReferenceObject::~ReferenceObject()
 
 void ReferenceObject::ROreference() const
 {
+#ifdef DEBUG
+   if (references < 0 || references > 100000) {
+      printd(0, "ReferenceObject::ROreference() this=%08p references=%d\n", this, references);
+      assert(false);
+   }
+#endif
 #ifdef HAVE_ATOMIC_MACROS
    atomic_inc(&references);
 #else
@@ -58,6 +64,12 @@ void ReferenceObject::ROreference() const
 // returns true when references reach zero
 bool ReferenceObject::ROdereference() const
 {
+#ifdef DEBUG
+   if (references <= 0 || references > 100000) {
+      printd(0, "ReferenceObject::ROdereference() this=%08p references=%d\n", this, references);
+      assert(false);
+   }
+#endif
 #ifdef HAVE_ATOMIC_MACROS
    // do not do a cache sync if references == 1
    // this optimization leads to a race condition on platforms without atomic reference counts
@@ -66,8 +78,12 @@ bool ReferenceObject::ROdereference() const
    // and deletes the object, then the first thread tries to unlock the mutex, but it's already
    // been deleted...  therefore this optimization cannot be used where atomic reference counting
    // is enforced with a mutex, but only here when the operation is atomic without a mutex
-   if (references == 1)
+   if (references == 1) {
+#ifdef DEBUG
+      references = 0;
+#endif
       return true;
+   }
    return atomic_dec(&references);
 #else
    ropriv->mRO.lock();

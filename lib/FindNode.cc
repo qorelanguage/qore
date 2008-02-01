@@ -74,44 +74,40 @@ const char *FindNode::getTypeName() const
 // eval(): return value requires a deref(xsink)
 QoreNode *FindNode::eval(ExceptionSink *xsink) const
 {
-   class Context *context;
    ReferenceHolder<QoreNode> rv(xsink);
-   
-   context = new Context(NULL, xsink, find_exp);
-   if (xsink->isEvent())
-   {
-      if (context)
-	 context->deref(xsink);
-      return NULL;
-   }
+   ReferenceHolder<Context> context(new Context(0, xsink, find_exp), xsink);
+   if (*xsink)
+      return 0;
    
    QoreListNode *lrv = 0;
    for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++)
    {
       printd(4, "FindNode::eval() checking %d/%d\n", context->pos, context->max_pos);
-      if (context->check_condition(where, xsink) && !xsink->isEvent())
+      bool b = context->check_condition(where, xsink);
+      if (*xsink)
+	 return 0;
+      if (!b)
+	 continue;
+
+      printd(4, "FindNode::eval() GOT IT: %d\n", context->pos);
+      QoreNode *result = exp->eval(xsink);
+      if (*xsink)
+	 return 0;
+      if (rv)
       {
-	 printd(4, "FindNode::eval() GOT IT: %d\n", context->pos);
-	 QoreNode *result = exp->eval(xsink);
-	 if (rv)
+	 if (!lrv)
 	 {
-	    if (!lrv)
-	    {
-	       lrv = new QoreListNode();
-	       lrv->push(*rv);
-	       lrv->push(result);
-	       rv = lrv;
-	    }
-	    else
-	       lrv->push(result);
+	    lrv = new QoreListNode();
+	    lrv->push(rv.release());
+	    lrv->push(result);
+	    rv = lrv;
 	 }
 	 else
-	    rv = result;
+	    lrv->push(result);
       }
+      else
+	 rv = result;
    }
-   if (xsink->isEvent())
-      rv = NULL;
 
-   context->deref(xsink);
    return rv.release();
 }

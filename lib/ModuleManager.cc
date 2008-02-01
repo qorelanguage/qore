@@ -295,7 +295,7 @@ void ModuleManager::init(bool se)
 	 }
       }
       else
-	 printd(1, "ModuleManager::init(): glob returned an error: %s\n", strerror(errno));
+	 printd(1, "ModuleManager::init(): glob(%s) returned an error: %s\n", gstr.getBuffer(), strerror(errno));
       globfree(&globbuf);
       w++;
    }
