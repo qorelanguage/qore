@@ -1,3 +1,8 @@
+2008.02.02: David Nichols
+	* fixed a bug in regex_subst() (in RegexSubst::parseRT()) that would
+	  cause a run-time crash if a regular-expression parse exception were
+	  encountered at run-time (backported from 0.7.0/trunk)
+
 2008.01.28: David Nichols
 	* fixed a bug in QoreHTTPClient processing the protocol parameter as an
 	  integer port number (backported from 0.7.0/trunk)

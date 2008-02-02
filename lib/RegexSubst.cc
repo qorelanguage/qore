@@ -84,26 +84,15 @@ void RegexSubst::concatTarget(char c)
 void RegexSubst::parseRT(class QoreString *pstr, class ExceptionSink *xsink)
 {
    // convert to UTF-8 if necessary
-   class QoreString *t;
-   if (pstr->getEncoding() != QCS_UTF8)
-   {
-      t = pstr->convertEncoding(QCS_UTF8, xsink);
-      if (xsink->isEvent())
-      {
-	 delete pstr;
-	 return;
-      }
-   }
-   else
-      t = pstr;
+   TempEncodingHelper t(pstr, QCS_UTF8, xsink);
+   if (*xsink)
+      return;
    
    const char *err;
    int eo;
    p = pcre_compile(t->getBuffer(), options, &err, &eo, NULL);
    if (err)
       xsink->raiseException("REGEX-COMPILATION-ERROR", (char *)err);
-   if (t != pstr)
-      delete t;
 }
 
 void RegexSubst::parse()

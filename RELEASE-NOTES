@@ -29,6 +29,7 @@ RELEASE NOTES for qore v0.6.2.3, 0.6.2.2 and 0.6.2.1
         * eliminated spurious double exceptions	in rare	cases with list operators in Operator.cc 
         * fixed	a bug in the "tibae" module where instantiating a sequence while giving an explicit class name skipped type checking that could result in a crash
         * fixed a bug in QoreHTTPClient processing the protocol parameter as an integer port number
+        * fixed	a bug in regex_subst() (in RegexSubst::parseRT()) that would cause a run-time crash if a regular-expression parse exception were encountered at run-time
 
 0.6.2.2 contains one additional bugfix from 0.6.2.1:
 	* fixed an XML parsing bug with multiple out-of-order keys that could cause a crash
