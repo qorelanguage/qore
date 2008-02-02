@@ -795,7 +795,7 @@ int QorePGResult::add(class AbstractQoreNode *v, class ExceptionSink *xsink)
       paramValues[nParams]  = (char *)tmp->getBuffer();
       // grab and save the buffer if it's a temporary string to be free'd after the request
       if (tmp.is_temp())
-	 pb->str = tmp->giveBuffer();
+	 pb->str = tmp.giveBuffer();
       paramFormats[nParams] = 0;
       
       ++nParams;
