@@ -29,14 +29,14 @@
 class ExpressionStatement : public AbstractStatement
 {
    private:
-      class QoreNode *exp;
+      class AbstractQoreNode *exp;
       bool is_declaration;
 
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
    public:
-      DLLLOCAL ExpressionStatement(int start_line, int end_line, class QoreNode *v);
+      DLLLOCAL ExpressionStatement(int start_line, int end_line, class AbstractQoreNode *v);
       DLLLOCAL virtual ~ExpressionStatement();
       DLLLOCAL virtual bool isDeclaration() const
       {

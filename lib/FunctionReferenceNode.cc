@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-FunctionReferenceCallNode::FunctionReferenceCallNode(QoreNode *n_exp, QoreListNode *n_args) : ParseNode(NT_FUNCREFCALL), exp(n_exp), args(n_args)
+FunctionReferenceCallNode::FunctionReferenceCallNode(AbstractQoreNode *n_exp, QoreListNode *n_args) : ParseNode(NT_FUNCREFCALL), exp(n_exp), args(n_args)
 {
 }
 
@@ -69,9 +69,9 @@ const char *FunctionReferenceCallNode::getTypeName() const
 }
 
 // eval(): return value requires a deref(xsink)
-QoreNode *FunctionReferenceCallNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *FunctionReferenceCallNode::eval(ExceptionSink *xsink) const
 {
-   ReferenceHolder<QoreNode> lv(exp->eval(xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> lv(exp->eval(xsink), xsink);
    if (*xsink)
       return 0;
 
@@ -91,7 +91,7 @@ int FunctionReferenceCallNode::parseInit(lvh_t oflag, int pflag)
    return lvids;
 }
 
-AbstractFunctionReferenceNode::AbstractFunctionReferenceNode() : QoreNode(NT_FUNCREF)
+AbstractFunctionReferenceNode::AbstractFunctionReferenceNode() : AbstractQoreNode(NT_FUNCREF)
 {
 }
 
@@ -100,19 +100,19 @@ AbstractFunctionReferenceNode::~AbstractFunctionReferenceNode()
 }
 
 // parse types should never be copied
-QoreNode *AbstractFunctionReferenceNode::realCopy() const
+AbstractQoreNode *AbstractFunctionReferenceNode::realCopy() const
 {
    assert(false);
    return 0;
 }
 
-bool AbstractFunctionReferenceNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+bool AbstractFunctionReferenceNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    assert(false);
    return false;
 }
 
-bool AbstractFunctionReferenceNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+bool AbstractFunctionReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    assert(false);
    return false;
@@ -161,29 +161,29 @@ const char *AbstractFunctionReferenceNode::getTypeName() const
 
 int64 AbstractFunctionReferenceNode::bigIntEval(ExceptionSink *xsink) const
 {
-   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsBigInt() : 0;
 }
 
 int AbstractFunctionReferenceNode::integerEval(ExceptionSink *xsink) const
 {
-   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsInt() : 0;
 }
 
 bool AbstractFunctionReferenceNode::boolEval(ExceptionSink *xsink) const
 {
-   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsBool() : 0;
 }
 
 double AbstractFunctionReferenceNode::floatEval(ExceptionSink *xsink) const
 {
-   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    return rv ? rv->getAsFloat() : 0;
 }
 
-ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(QoreNode *n_exp, char *n_method) : exp(n_exp), method(n_method)
+ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(AbstractQoreNode *n_exp, char *n_method) : exp(n_exp), method(n_method)
 {
 }
 
@@ -196,10 +196,10 @@ ParseObjectMethodReferenceNode::~ParseObjectMethodReferenceNode()
 }
 
 // returns a RunTimeObjectMethodReference or NULL if there's an exception
-QoreNode *ParseObjectMethodReferenceNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *ParseObjectMethodReferenceNode::eval(ExceptionSink *xsink) const
 {
    // evaluate lvalue expression
-   ReferenceHolder<QoreNode> lv(exp->eval(xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> lv(exp->eval(xsink), xsink);
    if (*xsink)
       return 0;
 
@@ -228,7 +228,7 @@ ParseSelfMethodReferenceNode::~ParseSelfMethodReferenceNode()
 }
 
 // returns a RunTimeObjectMethodReference or NULL if there's an exception
-QoreNode *ParseSelfMethodReferenceNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *ParseSelfMethodReferenceNode::eval(ExceptionSink *xsink) const
 {
    return new RunTimeObjectMethodReferenceNode(getStackObject(), method);
 }
@@ -250,7 +250,7 @@ ParseScopedSelfMethodReferenceNode::~ParseScopedSelfMethodReferenceNode()
 }
 
 // returns a RunTimeObjectMethodReference or NULL if there's an exception
-QoreNode *ParseScopedSelfMethodReferenceNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *ParseScopedSelfMethodReferenceNode::eval(ExceptionSink *xsink) const
 {
    return new RunTimeObjectScopedMethodReferenceNode(getStackObject(), method);
 }
@@ -279,7 +279,7 @@ RunTimeObjectScopedMethodReferenceNode::~RunTimeObjectScopedMethodReferenceNode(
    obj->tDeref();
 }
 
-QoreNode *RunTimeObjectScopedMethodReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
+AbstractQoreNode *RunTimeObjectScopedMethodReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
 {
    return method->eval(obj, args, xsink);
 }
@@ -302,7 +302,7 @@ RunTimeObjectMethodReferenceNode::~RunTimeObjectMethodReferenceNode()
    free(method);
 }
 
-QoreNode *RunTimeObjectMethodReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
+AbstractQoreNode *RunTimeObjectMethodReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
 {
    return obj->getClass()->evalMethod(obj, method, args, xsink);
 }
@@ -360,7 +360,7 @@ void UserFunctionReferenceNode::deref(ExceptionSink *xsink)
    }
 }
 
-QoreNode *UserFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
+AbstractQoreNode *UserFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
 {
    ProgramContextHelper pch(pgm);
    return uf->eval(args, 0, xsink);
@@ -370,12 +370,12 @@ StaticUserFunctionReferenceNode::StaticUserFunctionReferenceNode(UserFunction *n
 {
 }
 
-QoreNode *StaticUserFunctionReferenceNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *StaticUserFunctionReferenceNode::eval(ExceptionSink *xsink) const
 {
    return new UserFunctionReferenceNode(uf, pgm);
 }
 
-QoreNode *StaticUserFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
+AbstractQoreNode *StaticUserFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
 {
    assert(false);
    return 0;
@@ -385,7 +385,7 @@ BuiltinFunctionReferenceNode::BuiltinFunctionReferenceNode(BuiltinFunction *n_bf
 {
 }
 
-QoreNode *BuiltinFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
+AbstractQoreNode *BuiltinFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
 {
    return bf->eval(args, xsink);
 }
@@ -394,7 +394,7 @@ ImportedFunctionReferenceNode::ImportedFunctionReferenceNode(ImportedFunctionCal
 {
 }
 
-QoreNode *ImportedFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
+AbstractQoreNode *ImportedFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const
 {
    return ifunc->eval(args, xsink);
 }

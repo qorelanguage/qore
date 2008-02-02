@@ -46,7 +46,7 @@ class ContextRowNode : public ParseNode
       DLLLOCAL virtual const char *getTypeName() const;
       // eval(): return value requires a deref(xsink)
       // default implementation = returns "this" with incremented atomic reference count
-      DLLLOCAL virtual QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(class ExceptionSink *xsink) const;
 };
 
 #endif

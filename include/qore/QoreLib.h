@@ -53,9 +53,9 @@ DLLEXPORT char *q_dirname(const char *path);
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
 
 // implemented in Variable.h
-DLLEXPORT class QoreNode **get_var_value_ptr(class QoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
+DLLEXPORT class AbstractQoreNode **get_var_value_ptr(class AbstractQoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
 // implemented in Variable.h, only returns a value if the variable's value is of type string
-DLLEXPORT class QoreStringNode **get_string_var_value_ptr(class QoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
+DLLEXPORT class QoreStringNode **get_string_var_value_ptr(class AbstractQoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
 
 // find one of any characters in a string
 static inline char *strchrs(const char *str, const char *chars)

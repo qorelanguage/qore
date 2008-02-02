@@ -36,7 +36,7 @@ class Queue : public AbstractPrivateData, public QoreQueue
 
    public:
       DLLLOCAL Queue() {}
-      DLLLOCAL Queue(QoreNode *n) : QoreQueue(n) {}
+      DLLLOCAL Queue(AbstractQoreNode *n) : QoreQueue(n) {}
 };
 
 #endif // _QORE_CLASS_QUEUE

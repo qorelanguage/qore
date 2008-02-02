@@ -33,9 +33,9 @@ class LVarInstantiatorHelper {
       DLLLOCAL LVarInstantiatorHelper& operator=(const LVarInstantiatorHelper&);
 
    public:
-      DLLEXPORT LVarInstantiatorHelper(const char *name, QoreNode *val, ExceptionSink *xsink);
-      DLLEXPORT QoreNode *getArg() const;
-      DLLEXPORT QoreNode *getOutputValue();
+      DLLEXPORT LVarInstantiatorHelper(const char *name, AbstractQoreNode *val, ExceptionSink *xsink);
+      DLLEXPORT AbstractQoreNode *getArg() const;
+      DLLEXPORT AbstractQoreNode *getOutputValue();
       DLLEXPORT ~LVarInstantiatorHelper();
 };
 

@@ -208,7 +208,7 @@ TEST()
   args->push(new QoreBigIntNode(100));
   args->push(new QoreBigIntNode(CS_INT_TYPE));
 
-  QoreNode* res = conn.exec_rpc(&cmd, args, &xsink);
+  AbstractQoreNode* res = conn.exec_rpc(&cmd, args, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -237,14 +237,14 @@ TEST()
   args->push(new QoreBigIntNode(CS_INT_TYPE));
   args->push(new QoreBigIntNode(CS_INT_TYPE));
 
-  QoreNode* res = conn.exec_rpc(&cmd, args, &xsink);
+  AbstractQoreNode* res = conn.exec_rpc(&cmd, args, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
   assert(res);
   assert(res->type == NT_HASH);
   assert(res->val.hash->size() == 1);
-  QoreNode* n = res->val.hash->getKeyValue("sintparam");
+  AbstractQoreNode* n = res->val.hash->getKeyValue("sintparam");
   assert(n);
   assert(n->type == NT_INT);
   assert(n->val.intval == 200);

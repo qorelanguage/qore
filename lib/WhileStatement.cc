@@ -24,7 +24,7 @@
 #include <qore/intern/WhileStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-WhileStatement::WhileStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
+WhileStatement::WhileStatement(int start_line, int end_line, class AbstractQoreNode *c, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
 {
    cond = c;
    code = cd;
@@ -40,7 +40,7 @@ WhileStatement::~WhileStatement()
       delete lvars;
 }
 
-int WhileStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int WhileStatement::execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink)
 {
    int i, rc = 0;
    

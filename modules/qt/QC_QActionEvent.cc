@@ -33,7 +33,7 @@ class QoreClass *QC_QActionEvent = 0;
 //QActionEvent ( int type, QAction * action, QAction * before = 0 )
 static void QACTIONEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int type = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
@@ -58,7 +58,7 @@ static void QACTIONEVENT_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //QAction * action () const
-static QoreNode *QACTIONEVENT_action(QoreObject *self, QoreQActionEvent *qae, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QACTIONEVENT_action(QoreObject *self, QoreQActionEvent *qae, const QoreListNode *params, ExceptionSink *xsink)
 {
    QAction *qt_qobj = qae->action();
    if (!qt_qobj)
@@ -71,7 +71,7 @@ static QoreNode *QACTIONEVENT_action(QoreObject *self, QoreQActionEvent *qae, co
 }
 
 //QAction * before () const
-static QoreNode *QACTIONEVENT_before(QoreObject *self, QoreQActionEvent *qae, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QACTIONEVENT_before(QoreObject *self, QoreQActionEvent *qae, const QoreListNode *params, ExceptionSink *xsink)
 {
    QAction *qt_qobj = qae->before();
    if (!qt_qobj)

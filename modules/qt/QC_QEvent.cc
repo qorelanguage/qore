@@ -32,7 +32,7 @@ class QoreClass *QC_QEvent = 0;
 
 static void QEVENT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
 
    QoreQEvent *qe = new QoreQEvent((QEvent::Type)(p ? p->getAsInt() : 0));
 
@@ -45,42 +45,42 @@ static void QEVENT_copy(class QoreObject *self, class QoreObject *old, class Qor
 }
 
 //void accept ()
-static QoreNode *QEVENT_accept(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QEVENT_accept(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
    qe->accept();
    return 0;
 }
 
 //void ignore ()
-static QoreNode *QEVENT_ignore(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QEVENT_ignore(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
    qe->ignore();
    return 0;
 }
 
 //bool isAccepted () const
-static QoreNode *QEVENT_isAccepted(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QEVENT_isAccepted(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qe->isAccepted());
 }
 
 //void setAccepted ( bool accepted )
-static QoreNode *QEVENT_setAccepted(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QEVENT_setAccepted(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool accepted = p ? p->getAsBool() : false;
    qe->setAccepted(accepted);
    return 0;
 }
 
 //bool spontaneous () const
-static QoreNode *QEVENT_spontaneous(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QEVENT_spontaneous(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qe->spontaneous());
 }
 
 //Type type () const
-static QoreNode *QEVENT_type(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QEVENT_type(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qe->type());
 }

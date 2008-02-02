@@ -31,7 +31,7 @@ QoreClass *QC_QBitmap = 0;
 static void QBITMAP_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQBitmap *qp;
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
 
    if (p && p->type == NT_OBJECT) {
       AbstractPrivateData *apd = (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink);
@@ -72,7 +72,7 @@ static void QBITMAP_copy(class QoreObject *self, class QoreObject *old, class Qo
 }
 
 //void clear ()
-static QoreNode *QBITMAP_clear(QoreObject *self, QoreQBitmap *qb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBITMAP_clear(QoreObject *self, QoreQBitmap *qb, const QoreListNode *params, ExceptionSink *xsink)
 {
    qb->clear();
    return 0;
@@ -80,9 +80,9 @@ static QoreNode *QBITMAP_clear(QoreObject *self, QoreQBitmap *qb, const QoreList
 
 //QBitmap transformed ( const QMatrix & matrix ) const
 //QBitmap transformed ( const QTransform & matrix ) const
-//static QoreNode *QBITMAP_transformed(QoreObject *self, QoreQBitmap *qb, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBITMAP_transformed(QoreObject *self, QoreQBitmap *qb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QMatrix matrix = p;
 //   QoreObject *o_qb = new QoreObject(self->getClass(CID_QBITMAP), getProgram());
 //   QoreQBitmap *q_qb = new QoreQBitmap(qb->transformed(matrix));

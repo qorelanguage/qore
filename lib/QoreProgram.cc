@@ -711,7 +711,7 @@ class QoreHash *QoreProgram::getThreadData()
    return (class QoreHash *)pthread_getspecific(priv->thread_local_storage);
 }
 
-class QoreNode *QoreProgram::run(class ExceptionSink *xsink)
+class AbstractQoreNode *QoreProgram::run(class ExceptionSink *xsink)
 {
    if (!priv->exec_class_name.empty())
    {
@@ -1045,11 +1045,11 @@ void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, cl
    parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
 }
 
-class QoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)
+class AbstractQoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)
 {
    priv->tcount.inc();
 
-   QoreNode *rv = NULL;
+   AbstractQoreNode *rv = NULL;
    SBNode *w = priv->sb_head;
 
    {
@@ -1067,7 +1067,7 @@ class QoreNode *QoreProgram::runTopLevel(class ExceptionSink *xsink)
    return rv;
 }
 
-class QoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, class ExceptionSink *xsink)
 {
    class UserFunction *ufc;
    FunctionCallNode *fc;
@@ -1103,7 +1103,7 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *
       }
    }
 
-   QoreNode *rv;
+   AbstractQoreNode *rv;
    {
       ProgramContextHelper pch(this);
       rv = fc->eval(xsink);
@@ -1116,12 +1116,12 @@ class QoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *
    return rv;
 }
 
-class QoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreListNode *args, class ExceptionSink *xsink)
 {
    // we assign the args to NULL below so that the caller will delete
    FunctionCallNode *fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args));
 
-   QoreNode *rv;
+   AbstractQoreNode *rv;
    {
       ProgramContextHelper pch(this);
       rv = fc->eval(xsink);

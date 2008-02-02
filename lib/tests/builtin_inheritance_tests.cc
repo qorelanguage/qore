@@ -48,7 +48,7 @@ extern QoreClass* initBuiltinInheritanceTestDescendant1(QoreClass* base);
 extern QoreClass* initBuiltinInheritanceTestDescendant2(QoreClass* base);
 extern QoreClass* initBuiltinInheritanceTestDescendant3(QoreClass* base);
 extern QoreClass* initBuiltinInheritanceTestDescendant4(QoreClass* base);
-extern QoreClass* initBuiltinInheritanceTestDescendantMulti(QoreClass* base, QoreNode* base2);
+extern QoreClass* initBuiltinInheritanceTestDescendantMulti(QoreClass* base, AbstractQoreNode* base2);
 
 
 //-----------------------------------------------------------------------------
@@ -61,7 +61,7 @@ int CID_BUILTININHERITANCETESTDESCENDANT4;
 int CID_BUILTININHERITANCETESTDESCENDANT_MULTI;
 
 // base class -----------------------------------------------------------------
-static void BUILTININHERITANCETESTBASE_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void BUILTININHERITANCETESTBASE_constructor(QoreObject *self, AbstractQoreNode *params, ExceptionSink *xsink)
 {
   BuiltinInheritanceTestBase* tst = new BuiltinInheritanceTestBase;
   self->setPrivate(CID_BUILTININHERITANCETESTBASE, tst);
@@ -72,7 +72,7 @@ static void BUILTININHERITANCETESTBASE_destructor(QoreObject *self, BuiltinInher
   test->deref();
 }
 
-static QoreNode* BUILTININHERITANCETESTBASE_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode* BUILTININHERITANCETESTBASE_getnum(QoreObject *self, class AbstractQoreNode *params, ExceptionSink *xsink)
 {
   return new QoreBigIntNode(1);
 }
@@ -90,7 +90,7 @@ QoreClass* initBuiltinInheritanceTestBaseClass()
 }
 
 // base2 class -----------------------------------------------------------------
-static void BUILTININHERITANCETESTBASE2_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void BUILTININHERITANCETESTBASE2_constructor(QoreObject *self, AbstractQoreNode *params, ExceptionSink *xsink)
 {
   BuiltinInheritanceTestBase2* tst = new BuiltinInheritanceTestBase2;
   self->setPrivate(CID_BUILTININHERITANCETESTBASE2, tst);
@@ -101,7 +101,7 @@ static void BUILTININHERITANCETESTBASE2_destructor(QoreObject *self, BuiltinInhe
   test->deref();
 }
 
-static QoreNode* BUILTININHERITANCETESTBASE2_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode* BUILTININHERITANCETESTBASE2_getnum(QoreObject *self, class AbstractQoreNode *params, ExceptionSink *xsink)
 {
   return new QoreBigIntNode(11);
 }
@@ -130,7 +130,7 @@ QoreClass* initBuiltinInheritanceTestDescendant1(QoreClass* base)
 }
 
 // descendant2  ---------------------------------------------------------------
-static void BUILTININHERITANCETESTDESCENDANT2_constructor(QoreObject *self, QoreNode *params, ExceptionSink *xsink)
+static void BUILTININHERITANCETESTDESCENDANT2_constructor(QoreObject *self, AbstractQoreNode *params, ExceptionSink *xsink)
 {
   BuiltinInheritanceTestDescendant2* tst = new BuiltinInheritanceTestDescendant2;
   self->setPrivate(CID_BUILTININHERITANCETESTDESCENDANT2, tst);
@@ -141,7 +141,7 @@ static void BUILTININHERITANCETESTDESCENDANT2_destructor(QoreObject *self, Built
   test->deref();
 }
 
-static QoreNode* BUILTININHERITANCETESTDESCENDANT2_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode* BUILTININHERITANCETESTDESCENDANT2_getnum(QoreObject *self, class AbstractQoreNode *params, ExceptionSink *xsink)
 {
   return new QoreBigIntNode(2);
 }
@@ -162,7 +162,7 @@ QoreClass* initBuiltinInheritanceTestDescendant2(QoreClass* base)
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* BUILTININHERITANCETESTDESCENDANT3_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode* BUILTININHERITANCETESTDESCENDANT3_getnum(QoreObject *self, class AbstractQoreNode *params, ExceptionSink *xsink)
 {
   // private data could be accessed
 
@@ -199,7 +199,7 @@ QoreClass* initBuiltinInheritanceTestDescendant3(QoreClass* base)
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* BUILTININHERITANCETESTDESCENDANT4_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode* BUILTININHERITANCETESTDESCENDANT4_getnum(QoreObject *self, class AbstractQoreNode *params, ExceptionSink *xsink)
 {
   return new QoreBigIntNode(4);
 }
@@ -218,7 +218,7 @@ QoreClass* initBuiltinInheritanceTestDescendant4(QoreClass* base)
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* BUILTININHERITANCETESTDESCENDANT_MULTI_getnum(QoreObject *self, class QoreNode *params, ExceptionSink *xsink)
+static AbstractQoreNode* BUILTININHERITANCETESTDESCENDANT_MULTI_getnum(QoreObject *self, class AbstractQoreNode *params, ExceptionSink *xsink)
 {
   return new QoreBigIntNode(100);
 }

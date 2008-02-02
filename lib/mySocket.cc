@@ -317,7 +317,7 @@ class QoreHashNode *mySocket::readHTTPChunkedBody(int timeout, class ExceptionSi
 }
 
 // read and parse HTTP header
-class QoreNode *mySocket::readHTTPHeader(int timeout, int *rc)
+class AbstractQoreNode *mySocket::readHTTPHeader(int timeout, int *rc)
 {
    SafeLocker sl(this);
    return socket->readHTTPHeader(timeout, rc);

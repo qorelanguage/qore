@@ -27,7 +27,7 @@ int CID_COUNTER;
 
 static void COUNTER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
+   class AbstractQoreNode *p = get_param(params, 0);
    int c = p ? p->getAsInt() : 0;
    self->setPrivate(CID_COUNTER, new Counter(c));
 }
@@ -43,21 +43,21 @@ static void COUNTER_copy(class QoreObject *self, class QoreObject *old, class Co
    self->setPrivate(CID_COUNTER, new Counter(c->getCount()));
 }
 
-static class QoreNode *COUNTER_inc(class QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *COUNTER_inc(class QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    c->inc();
    return NULL;
 }
 
-static class QoreNode *COUNTER_dec(class QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *COUNTER_dec(class QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    c->dec(xsink);
    return NULL;
 }
 
-static class QoreNode *COUNTER_waitForZero(class QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *COUNTER_waitForZero(class QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
+   class AbstractQoreNode *p = get_param(params, 0);
    // we only return a return value if we have a timeout, otherwise we save allocating a QoreNode
    int timeout_ms = 0;
    if (!is_nothing(p))
@@ -69,12 +69,12 @@ static class QoreNode *COUNTER_waitForZero(class QoreObject *self, class Counter
    return NULL;
 }
 
-static class QoreNode *COUNTER_getCount(class QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *COUNTER_getCount(class QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(c->getCount());
 }
 
-static class QoreNode *COUNTER_getWaiting(class QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *COUNTER_getWaiting(class QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(c->getWaiting());
 }

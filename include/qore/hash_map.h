@@ -49,7 +49,7 @@ class eqstr
       }
 };
 
-typedef hash_map<const char*, class QoreNode *, hash<const char *>, class eqstr> hm_qn_t;
+typedef hash_map<const char*, class AbstractQoreNode *, hash<const char *>, class eqstr> hm_qn_t;
 typedef hash_map<const char*, class HashMember *, hash<const char *>, class eqstr> hm_hm_t;
 typedef hash_map<const char*, class QoreMethod *, hash<const char *>, class eqstr> hm_method_t;
 typedef hash_map<const char*, class BuiltinFunction *, hash<const char *>, class eqstr> hm_bf_t;
@@ -58,7 +58,7 @@ typedef hash_map<const char*, class UserFunction *, hash<const char *>, class eq
 
 #else // HAVE_QORE_HASH_MAP
 
-typedef std::map<const char*, class QoreNode *, class ltstr> hm_qn_t;
+typedef std::map<const char*, class AbstractQoreNode *, class ltstr> hm_qn_t;
 typedef std::map<const char*, class HashMember *, class ltstr> hm_hm_t;
 typedef std::map<const char*, const class QoreMethod *, class ltstr> hm_method_t;
 typedef std::map<const char*, class BuiltinFunction *, class ltstr> hm_bf_t;

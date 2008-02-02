@@ -11,7 +11,7 @@ class T {
 	    return;
 	 }
 
-	 QoreNode *val = new QoreStringNode(input.toUtf8().data(), QCS_UTF8);
+	 AbstractQoreNode *val = new QoreStringNode(input.toUtf8().data(), QCS_UTF8);
 	 ExceptionSink xsink;
 	 LVarInstantiatorHelper lvh("arg0", val, &xsink);
 
@@ -21,7 +21,7 @@ class T {
 	 // execute method and discard any return value
 	 discard(m_fixup->eval(qore_obj, *args, &xsink), &xsink);
 	 
-	 QoreNode *str = lvh.getOutputValue();
+	 AbstractQoreNode *str = lvh.getOutputValue();
 	 get_qstring(str, input, &xsink);
       }
       DLLLOCAL virtual void fixup_parent ( QString & input ) const
@@ -42,14 +42,14 @@ class T {
 	 args->push(arg1.getArg());
 
 	 // execute method and discard any return value
-	 QoreNode *rv = m_fixup->eval(qore_obj, *args, &xsink);
+	 AbstractQoreNode *rv = m_fixup->eval(qore_obj, *args, &xsink);
 	 QValidator::State state = (QValidator::State)(rv ? rv->getAsInt() : 0);
 	 discard(rv, &xsink);
 	 
 	 // rewrite results to args
 	 if (!xsink) {
 	    get_qstring(arg0.getOutputValue(), input, &xsink);
-	    QoreNode *n_pos = arg1.getOutputValue();
+	    AbstractQoreNode *n_pos = arg1.getOutputValue();
 	    pos = n_pos ? n_pos->getAsInt() : 0;
 	 }
 	 return state;

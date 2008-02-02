@@ -48,7 +48,7 @@ void TIBRVCMLISTENER_constructor(class QoreObject *self, const QoreListNode *par
    if (pt)
       cmName = pt->getBuffer();
 
-   QoreNode *pn = get_param(params, 2);
+   AbstractQoreNode *pn = get_param(params, 2);
    requestOld = pn ? pn->getAsBool() : false;
 
    pt = test_string_param(params, 3);
@@ -91,7 +91,7 @@ static void TIBRVCMLISTENER_copy(class QoreObject *self, class QoreObject *old, 
    xsink->raiseException("TIBRVCMLISTENER-COPY-ERROR", "copying TibrvCmListener objects is curently not supported");
 }
 
-static QoreNode *TIBRVCMLISTENER_getQueueSize(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVCMLISTENER_getQueueSize(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
 {
    int c = cml->getQueueSize(xsink);
    if (!xsink->isException())
@@ -100,7 +100,7 @@ static QoreNode *TIBRVCMLISTENER_getQueueSize(class QoreObject *self, class Qore
    return NULL;
 }
 
-static QoreNode *TIBRVCMLISTENER_getMessage(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVCMLISTENER_getMessage(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
 {
    int64 timeout = getMsMinusOneBigInt(get_param(params, 0));
 
@@ -111,12 +111,12 @@ static QoreNode *TIBRVCMLISTENER_getMessage(class QoreObject *self, class QoreTi
    return cml->getMessage(timeout, xsink);
 }
 
-static QoreNode *TIBRVCMLISTENER_createInboxName(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVCMLISTENER_createInboxName(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
 {
    return cml->createInboxName(xsink);
 }
 
-class QoreNode *TIBRVCMLISTENER_setStringEncoding(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMLISTENER_setStringEncoding(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -131,18 +131,18 @@ class QoreNode *TIBRVCMLISTENER_setStringEncoding(class QoreObject *self, class 
    return NULL;
 }
 
-class QoreNode *TIBRVCMLISTENER_getStringEncoding(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMLISTENER_getStringEncoding(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(cml->getStringEncoding()->getCode());
 }
 
-class QoreNode *TIBRVCMLISTENER_syncLedger(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMLISTENER_syncLedger(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
 {
    cml->syncLedger(xsink);
    return NULL;
 }
 
-static QoreNode *TIBRVCMLISTENER_getName(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVCMLISTENER_getName(class QoreObject *self, class QoreTibrvCmListener *cml, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *name = cml->getName(xsink);
    if (!xsink->isException())

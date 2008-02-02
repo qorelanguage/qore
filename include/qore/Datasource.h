@@ -79,11 +79,11 @@ class Datasource
       DLLEXPORT void setAutoCommit(bool ac);
       DLLEXPORT int open(ExceptionSink *xsink);
       // not "const" to allow for reconnects
-      DLLEXPORT class QoreNode *select(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+      DLLEXPORT class AbstractQoreNode *select(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
       // not "const" to allow for reconnects
-      DLLEXPORT class QoreNode *selectRows(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+      DLLEXPORT class AbstractQoreNode *selectRows(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
       // not "const" to allow for reconnects and also to change transaction status
-      DLLEXPORT class QoreNode *exec(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+      DLLEXPORT class AbstractQoreNode *exec(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
       // not "const" to allow for reconnects
       DLLEXPORT int commit(ExceptionSink *xsink);
       // not "const" to allow for reconnects
@@ -93,16 +93,16 @@ class Datasource
       // caller owns the pointer returned
       DLLEXPORT QoreListNode *getCapabilityList() const;
       DLLEXPORT int getCapabilities() const;
-      // caller owns the QoreNode reference returned
-      DLLEXPORT QoreNode *getPendingUsername() const;
-      // caller owns the QoreNode reference returned
-      DLLEXPORT QoreNode *getPendingPassword() const;
-      // caller owns the QoreNode reference returned
-      DLLEXPORT QoreNode *getPendingDBName() const;
-      // caller owns the QoreNode reference returned
-      DLLEXPORT QoreNode *getPendingDBEncoding() const;
-      // caller owns the QoreNode reference returned
-      DLLEXPORT QoreNode *getPendingHostName() const;
+      // caller owns the AbstractQoreNode reference returned
+      DLLEXPORT AbstractQoreNode *getPendingUsername() const;
+      // caller owns the AbstractQoreNode reference returned
+      DLLEXPORT AbstractQoreNode *getPendingPassword() const;
+      // caller owns the AbstractQoreNode reference returned
+      DLLEXPORT AbstractQoreNode *getPendingDBName() const;
+      // caller owns the AbstractQoreNode reference returned
+      DLLEXPORT AbstractQoreNode *getPendingDBEncoding() const;
+      // caller owns the AbstractQoreNode reference returned
+      DLLEXPORT AbstractQoreNode *getPendingHostName() const;
       DLLEXPORT void setTransactionLockTimeout(int t);
       DLLEXPORT int getTransactionLockTimeout() const;
       // returns -1 for error, 0 for OK
@@ -111,10 +111,10 @@ class Datasource
       DLLEXPORT bool isOpen() const;
       DLLEXPORT Datasource *copy() const;
       DLLEXPORT const char *getDriverName() const;
-      // caller owns the QoreNode reference returned; not "const" to allow for reconnects
-      DLLEXPORT class QoreNode *getServerVersion(class ExceptionSink *xsink);
-      // caller owns the QoreNode reference returned
-      DLLEXPORT class QoreNode *getClientVersion(class ExceptionSink *xsink) const;
+      // caller owns the AbstractQoreNode reference returned; not "const" to allow for reconnects
+      DLLEXPORT class AbstractQoreNode *getServerVersion(class ExceptionSink *xsink);
+      // caller owns the AbstractQoreNode reference returned
+      DLLEXPORT class AbstractQoreNode *getClientVersion(class ExceptionSink *xsink) const;
 
       DLLEXPORT const class DBIDriver *getDriver() const;
 };

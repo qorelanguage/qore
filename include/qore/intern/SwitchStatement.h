@@ -31,12 +31,12 @@ class CaseNode {
       DLLLOCAL virtual bool isCaseNodeImpl() const;
    
    public:
-      class QoreNode *val;
+      class AbstractQoreNode *val;
       class StatementBlock *code;
       class CaseNode *next;
 
-      DLLLOCAL CaseNode(class QoreNode *v, class StatementBlock *c);
-      DLLLOCAL virtual bool matches(QoreNode* lhs_value, class ExceptionSink *xsink);
+      DLLLOCAL CaseNode(class AbstractQoreNode *v, class StatementBlock *c);
+      DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, class ExceptionSink *xsink);
       DLLLOCAL virtual bool isDefault() const
       {
 	 return !val;
@@ -49,11 +49,11 @@ class SwitchStatement : public AbstractStatement
 {
    private:
       class CaseNode *head, *tail;
-      class QoreNode *sexp;
+      class AbstractQoreNode *sexp;
       class CaseNode *deflt;
 
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
 
    public:
       class LVList *lvars;
@@ -61,7 +61,7 @@ class SwitchStatement : public AbstractStatement
       // start and end line are set later
       DLLLOCAL SwitchStatement(class CaseNode *f);
       DLLLOCAL virtual ~SwitchStatement();
-      DLLLOCAL void setSwitch(class QoreNode *s);
+      DLLLOCAL void setSwitch(class AbstractQoreNode *s);
       DLLLOCAL void addCase(class CaseNode *c);
 };
 

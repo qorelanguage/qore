@@ -36,13 +36,13 @@
 
 // all definitions in this file are private to the library and subject to change
 
-DLLLOCAL int process_node(QoreNode **node, lvh_t oflag, int pflag);
+DLLLOCAL int process_node(AbstractQoreNode **node, lvh_t oflag, int pflag);
 DLLLOCAL int process_list_node(QoreListNode **node, lvh_t oflag, int pflag);
 
 class AbstractStatement
 {
    private:
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink) = 0;
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink) = 0;
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0) = 0;   
 
    public:
@@ -55,7 +55,7 @@ class AbstractStatement
       DLLLOCAL virtual ~AbstractStatement()
       {
       }
-      DLLLOCAL int exec(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL int exec(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL int parseInit(lvh_t oflag, int pflag = 0);
       // statement should return true if it ends a block (break, continue, return, throw, etc)
       // meaning that any subsequent statements will be unconditionally skipped

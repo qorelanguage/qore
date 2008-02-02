@@ -57,7 +57,7 @@ void ConstantList::reset()
    deleteAll();
 }
 
-void ConstantList::add(const char *name, class QoreNode *value)
+void ConstantList::add(const char *name, class AbstractQoreNode *value)
 {
    // first check if the constant has already been defined
    if (hm.find(name) != hm.end())
@@ -70,7 +70,7 @@ void ConstantList::add(const char *name, class QoreNode *value)
    hm[strdup(name)] = value;
 }
 
-class QoreNode *ConstantList::find(const char *name)
+class AbstractQoreNode *ConstantList::find(const char *name)
 {
    hm_qn_t::iterator i = hm.find(name);
    if (i != hm.end())

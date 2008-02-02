@@ -33,7 +33,7 @@ int CID_QTIMER;
 static void QTIMER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQTimer *qw;
-   QoreNode *p = test_param(params, NT_OBJECT, 0);
+   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
 
    if (!parent)
@@ -53,43 +53,43 @@ static void QTIMER_copy(class QoreObject *self, class QoreObject *old, class Qor
 }
 
 //int interval () const
-static QoreNode *QTIMER_interval(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIMER_interval(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qt->qobj->interval());
 }
 
 //bool isActive () const
-static QoreNode *QTIMER_isActive(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIMER_isActive(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qt->qobj->isActive());
 }
 
 //bool isSingleShot () const
-static QoreNode *QTIMER_isSingleShot(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIMER_isSingleShot(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qt->qobj->isSingleShot());
 }
 
 //void setInterval ( int msec )
-static QoreNode *QTIMER_setInterval(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIMER_setInterval(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int msec = p ? p->getAsInt() : 0;
    qt->qobj->setInterval(msec);
    return 0;
 }
 
 //void setSingleShot ( bool singleShot )
-static QoreNode *QTIMER_setSingleShot(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIMER_setSingleShot(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool singleShot = p ? p->getAsBool() : false;
    qt->qobj->setSingleShot(singleShot);
    return 0;
 }
 
 //int timerId () const
-static QoreNode *QTIMER_timerId(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIMER_timerId(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qt->qobj->timerId());
 }
@@ -98,9 +98,9 @@ static QoreNode *QTIMER_timerId(QoreObject *self, QoreQTimer *qt, const QoreList
 
 //void start ( int msec )
 //void start ()
-static QoreNode *QTIMER_start(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIMER_start(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qt->qobj->start();
    else {
@@ -111,7 +111,7 @@ static QoreNode *QTIMER_start(QoreObject *self, QoreQTimer *qt, const QoreListNo
 }
 
 //void stop ()
-static QoreNode *QTIMER_stop(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIMER_stop(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    qt->qobj->stop();
    return 0;
@@ -143,9 +143,9 @@ class QoreClass *initQTimerClass(class QoreClass *qobject)
 }
 
 //void singleShot ( int msec, QObject * receiver, const char * member )
-static QoreNode *f_QTimer_singleShot(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QTimer_singleShot(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int msec = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;

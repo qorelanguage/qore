@@ -35,7 +35,7 @@ class QoreClass *QC_QPointF = 0;
 //QPointF ( qreal x, qreal y )
 static void QPOINTF_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QPOINTF, new QoreQPointF());
       return;
@@ -65,43 +65,43 @@ static void QPOINTF_copy(class QoreObject *self, class QoreObject *old, class Qo
 }
 
 //bool isNull () const
-static QoreNode *QPOINTF_isNull(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPOINTF_isNull(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qpf->isNull());
 }
 
 ////qreal & rx ()
-//static QoreNode *QPOINTF_rx(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QPOINTF_rx(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qpf->rx());
 //}
 
 ////qreal & ry ()
-//static QoreNode *QPOINTF_ry(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QPOINTF_ry(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qpf->ry());
 //}
 
 //void setX ( qreal x )
-static QoreNode *QPOINTF_setX(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPOINTF_setX(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    qreal x = p ? p->getAsFloat() : 0.0;
    qpf->setX(x);
    return 0;
 }
 
 //void setY ( qreal y )
-static QoreNode *QPOINTF_setY(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPOINTF_setY(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    qreal y = p ? p->getAsFloat() : 0.0;
    qpf->setY(y);
    return 0;
 }
 
 //QPoint toPoint () const
-static QoreNode *QPOINTF_toPoint(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPOINTF_toPoint(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qpf->toPoint());
@@ -110,13 +110,13 @@ static QoreNode *QPOINTF_toPoint(QoreObject *self, QoreQPointF *qpf, const QoreL
 }
 
 //qreal x () const
-static QoreNode *QPOINTF_x(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPOINTF_x(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode((double)qpf->x());
 }
 
 //qreal y () const
-static QoreNode *QPOINTF_y(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPOINTF_y(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode((double)qpf->y());
 }

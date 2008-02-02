@@ -43,15 +43,15 @@ static void QBASICTIMER_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //bool isActive () const
-static QoreNode *QBASICTIMER_isActive(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBASICTIMER_isActive(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qbt->isActive());
 }
 
 //void start ( int msec, QObject * object )
-static QoreNode *QBASICTIMER_start(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBASICTIMER_start(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int msec = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QoreAbstractQObject *object = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -66,14 +66,14 @@ static QoreNode *QBASICTIMER_start(QoreObject *self, QoreQBasicTimer *qbt, const
 }
 
 //void stop ()
-static QoreNode *QBASICTIMER_stop(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBASICTIMER_stop(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
 {
    qbt->stop();
    return 0;
 }
 
 //int timerId () const
-static QoreNode *QBASICTIMER_timerId(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBASICTIMER_timerId(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qbt->timerId());
 }

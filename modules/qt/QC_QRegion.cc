@@ -39,7 +39,7 @@ DLLLOCAL class QoreClass *QC_QRegion = 0;
 //QRegion ( const QRect & r, RegionType t = Rectangle )
 static void QREGION_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QREGION, new QoreQRegion());
       return;
@@ -90,7 +90,7 @@ static void QREGION_copy(class QoreObject *self, class QoreObject *old, class Qo
 }
 
 //QRect boundingRect () const
-static QoreNode *QREGION_boundingRect(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_boundingRect(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
 
    QoreQRect *q_qr = new QoreQRect(qr->boundingRect());
@@ -100,17 +100,17 @@ static QoreNode *QREGION_boundingRect(QoreObject *self, QoreQRegion *qr, const Q
 }
 
 //bool contains ( const QPoint & p ) const
-//static QoreNode *QREGION_contains(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QREGION_contains(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPoint p = p;
 //   return new QoreBoolNode(qr->contains(p));
 //}
 
 //bool contains ( const QRect & r ) const
-static QoreNode *QREGION_contains(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_contains(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQRect *r = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!p || !r)
    {
@@ -123,15 +123,15 @@ static QoreNode *QREGION_contains(QoreObject *self, QoreQRegion *qr, const QoreL
 }
 
 //Handle handle () const
-//static QoreNode *QREGION_handle(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QREGION_handle(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qr->handle());
 //}
 
 //QRegion intersected ( const QRegion & r ) const
-static QoreNode *QREGION_intersected(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_intersected(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQRegion *r = (p && p->type == NT_OBJECT) ? (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink) : 0;
    if (!p || !r)
    {
@@ -148,9 +148,9 @@ static QoreNode *QREGION_intersected(QoreObject *self, QoreQRegion *qr, const Qo
 }
 
 //bool intersects ( const QRegion & region ) const
-static QoreNode *QREGION_intersects(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_intersects(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQRegion *region = (p && p->type == NT_OBJECT) ? (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink) : 0;
    if (!region)
    {
@@ -169,21 +169,21 @@ static QoreNode *QREGION_intersects(QoreObject *self, QoreQRegion *qr, const Qor
 }
 
 //bool isEmpty () const
-static QoreNode *QREGION_isEmpty(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_isEmpty(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qr->isEmpty());
 }
 
 //QVector<QRect> rects () const
-//static QoreNode *QREGION_rects(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QREGION_rects(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qr->rects());
 //}
 
 //void setRects ( const QRect * rects, int number )
-static QoreNode *QREGION_setRects(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_setRects(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQRect *rects = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!p || !rects)
    {
@@ -199,9 +199,9 @@ static QoreNode *QREGION_setRects(QoreObject *self, QoreQRegion *qr, const QoreL
 }
 
 //QRegion subtracted ( const QRegion & r ) const
-static QoreNode *QREGION_subtracted(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_subtracted(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQRegion *r = (p && p->type == NT_OBJECT) ? (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink) : 0;
    if (!p || !r)
    {
@@ -218,9 +218,9 @@ static QoreNode *QREGION_subtracted(QoreObject *self, QoreQRegion *qr, const Qor
 }
 
 //void translate ( int dx, int dy )
-static QoreNode *QREGION_translate(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_translate(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int dx = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int dy = p ? p->getAsInt() : 0;
@@ -229,18 +229,18 @@ static QoreNode *QREGION_translate(QoreObject *self, QoreQRegion *qr, const Qore
 }
 
 //void translate ( const QPoint & point )
-//static QoreNode *QREGION_translate(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QREGION_translate(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPoint point = p;
 //   qr->translate(point);
 //   return 0;
 //}
 
 //QRegion translated ( int dx, int dy ) const
-static QoreNode *QREGION_translated(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_translated(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int dx = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int dy = p ? p->getAsInt() : 0;
@@ -252,9 +252,9 @@ static QoreNode *QREGION_translated(QoreObject *self, QoreQRegion *qr, const Qor
 }
 
 //QRegion translated ( const QPoint & p ) const
-//static QoreNode *QREGION_translated(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QREGION_translated(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPoint p = p;
 //
 //   QoreQRegion *q_qr = new QoreQRegion(qr->translated(p));
@@ -264,9 +264,9 @@ static QoreNode *QREGION_translated(QoreObject *self, QoreQRegion *qr, const Qor
 //}
 
 //QRegion united ( const QRegion & r ) const
-static QoreNode *QREGION_united(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_united(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQRegion *r = (p && p->type == NT_OBJECT) ? (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink) : 0;
    if (!p || !r)
    {
@@ -283,9 +283,9 @@ static QoreNode *QREGION_united(QoreObject *self, QoreQRegion *qr, const QoreLis
 }
 
 //QRegion xored ( const QRegion & r ) const
-static QoreNode *QREGION_xored(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QREGION_xored(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQRegion *r = (p && p->type == NT_OBJECT) ? (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink) : 0;
    if (!p || !r)
    {

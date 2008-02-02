@@ -30,7 +30,7 @@ int CID_QLCDNUMBER;
 static void QLCDNUMBER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQLCDNumber *qlcdn;
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type != NT_OBJECT)
    {
       int num_digits = p->getAsInt();
@@ -75,53 +75,53 @@ static void QLCDNUMBER_copy(class QoreObject *self, class QoreObject *old, class
    xsink->raiseException("QLCDNUMBER-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-static class QoreNode *QLCDNUMBER_setSegmentStyle(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *QLCDNUMBER_setSegmentStyle(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
+   class AbstractQoreNode *p = get_param(params, 0);
    if (!is_nothing(p))
       qlcdn->qobj->setSegmentStyle((QLCDNumber::SegmentStyle)p->getAsInt());
    return 0;
 }
 
-static class QoreNode *QLCDNUMBER_setNumDigits(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *QLCDNUMBER_setNumDigits(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
+   class AbstractQoreNode *p = get_param(params, 0);
    if (!is_nothing(p))
       qlcdn->qobj->setNumDigits(p->getAsInt());
    return 0;
 }
 
-static class QoreNode *QLCDNUMBER_numDigits(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *QLCDNUMBER_numDigits(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qlcdn->qobj->numDigits());
 }
 
-static class QoreNode *QLCDNUMBER_smallDecimalPoint(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *QLCDNUMBER_smallDecimalPoint(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qlcdn->qobj->smallDecimalPoint());
 }
 
-static class QoreNode *QLCDNUMBER_value(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *QLCDNUMBER_value(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode(qlcdn->qobj->value());
 }
 
-static class QoreNode *QLCDNUMBER_intValue(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *QLCDNUMBER_intValue(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qlcdn->qobj->intValue());
 }
 
-static class QoreNode *QLCDNUMBER_setMode(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *QLCDNUMBER_setMode(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
+   class AbstractQoreNode *p = get_param(params, 0);
    if (!is_nothing(p))
       qlcdn->qobj->setMode((QLCDNumber::Mode)p->getAsInt());
    return 0;
 }
 
-static class QoreNode *QLCDNUMBER_checkOverflow(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *QLCDNUMBER_checkOverflow(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
+   class AbstractQoreNode *p = get_param(params, 0);
    bool rc;
    if (p && p->type == NT_FLOAT)
       rc = qlcdn->qobj->checkOverflow(reinterpret_cast<const QoreFloatNode *>(p)->f);
@@ -133,9 +133,9 @@ static class QoreNode *QLCDNUMBER_checkOverflow(class QoreObject *self, class Qo
 // slots
 
 //void display ( int num )
-static QoreNode *QLCDNUMBER_display(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLCDNUMBER_display(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_FLOAT)
       qlcdn->qobj->display(reinterpret_cast<const QoreFloatNode *>(p)->f);
    else if (p && p->type == NT_STRING)
@@ -148,37 +148,37 @@ static QoreNode *QLCDNUMBER_display(QoreObject *self, QoreQLCDNumber *qlcdn, con
 }
 
 //void setBinMode ()
-static QoreNode *QLCDNUMBER_setBinMode(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLCDNUMBER_setBinMode(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
    qlcdn->qobj->setBinMode();
    return 0;
 }
 
 //void setDecMode ()
-static QoreNode *QLCDNUMBER_setDecMode(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLCDNUMBER_setDecMode(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
    qlcdn->qobj->setDecMode();
    return 0;
 }
 
 //void setHexMode ()
-static QoreNode *QLCDNUMBER_setHexMode(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLCDNUMBER_setHexMode(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
    qlcdn->qobj->setHexMode();
    return 0;
 }
 
 //void setOctMode ()
-static QoreNode *QLCDNUMBER_setOctMode(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLCDNUMBER_setOctMode(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
    qlcdn->qobj->setOctMode();
    return 0;
 }
 
 //void setSmallDecimalPoint ( bool )
-static QoreNode *QLCDNUMBER_setSmallDecimalPoint(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLCDNUMBER_setSmallDecimalPoint(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : 0;
    qlcdn->qobj->setSmallDecimalPoint(b);
    return 0;

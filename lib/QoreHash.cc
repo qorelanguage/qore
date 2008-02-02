@@ -44,7 +44,7 @@ HashIterator::HashIterator(class QoreHash &qh)
    ptr = NULL;
 }
 
-class QoreNode *HashIterator::eval(class ExceptionSink *xsink) const
+class AbstractQoreNode *HashIterator::eval(class ExceptionSink *xsink) const
 {
    if (ptr && ptr->node)
       return ptr->node->eval(xsink);
@@ -60,7 +60,7 @@ class QoreString *HashIterator::getKeyString() const
 }
 
 /*
- void HashIterator::setValue(class QoreNode *val, class ExceptionSink *xsink)
+ void HashIterator::setValue(class AbstractQoreNode *val, class ExceptionSink *xsink)
  {
     if (!ptr)
        return;
@@ -88,16 +88,16 @@ const char *HashIterator::getKey() const
    return ptr->key;
 }
 
-class QoreNode *HashIterator::getValue() const
+class AbstractQoreNode *HashIterator::getValue() const
 {
    if (ptr)
       return ptr->node;
    return NULL;
 }
 
-class QoreNode *HashIterator::takeValueAndDelete()
+class AbstractQoreNode *HashIterator::takeValueAndDelete()
 {
-   class QoreNode *rv;
+   class AbstractQoreNode *rv;
    if (ptr)
    { 
       rv = ptr->node;
@@ -135,7 +135,7 @@ void HashIterator::deleteKey(ExceptionSink *xsink)
    h->internDeleteKey(w);
 }
 
-class QoreNode **HashIterator::getValuePtr() const
+class AbstractQoreNode **HashIterator::getValuePtr() const
 {
    if (ptr)
       return &(ptr->node);
@@ -164,7 +164,7 @@ ConstHashIterator::ConstHashIterator(const QoreHash &qh)
    ptr = NULL;
 }
 
-class QoreNode *ConstHashIterator::eval(class ExceptionSink *xsink) const
+class AbstractQoreNode *ConstHashIterator::eval(class ExceptionSink *xsink) const
 {
    if (ptr && ptr->node)
       return ptr->node->eval(xsink);
@@ -196,7 +196,7 @@ const char *ConstHashIterator::getKey() const
    return ptr->key;
 }
 
-class QoreNode *ConstHashIterator::getValue() const
+class AbstractQoreNode *ConstHashIterator::getValue() const
 {
    if (ptr)
       return ptr->node;
@@ -242,7 +242,7 @@ void QoreHash::internDeleteKey(class HashMember *om)
 }
 
 // this function should only be called when the key doesn't exist
-class QoreNode **QoreHash::newKeyValue(const char *key, class QoreNode *value)
+class AbstractQoreNode **QoreHash::newKeyValue(const char *key, class AbstractQoreNode *value)
 {
    assert(key);
 
@@ -262,14 +262,14 @@ class QoreNode **QoreHash::newKeyValue(const char *key, class QoreNode *value)
    return &om->node;
 }
 
-class QoreNode **QoreHash::getKeyValuePtr(const QoreString *key, class ExceptionSink *xsink)
+class AbstractQoreNode **QoreHash::getKeyValuePtr(const QoreString *key, class ExceptionSink *xsink)
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
 	 return NULL;
-      QoreNode **rv = getKeyValuePtr(ns->getBuffer());
+      AbstractQoreNode **rv = getKeyValuePtr(ns->getBuffer());
       delete ns;
       return rv;
    }
@@ -290,9 +290,9 @@ void QoreHash::deleteKey(const QoreString *key, ExceptionSink *xsink)
       deleteKey(key->getBuffer(), xsink);
 }
 
-class QoreNode *QoreHash::takeKeyValue(const QoreString *key, ExceptionSink *xsink)
+class AbstractQoreNode *QoreHash::takeKeyValue(const QoreString *key, ExceptionSink *xsink)
 {
-   class QoreNode *rv;
+   class AbstractQoreNode *rv;
    if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
@@ -306,21 +306,21 @@ class QoreNode *QoreHash::takeKeyValue(const QoreString *key, ExceptionSink *xsi
    return rv;
 }
 
-class QoreNode *QoreHash::getKeyValueExistence(const QoreString *key, class ExceptionSink *xsink) const
+class AbstractQoreNode *QoreHash::getKeyValueExistence(const QoreString *key, class ExceptionSink *xsink) const
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
 	 return NULL;
-      QoreNode *rv = getKeyValueExistence(ns->getBuffer());
+      AbstractQoreNode *rv = getKeyValueExistence(ns->getBuffer());
       delete ns;
       return rv;
    }
    return getKeyValueExistence(key->getBuffer());
 }
 
-void QoreHash::setKeyValue(const QoreString *key, class QoreNode *value, ExceptionSink *xsink)
+void QoreHash::setKeyValue(const QoreString *key, class AbstractQoreNode *value, ExceptionSink *xsink)
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
@@ -334,38 +334,38 @@ void QoreHash::setKeyValue(const QoreString *key, class QoreNode *value, Excepti
       setKeyValue(key->getBuffer(), value, xsink);
 }
 
-void QoreHash::setKeyValue(const char *key, class QoreNode *value, ExceptionSink *xsink)
+void QoreHash::setKeyValue(const char *key, class AbstractQoreNode *value, ExceptionSink *xsink)
 {
    assert(key);
-   class QoreNode **v = getKeyValuePtr(key);
+   class AbstractQoreNode **v = getKeyValuePtr(key);
    //printd(5, "Hash::setKeyValue(%s, %08p) v=%08p *v=%08p\n", key, value, v, *v);
    if (*v)
       (*v)->deref(xsink);
    *v = value;
 }
 
-class QoreNode **QoreHash::getExistingValuePtr(const QoreString *key, class ExceptionSink *xsink)
+class AbstractQoreNode **QoreHash::getExistingValuePtr(const QoreString *key, class ExceptionSink *xsink)
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
 	 return NULL;
-      QoreNode **rv = getExistingValuePtr(ns->getBuffer());
+      AbstractQoreNode **rv = getExistingValuePtr(ns->getBuffer());
       delete ns;
       return rv;
    }
    return getExistingValuePtr(key->getBuffer());
 }
 
-class QoreNode *QoreHash::getKeyValue(const QoreString *key, class ExceptionSink *xsink) const
+class AbstractQoreNode *QoreHash::getKeyValue(const QoreString *key, class ExceptionSink *xsink) const
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
       QoreString *ns = key->convertEncoding(QCS_DEFAULT, xsink);
       if (xsink->isEvent())
 	 return NULL;
-      QoreNode *rv = getKeyValue(ns->getBuffer());
+      AbstractQoreNode *rv = getKeyValue(ns->getBuffer());
       delete ns;
       return rv;
    }
@@ -484,7 +484,7 @@ class QoreHash *QoreHash::eval(ExceptionSink *xsink) const
    return 0;
 }
 
-class QoreNode *QoreHash::evalFirstKeyValue(class ExceptionSink *xsink) const
+class AbstractQoreNode *QoreHash::evalFirstKeyValue(class ExceptionSink *xsink) const
 {
    if (!member_list || !member_list->node)
       return NULL;
@@ -507,7 +507,7 @@ QoreHash::QoreHash(bool ne)
 }
 
 
-class QoreNode *QoreHash::evalKey(const char *key, class ExceptionSink *xsink) const
+class AbstractQoreNode *QoreHash::evalKey(const char *key, class ExceptionSink *xsink) const
 {
    assert(key);
 
@@ -519,7 +519,7 @@ class QoreNode *QoreHash::evalKey(const char *key, class ExceptionSink *xsink) c
    return NULL;
 }
 
-class QoreNode *QoreHash::evalKeyExistence(const char *key, class ExceptionSink *xsink) const
+class AbstractQoreNode *QoreHash::evalKeyExistence(const char *key, class ExceptionSink *xsink) const
 {
    assert(key);
 
@@ -532,10 +532,10 @@ class QoreNode *QoreHash::evalKeyExistence(const char *key, class ExceptionSink 
       
       return NULL;
    }
-   return (QoreNode *)-1;
+   return (AbstractQoreNode *)-1;
 }
 
-class QoreNode **QoreHash::getKeyValuePtr(const char *key)
+class AbstractQoreNode **QoreHash::getKeyValuePtr(const char *key)
 {
    assert(key);
 
@@ -547,7 +547,7 @@ class QoreNode **QoreHash::getKeyValuePtr(const char *key)
    return newKeyValue(key, NULL);
 }
 
-class QoreNode *QoreHash::getKeyValue(const char *key) const
+class AbstractQoreNode *QoreHash::getKeyValue(const char *key) const
 {
    assert(key);
 
@@ -559,7 +559,7 @@ class QoreNode *QoreHash::getKeyValue(const char *key) const
    return NULL;
 }
 
-class QoreNode *QoreHash::getKeyValueExistence(const char *key) const
+class AbstractQoreNode *QoreHash::getKeyValueExistence(const char *key) const
 {
    assert(key);
 
@@ -568,7 +568,7 @@ class QoreNode *QoreHash::getKeyValueExistence(const char *key) const
    if (i != hm.end())
       return i->second->node;
 
-   return (QoreNode *)-1;
+   return (AbstractQoreNode *)-1;
 }
 
 // does a "soft" compare (values of different types are converted if necessary and then compared)
@@ -611,7 +611,7 @@ bool QoreHash::compareHard(const QoreHash *h, class ExceptionSink *xsink) const
    return 0;
 }
 
-class QoreNode **QoreHash::getExistingValuePtr(const char *key)
+class AbstractQoreNode **QoreHash::getExistingValuePtr(const char *key)
 {
    hm_hm_t::const_iterator i = hm.find(key);
 
@@ -685,7 +685,7 @@ void QoreHash::deleteKey(const char *key, ExceptionSink *xsink)
    internDeleteKey(m);
 }
 
-class QoreNode *QoreHash::takeKeyValue(const char *key)
+class AbstractQoreNode *QoreHash::takeKeyValue(const char *key)
 {
    assert(key);
 
@@ -698,7 +698,7 @@ class QoreNode *QoreHash::takeKeyValue(const char *key)
 
    hm.erase(i);
 
-   class QoreNode *rv = m->node;
+   class AbstractQoreNode *rv = m->node;
 
    internDeleteKey(m);
 
@@ -751,7 +751,7 @@ int QoreHash::getAsString(QoreString &str, int foff, class ExceptionSink *xsink)
 
       str.sprintf("%s : ", hi.getKey());
 
-      QoreNode *n = hi.getValue();
+      AbstractQoreNode *n = hi.getValue();
       if (!n) n = Nothing;
       if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
 	 return -1;

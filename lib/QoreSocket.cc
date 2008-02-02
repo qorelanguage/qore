@@ -1283,7 +1283,7 @@ static void do_headers(QoreString &hdr, const QoreHash *headers, int size)
 
       while (hi.next())
       {
-	 class QoreNode *v = hi.getValue();
+	 class AbstractQoreNode *v = hi.getValue();
 	 if (v)
 	 {
 	    const QoreType *vtype = v->getType();
@@ -1448,7 +1448,7 @@ void QoreSocket::convertHeaderToHash(class QoreHash *h, char *p)
 //   -1 for socket error
 //   -2 for socket not open
 //   -3 for timeout
-class QoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
+class AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 {
    if (!priv->sock)
    {

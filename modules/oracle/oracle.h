@@ -128,7 +128,7 @@ class OraColumn {
 	    OCIHandleFree(defp, OCI_HTYPE_DEFINE);
 	 }	 
       }
-      DLLLOCAL class QoreNode *getValue(class Datasource *ds, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *getValue(class Datasource *ds, class ExceptionSink *xsink);
 };
 
 class OraColumns {
@@ -181,7 +181,7 @@ union ora_bind {
 	    const char *type;       // qore datatype for column
       } ph;
       struct {
-	    class QoreNode *value;   // value to be bound
+	    class AbstractQoreNode *value;   // value to be bound
 	    class QoreString *tstr;   // temporary string to be deleted
       } v;
 };
@@ -195,7 +195,7 @@ class OraBindNode {
       sb2 ind;             // NULL indicator for OCI calls
       class OraBindNode *next;
 
-      DLLLOCAL inline OraBindNode(class QoreNode *v) // for value nodes
+      DLLLOCAL inline OraBindNode(class AbstractQoreNode *v) // for value nodes
       {
 	 bindtype = BN_VALUE;
 	 data.v.value = v;
@@ -242,7 +242,7 @@ class OraBindNode {
 
       DLLLOCAL void bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, class ExceptionSink *xsink);
       DLLLOCAL void bindPlaceholder(class Datasource *ds, OCIStmt *stmthp, int pos, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *getValue(class Datasource *ds, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *getValue(class Datasource *ds, class ExceptionSink *xsink);
 };
 
 static void ora_checkerr(OCIError *errhp, sword status, const char *query_name, Datasource *ds, ExceptionSink *xsink);
@@ -289,7 +289,7 @@ class OraBindGroup {
 	    w = head;
 	 }
       }
-      DLLLOCAL inline void add(class QoreNode *v)
+      DLLLOCAL inline void add(class AbstractQoreNode *v)
       {
 	 class OraBindNode *c = new OraBindNode(v);
 	 add(c);
@@ -303,9 +303,9 @@ class OraBindGroup {
 	 hasOutput = true;
       }
 
-      DLLLOCAL class QoreNode *exec(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *select(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRows(class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *exec(class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *select(class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *selectRows(class ExceptionSink *xsink);
 };
 
 #endif

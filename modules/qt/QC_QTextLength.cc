@@ -31,7 +31,7 @@ class QoreClass *QC_QTextLength = 0;
 //QTextLength ( Type type, qreal value )
 static void QTEXTLENGTH_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QTEXTLENGTH, new QoreQTextLength());
       return;
@@ -48,21 +48,21 @@ static void QTEXTLENGTH_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //qreal rawValue () const
-static QoreNode *QTEXTLENGTH_rawValue(QoreObject *self, QoreQTextLength *qtl, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTLENGTH_rawValue(QoreObject *self, QoreQTextLength *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode((double)qtl->rawValue());
 }
 
 //Type type () const
-static QoreNode *QTEXTLENGTH_type(QoreObject *self, QoreQTextLength *qtl, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTLENGTH_type(QoreObject *self, QoreQTextLength *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qtl->type());
 }
 
 //qreal value ( qreal maximumLength ) const
-static QoreNode *QTEXTLENGTH_value(QoreObject *self, QoreQTextLength *qtl, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTLENGTH_value(QoreObject *self, QoreQTextLength *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    qreal maximumLength = p ? p->getAsFloat() : 0.0;
    return new QoreFloatNode((double)qtl->value(maximumLength));
 }

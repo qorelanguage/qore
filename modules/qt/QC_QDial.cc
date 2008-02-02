@@ -34,7 +34,7 @@ class QoreClass *QC_QDial = 0;
 //QDial ( QWidget * parent = 0 )
 static void QDIAL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
@@ -49,60 +49,60 @@ static void QDIAL_copy(class QoreObject *self, class QoreObject *old, class Qore
 }
 
 //int notchSize () const
-static QoreNode *QDIAL_notchSize(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIAL_notchSize(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qd->qobj->notchSize());
 }
 
 //qreal notchTarget () const
-static QoreNode *QDIAL_notchTarget(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIAL_notchTarget(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode((double)qd->qobj->notchTarget());
 }
 
 //bool notchesVisible () const
-static QoreNode *QDIAL_notchesVisible(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIAL_notchesVisible(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qd->qobj->notchesVisible());
 }
 
 //void setNotchTarget ( double target )
-static QoreNode *QDIAL_setNotchTarget(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIAL_setNotchTarget(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    double target = p ? p->getAsFloat() : 0.0;
    qd->qobj->setNotchTarget(target);
    return 0;
 }
 
 //bool wrapping () const
-static QoreNode *QDIAL_wrapping(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIAL_wrapping(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qd->qobj->wrapping());
 }
 
 //void setNotchesVisible ( bool visible )
-static QoreNode *QDIAL_setNotchesVisible(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIAL_setNotchesVisible(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool visible = p ? p->getAsBool() : false;
    qd->qobj->setNotchesVisible(visible);
    return 0;
 }
 
 //void setWrapping ( bool on )
-static QoreNode *QDIAL_setWrapping(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIAL_setWrapping(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
    qd->qobj->setWrapping(on);
    return 0;
 }
 
 //void initStyleOption ( QStyleOptionSlider * option ) const
-static QoreNode *QDIAL_initStyleOption(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIAL_initStyleOption(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQStyleOptionSlider *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionSlider *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONSLIDER, xsink) : 0;
    if (!option) {
       if (!xsink->isException())

@@ -135,7 +135,7 @@ TEST()
   if (xsink.isEvent()) {
     assert(false);
   } else {
-     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     AbstractQoreNode *rv = pgm->callFunction("test", NULL, &xsink);
      if (xsink.isEvent()) {
        xsink.handleExceptions();
        assert(false);
@@ -178,7 +178,7 @@ TEST()
   if (xsink.isEvent()) {
     assert(false);
   } else {
-     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     AbstractQoreNode *rv = pgm->callFunction("test", NULL, &xsink);
      if (xsink.isEvent()) {
        xsink.handleExceptions();     
        assert(false);
@@ -215,7 +215,7 @@ static void TUXEDO_copy(QoreObject *self, QoreObject *old, QoreTuxedoAdapter* ad
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-CALL";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -224,7 +224,7 @@ static QoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreLi
   if (!service_name || !service_name[0]) {
     return xsink->raiseException(err_name, "Service name string cannot be empty.");
   }
-  QoreNode* data = get_param(params, 1);
+  AbstractQoreNode* data = get_param(params, 1);
   const QoreType *dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
@@ -234,7 +234,7 @@ static QoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreLi
   long flags = 0;
   long* pflags = 0;
 
-  QoreNode *n = get_param(params, 2);
+  AbstractQoreNode *n = get_param(params, 2);
   if (!is_nothing(n)) {
      const QoreType *ntype = n->getType();
      if (ntype == NT_HASH)
@@ -280,7 +280,7 @@ TEST()
   if (xsink.isEvent()) {
     assert(false);
   } else {
-     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     AbstractQoreNode *rv = pgm->callFunction("test", NULL, &xsink);
      if (xsink.isEvent()) {
        xsink.handleExceptions();
        assert(false);
@@ -303,7 +303,7 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
-static QoreNode* setStringEncoding(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* setStringEncoding(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   QoreStringNode* n = test_string_param(params, 0);
   if (!n) return xsink->raiseException("TUXEDO-ADAPTER-SET-STRING-ENCODING", "One parameter expected: string name of the encoding.");
@@ -313,7 +313,7 @@ static QoreNode* setStringEncoding(QoreObject* self, QoreTuxedoAdapter* adapter,
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* asyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* asyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-ASYNC-CALL";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -322,7 +322,7 @@ static QoreNode* asyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const Q
   if (!service_name || !service_name[0]) {
     return xsink->raiseException(err_name, "Service name string cannot be empty.");
   }
-  QoreNode* data = get_param(params, 1);
+  AbstractQoreNode* data = get_param(params, 1);
   const QoreType *dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
@@ -332,7 +332,7 @@ static QoreNode* asyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const Q
   long flags = 0;
   long* pflags = 0;
 
-  QoreNode *n = get_param(params, 2);
+  AbstractQoreNode *n = get_param(params, 2);
   if (!is_nothing(n)) {
      QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
      if (h)
@@ -386,7 +386,7 @@ TEST()
   if (xsink.isEvent()) {
     assert(false);
   } else {
-     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     AbstractQoreNode *rv = pgm->callFunction("test", NULL, &xsink);
      if (xsink.isEvent()) {
        xsink.handleExceptions();
        assert(false);
@@ -441,7 +441,7 @@ TEST()
   if (xsink.isEvent()) {
     assert(false);
   } else {
-     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     AbstractQoreNode *rv = pgm->callFunction("test", NULL, &xsink);
      if (xsink.isEvent()) {
        xsink.handleExceptions();
        assert(false);
@@ -465,11 +465,11 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
-static QoreNode* cancelAsyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* cancelAsyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
 
-  QoreNode* n = get_param(params, 0);
+  AbstractQoreNode* n = get_param(params, 0);
   int handle = n ? n->getAsInt() : 0;
   adapter->remove_pending_async_call(handle);
   int res = tpcancel(handle);
@@ -478,10 +478,10 @@ static QoreNode* cancelAsyncCall(QoreObject* self, QoreTuxedoAdapter* adapter, c
 }
 
 //------------------------------------------------------------------------------
-static QoreNode* waitForAsyncReply(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* waitForAsyncReply(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
-  QoreNode* n = get_param(params, 0);
+  AbstractQoreNode* n = get_param(params, 0);
   int handle = n ? n->getAsInt() : 0;
 
   // optional settings are either (1) integer flags or (2) hash with flags and FML/FML32 selector
@@ -505,7 +505,7 @@ static QoreNode* waitForAsyncReply(QoreObject* self, QoreTuxedoAdapter* adapter,
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-JOIN-CONVERSATION";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -514,7 +514,7 @@ static QoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, 
   if (!service_name || !service_name[0]) {
     return xsink->raiseException(err_name, "Service name string cannot be empty.");
   }
-  QoreNode* data = get_param(params, 1);
+  AbstractQoreNode* data = get_param(params, 1);
   const QoreType *dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
@@ -524,7 +524,7 @@ static QoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, 
   long flags = 0;
   long* pflags = 0;
 
-  QoreNode *n = get_param(params, 2);
+  AbstractQoreNode *n = get_param(params, 2);
   if (!is_nothing(n)) {
      QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
      if (h)
@@ -543,12 +543,12 @@ static QoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* adapter, 
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* breakConversation(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* breakConversation(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-BREAK-CONVERSATION";
   adapter->switchToSavedContext();
 
-  QoreNode* n = get_param(params, 0);
+  AbstractQoreNode* n = get_param(params, 0);
   int handle = n ? n->getAsInt() : 0;
   int res = tpdiscon(handle);
   if (res != -1) return 0;
@@ -556,13 +556,13 @@ static QoreNode* breakConversation(QoreObject* self, QoreTuxedoAdapter* adapter,
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* sendConversationData(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* sendConversationData(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-SEND-CONVERSATION-DATA";
-  QoreNode* n = get_param(params, 0);
+  AbstractQoreNode* n = get_param(params, 0);
   long handle = (long)(n ? n->getAsBigInt() : 0);
 
-  QoreNode* data = get_param(params, 1);
+  AbstractQoreNode* data = get_param(params, 1);
   const QoreType *dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
@@ -592,9 +592,9 @@ static QoreNode* sendConversationData(QoreObject* self, QoreTuxedoAdapter* adapt
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* receiveConversationData(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* receiveConversationData(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
-   QoreNode* n = get_param(params, 0);
+   AbstractQoreNode* n = get_param(params, 0);
    long handle = (long)(n ? n->getAsBigInt() : 0);
 
    // optional settings are either (1) integer flags or (2) hash with flags and out data type selector
@@ -618,7 +618,7 @@ static QoreNode* receiveConversationData(QoreObject* self, QoreTuxedoAdapter* ad
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-ENQUEUE";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -632,7 +632,7 @@ static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const Qor
   const char* queue_name = nstr->getBuffer();
   if (!queue_name || !queue_name[0]) return xsink->raiseException(err_name, "Queue name cannot be empty.");
 
-  QoreNode* data = get_param(params, 2);
+  AbstractQoreNode* data = get_param(params, 2);
   const QoreType *dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
@@ -642,7 +642,7 @@ static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const Qor
   long flags = 0;
   long* pflags = 0;
 
-  QoreNode *n = get_param(params, 2);
+  AbstractQoreNode *n = get_param(params, 2);
   if (!is_nothing(n)) {
      QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
      if (h)
@@ -662,7 +662,7 @@ static QoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, const Qor
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* dequeue(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* dequeue(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-DEQUEUE";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -681,7 +681,7 @@ static QoreNode* dequeue(QoreObject* self, QoreTuxedoAdapter* adapter, const Qor
   long flags = 0;
   long* pflags = 0;
 
-  QoreNode *n = get_param(params, 2);
+  AbstractQoreNode *n = get_param(params, 2);
   if (!is_nothing(n)) {
      QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
      if (h)
@@ -728,7 +728,7 @@ TEST()
   if (xsink.isEvent()) {
     assert(false);
   } else {
-     QoreNode *rv = pgm->callFunction("test", NULL, &xsink);
+     AbstractQoreNode *rv = pgm->callFunction("test", NULL, &xsink);
      if (xsink.isEvent()) {
        xsink.handleExceptions();
        assert(false);
@@ -751,7 +751,7 @@ TEST()
 #endif
 
 //-----------------------------------------------------------------------------
-static QoreNode* writeToLog(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* writeToLog(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   
@@ -764,7 +764,7 @@ static QoreNode* writeToLog(QoreObject* self, QoreTuxedoAdapter* adapter, const 
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* openResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* openResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpopen();
@@ -775,7 +775,7 @@ static QoreNode* openResourceManager(QoreObject* self, QoreTuxedoAdapter* adapte
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* closeResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* closeResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpclose();
@@ -784,10 +784,10 @@ static QoreNode* closeResourceManager(QoreObject* self, QoreTuxedoAdapter* adapt
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* beginTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* beginTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
    //char* err = (char*)"One optional parameter: integer or date/time timeout in seconds expected.";
-  QoreNode* n = get_param(params, 0);
+  AbstractQoreNode* n = get_param(params, 0);
   long timeout = 0; // no timeout by default
   if (is_nothing(n)) {
      DateTimeNode *date = test_date_param(params, 0);
@@ -804,7 +804,7 @@ static QoreNode* beginTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, 
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* commitTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* commitTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpcommit(0);
@@ -813,7 +813,7 @@ static QoreNode* commitTransaction(QoreObject* self, QoreTuxedoAdapter* adapter,
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* abortTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* abortTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpabort(0);
@@ -822,17 +822,17 @@ static QoreNode* abortTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, 
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* lastErrorDetails(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* lastErrorDetails(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   return new QoreBigIntNode(tperrordetail(0));
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* setPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* setPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-SET-PRIORITY";
-  QoreNode* n = test_param(params, NT_INT, 0);
+  AbstractQoreNode* n = test_param(params, NT_INT, 0);
   if (!n) return xsink->raiseException(err_name, "Integer priority parameter expected.");
   int priority = n ? n->getAsInt() : 0;
 
@@ -844,7 +844,7 @@ static QoreNode* setPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* getPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* getPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpgprio();
@@ -854,7 +854,7 @@ static QoreNode* getPriority(QoreObject* self, QoreTuxedoAdapter* adapter, const
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* suspendTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* suspendTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int id = ++adapter->m_last_suspended_transaction_id;
@@ -868,10 +868,10 @@ static QoreNode* suspendTransaction(QoreObject* self, QoreTuxedoAdapter* adapter
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* resumeTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* resumeTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-RESUME-TRANSACTION";
-  QoreNode* n = test_param(params, NT_INT, 0);
+  AbstractQoreNode* n = test_param(params, NT_INT, 0);
   if (!n) return xsink->raiseException(err_name, "One parameter, suspended transaction ID expected.");
   int id = n ? n->getAsInt() : 0;
 
@@ -890,7 +890,7 @@ static QoreNode* resumeTransaction(QoreObject* self, QoreTuxedoAdapter* adapter,
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* finishCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* finishCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpscmt(TP_CMT_LOGGED);
@@ -899,7 +899,7 @@ static QoreNode* finishCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* finishCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* finishCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpscmt(TP_CMT_COMPLETE);
@@ -908,7 +908,7 @@ static QoreNode* finishCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedo
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* isTransactionRunning(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* isTransactionRunning(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tpgetlev();
@@ -919,7 +919,7 @@ static QoreNode* isTransactionRunning(QoreObject* self, QoreTuxedoAdapter* adapt
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-POST-EVENT";
   QoreStringNode* nstr = test_string_param(params, 0);
@@ -928,7 +928,7 @@ static QoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const Q
   if (!event_name || !event_name[0]) {
     return xsink->raiseException(err_name, "Event name string cannot be empty.");
   }
-  QoreNode* data = get_param(params, 1);
+  AbstractQoreNode* data = get_param(params, 1);
   const QoreType *dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32).");
@@ -938,7 +938,7 @@ static QoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const Q
   long flags = 0;
   long* pflags = 0;
 
-  QoreNode *n = get_param(params, 2);
+  AbstractQoreNode *n = get_param(params, 2);
   if (!is_nothing(n)) {
      QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
      if (h)
@@ -956,7 +956,7 @@ static QoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter, const Q
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* beginTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* beginTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_begin();
@@ -965,7 +965,7 @@ static QoreNode* beginTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* commitTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* commitTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_commit();
@@ -974,7 +974,7 @@ static QoreNode* commitTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapte
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* abortTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* abortTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_rollback();
@@ -983,7 +983,7 @@ static QoreNode* abortTxTransaction(QoreObject* self, QoreTuxedoAdapter* adapter
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* finishTxCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* finishTxCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_set_commit_return(TX_COMMIT_DECISION_LOGGED);
@@ -992,7 +992,7 @@ static QoreNode* finishTxCommitAfterDataLogged(QoreObject* self, QoreTuxedoAdapt
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* finishTxCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* finishTxCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_set_commit_return(TX_COMMIT_COMPLETED);
@@ -1001,7 +1001,7 @@ static QoreNode* finishTxCommitAfterTwoPhaseCompletes(QoreObject* self, QoreTuxe
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* openTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* openTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_open();
@@ -1010,7 +1010,7 @@ static QoreNode* openTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adap
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* closeTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* closeTxResourceManager(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_close();
@@ -1019,7 +1019,7 @@ static QoreNode* closeTxResourceManager(QoreObject* self, QoreTuxedoAdapter* ada
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* setChainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* setChainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_set_transaction_control(TX_CHAINED);
@@ -1028,7 +1028,7 @@ static QoreNode* setChainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* a
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* setUnchainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* setUnchainedTxTransactions(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   adapter->switchToSavedContext();
   int res = tx_set_transaction_control(TX_UNCHAINED);
@@ -1037,10 +1037,10 @@ static QoreNode* setUnchainedTxTransactions(QoreObject* self, QoreTuxedoAdapter*
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* setTxTransactionsTimeout(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* setTxTransactionsTimeout(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   char* err_name = (char*)"TUXEDO-ADAPTER-SET-TX-TRANSACTION-TIMEOUT";
-  QoreNode* n = get_param(params, 0);
+  AbstractQoreNode* n = get_param(params, 0);
   long timeout;
   if (is_nothing(n)) {
      DateTimeNode *date = test_date_param(params, 0);
@@ -1060,9 +1060,9 @@ static QoreNode* setTxTransactionsTimeout(QoreObject* self, QoreTuxedoAdapter* a
 }
 
 //-----------------------------------------------------------------------------
-static QoreNode* error2string(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
+static AbstractQoreNode* error2string(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
-   QoreNode *n = get_param(params, 0);
+   AbstractQoreNode *n = get_param(params, 0);
    int err = n ? n->getAsInt() : 0;
    char* str = strerror(err);
    if (!str || !str[0]) str = (char*)"<uknown error>";

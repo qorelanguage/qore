@@ -30,7 +30,7 @@ static void QKEYSEQUENCE_constructor(class QoreObject *self, const QoreListNode 
 {
    QoreQKeySequence *qks;
 
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qks = new QoreQKeySequence();
    else if (p->type == NT_STRING)
@@ -60,27 +60,27 @@ static void QKEYSEQUENCE_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //uint count () const
-static QoreNode *QKEYSEQUENCE_count(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYSEQUENCE_count(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qks->count());
 }
 
 //DataPtr & data_ptr ()
-//static QoreNode *QKEYSEQUENCE_data_ptr(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QKEYSEQUENCE_data_ptr(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qks->data_ptr());
 //}
 
 //bool isEmpty () const
-static QoreNode *QKEYSEQUENCE_isEmpty(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYSEQUENCE_isEmpty(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qks->isEmpty());
 }
 
 //SequenceMatch matches ( const QKeySequence & seq ) const
-static QoreNode *QKEYSEQUENCE_matches(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYSEQUENCE_matches(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQKeySequence *seq = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
    if (!seq) {
       if (!xsink->isException())
@@ -92,9 +92,9 @@ static QoreNode *QKEYSEQUENCE_matches(QoreObject *self, QoreQKeySequence *qks, c
 }
 
 //QString toString ( SequenceFormat format = PortableText ) const
-static QoreNode *QKEYSEQUENCE_toString(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYSEQUENCE_toString(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QKeySequence::SequenceFormat format = (QKeySequence::SequenceFormat)(p ? p->getAsInt() : 0);
    return new QoreStringNode(qks->toString(format).toUtf8().data(), QCS_UTF8);
 }

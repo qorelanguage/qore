@@ -64,7 +64,7 @@ const char *BackquoteNode::getTypeName() const
 }
 
 // eval(): return value requires a deref(xsink)
-QoreNode *BackquoteNode::eval(class ExceptionSink *xsink) const
+AbstractQoreNode *BackquoteNode::eval(class ExceptionSink *xsink) const
 {
    return backquoteEval(str, xsink);
 }
@@ -73,7 +73,7 @@ QoreNode *BackquoteNode::eval(class ExceptionSink *xsink) const
 #define READ_BLOCK 1024
 #endif
 
-QoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink)
+AbstractQoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink)
 {
    // execute command in a new process and read stdout in parent
    FILE *p = popen(cmd, "r");

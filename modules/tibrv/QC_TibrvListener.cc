@@ -70,7 +70,7 @@ void TIBRVLISTENER_copy(class QoreObject *self, class QoreObject *old, class Qor
    xsink->raiseException("TIBRVLISTENER-COPY-ERROR", "copying TibrvListener objects is curently not supported");
 }
 
-static QoreNode *TIBRVLISTENER_getQueueSize(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVLISTENER_getQueueSize(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
 {
    int c = trvl->getQueueSize(xsink);
    if (!xsink->isException())
@@ -79,7 +79,7 @@ static QoreNode *TIBRVLISTENER_getQueueSize(class QoreObject *self, class QoreTi
    return NULL;
 }
 
-static QoreNode *TIBRVLISTENER_getMessage(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVLISTENER_getMessage(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
 {
    int64 timeout = getMsMinusOneBigInt(get_param(params, 0));
 
@@ -90,12 +90,12 @@ static QoreNode *TIBRVLISTENER_getMessage(class QoreObject *self, class QoreTibr
    return trvl->getMessage(timeout, xsink);
 }
 
-static QoreNode *TIBRVLISTENER_createInboxName(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVLISTENER_createInboxName(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
 {
    return trvl->createInboxName(xsink);
 }
 
-class QoreNode *TIBRVLISTENER_setStringEncoding(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVLISTENER_setStringEncoding(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -109,7 +109,7 @@ class QoreNode *TIBRVLISTENER_setStringEncoding(class QoreObject *self, class Qo
    return NULL;
 }
 
-class QoreNode *TIBRVLISTENER_getStringEncoding(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVLISTENER_getStringEncoding(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(trvl->getStringEncoding()->getCode());
 }

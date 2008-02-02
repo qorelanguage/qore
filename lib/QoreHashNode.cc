@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-QoreHashNode::QoreHashNode(bool ne) : QoreNode(NT_HASH), QoreHash(ne)
+QoreHashNode::QoreHashNode(bool ne) : AbstractQoreNode(NT_HASH), QoreHash(ne)
 {
 }
 
@@ -50,16 +50,16 @@ bool QoreHashNode::needs_eval() const
    return QoreHash::needsEval();
 }
 
-class QoreNode *QoreHashNode::realCopy() const
+class AbstractQoreNode *QoreHashNode::realCopy() const
 {
    return copy();
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
 // the "val" passed
-//DLLLOCAL virtual int compare(const QoreNode *val) const;
+//DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool QoreHashNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+bool QoreHashNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(v);
    if (!h)
@@ -68,7 +68,7 @@ bool QoreHashNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
    return !compareSoft(h, xsink);
 }
 
-bool QoreHashNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+bool QoreHashNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(v);
    if (!h)
@@ -104,7 +104,7 @@ class QoreHashNode *QoreHashNode::copy() const
    return h;
 }
 
-class QoreNode *QoreHashNode::eval(class ExceptionSink *xsink) const
+class AbstractQoreNode *QoreHashNode::eval(class ExceptionSink *xsink) const
 {
    if (!needs_eval())
       return RefSelf();
@@ -117,7 +117,7 @@ class QoreNode *QoreHashNode::eval(class ExceptionSink *xsink) const
    return 0;
 }
 
-QoreNode *QoreHashNode::eval(bool &needs_deref, class ExceptionSink *xsink) const
+AbstractQoreNode *QoreHashNode::eval(bool &needs_deref, class ExceptionSink *xsink) const
 {
    if (!needs_eval()) {
       needs_deref = false;

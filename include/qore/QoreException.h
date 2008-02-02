@@ -54,12 +54,12 @@ class ExceptionSink {
       // ExceptionSink xsink;
       // if (xsink) { .. }
       DLLEXPORT operator bool () const;
-      // The QoreNode* returned value is always NULL. Used to simplify error handling code.
-      DLLEXPORT class QoreNode *raiseException(const char *err, const char *fmt, ...);
+      // The AbstractQoreNode* returned value is always NULL. Used to simplify error handling code.
+      DLLEXPORT class AbstractQoreNode *raiseException(const char *err, const char *fmt, ...);
       // Raise exception with additional argument (the 'arg' member). Always returns 0.
-      DLLEXPORT QoreNode* raiseExceptionArg(const char* err, QoreNode* arg, const char* fmt, ...);
+      DLLEXPORT AbstractQoreNode* raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...);
       // returns NULL, takes owenership of the "desc" argument
-      DLLEXPORT QoreNode *raiseException(const char *err, class QoreStringNode *desc);
+      DLLEXPORT AbstractQoreNode *raiseException(const char *err, class QoreStringNode *desc);
       DLLEXPORT void rethrow(class QoreException *old);
       DLLEXPORT void raiseThreadExit();
       DLLEXPORT void assimilate(class ExceptionSink *xs);
@@ -89,7 +89,7 @@ class QoreException {
       struct qore_ex_private *priv;
 
       DLLLOCAL ~QoreException();
-      DLLLOCAL void addStackInfo(class QoreNode *n);
+      DLLLOCAL void addStackInfo(class AbstractQoreNode *n);
       DLLLOCAL static class QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
 
    public:

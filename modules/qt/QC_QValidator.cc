@@ -34,7 +34,7 @@ class QoreClass *QC_QValidator = 0;
 //QValidator ( QObject * parent )
 static void QVALIDATOR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
@@ -52,7 +52,7 @@ static void QVALIDATOR_copy(class QoreObject *self, class QoreObject *old, class
 }
 
 //virtual void fixup ( QString & input ) const
-static QoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
    ReferenceNode *p = test_reference_param(params, 0);
    if (!p) {
@@ -60,7 +60,7 @@ static QoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidator *qv, 
       return 0;
    }
    class AutoVLock vl;
-   class QoreNode **vp = get_var_value_ptr(p->lvexp, &vl, xsink);
+   class AbstractQoreNode **vp = get_var_value_ptr(p->lvexp, &vl, xsink);
    if (*xsink)
       return 0;
 
@@ -77,7 +77,7 @@ static QoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidator *qv, 
 }
 
 //QLocale locale () const
-static QoreNode *QVALIDATOR_locale(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QVALIDATOR_locale(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_ql = new QoreObject(QC_QLocale, getProgram());
    QoreQLocale *q_ql = new QoreQLocale(qv->getQValidator()->locale());
@@ -86,9 +86,9 @@ static QoreNode *QVALIDATOR_locale(QoreObject *self, QoreAbstractQValidator *qv,
 }
 
 //void setLocale ( const QLocale & locale )
-static QoreNode *QVALIDATOR_setLocale(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QVALIDATOR_setLocale(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
    if (!locale) {
       if (!xsink->isException())
@@ -101,7 +101,7 @@ static QoreNode *QVALIDATOR_setLocale(QoreObject *self, QoreAbstractQValidator *
 }
 
 //virtual State validate ( QString & input, int & pos ) const = 0
-static QoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
    ReferenceNode *p0 = test_reference_param(params, 0);
    if (!p0) {
@@ -116,7 +116,7 @@ static QoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *q
    }
    
    class AutoVLock vl;
-   class QoreNode **vp0 = get_var_value_ptr(p0->lvexp, &vl, xsink);
+   class AbstractQoreNode **vp0 = get_var_value_ptr(p0->lvexp, &vl, xsink);
    if (*xsink)
       return 0;
    
@@ -124,7 +124,7 @@ static QoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *q
    if (get_qstring(*vp0, input, xsink))
       return 0;
    
-   class QoreNode **vp1 = get_var_value_ptr(p1->lvexp, &vl, xsink);
+   class AbstractQoreNode **vp1 = get_var_value_ptr(p1->lvexp, &vl, xsink);
    if (*xsink)
       return 0;
 

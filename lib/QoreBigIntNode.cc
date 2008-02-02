@@ -113,21 +113,21 @@ int QoreBigIntNode::getAsString(QoreString &str, int foff, class ExceptionSink *
    return 0;
 }
 
-QoreNode *QoreBigIntNode::realCopy() const
+AbstractQoreNode *QoreBigIntNode::realCopy() const
 {
    return new QoreBigIntNode(val);
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
 // the "val" passed
-//DLLLOCAL virtual int compare(const QoreNode *val) const;
+//DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool QoreBigIntNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+bool QoreBigIntNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    return v->getAsBigInt() == val;
 }
 
-bool QoreBigIntNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+bool QoreBigIntNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    const QoreBigIntNode *i = dynamic_cast<const QoreBigIntNode *>(v);
    if (!i)

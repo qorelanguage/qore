@@ -48,7 +48,7 @@ class SelfVarrefNode : public ParseNode
       DLLLOCAL virtual const char *getTypeName() const;
       // eval(): return value requires a deref(xsink)
       // default implementation = returns "this" with incremented atomic reference count
-      DLLLOCAL virtual class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLLOCAL virtual class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
 
       // returns the string, caller owns the memory
       DLLLOCAL char *takeString();

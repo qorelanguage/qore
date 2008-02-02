@@ -39,94 +39,94 @@ static void QTEXTTABLEFORMAT_copy(class QoreObject *self, class QoreObject *old,
 }
 
 //Qt::Alignment alignment () const
-static QoreNode *QTEXTTABLEFORMAT_alignment(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_alignment(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qttf->alignment());
 }
 
 //qreal cellPadding () const
-static QoreNode *QTEXTTABLEFORMAT_cellPadding(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_cellPadding(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode((double)qttf->cellPadding());
 }
 
 //qreal cellSpacing () const
-static QoreNode *QTEXTTABLEFORMAT_cellSpacing(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_cellSpacing(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode((double)qttf->cellSpacing());
 }
 
 //void clearColumnWidthConstraints ()
-static QoreNode *QTEXTTABLEFORMAT_clearColumnWidthConstraints(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_clearColumnWidthConstraints(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
    qttf->clearColumnWidthConstraints();
    return 0;
 }
 
 ////QVector<QTextLength> columnWidthConstraints () const
-//static QoreNode *QTEXTTABLEFORMAT_columnWidthConstraints(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QTEXTTABLEFORMAT_columnWidthConstraints(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qttf->columnWidthConstraints());
 //}
 
 //int columns () const
-static QoreNode *QTEXTTABLEFORMAT_columns(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_columns(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qttf->columns());
 }
 
 //int headerRowCount () const
-static QoreNode *QTEXTTABLEFORMAT_headerRowCount(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_headerRowCount(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qttf->headerRowCount());
 }
 
 //bool isValid () const
-static QoreNode *QTEXTTABLEFORMAT_isValid(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_isValid(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qttf->isValid());
 }
 
 //void setAlignment ( Qt::Alignment alignment )
-static QoreNode *QTEXTTABLEFORMAT_setAlignment(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_setAlignment(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
    qttf->setAlignment(alignment);
    return 0;
 }
 
 //void setCellPadding ( qreal padding )
-static QoreNode *QTEXTTABLEFORMAT_setCellPadding(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_setCellPadding(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    qreal padding = p ? p->getAsFloat() : 0.0;
    qttf->setCellPadding(padding);
    return 0;
 }
 
 //void setCellSpacing ( qreal spacing )
-static QoreNode *QTEXTTABLEFORMAT_setCellSpacing(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_setCellSpacing(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    qreal spacing = p ? p->getAsFloat() : 0.0;
    qttf->setCellSpacing(spacing);
    return 0;
 }
 
 ////void setColumnWidthConstraints ( const QVector<QTextLength> & constraints )
-//static QoreNode *QTEXTTABLEFORMAT_setColumnWidthConstraints(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QTEXTTABLEFORMAT_setColumnWidthConstraints(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QVector<QTextLength> constraints = p;
 //   qttf->setColumnWidthConstraints(constraints);
 //   return 0;
 //}
 
 //void setHeaderRowCount ( int count )
-static QoreNode *QTEXTTABLEFORMAT_setHeaderRowCount(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTEXTTABLEFORMAT_setHeaderRowCount(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int count = p ? p->getAsInt() : 0;
    qttf->setHeaderRowCount(count);
    return 0;

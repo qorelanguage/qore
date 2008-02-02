@@ -32,7 +32,7 @@ class QoreClass *QC_QInputMethodEvent = 0;
 ////QInputMethodEvent ( const QInputMethodEvent & other )
 static void QINPUTMETHODEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QINPUTMETHODEVENT, new QoreQInputMethodEvent());
       return;
@@ -57,37 +57,37 @@ static void QINPUTMETHODEVENT_copy(class QoreObject *self, class QoreObject *old
 }
 
 ////const QList<Attribute> & attributes () const
-//static QoreNode *QINPUTMETHODEVENT_attributes(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QINPUTMETHODEVENT_attributes(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qime->attributes());
 //}
 
 //const QString & commitString () const
-static QoreNode *QINPUTMETHODEVENT_commitString(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QINPUTMETHODEVENT_commitString(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qime->commitString().toUtf8().data(), QCS_UTF8);
 }
 
 //const QString & preeditString () const
-static QoreNode *QINPUTMETHODEVENT_preeditString(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QINPUTMETHODEVENT_preeditString(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qime->preeditString().toUtf8().data(), QCS_UTF8);
 }
 
 //int replacementLength () const
-static QoreNode *QINPUTMETHODEVENT_replacementLength(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QINPUTMETHODEVENT_replacementLength(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qime->replacementLength());
 }
 
 //int replacementStart () const
-static QoreNode *QINPUTMETHODEVENT_replacementStart(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QINPUTMETHODEVENT_replacementStart(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qime->replacementStart());
 }
 
 //void setCommitString ( const QString & commitString, int replaceFrom = 0, int replaceLength = 0 )
-static QoreNode *QINPUTMETHODEVENT_setCommitString(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QINPUTMETHODEVENT_setCommitString(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pstr = test_string_param(params, 0);
    if (!pstr) {
@@ -96,7 +96,7 @@ static QoreNode *QINPUTMETHODEVENT_setCommitString(QoreObject *self, QoreQInputM
    }
    const char *commitString = pstr->getBuffer();
 
-   QoreNode *p = get_param(params, 1);
+   AbstractQoreNode *p = get_param(params, 1);
    int replaceFrom = p ? p->getAsInt() : 0;
 
    p = get_param(params, 2);

@@ -63,22 +63,22 @@ class AbstractParseObjectMethodReferenceNode : public ParseNode
       }
 
       // returns a RunTimeObjectMethodReference or NULL if there's an exception
-      DLLLOCAL virtual QoreNode *eval(class ExceptionSink *xsink) const = 0;
+      DLLLOCAL virtual AbstractQoreNode *eval(class ExceptionSink *xsink) const = 0;
       DLLLOCAL virtual int parseInit(lvh_t oflag, int pflag) = 0;
 };
 
 class ParseObjectMethodReferenceNode : public AbstractParseObjectMethodReferenceNode
 {
    private:
-      class QoreNode *exp;
+      class AbstractQoreNode *exp;
       char *method;
 
       DLLLOCAL virtual ~ParseObjectMethodReferenceNode();
    
    public:
-      DLLLOCAL ParseObjectMethodReferenceNode(class QoreNode *n_exp, char *n_method);
+      DLLLOCAL ParseObjectMethodReferenceNode(class AbstractQoreNode *n_exp, char *n_method);
       // returns a RunTimeObjectMethodReference or NULL if there's an exception
-      DLLLOCAL virtual class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLLOCAL virtual class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       DLLLOCAL virtual int parseInit(lvh_t oflag, int pflag);
 };
 
@@ -92,7 +92,7 @@ class ParseSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNo
    public:
       DLLLOCAL ParseSelfMethodReferenceNode(char *n_method);
       // returns a RunTimeObjectMethodReference or NULL if there's an exception
-      DLLLOCAL virtual QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       DLLLOCAL virtual int parseInit(lvh_t oflag, int pflag);
 };
 
@@ -107,7 +107,7 @@ class ParseScopedSelfMethodReferenceNode : public AbstractParseObjectMethodRefer
    public:
       DLLLOCAL ParseScopedSelfMethodReferenceNode(NamedScope *n_nscope);
       // returns a RunTimeObjectMethodReference or NULL if there's an exception
-      DLLLOCAL virtual class QoreNode *eval(ExceptionSink *xsink) const;
+      DLLLOCAL virtual class AbstractQoreNode *eval(ExceptionSink *xsink) const;
       DLLLOCAL virtual int parseInit(lvh_t oflag, int pflag);
 };
 

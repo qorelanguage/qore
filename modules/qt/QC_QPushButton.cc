@@ -35,7 +35,7 @@ class QoreClass *QC_QPushButton = 0;
 //QPushButton ( const QIcon & icon, const QString & text, QWidget * parent = 0 )
 static void QPUSHBUTTON_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QPUSHBUTTON, new QoreQPushButton(self));
       return;
@@ -81,25 +81,25 @@ static void QPUSHBUTTON_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //bool autoDefault () const
-static QoreNode *QPUSHBUTTON_autoDefault(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPUSHBUTTON_autoDefault(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qpb->getQPushButton()->autoDefault());
 }
 
 //bool isDefault () const
-static QoreNode *QPUSHBUTTON_isDefault(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPUSHBUTTON_isDefault(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qpb->getQPushButton()->isDefault());
 }
 
 //bool isFlat () const
-static QoreNode *QPUSHBUTTON_isFlat(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPUSHBUTTON_isFlat(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qpb->getQPushButton()->isFlat());
 }
 
 //QMenu * menu () const
-static QoreNode *QPUSHBUTTON_menu(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPUSHBUTTON_menu(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QMenu *qt_qobj = qpb->getQPushButton()->menu();
    if (!qt_qobj)
@@ -112,36 +112,36 @@ static QoreNode *QPUSHBUTTON_menu(QoreObject *self, QoreAbstractQPushButton *qpb
 }
 
 //void setAutoDefault ( bool )
-static QoreNode *QPUSHBUTTON_setAutoDefault(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPUSHBUTTON_setAutoDefault(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qpb->getQPushButton()->setAutoDefault(b);
    return 0;
 }
 
 //void setDefault ( bool )
-static QoreNode *QPUSHBUTTON_setDefault(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPUSHBUTTON_setDefault(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qpb->getQPushButton()->setDefault(b);
    return 0;
 }
 
 //void setFlat ( bool )
-static QoreNode *QPUSHBUTTON_setFlat(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPUSHBUTTON_setFlat(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qpb->getQPushButton()->setFlat(b);
    return 0;
 }
 
 //void setMenu ( QMenu * menu )
-static QoreNode *QPUSHBUTTON_setMenu(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPUSHBUTTON_setMenu(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreAbstractQMenu *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMENU, xsink) : 0;
    if (!menu) {
       if (!xsink->isException())
@@ -154,7 +154,7 @@ static QoreNode *QPUSHBUTTON_setMenu(QoreObject *self, QoreAbstractQPushButton *
 }
 
 //void showMenu ()
-static QoreNode *QPUSHBUTTON_showMenu(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPUSHBUTTON_showMenu(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
    qpb->getQPushButton()->showMenu();
    return 0;
@@ -162,9 +162,9 @@ static QoreNode *QPUSHBUTTON_showMenu(QoreObject *self, QoreAbstractQPushButton 
 
 //void initStyleOption ( QStyleOptionButton * option ) const
 /*
-static QoreNode *QPUSHBUTTON_initStyleOption(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPUSHBUTTON_initStyleOption(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQStyleOptionButton *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONBUTTON, xsink) : 0;
    if (!option) {
       if (!xsink->isException())

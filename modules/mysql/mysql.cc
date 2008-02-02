@@ -415,9 +415,9 @@ void MyResult::bind(MYSQL_STMT *stmt)
    mysql_stmt_bind_result(stmt, bindbuf);
 }
 
-class QoreNode *MyResult::getBoundColumnValue(const QoreEncoding *csid, int i)
+class AbstractQoreNode *MyResult::getBoundColumnValue(const QoreEncoding *csid, int i)
 {
-   class QoreNode *n = NULL;
+   class AbstractQoreNode *n = NULL;
    
    if (bi[i].mnull)
       n = null();
@@ -533,7 +533,7 @@ inline int MyBindGroup::parse(const QoreListNode *args, class ExceptionSink *xsi
    {
       if (!quote && (*p) == '%') // found value marker
       {
-	 class QoreNode *v = args ? args->retrieve_entry(index++) : NULL;
+	 class AbstractQoreNode *v = args ? args->retrieve_entry(index++) : NULL;
 	 int offset = p - str->getBuffer();
 
 	 p++;
@@ -613,7 +613,7 @@ inline int MyBindGroup::parse(const QoreListNode *args, class ExceptionSink *xsi
    return 0;
 }
 
-inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
+inline class AbstractQoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 {
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
@@ -636,7 +636,7 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
 	 return 0;
       }
 
-      class QoreNode *v = NULL;
+      class AbstractQoreNode *v = NULL;
 
       MYSQL_RES *res = mysql_stmt_result_metadata(stmt);
       if (res)
@@ -675,9 +675,9 @@ inline class QoreNode *MyBindGroup::getOutputHash(class ExceptionSink *xsink)
    return h.release();
 }
 
-class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
+class AbstractQoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
 {
-   class QoreNode *rv = NULL;
+   class AbstractQoreNode *rv = NULL;
    MYSQL_RES *res = mysql_stmt_result_metadata(stmt);
    if (res)
    {
@@ -733,19 +733,19 @@ class QoreNode *MyBindGroup::execIntern(class ExceptionSink *xsink)
    return rv;
 }
 
-inline class QoreNode *MyBindGroup::exec(class ExceptionSink *xsink)
+inline class AbstractQoreNode *MyBindGroup::exec(class ExceptionSink *xsink)
 {
    return execIntern(xsink);
 }
 
-inline class QoreNode *MyBindGroup::select(class ExceptionSink *xsink)
+inline class AbstractQoreNode *MyBindGroup::select(class ExceptionSink *xsink)
 {
    return execIntern(xsink);
 }
 
-class QoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
+class AbstractQoreNode *MyBindGroup::selectRows(class ExceptionSink *xsink)
 {
-   class QoreNode *rv = NULL;
+   class AbstractQoreNode *rv = NULL;
    MYSQL_RES *res = mysql_stmt_result_metadata(stmt);
    if (res)
    {
@@ -905,7 +905,7 @@ static class QoreHashNode *get_result_set(const Datasource *ds, MYSQL_RES *res)
    {
       for (int i = 0; i < num_fields; i++)
       {
-	 QoreNode *n;
+	 AbstractQoreNode *n;
 	 // some basic type checking
 	 switch (field[i].type)
 	 {
@@ -972,7 +972,7 @@ static class QoreHashNode *get_result_set(const Datasource *ds, MYSQL_RES *res)
    return h;
 }
 
-static class QoreNode *qore_mysql_do_sql(const Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
+static class AbstractQoreNode *qore_mysql_do_sql(const Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
 {
    tracein("qore_mysql_do_sql()");
 
@@ -989,7 +989,7 @@ static class QoreNode *qore_mysql_do_sql(const Datasource *ds, const QoreString 
       return NULL;
    }
 
-   class QoreNode *rv;
+   class AbstractQoreNode *rv;
    if (mysql_field_count(db) > 0)
    {
       MYSQL_RES *res = mysql_store_result(db);
@@ -1015,7 +1015,7 @@ static class QoreNode *qore_mysql_do_sql(const Datasource *ds, const QoreString 
    return rv;
 }
 
-static class QoreNode *qore_mysql_do_sql_horizontal(const Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
+static class AbstractQoreNode *qore_mysql_do_sql_horizontal(const Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
 {
    xsink->raiseException("MYSQL-UNSUPPORTED", "row retrieval not yet implemented for old versions of MySQL without a prepared statement interface");
    return NULL;
@@ -1035,7 +1035,7 @@ static class QoreHash *qore_mysql_describe(Datasource *ds, char *table_name, Exc
 }
 */
 
-static class QoreNode *qore_mysql_select_rows(Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
+static class AbstractQoreNode *qore_mysql_select_rows(Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    checkInit();
 #ifdef HAVE_MYSQL_STMT
@@ -1050,7 +1050,7 @@ static class QoreNode *qore_mysql_select_rows(Datasource *ds, const QoreString *
 #endif
 }
 
-static class QoreNode *qore_mysql_select(Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
+static class AbstractQoreNode *qore_mysql_select(Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    checkInit();
 #ifdef HAVE_MYSQL_STMT
@@ -1065,7 +1065,7 @@ static class QoreNode *qore_mysql_select(Datasource *ds, const QoreString *qstr,
 #endif
 }
 
-static class QoreNode *qore_mysql_exec(Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
+static class AbstractQoreNode *qore_mysql_exec(Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    checkInit();
 #ifdef HAVE_MYSQL_STMT
@@ -1112,14 +1112,14 @@ static int qore_mysql_close_datasource(Datasource *ds)
    return 0;
 }
 
-static class QoreNode *qore_mysql_get_server_version(Datasource *ds, class ExceptionSink *xsink)
+static class AbstractQoreNode *qore_mysql_get_server_version(Datasource *ds, class ExceptionSink *xsink)
 {
    checkInit();
    class MySQLConnection *d_mysql = (MySQLConnection *)ds->getPrivateData();
    return new QoreBigIntNode(d_mysql->getServerVersion());
 }
 
-static class QoreNode *qore_mysql_get_client_version(const Datasource *ds, class ExceptionSink *xsink)
+static class AbstractQoreNode *qore_mysql_get_client_version(const Datasource *ds, class ExceptionSink *xsink)
 {
    checkInit();
    return new QoreBigIntNode(mysql_get_client_version());

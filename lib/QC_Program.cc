@@ -27,7 +27,7 @@ int CID_PROGRAM;
 
 static void PROGRAM_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
    int parse_opt;
 
    if ((p0 = get_param(params, 0)))
@@ -43,7 +43,7 @@ static void PROGRAM_copy(class QoreObject *self, class QoreObject *old, class Qo
    xsink->raiseException("PROGRAM-COPY-ERROR", "copying Program objects is currently unsupported");
 }
 
-static QoreNode *PROGRAM_parse(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_parse(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0, *p1;
 
@@ -54,7 +54,7 @@ static QoreNode *PROGRAM_parse(class QoreObject *self, class QoreProgram *p, con
    }
 
    // see if a warning mask was passed
-   QoreNode *p2 = get_param(params, 2);
+   AbstractQoreNode *p2 = get_param(params, 2);
    int warning_mask = p2 ? p2->getAsInt() : 0;
 
    if (!warning_mask)
@@ -68,11 +68,11 @@ static QoreNode *PROGRAM_parse(class QoreObject *self, class QoreProgram *p, con
       return NULL;
 
    class QoreException *e = wsink.catchException();
-   class QoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
+   class AbstractQoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
    return rv;
 }
 
-static QoreNode *PROGRAM_parsePending(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_parsePending(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0, *p1;
 
@@ -83,7 +83,7 @@ static QoreNode *PROGRAM_parsePending(class QoreObject *self, class QoreProgram 
    }
 
    // see if a warning mask was passed
-   QoreNode *p2 = get_param(params, 2);
+   AbstractQoreNode *p2 = get_param(params, 2);
    int warning_mask = p2 ? p2->getAsInt() : 0;
 
    if (!warning_mask)
@@ -97,14 +97,14 @@ static QoreNode *PROGRAM_parsePending(class QoreObject *self, class QoreProgram 
       return NULL;
 
    class QoreException *e = wsink.catchException();
-   class QoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
+   class AbstractQoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
    return rv;
 }
 
-static QoreNode *PROGRAM_parseCommit(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_parseCommit(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    // see if a warning mask was passed
-   QoreNode *pt = get_param(params, 0);
+   AbstractQoreNode *pt = get_param(params, 0);
    int warning_mask = pt ? pt->getAsInt() : 0;
 
    if (!warning_mask)
@@ -118,17 +118,17 @@ static QoreNode *PROGRAM_parseCommit(class QoreObject *self, class QoreProgram *
       return NULL;
 
    class QoreException *e = wsink.catchException();
-   class QoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
+   class AbstractQoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
    return rv;
 }
 
-static QoreNode *PROGRAM_parseRollback(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_parseRollback(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    p->parseRollback();
    return NULL;
 }
 
-static QoreNode *PROGRAM_callFunction(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_callFunction(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -149,10 +149,10 @@ static QoreNode *PROGRAM_callFunction(class QoreObject *self, class QoreProgram 
    return p->callFunction(p0->getBuffer(), *args, xsink);
 }
 
-static QoreNode *PROGRAM_callFunctionArgs(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_callFunctionArgs(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
-   QoreNode *p1;
+   AbstractQoreNode *p1;
 
    if (!(p0 = test_string_param(params, 0)))
    {
@@ -171,7 +171,7 @@ static QoreNode *PROGRAM_callFunctionArgs(class QoreObject *self, class QoreProg
       args->push(p1);
    }
 
-   QoreNode *rv = p->callFunction(p0->getBuffer(), args, xsink);
+   AbstractQoreNode *rv = p->callFunction(p0->getBuffer(), args, xsink);
    
    if (args && p1 != args)
    {
@@ -182,7 +182,7 @@ static QoreNode *PROGRAM_callFunctionArgs(class QoreObject *self, class QoreProg
    return rv;
 }
 
-static QoreNode *PROGRAM_existsFunction(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_existsFunction(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -192,12 +192,12 @@ static QoreNode *PROGRAM_existsFunction(class QoreObject *self, class QoreProgra
    return new QoreBoolNode(p->existsFunction(p0->getBuffer()));
 }
 
-static QoreNode *PROGRAM_run(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_run(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    return p->run(xsink);
 }
 
-static QoreNode *PROGRAM_importFunction(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_importFunction(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -212,10 +212,10 @@ static QoreNode *PROGRAM_importFunction(class QoreObject *self, class QoreProgra
    return NULL;
 }
 
-static QoreNode *PROGRAM_importGlobalVariable(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_importGlobalVariable(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
-   QoreNode *p1;
+   AbstractQoreNode *p1;
    bool readonly;
 
    if (!(p0 = test_string_param(params, 0)))
@@ -238,7 +238,7 @@ static QoreNode *PROGRAM_importGlobalVariable(class QoreObject *self, class Qore
    return NULL;
 }
 
-static QoreNode *PROGRAM_getUserFunctionList(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *PROGRAM_getUserFunctionList(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    return p->getUserFunctionList();
 }
@@ -246,7 +246,7 @@ static QoreNode *PROGRAM_getUserFunctionList(class QoreObject *self, class QoreP
 static class QoreClass *PROGRAM_setParseOptions(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    int opt;
-   QoreNode *p0 = get_param(params, 0);
+   AbstractQoreNode *p0 = get_param(params, 0);
    if (p0)
       opt = p0->getAsInt();
    else
@@ -259,7 +259,7 @@ static class QoreClass *PROGRAM_setParseOptions(class QoreObject *self, class Qo
 static class QoreClass *PROGRAM_disableParseOptions(class QoreObject *self, class QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    int opt;
-   QoreNode *p0 = get_param(params, 0);
+   AbstractQoreNode *p0 = get_param(params, 0);
    if (p0)
       opt = p0->getAsInt();
    else

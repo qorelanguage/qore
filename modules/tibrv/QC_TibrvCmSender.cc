@@ -40,7 +40,7 @@ void TIBRVCMSENDER_constructor(class QoreObject *self, const QoreListNode *param
    if (pt)
       cmName = pt->getBuffer();
 
-   QoreNode *pn = get_param(params, 1);
+   AbstractQoreNode *pn = get_param(params, 1);
    requestOld = pn ? pn->getAsBool() : false;
 
    pt = test_string_param(params, 2);
@@ -83,7 +83,7 @@ void TIBRVCMSENDER_copy(class QoreObject *self, class QoreObject *old, class Qor
    xsink->raiseException("TIBRVCMSENDER-COPY-ERROR", "copying TibrvCmSender objects is curently not supported");
 }
 
-static QoreNode *TIBRVCMSENDER_sendSubject(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVCMSENDER_sendSubject(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -109,7 +109,7 @@ static QoreNode *TIBRVCMSENDER_sendSubject(class QoreObject *self, class QoreTib
    return NULL;
 }
 
-static QoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *str = test_string_param(params, 0);
    if (!str)
@@ -126,7 +126,7 @@ static QoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class QoreObject *self, 
       return NULL;
    }
 
-   QoreNode *pt = get_param(params, 2);
+   AbstractQoreNode *pt = get_param(params, 2);
    int64 timeout = getMsMinusOneBigInt(pt);
 
    // get certified delivery time limit
@@ -136,7 +136,7 @@ static QoreNode *TIBRVCMSENDER_sendSubjectWithSyncReply(class QoreObject *self, 
    return cms->sendSubjectWithSyncReply(subject, h, timeout, time_limit, xsink);
 }
 
-class QoreNode *TIBRVCMSENDER_setStringEncoding(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_setStringEncoding(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -151,24 +151,24 @@ class QoreNode *TIBRVCMSENDER_setStringEncoding(class QoreObject *self, class Qo
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_getStringEncoding(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_getStringEncoding(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(cms->getStringEncoding()->getCode());
 }
 
-class QoreNode *TIBRVCMSENDER_connectToRelayAgent(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_connectToRelayAgent(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    cms->connectToRelayAgent(xsink);
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_disconnectFromRelayAgent(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_disconnectFromRelayAgent(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    cms->disconnectFromRelayAgent(xsink);
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_expireMessages(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_expireMessages(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *str = test_string_param(params, 0);
    if (!str)
@@ -178,14 +178,14 @@ class QoreNode *TIBRVCMSENDER_expireMessages(class QoreObject *self, class QoreT
    }
    const char *subj = str->getBuffer();
 
-   QoreNode *pt = get_param(params, 1);
+   AbstractQoreNode *pt = get_param(params, 1);
    int64 seqNum = pt ? pt->getAsBigInt() : 0;
 
    cms->expireMessages(subj, seqNum, xsink);
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_getName(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_getName(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *name = cms->getName(xsink);
    if (!xsink->isException())
@@ -194,7 +194,7 @@ class QoreNode *TIBRVCMSENDER_getName(class QoreObject *self, class QoreTibrvCmS
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_getDefaultTimeLimit(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_getDefaultTimeLimit(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    int64 tl = cms->getDefaultTimeLimit(xsink);
    if (!xsink->isException())
@@ -203,16 +203,16 @@ class QoreNode *TIBRVCMSENDER_getDefaultTimeLimit(class QoreObject *self, class 
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_setDefaultTimeLimit(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_setDefaultTimeLimit(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = get_param(params, 0);
+   class AbstractQoreNode *pt = get_param(params, 0);
    int64 tl = pt ? pt->getAsBigInt() : 0;
 
    cms->setDefaultTimeLimit(tl, xsink);
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_reviewLedger(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_reviewLedger(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -225,7 +225,7 @@ class QoreNode *TIBRVCMSENDER_reviewLedger(class QoreObject *self, class QoreTib
    return cms->reviewLedger(subj, xsink);
 }
 
-class QoreNode *TIBRVCMSENDER_removeSendState(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_removeSendState(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
@@ -239,7 +239,7 @@ class QoreNode *TIBRVCMSENDER_removeSendState(class QoreObject *self, class Qore
    return NULL;
 }
 
-class QoreNode *TIBRVCMSENDER_syncLedger(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVCMSENDER_syncLedger(class QoreObject *self, class QoreTibrvCmSender *cms, const QoreListNode *params, ExceptionSink *xsink)
 {
    cms->syncLedger(xsink);
    return NULL;

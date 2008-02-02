@@ -67,7 +67,7 @@ static DBIDriver* DBID_SYBASE;
 
 #ifdef DEBUG
 // exported
-QoreNode* runSybaseTests(const QoreListNode *params, ExceptionSink *xsink)
+AbstractQoreNode* runSybaseTests(const QoreListNode *params, ExceptionSink *xsink)
 {
    minitest::result res = minitest::execute_all_tests();
    if (res.all_tests_succeeded) {
@@ -82,7 +82,7 @@ QoreNode* runSybaseTests(const QoreListNode *params, ExceptionSink *xsink)
    return 0;
 }
 
-QoreNode* runRecentSybaseTests(const QoreListNode *params, ExceptionSink *xsink)
+AbstractQoreNode* runRecentSybaseTests(const QoreListNode *params, ExceptionSink *xsink)
 {
    minitest::result res = minitest::test_last_changed_files(1);
    if (res.all_tests_succeeded) {
@@ -160,20 +160,20 @@ static int sybase_close(Datasource *ds)
 }
 
 //------------------------------------------------------------------------------
-static QoreNode* sybase_select(Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
+static AbstractQoreNode* sybase_select(Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    return conn->exec(qstr, args, xsink);
 }
 
-static QoreNode* sybase_select_rows(Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
+static AbstractQoreNode* sybase_select_rows(Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    //printd(5, "sybase_select_rows(ds=%08p, qstr='%s', args=%08p)\n", ds, qstr->getBuffer(), args);
    return conn->exec_rows(qstr, args, xsink);
 }
 
-static QoreNode* sybase_exec(Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
+static AbstractQoreNode* sybase_exec(Datasource *ds, const QoreString *qstr, const QoreListNode *args, ExceptionSink *xsink)
 {
    connection *conn = (connection*)ds->getPrivateData();
    return conn->exec(qstr, args, xsink);
@@ -191,13 +191,13 @@ static int sybase_rollback(Datasource *ds, ExceptionSink *xsink)
    return conn->rollback(xsink);
 }
 
-static class QoreNode *sybase_get_client_version(const Datasource *ds, ExceptionSink *xsink)
+static class AbstractQoreNode *sybase_get_client_version(const Datasource *ds, ExceptionSink *xsink)
 {
    connection* conn = (connection*)ds->getPrivateData();
    return conn->get_client_version(xsink);
 }
 
-static class QoreNode *sybase_get_server_version(Datasource *ds, ExceptionSink *xsink)
+static class AbstractQoreNode *sybase_get_server_version(Datasource *ds, ExceptionSink *xsink)
 {
    connection* conn = (connection*)ds->getPrivateData();
    return conn->get_server_version(xsink);

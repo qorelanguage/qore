@@ -37,7 +37,7 @@ class QoreClass *QC_QImageWriter = 0;
 //QImageWriter ( const QString & fileName, const QByteArray & format = QByteArray() )
 static void QIMAGEWRITER_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QIMAGEWRITER, new QoreQImageWriter());
       return;
@@ -74,19 +74,19 @@ static void QIMAGEWRITER_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //bool canWrite () const
-static QoreNode *QIMAGEWRITER_canWrite(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_canWrite(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qiw->canWrite());
 }
 
 //int compression () const
-static QoreNode *QIMAGEWRITER_compression(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_compression(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qiw->compression());
 }
 
 //QIODevice * device () const
-static QoreNode *QIMAGEWRITER_device(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_device(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QIODevice *qt_qobj = qiw->device();
    if (!qt_qobj)
@@ -105,26 +105,26 @@ static QoreNode *QIMAGEWRITER_device(QoreObject *self, QoreQImageWriter *qiw, co
 
 /*
 //ImageWriterError error () const
-static QoreNode *QIMAGEWRITER_error(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_error(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
    ??? return new QoreBigIntNode(qiw->error());
 }
 */
 
 //QString errorString () const
-static QoreNode *QIMAGEWRITER_errorString(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_errorString(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qiw->errorString().toUtf8().data(), QCS_UTF8);
 }
 
 //QString fileName () const
-static QoreNode *QIMAGEWRITER_fileName(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_fileName(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qiw->fileName().toUtf8().data(), QCS_UTF8);
 }
 
 //QByteArray format () const
-static QoreNode *QIMAGEWRITER_format(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_format(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qiw->format());
@@ -133,30 +133,30 @@ static QoreNode *QIMAGEWRITER_format(QoreObject *self, QoreQImageWriter *qiw, co
 }
 
 //float gamma () const
-static QoreNode *QIMAGEWRITER_gamma(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_gamma(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode((double)qiw->gamma());
 }
 
 //int quality () const
-static QoreNode *QIMAGEWRITER_quality(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_quality(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qiw->quality());
 }
 
 //void setCompression ( int compression )
-static QoreNode *QIMAGEWRITER_setCompression(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_setCompression(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int compression = p ? p->getAsInt() : 0;
    qiw->setCompression(compression);
    return 0;
 }
 
 //void setDevice ( QIODevice * device )
-static QoreNode *QIMAGEWRITER_setDevice(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_setDevice(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQIODevice *device = (p && p->type == NT_OBJECT) ? (QoreAbstractQIODevice *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIODEVICE, xsink) : 0;
    if (!device) {
       if (!xsink->isException())
@@ -169,9 +169,9 @@ static QoreNode *QIMAGEWRITER_setDevice(QoreObject *self, QoreQImageWriter *qiw,
 }
 
 //void setFileName ( const QString & fileName )
-static QoreNode *QIMAGEWRITER_setFileName(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_setFileName(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString fileName;
    if (get_qstring(p, fileName, xsink))
       return 0;
@@ -180,9 +180,9 @@ static QoreNode *QIMAGEWRITER_setFileName(QoreObject *self, QoreQImageWriter *qi
 }
 
 //void setFormat ( const QByteArray & format )
-static QoreNode *QIMAGEWRITER_setFormat(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_setFormat(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QByteArray format;
    if (get_qbytearray(p, format, xsink))
       return 0;
@@ -191,27 +191,27 @@ static QoreNode *QIMAGEWRITER_setFormat(QoreObject *self, QoreQImageWriter *qiw,
 }
 
 //void setGamma ( float gamma )
-static QoreNode *QIMAGEWRITER_setGamma(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_setGamma(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    float gamma = p ? p->getAsFloat() : 0.0;
    qiw->setGamma(gamma);
    return 0;
 }
 
 //void setQuality ( int quality )
-static QoreNode *QIMAGEWRITER_setQuality(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_setQuality(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int quality = p ? p->getAsInt() : 0;
    qiw->setQuality(quality);
    return 0;
 }
 
 //void setText ( const QString & key, const QString & text )
-static QoreNode *QIMAGEWRITER_setText(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_setText(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
@@ -224,17 +224,17 @@ static QoreNode *QIMAGEWRITER_setText(QoreObject *self, QoreQImageWriter *qiw, c
 }
 
 //bool supportsOption ( QImageIOHandler::ImageOption option ) const
-static QoreNode *QIMAGEWRITER_supportsOption(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_supportsOption(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QImageIOHandler::ImageOption option = (QImageIOHandler::ImageOption)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(qiw->supportsOption(option));
 }
 
 //bool write ( const QImage & image )
-static QoreNode *QIMAGEWRITER_write(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QIMAGEWRITER_write(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
    if (!image) {
       if (!xsink->isException())
@@ -276,7 +276,7 @@ QoreClass *initQImageWriterClass()
 }
 
 //QList<QByteArray> supportedImageFormats ()
-static QoreNode *f_QImageWriter_supportedImageFormats(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QImageWriter_supportedImageFormats(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreListNode *ql = new QoreListNode();
 

@@ -1,7 +1,7 @@
 #ifdef DEBUG
 
 #include "common.h"
-#include <qore/QoreNode.h>
+#include <qore/AbstractQoreNode.h>
 #include <math.h>
 #include <memory>
 

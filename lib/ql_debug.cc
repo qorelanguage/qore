@@ -31,7 +31,7 @@ static inline void strindent(QoreString *s, int indent)
       s->concat(' ');
 }
 
-static void dni(QoreStringNode *s, const QoreNode *n, int indent, class ExceptionSink *xsink)
+static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, class ExceptionSink *xsink)
 {
    if (!n)
    {
@@ -104,7 +104,7 @@ static void dni(QoreStringNode *s, const QoreNode *n, int indent, class Exceptio
 	       strindent(s, indent);
 	       QoreStringNode *entry = reinterpret_cast<QoreStringNode *>(l->retrieve_entry(i));
 	       s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
-	       QoreNode *nn;
+	       AbstractQoreNode *nn;
 	       dni(s, nn = o->evalMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
 	       discard(nn, xsink);
 	       if (i != (l->size() - 1))
@@ -153,7 +153,7 @@ static void dni(QoreStringNode *s, const QoreNode *n, int indent, class Exceptio
 }
 
 //static 
-class QoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink)
 {
    TempQoreStringNode s(new QoreStringNode());
    dni(*s, get_param(params, 0), 0, xsink);
@@ -163,12 +163,12 @@ class QoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink
 }
 
 // returns a hash of all namespace information
-static class QoreNode *f_dbg_get_ns_info(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_dbg_get_ns_info(const QoreListNode *params, ExceptionSink *xsink)
 {
    return getRootNS()->getInfo();
 }
 
-static class QoreNode *f_dbg_global_vars(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_dbg_global_vars(const QoreListNode *params, ExceptionSink *xsink)
 {
    return getProgram()->getVarList();
 }

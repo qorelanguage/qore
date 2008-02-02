@@ -42,7 +42,7 @@ void TIBRVDQ_constructor(class QoreObject *self, const QoreListNode *params, cla
    const char *cmName = str->getBuffer();
 
    unsigned workerWeight, workerTasks;
-   QoreNode *pt = get_param(params, 1);
+   AbstractQoreNode *pt = get_param(params, 1);
    int64 t = pt ? pt->getAsBigInt() : TIBRVCM_DEFAULT_WORKER_WEIGHT;
    if (t < 0)
    {
@@ -118,9 +118,9 @@ void TIBRVDQ_copy(class QoreObject *self, class QoreObject *old, class QoreTibrv
    xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-COPY-ERROR", "copying TibrvDistributedQueue objects is curently not supported");
 }
 
-class QoreNode *TIBRVDQ_setWorkerWeight(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVDQ_setWorkerWeight(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = get_param(params, 0);
+   class AbstractQoreNode *pt = get_param(params, 0);
    int64 weight = pt ? pt->getAsBigInt() : 0;
    if (weight < 0)
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-SETWEIGHT-ERROR", "workerWeight cannot be negative (value passed: %d)", weight);
@@ -130,9 +130,9 @@ class QoreNode *TIBRVDQ_setWorkerWeight(class QoreObject *self, class QoreTibrvD
    return NULL;
 }
 
-class QoreNode *TIBRVDQ_setWorkerTasks(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVDQ_setWorkerTasks(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = get_param(params, 0);
+   class AbstractQoreNode *pt = get_param(params, 0);
    int64 tasks = pt ? pt->getAsBigInt() : 0;
    if (tasks <= 0)
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-SETWEIGHT-ERROR", "workerTasks must be positive (value passed: %d)", tasks);
@@ -142,7 +142,7 @@ class QoreNode *TIBRVDQ_setWorkerTasks(class QoreObject *self, class QoreTibrvDi
    return NULL;
 }
 
-class QoreNode *TIBRVDQ_getWorkerWeight(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVDQ_getWorkerWeight(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreListNode *params, ExceptionSink *xsink)
 {
    int64 weight = dq->getWorkerWeight(xsink);
    if (!xsink->isException())
@@ -151,7 +151,7 @@ class QoreNode *TIBRVDQ_getWorkerWeight(class QoreObject *self, class QoreTibrvD
    return NULL;
 }
 
-class QoreNode *TIBRVDQ_getWorkerTasks(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVDQ_getWorkerTasks(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreListNode *params, ExceptionSink *xsink)
 {
    int64 tasks = dq->getWorkerTasks(xsink);
    if (!xsink->isException())

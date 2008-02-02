@@ -47,21 +47,21 @@ QoreString *QoreNothingNode::getAsString(bool &del, int foff, class ExceptionSin
    return &NothingTypeString;
 }
 
-QoreNode *QoreNothingNode::realCopy() const
+AbstractQoreNode *QoreNothingNode::realCopy() const
 {
    return new QoreNothingNode();
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
 // the "val" passed
-//DLLLOCAL int QoreNothingNode::compare(const QoreNode *val) const;
+//DLLLOCAL int QoreNothingNode::compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool QoreNothingNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+bool QoreNothingNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    return is_nothing(v);
 }
 
-bool QoreNothingNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+bool QoreNothingNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    return is_nothing(v);
 }

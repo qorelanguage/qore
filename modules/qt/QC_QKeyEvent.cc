@@ -32,7 +32,7 @@ static void QKEYEVENT_constructor(class QoreObject *self, const QoreListNode *pa
 {
    QoreQKeyEvent *qke;
 
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QEvent::Type type = (QEvent::Type)(p ? p->getAsInt() : 0);
 
    p = get_param(params, 1);
@@ -64,57 +64,57 @@ static void QKEYEVENT_copy(class QoreObject *self, class QoreObject *old, class 
 }
 
 //int count () const
-static QoreNode *QKEYEVENT_count(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYEVENT_count(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qke->count());
 }
 
 //bool isAutoRepeat () const
-static QoreNode *QKEYEVENT_isAutoRepeat(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYEVENT_isAutoRepeat(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qke->isAutoRepeat());
 }
 
 //int key () const
-static QoreNode *QKEYEVENT_key(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYEVENT_key(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qke->key());
 }
 
 //bool matches ( QKeySequence::StandardKey key ) const
-static QoreNode *QKEYEVENT_matches(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYEVENT_matches(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QKeySequence::StandardKey key = (QKeySequence::StandardKey)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(qke->matches(key));
 }
 
 //Qt::KeyboardModifiers modifiers () const
-static QoreNode *QKEYEVENT_modifiers(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYEVENT_modifiers(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qke->modifiers());
 }
 
 //quint32 nativeModifiers () const
-static QoreNode *QKEYEVENT_nativeModifiers(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYEVENT_nativeModifiers(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qke->nativeModifiers());
 }
 
 //quint32 nativeScanCode () const
-static QoreNode *QKEYEVENT_nativeScanCode(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYEVENT_nativeScanCode(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qke->nativeScanCode());
 }
 
 //quint32 nativeVirtualKey () const
-static QoreNode *QKEYEVENT_nativeVirtualKey(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYEVENT_nativeVirtualKey(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qke->nativeVirtualKey());
 }
 
 //QString text () const
-static QoreNode *QKEYEVENT_text(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QKEYEVENT_text(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qke->text().toUtf8().data(), QCS_UTF8);
 }

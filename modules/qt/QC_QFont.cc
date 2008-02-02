@@ -37,7 +37,7 @@ static void QFONT_constructor(class QoreObject *self, const QoreListNode *params
    const char *fname = str->getBuffer();
 
    // get point size
-   QoreNode *p = get_param(params, 1);
+   AbstractQoreNode *p = get_param(params, 1);
    int point_size = p ? p->getAsInt() : -1;
 
    // get weight
@@ -58,45 +58,45 @@ static void QFONT_copy(class QoreObject *self, class QoreObject *old, class Qore
 }
 
 //bool bold () const
-static QoreNode *QFONT_bold(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_bold(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qf->bold());
 }
 
 //QString defaultFamily () const
-static QoreNode *QFONT_defaultFamily(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_defaultFamily(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qf->defaultFamily().toUtf8().data(), QCS_UTF8);
 }
 
 //bool exactMatch () const
-static QoreNode *QFONT_exactMatch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_exactMatch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qf->exactMatch());
 }
 
 //QString family () const
-static QoreNode *QFONT_family(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_family(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qf->family().toUtf8().data(), QCS_UTF8);
 }
 
 //bool fixedPitch () const
-static QoreNode *QFONT_fixedPitch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_fixedPitch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qf->fixedPitch());
 }
 
 //FT_Face freetypeFace () const
-//static QoreNode *QFONT_freetypeFace(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QFONT_freetypeFace(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qf->freetypeFace());
 //}
 
 //bool fromString ( const QString & descrip )
-static QoreNode *QFONT_fromString(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_fromString(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString descrip;
    if (get_qstring(p, descrip, xsink))
       return 0;
@@ -105,114 +105,114 @@ static QoreNode *QFONT_fromString(QoreObject *self, QoreQFont *qf, const QoreLis
 }
 
 //HFONT handle () const
-//static QoreNode *QFONT_handle(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QFONT_handle(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qf->handle());
 //}
 
 //bool isCopyOf ( const QFont & f ) const
-//static QoreNode *QFONT_isCopyOf(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QFONT_isCopyOf(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QFont& f = p;
 //   return new QoreBoolNode(qf->isCopyOf(f));
 //}
 
 //bool italic () const
-static QoreNode *QFONT_italic(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_italic(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qf->italic());
 }
 
 //bool kerning () const
-static QoreNode *QFONT_kerning(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_kerning(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qf->kerning());
 }
 
 //QString key () const
-static QoreNode *QFONT_key(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_key(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qf->key().toUtf8().data(), QCS_UTF8);
 }
 
 //QString lastResortFamily () const
-static QoreNode *QFONT_lastResortFamily(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_lastResortFamily(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qf->lastResortFont().toUtf8().data(), QCS_UTF8);
 }
 
 //QString lastResortFont () const
-static QoreNode *QFONT_lastResortFont(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_lastResortFont(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qf->lastResortFont().toUtf8().data(), QCS_UTF8);
 }
 
 #ifdef Q_WS_MAC
 //quint32 macFontID () const
-static QoreNode *QFONT_macFontID(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_macFontID(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qf->macFontID());
 }
 #endif
 
 //bool overline () const
-static QoreNode *QFONT_overline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_overline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qf->overline());
 }
 
 //int pixelSize () const
-static QoreNode *QFONT_pixelSize(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_pixelSize(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qf->pixelSize());
 }
 
 //int pointSize () const
-static QoreNode *QFONT_pointSize(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_pointSize(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qf->pointSize());
 }
 
 //qreal pointSizeF () const
-static QoreNode *QFONT_pointSizeF(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_pointSizeF(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode(qf->pointSizeF());
 }
 
 //bool rawMode () const
-static QoreNode *QFONT_rawMode(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_rawMode(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qf->rawMode());
 }
 
 //QString rawName () const
-static QoreNode *QFONT_rawName(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_rawName(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qf->rawName().toUtf8().data(), QCS_UTF8);
 }
 
 //QFont resolve ( const QFont & other ) const
-//static QoreNode *QFONT_resolve(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QFONT_resolve(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QFont& other = p;
 //   ??? return new QoreBigIntNode(qf->resolve(other));
 //}
 
 //void setBold ( bool enable )
-static QoreNode *QFONT_setBold(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setBold(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setBold(enable);
    return 0;
 }
 
 //void setFamily ( const QString & family )
-static QoreNode *QFONT_setFamily(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setFamily(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString family;
    if (get_qstring(p, family, xsink))
       return 0;
@@ -222,81 +222,81 @@ static QoreNode *QFONT_setFamily(QoreObject *self, QoreQFont *qf, const QoreList
 }
 
 //void setFixedPitch ( bool enable )
-static QoreNode *QFONT_setFixedPitch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setFixedPitch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setFixedPitch(enable);
    return 0;
 }
 
 //void setItalic ( bool enable )
-static QoreNode *QFONT_setItalic(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setItalic(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setItalic(enable);
    return 0;
 }
 
 //void setKerning ( bool enable )
-static QoreNode *QFONT_setKerning(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setKerning(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setKerning(enable);
    return 0;
 }
 
 //void setOverline ( bool enable )
-static QoreNode *QFONT_setOverline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setOverline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setOverline(enable);
    return 0;
 }
 
 //void setPixelSize ( int pixelSize )
-static QoreNode *QFONT_setPixelSize(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setPixelSize(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int pixelSize = p ? p->getAsInt() : 0;
    qf->setPixelSize(pixelSize);
    return 0;
 }
 
 //void setPointSize ( int pointSize )
-static QoreNode *QFONT_setPointSize(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setPointSize(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int pointSize = p ? p->getAsInt() : 0;
    qf->setPointSize(pointSize);
    return 0;
 }
 
 //void setPointSizeF ( qreal pointSize )
-static QoreNode *QFONT_setPointSizeF(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setPointSizeF(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    float pointSize = p ? p->getAsFloat() : 0;
    qf->setPointSizeF(pointSize);
    return 0;
 }
 
 //void setRawMode ( bool enable )
-static QoreNode *QFONT_setRawMode(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setRawMode(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setRawMode(enable);
    return 0;
 }
 
 //void setRawName ( const QString & name )
-static QoreNode *QFONT_setRawName(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setRawName(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString name;
    if (get_qstring(p, name, xsink))
       return 0;
@@ -306,36 +306,36 @@ static QoreNode *QFONT_setRawName(QoreObject *self, QoreQFont *qf, const QoreLis
 }
 
 //void setStretch ( int factor )
-static QoreNode *QFONT_setStretch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setStretch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int factor = p ? p->getAsInt() : 0;
    qf->setStretch(factor);
    return 0;
 }
 
 //void setStrikeOut ( bool enable )
-static QoreNode *QFONT_setStrikeOut(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setStrikeOut(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setStrikeOut(enable);
    return 0;
 }
 
 //void setStyle ( Style style )
-static QoreNode *QFONT_setStyle(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setStyle(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QFont::Style style = (QFont::Style)(p ? p->getAsInt() : 0);
    qf->setStyle(style);
    return 0;
 }
 
 //void setStyleHint ( StyleHint hint, StyleStrategy strategy = PreferDefault )
-static QoreNode *QFONT_setStyleHint(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setStyleHint(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QFont::StyleHint hint = (QFont::StyleHint)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QFont::StyleStrategy strategy = (QFont::StyleStrategy)(p ? p->getAsInt() : 0);
@@ -344,76 +344,76 @@ static QoreNode *QFONT_setStyleHint(QoreObject *self, QoreQFont *qf, const QoreL
 }
 
 //void setStyleStrategy ( StyleStrategy s )
-static QoreNode *QFONT_setStyleStrategy(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setStyleStrategy(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QFont::StyleStrategy s = (QFont::StyleStrategy)(p ? p->getAsInt() : 0);
    qf->setStyleStrategy(s);
    return 0;
 }
 
 //void setUnderline ( bool enable )
-static QoreNode *QFONT_setUnderline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setUnderline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setUnderline(enable);
    return 0;
 }
 
 //void setWeight ( int weight )
-static QoreNode *QFONT_setWeight(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_setWeight(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int weight = p ? p->getAsInt() : 0;
    qf->setWeight(weight);
    return 0;
 }
 
 //int stretch () const
-static QoreNode *QFONT_stretch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_stretch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qf->stretch());
 }
 
 //bool strikeOut () const
-static QoreNode *QFONT_strikeOut(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_strikeOut(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qf->strikeOut());
 }
 
 //Style style () const
-static QoreNode *QFONT_style(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_style(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qf->style());
 }
 
 //StyleHint styleHint () const
-static QoreNode *QFONT_styleHint(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_styleHint(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qf->styleHint());
 }
 
 //StyleStrategy styleStrategy () const
-static QoreNode *QFONT_styleStrategy(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_styleStrategy(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qf->styleStrategy());
 }
 
 //QString toString () const
-static QoreNode *QFONT_toString(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_toString(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qf->toString().toUtf8().data(), QCS_UTF8);
 }
 
 //bool underline () const
-static QoreNode *QFONT_underline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_underline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qf->underline());
 }
 
 //int weight () const
-static QoreNode *QFONT_weight(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONT_weight(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qf->weight());
 }

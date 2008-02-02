@@ -71,7 +71,7 @@ class MyResult {
       }
 
       DLLLOCAL void bind(MYSQL_STMT *stmt);
-      DLLLOCAL class QoreNode *getBoundColumnValue(const QoreEncoding *csid, int i);
+      DLLLOCAL class AbstractQoreNode *getBoundColumnValue(const QoreEncoding *csid, int i);
 
       DLLLOCAL inline char *getFieldName(int i)
       {
@@ -113,7 +113,7 @@ class MyBindNode {
       unsigned long len;
 
       struct {
-	    class QoreNode *value;   // value to be bound
+	    class AbstractQoreNode *value;   // value to be bound
 	    class QoreStringNode *tstr;   // temporary string to be deleted
       } data;
 
@@ -121,7 +121,7 @@ class MyBindNode {
       class MyBindNode *next;
 
       // for value nodes
-      DLLLOCAL inline MyBindNode(class QoreNode *v)
+      DLLLOCAL inline MyBindNode(class AbstractQoreNode *v)
       {
 	 bindtype = BN_VALUE;
 	 data.value = v;
@@ -163,14 +163,14 @@ class MyBindGroup {
 	 tail = c;
       }
 
-      DLLLOCAL inline class QoreNode *getOutputHash(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *execIntern(class ExceptionSink *xsink);
+      DLLLOCAL inline class AbstractQoreNode *getOutputHash(class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *execIntern(class ExceptionSink *xsink);
 
    public:
       DLLLOCAL MyBindGroup(Datasource *ods, const class QoreString *ostr, const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL ~MyBindGroup();
 
-      DLLLOCAL inline void add(class QoreNode *v)
+      DLLLOCAL inline void add(class AbstractQoreNode *v)
       {
 	 add(new MyBindNode(v));
 	 printd(5, "MyBindGroup::add() value=%08p\n", v);
@@ -182,9 +182,9 @@ class MyBindGroup {
 	 printd(5, "MyBindGroup::add() placeholder '%s' %d %s\n", name);
 	 hasOutput = true;
       }
-      DLLLOCAL class QoreNode *exec(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *select(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRows(class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *exec(class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *select(class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *selectRows(class ExceptionSink *xsink);
 };
 
 

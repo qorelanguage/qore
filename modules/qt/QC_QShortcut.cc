@@ -39,7 +39,7 @@ QByteArray static_void_sig = QMetaObject::normalizedSignature("void a()");
 static void QSHORTCUT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQShortcut *qs;
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
 
    QoreAbstractQWidget *parent = (QoreAbstractQWidget *)((p && p->type == NT_OBJECT) ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
    if (!parent) {
@@ -96,31 +96,31 @@ static void QSHORTCUT_copy(class QoreObject *self, class QoreObject *old, class 
 }
 
 //bool autoRepeat () const
-static QoreNode *QSHORTCUT_autoRepeat(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_autoRepeat(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qs->qobj->autoRepeat());
 }
 
 //Qt::ShortcutContext context ()
-static QoreNode *QSHORTCUT_context(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_context(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qs->qobj->context());
 }
 
 //int id () const
-static QoreNode *QSHORTCUT_id(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_id(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qs->qobj->id());
 }
 
 //bool isEnabled () const
-static QoreNode *QSHORTCUT_isEnabled(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_isEnabled(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qs->qobj->isEnabled());
 }
 
 //QKeySequence key () const
-static QoreNode *QSHORTCUT_key(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_key(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qks = new QoreObject(QC_QKeySequence, getProgram());
    QoreQKeySequence *q_qks = new QoreQKeySequence(qs->qobj->key());
@@ -129,42 +129,42 @@ static QoreNode *QSHORTCUT_key(QoreObject *self, QoreQShortcut *qs, const QoreLi
 }
 
 //QWidget * parentWidget () const
-//static QoreNode *QSHORTCUT_parentWidget(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QSHORTCUT_parentWidget(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return qs->qobj->parentWidget();
 //}
 
 //void setAutoRepeat ( bool on )
-static QoreNode *QSHORTCUT_setAutoRepeat(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_setAutoRepeat(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
    qs->qobj->setAutoRepeat(on);
    return 0;
 }
 
 //void setContext ( Qt::ShortcutContext context )
-static QoreNode *QSHORTCUT_setContext(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_setContext(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    Qt::ShortcutContext context = (Qt::ShortcutContext)(p ? p->getAsInt() : 0);
    qs->qobj->setContext(context);
    return 0;
 }
 
 //void setEnabled ( bool enable )
-static QoreNode *QSHORTCUT_setEnabled(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_setEnabled(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qs->qobj->setEnabled(enable);
    return 0;
 }
 
 //void setKey ( const QKeySequence & key )
-static QoreNode *QSHORTCUT_setKey(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_setKey(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQKeySequence *key = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
    if (!key) {
       if (!xsink->isException())
@@ -177,9 +177,9 @@ static QoreNode *QSHORTCUT_setKey(QoreObject *self, QoreQShortcut *qs, const Qor
 }
 
 //void setWhatsThis ( const QString & text )
-static QoreNode *QSHORTCUT_setWhatsThis(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_setWhatsThis(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString text;
 
    if (get_qstring(p, text, xsink))
@@ -189,7 +189,7 @@ static QoreNode *QSHORTCUT_setWhatsThis(QoreObject *self, QoreQShortcut *qs, con
 }
 
 //QString whatsThis () const
-static QoreNode *QSHORTCUT_whatsThis(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSHORTCUT_whatsThis(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qs->qobj->whatsThis().toUtf8().data(), QCS_UTF8);
 }

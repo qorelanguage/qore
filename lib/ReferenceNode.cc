@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-ReferenceNode::ReferenceNode(QoreNode *exp) : SimpleQoreNode(NT_REFERENCE), lvexp(exp)
+ReferenceNode::ReferenceNode(AbstractQoreNode *exp) : SimpleQoreNode(NT_REFERENCE), lvexp(exp)
 {
 }
 
@@ -51,20 +51,20 @@ QoreString *ReferenceNode::getAsString(bool &del, int foff, class ExceptionSink 
    return rv;
 }
 
-QoreNode *ReferenceNode::realCopy() const
+AbstractQoreNode *ReferenceNode::realCopy() const
 {
    assert(false);
    return 0;
 }
 
 // the type passed must always be equal to the current type
-bool ReferenceNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+bool ReferenceNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    assert(false);
    return false;
 }
 
-bool ReferenceNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+bool ReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    assert(false);
    return false;

@@ -32,7 +32,7 @@ static void QDATE_constructor(class QoreObject *self, const QoreListNode *params
 {
    QoreQDate *qdt;
 
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qdt = new QoreQDate();
    else if (p->type == NT_DATE) {
@@ -59,9 +59,9 @@ static void QDATE_copy(class QoreObject *self, class QoreObject *old, class Qore
 }
 
 //QDate addDays ( int ndays ) const
-static QoreNode *QDATE_addDays(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_addDays(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int ndays = p ? p->getAsInt() : 0;
    QoreObject *o_qd = new QoreObject(self->getClass(CID_QDATE), getProgram());
    QoreQDate *q_qd = new QoreQDate(qd->addDays(ndays));
@@ -70,9 +70,9 @@ static QoreNode *QDATE_addDays(QoreObject *self, QoreQDate *qd, const QoreListNo
 }
 
 //QDate addMonths ( int nmonths ) const
-static QoreNode *QDATE_addMonths(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_addMonths(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int nmonths = p ? p->getAsInt() : 0;
    QoreObject *o_qd = new QoreObject(self->getClass(CID_QDATE), getProgram());
    QoreQDate *q_qd = new QoreQDate(qd->addMonths(nmonths));
@@ -81,9 +81,9 @@ static QoreNode *QDATE_addMonths(QoreObject *self, QoreQDate *qd, const QoreList
 }
 
 //QDate addYears ( int nyears ) const
-static QoreNode *QDATE_addYears(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_addYears(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int nyears = p ? p->getAsInt() : 0;
    QoreObject *o_qd = new QoreObject(self->getClass(CID_QDATE), getProgram());
    QoreQDate *q_qd = new QoreQDate(qd->addYears(nyears));
@@ -92,39 +92,39 @@ static QoreNode *QDATE_addYears(QoreObject *self, QoreQDate *qd, const QoreListN
 }
 
 //int day () const
-static QoreNode *QDATE_day(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_day(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qd->day());
 }
 
 //int dayOfWeek () const
-static QoreNode *QDATE_dayOfWeek(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_dayOfWeek(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qd->dayOfWeek());
 }
 
 //int dayOfYear () const
-static QoreNode *QDATE_dayOfYear(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_dayOfYear(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qd->dayOfYear());
 }
 
 //int daysInMonth () const
-static QoreNode *QDATE_daysInMonth(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_daysInMonth(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qd->daysInMonth());
 }
 
 //int daysInYear () const
-static QoreNode *QDATE_daysInYear(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_daysInYear(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qd->daysInYear());
 }
 
 //int daysTo ( const QDate & d ) const
-static QoreNode *QDATE_daysTo(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_daysTo(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQDate *d = (p && p->type == NT_OBJECT) ? (QoreQDate *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDATE, xsink) : 0;
    if (!d) {
       if (!xsink->isException())
@@ -136,27 +136,27 @@ static QoreNode *QDATE_daysTo(QoreObject *self, QoreQDate *qd, const QoreListNod
 }
 
 //bool isNull () const
-static QoreNode *QDATE_isNull(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_isNull(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qd->isNull());
 }
 
 //bool isValid () const
-static QoreNode *QDATE_isValid(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_isValid(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qd->isValid());
 }
 
 //int month () const
-static QoreNode *QDATE_month(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_month(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qd->month());
 }
 
 //bool setDate ( int year, int month, int day )
-static QoreNode *QDATE_setDate(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_setDate(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int year = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int month = p ? p->getAsInt() : 0;
@@ -166,16 +166,16 @@ static QoreNode *QDATE_setDate(QoreObject *self, QoreQDate *qd, const QoreListNo
 }
 
 //int toJulianDay () const
-static QoreNode *QDATE_toJulianDay(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_toJulianDay(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qd->toJulianDay());
 }
 
 //QString toString ( const QString & format ) const
 //QString toString ( Qt::DateFormat format = Qt::TextDate ) const
-static QoreNode *QDATE_toString(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_toString(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    {
       QString format;
       if (!get_qstring(p, format, xsink, true))
@@ -189,15 +189,15 @@ static QoreNode *QDATE_toString(QoreObject *self, QoreQDate *qd, const QoreListN
 }
 
 //int weekNumber ( int * yearNumber = 0 ) const
-//static QoreNode *QDATE_weekNumber(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QDATE_weekNumber(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? int* yearNumber = p;
 //   return new QoreBigIntNode(qd->weekNumber(yearNumber));
 //}
 
 //int year () const
-static QoreNode *QDATE_year(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATE_year(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qd->year());
 }

@@ -36,7 +36,7 @@ class QoreClass *QC_QTableView = 0;
 //QTableView ( QWidget * parent = 0 )
 static void QTABLEVIEW_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
@@ -51,17 +51,17 @@ static void QTABLEVIEW_copy(class QoreObject *self, class QoreObject *old, class
 }
 
 //int columnAt ( int x ) const
-static QoreNode *QTABLEVIEW_columnAt(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_columnAt(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qtv->getQTableView()->columnAt(x));
 }
 
 //int columnSpan ( int row, int column ) const
-static QoreNode *QTABLEVIEW_columnSpan(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_columnSpan(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -69,29 +69,29 @@ static QoreNode *QTABLEVIEW_columnSpan(QoreObject *self, QoreAbstractQTableView 
 }
 
 //int columnViewportPosition ( int column ) const
-static QoreNode *QTABLEVIEW_columnViewportPosition(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_columnViewportPosition(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qtv->getQTableView()->columnViewportPosition(column));
 }
 
 //int columnWidth ( int column ) const
-static QoreNode *QTABLEVIEW_columnWidth(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_columnWidth(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qtv->getQTableView()->columnWidth(column));
 }
 
 //Qt::PenStyle gridStyle () const
-static QoreNode *QTABLEVIEW_gridStyle(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_gridStyle(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qtv->getQTableView()->gridStyle());
 }
 
 //QHeaderView * horizontalHeader () const
-static QoreNode *QTABLEVIEW_horizontalHeader(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_horizontalHeader(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qhv = new QoreObject(QC_QHeaderView, getProgram());
    QHeaderView *hv = qtv->getQTableView()->horizontalHeader();
@@ -102,9 +102,9 @@ static QoreNode *QTABLEVIEW_horizontalHeader(QoreObject *self, QoreAbstractQTabl
 }
 
 //virtual QModelIndex indexAt ( const QPoint & pos ) const
-static QoreNode *QTABLEVIEW_indexAt(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_indexAt(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
@@ -119,53 +119,53 @@ static QoreNode *QTABLEVIEW_indexAt(QoreObject *self, QoreAbstractQTableView *qt
 }
 
 //bool isColumnHidden ( int column ) const
-static QoreNode *QTABLEVIEW_isColumnHidden(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_isColumnHidden(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    return new QoreBoolNode(qtv->getQTableView()->isColumnHidden(column));
 }
 
 //bool isCornerButtonEnabled () const
-static QoreNode *QTABLEVIEW_isCornerButtonEnabled(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_isCornerButtonEnabled(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qtv->getQTableView()->isCornerButtonEnabled());
 }
 
 //bool isRowHidden ( int row ) const
-static QoreNode *QTABLEVIEW_isRowHidden(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_isRowHidden(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    return new QoreBoolNode(qtv->getQTableView()->isRowHidden(row));
 }
 
 //bool isSortingEnabled () const
-static QoreNode *QTABLEVIEW_isSortingEnabled(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_isSortingEnabled(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qtv->getQTableView()->isSortingEnabled());
 }
 
 //int rowAt ( int y ) const
-static QoreNode *QTABLEVIEW_rowAt(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_rowAt(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int y = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qtv->getQTableView()->rowAt(y));
 }
 
 //int rowHeight ( int row ) const
-static QoreNode *QTABLEVIEW_rowHeight(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_rowHeight(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qtv->getQTableView()->rowHeight(row));
 }
 
 //int rowSpan ( int row, int column ) const
-static QoreNode *QTABLEVIEW_rowSpan(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_rowSpan(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -173,17 +173,17 @@ static QoreNode *QTABLEVIEW_rowSpan(QoreObject *self, QoreAbstractQTableView *qt
 }
 
 //int rowViewportPosition ( int row ) const
-static QoreNode *QTABLEVIEW_rowViewportPosition(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_rowViewportPosition(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qtv->getQTableView()->rowViewportPosition(row));
 }
 
 //void setColumnHidden ( int column, bool hide )
-static QoreNode *QTABLEVIEW_setColumnHidden(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setColumnHidden(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    bool hide = p ? p->getAsBool() : false;
@@ -192,9 +192,9 @@ static QoreNode *QTABLEVIEW_setColumnHidden(QoreObject *self, QoreAbstractQTable
 }
 
 //void setColumnWidth ( int column, int width )
-static QoreNode *QTABLEVIEW_setColumnWidth(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setColumnWidth(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int width = p ? p->getAsInt() : 0;
@@ -203,27 +203,27 @@ static QoreNode *QTABLEVIEW_setColumnWidth(QoreObject *self, QoreAbstractQTableV
 }
 
 //void setCornerButtonEnabled ( bool enable )
-static QoreNode *QTABLEVIEW_setCornerButtonEnabled(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setCornerButtonEnabled(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qtv->getQTableView()->setCornerButtonEnabled(enable);
    return 0;
 }
 
 //void setGridStyle ( Qt::PenStyle style )
-static QoreNode *QTABLEVIEW_setGridStyle(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setGridStyle(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    Qt::PenStyle style = (Qt::PenStyle)(p ? p->getAsInt() : 0);
    qtv->getQTableView()->setGridStyle(style);
    return 0;
 }
 
 //void setHorizontalHeader ( QHeaderView * header )
-static QoreNode *QTABLEVIEW_setHorizontalHeader(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setHorizontalHeader(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQHeaderView *header = (p && p->type == NT_OBJECT) ? (QoreAbstractQHeaderView *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QHEADERVIEW, xsink) : 0;
    if (!header) {
       if (!xsink->isException())
@@ -236,9 +236,9 @@ static QoreNode *QTABLEVIEW_setHorizontalHeader(QoreObject *self, QoreAbstractQT
 }
 
 //void setRowHeight ( int row, int height )
-static QoreNode *QTABLEVIEW_setRowHeight(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setRowHeight(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int height = p ? p->getAsInt() : 0;
@@ -247,9 +247,9 @@ static QoreNode *QTABLEVIEW_setRowHeight(QoreObject *self, QoreAbstractQTableVie
 }
 
 //void setRowHidden ( int row, bool hide )
-static QoreNode *QTABLEVIEW_setRowHidden(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setRowHidden(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    bool hide = p ? p->getAsBool() : false;
@@ -258,18 +258,18 @@ static QoreNode *QTABLEVIEW_setRowHidden(QoreObject *self, QoreAbstractQTableVie
 }
 
 //void setSortingEnabled ( bool enable )
-static QoreNode *QTABLEVIEW_setSortingEnabled(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setSortingEnabled(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qtv->getQTableView()->setSortingEnabled(enable);
    return 0;
 }
 
 //void setSpan ( int row, int column, int rowSpan, int columnSpan )
-static QoreNode *QTABLEVIEW_setSpan(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setSpan(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -282,9 +282,9 @@ static QoreNode *QTABLEVIEW_setSpan(QoreObject *self, QoreAbstractQTableView *qt
 }
 
 //void setVerticalHeader ( QHeaderView * header )
-static QoreNode *QTABLEVIEW_setVerticalHeader(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setVerticalHeader(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQHeaderView *header = (p && p->type == NT_OBJECT) ? (QoreAbstractQHeaderView *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QHEADERVIEW, xsink) : 0;
    if (!header) {
       if (!xsink->isException())
@@ -297,24 +297,24 @@ static QoreNode *QTABLEVIEW_setVerticalHeader(QoreObject *self, QoreAbstractQTab
 }
 
 //void setWordWrap ( bool on )
-static QoreNode *QTABLEVIEW_setWordWrap(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setWordWrap(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
    qtv->getQTableView()->setWordWrap(on);
    return 0;
 }
 
 //bool showGrid () const
-static QoreNode *QTABLEVIEW_showGrid(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_showGrid(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qtv->getQTableView()->showGrid());
 }
 
 //void sortByColumn ( int column, Qt::SortOrder order )
-static QoreNode *QTABLEVIEW_sortByColumn(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_sortByColumn(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    Qt::SortOrder order = (Qt::SortOrder)(p ? p->getAsInt() : 0);
@@ -323,7 +323,7 @@ static QoreNode *QTABLEVIEW_sortByColumn(QoreObject *self, QoreAbstractQTableVie
 }
 
 //QHeaderView * verticalHeader () const
-static QoreNode *QTABLEVIEW_verticalHeader(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_verticalHeader(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qhv = new QoreObject(QC_QHeaderView, getProgram());
    QoreQtQHeaderView *q_qhv = new QoreQtQHeaderView(o_qhv, qtv->getQTableView()->verticalHeader());
@@ -332,101 +332,101 @@ static QoreNode *QTABLEVIEW_verticalHeader(QoreObject *self, QoreAbstractQTableV
 }
 
 //bool wordWrap () const
-static QoreNode *QTABLEVIEW_wordWrap(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_wordWrap(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qtv->getQTableView()->wordWrap());
 }
 
 //void hideColumn ( int column )
-static QoreNode *QTABLEVIEW_hideColumn(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_hideColumn(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    qtv->getQTableView()->hideColumn(column);
    return 0;
 }
 
 //void hideRow ( int row )
-static QoreNode *QTABLEVIEW_hideRow(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_hideRow(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    qtv->getQTableView()->hideRow(row);
    return 0;
 }
 
 //void resizeColumnToContents ( int column )
-static QoreNode *QTABLEVIEW_resizeColumnToContents(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_resizeColumnToContents(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    qtv->getQTableView()->resizeColumnToContents(column);
    return 0;
 }
 
 //void resizeColumnsToContents ()
-static QoreNode *QTABLEVIEW_resizeColumnsToContents(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_resizeColumnsToContents(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
    qtv->getQTableView()->resizeColumnsToContents();
    return 0;
 }
 
 //void resizeRowToContents ( int row )
-static QoreNode *QTABLEVIEW_resizeRowToContents(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_resizeRowToContents(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    qtv->getQTableView()->resizeRowToContents(row);
    return 0;
 }
 
 //void resizeRowsToContents ()
-static QoreNode *QTABLEVIEW_resizeRowsToContents(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_resizeRowsToContents(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
    qtv->getQTableView()->resizeRowsToContents();
    return 0;
 }
 
 //void selectColumn ( int column )
-static QoreNode *QTABLEVIEW_selectColumn(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_selectColumn(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    qtv->getQTableView()->selectColumn(column);
    return 0;
 }
 
 //void selectRow ( int row )
-static QoreNode *QTABLEVIEW_selectRow(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_selectRow(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    qtv->getQTableView()->selectRow(row);
    return 0;
 }
 
 //void setShowGrid ( bool show )
-static QoreNode *QTABLEVIEW_setShowGrid(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_setShowGrid(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool show = p ? p->getAsBool() : false;
    qtv->getQTableView()->setShowGrid(show);
    return 0;
 }
 
 //void showColumn ( int column )
-static QoreNode *QTABLEVIEW_showColumn(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_showColumn(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    qtv->getQTableView()->showColumn(column);
    return 0;
 }
 
 //void showRow ( int row )
-static QoreNode *QTABLEVIEW_showRow(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEVIEW_showRow(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    qtv->getQTableView()->showRow(row);
    return 0;

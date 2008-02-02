@@ -34,7 +34,7 @@ DLLLOCAL class QoreClass *initQApplicationClass(class QoreClass *parent);
 DLLLOCAL void initQApplicationStaticFunctions();
 
 DLLLOCAL extern void qapp_dec();
-DLLLOCAL extern QoreNode *get_qore_qapp();
+DLLLOCAL extern AbstractQoreNode *get_qore_qapp();
 
 class myQApplication : public QApplication, public QoreQObjectExtension
 {

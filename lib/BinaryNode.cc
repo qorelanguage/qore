@@ -110,16 +110,16 @@ int BinaryNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
    return 0;
 }
 
-QoreNode *BinaryNode::realCopy() const
+AbstractQoreNode *BinaryNode::realCopy() const
 {
    return copy();
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
 // the "val" passed
-//DLLLOCAL virtual int compare(const QoreNode *val) const;
+//DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool BinaryNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+bool BinaryNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    const BinaryNode *b = dynamic_cast<const BinaryNode *>(v);
    if (!b)
@@ -127,7 +127,7 @@ bool BinaryNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
    return !compare(b);
 }
 
-bool BinaryNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+bool BinaryNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    return is_equal_soft(v, xsink);
 }

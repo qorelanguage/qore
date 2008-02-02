@@ -7,8 +7,8 @@ TEST()
 {
   printf("testing QoreListNode::derefAndDelete()\n");
   QoreListNode* l = new List;
-  QoreNode* val1 = new QoreNode(true);
-  QoreNode* val2 = new QoreNode(1.1);
+  AbstractQoreNode* val1 = new AbstractQoreNode(true);
+  AbstractQoreNode* val2 = new AbstractQoreNode(1.1);
   l->push(val1);
   l->push(val2);
 

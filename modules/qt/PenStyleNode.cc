@@ -86,21 +86,21 @@ int PenStyleNode::getAsString(QoreString &str, int foff, class ExceptionSink *xs
    return 0;
 }
 
-class QoreNode *PenStyleNode::realCopy() const
+class AbstractQoreNode *PenStyleNode::realCopy() const
 {
    return new PenStyleNode(val);
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
 // the "val" passed
-//DLLLOCAL virtual int compare(const QoreNode *val) const;
+//DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool PenStyleNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+bool PenStyleNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    return (Qt::PenStyle)v->getAsInt() == val;
 }
 
-bool PenStyleNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+bool PenStyleNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    const PenStyleNode *ps = dynamic_cast<const PenStyleNode *>(v);
    if (!ps)

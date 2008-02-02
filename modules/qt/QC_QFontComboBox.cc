@@ -34,7 +34,7 @@ class QoreClass *QC_QFontComboBox = 0;
 //QFontComboBox ( QWidget * parent = 0 )
 static void QFONTCOMBOBOX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!is_nothing(p) && !parent) {
       if (!xsink->isException())
@@ -52,7 +52,7 @@ static void QFONTCOMBOBOX_copy(class QoreObject *self, class QoreObject *old, cl
 }
 
 //QFont currentFont () const
-static QoreNode *QFONTCOMBOBOX_currentFont(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONTCOMBOBOX_currentFont(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(qfcb->qobj->currentFont());
@@ -61,39 +61,39 @@ static QoreNode *QFONTCOMBOBOX_currentFont(QoreObject *self, QoreQFontComboBox *
 }
 
 //FontFilters fontFilters () const
-static QoreNode *QFONTCOMBOBOX_fontFilters(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONTCOMBOBOX_fontFilters(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qfcb->qobj->fontFilters());
 }
 
 //void setFontFilters ( FontFilters filters )
-static QoreNode *QFONTCOMBOBOX_setFontFilters(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONTCOMBOBOX_setFontFilters(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QFontComboBox::FontFilters filters = (QFontComboBox::FontFilters)(p ? p->getAsInt() : 0);
    qfcb->qobj->setFontFilters(filters);
    return 0;
 }
 
 //void setWritingSystem ( QFontDatabase::WritingSystem script )
-static QoreNode *QFONTCOMBOBOX_setWritingSystem(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONTCOMBOBOX_setWritingSystem(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QFontDatabase::WritingSystem script = (QFontDatabase::WritingSystem)(p ? p->getAsInt() : 0);
    qfcb->qobj->setWritingSystem(script);
    return 0;
 }
 
 //QFontDatabase::WritingSystem writingSystem () const
-static QoreNode *QFONTCOMBOBOX_writingSystem(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONTCOMBOBOX_writingSystem(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qfcb->qobj->writingSystem());
 }
 
 //void setCurrentFont ( const QFont & font )
-static QoreNode *QFONTCOMBOBOX_setCurrentFont(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QFONTCOMBOBOX_setCurrentFont(QoreObject *self, QoreQFontComboBox *qfcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())

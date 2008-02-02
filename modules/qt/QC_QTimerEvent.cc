@@ -30,7 +30,7 @@ class QoreClass *QC_QTimerEvent = 0;
 //QTimerEvent ( int timerId )
 static void QTIMEREVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int timerId = p ? p->getAsInt() : 0;
    self->setPrivate(CID_QTIMEREVENT, new QoreQTimerEvent(timerId));
    return;
@@ -42,7 +42,7 @@ static void QTIMEREVENT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //int timerId () const
-static QoreNode *QTIMEREVENT_timerId(QoreObject *self, QoreQTimerEvent *qte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIMEREVENT_timerId(QoreObject *self, QoreQTimerEvent *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qte->timerId());
 }

@@ -40,7 +40,7 @@ static void QRESIZEEVENT_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //const QSize & oldSize () const
-static QoreNode *QRESIZEEVENT_oldSize(QoreObject *self, QoreQResizeEvent *qre, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QRESIZEEVENT_oldSize(QoreObject *self, QoreQResizeEvent *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qre->oldSize());
@@ -49,7 +49,7 @@ static QoreNode *QRESIZEEVENT_oldSize(QoreObject *self, QoreQResizeEvent *qre, c
 }
 
 //const QSize & size () const
-static QoreNode *QRESIZEEVENT_size(QoreObject *self, QoreQResizeEvent *qre, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QRESIZEEVENT_size(QoreObject *self, QoreQResizeEvent *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(qre->size());

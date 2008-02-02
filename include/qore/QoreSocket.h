@@ -163,8 +163,8 @@ class QoreSocket
       DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHash *headers, const void *data, int size);
       // send an HTTP response
       DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const class QoreHash *headers, const void *data, int size);
-      // read and parse HTTP header (caller owns QoreNode reference returned)
-      DLLEXPORT class QoreNode *readHTTPHeader(int timeout, int *prc);
+      // read and parse HTTP header (caller owns AbstractQoreNode reference returned)
+      DLLEXPORT class AbstractQoreNode *readHTTPHeader(int timeout, int *prc);
       // receive a binary message in HTTP chunked format (caller owns QoreHash returned)
       DLLEXPORT class QoreHashNode *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
       // receive a string message in HTTP chunked format (caller owns QoreHash returned)

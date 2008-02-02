@@ -1,5 +1,5 @@
 /*
-  QoreNode.cc
+  AbstractQoreNode.cc
 
   Qore Programming Language
 
@@ -33,57 +33,57 @@
 
 #endif
 
-QoreNode::QoreNode(const QoreType *t) : type(t)
+AbstractQoreNode::AbstractQoreNode(const QoreType *t) : type(t)
 {
 #if TRACK_REFS
-   printd(5, "QoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
+   printd(5, "AbstractQoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
 #endif
 }
 
-QoreNode::~QoreNode()
+AbstractQoreNode::~AbstractQoreNode()
 {
 #if 0
-   printd(5, "QoreNode::~QoreNode() type=%s\n", getTypeName());
+   printd(5, "AbstractQoreNode::~AbstractQoreNode() type=%s\n", getTypeName());
 #endif
 }
 
-void QoreNode::ref() const
+void AbstractQoreNode::ref() const
 {
 #ifdef DEBUG
 #if TRACK_REFS
    const QoreObject *o = dynamic_cast<const QoreObject *>(this);
    if (o)
-      printd(5, "QoreNode::ref() %08p type=%s (%d->%d) object=%08p, class=%s\n", this, getTypeName(), references, references + 1, o, o->getClass()->getName());
+      printd(5, "AbstractQoreNode::ref() %08p type=%s (%d->%d) object=%08p, class=%s\n", this, getTypeName(), references, references + 1, o, o->getClass()->getName());
    else
-      printd(5, "QoreNode::ref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
+      printd(5, "AbstractQoreNode::ref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
 #endif
 #endif
    ROreference();
 }
 
-class QoreNode *QoreNode::RefSelf() const
+class AbstractQoreNode *AbstractQoreNode::RefSelf() const
 {
    ref();
-   return const_cast<QoreNode *>(this);
+   return const_cast<AbstractQoreNode *>(this);
 }
 
-void QoreNode::deref(ExceptionSink *xsink)
+void AbstractQoreNode::deref(ExceptionSink *xsink)
 {
-   //tracein("QoreNode::deref()");
+   //tracein("AbstractQoreNode::deref()");
 #ifdef DEBUG
 #if TRACK_REFS
-   if (type == NT_STRING) printd(5, "QoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
+   if (type == NT_STRING) printd(5, "AbstractQoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
    else
-      printd(5, "QoreNode::deref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
+      printd(5, "AbstractQoreNode::deref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
 
 #endif
    if (references > 51200 || references < 0)
    {
       if (type == NT_STRING)
-	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s) (val=\"%s\")\n",
+	 printd(0, "AbstractQoreNode::deref() WARNING, node %08p references=%d (type=%s) (val=\"%s\")\n",
 		this, references, getTypeName(), ((QoreStringNode *)this)->getBuffer());
       else
-	 printd(0, "QoreNode::deref() WARNING, node %08p references=%d (type=%s)\n",
+	 printd(0, "AbstractQoreNode::deref() WARNING, node %08p references=%d (type=%s)\n",
 		this, references, getTypeName());
       assert(false);
    }
@@ -96,124 +96,124 @@ void QoreNode::deref(ExceptionSink *xsink)
       delete this;
    }
 
-   //traceout("QoreNode::deref()");
+   //traceout("AbstractQoreNode::deref()");
 }
 
-bool QoreNode::needs_eval() const
+bool AbstractQoreNode::needs_eval() const
 {
    return false;
 }
 
-bool QoreNode::is_value() const
+bool AbstractQoreNode::is_value() const
 {
    return true;
 }
 
 /*
-  QoreNode::eval(): return value requires a dereference
+  AbstractQoreNode::eval(): return value requires a dereference
  */
-class QoreNode *QoreNode::eval(ExceptionSink *xsink) const
+class AbstractQoreNode *AbstractQoreNode::eval(ExceptionSink *xsink) const
 {
    return RefSelf();
 }
 
 /*
- QoreNode::eval(): return value requires a dereference if needs_deref is true
+ AbstractQoreNode::eval(): return value requires a dereference if needs_deref is true
  */
-class QoreNode *QoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const
+class AbstractQoreNode *AbstractQoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const
 {
    /*
      needs_deref = false;
-     return const_cast<QoreNode *>(this);
+     return const_cast<AbstractQoreNode *>(this);
     */
 
    if (!needs_eval())
    {
       needs_deref = false;
-      return const_cast<QoreNode *>(this);
+      return const_cast<AbstractQoreNode *>(this);
    }
    needs_deref = true;
    return eval(xsink);
 }
 
-int64 QoreNode::bigIntEval(ExceptionSink *xsink) const
+int64 AbstractQoreNode::bigIntEval(ExceptionSink *xsink) const
 {
    // return getAsBigInt();
 
    if (!needs_eval())
       return getAsBigInt();
 
-   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    if (*xsink || !rv)
       return 0;
 
    return rv->getAsBigInt();
 }
 
-int QoreNode::integerEval(ExceptionSink *xsink) const
+int AbstractQoreNode::integerEval(ExceptionSink *xsink) const
 {
    // return getAsInt();
 
    if (!needs_eval())
       return getAsInt();
 
-   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    if (*xsink || !rv)
       return 0;
 
    return rv->getAsInt();
 }
 
-bool QoreNode::boolEval(ExceptionSink *xsink) const
+bool AbstractQoreNode::boolEval(ExceptionSink *xsink) const
 {
    //return getAsBool();
 
    if (!needs_eval())
       return getAsBool();
 
-   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    if (*xsink || !rv)
       return false;
 
    return rv->getAsBool();
 }
 
-double QoreNode::floatEval(class ExceptionSink *xsink) const
+double AbstractQoreNode::floatEval(class ExceptionSink *xsink) const
 {
    // return getAsFloat()
 
    if (!needs_eval())
       return getAsFloat();
 
-   ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
    if (*xsink || !rv)
       return 0.0;
 
    return rv->getAsFloat();
 }
 
-bool QoreNode::getAsBool() const
+bool AbstractQoreNode::getAsBool() const
 {
    return false;
 }
 
-int QoreNode::getAsInt() const
+int AbstractQoreNode::getAsInt() const
 {
    return 0;
 }
 
-int64 QoreNode::getAsBigInt() const
+int64 AbstractQoreNode::getAsBigInt() const
 {
    return 0;
 }
 
-double QoreNode::getAsFloat() const
+double AbstractQoreNode::getAsFloat() const
 {
    return 0.0;
 }
 
 // for getting relative time values or integer values
-int getSecZeroInt(const class QoreNode *a)
+int getSecZeroInt(const class AbstractQoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -226,7 +226,7 @@ int getSecZeroInt(const class QoreNode *a)
    return a->getAsInt();
 }
 
-int64 getSecZeroBigInt(const class QoreNode *a)
+int64 getSecZeroBigInt(const class AbstractQoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -240,7 +240,7 @@ int64 getSecZeroBigInt(const class QoreNode *a)
 }
 
 // for getting relative time values or integer values
-int getSecMinusOneInt(const class QoreNode *a)
+int getSecMinusOneInt(const class AbstractQoreNode *a)
 {
    if (is_nothing(a))
       return -1;
@@ -253,7 +253,7 @@ int getSecMinusOneInt(const class QoreNode *a)
    return a->getAsInt();
 }
 
-int64 getSecMinusOneBigInt(const class QoreNode *a)
+int64 getSecMinusOneBigInt(const class AbstractQoreNode *a)
 {
    if (is_nothing(a))
       return -1;
@@ -265,7 +265,7 @@ int64 getSecMinusOneBigInt(const class QoreNode *a)
    return a->getAsBigInt();
 }
 
-int getMsZeroInt(const class QoreNode *a)
+int getMsZeroInt(const class AbstractQoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -278,7 +278,7 @@ int getMsZeroInt(const class QoreNode *a)
    return a->getAsInt();
 }
 
-int64 getMsZeroBigInt(const class QoreNode *a)
+int64 getMsZeroBigInt(const class AbstractQoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -292,7 +292,7 @@ int64 getMsZeroBigInt(const class QoreNode *a)
 }
 
 // for getting relative time values or integer values
-int getMsMinusOneInt(const class QoreNode *a)
+int getMsMinusOneInt(const class AbstractQoreNode *a)
 {
    if (is_nothing(a))
       return -1;
@@ -305,7 +305,7 @@ int getMsMinusOneInt(const class QoreNode *a)
    return a->getAsInt();
 }
 
-int64 getMsMinusOneBigInt(const class QoreNode *a)
+int64 getMsMinusOneBigInt(const class AbstractQoreNode *a)
 {
    if (is_nothing(a))
       return -1;
@@ -318,7 +318,7 @@ int64 getMsMinusOneBigInt(const class QoreNode *a)
    return a->getAsBigInt();
 }
 
-int getMicroSecZeroInt(const class QoreNode *a)
+int getMicroSecZeroInt(const class AbstractQoreNode *a)
 {
    if (is_nothing(a))
       return 0;
@@ -331,7 +331,7 @@ int getMicroSecZeroInt(const class QoreNode *a)
    return a->getAsInt();
 }
 
-bool is_nothing(const QoreNode *n)
+bool is_nothing(const AbstractQoreNode *n)
 {
    if (!n || (dynamic_cast<const QoreNothingNode *>(n)))
       return true;
@@ -359,7 +359,7 @@ static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink 
    return l;
 }
 
-static inline QoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsink)
+static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsink)
 {
    // if it's not an immediate hash, then there can't be any
    // variable references in it at any level, so return copy
@@ -373,13 +373,13 @@ static inline QoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionSink *xsi
    return h;
 }
 
-static inline QoreNode *crlr_tree_copy(const QoreTreeNode *n, ExceptionSink *xsink)
+static inline AbstractQoreNode *crlr_tree_copy(const QoreTreeNode *n, ExceptionSink *xsink)
 {
    return new QoreTreeNode(copy_and_resolve_lvar_refs(n->left, xsink), n->op,
 			   n->right ? copy_and_resolve_lvar_refs(n->right, xsink) : NULL);
 }
 
-static inline QoreNode *crlr_fcall_copy(const FunctionCallNode *n, ExceptionSink *xsink)
+static inline AbstractQoreNode *crlr_fcall_copy(const FunctionCallNode *n, ExceptionSink *xsink)
 {
    QoreListNode *na = n->args ? crlr_list_copy(n->args, xsink) : 0;
 
@@ -405,15 +405,15 @@ static inline QoreNode *crlr_fcall_copy(const FunctionCallNode *n, ExceptionSink
    return 0;
 }
 
-static inline class QoreNode *eval_notnull(const class QoreNode *n, ExceptionSink *xsink)
+static inline class AbstractQoreNode *eval_notnull(const class AbstractQoreNode *n, ExceptionSink *xsink)
 {
    n = n->eval(xsink);
    if (!xsink->isEvent() && !n)
       return nothing();
-   return const_cast<QoreNode *>(n);
+   return const_cast<AbstractQoreNode *>(n);
 }
 
-class QoreNode *copy_and_resolve_lvar_refs(const QoreNode *n, ExceptionSink *xsink)
+class AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink)
 {
    if (!n) return 0;
 
@@ -442,42 +442,42 @@ class QoreNode *copy_and_resolve_lvar_refs(const QoreNode *n, ExceptionSink *xsi
 }
 
 // get the value of the type in a string context, empty string for complex types (default implementation)
-QoreString *QoreNode::getStringRepresentation(bool &del) const
+QoreString *AbstractQoreNode::getStringRepresentation(bool &del) const
 {
    del = false;
    return NullString;
 }
 
 // empty default implementation
-void QoreNode::getStringRepresentation(QoreString &str) const
+void AbstractQoreNode::getStringRepresentation(QoreString &str) const
 {
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
-DateTime *QoreNode::getDateTimeRepresentation(bool &del) const
+DateTime *AbstractQoreNode::getDateTimeRepresentation(bool &del) const
 {
    del = false;
    return ZeroDate;
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
-void QoreNode::getDateTimeRepresentation(DateTime &dt) const
+void AbstractQoreNode::getDateTimeRepresentation(DateTime &dt) const
 {
    dt.setDate(0LL);
 }
 
 // returns the data type
-const QoreType *QoreNode::getType() const
+const QoreType *AbstractQoreNode::getType() const
 {
    return type;
 }
 
-const char *QoreNode::getTypeName() const
+const char *AbstractQoreNode::getTypeName() const
 {
    return type->getName();
 }
 
-SimpleQoreNode::SimpleQoreNode(const QoreType *t) : QoreNode(t)
+SimpleQoreNode::SimpleQoreNode(const QoreType *t) : AbstractQoreNode(t)
 {
 }
 

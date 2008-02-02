@@ -62,7 +62,7 @@ int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, QoreHash *hash, ExceptionSink *
 
 // add fields to message - we add fields using the name so we can have arrays with different typed elements, etc
 // returns 0 for success, -1 for error
-int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink)
+int QoreTibrvTransport::valueToField(const char *key, class AbstractQoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink)
 {
    //printd(5, "adding %s (%s)\n", key, v ? v->getTypeName() : "null");
    if (is_nothing(v)) {
@@ -110,7 +110,7 @@ int QoreTibrvTransport::valueToField(const char *key, class QoreNode *v, TibrvMs
    if (ntype == NT_HASH) {
       QoreHashNode *h = dynamic_cast<QoreHashNode *>(v);
       //check if it's a type-encoded hash
-      class QoreNode *t;
+      class AbstractQoreNode *t;
       if (h->size() == 2 && (t = h->getKeyValue("^type^")) && (t->type == NT_STRING))
 	 doEncodedType(msg, key, (reinterpret_cast<QoreStringNode *>(t))->getBuffer(), h->getKeyValue("^value^"), xsink);
       else
@@ -187,14 +187,14 @@ QoreHashNode *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *
       if (!key)
 	 key = "";
 
-      QoreNode *val = fieldToNode(&field, xsink);
+      AbstractQoreNode *val = fieldToNode(&field, xsink);
       if (xsink->isException())
 	 return 0;
 
-      QoreNode *ev = h->getKeyValueExistence(key);
-      if (ev != (QoreNode *)-1)
+      AbstractQoreNode *ev = h->getKeyValueExistence(key);
+      if (ev != (AbstractQoreNode *)-1)
       {
-	 QoreNode **evp = h->getKeyValuePtr(key);
+	 AbstractQoreNode **evp = h->getKeyValuePtr(key);
 	 QoreListNode *l = dynamic_cast<QoreListNode *>(ev);
 	 if (!l) {
 	    //printd(5, "QoreTibrvTransport::msgToHash() making list\n");
@@ -212,7 +212,7 @@ QoreHashNode *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *
    return h.release();
 }
 
-QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionSink *xsink)
+AbstractQoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionSink *xsink)
 {
    if (field->count > 1)
       return listToNode(field, xsink);
@@ -307,7 +307,7 @@ QoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class ExceptionS
    return 0;
 }
 
-class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class ExceptionSink *xsink)
+class AbstractQoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class ExceptionSink *xsink)
 {
    ReferenceHolder<QoreListNode> l(new QoreListNode(), xsink);
    tibrvLocalData data = field->getData();
@@ -401,7 +401,7 @@ class QoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, class Excep
    return l.release();
 }
 
-int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char *type, class QoreNode *val, class ExceptionSink *xsink)
+int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char *type, class AbstractQoreNode *val, class ExceptionSink *xsink)
 {
    if (type[0] == 'i')
    {

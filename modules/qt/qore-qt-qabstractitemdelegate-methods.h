@@ -23,7 +23,7 @@ class T {
 
 	 ExceptionSink xsink;
 
-	 QoreNode *rv = dispatch_event_intern(qore_obj, m_createEditor, args, &xsink);
+	 AbstractQoreNode *rv = dispatch_event_intern(qore_obj, m_createEditor, args, &xsink);
 
 	 if (xsink) {
             discard(rv, &xsink);
@@ -154,7 +154,7 @@ class T {
 
 	 ExceptionSink xsink;
 
-	 QoreNode *rv = dispatch_event_intern(qore_obj, m_sizeHint, args, &xsink);
+	 AbstractQoreNode *rv = dispatch_event_intern(qore_obj, m_sizeHint, args, &xsink);
 	 
 	 if (xsink) {
             discard(rv, &xsink);

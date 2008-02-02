@@ -32,7 +32,7 @@ static void QTIME_constructor(class QoreObject *self, const QoreListNode *params
 {
    QoreQTime *qdt;
 
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qdt = new QoreQTime();
    else if (p->type == NT_DATE) {
@@ -61,9 +61,9 @@ static void QTIME_copy(class QoreObject *self, class QoreObject *old, class Qore
 }
 
 //QTime addMSecs ( int ms ) const
-static QoreNode *QTIME_addMSecs(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_addMSecs(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int ms = p ? p->getAsInt() : 0;
    QoreObject *o_qt = new QoreObject(self->getClass(CID_QTIME), getProgram());
    QoreQTime *q_qt = new QoreQTime(qt->addMSecs(ms));
@@ -72,9 +72,9 @@ static QoreNode *QTIME_addMSecs(QoreObject *self, QoreQTime *qt, const QoreListN
 }
 
 //QTime addSecs ( int s ) const
-static QoreNode *QTIME_addSecs(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_addSecs(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int s = p ? p->getAsInt() : 0;
    QoreObject *o_qt = new QoreObject(self->getClass(CID_QTIME), getProgram());
    QoreQTime *q_qt = new QoreQTime(qt->addSecs(s));
@@ -83,45 +83,45 @@ static QoreNode *QTIME_addSecs(QoreObject *self, QoreQTime *qt, const QoreListNo
 }
 
 //int elapsed () const
-static QoreNode *QTIME_elapsed(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_elapsed(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qt->elapsed());
 }
 
 //int hour () const
-static QoreNode *QTIME_hour(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_hour(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qt->hour());
 }
 
 //bool isNull () const
-static QoreNode *QTIME_isNull(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_isNull(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qt->isNull());
 }
 
 //bool isValid () const
-static QoreNode *QTIME_isValid(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_isValid(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qt->isValid());
 }
 
 //int minute () const
-static QoreNode *QTIME_minute(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_minute(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qt->minute());
 }
 
 //int msec () const
-static QoreNode *QTIME_msec(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_msec(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qt->msec());
 }
 
 //int msecsTo ( const QTime & t ) const
-static QoreNode *QTIME_msecsTo(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_msecsTo(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTime *t = (p && p->type == NT_OBJECT) ? (QoreQTime *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTIME, xsink) : 0;
    if (!t) {
       if (!xsink->isException())
@@ -133,21 +133,21 @@ static QoreNode *QTIME_msecsTo(QoreObject *self, QoreQTime *qt, const QoreListNo
 }
 
 //int restart ()
-static QoreNode *QTIME_restart(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_restart(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qt->restart());
 }
 
 //int second () const
-static QoreNode *QTIME_second(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_second(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qt->second());
 }
 
 //int secsTo ( const QTime & t ) const
-static QoreNode *QTIME_secsTo(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_secsTo(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTime *t = (p && p->type == NT_OBJECT) ? (QoreQTime *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTIME, xsink) : 0;
    if (!t) {
       if (!xsink->isException())
@@ -159,9 +159,9 @@ static QoreNode *QTIME_secsTo(QoreObject *self, QoreQTime *qt, const QoreListNod
 }
 
 //bool setHMS ( int h, int m, int s, int ms = 0 )
-static QoreNode *QTIME_setHMS(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_setHMS(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int h = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int m = p ? p->getAsInt() : 0;
@@ -173,7 +173,7 @@ static QoreNode *QTIME_setHMS(QoreObject *self, QoreQTime *qt, const QoreListNod
 }
 
 //void start ()
-static QoreNode *QTIME_start(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_start(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
    qt->start();
    return 0;
@@ -181,9 +181,9 @@ static QoreNode *QTIME_start(QoreObject *self, QoreQTime *qt, const QoreListNode
 
 //QString toString ( const QString & format ) const
 //QString toString ( Qt::DateFormat f = Qt::TextDate ) const
-static QoreNode *QTIME_toString(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTIME_toString(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString format;
    if (get_qstring(p, format, xsink)) {
       Qt::DateFormat f = (Qt::DateFormat)(p ? p->getAsInt() : 0);

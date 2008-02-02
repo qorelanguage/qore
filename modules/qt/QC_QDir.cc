@@ -34,7 +34,7 @@ class QoreClass *QC_QDir = 0;
 //QDir ( const QString & path, const QString & nameFilter, SortFlags sort = SortFlags( Name | IgnoreCase ), Filters filters = AllEntries )
 static void QDIR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QDIR, new QoreQDir());
       return;
@@ -60,9 +60,9 @@ static void QDIR_copy(class QoreObject *self, class QoreObject *old, class QoreQ
 }
 
 //QString absoluteFilePath ( const QString & fileName ) const
-static QoreNode *QDIR_absoluteFilePath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_absoluteFilePath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString fileName;
    if (get_qstring(p, fileName, xsink))
       return 0;
@@ -70,21 +70,21 @@ static QoreNode *QDIR_absoluteFilePath(QoreObject *self, QoreQDir *qd, const Qor
 }
 
 //QString absolutePath () const
-static QoreNode *QDIR_absolutePath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_absolutePath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qd->absolutePath().toUtf8().data(), QCS_UTF8);
 }
 
 //QString canonicalPath () const
-static QoreNode *QDIR_canonicalPath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_canonicalPath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qd->canonicalPath().toUtf8().data(), QCS_UTF8);
 }
 
 //bool cd ( const QString & dirName )
-static QoreNode *QDIR_cd(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_cd(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString dirName;
    if (get_qstring(p, dirName, xsink))
       return 0;
@@ -92,28 +92,28 @@ static QoreNode *QDIR_cd(QoreObject *self, QoreQDir *qd, const QoreListNode *par
 }
 
 //bool cdUp ()
-static QoreNode *QDIR_cdUp(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_cdUp(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qd->cdUp());
 }
 
 //uint count () const
-static QoreNode *QDIR_count(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_count(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qd->count());
 }
 
 //QString dirName () const
-static QoreNode *QDIR_dirName(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_dirName(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qd->dirName().toUtf8().data(), QCS_UTF8);
 }
 
 ////QFileInfoList entryInfoList ( const QStringList & nameFilters, Filters filters = NoFilter, SortFlags sort = NoSort ) const
 ////QFileInfoList entryInfoList ( Filters filters = NoFilter, SortFlags sort = NoSort ) const
-//static QoreNode *QDIR_entryInfoList(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QDIR_entryInfoList(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (is_nothing(p)) {
 //      ??? return new QoreBigIntNode(qd->entryInfoList());
 //   }
@@ -144,9 +144,9 @@ static QoreNode *QDIR_dirName(QoreObject *self, QoreQDir *qd, const QoreListNode
 
 ////QStringList entryList ( const QStringList & nameFilters, Filters filters = NoFilter, SortFlags sort = NoSort ) const
 ////QStringList entryList ( Filters filters = NoFilter, SortFlags sort = NoSort ) const
-//static QoreNode *QDIR_entryList(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QDIR_entryList(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (is_nothing(p)) {
 //      QStringList strlist_rv = qd->entryList();
 //      QoreListNode *l = new QoreListNode();
@@ -191,9 +191,9 @@ static QoreNode *QDIR_dirName(QoreObject *self, QoreQDir *qd, const QoreListNode
 
 //bool exists ( const QString & name ) const
 //bool exists () const
-static QoreNode *QDIR_exists(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_exists(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       return new QoreBoolNode(qd->exists());
    }
@@ -204,9 +204,9 @@ static QoreNode *QDIR_exists(QoreObject *self, QoreQDir *qd, const QoreListNode 
 }
 
 //QString filePath ( const QString & fileName ) const
-static QoreNode *QDIR_filePath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_filePath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString fileName;
    if (get_qstring(p, fileName, xsink))
       return 0;
@@ -214,45 +214,45 @@ static QoreNode *QDIR_filePath(QoreObject *self, QoreQDir *qd, const QoreListNod
 }
 
 ////Filters filter () const
-//static QoreNode *QDIR_filter(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QDIR_filter(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qd->filter());
 //}
 
 //bool isAbsolute () const
-static QoreNode *QDIR_isAbsolute(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_isAbsolute(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qd->isAbsolute());
 }
 
 //bool isReadable () const
-static QoreNode *QDIR_isReadable(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_isReadable(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qd->isReadable());
 }
 
 //bool isRelative () const
-static QoreNode *QDIR_isRelative(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_isRelative(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qd->isRelative());
 }
 
 //bool isRoot () const
-static QoreNode *QDIR_isRoot(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_isRoot(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qd->isRoot());
 }
 
 //bool makeAbsolute ()
-static QoreNode *QDIR_makeAbsolute(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_makeAbsolute(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qd->makeAbsolute());
 }
 
 //bool mkdir ( const QString & dirName ) const
-static QoreNode *QDIR_mkdir(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_mkdir(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString dirName;
    if (get_qstring(p, dirName, xsink))
       return 0;
@@ -260,9 +260,9 @@ static QoreNode *QDIR_mkdir(QoreObject *self, QoreQDir *qd, const QoreListNode *
 }
 
 //bool mkpath ( const QString & dirPath ) const
-static QoreNode *QDIR_mkpath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_mkpath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString dirPath;
    if (get_qstring(p, dirPath, xsink))
       return 0;
@@ -270,7 +270,7 @@ static QoreNode *QDIR_mkpath(QoreObject *self, QoreQDir *qd, const QoreListNode 
 }
 
 //QStringList nameFilters () const
-static QoreNode *QDIR_nameFilters(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_nameFilters(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = qd->nameFilters();
    QoreListNode *l = new QoreListNode();
@@ -280,22 +280,22 @@ static QoreNode *QDIR_nameFilters(QoreObject *self, QoreQDir *qd, const QoreList
 }
 
 //QString path () const
-static QoreNode *QDIR_path(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_path(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qd->path().toUtf8().data(), QCS_UTF8);
 }
 
 //void refresh () const
-static QoreNode *QDIR_refresh(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_refresh(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    qd->refresh();
    return 0;
 }
 
 //QString relativeFilePath ( const QString & fileName ) const
-static QoreNode *QDIR_relativeFilePath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_relativeFilePath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString fileName;
    if (get_qstring(p, fileName, xsink))
       return 0;
@@ -303,9 +303,9 @@ static QoreNode *QDIR_relativeFilePath(QoreObject *self, QoreQDir *qd, const Qor
 }
 
 //bool remove ( const QString & fileName )
-static QoreNode *QDIR_remove(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_remove(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString fileName;
    if (get_qstring(p, fileName, xsink))
       return 0;
@@ -313,9 +313,9 @@ static QoreNode *QDIR_remove(QoreObject *self, QoreQDir *qd, const QoreListNode 
 }
 
 //bool rename ( const QString & oldName, const QString & newName )
-static QoreNode *QDIR_rename(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_rename(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString oldName;
    if (get_qstring(p, oldName, xsink))
       return 0;
@@ -327,9 +327,9 @@ static QoreNode *QDIR_rename(QoreObject *self, QoreQDir *qd, const QoreListNode 
 }
 
 //bool rmdir ( const QString & dirName ) const
-static QoreNode *QDIR_rmdir(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_rmdir(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString dirName;
    if (get_qstring(p, dirName, xsink))
       return 0;
@@ -337,9 +337,9 @@ static QoreNode *QDIR_rmdir(QoreObject *self, QoreQDir *qd, const QoreListNode *
 }
 
 //bool rmpath ( const QString & dirPath ) const
-static QoreNode *QDIR_rmpath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_rmpath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString dirPath;
    if (get_qstring(p, dirPath, xsink))
       return 0;
@@ -347,16 +347,16 @@ static QoreNode *QDIR_rmpath(QoreObject *self, QoreQDir *qd, const QoreListNode 
 }
 
 //void setFilter ( Filters filters )
-static QoreNode *QDIR_setFilter(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_setFilter(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QDir::Filters filters = (QDir::Filters)(p ? p->getAsInt() : 0);
    qd->setFilter(filters);
    return 0;
 }
 
 //void setNameFilters ( const QStringList & nameFilters )
-static QoreNode *QDIR_setNameFilters(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_setNameFilters(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreListNode *p = test_list_param(params, 0);
    if (!p) {
@@ -378,9 +378,9 @@ static QoreNode *QDIR_setNameFilters(QoreObject *self, QoreQDir *qd, const QoreL
 }
 
 //void setPath ( const QString & path )
-static QoreNode *QDIR_setPath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_setPath(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString path;
    if (get_qstring(p, path, xsink))
       return 0;
@@ -389,16 +389,16 @@ static QoreNode *QDIR_setPath(QoreObject *self, QoreQDir *qd, const QoreListNode
 }
 
 //void setSorting ( SortFlags sort )
-static QoreNode *QDIR_setSorting(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDIR_setSorting(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QDir::SortFlags sort = (QDir::SortFlags)(p ? p->getAsInt() : 0);
    qd->setSorting(sort);
    return 0;
 }
 
 ////SortFlags sorting () const
-//static QoreNode *QDIR_sorting(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QDIR_sorting(QoreObject *self, QoreQDir *qd, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qd->sorting());
 //}
@@ -448,9 +448,9 @@ QoreClass *initQDirClass()
 }
 
 //void addSearchPath ( const QString & prefix, const QString & path )
-static QoreNode *f_QDir_addSearchPath(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_addSearchPath(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString prefix;
    if (get_qstring(p, prefix, xsink))
       return 0;
@@ -463,9 +463,9 @@ static QoreNode *f_QDir_addSearchPath(const QoreListNode *params, ExceptionSink 
 }
 
 //QString cleanPath ( const QString & path )
-static QoreNode *f_QDir_cleanPath(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_cleanPath(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString path;
    if (get_qstring(p, path, xsink))
       return 0;
@@ -473,7 +473,7 @@ static QoreNode *f_QDir_cleanPath(const QoreListNode *params, ExceptionSink *xsi
 }
 
 //QDir current ()
-static QoreNode *f_QDir_current(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_current(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(QDir::current());
@@ -482,21 +482,21 @@ static QoreNode *f_QDir_current(const QoreListNode *params, ExceptionSink *xsink
 }
 
 //QString currentPath ()
-static QoreNode *f_QDir_currentPath(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_currentPath(const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(QDir::currentPath().toUtf8().data(), QCS_UTF8);
 }
 
 ////QFileInfoList drives ()
-//static QoreNode *f_QDir_drives(const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *f_QDir_drives(const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(QDir::drives());
 //}
 
 //QString fromNativeSeparators ( const QString & pathName )
-static QoreNode *f_QDir_fromNativeSeparators(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_fromNativeSeparators(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString pathName;
    if (get_qstring(p, pathName, xsink))
       return 0;
@@ -504,7 +504,7 @@ static QoreNode *f_QDir_fromNativeSeparators(const QoreListNode *params, Excepti
 }
 
 //QDir home ()
-static QoreNode *f_QDir_home(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_home(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(QDir::home());
@@ -513,15 +513,15 @@ static QoreNode *f_QDir_home(const QoreListNode *params, ExceptionSink *xsink)
 }
 
 //QString homePath ()
-static QoreNode *f_QDir_homePath(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_homePath(const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(QDir::homePath().toUtf8().data(), QCS_UTF8);
 }
 
 //bool isAbsolutePath ( const QString & path )
-static QoreNode *f_QDir_isAbsolutePath(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_isAbsolutePath(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString path;
    if (get_qstring(p, path, xsink))
       return 0;
@@ -529,9 +529,9 @@ static QoreNode *f_QDir_isAbsolutePath(const QoreListNode *params, ExceptionSink
 }
 
 //bool isRelativePath ( const QString & path )
-static QoreNode *f_QDir_isRelativePath(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_isRelativePath(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString path;
    if (get_qstring(p, path, xsink))
       return 0;
@@ -540,9 +540,9 @@ static QoreNode *f_QDir_isRelativePath(const QoreListNode *params, ExceptionSink
 
 //bool match ( const QString & filter, const QString & fileName )
 //bool match ( const QStringList & filters, const QString & fileName )
-static QoreNode *f_QDir_match(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_match(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString filter;
    if (get_qstring(p, filter, xsink))
       return 0;
@@ -554,7 +554,7 @@ static QoreNode *f_QDir_match(const QoreListNode *params, ExceptionSink *xsink)
 }
 
 //QDir root ()
-static QoreNode *f_QDir_root(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_root(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(QDir::root());
@@ -563,15 +563,15 @@ static QoreNode *f_QDir_root(const QoreListNode *params, ExceptionSink *xsink)
 }
 
 //QString rootPath ()
-static QoreNode *f_QDir_rootPath(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_rootPath(const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(QDir::rootPath().toUtf8().data(), QCS_UTF8);
 }
 
 //QStringList searchPaths ( const QString & prefix )
-static QoreNode *f_QDir_searchPaths(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_searchPaths(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString prefix;
    if (get_qstring(p, prefix, xsink))
       return 0;
@@ -583,7 +583,7 @@ static QoreNode *f_QDir_searchPaths(const QoreListNode *params, ExceptionSink *x
 }
 
 //QChar separator ()
-static QoreNode *f_QDir_separator(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_separator(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *rv_str = new QoreStringNode(QCS_UTF8);
    QChar rv_qc = QDir::separator();
@@ -592,9 +592,9 @@ static QoreNode *f_QDir_separator(const QoreListNode *params, ExceptionSink *xsi
 }
 
 //bool setCurrent ( const QString & path )
-static QoreNode *f_QDir_setCurrent(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_setCurrent(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString path;
    if (get_qstring(p, path, xsink))
       return 0;
@@ -602,9 +602,9 @@ static QoreNode *f_QDir_setCurrent(const QoreListNode *params, ExceptionSink *xs
 }
 
 //void setSearchPaths ( const QString & prefix, const QStringList & searchPaths )
-static QoreNode *f_QDir_setSearchPaths(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_setSearchPaths(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString prefix;
    if (get_qstring(p, prefix, xsink))
       return 0;
@@ -627,7 +627,7 @@ static QoreNode *f_QDir_setSearchPaths(const QoreListNode *params, ExceptionSink
    return 0;
 }
 //QDir temp ()
-static QoreNode *f_QDir_temp(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_temp(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qd = new QoreObject(QC_QDir, getProgram());
    QoreQDir *q_qd = new QoreQDir(QDir::temp());
@@ -636,15 +636,15 @@ static QoreNode *f_QDir_temp(const QoreListNode *params, ExceptionSink *xsink)
 }
 
 //QString tempPath ()
-static QoreNode *f_QDir_tempPath(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_tempPath(const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(QDir::tempPath().toUtf8().data(), QCS_UTF8);
 }
 
 //QString toNativeSeparators ( const QString & pathName )
-static QoreNode *f_QDir_toNativeSeparators(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QDir_toNativeSeparators(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString pathName;
    if (get_qstring(p, pathName, xsink))
       return 0;

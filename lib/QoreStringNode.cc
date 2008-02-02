@@ -172,7 +172,7 @@ QoreStringNode *QoreStringNode::createAndConvertEncoding(const char *str, const 
    return 0;
 }
 
-class QoreNode *QoreStringNode::realCopy() const
+class AbstractQoreNode *QoreStringNode::realCopy() const
 {
    return copy();
 }
@@ -281,7 +281,7 @@ void QoreStringNode::getDateTimeRepresentation(DateTime &dt) const
    dt.setDate(getBuffer());
 }
 
-bool QoreStringNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+bool QoreStringNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    QoreStringValueHelper str(v, getEncoding(), xsink);
    if (*xsink)
@@ -289,7 +289,7 @@ bool QoreStringNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) cons
    return !compare(*str);
 }
 
-bool QoreStringNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+bool QoreStringNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(v);
    if (!str)

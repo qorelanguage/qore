@@ -28,13 +28,13 @@
 
 class SummarizeStatement : public ContextStatement
 {
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
 
 public:
-      class QoreNode *summarize;
+      class AbstractQoreNode *summarize;
       
-      DLLLOCAL SummarizeStatement(int start_line, int end_line, char *n, class QoreNode *expr, class ContextModList *cm, class StatementBlock *cd, class QoreNode *summ_exp = NULL) : ContextStatement(start_line, end_line, n, expr, cm, cd), summarize(summ_exp)
+      DLLLOCAL SummarizeStatement(int start_line, int end_line, char *n, class AbstractQoreNode *expr, class ContextModList *cm, class StatementBlock *cd, class AbstractQoreNode *summ_exp = NULL) : ContextStatement(start_line, end_line, n, expr, cm, cd), summarize(summ_exp)
       {
       }
       DLLLOCAL virtual ~SummarizeStatement()

@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 	 }
       }
 
-      class QoreNode *rv = qpgm->run(&xsink);
+      class AbstractQoreNode *rv = qpgm->run(&xsink);
       rc = rv ? rv->getAsInt() : 0;
       if (rv)
 	 rv->deref(&xsink);

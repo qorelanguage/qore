@@ -127,18 +127,18 @@ int DateTimeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
    return 0;
 }
 
-class QoreNode *DateTimeNode::realCopy() const
+class AbstractQoreNode *DateTimeNode::realCopy() const
 {
    return new DateTimeNode(*this);
 }
 
-bool DateTimeNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+bool DateTimeNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    DateTimeValueHelper date(v);
    return isEqual(*date);
 }
 
-bool DateTimeNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+bool DateTimeNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    const DateTimeNode *date = dynamic_cast<const DateTimeNode *>(v);
    if (!date)

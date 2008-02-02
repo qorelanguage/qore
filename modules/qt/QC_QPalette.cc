@@ -35,7 +35,7 @@ static void QPALETTE_constructor(class QoreObject *self, const QoreListNode *par
 {
    QoreQPalette *qp;
 
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qp = new QoreQPalette();
    else if (p->type == NT_OBJECT)
@@ -118,7 +118,7 @@ static void QPALETTE_copy(class QoreObject *self, class QoreObject *old, class Q
 }
 
 //const QBrush & alternateBase () const
-static QoreNode *QPALETTE_alternateBase(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_alternateBase(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->alternateBase());
@@ -127,7 +127,7 @@ static QoreNode *QPALETTE_alternateBase(QoreObject *self, QoreQPalette *qp, cons
 }
 
 //const QBrush & background () const
-static QoreNode *QPALETTE_background(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_background(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->background());
@@ -136,7 +136,7 @@ static QoreNode *QPALETTE_background(QoreObject *self, QoreQPalette *qp, const Q
 }
 
 //const QBrush & base () const
-static QoreNode *QPALETTE_base(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_base(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->base());
@@ -145,7 +145,7 @@ static QoreNode *QPALETTE_base(QoreObject *self, QoreQPalette *qp, const QoreLis
 }
 
 //const QBrush & brightText () const
-static QoreNode *QPALETTE_brightText(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_brightText(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->brightText());
@@ -155,9 +155,9 @@ static QoreNode *QPALETTE_brightText(QoreObject *self, QoreQPalette *qp, const Q
 
 //const QBrush & brush ( ColorGroup group, ColorRole role ) const
 //const QBrush & brush ( ColorRole role ) const
-static QoreNode *QPALETTE_brush(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_brush(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQBrush *q_qb;
    if (num_params(params) == 1) {
       QPalette::ColorRole role = (QPalette::ColorRole)(p ? p->getAsInt() : 0);
@@ -175,7 +175,7 @@ static QoreNode *QPALETTE_brush(QoreObject *self, QoreQPalette *qp, const QoreLi
 }
 
 //const QBrush & button () const
-static QoreNode *QPALETTE_button(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_button(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->button());
@@ -184,7 +184,7 @@ static QoreNode *QPALETTE_button(QoreObject *self, QoreQPalette *qp, const QoreL
 }
 
 //const QBrush & buttonText () const
-static QoreNode *QPALETTE_buttonText(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_buttonText(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->buttonText());
@@ -193,16 +193,16 @@ static QoreNode *QPALETTE_buttonText(QoreObject *self, QoreQPalette *qp, const Q
 }
 
 //qint64 cacheKey () const
-static QoreNode *QPALETTE_cacheKey(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_cacheKey(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qp->getQPalette()->cacheKey());
 }
 
 //const QColor & color ( ColorGroup group, ColorRole role ) const
 //const QColor & color ( ColorRole role ) const
-static QoreNode *QPALETTE_color(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_color(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQColor *q_qc;
    if (num_params(params) == 1) {
       QPalette::ColorRole role = (QPalette::ColorRole)(p ? p->getAsInt() : 0);
@@ -220,13 +220,13 @@ static QoreNode *QPALETTE_color(QoreObject *self, QoreQPalette *qp, const QoreLi
 }
 
 //ColorGroup currentColorGroup () const
-static QoreNode *QPALETTE_currentColorGroup(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_currentColorGroup(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qp->getQPalette()->currentColorGroup());
 }
 
 //const QBrush & dark () const
-static QoreNode *QPALETTE_dark(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_dark(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->dark());
@@ -235,7 +235,7 @@ static QoreNode *QPALETTE_dark(QoreObject *self, QoreQPalette *qp, const QoreLis
 }
 
 //const QBrush & foreground () const
-static QoreNode *QPALETTE_foreground(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_foreground(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->foreground());
@@ -244,7 +244,7 @@ static QoreNode *QPALETTE_foreground(QoreObject *self, QoreQPalette *qp, const Q
 }
 
 //const QBrush & highlight () const
-static QoreNode *QPALETTE_highlight(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_highlight(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->highlight());
@@ -253,7 +253,7 @@ static QoreNode *QPALETTE_highlight(QoreObject *self, QoreQPalette *qp, const Qo
 }
 
 //const QBrush & highlightedText () const
-static QoreNode *QPALETTE_highlightedText(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_highlightedText(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->highlightedText());
@@ -262,9 +262,9 @@ static QoreNode *QPALETTE_highlightedText(QoreObject *self, QoreQPalette *qp, co
 }
 
 //bool isBrushSet ( ColorGroup cg, ColorRole cr ) const
-static QoreNode *QPALETTE_isBrushSet(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_isBrushSet(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QPalette::ColorGroup cg = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QPalette::ColorRole cr = (QPalette::ColorRole)(p ? p->getAsInt() : 0);
@@ -272,9 +272,9 @@ static QoreNode *QPALETTE_isBrushSet(QoreObject *self, QoreQPalette *qp, const Q
 }
 
 //bool isCopyOf ( const QPalette & p ) const
-static QoreNode *QPALETTE_isCopyOf(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_isCopyOf(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!palette) {
       if (!xsink->isException())
@@ -286,9 +286,9 @@ static QoreNode *QPALETTE_isCopyOf(QoreObject *self, QoreQPalette *qp, const Qor
 }
 
 //bool isEqual ( ColorGroup cg1, ColorGroup cg2 ) const
-static QoreNode *QPALETTE_isEqual(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_isEqual(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QPalette::ColorGroup cg1 = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QPalette::ColorGroup cg2 = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
@@ -296,7 +296,7 @@ static QoreNode *QPALETTE_isEqual(QoreObject *self, QoreQPalette *qp, const Qore
 }
 
 //const QBrush & light () const
-static QoreNode *QPALETTE_light(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_light(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->light());
@@ -305,7 +305,7 @@ static QoreNode *QPALETTE_light(QoreObject *self, QoreQPalette *qp, const QoreLi
 }
 
 //const QBrush & link () const
-static QoreNode *QPALETTE_link(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_link(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->link());
@@ -314,7 +314,7 @@ static QoreNode *QPALETTE_link(QoreObject *self, QoreQPalette *qp, const QoreLis
 }
 
 //const QBrush & linkVisited () const
-static QoreNode *QPALETTE_linkVisited(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_linkVisited(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->linkVisited());
@@ -323,7 +323,7 @@ static QoreNode *QPALETTE_linkVisited(QoreObject *self, QoreQPalette *qp, const 
 }
 
 //const QBrush & mid () const
-static QoreNode *QPALETTE_mid(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_mid(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->mid());
@@ -332,7 +332,7 @@ static QoreNode *QPALETTE_mid(QoreObject *self, QoreQPalette *qp, const QoreList
 }
 
 //const QBrush & midlight () const
-static QoreNode *QPALETTE_midlight(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_midlight(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->midlight());
@@ -341,9 +341,9 @@ static QoreNode *QPALETTE_midlight(QoreObject *self, QoreQPalette *qp, const Qor
 }
 
 //QPalette resolve ( const QPalette & other ) const
-static QoreNode *QPALETTE_resolve(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_resolve(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQPalette *other = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!other) {
       if (!xsink->isException())
@@ -359,9 +359,9 @@ static QoreNode *QPALETTE_resolve(QoreObject *self, QoreQPalette *qp, const Qore
 
 
 //void set ( const QPalette & other )
-static QoreNode *QPALETTE_set(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_set(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQPalette *other = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!other) {
       if (!xsink->isException())
@@ -376,9 +376,9 @@ static QoreNode *QPALETTE_set(QoreObject *self, QoreQPalette *qp, const QoreList
 
 //void setBrush ( ColorRole role, const QBrush & brush )
 //void setBrush ( ColorGroup group, ColorRole role, const QBrush & brush )
-static QoreNode *QPALETTE_setBrush(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_setBrush(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int a1 = p ? p->getAsInt() : 0;
 
    bool got_role = false;
@@ -403,9 +403,9 @@ static QoreNode *QPALETTE_setBrush(QoreObject *self, QoreQPalette *qp, const Qor
 
 //void setColor ( ColorGroup group, ColorRole role, const QColor & color )
 //void setColor ( ColorRole role, const QColor & color )
-static QoreNode *QPALETTE_setColor(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_setColor(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int a1 = p ? p->getAsInt() : 0;
 
    p = get_param(params, 1);
@@ -433,9 +433,9 @@ static QoreNode *QPALETTE_setColor(QoreObject *self, QoreQPalette *qp, const Qor
 }
 
 //void setColorGroup ( ColorGroup cg, const QBrush & windowText, const QBrush & button, const QBrush & light, const QBrush & dark, const QBrush & mid, const QBrush & text, const QBrush & bright_text, const QBrush & base, const QBrush & window )
-static QoreNode *QPALETTE_setColorGroup(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_setColorGroup(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QPalette::ColorGroup cg = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QBrush windowText;
@@ -488,16 +488,16 @@ static QoreNode *QPALETTE_setColorGroup(QoreObject *self, QoreQPalette *qp, cons
 }
 
 //void setCurrentColorGroup ( ColorGroup cg )
-static QoreNode *QPALETTE_setCurrentColorGroup(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_setCurrentColorGroup(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QPalette::ColorGroup cg = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
    qp->getQPalette()->setCurrentColorGroup(cg);
    return 0;
 }
 
 //const QBrush & shadow () const
-static QoreNode *QPALETTE_shadow(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_shadow(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->shadow());
@@ -506,7 +506,7 @@ static QoreNode *QPALETTE_shadow(QoreObject *self, QoreQPalette *qp, const QoreL
 }
 
 //const QBrush & text () const
-static QoreNode *QPALETTE_text(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_text(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->text());
@@ -515,7 +515,7 @@ static QoreNode *QPALETTE_text(QoreObject *self, QoreQPalette *qp, const QoreLis
 }
 
 //const QBrush & window () const
-static QoreNode *QPALETTE_window(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_window(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->window());
@@ -524,7 +524,7 @@ static QoreNode *QPALETTE_window(QoreObject *self, QoreQPalette *qp, const QoreL
 }
 
 //const QBrush & windowText () const
-static QoreNode *QPALETTE_windowText(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPALETTE_windowText(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(&qp->getQPalette()->windowText());

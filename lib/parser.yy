@@ -73,19 +73,19 @@
 class HashElement {
    public:
       char *key;
-      class QoreNode *value;
+      class AbstractQoreNode *value;
  
-      DLLLOCAL HashElement(class QoreNode *k, class QoreNode *v);
-      DLLLOCAL HashElement(int tag, char *constant, class QoreNode *v);
+      DLLLOCAL HashElement(class AbstractQoreNode *k, class AbstractQoreNode *v);
+      DLLLOCAL HashElement(int tag, char *constant, class AbstractQoreNode *v);
       DLLLOCAL ~HashElement();
 };
 
-static QoreTreeNode *makeErrorTree(class Operator *op, class QoreNode *left, class QoreNode *right)
+static QoreTreeNode *makeErrorTree(class Operator *op, class AbstractQoreNode *left, class AbstractQoreNode *right)
 {
    return new QoreTreeNode(left, op, right);
 }
 
-static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class QoreNode *right)
+static class AbstractQoreNode *makeTree(class Operator *op, class AbstractQoreNode *left, class AbstractQoreNode *right)
 {
    //tracein("makeTree()");
    //printd(5, "makeTree(): l=%08p, r=%08p, op=%s\n", left, right, op->getName());
@@ -95,7 +95,7 @@ static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class 
    {
       ExceptionSink xsink;
 
-      class QoreNode *n_node = op->eval(left, right, true, &xsink);
+      class AbstractQoreNode *n_node = op->eval(left, right, true, &xsink);
       //printd(5, "makeTree(): l=%08p (%s), r=%08p (%s), op=%s, returning %08p\n", left, left->getTypeName(), right, right ? right->getTypeName() : "n/a", op->getName(), n_node);
       left->deref(NULL);
       if (right)
@@ -111,7 +111,7 @@ static class QoreNode *makeTree(class Operator *op, class QoreNode *left, class 
    return new QoreTreeNode(left, op, right);
 }
 
-static QoreListNode *makeArgs(QoreNode *arg)
+static QoreListNode *makeArgs(AbstractQoreNode *arg)
 {
    if (!arg)
       return 0;
@@ -124,7 +124,7 @@ static QoreListNode *makeArgs(QoreNode *arg)
    return l;
 }
 
-HashElement::HashElement(class QoreNode *k, class QoreNode *v)
+HashElement::HashElement(class AbstractQoreNode *k, class AbstractQoreNode *v)
 {
    //tracein("HashElement::HashElement()");
    QoreStringNode *str = dynamic_cast<QoreStringNode *>(k);
@@ -140,7 +140,7 @@ HashElement::HashElement(class QoreNode *k, class QoreNode *v)
    //traceout("HashElement::HashElement()");
 }
 
-HashElement::HashElement(int tag, char *constant, class QoreNode *v)
+HashElement::HashElement(int tag, char *constant, class AbstractQoreNode *v)
 {
    //tracein("HashElement::HashElement()");
    key = (char *)malloc(sizeof(char) * strlen(constant) + 2);
@@ -161,9 +161,9 @@ class ConstNode
 {
    public:
       class NamedScope *name;
-      class QoreNode *value;
+      class AbstractQoreNode *value;
 
-      DLLLOCAL inline ConstNode(char *n, class QoreNode *v) { name = new NamedScope(n); value = v; }
+      DLLLOCAL inline ConstNode(char *n, class AbstractQoreNode *v) { name = new NamedScope(n); value = v; }
       DLLLOCAL inline ~ConstNode() { delete name; }
 };
 
@@ -213,7 +213,7 @@ static void addNSNode(class QoreNamespace *ns, struct NSNode *n)
    delete n;
 }
 
-static QoreListNode *make_list(class QoreNode *a1, class QoreNode *a2)
+static QoreListNode *make_list(class AbstractQoreNode *a1, class AbstractQoreNode *a2)
 {
    QoreListNode *l = new QoreListNode(1);
    l->push(a1);
@@ -221,7 +221,7 @@ static QoreListNode *make_list(class QoreNode *a1, class QoreNode *a2)
    return l;
 }
 
-static QoreListNode *splice_expressions(class QoreNode *a1, class QoreNode *a2)
+static QoreListNode *splice_expressions(class AbstractQoreNode *a1, class AbstractQoreNode *a2)
 {
    //tracein("splice_expressions()");
    QoreListNode *l = dynamic_cast<QoreListNode *>(a1);
@@ -278,7 +278,7 @@ int MemberList::add(char *name)
    return 0;
 }
 
-static inline void addConstant(class NamedScope *name, class QoreNode *value)
+static inline void addConstant(class NamedScope *name, class AbstractQoreNode *value)
 {
    getRootNS()->rootAddConstant(name, value);
 }
@@ -299,13 +299,13 @@ static inline class QoreClass *parseFindClass(char *name)
    return c;
 }
 
-static QoreNode *process_dot(class QoreNode *l, class QoreNode *r)
+static AbstractQoreNode *process_dot(class AbstractQoreNode *l, class AbstractQoreNode *r)
 {
    const QoreType *rtype = r->getType();
    if (rtype == NT_BAREWORD)
    {
       BarewordNode *b = reinterpret_cast<BarewordNode *>(r);
-      class QoreNode *rv = makeTree(OP_OBJECT_REF, l, b->makeQoreStringNode());
+      class AbstractQoreNode *rv = makeTree(OP_OBJECT_REF, l, b->makeQoreStringNode());
       b->deref();
       return rv;
    }
@@ -322,7 +322,7 @@ static QoreNode *process_dot(class QoreNode *l, class QoreNode *r)
 }
 
 // returns 0 for OK, -1 for error
-static int check_lvalue(class QoreNode *node)
+static int check_lvalue(class AbstractQoreNode *node)
 {
    const QoreType *ntype = node->getType();
    //printd(5, "type=%s\n", node->getTypeName());
@@ -342,7 +342,7 @@ static int check_lvalue(class QoreNode *node)
    return -1;
 }
 
-static inline int check_vars(class QoreNode *n)
+static inline int check_vars(class AbstractQoreNode *n)
 {
    {
       QoreListNode *l = dynamic_cast<QoreListNode *>(n);
@@ -357,7 +357,7 @@ static inline int check_vars(class QoreNode *n)
 }
 
 // returns true if the node needs run-time evaluation, false if not
-bool needsEval(class QoreNode *n)
+bool needsEval(class AbstractQoreNode *n)
 {
    if (!n)
       return false;
@@ -403,7 +403,7 @@ bool needsEval(class QoreNode *n)
    return n->needs_eval();
 }
 
-static bool hasEffect(class QoreNode *n)
+static bool hasEffect(class AbstractQoreNode *n)
 {
    // check for expressions with no effect
    const QoreType *ntype = n->getType();
@@ -420,7 +420,7 @@ static bool hasEffect(class QoreNode *n)
 #define OFM_PRIVATE 1
 #define OFM_SYNCED  2
 
-static inline void tryAddMethod(int mod, char *n, QoreNode *params, BCAList *bcal, StatementBlock *b)
+static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAList *bcal, StatementBlock *b)
 {
    class NamedScope *name = new NamedScope(n);
    if (bcal && strcmp(name->getIdentifier(), "constructor"))
@@ -493,7 +493,7 @@ struct MethodNode {
       class QoreStringNode *String;
       char *string;
       class BinaryNode *binary;
-      class QoreNode *node;
+      class AbstractQoreNode *node;
       QoreHashNode *hash;
       QoreListNode *list;
       class AbstractStatement *statement;
@@ -1460,7 +1460,7 @@ exp:    scalar
 	   $3->setVariableList();
 	   for (int i = 0; i < $3->size(); i++)
 	   {
-	      QoreNode *n = $3->retrieve_entry(i);
+	      AbstractQoreNode *n = $3->retrieve_entry(i);
 	      VarRefNode *v = dynamic_cast<VarRefNode *>(n);
 	      if (!v)
 		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
@@ -1479,7 +1479,7 @@ exp:    scalar
 	   $3->setVariableList();
 	   for (int i = 0; i < $3->size(); i++)
 	   {
-	      class QoreNode *n = $3->retrieve_entry(i);
+	      class AbstractQoreNode *n = $3->retrieve_entry(i);
 	      VarRefNode *v = dynamic_cast<VarRefNode *>(n);
 	      if (!v)
 		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
@@ -1609,7 +1609,7 @@ exp:    scalar
 	      bool ok = true;
 	      for (int i = 0; i < l->size(); i++)
 	      {
-		 QoreNode *n = l->retrieve_entry(i);
+		 AbstractQoreNode *n = l->retrieve_entry(i);
 		 if (check_lvalue(n))
 		 {
 		    parse_error("element %d in list assignment is not an lvalue (%s)", i, n->getTypeName());
@@ -1655,7 +1655,7 @@ exp:    scalar
 	      $$ = makeErrorTree(OP_UNSHIFT, $2, NULL);
 	   }
 	   else {
-	      QoreNode *lv = l->shift();
+	      AbstractQoreNode *lv = l->shift();
 	      if (check_lvalue(lv))
 	      {
 		 parse_error("first argument to unshift is not an lvalue");
@@ -1685,7 +1685,7 @@ exp:    scalar
 	   }
 	   else
 	   {
-	      QoreNode *lv = l->shift();
+	      AbstractQoreNode *lv = l->shift();
 	      if (check_lvalue(lv))
 	      {
 		 parse_error("first argument to push is not an lvalue");
@@ -1735,7 +1735,7 @@ exp:    scalar
 	   }
 	   else
 	   {
-	      QoreNode *lv = l->shift();
+	      AbstractQoreNode *lv = l->shift();
 	      if (check_lvalue(lv))
 	      {
 		 parse_error("first argument to splice is not an lvalue");
@@ -1966,7 +1966,7 @@ exp:    scalar
 		       }
 		       else { // rewrite as a call reference
 			  // take components of tree and delete tree
-			  class QoreNode *exp = tree->left;
+			  class AbstractQoreNode *exp = tree->left;
 			  tree->left = 0;
 			  char *meth = f->takeName();
 			  f->deref();

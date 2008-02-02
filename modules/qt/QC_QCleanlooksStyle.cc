@@ -40,9 +40,9 @@ static void QCLEANLOOKSSTYLE_copy(class QoreObject *self, class QoreObject *old,
 }
 
 //virtual void drawItemText ( QPainter * painter, const QRect & rectangle, int alignment, const QPalette & palette, bool enabled, const QString & text, QPalette::ColorRole textRole = QPalette::NoRole ) const
-static QoreNode *QCLEANLOOKSSTYLE_drawItemText(QoreObject *self, QoreAbstractQCleanlooksStyle *qcs, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QCLEANLOOKSSTYLE_drawItemText(QoreObject *self, QoreAbstractQCleanlooksStyle *qcs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
    if (!painter) {
       if (!xsink->isException())

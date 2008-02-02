@@ -110,7 +110,7 @@ class mySocket : public AbstractPrivateData, public LockedObject
       // send HTTP response
       DLLLOCAL int sendHTTPResponse(int code, const char *desc, const char *http_version, class QoreHash *headers, const void *ptr, int size);
       // read and parse HTTP header
-      DLLLOCAL class QoreNode *readHTTPHeader(int timeout, int *rc);
+      DLLLOCAL class AbstractQoreNode *readHTTPHeader(int timeout, int *rc);
       // receive a binary message in HTTP chunked format
       DLLLOCAL class QoreHashNode *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
       // receive a string message in HTTP chunked format

@@ -216,9 +216,9 @@ void ManagedDatasource::setAutoCommit(bool ac)
    Datasource::setAutoCommit(ac);
 }
 
-QoreNode *ManagedDatasource::select(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::select(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink)
 {
-   class QoreNode *rv;
+   class AbstractQoreNode *rv;
    
    if (!startDBAction(xsink))
    {
@@ -233,9 +233,9 @@ QoreNode *ManagedDatasource::select(const QoreString *query_str, class QoreListN
 }
 
 // FIXME: should be a native DBI driver method
-class QoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreListNode *args, class ExceptionSink *xsink)
 {
-   class QoreNode *rv;
+   class AbstractQoreNode *rv;
    
    if (!startDBAction(xsink))
    {
@@ -246,7 +246,7 @@ class QoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreListNode
       // return only hash of first row, if any
       if (rv && rv->type == NT_LIST)
       {
-	 class QoreNode *h = (reinterpret_cast<QoreListNode *>(rv))->shift();
+	 class AbstractQoreNode *h = (reinterpret_cast<QoreListNode *>(rv))->shift();
 	 rv->deref(xsink);
 	 rv = h;
       }
@@ -257,9 +257,9 @@ class QoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreListNode
    return rv;
 }
 
-QoreNode *ManagedDatasource::selectRows(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::selectRows(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink)
 {
-   class QoreNode *rv;
+   class AbstractQoreNode *rv;
    
    if (!startDBAction(xsink))
    {
@@ -273,9 +273,9 @@ QoreNode *ManagedDatasource::selectRows(const QoreString *query_str, class QoreL
    return rv;
 }
 
-QoreNode *ManagedDatasource::exec(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink)
 {
-   class QoreNode *rv = NULL;
+   class AbstractQoreNode *rv = NULL;
 
    if (!startDBAction(xsink, true))
    {
@@ -485,39 +485,39 @@ void ManagedDatasource::setPendingHostName(const char *h)
    Datasource::setPendingHostName(h);
 }
 
-QoreNode *ManagedDatasource::getPendingUsername()
+AbstractQoreNode *ManagedDatasource::getPendingUsername()
 {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingUsername();
 }
 
-QoreNode *ManagedDatasource::getPendingPassword()
+AbstractQoreNode *ManagedDatasource::getPendingPassword()
 {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingPassword();
 }
 
-QoreNode *ManagedDatasource::getPendingDBName()
+AbstractQoreNode *ManagedDatasource::getPendingDBName()
 {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingDBName();
 }
 
-QoreNode *ManagedDatasource::getPendingDBEncoding()
+AbstractQoreNode *ManagedDatasource::getPendingDBEncoding()
 {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingDBEncoding();
 }
 
-QoreNode *ManagedDatasource::getPendingHostName()
+AbstractQoreNode *ManagedDatasource::getPendingHostName()
 {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingHostName();
 }
 
-QoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
 {
-   class QoreNode *rv;
+   class AbstractQoreNode *rv;
    
    if (!startDBAction(xsink))
    {
@@ -531,9 +531,9 @@ QoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
    return rv;
 }
 
-QoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink)
 {
-   class QoreNode *rv;
+   class AbstractQoreNode *rv;
    
    if (!startDBAction(xsink))
    {

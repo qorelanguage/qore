@@ -429,7 +429,7 @@ void QoreString::splice(int offset, int num, class ExceptionSink *xsink)
    splice_complex(offset, num, xsink);
 }
 
-void QoreString::splice(int offset, int num, const QoreNode *strn, class ExceptionSink *xsink)
+void QoreString::splice(int offset, int num, const AbstractQoreNode *strn, class ExceptionSink *xsink)
 {
    const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(strn);
    if (!str)

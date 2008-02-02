@@ -28,14 +28,14 @@ TEST()
     assert(false);
   }
 
-  QoreNode* result = read_output(conn, cmd, QCS_DEFAULT, true, &xsink);
+  AbstractQoreNode* result = read_output(conn, cmd, QCS_DEFAULT, true, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
   assert(result);
   assert(result->type == NT_HASH);
   assert(result->val.hash->size() == 1); // one column
-  QoreNode* col = result->val.hash->getKeyValue("column1");
+  AbstractQoreNode* col = result->val.hash->getKeyValue("column1");
   assert(col);
   assert(col->type == NT_INT);
   int n = (int)col->val.intval; // 22 for Sybase on my machine
@@ -70,7 +70,7 @@ TEST()
     assert(false);
   }
 
-  QoreNode* result = read_output(conn, cmd, QCS_DEFAULT, true, &xsink);
+  AbstractQoreNode* result = read_output(conn, cmd, QCS_DEFAULT, true, &xsink);
   if (xsink.isException()) {
     assert(false);
   }

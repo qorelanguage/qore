@@ -12,7 +12,7 @@
 #include "ClassRefNode.cc"
 #include "ScopedObjectCallNode.cc"
 #include "ConstantNode.cc"
-#include "QoreNode.cc"
+#include "AbstractQoreNode.cc"
 #include "QoreStringNode.cc"
 #include "DateTimeNode.cc"
 #include "QoreHashNode.cc"

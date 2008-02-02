@@ -24,7 +24,7 @@
 #include <qore/intern/ForStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-ForStatement::ForStatement(int start_line, int end_line, class QoreNode *a, class QoreNode *c, class QoreNode *i, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
+ForStatement::ForStatement(int start_line, int end_line, class AbstractQoreNode *a, class AbstractQoreNode *c, class AbstractQoreNode *i, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
 {
    assignment = a;
    cond = c;
@@ -47,7 +47,7 @@ ForStatement::~ForStatement()
       delete lvars;
 }
 
-int ForStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int ForStatement::execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink)
 {
    int i, rc = 0;
    

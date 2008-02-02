@@ -33,7 +33,7 @@ class QoreClass *QC_QStackedWidget = 0;
 //QStackedWidget ( QWidget * parent = 0 )
 static void QSTACKEDWIDGET_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
@@ -48,9 +48,9 @@ static void QSTACKEDWIDGET_copy(class QoreObject *self, class QoreObject *old, c
 }
 
 //int addWidget ( QWidget * widget )
-static QoreNode *QSTACKEDWIDGET_addWidget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSTACKEDWIDGET_addWidget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
@@ -62,19 +62,19 @@ static QoreNode *QSTACKEDWIDGET_addWidget(QoreObject *self, QoreQStackedWidget *
 }
 
 //int count () const
-static QoreNode *QSTACKEDWIDGET_count(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSTACKEDWIDGET_count(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qsw->qobj->count());
 }
 
 //int currentIndex () const
-static QoreNode *QSTACKEDWIDGET_currentIndex(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSTACKEDWIDGET_currentIndex(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qsw->qobj->currentIndex());
 }
 
 //QWidget * currentWidget () const
-static QoreNode *QSTACKEDWIDGET_currentWidget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSTACKEDWIDGET_currentWidget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QWidget *qt_qobj = qsw->qobj->currentWidget();
    if (!qt_qobj)
@@ -92,9 +92,9 @@ static QoreNode *QSTACKEDWIDGET_currentWidget(QoreObject *self, QoreQStackedWidg
 }
 
 //int indexOf ( QWidget * widget ) const
-static QoreNode *QSTACKEDWIDGET_indexOf(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSTACKEDWIDGET_indexOf(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
@@ -106,9 +106,9 @@ static QoreNode *QSTACKEDWIDGET_indexOf(QoreObject *self, QoreQStackedWidget *qs
 }
 
 //int insertWidget ( int index, QWidget * widget )
-static QoreNode *QSTACKEDWIDGET_insertWidget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSTACKEDWIDGET_insertWidget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -122,9 +122,9 @@ static QoreNode *QSTACKEDWIDGET_insertWidget(QoreObject *self, QoreQStackedWidge
 }
 
 //void removeWidget ( QWidget * widget )
-static QoreNode *QSTACKEDWIDGET_removeWidget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSTACKEDWIDGET_removeWidget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
@@ -137,9 +137,9 @@ static QoreNode *QSTACKEDWIDGET_removeWidget(QoreObject *self, QoreQStackedWidge
 }
 
 //QWidget * widget ( int index ) const
-static QoreNode *QSTACKEDWIDGET_widget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSTACKEDWIDGET_widget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    QWidget *qt_qobj = qsw->qobj->widget(index);
    if (!qt_qobj)
@@ -157,18 +157,18 @@ static QoreNode *QSTACKEDWIDGET_widget(QoreObject *self, QoreQStackedWidget *qsw
 }
 
 //void setCurrentIndex ( int index )
-static QoreNode *QSTACKEDWIDGET_setCurrentIndex(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSTACKEDWIDGET_setCurrentIndex(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    qsw->qobj->setCurrentIndex(index);
    return 0;
 }
 
 //void setCurrentWidget ( QWidget * widget )
-static QoreNode *QSTACKEDWIDGET_setCurrentWidget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSTACKEDWIDGET_setCurrentWidget(QoreObject *self, QoreQStackedWidget *qsw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())

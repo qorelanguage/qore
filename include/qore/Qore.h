@@ -26,7 +26,7 @@
 
 #include <qore/common.h>
 #include <qore/ReferenceHolder.h>
-#include <qore/QoreNode.h>
+#include <qore/AbstractQoreNode.h>
 #include <qore/QoreListNode.h>
 #include <qore/QoreProgram.h>
 #include <qore/ModuleManager.h>

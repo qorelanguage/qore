@@ -34,10 +34,10 @@ class ContextMod {
 public:
    int type;
    union ContextModUnion {
-      class QoreNode *exp;
+      class AbstractQoreNode *exp;
    } c;
    
-   DLLLOCAL ContextMod(int t, class QoreNode *e);
+   DLLLOCAL ContextMod(int t, class AbstractQoreNode *e);
    DLLLOCAL ~ContextMod();
 };
 
@@ -54,16 +54,16 @@ public:
 class ContextStatement :public AbstractStatement
 {
    protected:
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
 
    public:
       char *name;
-      class QoreNode *exp, *where_exp, *sort_ascending, *sort_descending;
+      class AbstractQoreNode *exp, *where_exp, *sort_ascending, *sort_descending;
       class StatementBlock *code;
       class LVList *lvars;
       
-      DLLLOCAL ContextStatement(int start_line, int end_line, char *n, class QoreNode *expr, class ContextModList *cm, class StatementBlock *cd);
+      DLLLOCAL ContextStatement(int start_line, int end_line, char *n, class AbstractQoreNode *expr, class ContextModList *cm, class StatementBlock *cd);
       DLLLOCAL virtual ~ContextStatement();
 };
 

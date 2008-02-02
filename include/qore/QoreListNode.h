@@ -24,9 +24,9 @@
 
 #define _QORE_QORELISTNODE_H
 
-#include <qore/QoreNode.h>
+#include <qore/AbstractQoreNode.h>
 
-class QoreListNode : public QoreNode
+class QoreListNode : public AbstractQoreNode
 {   
       friend class StackList;
 
@@ -40,7 +40,7 @@ class QoreListNode : public QoreNode
 
       DLLLOCAL void resize(int num);
       DLLLOCAL void splice_intern(int offset, int length, class ExceptionSink *xsink);
-      DLLLOCAL void splice_intern(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);
+      DLLLOCAL void splice_intern(int offset, int length, class AbstractQoreNode *l, class ExceptionSink *xsink);
       DLLLOCAL void check_offset(int &offset);
       DLLLOCAL void check_offset(int &offset, int &len);
       DLLLOCAL void deref_intern(class ExceptionSink *xisnk);
@@ -64,14 +64,14 @@ class QoreListNode : public QoreNode
 
       // default implementation returns false
       DLLEXPORT virtual bool needs_eval() const;
-      DLLEXPORT virtual class QoreNode *realCopy() const;
+      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
       // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
       // the "val" passed
-      //DLLLOCAL virtual int compare(const QoreNode *val) const;
+      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
       // the type passed must always be equal to the current type
-      DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
-      DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
       // returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
@@ -79,26 +79,26 @@ class QoreListNode : public QoreNode
       DLLEXPORT virtual const char *getTypeName() const;
       // eval(): return value requires a deref(xsink)
       // default implementation = returns "this" with incremented atomic reference count
-      DLLEXPORT virtual class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT virtual class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       // eval(): return value requires a deref(xsink) if needs_deref is true
       // default implementation = needs_deref = false, returns "this"
       // note: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
-      DLLEXPORT virtual class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
+      DLLEXPORT virtual class AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
       // deletes the object when the reference count = 0
       DLLEXPORT virtual void deref(class ExceptionSink *xsink);
       // returns true if the node represents a value (default implementation)
       DLLEXPORT virtual bool is_value() const;
 
-      DLLEXPORT class QoreNode *retrieve_entry(int index) const;
+      DLLEXPORT class AbstractQoreNode *retrieve_entry(int index) const;
       DLLEXPORT int getEntryAsInt(int index) const;
-      DLLEXPORT class QoreNode **get_entry_ptr(int index);
-      DLLEXPORT class QoreNode **getExistingEntryPtr(int index);
-      DLLEXPORT void set_entry(int index, class QoreNode *val, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *eval_entry(int num, class ExceptionSink *xsink) const;
-      DLLEXPORT void push(class QoreNode *val);
-      DLLEXPORT void insert(class QoreNode *val);
-      DLLEXPORT class QoreNode *pop();
-      DLLEXPORT class QoreNode *shift();
+      DLLEXPORT class AbstractQoreNode **get_entry_ptr(int index);
+      DLLEXPORT class AbstractQoreNode **getExistingEntryPtr(int index);
+      DLLEXPORT void set_entry(int index, class AbstractQoreNode *val, class ExceptionSink *xsink);
+      DLLEXPORT class AbstractQoreNode *eval_entry(int num, class ExceptionSink *xsink) const;
+      DLLEXPORT void push(class AbstractQoreNode *val);
+      DLLEXPORT void insert(class AbstractQoreNode *val);
+      DLLEXPORT class AbstractQoreNode *pop();
+      DLLEXPORT class AbstractQoreNode *shift();
       DLLEXPORT void merge(const class QoreListNode *list);
       DLLEXPORT int delete_entry(int index, class ExceptionSink *xsink);
       DLLEXPORT void pop_entry(int index, class ExceptionSink *xsink);
@@ -115,14 +115,14 @@ class QoreListNode : public QoreNode
       DLLEXPORT QoreListNode *sortDescending(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
       DLLEXPORT QoreListNode *sortDescendingStable() const;
       DLLEXPORT QoreListNode *sortDescendingStable(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
-      DLLEXPORT QoreNode *min() const;
-      DLLEXPORT QoreNode *max() const;
-      DLLEXPORT QoreNode *min(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
-      DLLEXPORT QoreNode *max(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *min() const;
+      DLLEXPORT AbstractQoreNode *max() const;
+      DLLEXPORT AbstractQoreNode *min(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *max(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
-      // the "l" QoreNode will be referenced for the assignment in the QoreListNode
-      DLLEXPORT void splice(int offset, int length, class QoreNode *l, class ExceptionSink *xsink);
+      // the "l" AbstractQoreNode will be referenced for the assignment in the QoreListNode
+      DLLEXPORT void splice(int offset, int length, class AbstractQoreNode *l, class ExceptionSink *xsink);
       DLLEXPORT int size() const;
       DLLEXPORT QoreListNode *reverse() const;
 
@@ -156,7 +156,7 @@ class StackList : public QoreListNode
       {
 	 deref_intern(xsink);
       }
-      DLLEXPORT class QoreNode *getAndClear(int i);
+      DLLEXPORT class AbstractQoreNode *getAndClear(int i);
 };
 
 class TempList {
@@ -193,12 +193,12 @@ class ListIterator
    public:
       DLLEXPORT ListIterator(QoreListNode *lst);
       DLLEXPORT bool next();
-      DLLEXPORT class QoreNode *getValue() const;
-      DLLEXPORT class QoreNode **getValuePtr() const;
-      DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT class AbstractQoreNode *getValue() const;
+      DLLEXPORT class AbstractQoreNode **getValuePtr() const;
+      DLLEXPORT class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       DLLEXPORT bool first() const;
       DLLEXPORT bool last() const;
-      //DLLEXPORT void setValue(class QoreNode *val, class ExceptionSink *xsink) const;
+      //DLLEXPORT void setValue(class AbstractQoreNode *val, class ExceptionSink *xsink) const;
 };
 
 class ConstListIterator
@@ -210,8 +210,8 @@ class ConstListIterator
    public:
       DLLEXPORT ConstListIterator(const QoreListNode *lst);
       DLLEXPORT bool next();
-      DLLEXPORT class QoreNode *getValue() const;
-      DLLEXPORT class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT class AbstractQoreNode *getValue() const;
+      DLLEXPORT class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       DLLEXPORT bool first() const;
       DLLEXPORT bool last() const;
 };

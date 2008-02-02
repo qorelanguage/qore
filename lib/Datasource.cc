@@ -151,28 +151,28 @@ void Datasource::setAutoCommit(bool ac)
    priv->autocommit = ac;
 }
 
-QoreNode *Datasource::select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *Datasource::select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
 {
-   QoreNode *rv = priv->dsl->select(this, query_str, args, xsink);
+   AbstractQoreNode *rv = priv->dsl->select(this, query_str, args, xsink);
    if (priv->autocommit)
       priv->dsl->autoCommit(this, xsink);
    return rv;
 }
 
-QoreNode *Datasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
 {
-   QoreNode *rv = priv->dsl->selectRows(this, query_str, args, xsink);
+   AbstractQoreNode *rv = priv->dsl->selectRows(this, query_str, args, xsink);
    if (priv->autocommit)
       priv->dsl->autoCommit(this, xsink);
    return rv;
 }
 
-QoreNode *Datasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
 {
    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
       return NULL;
 
-   class QoreNode *rv = priv->dsl->execSQL(this, query_str, args, xsink);
+   class AbstractQoreNode *rv = priv->dsl->execSQL(this, query_str, args, xsink);
    //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
    if (priv->autocommit)
       priv->dsl->autoCommit(this, xsink);
@@ -359,27 +359,27 @@ void Datasource::setQoreEncoding(const QoreEncoding *enc)
    priv->qorecharset = enc;
 }
 
-QoreNode *Datasource::getPendingUsername() const
+AbstractQoreNode *Datasource::getPendingUsername() const
 {
    return priv->p_username.empty() ? NULL : new QoreStringNode(priv->p_username.c_str());
 }
 
-QoreNode *Datasource::getPendingPassword() const
+AbstractQoreNode *Datasource::getPendingPassword() const
 {
    return priv->p_password.empty() ? NULL : new QoreStringNode(priv->p_password.c_str());
 }
 
-QoreNode *Datasource::getPendingDBName() const
+AbstractQoreNode *Datasource::getPendingDBName() const
 {
    return priv->p_dbname.empty() ? NULL : new QoreStringNode(priv->p_dbname.c_str());
 }
 
-QoreNode *Datasource::getPendingDBEncoding() const
+AbstractQoreNode *Datasource::getPendingDBEncoding() const
 {
    return priv->p_db_encoding.empty() ? NULL : new QoreStringNode(priv->p_db_encoding.c_str());
 }
 
-QoreNode *Datasource::getPendingHostName() const
+AbstractQoreNode *Datasource::getPendingHostName() const
 {
    return priv->p_hostname.empty() ? NULL : new QoreStringNode(priv->p_hostname.c_str());
 }
@@ -394,12 +394,12 @@ const DBIDriver *Datasource::getDriver() const
    return priv->dsl;
 }
 
-class QoreNode *Datasource::getServerVersion(class ExceptionSink *xsink)
+class AbstractQoreNode *Datasource::getServerVersion(class ExceptionSink *xsink)
 {
    return priv->dsl->getServerVersion(this, xsink);
 }
 
-class QoreNode *Datasource::getClientVersion(class ExceptionSink *xsink) const
+class AbstractQoreNode *Datasource::getClientVersion(class ExceptionSink *xsink) const
 {
    return priv->dsl->getClientVersion(this, xsink);
 }

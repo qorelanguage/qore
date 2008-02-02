@@ -48,7 +48,7 @@ class connection
       bool connected;
       const QoreEncoding *enc;
 
-      class QoreNode *exec_intern(class QoreString *cmd_text, const QoreListNode *qore_args, bool need_list, class ExceptionSink* xsink);
+      class AbstractQoreNode *exec_intern(class QoreString *cmd_text, const QoreListNode *qore_args, bool need_list, class ExceptionSink* xsink);
 
 public:
       DLLLOCAL connection();
@@ -68,15 +68,15 @@ public:
       // returns 0=OK, -1=error (exception raised)
       DLLLOCAL int rollback(class ExceptionSink *xsink);
       
-      DLLLOCAL class QoreNode *exec(const QoreString *cmd, const QoreListNode *parameters, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *exec_rows(const QoreString *cmd, const QoreListNode *parameters, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *exec(const QoreString *cmd, const QoreListNode *parameters, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *exec_rows(const QoreString *cmd, const QoreListNode *parameters, class ExceptionSink *xsink);
 
       DLLLOCAL CS_CONNECTION* getConnection() const { return m_connection; }
       DLLLOCAL CS_CONTEXT* getContext() const { return m_context; }
       DLLLOCAL const QoreEncoding *getEncoding() const { return enc; }
 
       DLLLOCAL class QoreStringNode *get_client_version(class ExceptionSink *xsink);
-      DLLLOCAL QoreNode *get_server_version(class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *get_server_version(class ExceptionSink *xsink);
 };
 
 #endif

@@ -37,19 +37,19 @@ qore_pg_array_data_map_t QorePGResult::array_data_map;
 qore_pg_array_type_map_t QorePGResult::array_type_map;
 
 // bind functions
-static class QoreNode *qpg_data_bool(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_bool(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    return new QoreBoolNode(*((bool *)data));
 }
 
-static class QoreNode *qpg_data_bytea(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_bytea(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    void *dc = malloc(len);
    memcpy(dc, data, len);
    return new BinaryNode(dc, len);
 }
 
-static class QoreNode *qpg_data_char(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_char(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    char *nstr = (char *)malloc(sizeof(char) * (len + 1));
    strncpy(nstr, (char *)data, len);
@@ -58,51 +58,51 @@ static class QoreNode *qpg_data_char(char *data, int type, int len, class QorePG
    return new QoreStringNode(nstr, len, len + 1, enc);
 }
 
-static class QoreNode *qpg_data_int8(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_int8(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    return new QoreBigIntNode(MSBi8(*((uint64_t *)data)));
 }
 
-static class QoreNode *qpg_data_int4(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_int4(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    return new QoreBigIntNode(ntohl(*((uint32_t *)data)));
 }
 
-static class QoreNode *qpg_data_int2(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_int2(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    return new QoreBigIntNode(ntohs(*((uint16_t *)data)));
 }
 
-static class QoreNode *qpg_data_text(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_text(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    return new QoreStringNode((char *)data, len, enc);
 }
 
-static class QoreNode *qpg_data_float4(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_float4(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    float fv = MSBf4(*((float *)data));
    return new QoreFloatNode((double)fv);
 }
 
-static class QoreNode *qpg_data_float8(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_float8(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    double fv = MSBf8(*((double *)data));
    return new QoreFloatNode(fv);
 }
 
-static class QoreNode *qpg_data_abstime(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_abstime(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    int val = ntohl(*((uint32_t *)data));
    return new DateTimeNode((int64)val);
 }
 
-static class QoreNode *qpg_data_reltime(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_reltime(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    int val = ntohl(*((uint32_t *)data));
    return new DateTimeNode(0, 0, 0, 0, 0, val, 0, true);
 }
 
-static class QoreNode *qpg_data_timestamp(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_timestamp(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    if (conn->has_integer_datetimes())
    {
@@ -122,13 +122,13 @@ static class QoreNode *qpg_data_timestamp(char *data, int type, int len, class Q
    return new DateTimeNode(nv, ms);
 }
 
-static class QoreNode *qpg_data_date(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_date(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    int val = (ntohl(*((uint32_t *)data)) + 10957) * 86400;      
    return new DateTimeNode((int64)val);
 }
 
-static class QoreNode *qpg_data_interval(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_interval(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    int ms;
    int64 secs;
@@ -152,7 +152,7 @@ static class QoreNode *qpg_data_interval(char *data, int type, int len, class Qo
       return new DateTimeNode(0, ntohl(iv->rest.month), 0, 0, 0, secs, ms, true);
 }
 
-static class QoreNode *qpg_data_time(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_time(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    int64 secs;
    int ms;
@@ -171,7 +171,7 @@ static class QoreNode *qpg_data_time(char *data, int type, int len, class QorePG
    return new DateTimeNode(secs, ms);
 }
 
-static class QoreNode *qpg_data_timetz(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_timetz(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    // NOTE! timezone is ignored
    qore_pg_time_tz_adt *tm = (qore_pg_time_tz_adt *)data;
@@ -192,7 +192,7 @@ static class QoreNode *qpg_data_timetz(char *data, int type, int len, class Qore
    return new DateTimeNode(secs, ms);
 }
 
-static class QoreNode *qpg_data_tinterval(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_tinterval(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    //printd(5, "QorePGResult::getNode(row=%d, col=%d, type=%d) this=%08p len=%d\n", row, col, type, this, len);
    TimeIntervalData *td = (TimeIntervalData *)data;
@@ -209,7 +209,7 @@ static class QoreNode *qpg_data_tinterval(char *data, int type, int len, class Q
    return str;
 }
 
-static class QoreNode *qpg_data_numeric(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_numeric(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    // note: we write directly to the data here
    qore_pg_numeric *nd = (qore_pg_numeric *)data;
@@ -241,12 +241,12 @@ static class QoreNode *qpg_data_numeric(char *data, int type, int len, class Qor
    return str;
 }
 
-static class QoreNode *qpg_data_cash(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_cash(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    return new QoreFloatNode((double)ntohl(*((uint32_t *)data)) / 100.0);
 }
 
-static class QoreNode *qpg_data_macaddr(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_macaddr(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    class QoreStringNode *str = new QoreStringNode();
    for (int i = 0; i < 5; i++)
@@ -258,7 +258,7 @@ static class QoreNode *qpg_data_macaddr(char *data, int type, int len, class Qor
    return str;
 }
 
-static class QoreNode *qpg_data_inet(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_inet(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    qore_pg_inet_struct *is = (qore_pg_inet_struct *)data;
 
@@ -301,7 +301,7 @@ static class QoreNode *qpg_data_inet(char *data, int type, int len, class QorePG
    return str;
 }
 
-static class QoreNode *qpg_data_tid(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_tid(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    qore_pg_tuple_id *ti = (qore_pg_tuple_id *)data;
    unsigned block = ntohl(ti->block);
@@ -311,7 +311,7 @@ static class QoreNode *qpg_data_tid(char *data, int type, int len, class QorePGC
    return str;
 }
 
-static class QoreNode *qpg_data_bit(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_bit(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    qore_pg_bit *bp = (qore_pg_bit *)data;
    int num = (ntohl(bp->size) - 1) / 8 + 1;
@@ -320,7 +320,7 @@ static class QoreNode *qpg_data_bit(char *data, int type, int len, class QorePGC
    return b;
 }
 
-static class QoreNode *qpg_data_point(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_point(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    Point p;
    assign_point(p, (Point *)data);
@@ -329,7 +329,7 @@ static class QoreNode *qpg_data_point(char *data, int type, int len, class QoreP
    return str;
 }
 
-static class QoreNode *qpg_data_lseg(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_lseg(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    Point p;
    assign_point(p, &((LSEG *)data)->p[0]);
@@ -341,7 +341,7 @@ static class QoreNode *qpg_data_lseg(char *data, int type, int len, class QorePG
 }
 
 // NOTE: This is functionally identical to LSEG above
-static class QoreNode *qpg_data_box(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_box(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    Point p0, p1;
    assign_point(p0, &((BOX *)data)->high);
@@ -351,7 +351,7 @@ static class QoreNode *qpg_data_box(char *data, int type, int len, class QorePGC
    return str;
 }
 
-static class QoreNode *qpg_data_path(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_path(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    unsigned npts = ntohl(*((int *)((char *)data + 1)));
    bool closed = ntohl(*((char *)data));
@@ -370,7 +370,7 @@ static class QoreNode *qpg_data_path(char *data, int type, int len, class QorePG
    return str;
 }
 
-static class QoreNode *qpg_data_polygon(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_polygon(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    unsigned npts = ntohl(*((int *)data));
    QoreStringNode *str = new QoreStringNode('(');
@@ -386,7 +386,7 @@ static class QoreNode *qpg_data_polygon(char *data, int type, int len, class Qor
    return str;
 }
 
-static class QoreNode *qpg_data_circle(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
+static class AbstractQoreNode *qpg_data_circle(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
    //printd(5, "QorePGResult::getNode(row=%d, col=%d, type=%d) this=%08p len=%d\n", row, col, type, this, len);
    QoreStringNode *str = new QoreStringNode();
@@ -574,7 +574,7 @@ bool QorePGResult::hasResultData()
    return PQnfields(res);
 }
 
-class QoreNode *QorePGResult::getArray(int type, qore_pg_data_func_t func, char *&array_data, int current, int ndim, int dim[])
+class AbstractQoreNode *QorePGResult::getArray(int type, qore_pg_data_func_t func, char *&array_data, int current, int ndim, int dim[])
 {
    //printd(5, "getArray(type=%d, array_data=%08p, current=%d, ndim=%d, dim[%d]=%d)\n", type, array_data, current, ndim, current, dim[current]);
    class QoreListNode *l = new QoreListNode();
@@ -603,7 +603,7 @@ class QoreNode *QorePGResult::getArray(int type, qore_pg_data_func_t func, char 
 }
 
 // converts from PostgreSQL data types to Qore data
-class QoreNode *QorePGResult::getNode(int row, int col, class ExceptionSink *xsink)
+class AbstractQoreNode *QorePGResult::getNode(int row, int col, class ExceptionSink *xsink)
 {
    void *data = PQgetvalue(res, row, col);
    int type = PQftype(res, col);
@@ -641,7 +641,7 @@ class QoreNode *QorePGResult::getNode(int row, int col, class ExceptionSink *xsi
    
    char *array_data = ((char *)data) + 12 + 8 * ndim;
    
-   class QoreNode *rv = getArray(ai->second.first, ai->second.second, array_data, 0, ndim, dim);
+   class AbstractQoreNode *rv = getArray(ai->second.first, ai->second.second, array_data, 0, ndim, dim);
    delete [] dim;
    delete [] lBound;
    return rv;
@@ -662,7 +662,7 @@ class QoreHashNode *QorePGResult::getHash(class ExceptionSink *xsink)
    {
       for (int j = 0; j < num_columns; ++j)
       {
-	 ReferenceHolder<QoreNode> n(getNode(i, j, xsink), xsink);
+	 ReferenceHolder<AbstractQoreNode> n(getNode(i, j, xsink), xsink);
 	 if (!n || *xsink)
 	    return 0;
 
@@ -686,7 +686,7 @@ class QoreListNode *QorePGResult::getQoreListNode(class ExceptionSink *xsink)
       ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
       for (int j = 0; j < num_columns; ++j)
       {
-	 ReferenceHolder<QoreNode> n(getNode(i, j, xsink), xsink);
+	 ReferenceHolder<AbstractQoreNode> n(getNode(i, j, xsink), xsink);
 	 if (!n || *xsink)
 	    return 0;
 	 h->setKeyValue(PQfname(res, j), n.release(), xsink);
@@ -698,7 +698,7 @@ class QoreListNode *QorePGResult::getQoreListNode(class ExceptionSink *xsink)
 
 static int check_hash_type(class QoreHash *h, class ExceptionSink *xsink)
 {
-   class QoreNode *t = h->getKeyValue("^pgtype^");
+   class AbstractQoreNode *t = h->getKeyValue("^pgtype^");
    if (is_nothing(t))
    {
       xsink->raiseException("DBI:PGSQL:BIND-ERROR", "missing '^pgtype^' value in bind hash");
@@ -713,7 +713,7 @@ static int check_hash_type(class QoreHash *h, class ExceptionSink *xsink)
    return b->val;
 }
 
-int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
+int QorePGResult::add(class AbstractQoreNode *v, class ExceptionSink *xsink)
 {
    parambuf *pb = new parambuf();
    parambuf_list.push_back(pb);
@@ -878,7 +878,7 @@ int QorePGResult::add(class QoreNode *v, class ExceptionSink *xsink)
       Oid type = check_hash_type(vh, xsink);
       if (type < 0)
 	 return -1;
-      class QoreNode *t = vh->getKeyValue("^value^");
+      class AbstractQoreNode *t = vh->getKeyValue("^value^");
       if (is_nothing(t) || is_null(t))
       {
 	 paramTypes[nParams] = 0;
@@ -975,7 +975,7 @@ qore_pg_array_header *QorePGBindArray::getHeader()
    return rv;
 }
 
-int QorePGBindArray::check_type(class QoreNode *n, class ExceptionSink *xsink)
+int QorePGBindArray::check_type(class AbstractQoreNode *n, class ExceptionSink *xsink)
 {
    // skip null types
    if (is_nothing(n) || is_null(n))
@@ -1165,7 +1165,7 @@ void QorePGBindArray::check_size(int len)
    size += space;
 }
 
-int QorePGBindArray::bind(class QoreNode *n, const QoreEncoding *enc, class ExceptionSink *xsink)
+int QorePGBindArray::bind(class AbstractQoreNode *n, const QoreEncoding *enc, class ExceptionSink *xsink)
 {
    // bind a NULL for NOTHING or NULL
    if (is_nothing(n) || is_null(n)) {
@@ -1271,7 +1271,7 @@ int QorePGBindArray::bind(class QoreNode *n, const QoreEncoding *enc, class Exce
    if (type == NT_HASH)
    {
       QoreHashNode *h = reinterpret_cast<QoreHashNode *>(n);
-      QoreNode *t = h->getKeyValue("^value^");
+      AbstractQoreNode *t = h->getKeyValue("^value^");
       if (is_nothing(t) || is_null(t))
 	 check_size(-1);
       else
@@ -1295,7 +1295,7 @@ int QorePGBindArray::process_list(QoreListNode *l, int current, const QoreEncodi
    while (li.next())
    {
       const QoreType *v_type;
-      class QoreNode *n = li.getValue();
+      class AbstractQoreNode *n = li.getValue();
       v_type = n ? n->type : NT_NOTHING;
       if (type == NT_LIST)
       {
@@ -1338,7 +1338,7 @@ int QorePGResult::parse(class QoreString *str, const QoreListNode *args, class E
          int offset = p - str->getBuffer();
 
          p++;
-         class QoreNode *v = args ? args->retrieve_entry(index++) : NULL;
+         class AbstractQoreNode *v = args ? args->retrieve_entry(index++) : NULL;
 	 if ((*p) == 'd')
 	 {
 	    DBI_concat_numeric(&tmp, v);
@@ -1534,7 +1534,7 @@ int QorePGConnection::begin_transaction(class Datasource *ds, ExceptionSink *xsi
    return res.exec(pc, "begin", xsink);
 }
 
-class QoreNode *QorePGConnection::select(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *QorePGConnection::select(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))
@@ -1543,7 +1543,7 @@ class QoreNode *QorePGConnection::select(class Datasource *ds, const QoreString 
    return res.getHash(xsink);
 }
 
-class QoreNode *QorePGConnection::select_rows(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *QorePGConnection::select_rows(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))
@@ -1552,7 +1552,7 @@ class QoreNode *QorePGConnection::select_rows(class Datasource *ds, const QoreSt
    return res.getQoreListNode(xsink);
 }
 
-class QoreNode *QorePGConnection::exec(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *QorePGConnection::exec(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    QorePGResult res(this, ds->getQoreEncoding());
    if (res.exec(pc, qstr, args, xsink))

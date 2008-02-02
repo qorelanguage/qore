@@ -44,9 +44,9 @@ TryStatement::~TryStatement()
    //delete finally;
 }
 
-int TryStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int TryStatement::execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink)
 {
-   QoreNode *trv = NULL;
+   AbstractQoreNode *trv = NULL;
    
    tracein("TryStatement::execImpl()");
    int rc = 0;

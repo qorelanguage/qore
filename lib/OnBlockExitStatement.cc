@@ -33,7 +33,7 @@ OnBlockExitStatement::~OnBlockExitStatement()
    delete code;
 }
 
-int OnBlockExitStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int OnBlockExitStatement::execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink)
 {
    // "activate" this block when the block exits in the thread "on block exit" stack
    advanceOnBlockExit();

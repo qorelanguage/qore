@@ -32,7 +32,7 @@ struct qore_ex_private {
       int start_line, end_line;
       char *file;
       QoreListNode *callStack;
-      QoreNode *err, *desc, *arg;
+      AbstractQoreNode *err, *desc, *arg;
       class QoreException *next;
 
       DLLLOCAL qore_ex_private()
@@ -213,7 +213,7 @@ void ExceptionSink::insert(class QoreException *e)
    priv->tail = e;
 }
 
-QoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...)
+AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...)
 {
    class QoreStringNode *desc = new QoreStringNode();
    
@@ -233,14 +233,14 @@ QoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...)
 }
 
 // returns NULL, takes ownership of the "desc" argument
-QoreNode *ExceptionSink::raiseException(const char *err, QoreStringNode *desc)
+AbstractQoreNode *ExceptionSink::raiseException(const char *err, QoreStringNode *desc)
 {
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
    insert(new QoreException(err, desc));
    return NULL;
 }
 
-QoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreNode* arg, const char* fmt, ...)
+AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...)
 {
    class QoreStringNode *desc = new QoreStringNode();
    
@@ -502,7 +502,7 @@ class QoreHashNode *QoreException::makeExceptionObjectAndDelete(ExceptionSink *x
    return rv;
 }
 
-void QoreException::addStackInfo(class QoreNode *n)
+void QoreException::addStackInfo(class AbstractQoreNode *n)
 {
    priv->callStack->push(n);
 }

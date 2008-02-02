@@ -34,24 +34,24 @@ static void QLAYOUT_constructor(class QoreObject *self, const QoreListNode *para
 }
 
 //bool activate ()
-static QoreNode *QLAYOUT_activate(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_activate(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(ql->getQLayout()->activate());
 }
 
 ////virtual void addItem ( QLayoutItem * item ) = 0
-//static QoreNode *QLAYOUT_addItem(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QLAYOUT_addItem(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QLayoutItem* item = p;
 //   ql->getQLayout()->addItem(item);
 //   return 0;
 //}
 
 //void addWidget ( QWidget * w )
-static QoreNode *QLAYOUT_addWidget(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_addWidget(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *w = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!w) {
       if (!xsink->isException())
@@ -64,7 +64,7 @@ static QoreNode *QLAYOUT_addWidget(QoreObject *self, QoreAbstractQLayout *ql, co
 }
 
 //QRect contentsRect () const
-static QoreNode *QLAYOUT_contentsRect(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_contentsRect(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(ql->getQLayout()->contentsRect());
@@ -73,21 +73,21 @@ static QoreNode *QLAYOUT_contentsRect(QoreObject *self, QoreAbstractQLayout *ql,
 }
 
 //virtual int count () const = 0
-static QoreNode *QLAYOUT_count(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_count(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(ql->getQLayout()->count());
 }
 
 //virtual Qt::Orientations expandingDirections () const
-static QoreNode *QLAYOUT_expandingDirections(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_expandingDirections(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(ql->getQLayout()->expandingDirections());
 }
 
 ////void getContentsMargins ( int * left, int * top, int * right, int * bottom ) const
-//static QoreNode *QLAYOUT_getContentsMargins(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QLAYOUT_getContentsMargins(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? int* left = p;
 //   p = get_param(params, 1);
 //   ??? int* top = p;
@@ -100,9 +100,9 @@ static QoreNode *QLAYOUT_expandingDirections(QoreObject *self, QoreAbstractQLayo
 //}
 
 //virtual int indexOf ( QWidget * widget ) const
-static QoreNode *QLAYOUT_indexOf(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_indexOf(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
@@ -114,21 +114,21 @@ static QoreNode *QLAYOUT_indexOf(QoreObject *self, QoreAbstractQLayout *ql, cons
 }
 
 //bool isEnabled () const
-static QoreNode *QLAYOUT_isEnabled(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_isEnabled(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(ql->getQLayout()->isEnabled());
 }
 
 ////virtual QLayoutItem * itemAt ( int index ) const = 0
-//static QoreNode *QLAYOUT_itemAt(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QLAYOUT_itemAt(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   int index = p ? p->getAsInt() : 0;
 //   ??? return ql->getQLayout()->itemAt(index);
 //}
 
 //virtual QSize maximumSize () const
-static QoreNode *QLAYOUT_maximumSize(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_maximumSize(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(ql->getQLayout()->maximumSize());
@@ -137,13 +137,13 @@ static QoreNode *QLAYOUT_maximumSize(QoreObject *self, QoreAbstractQLayout *ql, 
 }
 
 ////QWidget * menuBar () const
-//static QoreNode *QLAYOUT_menuBar(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QLAYOUT_menuBar(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return ql->getQLayout()->menuBar();
 //}
 
 //virtual QSize minimumSize () const
-static QoreNode *QLAYOUT_minimumSize(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_minimumSize(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qs = new QoreObject(QC_QSize, getProgram());
    QoreQSize *q_qs = new QoreQSize(ql->getQLayout()->minimumSize());
@@ -152,24 +152,24 @@ static QoreNode *QLAYOUT_minimumSize(QoreObject *self, QoreAbstractQLayout *ql, 
 }
 
 ////QWidget * parentWidget () const
-//static QoreNode *QLAYOUT_parentWidget(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QLAYOUT_parentWidget(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return ql->getQLayout()->parentWidget();
 //}
 
 ////void removeItem ( QLayoutItem * item )
-//static QoreNode *QLAYOUT_removeItem(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QLAYOUT_removeItem(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QLayoutItem* item = p;
 //   ql->getQLayout()->removeItem(item);
 //   return 0;
 //}
 
 //void removeWidget ( QWidget * widget )
-static QoreNode *QLAYOUT_removeWidget(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_removeWidget(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
@@ -183,9 +183,9 @@ static QoreNode *QLAYOUT_removeWidget(QoreObject *self, QoreAbstractQLayout *ql,
 
 //bool setAlignment ( QWidget * w, Qt::Alignment alignment )
 //bool setAlignment ( QLayout * l, Qt::Alignment alignment )
-static QoreNode *QLAYOUT_setAlignment(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_setAlignment(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_OBJECT, 0);
+   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreAbstractQLayout *l = p ? (QoreAbstractQLayout *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
    if (!l) {
       QoreAbstractQWidget *w = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
@@ -206,9 +206,9 @@ static QoreNode *QLAYOUT_setAlignment(QoreObject *self, QoreAbstractQLayout *ql,
 }
 
 //void setContentsMargins ( int left, int top, int right, int bottom )
-static QoreNode *QLAYOUT_setContentsMargins(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_setContentsMargins(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int left = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int top = p ? p->getAsInt() : 0;
@@ -221,18 +221,18 @@ static QoreNode *QLAYOUT_setContentsMargins(QoreObject *self, QoreAbstractQLayou
 }
 
 //void setEnabled ( bool enable )
-static QoreNode *QLAYOUT_setEnabled(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_setEnabled(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    ql->getQLayout()->setEnabled(enable);
    return 0;
 }
 
 //void setMenuBar ( QWidget * widget )
-static QoreNode *QLAYOUT_setMenuBar(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_setMenuBar(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
@@ -245,54 +245,54 @@ static QoreNode *QLAYOUT_setMenuBar(QoreObject *self, QoreAbstractQLayout *ql, c
 }
 
 //void setSizeConstraint ( SizeConstraint )
-static QoreNode *QLAYOUT_setSizeConstraint(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_setSizeConstraint(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QLayout::SizeConstraint sizeconstraint = (QLayout::SizeConstraint)(p ? p->getAsInt() : 0);
    ql->getQLayout()->setSizeConstraint(sizeconstraint);
    return 0;
 }
 
 //void setSpacing ( int )
-static QoreNode *QLAYOUT_setSpacing(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_setSpacing(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    ql->getQLayout()->setSpacing(x);
    return 0;
 }
 
 //SizeConstraint sizeConstraint () const
-static QoreNode *QLAYOUT_sizeConstraint(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_sizeConstraint(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(ql->getQLayout()->sizeConstraint());
 }
 
 //int spacing () const
-static QoreNode *QLAYOUT_spacing(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_spacing(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(ql->getQLayout()->spacing());
 }
 
 ////virtual QLayoutItem * takeAt ( int index ) = 0
-//static QoreNode *QLAYOUT_takeAt(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QLAYOUT_takeAt(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   int index = p ? p->getAsInt() : 0;
 //   ??? return ql->getQLayout()->takeAt(index);
 //}
 
 //void update ()
-static QoreNode *QLAYOUT_update(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_update(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    ql->getQLayout()->update();
    return 0;
 }
 
 //void setMargin (int);
-static QoreNode *QLAYOUT_setMargin(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QLAYOUT_setMargin(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int margin = p ? p->getAsInt() : 0;
    ql->getQLayout()->setMargin(margin);
 

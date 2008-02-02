@@ -31,9 +31,9 @@ int CID_QINPUTDIALOG;
 class QoreClass *QC_QInputDialog = 0;
 
 //double getDouble ( QWidget * parent, const QString & title, const QString & label, double value = 0, double minValue = -2147483647, double maxValue = 2147483647, int decimals = 1, bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getDouble(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QInputDialog_getDouble(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
@@ -68,7 +68,7 @@ static QoreNode *f_QInputDialog_getDouble(const QoreListNode *params, ExceptionS
 
    if (pr) {
       class AutoVLock vl;
-      class QoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
+      class AbstractQoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -81,9 +81,9 @@ static QoreNode *f_QInputDialog_getDouble(const QoreListNode *params, ExceptionS
 }
 
 //int getInteger ( QWidget * parent, const QString & title, const QString & label, int value = 0, int minValue = -2147483647, int maxValue = 2147483647, int step = 1, bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getInteger(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QInputDialog_getInteger(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
@@ -118,7 +118,7 @@ static QoreNode *f_QInputDialog_getInteger(const QoreListNode *params, Exception
 
    if (pr) {
       class AutoVLock vl;
-      class QoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
+      class AbstractQoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -131,9 +131,9 @@ static QoreNode *f_QInputDialog_getInteger(const QoreListNode *params, Exception
 }
 
 //QString getItem ( QWidget * parent, const QString & title, const QString & label, const QStringList & list, int current = 0, bool editable = true, bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getItem(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QInputDialog_getItem(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
@@ -179,7 +179,7 @@ static QoreNode *f_QInputDialog_getItem(const QoreListNode *params, ExceptionSin
 
    if (pr) {
       class AutoVLock vl;
-      class QoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
+      class AbstractQoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -192,9 +192,9 @@ static QoreNode *f_QInputDialog_getItem(const QoreListNode *params, ExceptionSin
 }
 
 //QString getText ( QWidget * parent, const QString & title, const QString & label, QLineEdit::EchoMode mode = QLineEdit::Normal, const QString & text = QString(), bool * ok = 0, Qt::WindowFlags f = 0 )
-static QoreNode *f_QInputDialog_getText(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QInputDialog_getText(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
@@ -227,7 +227,7 @@ static QoreNode *f_QInputDialog_getText(const QoreListNode *params, ExceptionSin
 
    if (pr) {
       class AutoVLock vl;
-      class QoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
+      class AbstractQoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
 

@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ThrowStatement.h>
 
-ThrowStatement::ThrowStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
+ThrowStatement::ThrowStatement(int start_line, int end_line, class AbstractQoreNode *v) : AbstractStatement(start_line, end_line)
 {
    if (!v)
    {
@@ -43,7 +43,7 @@ ThrowStatement::~ThrowStatement()
       args->deref(NULL);
 }
 
-int ThrowStatement::execImpl(class QoreNode **return_value, ExceptionSink *xsink)
+int ThrowStatement::execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
    QoreListNodeEvalOptionalRefHolder a(args, xsink);
    if (*xsink)

@@ -217,17 +217,17 @@ int DBIDriver::close(Datasource *ds)
    return priv->f.close(ds);
 }
 
-class QoreNode *DBIDriver::select(Datasource *ds, const class QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *DBIDriver::select(Datasource *ds, const class QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    return priv->f.select(ds, sql, args, xsink);
 }
 
-class QoreNode *DBIDriver::selectRows(Datasource *ds, const class QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const class QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    return priv->f.selectRows(ds, sql, args, xsink);
 }
 
-class QoreNode *DBIDriver::execSQL(Datasource *ds, const class QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const class QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    return priv->f.execSQL(ds, sql, args, xsink);
 }
@@ -263,14 +263,14 @@ int DBIDriver::abortTransactionStart(Datasource *ds, class ExceptionSink *xsink)
    return 0; // 0 = OK
 }
 
-class QoreNode *DBIDriver::getServerVersion(Datasource *ds, class ExceptionSink *xsink)
+class AbstractQoreNode *DBIDriver::getServerVersion(Datasource *ds, class ExceptionSink *xsink)
 {
    if (priv->f.get_server_version)
       return priv->f.get_server_version(ds, xsink);
    return 0;
 }
 
-class QoreNode *DBIDriver::getClientVersion(const Datasource *ds, class ExceptionSink *xsink)
+class AbstractQoreNode *DBIDriver::getClientVersion(const Datasource *ds, class ExceptionSink *xsink)
 {
    if (priv->f.get_client_version)
       return priv->f.get_client_version(ds, xsink);
@@ -363,7 +363,7 @@ class QoreListNode *DBIDriverList::getDriverList() const
    return priv->getDriverList();
 }
 
-void DBI_concat_numeric(class QoreString *str, const QoreNode *v)
+void DBI_concat_numeric(class QoreString *str, const AbstractQoreNode *v)
 {
    if (is_nothing(v) || is_null(v))
    {
@@ -379,7 +379,7 @@ void DBI_concat_numeric(class QoreString *str, const QoreNode *v)
    str->sprintf("%lld", v->getAsBigInt());
 }
 
-int DBI_concat_string(class QoreString *str, const QoreNode *v, class ExceptionSink *xsink)
+int DBI_concat_string(class QoreString *str, const AbstractQoreNode *v, class ExceptionSink *xsink)
 {
    if (is_nothing(v) || is_null(v))
       return 0;
@@ -479,7 +479,7 @@ class QoreHashNode *parseDatasource(const char *ds, class ExceptionSink *xsink)
    return h.release();
 }
 
-class QoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -489,12 +489,12 @@ class QoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *xsi
    return parseDatasource(p0->getBuffer(), xsink);
 }
 
-class QoreNode *f_getDBIDriverList(const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *f_getDBIDriverList(const QoreListNode *params, ExceptionSink *xsink)
 {
    return DBI.getDriverList();
 }
 
-class QoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -508,7 +508,7 @@ class QoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, Excepti
    return dd->getCapList();
 }
 
-class QoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 

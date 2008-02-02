@@ -35,7 +35,7 @@ class QoreClass *QC_QStyleOptionViewItemV2 = 0;
 //QStyleOptionViewItemV2 ( const QStyleOptionViewItem & other )
 static void QSTYLEOPTIONVIEWITEMV2_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QSTYLEOPTIONVIEWITEMV2, new QoreQStyleOptionViewItemV2());
       return;

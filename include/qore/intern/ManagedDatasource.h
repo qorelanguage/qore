@@ -79,10 +79,10 @@ public:
    DLLLOCAL virtual void destructor(class ExceptionSink *xsink);
    DLLLOCAL virtual void deref(class ExceptionSink *xsink);
    DLLLOCAL virtual void deref();
-   DLLLOCAL class QoreNode *select(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL class QoreNode *selectRow(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL class QoreNode *selectRows(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL class QoreNode *exec(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL class AbstractQoreNode *select(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL class AbstractQoreNode *selectRow(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL class AbstractQoreNode *selectRows(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL class AbstractQoreNode *exec(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
    DLLLOCAL int commit(ExceptionSink *xsink);
    DLLLOCAL int rollback(ExceptionSink *xsink);
    DLLLOCAL int open(ExceptionSink *xsink);
@@ -94,18 +94,18 @@ public:
    DLLLOCAL void setPendingDBName(const char *d);
    DLLLOCAL void setPendingDBEncoding(const char *c);
    DLLLOCAL void setPendingHostName(const char *h);
-   DLLLOCAL QoreNode *getPendingUsername();
-   DLLLOCAL QoreNode *getPendingPassword();
-   DLLLOCAL QoreNode *getPendingDBName();
-   DLLLOCAL QoreNode *getPendingDBEncoding();
-   DLLLOCAL QoreNode *getPendingHostName();
+   DLLLOCAL AbstractQoreNode *getPendingUsername();
+   DLLLOCAL AbstractQoreNode *getPendingPassword();
+   DLLLOCAL AbstractQoreNode *getPendingDBName();
+   DLLLOCAL AbstractQoreNode *getPendingDBEncoding();
+   DLLLOCAL AbstractQoreNode *getPendingHostName();
    DLLLOCAL void setTransactionLockTimeout(int t_ms);
    DLLLOCAL int getTransactionLockTimeout();
    DLLLOCAL void beginTransaction(class ExceptionSink *xsink);
    DLLLOCAL void setAutoCommit(bool ac);   
    DLLLOCAL ManagedDatasource *copy();
-   DLLLOCAL class QoreNode *getServerVersion(class ExceptionSink *xsink);
-   DLLLOCAL class QoreNode *getClientVersion(class ExceptionSink *xsink);
+   DLLLOCAL class AbstractQoreNode *getServerVersion(class ExceptionSink *xsink);
+   DLLLOCAL class AbstractQoreNode *getClientVersion(class ExceptionSink *xsink);
 };
 
 #endif

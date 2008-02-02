@@ -71,7 +71,7 @@ const char *ComplexContextrefNode::getTypeName() const
 }
 
 // eval(): return value requires a deref(xsink)
-QoreNode *ComplexContextrefNode::eval(class ExceptionSink *xsink) const
+AbstractQoreNode *ComplexContextrefNode::eval(class ExceptionSink *xsink) const
 {
    int count = 0;
 

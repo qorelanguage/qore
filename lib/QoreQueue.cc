@@ -25,7 +25,7 @@
 
 #include <sys/time.h>
 
-QoreQueueNode::QoreQueueNode(QoreNode *n) : node(n)
+QoreQueueNode::QoreQueueNode(AbstractQoreNode *n) : node(n)
 { 
 }
 
@@ -40,7 +40,7 @@ QoreQueue::QoreQueue() : head(0), tail(0), len(0), waiting(0)
 {
 }
 
-QoreQueue::QoreQueue(QoreNode *n) : waiting(0)
+QoreQueue::QoreQueue(AbstractQoreNode *n) : waiting(0)
 {
    head = new QoreQueueNode(n);
    head->next = NULL; 
@@ -59,7 +59,7 @@ QoreQueue::~QoreQueue()
    traceout("QoreQueue::~QoreQueue()");
 }
 
-void QoreQueue::push(QoreNode *n)
+void QoreQueue::push(AbstractQoreNode *n)
 {
    AutoLocker al(&l);
    if (len == Queue_Deleted)
@@ -94,7 +94,7 @@ void QoreQueue::push(QoreNode *n)
    len++;
 }
 
-void QoreQueue::insert(QoreNode *n)
+void QoreQueue::insert(AbstractQoreNode *n)
 {
    AutoLocker al(&l);
    if (len == Queue_Deleted)
@@ -129,7 +129,7 @@ void QoreQueue::insert(QoreNode *n)
    len++;
 }
 
-QoreNode *QoreQueue::shift(class ExceptionSink *xsink, int timeout_ms, bool *to)
+AbstractQoreNode *QoreQueue::shift(class ExceptionSink *xsink, int timeout_ms, bool *to)
 {
    SafeLocker sl(&l);
    // if there is no data, then wait for condition variable
@@ -169,14 +169,14 @@ QoreNode *QoreQueue::shift(class ExceptionSink *xsink, int timeout_ms, bool *to)
    
    len--;
    sl.unlock();
-   QoreNode *rv = n->node;
+   AbstractQoreNode *rv = n->node;
    n->node = NULL;
    n->del(NULL);
    printd(5, "QoreQueue::shift() %08p\n", n);
    return rv;
 }
 
-QoreNode *QoreQueue::pop(class ExceptionSink *xsink, int timeout_ms, bool *to)
+AbstractQoreNode *QoreQueue::pop(class ExceptionSink *xsink, int timeout_ms, bool *to)
 {
    SafeLocker sl(&l);
    // if there is no data, then wait for condition variable
@@ -216,7 +216,7 @@ QoreNode *QoreQueue::pop(class ExceptionSink *xsink, int timeout_ms, bool *to)
    
    len--;
    sl.unlock();
-   QoreNode *rv = n->node;
+   AbstractQoreNode *rv = n->node;
    n->node = NULL;
    n->del(NULL);
    printd(5, "QoreQueue::shift() %08p\n", n);

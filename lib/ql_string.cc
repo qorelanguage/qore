@@ -27,9 +27,9 @@
 #include <string.h>
 
 // retuns number of characters in a string
-static class QoreNode *f_length(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_length(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -47,9 +47,9 @@ static class QoreNode *f_length(const QoreListNode *params, ExceptionSink *xsink
 }
 
 // retuns number of bytes in a string
-static class QoreNode *f_strlen(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_strlen(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -58,7 +58,7 @@ static class QoreNode *f_strlen(const QoreListNode *params, ExceptionSink *xsink
    return new QoreBigIntNode(temp->strlen());
 }
 
-static class QoreNode *f_tolower(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_tolower(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -75,7 +75,7 @@ static class QoreNode *f_tolower(const QoreListNode *params, ExceptionSink *xsin
    return rv;
 }
 
-static class QoreNode *f_toupper(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_toupper(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -93,15 +93,15 @@ static class QoreNode *f_toupper(const QoreListNode *params, ExceptionSink *xsin
 }
 
 // syntax substr(string, start[, length]) - note 1st character is 0, not 1
-static class QoreNode *f_substr(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_substr(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0, *p1;
+   AbstractQoreNode *p0, *p1;
 
    if (is_nothing(p0 = get_param(params, 0)) || is_nothing(p1 = get_param(params, 1)))
       return 0;
 
    QoreStringNodeValueHelper temp(p0);
-   QoreNode *p2;
+   AbstractQoreNode *p2;
    if ((p2 = get_param(params, 2)))
       return temp->substr(p1->getAsInt(), p2->getAsInt());
 
@@ -121,9 +121,9 @@ static inline int index_intern(const char *haystack, const char *needle, int pos
  * of substring within string, optionally starting at position if available
  * returns -1 if not found
  */
-static class QoreNode *f_index(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_index(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1, *p2;
+   class AbstractQoreNode *p0, *p1, *p2;
 
    if (!(p0 = get_param(params, 0)) ||
        !(p1 = get_param(params, 1)))
@@ -190,9 +190,9 @@ static class QoreNode *f_index(const QoreListNode *params, ExceptionSink *xsink)
  * returns -1 if not found
  * see index() for the character position
  */
-static class QoreNode *f_bindex(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_bindex(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1, *p2;
+   class AbstractQoreNode *p0, *p1, *p2;
 
    if (!(p0 = get_param(params, 0)) ||
        !(p1 = get_param(params, 1)))
@@ -247,9 +247,9 @@ static inline int rindex_intern(const char *haystack, int hlen, const char *need
  * returns the index position in bytes (starting with 0) of the first occurrence
  * of substring within string, searching from the end of the string
  */
-static class QoreNode *f_brindex(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_brindex(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1, *p2;
+   class AbstractQoreNode *p0, *p1, *p2;
  
    if (!(p0 = get_param(params, 0)) || !(p1 = get_param(params, 1)))
       return new QoreBigIntNode(-1);
@@ -272,9 +272,9 @@ static class QoreNode *f_brindex(const QoreListNode *params, ExceptionSink *xsin
 }
 
 // syntax: rindex(string, substring, [pos])
-static class QoreNode *f_rindex(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_rindex(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1, *p2;
+   class AbstractQoreNode *p0, *p1, *p2;
 
    if (!(p0 = get_param(params, 0)) || !(p1 = get_param(params, 1)))
       return new QoreBigIntNode(-1);
@@ -324,9 +324,9 @@ static class QoreNode *f_rindex(const QoreListNode *params, ExceptionSink *xsink
 
 // syntax: ord(string, [offset = 0])
 // note that ord() only works on byte offsets and gives byte values
-static class QoreNode *f_ord(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_ord(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
    
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -336,7 +336,7 @@ static class QoreNode *f_ord(const QoreListNode *params, ExceptionSink *xsink)
    if (!str->strlen())
       return 0;
 
-   class QoreNode *p1 = get_param(params, 1);
+   class AbstractQoreNode *p1 = get_param(params, 1);
    int offset = p1 ? p1->getAsInt() : 0;
 
    if (offset >= str->strlen())
@@ -345,9 +345,9 @@ static class QoreNode *f_ord(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreBigIntNode((str->getBuffer()[offset]));
 }
 
-static class QoreNode *f_chr(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_chr(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -356,7 +356,7 @@ static class QoreNode *f_chr(const QoreListNode *params, ExceptionSink *xsink)
 }
 
 // syntax: split(pattern, string);
-static class QoreNode *f_split(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_split(const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *str, *pattern;
    QoreStringNode *p0, *p1;
@@ -387,7 +387,7 @@ static class QoreNode *f_split(const QoreListNode *params, ExceptionSink *xsink)
    return l;
 }
 
-static class QoreNode *f_get_encoding(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_get_encoding(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -396,7 +396,7 @@ static class QoreNode *f_get_encoding(const QoreListNode *params, ExceptionSink 
 }
 
 // usage: convert_encoding(string, new_encoding);
-static class QoreNode *f_convert_encoding(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_convert_encoding(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0, *p1;
    if (!(p0 = test_string_param(params, 0)) ||
@@ -406,14 +406,14 @@ static class QoreNode *f_convert_encoding(const QoreListNode *params, ExceptionS
    return p0->convertEncoding(QEM.findCreate(p1), xsink);
 }
 
-static class QoreNode *f_regex(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_regex(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0, *p1;
    if (!(p0 = test_string_param(params, 0)) ||
        !(p1 = test_string_param(params, 1)))
        return NULL;
    
-   QoreNode *p2 = get_param(params, 2);
+   AbstractQoreNode *p2 = get_param(params, 2);
    int options = p2 ? p2->getAsInt() : 0;
 
    QoreRegexNode qr(p1, options, xsink);
@@ -424,7 +424,7 @@ static class QoreNode *f_regex(const QoreListNode *params, ExceptionSink *xsink)
 }
 
 // syntax: regex_subst(string, pattern, substitution_pattern, options)
-static class QoreNode *f_regex_subst(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_regex_subst(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0, *p1, *p2;
    if (!(p0 = test_string_param(params, 0)) ||
@@ -432,7 +432,7 @@ static class QoreNode *f_regex_subst(const QoreListNode *params, ExceptionSink *
        !(p2 = test_string_param(params, 2)))
        return 0;
 
-   QoreNode *p3 = get_param(params, 3);
+   AbstractQoreNode *p3 = get_param(params, 3);
    int64 options = p3 ? p3->getAsBigInt() : 0;
 
    bool global;
@@ -453,14 +453,14 @@ static class QoreNode *f_regex_subst(const QoreListNode *params, ExceptionSink *
    return qrs.exec(p0, p2, xsink);
 }
 
-static class QoreNode *f_regex_extract(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_regex_extract(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0, *p1;
    if (!(p0 = test_string_param(params, 0)) ||
        !(p1 = test_string_param(params, 1)))
       return 0;
    
-   QoreNode *p2 = get_param(params, 2);
+   AbstractQoreNode *p2 = get_param(params, 2);
    int options = p2 ? p2->getAsInt() : 0;
    
    QoreRegexNode qr(p1, options, xsink);
@@ -471,7 +471,7 @@ static class QoreNode *f_regex_extract(const QoreListNode *params, ExceptionSink
 }
 
 // usage: replace(string, substring, new substring)
-static class QoreNode *f_replace(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_replace(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0, *p1, *p2;
    if (!(p0 = test_string_param(params, 0)) ||
@@ -513,7 +513,7 @@ static class QoreNode *f_replace(const QoreListNode *params, ExceptionSink *xsin
 }
 
 // perl-style join function
-static class QoreNode *f_join(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_join(const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
@@ -536,7 +536,7 @@ static class QoreNode *f_join(const QoreListNode *params, ExceptionSink *xsink)
 
    for (int i = n; i < l->size(); i++)
    {
-      class QoreNode *p = l->retrieve_entry(i);
+      class AbstractQoreNode *p = l->retrieve_entry(i);
       if (p)
       {
 	 QoreStringValueHelper t(p);	 
@@ -548,9 +548,9 @@ static class QoreNode *f_join(const QoreListNode *params, ExceptionSink *xsink)
    return str;
 }
 
-static class QoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);   
+   class AbstractQoreNode *p = get_param(params, 0);   
    if (!p)
       return 0;
 
@@ -580,9 +580,9 @@ static class QoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsink)
    return *vp;
 }
 
-static class QoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0 = get_param(params, 0);   
+   class AbstractQoreNode *p0 = get_param(params, 0);   
    if (!p0)
       return 0;
    class QoreStringNode *p1 = test_string_param(params, 1);

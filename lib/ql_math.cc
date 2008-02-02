@@ -27,9 +27,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static class QoreNode *f_round(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_round(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -37,9 +37,9 @@ static class QoreNode *f_round(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(round(p0->getAsFloat()));
 }
 
-static class QoreNode *f_ceil(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_ceil(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -47,9 +47,9 @@ static class QoreNode *f_ceil(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(ceil(p0->getAsFloat()));
 }
 
-static class QoreNode *f_floor(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_floor(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -57,9 +57,9 @@ static class QoreNode *f_floor(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(floor(p0->getAsFloat()));
 }
 
-static class QoreNode *f_pow(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_pow(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1;
+   class AbstractQoreNode *p0, *p1;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -83,9 +83,9 @@ static class QoreNode *f_pow(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(pow(x, y));
 }
 
-static class QoreNode *f_abs(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_abs(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const QoreNode *p0;
+   const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -99,9 +99,9 @@ static class QoreNode *f_abs(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(fabs(p0->getAsFloat()));
 }
 
-static class QoreNode *f_hypot(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_hypot(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const QoreNode *p0, *p1;
+   const AbstractQoreNode *p0, *p1;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -112,9 +112,9 @@ static class QoreNode *f_hypot(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(hypot(p0->getAsFloat(), p1->getAsFloat()));
 }
 
-static class QoreNode *f_sqrt(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_sqrt(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const QoreNode *p0;
+   const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -122,9 +122,9 @@ static class QoreNode *f_sqrt(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(sqrt(p0->getAsFloat()));
 }
 
-static class QoreNode *f_cbrt(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_cbrt(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -132,9 +132,9 @@ static class QoreNode *f_cbrt(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(cbrt(p0->getAsFloat()));
 }
 
-static class QoreNode *f_sin(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_sin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -142,9 +142,9 @@ static class QoreNode *f_sin(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(sin(p0->getAsFloat()));
 }
 
-static class QoreNode *f_cos(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_cos(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -152,9 +152,9 @@ static class QoreNode *f_cos(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(cos(p0->getAsFloat()));
 }
 
-static class QoreNode *f_tan(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_tan(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -162,9 +162,9 @@ static class QoreNode *f_tan(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(tan(p0->getAsFloat()));
 }
 
-static class QoreNode *f_asin(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_asin(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -172,9 +172,9 @@ static class QoreNode *f_asin(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(asin(p0->getAsFloat()));
 }
 
-static class QoreNode *f_acos(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_acos(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -182,9 +182,9 @@ static class QoreNode *f_acos(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(acos(p0->getAsFloat()));
 }
 
-static class QoreNode *f_atan(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_atan(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -192,9 +192,9 @@ static class QoreNode *f_atan(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(atan(p0->getAsFloat()));
 }
 
-static class QoreNode *f_sinh(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_sinh(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -202,9 +202,9 @@ static class QoreNode *f_sinh(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(sinh(p0->getAsFloat()));
 }
 
-static class QoreNode *f_cosh(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_cosh(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -212,9 +212,9 @@ static class QoreNode *f_cosh(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(cosh(p0->getAsFloat()));
 }
 
-static class QoreNode *f_tanh(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_tanh(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -222,9 +222,9 @@ static class QoreNode *f_tanh(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(tanh(p0->getAsFloat()));
 }
 
-static class QoreNode *f_nlog(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_nlog(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -232,9 +232,9 @@ static class QoreNode *f_nlog(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(log(p0->getAsFloat()));
 }
 
-static class QoreNode *f_log10(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_log10(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -243,9 +243,9 @@ static class QoreNode *f_log10(const QoreListNode *params, ExceptionSink *xsink)
 }
 
 #if 0
-static class QoreNode *f_log2(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_log2(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -254,9 +254,9 @@ static class QoreNode *f_log2(const QoreListNode *params, ExceptionSink *xsink)
 }
 #endif 
 
-static class QoreNode *f_log1p(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_log1p(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -264,9 +264,9 @@ static class QoreNode *f_log1p(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(log1p(p0->getAsFloat()));
 }
 
-static class QoreNode *f_logb(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_logb(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -275,9 +275,9 @@ static class QoreNode *f_logb(const QoreListNode *params, ExceptionSink *xsink)
 }
 
 
-static class QoreNode *f_exp(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_exp(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -285,9 +285,9 @@ static class QoreNode *f_exp(const QoreListNode *params, ExceptionSink *xsink)
    return new QoreFloatNode(exp(p0->getAsFloat()));
 }
 
-static class QoreNode *f_exp2(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_exp2(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -299,9 +299,9 @@ static class QoreNode *f_exp2(const QoreListNode *params, ExceptionSink *xsink)
 #endif
 }
 
-static class QoreNode *f_expm1(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_expm1(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0;
+   class AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;
@@ -310,10 +310,10 @@ static class QoreNode *f_expm1(const QoreListNode *params, ExceptionSink *xsink)
 }
 
 // syntax: format_number(".,3", <number>);
-static class QoreNode *f_format_number(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_format_number(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
-   class QoreNode *p1;
+   class AbstractQoreNode *p1;
    int decimals = 0, neg = 1, len;
    int64 tr, bi, mi, th, val;
    char thousands_sep, decimal_sep = '.', chr[40], str[40], dec[20];

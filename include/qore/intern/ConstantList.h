@@ -47,8 +47,8 @@ class ConstantList
 
    public:
       DLLLOCAL ~ConstantList();
-      DLLLOCAL void add(const char *name, class QoreNode *value);
-      DLLLOCAL class QoreNode *find(const char *name);
+      DLLLOCAL void add(const char *name, class AbstractQoreNode *value);
+      DLLLOCAL class AbstractQoreNode *find(const char *name);
       DLLLOCAL class ConstantList *copy();
       DLLLOCAL void reset();
       DLLLOCAL void assimilate(class ConstantList *n, class ConstantList *otherlist, const char *nsname);

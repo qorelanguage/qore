@@ -76,16 +76,16 @@ class QoreTypeManager : public qore_type_map_t
 
 DLLEXPORT extern class QoreTypeManager QTM;
 
-DLLEXPORT bool compareHard(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink);
-DLLEXPORT bool compareSoft(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink);
+DLLEXPORT bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
+DLLEXPORT bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
 
-static inline class QoreNode *boolean_false()
+static inline class AbstractQoreNode *boolean_false()
 {
    False->ref();
    return False;
 }
 
-static inline class QoreNode *boolean_true()
+static inline class AbstractQoreNode *boolean_true()
 {
    True->ref();
    return True;
@@ -96,7 +96,7 @@ static inline class QoreBigIntNode *zero()
    return new QoreBigIntNode();
 }
 
-static inline class QoreNode *zero_float()
+static inline class AbstractQoreNode *zero_float()
 {
    return new QoreFloatNode(0.0);
 }

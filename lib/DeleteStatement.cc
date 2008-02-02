@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/DeleteStatement.h>
 
-DeleteStatement::DeleteStatement(int start_line, int end_line, class QoreNode *v) : AbstractStatement(start_line, end_line)
+DeleteStatement::DeleteStatement(int start_line, int end_line, class AbstractQoreNode *v) : AbstractStatement(start_line, end_line)
 {
    var = v;
 }
@@ -35,7 +35,7 @@ DeleteStatement::~DeleteStatement()
       var->deref(NULL);
 }
 
-int DeleteStatement::execImpl(class QoreNode **return_value, ExceptionSink *xsink)
+int DeleteStatement::execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
    delete_var_node(var, xsink);
    return 0;

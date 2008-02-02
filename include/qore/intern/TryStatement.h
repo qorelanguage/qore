@@ -35,7 +35,7 @@ class TryStatement : public AbstractStatement
       char *param;
       lvh_t id;
       
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
    public:

@@ -181,7 +181,7 @@
 
 QoreType *NT_BRUSHSTYLE = 0, *NT_PENSTYLE = 0;
 
-QoreNode *C_Clipboard = 0;
+AbstractQoreNode *C_Clipboard = 0;
 
 static class QoreStringNode *qt_module_init();
 static void qt_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);
@@ -200,7 +200,7 @@ DLLEXPORT qore_module_ns_init_t qore_module_ns_init = qt_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = qt_module_delete;
 #endif
 
-int get_qdate(const QoreNode *n, QDate &date, class ExceptionSink *xsink)
+int get_qdate(const AbstractQoreNode *n, QDate &date, class ExceptionSink *xsink)
 {
    {
       const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(n);
@@ -236,7 +236,7 @@ int get_qdate(const QoreNode *n, QDate &date, class ExceptionSink *xsink)
    return 0;
 }
 
-int get_qdatetime(const QoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
+int get_qdatetime(const AbstractQoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
 {
    if (n) {
       {
@@ -284,7 +284,7 @@ int get_qdatetime(const QoreNode *n, QDateTime &dt, class ExceptionSink *xsink)
    return -1;
 }
 
-int get_qtime(const QoreNode *n, QTime &time, class ExceptionSink *xsink)
+int get_qtime(const AbstractQoreNode *n, QTime &time, class ExceptionSink *xsink)
 {
    {
       const DateTimeNode *qdt = dynamic_cast<const DateTimeNode *>(n);
@@ -320,7 +320,7 @@ int get_qtime(const QoreNode *n, QTime &time, class ExceptionSink *xsink)
    return 0;
 }
 
-int get_qbytearray(const QoreNode *n, QByteArray &ba, class ExceptionSink *xsink, bool suppress_exception)
+int get_qbytearray(const AbstractQoreNode *n, QByteArray &ba, class ExceptionSink *xsink, bool suppress_exception)
 {
    const QoreType *ntype = n ? n->getType() : 0;
 
@@ -359,7 +359,7 @@ int get_qbytearray(const QoreNode *n, QByteArray &ba, class ExceptionSink *xsink
    return -1;
 }
 
-int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, bool suppress_exception)
+int get_qvariant(const AbstractQoreNode *n, QVariant &qva, class ExceptionSink *xsink, bool suppress_exception)
 {
    //printd(5, "get_variant() n=%08p %s\n", n, n ? n->getTypeName() : "n/a");
    if (n) {
@@ -416,7 +416,7 @@ int get_qvariant(const QoreNode *n, QVariant &qva, class ExceptionSink *xsink, b
    return -1;
 }
 
-int get_qchar(const QoreNode *n, QChar &c, class ExceptionSink *xsink, bool suppress_exception)
+int get_qchar(const AbstractQoreNode *n, QChar &c, class ExceptionSink *xsink, bool suppress_exception)
 {
    const QoreType *ntype = n ? n->getType() : 0;
    
@@ -449,7 +449,7 @@ int get_qchar(const QoreNode *n, QChar &c, class ExceptionSink *xsink, bool supp
    return 0;
 }
 
-int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception)
+int get_qstring(const AbstractQoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception)
 {
    const QoreType *ntype = n ? n->getType() : 0;
 
@@ -514,7 +514,7 @@ int get_qstring(const QoreNode *n, QString &str, class ExceptionSink *xsink, boo
    return 0;
 }
 
-int get_qkeysequence(const QoreNode *n, QKeySequence &ks, class ExceptionSink *xsink, bool suppress_exception)
+int get_qkeysequence(const AbstractQoreNode *n, QKeySequence &ks, class ExceptionSink *xsink, bool suppress_exception)
 {
    const QoreType *ntype = n ? n->getType() : 0;
 
@@ -544,7 +544,7 @@ int get_qkeysequence(const QoreNode *n, QKeySequence &ks, class ExceptionSink *x
    }
 
    if (ntype == NT_INT) {
-      QKeySequence::StandardKey key = (QKeySequence::StandardKey)(const_cast<QoreNode *>(n))->getAsInt();
+      QKeySequence::StandardKey key = (QKeySequence::StandardKey)(const_cast<AbstractQoreNode *>(n))->getAsInt();
       ks = key;
       return 0;
    }
@@ -553,7 +553,7 @@ int get_qkeysequence(const QoreNode *n, QKeySequence &ks, class ExceptionSink *x
    return -1;
 }
 
-int get_qbrush(const QoreNode *n, QBrush &brush, class ExceptionSink *xsink)
+int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xsink)
 {
    //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->getTypeName() : "n/a", n && n->type == NT_OBJECT ? n->getClass()->getName() : "n/a");
    if (n) {
@@ -614,14 +614,14 @@ int get_qbrush(const QoreNode *n, QBrush &brush, class ExceptionSink *xsink)
    return -1;
 }
 
-class QoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data)
+class AbstractQoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data)
 {
    QoreObject *qore_object = new QoreObject(qclass, getProgram());
    qore_object->setPrivate(qclass->getID(), data);
    return qore_object;
 }
 
-class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink)
+class AbstractQoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink)
 {
    if (!qs) {
       xsink->raiseException("QSTYLEFACTORY-CREATE-ERROR", "unable to create style", style.toUtf8().data());
@@ -698,7 +698,7 @@ class QoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *x
    return obj;
 }
 
-class QoreNode *return_qstyleoption(const QStyleOption *qso)
+class AbstractQoreNode *return_qstyleoption(const QStyleOption *qso)
 {
    if (!qso)
       return 0;
@@ -762,7 +762,7 @@ class QoreNode *return_qstyleoption(const QStyleOption *qso)
    return return_object(QC_QStyleOption, new QoreQStyleOption(*qso));
 }
 
-class QoreNode *return_qvariant(const QVariant &qv)
+class AbstractQoreNode *return_qvariant(const QVariant &qv)
 {
    QVariant::Type type = qv.type();
    switch (type) {
@@ -863,7 +863,7 @@ class QoreNode *return_qvariant(const QVariant &qv)
 }
 
 // here QWidget subclasses can be determined if necessary
-static QoreNode *return_qwidget_intern(QWidget *w)
+static AbstractQoreNode *return_qwidget_intern(QWidget *w)
 {
    // assign as QWidget
    QoreObject *qo = new QoreObject(QC_QWidget, getProgram());
@@ -871,8 +871,8 @@ static QoreNode *return_qwidget_intern(QWidget *w)
    return qo;
 }
 
-// returns a QoreNode tagged as the appropriate QObject subclass
-class QoreNode *return_qobject(QObject *o)
+// returns a AbstractQoreNode tagged as the appropriate QObject subclass
+class AbstractQoreNode *return_qobject(QObject *o)
 {
    if (!o)
       return 0;
@@ -896,8 +896,8 @@ class QoreNode *return_qobject(QObject *o)
    return qo;
 }
 
-// returns a QoreNode tagged as the appropriate QWidget subclass
-class QoreNode *return_qwidget(QWidget *w)
+// returns a AbstractQoreNode tagged as the appropriate QWidget subclass
+class AbstractQoreNode *return_qwidget(QWidget *w)
 {
    if (!w)
       return 0;
@@ -913,7 +913,7 @@ class QoreNode *return_qwidget(QWidget *w)
    return return_qwidget_intern(w);
 }
 
-class QoreNode *return_qaction(QAction *action)
+class AbstractQoreNode *return_qaction(QAction *action)
 {
    if (!action)
       return 0;
@@ -929,7 +929,7 @@ class QoreNode *return_qaction(QAction *action)
    return rv_obj;
 }
 
-class QoreNode *return_qevent(QEvent *event)
+class AbstractQoreNode *return_qevent(QEvent *event)
 {
    if (!event)
       return 0;
@@ -1056,7 +1056,7 @@ class QoreNode *return_qevent(QEvent *event)
    return return_object(QC_QEvent, new QoreQEvent(*event));
 }
 
-static class QoreNode *f_QObject_connect(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_QObject_connect(const QoreListNode *params, class ExceptionSink *xsink)
 {
    QoreObject *p = test_object_param(params, 0);
    class AbstractPrivateData *spd = p ? p->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
@@ -1111,7 +1111,7 @@ static class QoreNode *f_QObject_connect(const QoreListNode *params, class Excep
    return 0;
 }
 
-static class QoreNode *f_SLOT(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_SLOT(const QoreListNode *params, class ExceptionSink *xsink)
 {
    // get slot name
    QoreStringNode *p = test_string_param(params, 0);
@@ -1129,7 +1129,7 @@ static class QoreNode *f_SLOT(const QoreListNode *params, class ExceptionSink *x
    return str;
 }
 
-static class QoreNode *f_SIGNAL(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_SIGNAL(const QoreListNode *params, class ExceptionSink *xsink)
 {
    // get slot name
    QoreStringNode *p = test_string_param(params, 0);
@@ -1147,7 +1147,7 @@ static class QoreNode *f_SIGNAL(const QoreListNode *params, class ExceptionSink 
    return str;
 }
 
-static class QoreNode *f_TR(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_TR(const QoreListNode *params, class ExceptionSink *xsink)
 {
    // get slot name
    QoreStringNode *p = test_string_param(params, 0);
@@ -1159,12 +1159,12 @@ static class QoreNode *f_TR(const QoreListNode *params, class ExceptionSink *xsi
    return new QoreStringNode(QObject::tr(p->getBuffer()).toUtf8().data(), QCS_UTF8);
 }
 
-static class QoreNode *f_QAPP(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_QAPP(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return get_qore_qapp();
 }
 
-static class QoreNode *f_qDebug(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_qDebug(const QoreListNode *params, class ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
@@ -1174,7 +1174,7 @@ static class QoreNode *f_qDebug(const QoreListNode *params, class ExceptionSink 
    return 0;
 }
 
-static class QoreNode *f_qWarning(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_qWarning(const QoreListNode *params, class ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
@@ -1184,7 +1184,7 @@ static class QoreNode *f_qWarning(const QoreListNode *params, class ExceptionSin
    return 0;
 }
 
-static class QoreNode *f_qCritical(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_qCritical(const QoreListNode *params, class ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
@@ -1194,7 +1194,7 @@ static class QoreNode *f_qCritical(const QoreListNode *params, class ExceptionSi
    return 0;
 }
 
-static class QoreNode *f_qFatal(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_qFatal(const QoreListNode *params, class ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
@@ -1204,25 +1204,25 @@ static class QoreNode *f_qFatal(const QoreListNode *params, class ExceptionSink 
    return 0;
 }
 
-static class QoreNode *f_qRound(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_qRound(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
+   class AbstractQoreNode *p = get_param(params, 0);
    return new QoreBigIntNode(qRound(p ? p->getAsFloat() : 0.0));
 }
 
-static class QoreNode *f_qsrand(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_qsrand(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
+   class AbstractQoreNode *p = get_param(params, 0);
    qsrand(p ? p->getAsInt() : 0);
    return 0;
 }
 
-static class QoreNode *f_qrand(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_qrand(const QoreListNode *params, class ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qrand());
 }
 
-static QoreNode *f_QToolTip_font(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QToolTip_font(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(QToolTip::font());
@@ -1231,14 +1231,14 @@ static QoreNode *f_QToolTip_font(const QoreListNode *params, ExceptionSink *xsin
 }
 
 //void hideText ()
-static QoreNode *f_QToolTip_hideText(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QToolTip_hideText(const QoreListNode *params, ExceptionSink *xsink)
 {
    QToolTip::hideText();
    return 0;
 }
 
 //QPalette palette ()
-static QoreNode *f_QToolTip_palette(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QToolTip_palette(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
    QoreQPalette *q_qp = new QoreQPalette(QToolTip::palette());
@@ -1247,7 +1247,7 @@ static QoreNode *f_QToolTip_palette(const QoreListNode *params, ExceptionSink *x
 }
 
 //void setFont ( const QFont & font )
-static QoreNode *f_QToolTip_setFont(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QToolTip_setFont(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p = test_object_param(params, 0);
    QoreQFont *font = p ? (QoreQFont *)p->getReferencedPrivateData(CID_QFONT, xsink) : 0;
@@ -1262,7 +1262,7 @@ static QoreNode *f_QToolTip_setFont(const QoreListNode *params, ExceptionSink *x
 }
 
 //void setPalette ( const QPalette & palette )
-static QoreNode *f_QToolTip_setPalette(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QToolTip_setPalette(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p = test_object_param(params, 0);
    QoreQPalette *palette = p ? (QoreQPalette *)p->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
@@ -1279,7 +1279,7 @@ static QoreNode *f_QToolTip_setPalette(const QoreListNode *params, ExceptionSink
 
 //void showText ( const QPoint & pos, const QString & text, QWidget * w, const QRect & rect ) 
 //void showText ( const QPoint & pos, const QString & text, QWidget * w = 0 )
-static class QoreNode *f_QToolTip_showText(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_QToolTip_showText(const QoreListNode *params, class ExceptionSink *xsink)
 {
    QoreObject *p = test_object_param(params, 0);
    QoreQPoint *pos = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
@@ -1326,9 +1326,9 @@ static class QoreNode *f_QToolTip_showText(const QoreListNode *params, class Exc
 }
 
 //QStyle * create ( const QString & key )
-static QoreNode *f_QStyleFactory_create(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QStyleFactory_create(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
@@ -1337,7 +1337,7 @@ static QoreNode *f_QStyleFactory_create(const QoreListNode *params, ExceptionSin
 }
 
 //QStringList keys ()
-static QoreNode *f_QStyleFactory_keys(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QStyleFactory_keys(const QoreListNode *params, ExceptionSink *xsink)
 {
    QStringList strlist_rv = QStyleFactory::keys();
    QoreListNode *l = new QoreListNode();

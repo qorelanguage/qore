@@ -165,7 +165,7 @@ class QoreTibrvCmTransport : public QoreTibrvTransport
 	 return 0;
       }
 
-      inline class QoreNode *reviewLedger(const char *subject, class ExceptionSink *xsink);
+      inline class AbstractQoreNode *reviewLedger(const char *subject, class ExceptionSink *xsink);
 
       inline int removeSendState(const char *subject, class ExceptionSink *xsink)
       {
@@ -250,7 +250,7 @@ class QoreTibrvCmReviewCallback : public TibrvCmReviewCallback
       }
 };
 
-inline class QoreNode *QoreTibrvCmTransport::reviewLedger(const char *subject, class ExceptionSink *xsink)
+inline class AbstractQoreNode *QoreTibrvCmTransport::reviewLedger(const char *subject, class ExceptionSink *xsink)
 {
    class QoreTibrvCmReviewCallback cb;
    TibrvStatus status = cmTransport.reviewLedger(&cb, subject, this);

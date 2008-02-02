@@ -37,7 +37,7 @@ class QoreClass *QC_QTableWidget = 0;
 //QTableWidget ( int rows, int columns, QWidget * parent = 0 )
 static void QTABLEWIDGET_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
       QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
@@ -68,9 +68,9 @@ static void QTABLEWIDGET_copy(class QoreObject *self, class QoreObject *old, cla
 }
 
 //QWidget * cellWidget ( int row, int column ) const
-static QoreNode *QTABLEWIDGET_cellWidget(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_cellWidget(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -85,9 +85,9 @@ static QoreNode *QTABLEWIDGET_cellWidget(QoreObject *self, QoreQTableWidget *qtw
 }
 
 //void closePersistentEditor ( QTableWidgetItem * item )
-static QoreNode *QTABLEWIDGET_closePersistentEditor(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_closePersistentEditor(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
@@ -100,9 +100,9 @@ static QoreNode *QTABLEWIDGET_closePersistentEditor(QoreObject *self, QoreQTable
 }
 
 //int column ( const QTableWidgetItem * item ) const
-static QoreNode *QTABLEWIDGET_column(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_column(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
@@ -114,19 +114,19 @@ static QoreNode *QTABLEWIDGET_column(QoreObject *self, QoreQTableWidget *qtw, co
 }
 
 //int columnCount () const
-static QoreNode *QTABLEWIDGET_columnCount(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_columnCount(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qtw->qobj->columnCount());
 }
 
 //int currentColumn () const
-static QoreNode *QTABLEWIDGET_currentColumn(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_currentColumn(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qtw->qobj->currentColumn());
 }
 
 //QTableWidgetItem * currentItem () const
-static QoreNode *QTABLEWIDGET_currentItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_currentItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qtwi = new QoreObject(QC_QTableWidgetItem, getProgram());
    QoreQTableWidgetItem *q_qtwi = new QoreQTableWidgetItem(qtw->qobj->currentItem());
@@ -135,15 +135,15 @@ static QoreNode *QTABLEWIDGET_currentItem(QoreObject *self, QoreQTableWidget *qt
 }
 
 //int currentRow () const
-static QoreNode *QTABLEWIDGET_currentRow(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_currentRow(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qtw->qobj->currentRow());
 }
 
 //void editItem ( QTableWidgetItem * item )
-static QoreNode *QTABLEWIDGET_editItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_editItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
@@ -156,9 +156,9 @@ static QoreNode *QTABLEWIDGET_editItem(QoreObject *self, QoreQTableWidget *qtw, 
 }
 
 ////QList<QTableWidgetItem *> findItems ( const QString & text, Qt::MatchFlags flags ) const
-//static QoreNode *QTABLEWIDGET_findItems(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QTABLEWIDGET_findItems(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   QString text;
 //   if (get_qstring(p, text, xsink))
 //      return 0;
@@ -168,9 +168,9 @@ static QoreNode *QTABLEWIDGET_editItem(QoreObject *self, QoreQTableWidget *qtw, 
 //}
 
 //QTableWidgetItem * horizontalHeaderItem ( int column ) const
-static QoreNode *QTABLEWIDGET_horizontalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_horizontalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
 
    QTableWidgetItem *twi = qtw->qobj->horizontalHeaderItem(column);
@@ -184,9 +184,9 @@ static QoreNode *QTABLEWIDGET_horizontalHeaderItem(QoreObject *self, QoreQTableW
 }
 
 //QTableWidgetItem * item ( int row, int column ) const
-static QoreNode *QTABLEWIDGET_item(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_item(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -203,9 +203,9 @@ static QoreNode *QTABLEWIDGET_item(QoreObject *self, QoreQTableWidget *qtw, cons
 
 //QTableWidgetItem * itemAt ( const QPoint & point ) const
 //QTableWidgetItem * itemAt ( int ax, int ay ) const
-static QoreNode *QTABLEWIDGET_itemAt(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_itemAt(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
@@ -239,7 +239,7 @@ static QoreNode *QTABLEWIDGET_itemAt(QoreObject *self, QoreQTableWidget *qtw, co
 }
 
 //const QTableWidgetItem * itemPrototype () const
-static QoreNode *QTABLEWIDGET_itemPrototype(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_itemPrototype(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    const QTableWidgetItem *twi = qtw->qobj->itemPrototype();
    if (!twi)
@@ -252,9 +252,9 @@ static QoreNode *QTABLEWIDGET_itemPrototype(QoreObject *self, QoreQTableWidget *
 }
 
 //void openPersistentEditor ( QTableWidgetItem * item )
-static QoreNode *QTABLEWIDGET_openPersistentEditor(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_openPersistentEditor(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
@@ -267,9 +267,9 @@ static QoreNode *QTABLEWIDGET_openPersistentEditor(QoreObject *self, QoreQTableW
 }
 
 //void removeCellWidget ( int row, int column )
-static QoreNode *QTABLEWIDGET_removeCellWidget(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_removeCellWidget(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -278,9 +278,9 @@ static QoreNode *QTABLEWIDGET_removeCellWidget(QoreObject *self, QoreQTableWidge
 }
 
 //int row ( const QTableWidgetItem * item ) const
-static QoreNode *QTABLEWIDGET_row(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_row(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
@@ -292,27 +292,27 @@ static QoreNode *QTABLEWIDGET_row(QoreObject *self, QoreQTableWidget *qtw, const
 }
 
 //int rowCount () const
-static QoreNode *QTABLEWIDGET_rowCount(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_rowCount(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qtw->qobj->rowCount());
 }
 
 ////QList<QTableWidgetItem *> selectedItems ()
-//static QoreNode *QTABLEWIDGET_selectedItems(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QTABLEWIDGET_selectedItems(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qtw->qobj->selectedItems());
 //}
 
 ////QList<QTableWidgetSelectionRange> selectedRanges () const
-//static QoreNode *QTABLEWIDGET_selectedRanges(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QTABLEWIDGET_selectedRanges(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qtw->qobj->selectedRanges());
 //}
 
 //void setCellWidget ( int row, int column, QWidget * widget )
-static QoreNode *QTABLEWIDGET_setCellWidget(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setCellWidget(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -329,18 +329,18 @@ static QoreNode *QTABLEWIDGET_setCellWidget(QoreObject *self, QoreQTableWidget *
 }
 
 //void setColumnCount ( int columns )
-static QoreNode *QTABLEWIDGET_setColumnCount(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setColumnCount(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int columns = p ? p->getAsInt() : 0;
    qtw->qobj->setColumnCount(columns);
    return 0;
 }
 
 //void setCurrentCell ( int row, int column )
-static QoreNode *QTABLEWIDGET_setCurrentCell(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setCurrentCell(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -349,9 +349,9 @@ static QoreNode *QTABLEWIDGET_setCurrentCell(QoreObject *self, QoreQTableWidget 
 }
 
 //void setCurrentItem ( QTableWidgetItem * item )
-static QoreNode *QTABLEWIDGET_setCurrentItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setCurrentItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
@@ -364,9 +364,9 @@ static QoreNode *QTABLEWIDGET_setCurrentItem(QoreObject *self, QoreQTableWidget 
 }
 
 //void setHorizontalHeaderItem ( int column, QTableWidgetItem * item )
-static QoreNode *QTABLEWIDGET_setHorizontalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setHorizontalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
@@ -381,7 +381,7 @@ static QoreNode *QTABLEWIDGET_setHorizontalHeaderItem(QoreObject *self, QoreQTab
 }
 
 //void setHorizontalHeaderLabels ( const QStringList & labels )
-static QoreNode *QTABLEWIDGET_setHorizontalHeaderLabels(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setHorizontalHeaderLabels(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreListNode *p = test_list_param(params, 0);
    if (!p) {
@@ -403,9 +403,9 @@ static QoreNode *QTABLEWIDGET_setHorizontalHeaderLabels(QoreObject *self, QoreQT
 }
 
 //void setItem ( int row, int column, QTableWidgetItem * item )
-static QoreNode *QTABLEWIDGET_setItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -423,9 +423,9 @@ static QoreNode *QTABLEWIDGET_setItem(QoreObject *self, QoreQTableWidget *qtw, c
 }
 
 //void setItemPrototype ( const QTableWidgetItem * item )
-static QoreNode *QTABLEWIDGET_setItemPrototype(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setItemPrototype(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
@@ -438,9 +438,9 @@ static QoreNode *QTABLEWIDGET_setItemPrototype(QoreObject *self, QoreQTableWidge
 }
 
 ////void setRangeSelected ( const QTableWidgetSelectionRange & range, bool select )
-//static QoreNode *QTABLEWIDGET_setRangeSelected(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QTABLEWIDGET_setRangeSelected(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QTableWidgetSelectionRange range = p;
 //   p = get_param(params, 1);
 //   bool select = p ? p->getAsBool() : false;
@@ -449,18 +449,18 @@ static QoreNode *QTABLEWIDGET_setItemPrototype(QoreObject *self, QoreQTableWidge
 //}
 
 //void setRowCount ( int rows )
-static QoreNode *QTABLEWIDGET_setRowCount(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setRowCount(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int rows = p ? p->getAsInt() : 0;
    qtw->qobj->setRowCount(rows);
    return 0;
 }
 
 //void setVerticalHeaderItem ( int row, QTableWidgetItem * item )
-static QoreNode *QTABLEWIDGET_setVerticalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setVerticalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
@@ -475,7 +475,7 @@ static QoreNode *QTABLEWIDGET_setVerticalHeaderItem(QoreObject *self, QoreQTable
 }
 
 //void setVerticalHeaderLabels ( const QStringList & labels )
-static QoreNode *QTABLEWIDGET_setVerticalHeaderLabels(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_setVerticalHeaderLabels(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreListNode *p = test_list_param(params, 0);
    if (!p) {
@@ -497,9 +497,9 @@ static QoreNode *QTABLEWIDGET_setVerticalHeaderLabels(QoreObject *self, QoreQTab
 }
 
 //void sortItems ( int column, Qt::SortOrder order = Qt::AscendingOrder )
-static QoreNode *QTABLEWIDGET_sortItems(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_sortItems(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    Qt::SortOrder order = !is_nothing(p) ? (Qt::SortOrder)p->getAsInt() : Qt::AscendingOrder;
@@ -508,9 +508,9 @@ static QoreNode *QTABLEWIDGET_sortItems(QoreObject *self, QoreQTableWidget *qtw,
 }
 
 //QTableWidgetItem * takeHorizontalHeaderItem ( int column )
-static QoreNode *QTABLEWIDGET_takeHorizontalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_takeHorizontalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
 
    QTableWidgetItem *twi = qtw->qobj->takeHorizontalHeaderItem(column);
@@ -524,9 +524,9 @@ static QoreNode *QTABLEWIDGET_takeHorizontalHeaderItem(QoreObject *self, QoreQTa
 }
 
 //QTableWidgetItem * takeItem ( int row, int column )
-static QoreNode *QTABLEWIDGET_takeItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_takeItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -542,9 +542,9 @@ static QoreNode *QTABLEWIDGET_takeItem(QoreObject *self, QoreQTableWidget *qtw, 
 }
 
 //QTableWidgetItem * takeVerticalHeaderItem ( int row )
-static QoreNode *QTABLEWIDGET_takeVerticalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_takeVerticalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
 
    QTableWidgetItem *twi = qtw->qobj->takeVerticalHeaderItem(row);
@@ -558,9 +558,9 @@ static QoreNode *QTABLEWIDGET_takeVerticalHeaderItem(QoreObject *self, QoreQTabl
 }
 
 //QTableWidgetItem * verticalHeaderItem ( int row ) const
-static QoreNode *QTABLEWIDGET_verticalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_verticalHeaderItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
 
    QTableWidgetItem *twi = qtw->qobj->verticalHeaderItem(row);
@@ -574,17 +574,17 @@ static QoreNode *QTABLEWIDGET_verticalHeaderItem(QoreObject *self, QoreQTableWid
 }
 
 //int visualColumn ( int logicalColumn ) const
-static QoreNode *QTABLEWIDGET_visualColumn(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_visualColumn(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int logicalColumn = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qtw->qobj->visualColumn(logicalColumn));
 }
 
 //QRect visualItemRect ( const QTableWidgetItem * item ) const
-static QoreNode *QTABLEWIDGET_visualItemRect(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_visualItemRect(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())
@@ -599,67 +599,67 @@ static QoreNode *QTABLEWIDGET_visualItemRect(QoreObject *self, QoreQTableWidget 
 }
 
 //int visualRow ( int logicalRow ) const
-static QoreNode *QTABLEWIDGET_visualRow(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_visualRow(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int logicalRow = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qtw->qobj->visualRow(logicalRow));
 }
 
 //void clear ()
-static QoreNode *QTABLEWIDGET_clear(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_clear(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    qtw->qobj->clear();
    return 0;
 }
 
 //void clearContents ()
-static QoreNode *QTABLEWIDGET_clearContents(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_clearContents(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    qtw->qobj->clearContents();
    return 0;
 }
 
 //void insertColumn ( int column )
-static QoreNode *QTABLEWIDGET_insertColumn(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_insertColumn(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    qtw->qobj->insertColumn(column);
    return 0;
 }
 
 //void insertRow ( int row )
-static QoreNode *QTABLEWIDGET_insertRow(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_insertRow(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    qtw->qobj->insertRow(row);
    return 0;
 }
 
 //void removeColumn ( int column )
-static QoreNode *QTABLEWIDGET_removeColumn(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_removeColumn(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    qtw->qobj->removeColumn(column);
    return 0;
 }
 
 //void removeRow ( int row )
-static QoreNode *QTABLEWIDGET_removeRow(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_removeRow(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    qtw->qobj->removeRow(row);
    return 0;
 }
 
 //void scrollToItem ( const QTableWidgetItem * item, QAbstractItemView::ScrollHint hint = EnsureVisible )
-static QoreNode *QTABLEWIDGET_scrollToItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QTABLEWIDGET_scrollToItem(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQTableWidgetItem *item = (p && p->type == NT_OBJECT) ? (QoreQTableWidgetItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTABLEWIDGETITEM, xsink) : 0;
    if (!item) {
       if (!xsink->isException())

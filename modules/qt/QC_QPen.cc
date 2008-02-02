@@ -38,7 +38,7 @@ class QoreClass *QC_QPen = 0;
 //QPen ( const QPen & pen )
 static void QPEN_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QPEN, new QoreQPen());
       return;
@@ -85,7 +85,7 @@ static void QPEN_copy(class QoreObject *self, class QoreObject *old, class QoreQ
 }
 
 //QBrush brush () const
-static QoreNode *QPEN_brush(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_brush(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qp->brush());
@@ -94,13 +94,13 @@ static QoreNode *QPEN_brush(QoreObject *self, QoreQPen *qp, const QoreListNode *
 }
 
 //Qt::PenCapStyle capStyle () const
-static QoreNode *QPEN_capStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_capStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qp->capStyle());
 }
 
 //QColor color () const
-static QoreNode *QPEN_color(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_color(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qp->color());
@@ -109,51 +109,51 @@ static QoreNode *QPEN_color(QoreObject *self, QoreQPen *qp, const QoreListNode *
 }
 
 //qreal dashOffset () const
-static QoreNode *QPEN_dashOffset(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_dashOffset(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode((double)qp->dashOffset());
 }
 
 ////QVector<qreal> dashPattern () const
-//static QoreNode *QPEN_dashPattern(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QPEN_dashPattern(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qp->dashPattern());
 //}
 
 ////DataPtr & data_ptr ()
-//static QoreNode *QPEN_data_ptr(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QPEN_data_ptr(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qp->data_ptr());
 //}
 
 //bool isCosmetic () const
-static QoreNode *QPEN_isCosmetic(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_isCosmetic(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qp->isCosmetic());
 }
 
 //bool isSolid () const
-static QoreNode *QPEN_isSolid(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_isSolid(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qp->isSolid());
 }
 
 //Qt::PenJoinStyle joinStyle () const
-static QoreNode *QPEN_joinStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_joinStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qp->joinStyle());
 }
 
 //qreal miterLimit () const
-static QoreNode *QPEN_miterLimit(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_miterLimit(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode((double)qp->miterLimit());
 }
 
 //void setBrush ( const QBrush & brush )
-static QoreNode *QPEN_setBrush(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_setBrush(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QBrush brush;
    if (get_qbrush(p, brush, xsink))
       return 0;
@@ -162,18 +162,18 @@ static QoreNode *QPEN_setBrush(QoreObject *self, QoreQPen *qp, const QoreListNod
 }
 
 //void setCapStyle ( Qt::PenCapStyle style )
-static QoreNode *QPEN_setCapStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_setCapStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    Qt::PenCapStyle style = (Qt::PenCapStyle)(p ? p->getAsInt() : 0);
    qp->setCapStyle(style);
    return 0;
 }
 
 //void setColor ( const QColor & color )
-static QoreNode *QPEN_setColor(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_setColor(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
    if (!color) {
       if (!xsink->isException())
@@ -186,54 +186,54 @@ static QoreNode *QPEN_setColor(QoreObject *self, QoreQPen *qp, const QoreListNod
 }
 
 //void setCosmetic ( bool cosmetic )
-static QoreNode *QPEN_setCosmetic(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_setCosmetic(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool cosmetic = p ? p->getAsBool() : false;
    qp->setCosmetic(cosmetic);
    return 0;
 }
 
 //void setDashOffset ( qreal offset )
-static QoreNode *QPEN_setDashOffset(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_setDashOffset(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    qreal offset = p ? p->getAsFloat() : 0.0;
    qp->setDashOffset(offset);
    return 0;
 }
 
 ////void setDashPattern ( const QVector<qreal> & pattern )
-//static QoreNode *QPEN_setDashPattern(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QPEN_setDashPattern(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QVector<qreal> pattern = p;
 //   qp->setDashPattern(pattern);
 //   return 0;
 //}
 
 //void setJoinStyle ( Qt::PenJoinStyle style )
-static QoreNode *QPEN_setJoinStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_setJoinStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    Qt::PenJoinStyle style = (Qt::PenJoinStyle)(p ? p->getAsInt() : 0);
    qp->setJoinStyle(style);
    return 0;
 }
 
 //void setMiterLimit ( qreal limit )
-static QoreNode *QPEN_setMiterLimit(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_setMiterLimit(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    qreal limit = p ? p->getAsFloat() : 0.0;
    qp->setMiterLimit(limit);
    return 0;
 }
 
 //void setStyle ( Qt::PenStyle style )
-static QoreNode *QPEN_setStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_setStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    PenStyleNode *ps = dynamic_cast<PenStyleNode *>(p);
    if (!ps) {
       xsink->raiseException("QPEN-SETSTYLE-ERROR", "QPen::setStyle() expects a PenStyle constant as the sole argument, got type '%s' instead", p ? p->getTypeName() : "NOTHING");
@@ -246,37 +246,37 @@ static QoreNode *QPEN_setStyle(QoreObject *self, QoreQPen *qp, const QoreListNod
 }
 
 //void setWidth ( int width )
-static QoreNode *QPEN_setWidth(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_setWidth(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
    qp->setWidth(width);
    return 0;
 }
 
 //void setWidthF ( qreal width )
-static QoreNode *QPEN_setWidthF(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_setWidthF(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    qreal width = p ? p->getAsFloat() : 0.0;
    qp->setWidthF(width);
    return 0;
 }
 
 //Qt::PenStyle style () const
-static QoreNode *QPEN_style(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_style(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new PenStyleNode(qp->style());
 }
 
 //int width () const
-static QoreNode *QPEN_width(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_width(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qp->width());
 }
 
 //qreal widthF () const
-static QoreNode *QPEN_widthF(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPEN_widthF(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreFloatNode((double)qp->widthF());
 }

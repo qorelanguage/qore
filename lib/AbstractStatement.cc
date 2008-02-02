@@ -31,7 +31,7 @@ AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(
    next = NULL;
 }
 
-int AbstractStatement::exec(class QoreNode **return_value, ExceptionSink *xsink)
+int AbstractStatement::exec(class AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
    printd(1, "AbstractStatement::exec() type=%s file=%s line=%d\n", typeid(this).name(), FileName, LineNumber);
    

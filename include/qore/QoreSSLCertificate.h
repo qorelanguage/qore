@@ -36,7 +36,7 @@ class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
    private:
       struct qore_sslcert_private *priv; // private implementation
 
-      DLLLOCAL class QoreNode *doPurposeValue(int id, int ca) const;
+      DLLLOCAL class AbstractQoreNode *doPurposeValue(int id, int ca) const;
 
       // not implemented
       DLLLOCAL QoreSSLCertificate(const QoreSSLCertificate&);

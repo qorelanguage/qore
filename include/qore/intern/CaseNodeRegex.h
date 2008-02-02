@@ -52,7 +52,7 @@ public:
    {
       delete re;
    }
-   DLLLOCAL virtual bool matches(QoreNode *lhs_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
 };
 
 class CaseNodeNegRegex : public CaseNodeRegex
@@ -61,7 +61,7 @@ public:
    DLLLOCAL CaseNodeNegRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) 
    {
    }
-   DLLLOCAL virtual bool matches(QoreNode *lhs_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
 };
 
 #endif

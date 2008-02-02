@@ -46,7 +46,7 @@ class QoreQtEventDispatcher {
       {
 	 class ExceptionSink xsink;
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, qclass, data, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m, qclass, data, &xsink), &xsink);
 	 return *rv ? rv->getAsBool() : false;
       }
 
@@ -54,13 +54,13 @@ class QoreQtEventDispatcher {
       {
 	 class ExceptionSink xsink;
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m, args, &xsink), &xsink);
 	 return *rv ? rv->getAsInt() : false;
       }
 
       DLLLOCAL static int dispatch_event_int(QoreObject *qore_obj, const QoreMethod *m, const QoreListNode *args, ExceptionSink *xsink)
       {
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, args, xsink), xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m, args, xsink), xsink);
 	 return *rv ? rv->getAsInt() : false;
       }
 
@@ -68,7 +68,7 @@ class QoreQtEventDispatcher {
       {
 	 class ExceptionSink xsink;
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m, args, &xsink), &xsink);
 	 if (xsink)
 	    return QString();
 
@@ -81,13 +81,13 @@ class QoreQtEventDispatcher {
       {
 	 class ExceptionSink xsink;
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m, args, &xsink), &xsink);
 	 return *rv ? rv->getAsBool() : false;
       }
 
       DLLLOCAL static bool dispatch_event_bool(QoreObject *qore_obj, const QoreMethod *m, const QoreListNode *args, ExceptionSink *xsink)
       {
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m, args, xsink), xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m, args, xsink), xsink);
 	 return *rv ? rv->getAsBool() : false;
       }
 
@@ -98,7 +98,7 @@ class QoreQtEventDispatcher {
 	 return (m && m->getType() == CT_USER) ? m : 0;
       }
 
-      DLLLOCAL static QoreNode *dispatch_event_intern(QoreObject *qore_obj, const QoreMethod *m, QoreClass *qclass, class AbstractPrivateData *data, class ExceptionSink *xsink)
+      DLLLOCAL static AbstractQoreNode *dispatch_event_intern(QoreObject *qore_obj, const QoreMethod *m, QoreClass *qclass, class AbstractPrivateData *data, class ExceptionSink *xsink)
       {
 	 // create argument list
 	 QoreObject *peo = new QoreObject(qclass, getProgram());
@@ -109,7 +109,7 @@ class QoreQtEventDispatcher {
 	 // call event method
 	 return m->eval(qore_obj, *args, xsink);
       }
-      DLLLOCAL static QoreNode *dispatch_event_intern(QoreObject *qore_obj, const QoreMethod *m, const QoreListNode *args, class ExceptionSink *xsink)
+      DLLLOCAL static AbstractQoreNode *dispatch_event_intern(QoreObject *qore_obj, const QoreMethod *m, const QoreListNode *args, class ExceptionSink *xsink)
       {
 	 // call event method
 	 return m->eval(qore_obj, args, xsink);

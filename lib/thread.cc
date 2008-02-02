@@ -271,11 +271,11 @@ DLLLOCAL ThreadCleanupNode *ThreadCleanupList::head = NULL;
 
 class ThreadParams {
    public:
-      class QoreNode *fc;
+      class AbstractQoreNode *fc;
       int tid;
       class QoreProgram *pgm;
    
-      DLLLOCAL ThreadParams(class QoreNode *f, int t) 
+      DLLLOCAL ThreadParams(class AbstractQoreNode *f, int t) 
       { 
 	 fc = f; 
 	 tid = t;
@@ -313,14 +313,14 @@ class BGThreadParams {
    public:
       class QoreObject *obj;
       class QoreObject *callobj;
-      class QoreNode *fc;
+      class AbstractQoreNode *fc;
       class QoreProgram *pgm;
       int tid;
       int s_line, e_line;
       const char *file;
       bool method_reference;
 
-      DLLLOCAL BGThreadParams(class QoreNode *f, int t, class ExceptionSink *xsink)
+      DLLLOCAL BGThreadParams(class AbstractQoreNode *f, int t, class ExceptionSink *xsink)
       { 
 	 tid = t;
 	 fc = f;
@@ -343,7 +343,7 @@ class BGThreadParams {
 	    QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(fc);
 	    if (tree->op == OP_OBJECT_FUNC_REF) {
 	       // evaluate object
-	       QoreNode *n = tree->left->eval(xsink);
+	       AbstractQoreNode *n = tree->left->eval(xsink);
 	       if (!n || xsink->isEvent())
 		  return;
 
@@ -389,9 +389,9 @@ class BGThreadParams {
 	    obj = NULL;
 	 }
       }
-      DLLLOCAL class QoreNode *exec(class ExceptionSink *xsink)
+      DLLLOCAL class AbstractQoreNode *exec(class ExceptionSink *xsink)
       {
-	 class QoreNode *rv = fc->eval(xsink);
+	 class AbstractQoreNode *rv = fc->eval(xsink);
 	 fc->deref(xsink);
 	 fc = NULL;
 	 return rv;
@@ -939,7 +939,7 @@ namespace {
       update_pgm_counter_pgm_file(btp->s_line, btp->e_line, btp->file);
 
       class ExceptionSink xsink;
-      class QoreNode *rv;
+      class AbstractQoreNode *rv;
       {
 	 CodeContextHelper cch(NULL, btp->callobj, &xsink);
 	 
@@ -989,13 +989,13 @@ namespace {
    }
 }
 
-static class QoreNode *op_background(class QoreNode *left, class QoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static class AbstractQoreNode *op_background(class AbstractQoreNode *left, class AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    if (!left)
       return NULL;
 
    //printd(2, "op_background() before crlr left = %08p\n", left);
-   QoreNode *nl = copy_and_resolve_lvar_refs(left, xsink);
+   AbstractQoreNode *nl = copy_and_resolve_lvar_refs(left, xsink);
    //printd(2, "op_background() after crlr nl = %08p\n", nl);
    if (xsink->isEvent())
    {

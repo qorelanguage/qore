@@ -34,7 +34,7 @@ class QoreClass *QC_QRadioButton = 0;
 //QRadioButton ( const QString & text, QWidget * parent = 0 )
 static void QRADIOBUTTON_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QRADIOBUTTON, new QoreQRadioButton(self));
       return;
@@ -66,9 +66,9 @@ static void QRADIOBUTTON_copy(class QoreObject *self, class QoreObject *old, cla
 
 //void initStyleOption ( QStyleOptionButton * option ) const
 /*
-static QoreNode *QRADIOBUTTON_initStyleOption(QoreObject *self, QoreAbstractQRadioButton *qrb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QRADIOBUTTON_initStyleOption(QoreObject *self, QoreAbstractQRadioButton *qrb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQStyleOptionButton *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONBUTTON, xsink) : 0;
    if (!option) {
       if (!xsink->isException())

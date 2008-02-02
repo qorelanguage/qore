@@ -11,23 +11,23 @@
 #define _QORE_TYPES_NUMBER_H
 
 #include <qore/common.h>
-QoreNode *number_convert_to(QoreNode *node, int type);
-QoreNode *defNumber();
+AbstractQoreNode *number_convert_to(AbstractQoreNode *node, int type);
+AbstractQoreNode *defNumber();
 
-class QoreNode *number_op_lt(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_gt(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_log_eq(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_ne(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_le(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_ge(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_cmp(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_minus(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_plus(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_multiply(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_divide(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_unary_minus(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
-class QoreNode *number_op_log_not(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_lt(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_gt(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_log_eq(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_ne(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_le(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_ge(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_cmp(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_minus(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_plus(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_multiply(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_divide(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_unary_minus(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
+class AbstractQoreNode *number_op_log_not(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
 
-int number_compare(class QoreNode *left, class QoreNode *right, ExceptionSink *xsink);
+int number_compare(class AbstractQoreNode *left, class AbstractQoreNode *right, ExceptionSink *xsink);
 
 #endif

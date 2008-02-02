@@ -62,7 +62,7 @@ const char *ContextRowNode::getTypeName() const
 }
 
 // eval(): return value requires a deref(xsink)
-QoreNode *ContextRowNode::eval(class ExceptionSink *xsink) const
+AbstractQoreNode *ContextRowNode::eval(class ExceptionSink *xsink) const
 {
    return evalContextRow(xsink);
 }

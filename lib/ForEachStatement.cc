@@ -24,7 +24,7 @@
 #include <qore/intern/ForEachStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-ForEachStatement::ForEachStatement(int start_line, int end_line, class QoreNode *v, class QoreNode *l, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
+ForEachStatement::ForEachStatement(int start_line, int end_line, class AbstractQoreNode *v, class AbstractQoreNode *l, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
 {
    var = v;
    list = l;
@@ -42,7 +42,7 @@ ForEachStatement::~ForEachStatement()
       delete lvars;
 }
 
-int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int ForEachStatement::execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink)
 {
    if (is_ref)
       return execRef(return_value, xsink);
@@ -55,7 +55,7 @@ int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSin
       instantiateLVar(lvars->ids[i], NULL);
 
    // get list evaluation (although may be a single node)
-   class QoreNode *tlist = list->eval(xsink);
+   class AbstractQoreNode *tlist = list->eval(xsink);
    if (tlist && is_nothing(tlist))
    {
       tlist->deref(xsink);
@@ -71,7 +71,7 @@ int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSin
       while (true)
       {
 	 class AutoVLock vl;
-	 class QoreNode **n = get_var_value_ptr(var, &vl, xsink);
+	 class AbstractQoreNode **n = get_var_value_ptr(var, &vl, xsink);
 	 if (xsink->isEvent())
 	 {
 	    // unlock lock now
@@ -139,7 +139,7 @@ int ForEachStatement::execImpl(class QoreNode **return_value, class ExceptionSin
    return rc;
 }
 
-int ForEachStatement::execRef(QoreNode **return_value, class ExceptionSink *xsink)
+int ForEachStatement::execRef(AbstractQoreNode **return_value, class ExceptionSink *xsink)
 {
    int i, rc = 0;
 
@@ -149,7 +149,7 @@ int ForEachStatement::execRef(QoreNode **return_value, class ExceptionSink *xsin
       instantiateLVar(lvars->ids[i], NULL);
 
    // get list evaluation (although may be a single node)
-   class QoreNode *tlist, *vr;
+   class AbstractQoreNode *tlist, *vr;
    bool is_self_ref = false;
 
    ReferenceNode *r = reinterpret_cast<ReferenceNode *>(list);
@@ -173,7 +173,7 @@ int ForEachStatement::execRef(QoreNode **return_value, class ExceptionSink *xsin
    // execute "foreach" body
    if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
    {
-      class QoreNode *ln = NULL;
+      class AbstractQoreNode *ln = NULL;
       int i = 0;
 
       if (l_tlist)
@@ -181,7 +181,7 @@ int ForEachStatement::execRef(QoreNode **return_value, class ExceptionSink *xsin
 
       while (true)
       {
-	 class QoreNode **n = get_var_value_ptr(var, &vl, xsink);
+	 class AbstractQoreNode **n = get_var_value_ptr(var, &vl, xsink);
 	 if (xsink->isEvent())
 	 {
 	    // unlock lock now
@@ -235,7 +235,7 @@ int ForEachStatement::execRef(QoreNode **return_value, class ExceptionSink *xsin
 	       break;
 	    }
 
-	    QoreNode *nv;
+	    AbstractQoreNode *nv;
 	    if (*n)
 	       nv = (*n)->eval(xsink);
 	    else
@@ -270,7 +270,7 @@ int ForEachStatement::execRef(QoreNode **return_value, class ExceptionSink *xsin
       if (!xsink->isEvent())
       {
 	 // write the value back to the lvalue
-	 QoreNode **val = get_var_value_ptr(vr, &vl, xsink);
+	 AbstractQoreNode **val = get_var_value_ptr(vr, &vl, xsink);
 	 if (!xsink->isEvent())
 	 {
 	    discard(*val, xsink);

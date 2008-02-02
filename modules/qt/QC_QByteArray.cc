@@ -34,7 +34,7 @@ class QoreClass *QC_QByteArray = 0;
 //QByteArray ( const QByteArray & other )
 static void QBYTEARRAY_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QBYTEARRAY, new QoreQByteArray());
       return;
@@ -65,9 +65,9 @@ static void QBYTEARRAY_copy(class QoreObject *self, class QoreObject *old, class
 //QByteArray & append ( const QString & str )
 ////QByteArray & append ( const char * str )
 ////QByteArray & append ( char ch )
-static QoreNode *QBYTEARRAY_append(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_append(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
 
    QString str;
    if (!get_qstring(p, str, xsink, true))
@@ -88,9 +88,9 @@ static QoreNode *QBYTEARRAY_append(QoreObject *self, QoreQByteArray *qba, const 
 }
 
 //const char at ( int i ) const
-static QoreNode *QBYTEARRAY_at(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_at(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int i = p ? p->getAsInt() : 0;
    char c_rv = qba->at(i);
    QoreStringNode *rv_str = new QoreStringNode();
@@ -99,29 +99,29 @@ static QoreNode *QBYTEARRAY_at(QoreObject *self, QoreQByteArray *qba, const Qore
 }
 
 //int capacity () const
-static QoreNode *QBYTEARRAY_capacity(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_capacity(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qba->capacity());
 }
 
 //void chop ( int n )
-static QoreNode *QBYTEARRAY_chop(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_chop(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int n = p ? p->getAsInt() : 0;
    qba->chop(n);
    return 0;
 }
 
 //void clear ()
-static QoreNode *QBYTEARRAY_clear(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_clear(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    qba->clear();
    return 0;
 }
 
 //const char * constData () const
-static QoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    BinaryNode *b = new BinaryNode();
    b->append(qba->constData(), qba->size());
@@ -131,9 +131,9 @@ static QoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *qba, con
 ////bool contains ( const QByteArray & ba ) const
 ////bool contains ( const char * str ) const
 ////bool contains ( char ch ) const
-//static QoreNode *QBYTEARRAY_contains(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_contains(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
@@ -156,9 +156,9 @@ static QoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *qba, con
 ////int count ( const char * str ) const
 ////int count ( char ch ) const
 ////int count () const
-//static QoreNode *QBYTEARRAY_count(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_count(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (is_nothing(p)) {
 //      return new QoreBigIntNode(qba->count());
 //   }
@@ -182,7 +182,7 @@ static QoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *qba, con
 
 //char * data ()
 //const char * data () const
-static QoreNode *QBYTEARRAY_data(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_data(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    BinaryNode *b = new BinaryNode();
    b->append(qba->constData(), qba->size());
@@ -190,7 +190,7 @@ static QoreNode *QBYTEARRAY_data(QoreObject *self, QoreQByteArray *qba, const Qo
 }
 
 ////DataPtr & data_ptr ()
-//static QoreNode *QBYTEARRAY_data_ptr(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_data_ptr(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   ??? return new QoreBigIntNode(qba->data_ptr());
 //}
@@ -198,9 +198,9 @@ static QoreNode *QBYTEARRAY_data(QoreObject *self, QoreQByteArray *qba, const Qo
 ////bool endsWith ( const QByteArray & ba ) const
 ////bool endsWith ( const char * str ) const
 ////bool endsWith ( char ch ) const
-//static QoreNode *QBYTEARRAY_endsWith(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_endsWith(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
@@ -220,7 +220,7 @@ static QoreNode *QBYTEARRAY_data(QoreObject *self, QoreQByteArray *qba, const Qo
 //}
 
 //QByteArray & fill ( char ch, int size = -1 )
-static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p || !p->strlen()) {
@@ -228,7 +228,7 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
       return 0;
    }
    char ch = p->getBuffer()[0];
-   QoreNode *pn = get_param(params, 1);
+   AbstractQoreNode *pn = get_param(params, 1);
    int size = !is_nothing(pn) ? p->getAsInt() : -1;
 
    qba->fill(ch, size);
@@ -242,9 +242,9 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 ////int indexOf ( const QString & str, int from = 0 ) const
 ////int indexOf ( const char * str, int from = 0 ) const
 ////int indexOf ( char ch, int from = 0 ) const
-//static QoreNode *QBYTEARRAY_indexOf(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_indexOf(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
@@ -283,9 +283,9 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 ////QByteArray & insert ( int i, const QString & str )
 ////QByteArray & insert ( int i, const char * str )
 ////QByteArray & insert ( int i, char ch )
-//static QoreNode *QBYTEARRAY_insert(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_insert(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   int i = p ? p->getAsInt() : 0;
 //   p = get_param(params, 1);
 //   if (p && p->type == NT_???) {
@@ -327,13 +327,13 @@ static QoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, const Qo
 //}
 
 //bool isEmpty () const
-static QoreNode *QBYTEARRAY_isEmpty(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_isEmpty(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qba->isEmpty());
 }
 
 //bool isNull () const
-static QoreNode *QBYTEARRAY_isNull(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_isNull(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qba->isNull());
 }
@@ -342,9 +342,9 @@ static QoreNode *QBYTEARRAY_isNull(QoreObject *self, QoreQByteArray *qba, const 
 ////int lastIndexOf ( const QString & str, int from = -1 ) const
 ////int lastIndexOf ( const char * str, int from = -1 ) const
 ////int lastIndexOf ( char ch, int from = -1 ) const
-//static QoreNode *QBYTEARRAY_lastIndexOf(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_lastIndexOf(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
@@ -380,9 +380,9 @@ static QoreNode *QBYTEARRAY_isNull(QoreObject *self, QoreQByteArray *qba, const 
 //}
 
 //QByteArray left ( int len ) const
-static QoreNode *QBYTEARRAY_left(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_left(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int len = p ? p->getAsInt() : 0;
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->left(len));
@@ -391,9 +391,9 @@ static QoreNode *QBYTEARRAY_left(QoreObject *self, QoreQByteArray *qba, const Qo
 }
 
 //QByteArray leftJustified ( int width, char fill = ' ', bool truncate = false ) const
-static QoreNode *QBYTEARRAY_leftJustified(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_leftJustified(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
 
    QoreStringNode *str = test_string_param(params, 1);
@@ -409,15 +409,15 @@ static QoreNode *QBYTEARRAY_leftJustified(QoreObject *self, QoreQByteArray *qba,
 }
 
 //int length () const
-static QoreNode *QBYTEARRAY_length(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_length(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qba->length());
 }
 
 //QByteArray mid ( int pos, int len = -1 ) const
-static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int pos = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int len = !is_nothing(p) ? p->getAsInt() : -1;
@@ -430,9 +430,9 @@ static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const Qor
 ////QByteArray & prepend ( const QByteArray & ba )
 ////QByteArray & prepend ( const char * str )
 ////QByteArray & prepend ( char ch )
-//static QoreNode *QBYTEARRAY_prepend(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_prepend(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
@@ -463,9 +463,9 @@ static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const Qor
 ////void push_back ( const QByteArray & other )
 ////void push_back ( const char * str )
 ////void push_back ( char ch )
-//static QoreNode *QBYTEARRAY_push_back(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_push_back(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
 //      QByteArray other;
 //      if (get_qbytearray(p, other, xsink))
@@ -490,9 +490,9 @@ static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const Qor
 ////void push_front ( const QByteArray & other )
 ////void push_front ( const char * str )
 ////void push_front ( char ch )
-//static QoreNode *QBYTEARRAY_push_front(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_push_front(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
 //      QByteArray other;
 //      if (get_qbytearray(p, other, xsink))
@@ -515,9 +515,9 @@ static QoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, const Qor
 //}
 
 //QByteArray & remove ( int pos, int len )
-static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int pos = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int len = p ? p->getAsInt() : 0;
@@ -541,9 +541,9 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 ////QByteArray & replace ( char before, const QString & after )
 ////QByteArray & replace ( char before, const char * after )
 ////QByteArray & replace ( char before, char after )
-//static QoreNode *QBYTEARRAY_replace(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_replace(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
 //      QByteArray before;
 //      if (get_qbytearray(p, before, xsink))
@@ -873,27 +873,27 @@ static QoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba, const 
 //}
 
 //void reserve ( int size )
-static QoreNode *QBYTEARRAY_reserve(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_reserve(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int size = p ? p->getAsInt() : 0;
    qba->reserve(size);
    return 0;
 }
 
 //void resize ( int size )
-static QoreNode *QBYTEARRAY_resize(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_resize(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int size = p ? p->getAsInt() : 0;
    qba->resize(size);
    return 0;
 }
 
 //QByteArray right ( int len ) const
-static QoreNode *QBYTEARRAY_right(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_right(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int len = p ? p->getAsInt() : 0;
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->right(len));
@@ -902,9 +902,9 @@ static QoreNode *QBYTEARRAY_right(QoreObject *self, QoreQByteArray *qba, const Q
 }
 
 //QByteArray rightJustified ( int width, char fill = ' ', bool truncate = false ) const
-static QoreNode *QBYTEARRAY_rightJustified(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_rightJustified(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
 
    QoreStringNode *str = test_string_param(params, 1);
@@ -927,9 +927,9 @@ static QoreNode *QBYTEARRAY_rightJustified(QoreObject *self, QoreQByteArray *qba
 //QByteArray & setNum ( qulonglong n, int base = 10 )
 //QByteArray & setNum ( double n, char f = 'g', int prec = 6 )
 //QByteArray & setNum ( float n, char f = 'g', int prec = 6 )
-static QoreNode *QBYTEARRAY_setNum(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_setNum(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_INT) {
       int n = reinterpret_cast<QoreBigIntNode *>(p)->val;
       p = get_param(params, 1);
@@ -957,7 +957,7 @@ static QoreNode *QBYTEARRAY_setNum(QoreObject *self, QoreQByteArray *qba, const 
 }
 
 //QByteArray simplified () const
-static QoreNode *QBYTEARRAY_simplified(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_simplified(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->simplified());
@@ -966,21 +966,21 @@ static QoreNode *QBYTEARRAY_simplified(QoreObject *self, QoreQByteArray *qba, co
 }
 
 //int size () const
-static QoreNode *QBYTEARRAY_size(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_size(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qba->size());
 }
 
 ////QList<QByteArray> split ( char sep ) const
-//static QoreNode *QBYTEARRAY_split(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_split(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   QByteArray::char sep = (QByteArray::char)(p ? p->getAsInt() : 0);
 //   ??? return new QoreBigIntNode(qba->split(sep));
 //}
 
 //void squeeze ()
-static QoreNode *QBYTEARRAY_squeeze(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_squeeze(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    qba->squeeze();
    return 0;
@@ -989,9 +989,9 @@ static QoreNode *QBYTEARRAY_squeeze(QoreObject *self, QoreQByteArray *qba, const
 ////bool startsWith ( const QByteArray & ba ) const
 ////bool startsWith ( const char * str ) const
 ////bool startsWith ( char ch ) const
-//static QoreNode *QBYTEARRAY_startsWith(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_startsWith(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
@@ -1011,7 +1011,7 @@ static QoreNode *QBYTEARRAY_squeeze(QoreObject *self, QoreQByteArray *qba, const
 //}
 
 //QByteArray toBase64 () const
-static QoreNode *QBYTEARRAY_toBase64(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_toBase64(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->toBase64());
@@ -1020,23 +1020,23 @@ static QoreNode *QBYTEARRAY_toBase64(QoreObject *self, QoreQByteArray *qba, cons
 }
 
 ////double toDouble ( bool * ok = 0 ) const
-//static QoreNode *QBYTEARRAY_toDouble(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_toDouble(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   return new QoreFloatNode((double)qba->toDouble(ok));
 //}
 
 ////float toFloat ( bool * ok = 0 ) const
-//static QoreNode *QBYTEARRAY_toFloat(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_toFloat(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   return new QoreFloatNode((double)qba->toFloat(ok));
 //}
 
 //QByteArray toHex () const
-static QoreNode *QBYTEARRAY_toHex(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_toHex(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->toHex());
@@ -1045,9 +1045,9 @@ static QoreNode *QBYTEARRAY_toHex(QoreObject *self, QoreQByteArray *qba, const Q
 }
 
 ////int toInt ( bool * ok = 0, int base = 10 ) const
-//static QoreNode *QBYTEARRAY_toInt(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_toInt(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   p = get_param(params, 1);
 //   int base = !is_nothing(p) ? p->getAsInt() : 10;
@@ -1055,9 +1055,9 @@ static QoreNode *QBYTEARRAY_toHex(QoreObject *self, QoreQByteArray *qba, const Q
 //}
 
 ////long toLong ( bool * ok = 0, int base = 10 ) const
-//static QoreNode *QBYTEARRAY_toLong(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_toLong(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   p = get_param(params, 1);
 //   int base = !is_nothing(p) ? p->getAsInt() : 10;
@@ -1065,9 +1065,9 @@ static QoreNode *QBYTEARRAY_toHex(QoreObject *self, QoreQByteArray *qba, const Q
 //}
 
 ////qlonglong toLongLong ( bool * ok = 0, int base = 10 ) const
-//static QoreNode *QBYTEARRAY_toLongLong(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_toLongLong(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   p = get_param(params, 1);
 //   int base = !is_nothing(p) ? p->getAsInt() : 10;
@@ -1075,7 +1075,7 @@ static QoreNode *QBYTEARRAY_toHex(QoreObject *self, QoreQByteArray *qba, const Q
 //}
 
 //QByteArray toLower () const
-static QoreNode *QBYTEARRAY_toLower(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_toLower(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->toLower());
@@ -1084,9 +1084,9 @@ static QoreNode *QBYTEARRAY_toLower(QoreObject *self, QoreQByteArray *qba, const
 }
 
 ////short toShort ( bool * ok = 0, int base = 10 ) const
-//static QoreNode *QBYTEARRAY_toShort(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_toShort(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   p = get_param(params, 1);
 //   int base = !is_nothing(p) ? p->getAsInt() : 10;
@@ -1094,9 +1094,9 @@ static QoreNode *QBYTEARRAY_toLower(QoreObject *self, QoreQByteArray *qba, const
 //}
 
 ////uint toUInt ( bool * ok = 0, int base = 10 ) const
-//static QoreNode *QBYTEARRAY_toUInt(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_toUInt(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   p = get_param(params, 1);
 //   int base = !is_nothing(p) ? p->getAsInt() : 10;
@@ -1104,9 +1104,9 @@ static QoreNode *QBYTEARRAY_toLower(QoreObject *self, QoreQByteArray *qba, const
 //}
 
 ////ulong toULong ( bool * ok = 0, int base = 10 ) const
-//static QoreNode *QBYTEARRAY_toULong(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_toULong(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   p = get_param(params, 1);
 //   int base = !is_nothing(p) ? p->getAsInt() : 10;
@@ -1114,9 +1114,9 @@ static QoreNode *QBYTEARRAY_toLower(QoreObject *self, QoreQByteArray *qba, const
 //}
 
 ////qulonglong toULongLong ( bool * ok = 0, int base = 10 ) const
-//static QoreNode *QBYTEARRAY_toULongLong(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_toULongLong(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   p = get_param(params, 1);
 //   int base = !is_nothing(p) ? p->getAsInt() : 10;
@@ -1124,9 +1124,9 @@ static QoreNode *QBYTEARRAY_toLower(QoreObject *self, QoreQByteArray *qba, const
 //}
 
 ////ushort toUShort ( bool * ok = 0, int base = 10 ) const
-//static QoreNode *QBYTEARRAY_toUShort(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QBYTEARRAY_toUShort(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   p = get_param(params, 1);
 //   int base = !is_nothing(p) ? p->getAsInt() : 10;
@@ -1134,7 +1134,7 @@ static QoreNode *QBYTEARRAY_toLower(QoreObject *self, QoreQByteArray *qba, const
 //}
 
 //QByteArray toUpper () const
-static QoreNode *QBYTEARRAY_toUpper(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_toUpper(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->toUpper());
@@ -1143,7 +1143,7 @@ static QoreNode *QBYTEARRAY_toUpper(QoreObject *self, QoreQByteArray *qba, const
 }
 
 //QByteArray trimmed () const
-static QoreNode *QBYTEARRAY_trimmed(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_trimmed(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qba = new QoreObject(self->getClass(CID_QBYTEARRAY), getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qba->trimmed());
@@ -1152,9 +1152,9 @@ static QoreNode *QBYTEARRAY_trimmed(QoreObject *self, QoreQByteArray *qba, const
 }
 
 //void truncate ( int pos )
-static QoreNode *QBYTEARRAY_truncate(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QBYTEARRAY_truncate(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int pos = p ? p->getAsInt() : 0;
    qba->truncate(pos);
    return 0;

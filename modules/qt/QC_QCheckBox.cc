@@ -34,7 +34,7 @@ class QoreClass *QC_QCheckBox = 0;
 //QCheckBox ( const QString & text, QWidget * parent = 0 )
 static void QCHECKBOX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QCHECKBOX, new QoreQCheckBox(self));
       return;
@@ -65,30 +65,30 @@ static void QCHECKBOX_copy(class QoreObject *self, class QoreObject *old, class 
 }
 
 //Qt::CheckState checkState () const
-static QoreNode *QCHECKBOX_checkState(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QCHECKBOX_checkState(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qcb->getQCheckBox()->checkState());
 }
 
 //bool isTristate () const
-static QoreNode *QCHECKBOX_isTristate(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QCHECKBOX_isTristate(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qcb->getQCheckBox()->isTristate());
 }
 
 //void setCheckState ( Qt::CheckState state )
-static QoreNode *QCHECKBOX_setCheckState(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QCHECKBOX_setCheckState(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    Qt::CheckState state = (Qt::CheckState)(p ? p->getAsInt() : 0);
    qcb->getQCheckBox()->setCheckState(state);
    return 0;
 }
 
 //void setTristate ( bool y = true )
-static QoreNode *QCHECKBOX_setTristate(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QCHECKBOX_setTristate(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool y = !is_nothing(p) ? p->getAsBool() : true;
    qcb->getQCheckBox()->setTristate(y);
    return 0;
@@ -96,9 +96,9 @@ static QoreNode *QCHECKBOX_setTristate(QoreObject *self, QoreAbstractQCheckBox *
 
 //void initStyleOption ( QStyleOptionButton * option ) const
 /*
-static QoreNode *QCHECKBOX_initStyleOption(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QCHECKBOX_initStyleOption(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQStyleOptionButton *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONBUTTON, xsink) : 0;
    if (!option) {
       if (!xsink->isException())

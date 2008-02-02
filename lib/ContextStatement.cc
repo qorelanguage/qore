@@ -24,7 +24,7 @@
 #include <qore/intern/ContextStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-ContextMod::ContextMod(int t, class QoreNode *n)
+ContextMod::ContextMod(int t, class AbstractQoreNode *n)
 {
    type = t;
    c.exp = n;
@@ -59,7 +59,7 @@ void ContextModList::addContextMod(ContextMod *cm)
    //printd(5, "CML::CML() %d (%08p)\n", cm->type, cm->c.exp);
 }
 
-ContextStatement::ContextStatement(int start_line, int end_line, char *n, class QoreNode *expr, class ContextModList *mods, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
+ContextStatement::ContextStatement(int start_line, int end_line, char *n, class AbstractQoreNode *expr, class ContextModList *mods, class StatementBlock *cd) : AbstractStatement(start_line, end_line)
 {
    name = n;
    exp = expr;
@@ -124,13 +124,13 @@ ContextStatement::~ContextStatement()
 }
 
 // FIXME: local vars should only be instantiated if there is a non-null context
-int ContextStatement::execImpl(class QoreNode **return_value, class ExceptionSink *xsink)
+int ContextStatement::execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink)
 {
    tracein("ContextStatement::exec()");
    int rc = 0;
    int i;
    class Context *context;
-   class QoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
+   class AbstractQoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
    int sort_type = sort_ascending ? CM_SORT_ASCENDING : (sort_descending ? CM_SORT_DESCENDING : -1);
       
    // instantiate local variables

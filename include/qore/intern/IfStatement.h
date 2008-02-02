@@ -29,16 +29,16 @@
 class IfStatement : public AbstractStatement
 {
    private:
-      class QoreNode *cond;
+      class AbstractQoreNode *cond;
       class StatementBlock *if_code;
       class StatementBlock *else_code;
       class LVList *lvars;
 
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
    public:
-      DLLLOCAL IfStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *i, class StatementBlock *e = NULL);
+      DLLLOCAL IfStatement(int start_line, int end_line, class AbstractQoreNode *c, class StatementBlock *i, class StatementBlock *e = NULL);
       DLLLOCAL virtual ~IfStatement();
 };
 

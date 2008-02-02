@@ -28,7 +28,7 @@
 
 #include <memory>
 
-static inline class QoreNode *map_minstance_to_node(const MInstance *min, ExceptionSink *xsink)
+static inline class AbstractQoreNode *map_minstance_to_node(const MInstance *min, ExceptionSink *xsink)
 {
    std::auto_ptr<MEnumerator<MString, MData *> >me(min->newEnumerator());   
    MString name;
@@ -45,7 +45,7 @@ static inline class QoreNode *map_minstance_to_node(const MInstance *min, Except
 }
 
 // maps a TIBCO sequence to a QORE list
-static inline class QoreNode *map_msequence_to_node(const MSequence *ms, ExceptionSink *xsink)
+static inline class AbstractQoreNode *map_msequence_to_node(const MSequence *ms, ExceptionSink *xsink)
 {
    ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
 
@@ -61,7 +61,7 @@ static inline class QoreNode *map_msequence_to_node(const MSequence *ms, Excepti
 typedef MEnumerator<MString, MData *> ma_enumerator_t;
 
 // maps a TIBCO associative list to a QORE hash
-static inline class QoreNode *map_massoclist_to_node(const MAssocList *mal, ExceptionSink *xsink)
+static inline class AbstractQoreNode *map_massoclist_to_node(const MAssocList *mal, ExceptionSink *xsink)
 {
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
@@ -79,7 +79,7 @@ static inline class QoreNode *map_massoclist_to_node(const MAssocList *mal, Exce
 }
 
 // maps a TIBCO union to a QORE hash
-static inline class QoreNode *map_munion_to_node(const MUnion *mu, ExceptionSink *xsink)
+static inline class AbstractQoreNode *map_munion_to_node(const MUnion *mu, ExceptionSink *xsink)
 {
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
@@ -93,7 +93,7 @@ static inline class QoreNode *map_munion_to_node(const MUnion *mu, ExceptionSink
 }
 
 // maps a TIBCO MTree to a QORE node
-class QoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
+class AbstractQoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
 {
    const MInstance *min;
 
@@ -187,7 +187,7 @@ void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &
 	    continue;
       }
 
-      QoreNode *v = hi.getValue();
+      AbstractQoreNode *v = hi.getValue();
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
       if (!str)
       {
@@ -222,7 +222,7 @@ void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &
 	 if (!key || !key[0])
 	    continue;
 
-	 class QoreNode *n = vhi.getValue();
+	 class AbstractQoreNode *n = vhi.getValue();
 	 QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
 	 if (!str || !str->strlen())
 	    continue;

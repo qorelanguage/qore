@@ -27,11 +27,11 @@
 class FunctionReferenceCallNode : public ParseNode
 {
    private:
-      class QoreNode *exp;    // must evaluate to an AbstractFunctionReference
+      class AbstractQoreNode *exp;    // must evaluate to an AbstractFunctionReference
       class QoreListNode *args;
 
    public:
-      DLLLOCAL FunctionReferenceCallNode(class QoreNode *n_exp, class QoreListNode *n_args);
+      DLLLOCAL FunctionReferenceCallNode(class AbstractQoreNode *n_exp, class QoreListNode *n_args);
       DLLLOCAL virtual ~FunctionReferenceCallNode();
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -47,22 +47,22 @@ class FunctionReferenceCallNode : public ParseNode
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
       // eval(): return value requires a deref(xsink)
-      DLLLOCAL virtual QoreNode *eval(ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(ExceptionSink *xsink) const;
 
       DLLLOCAL int parseInit(lvh_t oflag, int pflag);
 };
 
 // cannot be a ParseNode or SimpleQoreNode because we require deref(xsink)
-class AbstractFunctionReferenceNode : public QoreNode
+class AbstractFunctionReferenceNode : public AbstractQoreNode
 {
    public:
       DLLLOCAL AbstractFunctionReferenceNode();
       DLLLOCAL virtual ~AbstractFunctionReferenceNode();
 
       // parse types should never be copied
-      DLLLOCAL virtual class QoreNode *realCopy() const;
-      DLLLOCAL virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
+      DLLLOCAL virtual class AbstractQoreNode *realCopy() const;
+      DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
       DLLLOCAL virtual bool needs_eval() const;
       DLLLOCAL virtual bool is_value() const;
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -85,7 +85,7 @@ class AbstractFunctionReferenceNode : public QoreNode
 class ResolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
 {
    public:
-      DLLLOCAL virtual QoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const = 0;
+      DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const = 0;
       DLLLOCAL virtual QoreProgram *getProgram() const
       {
 	 return 0;
@@ -112,7 +112,7 @@ class UserFunctionReferenceNode : public ResolvedFunctionReferenceNode
    public:
       //DLLLOCAL UserFunctionReferenceNode(class UserFunction *n_uf);
       DLLLOCAL UserFunctionReferenceNode(class UserFunction *n_uf, class QoreProgram *n_pgm);
-      DLLLOCAL virtual QoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL virtual QoreProgram *getProgram() const;
       DLLLOCAL virtual void deref(ExceptionSink *xsink);
 };
@@ -124,8 +124,8 @@ class StaticUserFunctionReferenceNode : public ResolvedFunctionReferenceNode
 
    public:
       DLLLOCAL StaticUserFunctionReferenceNode(class UserFunction *n_uf, class QoreProgram *n_pgm);
-      DLLLOCAL virtual QoreNode *eval(ExceptionSink *xsink) const;
-      DLLLOCAL virtual QoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 class BuiltinFunctionReferenceNode : public ResolvedFunctionReferenceNode
@@ -134,7 +134,7 @@ class BuiltinFunctionReferenceNode : public ResolvedFunctionReferenceNode
 
    public:
       DLLLOCAL BuiltinFunctionReferenceNode(class BuiltinFunction *n_bf);
-      DLLLOCAL virtual QoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 class ImportedFunctionReferenceNode :  public ResolvedFunctionReferenceNode
@@ -144,7 +144,7 @@ class ImportedFunctionReferenceNode :  public ResolvedFunctionReferenceNode
    public:
       DLLLOCAL ImportedFunctionReferenceNode(class ImportedFunctionCall *n_ifunc);
       DLLLOCAL virtual ~ImportedFunctionReferenceNode();
-      DLLLOCAL virtual QoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL virtual QoreProgram *getProgram() const;
 };
 
@@ -158,7 +158,7 @@ class RunTimeObjectMethodReferenceNode : public ResolvedFunctionReferenceNode
    
    public:
       DLLLOCAL RunTimeObjectMethodReferenceNode(class QoreObject *n_obj, char *n_method);
-      DLLLOCAL virtual QoreNode *exec(const QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual QoreProgram *getProgram() const;
 };
 
@@ -172,7 +172,7 @@ class RunTimeObjectScopedMethodReferenceNode : public ResolvedFunctionReferenceN
 
    public:
       DLLLOCAL RunTimeObjectScopedMethodReferenceNode(class QoreObject *n_obj, const class QoreMethod *n_method);
-      DLLLOCAL virtual QoreNode *exec(const class QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *exec(const class QoreListNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL virtual QoreProgram *getProgram() const;
 };
 

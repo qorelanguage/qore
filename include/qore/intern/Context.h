@@ -34,7 +34,7 @@
 #define CM_SUMMARIZE_BY         4
 
 class Context {
-      DLLLOCAL void Sort(class QoreNode *sort, int sort_type = CM_SORT_ASCENDING);
+      DLLLOCAL void Sort(class AbstractQoreNode *sort, int sort_type = CM_SORT_ASCENDING);
 
       class ExceptionSink *sort_xsink;
 
@@ -56,19 +56,19 @@ class Context {
       class Context *next;
       int sub;
       
-      DLLLOCAL Context(char *nme, class ExceptionSink *xsinkx, class QoreNode *exp,
-		       class QoreNode *cond = NULL,
-		       int sort_type = -1, class QoreNode *sort = NULL,
-		       class QoreNode *summary = NULL, int ignore_key = 0);
-      DLLLOCAL class QoreNode *evalValue(char *field, class ExceptionSink *xsink);
+      DLLLOCAL Context(char *nme, class ExceptionSink *xsinkx, class AbstractQoreNode *exp,
+		       class AbstractQoreNode *cond = NULL,
+		       int sort_type = -1, class AbstractQoreNode *sort = NULL,
+		       class AbstractQoreNode *summary = NULL, int ignore_key = 0);
+      DLLLOCAL class AbstractQoreNode *evalValue(char *field, class ExceptionSink *xsink);
       DLLLOCAL class QoreHashNode *getRow(class ExceptionSink *xsink);
       DLLLOCAL int next_summary();
-      DLLLOCAL int check_condition(class QoreNode *cond, class ExceptionSink *xsinkx);
+      DLLLOCAL int check_condition(class AbstractQoreNode *cond, class ExceptionSink *xsinkx);
       DLLLOCAL void deref(class ExceptionSink *xsink);
 };
 
-DLLLOCAL class QoreNode *evalContextRef(char *key, class ExceptionSink *xsink);
-DLLLOCAL class QoreNode *evalContextRow(class ExceptionSink *xsink);
+DLLLOCAL class AbstractQoreNode *evalContextRef(char *key, class ExceptionSink *xsink);
+DLLLOCAL class AbstractQoreNode *evalContextRow(class ExceptionSink *xsink);
 
 #endif
 

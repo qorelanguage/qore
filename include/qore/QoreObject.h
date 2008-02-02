@@ -35,7 +35,7 @@
 // actually be deleted
 
 // note that any of the methods below that involve locking cannot be const methods
-class QoreObject : public QoreNode
+class QoreObject : public AbstractQoreNode
 {
    private:
       struct qore_object_private *priv;
@@ -67,14 +67,14 @@ class QoreObject : public QoreNode
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLEXPORT virtual class QoreNode *realCopy() const;
+      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
       // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
       // the "val" passed
-      //DLLLOCAL virtual int compare(const QoreNode *val) const;
+      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
       // the type passed must always be equal to the current type
-      DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
-      DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
       // returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
@@ -85,14 +85,14 @@ class QoreObject : public QoreNode
       // returns true if the node represents a value (default implementation)
       DLLEXPORT virtual bool is_value() const;
       
-      DLLEXPORT class QoreNode **getMemberValuePtr(const class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode **getMemberValuePtr(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *getMemberValueNoMethod(const class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode *getMemberValueNoMethod(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode **getExistingValuePtr(const class QoreString *mem, class AutoVLock *vl, class ExceptionSink *xsink) const;
-      DLLEXPORT class QoreNode **getExistingValuePtr(const char *mem, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLEXPORT class AbstractQoreNode **getMemberValuePtr(const class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLEXPORT class AbstractQoreNode **getMemberValuePtr(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLEXPORT class AbstractQoreNode *getMemberValueNoMethod(const class QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLEXPORT class AbstractQoreNode *getMemberValueNoMethod(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLEXPORT class AbstractQoreNode **getExistingValuePtr(const class QoreString *mem, class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLEXPORT class AbstractQoreNode **getExistingValuePtr(const char *mem, class AutoVLock *vl, class ExceptionSink *xsink) const;
       DLLEXPORT bool validInstanceOf(int cid) const;
-      DLLEXPORT void setValue(const char *key, class QoreNode *val, class ExceptionSink *xsink);
+      DLLEXPORT void setValue(const char *key, class AbstractQoreNode *val, class ExceptionSink *xsink);
       // caller owns the list returned
       DLLEXPORT class QoreListNode *getMemberList(class ExceptionSink *xsink) const;
       DLLEXPORT void deleteMemberValue(const class QoreString *key, class ExceptionSink *xsink);
@@ -100,12 +100,12 @@ class QoreObject : public QoreNode
       DLLEXPORT int size(class ExceptionSink *xsink) const;
       DLLEXPORT bool compareSoft(const class QoreObject *obj, class ExceptionSink *xsink) const;
       DLLEXPORT bool compareHard(const class QoreObject *obj, class ExceptionSink *xsink) const;
-      // caller owns the QoreNode (reference) returned
-      DLLEXPORT class QoreNode *evalFirstKeyValue(class ExceptionSink *xsink) const;
-      // caller owns the QoreNode (reference) returned
-      DLLEXPORT class QoreNode *evalMemberNoMethod(const char *mem, class ExceptionSink *xsink) const;
-      // caller owns the QoreNode (reference) returned
-      DLLEXPORT class QoreNode *evalMemberExistence(const char *mem, class ExceptionSink *xsink) const;
+      // caller owns the AbstractQoreNode (reference) returned
+      DLLEXPORT class AbstractQoreNode *evalFirstKeyValue(class ExceptionSink *xsink) const;
+      // caller owns the AbstractQoreNode (reference) returned
+      DLLEXPORT class AbstractQoreNode *evalMemberNoMethod(const char *mem, class ExceptionSink *xsink) const;
+      // caller owns the AbstractQoreNode (reference) returned
+      DLLEXPORT class AbstractQoreNode *evalMemberExistence(const char *mem, class ExceptionSink *xsink) const;
       // caller owns the QoreHash returned
       DLLEXPORT class QoreHash *copyData(class ExceptionSink *xsink) const;
       // caller owns the QoreHashNode returned
@@ -115,8 +115,8 @@ class QoreObject : public QoreNode
       // sets private data to the passed key, used in constructors
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
       DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink) const;
-      // caller owns the QoreNode (reference) returned
-      DLLEXPORT class QoreNode *evalMethod(const class QoreString *name, const class QoreListNode *args, class ExceptionSink *xsink);
+      // caller owns the AbstractQoreNode (reference) returned
+      DLLEXPORT class AbstractQoreNode *evalMethod(const class QoreString *name, const class QoreListNode *args, class ExceptionSink *xsink);
       DLLEXPORT const QoreClass *getClass(int cid) const;
       DLLEXPORT const QoreClass *getClass() const;
       DLLEXPORT int getStatus() const;
@@ -127,14 +127,14 @@ class QoreObject : public QoreNode
       DLLEXPORT void tDeref();
       DLLEXPORT void ref();
 
-      DLLLOCAL class QoreNode *evalMember(const QoreString *member, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *evalMember(const QoreString *member, class ExceptionSink *xsink);
       DLLLOCAL void instantiateLVar(lvh_t id);
       DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
       DLLLOCAL void merge(const class QoreHash *h, class ExceptionSink *xsink);
       DLLLOCAL void assimilate(class QoreHash *h, class ExceptionSink *xsink);
       DLLLOCAL class KeyNode *getReferencedPrivateDataNode(int key);
       DLLLOCAL AbstractPrivateData *getAndClearPrivateData(int key, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreListNode *args, class ExceptionSink *xsink);
       // called on old to acquire private data, copy method called on self (new copy)
       DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class QoreObject *self, const char *class_name, class ExceptionSink *xsink);
       DLLLOCAL void addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink) const;

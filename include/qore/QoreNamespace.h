@@ -47,14 +47,14 @@ class QoreNamespace
   private:
       struct qore_ns_private *priv; // private implementation
 
-      DLLLOCAL class QoreNode *parseMatchScopedConstantValue(class NamedScope *name, int *matched) const;
+      DLLLOCAL class AbstractQoreNode *parseMatchScopedConstantValue(class NamedScope *name, int *matched) const;
       DLLLOCAL class QoreClass *parseMatchScopedClass(class NamedScope *name, int *matched) const;
       DLLLOCAL class QoreClass *parseMatchScopedClassWithMethod(class NamedScope *nscope, int *matched) const;
       DLLLOCAL class QoreNamespace *parseMatchNamespace(class NamedScope *nscope, int *matched) const;
       DLLLOCAL void assimilate(class QoreNamespace *ns);
       DLLLOCAL class QoreNamespace *findNamespace(const char *name) const;
       DLLLOCAL class QoreNamespace *resolveNameScope(class NamedScope *name) const;
-      DLLLOCAL class QoreNode *getConstantValue(const char *name) const;
+      DLLLOCAL class AbstractQoreNode *getConstantValue(const char *name) const;
       DLLLOCAL QoreNamespace(const char *n, class QoreClassList *ocl, class ConstantList *cl, class QoreNamespaceList *nnsl);
       DLLLOCAL QoreNamespace(class QoreClassList *ocl, class ConstantList *cl, class QoreNamespaceList *nnsl);
 
@@ -69,7 +69,7 @@ class QoreNamespace
       // parse-only interfaces are not exported
       DLLLOCAL QoreNamespace();
       DLLLOCAL void addClass(class NamedScope *n, class QoreClass *oc);
-      DLLLOCAL void addConstant(class NamedScope *name, class QoreNode *value);
+      DLLLOCAL void addConstant(class NamedScope *name, class AbstractQoreNode *value);
       DLLLOCAL void addClass(class QoreClass *oc);
       DLLLOCAL void addNamespace(class QoreNamespace *ns);
       DLLLOCAL void parseInit();
@@ -78,7 +78,7 @@ class QoreNamespace
       DLLLOCAL void parseCommit();
       DLLLOCAL void setName(const char *nme);
 
-      DLLEXPORT void addConstant(const char *name, class QoreNode *value);
+      DLLEXPORT void addConstant(const char *name, class AbstractQoreNode *value);
       DLLEXPORT void addSystemClass(class QoreClass *oc);
       DLLEXPORT void addInitialNamespace(class QoreNamespace *ns);
       DLLEXPORT class QoreNamespace *copy(int po = 0) const;
@@ -107,23 +107,23 @@ class RootQoreNamespace : public QoreNamespace
       DLLLOCAL class RootQoreNamespace *copy(int po = 0) const;
       DLLLOCAL class QoreClass *rootFindClass(const char *name) const;
       DLLLOCAL class QoreClass *rootFindChangeClass(const char *name);
-      DLLLOCAL class QoreNode *rootFindConstantValue(const char *name) const;
-      DLLLOCAL class QoreNode *rootFindScopedConstantValue(class NamedScope *name, int *matched) const;
+      DLLLOCAL class AbstractQoreNode *rootFindConstantValue(const char *name) const;
+      DLLLOCAL class AbstractQoreNode *rootFindScopedConstantValue(class NamedScope *name, int *matched) const;
       DLLLOCAL class QoreClass *rootFindScopedClass(class NamedScope *name, int *matched) const;
       DLLLOCAL class QoreClass *rootFindScopedClassWithMethod(class NamedScope *nscope, int *matched) const;
       DLLLOCAL void rootAddClass(class NamedScope *name, class QoreClass *oc);
-      DLLLOCAL void rootAddConstant(class NamedScope *name, class QoreNode *value);
-      DLLLOCAL class QoreNode *findConstantValue(class NamedScope *name, int level) const;
-      DLLLOCAL class QoreNode *findConstantValue(const char *name, int level) const;
+      DLLLOCAL void rootAddConstant(class NamedScope *name, class AbstractQoreNode *value);
+      DLLLOCAL class AbstractQoreNode *findConstantValue(class NamedScope *name, int level) const;
+      DLLLOCAL class AbstractQoreNode *findConstantValue(const char *name, int level) const;
       DLLLOCAL class QoreClass *parseFindClass(const char *name) const;
       DLLLOCAL class QoreClass *parseFindScopedClass(class NamedScope *name) const;
       DLLLOCAL class QoreClass *parseFindScopedClassWithMethod(class NamedScope *name) const;
       // returns 0 for success, non-zero for error
-      DLLLOCAL int resolveSimpleConstant(class QoreNode **, int level) const;
+      DLLLOCAL int resolveSimpleConstant(class AbstractQoreNode **, int level) const;
       // returns 0 for success, non-zero for error
-      DLLLOCAL int parseInitConstantValue(class QoreNode **, int level);
+      DLLLOCAL int parseInitConstantValue(class AbstractQoreNode **, int level);
       // returns 0 for success, non-zero for error
-      DLLLOCAL int resolveScopedConstant(class QoreNode **, int level) const;
+      DLLLOCAL int resolveScopedConstant(class AbstractQoreNode **, int level) const;
       // returns 0 for success, non-zero for error
       DLLLOCAL int addMethodToClass(class NamedScope *name, class QoreMethod *qcmethod, class BCAList *bcal);
 };

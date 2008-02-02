@@ -112,7 +112,7 @@ static void inline addError(class QoreHash *h, QoreStringNode *err)
 }
 
 // private, static method
-class QoreNode *QoreGetOpt::parseDate(const char *val)
+class AbstractQoreNode *QoreGetOpt::parseDate(const char *val)
 {
    // check for ISO-8601 or qore date formats 
    // 2006-01-01              (10)
@@ -149,7 +149,7 @@ class QoreNode *QoreGetOpt::parseDate(const char *val)
 void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char *val)
 {
    // get current value
-   class QoreNode **cv = h->getKeyValuePtr(n->name);
+   class AbstractQoreNode **cv = h->getKeyValuePtr(n->name);
 
    // get a value ready
    if (!n->argtype)
@@ -188,7 +188,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char
       return;
    }
 
-   class QoreNode *v;
+   class AbstractQoreNode *v;
    if (n->argtype == NT_STRING)
       v = new QoreStringNode(val);
    else if (n->argtype == NT_INT)
@@ -349,7 +349,7 @@ class QoreHashNode *QoreGetOpt::parse(class QoreListNode *l, bool modify, class 
    for (int i = 0; i < l->size(); i++)
    {
       //printf("QoreGetOpt::parse() %d/%d\n", i, l->size());
-      class QoreNode *n = l->retrieve_entry(i);
+      class AbstractQoreNode *n = l->retrieve_entry(i);
       if (!n)
 	 continue;
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);

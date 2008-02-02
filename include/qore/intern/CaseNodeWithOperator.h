@@ -39,11 +39,11 @@ private:
 private:
   class Operator *m_operator;
 public:
-  DLLLOCAL CaseNodeWithOperator(QoreNode* v, StatementBlock* c, Operator *op)
+  DLLLOCAL CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, Operator *op)
   : CaseNode(v, c), m_operator(op) {}
   DLLLOCAL ~CaseNodeWithOperator() {}
 
-  DLLLOCAL virtual bool matches(QoreNode* lhs_value, class ExceptionSink *xsink);
+  DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, class ExceptionSink *xsink);
 };
 
 #endif

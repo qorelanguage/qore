@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/FindNode.h>
 
-FindNode::FindNode(class QoreNode *expr, class QoreNode *find_expr, class QoreNode *w) : ParseNode(NT_FIND)
+FindNode::FindNode(class AbstractQoreNode *expr, class AbstractQoreNode *find_expr, class AbstractQoreNode *w) : ParseNode(NT_FIND)
 {
    exp = expr;
    find_exp = find_expr;
@@ -72,9 +72,9 @@ const char *FindNode::getTypeName() const
 }
 
 // eval(): return value requires a deref(xsink)
-QoreNode *FindNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *FindNode::eval(ExceptionSink *xsink) const
 {
-   ReferenceHolder<QoreNode> rv(xsink);
+   ReferenceHolder<AbstractQoreNode> rv(xsink);
    ReferenceHolder<Context> context(new Context(0, xsink, find_exp), xsink);
    if (*xsink)
       return 0;
@@ -90,7 +90,7 @@ QoreNode *FindNode::eval(ExceptionSink *xsink) const
 	 continue;
 
       printd(4, "FindNode::eval() GOT IT: %d\n", context->pos);
-      QoreNode *result = exp->eval(xsink);
+      AbstractQoreNode *result = exp->eval(xsink);
       if (*xsink)
 	 return 0;
       if (rv)

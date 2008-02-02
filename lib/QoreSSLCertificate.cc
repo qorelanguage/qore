@@ -60,7 +60,7 @@ QoreSSLCertificate::QoreSSLCertificate(const char *fn, class ExceptionSink *xsin
       xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "error parsing certificate file '%s'", fn);
 }
 
-class QoreNode *QoreSSLCertificate::doPurposeValue(int id, int ca) const
+class AbstractQoreNode *QoreSSLCertificate::doPurposeValue(int id, int ca) const
 {
    int rc = X509_check_purpose(priv->cert, id, ca);
    if (rc == 1)

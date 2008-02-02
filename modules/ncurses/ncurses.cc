@@ -243,13 +243,13 @@ void q_nc_init_class::close()
    l.unlock();
 }
 
-static class QoreNode *f_initscr(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_initscr(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return NULL;
 }
 
-static class QoreNode *f_printw(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_printw(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    TempQoreStringNode str(q_sprintf(params, 0, 0, xsink)); 
@@ -258,7 +258,7 @@ static class QoreNode *f_printw(const QoreListNode *params, class ExceptionSink 
    return new QoreBigIntNode(rc);
 }
 
-static class QoreNode *f_refresh(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_refresh(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    lUpdate.lock();
@@ -268,7 +268,7 @@ static class QoreNode *f_refresh(const QoreListNode *params, class ExceptionSink
    return new QoreBigIntNode(rc);
 }
 
-static class QoreNode *f_doupdate(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_doupdate(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    lUpdate.lock();
@@ -278,7 +278,7 @@ static class QoreNode *f_doupdate(const QoreListNode *params, class ExceptionSin
    return new QoreBigIntNode(rc);
 }
 
-static class QoreNode *f_getch(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_getch(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
 
@@ -288,7 +288,7 @@ static class QoreNode *f_getch(const QoreListNode *params, class ExceptionSink *
    return new QoreBigIntNode(rc);
 }
 
-static class QoreNode *f_endwin(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_endwin(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
 
@@ -296,66 +296,66 @@ static class QoreNode *f_endwin(const QoreListNode *params, class ExceptionSink 
    return NULL;
 }
 
-static class QoreNode *f_cbreak(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_cbreak(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
 
    return new QoreBigIntNode(cbreak());
 }
 
-static class QoreNode *f_nocbreak(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_nocbreak(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
 
    return new QoreBigIntNode(nocbreak());
 }
 
-static class QoreNode *f_echo(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_echo(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
 
    return new QoreBigIntNode(echo());
 }
 
-static class QoreNode *f_noecho(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_noecho(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
 
    return new QoreBigIntNode(noecho());
 }
 
-static class QoreNode *f_raw(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_raw(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
 
    return new QoreBigIntNode(raw());
 }
 
-static class QoreNode *f_noraw(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_noraw(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
 
    return new QoreBigIntNode(noraw());
 }
 
-static class QoreNode *f_noqiflush(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_noqiflush(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    noqiflush();
    return NULL;
 }
 
-static class QoreNode *f_qiflush(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_qiflush(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    qiflush();
    return NULL;
 }
 
-static class QoreNode *f_halfdelay(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_halfdelay(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
-   class QoreNode *p0 = get_param(params, 0);
+   class AbstractQoreNode *p0 = get_param(params, 0);
    int d = p0 ? p0->getAsInt() : 0;
    if (!d)
       return NULL;
@@ -363,92 +363,92 @@ static class QoreNode *f_halfdelay(const QoreListNode *params, class ExceptionSi
    return new QoreBigIntNode(halfdelay(d));
 }
 
-static class QoreNode *f_curs_set(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_curs_set(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
-   class QoreNode *p0 = get_param(params, 0);
+   class AbstractQoreNode *p0 = get_param(params, 0);
 
    return new QoreBigIntNode(curs_set(p0 ? p0->getAsInt() : 0));
 }
 
-static class QoreNode *f_def_prog_mode(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_def_prog_mode(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(def_prog_mode());
 }
 
-static class QoreNode *f_reset_prog_mode(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_reset_prog_mode(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(reset_prog_mode());
 }
 
-static class QoreNode *f_def_shell_mode(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_def_shell_mode(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(def_shell_mode());
 }
 
-static class QoreNode *f_reset_shell_mode(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_reset_shell_mode(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(reset_shell_mode());
 }
 
-static class QoreNode *f_beep(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_beep(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(beep());
 }
 
-static class QoreNode *f_flash(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_flash(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(flash());
 }
 
-static class QoreNode *f_has_colors(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_has_colors(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(has_colors());
 }
 
-static class QoreNode *f_get_color_pair(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_get_color_pair(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
-   class QoreNode *p0 = get_param(params, 0);
-   class QoreNode *p1 = get_param(params, 1);
+   class AbstractQoreNode *p0 = get_param(params, 0);
+   class AbstractQoreNode *p1 = get_param(params, 1);
    int fg = p0 ? p0->getAsInt() : 0;
    int bg = p1 ? p1->getAsInt() : 0;
 
    return new QoreBigIntNode(COLOR_PAIR(fg * COLORS + bg));
 }
 
-static class QoreNode *f_num_colors(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_num_colors(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(COLORS);
 }
 
-static class QoreNode *f_nl(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_nl(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(nl());
 }
 
-static class QoreNode *f_nonl(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_nonl(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(nonl());
 }
 
-static class QoreNode *f_getLines(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_getLines(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(LINES);
 }
 
-static class QoreNode *f_getColumns(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_getColumns(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(COLS);
@@ -457,167 +457,167 @@ static class QoreNode *f_getColumns(const QoreListNode *params, class ExceptionS
 // alternate character set functions - these cannot be constants because they are terminal-dependent
 // so to initialize them as constants would mean calling initscr() in the module_init function
 
-static class QoreNode *f_ACS_ULCORNER(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_ULCORNER(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_ULCORNER);
 }
 
-static class QoreNode *f_ACS_LLCORNER(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_LLCORNER(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_LLCORNER);
 }
 
-static class QoreNode *f_ACS_URCORNER(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_URCORNER(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_URCORNER);
 }
 
-static class QoreNode *f_ACS_LRCORNER(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_LRCORNER(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_LRCORNER);
 }
 
-static class QoreNode *f_ACS_LTEE(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_LTEE(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_LTEE);
 }
 
-static class QoreNode *f_ACS_RTEE(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_RTEE(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_RTEE);
 }
 
-static class QoreNode *f_ACS_BTEE(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_BTEE(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_BTEE);
 }
 
-static class QoreNode *f_ACS_TTEE(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_TTEE(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_TTEE);
 }
 
-static class QoreNode *f_ACS_HLINE(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_HLINE(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_HLINE);
 }
 
-static class QoreNode *f_ACS_VLINE(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_VLINE(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_VLINE);
 }
 
-static class QoreNode *f_ACS_PLUS(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_PLUS(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_PLUS);
 }
 
-static class QoreNode *f_ACS_S1(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_S1(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_S1);
 }
 
-static class QoreNode *f_ACS_S9(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_S9(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_S9);
 }
 
-static class QoreNode *f_ACS_DIAMOND(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_DIAMOND(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_DIAMOND);
 }
 
-static class QoreNode *f_ACS_CKBOARD(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_CKBOARD(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_CKBOARD);
 }
 
-static class QoreNode *f_ACS_DEGREE(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_DEGREE(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_DEGREE);
 }
 
-static class QoreNode *f_ACS_PLMINUS(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_PLMINUS(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_PLMINUS);
 }
 
-static class QoreNode *f_ACS_BULLET(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_BULLET(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_BULLET);
 }
 
-static class QoreNode *f_ACS_LARROW(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_LARROW(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_LARROW);
 }
 
-static class QoreNode *f_ACS_RARROW(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_RARROW(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_RARROW);
 }
 
-static class QoreNode *f_ACS_DARROW(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_DARROW(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_DARROW);
 }
 
-static class QoreNode *f_ACS_UARROW(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_UARROW(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_UARROW);
 }
 
-static class QoreNode *f_ACS_BOARD(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_BOARD(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_BOARD);
 }
 
-static class QoreNode *f_ACS_LANTERN(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_LANTERN(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_LANTERN);
 }
 
-static class QoreNode *f_ACS_BLOCK(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_ACS_BLOCK(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    return new QoreBigIntNode(ACS_BLOCK);
 }
 
 #ifdef NCURSES_MOUSE_VERSION
-static class QoreNode *f_mousemask(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_mousemask(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
-   class QoreNode *p0 = get_param(params, 0);
+   class AbstractQoreNode *p0 = get_param(params, 0);
    int d = p0 ? p0->getAsInt() : 0;
 
    return new QoreBigIntNode(mousemask(d, NULL));
 }
 
-static QoreNode *f_getmouse(const QoreListNode *params, class ExceptionSink *xsink)
+static AbstractQoreNode *f_getmouse(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
    MEVENT event;

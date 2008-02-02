@@ -27,7 +27,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static class QoreNode *check_stat(unsigned code, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *check_stat(unsigned code, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0 = test_string_param(params, 0);
 
@@ -43,7 +43,7 @@ static class QoreNode *check_stat(unsigned code, const QoreListNode *params, Exc
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
 }
 
-static class QoreNode *check_lstat(unsigned code, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *check_lstat(unsigned code, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -58,37 +58,37 @@ static class QoreNode *check_lstat(unsigned code, const QoreListNode *params, Ex
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
 }
 
-static class QoreNode *f_is_file(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_file(const QoreListNode *params, ExceptionSink *xsink)
 {
    return check_stat(S_IFREG, params, xsink);
 }
 
-static class QoreNode *f_is_dir(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_dir(const QoreListNode *params, ExceptionSink *xsink)
 {
    return check_stat(S_IFDIR, params, xsink);
 }
 
-static class QoreNode *f_is_socket(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_socket(const QoreListNode *params, ExceptionSink *xsink)
 {
    return check_stat(S_IFSOCK, params, xsink);
 }
 
-static class QoreNode *f_is_pipe(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_pipe(const QoreListNode *params, ExceptionSink *xsink)
 {
    return check_stat(S_IFIFO, params, xsink);
 }
 
-static class QoreNode *f_is_cdev(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_cdev(const QoreListNode *params, ExceptionSink *xsink)
 {
    return check_stat(S_IFCHR, params, xsink);
 }
 
-static class QoreNode *f_is_bdev(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_bdev(const QoreListNode *params, ExceptionSink *xsink)
 {
    return check_stat(S_IFBLK, params, xsink);
 }
 
-static class QoreNode *f_is_dev(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_dev(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -105,12 +105,12 @@ static class QoreNode *f_is_dev(const QoreListNode *params, ExceptionSink *xsink
 	  ? boolean_true() : boolean_false();
 }
 
-static class QoreNode *f_is_link(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_link(const QoreListNode *params, ExceptionSink *xsink)
 {
    return check_lstat(S_IFLNK, params, xsink);
 }
 
-static class QoreNode *f_is_readable(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_readable(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -130,7 +130,7 @@ static class QoreNode *f_is_readable(const QoreListNode *params, ExceptionSink *
    return boolean_false();
 }
 
-static class QoreNode *f_is_writeable(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_writeable(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -151,7 +151,7 @@ static class QoreNode *f_is_writeable(const QoreListNode *params, ExceptionSink 
    return boolean_false();
 }
 
-static class QoreNode *f_is_executable(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_is_executable(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))

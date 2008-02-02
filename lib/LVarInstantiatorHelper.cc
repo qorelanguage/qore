@@ -29,7 +29,7 @@ struct lvih_intern {
       ExceptionSink *xsink;
       ReferenceNode *ref;
 
-      DLLLOCAL lvih_intern(const char *name, QoreNode *val, ExceptionSink *xs) : xsink(xs)
+      DLLLOCAL lvih_intern(const char *name, AbstractQoreNode *val, ExceptionSink *xs) : xsink(xs)
       {
 	 char *new_name = strdup(name);
 	 printd(5, "LVarInstantiatorHelper::LVarInstantiatorHelper() instantiating '%s' %08p (val=%08p type='%s') \n", new_name, new_name, val, val ? val->getTypeName() : "n/a");
@@ -45,12 +45,12 @@ struct lvih_intern {
 	 uninstantiateLVar(xsink);
       }
 
-      DLLLOCAL QoreNode *getOutputValue()
+      DLLLOCAL AbstractQoreNode *getOutputValue()
       {
 	 // there will be no locking here, because it's our temporary local "variable"
 	 class AutoVLock vl;
 	 ExceptionSink xsink2;
-	 class QoreNode **vp = get_var_value_ptr(ref->lvexp, &vl, &xsink2);
+	 class AbstractQoreNode **vp = get_var_value_ptr(ref->lvexp, &vl, &xsink2);
 
 	 // no exception should be possible here
 	 assert(!xsink2);
@@ -58,20 +58,20 @@ struct lvih_intern {
 	    return 0;
 
 	 // take output value from our temporary "variable" 
-	 QoreNode *rv = *vp;
+	 AbstractQoreNode *rv = *vp;
 	 *vp = 0;
 	 // and return it
 	 
 	 return rv;
       }
       
-      DLLLOCAL class QoreNode *getArg()
+      DLLLOCAL class AbstractQoreNode *getArg()
       {
 	 return ref->RefSelf();
       }
 };
 
-LVarInstantiatorHelper::LVarInstantiatorHelper(const char *name, QoreNode *val, ExceptionSink *xsink) : priv(new lvih_intern(name, val, xsink))
+LVarInstantiatorHelper::LVarInstantiatorHelper(const char *name, AbstractQoreNode *val, ExceptionSink *xsink) : priv(new lvih_intern(name, val, xsink))
 {
 }
 
@@ -80,12 +80,12 @@ LVarInstantiatorHelper::~LVarInstantiatorHelper()
    delete priv;
 }
 
-QoreNode *LVarInstantiatorHelper::getArg() const
+AbstractQoreNode *LVarInstantiatorHelper::getArg() const
 {
    return priv->getArg();
 }
 
-QoreNode *LVarInstantiatorHelper::getOutputValue()
+AbstractQoreNode *LVarInstantiatorHelper::getOutputValue()
 {
    return priv->getOutputValue();
 }

@@ -29,7 +29,7 @@
 class ContinueStatement : public AbstractStatement
 {
    private:
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, ExceptionSink *xsink)
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink)
       {
 	 return RC_CONTINUE;
       }

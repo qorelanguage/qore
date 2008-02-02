@@ -46,9 +46,9 @@ static void QDESKTOPWIDGET_copy(class QoreObject *self, class QoreObject *old, c
 //const QRect availableGeometry ( int screen = -1 ) const
 //const QRect availableGeometry ( const QWidget * widget ) const
 //const QRect availableGeometry ( const QPoint & p ) const
-static QoreNode *QDESKTOPWIDGET_availableGeometry(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDESKTOPWIDGET_availableGeometry(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
@@ -78,27 +78,27 @@ static QoreNode *QDESKTOPWIDGET_availableGeometry(QoreObject *self, QoreQDesktop
 }
 
 //bool isVirtualDesktop () const
-static QoreNode *QDESKTOPWIDGET_isVirtualDesktop(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDESKTOPWIDGET_isVirtualDesktop(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qdw->qobj->isVirtualDesktop());
 }
 
 //int numScreens () const
-static QoreNode *QDESKTOPWIDGET_numScreens(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDESKTOPWIDGET_numScreens(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qdw->qobj->numScreens());
 }
 
 //int primaryScreen () const
-static QoreNode *QDESKTOPWIDGET_primaryScreen(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDESKTOPWIDGET_primaryScreen(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qdw->qobj->primaryScreen());
 }
 
 //QWidget * screen ( int screen = -1 )
-static QoreNode *QDESKTOPWIDGET_screen(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDESKTOPWIDGET_screen(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int screen = !is_nothing(p) ? p->getAsInt() : -1;
    QWidget *qt_qobj = qdw->qobj->screen(screen);
    if (!qt_qobj)
@@ -118,9 +118,9 @@ static QoreNode *QDESKTOPWIDGET_screen(QoreObject *self, QoreQDesktopWidget *qdw
 //const QRect screenGeometry ( int screen = -1 ) const
 //const QRect screenGeometry ( const QWidget * widget ) const
 //const QRect screenGeometry ( const QPoint & p ) const
-static QoreNode *QDESKTOPWIDGET_screenGeometry(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDESKTOPWIDGET_screenGeometry(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
@@ -151,9 +151,9 @@ static QoreNode *QDESKTOPWIDGET_screenGeometry(QoreObject *self, QoreQDesktopWid
 
 //int screenNumber ( const QWidget * widget = 0 ) const
 //int screenNumber ( const QPoint & point ) const
-static QoreNode *QDESKTOPWIDGET_screenNumber(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDESKTOPWIDGET_screenNumber(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       return new QoreBigIntNode(qdw->qobj->screenNumber());
    }

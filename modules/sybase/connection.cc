@@ -121,7 +121,7 @@ int connection::direct_execute(const char* sql_text, ExceptionSink* xsink)
    return purge_messages(xsink);
 }
 
-class QoreNode *connection::exec_intern(class QoreString *cmd_text, const QoreListNode *qore_args, bool need_list, class ExceptionSink* xsink)
+class AbstractQoreNode *connection::exec_intern(class QoreString *cmd_text, const QoreListNode *qore_args, bool need_list, class ExceptionSink* xsink)
 {
    sybase_query query;
    if (query.init(cmd_text, qore_args, xsink))
@@ -141,7 +141,7 @@ class QoreNode *connection::exec_intern(class QoreString *cmd_text, const QoreLi
    if (cmd.send(xsink))
       return 0;
 
-   ReferenceHolder<QoreNode> result(cmd.read_output(query.placeholder_list, need_list, xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> result(cmd.read_output(query.placeholder_list, need_list, xsink), xsink);
    if (*xsink)
       return 0;
 
@@ -149,7 +149,7 @@ class QoreNode *connection::exec_intern(class QoreString *cmd_text, const QoreLi
    return result.release();
 }
 
-class QoreNode *connection::exec(const QoreString *cmd, const QoreListNode *parameters, class ExceptionSink *xsink)
+class AbstractQoreNode *connection::exec(const QoreString *cmd, const QoreListNode *parameters, class ExceptionSink *xsink)
 {
    // copy the string here for intrusive editing, convert encoding too if necessary
    class QoreString *query = cmd->convertEncoding(enc, xsink);
@@ -160,7 +160,7 @@ class QoreNode *connection::exec(const QoreString *cmd, const QoreListNode *para
    return exec_intern(query, parameters, false, xsink);
 }
 
-class QoreNode *connection::exec_rows(const QoreString *cmd, const QoreListNode *parameters, class ExceptionSink *xsink)
+class AbstractQoreNode *connection::exec_rows(const QoreString *cmd, const QoreListNode *parameters, class ExceptionSink *xsink)
 {
    // copy the string here for intrusive editing, convert encoding too if necessary
    class QoreString *query = cmd->convertEncoding(enc, xsink);
@@ -487,15 +487,15 @@ QoreStringNode *connection::get_client_version(class ExceptionSink *xsink)
    return new QoreStringNode(buf);
 }
 
-class QoreNode *connection::get_server_version(class ExceptionSink *xsink)
+class AbstractQoreNode *connection::get_server_version(class ExceptionSink *xsink)
 {
-   class QoreNode *res = exec_intern(&ver_str, 0, true, xsink);
+   class AbstractQoreNode *res = exec_intern(&ver_str, 0, true, xsink);
    if (!res)
       return 0;
    assert(res->type == NT_HASH);
    HashIterator hi(reinterpret_cast<QoreHashNode *>(res));
    hi.next();
-   QoreNode *rv = hi.takeValueAndDelete();
+   AbstractQoreNode *rv = hi.takeValueAndDelete();
    res->deref(xsink);
 
    QoreStringNode *str = dynamic_cast<QoreStringNode *>(rv);

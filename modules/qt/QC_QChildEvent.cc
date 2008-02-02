@@ -33,7 +33,7 @@ class QoreClass *QC_QChildEvent = 0;
 //QChildEvent ( Type type, QObject * child )
 static void QCHILDEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QChildEvent::Type type = (QChildEvent::Type)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QoreAbstractQObject *child = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
@@ -53,25 +53,25 @@ static void QCHILDEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //bool added () const
-static QoreNode *QCHILDEVENT_added(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QCHILDEVENT_added(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qce->added());
 }
 
 //QObject * child () const
-static QoreNode *QCHILDEVENT_child(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QCHILDEVENT_child(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
 {
    return return_qobject(qce->child());
 }
 
 //bool polished () const
-static QoreNode *QCHILDEVENT_polished(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QCHILDEVENT_polished(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qce->polished());
 }
 
 //bool removed () const
-static QoreNode *QCHILDEVENT_removed(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QCHILDEVENT_removed(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qce->removed());
 }

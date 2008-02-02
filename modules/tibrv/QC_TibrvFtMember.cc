@@ -42,7 +42,7 @@ static void TIBRVFTMEMBER_constructor(class QoreObject *self, const QoreListNode
    const char *groupName = str->getBuffer();
 
    int weight, activeGoal;
-   QoreNode *pt = get_param(params, 1);
+   AbstractQoreNode *pt = get_param(params, 1);
    weight = pt ? pt->getAsInt() : 0;
    if (weight <= 0)
    {
@@ -139,26 +139,26 @@ static void TIBRVFTMEMBER_copy(class QoreObject *self, class QoreObject *old, cl
    xsink->raiseException("TIBRVFTMEMBER-COPY-ERROR", "copying TibrvFtMember objects is curently not supported");
 }
 
-static QoreNode *TIBRVFTMEMBER_getEvent(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVFTMEMBER_getEvent(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
 {
    return ftm->getEvent(xsink);
 }
 
-static QoreNode *TIBRVFTMEMBER_stop(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *TIBRVFTMEMBER_stop(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
 {
    ftm->stop();
    return NULL;
 }
 
-class QoreNode *TIBRVFTMEMBER_getGroupName(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVFTMEMBER_getGroupName(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *name = ftm->getGroupName();
    return name ? new QoreStringNode((char *)name) : 0;
 }
 
-class QoreNode *TIBRVFTMEMBER_setWeight(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *TIBRVFTMEMBER_setWeight(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *pt = get_param(params, 0);
+   class AbstractQoreNode *pt = get_param(params, 0);
    int weight = pt ? pt->getAsInt() : 0;
    if (weight <= 0)
       xsink->raiseException("TIBRVFTMEMBER-SETWEIGHT-ERROR", "weight must be greater than zero (value passed: %d)", weight);

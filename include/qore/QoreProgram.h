@@ -73,10 +73,10 @@ class QoreProgram : public AbstractPrivateData
 
    public:
       DLLEXPORT QoreProgram();
-      DLLEXPORT class QoreNode *callFunction(const char *name, const class QoreListNode *args, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *callFunction(class UserFunction *func, const class QoreListNode *args, class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *run(class ExceptionSink *xsink);
-      DLLEXPORT class QoreNode *runTopLevel(class ExceptionSink *xsink);
+      DLLEXPORT class AbstractQoreNode *callFunction(const char *name, const class QoreListNode *args, class ExceptionSink *xsink);
+      DLLEXPORT class AbstractQoreNode *callFunction(class UserFunction *func, const class QoreListNode *args, class ExceptionSink *xsink);
+      DLLEXPORT class AbstractQoreNode *run(class ExceptionSink *xsink);
+      DLLEXPORT class AbstractQoreNode *runTopLevel(class ExceptionSink *xsink);
       DLLEXPORT void parseFileAndRun(const char *filename);
       DLLEXPORT void parseAndRun(FILE *, const char *name);
       DLLEXPORT void parseAndRun(const char *str, const char *name);

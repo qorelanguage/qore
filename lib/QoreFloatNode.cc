@@ -95,21 +95,21 @@ QoreString *QoreFloatNode::getAsString(bool &del, int foff, class ExceptionSink 
    return getStringRepresentation(del);
 }
 
-QoreNode *QoreFloatNode::realCopy() const
+AbstractQoreNode *QoreFloatNode::realCopy() const
 {
    return new QoreFloatNode(f);
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
 // the "val" passed
-//DLLLOCAL virtual int compare(const QoreNode *val) const;
+//DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
 // the type passed must always be equal to the current type
-bool QoreFloatNode::is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+bool QoreFloatNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    return v->getAsFloat() == f;
 }
 
-bool QoreFloatNode::is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+bool QoreFloatNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    const QoreFloatNode *fn = dynamic_cast<const QoreFloatNode *>(v);
    if (!fn)

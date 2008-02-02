@@ -136,7 +136,7 @@ static void GETOPT_constructor(class QoreObject *self, const QoreListNode *param
 	 break;
       }
 
-      class QoreNode *v = hi.getValue();
+      class AbstractQoreNode *v = hi.getValue();
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
       if (!str)
       {
@@ -228,9 +228,9 @@ static void GETOPT_copy(class QoreObject *self, class QoreObject *old, class Get
    xsink->raiseException("GETOPT-COPY-ERROR", "copying GetOpt objects is not supported");
 }
 
-static class QoreNode *GETOPT_parse(class QoreObject *self, class GetOpt *g, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *GETOPT_parse(class QoreObject *self, class GetOpt *g, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0 = get_param(params, 0);
+   AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
       return NULL;
 
@@ -239,7 +239,7 @@ static class QoreNode *GETOPT_parse(class QoreObject *self, class GetOpt *g, con
    if (p0->type == NT_REFERENCE)
    {
       ReferenceNode *r = reinterpret_cast<ReferenceNode *>(p0);
-      class QoreNode **vp = get_var_value_ptr(r->lvexp, &vl, xsink);
+      class AbstractQoreNode **vp = get_var_value_ptr(r->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
       l = dynamic_cast<QoreListNode *>(*vp);

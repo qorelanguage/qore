@@ -39,9 +39,9 @@ static inline void assign_value(QoreHash *h, char *key, int val)
    h->setKeyValue(key, new QoreBigIntNode(val), NULL);
 }
 
-static class QoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p0;
+   AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return NULL;

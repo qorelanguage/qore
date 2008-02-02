@@ -135,7 +135,7 @@ static int getJSONStringToken(QoreString &str, const char *&buf, int &line_numbe
    return -1;
 }
 
-static class QoreNode *getJSONValue(const char *&buf, int &line_number, const QoreEncoding *enc, class ExceptionSink *xsink);
+static class AbstractQoreNode *getJSONValue(const char *&buf, int &line_number, const QoreEncoding *enc, class ExceptionSink *xsink);
 
 // '{' has already been read and the buffer is set to this character
 static class QoreHashNode *getJSONObject(const char *&buf, int &line_number, const QoreEncoding *enc, class ExceptionSink *xsink)
@@ -183,7 +183,7 @@ static class QoreHashNode *getJSONObject(const char *&buf, int &line_number, con
       skip_whitespace(buf, line_number);
 
       // get value
-      class QoreNode *val = getJSONValue(buf, line_number, enc, xsink);
+      class AbstractQoreNode *val = getJSONValue(buf, line_number, enc, xsink);
       if (!val)
       {
 	 if (!xsink->isException())
@@ -213,7 +213,7 @@ static class QoreHashNode *getJSONObject(const char *&buf, int &line_number, con
 }
 
 // '[' has already been read and the buffer is set to this character
-static class QoreNode *getJSONArray(const char *&buf, int &line_number, const QoreEncoding *enc, class ExceptionSink *xsink)
+static class AbstractQoreNode *getJSONArray(const char *&buf, int &line_number, const QoreEncoding *enc, class ExceptionSink *xsink)
 {
    // increment buffer to first character of array description
    buf++;
@@ -229,7 +229,7 @@ static class QoreNode *getJSONArray(const char *&buf, int &line_number, const Qo
    while (*buf)
    {
       //printd(5, "before getJSONValue() buf=%s\n", buf);
-      class QoreNode *val = getJSONValue(buf, line_number, enc, xsink);
+      class AbstractQoreNode *val = getJSONValue(buf, line_number, enc, xsink);
       if (!val)
       {
 	 if (!xsink->isException())
@@ -259,7 +259,7 @@ static class QoreNode *getJSONArray(const char *&buf, int &line_number, const Qo
    return 0;
 }
 
-static class QoreNode *getJSONValue(const char *&buf, int &line_number, const QoreEncoding *enc, class ExceptionSink *xsink)
+static class AbstractQoreNode *getJSONValue(const char *&buf, int &line_number, const QoreEncoding *enc, class ExceptionSink *xsink)
 {
    // skip whitespace
    skip_whitespace(buf, line_number);
@@ -365,7 +365,7 @@ static class QoreNode *getJSONValue(const char *&buf, int &line_number, const Qo
 
 #define JSF_THRESHOLD 20
 
-static int doJSONValue(class QoreString *str, class QoreNode *v, int format, class ExceptionSink *xsink)
+static int doJSONValue(class QoreString *str, class AbstractQoreNode *v, int format, class ExceptionSink *xsink)
 {
    if (is_nothing(v))
    {
@@ -471,9 +471,9 @@ static int doJSONValue(class QoreString *str, class QoreNode *v, int format, cla
    return -1;
 }
 
-static class QoreNode *f_makeJSONString(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_makeJSONString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *val;
+   class AbstractQoreNode *val;
    QoreStringNode *pcs;
 
    tracein("f_makeJSONString()");
@@ -491,9 +491,9 @@ static class QoreNode *f_makeJSONString(const QoreListNode *params, ExceptionSin
    return str.release();
 }
 
-static class QoreNode *f_makeFormattedJSONString(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_makeFormattedJSONString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *val;
+   class AbstractQoreNode *val;
    QoreStringNode *pcs;
 
    tracein("f_makeFormattedJSONString()");
@@ -511,11 +511,11 @@ static class QoreNode *f_makeFormattedJSONString(const QoreListNode *params, Exc
    return str.release();
 }
 
-class QoreNode *parseJSONValue(const QoreString *str, class ExceptionSink *xsink)
+class AbstractQoreNode *parseJSONValue(const QoreString *str, class ExceptionSink *xsink)
 {
    int line_number = 1;
    const char *buf = str->getBuffer();
-   class QoreNode *rv = getJSONValue(buf, line_number, str->getEncoding(), xsink);
+   class AbstractQoreNode *rv = getJSONValue(buf, line_number, str->getEncoding(), xsink);
    if (rv && *buf)
    {
       // check for excess text after JSON data
@@ -530,7 +530,7 @@ class QoreNode *parseJSONValue(const QoreString *str, class ExceptionSink *xsink
    return rv;
 }
 
-static class QoreNode *f_parseJSON(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_parseJSON(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p0;
 
@@ -549,7 +549,7 @@ class QoreString *makeJSONRPC11RequestStringArgs(const QoreListNode *params, Exc
       return NULL;
    }
 
-   class QoreNode *p1 = get_param(params, 1);
+   class AbstractQoreNode *p1 = get_param(params, 1);
 
    TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
 
@@ -606,7 +606,7 @@ class QoreString *makeJSONRPC11RequestString(const QoreListNode *params, Excepti
 }
 
 // syntax: makeJSONRPCRequestString(method, version, id, params)
-static class QoreNode *f_makeJSONRPCRequestString(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_makeJSONRPCRequestString(const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -615,7 +615,7 @@ static class QoreNode *f_makeJSONRPCRequestString(const QoreListNode *params, Ex
       return NULL;
    }
 
-   class QoreNode *p1, *p2, *p3;
+   class AbstractQoreNode *p1, *p2, *p3;
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
    p3 = get_param(params, 3);
@@ -658,7 +658,7 @@ static class QoreNode *f_makeJSONRPCRequestString(const QoreListNode *params, Ex
 }
 
 // syntax: makeFormattedJSONRPCRequestString(method, version, id, params)
-static class QoreNode *f_makeFormattedJSONRPCRequestString(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_makeFormattedJSONRPCRequestString(const QoreListNode *params, ExceptionSink *xsink)
 {
    class QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -667,7 +667,7 @@ static class QoreNode *f_makeFormattedJSONRPCRequestString(const QoreListNode *p
       return NULL;
    }
 
-   class QoreNode *p1, *p2, *p3;
+   class AbstractQoreNode *p1, *p2, *p3;
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
    p3 = get_param(params, 3);
@@ -710,9 +710,9 @@ static class QoreNode *f_makeFormattedJSONRPCRequestString(const QoreListNode *p
 }
 
 // syntax: makeJSONRPCResponseString(version, id, response)
-static class QoreNode *f_makeJSONRPCResponseString(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_makeJSONRPCResponseString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1, *p2;
+   class AbstractQoreNode *p0, *p1, *p2;
    p0 = get_param(params, 0);
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
@@ -752,9 +752,9 @@ static class QoreNode *f_makeJSONRPCResponseString(const QoreListNode *params, E
 }
 
 // syntax: makeFormattedJSONRPCResponseString(version, id, response)
-static class QoreNode *f_makeFormattedJSONRPCResponseString(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_makeFormattedJSONRPCResponseString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1, *p2;
+   class AbstractQoreNode *p0, *p1, *p2;
    p0 = get_param(params, 0);
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
@@ -794,9 +794,9 @@ static class QoreNode *f_makeFormattedJSONRPCResponseString(const QoreListNode *
 }
 
 // syntax: makeJSONRPCErrorString(version, id, response)
-static class QoreNode *f_makeJSONRPCErrorString(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_makeJSONRPCErrorString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1, *p2;
+   class AbstractQoreNode *p0, *p1, *p2;
    p0 = get_param(params, 0);
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
@@ -836,9 +836,9 @@ static class QoreNode *f_makeJSONRPCErrorString(const QoreListNode *params, Exce
 }
 
 // syntax: makeFormattedJSONRPCErrorString(version, id, response)
-static class QoreNode *f_makeFormattedJSONRPCErrorString(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_makeFormattedJSONRPCErrorString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p0, *p1, *p2;
+   class AbstractQoreNode *p0, *p1, *p2;
    p0 = get_param(params, 0);
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
@@ -878,9 +878,9 @@ static class QoreNode *f_makeFormattedJSONRPCErrorString(const QoreListNode *par
 }
 
 // syntax: makeJSONRPC11ErrorString(code, message, id, error)
-static class QoreNode *f_makeJSONRPC11ErrorString(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_makeJSONRPC11ErrorString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p;
+   class AbstractQoreNode *p;
    p = get_param(params, 0);
    int code = p ? p->getAsInt() : 0;
    if (code < 100 || code > 999)
@@ -931,9 +931,9 @@ static class QoreNode *f_makeJSONRPC11ErrorString(const QoreListNode *params, Ex
 }
 
 // syntax: makeFormattedJSONRPC11ErrorString(code, message, id, error)
-static class QoreNode *f_makeFormattedJSONRPC11ErrorString(const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *f_makeFormattedJSONRPC11ErrorString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreNode *p;
+   class AbstractQoreNode *p;
    p = get_param(params, 0);
    int code = p ? p->getAsInt() : 0;
    if (code < 100 || code > 999)

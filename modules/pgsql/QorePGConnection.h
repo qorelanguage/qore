@@ -173,8 +173,8 @@ struct qore_pg_time_tz_adt {
 };
 
 /*
-typedef void (*qore_pg_bind_func_t)(class QoreNode *v, char *data);
-typedef int (*qore_pg_bind_size_func_t)(class QoreNode *v);
+typedef void (*qore_pg_bind_func_t)(class AbstractQoreNode *v, char *data);
+typedef int (*qore_pg_bind_size_func_t)(class AbstractQoreNode *v);
 
 struct qore_bind_info {
       qore_pg_bind_func func;
@@ -186,7 +186,7 @@ struct qore_bind_info {
 typedef std::map<const QoreType *, qore_bind_info> qore_pg_bind_map;
 */
 
-typedef class QoreNode *(*qore_pg_data_func_t)(char *data, int type, int size, class QorePGConnection *conn, const QoreEncoding *enc);
+typedef class AbstractQoreNode *(*qore_pg_data_func_t)(char *data, int type, int size, class QorePGConnection *conn, const QoreEncoding *enc);
 
 typedef std::map<int, qore_pg_data_func_t> qore_pg_data_map_t;
 typedef std::pair<int, qore_pg_data_func_t> qore_pg_array_data_info_t;
@@ -212,9 +212,9 @@ class QorePGConnection
 
       DLLLOCAL int commit(class Datasource *ds, ExceptionSink *xsink);
       DLLLOCAL int rollback(class Datasource *ds, ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *select(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *select_rows(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *exec(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *select(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *select_rows(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *exec(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL int begin_transaction(class Datasource *ds, ExceptionSink *xsink);
       DLLLOCAL bool has_interval_day() const { return interval_has_day; }
       DLLLOCAL bool has_integer_datetimes() const { return integer_datetimes; }
@@ -272,11 +272,11 @@ class QorePGResult {
       class QorePGConnection *conn;
       const QoreEncoding *enc;
 
-      DLLLOCAL class QoreNode *getNode(int row, int col, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *getNode(int row, int col, class ExceptionSink *xsink);
       // returns 0 for OK, -1 for error
       DLLLOCAL int parse(class QoreString *str, const QoreListNode *args, class ExceptionSink *xsink);
-      DLLLOCAL int add(class QoreNode *v, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *getArray(int type, qore_pg_data_func_t func, char *&array_data, int current, int ndim, int dim[]);
+      DLLLOCAL int add(class AbstractQoreNode *v, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *getArray(int type, qore_pg_data_func_t func, char *&array_data, int current, int ndim, int dim[]);
       //DLLLOCAL int bind();
 
    public:
@@ -310,7 +310,7 @@ class QorePGBindArray {
       class QorePGConnection *conn;
 
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int check_type(class QoreNode *n, class ExceptionSink *xsink);
+      DLLLOCAL int check_type(class AbstractQoreNode *n, class ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
       DLLLOCAL int check_oid(QoreHash *h, class ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
@@ -318,7 +318,7 @@ class QorePGBindArray {
       // returns -1 for exception, 0 for OK
       DLLLOCAL int process_list(QoreListNode *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int bind(class QoreNode *n, const QoreEncoding *enc, class ExceptionSink *xsink);
+      DLLLOCAL int bind(class AbstractQoreNode *n, const QoreEncoding *enc, class ExceptionSink *xsink);
       DLLLOCAL void check_size(int size);
 
    public:

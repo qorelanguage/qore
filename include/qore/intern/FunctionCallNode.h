@@ -32,7 +32,7 @@ class ImportedFunctionCall {
       class UserFunction *func;
 
       DLLLOCAL ImportedFunctionCall(class QoreProgram *p, class UserFunction *f) { pgm = p; func = f; }
-      DLLLOCAL class QoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class AbstractQoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;
 };
 
 class SelfFunctionCall {
@@ -45,7 +45,7 @@ class SelfFunctionCall {
       DLLLOCAL SelfFunctionCall(class NamedScope *n);
       DLLLOCAL SelfFunctionCall(const QoreMethod *f);
       DLLLOCAL ~SelfFunctionCall();
-      DLLLOCAL class QoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class AbstractQoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL void resolve();
       DLLLOCAL char *takeName();
       DLLLOCAL class NamedScope *takeNScope();
@@ -96,11 +96,11 @@ class FunctionCallNode : public ParseNode
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
       // eval(): return value requires a deref(xsink)
-      DLLLOCAL virtual class QoreNode *eval(class ExceptionSink *) const;
+      DLLLOCAL virtual class AbstractQoreNode *eval(class ExceptionSink *) const;
 
       // to transform an "unresolved" function to a "method" type
       DLLLOCAL void parseMakeMethod();
-      DLLLOCAL class QoreNode *parseMakeNewObject();
+      DLLLOCAL class AbstractQoreNode *parseMakeNewObject();
       DLLLOCAL int existsUserParam(int i) const;
       DLLLOCAL int getFunctionType() const;
       DLLLOCAL const char *getName() const;

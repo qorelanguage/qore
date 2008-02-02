@@ -84,7 +84,7 @@ class T {
 	 args->push(new QoreBigIntNode(alignment));
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemPixmapRect, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_itemPixmapRect, *args, &xsink), &xsink);
 
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
@@ -128,7 +128,7 @@ class T {
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_hitTestComplexControl, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_hitTestComplexControl, *args, &xsink), &xsink);
 	 return (QStyle::SubControl)(*rv ? rv->getAsInt() : 0);
       }
 
@@ -144,7 +144,7 @@ class T {
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_standardPixmap, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_standardPixmap, *args, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQPixmap *qpixmap = o ? (QoreQPixmap *)o->getReferencedPrivateData(CID_QPIXMAP, &xsink) : 0;
 	 if (!qpixmap) {
@@ -167,7 +167,7 @@ class T {
 	 args->push(return_object(QC_QPixmap, new QoreQPixmap(pixmap)));
 	 args->push(return_qstyleoption(option));
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_generatedIconPixmap, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_generatedIconPixmap, *args, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQPixmap *qpixmap = o ? (QoreQPixmap *)o->getReferencedPrivateData(CID_QPIXMAP, &xsink) : 0;
 	 if (!qpixmap) {
@@ -192,7 +192,7 @@ class T {
 	 args->push(new QoreBoolNode(enabled));
 	 args->push(new QoreStringNode(text.toUtf8().data()));
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_itemTextRect, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_itemTextRect, *args, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
@@ -215,7 +215,7 @@ class T {
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_pixelMetric, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_pixelMetric, *args, &xsink), &xsink);
 	 return *rv ? rv->getAsInt() : 0;
       }
       DLLLOCAL virtual void polish ( QWidget * widget ) 
@@ -259,7 +259,7 @@ class T {
          discard(m_polish->eval(qore_obj, *args, &xsink), &xsink);
 
 /*
-	 QoreNode *out = lvh.getOutputValue();
+	 AbstractQoreNode *out = lvh.getOutputValue();
          QoreObject *o = dynamic_cast<QoreObject *>(out);
 	 QoreQPalette *qp = o ? (QoreQPalette *)o->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
 	 if (!qp) {
@@ -282,7 +282,7 @@ class T {
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_sizeFromContents, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_sizeFromContents, *args, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQSize *qsize = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, &xsink) : 0;
 	 if (!qsize) {
@@ -299,7 +299,7 @@ class T {
 	    return parent_standardPalette();
 
 	 ExceptionSink xsink;
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_standardPalette, 0, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_standardPalette, 0, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQPalette *qpalette = o ? (QoreQPalette *)o->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
 	 if (!qpalette) {
@@ -324,7 +324,7 @@ class T {
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 	 // returnData not currently implemented
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_styleHint, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_styleHint, *args, &xsink), &xsink);
 	 return *rv ? rv->getAsInt() : 0;
       }
       DLLLOCAL virtual QRect subControlRect ( QStyle::ComplexControl control, const QStyleOptionComplex * option, QStyle::SubControl subControl, const QWidget * widget = 0 ) const 
@@ -340,7 +340,7 @@ class T {
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_subControlRect, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_subControlRect, *args, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {
@@ -363,7 +363,7 @@ class T {
 	 if (widget)
 	    args->push(return_qobject(const_cast<QWidget *>(widget)));
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, m_subElementRect, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_subElementRect, *args, &xsink), &xsink);
          QoreObject *o = dynamic_cast<QoreObject *>(*rv);
 	 QoreQRect *qrect = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, &xsink) : 0;
 	 if (!qrect) {

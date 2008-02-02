@@ -187,7 +187,7 @@ class QoreType *QoreTypeManager::find(int id)
 }
 
 // 0 = equal, 1 = not equal
-bool compareHard(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
+bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink)
 {
    if (is_nothing(l))
       if (is_nothing(r))
@@ -201,15 +201,15 @@ bool compareHard(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsin
 
    // logical equals always returns an integer result
    // FIXME: fix Operator.h and cc instead of using const_cast<>!
-   return !OP_ABSOLUTE_EQ->bool_eval(const_cast<QoreNode *>(l), const_cast<QoreNode *>(r), xsink);
+   return !OP_ABSOLUTE_EQ->bool_eval(const_cast<AbstractQoreNode *>(l), const_cast<AbstractQoreNode *>(r), xsink);
 }
 
 // this function calls the operator function that will
 // convert values to do the conversion
 // 0 = equal, 1 = not equal
-bool compareSoft(const QoreNode *l, const QoreNode *r, class ExceptionSink *xsink)
+bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink)
 {
    // logical equals always returns an integer result
    // FIXME: fix Operator.h and cc instead of using const_cast<>!
-   return !OP_LOG_EQ->bool_eval(const_cast<QoreNode *>(l), const_cast<QoreNode *>(r), xsink);
+   return !OP_LOG_EQ->bool_eval(const_cast<AbstractQoreNode *>(l), const_cast<AbstractQoreNode *>(r), xsink);
 }

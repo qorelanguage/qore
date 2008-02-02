@@ -35,7 +35,7 @@ class QoreClass *QC_QDragMoveEvent = 0;
 //QDragMoveEvent ( const QPoint & pos, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Type type = DragMove )
 static void QDRAGMOVEEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
@@ -70,9 +70,9 @@ static void QDRAGMOVEEVENT_copy(class QoreObject *self, class QoreObject *old, c
 
 //void accept ( const QRect & rectangle )
 //void accept ()
-static QoreNode *QDRAGMOVEEVENT_accept(QoreObject *self, QoreQDragMoveEvent *qdme, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDRAGMOVEEVENT_accept(QoreObject *self, QoreQDragMoveEvent *qdme, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       qdme->accept();
       return 0;
@@ -89,7 +89,7 @@ static QoreNode *QDRAGMOVEEVENT_accept(QoreObject *self, QoreQDragMoveEvent *qdm
 }
 
 //QRect answerRect () const
-static QoreNode *QDRAGMOVEEVENT_answerRect(QoreObject *self, QoreQDragMoveEvent *qdme, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDRAGMOVEEVENT_answerRect(QoreObject *self, QoreQDragMoveEvent *qdme, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qdme->answerRect());
@@ -99,9 +99,9 @@ static QoreNode *QDRAGMOVEEVENT_answerRect(QoreObject *self, QoreQDragMoveEvent 
 
 //void ignore ( const QRect & rectangle )
 //void ignore ()
-static QoreNode *QDRAGMOVEEVENT_ignore(QoreObject *self, QoreQDragMoveEvent *qdme, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDRAGMOVEEVENT_ignore(QoreObject *self, QoreQDragMoveEvent *qdme, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       qdme->ignore();
       return 0;

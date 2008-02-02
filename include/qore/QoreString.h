@@ -144,7 +144,7 @@ class QoreString {
       DLLEXPORT void replace(int offset, int len, const class QoreString *str);
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
-      DLLEXPORT void splice(int offset, int length, const class QoreNode *strn, class ExceptionSink *xsink);
+      DLLEXPORT void splice(int offset, int length, const class AbstractQoreNode *strn, class ExceptionSink *xsink);
       DLLEXPORT class QoreString *substr(int offset) const;
       DLLEXPORT class QoreString *substr(int offset, int length) const;
       DLLEXPORT int chomp();

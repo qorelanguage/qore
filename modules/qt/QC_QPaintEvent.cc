@@ -34,7 +34,7 @@ static void QPAINTEVENT_constructor(class QoreObject *self, const QoreListNode *
 {
    QoreQPaintEvent *qr;
 
-   QoreNode *p = test_param(params, NT_OBJECT, 0);
+   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
       
    QoreQRect *rectangle = p ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (*xsink)
@@ -64,7 +64,7 @@ static void QPAINTEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //const QRect & rect () const
-static QoreNode *QPAINTEVENT_rect(QoreObject *self, QoreQPaintEvent *qpe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPAINTEVENT_rect(QoreObject *self, QoreQPaintEvent *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQRect *q_qr = new QoreQRect(qpe->rect());
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
@@ -73,7 +73,7 @@ static QoreNode *QPAINTEVENT_rect(QoreObject *self, QoreQPaintEvent *qpe, const 
 }
 
 //const QRegion & region () const
-static QoreNode *QPAINTEVENT_region(QoreObject *self, QoreQPaintEvent *qpe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QPAINTEVENT_region(QoreObject *self, QoreQPaintEvent *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQRegion *q_qr = new QoreQRegion(qpe->region());
    QoreObject *o_qr = new QoreObject(QC_QRegion, getProgram());

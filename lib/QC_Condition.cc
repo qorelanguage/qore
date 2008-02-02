@@ -39,7 +39,7 @@ static void CONDITION_copy(class QoreObject *self, class QoreObject *old, class 
    self->setPrivate(CID_CONDITION, new Condition());
 }
 
-class QoreNode *CONDITION_signal(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
+class AbstractQoreNode *CONDITION_signal(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    if (c->signal())
       xsink->raiseException("CONDITION-SIGNAL-ERROR", strerror(errno)); 
@@ -47,7 +47,7 @@ class QoreNode *CONDITION_signal(class QoreObject *self, class Condition *c, con
    return NULL;
 }
 
-static class QoreNode *CONDITION_broadcast(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *CONDITION_broadcast(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    if (c->broadcast())
       xsink->raiseException("CONDITION-BROADCAST-ERROR", strerror(errno));
@@ -55,7 +55,7 @@ static class QoreNode *CONDITION_broadcast(class QoreObject *self, class Conditi
    return NULL;
 }
 
-static class QoreNode *CONDITION_wait(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *CONDITION_wait(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p0 = test_object_param(params, 0);
    SmartMutex *m = p0 ? (SmartMutex *)p0->getReferencedPrivateData(CID_MUTEX, xsink) : 0;
@@ -83,7 +83,7 @@ static class QoreNode *CONDITION_wait(class QoreObject *self, class Condition *c
    return new QoreBigIntNode(rc);
 }
 
-static class QoreNode *CONDITION_wait_count(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *CONDITION_wait_count(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p0 = test_object_param(params, 0);
    SmartMutex *m = p0 ? (SmartMutex *)p0->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;

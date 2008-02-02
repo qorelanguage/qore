@@ -34,7 +34,7 @@ class QoreClass *QC_QWheelEvent = 0;
 //QWheelEvent ( const QPoint & pos, const QPoint & globalPos, int delta, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Qt::Orientation orient = Qt::Vertical )
 static void QWHEELEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = test_param(params, NT_OBJECT, 0);
+   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
    QoreQPoint *pos = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
@@ -79,19 +79,19 @@ static void QWHEELEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //Qt::MouseButtons buttons () const
-static QoreNode *QWHEELEVENT_buttons(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QWHEELEVENT_buttons(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qwe->buttons());
 }
 
 //int delta () const
-static QoreNode *QWHEELEVENT_delta(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QWHEELEVENT_delta(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qwe->delta());
 }
 
 //const QPoint & globalPos () const
-static QoreNode *QWHEELEVENT_globalPos(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QWHEELEVENT_globalPos(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qwe->globalPos());
@@ -100,25 +100,25 @@ static QoreNode *QWHEELEVENT_globalPos(QoreObject *self, QoreQWheelEvent *qwe, c
 }
 
 //int globalX () const
-static QoreNode *QWHEELEVENT_globalX(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QWHEELEVENT_globalX(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qwe->globalX());
 }
 
 //int globalY () const
-static QoreNode *QWHEELEVENT_globalY(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QWHEELEVENT_globalY(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qwe->globalY());
 }
 
 //Qt::Orientation orientation () const
-static QoreNode *QWHEELEVENT_orientation(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QWHEELEVENT_orientation(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qwe->orientation());
 }
 
 //const QPoint & pos () const
-static QoreNode *QWHEELEVENT_pos(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QWHEELEVENT_pos(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qp = new QoreObject(QC_QPoint, getProgram());
    QoreQPoint *q_qp = new QoreQPoint(qwe->pos());
@@ -127,13 +127,13 @@ static QoreNode *QWHEELEVENT_pos(QoreObject *self, QoreQWheelEvent *qwe, const Q
 }
 
 //int x () const
-static QoreNode *QWHEELEVENT_x(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QWHEELEVENT_x(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qwe->x());
 }
 
 //int y () const
-static QoreNode *QWHEELEVENT_y(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QWHEELEVENT_y(QoreObject *self, QoreQWheelEvent *qwe, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qwe->y());
 }

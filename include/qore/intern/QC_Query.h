@@ -230,13 +230,13 @@ inline int QList::inlist(class Query *q)
 
 class QPartNode
 {
-      class QoreNode *getVarValue(class ExceptionSink *xsink);
-      class QoreNode **getVarValuePtr(class VLock *vl);
+      class AbstractQoreNode *getVarValue(class ExceptionSink *xsink);
+      class AbstractQoreNode **getVarValuePtr(class VLock *vl);
    public:
       class VarRef *vref;
       char *str;
       char *field;
-      class QoreNode *deflt;
+      class AbstractQoreNode *deflt;
       int type;
       int sflag;
       inline QPartNode(char *s);
@@ -244,7 +244,7 @@ class QPartNode
       inline QPartNode(char *name, char *f, char *def, ExceptionSink *xsink);
       inline ~QPartNode();
       inline char *getStrValue();
-      inline QoreNode *getNodeValue(ExceptionSink *xsink, int dyn);
+      inline AbstractQoreNode *getNodeValue(ExceptionSink *xsink, int dyn);
       inline class QoreObject *getQuery();
 };
 
@@ -279,7 +279,7 @@ inline QPartNode::QPartNode(char *name, char *f, char *def, ExceptionSink *xsink
    str   = NULL;
    field = f;
    if (def)
-      deflt = new QoreNode(def);
+      deflt = new AbstractQoreNode(def);
    sflag = 0;
 }
 
@@ -295,12 +295,12 @@ inline QPartNode::~QPartNode()
       delete vref;
 }
 
-inline class QoreNode *QPartNode::getVarValue(class ExceptionSink *xsink)
+inline class AbstractQoreNode *QPartNode::getVarValue(class ExceptionSink *xsink)
 {
    return vref->eval(xsink);
 }
 
-inline class QoreNode **QPartNode::getVarValuePtr(class VLock *vl)
+inline class AbstractQoreNode **QPartNode::getVarValuePtr(class VLock *vl)
 {
    return vref->getValuePtr(vl);
 }
@@ -311,7 +311,7 @@ inline class QoreObject *QPartNode::getQuery()
       return NULL;
 
    class VLock vl;
-   QoreNode **n = getVarValuePtr(&vl);
+   AbstractQoreNode **n = getVarValuePtr(&vl);
    if (!(*n) || (*n)->type != NT_OBJECT || (*n)->val.object->getClass()->getID() != CID_QUERY)
       return NULL;
    (*n)->val.object->ref();
@@ -323,7 +323,7 @@ inline char *QPartNode::getStrValue()
    return str;
 }
 
-inline QoreNode *QPartNode::getNodeValue(ExceptionSink *xsink, int dyn)
+inline AbstractQoreNode *QPartNode::getNodeValue(ExceptionSink *xsink, int dyn)
 {
    printd(5, "QPartNode::getNodeValue() called for %s\n", str);
 
@@ -331,7 +331,7 @@ inline QoreNode *QPartNode::getNodeValue(ExceptionSink *xsink, int dyn)
       return getVarValue(xsink);
 
    class VLock vl;
-   QoreNode **n = getVarValuePtr(&vl);
+   AbstractQoreNode **n = getVarValuePtr(&vl);
 
    if (!n || !(*n) || (*n)->type != NT_OBJECT)
    {
@@ -359,7 +359,7 @@ inline QoreNode *QPartNode::getNodeValue(ExceptionSink *xsink, int dyn)
    }
 
    //printd(5, "QPartNode::getNodeValue(): retrieving \"%s.%s\"\n", str, field);
-   QoreNode *rv;
+   AbstractQoreNode *rv;
    if (dyn)
    {
       rv = getContextObjectValue(*n, field, xsink);
@@ -525,7 +525,7 @@ inline QoreString *QPartQoreListNode::getSQL(ExceptionSink *xsink, int dyn)
 	 str->concat(pl[i]->getStrValue());
       else
       {
-	 class QoreNode *n = pl[i]->getNodeValue(xsink, dyn);
+	 class AbstractQoreNode *n = pl[i]->getNodeValue(xsink, dyn);
 	 if (xsink->isEvent())
 	 {
 	    if (n) n->deref(xsink);
@@ -545,7 +545,7 @@ inline QoreString *QPartQoreListNode::getSQL(ExceptionSink *xsink, int dyn)
 	 {
 	    for (int j = 0; j < n->val.list->size(); j++)
 	    {
-	       QoreNode *v = n->val.list->retrieve_entry(j);
+	       AbstractQoreNode *v = n->val.list->retrieve_entry(j);
 	       if (v)
 	       {
 		  if (v->type == NT_STRING)
@@ -557,7 +557,7 @@ inline QoreString *QPartQoreListNode::getSQL(ExceptionSink *xsink, int dyn)
 		  }
 		  else
 		  {
-		     QoreNode *t = v->convert(NT_STRING);
+		     AbstractQoreNode *t = v->convert(NT_STRING);
 		     printd(5, "QPartQoreListNode::getSQL() adding list %d/%d node value \"%s\"\n",
 			    j, n->val.list->size(),
 			    t->val.String->getBuffer());
@@ -578,7 +578,7 @@ inline QoreString *QPartQoreListNode::getSQL(ExceptionSink *xsink, int dyn)
 	 }
 	 else
 	 {
-	    QoreNode *t = n->convert(NT_STRING);
+	    AbstractQoreNode *t = n->convert(NT_STRING);
 	    printd(5, "QPartQoreListNode::getSQL() adding node value \"%s\"\n",
 		   t->val.String->getBuffer());
 	    str->concat(t->val.String);

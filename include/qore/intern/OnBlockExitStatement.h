@@ -32,7 +32,7 @@ class OnBlockExitStatement : public AbstractStatement
       class StatementBlock *code;
       enum obe_type_e type;
 
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
 
    public:

@@ -117,7 +117,7 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
       if (query.param_list[i] == 'd') 
 	 continue;
       
-      class QoreNode *val = args ? args->retrieve_entry(i) : NULL;
+      class AbstractQoreNode *val = args ? args->retrieve_entry(i) : NULL;
       //printd(5, "set_params() param %d = value %08p (%s)\n", i, val, val ? val->getTypeName() : "n/a");
       
       CS_DATAFMT datafmt;
@@ -258,9 +258,9 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
    return 0;
 }
 
-QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, ExceptionSink* xsink)
+AbstractQoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, ExceptionSink* xsink)
 {
-   ReferenceHolder<QoreNode> query_result(xsink), param_result(xsink), status_result(xsink);
+   ReferenceHolder<AbstractQoreNode> query_result(xsink), param_result(xsink), status_result(xsink);
    CS_INT result_type, rowcount = -1;
    CS_RETCODE err;
    int result_count = 0;
@@ -290,7 +290,7 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
 	    
 	 case CS_ROW_RESULT:
 	 {
-	    QoreNode *t = read_rows(0, list, xsink);
+	    AbstractQoreNode *t = read_rows(0, list, xsink);
 	    if (xsink->isException())
 	    {
 	       assert(!t);
@@ -362,7 +362,7 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
    //printd(5, "read_output() q=%d, p=%d\n", (bool)query_result, (bool)param_result);
 
    m_conn.purge_messages(xsink);   
-   QoreNode *rv = 0;
+   AbstractQoreNode *rv = 0;
    if (!query_result)
    {
       if (param_result)
@@ -395,7 +395,7 @@ QoreNode *command::read_output(PlaceholderList &placeholder_list, bool list, Exc
    return h;
 }
 
-QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list, ExceptionSink* xsink)
+AbstractQoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list, ExceptionSink* xsink)
 {
    unsigned columns = get_column_count(xsink);
    if (xsink->isException())
@@ -440,7 +440,7 @@ QoreNode *command::read_rows(PlaceholderList *placeholder_list, bool list, Excep
       return h;
    }
 
-   ReferenceHolder<QoreNode> rv(xsink);
+   ReferenceHolder<AbstractQoreNode> rv(xsink);
    QoreListNode *l = 0;
    while (fetch_row_into_buffers(xsink)) {
       QoreHashNode *h = output_buffers_to_hash(placeholder_list, descriptions, out_buffers, xsink);
@@ -567,7 +567,7 @@ int command::append_buffers_to_list(PlaceholderList *placeholder_list, row_resul
       hi.next();
 
       const output_value_buffer& buff = *(all_buffers.m_buffers[i]);
-      QoreNode* value = get_node(column_info[i], buff, xsink);
+      AbstractQoreNode* value = get_node(column_info[i], buff, xsink);
       if (xsink->isException()) {
 	 if (value) value->deref(xsink);
 	 return -1;
@@ -588,7 +588,7 @@ QoreHashNode *command::output_buffers_to_hash(PlaceholderList *placeholder_list,
    for (unsigned i = 0, n = column_info.size(); i != n; ++i) 
    {
       const output_value_buffer& buff = *(all_buffers.m_buffers[i]);
-      ReferenceHolder<QoreNode> value(get_node(column_info[i], buff, xsink), xsink);
+      ReferenceHolder<AbstractQoreNode> value(get_node(column_info[i], buff, xsink), xsink);
       if (*xsink)
 	 return 0;
 
@@ -610,7 +610,7 @@ QoreHashNode *command::output_buffers_to_hash(PlaceholderList *placeholder_list,
    return result.release();
 }
 
-class QoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_buffer& buffer, ExceptionSink* xsink)
+class AbstractQoreNode *command::get_node(const CS_DATAFMT& datafmt, const output_value_buffer& buffer, ExceptionSink* xsink)
 {
   if (buffer.indicator == -1) { // SQL NULL
      return null();

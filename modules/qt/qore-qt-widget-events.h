@@ -505,7 +505,7 @@ class T {
 	 ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(new QoreBigIntNode(query));
 
-	 ReferenceHolder<QoreNode> rv(dispatch_event_intern(qore_obj, p_inputMethodQuery, *args, &xsink), &xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, p_inputMethodQuery, *args, &xsink), &xsink);
 	 if (xsink)
 	    return QOREQTYPE::inputMethodQuery(query);
 
@@ -554,7 +554,7 @@ class T {
 	 ExceptionSink xsink;
 
 	 // call sizeHint method
-	 QoreNode *rv = p_sizeHint->eval(qore_obj, 0, &xsink);
+	 AbstractQoreNode *rv = p_sizeHint->eval(qore_obj, 0, &xsink);
 	 if (xsink) {
 	    discard(rv, &xsink);
 	    return QOREQTYPE::sizeHint();
@@ -581,7 +581,7 @@ class T {
 	 ExceptionSink xsink;
 
 	 // call minimumSizeHint method
-	 QoreNode *rv = p_minimumSizeHint->eval(qore_obj, 0, &xsink);
+	 AbstractQoreNode *rv = p_minimumSizeHint->eval(qore_obj, 0, &xsink);
 	 if (xsink) {
 	    discard(rv, &xsink);
 	    return QOREQTYPE::minimumSizeHint();

@@ -12,11 +12,11 @@ TEST()
   assert(!xsink);
 
   h = new QoreHash;
-  h->setKeyValue("aaa", new QoreNode(true), &xsink);
+  h->setKeyValue("aaa", new AbstractQoreNode(true), &xsink);
   assert(!xsink);
-  h->setKeyValue("bbbb", new QoreNode(1.1), &xsink);
+  h->setKeyValue("bbbb", new AbstractQoreNode(1.1), &xsink);
   assert(!xsink);
-  h->setKeyValue("bbb", new QoreNode(0.0), &xsink); // the same key
+  h->setKeyValue("bbb", new AbstractQoreNode(0.0), &xsink); // the same key
   h->derefAndDelete(&xsink);
   assert(!xsink);
 }

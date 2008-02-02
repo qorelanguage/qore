@@ -37,7 +37,7 @@ class QoreClass *QC_QSystemTrayIcon = 0;
 //QSystemTrayIcon ( const QIcon & icon, QObject * parent = 0 )
 static void QSYSTEMTRAYICON_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QSYSTEMTRAYICON, new QoreQSystemTrayIcon(self));
       return;
@@ -69,7 +69,7 @@ static void QSYSTEMTRAYICON_copy(class QoreObject *self, class QoreObject *old, 
 }
 
 //QMenu * contextMenu () const
-static QoreNode *QSYSTEMTRAYICON_contextMenu(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_contextMenu(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
    QMenu *qt_qobj = qsti->qobj->contextMenu();
    if (!qt_qobj)
@@ -87,7 +87,7 @@ static QoreNode *QSYSTEMTRAYICON_contextMenu(QoreObject *self, QoreQSystemTrayIc
 }
 
 //QRect geometry () const
-static QoreNode *QSYSTEMTRAYICON_geometry(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_geometry(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qr = new QoreObject(QC_QRect, getProgram());
    QoreQRect *q_qr = new QoreQRect(qsti->qobj->geometry());
@@ -96,7 +96,7 @@ static QoreNode *QSYSTEMTRAYICON_geometry(QoreObject *self, QoreQSystemTrayIcon 
 }
 
 //QIcon icon () const
-static QoreNode *QSYSTEMTRAYICON_icon(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_icon(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qsti->qobj->icon());
@@ -105,15 +105,15 @@ static QoreNode *QSYSTEMTRAYICON_icon(QoreObject *self, QoreQSystemTrayIcon *qst
 }
 
 //bool isVisible () const
-static QoreNode *QSYSTEMTRAYICON_isVisible(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_isVisible(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qsti->qobj->isVisible());
 }
 
 //void setContextMenu ( QMenu * menu )
-static QoreNode *QSYSTEMTRAYICON_setContextMenu(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_setContextMenu(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreQMenu *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMENU, xsink) : 0;
    if (!menu) {
       if (!xsink->isException())
@@ -126,9 +126,9 @@ static QoreNode *QSYSTEMTRAYICON_setContextMenu(QoreObject *self, QoreQSystemTra
 }
 
 //void setIcon ( const QIcon & icon )
-static QoreNode *QSYSTEMTRAYICON_setIcon(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_setIcon(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
@@ -141,9 +141,9 @@ static QoreNode *QSYSTEMTRAYICON_setIcon(QoreObject *self, QoreQSystemTrayIcon *
 }
 
 //void setToolTip ( const QString & tip )
-static QoreNode *QSYSTEMTRAYICON_setToolTip(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_setToolTip(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString tip;
    if (get_qstring(p, tip, xsink))
       return 0;
@@ -152,9 +152,9 @@ static QoreNode *QSYSTEMTRAYICON_setToolTip(QoreObject *self, QoreQSystemTrayIco
 }
 
 //void showMessage ( const QString & title, const QString & message, MessageIcon icon = Information, int millisecondsTimeoutHint = 10000 )
-static QoreNode *QSYSTEMTRAYICON_showMessage(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_showMessage(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
@@ -171,29 +171,29 @@ static QoreNode *QSYSTEMTRAYICON_showMessage(QoreObject *self, QoreQSystemTrayIc
 }
 
 //QString toolTip () const
-static QoreNode *QSYSTEMTRAYICON_toolTip(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_toolTip(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qsti->qobj->toolTip().toUtf8().data(), QCS_UTF8);
 }
 
 //void hide ()
-static QoreNode *QSYSTEMTRAYICON_hide(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_hide(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
    qsti->qobj->hide();
    return 0;
 }
 
 //void setVisible ( bool visible )
-static QoreNode *QSYSTEMTRAYICON_setVisible(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_setVisible(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool visible = p ? p->getAsBool() : false;
    qsti->qobj->setVisible(visible);
    return 0;
 }
 
 //void show ()
-static QoreNode *QSYSTEMTRAYICON_show(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QSYSTEMTRAYICON_show(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
    qsti->qobj->show();
    return 0;
@@ -248,13 +248,13 @@ QoreNamespace *initQSystemTrayIconNS(QoreClass *qobject)
 }
 
 //bool isSystemTrayAvailable ()
-static QoreNode *f_QSystemTrayIcon_isSystemTrayAvailable(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QSystemTrayIcon_isSystemTrayAvailable(const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(QSystemTrayIcon::isSystemTrayAvailable());
 }
 
 //bool supportsMessages ()
-static QoreNode *f_QSystemTrayIcon_supportsMessages(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_QSystemTrayIcon_supportsMessages(const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(QSystemTrayIcon::supportsMessages());
 }

@@ -88,7 +88,7 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLLOCAL void setSocketPath();
       DLLLOCAL const char *getMsgPath(const char *mpath, class QoreString &pstr);
       DLLLOCAL class QoreHashNode *getResponseHeader(const char *meth, const char *mpath, class QoreHash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *getHostHeaderValue();
+      DLLLOCAL class AbstractQoreNode *getHostHeaderValue();
 
       // not implemented
       DLLLOCAL QoreHTTPClient(const QoreHTTPClient&);
@@ -149,14 +149,14 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLEXPORT int connect(class ExceptionSink *xsink);
       DLLEXPORT void disconnect();
 
-      // caller owns the QoreNode reference returned
+      // caller owns the AbstractQoreNode reference returned
       DLLEXPORT class QoreHashNode *send(const char *meth, const char *path, const class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
-      // caller owns the QoreNode reference returned
-      DLLEXPORT class QoreNode *get(const char *path, const class QoreHash *headers, class ExceptionSink *xsink);
-      // caller owns the QoreNode reference returned
+      // caller owns the AbstractQoreNode reference returned
+      DLLEXPORT class AbstractQoreNode *get(const char *path, const class QoreHash *headers, class ExceptionSink *xsink);
+      // caller owns the AbstractQoreNode reference returned
       DLLEXPORT class QoreHashNode *head(const char *path, const class QoreHash *headers, class ExceptionSink *xsink);
-      // caller owns the QoreNode reference returned
-      DLLEXPORT class QoreNode *post(const char *path, const class QoreHash *headers, const void *data, unsigned size, class ExceptionSink *xsink);
+      // caller owns the AbstractQoreNode reference returned
+      DLLEXPORT class AbstractQoreNode *post(const char *path, const class QoreHash *headers, const void *data, unsigned size, class ExceptionSink *xsink);
       DLLEXPORT void setDefaultHeaderValue(const char *header, const char *val);
 };
 

@@ -52,11 +52,11 @@ class StatementBlock : public AbstractStatement
 
       DLLLOCAL StatementBlock(AbstractStatement *s);
       DLLLOCAL virtual ~StatementBlock();
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
 
       DLLLOCAL void addStatement(AbstractStatement *s);
-      DLLLOCAL class QoreNode *exec(ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *exec(ExceptionSink *xsink);
       DLLLOCAL void parseInit(class Paramlist *params);
       // initialize subclass constructors with an explicit base class argument list
       DLLLOCAL void parseInit(class Paramlist *params, class BCList *bcl); 

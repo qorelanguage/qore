@@ -29,18 +29,18 @@
 class ForEachStatement : public AbstractStatement
 {
    private:
-      class QoreNode *var;
-      class QoreNode *list;
+      class AbstractQoreNode *var;
+      class AbstractQoreNode *list;
       class StatementBlock *code;
       class LVList *lvars;
       bool is_ref;
    
-      DLLLOCAL int execRef(QoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL int execRef(AbstractQoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
    public:
-      DLLLOCAL ForEachStatement(int start_line, int end_line, class QoreNode *v, class QoreNode *l, class StatementBlock *cd);
+      DLLLOCAL ForEachStatement(int start_line, int end_line, class AbstractQoreNode *v, class AbstractQoreNode *l, class StatementBlock *cd);
       DLLLOCAL virtual ~ForEachStatement();
 };
 

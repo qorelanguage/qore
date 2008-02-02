@@ -117,13 +117,13 @@ FeatureList::~FeatureList()
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
-static int process_opt(QoreString *cstr, char *param, class QoreNode *node, int type, int *taken, class ExceptionSink *xsink)
+static int process_opt(QoreString *cstr, char *param, class AbstractQoreNode *node, int type, int *taken, class ExceptionSink *xsink)
 {
    char *str = param;
    int opts = 0;
    int width = -1;
    int decimals = -1;
-   class QoreNode *arg = node;
+   class AbstractQoreNode *arg = node;
    int length;
    char fmt[20], *f;
    QoreString tbuf(cstr->getEncoding());
@@ -315,7 +315,7 @@ class QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offse
 class QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, class ExceptionSink *xsink)
 {
    QoreStringNode *fmt;
-   QoreNode *args;
+   AbstractQoreNode *args;
 
    if (!(fmt = test_string_param(params, offset)))
       return new QoreStringNode();
@@ -330,7 +330,7 @@ class QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offs
    {
       int taken = 1;
       bool havearg = false;
-      QoreNode *arg = NULL;
+      AbstractQoreNode *arg = NULL;
 
       if ((fmt->getBuffer()[i] == '%'))
       {
@@ -554,7 +554,7 @@ char *make_class_name(const char *str)
    return cn;
 }
 
-void print_node(FILE *fp, class QoreNode *node)
+void print_node(FILE *fp, class AbstractQoreNode *node)
 {
    printd(5, "print_node() node=%08p (%s)\n", node, node ? node->getTypeName() : "(null)");
    QoreStringValueHelper str(node);

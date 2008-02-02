@@ -24,7 +24,7 @@
 
 #define _QORE_BIGINTNODE_H
 
-#include <qore/QoreNode.h>
+#include <qore/AbstractQoreNode.h>
 
 class QoreBigIntNode : public SimpleQoreNode
 {
@@ -66,14 +66,14 @@ class QoreBigIntNode : public SimpleQoreNode
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLEXPORT virtual class QoreNode *realCopy() const;
+      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
       // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
       // the "val" passed
-      //DLLLOCAL virtual int compare(const QoreNode *val) const;
+      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
       // the type passed must always be equal to the current type
-      DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
-      DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
       // returns the data type
       DLLEXPORT virtual const QoreType *getType() const;

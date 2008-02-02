@@ -240,7 +240,7 @@ void QoreQtDynamicSlot::call(void **arguments)
 	 args->push(0);
       }
    }
-   ReferenceHolder<QoreNode> rv(method->eval(qore_obj, *args, &xsink), &xsink);
+   ReferenceHolder<AbstractQoreNode> rv(method->eval(qore_obj, *args, &xsink), &xsink);
    if (return_type == QQT_TYPE_INT) {
       int *ptr = reinterpret_cast<int *>(arguments[0]);
       *ptr = *rv ? rv->getAsInt() : 0;
@@ -306,7 +306,7 @@ void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, const QoreListNode *
    for (int i = 0; i < num_args; ++i)
    {
       // get argument QoreNode
-      QoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
+      AbstractQoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
 
       switch (type_list[i])
       {
@@ -356,7 +356,7 @@ void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, c
    for (int i = 0; i < num_args; ++i)
    {
       // get argument QoreNode
-      QoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
+      AbstractQoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
       const char *str = params[i].data();
       
       if (!strcmp(str, "int"))

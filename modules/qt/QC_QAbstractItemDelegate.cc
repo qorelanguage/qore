@@ -47,9 +47,9 @@ static void QABSTRACTITEMDELEGATE_copy(class QoreObject *self, class QoreObject 
 }
 
 //virtual QWidget * createEditor ( QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index ) const
-static QoreNode *QABSTRACTITEMDELEGATE_createEditor(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QABSTRACTITEMDELEGATE_createEditor(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
@@ -82,9 +82,9 @@ static QoreNode *QABSTRACTITEMDELEGATE_createEditor(QoreObject *self, QoreAbstra
 }
 
 ////virtual bool editorEvent ( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem & option, const QModelIndex & index )
-//static QoreNode *QABSTRACTITEMDELEGATE_editorEvent(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QABSTRACTITEMDELEGATE_editorEvent(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QEvent* event = p;
 //   p = get_param(params, 1);
 //   ??? QAbstractItemModel* model = p;
@@ -108,9 +108,9 @@ static QoreNode *QABSTRACTITEMDELEGATE_createEditor(QoreObject *self, QoreAbstra
 //}
 
 //virtual void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const = 0
-static QoreNode *QABSTRACTITEMDELEGATE_paint(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QABSTRACTITEMDELEGATE_paint(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
    if (!painter) {
       if (!xsink->isException())
@@ -139,9 +139,9 @@ static QoreNode *QABSTRACTITEMDELEGATE_paint(QoreObject *self, QoreAbstractQAbst
 }
 
 //virtual void setEditorData ( QWidget * editor, const QModelIndex & index ) const
-static QoreNode *QABSTRACTITEMDELEGATE_setEditorData(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QABSTRACTITEMDELEGATE_setEditorData(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *editor = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!editor) {
       if (!xsink->isException())
@@ -162,9 +162,9 @@ static QoreNode *QABSTRACTITEMDELEGATE_setEditorData(QoreObject *self, QoreAbstr
 }
 
 ////virtual void setModelData ( QWidget * editor, QAbstractItemModel * model, const QModelIndex & index ) const
-//static QoreNode *QABSTRACTITEMDELEGATE_setModelData(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QABSTRACTITEMDELEGATE_setModelData(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   QoreAbstractQWidget *editor = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 //   if (!editor) {
 //      if (!xsink->isException())
@@ -187,9 +187,9 @@ static QoreNode *QABSTRACTITEMDELEGATE_setEditorData(QoreObject *self, QoreAbstr
 //}
 
 //virtual QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const = 0
-static QoreNode *QABSTRACTITEMDELEGATE_sizeHint(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QABSTRACTITEMDELEGATE_sizeHint(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreQStyleOptionViewItem *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionViewItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
@@ -212,9 +212,9 @@ static QoreNode *QABSTRACTITEMDELEGATE_sizeHint(QoreObject *self, QoreAbstractQA
 }
 
 //virtual void updateEditorGeometry ( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const
-static QoreNode *QABSTRACTITEMDELEGATE_updateEditorGeometry(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QABSTRACTITEMDELEGATE_updateEditorGeometry(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QoreAbstractQWidget *editor = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!editor) {
       if (!xsink->isException())
@@ -243,9 +243,9 @@ static QoreNode *QABSTRACTITEMDELEGATE_updateEditorGeometry(QoreObject *self, Qo
 }
 
 ////bool helpEvent ( QHelpEvent * event, QAbstractItemView * view, const QStyleOptionViewItem & option, const QModelIndex & index )
-//static QoreNode *QABSTRACTITEMDELEGATE_helpEvent(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
+//static AbstractQoreNode *QABSTRACTITEMDELEGATE_helpEvent(QoreObject *self, QoreAbstractQAbstractItemDelegate *qaid, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   QoreNode *p = get_param(params, 0);
+//   AbstractQoreNode *p = get_param(params, 0);
 //   ??? QHelpEvent* event = p;
 //   p = get_param(params, 1);
 //   ??? QAbstractItemView* view = p;

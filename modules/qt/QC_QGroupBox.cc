@@ -34,7 +34,7 @@ static void QGROUPBOX_constructor(QoreObject *self, const QoreListNode *params, 
 {
    QString title;
 
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
 
    bool got_title = !get_qstring(p, title, xsink, true);
    if (got_title)
@@ -56,58 +56,58 @@ static void QGROUPBOX_copy(class QoreObject *self, class QoreObject *old, class 
 }
 
 //Qt::Alignment alignment () const
-static QoreNode *QGROUPBOX_alignment(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QGROUPBOX_alignment(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qgb->getQGroupBox()->alignment());
 }
 
 //bool isCheckable () const
-static QoreNode *QGROUPBOX_isCheckable(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QGROUPBOX_isCheckable(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qgb->getQGroupBox()->isCheckable());
 }
 
 //bool isChecked () const
-static QoreNode *QGROUPBOX_isChecked(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QGROUPBOX_isChecked(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qgb->getQGroupBox()->isChecked());
 }
 
 //bool isFlat () const
-static QoreNode *QGROUPBOX_isFlat(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QGROUPBOX_isFlat(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qgb->getQGroupBox()->isFlat());
 }
 
 //void setAlignment ( int alignment )
-static QoreNode *QGROUPBOX_setAlignment(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QGROUPBOX_setAlignment(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int alignment = p ? p->getAsInt() : 0;
    qgb->getQGroupBox()->setAlignment(alignment);
    return 0;
 }
 
 //void setCheckable ( bool checkable )
-static QoreNode *QGROUPBOX_setCheckable(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QGROUPBOX_setCheckable(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool checkable = p ? p->getAsBool() : false;
    qgb->getQGroupBox()->setCheckable(checkable);
    return 0;
 }
 
 //void setFlat ( bool flat )
-static QoreNode *QGROUPBOX_setFlat(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QGROUPBOX_setFlat(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool flat = p ? p->getAsBool() : false;
    qgb->getQGroupBox()->setFlat(flat);
    return 0;
 }
 
 //void setTitle ( const QString & title )
-static QoreNode *QGROUPBOX_setTitle(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QGROUPBOX_setTitle(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
@@ -120,15 +120,15 @@ static QoreNode *QGROUPBOX_setTitle(QoreObject *self, QoreAbstractQGroupBox *qgb
 }
 
 //QString title () const
-static QoreNode *QGROUPBOX_title(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QGROUPBOX_title(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qgb->getQGroupBox()->title().toUtf8().data(), QCS_UTF8);
 }
 
 //void setChecked ( bool checked )
-static QoreNode *QGROUPBOX_setChecked(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QGROUPBOX_setChecked(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool checked = p ? p->getAsBool() : false;
    qgb->getQGroupBox()->setChecked(checked);
    return 0;

@@ -73,21 +73,21 @@ static int qore_pgsql_begin_transaction(class Datasource *ds, ExceptionSink *xsi
    return pc->begin_transaction(ds, xsink);
 }
 
-static class QoreNode *qore_pgsql_select_rows(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
+static class AbstractQoreNode *qore_pgsql_select_rows(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
    return pc->select_rows(ds, qstr, args, xsink);
 }
 
-static class QoreNode *qore_pgsql_select(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
+static class AbstractQoreNode *qore_pgsql_select(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
    return pc->select(ds, qstr, args, xsink);
 }
 
-static class QoreNode *qore_pgsql_exec(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
+static class AbstractQoreNode *qore_pgsql_exec(class Datasource *ds, const QoreString *qstr, const QoreListNode *args, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
 
@@ -150,15 +150,15 @@ static int qore_pgsql_close(class Datasource *ds)
    return 0;
 }
 
-static class QoreNode *qore_pgsql_get_server_version(class Datasource *ds, class ExceptionSink *xsink)
+static class AbstractQoreNode *qore_pgsql_get_server_version(class Datasource *ds, class ExceptionSink *xsink)
 {
    QorePGConnection *pc = (QorePGConnection *)ds->getPrivateData();
    return new QoreBigIntNode(pc->get_server_version());
 }
 
-static class QoreNode *f_pgsql_bind(const QoreListNode *params, class ExceptionSink *xsink)
+static class AbstractQoreNode *f_pgsql_bind(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   class QoreNode *p = get_param(params, 0);
+   class AbstractQoreNode *p = get_param(params, 0);
    int type = p? p->getAsInt() : 0;
    if (!type)
    {

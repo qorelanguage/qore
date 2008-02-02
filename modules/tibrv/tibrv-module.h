@@ -25,7 +25,7 @@
 #define _QORE_TIBRV_MODULE_H
 
 #include <qore/common.h>
-#include <qore/QoreNode.h>
+#include <qore/AbstractQoreNode.h>
 
 class QoreStringNode *tibrv_module_init();
 void tibrv_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);

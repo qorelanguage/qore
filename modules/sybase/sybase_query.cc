@@ -85,7 +85,7 @@ int sybase_query::init(QoreString *cmd_text, const QoreListNode *args, Exception
 	 } 
 	 else if (ch == 'd') 
 	 {
-	    class QoreNode *v = args ? args->retrieve_entry(param_list.size()) : 0;
+	    class AbstractQoreNode *v = args ? args->retrieve_entry(param_list.size()) : 0;
 	    tmp.clear();
 	    DBI_concat_numeric(&tmp, v);
 	    m_cmd->replace(offset, 2, tmp.getBuffer());
@@ -97,7 +97,7 @@ int sybase_query::init(QoreString *cmd_text, const QoreListNode *args, Exception
 	 } 
 	 else if (ch == 's') 
 	 {
-	    class QoreNode *v = args ? args->retrieve_entry(param_list.size()) : 0;
+	    class AbstractQoreNode *v = args ? args->retrieve_entry(param_list.size()) : 0;
 	    tmp.clear();
 	    if (DBI_concat_string(&tmp, v, xsink))
 	       return -1;

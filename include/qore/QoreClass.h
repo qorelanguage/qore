@@ -67,7 +67,7 @@ class QoreMethod {
       DLLLOCAL QoreMethod& operator=(const QoreMethod&);
 
    public:
-      DLLEXPORT class QoreNode *eval(class QoreObject *self, const QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class AbstractQoreNode *eval(class QoreObject *self, const QoreListNode *args, class ExceptionSink *xsink) const;
       DLLEXPORT bool isSynchronized() const;
       DLLEXPORT int getType() const;
       DLLEXPORT bool isPrivate() const;
@@ -111,7 +111,7 @@ class QoreClass{
       DLLLOCAL void checkSpecialIntern(const QoreMethod *m);
       // checks for all special methods
       DLLLOCAL void checkSpecial(const QoreMethod *m);
-      DLLLOCAL class QoreNode *evalMethodGate(class QoreObject *self, const char *nme, const QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class AbstractQoreNode *evalMethodGate(class QoreObject *self, const char *nme, const QoreListNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL const QoreMethod *resolveSelfMethodIntern(const char *nme);
       DLLLOCAL void delete_pending_methods();
       DLLLOCAL BCAList *getBaseClassConstructorArgumentList() const;
@@ -131,7 +131,7 @@ class QoreClass{
       // this method takes ownership of *name
       DLLEXPORT void addPrivateMember(char *name);
       DLLEXPORT bool isPrivateMember(const char *str) const;
-      DLLEXPORT class QoreNode *evalMethod(class QoreObject *self, const char *nme, const QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLEXPORT class AbstractQoreNode *evalMethod(class QoreObject *self, const char *nme, const QoreListNode *args, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreObject *execConstructor(const QoreListNode *args, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreObject *execSystemConstructor(const QoreListNode *args, class ExceptionSink *xsink) const;
       DLLEXPORT class QoreObject *execCopy(class QoreObject *old, class ExceptionSink *xsink) const;
@@ -168,7 +168,7 @@ class QoreClass{
 
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(class QoreMethod *f);
-      DLLLOCAL class QoreNode *evalMemberGate(class QoreObject *self, const QoreString *nme, class ExceptionSink *xsink) const;
+      DLLLOCAL class AbstractQoreNode *evalMemberGate(class QoreObject *self, const QoreString *nme, class ExceptionSink *xsink) const;
       DLLLOCAL void execSubclassConstructor(class QoreObject *self, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL void execSubclassSystemConstructor(class QoreObject *self, class BCEAList *bceal, class ExceptionSink *xsink) const;      
       DLLLOCAL void execDestructor(class QoreObject *self, class ExceptionSink *xsink) const;

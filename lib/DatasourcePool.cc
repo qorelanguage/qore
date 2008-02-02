@@ -220,10 +220,10 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, class ExceptionSink *xsink
    return ds;
 }
 
-class QoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
-   class QoreNode *rv = NULL;
+   class AbstractQoreNode *rv = NULL;
    class Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
@@ -243,10 +243,10 @@ class QoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNode
 }
 
 // FIXME: should be a native DBI driver method
-class QoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
-   class QoreNode *rv;
+   class AbstractQoreNode *rv;
    class Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
@@ -266,7 +266,7 @@ class QoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListN
    QoreListNode *l = dynamic_cast<QoreListNode *>(rv);
    if (l)
    {
-      QoreNode *h = l->shift();
+      AbstractQoreNode *h = l->shift();
       rv->deref(xsink);
       rv = h;
    }
@@ -275,10 +275,10 @@ class QoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListN
    return rv;
 }
 
-class QoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
-   class QoreNode *rv;
+   class AbstractQoreNode *rv;
    class Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
@@ -314,7 +314,7 @@ int DatasourcePool::beginTransaction(class ExceptionSink *xsink)
    return rc;
 }
 
-class QoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+class AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
 {
    bool new_ds = false;
    class Datasource *ds = getDS(new_ds, xsink);
@@ -326,7 +326,7 @@ class QoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *
    addSQL("exec", sql);
 #endif
 
-   class QoreNode *rv = ds->exec(sql, args, xsink);
+   class AbstractQoreNode *rv = ds->exec(sql, args, xsink);
    //printd(5, "DatasourcePool::exec() ds=%08p, trans=%d, xsink=%d, new_ds=%d\n", ds, ds->isInTransaction(), xsink->isException(), new_ds);
 
    if (xsink->isException() && new_ds)
@@ -412,27 +412,27 @@ int DatasourcePool::getMax() const
    return max; 
 }
 
-class QoreNode *DatasourcePool::getPendingUsername() const
+class AbstractQoreNode *DatasourcePool::getPendingUsername() const
 {
    return pool[0]->getPendingUsername();
 }
 
-class QoreNode *DatasourcePool::getPendingPassword() const
+class AbstractQoreNode *DatasourcePool::getPendingPassword() const
 {
    return pool[0]->getPendingPassword();
 }
 
-class QoreNode *DatasourcePool::getPendingDBName() const
+class AbstractQoreNode *DatasourcePool::getPendingDBName() const
 {
    return pool[0]->getPendingDBName();
 }
 
-class QoreNode *DatasourcePool::getPendingDBEncoding() const
+class AbstractQoreNode *DatasourcePool::getPendingDBEncoding() const
 {
    return pool[0]->getPendingDBEncoding();
 }
 
-class QoreNode *DatasourcePool::getPendingHostName() const
+class AbstractQoreNode *DatasourcePool::getPendingHostName() const
 {
    return pool[0]->getPendingHostName();
 }

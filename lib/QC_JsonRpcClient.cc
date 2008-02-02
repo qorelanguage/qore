@@ -60,7 +60,7 @@ static void JRC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, 
    xsink->raiseException("JSONRPCCLIENT-COPY-ERROR", "copying JsonRpcClient objects is not yet supported.");
 }
 
-static class QoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
    if (xsink->isEvent())
@@ -71,7 +71,7 @@ static class QoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, co
    if (!msg)
       return NULL;
    // send the message to the server and get the response as an JSON string
-   ReferenceHolder<QoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
    if (!ans)
       return NULL;
 
@@ -85,7 +85,7 @@ static class QoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, co
    return parseJSONValue(str, xsink);
 }
 
-static class QoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
    if (xsink->isEvent())
@@ -96,7 +96,7 @@ static class QoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const 
    if (!msg)
       return NULL;
    // send the message to the server and get the response as an JSON string
-   ReferenceHolder<QoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
    if (!ans)
       return NULL;
 

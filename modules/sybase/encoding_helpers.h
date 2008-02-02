@@ -34,7 +34,7 @@ class ExceptionSink;
 //------------------------------------------------------------------------------
 // Code based on QoreXYZMapper sources for other databases.
 
-class QoreNode;
+class AbstractQoreNode;
 class QoreEncoding;
 
 extern const QoreEncoding* name_to_QoreEncoding(const char* name);

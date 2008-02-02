@@ -36,7 +36,7 @@ class QoreClass *QC_QDateTimeEdit = 0;
 //QDateTimeEdit ( const QTime & time, QWidget * parent = 0 )
 static void QDATETIMEEDIT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QDATETIMEEDIT, new QoreQDateTimeEdit(self));
       return;
@@ -72,60 +72,60 @@ static void QDATETIMEEDIT_copy(class QoreObject *self, class QoreObject *old, cl
 }
 
 //bool calendarPopup () const
-static QoreNode *QDATETIMEEDIT_calendarPopup(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_calendarPopup(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBoolNode(qdte->getQDateTimeEdit()->calendarPopup());
 }
 
 //void clearMaximumDate ()
-static QoreNode *QDATETIMEEDIT_clearMaximumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_clearMaximumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    qdte->getQDateTimeEdit()->clearMaximumDate();
    return 0;
 }
 
 //void clearMaximumTime ()
-static QoreNode *QDATETIMEEDIT_clearMaximumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_clearMaximumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    qdte->getQDateTimeEdit()->clearMaximumTime();
    return 0;
 }
 
 //void clearMinimumDate ()
-static QoreNode *QDATETIMEEDIT_clearMinimumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_clearMinimumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    qdte->getQDateTimeEdit()->clearMinimumDate();
    return 0;
 }
 
 //void clearMinimumTime ()
-static QoreNode *QDATETIMEEDIT_clearMinimumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_clearMinimumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    qdte->getQDateTimeEdit()->clearMinimumTime();
    return 0;
 }
 
 //Section currentSection () const
-static QoreNode *QDATETIMEEDIT_currentSection(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_currentSection(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qdte->getQDateTimeEdit()->currentSection());
 }
 
 //int currentSectionIndex () const
-static QoreNode *QDATETIMEEDIT_currentSectionIndex(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_currentSectionIndex(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qdte->getQDateTimeEdit()->currentSectionIndex());
 }
 
 //QDate date () const
-static QoreNode *QDATETIMEEDIT_date(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_date(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qdte->getQDateTimeEdit()->date();
    return new DateTimeNode(rv_date.year(), rv_date.month(), rv_date.day());
 }
 
 //QDateTime dateTime () const
-static QoreNode *QDATETIMEEDIT_dateTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_dateTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    QDateTime rv_dt = qdte->getQDateTimeEdit()->dateTime();
    QDate rv_d = rv_dt.date();
@@ -134,98 +134,98 @@ static QoreNode *QDATETIMEEDIT_dateTime(QoreObject *self, QoreAbstractQDateTimeE
 }
 
 //QString displayFormat () const
-static QoreNode *QDATETIMEEDIT_displayFormat(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_displayFormat(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(qdte->getQDateTimeEdit()->displayFormat().toUtf8().data(), QCS_UTF8);
 }
 
 //Sections displayedSections () const
-static QoreNode *QDATETIMEEDIT_displayedSections(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_displayedSections(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qdte->getQDateTimeEdit()->displayedSections());
 }
 
 //QDate maximumDate () const
-static QoreNode *QDATETIMEEDIT_maximumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_maximumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qdte->getQDateTimeEdit()->maximumDate();
    return new DateTimeNode(rv_date.year(), rv_date.month(), rv_date.day());
 }
 
 //QTime maximumTime () const
-static QoreNode *QDATETIMEEDIT_maximumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_maximumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    QTime rv_t = qdte->getQDateTimeEdit()->maximumTime();
    return new DateTimeNode(1970, 1, 1, rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());
 }
 
 //QDate minimumDate () const
-static QoreNode *QDATETIMEEDIT_minimumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_minimumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    QDate rv_date = qdte->getQDateTimeEdit()->minimumDate();
    return new DateTimeNode(rv_date.year(), rv_date.month(), rv_date.day());
 }
 
 //QTime minimumTime () const
-static QoreNode *QDATETIMEEDIT_minimumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_minimumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    QTime rv_t = qdte->getQDateTimeEdit()->minimumTime();
    return new DateTimeNode(1970, 1, 1, rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());
 }
 
 //Section sectionAt ( int index ) const
-static QoreNode *QDATETIMEEDIT_sectionAt(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_sectionAt(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qdte->getQDateTimeEdit()->sectionAt(index));
 }
 
 //int sectionCount () const
-static QoreNode *QDATETIMEEDIT_sectionCount(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_sectionCount(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qdte->getQDateTimeEdit()->sectionCount());
 }
 
 //QString sectionText ( Section section ) const
-static QoreNode *QDATETIMEEDIT_sectionText(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_sectionText(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QDateTimeEdit::Section section = (QDateTimeEdit::Section)(p ? p->getAsInt() : 0);
    return new QoreStringNode(qdte->getQDateTimeEdit()->sectionText(section).toUtf8().data(), QCS_UTF8);
 }
 
 //void setCalendarPopup ( bool enable )
-static QoreNode *QDATETIMEEDIT_setCalendarPopup(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setCalendarPopup(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qdte->getQDateTimeEdit()->setCalendarPopup(enable);
    return 0;
 }
 
 //void setCurrentSection ( Section section )
-static QoreNode *QDATETIMEEDIT_setCurrentSection(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setCurrentSection(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QDateTimeEdit::Section section = (QDateTimeEdit::Section)(p ? p->getAsInt() : 0);
    qdte->getQDateTimeEdit()->setCurrentSection(section);
    return 0;
 }
 
 //void setCurrentSectionIndex ( int index )
-static QoreNode *QDATETIMEEDIT_setCurrentSectionIndex(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setCurrentSectionIndex(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    qdte->getQDateTimeEdit()->setCurrentSectionIndex(index);
    return 0;
 }
 
 //void setDateRange ( const QDate & min, const QDate & max )
-static QoreNode *QDATETIMEEDIT_setDateRange(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setDateRange(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QDate min;
    if (get_qdate(p, min, xsink))
       return 0;
@@ -238,9 +238,9 @@ static QoreNode *QDATETIMEEDIT_setDateRange(QoreObject *self, QoreAbstractQDateT
 }
 
 //void setDisplayFormat ( const QString & format )
-static QoreNode *QDATETIMEEDIT_setDisplayFormat(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setDisplayFormat(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QString format;
    if (get_qstring(p, format, xsink))
       return 0;
@@ -250,9 +250,9 @@ static QoreNode *QDATETIMEEDIT_setDisplayFormat(QoreObject *self, QoreAbstractQD
 }
 
 //void setMaximumDate ( const QDate & max )
-static QoreNode *QDATETIMEEDIT_setMaximumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setMaximumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QDate max;
    if (get_qdate(p, max, xsink))
       return 0;
@@ -261,9 +261,9 @@ static QoreNode *QDATETIMEEDIT_setMaximumDate(QoreObject *self, QoreAbstractQDat
 }
 
 //void setMaximumTime ( const QTime & max )
-static QoreNode *QDATETIMEEDIT_setMaximumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setMaximumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QTime max;
    if (get_qtime(p, max, xsink))
       return 0;
@@ -272,9 +272,9 @@ static QoreNode *QDATETIMEEDIT_setMaximumTime(QoreObject *self, QoreAbstractQDat
 }
 
 //void setMinimumDate ( const QDate & min )
-static QoreNode *QDATETIMEEDIT_setMinimumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setMinimumDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QDate min;
    if (get_qdate(p, min, xsink))
       return 0;
@@ -283,9 +283,9 @@ static QoreNode *QDATETIMEEDIT_setMinimumDate(QoreObject *self, QoreAbstractQDat
 }
 
 //void setMinimumTime ( const QTime & min )
-static QoreNode *QDATETIMEEDIT_setMinimumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setMinimumTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QTime min;
    if (get_qtime(p, min, xsink))
       return 0;
@@ -294,18 +294,18 @@ static QoreNode *QDATETIMEEDIT_setMinimumTime(QoreObject *self, QoreAbstractQDat
 }
 
 //void setSelectedSection ( Section section )
-static QoreNode *QDATETIMEEDIT_setSelectedSection(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setSelectedSection(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QDateTimeEdit::Section section = (QDateTimeEdit::Section)(p ? p->getAsInt() : 0);
    qdte->getQDateTimeEdit()->setSelectedSection(section);
    return 0;
 }
 
 //void setTimeRange ( const QTime & min, const QTime & max )
-static QoreNode *QDATETIMEEDIT_setTimeRange(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setTimeRange(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QTime min;
    if (get_qtime(p, min, xsink))
       return 0;
@@ -318,16 +318,16 @@ static QoreNode *QDATETIMEEDIT_setTimeRange(QoreObject *self, QoreAbstractQDateT
 }
 
 //QTime time () const
-static QoreNode *QDATETIMEEDIT_time(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_time(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
    QTime rv_t = qdte->getQDateTimeEdit()->time();
    return new DateTimeNode(1970, 1, 1, rv_t.hour(), rv_t.minute(), rv_t.second(), rv_t.msec());
 }
 
 //void setDate ( const QDate & date )
-static QoreNode *QDATETIMEEDIT_setDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setDate(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QDate date;
    if (get_qdate(p, date, xsink))
       return 0;
@@ -336,9 +336,9 @@ static QoreNode *QDATETIMEEDIT_setDate(QoreObject *self, QoreAbstractQDateTimeEd
 }
 
 //void setDateTime ( const QDateTime & dateTime )
-static QoreNode *QDATETIMEEDIT_setDateTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setDateTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QDateTime dateTime;
    if (get_qdatetime(p, dateTime, xsink))
       return 0;
@@ -347,9 +347,9 @@ static QoreNode *QDATETIMEEDIT_setDateTime(QoreObject *self, QoreAbstractQDateTi
 }
 
 //void setTime ( const QTime & time )
-static QoreNode *QDATETIMEEDIT_setTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QDATETIMEEDIT_setTime(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    QTime time;
    if (get_qtime(p, time, xsink))
       return 0;

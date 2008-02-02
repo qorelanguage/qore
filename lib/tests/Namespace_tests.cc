@@ -26,9 +26,9 @@ TEST()
 
   ExceptionSink xsink;
   QoreHash* h = new QoreHash;
-  h->setKeyValue("name", new QoreNode("value"), &xsink);
+  h->setKeyValue("name", new AbstractQoreNode("value"), &xsink);
   assert(!xsink);
-  QoreNode* n = new QoreNode(h);
+  AbstractQoreNode* n = new AbstractQoreNode(h);
 
   ns.addConstant(&scope, n);
 }

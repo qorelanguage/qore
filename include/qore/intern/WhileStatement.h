@@ -29,15 +29,15 @@
 class WhileStatement : public AbstractStatement
 {
    protected:
-      class QoreNode *cond;
+      class AbstractQoreNode *cond;
       class StatementBlock *code;
       class LVList *lvars;
 
-      DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
       DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
    public:
-      DLLLOCAL WhileStatement(int start_line, int end_line, class QoreNode *c, class StatementBlock *cd);
+      DLLLOCAL WhileStatement(int start_line, int end_line, class AbstractQoreNode *c, class StatementBlock *cd);
       DLLLOCAL virtual ~WhileStatement();
 };
 

@@ -1,5 +1,5 @@
 /*
-  QoreNode.h
+  AbstractQoreNode.h
   
   Qore Programming Language
 
@@ -37,20 +37,20 @@
 
 class QoreString;
 
-class QoreNode : public ReferenceObject
+class AbstractQoreNode : public ReferenceObject
 {
    private:
       // not implemented
-      DLLLOCAL QoreNode(const QoreNode&);
-      DLLLOCAL QoreNode& operator=(const QoreNode&);
+      DLLLOCAL AbstractQoreNode(const AbstractQoreNode&);
+      DLLLOCAL AbstractQoreNode& operator=(const AbstractQoreNode&);
 
    protected:
-      DLLEXPORT virtual ~QoreNode();
+      DLLEXPORT virtual ~AbstractQoreNode();
 
    public:
       const QoreType *type;
 
-      DLLEXPORT QoreNode(const QoreType *t);
+      DLLEXPORT AbstractQoreNode(const QoreType *t);
 
       // get the value of the type in a string context (default implementation = del = false and returns NullString)
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
@@ -79,14 +79,14 @@ class QoreNode : public ReferenceObject
 
       // default implementation returns false
       DLLEXPORT virtual bool needs_eval() const;
-      DLLEXPORT virtual class QoreNode *realCopy() const = 0;
+      DLLEXPORT virtual class AbstractQoreNode *realCopy() const = 0;
 
       // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
       // the "val" passed
-      //DLLLOCAL virtual int compare(const QoreNode *val) const;
+      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
       // the type passed must always be equal to the current type
-      DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const = 0;
-      DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const = 0;
+      DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const = 0;
+      DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const = 0;
 
       // returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
@@ -94,11 +94,11 @@ class QoreNode : public ReferenceObject
       DLLEXPORT virtual const char *getTypeName() const;
       // eval(): return value requires a deref(xsink)
       // default implementation = returns "this" with incremented atomic reference count
-      DLLEXPORT virtual class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT virtual class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       // eval(): return value requires a deref(xsink) if needs_deref is true
       // default implementation = needs_deref = false, returns "this"
       // note: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
-      DLLEXPORT virtual class QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
+      DLLEXPORT virtual class AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
       // default implementation is getAsBigInt()
       DLLEXPORT virtual int64 bigIntEval(class ExceptionSink *xsink) const;
       // default implementation is getAsInt()
@@ -113,11 +113,11 @@ class QoreNode : public ReferenceObject
       // returns true if the node represents a value (default implementation)
       DLLEXPORT virtual bool is_value() const;
       
-      DLLEXPORT class QoreNode *RefSelf() const;
+      DLLEXPORT class AbstractQoreNode *RefSelf() const;
       DLLEXPORT void ref() const;
 };
 
-class SimpleQoreNode : public QoreNode 
+class SimpleQoreNode : public AbstractQoreNode 
 {
    private:
       // not implemented
@@ -125,7 +125,7 @@ class SimpleQoreNode : public QoreNode
 
    public:
       DLLEXPORT SimpleQoreNode(const QoreType *t);
-      DLLEXPORT SimpleQoreNode(const SimpleQoreNode &) : QoreNode(type)
+      DLLEXPORT SimpleQoreNode(const SimpleQoreNode &) : AbstractQoreNode(type)
       {
       }
       DLLEXPORT void deref();
@@ -145,17 +145,17 @@ class ParseNode : public SimpleQoreNode
       {
       }
       // parse types should never be copied
-      DLLLOCAL virtual class QoreNode *realCopy() const
+      DLLLOCAL virtual class AbstractQoreNode *realCopy() const
       {
 	 assert(false);
 	 return 0;
       }
-      DLLLOCAL virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const
+      DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
       {
 	 assert(false);
 	 return false;
       }
-      DLLLOCAL virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const
+      DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
       {
 	 assert(false);
 	 return false;
@@ -168,10 +168,10 @@ class ParseNode : public SimpleQoreNode
       {
 	 return false;
       }
-      DLLLOCAL virtual QoreNode *eval(class ExceptionSink *xsink) const = 0;
-      DLLLOCAL virtual QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const
+      DLLLOCAL virtual AbstractQoreNode *eval(class ExceptionSink *xsink) const = 0;
+      DLLLOCAL virtual AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const
       {
-	 ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
 	 if (!rv || *xsink) {
 	    needs_deref = 0;
 	    return 0;
@@ -181,22 +181,22 @@ class ParseNode : public SimpleQoreNode
       }
       DLLLOCAL virtual int64 bigIntEval(class ExceptionSink *xsink) const
       {
-	 ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
 	 return rv ? rv->getAsBigInt() : 0;
       }
       DLLLOCAL virtual int integerEval(class ExceptionSink *xsink) const
       {
-	 ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
 	 return rv ? rv->getAsInt() : 0;
       }
       DLLLOCAL virtual bool boolEval(class ExceptionSink *xsink) const
       {
-	 ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
 	 return rv ? rv->getAsBool() : 0;
       }
       DLLLOCAL virtual double floatEval(class ExceptionSink *xsink) const
       {
-	 ReferenceHolder<QoreNode> rv(eval(xsink), xsink);
+	 ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
 	 return rv ? rv->getAsFloat() : 0;
       }
 };
@@ -220,12 +220,12 @@ class ParseNoEvalNode : public ParseNode
       {
 	 return false;
       }
-      DLLLOCAL virtual QoreNode *eval(class ExceptionSink *xsink) const
+      DLLLOCAL virtual AbstractQoreNode *eval(class ExceptionSink *xsink) const
       {
 	 assert(false);
 	 return 0;
       }
-      DLLLOCAL virtual QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const
+      DLLLOCAL virtual AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const
       {
 	 assert(false);
 	 return 0;
@@ -263,20 +263,20 @@ class ParseNoEvalNode : public ParseNode
 };
 
 // for getting relative time values or integer values
-DLLEXPORT int getSecZeroInt(const QoreNode *a);
-DLLEXPORT int64 getSecZeroBigInt(const QoreNode *a);
-DLLEXPORT int getSecMinusOneInt(const QoreNode *a);
-DLLEXPORT int64 getSecMinusOneBigInt(const QoreNode *a);
-DLLEXPORT int getMsZeroInt(const QoreNode *a);
-DLLEXPORT int64 getMsZeroBigInt(const QoreNode *a);
-DLLEXPORT int getMsMinusOneInt(const QoreNode *a);
-DLLEXPORT int64 getMsMinusOneBigInt(const QoreNode *a);
-DLLEXPORT int getMicroSecZeroInt(const QoreNode *a);
-DLLEXPORT bool is_nothing(const class QoreNode *n);
+DLLEXPORT int getSecZeroInt(const AbstractQoreNode *a);
+DLLEXPORT int64 getSecZeroBigInt(const AbstractQoreNode *a);
+DLLEXPORT int getSecMinusOneInt(const AbstractQoreNode *a);
+DLLEXPORT int64 getSecMinusOneBigInt(const AbstractQoreNode *a);
+DLLEXPORT int getMsZeroInt(const AbstractQoreNode *a);
+DLLEXPORT int64 getMsZeroBigInt(const AbstractQoreNode *a);
+DLLEXPORT int getMsMinusOneInt(const AbstractQoreNode *a);
+DLLEXPORT int64 getMsMinusOneBigInt(const AbstractQoreNode *a);
+DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode *a);
+DLLEXPORT bool is_nothing(const class AbstractQoreNode *n);
 
-DLLLOCAL class QoreNode *copy_and_resolve_lvar_refs(const QoreNode *n, ExceptionSink *xsink);
+DLLLOCAL class AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);
 
-static inline void discard(QoreNode *n, ExceptionSink *xsink)
+static inline void discard(AbstractQoreNode *n, ExceptionSink *xsink)
 {
    if (n)
       n->deref(xsink);
@@ -284,7 +284,7 @@ static inline void discard(QoreNode *n, ExceptionSink *xsink)
 
 class QoreNodeEvalOptionalRefHolder {
    private:
-      QoreNode *val;
+      AbstractQoreNode *val;
       ExceptionSink *xsink;
       bool needs_deref;
 
@@ -305,7 +305,7 @@ class QoreNodeEvalOptionalRefHolder {
 	 needs_deref = false;
 	 val = 0;
       }
-      DLLLOCAL QoreNodeEvalOptionalRefHolder(const QoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink)
+      DLLLOCAL QoreNodeEvalOptionalRefHolder(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink)
       {
 	 needs_deref = false;
 	 val = exp ? exp->eval(needs_deref, xsink) : 0;
@@ -320,14 +320,14 @@ class QoreNodeEvalOptionalRefHolder {
 	 needs_deref = false;
 	 val = 0;
       }
-      DLLLOCAL void assign(bool n_needs_deref, QoreNode *n_val)
+      DLLLOCAL void assign(bool n_needs_deref, AbstractQoreNode *n_val)
       {
 	 discard_intern();
 	 needs_deref = n_needs_deref;
 	 val = n_val;
       }
       // returns a referenced value - the caller will own the reference
-      DLLLOCAL QoreNode *getReferencedValue()
+      DLLLOCAL AbstractQoreNode *getReferencedValue()
       {
 	 if (needs_deref)
 	    needs_deref = false;
@@ -336,17 +336,17 @@ class QoreNodeEvalOptionalRefHolder {
 	 return val;
       }
       // takes the referenced value and leaves this object empty, value is referenced if necessary
-      DLLLOCAL QoreNode *takeReferencedValue()
+      DLLLOCAL AbstractQoreNode *takeReferencedValue()
       {
-	 QoreNode *rv = val;
+	 AbstractQoreNode *rv = val;
 	 if (val && !needs_deref)
 	    rv->ref();
 	 val = 0;
 	 needs_deref = false;
 	 return rv;
       }
-      DLLLOCAL QoreNode *operator->() { return val; }
-      DLLLOCAL QoreNode *operator*() { return val; }
+      DLLLOCAL AbstractQoreNode *operator->() { return val; }
+      DLLLOCAL AbstractQoreNode *operator*() { return val; }
       DLLLOCAL operator bool() const { return val != 0; }
 };
 

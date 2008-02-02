@@ -1018,9 +1018,9 @@ QoreClass *QoreClass::getClass(int cid) const
    return priv->scl ? priv->scl->sml.getClass(cid) : NULL;
 }
 
-class QoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
+class AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
 {
-   QoreNode *rv = NULL;
+   AbstractQoreNode *rv = NULL;
 
    tracein("QoreMethod::eval()");
 #ifdef DEBUG
@@ -1172,7 +1172,7 @@ inline void QoreClass::addDomain(int dom)
    priv->domain |= dom;
 }
 
-QoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, class ExceptionSink *xsink) const
+AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, class ExceptionSink *xsink) const
 {
    tracein("QoreClass::evalMethod()");
    const QoreMethod *w;
@@ -1220,7 +1220,7 @@ QoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreLis
    return w->eval(self, args, xsink);
 }
 
-QoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const
+AbstractQoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const
 {
    printd(5, "QoreClass::evalMethodGate() method=%s args=%08p\n", nme, args);
 
@@ -1255,7 +1255,7 @@ bool QoreClass::isPrivateMember(const char *str) const
    return false;
 }
 
-QoreNode *QoreClass::evalMemberGate(class QoreObject *self, const QoreString *nme, class ExceptionSink *xsink) const
+AbstractQoreNode *QoreClass::evalMemberGate(class QoreObject *self, const QoreString *nme, class ExceptionSink *xsink) const
 {
    assert(nme && nme->getEncoding() == QCS_DEFAULT);
 

@@ -59,7 +59,7 @@ static void XRC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, 
    xsink->raiseException("XMLRPCCLIENT-COPY-ERROR", "copying XmlRpcClient objects is not yet supported.");
 }
 
-static class QoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
    if (xsink->isEvent())
@@ -70,7 +70,7 @@ static class QoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, co
    if (!msg)
       return NULL;
    // send the message to the server and get the response as an XML string
-   ReferenceHolder<QoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
    if (!ans)
       return NULL;
    
@@ -84,7 +84,7 @@ static class QoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, co
    return parseXMLRPCResponse(str, QCS_DEFAULT, xsink);
 }
 
-static class QoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
    if (xsink->isEvent())
@@ -95,7 +95,7 @@ static class QoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, const 
    if (!msg)
       return NULL;
    // send the message to the server and get the response as an XML string
-   ReferenceHolder<QoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
    if (!ans)
       return NULL;
 

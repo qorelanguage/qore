@@ -56,18 +56,18 @@ static void AL_copy(class QoreObject *self, class QoreObject *old, class QoreAut
    xsink->raiseException("AUTOLOCK-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-static class QoreNode *AL_lock(class QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *AL_lock(class QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->lock(xsink);
    return NULL;
 }
 
-static class QoreNode *AL_trylock(class QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *AL_trylock(class QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(m->trylock()); 
 }
 
-static class QoreNode *AL_unlock(class QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
+static class AbstractQoreNode *AL_unlock(class QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->unlock(xsink);
    return NULL;

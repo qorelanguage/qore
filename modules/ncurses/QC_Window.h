@@ -390,7 +390,7 @@ class Window : public AbstractPrivateData, public LockedObject {
       }
 };
 
-static inline int getChar(QoreNode *p)
+static inline int getChar(AbstractQoreNode *p)
 {
    {
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(p);

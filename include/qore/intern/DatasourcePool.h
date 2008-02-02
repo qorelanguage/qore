@@ -77,31 +77,31 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       DLLLOCAL virtual ~DatasourcePool();
       DLLLOCAL void destructor(class ExceptionSink *xsink);
       DLLLOCAL virtual void cleanup(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *select(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRow(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *selectRows(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *select(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *selectRow(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *selectRows(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL int beginTransaction(class ExceptionSink *xsink);
-      DLLLOCAL class QoreNode *exec(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode *exec(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL int commit(class ExceptionSink *xsink);
       DLLLOCAL int rollback(class ExceptionSink *xsink);
       DLLLOCAL class QoreStringNode *toString();
       DLLLOCAL int getMin() const;
       DLLLOCAL int getMax() const;
-      DLLLOCAL class QoreNode *getPendingUsername() const;
-      DLLLOCAL class QoreNode *getPendingPassword() const;
-      DLLLOCAL class QoreNode *getPendingDBName() const;
-      DLLLOCAL class QoreNode *getPendingDBEncoding() const;
-      DLLLOCAL class QoreNode *getPendingHostName() const;
+      DLLLOCAL class AbstractQoreNode *getPendingUsername() const;
+      DLLLOCAL class AbstractQoreNode *getPendingPassword() const;
+      DLLLOCAL class AbstractQoreNode *getPendingDBName() const;
+      DLLLOCAL class AbstractQoreNode *getPendingDBEncoding() const;
+      DLLLOCAL class AbstractQoreNode *getPendingHostName() const;
       DLLLOCAL const class QoreEncoding *getQoreEncoding() const;
       DLLLOCAL const char *getDriverName () const
       {
 	 return pool[0]->getDriverName();
       }
-      DLLLOCAL class QoreNode *getServerVersion(class ExceptionSink *xsink)
+      DLLLOCAL class AbstractQoreNode *getServerVersion(class ExceptionSink *xsink)
       {
 	 return pool[0]->getServerVersion(xsink);
       }
-      DLLLOCAL class QoreNode *getClientVersion(class ExceptionSink *xsink)
+      DLLLOCAL class AbstractQoreNode *getClientVersion(class ExceptionSink *xsink)
       {
 	 return pool[0]->getClientVersion(xsink);
       }

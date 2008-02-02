@@ -26,7 +26,7 @@
 
 #define _QORE_QORESTRINGNODE_H
 
-#include <qore/QoreNode.h>
+#include <qore/AbstractQoreNode.h>
 #include <qore/QoreString.h>
 
 class QoreStringNode : public SimpleQoreNode, public QoreString
@@ -85,10 +85,10 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       // assign date representation to a DateTime * (no action for complex types = default implementation)
       DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
 
-      DLLEXPORT virtual class QoreNode *realCopy() const;
+      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
-      DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
-      DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
       // returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
@@ -126,7 +126,7 @@ class QoreStringValueHelper {
       DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
 
    public:
-      DLLLOCAL QoreStringValueHelper(const QoreNode *n)
+      DLLLOCAL QoreStringValueHelper(const AbstractQoreNode *n)
       {
 	 if (n)
 	    str = n->getStringRepresentation(del);
@@ -135,7 +135,7 @@ class QoreStringValueHelper {
 	    del = false;
 	 }
       }
-      DLLLOCAL QoreStringValueHelper(const QoreNode *n, const QoreEncoding *enc, ExceptionSink *xsink)
+      DLLLOCAL QoreStringValueHelper(const AbstractQoreNode *n, const QoreEncoding *enc, ExceptionSink *xsink)
       {
 	 if (n) {
 	    str = n->getStringRepresentation(del);
@@ -190,7 +190,7 @@ class QoreStringNodeValueHelper {
       DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
 
    public:
-      DLLLOCAL QoreStringNodeValueHelper(QoreNode *n)
+      DLLLOCAL QoreStringNodeValueHelper(AbstractQoreNode *n)
       {
 	 if (!n) {
 	    str = NullString;
@@ -273,7 +273,7 @@ class QoreNodeAsStringHelper {
       DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
 
    public:
-      DLLLOCAL QoreNodeAsStringHelper(const QoreNode *n, int offset, ExceptionSink *xsink)
+      DLLLOCAL QoreNodeAsStringHelper(const AbstractQoreNode *n, int offset, ExceptionSink *xsink)
       {
 	 if (n)
 	    str = n->getAsString(del, offset, xsink);

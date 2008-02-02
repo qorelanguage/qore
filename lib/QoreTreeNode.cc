@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-QoreTreeNode::QoreTreeNode(class QoreNode *l, class Operator *o, class QoreNode *r) : ParseNode(NT_TREE)
+QoreTreeNode::QoreTreeNode(class AbstractQoreNode *l, class Operator *o, class AbstractQoreNode *r) : ParseNode(NT_TREE)
 {
    left = l;
    op = o;
@@ -85,10 +85,10 @@ const char *QoreTreeNode::getTypeName() const
 
 // eval(): return value requires a deref(xsink)
 // default implementation = returns "this" with incremented atomic reference count
-QoreNode *QoreTreeNode::eval(class ExceptionSink *xsink) const
+AbstractQoreNode *QoreTreeNode::eval(class ExceptionSink *xsink) const
 {
    // FIXME: fix Operator evaluation to take const arguments!
-   return op->eval(const_cast<QoreNode *>(left), const_cast<QoreNode *>(right), ref_rv, xsink);
+   return op->eval(const_cast<AbstractQoreNode *>(left), const_cast<AbstractQoreNode *>(right), ref_rv, xsink);
 }
 
 int64 QoreTreeNode::bigIntEval(class ExceptionSink *xsink) const

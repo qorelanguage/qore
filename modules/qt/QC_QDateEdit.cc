@@ -34,7 +34,7 @@ class QoreClass *QC_QDateEdit = 0;
 //QDateEdit ( const QDate & date, QWidget * parent = 0 )
 static void QDATEEDIT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QDATEEDIT, new QoreQDateEdit(self));
       return;

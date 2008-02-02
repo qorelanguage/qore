@@ -30,7 +30,7 @@ class QoreClass *QC_QCDEStyle = 0;
 //QCDEStyle ( bool useHighlightCols = false )
 static void QCDESTYLE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreNode *p = get_param(params, 0);
+   AbstractQoreNode *p = get_param(params, 0);
    bool useHighlightCols = p ? p->getAsBool() : false;
    self->setPrivate(CID_QCDESTYLE, new QoreQCDEStyle(self, useHighlightCols));
    return;

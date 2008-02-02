@@ -52,16 +52,16 @@ class VarRefNode : public ParseNode
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
       // eval(): return value requires a deref(xsink)
-      DLLLOCAL virtual QoreNode *eval(ExceptionSink *xsink) const;
-      DLLLOCAL virtual QoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
 
       DLLLOCAL void resolve();
       // returns -1 if the variable did not already exist
       DLLLOCAL int resolveExisting();
 
-      DLLLOCAL void setValue(class QoreNode *val, class ExceptionSink *xsink);
-      DLLLOCAL QoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink);
-      DLLLOCAL QoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLLOCAL void setValue(class AbstractQoreNode *val, class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
 
       // takes the name - caller owns the memory
       DLLLOCAL char *takeName();

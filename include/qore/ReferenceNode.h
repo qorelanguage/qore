@@ -24,7 +24,7 @@
 
 #define _QORE_REFERENCENODE_H 
 
-#include <qore/QoreNode.h>
+#include <qore/AbstractQoreNode.h>
 
 class ReferenceNode : public SimpleQoreNode
 {
@@ -33,9 +33,9 @@ class ReferenceNode : public SimpleQoreNode
 
    public:
       // FIXME: make private and provide functions to access
-      QoreNode *lvexp; // lvalue expression for reference
+      AbstractQoreNode *lvexp; // lvalue expression for reference
 
-      DLLEXPORT ReferenceNode(QoreNode *exp);
+      DLLEXPORT ReferenceNode(AbstractQoreNode *exp);
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -45,11 +45,11 @@ class ReferenceNode : public SimpleQoreNode
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLEXPORT virtual class QoreNode *realCopy() const;
+      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
       // the type passed must always be equal to the current type
-      DLLEXPORT virtual bool is_equal_soft(const QoreNode *v, ExceptionSink *xsink) const;
-      DLLEXPORT virtual bool is_equal_hard(const QoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
       // returns the data type
       DLLEXPORT virtual const QoreType *getType() const;

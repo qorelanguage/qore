@@ -28,17 +28,17 @@
 
 class ForStatement : public AbstractStatement
 {
-   class QoreNode *assignment;
-   class QoreNode *cond;
-   class QoreNode *iterator;
+   class AbstractQoreNode *assignment;
+   class AbstractQoreNode *cond;
+   class AbstractQoreNode *iterator;
    class StatementBlock *code;
    class LVList *lvars;
 
-   DLLLOCAL virtual int execImpl(class QoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
    DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
    
 public:
-   DLLLOCAL ForStatement(int start_line, int end_line, class QoreNode *a, class QoreNode *c, class QoreNode *i, class StatementBlock *cd);
+   DLLLOCAL ForStatement(int start_line, int end_line, class AbstractQoreNode *a, class AbstractQoreNode *c, class AbstractQoreNode *i, class StatementBlock *cd);
    DLLLOCAL virtual ~ForStatement();
 };
 

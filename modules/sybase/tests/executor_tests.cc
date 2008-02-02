@@ -24,7 +24,7 @@ TEST()
 
   QoreString cmd("select count(*) from syskeys");
   
-  QoreNode* res = conn.exec(&cmd, 0, &xsink);
+  AbstractQoreNode* res = conn.exec(&cmd, 0, &xsink);
   if (xsink.isException()) {
     assert(false);
   }
@@ -34,7 +34,7 @@ TEST()
   QoreHash* h = res->val.hash;
   assert(h->size() == 1);
 
-  QoreNode* val = h->getKeyValue("column1");
+  AbstractQoreNode* val = h->getKeyValue("column1");
   assert(val);
   assert(val->type == NT_INT);
   assert(val->val.intval >= 10 && val->val.intval < 80); // 48 on my machine
@@ -60,7 +60,7 @@ TEST()
 
   QoreString cmd("select * from syskeys");
 
-  QoreNode* res = conn.exec(&cmd, 0, &xsink);
+  AbstractQoreNode* res = conn.exec(&cmd, 0, &xsink);
   if (xsink.isException()) {
     assert(false);
   }

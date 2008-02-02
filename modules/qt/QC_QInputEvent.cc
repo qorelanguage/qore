@@ -41,7 +41,7 @@ static void QINPUTEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 }
 
 //Qt::KeyboardModifiers modifiers () const
-static QoreNode *QINPUTEVENT_modifiers(QoreObject *self, QoreQInputEvent *qie, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QINPUTEVENT_modifiers(QoreObject *self, QoreQInputEvent *qie, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(qie->modifiers());
 }

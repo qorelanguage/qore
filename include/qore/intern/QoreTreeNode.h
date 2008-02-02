@@ -33,10 +33,10 @@ class QoreTreeNode : public ParseNode
       
    public:
       Operator *op;
-      QoreNode *left;
-      QoreNode *right;
+      AbstractQoreNode *left;
+      AbstractQoreNode *right;
 
-      DLLLOCAL QoreTreeNode(QoreNode *l, Operator *op, QoreNode *r = 0);
+      DLLLOCAL QoreTreeNode(AbstractQoreNode *l, Operator *op, AbstractQoreNode *r = 0);
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -52,7 +52,7 @@ class QoreTreeNode : public ParseNode
       DLLLOCAL virtual const char *getTypeName() const;
       // eval(): return value requires a deref(xsink)
       // default implementation = returns "this" with incremented atomic reference count
-      DLLLOCAL virtual class QoreNode *eval(class ExceptionSink *xsink) const;
+      DLLLOCAL virtual class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       // default implementation is getAsBigInt()
       DLLLOCAL virtual int64 bigIntEval(class ExceptionSink *xsink) const;
       // default implementation is getAsInt()
