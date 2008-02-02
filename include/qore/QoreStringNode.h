@@ -4,7 +4,7 @@
   QoreString Class Definition
 
   Qore Programming Language
-
+  
   Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
 
   This library is free software; you can redistribute it and/or
@@ -190,14 +190,17 @@ class QoreStringNodeValueHelper {
       DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
 
    public:
-      DLLLOCAL QoreStringNodeValueHelper(AbstractQoreNode *n)
+      DLLLOCAL QoreStringNodeValueHelper(const AbstractQoreNode *n)
       {
 	 if (!n) {
 	    str = NullString;
 	    temp = false;
+	    return;
 	 }
-	 else if (n->type == NT_STRING) {
-	    str = reinterpret_cast<QoreStringNode *>(n);
+
+	 const QoreType *ntype = n->getType();
+	 if (ntype == NT_STRING) {
+	    str = const_cast<QoreStringNode *>(reinterpret_cast<const QoreStringNode *>(n));
 	    temp = false;
 	 }
 	 else {

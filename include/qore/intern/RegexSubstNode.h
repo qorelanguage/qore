@@ -42,7 +42,8 @@ class RegexSubstNode : public ParseNoEvalNode, public QoreRegexBase
 
    public:
       DLLLOCAL RegexSubstNode();
-      DLLLOCAL RegexSubstNode(QoreString *pstr, int opts, ExceptionSink *xsink);
+      // used at run-time
+      DLLLOCAL RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *xsink);
       DLLLOCAL virtual ~RegexSubstNode();
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -58,7 +59,7 @@ class RegexSubstNode : public ParseNoEvalNode, public QoreRegexBase
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 
-      DLLLOCAL void parseRT(QoreString *pstr, ExceptionSink *xsink);
+      DLLLOCAL void parseRT(const QoreString *pstr, ExceptionSink *xsink);
       DLLLOCAL void parse();
       DLLLOCAL QoreStringNode *exec(const QoreString *target, ExceptionSink *xsink) const;
       DLLLOCAL QoreStringNode *exec(const QoreString *target, const QoreString *newstr, ExceptionSink *xsink) const;

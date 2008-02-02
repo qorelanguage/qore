@@ -40,11 +40,11 @@
 class FtpResp
 {
    private:
-      class QoreStringNode *str;
+      QoreStringNode *str;
    
    public:
       DLLLOCAL inline FtpResp() : str(0) {}
-      DLLLOCAL inline FtpResp(class QoreStringNode *s)
+      DLLLOCAL inline FtpResp(QoreStringNode *s)
       {
 	 str = s;
       }
@@ -53,7 +53,7 @@ class FtpResp
 	 if (str)
 	    str->deref();
       }
-      DLLLOCAL inline class QoreStringNode *assign(class QoreStringNode *s)
+      DLLLOCAL inline QoreStringNode *assign(QoreStringNode *s)
       {
 	 if (str)
 	    str->deref();
@@ -64,7 +64,7 @@ class FtpResp
       {
 	 return str->getBuffer();
       }
-      DLLLOCAL inline class QoreStringNode *getStr()
+      DLLLOCAL inline QoreStringNode *getStr()
       {
 	 return str;
       }
@@ -100,7 +100,7 @@ struct qore_ftp_private {
       int mode, port;
       bool secure, secure_data;
 
-      DLLLOCAL qore_ftp_private(const QoreString *url, class ExceptionSink *xsink)
+      DLLLOCAL qore_ftp_private(const QoreString *url, ExceptionSink *xsink)
       {
 	 control_connected = loggedin = false;
 	 mode = FTP_MODE_UNKNOWN;
@@ -123,7 +123,7 @@ struct qore_ftp_private {
       }
 
       // private unlocked
-      DLLLOCAL void setURLInternal(const QoreString *url_str, class ExceptionSink *xsink)
+      DLLLOCAL void setURLInternal(const QoreString *url_str, ExceptionSink *xsink)
       {
 	 QoreURL url(url_str);
 	 if (!url.isValid())
@@ -154,7 +154,7 @@ struct qore_ftp_private {
       }
 };
 
-QoreFtpClient::QoreFtpClient(const QoreString *url, class ExceptionSink *xsink) : priv(new qore_ftp_private(url, xsink))
+QoreFtpClient::QoreFtpClient(const QoreString *url, ExceptionSink *xsink) : priv(new qore_ftp_private(url, xsink))
 {
 }
 
@@ -175,7 +175,7 @@ static inline int getFTPCode(QoreString *str)
 }
 
 // private unlocked
-class QoreStringNode *QoreFtpClient::sendMsg(const char *cmd, const char *arg, class ExceptionSink *xsink)
+QoreStringNode *QoreFtpClient::sendMsg(const char *cmd, const char *arg, ExceptionSink *xsink)
 {
    QoreString c(cmd);
    if (arg)
@@ -206,7 +206,7 @@ void QoreFtpClient::stripEOL(class QoreString *str)
 }
 
 // private unlocked
-int QoreFtpClient::setBinaryMode(bool t, class ExceptionSink *xsink)
+int QoreFtpClient::setBinaryMode(bool t, ExceptionSink *xsink)
 {
    // set transfer mode
    TempQoreStringNode resp(sendMsg("TYPE", (char *)(t ? "I" : "A"), xsink));
@@ -222,7 +222,7 @@ int QoreFtpClient::setBinaryMode(bool t, class ExceptionSink *xsink)
 }
 
 // private unlocked
-int QoreFtpClient::acceptDataConnection(class ExceptionSink *xsink)
+int QoreFtpClient::acceptDataConnection(ExceptionSink *xsink)
 {
    if (priv->data.acceptAndReplace(NULL))
    {
@@ -244,7 +244,7 @@ int QoreFtpClient::acceptDataConnection(class ExceptionSink *xsink)
 }
 
 // private unlocked
-int QoreFtpClient::connectData(class ExceptionSink *xsink)
+int QoreFtpClient::connectData(ExceptionSink *xsink)
 {
    switch (priv->mode)
    {
@@ -293,7 +293,7 @@ int QoreFtpClient::disconnect()
 }
 
 // private unlocked
-class QoreStringNode *QoreFtpClient::getResponse(class ExceptionSink *xsink)
+QoreStringNode *QoreFtpClient::getResponse(ExceptionSink *xsink)
 {
    TempQoreStringNode resp(0);
    int rc;
@@ -353,7 +353,7 @@ class QoreStringNode *QoreFtpClient::getResponse(class ExceptionSink *xsink)
 
 /*
 // RFC 1639 Long Passive Mode
-int QoreFtpClient::connectDataLongPassive(class ExceptionSink *xsink)
+int QoreFtpClient::connectDataLongPassive(ExceptionSink *xsink)
 {
    // try extended passive mode
    class QoreString *resp = sendMsg("LPSV", NULL, xsink);
@@ -370,7 +370,7 @@ int QoreFtpClient::connectDataLongPassive(class ExceptionSink *xsink)
 
 // private unlocked
 // RFC 2428 Extended Passive Mode
-int QoreFtpClient::connectDataExtendedPassive(class ExceptionSink *xsink)
+int QoreFtpClient::connectDataExtendedPassive(ExceptionSink *xsink)
 {
    // try extended passive mode
    class FtpResp resp(sendMsg("EPSV", NULL, xsink));
@@ -410,7 +410,7 @@ int QoreFtpClient::connectDataExtendedPassive(class ExceptionSink *xsink)
 }
 
 // private unlocked
-int QoreFtpClient::connectDataPassive(class ExceptionSink *xsink)
+int QoreFtpClient::connectDataPassive(ExceptionSink *xsink)
 {
    // try passive mode
    class FtpResp resp;
@@ -462,7 +462,7 @@ int QoreFtpClient::connectDataPassive(class ExceptionSink *xsink)
 }
 
 // private unlocked
-int QoreFtpClient::connectDataPort(class ExceptionSink *xsink)
+int QoreFtpClient::connectDataPort(ExceptionSink *xsink)
 {
    // get address for interface of control connection
    struct sockaddr_in add;
@@ -534,7 +534,7 @@ int QoreFtpClient::connectDataPort(class ExceptionSink *xsink)
 }
 
 // private unlocked
-int QoreFtpClient::connectIntern(class FtpResp *resp, class ExceptionSink *xsink)
+int QoreFtpClient::connectIntern(class FtpResp *resp, ExceptionSink *xsink)
 {
    // connect to FTP port on remote machine
    if (priv->control.connectINET(priv->host, priv->port))
@@ -571,7 +571,7 @@ int QoreFtpClient::connectIntern(class FtpResp *resp, class ExceptionSink *xsink
 }
 
 // do PBSZ and PROT commands
-int QoreFtpClient::doProt(class FtpResp *resp, class ExceptionSink *xsink)
+int QoreFtpClient::doProt(class FtpResp *resp, ExceptionSink *xsink)
 {
    // RFC-4217: PBSZ 0 for streaming data
    resp->assign(sendMsg("PBSZ", "0", xsink));
@@ -600,7 +600,7 @@ int QoreFtpClient::doProt(class FtpResp *resp, class ExceptionSink *xsink)
 }
 
 // private unlocked
-int QoreFtpClient::doAuth(class FtpResp *resp, class ExceptionSink *xsink)
+int QoreFtpClient::doAuth(class FtpResp *resp, ExceptionSink *xsink)
 {
    resp->assign(sendMsg("AUTH", "TLS", xsink));
    if (xsink->isEvent())
@@ -630,7 +630,7 @@ int QoreFtpClient::doAuth(class FtpResp *resp, class ExceptionSink *xsink)
 }
 
 // public locked
-int QoreFtpClient::connect(class ExceptionSink *xsink)
+int QoreFtpClient::connect(ExceptionSink *xsink)
 {
    SafeLocker sl(this);
 
@@ -687,7 +687,7 @@ int QoreFtpClient::connect(class ExceptionSink *xsink)
 }
 
 // public locked
-class QoreStringNode *QoreFtpClient::list(const char *path, bool long_list, class ExceptionSink *xsink)
+QoreStringNode *QoreFtpClient::list(const char *path, bool long_list, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    if (!priv->loggedin)
@@ -761,7 +761,7 @@ class QoreStringNode *QoreFtpClient::list(const char *path, bool long_list, clas
 }
 
 // public locked
-int QoreFtpClient::put(const char *localpath, const char *remotename, class ExceptionSink *xsink)
+int QoreFtpClient::put(const char *localpath, const char *remotename, ExceptionSink *xsink)
 {
    printd(5, "QoreFtpClient::put(%s, %s)\n", localpath, remotename ? remotename : "NULL");
 
@@ -859,7 +859,7 @@ int QoreFtpClient::put(const char *localpath, const char *remotename, class Exce
 }
 
 // public locked
-int QoreFtpClient::get(const char *remotepath, const char *localname, class ExceptionSink *xsink)
+int QoreFtpClient::get(const char *remotepath, const char *localname, ExceptionSink *xsink)
 {
    printd(5, "QoreFtpClient::get(%s, %s)\n", remotepath, localname ? localname : "NULL");
 
@@ -964,7 +964,7 @@ int QoreFtpClient::get(const char *remotepath, const char *localname, class Exce
 }
 
 // public locked
-int QoreFtpClient::cwd(const char *dir, class ExceptionSink *xsink)
+int QoreFtpClient::cwd(const char *dir, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    if (!priv->loggedin)
@@ -987,7 +987,7 @@ int QoreFtpClient::cwd(const char *dir, class ExceptionSink *xsink)
 }
 
 // public locked
-class QoreStringNode *QoreFtpClient::pwd(class ExceptionSink *xsink)
+QoreStringNode *QoreFtpClient::pwd(ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    if (!priv->loggedin)
@@ -1011,7 +1011,7 @@ class QoreStringNode *QoreFtpClient::pwd(class ExceptionSink *xsink)
 }
 
 // public locked
-int QoreFtpClient::del(const char *file, class ExceptionSink *xsink)
+int QoreFtpClient::del(const char *file, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    if (!priv->loggedin)
@@ -1033,16 +1033,16 @@ int QoreFtpClient::del(const char *file, class ExceptionSink *xsink)
    return -1;
 }
 
-void QoreFtpClient::setURL(const QoreString *url, class ExceptionSink *xsink)
+void QoreFtpClient::setURL(const QoreString *url, ExceptionSink *xsink)
 {
    lock();
    priv->setURLInternal(url, xsink);
    unlock();
 }
 
-class QoreStringNode *QoreFtpClient::getURL() const
+QoreStringNode *QoreFtpClient::getURL() const
 {
-   class QoreStringNode *url = new QoreStringNode("ftp://");
+   QoreStringNode *url = new QoreStringNode("ftp://");
    if (priv->user)
    {
       url->concat(priv->user);

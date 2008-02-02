@@ -53,19 +53,19 @@ mySocket::mySocket()
    init();
 }
 
-int mySocket::connect(const char *name, class ExceptionSink *xsink)
+int mySocket::connect(const char *name, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connect(name, xsink);
 }
 
-int mySocket::connectINET(const char *host, int port, class ExceptionSink *xsink)
+int mySocket::connectINET(const char *host, int port, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectINET(host, port, xsink);
 }
 
-int mySocket::connectUNIX(const char *p, class ExceptionSink *xsink)
+int mySocket::connectUNIX(const char *p, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectUNIX(p, xsink);
@@ -99,7 +99,7 @@ int mySocket::getPort()
    return socket->getPort();
 }
 
-class mySocket *mySocket::accept(class SocketSource *source, class ExceptionSink *xsink)
+class mySocket *mySocket::accept(class SocketSource *source, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    QoreSocket *s = socket->accept(source, xsink);
@@ -187,7 +187,7 @@ int mySocket::sendi8LSB(int64 b)
 }
 
 // receive a certain number of bytes as a string
-class QoreStringNode *mySocket::recv(int bufsize, int timeout, int *rc)
+QoreStringNode *mySocket::recv(int bufsize, int timeout, int *rc)
 {
    SafeLocker sl(this);
    return socket->recv(bufsize, timeout, rc);
@@ -201,7 +201,7 @@ class BinaryNode *mySocket::recvBinary(int bufsize, int timeout, int *rc)
 }
 
 // receive a message
-class QoreStringNode *mySocket::recv(int timeout, int *rc)
+QoreStringNode *mySocket::recv(int timeout, int *rc)
 {
    SafeLocker sl(this);
    return socket->recv(timeout, rc);
@@ -303,21 +303,21 @@ int mySocket::sendHTTPResponse(int code, const char *desc, const char *http_vers
 }
 
 // receive a binary message in HTTP chunked format
-class QoreHashNode *mySocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
+QoreHashNode *mySocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->readHTTPChunkedBodyBinary(timeout, xsink);
 }
 
 // receive a string message in HTTP chunked format
-class QoreHashNode *mySocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
+QoreHashNode *mySocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->readHTTPChunkedBody(timeout, xsink);
 }
 
 // read and parse HTTP header
-class AbstractQoreNode *mySocket::readHTTPHeader(int timeout, int *rc)
+AbstractQoreNode *mySocket::readHTTPHeader(int timeout, int *rc)
 {
    SafeLocker sl(this);
    return socket->readHTTPHeader(timeout, rc);
@@ -359,7 +359,7 @@ int mySocket::shutdown()
    return socket->shutdown();
 }
 
-int mySocket::shutdownSSL(class ExceptionSink *xsink) 
+int mySocket::shutdownSSL(ExceptionSink *xsink) 
 { 
    SafeLocker sl(this);
    return socket->shutdownSSL(xsink);
@@ -416,7 +416,7 @@ bool mySocket::isOpen() const
    return socket->isOpen();
 }
 
-int mySocket::connectINETSSL(const char *host, int port, class ExceptionSink *xsink)
+int mySocket::connectINETSSL(const char *host, int port, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectINETSSL(host, port, 
@@ -425,7 +425,7 @@ int mySocket::connectINETSSL(const char *host, int port, class ExceptionSink *xs
 				 xsink);
 }
 
-int mySocket::connectUNIXSSL(const char *p, class ExceptionSink *xsink)
+int mySocket::connectUNIXSSL(const char *p, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectUNIXSSL(p, 
@@ -434,7 +434,7 @@ int mySocket::connectUNIXSSL(const char *p, class ExceptionSink *xsink)
 				 xsink);
 }
 
-int mySocket::connectSSL(const char *name, class ExceptionSink *xsink)
+int mySocket::connectSSL(const char *name, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectSSL(name, 
@@ -443,7 +443,7 @@ int mySocket::connectSSL(const char *name, class ExceptionSink *xsink)
 			     xsink);
 }
 
-class mySocket *mySocket::acceptSSL(class SocketSource *source, class ExceptionSink *xsink)
+class mySocket *mySocket::acceptSSL(class SocketSource *source, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    QoreSocket *s = socket->acceptSSL(source,

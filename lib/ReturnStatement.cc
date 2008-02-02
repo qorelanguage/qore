@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ReturnStatement.h>
 
-ReturnStatement::ReturnStatement(int start_line, int end_line, class AbstractQoreNode *v) : AbstractStatement(start_line, end_line)
+ReturnStatement::ReturnStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line)
 {
    exp = v;
 }
@@ -35,7 +35,7 @@ ReturnStatement::~ReturnStatement()
       exp->deref(NULL);
 }
 
-int ReturnStatement::execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink)
+int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
    if (exp)
       (*return_value) = exp->eval(xsink);

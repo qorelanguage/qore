@@ -47,7 +47,7 @@ class Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_EXISTS, *OP_INSTANCEOF;
 
 // call to get a node with reference count 1 (copy on write)
-static inline void ensure_unique(class AbstractQoreNode **v, class ExceptionSink *xsink)
+static inline void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink)
 {
    if (!(*v)->is_unique())
    {
@@ -58,7 +58,7 @@ static inline void ensure_unique(class AbstractQoreNode **v, class ExceptionSink
 }
 
 // call to get a unique douvle node
-static inline void ensure_unique_float(class AbstractQoreNode **v, class ExceptionSink *xsink)
+static inline void ensure_unique_float(AbstractQoreNode **v, ExceptionSink *xsink)
 {
    if ((*v)->type != NT_FLOAT)
    {
@@ -71,7 +71,7 @@ static inline void ensure_unique_float(class AbstractQoreNode **v, class Excepti
 }
 
 // call to get a unique int64 node
-static inline void ensure_unique_int(class AbstractQoreNode **v, class ExceptionSink *xsink)
+static inline void ensure_unique_int(AbstractQoreNode **v, ExceptionSink *xsink)
 {
    assert(*v);
    QoreBigIntNode *b = dynamic_cast<QoreBigIntNode *>(*v);
@@ -399,18 +399,18 @@ static bool op_log_ne_null(AbstractQoreNode *left, AbstractQoreNode *right, Exce
    return true;
 }
 
-static bool op_exists(AbstractQoreNode *left, class AbstractQoreNode *x, ExceptionSink *xsink)
+static bool op_exists(AbstractQoreNode *left, AbstractQoreNode *x, ExceptionSink *xsink)
 {
    if (is_nothing(left))
       return false;
    if (!left->needs_eval())
       return true;
 
-   class AbstractQoreNode *tn = NULL;
+   AbstractQoreNode *tn = NULL;
    class AutoVLock vl;
 
    // FIXME: modify getExistingVarValue() to take a ReferenceHolder<AbstractQoreNode>
-   class AbstractQoreNode *n = getExistingVarValue(left, xsink, &vl, &tn);
+   AbstractQoreNode *n = getExistingVarValue(left, xsink, &vl, &tn);
    // return if an exception happened
    if (xsink->isEvent())
    {
@@ -430,7 +430,7 @@ static bool op_exists(AbstractQoreNode *left, class AbstractQoreNode *x, Excepti
    return b;
 }
 
-static bool op_instanceof(class AbstractQoreNode *l, class AbstractQoreNode *r, ExceptionSink *xsink)
+static bool op_instanceof(AbstractQoreNode *l, AbstractQoreNode *r, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder nl(l, xsink);
    if (*xsink || !nl)
@@ -525,7 +525,7 @@ static double op_divide_float(double left, double right, ExceptionSink *xsink)
    return left / right;
 }
 
-static class QoreStringNode *op_plus_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
+static QoreStringNode *op_plus_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
    TempQoreStringNode str(new QoreStringNode(*left));
    //printd(5, "op_plus_string() (%d) %08p \"%s\" + (%d) %08p \"%s\"\n", left->strlen(), left->getBuffer(), left->getBuffer(), right->strlen(), right->getBuffer(), right->getBuffer());
@@ -543,7 +543,7 @@ static int64 op_cmp_string(const QoreString *left, const QoreString *right, Exce
    return (int64)left->compare(right);
 }
 
-static int64 op_elements(AbstractQoreNode *left, class AbstractQoreNode *null, ExceptionSink *xsink)
+static int64 op_elements(AbstractQoreNode *left, AbstractQoreNode *null, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder np(left, xsink);
    if (*xsink || !np)
@@ -582,7 +582,7 @@ static int64 op_elements(AbstractQoreNode *left, class AbstractQoreNode *null, E
    return 0;
 }
 
-static QoreListNode *get_keys(AbstractQoreNode *p, ExceptionSink *xsink)
+static QoreListNode *get_keys(const AbstractQoreNode *p, ExceptionSink *xsink)
 {   
    if (!p)
       return 0;
@@ -603,7 +603,7 @@ static QoreListNode *get_keys(AbstractQoreNode *p, ExceptionSink *xsink)
 }
 
 // FIXME: do not need ref_rv here - also do not need second argument
-static class AbstractQoreNode *op_keys(AbstractQoreNode *left, AbstractQoreNode *null, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_keys(AbstractQoreNode *left, AbstractQoreNode *null, bool ref_rv, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder np(left, xsink);
    if (*xsink)
@@ -613,7 +613,7 @@ static class AbstractQoreNode *op_keys(AbstractQoreNode *left, AbstractQoreNode 
 }
 
 // FIXME: do not need ref_rv here
-static class AbstractQoreNode *op_question_mark(AbstractQoreNode *left, AbstractQoreNode *list, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_question_mark(AbstractQoreNode *left, AbstractQoreNode *list, bool ref_rv, ExceptionSink *xsink)
 {
    assert(list && list->type == NT_LIST);
    bool b = left->boolEval(xsink);
@@ -627,11 +627,11 @@ static class AbstractQoreNode *op_question_mark(AbstractQoreNode *left, Abstract
    return l->retrieve_entry(1)->eval(xsink);
 }
 
-static class AbstractQoreNode *op_regex_subst(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_regex_subst(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    // get current value and save
    class AutoVLock vl;
-   class AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -654,11 +654,11 @@ static class AbstractQoreNode *op_regex_subst(AbstractQoreNode *left, AbstractQo
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_regex_trans(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_regex_trans(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    // get current value and save
    class AutoVLock vl;
-   class AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -680,7 +680,7 @@ static class AbstractQoreNode *op_regex_trans(AbstractQoreNode *left, AbstractQo
    return (*v);      
 }
 
-static class AbstractQoreNode *op_list_ref(AbstractQoreNode *left, AbstractQoreNode *index, ExceptionSink *xsink)
+static AbstractQoreNode *op_list_ref(AbstractQoreNode *left, AbstractQoreNode *index, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder lp(left, xsink);
 
@@ -688,7 +688,7 @@ static class AbstractQoreNode *op_list_ref(AbstractQoreNode *left, AbstractQoreN
    if (!lp || *xsink || (lp->type != NT_LIST && lp->type != NT_STRING))
       return 0;
 
-   class AbstractQoreNode *rv = 0;
+   AbstractQoreNode *rv = 0;
    int ind = index->integerEval(xsink);
    if (!*xsink) {
       // get value
@@ -710,7 +710,7 @@ static class AbstractQoreNode *op_list_ref(AbstractQoreNode *left, AbstractQoreN
 
 // for the member name, a string is required.  non-string arguments will
 // be converted.  The null string can also be used
-static class AbstractQoreNode *op_object_ref(AbstractQoreNode *left, class AbstractQoreNode *member, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_object_ref(AbstractQoreNode *left, AbstractQoreNode *member, bool ref_rv, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder op(left, xsink);
    if (*xsink || !op)
@@ -734,7 +734,7 @@ static class AbstractQoreNode *op_object_ref(AbstractQoreNode *left, class Abstr
    return o->evalMember(*key, xsink);
 }
 
-static class AbstractQoreNode *op_object_method_call(AbstractQoreNode *left, class AbstractQoreNode *func, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_object_method_call(AbstractQoreNode *left, AbstractQoreNode *func, bool ref_rv, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder op(left, xsink);
    if (*xsink)
@@ -766,7 +766,7 @@ static class AbstractQoreNode *op_object_method_call(AbstractQoreNode *left, cla
    return o->getClass()->evalMethod(o, f->f.c_str, f->args, xsink);
 }
 
-static class AbstractQoreNode *op_new_object(AbstractQoreNode *left, class AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_new_object(AbstractQoreNode *left, AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
    tracein("op_new_object()");
    
@@ -779,9 +779,9 @@ static class AbstractQoreNode *op_new_object(AbstractQoreNode *left, class Abstr
    return rv;
 }
 
-static class AbstractQoreNode *op_assignment(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_assignment(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **v;
+   AbstractQoreNode **v;
 
    // tracein("op_assignment()");
 
@@ -826,9 +826,9 @@ static class AbstractQoreNode *op_assignment(AbstractQoreNode *left, AbstractQor
    return NULL;
 }
 
-static class AbstractQoreNode *op_list_assignment(AbstractQoreNode *n_left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_list_assignment(AbstractQoreNode *n_left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **v;
+   AbstractQoreNode **v;
 
    assert(n_left && n_left->type == NT_LIST);
    QoreListNode *left = reinterpret_cast<QoreListNode *>(n_left);
@@ -848,7 +848,7 @@ static class AbstractQoreNode *op_list_assignment(AbstractQoreNode *n_left, Abst
    int i;
    for (i = 0; i < left->size(); i++)
    {
-      class AbstractQoreNode *lv = left->retrieve_entry(i);
+      AbstractQoreNode *lv = left->retrieve_entry(i);
 
       class AutoVLock vl;
       v = get_var_value_ptr(lv, &vl, xsink);
@@ -883,9 +883,9 @@ static class AbstractQoreNode *op_list_assignment(AbstractQoreNode *n_left, Abst
    return ref_rv ? new_value.takeReferencedValue() : 0;
 }
 
-static class AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **v;
+   AbstractQoreNode **v;
 
    // tracein("op_plus_equals()");
    QoreNodeEvalOptionalRefHolder new_right(right, xsink);
@@ -996,11 +996,11 @@ static class AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQo
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_minus_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_minus_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    // tracein("op_minus_equals()");
 
-   class AbstractQoreNode **v;
+   AbstractQoreNode **v;
 
    QoreNodeEvalOptionalRefHolder new_right(right, xsink);
    if (*xsink || !new_right)
@@ -1101,9 +1101,9 @@ static class AbstractQoreNode *op_minus_equals(AbstractQoreNode *left, AbstractQ
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_and_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_and_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **v;
+   AbstractQoreNode **v;
 
    //tracein("op_and_equals()");
    int64 val = right->bigIntEval(xsink);
@@ -1139,7 +1139,7 @@ static class AbstractQoreNode *op_and_equals(AbstractQoreNode *left, AbstractQor
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_or_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_or_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    int64 val = right->bigIntEval(xsink);
    if (xsink->isEvent())
@@ -1147,7 +1147,7 @@ static class AbstractQoreNode *op_or_equals(AbstractQoreNode *left, AbstractQore
 
    // get ptr to current value
    class AutoVLock vl;
-   class AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1172,7 +1172,7 @@ static class AbstractQoreNode *op_or_equals(AbstractQoreNode *left, AbstractQore
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_modula_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_modula_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    int64 val = right->bigIntEval(xsink);
    if (xsink->isEvent())
@@ -1180,7 +1180,7 @@ static class AbstractQoreNode *op_modula_equals(AbstractQoreNode *left, Abstract
 
    // get ptr to current value
    class AutoVLock vl;
-   class AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
    if (xsink->isEvent())
       return NULL;
 
@@ -1204,9 +1204,9 @@ static class AbstractQoreNode *op_modula_equals(AbstractQoreNode *left, Abstract
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_multiply_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_multiply_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **v;
+   AbstractQoreNode **v;
    //tracein("op_multiply_equals()");
 
    QoreNodeEvalOptionalRefHolder res(right, xsink);
@@ -1281,9 +1281,9 @@ static class AbstractQoreNode *op_multiply_equals(AbstractQoreNode *left, Abstra
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_divide_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_divide_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **v;
+   AbstractQoreNode **v;
    //tracein("op_divide_equals()");
 
    QoreNodeEvalOptionalRefHolder res(right, xsink);
@@ -1364,7 +1364,7 @@ static class AbstractQoreNode *op_divide_equals(AbstractQoreNode *left, Abstract
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_xor_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_xor_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
@@ -1372,7 +1372,7 @@ static class AbstractQoreNode *op_xor_equals(AbstractQoreNode *left, AbstractQor
 
    // get ptr to current value
    class AutoVLock vl;
-   class AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
    if (*xsink)
       return 0;
 
@@ -1399,9 +1399,9 @@ static class AbstractQoreNode *op_xor_equals(AbstractQoreNode *left, AbstractQor
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_shift_left_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_shift_left_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **v;
+   AbstractQoreNode **v;
 
    //tracein("op_shift_left_equals()");
 
@@ -1437,9 +1437,9 @@ static class AbstractQoreNode *op_shift_left_equals(AbstractQoreNode *left, Abst
    return ref_rv ? (*v)->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_shift_right_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_shift_right_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **v;
+   AbstractQoreNode **v;
 
    //tracein("op_shift_right_equals()");
 
@@ -1505,7 +1505,7 @@ static AbstractQoreNode *op_plus_list(AbstractQoreNode *left, AbstractQoreNode *
    return rv;
 }
 
-static class AbstractQoreNode *op_plus_hash_hash(AbstractQoreNode *left, AbstractQoreNode *right, ExceptionSink *xsink)
+static AbstractQoreNode *op_plus_hash_hash(AbstractQoreNode *left, AbstractQoreNode *right, ExceptionSink *xsink)
 {
    QoreHashNode *lh = dynamic_cast<QoreHashNode *>(left);
    if (lh) {
@@ -1523,7 +1523,7 @@ static class AbstractQoreNode *op_plus_hash_hash(AbstractQoreNode *left, Abstrac
    return right->type == NT_HASH ? right->RefSelf() : 0;
 }
 
-static class AbstractQoreNode *op_plus_hash_object(AbstractQoreNode *left, AbstractQoreNode *right, ExceptionSink *xsink)
+static AbstractQoreNode *op_plus_hash_object(AbstractQoreNode *left, AbstractQoreNode *right, ExceptionSink *xsink)
 {
    QoreHashNode *lh = dynamic_cast<QoreHashNode *>(left);
    if (lh) {
@@ -1543,7 +1543,7 @@ static class AbstractQoreNode *op_plus_hash_object(AbstractQoreNode *left, Abstr
 }
 
 // note that this will return a hash
-static class AbstractQoreNode *op_plus_object_hash(AbstractQoreNode *left, AbstractQoreNode *right, ExceptionSink *xsink)
+static AbstractQoreNode *op_plus_object_hash(AbstractQoreNode *left, AbstractQoreNode *right, ExceptionSink *xsink)
 {
    QoreObject *l = dynamic_cast<QoreObject *>(left);
    if (l) {
@@ -1607,9 +1607,9 @@ static int64 op_shift_right_int(int64 left, int64 right)
 }
 
 // variable assignment
-static class AbstractQoreNode *op_post_inc(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_post_inc(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **n, *rv;
+   AbstractQoreNode **n, *rv;
 
    // tracein("op_post_inc()");
    class AutoVLock vl;
@@ -1633,9 +1633,9 @@ static class AbstractQoreNode *op_post_inc(AbstractQoreNode *left, bool ref_rv, 
 }
 
 // variable assignment
-static class AbstractQoreNode *op_post_dec(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_post_dec(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **n, *rv;
+   AbstractQoreNode **n, *rv;
    // tracein("op_post_dec()");
 
    class AutoVLock vl;
@@ -1661,9 +1661,9 @@ static class AbstractQoreNode *op_post_dec(AbstractQoreNode *left, bool ref_rv, 
 }
 
 // variable assignment
-static class AbstractQoreNode *op_pre_inc(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_pre_inc(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **n;
+   AbstractQoreNode **n;
 
    class AutoVLock vl;
    n = get_var_value_ptr(left, &vl, xsink);
@@ -1692,9 +1692,9 @@ static class AbstractQoreNode *op_pre_inc(AbstractQoreNode *left, bool ref_rv, E
 }
 
 // variable assignment
-static class AbstractQoreNode *op_pre_dec(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_pre_dec(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   class AbstractQoreNode **n;
+   AbstractQoreNode **n;
    // tracein("op_pre_dec()");
 
    class AutoVLock vl;
@@ -1725,7 +1725,7 @@ static class AbstractQoreNode *op_pre_dec(AbstractQoreNode *left, bool ref_rv, E
 }
 
 // unshift lvalue, element
-static AbstractQoreNode *op_unshift(AbstractQoreNode *left, class AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_unshift(AbstractQoreNode *left, AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink)
 {
    printd(5, "op_unshift(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
@@ -1770,7 +1770,7 @@ static AbstractQoreNode *op_unshift(AbstractQoreNode *left, class AbstractQoreNo
    return NULL;
 }
 
-static AbstractQoreNode *op_shift(AbstractQoreNode *left, class AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_shift(AbstractQoreNode *left, AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
    //tracein("op_shift()");
    printd(5, "op_shift(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
@@ -1797,7 +1797,7 @@ static AbstractQoreNode *op_shift(AbstractQoreNode *left, class AbstractQoreNode
    return l->shift();
 }
 
-static AbstractQoreNode *op_pop(AbstractQoreNode *left, class AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_pop(AbstractQoreNode *left, AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
    printd(5, "op_pop(%08p, %08p, isEvent=%d)\n", left, x, xsink->isEvent());
 
@@ -1827,7 +1827,7 @@ static AbstractQoreNode *op_pop(AbstractQoreNode *left, class AbstractQoreNode *
    return rv;
 }
 
-static AbstractQoreNode *op_push(AbstractQoreNode *left, class AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_push(AbstractQoreNode *left, AbstractQoreNode *elem, bool ref_rv, ExceptionSink *xsink)
 {
    //tracein("op_push()");
    printd(5, "op_push(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
@@ -1869,7 +1869,7 @@ static AbstractQoreNode *op_push(AbstractQoreNode *left, class AbstractQoreNode 
 }
 
 // lvalue, offset, [length, [list]]
-static AbstractQoreNode *op_splice(AbstractQoreNode *left, class AbstractQoreNode *n_l, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_splice(AbstractQoreNode *left, AbstractQoreNode *n_l, bool ref_rv, ExceptionSink *xsink)
 {
    printd(5, "op_splice(%08p, %08p, isEvent=%d)\n", left, n_l, xsink->isEvent());
 
@@ -1945,7 +1945,7 @@ static AbstractQoreNode *op_splice(AbstractQoreNode *left, class AbstractQoreNod
    return ref_rv ? (*val)->RefSelf() : 0;
 }
 
-static int64 op_chomp(class AbstractQoreNode *arg, class AbstractQoreNode *x, ExceptionSink *xsink)
+static int64 op_chomp(AbstractQoreNode *arg, AbstractQoreNode *x, ExceptionSink *xsink)
 {
    //tracein("op_chomp()");
    
@@ -1976,7 +1976,7 @@ static int64 op_chomp(class AbstractQoreNode *arg, class AbstractQoreNode *x, Ex
 	 ListIterator li(l);
 	 while (li.next())
 	 {
-	    class AbstractQoreNode **v = li.getValuePtr();
+	    AbstractQoreNode **v = li.getValuePtr();
 	    if (*v && (*v)->type == NT_STRING)
 	    {
 	       // note that no exception can happen here
@@ -1995,7 +1995,7 @@ static int64 op_chomp(class AbstractQoreNode *arg, class AbstractQoreNode *x, Ex
    HashIterator hi(vh);
    while (hi.next())
    {
-      class AbstractQoreNode **v = hi.getValuePtr();
+      AbstractQoreNode **v = hi.getValuePtr();
       if (*v && (*v)->type == NT_STRING)
       {
 	 // note that no exception can happen here
@@ -2008,7 +2008,7 @@ static int64 op_chomp(class AbstractQoreNode *arg, class AbstractQoreNode *x, Ex
    return count;
 }
 
-static AbstractQoreNode *op_trim(class AbstractQoreNode *arg, class AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_trim(AbstractQoreNode *arg, AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
 {
    //tracein("op_trim()");
    
@@ -2034,7 +2034,7 @@ static AbstractQoreNode *op_trim(class AbstractQoreNode *arg, class AbstractQore
       ListIterator li(l);
       while (li.next())
       {
-	 class AbstractQoreNode **v = li.getValuePtr();
+	 AbstractQoreNode **v = li.getValuePtr();
 	 if (*v && (*v)->type == NT_STRING)
 	 {
 	    // note that no exception can happen here
@@ -2051,7 +2051,7 @@ static AbstractQoreNode *op_trim(class AbstractQoreNode *arg, class AbstractQore
       HashIterator hi(vh);
       while (hi.next())
       {
-	 class AbstractQoreNode **v = hi.getValuePtr();
+	 AbstractQoreNode **v = hi.getValuePtr();
 	 if (*v && (*v)->type == NT_STRING)
 	 {
 	    // note that no exception can happen here
@@ -2095,7 +2095,7 @@ static QoreHashNode *op_minus_hash_list(const QoreHashNode *h, const QoreListNod
    return x.release();
 }
 
-static class AbstractQoreNode *op_regex_extract(const QoreString *left, const QoreRegexNode *right, ExceptionSink *xsink)
+static AbstractQoreNode *op_regex_extract(const QoreString *left, const QoreRegexNode *right, ExceptionSink *xsink)
 {
    return right->extractSubstrings(left, xsink);
 }
@@ -2157,7 +2157,7 @@ FloatOperatorFunction::FloatOperatorFunction(const QoreType *lt, const QoreType 
 {
 }
 
-class AbstractQoreNode *OperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *OperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    ReferenceHolder<AbstractQoreNode> l(xsink);
 
@@ -2270,7 +2270,7 @@ double OperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *ri
    return *rv ? rv->getAsFloat() : 0;
 }
 
-class AbstractQoreNode *NodeOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *NodeOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    if (!ref_rv)
       return 0;
@@ -2295,7 +2295,7 @@ double NodeOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode
    return *rv ? rv->getAsFloat() : 0;
 }
 
-class AbstractQoreNode *EffectNoEvalOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *EffectNoEvalOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    return op_func(left, right, ref_rv, xsink);
 }
@@ -2318,7 +2318,7 @@ double EffectNoEvalOperatorFunction::float_eval(AbstractQoreNode *left, Abstract
    return *rv ? rv->getAsFloat() : 0;
 }
 
-class AbstractQoreNode *HashStringOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *HashStringOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    assert(left && left->type == NT_HASH);
    // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
@@ -2349,7 +2349,7 @@ double HashStringOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQo
    return 0.0;
 }
 
-class AbstractQoreNode *HashListOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *HashListOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    assert(left && left->type == NT_HASH);
    assert(right && right->type == NT_LIST);
@@ -2380,7 +2380,7 @@ double HashListOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQore
    return 0.0;
 }
 
-class AbstractQoreNode *NoConvertOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *NoConvertOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
    if (!ref_rv) return 0;
@@ -2406,7 +2406,7 @@ double NoConvertOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQor
    return 0.0;
 }
 
-class AbstractQoreNode *EffectBoolOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *EffectBoolOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    bool b = op_func(left, right, xsink);
    return *xsink ? 0 : new QoreBoolNode(b);
@@ -2427,7 +2427,7 @@ double EffectBoolOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQo
    return (double)op_func(left, right, xsink);
 }
 
-class AbstractQoreNode *SimpleBoolOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *SimpleBoolOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    if (!ref_rv)
       return 0;
@@ -2451,7 +2451,7 @@ double SimpleBoolOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQo
    return (double)op_func(left, right);
 }
 
-class AbstractQoreNode *VarRefOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *VarRefOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    assert(left);
    return op_func(left, ref_rv, xsink);
@@ -2478,7 +2478,7 @@ double VarRefOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNo
    return *rv ? rv->getAsFloat() : 0.0;
 }
 
-class AbstractQoreNode *StringStringStringOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *StringStringStringOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // return immediately if the return value is ignored, this statement will have no effect and there can be no side-effects
    if (!ref_rv) return 0;
@@ -2515,7 +2515,7 @@ double StringStringStringOperatorFunction::float_eval(AbstractQoreNode *left, Ab
    return *rv ? rv->getAsFloat() : 0.0;
 }
 
-class AbstractQoreNode *ListStringRegexOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *ListStringRegexOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    assert(right && right->type == NT_REGEX);
 
@@ -2551,7 +2551,7 @@ double ListStringRegexOperatorFunction::float_eval(AbstractQoreNode *left, Abstr
    return 0.0;
 }
 
-class AbstractQoreNode *BoolOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *BoolOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    ReferenceHolder<AbstractQoreNode> l(xsink);
 
@@ -2665,7 +2665,7 @@ double BoolOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode
    return (double)op_func(left, right, xsink);
 }
 
-class AbstractQoreNode *NoConvertBoolOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *NoConvertBoolOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    if (args == 1) {
       bool rv = op_func(left, 0, xsink);
@@ -2704,7 +2704,7 @@ double NoConvertBoolOperatorFunction::float_eval(AbstractQoreNode *left, Abstrac
    return (double)op_func(left, right, xsink);
 }
 
-class AbstractQoreNode *BoolStrStrOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *BoolStrStrOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    QoreStringValueHelper l(left);
    
@@ -2754,7 +2754,7 @@ double BoolStrStrOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQo
    return (double)op_func(*l, *r, xsink);
 }
 
-class AbstractQoreNode *BoolDateOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *BoolDateOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions can have no side-effects
    if (!ref_rv)
@@ -2787,7 +2787,7 @@ double BoolDateOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQore
    return (double)op_func(*l, *r);
 }
 
-class AbstractQoreNode *DateOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
+AbstractQoreNode *DateOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    // these functions (date addition and subtraction) can have no side-effects
    if (!ref_rv)

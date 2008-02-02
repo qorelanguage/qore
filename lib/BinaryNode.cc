@@ -96,7 +96,7 @@ void *BinaryNode::giveBuffer()
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
-QoreString *BinaryNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *BinaryNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    del = true;
    QoreString *rv = new QoreString();

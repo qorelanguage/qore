@@ -172,7 +172,7 @@ AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNo
    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
       return NULL;
 
-   class AbstractQoreNode *rv = priv->dsl->execSQL(this, query_str, args, xsink);
+   AbstractQoreNode *rv = priv->dsl->execSQL(this, query_str, args, xsink);
    //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
    if (priv->autocommit)
       priv->dsl->autoCommit(this, xsink);
@@ -187,7 +187,7 @@ AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNo
    return rv;
 }
 
-int Datasource::beginImplicitTransaction(class ExceptionSink *xsink)
+int Datasource::beginImplicitTransaction(ExceptionSink *xsink)
 {
    //printd(5, "Datasource::beginImplicitTransaction() autocommit=%s\n", autocommit ? "true" : "false");
    if (priv->autocommit)
@@ -198,7 +198,7 @@ int Datasource::beginImplicitTransaction(class ExceptionSink *xsink)
    return priv->dsl->beginTransaction(this, xsink);
 }
 
-int Datasource::beginTransaction(class ExceptionSink *xsink)
+int Datasource::beginTransaction(ExceptionSink *xsink)
 {
    int rc = beginImplicitTransaction(xsink);
    if (!rc)
@@ -394,12 +394,12 @@ const DBIDriver *Datasource::getDriver() const
    return priv->dsl;
 }
 
-class AbstractQoreNode *Datasource::getServerVersion(class ExceptionSink *xsink)
+AbstractQoreNode *Datasource::getServerVersion(ExceptionSink *xsink)
 {
    return priv->dsl->getServerVersion(this, xsink);
 }
 
-class AbstractQoreNode *Datasource::getClientVersion(class ExceptionSink *xsink) const
+AbstractQoreNode *Datasource::getClientVersion(ExceptionSink *xsink) const
 {
    return priv->dsl->getClientVersion(this, xsink);
 }

@@ -39,7 +39,7 @@ ManagedDatasource::~ManagedDatasource()
 {
 }
 
-void ManagedDatasource::cleanup(class ExceptionSink *xsink)
+void ManagedDatasource::cleanup(ExceptionSink *xsink)
 {
    AutoLocker al(&ds_lock);
    // wait for any in-progress action to complete
@@ -54,7 +54,7 @@ void ManagedDatasource::cleanup(class ExceptionSink *xsink)
    }
 }
 
-void ManagedDatasource::destructor(class ExceptionSink *xsink)
+void ManagedDatasource::destructor(ExceptionSink *xsink)
 {
    AutoLocker al(&ds_lock);
    // closeUnlocked will throw an exception if a transaction is in progress (and release the lock)
@@ -62,7 +62,7 @@ void ManagedDatasource::destructor(class ExceptionSink *xsink)
    counter = -1;
 }
 
-void ManagedDatasource::deref(class ExceptionSink *xsink)
+void ManagedDatasource::deref(ExceptionSink *xsink)
 {
    if (ROdereference())
    {
@@ -106,7 +106,7 @@ int ManagedDatasource::grabLockIntern()
    return 0;   
 }
 
-int ManagedDatasource::grabLock(class ExceptionSink *xsink)
+int ManagedDatasource::grabLock(ExceptionSink *xsink)
 {
    if (grabLockIntern() < 0)
    {
@@ -144,7 +144,7 @@ ManagedDatasource *ManagedDatasource::copy()
 }
 
 // must be holding ds_lock
-int ManagedDatasource::wait_for_sql(class ExceptionSink *xsink)
+int ManagedDatasource::wait_for_sql(ExceptionSink *xsink)
 {
    // object has been deleted in another thread
    if (counter < 0)
@@ -169,7 +169,7 @@ void ManagedDatasource::wait_for_sql()
    cSQL.signal();
 }
 
-int ManagedDatasource::startDBAction(class ExceptionSink *xsink, bool need_transaction_lock)
+int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool need_transaction_lock)
 {
    AutoLocker al(&ds_lock);
    if (wait_for_sql(xsink))
@@ -216,9 +216,9 @@ void ManagedDatasource::setAutoCommit(bool ac)
    Datasource::setAutoCommit(ac);
 }
 
-AbstractQoreNode *ManagedDatasource::select(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::select(const QoreString *query_str, QoreListNode *args, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *rv;
+   AbstractQoreNode *rv;
    
    if (!startDBAction(xsink))
    {
@@ -233,9 +233,9 @@ AbstractQoreNode *ManagedDatasource::select(const QoreString *query_str, class Q
 }
 
 // FIXME: should be a native DBI driver method
-class AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreListNode *args, class ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreListNode *args, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *rv;
+   AbstractQoreNode *rv;
    
    if (!startDBAction(xsink))
    {
@@ -246,7 +246,7 @@ class AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, Qore
       // return only hash of first row, if any
       if (rv && rv->type == NT_LIST)
       {
-	 class AbstractQoreNode *h = (reinterpret_cast<QoreListNode *>(rv))->shift();
+	 AbstractQoreNode *h = (reinterpret_cast<QoreListNode *>(rv))->shift();
 	 rv->deref(xsink);
 	 rv = h;
       }
@@ -257,9 +257,9 @@ class AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, Qore
    return rv;
 }
 
-AbstractQoreNode *ManagedDatasource::selectRows(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::selectRows(const QoreString *query_str, QoreListNode *args, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *rv;
+   AbstractQoreNode *rv;
    
    if (!startDBAction(xsink))
    {
@@ -273,9 +273,9 @@ AbstractQoreNode *ManagedDatasource::selectRows(const QoreString *query_str, cla
    return rv;
 }
 
-AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, QoreListNode *args, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = NULL;
 
    if (!startDBAction(xsink, true))
    {
@@ -295,7 +295,7 @@ AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, class Qor
    return rv;
 }
 
-void ManagedDatasource::beginTransaction(class ExceptionSink *xsink)
+void ManagedDatasource::beginTransaction(ExceptionSink *xsink)
 {
    //printd(0, "ManagedDatasource::beginTransaction() autocommit=%s\n", getAutoCommit() ? "true" : "false");
    if (!startDBAction(xsink, true))
@@ -396,7 +396,7 @@ int ManagedDatasource::closeUnlocked()
 */
 
 // returns 0 for OK, -1 for exception
-int ManagedDatasource::closeUnlocked(class ExceptionSink *xsink)
+int ManagedDatasource::closeUnlocked(ExceptionSink *xsink)
 {
    int rc = 0;
 
@@ -440,7 +440,7 @@ int ManagedDatasource::close()
    return 0;
 }
 
-int ManagedDatasource::close(class ExceptionSink *xsink)
+int ManagedDatasource::close(ExceptionSink *xsink)
 {
    AutoLocker al(&ds_lock);
    return closeUnlocked(xsink);
@@ -517,7 +517,7 @@ AbstractQoreNode *ManagedDatasource::getPendingHostName()
 
 AbstractQoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
 {
-   class AbstractQoreNode *rv;
+   AbstractQoreNode *rv;
    
    if (!startDBAction(xsink))
    {
@@ -533,7 +533,7 @@ AbstractQoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
 
 AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink)
 {
-   class AbstractQoreNode *rv;
+   AbstractQoreNode *rv;
    
    if (!startDBAction(xsink))
    {

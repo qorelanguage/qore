@@ -222,7 +222,7 @@ class TempString {
 // class for using strings possibly temporarily converted to another encoding
 class TempEncodingHelper {
    private:
-      class QoreString *str;
+      QoreString *str;
       bool temp;
 
       // not implemented
@@ -231,7 +231,7 @@ class TempEncodingHelper {
       void *operator new(size_t);
 
    public:
-      DLLEXPORT TempEncodingHelper(class QoreString *s, const class QoreEncoding *qe, class ExceptionSink *xsink)
+      DLLEXPORT TempEncodingHelper(const QoreString *s, const QoreEncoding *qe, ExceptionSink *xsink)
       {
 	 if (s->getEncoding() != qe)
 	 {
@@ -240,7 +240,7 @@ class TempEncodingHelper {
 	 }
 	 else
 	 {
-	    str = s;
+	    str = const_cast<QoreString *>(s);
 	    temp = false;
 	 }
       }
@@ -248,46 +248,6 @@ class TempEncodingHelper {
       {
 	 if (temp && str)
 	    delete str;
-      }
-      DLLEXPORT bool is_temp() const
-      {
-	 return temp;
-      }
-      DLLEXPORT QoreString *operator->(){ return str; };
-      DLLEXPORT QoreString *operator*() { return str; };
-      // to check for an exception in the constructor
-      DLLEXPORT operator bool() const { return str != 0; }
-};
-
-// class for using strings possibly temporarily converted to another encoding
-class ConstTempEncodingHelper {
-   private:
-      const class QoreString *str;
-      bool temp;
-
-      // not implemented
-      ConstTempEncodingHelper(const ConstTempEncodingHelper &);
-      ConstTempEncodingHelper& operator=(const ConstTempEncodingHelper &);
-      void *operator new(size_t);
-
-   public:
-      DLLEXPORT ConstTempEncodingHelper(const class QoreString *s, const class QoreEncoding *qe, class ExceptionSink *xsink)
-      {
-	 if (s->getEncoding() != qe)
-	 {
-	    str = s->convertEncoding(qe, xsink);
-	    temp = true;
-	 }
-	 else
-	 {
-	    str = s;
-	    temp = false;
-	 }
-      }
-      DLLEXPORT ~ConstTempEncodingHelper()
-      {
-	 if (temp && str)
-	    delete const_cast<QoreString *>(str);
       }
       DLLEXPORT bool is_temp() const
       {

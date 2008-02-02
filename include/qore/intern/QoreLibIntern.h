@@ -57,10 +57,10 @@ DLLLOCAL int get_nibble(char c, ExceptionSink *xsink);
 DLLLOCAL BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink);
 DLLLOCAL BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink);
 DLLLOCAL BinaryNode *parseHex(const char *buf, int len);
-DLLLOCAL void print_node(FILE *fp, AbstractQoreNode *node);
+DLLLOCAL void print_node(FILE *fp, const AbstractQoreNode *node);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void initENV(char *env[]);
-DLLLOCAL ResolvedFunctionReferenceNode *getFunctionReference(QoreString *str, ExceptionSink *xsink);
+DLLLOCAL ResolvedFunctionReferenceNode *getFunctionReference(const QoreString *str, ExceptionSink *xsink);
 
 // the following functions are implemented in support.cc
 DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);

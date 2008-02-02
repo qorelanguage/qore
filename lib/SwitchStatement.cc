@@ -31,7 +31,7 @@
 #  include "tests/SwitchStatementWithOperators_tests.cc"
 #endif
 
-CaseNode::CaseNode(class AbstractQoreNode *v, class StatementBlock *c)
+CaseNode::CaseNode(AbstractQoreNode *v, class StatementBlock *c)
 {
    val = v;
    code = c;
@@ -51,7 +51,7 @@ bool CaseNode::isCaseNodeImpl() const
    return true;
 }
 
-bool CaseNode::matches(AbstractQoreNode* lhs_value, class ExceptionSink *xsink) {
+bool CaseNode::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
    return !compareHard(lhs_value, val, xsink); // the ! is because of compareHard() semantics
 }
 
@@ -79,7 +79,7 @@ SwitchStatement::~SwitchStatement()
       delete lvars;
 }
 
-void SwitchStatement::setSwitch(class AbstractQoreNode *s)
+void SwitchStatement::setSwitch(AbstractQoreNode *s)
 {
    sexp = s;
 }
@@ -99,7 +99,7 @@ void SwitchStatement::addCase(class CaseNode *c)
    }
 }
 
-int SwitchStatement::execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink)
+int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
    int i, rc = 0;
    
@@ -108,7 +108,7 @@ int SwitchStatement::execImpl(class AbstractQoreNode **return_value, class Excep
    for (i = 0; i < lvars->num_lvars; i++)
       instantiateLVar(lvars->ids[i], NULL);
    
-   class AbstractQoreNode *se = sexp->eval(xsink);
+   AbstractQoreNode *se = sexp->eval(xsink);
    if (!xsink->isEvent())
    {
       // find match
@@ -151,7 +151,7 @@ int SwitchStatement::parseInitImpl(lvh_t oflag, int pflag)
    lvids += process_node(&sexp, oflag, pflag);
    
    class CaseNode *w = head;
-   class ExceptionSink xsink;
+   ExceptionSink xsink;
    while (w)
    {
       if (w->val)
@@ -189,19 +189,19 @@ bool CaseNodeWithOperator::isCaseNodeImpl() const
 }
 
 //-----------------------------------------------------------------------------
-bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, class ExceptionSink *xsink)
+bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink)
 {
    return m_operator->bool_eval(lhs_value, val, xsink);
 }
 
-bool CaseNodeRegex::matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink)
+bool CaseNodeRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink)
 {
    QoreStringValueHelper str(lhs_value);
    
    return re->exec(*str, xsink);
 }
 
-bool CaseNodeNegRegex::matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink)
+bool CaseNodeNegRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink)
 {   
    QoreStringValueHelper str(lhs_value);
    

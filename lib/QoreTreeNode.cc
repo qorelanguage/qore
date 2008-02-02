@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-QoreTreeNode::QoreTreeNode(class AbstractQoreNode *l, class Operator *o, class AbstractQoreNode *r) : ParseNode(NT_TREE)
+QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, class Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE)
 {
    left = l;
    op = o;
@@ -54,7 +54,7 @@ void QoreTreeNode::ignoreReturnValue()
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 // FIXME: no deep effect - or is this ever needed?
-int QoreTreeNode::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
+int QoreTreeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
    str.sprintf("tree (left=%s (0x%08p) op=%s right=%s (%0x08p))", left ? left->getTypeName() : "NOTHING", 
 	       op->getName(), right ? right->getTypeName() : "NOTHING");
@@ -63,7 +63,7 @@ int QoreTreeNode::getAsString(QoreString &str, int foff, class ExceptionSink *xs
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *QoreTreeNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *QoreTreeNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    del = true;
    QoreString *rv = new QoreString();
@@ -85,29 +85,29 @@ const char *QoreTreeNode::getTypeName() const
 
 // eval(): return value requires a deref(xsink)
 // default implementation = returns "this" with incremented atomic reference count
-AbstractQoreNode *QoreTreeNode::eval(class ExceptionSink *xsink) const
+AbstractQoreNode *QoreTreeNode::eval(ExceptionSink *xsink) const
 {
    // FIXME: fix Operator evaluation to take const arguments!
    return op->eval(const_cast<AbstractQoreNode *>(left), const_cast<AbstractQoreNode *>(right), ref_rv, xsink);
 }
 
-int64 QoreTreeNode::bigIntEval(class ExceptionSink *xsink) const
+int64 QoreTreeNode::bigIntEval(ExceptionSink *xsink) const
 {
    return op->bigint_eval(left, right, xsink);
 }
 
-int QoreTreeNode::integerEval(class ExceptionSink *xsink) const
+int QoreTreeNode::integerEval(ExceptionSink *xsink) const
 {
    return op->bigint_eval(left, right, xsink);
 }
 
-bool QoreTreeNode::boolEval(class ExceptionSink *xsink) const
+bool QoreTreeNode::boolEval(ExceptionSink *xsink) const
 {
    return op->bool_eval(left, right, xsink);
 }
 
 // default implementation is getAsFloat()
-double QoreTreeNode::floatEval(class ExceptionSink *xsink) const
+double QoreTreeNode::floatEval(ExceptionSink *xsink) const
 {
    return op->float_eval(left, right, xsink);
 }

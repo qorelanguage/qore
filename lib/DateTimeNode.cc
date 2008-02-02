@@ -113,7 +113,7 @@ double DateTimeNode::getAsFloat() const
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
-QoreString *DateTimeNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *DateTimeNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    del = true;
    class QoreString *str = new QoreString();
@@ -127,7 +127,7 @@ int DateTimeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
    return 0;
 }
 
-class AbstractQoreNode *DateTimeNode::realCopy() const
+AbstractQoreNode *DateTimeNode::realCopy() const
 {
    return new DateTimeNode(*this);
 }
@@ -208,7 +208,7 @@ class DateTimeNode *DateTimeNode::subtractBy(const class DateTime *dt) const
 // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
 // a NULL return value means an exception was raised
 // static method
-DateTimeNode *DateTimeNode::getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink)
+DateTimeNode *DateTimeNode::getDateFromISOWeek(int year, int week, int day, ExceptionSink *xsink)
 {
    SimpleRefHolder<DateTimeNode> rv(new DateTimeNode());
    if (getDateFromISOWeekIntern(*(*rv), year, week, day, xsink))

@@ -74,9 +74,9 @@ LVList::~LVList()
       delete [] ids;
 }
 
-class AbstractQoreNode *StatementBlock::exec(ExceptionSink *xsink)
+AbstractQoreNode *StatementBlock::exec(ExceptionSink *xsink)
 {
-   class AbstractQoreNode *return_value = NULL;
+   AbstractQoreNode *return_value = NULL;
    execImpl(&return_value, xsink);
    return return_value;
 }
@@ -113,7 +113,7 @@ StatementBlock::~StatementBlock()
    //traceout("StatementBlock::~StatementBlock()");
 }
 
-int StatementBlock::execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink)
+int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
    tracein("StatementBlock::execImpl()");
    int rc = 0;
@@ -230,7 +230,7 @@ lvh_t find_local_var(char *name)
 }
 
 // checks for illegal $self assignments in an object context
-static inline void checkSelf(class AbstractQoreNode *n, lvh_t selfid)
+static inline void checkSelf(AbstractQoreNode *n, lvh_t selfid)
 {
    // if it's a variable reference
    const QoreType *ntype = n->getType();
@@ -263,14 +263,14 @@ static inline void checkSelf(class AbstractQoreNode *n, lvh_t selfid)
       parse_error("illegal conversion of $self to a list");
 }
 
-static inline void checkLocalVariableChange(class AbstractQoreNode *n)
+static inline void checkLocalVariableChange(AbstractQoreNode *n)
 {
    VarRefNode *v = dynamic_cast<VarRefNode *>(n);
    if (v && v->type == VT_LOCAL)
       parse_error("illegal local variable modification in background expression");
 }
 
-static inline int getBaseLVType(class AbstractQoreNode *n)
+static inline int getBaseLVType(AbstractQoreNode *n)
 {
    while (true)
    {
@@ -305,7 +305,7 @@ int process_list_node(QoreListNode **node, lvh_t oflag, int pflag)
 }
 
 // this function will put variables on the local stack but will not pop them
-int process_node(class AbstractQoreNode **node, lvh_t oflag, int pflag)
+int process_node(AbstractQoreNode **node, lvh_t oflag, int pflag)
 {
    int lvids = 0, i;
    int current_pflag = pflag;
@@ -462,7 +462,7 @@ int process_node(class AbstractQoreNode **node, lvh_t oflag, int pflag)
       if (f->args)
 	 for (i = 0; i < f->args->size(); i++)
 	 {
-	    class AbstractQoreNode **n = f->args->get_entry_ptr(i);
+	    AbstractQoreNode **n = f->args->get_entry_ptr(i);
 	    if ((*n)->getType() == NT_REFERENCE)
 	    {
 	       if (!f->existsUserParam(i))
@@ -505,7 +505,7 @@ int process_node(class AbstractQoreNode **node, lvh_t oflag, int pflag)
       HashIterator hi(h);
       while (hi.next()) {
 	 const char *k = hi.getKey();
-	 class AbstractQoreNode **value = hi.getValuePtr();
+	 AbstractQoreNode **value = hi.getValuePtr();
 	 
 	 // resolve constant references in keys
 	 if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST)
@@ -645,7 +645,7 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
    else
       params->ids = NULL;
 
-   // this is a class constructor method, push local $self variable
+   // this is a constructor method, push local $self variable
    params->selfid = push_local_var("self");
    // set oflag to selfid
    lvh_t oflag = params->selfid;
@@ -662,7 +662,7 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
 	     params->names[i], params->ids[i]);
    }
 
-   // initialize base class constructor arguments
+   // initialize base constructor arguments
    if (bcl)
    {
       int tlvids = 0;
@@ -673,14 +673,14 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
 	    QoreListNode *l = (*i)->args;
 	    for (int j = 0; j < l->size(); j++)
 	    {
-	       class AbstractQoreNode **n = l->get_entry_ptr(j);
+	       AbstractQoreNode **n = l->get_entry_ptr(j);
 	       tlvids += process_node(n, oflag, PF_REFERENCE_OK);
 	    }
 	 }
       }
       if (tlvids)
       {
-	 parse_error("illegal local variable declaration in base class constructor argument");
+	 parse_error("illegal local variable declaration in base constructor argument");
 	 for (int i = 0; i < tlvids; i++)
 	    pop_local_var();
       }

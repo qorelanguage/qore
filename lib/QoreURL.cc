@@ -28,7 +28,7 @@
 #include <stdlib.h>
 
 struct qore_url_private {
-      class QoreStringNode *protocol, *path, *username, *password, *host;
+      QoreStringNode *protocol, *path, *username, *password, *host;
       int port;
 
       DLLLOCAL qore_url_private()
@@ -206,9 +206,9 @@ int QoreURL::getPort() const
    return priv->port;
 }
 
-class QoreHashNode *QoreURL::getHash()
+QoreHashNode *QoreURL::getHash()
 {
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    if (priv->protocol)
    {
       h->setKeyValue("protocol", priv->protocol, NULL);

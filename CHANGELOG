@@ -1,5 +1,7 @@
 2007.02.02: David Nichols
 	* renamed QoreNode to AbstractQoreNode
+	* more "const" fixes, preparing to make get_params() and test_*params()
+          functions return const pointers
 
 2007.01.31: David Nichols
 	* QoreNode is now an abstract base class

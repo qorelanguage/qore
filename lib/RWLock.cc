@@ -46,7 +46,7 @@ int RWLock::numReaders()
    return num_readers;
 }
 
-int RWLock::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms)
+int RWLock::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int timeout_ms)
 {
    // check for errors
    if (tid == mtid)
@@ -101,7 +101,7 @@ void RWLock::signalImpl()
    }
 }
 
-void RWLock::destructorImpl(class ExceptionSink *xsink)
+void RWLock::destructorImpl(ExceptionSink *xsink)
 {
    if (num_readers)
       asl_cond.broadcast();
@@ -207,7 +207,7 @@ void RWLock::cleanupImpl()
    }
 }
 
-int RWLock::releaseImpl(class ExceptionSink *xsink)
+int RWLock::releaseImpl(ExceptionSink *xsink)
 {
    int mtid = gettid();
    if (tid == Lock_Deleted)
@@ -258,7 +258,7 @@ void RWLock::mark_read_lock_intern(int mtid, class VLock *nvl)
       ++(i->second);
 }
 
-int RWLock::readLock(class ExceptionSink *xsink, int timeout_ms)
+int RWLock::readLock(ExceptionSink *xsink, int timeout_ms)
 {
    int mtid = gettid();
    class VLock *nvl = getVLock();
@@ -310,7 +310,7 @@ int RWLock::readLock(class ExceptionSink *xsink, int timeout_ms)
    return 0;
 }
 
-int RWLock::readUnlock(class ExceptionSink *xsink)
+int RWLock::readUnlock(ExceptionSink *xsink)
 {
    int mtid = gettid();
    AutoLocker al(&asl_lock);

@@ -40,7 +40,7 @@ class QoreListNode : public AbstractQoreNode
 
       DLLLOCAL void resize(int num);
       DLLLOCAL void splice_intern(int offset, int length, class ExceptionSink *xsink);
-      DLLLOCAL void splice_intern(int offset, int length, class AbstractQoreNode *l, class ExceptionSink *xsink);
+      DLLLOCAL void splice_intern(int offset, int length, const AbstractQoreNode *l, class ExceptionSink *xsink);
       DLLLOCAL void check_offset(int &offset);
       DLLLOCAL void check_offset(int &offset, int &len);
       DLLLOCAL void deref_intern(class ExceptionSink *xisnk);
@@ -122,7 +122,7 @@ class QoreListNode : public AbstractQoreNode
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
       // the "l" AbstractQoreNode will be referenced for the assignment in the QoreListNode
-      DLLEXPORT void splice(int offset, int length, class AbstractQoreNode *l, class ExceptionSink *xsink);
+      DLLEXPORT void splice(int offset, int length, const AbstractQoreNode *l, class ExceptionSink *xsink);
       DLLEXPORT int size() const;
       DLLEXPORT QoreListNode *reverse() const;
 

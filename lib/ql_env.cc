@@ -26,9 +26,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static class AbstractQoreNode *f_getenv(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_getenv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p0;
+   const QoreStringNode *p0;
 
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
@@ -36,10 +36,10 @@ static class AbstractQoreNode *f_getenv(const QoreListNode *params, ExceptionSin
    return Env.getAsStringNode(p0->getBuffer());
 }
 
-static class AbstractQoreNode *f_setenv(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_setenv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p0;
-   AbstractQoreNode *p1;
+   const QoreStringNode *p0;
+   const AbstractQoreNode *p1;
    
    if (!(p0 = test_string_param(params, 0))
        || is_nothing((p1 = get_param(params, 1))))
@@ -49,9 +49,9 @@ static class AbstractQoreNode *f_setenv(const QoreListNode *params, ExceptionSin
    return new QoreBigIntNode(Env.set(p0->getBuffer(), t->getBuffer()));
 }
 
-static class AbstractQoreNode *f_unsetenv(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_unsetenv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p0;
+   const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
    return new QoreBigIntNode(Env.unset(p0->getBuffer()));

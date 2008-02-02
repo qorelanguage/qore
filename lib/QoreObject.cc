@@ -49,9 +49,9 @@ struct qore_object_private {
       class KeyList *privateData;
       class ReferenceObject tRefs;  // reference-references
       class QoreHash *data;
-      class QoreProgram *pgm;
+      QoreProgram *pgm;
 
-      DLLLOCAL qore_object_private(const QoreClass *oc, class QoreProgram *p, QoreHash *n_data) : 
+      DLLLOCAL qore_object_private(const QoreClass *oc, QoreProgram *p, QoreHash *n_data) : 
 	 myclass(oc), status(OS_OK), system_object(!p), privateData(0), data(n_data), pgm(p)
       {
 	 printd(5, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, refs 0->1\n", this, p, oc->getName());
@@ -97,7 +97,7 @@ class KeyList
 	    str->sprintf("%d=<0x%08p>, ", i->first, i->second.first);
       }
 
-      DLLLOCAL void derefAll(class ExceptionSink *xsink) const
+      DLLLOCAL void derefAll(ExceptionSink *xsink) const
       {
 	 for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
 	    if (!i->second.second)
@@ -129,11 +129,11 @@ class KeyList
 
 };
 
-QoreObject::QoreObject(const QoreClass *oc, class QoreProgram *p) : AbstractQoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, new QoreHash()))
+QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p) : AbstractQoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, new QoreHash()))
 {
 }
 
-QoreObject::QoreObject(const QoreClass *oc, class QoreProgram *p, class QoreHash *h) : AbstractQoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, h))
+QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, class QoreHash *h) : AbstractQoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, h))
 {
 }
 
@@ -160,7 +160,7 @@ int QoreObject::isValid() const
    return priv->status == OS_OK; 
 }
 
-class QoreProgram *QoreObject::getProgram() const
+QoreProgram *QoreObject::getProgram() const
 {
    return priv->pgm;
 }
@@ -183,14 +183,14 @@ void QoreObject::tDeref()
       delete this;
 }
 
-class AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreListNode *args, class ExceptionSink *xsink)
+AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const QoreListNode *args, ExceptionSink *xsink)
 {
    // get referenced object
    class AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getIDForMethod(), xsink);
    
    if (pd)
    {
-      class AbstractQoreNode *rv = meth->evalMethod(this, pd, args, xsink);
+      AbstractQoreNode *rv = meth->evalMethod(this, pd, args, xsink);
       pd->deref(xsink);
       return rv;
    }
@@ -205,7 +205,7 @@ class AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(class Built
    return 0;
 }
 
-void QoreObject::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class QoreObject *self, const char *class_name, class ExceptionSink *xsink)
+void QoreObject::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, QoreObject *self, const char *class_name, ExceptionSink *xsink)
 {
    // get referenced object
    class AbstractPrivateData *pd = getReferencedPrivateData(meth->myclass->getID(), xsink);
@@ -231,7 +231,7 @@ void QoreObject::instantiateLVar(lvh_t id)
    ::instantiateLVar(id, this);
 }
 
-void QoreObject::uninstantiateLVar(class ExceptionSink *xsink)
+void QoreObject::uninstantiateLVar(ExceptionSink *xsink)
 {
    ::uninstantiateLVar(xsink);
 }
@@ -250,7 +250,7 @@ bool QoreObject::validInstanceOf(int cid) const
    return priv->myclass->getClass(cid);
 }
 
-class AbstractQoreNode *QoreObject::evalMethod(const QoreString *name, const class QoreListNode *args, class ExceptionSink *xsink)
+AbstractQoreNode *QoreObject::evalMethod(const QoreString *name, const QoreListNode *args, ExceptionSink *xsink)
 {
    return priv->myclass->evalMethod(this, name->getBuffer(), args, xsink);
 }
@@ -262,19 +262,19 @@ const QoreClass *QoreObject::getClass(int cid) const
    return priv->myclass->getClass(cid);
 }
 
-class AbstractQoreNode *QoreObject::evalMember(const QoreString *member, class ExceptionSink *xsink)
+AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink *xsink)
 {
    // make sure to convert string encoding if necessary to default character set
-   ConstTempEncodingHelper tstr(member, QCS_DEFAULT, xsink);
+   TempEncodingHelper tstr(member, QCS_DEFAULT, xsink);
    if (!tstr)
       return NULL;
 
-   class AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = NULL;
    const char *mem = tstr->getBuffer();
    
    //printd(5, "QoreObject::evalMember() find_key(%s)=%08p myclass=%s\n", mem, find_key(mem), myclass ? myclass->getName() : "NONE");
    // if accessed outside the class and the member is a private member 
-   class QoreObject *obj = getStackObject();
+   QoreObject *obj = getStackObject();
    printd(5, "QoreObject::evalMember(%s) obj=%08p class=%s ID=%d stack obj=%08p class=%s ID=%d isPrivateMember=%s\n", mem, this, priv->myclass->getName(), priv->myclass->getID(), obj, obj ? obj->priv->myclass->getName() : "(null)", obj ? obj->priv->myclass->getID() : -1, priv->myclass->isPrivateMember(mem) ? "true" : "false");
 	  
    // if accessed outside the class and the member is a private member 
@@ -307,7 +307,7 @@ class AbstractQoreNode *QoreObject::evalMember(const QoreString *member, class E
 }
 
 // 0 = equal, 1 = not equal
-bool QoreObject::compareSoft(const class QoreObject *obj, class ExceptionSink *xsink) const
+bool QoreObject::compareSoft(const QoreObject *obj, ExceptionSink *xsink) const
 {
    if (obj->priv->myclass != priv->myclass)
       return 1;
@@ -349,7 +349,7 @@ bool QoreObject::compareSoft(const class QoreObject *obj, class ExceptionSink *x
 }
 
 // 0 = equal, 1 = not equal
-bool QoreObject::compareHard(const class QoreObject *obj, class ExceptionSink *xsink) const
+bool QoreObject::compareHard(const QoreObject *obj, ExceptionSink *xsink) const
 {
    if (obj->priv->myclass != priv->myclass)
       return 1;
@@ -391,7 +391,7 @@ bool QoreObject::compareHard(const class QoreObject *obj, class ExceptionSink *x
 }
 
 // gate is already held
-inline void QoreObject::doDeleteIntern(class ExceptionSink *xsink)
+inline void QoreObject::doDeleteIntern(ExceptionSink *xsink)
 {
    if (priv->status == OS_DELETED)
    {
@@ -477,7 +477,7 @@ void QoreObject::obliterate(ExceptionSink *xsink)
    }
 }
 
-void QoreObject::doDelete(class ExceptionSink *xsink)
+void QoreObject::doDelete(ExceptionSink *xsink)
 {
    // FIXME: what the hell do we do if this happens?
    if (priv->g.enter(xsink) < 0)
@@ -486,7 +486,7 @@ void QoreObject::doDelete(class ExceptionSink *xsink)
 }
 
 // NOTE: caller must unlock
-class AbstractQoreNode **QoreObject::getMemberValuePtr(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const
+AbstractQoreNode **QoreObject::getMemberValuePtr(const char *key, class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -502,7 +502,7 @@ class AbstractQoreNode **QoreObject::getMemberValuePtr(const char *key, class Au
 }
 
 // NOTE: caller must unlock
-class AbstractQoreNode **QoreObject::getMemberValuePtr(const QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const
+AbstractQoreNode **QoreObject::getMemberValuePtr(const QoreString *key, class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -518,7 +518,7 @@ class AbstractQoreNode **QoreObject::getMemberValuePtr(const QoreString *key, cl
 }
 
 // NOTE: caller must unlock
-class AbstractQoreNode *QoreObject::getMemberValueNoMethod(const QoreString *key, class AutoVLock *vl, class ExceptionSink *xsink) const
+AbstractQoreNode *QoreObject::getMemberValueNoMethod(const QoreString *key, class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -539,7 +539,7 @@ class AbstractQoreNode *QoreObject::getMemberValueNoMethod(const QoreString *key
 }
 
 // NOTE: caller must unlock (with AutoVLock)
-class AbstractQoreNode *QoreObject::getMemberValueNoMethod(const char *key, class AutoVLock *vl, class ExceptionSink *xsink) const
+AbstractQoreNode *QoreObject::getMemberValueNoMethod(const char *key, class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -590,9 +590,9 @@ void QoreObject::deleteMemberValue(const char *key, ExceptionSink *xsink)
    priv->g.exit();
 }
 
-class QoreListNode *QoreObject::getMemberList(class ExceptionSink *xsink) const
+QoreListNode *QoreObject::getMemberList(ExceptionSink *xsink) const
 {
-   class QoreListNode *lst;
+   QoreListNode *lst;
    if (priv->g.enter(xsink) < 0)
       return NULL;
    if (priv->status == OS_DELETED)
@@ -606,7 +606,7 @@ class QoreListNode *QoreObject::getMemberList(class ExceptionSink *xsink) const
    return lst;
 }
 
-void QoreObject::setValue(const char *key, class AbstractQoreNode *value, ExceptionSink *xsink)
+void QoreObject::setValue(const char *key, AbstractQoreNode *value, ExceptionSink *xsink)
 {
    if (priv->g.enter(xsink) < 0)
       return;
@@ -620,7 +620,7 @@ void QoreObject::setValue(const char *key, class AbstractQoreNode *value, Except
    priv->g.exit();
 }
 
-int QoreObject::size(class ExceptionSink *xsink) const
+int QoreObject::size(ExceptionSink *xsink) const
 {
    int rc;
 
@@ -652,7 +652,7 @@ void QoreObject::merge(const class QoreHash *h, ExceptionSink *xsink)
 
 // adds all elements (already referenced) from the hash passed, deletes the
 // hash passed
-void QoreObject::assimilate(class QoreHash *h, class ExceptionSink *xsink)
+void QoreObject::assimilate(class QoreHash *h, ExceptionSink *xsink)
 {
    if (priv->g.enter(xsink) < 0)
       return;
@@ -668,14 +668,14 @@ void QoreObject::assimilate(class QoreHash *h, class ExceptionSink *xsink)
 
 /*
 // to be called only in builtin constructors - no locking necessary
-inline void QoreObject::doDeleteNoDestructor(class ExceptionSink *xsink)
+inline void QoreObject::doDeleteNoDestructor(ExceptionSink *xsink)
 {
    priv->status = OS_DELETED;
    data->dereference(xsink);
 }
 */
 
-class AbstractQoreNode *QoreObject::evalFirstKeyValue(class ExceptionSink *xsink) const
+AbstractQoreNode *QoreObject::evalFirstKeyValue(ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -685,12 +685,12 @@ class AbstractQoreNode *QoreObject::evalFirstKeyValue(class ExceptionSink *xsink
       makeAccessDeletedObjectException(xsink, priv->myclass->getName());
       return NULL;
    }
-   class AbstractQoreNode *rv = priv->data->evalFirstKeyValue(xsink);
+   AbstractQoreNode *rv = priv->data->evalFirstKeyValue(xsink);
    priv->g.exit();
    return rv;
 }
 
-class AbstractQoreNode *QoreObject::evalMemberNoMethod(const char *mem, class ExceptionSink *xsink) const
+AbstractQoreNode *QoreObject::evalMemberNoMethod(const char *mem, ExceptionSink *xsink) const
 {
    printd(5, "QoreObject::evalMemberNoMethod(this=%08p, mem=%08p (%s), xsink=%08p, data->size()=%d)\n",
 	  this, mem, mem, xsink, priv->data ? priv->data->size() : -1);
@@ -702,13 +702,13 @@ class AbstractQoreNode *QoreObject::evalMemberNoMethod(const char *mem, class Ex
       makeAccessDeletedObjectException(xsink, mem, priv->myclass->getName());
       return NULL;
    }
-   class AbstractQoreNode *rv = priv->data->evalKey(mem, xsink);
+   AbstractQoreNode *rv = priv->data->evalKey(mem, xsink);
    priv->g.exit();
    return rv;
 }
 
 // it's OK to return NULL here to duplicate the behaviour of NOTHING
-class AbstractQoreNode *QoreObject::evalMemberExistence(const char *mem, class ExceptionSink *xsink) const
+AbstractQoreNode *QoreObject::evalMemberExistence(const char *mem, ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -718,14 +718,14 @@ class AbstractQoreNode *QoreObject::evalMemberExistence(const char *mem, class E
       makeAccessDeletedObjectException(xsink, mem, priv->myclass->getName());
       return NULL;
    }
-   class AbstractQoreNode *rv = priv->data->evalKeyExistence(mem, xsink);
+   AbstractQoreNode *rv = priv->data->evalKeyExistence(mem, xsink);
    priv->g.exit();
    return rv;
 }
 
 /*
 // this method should never be necessary as objects cannot contain parse expressions, only data
-QoreHash *QoreObject::evalData(class ExceptionSink *xsink) const
+QoreHash *QoreObject::evalData(ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -741,7 +741,7 @@ QoreHash *QoreObject::evalData(class ExceptionSink *xsink) const
 }
 */
 
-QoreHash *QoreObject::copyData(class ExceptionSink *xsink) const
+QoreHash *QoreObject::copyData(ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -786,7 +786,7 @@ void QoreObject::mergeDataToHash(QoreHash *hash, ExceptionSink *xsink)
 
 // NOTE: caller must unlock lock
 // we check if the object is already locked
-class AbstractQoreNode **QoreObject::getExistingValuePtr(const QoreString *mem, class AutoVLock *vl, class ExceptionSink *xsink) const
+AbstractQoreNode **QoreObject::getExistingValuePtr(const QoreString *mem, class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -797,7 +797,7 @@ class AbstractQoreNode **QoreObject::getExistingValuePtr(const QoreString *mem, 
       makeAccessDeletedObjectException(xsink, mem->getBuffer(), priv->myclass->getName());
       return NULL;
    }
-   class AbstractQoreNode **rv = priv->data->getExistingValuePtr(mem, xsink);
+   AbstractQoreNode **rv = priv->data->getExistingValuePtr(mem, xsink);
    if (!rv)
       priv->g.exit();
    else
@@ -807,7 +807,7 @@ class AbstractQoreNode **QoreObject::getExistingValuePtr(const QoreString *mem, 
 
 // NOTE: caller must unlock lock
 // we check if the object is already locked
-class AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, class AutoVLock *vl, class ExceptionSink *xsink) const
+AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -818,7 +818,7 @@ class AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, class 
       makeAccessDeletedObjectException(xsink, mem, priv->myclass->getName());
       return NULL;
    }
-   class AbstractQoreNode **rv = priv->data->getExistingValuePtr(mem);
+   AbstractQoreNode **rv = priv->data->getExistingValuePtr(mem);
    if (!rv)
       priv->g.exit();
    else
@@ -826,7 +826,7 @@ class AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, class 
    return rv;
 }
 
-AbstractPrivateData *QoreObject::getReferencedPrivateData(int key, class ExceptionSink *xsink) const
+AbstractPrivateData *QoreObject::getReferencedPrivateData(int key, ExceptionSink *xsink) const
 { 
    AbstractPrivateData *rv = NULL;
 
@@ -839,7 +839,7 @@ AbstractPrivateData *QoreObject::getReferencedPrivateData(int key, class Excepti
    return rv;
 }
 
-AbstractPrivateData *QoreObject::getAndClearPrivateData(int key, class ExceptionSink *xsink)
+AbstractPrivateData *QoreObject::getAndClearPrivateData(int key, ExceptionSink *xsink)
 { 
    AbstractPrivateData *rv = NULL;
    if (priv->g.enter(xsink) < 0)
@@ -887,7 +887,7 @@ void QoreObject::addPrivateDataToString(QoreString *str, ExceptionSink *xsink) c
    str->concat(')');
 }
 
-void QoreObject::cleanup(class ExceptionSink *xsink, class QoreHash *td)
+void QoreObject::cleanup(ExceptionSink *xsink, class QoreHash *td)
 {
    if (priv->privateData)
    {
@@ -909,7 +909,7 @@ void QoreObject::cleanup(class ExceptionSink *xsink, class QoreHash *td)
    td->derefAndDelete(xsink);
 }
 
-void QoreObject::defaultSystemDestructor(int classID, class ExceptionSink *xsink)
+void QoreObject::defaultSystemDestructor(int classID, ExceptionSink *xsink)
 {
    AbstractPrivateData *pd = getAndClearPrivateData(classID, xsink);
    printd(5, "QoreObject::defaultSystemDestructor() this=%08p class=%s private_data=%08p\n", this, priv->myclass->getName(), pd); 
@@ -917,7 +917,7 @@ void QoreObject::defaultSystemDestructor(int classID, class ExceptionSink *xsink
       pd->deref(xsink);
 }
 
-QoreString *QoreObject::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *QoreObject::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    del = false;
 
@@ -984,7 +984,7 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
    return 0;
 }
 
-class AbstractQoreNode *QoreObject::realCopy() const
+AbstractQoreNode *QoreObject::realCopy() const
 {
    return RefSelf();
 }

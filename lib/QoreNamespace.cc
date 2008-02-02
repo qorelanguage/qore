@@ -161,9 +161,9 @@ class QoreNamespace *QoreNamespace::resolveNameScope(class NamedScope *nscope) c
 }
 
 // private function
-class AbstractQoreNode *QoreNamespace::getConstantValue(const char *cname) const
+AbstractQoreNode *QoreNamespace::getConstantValue(const char *cname) const
 {
-   class AbstractQoreNode *rv = priv->constant->find(cname);
+   AbstractQoreNode *rv = priv->constant->find(cname);
    if (!rv)
       rv = priv->pendConstant->find(cname);
 
@@ -171,7 +171,7 @@ class AbstractQoreNode *QoreNamespace::getConstantValue(const char *cname) const
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
-void QoreNamespace::addConstant(class NamedScope *nscope, class AbstractQoreNode *value)
+void QoreNamespace::addConstant(class NamedScope *nscope, AbstractQoreNode *value)
 {
    class QoreNamespace *sns = resolveNameScope(nscope);
    if (!sns)
@@ -452,7 +452,7 @@ class QoreNamespace *QoreNamespace::findNamespace(const char *nname) const
 // public: only called during Qore initialization to setup
 // system constant types directly in Qore system namespaces
 // FIXME: change to addSystemConstant() to avoid confusion
-void QoreNamespace::addConstant(const char *cname, class AbstractQoreNode *val)
+void QoreNamespace::addConstant(const char *cname, AbstractQoreNode *val)
 {
    priv->constant->add(cname, val);
 }
@@ -462,14 +462,14 @@ void QoreNamespace::addInitialNamespace(class QoreNamespace *ns)
    priv->nsl->add(ns);
 }
 
-static int parseInitConstantHash(class QoreHashNode *h, int level)
+static int parseInitConstantHash(QoreHashNode *h, int level)
 {
    class RootQoreNamespace *rns = getRootNS();
 
    HashIterator hi(h);
    while (hi.next()) {
       const char *k = hi.getKey();
-      class AbstractQoreNode **value = hi.getValuePtr();
+      AbstractQoreNode **value = hi.getValuePtr();
 
       if (rns->parseInitConstantValue(value, level + 1))
 	 return -1;
@@ -543,11 +543,11 @@ class QoreNamespace *QoreNamespaceList::parseResolveNamespace(class NamedScope *
 }
 
 // QoreNamespaceList::parseFindConstantValue()
-class AbstractQoreNode *QoreNamespaceList::parseFindConstantValue(const char *cname)
+AbstractQoreNode *QoreNamespaceList::parseFindConstantValue(const char *cname)
 {
    tracein("QoreNamespaceList::parseFindConstantValue()");
    
-   class AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = NULL;
    class QoreNamespace *w = head;
    // see if a match can be found at the first level
    while (w)
@@ -586,9 +586,9 @@ static void showNSL(class QoreNamespaceList *nsl)
 // QoreNamespaceList::parseFindScopedConstantValue()
 // does a recursive breadth-first search to resolve a namespace with the given object type
 // note: is only called with a namespace specifier
-class AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(class NamedScope *name, int *matched)
+AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(class NamedScope *name, int *matched)
 {
-   class AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = NULL;
 
    tracein("QoreNamespaceList::parseFindScopedConstantValue()");
    printd(5, "QoreNamespaceList::parseFindScopedConstantValue(this=%08p) target: %s\n", this, name->ostr);
@@ -847,7 +847,7 @@ class QoreClass *QoreNamespaceList::parseFindScopedClass(class NamedScope *name,
 
 QoreObject *get_file_constant(class QoreClass *fc, int fd)
 {
-   class ExceptionSink xsink;
+   ExceptionSink xsink;
 
    QoreObject *rv = fc->execSystemConstructor(NULL, &xsink);
    class File *f = (File *)rv->getReferencedPrivateData(CID_FILE, &xsink);
@@ -976,7 +976,7 @@ class QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(class NamedSc
 }
 
 // returns 0 for success, non-zero for error
-int RootQoreNamespace::parseInitConstantValue(class AbstractQoreNode **val, int level)
+int RootQoreNamespace::parseInitConstantValue(AbstractQoreNode **val, int level)
 {
    if (!(*val))
       return 0;
@@ -1046,14 +1046,14 @@ int RootQoreNamespace::parseInitConstantValue(class AbstractQoreNode **val, int 
 }
 
 // returns 0 for success, non-zero for error
-int RootQoreNamespace::resolveSimpleConstant(class AbstractQoreNode **node, int level) const
+int RootQoreNamespace::resolveSimpleConstant(AbstractQoreNode **node, int level) const
 {
    assert(*node && (*node)->type == NT_BAREWORD);
    BarewordNode *b = reinterpret_cast<BarewordNode *>(*node);
    printd(5, "RootQoreNamespace::resolveSimpleConstant(%s, %d)\n", b->str, level);
 
    // if constant is not found, then a parse error will be raised
-   class AbstractQoreNode *rv = findConstantValue(b->str, level);
+   AbstractQoreNode *rv = findConstantValue(b->str, level);
    if (!rv)
       return -1;
 
@@ -1065,14 +1065,14 @@ int RootQoreNamespace::resolveSimpleConstant(class AbstractQoreNode **node, int 
    return 0;
 }
 
-int RootQoreNamespace::resolveScopedConstant(class AbstractQoreNode **node, int level) const
+int RootQoreNamespace::resolveScopedConstant(AbstractQoreNode **node, int level) const
 {
    assert(node && (*node)->getType() == NT_CONSTANT);
    ConstantNode *c = reinterpret_cast<ConstantNode *>(*node);
    printd(5, "resolveScopedConstant(%s, %d)\n", c->scoped_ref->ostr, level);
 
    // if constant is not found, then a parse error will be raised
-   class AbstractQoreNode *rv = findConstantValue(c->scoped_ref, level);
+   AbstractQoreNode *rv = findConstantValue(c->scoped_ref, level);
    if (!rv)
       return -1;
 
@@ -1081,7 +1081,7 @@ int RootQoreNamespace::resolveScopedConstant(class AbstractQoreNode **node, int 
    return 0;
 }
 
-class AbstractQoreNode *RootQoreNamespace::findConstantValue(const char *cname, int level) const
+AbstractQoreNode *RootQoreNamespace::findConstantValue(const char *cname, int level) const
 {
    // check recurse level and throw an error if it's too deep
    if (level >= MAX_RECURSION_DEPTH)
@@ -1090,14 +1090,14 @@ class AbstractQoreNode *RootQoreNamespace::findConstantValue(const char *cname, 
       return NULL;
    }
 
-   class AbstractQoreNode *rv = rootFindConstantValue(cname);
+   AbstractQoreNode *rv = rootFindConstantValue(cname);
    if (!rv)
       parse_error("constant '%s' cannot be resolved in any namespace", cname);
    return rv;
 }
 
 // called in 2nd stage of parsing to resolve constant references
-class AbstractQoreNode *RootQoreNamespace::findConstantValue(class NamedScope *scname, int level) const
+AbstractQoreNode *RootQoreNamespace::findConstantValue(class NamedScope *scname, int level) const
 {
    // check recurse level and throw an error if it's too deep
    if (level >= MAX_RECURSION_DEPTH)
@@ -1106,7 +1106,7 @@ class AbstractQoreNode *RootQoreNamespace::findConstantValue(class NamedScope *s
       return NULL;
    }
 
-   class AbstractQoreNode *rv;
+   AbstractQoreNode *rv;
 
    if (scname->elements == 1)
    {
@@ -1345,7 +1345,7 @@ class QoreClass *QoreNamespace::parseMatchScopedClass(class NamedScope *nscope, 
    return rv;
 }
 
-class AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(class NamedScope *nscope, int *matched) const
+AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(class NamedScope *nscope, int *matched) const
 {
    printd(5, "QoreNamespace::parseMatchScopedConstantValue() trying to find %s in %s (%08p)\n", 
 	  nscope->getIdentifier(), priv->name.c_str(), getConstantValue(nscope->getIdentifier()));
@@ -1373,27 +1373,27 @@ class AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(class Named
    return ns->getConstantValue(nscope->getIdentifier());
 }
 
-class QoreHashNode *QoreNamespace::getConstantInfo() const
+QoreHashNode *QoreNamespace::getConstantInfo() const
 {
    return priv->constant->getInfo();
 }
 
-class QoreHashNode *QoreNamespace::getClassInfo() const
+QoreHashNode *QoreNamespace::getClassInfo() const
 {
    return priv->classList->getInfo();
 }
 
 // returns a hash of namespace information
-class QoreHashNode *QoreNamespace::getInfo() const
+QoreHashNode *QoreNamespace::getInfo() const
 {
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
 
    h->setKeyValue("constants", getConstantInfo(), NULL);
    h->setKeyValue("classes", getClassInfo(), NULL);
 
    if (priv->nsl->head)
    {
-      class QoreHashNode *nsh = new QoreHashNode();
+      QoreHashNode *nsh = new QoreHashNode();
       
       class QoreNamespace *w = priv->nsl->head;
       while (w)
@@ -1415,9 +1415,9 @@ void QoreNamespace::setName(const char *nme)
 }
 
 // only called with RootNS
-class AbstractQoreNode *RootQoreNamespace::rootFindConstantValue(const char *cname) const
+AbstractQoreNode *RootQoreNamespace::rootFindConstantValue(const char *cname) const
 {
-   class AbstractQoreNode *rv;
+   AbstractQoreNode *rv;
    if (!(rv = getConstantValue(cname))
        && (!(rv = priv->nsl->parseFindConstantValue(cname))))
       rv = priv->pendNSL->parseFindConstantValue(cname);
@@ -1443,7 +1443,7 @@ void RootQoreNamespace::rootAddClass(class NamedScope *nscope, class QoreClass *
    traceout("RootQoreNamespace::rootAddClass()");
 }
 
-void RootQoreNamespace::rootAddConstant(class NamedScope *nscope, class AbstractQoreNode *value)
+void RootQoreNamespace::rootAddConstant(class NamedScope *nscope, AbstractQoreNode *value)
 {
    class QoreNamespace *sns = rootResolveNamespace(nscope);
 
@@ -1557,9 +1557,9 @@ class QoreClass *RootQoreNamespace::rootFindScopedClass(class NamedScope *nscope
 }
 
 // public, will always be called with nscope->elements > 1
-class AbstractQoreNode *RootQoreNamespace::rootFindScopedConstantValue(class NamedScope *nscope, int *matched) const
+AbstractQoreNode *RootQoreNamespace::rootFindScopedConstantValue(class NamedScope *nscope, int *matched) const
 {
-   class AbstractQoreNode *rv = parseMatchScopedConstantValue(nscope, matched);
+   AbstractQoreNode *rv = parseMatchScopedConstantValue(nscope, matched);
    if (!rv && !(rv = priv->nsl->parseFindScopedConstantValue(nscope, matched)))
       rv = priv->pendNSL->parseFindScopedConstantValue(nscope, matched);
    return rv;

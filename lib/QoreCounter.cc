@@ -39,7 +39,7 @@ struct qore_counter_private {
       {
       }
 
-      DLLLOCAL void destructor(class ExceptionSink *xsink)
+      DLLLOCAL void destructor(ExceptionSink *xsink)
       {
 	 AutoLocker al(&l);
 	 cnt = Cond_Deleted;
@@ -58,7 +58,7 @@ struct qore_counter_private {
 	    cnt++;
       }
 
-      DLLLOCAL void dec(class ExceptionSink *xsink)
+      DLLLOCAL void dec(ExceptionSink *xsink)
       {
 	 AutoLocker al(&l);
 	 if (cnt == Cond_Deleted)
@@ -70,7 +70,7 @@ struct qore_counter_private {
 	    cond.broadcast();
       }
 
-      DLLLOCAL int waitForZero(class ExceptionSink *xsink, int timeout_ms)
+      DLLLOCAL int waitForZero(ExceptionSink *xsink, int timeout_ms)
       {
 	 // NOTE that we do not do a while(true) { cond.wait(); } because any broadcast means that the
 	 // counter hit zero, so even it it's bigger than zero by the time we are allowed to execute, it's ok
@@ -120,7 +120,7 @@ QoreCounter::~QoreCounter()
    delete priv;
 }
 
-void QoreCounter::destructor(class ExceptionSink *xsink)
+void QoreCounter::destructor(ExceptionSink *xsink)
 {
    priv->destructor(xsink);
 }
@@ -130,12 +130,12 @@ void QoreCounter::inc()
    priv->inc();
 }
 
-void QoreCounter::dec(class ExceptionSink *xsink)
+void QoreCounter::dec(ExceptionSink *xsink)
 {
    priv->dec(xsink);
 }
 
-int QoreCounter::waitForZero(class ExceptionSink *xsink, int timeout_ms)
+int QoreCounter::waitForZero(ExceptionSink *xsink, int timeout_ms)
 {
    return priv->waitForZero(xsink, timeout_ms);
 }

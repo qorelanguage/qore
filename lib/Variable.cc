@@ -50,7 +50,7 @@ Var::Var(class Var *ref, bool ro)
    //next = NULL;
 }
 
-void Var::del(class ExceptionSink *xsink)
+void Var::del(ExceptionSink *xsink)
 {
    if (type == GV_IMPORT)
    {
@@ -95,7 +95,7 @@ AbstractQoreNode *Var::getValue()
 }
 */
 
-AbstractQoreNode *Var::eval(class ExceptionSink *xsink)
+AbstractQoreNode *Var::eval(ExceptionSink *xsink)
 {
    AbstractQoreNode *rv;
 
@@ -115,7 +115,7 @@ AbstractQoreNode *Var::eval(class ExceptionSink *xsink)
 }
 
 // note: the caller must exit the gate!
-AbstractQoreNode **Var::getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink)
+AbstractQoreNode **Var::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink)
 {
    if (gate.enter(xsink) < 0)
       return NULL;
@@ -137,7 +137,7 @@ AbstractQoreNode **Var::getValuePtr(class AutoVLock *vl, class ExceptionSink *xs
 }
 
 // note: the caller must exit the gate!
-AbstractQoreNode *Var::getValue(class AutoVLock *vl, class ExceptionSink *xsink)
+AbstractQoreNode *Var::getValue(class AutoVLock *vl, ExceptionSink *xsink)
 {
    if (gate.enter(xsink) < 0)
       return NULL;
@@ -152,7 +152,7 @@ AbstractQoreNode *Var::getValue(class AutoVLock *vl, class ExceptionSink *xsink)
    return v.val.value;
 }
 
-void Var::setValue(AbstractQoreNode *val, class ExceptionSink *xsink)
+void Var::setValue(AbstractQoreNode *val, ExceptionSink *xsink)
 {
    if (type == GV_IMPORT)
    {
@@ -176,7 +176,7 @@ void Var::setValue(AbstractQoreNode *val, class ExceptionSink *xsink)
    gate.exit();
 }
 
-void Var::makeReference(class Var *pvar, class ExceptionSink *xsink, bool ro)
+void Var::makeReference(class Var *pvar, ExceptionSink *xsink, bool ro)
 {
    if (gate.enter(xsink) < 0)
       return;
@@ -195,7 +195,7 @@ void Var::makeReference(class Var *pvar, class ExceptionSink *xsink, bool ro)
    gate.exit();
 }
 
-void Var::deref(class ExceptionSink *xsink)
+void Var::deref(ExceptionSink *xsink)
 {
    if (ROdereference())
    {
@@ -213,7 +213,7 @@ LVar::LVar(lvh_t nid, AbstractQoreNode *nvalue)
    obj = NULL;
 }
 
-LVar::LVar(lvh_t nid, AbstractQoreNode *ve, class QoreObject *o) 
+LVar::LVar(lvh_t nid, AbstractQoreNode *ve, QoreObject *o) 
 {
    id = nid; 
    value = NULL;
@@ -232,7 +232,7 @@ void LVar::set(lvh_t nid, AbstractQoreNode *nvalue)
    obj = NULL;
 }
 
-void LVar::set(lvh_t nid, AbstractQoreNode *ve, class QoreObject *o) 
+void LVar::set(lvh_t nid, AbstractQoreNode *ve, QoreObject *o) 
 {
    id = nid; 
    value = NULL;
@@ -242,7 +242,7 @@ void LVar::set(lvh_t nid, AbstractQoreNode *ve, class QoreObject *o)
       o->tRef();
 }
 
-AbstractQoreNode *LVar::evalReference(class ExceptionSink *xsink)
+AbstractQoreNode *LVar::evalReference(ExceptionSink *xsink)
 {
    AbstractQoreNode *rv;
    ObjectSubstitutionHelper osh(obj);
@@ -255,7 +255,7 @@ AbstractQoreNode *LVar::evalReference(class ExceptionSink *xsink)
    return rv;
 }
 
-AbstractQoreNode *LVar::eval(class ExceptionSink *xsink)
+AbstractQoreNode *LVar::eval(ExceptionSink *xsink)
 {
    if (vexp)
       return evalReference(xsink);
@@ -263,7 +263,7 @@ AbstractQoreNode *LVar::eval(class ExceptionSink *xsink)
       return value ? value->RefSelf() : NULL;
 }
 
-AbstractQoreNode *LVar::eval(bool &needs_deref, class ExceptionSink *xsink)
+AbstractQoreNode *LVar::eval(bool &needs_deref, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv;
 
@@ -281,7 +281,7 @@ AbstractQoreNode *LVar::eval(bool &needs_deref, class ExceptionSink *xsink)
    return rv;
 }
 
-AbstractQoreNode **LVar::getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink)
+AbstractQoreNode **LVar::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink)
 {
    if (vexp)
    {
@@ -302,7 +302,7 @@ AbstractQoreNode **LVar::getValuePtr(class AutoVLock *vl, class ExceptionSink *x
    return &value;
 }
 
-AbstractQoreNode *LVar::getValue(class AutoVLock *vl, class ExceptionSink *xsink)
+AbstractQoreNode *LVar::getValue(class AutoVLock *vl, ExceptionSink *xsink)
 {
    if (vexp)
    {
@@ -323,7 +323,7 @@ AbstractQoreNode *LVar::getValue(class AutoVLock *vl, class ExceptionSink *xsink
    return value;
 }
 
-void LVar::setValue(AbstractQoreNode *val, class ExceptionSink *xsink)
+void LVar::setValue(AbstractQoreNode *val, ExceptionSink *xsink)
 {
    if (vexp)
    {
@@ -499,7 +499,7 @@ AbstractQoreNode **get_var_value_ptr(AbstractQoreNode *n, AutoVLock *vlp, Except
    return do_object_val_ptr(tree, vlp, xsink);
 }
 
-class QoreStringNode **get_string_var_value_ptr(AbstractQoreNode *n, class AutoVLock *vlp, class ExceptionSink *xsink)
+QoreStringNode **get_string_var_value_ptr(AbstractQoreNode *n, class AutoVLock *vlp, ExceptionSink *xsink)
 {
    AbstractQoreNode **v = get_var_value_ptr(n, vlp, xsink);
    if (!v || *xsink)
@@ -512,7 +512,7 @@ class QoreStringNode **get_string_var_value_ptr(AbstractQoreNode *n, class AutoV
 // finds value of partially evaluated lvalue expressions (for use with references)
 // will not do any evaluations, however, because local variables could hold imported
 // object references, exceptions could be thrown
-AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, class AutoVLock *vl, class ExceptionSink *xsink)
+AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, class AutoVLock *vl, ExceptionSink *xsink)
 {
    printd(5, "getNoEvalVarValue(%08p) %s\n", n, n->getTypeName());
    if (n->type == NT_VARREF)
@@ -802,7 +802,7 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
 }
 
 // pops local variable off stack
-void uninstantiateLVar(class ExceptionSink *xsink)
+void uninstantiateLVar(ExceptionSink *xsink)
 {
    thread_uninstantiate_lvar(xsink);
 }
@@ -818,7 +818,7 @@ class LVar *instantiateLVar(lvh_t id, AbstractQoreNode *value)
    return lvar;
 }
 
-class LVar *instantiateLVar(lvh_t id, AbstractQoreNode *ve, class QoreObject *o)
+class LVar *instantiateLVar(lvh_t id, AbstractQoreNode *ve, QoreObject *o)
 {
    printd(3, "instantiating lvar %08p '%s' by reference (ve=%08p, o=%08p)\n", id, id, ve, o);
    // if we're instantiating the same variable recursively, then don't instantiate it at all

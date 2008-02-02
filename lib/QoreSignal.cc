@@ -63,14 +63,14 @@ void QoreSignalHandler::init()
 }
 
 // must be called in the signal lock
-void QoreSignalHandler::del(int sig, class ExceptionSink *xsink)
+void QoreSignalHandler::del(int sig, ExceptionSink *xsink)
 {
    if (funcref)
       funcref->deref(xsink);
    init();
 }
 
-void QoreSignalHandler::runHandler(int sig, class ExceptionSink *xsink)
+void QoreSignalHandler::runHandler(int sig, ExceptionSink *xsink)
 {
    // create signal number argument
    ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
@@ -190,7 +190,7 @@ void QoreSignalManager::pre_fork_block_and_stop()
    tcount.waitForZero();
 }
 
-void QoreSignalManager::post_fork_unblock_and_start(bool new_process, class ExceptionSink *xsink)
+void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
    if (!enabled())
@@ -356,7 +356,7 @@ extern "C" void *sig_thread(void *x)
    return NULL;
 }
 
-int QoreSignalManager::start_signal_thread(class ExceptionSink *xsink)
+int QoreSignalManager::start_signal_thread(ExceptionSink *xsink)
 {
    printd(5, "start_signal_thread() called\n");
    tid = get_signal_thread_entry();
@@ -385,7 +385,7 @@ int QoreSignalManager::start_signal_thread(class ExceptionSink *xsink)
    return rc;
 }
 
-int QoreSignalManager::setHandler(int sig, ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink)
+int QoreSignalManager::setHandler(int sig, ResolvedFunctionReferenceNode *fr, ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
    if (!enabled())
@@ -423,7 +423,7 @@ int QoreSignalManager::setHandler(int sig, ResolvedFunctionReferenceNode *fr, cl
    return 0;
 }
 
-int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
+int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink)
 {
    AutoLocker al(&mutex);
    if (!enabled())
@@ -464,8 +464,8 @@ int QoreSignalManager::removeHandler(int sig, class ExceptionSink *xsink)
 
 void QoreSignalManager::addSignalConstants(class QoreNamespace *ns)
 {
-   class QoreHashNode *nh = new QoreHashNode();
-   class QoreHashNode *sh = new QoreHashNode();
+   QoreHashNode *nh = new QoreHashNode();
+   QoreHashNode *sh = new QoreHashNode();
 #ifdef SIGHUP
    nh->setKeyValue(MAKE_STRING_FROM_SYMBOL(SIGHUP), new QoreStringNode("SIGHUP"), NULL);
    sh->setKeyValue("SIGHUP", new QoreBigIntNode(SIGHUP), NULL);

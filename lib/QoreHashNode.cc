@@ -35,7 +35,7 @@ QoreHashNode::~QoreHashNode()
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
-QoreString *QoreHashNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *QoreHashNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    return QoreHash::getAsString(del, foff, xsink);
 }
@@ -50,7 +50,7 @@ bool QoreHashNode::needs_eval() const
    return QoreHash::needsEval();
 }
 
-class AbstractQoreNode *QoreHashNode::realCopy() const
+AbstractQoreNode *QoreHashNode::realCopy() const
 {
    return copy();
 }
@@ -96,7 +96,7 @@ void QoreHashNode::deref(ExceptionSink *xsink)
    }
 }
 
-class QoreHashNode *QoreHashNode::copy() const
+QoreHashNode *QoreHashNode::copy() const
 {
    QoreHashNode *h = new QoreHashNode();
 
@@ -104,7 +104,7 @@ class QoreHashNode *QoreHashNode::copy() const
    return h;
 }
 
-class AbstractQoreNode *QoreHashNode::eval(class ExceptionSink *xsink) const
+AbstractQoreNode *QoreHashNode::eval(ExceptionSink *xsink) const
 {
    if (!needs_eval())
       return RefSelf();
@@ -117,7 +117,7 @@ class AbstractQoreNode *QoreHashNode::eval(class ExceptionSink *xsink) const
    return 0;
 }
 
-AbstractQoreNode *QoreHashNode::eval(bool &needs_deref, class ExceptionSink *xsink) const
+AbstractQoreNode *QoreHashNode::eval(bool &needs_deref, ExceptionSink *xsink) const
 {
    if (!needs_eval()) {
       needs_deref = false;

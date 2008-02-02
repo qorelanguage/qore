@@ -33,14 +33,14 @@ class ThreadResourceNode
       class ThreadResourceNode *next, *prev;
       
       DLLLOCAL ThreadResourceNode(AbstractThreadResource *a);
-      DLLLOCAL void call(class ExceptionSink *xsink);
+      DLLLOCAL void call(ExceptionSink *xsink);
 };
 
 ThreadResourceNode::ThreadResourceNode(AbstractThreadResource *a) : atr(a), prev(NULL)
 {
 }
 
-void ThreadResourceNode::call(class ExceptionSink *xsink)
+void ThreadResourceNode::call(ExceptionSink *xsink)
 {
    atr->cleanup(xsink);
    atr->deref();
@@ -128,7 +128,7 @@ void ThreadResourceList::removeIntern(class ThreadResourceNode *w)
    //printd(5, "removeIntern(%08p) done (head=%08p)\n", w, head);
 }
 
-void ThreadResourceList::purge(class ExceptionSink *xsink)
+void ThreadResourceList::purge(ExceptionSink *xsink)
 {
    class ThreadResourceNode *w = head;
    while (w)

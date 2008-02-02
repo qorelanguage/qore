@@ -41,14 +41,14 @@ VarRefNode::~VarRefNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int VarRefNode::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
+int VarRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
    str.sprintf("variable reference '%s' %s (0x%08p)", name, type == VT_GLOBAL ? "global" : type == VT_LOCAL ? "local" : "unresolved", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *VarRefNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *VarRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    del = true;
    QoreString *rv = new QoreString();

@@ -29,17 +29,17 @@
 
 int CID_CONDITION;
 
-static void CONDITION_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void CONDITION_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_CONDITION, new Condition());
 }
 
-static void CONDITION_copy(class QoreObject *self, class QoreObject *old, class Condition *c, ExceptionSink *xsink)
+static void CONDITION_copy(QoreObject *self, QoreObject *old, class Condition *c, ExceptionSink *xsink)
 {
    self->setPrivate(CID_CONDITION, new Condition());
 }
 
-class AbstractQoreNode *CONDITION_signal(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
+AbstractQoreNode *CONDITION_signal(QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    if (c->signal())
       xsink->raiseException("CONDITION-SIGNAL-ERROR", strerror(errno)); 
@@ -47,7 +47,7 @@ class AbstractQoreNode *CONDITION_signal(class QoreObject *self, class Condition
    return NULL;
 }
 
-static class AbstractQoreNode *CONDITION_broadcast(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *CONDITION_broadcast(QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    if (c->broadcast())
       xsink->raiseException("CONDITION-BROADCAST-ERROR", strerror(errno));
@@ -55,7 +55,7 @@ static class AbstractQoreNode *CONDITION_broadcast(class QoreObject *self, class
    return NULL;
 }
 
-static class AbstractQoreNode *CONDITION_wait(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *CONDITION_wait(QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p0 = test_object_param(params, 0);
    SmartMutex *m = p0 ? (SmartMutex *)p0->getReferencedPrivateData(CID_MUTEX, xsink) : 0;
@@ -83,7 +83,7 @@ static class AbstractQoreNode *CONDITION_wait(class QoreObject *self, class Cond
    return new QoreBigIntNode(rc);
 }
 
-static class AbstractQoreNode *CONDITION_wait_count(class QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *CONDITION_wait_count(QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p0 = test_object_param(params, 0);
    SmartMutex *m = p0 ? (SmartMutex *)p0->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;

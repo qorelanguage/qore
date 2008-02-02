@@ -135,7 +135,7 @@ QoreString *QoreStringNode::getStringRepresentation(bool &del) const
    return const_cast<QoreStringNode *>(this);
 }
  
-class QoreStringNode *QoreStringNode::convertEncoding(const class QoreEncoding *nccs, class ExceptionSink *xsink) const
+QoreStringNode *QoreStringNode::convertEncoding(const class QoreEncoding *nccs, ExceptionSink *xsink) const
 {
    printd(5, "QoreStringNode::convertEncoding() from '%s' to '%s'\n", getEncoding()->getCode(), nccs->getCode());
 
@@ -146,7 +146,7 @@ class QoreStringNode *QoreStringNode::convertEncoding(const class QoreEncoding *
    if (!priv->len)
       return new QoreStringNode(nccs);
 
-   class QoreStringNode *targ = new QoreStringNode(nccs);
+   QoreStringNode *targ = new QoreStringNode(nccs);
 
    if (convert_encoding_intern(priv->buf, priv->len, priv->charset, *targ, nccs, xsink)) {
       targ->deref();
@@ -172,7 +172,7 @@ QoreStringNode *QoreStringNode::createAndConvertEncoding(const char *str, const 
    return 0;
 }
 
-class AbstractQoreNode *QoreStringNode::realCopy() const
+AbstractQoreNode *QoreStringNode::realCopy() const
 {
    return copy();
 }
@@ -182,7 +182,7 @@ QoreStringNode *QoreStringNode::copy() const
    return new QoreStringNode(*this);
 }
 
-class QoreStringNode *QoreStringNode::substr(int offset) const
+QoreStringNode *QoreStringNode::substr(int offset) const
 {
    QoreStringNode *str = new QoreStringNode(priv->charset);
 
@@ -199,7 +199,7 @@ class QoreStringNode *QoreStringNode::substr(int offset) const
    return 0;
 }
 
-class QoreStringNode *QoreStringNode::substr(int offset, int length) const
+QoreStringNode *QoreStringNode::substr(int offset, int length) const
 {
    QoreStringNode *str = new QoreStringNode(priv->charset);
 
@@ -216,14 +216,14 @@ class QoreStringNode *QoreStringNode::substr(int offset, int length) const
    return 0;
 }
 
-class QoreStringNode *QoreStringNode::reverse() const
+QoreStringNode *QoreStringNode::reverse() const
 {
-   class QoreStringNode *str = new QoreStringNode(priv->charset);
+   QoreStringNode *str = new QoreStringNode(priv->charset);
    concat_reverse(str);
    return str;
 }
 
-class QoreStringNode *QoreStringNode::parseBase64ToString(class ExceptionSink *xsink) const
+QoreStringNode *QoreStringNode::parseBase64ToString(ExceptionSink *xsink) const
 {
    SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
    if (!b)

@@ -401,7 +401,7 @@ void QoreString::replace(int offset, int dlen, const QoreString *str)
    priv->len = priv->len - dlen + str->priv->len;
 }
 
-void QoreString::splice(int offset, class ExceptionSink *xsink)
+void QoreString::splice(int offset, ExceptionSink *xsink)
 {
    if (!priv->charset->isMultiByte())
    {
@@ -415,7 +415,7 @@ void QoreString::splice(int offset, class ExceptionSink *xsink)
    splice_complex(offset, xsink);
 }
 
-void QoreString::splice(int offset, int num, class ExceptionSink *xsink)
+void QoreString::splice(int offset, int num, ExceptionSink *xsink)
 {
    if (!priv->charset->isMultiByte())
    {
@@ -429,7 +429,7 @@ void QoreString::splice(int offset, int num, class ExceptionSink *xsink)
    splice_complex(offset, num, xsink);
 }
 
-void QoreString::splice(int offset, int num, const AbstractQoreNode *strn, class ExceptionSink *xsink)
+void QoreString::splice(int offset, int num, const AbstractQoreNode *strn, ExceptionSink *xsink)
 {
    const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(strn);
    if (!str)
@@ -670,12 +670,12 @@ void QoreString::concatHex(const char *binbuf, int size)
 }
 
 // FIXME: this is slow, each concatenated character gets terminated as well
-void QoreString::concatAndHTMLEncode(const QoreString *str, class ExceptionSink *xsink)
+void QoreString::concatAndHTMLEncode(const QoreString *str, ExceptionSink *xsink)
 {
    // if it's not a null string
    if (str && str->priv->len)
    {
-      ConstTempEncodingHelper cstr(str, priv->charset, xsink);
+      TempEncodingHelper cstr(str, priv->charset, xsink);
       if (!cstr)
 	 return;
 
@@ -898,13 +898,13 @@ void QoreString::concat(const QoreString *str, int size)
 }
 */
 
-void QoreString::concat(const QoreString *str, class ExceptionSink *xsink)
+void QoreString::concat(const QoreString *str, ExceptionSink *xsink)
 {
    //printd(5, "concat() priv->buf='%s' str='%s'\n", priv->buf, str->priv->buf);
    // if it's not a null string
    if (str && str->priv->len)
    {
-      ConstTempEncodingHelper cstr(str, priv->charset, xsink);
+      TempEncodingHelper cstr(str, priv->charset, xsink);
       if (*xsink)
          return;
 
@@ -917,12 +917,12 @@ void QoreString::concat(const QoreString *str, class ExceptionSink *xsink)
    }
 }
 
-void QoreString::concat(const QoreString *str, int size, class ExceptionSink *xsink)
+void QoreString::concat(const QoreString *str, int size, ExceptionSink *xsink)
 {
    // if it's not a null string
    if (str && str->priv->len)
    {
-      ConstTempEncodingHelper cstr(str, priv->charset, xsink);
+      TempEncodingHelper cstr(str, priv->charset, xsink);
       if (*xsink)
          return;
 
@@ -1088,7 +1088,7 @@ int QoreString::substr_complex(QoreString *ns, int offset) const
    return 0;
 }
 
-void QoreString::splice_simple(int offset, int num, class ExceptionSink *xsink)
+void QoreString::splice_simple(int offset, int num, ExceptionSink *xsink)
 {
    //printd(5, "splice_intern(offset=%d, num=%d, priv->len=%d)\n", offset, num, priv->len);
    int end;
@@ -1110,7 +1110,7 @@ void QoreString::splice_simple(int offset, int num, class ExceptionSink *xsink)
    priv->buf[priv->len] = '\0';
 }
 
-void QoreString::splice_simple(int offset, int num, const QoreString *str, class ExceptionSink *xsink)
+void QoreString::splice_simple(int offset, int num, const QoreString *str, ExceptionSink *xsink)
 {
    //printd(5, "splice_intern(offset=%d, num=%d, priv->len=%d)\n", offset, num, priv->len);
 
@@ -1143,7 +1143,7 @@ void QoreString::splice_simple(int offset, int num, const QoreString *str, class
    priv->buf[priv->len] = '\0';
 }
 
-void QoreString::splice_complex(int offset, class ExceptionSink *xsink)
+void QoreString::splice_complex(int offset, ExceptionSink *xsink)
 {
    // get length in chars
    int clen = priv->charset->getLength(priv->buf);
@@ -1165,7 +1165,7 @@ void QoreString::splice_complex(int offset, class ExceptionSink *xsink)
    priv->buf[priv->len] = '\0';
 }
 
-void QoreString::splice_complex(int offset, int num, class ExceptionSink *xsink)
+void QoreString::splice_complex(int offset, int num, ExceptionSink *xsink)
 {
    //printd(5, "splice_complex(offset=%d, num=%d, priv->len=%d)\n", offset, num, priv->len);
    // get length in chars
@@ -1210,7 +1210,7 @@ void QoreString::splice_complex(int offset, int num, class ExceptionSink *xsink)
    priv->buf[priv->len] = '\0';
 }
 
-void QoreString::splice_complex(int offset, int num, const QoreString *str, class ExceptionSink *xsink)
+void QoreString::splice_complex(int offset, int num, const QoreString *str, ExceptionSink *xsink)
 {
    // get length in chars
    int clen = priv->charset->getLength(priv->buf);
@@ -1269,7 +1269,7 @@ void QoreString::splice_complex(int offset, int num, const QoreString *str, clas
 }
 
 // NULL values sorted at end
-int QoreString::compareSoft(const QoreString *str, class ExceptionSink *xsink) const
+int QoreString::compareSoft(const QoreString *str, ExceptionSink *xsink) const
 {
    if (!priv->buf)
       if (!str->priv->buf)
@@ -1317,7 +1317,7 @@ void QoreString::concatEscape(const char *str, char c, char esc_char)
    }
 }
 
-void QoreString::concatEscape(const QoreString *str, char c, char esc_char, class ExceptionSink *xsink)
+void QoreString::concatEscape(const QoreString *str, char c, char esc_char, ExceptionSink *xsink)
 {
    // if it's not a null string
    if (str && str->priv->len)
@@ -1401,13 +1401,13 @@ void QoreString::concatHex(const QoreString *str)
 }
 
 // endian-agnostic base64 string -> binary object function
-class BinaryNode *QoreString::parseBase64(class ExceptionSink *xsink) const
+class BinaryNode *QoreString::parseBase64(ExceptionSink *xsink) const
 {
    return ::parseBase64(priv->buf, priv->len, xsink);
 }
 
 // FIXME: implement possibility to specify character encoding
-class QoreString *QoreString::parseBase64ToString(class ExceptionSink *xsink) const
+class QoreString *QoreString::parseBase64ToString(ExceptionSink *xsink) const
 {
    SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
    if (!b)
@@ -1433,7 +1433,7 @@ class QoreString *QoreString::parseBase64ToString(class ExceptionSink *xsink) co
    return new QoreString(p);
 }
 
-class BinaryNode *QoreString::parseHex(class ExceptionSink *xsink) const
+class BinaryNode *QoreString::parseHex(ExceptionSink *xsink) const
 {
    return ::parseHex(priv->buf, priv->len, xsink);
 }
@@ -1495,7 +1495,7 @@ const char *QoreString::getBuffer() const
    return priv->buf;
 }
 
-class QoreString *checkEncoding(const QoreString *str, const QoreEncoding *enc, class ExceptionSink *xsink)
+class QoreString *checkEncoding(const QoreString *str, const QoreEncoding *enc, ExceptionSink *xsink)
 {
    if (str->getEncoding() != enc)
       return str->convertEncoding(enc, xsink);
@@ -1518,7 +1518,7 @@ void QoreString::addch(char c, unsigned times)
    }
 }
 
-int QoreString::concatUnicode(unsigned code, class ExceptionSink *xsink)
+int QoreString::concatUnicode(unsigned code, ExceptionSink *xsink)
 {
    if (priv->charset == QCS_UTF8)
    {
@@ -1632,9 +1632,9 @@ unsigned int QoreString::getUnicodePointFromUTF8(int offset) const
       | (((unsigned)priv->buf[offset + 3] & 0x3f));
 }
 
-unsigned int QoreString::getUnicodePoint(int offset, class ExceptionSink *xsink) const
+unsigned int QoreString::getUnicodePoint(int offset, ExceptionSink *xsink) const
 {
-   ConstTempEncodingHelper tmp(this, QCS_UTF8, xsink);
+   TempEncodingHelper tmp(this, QCS_UTF8, xsink);
    if (*xsink)
       return 0;
 

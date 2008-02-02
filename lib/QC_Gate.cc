@@ -26,25 +26,25 @@
 // rmutex class is depcreated and will be removed in the next major release
 int CID_GATE, CID_RMUTEX;
 
-static void GATE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void GATE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_GATE, new QoreGate());
 }
 
-static void GATE_destructor(class QoreObject *self, class QoreGate *g, ExceptionSink *xsink)
+static void GATE_destructor(QoreObject *self, class QoreGate *g, ExceptionSink *xsink)
 {
    g->destructor(xsink);
    g->deref(xsink);
 }
 
-static void GATE_copy(class QoreObject *self, class QoreObject *old, class QoreGate *g, ExceptionSink *xsink)
+static void GATE_copy(QoreObject *self, QoreObject *old, class QoreGate *g, ExceptionSink *xsink)
 {
    self->setPrivate(CID_GATE, new QoreGate());
 }
 
-static class AbstractQoreNode *GATE_enter(class QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GATE_enter(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    if (!is_nothing(p))
    {
@@ -55,22 +55,22 @@ static class AbstractQoreNode *GATE_enter(class QoreObject *self, class QoreGate
    return new QoreBigIntNode(g->grab(xsink));
 }
 
-static class AbstractQoreNode *GATE_exit(class QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GATE_exit(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(g->release(xsink));
 }
 
-static class AbstractQoreNode *GATE_tryEnter(class QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GATE_tryEnter(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(g->tryGrab());
 }
 
-static class AbstractQoreNode *GATE_numInside(class QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GATE_numInside(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(g->get_count());
 }
 
-static class AbstractQoreNode *GATE_numWaiting(class QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GATE_numWaiting(QoreObject *self, class QoreGate *g, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(g->get_waiting());
 }

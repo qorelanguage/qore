@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/FindNode.h>
 
-FindNode::FindNode(class AbstractQoreNode *expr, class AbstractQoreNode *find_expr, class AbstractQoreNode *w) : ParseNode(NT_FIND)
+FindNode::FindNode(AbstractQoreNode *expr, AbstractQoreNode *find_expr, AbstractQoreNode *w) : ParseNode(NT_FIND)
 {
    exp = expr;
    find_exp = find_expr;
@@ -44,14 +44,14 @@ FindNode::~FindNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int FindNode::getAsString(QoreString &qstr, int foff, class ExceptionSink *xsink) const
+int FindNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const
 {
    qstr.sprintf("find expression (0x%08p)", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *FindNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *FindNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    del = true;
    QoreString *rv = new QoreString();

@@ -29,23 +29,23 @@
 int CID_SSLPRIVATEKEY;
 
 /*
-void createSSLPrivateKeyObject(class QoreObject *self, EVP_PKEY *cert)
+void createSSLPrivateKeyObject(QoreObject *self, EVP_PKEY *cert)
 {
    self->setPrivate(CID_SSLPRIVATEKEY, new QoreSSLPrivateKey(cert));
 }
 */
 
 // syntax: SSLPrivateKey(filename)
-static void SSLPKEY_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void SSLPKEY_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreStringNode *p0 = test_string_param(params, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "expecting file name as argument");
       return;
    }
    // get pass phrase if any
-   class QoreStringNode *p1 = test_string_param(params, 1);
+   const QoreStringNode *p1 = test_string_param(params, 1);
    const char *pp = p1 ? p1->getBuffer() : NULL;   
 
    QoreSSLPrivateKey *qpk = new QoreSSLPrivateKey(p0->getBuffer(), (char *)pp, xsink);
@@ -55,27 +55,27 @@ static void SSLPKEY_constructor(class QoreObject *self, const QoreListNode *para
       self->setPrivate(CID_SSLPRIVATEKEY, qpk);
 }
 
-static void SSLPKEY_copy(class QoreObject *self, class QoreObject *old, class QoreSSLPrivateKey *pk, ExceptionSink *xsink)
+static void SSLPKEY_copy(QoreObject *self, QoreObject *old, class QoreSSLPrivateKey *pk, ExceptionSink *xsink)
 {
    xsink->raiseException("SSLPRIVATEKEY-COPY-ERROR", "SSLPrivateKey objects cannot be copied");
 }
 
-static AbstractQoreNode *SSLPKEY_getInfo(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLPKEY_getInfo(QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
 {
    return pk->getInfo();
 }
 
-static AbstractQoreNode *SSLPKEY_getType(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLPKEY_getType(QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreStringNode(pk->getType());
 }
 
-static AbstractQoreNode *SSLPKEY_getVersion(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLPKEY_getVersion(QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(pk->getVersion());
 }
 
-static AbstractQoreNode *SSLPKEY_getBitLength(class QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SSLPKEY_getBitLength(QoreObject *self, class QoreSSLPrivateKey *pk, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(pk->getBitLength());
 }

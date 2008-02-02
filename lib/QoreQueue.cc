@@ -29,7 +29,7 @@ QoreQueueNode::QoreQueueNode(AbstractQoreNode *n) : node(n)
 { 
 }
 
-void QoreQueueNode::del(class ExceptionSink *xsink)
+void QoreQueueNode::del(ExceptionSink *xsink)
 {
    if (node)
       node->deref(xsink);
@@ -129,7 +129,7 @@ void QoreQueue::insert(AbstractQoreNode *n)
    len++;
 }
 
-AbstractQoreNode *QoreQueue::shift(class ExceptionSink *xsink, int timeout_ms, bool *to)
+AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *to)
 {
    SafeLocker sl(&l);
    // if there is no data, then wait for condition variable
@@ -176,7 +176,7 @@ AbstractQoreNode *QoreQueue::shift(class ExceptionSink *xsink, int timeout_ms, b
    return rv;
 }
 
-AbstractQoreNode *QoreQueue::pop(class ExceptionSink *xsink, int timeout_ms, bool *to)
+AbstractQoreNode *QoreQueue::pop(ExceptionSink *xsink, int timeout_ms, bool *to)
 {
    SafeLocker sl(&l);
    // if there is no data, then wait for condition variable
@@ -223,7 +223,7 @@ AbstractQoreNode *QoreQueue::pop(class ExceptionSink *xsink, int timeout_ms, boo
    return rv;
 }
 
-void QoreQueue::destructor(class ExceptionSink *xsink)
+void QoreQueue::destructor(ExceptionSink *xsink)
 {
    AutoLocker al(&l);
    if (waiting)

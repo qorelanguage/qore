@@ -60,7 +60,7 @@ void AutoVLock::push(class AbstractSmartLock *p)
    priv->l.push_back(p);
 }
 
-int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
+int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int timeout_ms)
 {
    waiting_on = asl;
    
@@ -90,7 +90,7 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, class ExceptionSink *xsink,
    return rc;
 }
 
-int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class ExceptionSink *xsink, int timeout_ms)
+int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, ExceptionSink *xsink, int timeout_ms)
 {
    waiting_on = asl;
 
@@ -120,7 +120,7 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, class 
    return rc;
 }
 
-int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, class ExceptionSink *xsink, int timeout_ms)
+int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsink, int timeout_ms)
 {
    waiting_on = asl;
 

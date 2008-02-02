@@ -35,7 +35,7 @@ DLLLOCAL class Sequence classIDSeq;
 // private QoreClass implementation
 struct qore_qc_private {
       char *name;                  // the name of the class
-      class BCAList *bcal;         // base class constructor argument list
+      class BCAList *bcal;         // base constructor argument list
       class BCList *scl;           // base class list
       hm_method_t hm, hm_pending;  // method maps
       strset_t pmm, pending_pmm;   // private member lists (sets)
@@ -159,7 +159,7 @@ struct qore_method_private {
 };
 
 // BCEANode
-// base class constructor evaluated argument node
+// base constructor evaluated argument node
 // created locally at run time
 class BCEANode
 {
@@ -184,7 +184,7 @@ typedef std::map<const QoreClass *, class BCEANode *, ltqc> bceamap_t;
 
 /*
  BCEAList
- base class constructor evaluated argument list
+ base constructor evaluated argument list
  */
 class BCEAList : public bceamap_t
 {
@@ -192,9 +192,9 @@ class BCEAList : public bceamap_t
       DLLLOCAL inline ~BCEAList() { }
    
    public:
-      DLLLOCAL inline void deref(class ExceptionSink *xsink);
+      DLLLOCAL inline void deref(ExceptionSink *xsink);
       // evaluates arguments, returns -1 if an exception was thrown
-      DLLLOCAL inline int add(class QoreClass *qc, QoreListNode *arg, class ExceptionSink *xsink);
+      DLLLOCAL inline int add(class QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink);
       DLLLOCAL inline QoreListNode *findArgs(const QoreClass *qc, bool *aexeced);
 };
 
@@ -230,7 +230,7 @@ QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced)
    return NULL;
 }
 
-inline int BCEAList::add(class QoreClass *qc, QoreListNode *arg, class ExceptionSink *xsink)
+inline int BCEAList::add(class QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink)
 {
    // see if class already exists in the list
    bceamap_t::iterator i = find(qc);
@@ -244,7 +244,7 @@ inline int BCEAList::add(class QoreClass *qc, QoreListNode *arg, class Exception
    return 0;
 }
 
-inline void BCEAList::deref(class ExceptionSink *xsink)
+inline void BCEAList::deref(ExceptionSink *xsink)
 {
    bceamap_t::iterator i;
    while ((i = begin()) != end())
@@ -373,7 +373,7 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
       }	 
    }
 
-   // if there is a base class constructor list, resolve all classes and 
+   // if there is a base constructor list, resolve all classes and 
    // ensure that all classes referenced are base classes of this class
    if (bcal)
    {
@@ -381,7 +381,7 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
       {
 	 (*i)->resolve();
 	 if ((*i)->sclass && !match(*i))
-	    parse_error("%s in base class constructor argument list is not a base class of %s", (*i)->sclass->getName(), cls->getName());
+	    parse_error("%s in base constructor argument list is not a base class of %s", (*i)->sclass->getName(), cls->getName());
       }
    }
 }
@@ -479,7 +479,7 @@ inline const QoreMethod *BCList::resolveSelfMethod(const char *name)
    return NULL;
 }
 
-inline void BCList::execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const
+inline void BCList::execConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const
 {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
    {
@@ -494,17 +494,17 @@ inline void BCList::execConstructors(class QoreObject *o, class BCEAList *bceal,
    }
 }
 
-void BCList::execConstructorsWithArgs(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const
+void BCList::execConstructorsWithArgs(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const
 {
-   // if there are base class constructor arguments that haven't already been overridden
-   // by a base class constructor argument specification in a subclass, evaluate them now
+   // if there are base constructor arguments that haven't already been overridden
+   // by a base constructor argument specification in a subclass, evaluate them now
    for (bclist_t::const_iterator i = begin(); i != end(); ++i)
       if ((*i)->hasargs && bceal->add((*i)->sclass, (*i)->args, xsink))
 	 return;
    execConstructors(o, bceal, xsink);
 }
 
-inline void BCList::execSystemConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const
+inline void BCList::execSystemConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const
 {
    for (bclist_t::const_iterator i = begin(); i != end(); ++i)
    {
@@ -806,7 +806,7 @@ void QoreMethod::evalSystemConstructor(QoreObject *self, const QoreListNode *arg
    priv->func.builtin->evalSystemConstructor(self, args, bcl, bceal, xsink);
 }
 
-void QoreMethod::evalSystemDestructor(class QoreObject *self, class ExceptionSink *xsink) const
+void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const
 {
    // get pointer to private data object from class ID of base type
    AbstractPrivateData *ptr = self->getAndClearPrivateData(priv->func.builtin->myclass->getID(), xsink);
@@ -847,7 +847,7 @@ QoreMethod *QoreMethod::copy(const QoreClass *p_class) const
 
 static inline const QoreClass *getStackClass()
 {
-   class QoreObject *obj = getStackObject();
+   QoreObject *obj = getStackObject();
    if (obj)
       return obj->getClass();
    return NULL;
@@ -926,7 +926,7 @@ inline void BCSMList::add(class QoreClass *thisclass, class QoreClass *qc, bool 
    push_back(std::make_pair(qc, is_virtual));
 }
 
-inline void BCSMList::execDestructors(class QoreObject *o, class ExceptionSink *xsink) const
+inline void BCSMList::execDestructors(QoreObject *o, ExceptionSink *xsink) const
 {
    class_list_t::const_reverse_iterator i = rbegin();
    // cast below required by g++ 3.2 at least
@@ -939,7 +939,7 @@ inline void BCSMList::execDestructors(class QoreObject *o, class ExceptionSink *
    }
 }
 
-inline void BCSMList::execSystemDestructors(class QoreObject *o, class ExceptionSink *xsink) const
+inline void BCSMList::execSystemDestructors(QoreObject *o, ExceptionSink *xsink) const
 {
    class_list_t::const_reverse_iterator i = rbegin();
    while (i != rend())
@@ -951,7 +951,7 @@ inline void BCSMList::execSystemDestructors(class QoreObject *o, class Exception
    }
 }
 
-inline void BCSMList::execCopyMethods(class QoreObject *self, class QoreObject *old, class ExceptionSink *xsink) const
+inline void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const
 {
    class_list_t::const_iterator i = begin();
    while (i != end())
@@ -1018,7 +1018,7 @@ QoreClass *QoreClass::getClass(int cid) const
    return priv->scl ? priv->scl->sml.getClass(cid) : NULL;
 }
 
-class AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
+AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
 {
    AbstractQoreNode *rv = NULL;
 
@@ -1172,7 +1172,7 @@ inline void QoreClass::addDomain(int dom)
    priv->domain |= dom;
 }
 
-AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, class ExceptionSink *xsink) const
+AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const
 {
    tracein("QoreClass::evalMethod()");
    const QoreMethod *w;
@@ -1255,7 +1255,7 @@ bool QoreClass::isPrivateMember(const char *str) const
    return false;
 }
 
-AbstractQoreNode *QoreClass::evalMemberGate(class QoreObject *self, const QoreString *nme, class ExceptionSink *xsink) const
+AbstractQoreNode *QoreClass::evalMemberGate(QoreObject *self, const QoreString *nme, ExceptionSink *xsink) const
 {
    assert(nme && nme->getEncoding() == QCS_DEFAULT);
 
@@ -1272,7 +1272,7 @@ AbstractQoreNode *QoreClass::evalMemberGate(class QoreObject *self, const QoreSt
 QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *xsink) const
 {
    // create new object
-   class QoreObject *o = new QoreObject(this, getProgram());
+   QoreObject *o = new QoreObject(this, getProgram());
    class BCEAList *bceal;
    if (priv->scl)
       bceal = new BCEAList();
@@ -1283,7 +1283,7 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
 
    if (!priv->constructor)
    {
-      if (priv->scl) // execute superclass constructors if any
+      if (priv->scl) // execute superconstructors if any
 	 priv->scl->execConstructors(o, bceal, xsink);
    }
    else // no lock is sent with constructor, because no variable has been assigned yet
@@ -1305,10 +1305,10 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
    return o;
 }
 
-QoreObject *QoreClass::execSystemConstructor(const QoreListNode *args, class ExceptionSink *xsink) const
+QoreObject *QoreClass::execSystemConstructor(const QoreListNode *args, ExceptionSink *xsink) const
 {
    // create new object
-   class QoreObject *o = new QoreObject(this, NULL);
+   QoreObject *o = new QoreObject(this, NULL);
    class BCEAList *bceal;
    if (priv->scl)
       bceal = new BCEAList();
@@ -1319,7 +1319,7 @@ QoreObject *QoreClass::execSystemConstructor(const QoreListNode *args, class Exc
 
    if (!priv->constructor)
    {
-      if (priv->scl) // execute superclass constructors if any
+      if (priv->scl) // execute superconstructors if any
 	 priv->scl->execSystemConstructors(o, bceal, xsink);
    }
    else // no lock is sent with constructor, because no variable has been assigned yet
@@ -1335,11 +1335,11 @@ QoreObject *QoreClass::execSystemConstructor(const QoreListNode *args, class Exc
    return o;
 }
 
-inline void QoreClass::execSubclassConstructor(class QoreObject *self, class BCEAList *bceal, class ExceptionSink *xsink) const
+inline void QoreClass::execSubclassConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const
 {
    if (!priv->constructor)
    {
-      if (priv->scl) // execute superclass constructors if any
+      if (priv->scl) // execute superconstructors if any
 	 priv->scl->execConstructors(self, bceal, xsink);
    }
    else // no lock is sent with constructor, because no variable has been assigned yet
@@ -1351,11 +1351,11 @@ inline void QoreClass::execSubclassConstructor(class QoreObject *self, class BCE
    }
 }
 
-inline void QoreClass::execSubclassSystemConstructor(class QoreObject *self, class BCEAList *bceal, class ExceptionSink *xsink) const
+inline void QoreClass::execSubclassSystemConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const
 {
    if (!priv->constructor)
    {
-      if (priv->scl) // execute superclass constructors if any
+      if (priv->scl) // execute superconstructors if any
 	 priv->scl->execSystemConstructors(self, bceal, xsink);
    }
    else // no lock is sent with constructor, because no variable has been assigned yet
@@ -1373,7 +1373,7 @@ void QoreClass::execDestructor(QoreObject *self, ExceptionSink *xsink) const
 
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
-   class ExceptionSink de;
+   ExceptionSink de;
 
    if (self->isSystemObject())
    {
@@ -1405,7 +1405,7 @@ inline void QoreClass::execSubclassDestructor(QoreObject *self, ExceptionSink *x
 {
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
-   class ExceptionSink de;
+   ExceptionSink de;
    if (priv->destructor)
       priv->destructor->evalDestructor(self, &de);
    else if (priv->sys)
@@ -1418,7 +1418,7 @@ inline void QoreClass::execSubclassSystemDestructor(QoreObject *self, ExceptionS
 {
    // we use a new, blank exception sink to ensure all destructor code gets executed 
    // in case there were already exceptions in the current exceptionsink
-   class ExceptionSink de;
+   ExceptionSink de;
    if (priv->destructor)
       priv->destructor->evalSystemDestructor(self, &de);
    else if (priv->sys)
@@ -1618,7 +1618,7 @@ int QoreClass::parseAddBaseClassArgumentList(class BCAList *new_bcal)
    // if the constructor is being defined after the class has already been initialized, then throw a parse exception
    if (numMethods())
    {
-      parse_error("constructors giving explicit arguments to base class constructors must be defined when the class is defined");
+      parse_error("constructors giving explicit arguments to base constructors must be defined when the class is defined");
       return -1;
    }
    else if (priv->bcal)
@@ -1645,7 +1645,7 @@ void QoreClass::addMethod(const char *nme, q_method_t m, bool priv_flag)
    checkSpecialIntern(o);
 }
 
-// sets a builtin function as class constructor - no duplicate checking is made
+// sets a builtin function as constructor - no duplicate checking is made
 void QoreClass::setConstructor(q_constructor_t m)
 {
    priv->sys = true;
@@ -1709,7 +1709,7 @@ void QoreClass::parseInit()
    {
       if (!priv->scl)
       {
-	 parse_error("base class constructor arguments given for a class that has no parent classes");
+	 parse_error("base constructor arguments given for a class that has no parent classes");
       }
       delete priv->bcal;
       priv->bcal = NULL;

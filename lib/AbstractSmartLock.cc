@@ -29,7 +29,7 @@ void AbstractSmartLock::cleanupImpl()
       release_and_signal();
 }
 
-void AbstractSmartLock::cleanup(class ExceptionSink *xsink)
+void AbstractSmartLock::cleanup(ExceptionSink *xsink)
 {
    xsink->raiseException("LOCK-ERROR", "TID %d terminated while holding a %s lock; the lock will be automatically released", gettid(), getName());
    AutoLocker al(&asl_lock);	    
@@ -79,11 +79,11 @@ void AbstractSmartLock::release_intern()
    release_and_signal();
 }
 
-void AbstractSmartLock::destructorImpl(class ExceptionSink *xsink)
+void AbstractSmartLock::destructorImpl(ExceptionSink *xsink)
 {
 }
 
-void AbstractSmartLock::destructor(class ExceptionSink *xsink)
+void AbstractSmartLock::destructor(ExceptionSink *xsink)
 {
    AutoLocker al(&asl_lock);
    destructorImpl(xsink);
@@ -110,7 +110,7 @@ void AbstractSmartLock::destructor(class ExceptionSink *xsink)
 //    > 0 = acquired the lock recursively (was already acquired by this thread)
 //    < 0 = error occured (deadlock or timeout)
 /*
-int AbstractSmartLock::grabIntern(class ExceptionSink *xsink)
+int AbstractSmartLock::grabIntern(ExceptionSink *xsink)
 {
 int mtid = gettid();
 AutoLocker al(&asl_lock);
@@ -118,7 +118,7 @@ return grabInternImpl(mtid);
 }
 */
 
-int AbstractSmartLock::grab(class ExceptionSink *xsink, int timeout_ms)
+int AbstractSmartLock::grab(ExceptionSink *xsink, int timeout_ms)
 {
    int mtid = gettid();
    
@@ -150,7 +150,7 @@ int AbstractSmartLock::release()
    return rc;
 }
 
-int AbstractSmartLock::release(class ExceptionSink *xsink)
+int AbstractSmartLock::release(ExceptionSink *xsink)
 {
    AutoLocker al(&asl_lock);
    int rc = releaseImpl(xsink);
@@ -159,19 +159,19 @@ int AbstractSmartLock::release(class ExceptionSink *xsink)
    return rc;
 }
 
-int AbstractSmartLock::externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink, int timeout_ms)
+int AbstractSmartLock::externWaitImpl(int mtid, class QoreCondition *cond, ExceptionSink *xsink, int timeout_ms)
 {
    xsink->raiseException("WAIT-ERROR", "cannot wait on %s objects", getName());
    return -1;
 }
 
-int AbstractSmartLock::extern_wait(class QoreCondition *cond, class ExceptionSink *xsink, int timeout_ms)
+int AbstractSmartLock::extern_wait(class QoreCondition *cond, ExceptionSink *xsink, int timeout_ms)
 {
    AutoLocker al(&asl_lock);
    return externWaitImpl(gettid(), cond, xsink, timeout_ms);
 }
 
-int AbstractSmartLock::verify_wait_unlocked(int mtid, class ExceptionSink *xsink)
+int AbstractSmartLock::verify_wait_unlocked(int mtid, ExceptionSink *xsink)
 {
    if (tid == mtid)
       return 0;

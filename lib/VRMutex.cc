@@ -29,7 +29,7 @@ VRMutex::VRMutex() : count(0)
 {
 }
 
-int VRMutex::enter(class ExceptionSink *xsink)
+int VRMutex::enter(ExceptionSink *xsink)
 {
    int mtid = gettid();
    class VLock *nvl = getVLock();
@@ -58,7 +58,7 @@ void VRMutex::cleanupImpl()
    }
 }
 
-int VRMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms)
+int VRMutex::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int timeout_ms)
 {
    if (tid != mtid)
    {
@@ -112,7 +112,7 @@ int VRMutex::releaseImpl()
    return count ? -1 : 0;
 }
 
-int VRMutex::releaseImpl(class ExceptionSink *xsink)
+int VRMutex::releaseImpl(ExceptionSink *xsink)
 {
    int mtid = gettid();
    if (tid == Lock_Unlocked)

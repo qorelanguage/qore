@@ -41,7 +41,7 @@ static AbstractQoreNode *f_callObjectMethod(const QoreListNode *params, Exceptio
       return NULL;
    
    // get method name
-   QoreStringNode *p1 = test_string_param(params, 1);
+   const QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
       return NULL;
    
@@ -70,22 +70,22 @@ static AbstractQoreNode *f_callObjectMethodArgs(const QoreListNode *params, Exce
       return NULL;
    
    // get method name
-   QoreStringNode *p1 = test_string_param(params, 1);
+   const QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
       return NULL;
 
    ReferenceHolder<QoreListNode> args(xsink);
-   AbstractQoreNode *p2;
+   const AbstractQoreNode *p2;
 
    bool new_args = false;
    // if there are arguments to pass
    if ((p2 = get_param(params, 2)))
    {
-      args = dynamic_cast<QoreListNode *>(p2);
+      args = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(p2));
       if (!args)
       {
 	 args = new QoreListNode();
-	 args->push(p2);
+	 args->push(const_cast<AbstractQoreNode *>(p2));
 	 new_args = true;
       }
    }

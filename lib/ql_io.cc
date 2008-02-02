@@ -31,7 +31,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-static class AbstractQoreNode *f_print(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_print(const QoreListNode *params, ExceptionSink *xsink)
 {
    int i;
 
@@ -48,32 +48,32 @@ static class AbstractQoreNode *f_print(const QoreListNode *params, ExceptionSink
  * a hard limit that can't be broken: that is, the arguments output will be
  * truncated if they are larger than the width 
  */
-static class AbstractQoreNode *f_f_sprintf(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_f_sprintf(const QoreListNode *params, ExceptionSink *xsink)
 {
    return q_sprintf(params, 1, 0, xsink);
 }
 
-static class AbstractQoreNode *f_sprintf(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_sprintf(const QoreListNode *params, ExceptionSink *xsink)
 {
    return q_sprintf(params, 0, 0, xsink);
 }
 
-static class AbstractQoreNode *f_vsprintf(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_vsprintf(const QoreListNode *params, ExceptionSink *xsink)
 {
    return q_vsprintf(params, 0, 0, xsink);
 }
 
-static class AbstractQoreNode *f_f_printf(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_f_printf(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *node;
+   AbstractQoreNode *node;
 
    print_node(stdout, node = f_f_sprintf(params, xsink));
    return node;
 }
 
-static class AbstractQoreNode *f_printf(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_printf(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *node;
+   AbstractQoreNode *node;
 
    tracein("f_printf()");
    print_node(stdout, node = f_sprintf(params, xsink)); 
@@ -81,9 +81,9 @@ static class AbstractQoreNode *f_printf(const QoreListNode *params, ExceptionSin
    return node;
 }
 
-static class AbstractQoreNode *f_vprintf(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_vprintf(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *node;
+   AbstractQoreNode *node;
 
    tracein("f_vprintf()");
    print_node(stdout, node = f_vsprintf(params, xsink)); 
@@ -91,7 +91,7 @@ static class AbstractQoreNode *f_vprintf(const QoreListNode *params, ExceptionSi
    return node;
 }
 
-static class AbstractQoreNode *f_flush(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_flush(const QoreListNode *params, ExceptionSink *xsink)
 {
    fflush(stdout);
    return NULL;

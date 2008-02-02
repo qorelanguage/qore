@@ -25,30 +25,30 @@
 
 int CID_QUEUE;
 
-static void QUEUE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void QUEUE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QUEUE, new Queue());
 }
 
-static void QUEUE_destructor(class QoreObject *self, class Queue *tq, ExceptionSink *xsink)
+static void QUEUE_destructor(QoreObject *self, class Queue *tq, ExceptionSink *xsink)
 {
    tq->destructor(xsink);
    tq->deref(xsink);
 }
 
-static void QUEUE_copy(class QoreObject *self, class QoreObject *old, class Queue *tq, ExceptionSink *xsink)
+static void QUEUE_copy(QoreObject *self, QoreObject *old, class Queue *tq, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QUEUE, new Queue());
 }
 
-static class AbstractQoreNode *QUEUE_push(class QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QUEUE_push(QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
 {
    tq->push(get_param(params, 0));
    return NULL;
 }
 
 // can't use shift because it's a reserved word
-static class AbstractQoreNode *QUEUE_get(class QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QUEUE_get(QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv;
 
@@ -66,7 +66,7 @@ static class AbstractQoreNode *QUEUE_get(class QoreObject *self, class Queue *tq
    return rv;
 }
 
-static class AbstractQoreNode *QUEUE_pop(class QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QUEUE_pop(QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv;
 
@@ -84,12 +84,12 @@ static class AbstractQoreNode *QUEUE_pop(class QoreObject *self, class Queue *tq
    return rv;
 }
 
-static class AbstractQoreNode *QUEUE_size(class QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QUEUE_size(QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(tq->size());
 }
 
-static class AbstractQoreNode *QUEUE_getWaiting(class QoreObject *self, class Queue *q, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *QUEUE_getWaiting(QoreObject *self, class Queue *q, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(q->getWaiting());
 }

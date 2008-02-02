@@ -41,8 +41,8 @@ namespace { // make classes local
 
 class XmlRpcValue {
    private:
-      class AbstractQoreNode *val;
-      class AbstractQoreNode **vp;
+      AbstractQoreNode *val;
+      AbstractQoreNode **vp;
 
    public:
       inline XmlRpcValue()
@@ -57,20 +57,20 @@ class XmlRpcValue {
 	    val = NULL;
 	 }
       }
-      inline class AbstractQoreNode *getValue()
+      inline AbstractQoreNode *getValue()
       {
-	 class AbstractQoreNode *rv = val;
+	 AbstractQoreNode *rv = val;
 	 val = NULL;
 	 return rv;
       }
-      inline void set(class AbstractQoreNode *v)
+      inline void set(AbstractQoreNode *v)
       {
 	 if (vp)
 	    *vp = v;
 	 else
 	    val = v;
       }
-      inline void setPtr(class AbstractQoreNode **v)
+      inline void setPtr(AbstractQoreNode **v)
       {
 	 vp = v;
       }
@@ -93,7 +93,7 @@ class xml_node {
 class xml_stack {
    private:
       class xml_node *tail;
-      class AbstractQoreNode *val;
+      AbstractQoreNode *val;
       
    public:
       inline xml_stack();
@@ -127,17 +127,17 @@ class xml_stack {
 	 sn->next = tail;
 	 tail = sn;
       }
-      inline class AbstractQoreNode *getNode()
+      inline AbstractQoreNode *getNode()
       {
 	 return *tail->node;
       }
-      inline void setNode(class AbstractQoreNode *n)
+      inline void setNode(AbstractQoreNode *n)
       {
 	 (*tail->node) = n;
       }
-      inline class AbstractQoreNode *getVal()
+      inline AbstractQoreNode *getVal()
       {
-	 class AbstractQoreNode *rv = val;
+	 AbstractQoreNode *rv = val;
 	 val = NULL;
 	 return rv;
       }
@@ -168,9 +168,9 @@ inline xml_stack::xml_stack()
 
 } // anonymous namespace
 
-static void makeXMLString(QoreString *str, const QoreHash *h, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink);
+static void makeXMLString(QoreString *str, const QoreHash *h, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink);
 
-static void concatSimpleValue(QoreString *str, AbstractQoreNode *n, class ExceptionSink *xsink)
+static void concatSimpleValue(QoreString *str, const AbstractQoreNode *n, ExceptionSink *xsink)
 {
    //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->type == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
@@ -189,7 +189,7 @@ static void concatSimpleValue(QoreString *str, AbstractQoreNode *n, class Except
    }
 
    if (ntype == NT_FLOAT) {
-      str->sprintf("%.9g", reinterpret_cast<QoreFloatNode *>(n)->f);
+      str->sprintf("%.9g", reinterpret_cast<const QoreFloatNode *>(n)->f);
       return;
    }
 
@@ -208,7 +208,7 @@ static void concatSimpleValue(QoreString *str, AbstractQoreNode *n, class Except
    str->concatAndHTMLEncode(*temp, xsink);
 }
 
-static void concatSimpleCDataValue(QoreString *str, AbstractQoreNode *n, class ExceptionSink *xsink)
+static void concatSimpleCDataValue(QoreString *str, const AbstractQoreNode *n, ExceptionSink *xsink)
 {
    //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->type == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
@@ -231,7 +231,7 @@ static void concatSimpleCDataValue(QoreString *str, AbstractQoreNode *n, class E
    }
 
    if (ntype == NT_FLOAT) {
-      str->sprintf("%.9g", reinterpret_cast<QoreFloatNode *>(n)->f);
+      str->sprintf("%.9g", reinterpret_cast<const QoreFloatNode *>(n)->f);
       return;
    }
 
@@ -250,7 +250,7 @@ static void concatSimpleCDataValue(QoreString *str, AbstractQoreNode *n, class E
    str->concat(*temp, xsink);
 }
 
-static void addXMLElement(const char *key, QoreString *str, AbstractQoreNode *n, int indent, const char *node, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
+static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNode *n, int indent, const char *node, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    //tracein("addXMLElement()");
 
@@ -341,7 +341,7 @@ static void addXMLElement(const char *key, QoreString *str, AbstractQoreNode *n,
 	 {
 	    const char *key = hi.getKey();
 	    str->sprintf(" %s=\"", key);
-	    class AbstractQoreNode *v = hi.getValue();
+	    AbstractQoreNode *v = hi.getValue();
 	    if (v) {
 	       QoreStringNode *qsn = dynamic_cast<QoreStringNode *>(v);
 	       if (qsn) 
@@ -413,7 +413,7 @@ static void addXMLElement(const char *key, QoreString *str, AbstractQoreNode *n,
    //traceout("addXMLElement()");
 }
 
-static void makeXMLString(QoreString *str, const QoreHash *h, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink)
+static void makeXMLString(QoreString *str, const QoreHash *h, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    tracein("makeXMLString()");
    ConstHashIterator hi(h);
@@ -483,12 +483,12 @@ static void makeXMLString(QoreString *str, const QoreHash *h, int indent, const 
 
 // usage: makeXMLString(object (with only one top-level element) [, encoding])
 // usage: makeXMLString(string (top-level-element), object [, encoding])
-static class AbstractQoreNode *f_makeXMLString(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeXMLString(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreHashNode *pobj;
    int i;
    const QoreEncoding *ccs;
-   QoreStringNode *pstr;
+   const QoreStringNode *pstr;
 
    tracein("f_makeXMLString()");
    if ((pobj = test_hash_param(params, 0)) && (pobj->size() == 1))
@@ -506,7 +506,7 @@ static class AbstractQoreNode *f_makeXMLString(const QoreListNode *params, Excep
       }
       i = 2;
    }
-   QoreStringNode *pcs;
+   const QoreStringNode *pcs;
    if ((pcs = test_string_param(params, i)))
       ccs = QEM.findCreate(pcs);
    else
@@ -533,11 +533,11 @@ static class AbstractQoreNode *f_makeXMLString(const QoreListNode *params, Excep
 
 // usage: makeFormattedXMLString(object (with only one top-level element) [, encoding])
 // usage: makeFormattedXMLString(string (top-level-element), object [, encoding])
-static class AbstractQoreNode *f_makeFormattedXMLString(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeFormattedXMLString(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreHashNode *pobj;
    int i;
-   QoreStringNode *pstr;
+   const QoreStringNode *pstr;
 
    tracein("f_makeFormattedXMLString()");
    if ((pobj = test_hash_param(params, 0)) && (pobj->size() == 1))
@@ -556,7 +556,7 @@ static class AbstractQoreNode *f_makeFormattedXMLString(const QoreListNode *para
    }
 
    const QoreEncoding *ccs;
-   QoreStringNode *pcs;
+   const QoreStringNode *pcs;
    if ((pcs = test_string_param(params, i)))
       ccs = QEM.findCreate(pcs);
    else
@@ -580,7 +580,7 @@ static class AbstractQoreNode *f_makeFormattedXMLString(const QoreListNode *para
    return str;
 }
 
-static class AbstractQoreNode *f_makeXMLFragment(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeXMLFragment(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreHashNode *pobj;
 
@@ -590,7 +590,7 @@ static class AbstractQoreNode *f_makeXMLFragment(const QoreListNode *params, Exc
       return NULL;
 
    const QoreEncoding *ccs;
-   QoreStringNode *pcs;
+   const QoreStringNode *pcs;
    if ((pcs = test_string_param(params, 1)))
       ccs = QEM.findCreate(pcs);
    else
@@ -602,7 +602,7 @@ static class AbstractQoreNode *f_makeXMLFragment(const QoreListNode *params, Exc
    return str;
 }
 
-static class AbstractQoreNode *f_makeFormattedXMLFragment(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeFormattedXMLFragment(const QoreListNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeFormattedXMLFragment()");
 
@@ -613,7 +613,7 @@ static class AbstractQoreNode *f_makeFormattedXMLFragment(const QoreListNode *pa
       return NULL;
 
    const QoreEncoding *ccs;
-   QoreStringNode *pcs;
+   const QoreStringNode *pcs;
    if ((pcs = test_string_param(params, 1)))
       ccs = QEM.findCreate(pcs);
    else
@@ -625,9 +625,9 @@ static class AbstractQoreNode *f_makeFormattedXMLFragment(const QoreListNode *pa
    return str;
 }
 
-static void addXMLRPCValue(QoreString *str, AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink);
+static void addXMLRPCValue(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink);
 
-static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHash *h, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink)
+static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHash *h, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    str->concat("<struct>");
    if (format) str->concat('\n');
@@ -684,7 +684,7 @@ static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHash *h, 
    //if (format) str->concat('\n');
 }
 
-static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink)
+static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    assert(n);
    const QoreType *ntype = n->getType();
@@ -774,7 +774,7 @@ static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int
    }
 }
 
-static void addXMLRPCValue(QoreString *str, AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, class ExceptionSink *xsink)
+static void addXMLRPCValue(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    tracein("addXMLRPCValue()");
 
@@ -804,11 +804,11 @@ static void addXMLRPCValue(QoreString *str, AbstractQoreNode *n, int indent, con
    traceout("addXMLRPCValue()");
 }
 
-class QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreListNode *params, ExceptionSink *xsink)
+QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p;
+   const AbstractQoreNode *p;
 
-   QoreStringNode *p0;
+   const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
    {
       xsink->raiseException("MAKE-XML-RPC-CALL-STRING-PARAMETER-EXCEPTION", "expecting method name as first parameter");
@@ -853,16 +853,16 @@ class QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreLi
 }
 
 // makeXMLRPCCallString(string (function name), params, ...)
-static class AbstractQoreNode *f_makeXMLRPCCallString(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeXMLRPCCallString(const QoreListNode *params, ExceptionSink *xsink)
 {
    return makeXMLRPCCallString(QCS_DEFAULT, params, xsink);
 }
 
 // makeXMLRPCCallStringArgs(string (function name), list of params)
-class QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreListNode *params, ExceptionSink *xsink)
+QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p0;
-   AbstractQoreNode *p1;
+   const QoreStringNode *p0;
+   const AbstractQoreNode *p1;
 
    tracein("makeXMLRPCCallStringArgs()");
    if (!(p0 = test_string_param(params, 0)))
@@ -880,8 +880,8 @@ class QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const Qo
 
    str->concat("</methodName>"); 
 
-   QoreListNode *l;
-   if ((p1 = get_param(params, 1)) && (l = dynamic_cast<QoreListNode *>(p1)) && l->size())
+   const QoreListNode *l;
+   if ((p1 = get_param(params, 1)) && (l = dynamic_cast<const QoreListNode *>(p1)) && l->size())
    {
       str->concat("<params>"); 
 
@@ -889,7 +889,7 @@ class QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const Qo
       int ls = l->size();
       for (int i = 0; i < ls; i++)
       {
-	 AbstractQoreNode *p;
+	 const AbstractQoreNode *p;
 	 if ((p = l->retrieve_entry(i)))
 	 {
 	    str->concat("<param>");
@@ -921,12 +921,12 @@ class QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const Qo
 }
 
 // makeXMLRPCCallStringArgs(string (function name), list of params)
-static class AbstractQoreNode *f_makeXMLRPCCallStringArgs(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeXMLRPCCallStringArgs(const QoreListNode *params, ExceptionSink *xsink)
 {
    return makeXMLRPCCallStringArgs(QCS_DEFAULT, params, xsink);
 }
 
-static inline class QoreStringNode *getXmlString(xmlTextReader *reader, const QoreEncoding *id, class ExceptionSink *xsink)
+static inline QoreStringNode *getXmlString(xmlTextReader *reader, const QoreEncoding *id, ExceptionSink *xsink)
 {
    if (id == QCS_UTF8)
       return new QoreStringNode((const char *)xmlTextReaderConstValue(reader), QCS_UTF8);
@@ -976,11 +976,11 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
 	 int depth = xmlTextReaderDepth(reader);
 	 xstack->checkDepth(depth);
 
-	 class AbstractQoreNode *n = xstack->getNode();
+	 AbstractQoreNode *n = xstack->getNode();
 	 // if there is no node pointer, then make a hash
 	 if (!n)
 	 {
-	    class QoreHashNode *h = new QoreHashNode();
+	    QoreHashNode *h = new QoreHashNode();
 	    xstack->setNode(h);
 	    xstack->push(h->getKeyValuePtr(name), depth);
 	 }
@@ -1030,7 +1030,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
 		     while (true)
 		     {
 			ns.sprintf("%s^%d", name, c);
-			class AbstractQoreNode *et = h->getKeyValue(ns.getBuffer());
+			AbstractQoreNode *et = h->getKeyValue(ns.getBuffer());
 			if (!et)
 			   break;
 			c++;
@@ -1048,14 +1048,14 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
 	    while (xmlTextReaderMoveToNextAttribute(reader) == 1)
 	    {
 	       char *name = (char *)xmlTextReaderConstName(reader);
-	       class QoreStringNode *value = getXmlString(reader, data_ccsid, xsink);
+	       QoreStringNode *value = getXmlString(reader, data_ccsid, xsink);
 	       if (!value)
 		  return 0;
 	       h->setKeyValue(name, value, xsink);
 	    }
 
 	    // make new new a hash and assign "^attributes^" key
-	    class QoreHashNode *nv = new QoreHashNode();
+	    QoreHashNode *nv = new QoreHashNode();
 	    nv->setKeyValue("^attributes^", h.release(), xsink);
 	    xstack->setNode(nv);
 	 }
@@ -1069,11 +1069,11 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
 	 char *str = (char *)xmlTextReaderConstValue(reader);
 	 if (str)
 	 {
-	    class QoreStringNode *val = getXmlString(reader, data_ccsid, xsink);
+	    QoreStringNode *val = getXmlString(reader, data_ccsid, xsink);
 	    if (!val)
 	       return 0;
 
-	    class AbstractQoreNode *n = xstack->getNode();
+	    AbstractQoreNode *n = xstack->getNode();
 	    if (n)
 	    {
 	       QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
@@ -1113,11 +1113,11 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
 	 char *str = (char *)xmlTextReaderConstValue(reader);
 	 if (str)
 	 {
-	    class QoreStringNode *val = getXmlString(reader, data_ccsid, xsink);
+	    QoreStringNode *val = getXmlString(reader, data_ccsid, xsink);
 	    if (!val)
 	       return 0;
 
-	    class AbstractQoreNode *n = xstack->getNode();
+	    AbstractQoreNode *n = xstack->getNode();
 	    if (n && n->type == NT_HASH)
 	    {
 	       QoreHashNode *h = reinterpret_cast<QoreHashNode *>(n);
@@ -1152,7 +1152,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
 
 static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, const QoreEncoding *data_ccsid, bool read_next, ExceptionSink *xsink);
 
-static inline int qore_xmlRead(xmlTextReader *reader, class ExceptionSink *xsink)
+static inline int qore_xmlRead(xmlTextReader *reader, ExceptionSink *xsink)
 {
    int rc = xmlTextReaderRead(reader);
    if (rc != 1)
@@ -1163,7 +1163,7 @@ static inline int qore_xmlRead(xmlTextReader *reader, class ExceptionSink *xsink
    return 0;
 }
 
-static inline int qore_xmlRead(xmlTextReader *reader, char *info, class ExceptionSink *xsink)
+static inline int qore_xmlRead(xmlTextReader *reader, char *info, ExceptionSink *xsink)
 {
    int rc = xmlTextReaderRead(reader);
    if (rc != 1)
@@ -1193,7 +1193,7 @@ static inline int qore_xmlTextReaderNodeType(xmlTextReader *reader)
    return nt;
 }
 
-static inline int qore_xmlReadNode(xmlTextReader *reader, class ExceptionSink *xsink)
+static inline int qore_xmlReadNode(xmlTextReader *reader, ExceptionSink *xsink)
 {
    int nt = qore_xmlTextReaderNodeType(reader);
    if (nt == -1)
@@ -1201,7 +1201,7 @@ static inline int qore_xmlReadNode(xmlTextReader *reader, class ExceptionSink *x
    return nt;
 }
 
-static inline int qore_xmlCheckName(xmlTextReader *reader, char *member, class ExceptionSink *xsink)
+static inline int qore_xmlCheckName(xmlTextReader *reader, char *member, ExceptionSink *xsink)
 {
    char *name = (char *)xmlTextReaderConstName(reader);
    if (!name)
@@ -1222,7 +1222,7 @@ static void getXMLRPCStruct(xmlTextReader *reader, class XmlRpcValue *v, const Q
 {
    int nt;
 
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    v->set(h);
 
    int member_depth = xmlTextReaderDepth(reader);
@@ -1367,7 +1367,7 @@ static void getXMLRPCArray(xmlTextReader *reader, class XmlRpcValue *v, const Qo
    int nt;
    int index = 0;
 
-   class QoreListNode *l = new QoreListNode();
+   QoreListNode *l = new QoreListNode();
    v->set(l);
 
    int array_depth = xmlTextReaderDepth(reader);
@@ -1468,7 +1468,7 @@ static void getXMLRPCParams(xmlTextReader *reader, class XmlRpcValue *v, const Q
    int nt;
    int index = 0;
 
-   class QoreListNode *l = new QoreListNode();
+   QoreListNode *l = new QoreListNode();
    v->set(l);
 
    int array_depth = xmlTextReaderDepth(reader);
@@ -1586,7 +1586,7 @@ static void getXMLRPCString(xmlTextReader *reader, class XmlRpcValue *v, const Q
       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "extra information in string");
    }
 
-   class QoreStringNode *qstr = getXmlString(reader, data_ccsid, xsink);
+   QoreStringNode *qstr = getXmlString(reader, data_ccsid, xsink);
    if (!qstr)
       return;
 
@@ -1778,7 +1778,7 @@ static void getXMLRPCBase64(xmlTextReader *reader, class XmlRpcValue *v, Excepti
       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "extra information in base64 (%d)", nt);
 }
 
-static void doEmptyValue(class XmlRpcValue *v, char *name, int depth, class ExceptionSink *xsink)
+static void doEmptyValue(class XmlRpcValue *v, char *name, int depth, ExceptionSink *xsink)
 {
    if (!strcmp(name, "string"))
       v->set(null_string());
@@ -1868,7 +1868,7 @@ static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, cons
    }
    else if (nt == XML_READER_TYPE_TEXT)  // without type defaults to string
    {
-      class QoreStringNode *qstr = getXmlString(reader, data_ccsid, xsink);
+      QoreStringNode *qstr = getXmlString(reader, data_ccsid, xsink);
       if (qstr)
 	 v->set(qstr);
    }
@@ -1879,9 +1879,9 @@ static void getXMLRPCValueData(xmlTextReader *reader, class XmlRpcValue *v, cons
 
 // NOTE: the libxml2 library requires all input to be in UTF-8 encoding
 // syntax: parseXML(xml string [, output encoding])
-static class AbstractQoreNode *f_parseXML(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_parseXML(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p0, *p1;
+   const QoreStringNode *p0, *p1;
 
    if (!(p0 = test_string_param(params, 0)))
       return 0;
@@ -1924,12 +1924,12 @@ static class AbstractQoreNode *f_parseXML(const QoreListNode *params, ExceptionS
 }
 
 // makeXMLRPCFaultResponseString(param)
-static class AbstractQoreNode *f_makeXMLRPCFaultResponseString(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeXMLRPCFaultResponseString(const QoreListNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeXMLRPCFaultResponseString()");
 
-   AbstractQoreNode *p0;
-   QoreStringNode *p1;
+   const AbstractQoreNode *p0;
+   const QoreStringNode *p1;
    p0 = get_param(params, 0);
    if (!(p1 = test_string_param(params, 1)))
    {
@@ -1950,12 +1950,12 @@ static class AbstractQoreNode *f_makeXMLRPCFaultResponseString(const QoreListNod
 }
 
 // makeXMLRPCFormattedFaultResponseString(param)
-static class AbstractQoreNode *f_makeFormattedXMLRPCFaultResponseString(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeFormattedXMLRPCFaultResponseString(const QoreListNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeFormattedXMLRPCFaultResponseString()");
 
-   AbstractQoreNode *p0;
-   QoreStringNode *p1;
+   const AbstractQoreNode *p0;
+   const QoreStringNode *p1;
    p0 = get_param(params, 0);
    if (!(p1 = test_string_param(params, 1)))
    {
@@ -1977,11 +1977,11 @@ static class AbstractQoreNode *f_makeFormattedXMLRPCFaultResponseString(const Qo
 }
 
 // makeXMLRPCResponseString(params, ...)
-static class AbstractQoreNode *f_makeXMLRPCResponseString(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeXMLRPCResponseString(const QoreListNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeXMLRPCResponseString()");
 
-   AbstractQoreNode *p;
+   const AbstractQoreNode *p;
    const QoreEncoding *ccs = QCS_DEFAULT;
 
    if (!num_params(params))
@@ -2014,9 +2014,9 @@ static class AbstractQoreNode *f_makeXMLRPCResponseString(const QoreListNode *pa
 }
 
 // makeXMLRPCResponseString(params, ...)
-static class AbstractQoreNode *f_makeXMLRPCValueString(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeXMLRPCValueString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p;
+   const AbstractQoreNode *p;
    const QoreEncoding *ccs = QCS_DEFAULT;
 
    tracein("f_makeXMLRPCValueString()");
@@ -2034,10 +2034,10 @@ static class AbstractQoreNode *f_makeXMLRPCValueString(const QoreListNode *param
 }
 
 // makeFormattedXMLRPCCallStringArgs(string (function name), params, ...)
-static class AbstractQoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p0;
-   AbstractQoreNode *p1;
+   const QoreStringNode *p0;
+   const AbstractQoreNode *p1;
    const QoreEncoding *ccs = QCS_DEFAULT;
 
    tracein("f_makeFormattedXMLRPCCallStringArgs()");
@@ -2054,12 +2054,12 @@ static class AbstractQoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreLis
    str->concat("</methodName>\n  <params>\n");
 
    if ((p1 = get_param(params, 1))) {
-      QoreListNode *l = dynamic_cast<QoreListNode *>(p1);
+      const QoreListNode *l = dynamic_cast<const QoreListNode *>(p1);
       if (l) {
 	 // now process all params
 	 int ls = l->size();
 	 for (int i = 0; i < ls; i++) {
-	    AbstractQoreNode *p;
+	    const AbstractQoreNode *p;
 	    if ((p = l->retrieve_entry(i))) {
 	       str->concat("    <param>\n");
 	       addXMLRPCValue(*str, p, 6, ccs, 1, xsink);
@@ -2088,9 +2088,9 @@ static class AbstractQoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreLis
 }
 
 // make_formatted_xml_rpc_call_string(string (function name), params, ...)
-static class AbstractQoreNode *f_makeFormattedXMLRPCCallString(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeFormattedXMLRPCCallString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p0;
+   const QoreStringNode *p0;
    const QoreEncoding *ccs = QCS_DEFAULT;
 
    tracein("f_makeFormattedXMLRPCCallString()");
@@ -2110,7 +2110,7 @@ static class AbstractQoreNode *f_makeFormattedXMLRPCCallString(const QoreListNod
    // now loop through the params
    int ls = num_params(params);
    for (int i = 1; i < ls; i++) {
-      AbstractQoreNode *p;
+      const AbstractQoreNode *p;
       if ((p = get_param(params, i))) 
       {
 	 str->concat("    <param>\n");
@@ -2129,11 +2129,11 @@ static class AbstractQoreNode *f_makeFormattedXMLRPCCallString(const QoreListNod
 }
 
 // makeFormattedXMLRPCResponseString(params, ...)
-static class AbstractQoreNode *f_makeFormattedXMLRPCResponseString(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeFormattedXMLRPCResponseString(const QoreListNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeFormattedXMLRPCResponseString()");
 
-   AbstractQoreNode *p;
+   const AbstractQoreNode *p;
    const QoreEncoding *ccs = QCS_DEFAULT;
 
    int ls = num_params(params);
@@ -2167,11 +2167,11 @@ static class AbstractQoreNode *f_makeFormattedXMLRPCResponseString(const QoreLis
 }
 
 // makeFormattedXMLRPCValueString(params, ...)
-static class AbstractQoreNode *f_makeFormattedXMLRPCValueString(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_makeFormattedXMLRPCValueString(const QoreListNode *params, ExceptionSink *xsink)
 {
    tracein("f_makeFormattedXMLRPCValueString()");
 
-   AbstractQoreNode *p;
+   const AbstractQoreNode *p;
    const QoreEncoding *ccs = QCS_DEFAULT;
 
    if (!(p = get_param(params, 0)))
@@ -2189,9 +2189,9 @@ static class AbstractQoreNode *f_makeFormattedXMLRPCValueString(const QoreListNo
    return str.release();
 }
 
-static class AbstractQoreNode *f_parseXMLRPCValue(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_parseXMLRPCValue(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreStringNode *p0, *p1;
+   const QoreStringNode *p0, *p1;
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
@@ -2228,21 +2228,21 @@ static class AbstractQoreNode *f_parseXMLRPCValue(const QoreListNode *params, Ex
    return v.getValue();
 }
 
-static inline class AbstractQoreNode *qore_xml_exception(char *ex, char *info, class ExceptionSink *xsink)
+static inline AbstractQoreNode *qore_xml_exception(char *ex, char *info, ExceptionSink *xsink)
 {
    xsink->raiseException(ex, "error parsing XML string: %s", info);
    return NULL;
 }
 
-static inline class AbstractQoreNode *qore_xml_exception(char *ex, class ExceptionSink *xsink)
+static inline AbstractQoreNode *qore_xml_exception(char *ex, ExceptionSink *xsink)
 {
    xsink->raiseException(ex, "error parsing XML string");
    return NULL;
 }
 
-static class AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p0, *p1;
+   const QoreStringNode *p0, *p1;
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
@@ -2356,11 +2356,11 @@ static class AbstractQoreNode *f_parseXMLRPCCall(const QoreListNode *params, Exc
    return h.release();
 }
 
-class AbstractQoreNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccsid, ExceptionSink *xsink)
+AbstractQoreNode *parseXMLRPCResponse(const QoreString *msg, const QoreEncoding *ccsid, ExceptionSink *xsink)
 {
    printd(5, "parseXMLRPCCall(%s)\n", msg->getBuffer());
 
-   ConstTempEncodingHelper str(msg, QCS_UTF8, xsink);
+   TempEncodingHelper str(msg, QCS_UTF8, xsink);
    if (!str)
       return NULL;
 
@@ -2507,7 +2507,7 @@ class AbstractQoreNode *parseXMLRPCResponse(const QoreString *msg, const QoreEnc
    if ((nt = qore_xmlTextReaderNodeType(reader)) != XML_READER_TYPE_END_ELEMENT)
       return qore_xml_exception("PARSE-XML-RPC-CALL-ERROR", "expecting 'methodResponse' end element", xsink);
 
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    if (fault)
       h->setKeyValue("fault", v.getValue(), NULL);
    else
@@ -2515,9 +2515,9 @@ class AbstractQoreNode *parseXMLRPCResponse(const QoreString *msg, const QoreEnc
    return h;
 }
 
-static class AbstractQoreNode *f_parseXMLRPCResponse(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_parseXMLRPCResponse(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p0, *p1;
+   const QoreStringNode *p0, *p1;
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
 

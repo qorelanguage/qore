@@ -29,7 +29,7 @@
 
 int CID_JSONRPCCLIENT;
 
-static void JRC_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void JRC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    // get HTTPClient object
    ReferenceHolder<QoreHTTPClient> client((QoreHTTPClient *)getStackObject()->getReferencedPrivateData(CID_HTTPCLIENT, xsink), xsink);
@@ -60,7 +60,7 @@ static void JRC_copy(QoreObject *self, QoreObject *old, QoreHTTPClient* client, 
    xsink->raiseException("JSONRPCCLIENT-COPY-ERROR", "copying JsonRpcClient objects is not yet supported.");
 }
 
-static class AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
    if (xsink->isEvent())
@@ -85,7 +85,7 @@ static class AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *cl
    return parseJSONValue(str, xsink);
 }
 
-static class AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
    client->connect(xsink);
    if (xsink->isEvent())

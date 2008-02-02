@@ -165,9 +165,9 @@ void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class
    }
 }
 
-class QoreHashNode *QoreClassList::getInfo()
+QoreHashNode *QoreClassList::getInfo()
 {
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    for (hm_qc_t::iterator i = hm.begin(); i != hm.end(); i++)
       h->setKeyValue(i->first, i->second->getMethodList(), 0);
    return h;

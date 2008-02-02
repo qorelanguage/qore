@@ -77,13 +77,13 @@ int q_gethostbyname(const char *host, struct in_addr *sin_addr)
 #define QORE_NET_ADDR_BUF_LEN 80
 static QoreHashNode *he_to_hash(struct hostent &he)
 {
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    
    if (he.h_name && he.h_name[0])
       h->setKeyValue("name", new QoreStringNode(he.h_name), 0); // official host name
    if (he.h_aliases)
    {
-      class QoreListNode *l = new QoreListNode();
+      QoreListNode *l = new QoreListNode();
       char **a = he.h_aliases;
       while (*a)
 	 l->push(new QoreStringNode(*(a++)));
@@ -110,7 +110,7 @@ static QoreHashNode *he_to_hash(struct hostent &he)
    {
       char buf[QORE_NET_ADDR_BUF_LEN];
 
-      class QoreListNode *l = new QoreListNode();
+      QoreListNode *l = new QoreListNode();
       char **a = he.h_addr_list;
       while (*a)
       {
@@ -123,7 +123,7 @@ static QoreHashNode *he_to_hash(struct hostent &he)
    return h;
 }
 
-static class QoreStringNode *hename_string(struct hostent &he)
+static QoreStringNode *hename_string(struct hostent &he)
 {
    if (he.h_name && he.h_name[0])
       return new QoreStringNode(he.h_name);
@@ -131,7 +131,7 @@ static class QoreStringNode *hename_string(struct hostent &he)
    return new QoreStringNode();
 }
 
-static class QoreStringNode *headdr_string(struct hostent &he)
+static QoreStringNode *headdr_string(struct hostent &he)
 {
    if (he.h_addr_list && he.h_addr_list[0])
    {
@@ -143,7 +143,7 @@ static class QoreStringNode *headdr_string(struct hostent &he)
    return new QoreStringNode();
 }
 
-class QoreHashNode *q_gethostbyname_to_hash(const char *host)
+QoreHashNode *q_gethostbyname_to_hash(const char *host)
 {  
 #ifdef HAVE_GETHOSTBYNAME_R
    struct hostent he;
@@ -179,7 +179,7 @@ class QoreHashNode *q_gethostbyname_to_hash(const char *host)
 #endif
 }
 
-class QoreStringNode *q_gethostbyname_to_string(const char *host)
+QoreStringNode *q_gethostbyname_to_string(const char *host)
 {  
 #ifdef HAVE_GETHOSTBYNAME_R
    struct hostent he;
@@ -252,7 +252,7 @@ char *q_gethostbyaddr(const char *addr, int len, int type)
 
 // thread-safe gethostbyaddr
 // FIXME: check err?
-class QoreHashNode *q_gethostbyaddr_to_hash(class ExceptionSink *xsink, const char *addr, int type)
+QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, int type)
 {
    in_addr sin_addr;
    in6_addr sin6_addr;
@@ -312,7 +312,7 @@ class QoreHashNode *q_gethostbyaddr_to_hash(class ExceptionSink *xsink, const ch
 
 // thread-safe gethostbyaddr
 // FIXME: check err?
-class QoreStringNode *q_gethostbyaddr_to_string(class ExceptionSink *xsink, const char *addr, int type)
+QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr, int type)
 {
    in_addr sin_addr;
    in6_addr sin6_addr;

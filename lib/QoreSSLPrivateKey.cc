@@ -45,7 +45,7 @@ QoreSSLPrivateKey::~QoreSSLPrivateKey()
    delete priv;
 }
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, char *pp, class ExceptionSink *xsink) : priv(new qore_sslpk_private(0))
+QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, char *pp, ExceptionSink *xsink) : priv(new qore_sslpk_private(0))
 {
    priv->pk = 0;
    FILE *fp = fopen(fn, "r");
@@ -65,7 +65,7 @@ EVP_PKEY *QoreSSLPrivateKey::getData() const
    return priv->pk; 
 }
 
-class QoreStringNode *QoreSSLPrivateKey::getPEM(class ExceptionSink *xsink) const
+QoreStringNode *QoreSSLPrivateKey::getPEM(ExceptionSink *xsink) const
 {
    BIO *bp = BIO_new(BIO_s_mem());
    if (!PEM_write_bio_PrivateKey(bp, priv->pk, NULL, NULL, 0, NULL, NULL))
@@ -77,7 +77,7 @@ class QoreStringNode *QoreSSLPrivateKey::getPEM(class ExceptionSink *xsink) cons
    char *buf;
    long len = BIO_get_mem_data(bp, &buf);
    
-   class QoreStringNode *str = new QoreStringNode(buf, (int)len);
+   QoreStringNode *str = new QoreStringNode(buf, (int)len);
    BIO_free(bp);
    return str;
 }
@@ -156,9 +156,9 @@ int64 QoreSSLPrivateKey::getBitLength() const
    }
 }
 
-class QoreHashNode *QoreSSLPrivateKey::getInfo() const
+QoreHashNode *QoreSSLPrivateKey::getInfo() const
 {
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("type", new QoreStringNode(getType()), NULL);
    h->setKeyValue("version", new QoreBigIntNode(getVersion()), NULL);
    h->setKeyValue("bitLength", new QoreBigIntNode(getBitLength()), NULL);

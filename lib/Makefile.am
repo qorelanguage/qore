@@ -34,7 +34,7 @@ libqore_la_SOURCES = \
 	ConstantNode.cc \
 	ClassRefNode.cc \
 	ScopedObjectCallNode.cc \
-	QoreNode.cc \
+	AbstractQoreNode.cc \
 	QoreStringNode.cc \
 	DateTimeNode.cc \
 	QoreHashNode.cc \

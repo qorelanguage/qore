@@ -39,8 +39,10 @@ class QoreRegexNode : public ParseNoEvalNode, public QoreRegexBase
 
    public:
       DLLLOCAL QoreRegexNode();
-      DLLLOCAL QoreRegexNode(class QoreString *str);
-      DLLLOCAL QoreRegexNode(class QoreString *str, int options, class ExceptionSink *xsink);
+      // this version is used while parsing, takes ownership of str
+      DLLLOCAL QoreRegexNode(QoreString *str);
+      // used at run-time, does not change str
+      DLLLOCAL QoreRegexNode(const QoreString *str, int options, class ExceptionSink *xsink);
       DLLLOCAL virtual ~QoreRegexNode();
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -58,7 +60,7 @@ class QoreRegexNode : public ParseNoEvalNode, public QoreRegexBase
 
       DLLLOCAL void concat(char c);
       DLLLOCAL void parse();
-      DLLLOCAL void parseRT(class QoreString *pattern, class ExceptionSink *xsink);
+      DLLLOCAL void parseRT(const QoreString *pattern, class ExceptionSink *xsink);
       DLLLOCAL bool exec(const QoreString *target, class ExceptionSink *xsink) const;
       DLLLOCAL QoreListNode *extractSubstrings(const QoreString *target, class ExceptionSink *xsink) const;
       // caller owns QoreString returned

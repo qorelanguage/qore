@@ -25,7 +25,7 @@
 
 #include <string.h>
 
-ImportedFunctionNode::ImportedFunctionNode(class QoreProgram *p, class UserFunction *u)
+ImportedFunctionNode::ImportedFunctionNode(QoreProgram *p, class UserFunction *u)
 {
    pgm = p;
    func = u;
@@ -46,7 +46,7 @@ ImportedFunctionList::~ImportedFunctionList()
    }
 }
 
-void ImportedFunctionList::add(class QoreProgram *pgm, class UserFunction *func)
+void ImportedFunctionList::add(QoreProgram *pgm, class UserFunction *func)
 {
    tracein("ImportedFunctionList::add()");
    

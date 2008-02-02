@@ -24,13 +24,13 @@
 #include <qore/intern/SummarizeStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-int SummarizeStatement::execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink)
+int SummarizeStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
    tracein("ContextStatement::execSummary()");
    int rc = 0;
    int i;
    class Context *context;
-   class AbstractQoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
+   AbstractQoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
    int sort_type = sort_ascending ? CM_SORT_ASCENDING : (sort_descending ? CM_SORT_DESCENDING : -1);
 
    // instantiate local variables

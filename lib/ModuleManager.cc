@@ -152,9 +152,9 @@ bool ModuleInfo::isBuiltin() const
    return !dlptr;
 }
 
-class QoreHashNode *ModuleInfo::getHash() const
+QoreHashNode *ModuleInfo::getHash() const
 {
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("filename", new QoreStringNode(filename), NULL);
    h->setKeyValue("name", new QoreStringNode(name), NULL);
    h->setKeyValue("desc", new QoreStringNode(desc), NULL);
@@ -301,14 +301,14 @@ void ModuleManager::init(bool se)
    }
 }
 
-int ModuleManager::runTimeLoadModule(const char *name, class ExceptionSink *xsink)
+int ModuleManager::runTimeLoadModule(const char *name, ExceptionSink *xsink)
 {
-   class QoreProgram *pgm = getProgram();
+   QoreProgram *pgm = getProgram();
 
    // grab the parse lock
    SafeLocker sl(pgm->getParseLock());
 
-   class QoreStringNode *err = parseLoadModule(name, pgm);
+   QoreStringNode *err = parseLoadModule(name, pgm);
    sl.unlock();
    if (err)
    {
@@ -318,7 +318,7 @@ int ModuleManager::runTimeLoadModule(const char *name, class ExceptionSink *xsin
    return 0;
 }
 
-class QoreStringNode *ModuleManager::parseLoadModule(const char *name, class QoreProgram *pgm)
+QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pgm)
 {
    // if the feature already exists in this program, then return
    if (pgm && !pgm->checkFeature(name))
@@ -337,7 +337,7 @@ class QoreStringNode *ModuleManager::parseLoadModule(const char *name, class Qor
       return NULL;
    }
 
-   class QoreStringNode *errstr;
+   QoreStringNode *errstr;
 
    // see if this is actually a path
    if (name[0] == '/')
@@ -387,13 +387,13 @@ class QoreStringNode *ModuleManager::parseLoadModule(const char *name, class Qor
    return errstr;
 }
 
-class QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *feature, class ModuleInfo **mip)
+QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *feature, class ModuleInfo **mip)
 {
    class ModuleInfo *mi = NULL;
    if (mip)
       *mip = NULL;
 
-   class QoreStringNode *str = NULL;
+   QoreStringNode *str = NULL;
    void *ptr = dlopen(path, RTLD_LAZY|RTLD_GLOBAL);
    if (!ptr)
    {
@@ -575,9 +575,9 @@ void ModuleManager::cleanup()
    traceout("ModuleManager::cleanup()");
 }
 
-class QoreListNode *ModuleManager::getModuleList()
+QoreListNode *ModuleManager::getModuleList()
 {
-   class QoreListNode *l = NULL;
+   QoreListNode *l = NULL;
    AutoLocker al(&mutex);
    if (!map.empty())
    {

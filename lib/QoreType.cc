@@ -187,7 +187,7 @@ class QoreType *QoreTypeManager::find(int id)
 }
 
 // 0 = equal, 1 = not equal
-bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink)
+bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink)
 {
    if (is_nothing(l))
       if (is_nothing(r))
@@ -207,7 +207,7 @@ bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, class Exc
 // this function calls the operator function that will
 // convert values to do the conversion
 // 0 = equal, 1 = not equal
-bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink)
+bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink)
 {
    // logical equals always returns an integer result
    // FIXME: fix Operator.h and cc instead of using const_cast<>!

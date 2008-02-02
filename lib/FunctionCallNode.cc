@@ -67,7 +67,7 @@ FunctionCallNode::FunctionCallNode(char *name, QoreListNode *a) : ParseNode(NT_F
    args = a;
 }
 
-FunctionCallNode::FunctionCallNode(class QoreProgram *p, class UserFunction *u, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(QoreProgram *p, class UserFunction *u, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
 {
    ftype = FC_IMPORTED;
    f.ifunc = new ImportedFunctionCall(p, u);
@@ -125,7 +125,7 @@ void FunctionCallNode::parseMakeMethod()
 }
 
 // makes a "new" operator call from a function call
-class AbstractQoreNode *FunctionCallNode::parseMakeNewObject()
+AbstractQoreNode *FunctionCallNode::parseMakeNewObject()
 {
    ScopedObjectCallNode *rv = new ScopedObjectCallNode(new NamedScope(f.c_str), args);
    f.c_str = NULL;
@@ -170,14 +170,14 @@ const char *FunctionCallNode::getName() const
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int FunctionCallNode::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
+int FunctionCallNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
    str.sprintf("function call (0x%08p)", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *FunctionCallNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *FunctionCallNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    del = true;
    QoreString *rv = new QoreString();

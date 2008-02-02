@@ -355,7 +355,7 @@ lass '%s'", pcd->getFullName().c_str(), cn);
       // it appears that all MString data must be UTF-8, no matter how we use the MStringData constructor
       // furthermore, it appears that we have to trick the SDK into thinking that the data is ASCII, so
       // no conversions are attempted
-      ConstTempEncodingHelper t(str, QCS_UTF8, xsink);
+      TempEncodingHelper t(str, QCS_UTF8, xsink);
       if (!t)
 	 return 0;
       

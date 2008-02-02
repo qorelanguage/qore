@@ -38,8 +38,8 @@ int qore_target_bits       = TARGET_BITS;
 char qore_target_os[]      = TARGET_OS;
 char qore_target_arch[]    = TARGET_ARCH;
 
-DLLLOCAL class QoreListNode *ARGV = NULL;
-DLLLOCAL class QoreListNode *QORE_ARGV = NULL;
+DLLLOCAL QoreListNode *ARGV = NULL;
+DLLLOCAL QoreListNode *QORE_ARGV = NULL;
 
 #ifndef HAVE_LOCALTIME_R
 DLLLOCAL class LockedObject lck_localtime;
@@ -117,13 +117,13 @@ FeatureList::~FeatureList()
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
-static int process_opt(QoreString *cstr, char *param, class AbstractQoreNode *node, int type, int *taken, class ExceptionSink *xsink)
+static int process_opt(QoreString *cstr, char *param, AbstractQoreNode *node, int type, int *taken, ExceptionSink *xsink)
 {
    char *str = param;
    int opts = 0;
    int width = -1;
    int decimals = -1;
-   class AbstractQoreNode *arg = node;
+   AbstractQoreNode *arg = node;
    int length;
    char fmt[20], *f;
    QoreString tbuf(cstr->getEncoding());
@@ -283,10 +283,10 @@ static int process_opt(QoreString *cstr, char *param, class AbstractQoreNode *no
    return (int)(param - str);
 }
 
-class QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, class ExceptionSink *xsink)
+QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink)
 {
    int i, j, l;
-   QoreStringNode *p;
+   const QoreStringNode *p;
 
    if (!(p = test_string_param(params, offset)))
       return new QoreStringNode();
@@ -312,7 +312,7 @@ class QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offse
    return buf;
 }
 
-class QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, class ExceptionSink *xsink)
+QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink)
 {
    QoreStringNode *fmt;
    AbstractQoreNode *args;
@@ -362,7 +362,7 @@ class QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offs
 }
 
 // FIXME: SLOW! make a lookup table for characters to value
-static inline char getBase64Value(char c, class ExceptionSink *xsink)
+static inline char getBase64Value(char c, ExceptionSink *xsink)
 {
    for (int i = 0; i < 64; i++)
       if (table64[i] == c)
@@ -371,7 +371,7 @@ static inline char getBase64Value(char c, class ExceptionSink *xsink)
    return -1;
 }
 
-class BinaryNode *parseBase64(const char *buf, int len, class ExceptionSink *xsink)
+class BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
 {
    char *binbuf = (char *)malloc(sizeof(char) * (len + 3));
    int blen = 0;
@@ -434,7 +434,7 @@ class BinaryNode *parseBase64(const char *buf, int len, class ExceptionSink *xsi
    return new BinaryNode(binbuf, blen);
 }
 
-int get_nibble(char c, class ExceptionSink *xsink)
+int get_nibble(char c, ExceptionSink *xsink)
 {
    if (isdigit(c))
       return c - 48;
@@ -447,7 +447,7 @@ int get_nibble(char c, class ExceptionSink *xsink)
    return -1;
 }
 
-class BinaryNode *parseHex(const char *buf, int len, class ExceptionSink *xsink)
+class BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink)
 {
    if (!len)
       return new BinaryNode();
@@ -554,7 +554,7 @@ char *make_class_name(const char *str)
    return cn;
 }
 
-void print_node(FILE *fp, class AbstractQoreNode *node)
+void print_node(FILE *fp, const AbstractQoreNode *node)
 {
    printd(5, "print_node() node=%08p (%s)\n", node, node ? node->getTypeName() : "(null)");
    QoreStringValueHelper str(node);
@@ -669,10 +669,10 @@ char *q_dirname(const char *path)
    return x;
 }
 
-ResolvedFunctionReferenceNode *getFunctionReference(class QoreString *str, class ExceptionSink *xsink)
+ResolvedFunctionReferenceNode *getFunctionReference(const QoreString *str, ExceptionSink *xsink)
 {
-   class QoreProgram *pgm = getProgram();
-   class UserFunction *f = pgm->findUserFunction(str->getBuffer());
+   QoreProgram *pgm = getProgram();
+   UserFunction *f = pgm->findUserFunction(str->getBuffer());
    if (!f)
    {
       xsink->raiseException("NO-SUCH-FUNCTION", "callback function '%s()' does not exist", str->getBuffer());

@@ -25,7 +25,7 @@
 
 int CID_AUTOLOCK;
 
-static void AL_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void AL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p = test_object_param(params, 0);
    SmartMutex *m = p ? (SmartMutex *)p->getReferencedPrivateData(CID_MUTEX, xsink) : 0;
@@ -45,29 +45,29 @@ static void AL_constructor(class QoreObject *self, const QoreListNode *params, E
       self->setPrivate(CID_AUTOLOCK, qsl);
 }
 
-static void AL_destructor(class QoreObject *self, class QoreAutoLock *al, ExceptionSink *xsink)
+static void AL_destructor(QoreObject *self, class QoreAutoLock *al, ExceptionSink *xsink)
 {
    al->destructor(xsink);
    al->deref(xsink);
 }
 
-static void AL_copy(class QoreObject *self, class QoreObject *old, class QoreAutoLock *m, ExceptionSink *xsink)
+static void AL_copy(QoreObject *self, QoreObject *old, class QoreAutoLock *m, ExceptionSink *xsink)
 {
    xsink->raiseException("AUTOLOCK-COPY-ERROR", "objects of this class cannot be copied");
 }
 
-static class AbstractQoreNode *AL_lock(class QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *AL_lock(QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->lock(xsink);
    return NULL;
 }
 
-static class AbstractQoreNode *AL_trylock(class QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *AL_trylock(QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(m->trylock()); 
 }
 
-static class AbstractQoreNode *AL_unlock(class QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *AL_unlock(QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->unlock(xsink);
    return NULL;

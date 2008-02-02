@@ -25,10 +25,10 @@
 
 int CID_SEQUENCE;
 
-static void SEQUENCE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void SEQUENCE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    int start;
-   class AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    if (p0)
       start = p0->getAsInt();
    else
@@ -36,17 +36,17 @@ static void SEQUENCE_constructor(class QoreObject *self, const QoreListNode *par
    self->setPrivate(CID_SEQUENCE, new QoreSequence(start));
 }
 
-static void SEQUENCE_copy(class QoreObject *self, class QoreObject *old, class QoreSequence *s, class ExceptionSink *xsink)
+static void SEQUENCE_copy(QoreObject *self, QoreObject *old, class QoreSequence *s, ExceptionSink *xsink)
 {
    self->setPrivate(CID_SEQUENCE, new QoreSequence(s->getCurrent()));
 }
 
-static class AbstractQoreNode *SEQUENCE_next(class QoreObject *self, class QoreSequence *s, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SEQUENCE_next(QoreObject *self, class QoreSequence *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(s->next());
 }
 
-static class AbstractQoreNode *SEQUENCE_getCurrent(class QoreObject *self, class QoreSequence *s, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *SEQUENCE_getCurrent(QoreObject *self, class QoreSequence *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(s->getCurrent()); 
 }

@@ -31,7 +31,7 @@ static inline void strindent(QoreString *s, int indent)
       s->concat(' ');
 }
 
-static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, class ExceptionSink *xsink)
+static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, ExceptionSink *xsink)
 {
    if (!n)
    {
@@ -153,7 +153,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, class 
 }
 
 //static 
-class AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink)
+AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink)
 {
    TempQoreStringNode s(new QoreStringNode());
    dni(*s, get_param(params, 0), 0, xsink);
@@ -163,12 +163,12 @@ class AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSin
 }
 
 // returns a hash of all namespace information
-static class AbstractQoreNode *f_dbg_get_ns_info(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_dbg_get_ns_info(const QoreListNode *params, ExceptionSink *xsink)
 {
    return getRootNS()->getInfo();
 }
 
-static class AbstractQoreNode *f_dbg_global_vars(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_dbg_global_vars(const QoreListNode *params, ExceptionSink *xsink)
 {
    return getProgram()->getVarList();
 }

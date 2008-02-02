@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/CallStack.h>
 
-CallNode::CallNode(const char *f, int t, class QoreObject *o)
+CallNode::CallNode(const char *f, int t, QoreObject *o)
 {
    func = f;
    type = t;
@@ -38,7 +38,7 @@ CallNode::CallNode(const char *f, int t, class QoreObject *o)
 #endif
 }
 
-void CallNode::objectDeref(class ExceptionSink *xsink)
+void CallNode::objectDeref(ExceptionSink *xsink)
 {
    if (obj)
    {
@@ -49,11 +49,11 @@ void CallNode::objectDeref(class ExceptionSink *xsink)
 }
 
 extern char *file_names[];
-class QoreHashNode *CallNode::getInfo() const
+QoreHashNode *CallNode::getInfo() const
 {
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    // FIXME: add class name
-   class QoreStringNode *str = new QoreStringNode();
+   QoreStringNode *str = new QoreStringNode();
    if (obj)
    {
       str->concat(obj->getClass()->getName());
@@ -97,7 +97,7 @@ CallStack::~CallStack()
    }
 }
 
-void CallStack::push(const char *f, int t, class QoreObject *o)
+void CallStack::push(const char *f, int t, QoreObject *o)
 {
    tracein("CallStack::push()");
    CallNode *c = new CallNode(f, t, o);
@@ -109,7 +109,7 @@ void CallStack::push(const char *f, int t, class QoreObject *o)
    traceout("CallStack::push()");
 }
 
-void CallStack::pop(class ExceptionSink *xsink)
+void CallStack::pop(ExceptionSink *xsink)
 {
    tracein("CallStack::pop()");
    CallNode *c = tail;
@@ -121,9 +121,9 @@ void CallStack::pop(class ExceptionSink *xsink)
    traceout("CallStack::pop()");
 }
 
-class QoreListNode *CallStack::getCallStack() const
+QoreListNode *CallStack::getCallStack() const
 {
-   class QoreListNode *l = new QoreListNode();
+   QoreListNode *l = new QoreListNode();
    CallNode *c = tail;
    while (c)
    {
@@ -133,7 +133,7 @@ class QoreListNode *CallStack::getCallStack() const
    return l;
 }
 
-void CallStack::substituteObjectIfEqual(class QoreObject *o)
+void CallStack::substituteObjectIfEqual(QoreObject *o)
 {
    if (!tail->obj && tail->prev && tail->prev->obj == o)
    {
@@ -142,21 +142,21 @@ void CallStack::substituteObjectIfEqual(class QoreObject *o)
    }
 }
 
-class QoreObject *CallStack::getStackObject() const
+QoreObject *CallStack::getStackObject() const
 {
    if (!tail)
       return NULL;
    return tail->obj;
 }
 
-class QoreObject *CallStack::substituteObject(class QoreObject *o)
+QoreObject *CallStack::substituteObject(QoreObject *o)
 {
-   class QoreObject *ro = tail->obj;
+   QoreObject *ro = tail->obj;
    tail->obj = o;
    return ro;
 }
 
-bool CallStack::inMethod(const char *name, class QoreObject *o) const
+bool CallStack::inMethod(const char *name, QoreObject *o) const
 {
    if (!tail)
       return false;

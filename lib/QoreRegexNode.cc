@@ -33,7 +33,7 @@ QoreRegexNode::QoreRegexNode(class QoreString *s) : ParseNoEvalNode(NT_REGEX)
    parse();
 }
 
-QoreRegexNode::QoreRegexNode(class QoreString *s, int opts, class ExceptionSink *xsink) : ParseNoEvalNode(NT_REGEX)
+QoreRegexNode::QoreRegexNode(const QoreString *s, int opts, ExceptionSink *xsink) : ParseNoEvalNode(NT_REGEX)
 {
    init();
    str = NULL;
@@ -90,21 +90,15 @@ void QoreRegexNode::concat(char c)
    str->concat(c);
 }
 
-void QoreRegexNode::parseRT(class QoreString *pattern, class ExceptionSink *xsink)
+void QoreRegexNode::parseRT(const QoreString *pattern, ExceptionSink *xsink)
 {
    const char *err;
    int eo;
    
    // convert to UTF-8 if necessary
-   class QoreString *t;
-   if (pattern->getEncoding() != QCS_UTF8)
-   {
-      t = pattern->convertEncoding(QCS_UTF8, xsink);
-      if (xsink->isEvent())
-	 return;
-   }
-   else
-      t = pattern;
+   TempEncodingHelper t(pattern, QCS_UTF8, xsink);
+   if (*xsink)
+      return;
    
    p = pcre_compile(t->getBuffer(), options, &err, &eo, NULL);
    if (err)
@@ -112,13 +106,11 @@ void QoreRegexNode::parseRT(class QoreString *pattern, class ExceptionSink *xsin
       //printd(5, "QoreRegexNode::parse() error parsing '%s': %s", t->getBuffer(), (char *)err);
       xsink->raiseException("REGEX-COMPILATION-ERROR", (char *)err);
    }
-   if (t != pattern)
-      delete t;
 }
 
 void QoreRegexNode::parse()
 {
-   class ExceptionSink xsink;
+   ExceptionSink xsink;
    parseRT(str, &xsink);
    delete str;
    str = NULL;
@@ -127,9 +119,9 @@ void QoreRegexNode::parse()
 }
 
 #define OVECCOUNT 30
-bool QoreRegexNode::exec(const QoreString *target, class ExceptionSink *xsink) const
+bool QoreRegexNode::exec(const QoreString *target, ExceptionSink *xsink) const
 {
-   ConstTempEncodingHelper t(target, QCS_UTF8, xsink);
+   TempEncodingHelper t(target, QCS_UTF8, xsink);
    if (!t)
       return false;
    
@@ -143,9 +135,9 @@ bool QoreRegexNode::exec(const QoreString *target, class ExceptionSink *xsink) c
 }
 
 #define OVEC_LATELEM 20
-class QoreListNode *QoreRegexNode::extractSubstrings(const QoreString *target, class ExceptionSink *xsink) const
+QoreListNode *QoreRegexNode::extractSubstrings(const QoreString *target, ExceptionSink *xsink) const
 {
-   ConstTempEncodingHelper t(target, QCS_UTF8, xsink);
+   TempEncodingHelper t(target, QCS_UTF8, xsink);
    if (!t)
       return false;
    
@@ -161,7 +153,7 @@ class QoreListNode *QoreRegexNode::extractSubstrings(const QoreString *target, c
    if (rc < 1)
       return NULL;
    
-   class QoreListNode *l = new QoreListNode();
+   QoreListNode *l = new QoreListNode();
    
    if (rc > 1)
    {

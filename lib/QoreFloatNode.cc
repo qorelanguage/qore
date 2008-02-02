@@ -20,8 +20,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <qore/QoreFloatNode.h>
-
+#include <qore/Qore.h>
 
 QoreFloatNode::QoreFloatNode(double n_f) : SimpleQoreNode(NT_FLOAT), f(n_f)
 {
@@ -83,14 +82,14 @@ double QoreFloatNode::getAsFloat() const
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int QoreFloatNode::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
+int QoreFloatNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
    getStringRepresentation(str);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *QoreFloatNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *QoreFloatNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    return getStringRepresentation(del);
 }

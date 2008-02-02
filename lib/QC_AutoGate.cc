@@ -25,7 +25,7 @@
 
 int CID_AUTOGATE;
 
-static void AG_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void AG_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p = test_object_param(params, 0);
    QoreGate *g = p ? (QoreGate *)p->getReferencedPrivateData(CID_GATE, xsink) : NULL;
@@ -45,13 +45,13 @@ static void AG_constructor(class QoreObject *self, const QoreListNode *params, E
       self->setPrivate(CID_AUTOGATE, ag);
 }
 
-static void AG_destructor(class QoreObject *self, class QoreAutoGate *ag, ExceptionSink *xsink)
+static void AG_destructor(QoreObject *self, class QoreAutoGate *ag, ExceptionSink *xsink)
 {
    ag->destructor(xsink);
    ag->deref(xsink);
 }
 
-static void AG_copy(class QoreObject *self, class QoreObject *old, class QoreAutoGate *m, ExceptionSink *xsink)
+static void AG_copy(QoreObject *self, QoreObject *old, class QoreAutoGate *m, ExceptionSink *xsink)
 {
    xsink->raiseException("AUTOGATE-COPY-ERROR", "objects of this class cannot be copied");
 }

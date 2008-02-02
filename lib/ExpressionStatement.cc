@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ExpressionStatement.h>
 
-ExpressionStatement::ExpressionStatement(int start_line, int end_line, class AbstractQoreNode *v) : AbstractStatement(start_line, end_line)
+ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line)
 {
    exp = v;
 
@@ -46,7 +46,7 @@ ExpressionStatement::~ExpressionStatement()
       exp->deref(0);
 }
 
-int ExpressionStatement::execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink)
+int ExpressionStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
    discard(exp->eval(xsink), xsink);
    return 0;

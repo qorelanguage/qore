@@ -39,7 +39,7 @@ int SmartMutex::releaseImpl()
    return 0;
 }
 
-int SmartMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink, int timeout_ms)
+int SmartMutex::grabImpl(int mtid, class VLock *nvl, ExceptionSink *xsink, int timeout_ms)
 {
    if (tid == mtid)
    {
@@ -64,7 +64,7 @@ int SmartMutex::grabImpl(int mtid, class VLock *nvl, class ExceptionSink *xsink,
    return 0;
 }
 
-int SmartMutex::releaseImpl(class ExceptionSink *xsink)
+int SmartMutex::releaseImpl(ExceptionSink *xsink)
 {
    int mtid = gettid();
    if (tid < 0)
@@ -89,7 +89,7 @@ int SmartMutex::tryGrabImpl(int mtid, class VLock *nvl)
    return 0;
 }
 
-int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, class ExceptionSink *xsink, int timeout_ms)
+int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, ExceptionSink *xsink, int timeout_ms)
 {
    // make sure this TID owns the lock
    if (verify_wait_unlocked(mtid, xsink))
@@ -123,7 +123,7 @@ int SmartMutex::externWaitImpl(int mtid, class QoreCondition *cond, class Except
    return rc;
 }
 
-void SmartMutex::destructorImpl(class ExceptionSink *xsink)
+void SmartMutex::destructorImpl(ExceptionSink *xsink)
 {
    cond_map_t::iterator i = cmap.begin(), e = cmap.end();
    if (i != e)

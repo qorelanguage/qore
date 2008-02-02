@@ -30,12 +30,12 @@
 
 class Templist {
 public:
-   class AbstractQoreNode *node;
+   AbstractQoreNode *node;
    int pos;
 };
 
 struct node_row_list_s {
-   class AbstractQoreNode *node;
+   AbstractQoreNode *node;
    int *row_list;
    int num_rows;
    int allocated;
@@ -77,9 +77,9 @@ Context::~Context()
    traceout("Context::~Context()");
 }
 
-int Context::check_condition(class AbstractQoreNode *cond, class ExceptionSink *xsinkx)
+int Context::check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx)
 {
-   class AbstractQoreNode *val;
+   AbstractQoreNode *val;
    int rc;
    
    tracein("Context::check_condition()");
@@ -100,30 +100,30 @@ int Context::check_condition(class AbstractQoreNode *cond, class ExceptionSink *
    return rc;
 }
 
-void Context::deref(class ExceptionSink *xsink)
+void Context::deref(ExceptionSink *xsink)
 {
    if (!sub && value)
       value->deref(xsink);
    delete this;
 }
 
-class AbstractQoreNode *evalContextRef(char *key, class ExceptionSink *xsink)
+AbstractQoreNode *evalContextRef(char *key, ExceptionSink *xsink)
 {
    class Context *c = get_context_stack();
    return c->evalValue(key, xsink);
 }
 
-class AbstractQoreNode *evalContextRow(class ExceptionSink *xsink)
+AbstractQoreNode *evalContextRow(ExceptionSink *xsink)
 {
    return get_context_stack()->getRow(xsink);
 }
 
-class AbstractQoreNode *Context::evalValue(char *field, class ExceptionSink *xsink)
+AbstractQoreNode *Context::evalValue(char *field, ExceptionSink *xsink)
 {
    if (!value)
       return NULL;
 
-   class AbstractQoreNode *v = value->evalKeyExistence(field, xsink);
+   AbstractQoreNode *v = value->evalKeyExistence(field, xsink);
    if (v == (AbstractQoreNode *)-1)
    {
       xsink->raiseException("CONTEXT-EXCEPTION", "\"%s\" is not a valid key for this context", field);
@@ -141,7 +141,7 @@ class AbstractQoreNode *Context::evalValue(char *field, class ExceptionSink *xsi
    return rv;
 }
 
-class QoreHashNode *Context::getRow(class ExceptionSink *xsink)
+QoreHashNode *Context::getRow(ExceptionSink *xsink)
 {
    printd(5, "Context::getRow() value=%08p %s\n", value, value ? value->getTypeName() : "NULL");
    if (!value)
@@ -168,7 +168,7 @@ class QoreHashNode *Context::getRow(class ExceptionSink *xsink)
 }
 
 #define ROW_BLOCK 40
-static inline int in_list(class AbstractQoreNode *node, struct node_row_list_s *nlist, int max, int row, ExceptionSink *xsink)
+static inline int in_list(AbstractQoreNode *node, struct node_row_list_s *nlist, int max, int row, ExceptionSink *xsink)
 {
    int i;
 
@@ -212,7 +212,7 @@ static inline int compare_templist(class Templist t1, class Templist t2)
    return rc;
 }
 
-void Context::Sort(class AbstractQoreNode *snode, int sort_type)
+void Context::Sort(AbstractQoreNode *snode, int sort_type)
 {
    int sense = 1, i;
 
@@ -277,8 +277,8 @@ void Context::Sort(class AbstractQoreNode *snode, int sort_type)
  * (for now)
  */
 
-Context::Context(char *nme, ExceptionSink *xsink, class AbstractQoreNode *exp, class AbstractQoreNode *cond, 
-		 int sort_type, class AbstractQoreNode *sort, class AbstractQoreNode *summary,
+Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, AbstractQoreNode *cond, 
+		 int sort_type, AbstractQoreNode *sort, AbstractQoreNode *summary,
 		 int ignore_key)
 {
    int allocated = 0;
@@ -478,7 +478,7 @@ Context::Context(char *nme, ExceptionSink *xsink, class AbstractQoreNode *exp, c
       // find unique values in summary node
       for (pos = 0; pos < master_max_pos; pos++)
       {
-	 class AbstractQoreNode *node;
+	 AbstractQoreNode *node;
 
 	 printd(5, "Context::Context() summary value %d/%d\n",
 		pos, master_max_pos);

@@ -462,7 +462,7 @@ int get_qstring(const AbstractQoreNode *n, QString &str, class ExceptionSink *xs
 	 str = QString::fromAscii(pstr->getBuffer());
       }
       else {
-	 ConstTempEncodingHelper estr(pstr, QCS_UTF8, xsink);
+	 TempEncodingHelper estr(pstr, QCS_UTF8, xsink);
 	 if (*xsink)
 	    return -1;
 	 

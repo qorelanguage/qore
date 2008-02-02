@@ -26,9 +26,9 @@
 #define OBJ_BUF_LEN 80
 
 // static method
-class QoreHashNode *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n)
+QoreHashNode *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n)
 {
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    for (int i = 0; i < X509_NAME_entry_count(n); i++)
    {
       X509_NAME_ENTRY *e = X509_NAME_get_entry(n, i);
@@ -55,13 +55,13 @@ class DateTimeNode *QoreSSLBase::ASN1_TIME_to_DateTime(ASN1_STRING *t)
 }
 
 // static method
-class QoreStringNode *QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(ASN1_OBJECT *o)
+QoreStringNode *QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(ASN1_OBJECT *o)
 {
    BIO *bp = BIO_new(BIO_s_mem());
    i2a_ASN1_OBJECT(bp, o);
    char *buf;
    long len = BIO_get_mem_data(bp, &buf);
-   class QoreStringNode *str = new QoreStringNode(buf, (int)len);
+   QoreStringNode *str = new QoreStringNode(buf, (int)len);
    BIO_free(bp);
    return str;
 }

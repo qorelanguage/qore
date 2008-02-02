@@ -40,14 +40,14 @@ ScopedObjectCallNode::~ScopedObjectCallNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int ScopedObjectCallNode::getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const
+int ScopedObjectCallNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
    str.sprintf("new operator expression (class '%s')", oc ? oc->getName() : name ? name->ostr : "<null>", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *ScopedObjectCallNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *ScopedObjectCallNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    del = true;
    QoreString *rv = new QoreString();

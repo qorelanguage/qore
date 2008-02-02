@@ -45,7 +45,7 @@ QoreSSLCertificate::QoreSSLCertificate(X509 *c) : priv(new qore_sslcert_private(
 {
 }
 
-QoreSSLCertificate::QoreSSLCertificate(const char *fn, class ExceptionSink *xsink) : priv(new qore_sslcert_private(0))
+QoreSSLCertificate::QoreSSLCertificate(const char *fn, ExceptionSink *xsink) : priv(new qore_sslcert_private(0))
 {
    FILE *fp = fopen(fn, "r");
    if (!fp)
@@ -60,7 +60,7 @@ QoreSSLCertificate::QoreSSLCertificate(const char *fn, class ExceptionSink *xsin
       xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "error parsing certificate file '%s'", fn);
 }
 
-class AbstractQoreNode *QoreSSLCertificate::doPurposeValue(int id, int ca) const
+AbstractQoreNode *QoreSSLCertificate::doPurposeValue(int id, int ca) const
 {
    int rc = X509_check_purpose(priv->cert, id, ca);
    if (rc == 1)
@@ -77,7 +77,7 @@ X509 *QoreSSLCertificate::getData() const
    return priv->cert; 
 }
 
-class QoreStringNode *QoreSSLCertificate::getPEM(class ExceptionSink *xsink) const
+QoreStringNode *QoreSSLCertificate::getPEM(ExceptionSink *xsink) const
 {
    BIO *bp = BIO_new(BIO_s_mem());
    if (!PEM_write_bio_X509(bp, priv->cert))
@@ -89,17 +89,17 @@ class QoreStringNode *QoreSSLCertificate::getPEM(class ExceptionSink *xsink) con
    char *buf;
    long len = BIO_get_mem_data(bp, &buf);
    
-   class QoreStringNode *str = new QoreStringNode(buf, (int)len);
+   QoreStringNode *str = new QoreStringNode(buf, (int)len);
    BIO_free(bp);
    return str;
 }
 
-class QoreHashNode *QoreSSLCertificate::getSubjectHash() const
+QoreHashNode *QoreSSLCertificate::getSubjectHash() const
 {
    return X509_NAME_to_hash(X509_get_subject_name(priv->cert));
 }
 
-class QoreHashNode *QoreSSLCertificate::getIssuerHash() const
+QoreHashNode *QoreSSLCertificate::getIssuerHash() const
 {
    return X509_NAME_to_hash(X509_get_issuer_name(priv->cert));
 }
@@ -124,7 +124,7 @@ class DateTimeNode *QoreSSLCertificate::getNotAfterDate() const
    return ASN1_TIME_to_DateTime(X509_get_notAfter(priv->cert));
 }
 
-class QoreStringNode *QoreSSLCertificate::getSignatureType() const
+QoreStringNode *QoreSSLCertificate::getSignatureType() const
 {
    return ASN1_OBJECT_to_QoreStringNode(priv->cert->sig_alg->algorithm);
 }
@@ -139,7 +139,7 @@ class BinaryNode *QoreSSLCertificate::getSignature() const
    return new BinaryNode(buf, len);
 }
 
-class QoreStringNode *QoreSSLCertificate::getPublicKeyAlgorithm() const
+QoreStringNode *QoreSSLCertificate::getPublicKeyAlgorithm() const
 {
    return ASN1_OBJECT_to_QoreStringNode(priv->cert->cert_info->key->algor->algorithm);
 }
@@ -154,9 +154,9 @@ class BinaryNode *QoreSSLCertificate::getPublicKey() const
    return new BinaryNode(buf, len);
 }
 
-class QoreHashNode *QoreSSLCertificate::getPurposeHash() const
+QoreHashNode *QoreSSLCertificate::getPurposeHash() const
 {
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    QoreString tstr;
    for (int i = 0; i < X509_PURPOSE_get_count(); i++)
    {

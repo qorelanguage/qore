@@ -50,7 +50,7 @@ struct lvih_intern {
 	 // there will be no locking here, because it's our temporary local "variable"
 	 class AutoVLock vl;
 	 ExceptionSink xsink2;
-	 class AbstractQoreNode **vp = get_var_value_ptr(ref->lvexp, &vl, &xsink2);
+	 AbstractQoreNode **vp = get_var_value_ptr(ref->lvexp, &vl, &xsink2);
 
 	 // no exception should be possible here
 	 assert(!xsink2);
@@ -65,7 +65,7 @@ struct lvih_intern {
 	 return rv;
       }
       
-      DLLLOCAL class AbstractQoreNode *getArg()
+      DLLLOCAL AbstractQoreNode *getArg()
       {
 	 return ref->RefSelf();
       }

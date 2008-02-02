@@ -112,7 +112,7 @@ static void inline addError(class QoreHash *h, QoreStringNode *err)
 }
 
 // private, static method
-class AbstractQoreNode *QoreGetOpt::parseDate(const char *val)
+AbstractQoreNode *QoreGetOpt::parseDate(const char *val)
 {
    // check for ISO-8601 or qore date formats 
    // 2006-01-01              (10)
@@ -149,7 +149,7 @@ class AbstractQoreNode *QoreGetOpt::parseDate(const char *val)
 void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char *val)
 {
    // get current value
-   class AbstractQoreNode **cv = h->getKeyValuePtr(n->name);
+   AbstractQoreNode **cv = h->getKeyValuePtr(n->name);
 
    // get a value ready
    if (!n->argtype)
@@ -188,7 +188,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char
       return;
    }
 
-   class AbstractQoreNode *v;
+   AbstractQoreNode *v;
    if (n->argtype == NT_STRING)
       v = new QoreStringNode(val);
    else if (n->argtype == NT_INT)
@@ -240,12 +240,12 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char
    (*cv) = v;
 }
 
-char *QoreGetOpt::getNextArgument(class QoreListNode *l, class QoreHash *h, int &i, const char *lopt, char sopt)
+char *QoreGetOpt::getNextArgument(QoreListNode *l, class QoreHash *h, int &i, const char *lopt, char sopt)
 {
    if (i < (l->size() - 1))
    {
       i++;
-      class QoreStringNode *n = dynamic_cast<QoreStringNode *>(l->retrieve_entry(i));
+      QoreStringNode *n = dynamic_cast<QoreStringNode *>(l->retrieve_entry(i));
       if (n)
 	 return (char *)n->getBuffer();
    }
@@ -258,7 +258,7 @@ char *QoreGetOpt::getNextArgument(class QoreListNode *l, class QoreHash *h, int 
    return NULL;
 }
 
-void QoreGetOpt::processLongArg(const char *arg, class QoreListNode *l, class QoreHash *h, int &i, bool modify)
+void QoreGetOpt::processLongArg(const char *arg, QoreListNode *l, class QoreHash *h, int &i, bool modify)
 {
    const char *opt;
    char *val;
@@ -304,7 +304,7 @@ void QoreGetOpt::processLongArg(const char *arg, class QoreListNode *l, class Qo
       l->pop_entry(--i, NULL);
 }
 
-int QoreGetOpt::processShortArg(const char *arg, class QoreListNode *l, class QoreHash *h, int &i, int &j, bool modify)
+int QoreGetOpt::processShortArg(const char *arg, QoreListNode *l, class QoreHash *h, int &i, int &j, bool modify)
 {
    char opt = (arg + j)[0];
    // find option
@@ -343,13 +343,13 @@ int QoreGetOpt::processShortArg(const char *arg, class QoreListNode *l, class Qo
    return !j;
 }
 
-class QoreHashNode *QoreGetOpt::parse(class QoreListNode *l, bool modify, class ExceptionSink *xsink)
+QoreHashNode *QoreGetOpt::parse(QoreListNode *l, bool modify, ExceptionSink *xsink)
 {
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    for (int i = 0; i < l->size(); i++)
    {
       //printf("QoreGetOpt::parse() %d/%d\n", i, l->size());
-      class AbstractQoreNode *n = l->retrieve_entry(i);
+      AbstractQoreNode *n = l->retrieve_entry(i);
       if (!n)
 	 continue;
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);

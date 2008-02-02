@@ -26,25 +26,25 @@
 
 int CID_MUTEX;
 
-static void MUTEX_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void MUTEX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }
 
-static void MUTEX_destructor(class QoreObject *self, class SmartMutex *m, ExceptionSink *xsink)
+static void MUTEX_destructor(QoreObject *self, class SmartMutex *m, ExceptionSink *xsink)
 {
    m->destructor(xsink);
    m->deref(xsink);
 }
 
-static void MUTEX_copy(class QoreObject *self, class QoreObject *old, class SmartMutex *m, ExceptionSink *xsink)
+static void MUTEX_copy(QoreObject *self, QoreObject *old, class SmartMutex *m, ExceptionSink *xsink)
 {
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }
 
-static class AbstractQoreNode *MUTEX_lock(class QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *MUTEX_lock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    // we only return a return value if we have a timeout, otherwise we save allocating a QoreNode
    if (!is_nothing(p))
    {
@@ -58,12 +58,12 @@ static class AbstractQoreNode *MUTEX_lock(class QoreObject *self, class SmartMut
    return NULL;
 }
 
-static class AbstractQoreNode *MUTEX_trylock(class QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *MUTEX_trylock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreBigIntNode(m->tryGrab()); 
 }
 
-static class AbstractQoreNode *MUTEX_unlock(class QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *MUTEX_unlock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->release(xsink);
    return NULL;

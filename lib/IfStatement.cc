@@ -24,7 +24,7 @@
 #include <qore/intern/IfStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-IfStatement::IfStatement(int start_line, int end_line, class AbstractQoreNode *c, class StatementBlock *i, class StatementBlock *e) : AbstractStatement(start_line, end_line)
+IfStatement::IfStatement(int start_line, int end_line, AbstractQoreNode *c, class StatementBlock *i, class StatementBlock *e) : AbstractStatement(start_line, end_line)
 {
    cond = c;
    if_code = i;
@@ -44,7 +44,7 @@ IfStatement::~IfStatement()
 }
 
 // only executed by Statement::exec()
-int IfStatement::execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink)
+int IfStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
    int i, rc = 0;
    

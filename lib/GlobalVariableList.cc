@@ -36,7 +36,7 @@ GlobalVariableList::~GlobalVariableList()
    assert(vmap.empty());
 }
 
-void GlobalVariableList::import(class Var *var, class ExceptionSink *xsink, bool readonly)
+void GlobalVariableList::import(class Var *var, ExceptionSink *xsink, bool readonly)
 {
    map_var_t::iterator i = vmap.find(var->getName());
    if (i == vmap.end())
@@ -51,7 +51,7 @@ void GlobalVariableList::import(class Var *var, class ExceptionSink *xsink, bool
 }
 
 // sets all non-imported variables to NULL (dereferences contents if any)
-void GlobalVariableList::clear_all(class ExceptionSink *xsink)
+void GlobalVariableList::clear_all(ExceptionSink *xsink)
 {
    //printd(5, "GlobalVariableList::clear_all() this=%08p (size=%d)\n", this, vmap.size());
    map_var_t::reverse_iterator i = vmap.rbegin();
@@ -70,7 +70,7 @@ void GlobalVariableList::clear_all(class ExceptionSink *xsink)
    }
 }
 
-void GlobalVariableList::delete_all(class ExceptionSink *xsink)
+void GlobalVariableList::delete_all(ExceptionSink *xsink)
 {
    map_var_t::iterator i;
    while ((i = vmap.end()) != vmap.begin())
@@ -123,7 +123,7 @@ class Var *GlobalVariableList::checkVar(const char *name, int *new_var)
    return var;
 }
 
-class QoreListNode *GlobalVariableList::getVarList() const
+QoreListNode *GlobalVariableList::getVarList() const
 {
    QoreListNode *l = new QoreListNode();
    

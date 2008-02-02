@@ -781,7 +781,7 @@ void DateTime::getISOWeek(int &yr, int &week, int &wday) const
 // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
 // a NULL return value means an exception was raised
 // static method
-DateTime *DateTime::getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink)
+DateTime *DateTime::getDateFromISOWeek(int year, int week, int day, ExceptionSink *xsink)
 {
    std::auto_ptr<DateTime> rv(new DateTime());
    if (getDateFromISOWeekIntern(*rv, year, week, day, xsink))
@@ -792,7 +792,7 @@ DateTime *DateTime::getDateFromISOWeek(int year, int week, int day, class Except
 // static method
 // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
 // return value: -1 = an exception was raised, 0 = OK
-int DateTime::getDateFromISOWeekIntern(DateTime &result, int year, int week, int day, class ExceptionSink *xsink)
+int DateTime::getDateFromISOWeekIntern(DateTime &result, int year, int week, int day, ExceptionSink *xsink)
 {
    if (week <= 0)
    {

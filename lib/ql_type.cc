@@ -23,9 +23,9 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_type.h>
 
-static class AbstractQoreNode *f_boolean(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_boolean(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0;
+   const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
       return boolean_false();
@@ -36,37 +36,37 @@ static class AbstractQoreNode *f_boolean(const QoreListNode *params, ExceptionSi
       return boolean_false();
 }
 
-static class AbstractQoreNode *f_int(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_int(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(p0 ? p0->getAsBigInt() : 0);
 }
 
-static class AbstractQoreNode *f_float(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_float(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreFloatNode(p0 ? p0->getAsFloat() : 0.0);
 }
 
-static class AbstractQoreNode *f_string(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNodeValueHelper str(get_param(params, 0));
    return str.takeReferencedValue();
 }
 
-static class AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
       return new BinaryNode();
 
-   if (p0->type == NT_BINARY)
+   const QoreType *p0_type = p0->getType();
+   if (p0_type == NT_BINARY)
       return p0->RefSelf();
 
-   {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(p0);
-      if (str)
-	 return new BinaryNode(strdup(str->getBuffer()), str->strlen());
+   if (p0_type == NT_STRING) {
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
+      return new BinaryNode(strdup(str->getBuffer()), str->strlen());
    }
 
    // convert to string and make binary object
@@ -76,34 +76,34 @@ static class AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSin
    return new BinaryNode(str->giveBuffer(), len);
 }
 
-static class AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink)
 {
    DateTimeNodeValueHelper date(get_param(params, 0));
    return date.takeReferencedValue();
 }
 
-static class AbstractQoreNode *f_list(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_list(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class QoreListNode *l = new QoreListNode();
+   QoreListNode *l = new QoreListNode();
    if (num_params(params) > 1)
       l->push(params->eval(xsink));
    else
    {
-      class AbstractQoreNode *p0 = get_param(params, 0);
+      const AbstractQoreNode *p0 = get_param(params, 0);
       if (!is_nothing(p0))
 	 l->push(p0->eval(xsink));
    }
    return l;
 }
 
-static class AbstractQoreNode *f_hash(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_hash(const QoreListNode *params, ExceptionSink *xsink)
 {
    return new QoreHashNode();
 }
 
-static class AbstractQoreNode *f_type(const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *f_type(const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (!p)
       return new QoreStringNode(NT_NOTHING->getName());
    else

@@ -141,14 +141,14 @@ void RegexTransNode::concatTarget(char c)
       target->concat(c);
 }
 
-QoreStringNode *RegexTransNode::exec(const QoreString *str, class ExceptionSink *xsink) const
+QoreStringNode *RegexTransNode::exec(const QoreString *str, ExceptionSink *xsink) const
 {
    //printd(5, "source='%s' target='%s' ('%s')\n", source->getBuffer(), target->getBuffer(), str->getBuffer());
-   ConstTempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
+   TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
    if (*xsink)
       return 0;
 
-   class QoreStringNode *ns = new QoreStringNode();
+   QoreStringNode *ns = new QoreStringNode();
    for (int i = 0; i < tstr->strlen(); i++)
    {
       char c = tstr->getBuffer()[i];

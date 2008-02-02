@@ -32,7 +32,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/DatasourcePool.h>
 
-DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, class ExceptionSink *xsink)
+DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, ExceptionSink *xsink)
 {
    //assert(mn > 0);
    //assert(mx > min);   
@@ -91,7 +91,7 @@ DatasourcePool::~DatasourcePool()
    delete [] pool;
 }
 
-void DatasourcePool::destructor(class ExceptionSink *xsink)
+void DatasourcePool::destructor(ExceptionSink *xsink)
 {
    AutoLocker al((LockedObject *)this);
 
@@ -151,7 +151,7 @@ void DatasourcePool::freeDS()
       signal();
 }      
 
-class Datasource *DatasourcePool::getDS(bool &new_ds, class ExceptionSink *xsink)
+class Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink)
 {
    int tid = gettid();
    
@@ -220,10 +220,10 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, class ExceptionSink *xsink
    return ds;
 }
 
-class AbstractQoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+AbstractQoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
 {
    bool new_ds = false;
-   class AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = NULL;
    class Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
@@ -243,10 +243,10 @@ class AbstractQoreNode *DatasourcePool::select(const QoreString *sql, const Qore
 }
 
 // FIXME: should be a native DBI driver method
-class AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
 {
    bool new_ds = false;
-   class AbstractQoreNode *rv;
+   AbstractQoreNode *rv;
    class Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
@@ -275,10 +275,10 @@ class AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const Q
    return rv;
 }
 
-class AbstractQoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+AbstractQoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
 {
    bool new_ds = false;
-   class AbstractQoreNode *rv;
+   AbstractQoreNode *rv;
    class Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
@@ -296,7 +296,7 @@ class AbstractQoreNode *DatasourcePool::selectRows(const QoreString *sql, const 
    return rv;
 }
 
-int DatasourcePool::beginTransaction(class ExceptionSink *xsink)
+int DatasourcePool::beginTransaction(ExceptionSink *xsink)
 {
    bool new_ds = false;
    class Datasource *ds = getDS(new_ds, xsink);
@@ -314,7 +314,7 @@ int DatasourcePool::beginTransaction(class ExceptionSink *xsink)
    return rc;
 }
 
-class AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink)
+AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
 {
    bool new_ds = false;
    class Datasource *ds = getDS(new_ds, xsink);
@@ -326,7 +326,7 @@ class AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreLi
    addSQL("exec", sql);
 #endif
 
-   class AbstractQoreNode *rv = ds->exec(sql, args, xsink);
+   AbstractQoreNode *rv = ds->exec(sql, args, xsink);
    //printd(5, "DatasourcePool::exec() ds=%08p, trans=%d, xsink=%d, new_ds=%d\n", ds, ds->isInTransaction(), xsink->isException(), new_ds);
 
    if (xsink->isException() && new_ds)
@@ -337,7 +337,7 @@ class AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreLi
    return rv;
 }
 
-int DatasourcePool::commit(class ExceptionSink *xsink)
+int DatasourcePool::commit(ExceptionSink *xsink)
 {
    bool new_ds = false;
    class Datasource *ds = getDS(new_ds, xsink);
@@ -355,7 +355,7 @@ int DatasourcePool::commit(class ExceptionSink *xsink)
    return rc;
 }
 
-int DatasourcePool::rollback(class ExceptionSink *xsink)
+int DatasourcePool::rollback(ExceptionSink *xsink)
 {
    bool new_ds = false;
    class Datasource *ds = getDS(new_ds, xsink);
@@ -373,9 +373,9 @@ int DatasourcePool::rollback(class ExceptionSink *xsink)
    return rc;
 }
 
-class QoreStringNode *DatasourcePool::toString()
+QoreStringNode *DatasourcePool::toString()
 {
-   class QoreStringNode *str = new QoreStringNode();
+   QoreStringNode *str = new QoreStringNode();
 
    SafeLocker sl((LockedObject *)this);
    str->sprintf("this=%08p, min=%d, max=%d, cmax=%d, wait_count=%d, thread_map = (", this, min, max, cmax, wait_count);
@@ -412,27 +412,27 @@ int DatasourcePool::getMax() const
    return max; 
 }
 
-class AbstractQoreNode *DatasourcePool::getPendingUsername() const
+AbstractQoreNode *DatasourcePool::getPendingUsername() const
 {
    return pool[0]->getPendingUsername();
 }
 
-class AbstractQoreNode *DatasourcePool::getPendingPassword() const
+AbstractQoreNode *DatasourcePool::getPendingPassword() const
 {
    return pool[0]->getPendingPassword();
 }
 
-class AbstractQoreNode *DatasourcePool::getPendingDBName() const
+AbstractQoreNode *DatasourcePool::getPendingDBName() const
 {
    return pool[0]->getPendingDBName();
 }
 
-class AbstractQoreNode *DatasourcePool::getPendingDBEncoding() const
+AbstractQoreNode *DatasourcePool::getPendingDBEncoding() const
 {
    return pool[0]->getPendingDBEncoding();
 }
 
-class AbstractQoreNode *DatasourcePool::getPendingHostName() const
+AbstractQoreNode *DatasourcePool::getPendingHostName() const
 {
    return pool[0]->getPendingHostName();
 }
@@ -442,7 +442,7 @@ const QoreEncoding *DatasourcePool::getQoreEncoding() const
    return pool[0]->getQoreEncoding();
 }
 
-void DatasourcePool::cleanup(class ExceptionSink *xsink)
+void DatasourcePool::cleanup(ExceptionSink *xsink)
 {
 #ifndef DEBUG
    xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool", gettid());

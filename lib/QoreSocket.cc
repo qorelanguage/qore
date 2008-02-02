@@ -39,7 +39,7 @@
 #define DEFAULT_SOCKET_BUFSIZE 4096
 #endif
 
-int SSLSocketHelper::setIntern(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink)
+int SSLSocketHelper::setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink)
 {
    ctx  = SSL_CTX_new(meth);
    if (!ctx)
@@ -89,7 +89,7 @@ SSLSocketHelper::~SSLSocketHelper()
       SSL_CTX_free(ctx);
 }
 
-void SSLSocketHelper::sslError(class ExceptionSink *xsink)
+void SSLSocketHelper::sslError(ExceptionSink *xsink)
 {
    long e;
    char buf[121];
@@ -100,20 +100,20 @@ void SSLSocketHelper::sslError(class ExceptionSink *xsink)
    }
 }
 
-int SSLSocketHelper::setClient(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink)
+int SSLSocketHelper::setClient(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink)
 {
    meth = SSLv23_client_method();
    return setIntern(sd, cert, pk, xsink);
 }
 
-int SSLSocketHelper::setServer(int sd, X509* cert, EVP_PKEY *pk, class ExceptionSink *xsink)
+int SSLSocketHelper::setServer(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink)
 {
    meth = SSLv23_server_method();
    return setIntern(sd, cert, pk, xsink);
 }
 
 // returns 0 for success
-int SSLSocketHelper::connect(class ExceptionSink *xsink)
+int SSLSocketHelper::connect(ExceptionSink *xsink)
 {
    if (SSL_connect(ssl) <= 0)
    {
@@ -124,7 +124,7 @@ int SSLSocketHelper::connect(class ExceptionSink *xsink)
 }
 
 // returns 0 for success
-int SSLSocketHelper::accept(class ExceptionSink *xsink)
+int SSLSocketHelper::accept(ExceptionSink *xsink)
 {
    if (SSL_accept(ssl) <= 0)
    {
@@ -143,7 +143,7 @@ int SSLSocketHelper::shutdown()
 }
 
 // returns 0 for success
-int SSLSocketHelper::shutdown(class ExceptionSink *xsink)
+int SSLSocketHelper::shutdown(ExceptionSink *xsink)
 {
    if (SSL_shutdown(ssl) < 0)
    {
@@ -160,7 +160,7 @@ int SSLSocketHelper::read(char *buf, int size)
 }
 
 // returns 0 for success
-int SSLSocketHelper::write(const void *buf, int size, class ExceptionSink *xsink)
+int SSLSocketHelper::write(const void *buf, int size, ExceptionSink *xsink)
 {
    int rc;
    if ((rc = SSL_write(ssl, buf, size)) <= 0)
@@ -204,8 +204,8 @@ long SSLSocketHelper::verifyPeerCertificate() const
 }
 
 struct qore_socketsource_private {
-      class QoreStringNode *address;
-      class QoreStringNode *hostname;
+      QoreStringNode *address;
+      QoreStringNode *hostname;
 
       DLLLOCAL qore_socketsource_private()
       {
@@ -227,7 +227,7 @@ SocketSource::~SocketSource()
    delete priv;
 }
 
-void SocketSource::setAddress(class QoreStringNode *addr)
+void SocketSource::setAddress(QoreStringNode *addr)
 {
    assert(!priv->address);
    priv->address = addr;
@@ -245,22 +245,22 @@ void SocketSource::setHostName(const char *host)
    priv->hostname = new QoreStringNode(host);
 }
 
-void SocketSource::setHostName(class QoreStringNode *host)
+void SocketSource::setHostName(QoreStringNode *host)
 {
    assert(!priv->hostname);
    priv->hostname = host;
 }
 
-class QoreStringNode *SocketSource::takeAddress()
+QoreStringNode *SocketSource::takeAddress()
 {
-   class QoreStringNode *addr = priv->address;
+   QoreStringNode *addr = priv->address;
    priv->address = NULL;
    return addr;
 }
 
-class QoreStringNode *SocketSource::takeHostName()
+QoreStringNode *SocketSource::takeHostName()
 {
-   class QoreStringNode *host = priv->hostname;
+   QoreStringNode *host = priv->hostname;
    priv->hostname = NULL;
    return host;
 }
@@ -275,7 +275,7 @@ const char *SocketSource::getHostName() const
    return priv->hostname ? priv->hostname->getBuffer() : 0;
 }
 
-void SocketSource::setAll(class QoreObject *o, class ExceptionSink *xsink)
+void SocketSource::setAll(QoreObject *o, ExceptionSink *xsink)
 {
    if (priv->address)
    {
@@ -384,7 +384,7 @@ int QoreSocket::shutdown()
    return rc;
 }
 
-int QoreSocket::shutdownSSL(class ExceptionSink *xsink)
+int QoreSocket::shutdownSSL(ExceptionSink *xsink)
 {
    if (!priv->sock)
       return 0;
@@ -439,7 +439,7 @@ long QoreSocket::verifyPeerCertificate() const
    return priv->ssl->verifyPeerCertificate();
 }
 
-int QoreSocket::upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+int QoreSocket::upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink)
 {
    priv->ssl = new SSLSocketHelper();
    int rc;
@@ -452,7 +452,7 @@ int QoreSocket::upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, class Excep
    return 0;
 }
 
-int QoreSocket::upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+int QoreSocket::upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink)
 {
    priv->ssl = new SSLSocketHelper();
    if (priv->ssl->setServer(priv->sock, cert, pkey, xsink) || priv->ssl->accept(xsink))
@@ -486,7 +486,7 @@ int QoreSocket::acceptInternal(class SocketSource *source)
       
       if (rc > 0 && source)
       {
-	 class QoreStringNode *addr = new QoreStringNode(priv->charsetid);
+	 QoreStringNode *addr = new QoreStringNode(priv->charsetid);
 	 addr->sprintf("UNIX socket: %s", priv->socketname.c_str());
 	 source->setAddress(addr);
 	 source->setHostName("localhost");
@@ -510,7 +510,7 @@ int QoreSocket::acceptInternal(class SocketSource *source)
 	 if ((host = q_gethostbyaddr((const char *)&addr_in.sin_addr.s_addr, sizeof(addr_in.sin_addr.s_addr), AF_INET)))
 	 {
 	    int len = strlen(host);
-	    class QoreStringNode *hostname = new QoreStringNode(host, len, len + 1, priv->charsetid);
+	    QoreStringNode *hostname = new QoreStringNode(host, len, len + 1, priv->charsetid);
 	    source->setHostName(hostname);
 	 }
 
@@ -526,7 +526,7 @@ int QoreSocket::acceptInternal(class SocketSource *source)
 }
 
 // hardcoded to SOCK_STREAM (tcp only)
-int QoreSocket::connectINET(const char *host, int prt, class ExceptionSink *xsink)
+int QoreSocket::connectINET(const char *host, int prt, ExceptionSink *xsink)
 {
    tracein("QoreSocket::connectINET()");
 
@@ -573,7 +573,7 @@ int QoreSocket::connectINET(const char *host, int prt, class ExceptionSink *xsin
    return 0;
 }
 
-int QoreSocket::connectUNIX(const char *p, class ExceptionSink *xsink)
+int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink)
 {
    tracein("connectUNIX()");
 
@@ -1163,7 +1163,7 @@ class BinaryNode *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
    return b.release();
 }
 
-class QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc)
+QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc)
 {
    if (!priv->sock)
    {
@@ -1211,7 +1211,7 @@ class QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc)
    return str;
 }
 
-class QoreStringNode *QoreSocket::recv(int timeout, int *rc)
+QoreStringNode *QoreSocket::recv(int timeout, int *rc)
 {
    if (!priv->sock)
    {
@@ -1283,7 +1283,7 @@ static void do_headers(QoreString &hdr, const QoreHash *headers, int size)
 
       while (hi.next())
       {
-	 class AbstractQoreNode *v = hi.getValue();
+	 AbstractQoreNode *v = hi.getValue();
 	 if (v)
 	 {
 	    const QoreType *vtype = v->getType();
@@ -1354,7 +1354,7 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
 //   1 = '\r\n' received
 //   2 = '\r\n\r' received
 //   3 = '\n' received
-class QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state)
+QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state)
 {
    // read in HHTP header until \r\n\r\n or \n\n from socket
    TempQoreStringNode hdr(new QoreStringNode(priv->charsetid));
@@ -1448,7 +1448,7 @@ void QoreSocket::convertHeaderToHash(class QoreHash *h, char *p)
 //   -1 for socket error
 //   -2 for socket not open
 //   -3 for timeout
-class AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
+AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 {
    if (!priv->sock)
    {
@@ -1529,7 +1529,7 @@ class AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    return h;
 }
 
-void QoreSocket::doException(int rc, const char *meth, class ExceptionSink *xsink)
+void QoreSocket::doException(int rc, const char *meth, ExceptionSink *xsink)
 {
    if (!rc)
       xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
@@ -1541,7 +1541,7 @@ void QoreSocket::doException(int rc, const char *meth, class ExceptionSink *xsin
 }
 
 // receive a binary message in HTTP chunked format
-class QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink)
+QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *xsink)
 {
    SimpleRefHolder<BinaryNode> b(new BinaryNode());
    class QoreString str; // for reading the size of each chunk
@@ -1644,7 +1644,7 @@ class QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Exc
       doException(rc, "readHTTPChunkedBodyBinary", xsink);
       return NULL;
    }
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("body", b.release(), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
@@ -1655,7 +1655,7 @@ class QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, class Exc
 }
 
 // receive a message in HTTP chunked format
-class QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, class ExceptionSink *xsink)
+QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
 {
    TempQoreStringNode buf(new QoreStringNode(priv->charsetid));
    class QoreString str; // for reading the size of each chunk
@@ -1757,7 +1757,7 @@ class QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, class Exception
       doException(rc, "readHTTPChunkedBody", xsink);
       return NULL;
    }
-   class QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("body", buf.release(), xsink);
    
    if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
@@ -1815,7 +1815,7 @@ int QoreSocket::recv(char *buf, int bs, int flags, int timeout)
 // * QoreSocket::connect("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * QoreSocket::connect("filename");
-int QoreSocket::connect(const char *name, class ExceptionSink *xsink)
+int QoreSocket::connect(const char *name, ExceptionSink *xsink)
 {
    const char *p;
    if ((p = strchr(name, ':')))
@@ -1838,7 +1838,7 @@ int QoreSocket::connect(const char *name, class ExceptionSink *xsink)
 // * QoreSocket::connectSSL("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * QoreSocket::connectSSL("filename");
-int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink)
 {
    const char *p;
    if ((p = strchr(name, ':')))
@@ -1855,7 +1855,7 @@ int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, class E
    return connectUNIXSSL(name, cert, pkey, xsink);
 }
 
-int QoreSocket::connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+int QoreSocket::connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink)
 {
    int rc = connectINET(host, prt, xsink);
    if (rc)
@@ -1863,7 +1863,7 @@ int QoreSocket::connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *
    return upgradeClientToSSLIntern(cert, pkey, xsink);
 }
 
-int QoreSocket::connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+int QoreSocket::connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink)
 {
    int rc = connectUNIX(p, xsink);
    if (rc)
@@ -1871,7 +1871,7 @@ int QoreSocket::connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, class 
    return upgradeClientToSSLIntern(cert, pkey, xsink);
 }
 
-int QoreSocket::upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+int QoreSocket::upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink)
 {
    if (!priv->sock)
       return -1;
@@ -1880,7 +1880,7 @@ int QoreSocket::upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSi
    return upgradeClientToSSLIntern(cert, pkey, xsink);
 }
 
-int QoreSocket::upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+int QoreSocket::upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink)
 {
    if (!priv->sock)
       return -1;
@@ -2032,7 +2032,7 @@ int QoreSocket::getPort()
 
 // QoreSocket::accept()
 // returns a new socket
-QoreSocket *QoreSocket::accept(class SocketSource *source, class ExceptionSink *xsink)
+QoreSocket *QoreSocket::accept(class SocketSource *source, ExceptionSink *xsink)
 {
    if (!priv->sock)
    {
@@ -2051,7 +2051,7 @@ QoreSocket *QoreSocket::accept(class SocketSource *source, class ExceptionSink *
 
 // QoreSocket::acceptSSL()
 // accepts a new connection, negotiates an SSL connection, and returns the new socket
-QoreSocket *QoreSocket::acceptSSL(class SocketSource *source, X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink)
+QoreSocket *QoreSocket::acceptSSL(class SocketSource *source, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink)
 {
    class QoreSocket *s = accept(source, xsink);
    if (!s)
@@ -2122,7 +2122,7 @@ int QoreSocket::send(const char *buf, int size)
 }
 
 // converts to socket encoding if necessary
-int QoreSocket::send(const class QoreString *msg, class ExceptionSink *xsink)
+int QoreSocket::send(const class QoreString *msg, ExceptionSink *xsink)
 {
    const class QoreString *tstr;
    if (msg->getEncoding() != priv->charsetid)

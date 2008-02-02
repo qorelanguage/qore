@@ -27,7 +27,7 @@
 
 int CID_GETOPT;
 
-static inline int process_type(const char *key, int &attributes, char *opt, class QoreType *&at, class ExceptionSink *xsink)
+static inline int process_type(const char *key, int &attributes, char *opt, class QoreType *&at, ExceptionSink *xsink)
 {
    // get type
    switch (*opt)
@@ -114,7 +114,7 @@ static inline int process_type(const char *key, int &attributes, char *opt, clas
    return -1;
 }
 
-static void GETOPT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreHashNode *p0 = test_hash_param(params, 0);
    if (!p0)
@@ -136,7 +136,7 @@ static void GETOPT_constructor(class QoreObject *self, const QoreListNode *param
 	 break;
       }
 
-      class AbstractQoreNode *v = hi.getValue();
+      AbstractQoreNode *v = hi.getValue();
       QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
       if (!str)
       {
@@ -223,26 +223,26 @@ static void GETOPT_constructor(class QoreObject *self, const QoreListNode *param
       g->deref();
 }
 
-static void GETOPT_copy(class QoreObject *self, class QoreObject *old, class GetOpt *g, class ExceptionSink *xsink)
+static void GETOPT_copy(QoreObject *self, QoreObject *old, class GetOpt *g, ExceptionSink *xsink)
 {
    xsink->raiseException("GETOPT-COPY-ERROR", "copying GetOpt objects is not supported");
 }
 
-static class AbstractQoreNode *GETOPT_parse(class QoreObject *self, class GetOpt *g, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GETOPT_parse(QoreObject *self, class GetOpt *g, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
       return NULL;
 
-   class QoreListNode *l;
+   QoreListNode *l;
    class AutoVLock vl;
    if (p0->type == NT_REFERENCE)
    {
-      ReferenceNode *r = reinterpret_cast<ReferenceNode *>(p0);
-      class AbstractQoreNode **vp = get_var_value_ptr(r->lvexp, &vl, xsink);
+      const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
+      AbstractQoreNode **vp = get_var_value_ptr(r->lvexp, &vl, xsink);
       if (*xsink)
 	 return 0;
-      l = dynamic_cast<QoreListNode *>(*vp);
+      l = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(*vp));
       if (!l)
 	 return 0;
       if (l->reference_count() > 1)
@@ -253,7 +253,7 @@ static class AbstractQoreNode *GETOPT_parse(class QoreObject *self, class GetOpt
       }
       return g->parse(l, true, xsink);
    }
-   else if (!(l = dynamic_cast<QoreListNode *>(p0)))
+   else if (!(l = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(p0))))
       return 0;
 
    return g->parse(l, false, xsink);

@@ -164,7 +164,7 @@ public:
       }
       return &curr->lvar[curr->pos++];
    }
-   DLLLOCAL void uninstantiate(class ExceptionSink *xsink)
+   DLLLOCAL void uninstantiate(ExceptionSink *xsink)
    {
       if (!curr->pos)
       {
@@ -224,9 +224,9 @@ class ThreadData
       // current function/method name
       const char *current_code;
       // current object context
-      class QoreObject *current_obj;
+      QoreObject *current_obj;
       // current program context
-      class QoreProgram *current_pgm;
+      QoreProgram *current_pgm;
       // current argvid
       lvh_t current_argvid;
 
@@ -236,7 +236,7 @@ class ThreadData
       {
 	 return lvstack.instantiate();
       }
-      DLLLOCAL void uninstantiate_lvar(class ExceptionSink *xsink)
+      DLLLOCAL void uninstantiate_lvar(ExceptionSink *xsink)
       {
 	 lvstack.uninstantiate(xsink);
       }
@@ -271,11 +271,11 @@ DLLLOCAL ThreadCleanupNode *ThreadCleanupList::head = NULL;
 
 class ThreadParams {
    public:
-      class AbstractQoreNode *fc;
+      AbstractQoreNode *fc;
       int tid;
-      class QoreProgram *pgm;
+      QoreProgram *pgm;
    
-      DLLLOCAL ThreadParams(class AbstractQoreNode *f, int t) 
+      DLLLOCAL ThreadParams(AbstractQoreNode *f, int t) 
       { 
 	 fc = f; 
 	 tid = t;
@@ -311,16 +311,16 @@ tid_node::~tid_node()
 
 class BGThreadParams {
    public:
-      class QoreObject *obj;
-      class QoreObject *callobj;
-      class AbstractQoreNode *fc;
-      class QoreProgram *pgm;
+      QoreObject *obj;
+      QoreObject *callobj;
+      AbstractQoreNode *fc;
+      QoreProgram *pgm;
       int tid;
       int s_line, e_line;
       const char *file;
       bool method_reference;
 
-      DLLLOCAL BGThreadParams(class AbstractQoreNode *f, int t, class ExceptionSink *xsink)
+      DLLLOCAL BGThreadParams(AbstractQoreNode *f, int t, ExceptionSink *xsink)
       { 
 	 tid = t;
 	 fc = f;
@@ -366,7 +366,7 @@ class BGThreadParams {
 	 // decrement program's thread count
 	 pgm->tc_dec();
       }
-      DLLLOCAL void cleanup(class ExceptionSink *xsink)
+      DLLLOCAL void cleanup(ExceptionSink *xsink)
       {
 	 if (fc) fc->deref(xsink);
 	 derefObj(xsink);
@@ -381,7 +381,7 @@ class BGThreadParams {
 	    callobj = NULL;
 	 }
       }
-      DLLLOCAL void derefObj(class ExceptionSink *xsink)
+      DLLLOCAL void derefObj(ExceptionSink *xsink)
       {
 	 if (obj)
 	 {
@@ -389,9 +389,9 @@ class BGThreadParams {
 	    obj = NULL;
 	 }
       }
-      DLLLOCAL class AbstractQoreNode *exec(class ExceptionSink *xsink)
+      DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink)
       {
-	 class AbstractQoreNode *rv = fc->eval(xsink);
+	 AbstractQoreNode *rv = fc->eval(xsink);
 	 fc->deref(xsink);
 	 fc = NULL;
 	 return rv;
@@ -452,7 +452,7 @@ void ThreadCleanupList::pop(int exec)
    }
 }
 
-ThreadData::ThreadData(int ptid, class QoreProgram *p) : tid(ptid), vlock(ptid), current_pgm(p)
+ThreadData::ThreadData(int ptid, QoreProgram *p) : tid(ptid), vlock(ptid), current_pgm(p)
 {
    context_stack     = NULL;
    pgm_counter_start = 0;
@@ -489,7 +489,7 @@ int remove_thread_resource(class AbstractThreadResource *atr)
    return td->trlist.remove(atr);
 }
 
-void purge_thread_resources(class ExceptionSink *xsink)
+void purge_thread_resources(ExceptionSink *xsink)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    td->trlist.purge(xsink);
@@ -583,7 +583,7 @@ class LVar *thread_instantiate_lvar()
    return ((ThreadData *)pthread_getspecific(thread_data_key))->instantiate_lvar();
 }
 
-void thread_uninstantiate_lvar(class ExceptionSink *xsink)
+void thread_uninstantiate_lvar(ExceptionSink *xsink)
 {
    ((ThreadData *)pthread_getspecific(thread_data_key))->uninstantiate_lvar(xsink);
 }
@@ -658,7 +658,7 @@ const char *get_parse_file()
    return ((ThreadData *)pthread_getspecific(thread_data_key))->parse_file;
 }
 
-ObjectSubstitutionHelper::ObjectSubstitutionHelper(class QoreObject *obj)
+ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj)
 {
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    old_obj = td->current_obj;
@@ -671,7 +671,7 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper()
    td->current_obj = old_obj;
 }
 
-CodeContextHelper::CodeContextHelper(const char *code, class QoreObject *obj, class ExceptionSink *xs)
+CodeContextHelper::CodeContextHelper(const char *code, QoreObject *obj, ExceptionSink *xs)
 {
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    old_code = td->current_code;
@@ -708,17 +708,17 @@ ArgvContextHelper::~ArgvContextHelper()
 }
 
 #ifdef DEBUG
-void pushCall(const char *f, int type, class QoreObject *o)
+void pushCall(const char *f, int type, QoreObject *o)
 {
    thread_list[gettid()].callStack->push(f, type, o);
 }
 
-void popCall(class ExceptionSink *xsink)
+void popCall(ExceptionSink *xsink)
 {
    thread_list[gettid()].callStack->pop(xsink);
 }
 
-class QoreListNode *getCallStackList()
+QoreListNode *getCallStackList()
 {
    return thread_list[gettid()].callStack->getCallStack();
 }
@@ -738,13 +738,13 @@ bool inMethod(const char *name, const QoreObject *o)
    //return thread_list[gettid()].callStack->inMethod(name, o);
 }
 
-class QoreObject *getStackObject()
+QoreObject *getStackObject()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->current_obj;
    //return thread_list[gettid()].callStack->getStackObject();
 }
 
-ProgramContextHelper::ProgramContextHelper(class QoreProgram *pgm)
+ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm)
 {
    old_pgm = 0;
    restore = false;
@@ -766,7 +766,7 @@ ProgramContextHelper::~ProgramContextHelper()
       ((ThreadData *)pthread_getspecific(thread_data_key))->current_pgm = old_pgm;
 }
 
-class QoreProgram *getProgram()
+QoreProgram *getProgram()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->current_pgm;
    //return ((ThreadData *)pthread_getspecific(thread_data_key))->pgmStack->getProgram();
@@ -915,7 +915,7 @@ void deregister_signal_thread()
 }
 
 // should only be called from new thread
-void register_thread(int tid, pthread_t ptid, class QoreProgram *p)
+void register_thread(int tid, pthread_t ptid, QoreProgram *p)
 {
    thread_list[tid].ptid = ptid;
 #ifdef DEBUG
@@ -938,8 +938,8 @@ namespace {
       // set program counter for new thread
       update_pgm_counter_pgm_file(btp->s_line, btp->e_line, btp->file);
 
-      class ExceptionSink xsink;
-      class AbstractQoreNode *rv;
+      ExceptionSink xsink;
+      AbstractQoreNode *rv;
       {
 	 CodeContextHelper cch(NULL, btp->callobj, &xsink);
 	 
@@ -989,7 +989,7 @@ namespace {
    }
 }
 
-static class AbstractQoreNode *op_background(class AbstractQoreNode *left, class AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_background(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
    if (!left)
       return NULL;

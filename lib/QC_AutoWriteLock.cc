@@ -25,7 +25,7 @@
 
 int CID_AUTOWRITELOCK;
 
-static void AWL_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void AWL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p = test_object_param(params, 0);
    RWLock *rwl = p ? (RWLock *)p->getReferencedPrivateData(CID_RWLOCK, xsink) : NULL;
@@ -45,13 +45,13 @@ static void AWL_constructor(class QoreObject *self, const QoreListNode *params, 
       self->setPrivate(CID_AUTOWRITELOCK, arwl);
 }
 
-static void AWL_destructor(class QoreObject *self, class QoreAutoWriteLock *arwl, ExceptionSink *xsink)
+static void AWL_destructor(QoreObject *self, class QoreAutoWriteLock *arwl, ExceptionSink *xsink)
 {
    arwl->destructor(xsink);
    arwl->deref(xsink);
 }
 
-static void AWL_copy(class QoreObject *self, class QoreObject *old, class QoreAutoWriteLock *m, ExceptionSink *xsink)
+static void AWL_copy(QoreObject *self, QoreObject *old, class QoreAutoWriteLock *m, ExceptionSink *xsink)
 {
    xsink->raiseException("AUTOWRITELOCK-COPY-ERROR", "objects of this class cannot be copied");
 }

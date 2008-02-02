@@ -75,9 +75,9 @@ class NamedScope *SelfFunctionCall::takeNScope()
    return rns;
 }
 
-class AbstractQoreNode *SelfFunctionCall::eval(const QoreListNode *args, class ExceptionSink *xsink) const
+AbstractQoreNode *SelfFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const
 {
-   class QoreObject *self = getStackObject();
+   QoreObject *self = getStackObject();
    
    if (func)
       return func->eval(self, args, xsink);
@@ -127,14 +127,14 @@ void SelfFunctionCall::resolve()
    }
 }
 
-class AbstractQoreNode *ImportedFunctionCall::eval(const QoreListNode *args, class ExceptionSink *xsink) const
+AbstractQoreNode *ImportedFunctionCall::eval(const QoreListNode *args, ExceptionSink *xsink) const
 {
    // save current program location in case there's an exception
    const char *o_fn = get_pgm_file();
    int o_ln, o_eln;
    get_pgm_counter(o_ln, o_eln);
    
-   class AbstractQoreNode *rv = pgm->callFunction(func, args, xsink);
+   AbstractQoreNode *rv = pgm->callFunction(func, args, xsink);
 
    if (xsink->isException())
       xsink->addStackInfo(CT_USER, NULL, func->getName(), o_fn, o_ln, o_eln);
@@ -159,11 +159,11 @@ Paramlist::Paramlist(AbstractQoreNode *params)
    {
       num_params = 1;
       names = new char *[1];
-      names[0] = strdup(reinterpret_cast<VarRefNode *>(params)->name);
+      names[0] = strdup(reinterpret_cast<const VarRefNode *>(params)->name);
       return;
    }
 
-   QoreListNode *l = dynamic_cast<QoreListNode *>(params);
+   const QoreListNode *l = dynamic_cast<const QoreListNode *>(params);
    if (!l)
    {
       param_error();
@@ -185,7 +185,7 @@ Paramlist::Paramlist(AbstractQoreNode *params)
 	 break;
       }
       else
-	 names[i] = strdup(reinterpret_cast<VarRefNode *>(l->retrieve_entry(i))->name);
+	 names[i] = strdup(reinterpret_cast<const VarRefNode *>(l->retrieve_entry(i))->name);
    }
 }
 
@@ -270,7 +270,7 @@ BuiltinFunction::BuiltinFunction(q_copy_t m, int typ)
    next = NULL;
 }
 
-void BuiltinFunction::evalConstructor(class QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const
+void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalConstructor()");
 
@@ -298,7 +298,7 @@ void BuiltinFunction::evalConstructor(class QoreObject *self, const QoreListNode
    traceout("BuiltinFunction::evalConstructor()");
 }
 
-void BuiltinFunction::evalSystemConstructor(class QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const
+void BuiltinFunction::evalSystemConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
 {
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
@@ -306,7 +306,7 @@ void BuiltinFunction::evalSystemConstructor(class QoreObject *self, const QoreLi
    code.constructor(self, args, xsink);
 }
 
-AbstractQoreNode *BuiltinFunction::evalWithArgs(class QoreObject *self, const QoreListNode *args, class ExceptionSink *xsink) const
+AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalWithArgs()");
    printd(2, "BuiltinFunction::evalWithArgs() calling builtin function \"%s\"\n", name);
@@ -334,7 +334,7 @@ AbstractQoreNode *BuiltinFunction::evalWithArgs(class QoreObject *self, const Qo
    return rv;
 }
 
-AbstractQoreNode *BuiltinFunction::evalMethod(class QoreObject *self, void *private_data, const QoreListNode *args, class ExceptionSink *xsink) const
+AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, void *private_data, const QoreListNode *args, ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalMethod()");
    printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
@@ -352,7 +352,7 @@ AbstractQoreNode *BuiltinFunction::evalMethod(class QoreObject *self, void *priv
    return rv;
 }
 
-void BuiltinFunction::evalDestructor(class QoreObject *self, void *private_data, const char *class_name, class ExceptionSink *xsink) const
+void BuiltinFunction::evalDestructor(QoreObject *self, void *private_data, const char *class_name, ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalDestructor()");
    
@@ -377,7 +377,7 @@ void BuiltinFunction::evalDestructor(class QoreObject *self, void *private_data,
    traceout("BuiltinFunction::destructor()");
 }
 
-void BuiltinFunction::evalCopy(class QoreObject *self, class QoreObject *old, void *private_data, const char *class_name, class ExceptionSink *xsink) const
+void BuiltinFunction::evalCopy(QoreObject *self, QoreObject *old, void *private_data, const char *class_name, ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalCopy()");
    
@@ -402,14 +402,14 @@ void BuiltinFunction::evalCopy(class QoreObject *self, class QoreObject *old, vo
    traceout("BuiltinFunction::evalCopy()");
 }
 
-void BuiltinFunction::evalSystemDestructor(class QoreObject *self, void *private_data, class ExceptionSink *xsink) const
+void BuiltinFunction::evalSystemDestructor(QoreObject *self, void *private_data, ExceptionSink *xsink) const
 {
    code.destructor(self, private_data, xsink);
 }
 
 AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink *xsink) const
 {
-   class AbstractQoreNode *rv;
+   AbstractQoreNode *rv;
    ExceptionSink newsink;
 
    tracein("BuiltinFunction::eval(Node)");
@@ -453,7 +453,7 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
 
 // calls a user function
 // FIXME: implement optimized path for when arguments do not need to be evaluated
-AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self, class ExceptionSink *xsink, const char *class_name) const
+AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name) const
 {
    tracein("UserFunction::eval()");
    printd(2, "UserFunction::eval(): function='%s' args=%08p (size=%d)\n", name, args, args ? args->size() : 0);
@@ -464,7 +464,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
    get_pgm_counter(o_ln, o_eln);
       
    int i = 0;
-   class AbstractQoreNode *val = NULL;
+   AbstractQoreNode *val = NULL;
    int num_args, num_params;
 
    if (args)
@@ -660,7 +660,7 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
 
 // calls a user constructor method
 // FIXME: implement optimized path for arguments that don't need evaluation
-AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const
+AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreObject *self, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const
 {
    tracein("UserFunction::evalConstructor()");
    printd(2, "UserFunction::evalConstructor(): method='%s:%s' args=%08p (size=%d)\n", 
@@ -672,7 +672,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
    get_pgm_counter(o_ln, o_eln);
    
    int i = 0;
-   class AbstractQoreNode *val = NULL;
+   AbstractQoreNode *val = NULL;
    int num_args, num_params;
 
    if (args)
@@ -745,7 +745,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
             argv->push(NULL);
    }
 
-   // evaluate base class constructors (if any)
+   // evaluate base constructors (if any)
    if (bcl)
       bcl->execConstructorsWithArgs(self, bceal, xsink);
 
@@ -808,7 +808,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 }
 
 // this will only be called with lvalue expressions
-AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_self_ref, class ExceptionSink *xsink)
+AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv = NULL;
    const QoreType *ntype = n->getType();

@@ -36,14 +36,14 @@ ContextrefNode::~ContextrefNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int ContextrefNode::getAsString(QoreString &qstr, int foff, class ExceptionSink *xsink) const
+int ContextrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const
 {
    qstr.sprintf("context reference '%s' (0x%08p)", str ? str : "<null>", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *ContextrefNode::getAsString(bool &del, int foff, class ExceptionSink *xsink) const
+QoreString *ContextrefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
 {
    del = true;
    QoreString *rv = new QoreString();
@@ -64,7 +64,7 @@ const char *ContextrefNode::getTypeName() const
 }
 
 // eval(): return value requires a deref(xsink)
-AbstractQoreNode *ContextrefNode::eval(class ExceptionSink *xsink) const
+AbstractQoreNode *ContextrefNode::eval(ExceptionSink *xsink) const
 {
    return evalContextRef(str, xsink);
 }
