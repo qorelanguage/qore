@@ -163,14 +163,14 @@ class AbstractQoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    return NULL;
 }
 
-void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &tcl, ExceptionSink *xsink)
+void set_properties(MAppProperties *appProperties, const QoreHash *h, TibCommandLine &tcl, ExceptionSink *xsink)
 {
    tracein("set_properties()");
 
    // variable hash for overridding global variables
-   QoreHashNode *vh = NULL;
+   const QoreHashNode *vh = NULL;
 
-   HashIterator hi(h);
+   ConstHashIterator hi(h);
    while (hi.next())
    {
       const char *key = hi.getKey();
@@ -182,13 +182,13 @@ void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &
 
       if (!strcmp(key, "Vars"))
       {
-	 vh = dynamic_cast<QoreHashNode *>(hi.getValue());
+	 vh = dynamic_cast<const QoreHashNode *>(hi.getValue());
 	 if (vh)
 	    continue;
       }
 
-      AbstractQoreNode *v = hi.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
+      const AbstractQoreNode *v = hi.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(v);
       if (!str)
       {
 	 xsink->raiseException("TIBCO-INVALID-PROPERTIES-HASH",
@@ -215,15 +215,15 @@ void set_properties(MAppProperties *appProperties, QoreHash *h, TibCommandLine &
 
    if (vh)
    {
-      HashIterator vhi(vh);
+      ConstHashIterator vhi(vh);
       while (vhi.next())
       {
 	 const char *key = vhi.getKey();
 	 if (!key || !key[0])
 	    continue;
 
-	 class AbstractQoreNode *n = vhi.getValue();
-	 QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+	 const AbstractQoreNode *n = vhi.getValue();
+	 const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
 	 if (!str || !str->strlen())
 	    continue;
 	 //printd(5, "setting override for global variable %s=%s\n", key, str->getBuffer());

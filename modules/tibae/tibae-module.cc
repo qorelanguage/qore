@@ -46,7 +46,7 @@ DLLEXPORT qore_module_delete_t qore_module_delete = tibae_module_delete;
 
 static class AbstractQoreNode *f_tibae_type(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int type = p->getAsInt();
    if (type < 1 || type > MAX_TIBAE_TYPE)
    {
@@ -56,9 +56,7 @@ static class AbstractQoreNode *f_tibae_type(const QoreListNode *params, class Ex
    QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("^type^", new QoreBigIntNode(type), xsink);
    p = get_param(params, 1);
-   if (p)
-      p->ref();
-   h->setKeyValue("^value^", p, xsink);
+   h->setKeyValue("^value^", p ? p->refSelf() : 0, xsink);
    return h;
 }
 

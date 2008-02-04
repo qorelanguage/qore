@@ -39,7 +39,7 @@ static void remove_pending_calls(MApp* app);
 
 static const char *get_class(const QoreHash *h)
 {
-   AbstractQoreNode *t;
+   const AbstractQoreNode *t;
 
    if (!(t = h->getKeyValue("^class^")))
       return NULL;
@@ -162,7 +162,7 @@ DLLLOCAL MDateTime *get_mdatetime(const DateTime *d)
 #endif
 }
 
-class MData *QoreApp::do_type(int type_code, AbstractQoreNode *v, ExceptionSink *xsink)
+class MData *QoreApp::do_type(int type_code, const AbstractQoreNode *v, ExceptionSink *xsink)
 {
    switch (type_code)
    {
@@ -278,7 +278,7 @@ class MData *QoreApp::do_type(int type_code, AbstractQoreNode *v, ExceptionSink 
 }
 
 // FIXME: currently no comparison is done between the expected type and the provided type
-MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, AbstractQoreNode *v, ExceptionSink *xsink)
+MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, const AbstractQoreNode *v, ExceptionSink *xsink)
 {
    //tracein("QoreApp::do_primitive_type()");
 
@@ -290,7 +290,7 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, Abstrac
    if (ntype == NT_HASH) {
       const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(v);
       // check to see if type is specified
-      class AbstractQoreNode *t = h->getKeyValue("^type^");
+      const AbstractQoreNode *t = h->getKeyValue("^type^");
       if (!is_nothing(t))
 	 return do_type(t->getAsInt(), h->getKeyValue("^value^"), xsink);
       
@@ -305,7 +305,7 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, Abstrac
       const MBaseClassDescription *mbcd = find_class(cn, xsink);
       if (xsink->isEvent())
 	 return NULL;
-      AbstractQoreNode *val;
+      const AbstractQoreNode *val;
       if (!(val = h->getKeyValue("^value^")))
       {
 	 xsink->raiseException("TIBCO-MISSING-VALUE", "instantiating type '%s': no '^value^' entry found in hash for class '%s'", pcd->getFullName().c_str(), cn);
@@ -406,7 +406,7 @@ lass '%s'", pcd->getFullName().c_str(), cn);
    return 0;
 }
 
-MTree *QoreApp::make_MTree(const char *class_name, AbstractQoreNode *value, ExceptionSink *xsink)
+MTree *QoreApp::make_MTree(const char *class_name, const AbstractQoreNode *value, ExceptionSink *xsink)
 {
    tracein("QoreApp::make_MTree");
 
@@ -483,7 +483,7 @@ class AbstractQoreNode *QoreApp::map_mtree_to_node(MTree *msg, ExceptionSink *xs
    return rv;
 }
 
-MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, AbstractQoreNode *v, ExceptionSink *xsink)
+MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, const AbstractQoreNode *v, ExceptionSink *xsink)
 {
    // ensure value is a QORE list
    // check if class info embedded
@@ -518,7 +518,7 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, Abstr
    MSequence *seq = new MSequence(mcr, msd->getFullName());
    for (int i = 0; i < l->size(); i++)
    {
-      AbstractQoreNode *ne = l->retrieve_entry(i);
+      const AbstractQoreNode *ne = l->retrieve_entry(i);
       const MBaseClassDescription *mbcd = msd->getContainedClassDescription();
       printd(5, "instantiate_class() implicitly instantiating %s\n", mbcd->getFullName().c_str());
       MData *md;
@@ -529,7 +529,7 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, Abstr
    return seq;
 }
 
-MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, AbstractQoreNode *v, ExceptionSink *xsink)
+MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, const AbstractQoreNode *v, ExceptionSink *xsink)
 {
    tracein("QoreApp::instantiate_modeledclass()");
    if (is_nothing(v))
@@ -560,7 +560,7 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Ab
       while (hi.next())
       {
          const char *key = hi.getKey();
-         AbstractQoreNode *t = hi.getValue();
+         const AbstractQoreNode *t = hi.getValue();
 
          const MAttributeDescription *mad;
          if (!(mad = mcd->getAttribute(key)))
@@ -600,7 +600,7 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, Ab
    return ma;
 }
 
-MData *QoreApp::instantiate_union(const MUnionDescription *mud, AbstractQoreNode *v, ExceptionSink *xsink)
+MData *QoreApp::instantiate_union(const MUnionDescription *mud, const AbstractQoreNode *v, ExceptionSink *xsink)
 {
    tracein("QoreApp::instantiate_union()");
 
@@ -623,8 +623,8 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, AbstractQoreNode
    if (h->size() > 1)
    {
       xsink->raiseException("TIBCO-INVALID-MULTIPLE-KEYS-FOR-UNION",
-                         "cannot instantiate TIBCO union '%s' from from hash with %d members!",
-                         mud->getFullName().c_str(), h->size());
+			    "cannot instantiate TIBCO union '%s' from from hash with %d members!",
+			    mud->getFullName().c_str(), h->size());
       return NULL;
    }
    MUnion *mu = new MUnion(mcr, mud->getFullName());
@@ -634,7 +634,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, AbstractQoreNode
       // get the first entry
       hi.next();
       const char *key = hi.getKey();
-      AbstractQoreNode *t = hi.getValue();
+      const AbstractQoreNode *t = hi.getValue();
 
       const MMemberDescription *mmd;
       if (!(mmd = mud->getMember(key)))
@@ -657,7 +657,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, AbstractQoreNode
    return mu;
 }
 
-class MData *QoreApp::instantiate_class(AbstractQoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink)
+class MData *QoreApp::instantiate_class(const AbstractQoreNode *v, const MBaseClassDescription *mbcd, ExceptionSink *xsink)
 {
    tracein("QoreApp::instantiate_class()");
    printd(5, "QoreApp::instantiate_class() mbcd=%08p %s: %08p (%s)\n", mbcd, mbcd->getFullName().c_str(), v, v ? v->getTypeName() : "(null)");
@@ -719,7 +719,7 @@ void QoreApp::onInitialization() throw (MException)
    traceout("QoreApp::onInitialization()");
 }
 
-class AbstractQoreNode *QoreApp::sendWithSyncReply(const char *function_name, AbstractQoreNode *value, int timeout, ExceptionSink *xsink)
+class AbstractQoreNode *QoreApp::sendWithSyncReply(const char *function_name, const AbstractQoreNode *value, int timeout, ExceptionSink *xsink)
 {
    MTree *msg = make_MTree(function_name, value, xsink);
    if (xsink->isEvent())
@@ -765,7 +765,7 @@ void QoreApp::set_subject_name(const char *sub)
 }
 
 // this version will create a new publisher and send the message with the subject name passed
-class AbstractQoreNode *QoreApp::sendWithSyncReply(const char *subj, const char *function_name, AbstractQoreNode *value, int timeout, ExceptionSink *xsink)
+class AbstractQoreNode *QoreApp::sendWithSyncReply(const char *subj, const char *function_name, const AbstractQoreNode *value, int timeout, ExceptionSink *xsink)
 {
    MTree *msg = make_MTree(function_name, value, xsink);
    if (xsink->isEvent())
@@ -814,7 +814,7 @@ class AbstractQoreNode *QoreApp::sendWithSyncReply(const char *subj, const char 
    return rv;
 }
 
-void QoreApp::send(const char *function_name, AbstractQoreNode *value, ExceptionSink *xsink)
+void QoreApp::send(const char *function_name, const AbstractQoreNode *value, ExceptionSink *xsink)
 {
    MTree *msg = make_MTree(function_name, value, xsink);
    if (xsink->isEvent())
@@ -840,7 +840,7 @@ void QoreApp::send(const char *function_name, AbstractQoreNode *value, Exception
    //something more to delete here?
 }
 
-void QoreApp::send(const char *subj, const char *function_name, AbstractQoreNode *value, ExceptionSink *xsink)
+void QoreApp::send(const char *subj, const char *function_name, const AbstractQoreNode *value, ExceptionSink *xsink)
 {
    MTree *msg = make_MTree(function_name, value, xsink);
    if (xsink->isEvent())
@@ -1030,14 +1030,14 @@ QoreEventHandler::~QoreEventHandler()
 // Tibco.Operations related functionality
 
 //------------------------------------------------------------------------------
-void QoreApp::setRequestParameters(MOperationRequest& req, QoreHash* params, ExceptionSink* xsink)
+void QoreApp::setRequestParameters(MOperationRequest& req, const QoreHash *params, ExceptionSink* xsink)
 {
    const MOperationDescription *mod = req.getOperationDescription();
 
-   HashIterator hi(params);
+   ConstHashIterator hi(params);
    while (hi.next()) {
       const char *key = hi.getKey();
-      AbstractQoreNode *t = hi.getValue();
+      const AbstractQoreNode *t = hi.getValue();
 
       const MOperationParameterDescription *mopd = mod->getParameter(key);
       if (!mopd)
@@ -1107,7 +1107,7 @@ struct OperationsListener : public MOperationReplyListener
 } // anonymous namespace
 
 //------------------------------------------------------------------------------
-AbstractQoreNode* QoreApp::operationsCallWithSyncResult(const char *class_name, const char *method_name, QoreHash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
+AbstractQoreNode* QoreApp::operationsCallWithSyncResult(const char *class_name, const char *method_name, const QoreHash *parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
 {
   try {
     MOperationRequest req(this, class_name, method_name, client_name);
@@ -1131,7 +1131,7 @@ AbstractQoreNode* QoreApp::operationsCallWithSyncResult(const char *class_name, 
 }
 
 //------------------------------------------------------------------------------
-void QoreApp::operationsOneWayCall(const char *class_name, const char *method_name, QoreHash* parameters, const char *client_name, ExceptionSink* xsink)
+void QoreApp::operationsOneWayCall(const char *class_name, const char *method_name, const QoreHash *parameters, const char *client_name, ExceptionSink* xsink)
 {
   try {
     MOperationRequest req(this, class_name, method_name, client_name);
@@ -1235,7 +1235,7 @@ static void remove_pending_calls(MApp* app)
 }
 
 //------------------------------------------------------------------------------
-void QoreApp::operationsAsyncCall(const char *class_name, const char *method_name, QoreHash* parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
+void QoreApp::operationsAsyncCall(const char *class_name, const char *method_name, const QoreHash *parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
 {
   try {
     std::auto_ptr<MOperationRequest> req(new MOperationRequest(this, class_name, method_name, client_name));
