@@ -253,7 +253,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter() // just for testing
 #endif
 
 //------------------------------------------------------------------------------
-QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
+QoreTuxedoAdapter::QoreTuxedoAdapter(const QoreHash* settings, ExceptionSink* xsink)
 : m_connection_flags(0),
   m_Tuxedo_connection_initialized(false),
   m_context(0),
@@ -295,15 +295,15 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
   bool Tx_transactions_chained = false;
   bool Tx_transactions_chained_set = false;
 
-  HashIterator iter(settings);
+  ConstHashIterator iter(settings);
   while (iter.next()) {
     string key = iter.getKey();  
     for (unsigned i = 0, n = key.size(); i != n; ++i) key[i] = tolower(key[i]);
 
     //-------------------------------------------
     if (key == "username") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+       const AbstractQoreNode* n = iter.getValue();
+       const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'UserName' needs to be a string.");
         return;
@@ -315,8 +315,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "password") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+       const AbstractQoreNode* n = iter.getValue();
+       const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'Password' needs to be a string.");
         return;
@@ -328,8 +328,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "clientname") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'ClientName' needs to be a string.");
         return;
@@ -341,10 +341,10 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "groupname") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
-        xsink->raiseException(err_name, "Settings value 'GroupName' needs to be a string.");
+	 xsink->raiseException(err_name, "Settings value 'GroupName' needs to be a string.");
         return;
       }
       const char* s = str->getBuffer();
@@ -354,8 +354,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "binaryconnectiondata") {
-      AbstractQoreNode* n = iter.getValue();
-      BinaryNode *bin = dynamic_cast<BinaryNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const BinaryNode *bin = dynamic_cast<const BinaryNode *>(n);
       if (!bin) {
         xsink->raiseException(err_name, "Settings value 'BinaryConnectionData' needs to be a binary.");
         return;
@@ -370,7 +370,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "connectionflags") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       long flags = (long)(n ? n->getAsBigInt() : 0);
       flags |= TPMULTICONTEXTS; // always use multicontext mode
       m_connection_flags = flags;
@@ -378,8 +378,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "tuxdir") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'TUXDIR' needs to be a string.");
         return;
@@ -401,8 +401,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "tuxconfig") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'TUXCONFIG' needs to be a string.");
         return;
@@ -424,8 +424,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "wsenvfile") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'WSENVFILE' needs to be a string.");
         return;
@@ -437,8 +437,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "wsnaddr") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'WSNADDR' needs to be a string.");
         return;
@@ -450,8 +450,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "wsfaddr") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'WSFADDR' needs to be a string.");
         return;
@@ -463,8 +463,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "wsfrange") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'WSFRANGE' needs to be a string.");
         return;
@@ -476,8 +476,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "wsdevice") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'WSDEVICE' needs to be a string.");
         return;
@@ -489,8 +489,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "wstype") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'WSTYPE' needs to be a string.");
         return;
@@ -502,8 +502,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "wsrplymax") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'WSRPLYMAX' needs to be a string.");
         return;
@@ -515,8 +515,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "tmminencryptbits") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'TMMINENCRYPTBITS' needs to be a string.");
         return;
@@ -528,8 +528,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "tmmaxencryptbits") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings value 'TMMAXENCRYPTBITS' needs to be a string.");
         return;
@@ -541,8 +541,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "stringencoding") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings 'StringEncoding' needs to be a string.");
         return;
@@ -556,72 +556,72 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     } 
     //-------------------------------------------
     if (key == "defaultflagsforcall") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       m_default_flags_for_call = (long)(n ? n->getAsBigInt() : 0);
       m_default_flags_for_call_set = true;
       continue;
     }
     //-------------------------------------------
     if (key == "defaultflagsforasynccall") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       m_default_flags_for_acall = (long)(n ? n->getAsBigInt() : 0);
       m_default_flags_for_acall_set = true;
       continue;
     }
     //-------------------------------------------
     if (key == "defaultflagsforwaitforasyncreply") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       m_default_flags_for_getrply = (long)(n ? n->getAsBigInt() : 0);
       m_default_flags_for_getrply_set = true;
       continue;
     }
     //-------------------------------------------
     if (key == "defaultflagsforpostevent") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       m_default_flags_for_post_event = (long)(n ? n->getAsBigInt() : 0);
       m_default_flags_for_post_event_set = true;
       continue;
     }
     //-------------------------------------------
     if (key == "defaultflagsforjoinconversation") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       m_default_flags_for_connect = (long)(n ? n->getAsBigInt() : 0);
       m_default_flags_for_connect_set = true;
       continue;
     }
     //-------------------------------------------
     if (key == "defaultflagsforsendconversationdata") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       m_default_flags_for_send = (long)(n ? n->getAsBigInt() : 0);
       m_default_flags_for_send_set = true;
       continue;
     }
     //-------------------------------------------
     if (key == "defaultflagsforreceiveconversationdata") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       m_default_flags_for_receive = (long)(n ? n->getAsBigInt() : 0);
       m_default_flags_for_receive_set = true;
       continue;
     }
     //-------------------------------------------
     if (key == "defaultflagsforenqueue") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       m_default_flags_for_enqueue = (long)(n ? n->getAsBigInt() : 0);
       m_default_flags_for_enqueue_set = true;
       continue;
     }
     //-------------------------------------------
     if (key == "defaultflagsfordequeue") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       m_default_flags_for_dequeue = (long)(n ? n->getAsBigInt() : 0);
       m_default_flags_for_dequeue_set = true;
       continue;
     }
     //-------------------------------------------
     if (key == "defaultfmltype") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       char* err_text = (char*)"Settings 'DefaultFmlType' needs to be string \"FML\" or \"FML32\".";
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, err_text);
         return;
@@ -651,8 +651,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
         return;
       }
       char* err_text = (char*)"Settings 'DefaultFmlDescriptionFile' needs to be complete file name.";
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, err_text);
         return;
@@ -676,8 +676,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
         return;
       }
       char* err_text = (char*)"Settings 'DefaultFml32DescriptionFile' needs to be complete file name.";
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, err_text);
         return;
@@ -701,14 +701,14 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
         return;
       }
       char* err_text = (char*)"Settings 'DefaultFmlDescription' needs to be a hash.";
-      QoreHashNode *h = dynamic_cast<QoreHashNode *>(iter.getValue());
+      const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(iter.getValue());
       if (!h) {
         xsink->raiseException(err_name, err_text);
         return;
       }
       // check whether base is set
       int base = 0;
-      AbstractQoreNode *n = settings->getKeyValue("DefaultFmlDescriptionBase");
+      const AbstractQoreNode *n = settings->getKeyValue("DefaultFmlDescriptionBase");
       base = n ? n->getAsInt() : 0;
 
       m_default_fml_description = generateFmlDescription(base, h, false, xsink);
@@ -730,14 +730,14 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
       }
       char* err_text = (char*)"Settings 'DefaultFml32Description' needs to be a hash.";
 
-      QoreHashNode *h = dynamic_cast<QoreHashNode *>(iter.getValue());
+      const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(iter.getValue());
       if (!h) {
         xsink->raiseException(err_name, err_text);
         return;
       }
       // check whether base is set
       int base = 0;
-      AbstractQoreNode *n = settings->getKeyValue("DefaultFml32DescriptionBase");
+      const AbstractQoreNode *n = settings->getKeyValue("DefaultFml32DescriptionBase");
       base = n ? n->getAsInt() : 0;
 
       m_default_fml32_description = generateFmlDescription(base, h, true, xsink);
@@ -753,15 +753,15 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "priority") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       priority_set = true;
       priority = (long)(n ? n->getAsBigInt() : 0);
       continue;
     }
     //-------------------------------------------
     if (key == "whencommitfinishes") {
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings 'WhenCommitFinishes' needs to be a string.");
         return;
@@ -784,8 +784,8 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "whentxcommitfinishes") { // this is for Tx transactions
-      AbstractQoreNode* n = iter.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
+      const AbstractQoreNode* n = iter.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
       if (!str) {
         xsink->raiseException(err_name, "Settings 'WhenTxCommitFinishes' needs to be a string.");
         return;
@@ -808,7 +808,7 @@ QoreTuxedoAdapter::QoreTuxedoAdapter(QoreHash* settings, ExceptionSink* xsink)
     }
     //-------------------------------------------
     if (key == "aretxtransactionschained") {
-      AbstractQoreNode* n = iter.getValue();
+      const AbstractQoreNode* n = iter.getValue();
       Tx_transactions_chained = n ? n->getAsBool() : false;
       Tx_transactions_chained_set = true;
       continue;
@@ -980,26 +980,26 @@ bool QoreTuxedoAdapter::allocate_send_buffer(const char* type, long size, const 
 
 //-----------------------------------------------------------------------------
 // Allocate buffer. Get type either from passed settings hash or use the default.
-pair<char*, long> QoreTuxedoAdapter::allocate_out_buffer(const char* default_type, QoreHash* settings, const char* err_name, ExceptionSink* xsink)
+pair<char*, long> QoreTuxedoAdapter::allocate_out_buffer(const char* default_type, const QoreHash* settings, const char* err_name, ExceptionSink* xsink)
 {
   char type[20] = "STRING";
   bool type_set = false;
 
   if (settings) {
-    AbstractQoreNode* n = settings->getKeyValue("DefaultReturnedDataType");
+     const AbstractQoreNode* n = settings->getKeyValue("DefaultReturnedDataType");
     if (n) {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(n);
-      if (!str) {
-        xsink->raiseException(err_name, "Settings 'DefaultReturnedDataType' needs to be a string.");
-        return pair<char*, long>((char*)0, 0);
-      }
-      const char* s = str->getBuffer();
-      if (!s && strcmp(s, "CARRAY") && strcmp(s, "STRING") && strcmp(s, "FML") && strcmp(s, "FML32")) {
-        xsink->raiseException(err_name, "Settings 'DefaultReturnedDataType': supported values are 'CARRAY', 'STRING', 'FML', 'FML32'.");
-        return pair<char*, long>((char*)0, 0);
-      }
-      strcpy(type, s);
-      type_set = true;
+       const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(n);
+       if (!str) {
+	  xsink->raiseException(err_name, "Settings 'DefaultReturnedDataType' needs to be a string.");
+	  return pair<char*, long>((char*)0, 0);
+       }
+       const char* s = str->getBuffer();
+       if (!s && strcmp(s, "CARRAY") && strcmp(s, "STRING") && strcmp(s, "FML") && strcmp(s, "FML32")) {
+	  xsink->raiseException(err_name, "Settings 'DefaultReturnedDataType': supported values are 'CARRAY', 'STRING', 'FML', 'FML32'.");
+	  return pair<char*, long>((char*)0, 0);
+       }
+       strcpy(type, s);
+       type_set = true;
     }
   }
   if (!type_set && default_type && default_type[0]) {
@@ -1018,13 +1018,13 @@ pair<char*, long> QoreTuxedoAdapter::allocate_out_buffer(const char* default_typ
 
 //-----------------------------------------------------------------------------
 // Get flags either from passed hash (or integer) or from the default value
-long QoreTuxedoAdapter::get_flags(QoreHash* settings, long* pflags, long default_flags, bool default_flags_set, const char* err_name, ExceptionSink* xsink)
+long QoreTuxedoAdapter::get_flags(const QoreHash* settings, long* pflags, long default_flags, bool default_flags_set, const char* err_name, ExceptionSink* xsink)
 {
   if (pflags) return *pflags;
 
   if (settings) {
-    AbstractQoreNode* n = settings->getKeyValue("flags");
-    return (long)(n ? n->getAsBigInt() : 0);
+     const AbstractQoreNode* n = settings->getKeyValue("flags");
+     return (long)(n ? n->getAsBigInt() : 0);
   }
 
   if (default_flags_set) return default_flags;
@@ -1035,18 +1035,18 @@ long QoreTuxedoAdapter::get_flags(QoreHash* settings, long* pflags, long default
 
 //------------------------------------------------------------------------------
 // Return true if FML32 should be generated, false for FML
-static bool is_fml32_requested(QoreHash* settings, bool default_is_fml32, bool default_is_fml32_set, const char* err_name, ExceptionSink* xsink)
+static bool is_fml32_requested(const QoreHash* settings, bool default_is_fml32, bool default_is_fml32_set, const char* err_name, ExceptionSink* xsink)
 {
-  AbstractQoreNode* n = settings->getKeyValue((char*)"use_fml32");
-  if (n)
-     return n->getAsBool();
-  if (default_is_fml32_set) return default_is_fml32;
-  xsink->raiseException(err_name, "Neither settings 'use_fml32' nor 'DefaultFmlType' constructor parameter were specified.");
-  return false;
+   const AbstractQoreNode* n = settings->getKeyValue((char*)"use_fml32");
+   if (n)
+      return n->getAsBool();
+   if (default_is_fml32_set) return default_is_fml32;
+   xsink->raiseException(err_name, "Neither settings 'use_fml32' nor 'DefaultFmlType' constructor parameter were specified.");
+   return false;
 }
 
 //------------------------------------------------------------------------------
-void QoreTuxedoAdapter::setSendBuffer(AbstractQoreNode* n, QoreHash* settings, const char* err_name, ExceptionSink* xsink)
+void QoreTuxedoAdapter::setSendBuffer(const AbstractQoreNode* n, const QoreHash* settings, const char* err_name, ExceptionSink* xsink)
 {
   freeSendBuffer();
   
@@ -1056,7 +1056,7 @@ void QoreTuxedoAdapter::setSendBuffer(AbstractQoreNode* n, QoreHash* settings, c
   const QoreType *ntype = n->getType();
 
   if (ntype == NT_BINARY) {
-     BinaryNode* bin = reinterpret_cast<BinaryNode *>(n);
+     const BinaryNode* bin = reinterpret_cast<const BinaryNode *>(n);
      if (bin->size() == 0) return;
      if (!allocate_send_buffer("CARRAY", bin->size(), err_name, xsink)) return;
      memcpy(m_send_buffer, bin->getPtr(), bin->size());
@@ -1064,7 +1064,7 @@ void QoreTuxedoAdapter::setSendBuffer(AbstractQoreNode* n, QoreHash* settings, c
   }
 
   if (ntype == NT_STRING) {
-     QoreStringNode *str = reinterpret_cast<QoreStringNode *>(n);
+     const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(n);
      const char* s = str->getBuffer();
      if (!s || !s[0]) return;
      if (str->getEncoding() != m_string_encoding) {
@@ -1079,7 +1079,7 @@ void QoreTuxedoAdapter::setSendBuffer(AbstractQoreNode* n, QoreHash* settings, c
   }
 
   if (ntype == NT_HASH) {
-     QoreHashNode *h = reinterpret_cast<QoreHashNode *>(n);
+     const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(n);
      bool is_fml32 = is_fml32_requested(settings, m_default_is_fml32, m_default_is_fml32_set, err_name, xsink);
      if (xsink->isException()) return;
      if (!allocate_send_buffer(is_fml32 ? "FML32" : "FML", 4096, err_name, xsink)) return;
@@ -1150,7 +1150,7 @@ AbstractQoreNode* QoreTuxedoAdapter::buffer2node(char* buffer, long buffer_size,
 }
 
 //------------------------------------------------------------------------------
-AbstractQoreNode* QoreTuxedoAdapter::call(const char* service_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
+AbstractQoreNode* QoreTuxedoAdapter::call(const char* service_name, const QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"TUXEDO-ERROR";
   char type[20] = "";
@@ -1184,7 +1184,7 @@ AbstractQoreNode* QoreTuxedoAdapter::call(const char* service_name, QoreHash* ca
 }
 
 //------------------------------------------------------------------------------
-AbstractQoreNode* QoreTuxedoAdapter::acall(const char* service_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
+AbstractQoreNode* QoreTuxedoAdapter::acall(const char* service_name, const QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"TUXEDO-ERROR";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_acall, m_default_flags_for_acall_set, err_name, xsink);
@@ -1202,7 +1202,7 @@ AbstractQoreNode* QoreTuxedoAdapter::acall(const char* service_name, QoreHash* c
 }
 
 //-----------------------------------------------------------------------------
-AbstractQoreNode* QoreTuxedoAdapter::post_event(const char* event_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
+AbstractQoreNode* QoreTuxedoAdapter::post_event(const char* event_name, const QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"TUXEDO-ERROR";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_post_event, m_default_flags_for_post_event_set, err_name, xsink);
@@ -1217,7 +1217,7 @@ AbstractQoreNode* QoreTuxedoAdapter::post_event(const char* event_name, QoreHash
 }
 
 //------------------------------------------------------------------------------
-QoreHashNode *QoreTuxedoAdapter::get_reply(int handle, QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
+QoreHashNode *QoreTuxedoAdapter::get_reply(int handle, const QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"TUXEDO-ADAPTER-WAIT-FOR-ASYNC_REPLY";
 
@@ -1249,7 +1249,7 @@ QoreHashNode *QoreTuxedoAdapter::get_reply(int handle, QoreHash* call_settings, 
 }
 
 //------------------------------------------------------------------------------
-AbstractQoreNode* QoreTuxedoAdapter::connect(const char* service_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
+AbstractQoreNode* QoreTuxedoAdapter::connect(const char* service_name, const QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"TUXEDO-ADAPTER-JOIN-CONVERSATION";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_connect, m_default_flags_for_connect_set, err_name, xsink);
@@ -1264,7 +1264,7 @@ AbstractQoreNode* QoreTuxedoAdapter::connect(const char* service_name, QoreHash*
 }
 
 //-----------------------------------------------------------------------------
-AbstractQoreNode* QoreTuxedoAdapter::send(int handle, QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
+AbstractQoreNode* QoreTuxedoAdapter::send(int handle, const QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"TUXEDO-ERROR-SEND-CONVERSATION-DATA";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_send, m_default_flags_for_send_set, err_name, xsink);
@@ -1278,7 +1278,7 @@ AbstractQoreNode* QoreTuxedoAdapter::send(int handle, QoreHash* call_settings, l
 }
 
 //-----------------------------------------------------------------------------
-QoreHashNode *QoreTuxedoAdapter::receive(int handle, QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
+QoreHashNode *QoreTuxedoAdapter::receive(int handle, const QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"TUXEDO-ADAPTER-RECEIVE-CONVERSATION-DATA";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_send, m_default_flags_for_send_set, err_name, xsink);
@@ -1307,26 +1307,26 @@ QoreHashNode *QoreTuxedoAdapter::receive(int handle, QoreHash* call_settings, lo
   return h;
 }
 
-static AbstractQoreNode* get_val(QoreHash* hash, const char* name)
+static const AbstractQoreNode* get_val(const QoreHash* hash, const char* name)
 {
   if (!hash) return 0;
   return hash->getKeyValue(name);
 }
 
-static QoreStringNode *get_string_val(QoreHash* hash, const char* name)
+static const QoreStringNode *get_string_val(const QoreHash* hash, const char* name)
 {
    if (!hash) return 0;
-   return dynamic_cast<QoreStringNode *>(hash->getKeyValue(name));
+   return dynamic_cast<const QoreStringNode *>(hash->getKeyValue(name));
 }
 
-static BinaryNode *get_bin_val(QoreHash* hash, const char* name)
+static const BinaryNode *get_bin_val(const QoreHash* hash, const char* name)
 {
    if (!hash) return 0;
-   return dynamic_cast<BinaryNode *>(hash->getKeyValue(name));
+   return dynamic_cast<const BinaryNode *>(hash->getKeyValue(name));
 }
 
 //-----------------------------------------------------------------------------
-QoreHashNode *QoreTuxedoAdapter::enqueue(const char* queue_space, const char* queue_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
+QoreHashNode *QoreTuxedoAdapter::enqueue(const char* queue_space, const char* queue_name, const QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"TUXEDO-ADAPTER-ENQUEUE";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_enqueue, m_default_flags_for_enqueue_set, err_name, xsink);
@@ -1338,7 +1338,7 @@ QoreHashNode *QoreTuxedoAdapter::enqueue(const char* queue_space, const char* qu
 
   if (call_settings) {
     // set queue control parameters
-    AbstractQoreNode* n = get_val(call_settings, "queue_control_flags");
+     const AbstractQoreNode* n = get_val(call_settings, "queue_control_flags");
     if (n) ctl.flags = (long)n->getAsBigInt();
     n = get_val(call_settings, "queue_control_deq_time");
     if (n) ctl.deq_time = (long)n->getAsBigInt();
@@ -1352,7 +1352,7 @@ QoreHashNode *QoreTuxedoAdapter::enqueue(const char* queue_space, const char* qu
     if (n) ctl.reply_qos = (long)n->getAsBigInt();
     n = get_val(call_settings, "queue_control_urcode");
     if (n) ctl.urcode = (long)n->getAsBigInt();
-    BinaryNode *bin = get_bin_val(call_settings, "queue_control_msgid");
+    const BinaryNode *bin = get_bin_val(call_settings, "queue_control_msgid");
 
     if (bin) {
       unsigned sz = sizeof(ctl.msgid);
@@ -1363,7 +1363,7 @@ QoreHashNode *QoreTuxedoAdapter::enqueue(const char* queue_space, const char* qu
       unsigned sz = sizeof(ctl.corrid);
       if (bin->size() == sz) memcpy(&ctl.corrid, bin->getPtr(), sz);
     }
-    QoreStringNode *str = get_string_val(call_settings, "queue_control_replyqueue");
+    const QoreStringNode *str = get_string_val(call_settings, "queue_control_replyqueue");
     if (str) strcpy(ctl.replyqueue, str->getBuffer());
     str = get_string_val(call_settings, "queue_control_failurequeue");
     if (str) strcpy(ctl.failurequeue, str->getBuffer());
@@ -1396,7 +1396,7 @@ QoreHashNode *QoreTuxedoAdapter::enqueue(const char* queue_space, const char* qu
 }
 
 //-----------------------------------------------------------------------------
-AbstractQoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_name, QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
+AbstractQoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char* queue_name, const QoreHash* call_settings, long* pflags, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"TUXEDO-ADAPTER-DEQUEUE";
   long flags = get_flags(call_settings, pflags, m_default_flags_for_dequeue, m_default_flags_for_dequeue_set, err_name, xsink);
@@ -1414,9 +1414,9 @@ AbstractQoreNode* QoreTuxedoAdapter::dequeue(const char* queue_space, const char
 
   if (call_settings) {
     // set queue control parameters
-    AbstractQoreNode* n = get_val(call_settings, "queue_control_flags");
+     const AbstractQoreNode* n = get_val(call_settings, "queue_control_flags");
     if (n) ctl.flags = (long)n->getAsBigInt();
-    BinaryNode *bin = get_bin_val(call_settings, "queue_control_msgid");
+    const BinaryNode *bin = get_bin_val(call_settings, "queue_control_msgid");
     if (bin) {
       unsigned sz = sizeof(ctl.msgid);
       if (bin->size() == sz) memcpy(&ctl.msgid, bin->getPtr(), sz);
@@ -1555,7 +1555,7 @@ QoreHashNode *QoreTuxedoAdapter::loadFmlDescription(const string& file, bool is_
 }
 
 //------------------------------------------------------------------------------
-QoreHashNode *QoreTuxedoAdapter::generateFmlDescription(int base, QoreHash* typed_names, bool is_fml32, ExceptionSink* xsink)
+QoreHashNode *QoreTuxedoAdapter::generateFmlDescription(int base, const QoreHash* typed_names, bool is_fml32, ExceptionSink* xsink)
 {
   const char* err_name = (char*)"LOAD-FML-DESCRIPTION-ERROR";
 
@@ -1572,12 +1572,12 @@ QoreHashNode *QoreTuxedoAdapter::generateFmlDescription(int base, QoreHash* type
 
   if (base > 0) fprintf(f, "*base %d\n", base);
 
-  HashIterator iter(typed_names);
+  ConstHashIterator iter(typed_names);
   int counter = 0;
 
   while (iter.next()) {
     const char* name = iter.getKey();
-    AbstractQoreNode* value = iter.getValue();
+    const AbstractQoreNode* value = iter.getValue();
     int type = value ? value->getAsInt() : 0;
     char* type_name;
 
@@ -1719,53 +1719,53 @@ static void reallocate_buffer(char** buffer, long* buffer_size, long new_size, c
 
 //-----------------------------------------------------------------------------
 // Find out ID + type from FML name, helper
-static pair<FLDID32, int> fml_name2id(const char* name, QoreHash* description_info, ExceptionSink* xsink, const char* func_name)
+static pair<FLDID32, int> fml_name2id(const char* name, const QoreHash* description_info, ExceptionSink* xsink, const char* func_name)
 {
   pair<FLDID32, int> result(0, 0);
-  AbstractQoreNode* n = description_info->getKeyValueExistence(name);
-  if (!n || n == (AbstractQoreNode*)-1) {
-    xsink->raiseException(func_name, "Field [ %s ] does not exist in FML[32] settings. Please check for typos.");
-    return result;
+  const AbstractQoreNode* n = description_info->getKeyValue(name);
+  if (!n) {
+     xsink->raiseException(func_name, "Field [ %s ] does not exist in FML[32] settings. Please check for typos.");
+     return result;
   }
   // already known to be list with (int, int)
   assert(n->type == NT_LIST);
-  QoreListNode* l = reinterpret_cast<QoreListNode *>(n);
+  const QoreListNode* l = reinterpret_cast<const QoreListNode *>(n);
   assert(l->size() == 2);
-  QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(l->retrieve_entry(0));
+  const QoreBigIntNode *b = reinterpret_cast<const QoreBigIntNode *>(l->retrieve_entry(0));
   result.first = (FLDID32)b->val;
-  b = reinterpret_cast<QoreBigIntNode *>(l->retrieve_entry(1));
+  b = reinterpret_cast<const QoreBigIntNode *>(l->retrieve_entry(1));
   result.second = (int)b->val;
   return result;
 }
 
 //------------------------------------------------------------------------------
 // Find FML name and type from ID, helper
-static pair<string, int> fml_id2name(FLDID32 id, QoreHash* description_info, ExceptionSink* xsink, char* func_name)
+static pair<string, int> fml_id2name(FLDID32 id, const QoreHash* description_info, ExceptionSink* xsink, char* func_name)
 {
-  HashIterator it(description_info);
-  while (it.next()) {
-    AbstractQoreNode* n = it.getValue();
-    assert(n->type == NT_LIST);
-    QoreListNode* l = reinterpret_cast<QoreListNode *>(n);
-    assert(l->size() == 2);
-    n = l->retrieve_entry(0);
-    assert(n->type == NT_INT);
-    FLDID32 this_id = (FLDID32)n->getAsInt();
-    if (this_id != id) continue;
-
-    pair<string, int> result;
-    result.first = it.getKey();
-    n = l->retrieve_entry(1);
-    assert(n->type == NT_INT);
-    result.second = (int)n->getAsInt();
-    return result;
-  }
-  xsink->raiseException(func_name, "A FML[32] ID not found in description table.");
-  return pair<std::string, int>("", 0);
+   ConstHashIterator it(description_info);
+   while (it.next()) {
+      const AbstractQoreNode* n = it.getValue();
+      assert(n->type == NT_LIST);
+      const QoreListNode* l = reinterpret_cast<const QoreListNode *>(n);
+      assert(l->size() == 2);
+      n = l->retrieve_entry(0);
+      assert(n->type == NT_INT);
+      FLDID32 this_id = (FLDID32)n->getAsInt();
+      if (this_id != id) continue;
+      
+      pair<string, int> result;
+      result.first = it.getKey();
+      n = l->retrieve_entry(1);
+      assert(n->type == NT_INT);
+      result.second = (int)n->getAsInt();
+      return result;
+   }
+   xsink->raiseException(func_name, "A FML[32] ID not found in description table.");
+   return pair<std::string, int>("", 0);
 }
 
 //------------------------------------------------------------------------------
-void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, FLDID32 id, int value_type, AbstractQoreNode* value, bool is_fml32, const char* err_name, ExceptionSink* xsink)
+void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, FLDID32 id, int value_type, const AbstractQoreNode* value, bool is_fml32, const char* err_name, ExceptionSink* xsink)
 {
   char* ptr_val;
   FLDLEN32 value_length;
@@ -1782,7 +1782,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
   switch (value_type) {
     case FLD_SHORT: 
     {
-       QoreBigIntNode *b = dynamic_cast<QoreBigIntNode *>(value);
+       const QoreBigIntNode *b = dynamic_cast<const QoreBigIntNode *>(value);
        if (!b) {
 	  xsink->raiseException(err_name, "Value [ %s ] needs to be integer.", value_name);
 	  return;
@@ -1800,12 +1800,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
 
     case FLD_LONG:
     {
-       QoreBigIntNode *b = dynamic_cast<QoreBigIntNode *>(value);
-       if (!b) {
-	  xsink->raiseException(err_name, "Value [ %s ] needs to be integer.", value_name);
-	  return;
-       }
-       int64 val = b->val;
+       int64 val = value ? value->getAsBigInt() : 0;
        if (val < LONG_MIN || val > LONG_MAX) {
 	  xsink->raiseException(err_name, "Value [ %s ] doesn't contain value fitting long type.", value_name);
 	  return;
@@ -1818,12 +1813,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
 
     case FLD_CHAR: 
     {
-       QoreBigIntNode *b = dynamic_cast<QoreBigIntNode *>(value);
-       if (!b) {
-	  xsink->raiseException(err_name, "Value [ %s ] needs to be integer.", value_name);
-	  return;
-       }
-       int64 val = b->val;
+       int val = value ? value->getAsInt() : 0;
        if (val < CHAR_MIN || val > CHAR_MAX) {
 	  xsink->raiseException(err_name, "Value [ %s ] doesn't contain value fitting char type.", value_name);
 	  return;
@@ -1857,7 +1847,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
 
     case FLD_STRING:
     {
-       QoreStringNode *str = dynamic_cast<QoreStringNode *>(value);
+       const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(value);
        
        if (!str) {
 	  xsink->raiseException(err_name, "Value [ %s ] needs to be a string.", value_name);
@@ -1876,7 +1866,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
 
     case FLD_CARRAY:
     {
-       BinaryNode *bin = dynamic_cast<BinaryNode *>(value);
+       const BinaryNode *bin = dynamic_cast<const BinaryNode *>(value);
        if (!bin) {
 	  xsink->raiseException(err_name, "Value [ %s ] needs to be a binary.", value_name);
 	  return;
@@ -1922,7 +1912,7 @@ void QoreTuxedoAdapter::add_fml_value_into_send_buffer(const char* value_name, F
 
 
 //------------------------------------------------------------------------------
-void QoreTuxedoAdapter::setFmlDataToSend(QoreHash* description_info, QoreHash* data, bool is_fml32, const char* err_name, ExceptionSink* xsink)
+void QoreTuxedoAdapter::setFmlDataToSend(const QoreHash* description_info, const QoreHash* data, bool is_fml32, const char* err_name, ExceptionSink* xsink)
 {
   assert(m_send_buffer);
   int res;
@@ -1938,7 +1928,7 @@ void QoreTuxedoAdapter::setFmlDataToSend(QoreHash* description_info, QoreHash* d
     return;
   }
   // append every item in the buffer
-  HashIterator iter(data);
+  ConstHashIterator iter(data);
   int index = 0;
   while (iter.next()) {
     ++index;
@@ -1952,24 +1942,24 @@ void QoreTuxedoAdapter::setFmlDataToSend(QoreHash* description_info, QoreHash* d
     char* thumb = strchr((char*)name.c_str(), '^');
     if (thumb) *thumb = 0;
     
-    AbstractQoreNode* value = iter.getValue();
+    const AbstractQoreNode* value = iter.getValue();
 
     pair<FLDID32, int> id_type = fml_name2id((char*)name.c_str(), description_info, xsink, err_name);
     if (xsink->isException()) {
       return;
     }
 
-    QoreListNode *l = dynamic_cast<QoreListNode *>(value);
+    const QoreListNode *l = dynamic_cast<const QoreListNode *>(value);
     if (l) {
       // explode the list members
       for (int i = 0, cnt = l->size(); i != cnt; ++i) {
-        AbstractQoreNode* subvalue = l->retrieve_entry(i);
-        add_fml_value_into_send_buffer((char*)name.c_str(), id_type.first, id_type.second, subvalue, is_fml32, err_name, xsink);
-        if (xsink->isException()) return;
+	 const AbstractQoreNode* subvalue = l->retrieve_entry(i);
+	 add_fml_value_into_send_buffer((char*)name.c_str(), id_type.first, id_type.second, subvalue, is_fml32, err_name, xsink);
+	 if (xsink->isException()) return;
       }
     } else {
-      add_fml_value_into_send_buffer((char*)name.c_str(), id_type.first, id_type.second, value, is_fml32, err_name, xsink);
-      if (xsink->isException()) return;
+       add_fml_value_into_send_buffer((char*)name.c_str(), id_type.first, id_type.second, value, is_fml32, err_name, xsink);
+       if (xsink->isException()) return;
     }
   }
 
@@ -2003,7 +1993,7 @@ void QoreTuxedoAdapter::setFmlDataToSend(QoreHash* description_info, QoreHash* d
 
 
 //------------------------------------------------------------------------------
-QoreHashNode *QoreTuxedoAdapter::getFmlDataFromBuffer(QoreHash* description_info, bool is_fml32, 
+QoreHashNode *QoreTuxedoAdapter::getFmlDataFromBuffer(const QoreHash* description_info, bool is_fml32, 
 						      ExceptionSink* xsink, const char* buffer, long buffer_size, const char* err_name)
 {
  
