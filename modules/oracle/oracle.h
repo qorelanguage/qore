@@ -181,7 +181,7 @@ union ora_bind {
 	    const char *type;       // qore datatype for column
       } ph;
       struct {
-	    class AbstractQoreNode *value;   // value to be bound
+	    const AbstractQoreNode *value;   // value to be bound
 	    class QoreString *tstr;   // temporary string to be deleted
       } v;
 };
@@ -195,7 +195,7 @@ class OraBindNode {
       sb2 ind;             // NULL indicator for OCI calls
       class OraBindNode *next;
 
-      DLLLOCAL inline OraBindNode(class AbstractQoreNode *v) // for value nodes
+      DLLLOCAL inline OraBindNode(const AbstractQoreNode *v) // for value nodes
       {
 	 bindtype = BN_VALUE;
 	 data.v.value = v;
@@ -289,7 +289,7 @@ class OraBindGroup {
 	    w = head;
 	 }
       }
-      DLLLOCAL inline void add(class AbstractQoreNode *v)
+      DLLLOCAL inline void add(const AbstractQoreNode *v)
       {
 	 class OraBindNode *c = new OraBindNode(v);
 	 add(c);
