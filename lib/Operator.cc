@@ -1000,7 +1000,7 @@ static AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQoreNode
    }
    else // do integer plus-equals
    {
-      int64 iv = right ? right->bigIntEval(xsink) : 0.0;
+      int64 iv = right ? right->bigIntEval(xsink) : 0;
       if (*xsink)
 	 return 0;
 
@@ -1108,7 +1108,7 @@ static AbstractQoreNode *op_minus_equals(AbstractQoreNode *left, AbstractQoreNod
 	 (*v) = new QoreBigIntNode(-new_right->getAsBigInt());
    }
    else { // do integer minus-equals
-      int64 iv = right ? right->bigIntEval(xsink) : 0.0;
+      int64 iv = right ? right->bigIntEval(xsink) : 0;
       if (*xsink)
 	 return 0;
       
