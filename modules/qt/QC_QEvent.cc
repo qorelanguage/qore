@@ -32,7 +32,7 @@ class QoreClass *QC_QEvent = 0;
 
 static void QEVENT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    QoreQEvent *qe = new QoreQEvent((QEvent::Type)(p ? p->getAsInt() : 0));
 
@@ -67,7 +67,7 @@ static AbstractQoreNode *QEVENT_isAccepted(QoreObject *self, QoreQEvent *qe, con
 //void setAccepted ( bool accepted )
 static AbstractQoreNode *QEVENT_setAccepted(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool accepted = p ? p->getAsBool() : false;
    qe->setAccepted(accepted);
    return 0;

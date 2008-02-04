@@ -35,7 +35,7 @@ QoreClass *QC_QMatrix = 0;
 
 static void QMATRIX_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal m11 = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    qreal m12 = p ? p->getAsFloat() : 0.0;
@@ -102,7 +102,7 @@ static AbstractQoreNode *QMATRIX_dy(QoreObject *self, QoreQMatrix *qm, const Qor
 //QMatrix inverted ( bool * invertible = 0 ) const
 static AbstractQoreNode *QMATRIX_inverted(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* invertible = p;
    QoreObject *o_qm = new QoreObject(self->getClass(CID_QMATRIX), getProgram());
    QoreQMatrix *q_qm = new QoreQMatrix(qm->inverted());
@@ -134,14 +134,14 @@ static AbstractQoreNode *QMATRIX_isInvertible(QoreObject *self, QoreQMatrix *qm,
 //QPainterPath map ( const QPainterPath & path ) const
 static AbstractQoreNode *QMATRIX_map(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
-         QoreQRegion *region = (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink);
+         QoreQRegion *region = (QoreQRegion *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink);
          if (!region) {
             if (!xsink->isException())
-               xsink->raiseException("QMATRIX-MAP-PARAM-ERROR", "QMatrix::map() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QMATRIX-MAP-PARAM-ERROR", "QMatrix::map() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
             return 0;
          }
          ReferenceHolder<QoreQRegion> regionHolder(region, xsink);
@@ -160,14 +160,14 @@ static AbstractQoreNode *QMATRIX_map(QoreObject *self, QoreQMatrix *qm, const Qo
 //QRect mapRect ( const QRect & rectangle ) const
 static AbstractQoreNode *QMATRIX_mapRect(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
+      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectangle) {
-         QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
+         QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
          if (!rectangle) {
             if (!xsink->isException())
-               xsink->raiseException("QMATRIX-MAPRECT-PARAM-ERROR", "QMatrix::mapRect() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QMATRIX-MAPRECT-PARAM-ERROR", "QMatrix::mapRect() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
             return 0;
          }
          ReferenceHolder<QoreQRect> rectangleHolder(rectangle, xsink);
@@ -189,8 +189,8 @@ static AbstractQoreNode *QMATRIX_mapRect(QoreObject *self, QoreQMatrix *qm, cons
 //QPolygon mapToPolygon ( const QRect & rectangle ) const
 //static AbstractQoreNode *QMATRIX_mapToPolygon(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
-//   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+//   QoreObject *p = test_object_param(params, 0);
+//   QoreQRect *rectangle = p ? (QoreQRect *)p->getReferencedPrivateData(CID_QRECT, xsink) : 0;
 //   if (!rectangle) {
 //      if (!xsink->isException())
 //         xsink->raiseException("QMATRIX-MAPTOPOLYGON-PARAM-ERROR", "expecting a QRect object as first argument to QMatrix::mapToPolygon()");
@@ -210,7 +210,7 @@ static AbstractQoreNode *QMATRIX_reset(QoreObject *self, QoreQMatrix *qm, const 
 //QMatrix & rotate ( qreal degrees )
 static AbstractQoreNode *QMATRIX_rotate(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal degrees = p ? p->getAsFloat() : 0.0;
    QoreObject *o_qm = new QoreObject(self->getClass(CID_QMATRIX), getProgram());
    QoreQMatrix *q_qm = new QoreQMatrix(qm->rotate(degrees));
@@ -221,7 +221,7 @@ static AbstractQoreNode *QMATRIX_rotate(QoreObject *self, QoreQMatrix *qm, const
 //QMatrix & scale ( qreal sx, qreal sy )
 static AbstractQoreNode *QMATRIX_scale(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal sx = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    qreal sy = p ? p->getAsFloat() : 0.0;
@@ -234,7 +234,7 @@ static AbstractQoreNode *QMATRIX_scale(QoreObject *self, QoreQMatrix *qm, const 
 //void setMatrix ( qreal m11, qreal m12, qreal m21, qreal m22, qreal dx, qreal dy )
 static AbstractQoreNode *QMATRIX_setMatrix(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal m11 = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    qreal m12 = p ? p->getAsFloat() : 0.0;
@@ -253,7 +253,7 @@ static AbstractQoreNode *QMATRIX_setMatrix(QoreObject *self, QoreQMatrix *qm, co
 //QMatrix & shear ( qreal sh, qreal sv )
 static AbstractQoreNode *QMATRIX_shear(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal sh = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    qreal sv = p ? p->getAsFloat() : 0.0;
@@ -266,7 +266,7 @@ static AbstractQoreNode *QMATRIX_shear(QoreObject *self, QoreQMatrix *qm, const 
 //QMatrix & translate ( qreal dx, qreal dy )
 static AbstractQoreNode *QMATRIX_translate(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal dx = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    qreal dy = p ? p->getAsFloat() : 0.0;

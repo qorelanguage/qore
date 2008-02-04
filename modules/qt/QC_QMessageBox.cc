@@ -40,13 +40,13 @@ class QoreClass *QC_QMessageBox = 0;
 //QMessageBox ( Icon icon, const QString & title, const QString & text, StandardButtons buttons = NoButton, QWidget * parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint )
 static void QMESSAGEBOX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QMESSAGEBOX, new QoreQMessageBox(self));
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
+      QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
          return;
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -64,8 +64,9 @@ static void QMESSAGEBOX_constructor(QoreObject *self, const QoreListNode *params
       return;
    p = get_param(params, 3);
    QMessageBox::StandardButtons buttons = !is_nothing(p) ? (QMessageBox::StandardButtons)p->getAsInt() : QMessageBox::NoButton;
-   p = get_param(params, 4);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 4);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -85,12 +86,12 @@ static void QMESSAGEBOX_copy(class QoreObject *self, class QoreObject *old, clas
 //QPushButton * addButton ( StandardButton button )
 static AbstractQoreNode *QMESSAGEBOX_addButton(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQAbstractButton *button = (QoreQAbstractButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink);
+      QoreQAbstractButton *button = (QoreQAbstractButton *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink);
       if (!button) {
          if (!xsink->isException())
-            xsink->raiseException("QMESSAGEBOX-ADDBUTTON-PARAM-ERROR", "QMessageBox::addButton() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QMESSAGEBOX-ADDBUTTON-PARAM-ERROR", "QMessageBox::addButton() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> buttonHolder(static_cast<AbstractPrivateData *>(button), xsink);
@@ -132,7 +133,7 @@ static AbstractQoreNode *QMESSAGEBOX_addButton(QoreObject *self, QoreQMessageBox
 //QAbstractButton * button ( StandardButton which ) const
 static AbstractQoreNode *QMESSAGEBOX_button(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMessageBox::StandardButton which = (QMessageBox::StandardButton)(p ? p->getAsInt() : 0);
    QAbstractButton *qab = qmb->qobj->button(which);
    if (!qab)
@@ -256,8 +257,8 @@ static AbstractQoreNode *QMESSAGEBOX_informativeText(QoreObject *self, QoreQMess
 //void removeButton ( QAbstractButton * button )
 static AbstractQoreNode *QMESSAGEBOX_removeButton(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQAbstractButton *button = p ? (QoreQAbstractButton *)p->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
    if (!button) {
       if (!xsink->isException())
          xsink->raiseException("QMESSAGEBOX-REMOVEBUTTON-PARAM-ERROR", "expecting a QAbstractButton object as first argument to QMessageBox::removeButton()");
@@ -272,7 +273,7 @@ static AbstractQoreNode *QMESSAGEBOX_removeButton(QoreObject *self, QoreQMessage
 ////void setDefaultButton ( StandardButton button )
 //static AbstractQoreNode *QMESSAGEBOX_setDefaultButton(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   if (p && p->type == NT_???) {
 //      ??? QPushButton* button = p;
 //      qmb->qobj->setDefaultButton(button);
@@ -286,7 +287,7 @@ static AbstractQoreNode *QMESSAGEBOX_removeButton(QoreObject *self, QoreQMessage
 //void setDetailedText ( const QString & text )
 static AbstractQoreNode *QMESSAGEBOX_setDetailedText(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
@@ -298,12 +299,12 @@ static AbstractQoreNode *QMESSAGEBOX_setDetailedText(QoreObject *self, QoreQMess
 //void setEscapeButton ( StandardButton button )
 static AbstractQoreNode *QMESSAGEBOX_setEscapeButton(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQAbstractButton *button = (QoreQAbstractButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink);
+      QoreQAbstractButton *button = (QoreQAbstractButton *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink);
       if (!button) {
          if (!xsink->isException())
-            xsink->raiseException("QMESSAGEBOX-SETESCAPEBUTTON-PARAM-ERROR", "QMessageBox::setEscapeButton() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QMESSAGEBOX-SETESCAPEBUTTON-PARAM-ERROR", "QMessageBox::setEscapeButton() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> buttonHolder(static_cast<AbstractPrivateData *>(button), xsink);
@@ -318,7 +319,7 @@ static AbstractQoreNode *QMESSAGEBOX_setEscapeButton(QoreObject *self, QoreQMess
 //void setIcon ( Icon )
 static AbstractQoreNode *QMESSAGEBOX_setIcon(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMessageBox::Icon icon = (QMessageBox::Icon)(p ? p->getAsInt() : 0);
    qmb->qobj->setIcon(icon);
    return 0;
@@ -327,8 +328,8 @@ static AbstractQoreNode *QMESSAGEBOX_setIcon(QoreObject *self, QoreQMessageBox *
 //void setIconPixmap ( const QPixmap & pixmap )
 static AbstractQoreNode *QMESSAGEBOX_setIconPixmap(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPixmap *pixmap = p ? (QoreQPixmap *)p->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!pixmap) {
       if (!xsink->isException())
          xsink->raiseException("QMESSAGEBOX-SETICONPIXMAP-PARAM-ERROR", "expecting a QPixmap object as first argument to QMessageBox::setIconPixmap()");
@@ -342,7 +343,7 @@ static AbstractQoreNode *QMESSAGEBOX_setIconPixmap(QoreObject *self, QoreQMessag
 //void setInformativeText ( const QString & text )
 static AbstractQoreNode *QMESSAGEBOX_setInformativeText(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
@@ -353,7 +354,7 @@ static AbstractQoreNode *QMESSAGEBOX_setInformativeText(QoreObject *self, QoreQM
 //void setStandardButtons ( StandardButtons buttons )
 static AbstractQoreNode *QMESSAGEBOX_setStandardButtons(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMessageBox::StandardButtons buttons = (QMessageBox::StandardButtons)(p ? p->getAsInt() : 0);
    qmb->qobj->setStandardButtons(buttons);
    return 0;
@@ -362,7 +363,7 @@ static AbstractQoreNode *QMESSAGEBOX_setStandardButtons(QoreObject *self, QoreQM
 //void setText ( const QString & text )
 static AbstractQoreNode *QMESSAGEBOX_setText(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
@@ -373,7 +374,7 @@ static AbstractQoreNode *QMESSAGEBOX_setText(QoreObject *self, QoreQMessageBox *
 //void setTextFormat ( Qt::TextFormat format )
 static AbstractQoreNode *QMESSAGEBOX_setTextFormat(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::TextFormat format = (Qt::TextFormat)(p ? p->getAsInt() : 0);
    qmb->qobj->setTextFormat(format);
    return 0;
@@ -382,7 +383,7 @@ static AbstractQoreNode *QMESSAGEBOX_setTextFormat(QoreObject *self, QoreQMessag
 //void setWindowModality ( Qt::WindowModality windowModality )
 static AbstractQoreNode *QMESSAGEBOX_setWindowModality(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::WindowModality windowModality = (Qt::WindowModality)(p ? p->getAsInt() : 0);
    qmb->qobj->setWindowModality(windowModality);
    return 0;
@@ -391,7 +392,7 @@ static AbstractQoreNode *QMESSAGEBOX_setWindowModality(QoreObject *self, QoreQMe
 //void setWindowTitle ( const QString & title )
 static AbstractQoreNode *QMESSAGEBOX_setWindowTitle(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
@@ -402,8 +403,8 @@ static AbstractQoreNode *QMESSAGEBOX_setWindowTitle(QoreObject *self, QoreQMessa
 ////StandardButton standardButton ( QAbstractButton * button ) const
 //static AbstractQoreNode *QMESSAGEBOX_standardButton(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
-//   QoreQAbstractButton *button = (p && p->type == NT_OBJECT) ? (QoreQAbstractButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
+//   QoreObject *p = test_object_param(params, 0);
+//   QoreQAbstractButton *button = p ? (QoreQAbstractButton *)p->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink) : 0;
 //   if (!button) {
 //      if (!xsink->isException())
 //         xsink->raiseException("QMESSAGEBOX-STANDARDBUTTON-PARAM-ERROR", "expecting a QAbstractButton object as first argument to QMessageBox::standardButton()");
@@ -480,18 +481,20 @@ QoreClass *initQMessageBoxClass(QoreClass *qdialog)
 //void about ( QWidget * parent, const QString & title, const QString & text )
 static AbstractQoreNode *f_QMessageBox_about(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QMESSAGEBOX-ABOUT-PARAM-ERROR", "expecting a QWidget object as first argument to QMessageBox_about()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
+
    p = get_param(params, 2);
    QString text;
    if (get_qstring(p, text, xsink))
@@ -503,15 +506,16 @@ static AbstractQoreNode *f_QMessageBox_about(const QoreListNode *params, Excepti
 //void aboutQt ( QWidget * parent, const QString & title = QString() )
 static AbstractQoreNode *f_QMessageBox_aboutQt(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QMESSAGEBOX-ABOUTQT-PARAM-ERROR", "expecting a QWidget object as first argument to QMessageBox_aboutQt()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    QString title;
    if (get_qstring(p, title, xsink, true))
       title = QString();
@@ -522,19 +526,23 @@ static AbstractQoreNode *f_QMessageBox_aboutQt(const QoreListNode *params, Excep
 //StandardButton critical ( QWidget * parent, const QString & title, const QString & text, StandardButtons buttons = Ok, StandardButton defaultButton = NoButton )
 static AbstractQoreNode *f_QMessageBox_critical(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
+
    p = get_param(params, 2);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
+
    p = get_param(params, 3);
    QMessageBox::StandardButtons buttons = !is_nothing(p) ? (QMessageBox::StandardButtons)p->getAsInt() : QMessageBox::Ok;
+
    p = get_param(params, 4);
    QMessageBox::StandardButton defaultButton = !is_nothing(p) ? (QMessageBox::StandardButton)p->getAsInt() : QMessageBox::NoButton;
    return new QoreBigIntNode(QMessageBox::critical(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, title, text, buttons, defaultButton));
@@ -543,19 +551,23 @@ static AbstractQoreNode *f_QMessageBox_critical(const QoreListNode *params, Exce
 //StandardButton information ( QWidget * parent, const QString & title, const QString & text, StandardButtons buttons = Ok, StandardButton defaultButton = NoButton )
 static AbstractQoreNode *f_QMessageBox_information(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
+
    p = get_param(params, 2);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
+
    p = get_param(params, 3);
    QMessageBox::StandardButtons buttons = !is_nothing(p) ? (QMessageBox::StandardButtons)p->getAsInt() : QMessageBox::Ok;
+
    p = get_param(params, 4);
    QMessageBox::StandardButton defaultButton = !is_nothing(p) ? (QMessageBox::StandardButton)p->getAsInt() : QMessageBox::NoButton;
    return new QoreBigIntNode(QMessageBox::information(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, title, text, buttons, defaultButton));
@@ -564,19 +576,23 @@ static AbstractQoreNode *f_QMessageBox_information(const QoreListNode *params, E
 //StandardButton question ( QWidget * parent, const QString & title, const QString & text, StandardButtons buttons = Ok, StandardButton defaultButton = NoButton )
 static AbstractQoreNode *f_QMessageBox_question(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
+
    p = get_param(params, 2);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
+
    p = get_param(params, 3);
    QMessageBox::StandardButtons buttons = !is_nothing(p) ? (QMessageBox::StandardButtons)p->getAsInt() : QMessageBox::Ok;
+
    p = get_param(params, 4);
    QMessageBox::StandardButton defaultButton = !is_nothing(p) ? (QMessageBox::StandardButton)p->getAsInt() : QMessageBox::NoButton;
    return new QoreBigIntNode(QMessageBox::question(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, title, text, buttons, defaultButton));
@@ -585,24 +601,27 @@ static AbstractQoreNode *f_QMessageBox_question(const QoreListNode *params, Exce
 //StandardButton warning ( QWidget * parent, const QString & title, const QString & text, StandardButtons buttons = Ok, StandardButton defaultButton = NoButton )
 static AbstractQoreNode *f_QMessageBox_warning(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
+
    p = get_param(params, 2);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
+
    p = get_param(params, 3);
    QMessageBox::StandardButtons buttons = !is_nothing(p) ? (QMessageBox::StandardButtons)p->getAsInt() : QMessageBox::Ok;
+
    p = get_param(params, 4);
    QMessageBox::StandardButton defaultButton = !is_nothing(p) ? (QMessageBox::StandardButton)p->getAsInt() : QMessageBox::NoButton;
    return new QoreBigIntNode(QMessageBox::warning(parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, title, text, buttons, defaultButton));
 }
-
 
 void initQMessageBoxStaticFunctions()
 {

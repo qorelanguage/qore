@@ -34,18 +34,20 @@ class QoreClass *QC_QDropEvent = 0;
 //QDropEvent ( const QPoint & pos, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Type type = Drop )
 static void QDROPEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQPoint *pos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QDROPEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as first argument to QDropEvent::constructor()");
       return;
    }
    ReferenceHolder<QoreQPoint> posHolder(pos, xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    Qt::DropActions actions = (Qt::DropActions)(p ? p->getAsInt() : 0);
-   p = get_param(params, 2);
-   QoreQMimeData *data = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQMimeData *data = o ? (QoreQMimeData *)o->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
    if (!data) {
       if (!xsink->isException())
          xsink->raiseException("QDROPEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QMimeData object as third argument to QDropEvent::constructor()");
@@ -129,7 +131,7 @@ static AbstractQoreNode *QDROPEVENT_proposedAction(QoreObject *self, QoreQDropEv
 //void setDropAction ( Qt::DropAction action )
 static AbstractQoreNode *QDROPEVENT_setDropAction(QoreObject *self, QoreQDropEvent *qde, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::DropAction action = (Qt::DropAction)(p ? p->getAsInt() : 0);
    qde->setDropAction(action);
    return 0;

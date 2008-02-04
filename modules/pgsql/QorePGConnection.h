@@ -274,9 +274,9 @@ class QorePGResult {
 
       DLLLOCAL class AbstractQoreNode *getNode(int row, int col, class ExceptionSink *xsink);
       // returns 0 for OK, -1 for error
-      DLLLOCAL int parse(class QoreString *str, const QoreListNode *args, class ExceptionSink *xsink);
-      DLLLOCAL int add(class AbstractQoreNode *v, class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode *getArray(int type, qore_pg_data_func_t func, char *&array_data, int current, int ndim, int dim[]);
+      DLLLOCAL int parse(QoreString *str, const QoreListNode *args, class ExceptionSink *xsink);
+      DLLLOCAL int add(const AbstractQoreNode *v, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *getArray(int type, qore_pg_data_func_t func, char *&array_data, int current, int ndim, int dim[]);
       //DLLLOCAL int bind();
 
    public:
@@ -310,22 +310,22 @@ class QorePGBindArray {
       class QorePGConnection *conn;
 
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int check_type(class AbstractQoreNode *n, class ExceptionSink *xsink);
+      DLLLOCAL int check_type(const AbstractQoreNode *n, ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int check_oid(QoreHash *h, class ExceptionSink *xsink);
+      DLLLOCAL int check_oid(const QoreHash *h, ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int new_dimension(QoreListNode *l, int current, class ExceptionSink *xsink);
+      DLLLOCAL int new_dimension(const QoreListNode *l, int current, ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int process_list(QoreListNode *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink);
+      DLLLOCAL int process_list(const QoreListNode *l, int current, const QoreEncoding *enc, ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int bind(class AbstractQoreNode *n, const QoreEncoding *enc, class ExceptionSink *xsink);
+      DLLLOCAL int bind(const AbstractQoreNode *n, const QoreEncoding *enc, ExceptionSink *xsink);
       DLLLOCAL void check_size(int size);
 
    public:
       DLLLOCAL QorePGBindArray(class QorePGConnection *r_conn);
       DLLLOCAL ~QorePGBindArray();
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int create_data(class QoreListNode *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink);
+      DLLLOCAL int create_data(const QoreListNode *l, int current, const QoreEncoding *enc, ExceptionSink *xsink);
       DLLLOCAL int getOid() const;
       DLLLOCAL int getArrayOid() const;
       DLLLOCAL int getSize() const;

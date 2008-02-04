@@ -87,7 +87,7 @@ static AbstractQoreNode *FILE_open(QoreObject *self, class File *f, const QoreLi
 }
 
 // open2(filename, [flags, mode, charset])
-// thrown an exception if there is an error
+// throws an exception if there is an error
 static AbstractQoreNode *FILE_open2(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0;

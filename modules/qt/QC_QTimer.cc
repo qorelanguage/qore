@@ -33,8 +33,8 @@ int CID_QTIMER;
 static void QTIMER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQTimer *qw;
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
 
    if (!parent)
       qw = new QoreQTimer(self);
@@ -73,7 +73,7 @@ static AbstractQoreNode *QTIMER_isSingleShot(QoreObject *self, QoreQTimer *qt, c
 //void setInterval ( int msec )
 static AbstractQoreNode *QTIMER_setInterval(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int msec = p ? p->getAsInt() : 0;
    qt->qobj->setInterval(msec);
    return 0;
@@ -82,7 +82,7 @@ static AbstractQoreNode *QTIMER_setInterval(QoreObject *self, QoreQTimer *qt, co
 //void setSingleShot ( bool singleShot )
 static AbstractQoreNode *QTIMER_setSingleShot(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool singleShot = p ? p->getAsBool() : false;
    qt->qobj->setSingleShot(singleShot);
    return 0;
@@ -100,7 +100,7 @@ static AbstractQoreNode *QTIMER_timerId(QoreObject *self, QoreQTimer *qt, const 
 //void start ()
 static AbstractQoreNode *QTIMER_start(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qt->qobj->start();
    else {
@@ -145,10 +145,10 @@ class QoreClass *initQTimerClass(class QoreClass *qobject)
 //void singleShot ( int msec, QObject * receiver, const char * member )
 static AbstractQoreNode *f_QTimer_singleShot(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int msec = p ? p->getAsInt() : 0;
-   p = get_param(params, 1);
-   QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 1);
+   QoreAbstractQObject *receiver = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!receiver) {
       if (!xsink->isException())
          xsink->raiseException("QTIMER-SINGLESHOT-PARAM-ERROR", "expecting a QObject object as second argument to QTimer::singleShot()");
@@ -156,7 +156,7 @@ static AbstractQoreNode *f_QTimer_singleShot(const QoreListNode *params, Excepti
    }
    ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
 
-   QoreStringNode *pstr = test_string_param(params, 2);
+   const QoreStringNode *pstr = test_string_param(params, 2);
    if (!pstr) {
       xsink->raiseException("QTIMER-SINGLESHOT-PARAM-ERROR", "expecting a string as third argument to QTimer::singleShot()");
       return 0;

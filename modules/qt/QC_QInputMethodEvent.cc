@@ -32,7 +32,7 @@ class QoreClass *QC_QInputMethodEvent = 0;
 ////QInputMethodEvent ( const QInputMethodEvent & other )
 static void QINPUTMETHODEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QINPUTMETHODEVENT, new QoreQInputMethodEvent());
       return;
@@ -89,14 +89,14 @@ static AbstractQoreNode *QINPUTMETHODEVENT_replacementStart(QoreObject *self, Qo
 //void setCommitString ( const QString & commitString, int replaceFrom = 0, int replaceLength = 0 )
 static AbstractQoreNode *QINPUTMETHODEVENT_setCommitString(QoreObject *self, QoreQInputMethodEvent *qime, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *pstr = test_string_param(params, 0);
+   const QoreStringNode *pstr = test_string_param(params, 0);
    if (!pstr) {
       xsink->raiseException("QINPUTMETHODEVENT-SETCOMMITSTRING-PARAM-ERROR", "expecting a string as first argument to QInputMethodEvent::setCommitString()");
       return 0;
    }
    const char *commitString = pstr->getBuffer();
 
-   AbstractQoreNode *p = get_param(params, 1);
+   const AbstractQoreNode *p = get_param(params, 1);
    int replaceFrom = p ? p->getAsInt() : 0;
 
    p = get_param(params, 2);

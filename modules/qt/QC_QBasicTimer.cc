@@ -51,10 +51,11 @@ static AbstractQoreNode *QBASICTIMER_isActive(QoreObject *self, QoreQBasicTimer 
 //void start ( int msec, QObject * object )
 static AbstractQoreNode *QBASICTIMER_start(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int msec = p ? p->getAsInt() : 0;
-   p = get_param(params, 1);
-   QoreAbstractQObject *object = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreAbstractQObject *object = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!object) {
       if (!xsink->isException())
          xsink->raiseException("QBASICTIMER-START-PARAM-ERROR", "expecting a QObject object as second argument to QBasicTimer::start()");

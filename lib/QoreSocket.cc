@@ -1283,7 +1283,7 @@ static void do_headers(QoreString &hdr, const QoreHash *headers, int size)
 
       while (hi.next())
       {
-	 AbstractQoreNode *v = hi.getValue();
+	 const AbstractQoreNode *v = hi.getValue();
 	 if (v)
 	 {
 	    const QoreType *vtype = v->getType();
@@ -1294,7 +1294,7 @@ static void do_headers(QoreString &hdr, const QoreHash *headers, int size)
 	       continue;
 	    }
 	    if (vtype == NT_INT)
-	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), (reinterpret_cast<const QoreBigIntNode *>(v))->val);
+	       hdr.sprintf("%s: %lld\r\n", hi.getKey(), reinterpret_cast<const QoreBigIntNode *>(v)->val);
 	    else if (vtype == NT_FLOAT)
 	       hdr.sprintf("%s: %f\r\n", hi.getKey(), reinterpret_cast<const QoreFloatNode *>(v)->f);
 	    else if (vtype == NT_BOOLEAN)

@@ -34,8 +34,8 @@ class QoreClass *QC_QValidator = 0;
 //QValidator ( QObject * parent )
 static void QVALIDATOR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)p->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "expecting a QObject object as first argument to QValidator::constructor()");
@@ -54,7 +54,7 @@ static void QVALIDATOR_copy(class QoreObject *self, class QoreObject *old, class
 //virtual void fixup ( QString & input ) const
 static AbstractQoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   ReferenceNode *p = test_reference_param(params, 0);
+   const ReferenceNode *p = test_reference_param(params, 0);
    if (!p) {
       xsink->raiseException("QVALIDATOR-FIXUP-ERROR", "expecting a reference as sole argument to QValidator::fixup()");
       return 0;
@@ -88,8 +88,8 @@ static AbstractQoreNode *QVALIDATOR_locale(QoreObject *self, QoreAbstractQValida
 //void setLocale ( const QLocale & locale )
 static AbstractQoreNode *QVALIDATOR_setLocale(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQLocale *locale = (p && p->type == NT_OBJECT) ? (QoreQLocale *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQLocale *locale = p ? (QoreQLocale *)p->getReferencedPrivateData(CID_QLOCALE, xsink) : 0;
    if (!locale) {
       if (!xsink->isException())
          xsink->raiseException("QVALIDATOR-SETLOCALE-PARAM-ERROR", "expecting a QLocale object as first argument to QValidator::setLocale()");
@@ -103,13 +103,13 @@ static AbstractQoreNode *QVALIDATOR_setLocale(QoreObject *self, QoreAbstractQVal
 //virtual State validate ( QString & input, int & pos ) const = 0
 static AbstractQoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQValidator *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   ReferenceNode *p0 = test_reference_param(params, 0);
+   const ReferenceNode *p0 = test_reference_param(params, 0);
    if (!p0) {
       xsink->raiseException("QVALIDATOR-VALIDATE-ERROR", "expecting a reference as first argument to QValidator::validate()");
       return 0;
    }
    
-   ReferenceNode *p1 = test_reference_param(params, 1);
+   const ReferenceNode *p1 = test_reference_param(params, 1);
    if (!p1) {
       xsink->raiseException("QVALIDATOR-VALIDATE-ERROR", "expecting a reference as second argument to QValidator::validate()");
       return 0;

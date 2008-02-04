@@ -51,7 +51,7 @@ DateTimeNode *TIME_to_DateTime(CS_DATETIME &dt)
    return new DateTimeNode(secs, (int)ts);
 }
 
-int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME &out, ExceptionSink* xsink)
+int DateTime_to_DATETIME(const DateTime* dt, CS_DATETIME &out, ExceptionSink* xsink)
 {
    if (dt->isRelative())
    {
@@ -104,7 +104,7 @@ DateTimeNode *DATETIME4_to_DateTime(CS_DATETIME4 &dt, ExceptionSink *xsink)
 
 /*
 // currently unused
-int DateTime_to_DATETIME4(DateTime *dt, CS_DATETIME4 &out, ExceptionSink *xsink)
+int DateTime_to_DATETIME4(const DateTime *dt, CS_DATETIME4 &out, ExceptionSink *xsink)
 {
    if (dt->isRelative())
    {

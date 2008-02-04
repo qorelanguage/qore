@@ -33,7 +33,7 @@ void TIBRVDQ_constructor(class QoreObject *self, const QoreListNode *params, cla
 {
    tracein("TIBRVDQ_constructor");
 
-   QoreStringNode *str = test_string_param(params, 0);
+   const QoreStringNode *str = test_string_param(params, 0);
    if (!str)
    {
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-CONSTRUCTOR-ERROR", "missing fault-tolerant group name as first parameter to TibrvDistributedQueue::constructor()");
@@ -42,7 +42,7 @@ void TIBRVDQ_constructor(class QoreObject *self, const QoreListNode *params, cla
    const char *cmName = str->getBuffer();
 
    unsigned workerWeight, workerTasks;
-   AbstractQoreNode *pt = get_param(params, 1);
+   const AbstractQoreNode *pt = get_param(params, 1);
    int64 t = pt ? pt->getAsBigInt() : TIBRVCM_DEFAULT_WORKER_WEIGHT;
    if (t < 0)
    {
@@ -120,7 +120,7 @@ void TIBRVDQ_copy(class QoreObject *self, class QoreObject *old, class QoreTibrv
 
 class AbstractQoreNode *TIBRVDQ_setWorkerWeight(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *pt = get_param(params, 0);
+   const AbstractQoreNode *pt = get_param(params, 0);
    int64 weight = pt ? pt->getAsBigInt() : 0;
    if (weight < 0)
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-SETWEIGHT-ERROR", "workerWeight cannot be negative (value passed: %d)", weight);
@@ -132,7 +132,7 @@ class AbstractQoreNode *TIBRVDQ_setWorkerWeight(class QoreObject *self, class Qo
 
 class AbstractQoreNode *TIBRVDQ_setWorkerTasks(class QoreObject *self, class QoreTibrvDistributedQueue *dq, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *pt = get_param(params, 0);
+   const AbstractQoreNode *pt = get_param(params, 0);
    int64 tasks = pt ? pt->getAsBigInt() : 0;
    if (tasks <= 0)
       xsink->raiseException("TIBRV-DISTRIBUTEDQUEUE-SETWEIGHT-ERROR", "workerTasks must be positive (value passed: %d)", tasks);

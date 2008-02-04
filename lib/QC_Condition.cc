@@ -85,7 +85,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, class Condition *c, co
 
 static AbstractQoreNode *CONDITION_wait_count(QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreObject *p0 = test_object_param(params, 0);
+   const QoreObject *p0 = test_object_param(params, 0);
    SmartMutex *m = p0 ? (SmartMutex *)p0->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
    if (!m)
    {

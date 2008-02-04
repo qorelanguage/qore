@@ -1061,7 +1061,7 @@ int RootQoreNamespace::resolveSimpleConstant(AbstractQoreNode **node, int level)
 	  b->str, level, *node, (*node)->getTypeName(), rv, rv->getTypeName());
    
    b->deref();
-   *node = rv->RefSelf();
+   *node = rv->refSelf();
    return 0;
 }
 
@@ -1077,7 +1077,7 @@ int RootQoreNamespace::resolveScopedConstant(AbstractQoreNode **node, int level)
       return -1;
 
    c->deref();
-   *node = rv->RefSelf();
+   *node = rv->refSelf();
    return 0;
 }
 

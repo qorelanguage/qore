@@ -257,6 +257,14 @@ class TempEncodingHelper {
       DLLEXPORT const QoreString *operator*() { return str; };
       // to check for an exception in the constructor
       DLLEXPORT operator bool() const { return str != 0; }
+      DLLEXPORT char *giveBuffer() 
+      {
+	 if (!str)
+	    return 0;
+	 if (temp)
+	    return str->giveBuffer();
+	 return strdup(str->getBuffer());
+      }
 };
 
 #endif

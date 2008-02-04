@@ -533,7 +533,7 @@ inline int MyBindGroup::parse(const QoreListNode *args, class ExceptionSink *xsi
    {
       if (!quote && (*p) == '%') // found value marker
       {
-	 class AbstractQoreNode *v = args ? args->retrieve_entry(index++) : NULL;
+	 const AbstractQoreNode *v = args ? args->retrieve_entry(index++) : NULL;
 	 int offset = p - str->getBuffer();
 
 	 p++;
@@ -815,7 +815,7 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
 
    if (ntype == NT_STRING)
    {
-      QoreStringNode *bstr = reinterpret_cast<QoreStringNode *>(data.value);
+      QoreStringNode *bstr = const_cast<QoreStringNode *>(reinterpret_cast<const QoreStringNode *>(data.value));
       // convert to the db charset if necessary
       if (bstr->getEncoding() != enc)
       {
@@ -837,7 +837,7 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
 
    if (ntype == NT_DATE)
    {
-      DateTimeNode *date = reinterpret_cast<DateTimeNode *>(data.value);
+      const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(data.value);
       vbuf.assign(date);
       
       buf->buffer_type = MYSQL_TYPE_DATETIME;
@@ -848,7 +848,7 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
    
    if (ntype == NT_BINARY)
    {
-      BinaryNode *b = reinterpret_cast<BinaryNode *>(data.value);
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(data.value);
       len = b->size();
       buf->buffer_type = MYSQL_TYPE_BLOB;
       buf->buffer = (void *)b->getPtr();
@@ -859,7 +859,7 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
 
    if (ntype == NT_BOOLEAN)
    {
-      vbuf.i4 = reinterpret_cast<QoreBoolNode *>(data.value)->b;
+      vbuf.i4 = reinterpret_cast<const QoreBoolNode *>(data.value)->b;
       buf->buffer_type = MYSQL_TYPE_LONG;
       buf->buffer = (char *)&vbuf.i4;
       return 0;

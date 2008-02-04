@@ -32,11 +32,11 @@ static void QTIME_constructor(class QoreObject *self, const QoreListNode *params
 {
    QoreQTime *qdt;
 
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qdt = new QoreQTime();
    else if (p->type == NT_DATE) {
-      DateTimeNode *dt = reinterpret_cast<DateTimeNode *>(p);
+      const DateTimeNode *dt = reinterpret_cast<const DateTimeNode *>(p);
       qdt = new QoreQTime(dt->getHour(), dt->getMinute(), dt->getSecond(), dt->getMillisecond());
    }
    else {
@@ -63,7 +63,7 @@ static void QTIME_copy(class QoreObject *self, class QoreObject *old, class Qore
 //QTime addMSecs ( int ms ) const
 static AbstractQoreNode *QTIME_addMSecs(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int ms = p ? p->getAsInt() : 0;
    QoreObject *o_qt = new QoreObject(self->getClass(CID_QTIME), getProgram());
    QoreQTime *q_qt = new QoreQTime(qt->addMSecs(ms));
@@ -74,7 +74,7 @@ static AbstractQoreNode *QTIME_addMSecs(QoreObject *self, QoreQTime *qt, const Q
 //QTime addSecs ( int s ) const
 static AbstractQoreNode *QTIME_addSecs(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int s = p ? p->getAsInt() : 0;
    QoreObject *o_qt = new QoreObject(self->getClass(CID_QTIME), getProgram());
    QoreQTime *q_qt = new QoreQTime(qt->addSecs(s));
@@ -121,8 +121,8 @@ static AbstractQoreNode *QTIME_msec(QoreObject *self, QoreQTime *qt, const QoreL
 //int msecsTo ( const QTime & t ) const
 static AbstractQoreNode *QTIME_msecsTo(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQTime *t = (p && p->type == NT_OBJECT) ? (QoreQTime *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTIME, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQTime *t = p ? (QoreQTime *)p->getReferencedPrivateData(CID_QTIME, xsink) : 0;
    if (!t) {
       if (!xsink->isException())
          xsink->raiseException("QTIME-MSECSTO-PARAM-ERROR", "expecting a QTime object as first argument to QTime::msecsTo()");
@@ -147,8 +147,8 @@ static AbstractQoreNode *QTIME_second(QoreObject *self, QoreQTime *qt, const Qor
 //int secsTo ( const QTime & t ) const
 static AbstractQoreNode *QTIME_secsTo(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQTime *t = (p && p->type == NT_OBJECT) ? (QoreQTime *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTIME, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQTime *t = p ? (QoreQTime *)p->getReferencedPrivateData(CID_QTIME, xsink) : 0;
    if (!t) {
       if (!xsink->isException())
          xsink->raiseException("QTIME-SECSTO-PARAM-ERROR", "expecting a QTime object as first argument to QTime::secsTo()");
@@ -161,7 +161,7 @@ static AbstractQoreNode *QTIME_secsTo(QoreObject *self, QoreQTime *qt, const Qor
 //bool setHMS ( int h, int m, int s, int ms = 0 )
 static AbstractQoreNode *QTIME_setHMS(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int h = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int m = p ? p->getAsInt() : 0;
@@ -183,7 +183,7 @@ static AbstractQoreNode *QTIME_start(QoreObject *self, QoreQTime *qt, const Qore
 //QString toString ( Qt::DateFormat f = Qt::TextDate ) const
 static AbstractQoreNode *QTIME_toString(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString format;
    if (get_qstring(p, format, xsink)) {
       Qt::DateFormat f = (Qt::DateFormat)(p ? p->getAsInt() : 0);

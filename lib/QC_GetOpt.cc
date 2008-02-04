@@ -116,7 +116,7 @@ static inline int process_type(const char *key, int &attributes, char *opt, clas
 
 static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreHashNode *p0 = test_hash_param(params, 0);
+   const QoreHashNode *p0 = test_hash_param(params, 0);
    if (!p0)
    {
       xsink->raiseException("GETOPT-PARAMETER-ERROR", "expecting hash as first argument to GetOpt::constructor()");
@@ -125,7 +125,7 @@ static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, Exc
 
    class GetOpt *g = new GetOpt();
 
-   class HashIterator hi(p0);
+   ConstHashIterator hi(p0);
    class QoreString vstr;
    while (hi.next())
    {
@@ -136,8 +136,8 @@ static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, Exc
 	 break;
       }
 
-      AbstractQoreNode *v = hi.getValue();
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(v);
+      const AbstractQoreNode *v = hi.getValue();
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(v);
       if (!str)
       {
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k, v ? v->getTypeName() : "NOTHING");

@@ -36,7 +36,7 @@ int CID_HTTPCLIENT;
 static void HC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    SimpleRefHolder<QoreHTTPClient> client(new QoreHTTPClient());
-   QoreHashNode *n = test_hash_param(params, 0);
+   const QoreHashNode *n = test_hash_param(params, 0);
    if (n && client->setOptions(n, xsink))
       return;
    
@@ -68,7 +68,7 @@ static AbstractQoreNode *HC_getHTTPVersion(QoreObject *self, class QoreHTTPClien
 
 static AbstractQoreNode *HC_setSecure(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *n = get_param(params, 0);
+   const AbstractQoreNode *n = get_param(params, 0);
    client->setSecure(n ? n->getAsBool() : false);
    return NULL;
 }
@@ -143,7 +143,7 @@ static AbstractQoreNode *HC_send(QoreObject *self, class QoreHTTPClient *client,
    pstr = test_string_param(params, 2);
    const char *path = pstr ? pstr->getBuffer() : NULL;
 
-   QoreHashNode *ph = test_hash_param(params, 3);
+   const QoreHashNode *ph = test_hash_param(params, 3);
 
    p = get_param(params, 4);
    bool getbody = p ? p->getAsBool() : false;
@@ -162,7 +162,7 @@ static AbstractQoreNode *HC_get(QoreObject *self, class QoreHTTPClient *client, 
    }
    const char *path = pstr->getBuffer();
 
-   QoreHashNode *ph = test_hash_param(params, 1);
+   const QoreHashNode *ph = test_hash_param(params, 1);
    return client->get(path, ph, xsink);
 }
 
@@ -177,7 +177,7 @@ static AbstractQoreNode *HC_head(QoreObject *self, class QoreHTTPClient *client,
    }
    const char *path = pstr->getBuffer();
 
-   QoreHashNode *ph = test_hash_param(params, 1);
+   const QoreHashNode *ph = test_hash_param(params, 1);
    return client->head(path, ph, xsink);
 }
 
@@ -216,7 +216,7 @@ static AbstractQoreNode *HC_post(QoreObject *self, class QoreHTTPClient *client,
       }
    }
 
-   QoreHashNode *ph = test_hash_param(params, 2);
+   const QoreHashNode *ph = test_hash_param(params, 2);
    return client->post(path, ph, ptr, size, xsink);
 }
 
@@ -252,7 +252,7 @@ static AbstractQoreNode *HC_getEncoding(QoreObject *self, class QoreHTTPClient *
 
 AbstractQoreNode *f_setURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *n = test_string_param(params, 0);
+   const QoreStringNode *n = test_string_param(params, 0);
    if (!n || !n->strlen())
       xsink->raiseException("HTTP-CLIENT-EMPTY-URL", "HTTPClient::setURL() called without a valid string argument");
    else
@@ -267,7 +267,7 @@ AbstractQoreNode *f_getURL(QoreObject *self, class QoreHTTPClient *client, const
 
 AbstractQoreNode *f_setProxyURL(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *n = test_string_param(params, 0);
+   const QoreStringNode *n = test_string_param(params, 0);
    if (!n)
       client->clearProxyURL();
    else
@@ -288,7 +288,7 @@ AbstractQoreNode *f_clearProxyURL(QoreObject *self, class QoreHTTPClient *client
 
 AbstractQoreNode *f_setProxySecure(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *n = get_param(params, 0);
+   const AbstractQoreNode *n = get_param(params, 0);
    client->setProxySecure(n ? n->getAsBool() : false);
    return NULL;
 }
@@ -300,7 +300,7 @@ AbstractQoreNode *f_isProxySecure(QoreObject *self, class QoreHTTPClient *client
 
 AbstractQoreNode *f_setMaxRedirects(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *n = get_param(params, 0);
+   const AbstractQoreNode *n = get_param(params, 0);
    client->setMaxRedirects(n ? n->getAsInt() : 0);
    return NULL;
 }

@@ -33,7 +33,7 @@ static void TIBRVFTMEMBER_constructor(class QoreObject *self, const QoreListNode
 {
    tracein("TIBRVFTMEMBER_constructor");
 
-   QoreStringNode *str = test_string_param(params, 0);
+   const QoreStringNode *str = test_string_param(params, 0);
    if (!str)
    {
       xsink->raiseException("TIBRVFTMEMBER-CONSTRUCTOR-ERROR", "missing fault-tolerant group name as first parameter to TibrvFtMember::constructor()");
@@ -42,7 +42,7 @@ static void TIBRVFTMEMBER_constructor(class QoreObject *self, const QoreListNode
    const char *groupName = str->getBuffer();
 
    int weight, activeGoal;
-   AbstractQoreNode *pt = get_param(params, 1);
+   const AbstractQoreNode *pt = get_param(params, 1);
    weight = pt ? pt->getAsInt() : 0;
    if (weight <= 0)
    {
@@ -158,7 +158,7 @@ class AbstractQoreNode *TIBRVFTMEMBER_getGroupName(class QoreObject *self, class
 
 class AbstractQoreNode *TIBRVFTMEMBER_setWeight(class QoreObject *self, class QoreTibrvFtMember *ftm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *pt = get_param(params, 0);
+   const AbstractQoreNode *pt = get_param(params, 0);
    int weight = pt ? pt->getAsInt() : 0;
    if (weight <= 0)
       xsink->raiseException("TIBRVFTMEMBER-SETWEIGHT-ERROR", "weight must be greater than zero (value passed: %d)", weight);

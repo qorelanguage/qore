@@ -34,13 +34,14 @@ static void QGROUPBOX_constructor(QoreObject *self, const QoreListNode *params, 
 {
    QString title;
 
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    bool got_title = !get_qstring(p, title, xsink, true);
    if (got_title)
       p = get_param(params, 1);
 
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = dynamic_cast<const QoreObject *>(p);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
    if (got_title)
       self->setPrivate(CID_QGROUPBOX, new QoreQGroupBox(self, title, parent ? parent->getQWidget() : 0));
@@ -82,7 +83,7 @@ static AbstractQoreNode *QGROUPBOX_isFlat(QoreObject *self, QoreAbstractQGroupBo
 //void setAlignment ( int alignment )
 static AbstractQoreNode *QGROUPBOX_setAlignment(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int alignment = p ? p->getAsInt() : 0;
    qgb->getQGroupBox()->setAlignment(alignment);
    return 0;
@@ -91,7 +92,7 @@ static AbstractQoreNode *QGROUPBOX_setAlignment(QoreObject *self, QoreAbstractQG
 //void setCheckable ( bool checkable )
 static AbstractQoreNode *QGROUPBOX_setCheckable(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool checkable = p ? p->getAsBool() : false;
    qgb->getQGroupBox()->setCheckable(checkable);
    return 0;
@@ -100,7 +101,7 @@ static AbstractQoreNode *QGROUPBOX_setCheckable(QoreObject *self, QoreAbstractQG
 //void setFlat ( bool flat )
 static AbstractQoreNode *QGROUPBOX_setFlat(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool flat = p ? p->getAsBool() : false;
    qgb->getQGroupBox()->setFlat(flat);
    return 0;
@@ -109,7 +110,7 @@ static AbstractQoreNode *QGROUPBOX_setFlat(QoreObject *self, QoreAbstractQGroupB
 //void setTitle ( const QString & title )
 static AbstractQoreNode *QGROUPBOX_setTitle(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QGROUPBOX-SETTITLE-PARAM-ERROR", "expecting a string as first argument to QGroupBox::setTitle()");
       return 0;
@@ -128,7 +129,7 @@ static AbstractQoreNode *QGROUPBOX_title(QoreObject *self, QoreAbstractQGroupBox
 //void setChecked ( bool checked )
 static AbstractQoreNode *QGROUPBOX_setChecked(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool checked = p ? p->getAsBool() : false;
    qgb->getQGroupBox()->setChecked(checked);
    return 0;

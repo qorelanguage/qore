@@ -82,4 +82,10 @@ class PenStyleNode : public SimpleQoreNode
 
 void addPenStyleType();
 
+static inline const PenStyleNode *test_penstyle_param(const QoreListNode *n, int i)
+{
+   if (!n) return 0;
+   return dynamic_cast<const PenStyleNode *>(n->retrieve_entry(i));
+}
+
 #endif

@@ -30,7 +30,7 @@ class QoreClass *QC_QFocusEvent = 0;
 //QFocusEvent ( Type type, Qt::FocusReason reason = Qt::OtherFocusReason )
 static void QFOCUSEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QFocusEvent::Type type = (QFocusEvent::Type)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    Qt::FocusReason reason = !is_nothing(p) ? (Qt::FocusReason)p->getAsInt() : Qt::OtherFocusReason;

@@ -33,67 +33,70 @@ static inline int num_params(const QoreListNode *n)
    return n->size();
 }
 
-static inline AbstractQoreNode *get_param(const QoreListNode *n, int i)
+static inline const AbstractQoreNode *get_param(const QoreListNode *n, int i)
 {
    if (!n) return NULL;
-   class AbstractQoreNode *p = n->retrieve_entry(i);
+   const AbstractQoreNode *p = n->retrieve_entry(i);
    return is_nothing(p) ? NULL : p;
 }
 
-static inline AbstractQoreNode *test_param(const QoreListNode *n, class QoreType *type, int i)
+/*
+static inline const AbstractQoreNode *test_param(const QoreListNode *n, class QoreType *type, int i)
 {
    if (!n) return NULL;
    AbstractQoreNode *p = n->retrieve_entry(i);
    if (is_nothing(p)) return NULL;
    return (p->type == type) ? p : NULL;
 }
+*/
 
-static inline BinaryNode *test_binary_param(const QoreListNode *n, int i)
+static inline const BinaryNode *test_binary_param(const QoreListNode *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<BinaryNode *>(n->retrieve_entry(i));
+   return dynamic_cast<const BinaryNode *>(n->retrieve_entry(i));
 }
 
-static inline QoreStringNode *test_string_param(const QoreListNode *n, int i)
+static inline const QoreStringNode *test_string_param(const QoreListNode *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<QoreStringNode *>(n->retrieve_entry(i));
+   return dynamic_cast<const QoreStringNode *>(n->retrieve_entry(i));
 }
 
+// QoreObjects are returned not as "const" because they are unique and can always be manipulated
 static inline QoreObject *test_object_param(const QoreListNode *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<QoreObject *>(n->retrieve_entry(i));
+   return dynamic_cast<QoreObject *>(const_cast<AbstractQoreNode *>(n->retrieve_entry(i)));
 }
 
-static inline DateTimeNode *test_date_param(const QoreListNode *n, int i)
+static inline const DateTimeNode *test_date_param(const QoreListNode *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<DateTimeNode *>(n->retrieve_entry(i));
+   return dynamic_cast<const DateTimeNode *>(n->retrieve_entry(i));
 }
 
-static inline QoreHashNode *test_hash_param(const QoreListNode *n, int i)
+static inline const QoreHashNode *test_hash_param(const QoreListNode *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<QoreHashNode *>(n->retrieve_entry(i));
+   return dynamic_cast<const QoreHashNode *>(n->retrieve_entry(i));
 }
 
-static inline QoreListNode *test_list_param(const QoreListNode *n, int i)
+static inline const QoreListNode *test_list_param(const QoreListNode *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<QoreListNode *>(n->retrieve_entry(i));
+   return dynamic_cast<const QoreListNode *>(n->retrieve_entry(i));
 }
 
-static inline ResolvedFunctionReferenceNode *test_funcref_param(const QoreListNode *n, int i)
+static inline const ResolvedFunctionReferenceNode *test_funcref_param(const QoreListNode *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<ResolvedFunctionReferenceNode *>(n->retrieve_entry(i));
+   return dynamic_cast<const ResolvedFunctionReferenceNode *>(n->retrieve_entry(i));
 }
 
-static inline ReferenceNode *test_reference_param(const QoreListNode *n, int i)
+static inline const ReferenceNode *test_reference_param(const QoreListNode *n, int i)
 {
    if (!n) return 0;
-   return dynamic_cast<ReferenceNode *>(n->retrieve_entry(i));
+   return dynamic_cast<const ReferenceNode *>(n->retrieve_entry(i));
 }
 
 /*

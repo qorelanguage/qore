@@ -117,7 +117,7 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
       if (query.param_list[i] == 'd') 
 	 continue;
       
-      class AbstractQoreNode *val = args ? args->retrieve_entry(i) : NULL;
+      const AbstractQoreNode *val = args ? args->retrieve_entry(i) : NULL;
       //printd(5, "set_params() param %d = value %08p (%s)\n", i, val, val ? val->getTypeName() : "n/a");
       
       CS_DATAFMT datafmt;
@@ -150,7 +150,7 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
       const QoreType *ntype = val ? val->getType() : 0;
       if (ntype == NT_STRING)
       {
-	 QoreStringNode *str = reinterpret_cast<QoreStringNode *>(val);
+	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(val);
 	 // ensure we bind with the proper encoding for the connection
 	 TempEncodingHelper s(str, m_conn.getEncoding(), xsink);
 	 if (!s)
@@ -171,7 +171,7 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
 
       if (ntype == NT_DATE)
       {
-	 DateTimeNode *date = reinterpret_cast<DateTimeNode *>(val);
+	 const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(val);
 	 CS_DATETIME dt;
 	 if (DateTime_to_DATETIME(date, dt, xsink))
 	    return -1;
@@ -189,7 +189,7 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
       {
 #ifdef CS_BIGINT_TYPE
 	 datafmt.datatype = CS_BIGINT_TYPE;
-	 err = ct_param(m_cmd, &datafmt, &(reinterpret_cast<QoreBigIntNode *>(val)->val), sizeof(int64), 0);
+	 err = ct_param(m_cmd, &datafmt, &(reinterpret_cast<const QoreBigIntNode *>(val)->val), sizeof(int64), 0);
 #else
 	 int64 ival = reinterpret_cast<const QoreBigIntNode *>(val)->val;
 	 // if it's a 32-bit integer, bind as integer

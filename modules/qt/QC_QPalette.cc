@@ -35,17 +35,17 @@ static void QPALETTE_constructor(class QoreObject *self, const QoreListNode *par
 {
    QoreQPalette *qp;
 
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qp = new QoreQPalette();
    else if (p->type == NT_OBJECT)
    {
-      QoreQColor *button = (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink);
+      QoreQColor *button = (QoreQColor *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink);
       if (button) {
 	 ReferenceHolder<QoreQColor> holder(button, xsink);
 	 
 	 p = get_param(params, 1);
-	 QoreQColor *window = p && p->type == NT_OBJECT ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+	 QoreQColor *window = p && p->type == NT_OBJECT ? (QoreQColor *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
 	 if (!window)
 	    qp = new QoreQPalette(*button);
 	 else
@@ -157,7 +157,7 @@ static AbstractQoreNode *QPALETTE_brightText(QoreObject *self, QoreQPalette *qp,
 //const QBrush & brush ( ColorRole role ) const
 static AbstractQoreNode *QPALETTE_brush(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QoreQBrush *q_qb;
    if (num_params(params) == 1) {
       QPalette::ColorRole role = (QPalette::ColorRole)(p ? p->getAsInt() : 0);
@@ -202,7 +202,7 @@ static AbstractQoreNode *QPALETTE_cacheKey(QoreObject *self, QoreQPalette *qp, c
 //const QColor & color ( ColorRole role ) const
 static AbstractQoreNode *QPALETTE_color(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QoreQColor *q_qc;
    if (num_params(params) == 1) {
       QPalette::ColorRole role = (QPalette::ColorRole)(p ? p->getAsInt() : 0);
@@ -264,7 +264,7 @@ static AbstractQoreNode *QPALETTE_highlightedText(QoreObject *self, QoreQPalette
 //bool isBrushSet ( ColorGroup cg, ColorRole cr ) const
 static AbstractQoreNode *QPALETTE_isBrushSet(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPalette::ColorGroup cg = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QPalette::ColorRole cr = (QPalette::ColorRole)(p ? p->getAsInt() : 0);
@@ -274,8 +274,8 @@ static AbstractQoreNode *QPALETTE_isBrushSet(QoreObject *self, QoreQPalette *qp,
 //bool isCopyOf ( const QPalette & p ) const
 static AbstractQoreNode *QPALETTE_isCopyOf(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPalette *palette = p ? (QoreQPalette *)p->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!palette) {
       if (!xsink->isException())
          xsink->raiseException("QPALETTE-ISCOPYOF-PARAM-ERROR", "expecting a QPalette object as first argument to QPalette::isCopyOf()");
@@ -288,7 +288,7 @@ static AbstractQoreNode *QPALETTE_isCopyOf(QoreObject *self, QoreQPalette *qp, c
 //bool isEqual ( ColorGroup cg1, ColorGroup cg2 ) const
 static AbstractQoreNode *QPALETTE_isEqual(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPalette::ColorGroup cg1 = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QPalette::ColorGroup cg2 = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
@@ -343,8 +343,8 @@ static AbstractQoreNode *QPALETTE_midlight(QoreObject *self, QoreQPalette *qp, c
 //QPalette resolve ( const QPalette & other ) const
 static AbstractQoreNode *QPALETTE_resolve(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPalette *other = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPalette *other = p ? (QoreQPalette *)p->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!other) {
       if (!xsink->isException())
          xsink->raiseException("QPALETTE-RESOLVE-PARAM-ERROR", "expecting a QPalette object as first argument to QPalette::resolve()");
@@ -361,8 +361,8 @@ static AbstractQoreNode *QPALETTE_resolve(QoreObject *self, QoreQPalette *qp, co
 //void set ( const QPalette & other )
 static AbstractQoreNode *QPALETTE_set(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPalette *other = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPalette *other = p ? (QoreQPalette *)p->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!other) {
       if (!xsink->isException())
          xsink->raiseException("QPALETTE-SET-PARAM-ERROR", "expecting a QPalette object as first argument to QPalette::set()");
@@ -378,7 +378,7 @@ static AbstractQoreNode *QPALETTE_set(QoreObject *self, QoreQPalette *qp, const 
 //void setBrush ( ColorGroup group, ColorRole role, const QBrush & brush )
 static AbstractQoreNode *QPALETTE_setBrush(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int a1 = p ? p->getAsInt() : 0;
 
    bool got_role = false;
@@ -405,7 +405,7 @@ static AbstractQoreNode *QPALETTE_setBrush(QoreObject *self, QoreQPalette *qp, c
 //void setColor ( ColorRole role, const QColor & color )
 static AbstractQoreNode *QPALETTE_setColor(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int a1 = p ? p->getAsInt() : 0;
 
    p = get_param(params, 1);
@@ -417,10 +417,11 @@ static AbstractQoreNode *QPALETTE_setColor(QoreObject *self, QoreQPalette *qp, c
       p = get_param(params, 2);
    }
 
-   QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+   const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
+   QoreQColor *color = (QoreQColor *)o->getReferencedPrivateData(CID_QCOLOR, xsink);
    if (!color) {
       if (!xsink->isException())
-         xsink->raiseException("QPALETTE-SETCOLOR-PARAM-ERROR", "this version of QPalette::setColor() expects an object derived from QColor as the final argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+         xsink->raiseException("QPALETTE-SETCOLOR-PARAM-ERROR", "this version of QPalette::setColor() expects an object derived from QColor as the final argument");
       return 0;
    }
    ReferenceHolder<QoreQColor> colorHolder(color, xsink);
@@ -435,7 +436,7 @@ static AbstractQoreNode *QPALETTE_setColor(QoreObject *self, QoreQPalette *qp, c
 //void setColorGroup ( ColorGroup cg, const QBrush & windowText, const QBrush & button, const QBrush & light, const QBrush & dark, const QBrush & mid, const QBrush & text, const QBrush & bright_text, const QBrush & base, const QBrush & window )
 static AbstractQoreNode *QPALETTE_setColorGroup(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPalette::ColorGroup cg = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QBrush windowText;
@@ -490,7 +491,7 @@ static AbstractQoreNode *QPALETTE_setColorGroup(QoreObject *self, QoreQPalette *
 //void setCurrentColorGroup ( ColorGroup cg )
 static AbstractQoreNode *QPALETTE_setCurrentColorGroup(QoreObject *self, QoreQPalette *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPalette::ColorGroup cg = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
    qp->getQPalette()->setCurrentColorGroup(cg);
    return 0;

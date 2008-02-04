@@ -35,24 +35,24 @@ class QoreClass *QC_QLine = 0;
 //QLine ( int x1, int y1, int x2, int y2 )
 static void QLINE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QLINE, new QoreQLine());
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *p1 = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *p1 = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!p1) {
          if (!xsink->isException())
-            xsink->raiseException("QLINE-QLINE-PARAM-ERROR", "QLine::QLine() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QLINE-QLINE-PARAM-ERROR", "QLine::QLine() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return;
       }
       ReferenceHolder<QoreQPoint> p1Holder(p1, xsink);
       p = get_param(params, 1);
-      QoreQPoint *p2 = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+      QoreQPoint *p2 = p ? (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
       if (!p2) {
          if (!xsink->isException())
-            xsink->raiseException("QLINE-QLINE-PARAM-ERROR", "this version of QLine::QLine() expects an object derived from QPoint as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QLINE-QLINE-PARAM-ERROR", "this version of QLine::QLine() expects an object derived from QPoint as the second argument");
          return;
       }
       ReferenceHolder<QoreQPoint> p2Holder(p2, xsink);
@@ -140,12 +140,12 @@ static AbstractQoreNode *QLINE_isNull(QoreObject *self, QoreQLine *ql, const Qor
 //void translate ( int dx, int dy )
 static AbstractQoreNode *QLINE_translate(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!offset) {
          if (!xsink->isException())
-            xsink->raiseException("QLINE-TRANSLATE-PARAM-ERROR", "QLine::translate() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QLINE-TRANSLATE-PARAM-ERROR", "QLine::translate() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<QoreQPoint> offsetHolder(offset, xsink);

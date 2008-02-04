@@ -30,15 +30,15 @@ int CID_QLCDNUMBER;
 static void QLCDNUMBER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQLCDNumber *qlcdn;
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type != NT_OBJECT)
    {
       int num_digits = p->getAsInt();
-      p = test_param(params, NT_OBJECT, 1);
-      QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
-      if (p && !parent)
+      QoreObject *o = test_object_param(params, 1);
+      QoreAbstractQWidget *parent = o ? (QoreAbstractQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      if (!parent)
       {
-	 xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is second argument is not derived from QWidget (class: '%s')", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	 xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is second argument is not derived from QWidget (class: '%s')", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 return;
       }
       if (!parent)
@@ -50,11 +50,11 @@ static void QLCDNUMBER_constructor(class QoreObject *self, const QoreListNode *p
       }
    }
    else {
-      p = test_param(params, NT_OBJECT, 0);
-      QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
-      if (p && !parent)
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
+      QoreAbstractQWidget *parent = o ? (QoreAbstractQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      if (!parent)
       {
-	 xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is not derived from QWidget (class: '%s')", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	 xsink->raiseException("QLCDNUMBER-CONSTRUCTOR-ERROR", "object passed to QLCDNumber::constructor() is not derived from QWidget (class: '%s')", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 return;
       }
 
@@ -77,7 +77,7 @@ static void QLCDNUMBER_copy(class QoreObject *self, class QoreObject *old, class
 
 static class AbstractQoreNode *QLCDNUMBER_setSegmentStyle(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (!is_nothing(p))
       qlcdn->qobj->setSegmentStyle((QLCDNumber::SegmentStyle)p->getAsInt());
    return 0;
@@ -85,7 +85,7 @@ static class AbstractQoreNode *QLCDNUMBER_setSegmentStyle(class QoreObject *self
 
 static class AbstractQoreNode *QLCDNUMBER_setNumDigits(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (!is_nothing(p))
       qlcdn->qobj->setNumDigits(p->getAsInt());
    return 0;
@@ -113,7 +113,7 @@ static class AbstractQoreNode *QLCDNUMBER_intValue(class QoreObject *self, class
 
 static class AbstractQoreNode *QLCDNUMBER_setMode(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (!is_nothing(p))
       qlcdn->qobj->setMode((QLCDNumber::Mode)p->getAsInt());
    return 0;
@@ -121,7 +121,7 @@ static class AbstractQoreNode *QLCDNUMBER_setMode(class QoreObject *self, class 
 
 static class AbstractQoreNode *QLCDNUMBER_checkOverflow(class QoreObject *self, class QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool rc;
    if (p && p->type == NT_FLOAT)
       rc = qlcdn->qobj->checkOverflow(reinterpret_cast<const QoreFloatNode *>(p)->f);
@@ -135,11 +135,12 @@ static class AbstractQoreNode *QLCDNUMBER_checkOverflow(class QoreObject *self, 
 //void display ( int num )
 static AbstractQoreNode *QLCDNUMBER_display(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_FLOAT)
+   const AbstractQoreNode *p = get_param(params, 0);
+   const QoreType *ptype = p ? p->getType() : 0;
+   if (ptype == NT_FLOAT)
       qlcdn->qobj->display(reinterpret_cast<const QoreFloatNode *>(p)->f);
-   else if (p && p->type == NT_STRING)
-      qlcdn->qobj->display((reinterpret_cast<QoreStringNode *>(p))->getBuffer());
+   else if (ptype == NT_STRING)
+      qlcdn->qobj->display((reinterpret_cast<const QoreStringNode *>(p))->getBuffer());
    else {
       int num = p ? p->getAsInt() : 0;
       qlcdn->qobj->display(num);
@@ -178,7 +179,7 @@ static AbstractQoreNode *QLCDNUMBER_setOctMode(QoreObject *self, QoreQLCDNumber 
 //void setSmallDecimalPoint ( bool )
 static AbstractQoreNode *QLCDNUMBER_setSmallDecimalPoint(QoreObject *self, QoreQLCDNumber *qlcdn, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : 0;
    qlcdn->qobj->setSmallDecimalPoint(b);
    return 0;

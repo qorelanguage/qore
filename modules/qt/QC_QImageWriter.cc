@@ -37,16 +37,16 @@ class QoreClass *QC_QImageWriter = 0;
 //QImageWriter ( const QString & fileName, const QByteArray & format = QByteArray() )
 static void QIMAGEWRITER_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QIMAGEWRITER, new QoreQImageWriter());
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreAbstractQIODevice *device = (QoreAbstractQIODevice *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIODEVICE, xsink);
+      QoreAbstractQIODevice *device = (QoreAbstractQIODevice *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QIODEVICE, xsink);
       if (!device) {
          if (!xsink->isException())
-            xsink->raiseException("QIMAGEWRITER-CONSTRUCTOR-PARAM-ERROR", "QImageWriter::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QIMAGEWRITER-CONSTRUCTOR-PARAM-ERROR", "QImageWriter::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> deviceHolder(static_cast<AbstractPrivateData *>(device), xsink);
@@ -147,7 +147,7 @@ static AbstractQoreNode *QIMAGEWRITER_quality(QoreObject *self, QoreQImageWriter
 //void setCompression ( int compression )
 static AbstractQoreNode *QIMAGEWRITER_setCompression(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int compression = p ? p->getAsInt() : 0;
    qiw->setCompression(compression);
    return 0;
@@ -156,8 +156,8 @@ static AbstractQoreNode *QIMAGEWRITER_setCompression(QoreObject *self, QoreQImag
 //void setDevice ( QIODevice * device )
 static AbstractQoreNode *QIMAGEWRITER_setDevice(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQIODevice *device = (p && p->type == NT_OBJECT) ? (QoreAbstractQIODevice *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIODEVICE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQIODevice *device = p ? (QoreAbstractQIODevice *)p->getReferencedPrivateData(CID_QIODEVICE, xsink) : 0;
    if (!device) {
       if (!xsink->isException())
          xsink->raiseException("QIMAGEWRITER-SETDEVICE-PARAM-ERROR", "expecting a QIODevice object as first argument to QImageWriter::setDevice()");
@@ -171,7 +171,7 @@ static AbstractQoreNode *QIMAGEWRITER_setDevice(QoreObject *self, QoreQImageWrit
 //void setFileName ( const QString & fileName )
 static AbstractQoreNode *QIMAGEWRITER_setFileName(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString fileName;
    if (get_qstring(p, fileName, xsink))
       return 0;
@@ -182,7 +182,7 @@ static AbstractQoreNode *QIMAGEWRITER_setFileName(QoreObject *self, QoreQImageWr
 //void setFormat ( const QByteArray & format )
 static AbstractQoreNode *QIMAGEWRITER_setFormat(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QByteArray format;
    if (get_qbytearray(p, format, xsink))
       return 0;
@@ -193,7 +193,7 @@ static AbstractQoreNode *QIMAGEWRITER_setFormat(QoreObject *self, QoreQImageWrit
 //void setGamma ( float gamma )
 static AbstractQoreNode *QIMAGEWRITER_setGamma(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float gamma = p ? p->getAsFloat() : 0.0;
    qiw->setGamma(gamma);
    return 0;
@@ -202,7 +202,7 @@ static AbstractQoreNode *QIMAGEWRITER_setGamma(QoreObject *self, QoreQImageWrite
 //void setQuality ( int quality )
 static AbstractQoreNode *QIMAGEWRITER_setQuality(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int quality = p ? p->getAsInt() : 0;
    qiw->setQuality(quality);
    return 0;
@@ -211,7 +211,7 @@ static AbstractQoreNode *QIMAGEWRITER_setQuality(QoreObject *self, QoreQImageWri
 //void setText ( const QString & key, const QString & text )
 static AbstractQoreNode *QIMAGEWRITER_setText(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
@@ -226,7 +226,7 @@ static AbstractQoreNode *QIMAGEWRITER_setText(QoreObject *self, QoreQImageWriter
 //bool supportsOption ( QImageIOHandler::ImageOption option ) const
 static AbstractQoreNode *QIMAGEWRITER_supportsOption(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QImageIOHandler::ImageOption option = (QImageIOHandler::ImageOption)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(qiw->supportsOption(option));
 }
@@ -234,8 +234,8 @@ static AbstractQoreNode *QIMAGEWRITER_supportsOption(QoreObject *self, QoreQImag
 //bool write ( const QImage & image )
 static AbstractQoreNode *QIMAGEWRITER_write(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQImage *image = p ? (QoreQImage *)p->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
    if (!image) {
       if (!xsink->isException())
          xsink->raiseException("QIMAGEWRITER-WRITE-PARAM-ERROR", "expecting a QImage object as first argument to QImageWriter::write()");

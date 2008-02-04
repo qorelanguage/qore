@@ -33,8 +33,8 @@ class QoreClass *QC_QProgressBar = 0;
 //QProgressBar ( QWidget * parent = 0 )
 static void QPROGRESSBAR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *parent = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -92,7 +92,7 @@ static AbstractQoreNode *QPROGRESSBAR_orientation(QoreObject *self, QoreQProgres
 //void setAlignment ( Qt::Alignment alignment )
 static AbstractQoreNode *QPROGRESSBAR_setAlignment(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
    qpb->qobj->setAlignment(alignment);
    return 0;
@@ -101,7 +101,7 @@ static AbstractQoreNode *QPROGRESSBAR_setAlignment(QoreObject *self, QoreQProgre
 //void setFormat ( const QString & format )
 static AbstractQoreNode *QPROGRESSBAR_setFormat(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString format;
    if (get_qstring(p, format, xsink))
       return 0;
@@ -112,7 +112,7 @@ static AbstractQoreNode *QPROGRESSBAR_setFormat(QoreObject *self, QoreQProgressB
 //void setInvertedAppearance ( bool invert )
 static AbstractQoreNode *QPROGRESSBAR_setInvertedAppearance(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool invert = p ? p->getAsBool() : false;
    qpb->qobj->setInvertedAppearance(invert);
    return 0;
@@ -121,7 +121,7 @@ static AbstractQoreNode *QPROGRESSBAR_setInvertedAppearance(QoreObject *self, Qo
 //void setTextDirection ( QProgressBar::Direction textDirection )
 static AbstractQoreNode *QPROGRESSBAR_setTextDirection(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QProgressBar::Direction textDirection = (QProgressBar::Direction)(p ? p->getAsInt() : 0);
    qpb->qobj->setTextDirection(textDirection);
    return 0;
@@ -130,7 +130,7 @@ static AbstractQoreNode *QPROGRESSBAR_setTextDirection(QoreObject *self, QoreQPr
 //void setTextVisible ( bool visible )
 static AbstractQoreNode *QPROGRESSBAR_setTextVisible(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool visible = p ? p->getAsBool() : false;
    qpb->qobj->setTextVisible(visible);
    return 0;
@@ -164,7 +164,7 @@ static AbstractQoreNode *QPROGRESSBAR_reset(QoreObject *self, QoreQProgressBar *
 //void setMaximum ( int maximum )
 static AbstractQoreNode *QPROGRESSBAR_setMaximum(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int maximum = p ? p->getAsInt() : 0;
    qpb->qobj->setMaximum(maximum);
    return 0;
@@ -173,7 +173,7 @@ static AbstractQoreNode *QPROGRESSBAR_setMaximum(QoreObject *self, QoreQProgress
 //void setMinimum ( int minimum )
 static AbstractQoreNode *QPROGRESSBAR_setMinimum(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int minimum = p ? p->getAsInt() : 0;
    qpb->qobj->setMinimum(minimum);
    return 0;
@@ -182,7 +182,7 @@ static AbstractQoreNode *QPROGRESSBAR_setMinimum(QoreObject *self, QoreQProgress
 //void setOrientation ( Qt::Orientation )
 static AbstractQoreNode *QPROGRESSBAR_setOrientation(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
    qpb->qobj->setOrientation(orientation);
    return 0;
@@ -191,7 +191,7 @@ static AbstractQoreNode *QPROGRESSBAR_setOrientation(QoreObject *self, QoreQProg
 //void setRange ( int minimum, int maximum )
 static AbstractQoreNode *QPROGRESSBAR_setRange(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int minimum = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int maximum = p ? p->getAsInt() : 0;
@@ -202,7 +202,7 @@ static AbstractQoreNode *QPROGRESSBAR_setRange(QoreObject *self, QoreQProgressBa
 //void setValue ( int value )
 static AbstractQoreNode *QPROGRESSBAR_setValue(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int value = p ? p->getAsInt() : 0;
    qpb->qobj->setValue(value);
    return 0;

@@ -1058,7 +1058,7 @@ class AbstractQoreNode *return_qevent(QEvent *event)
 
 static class AbstractQoreNode *f_QObject_connect(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   QoreObject *p = test_object_param(params, 0);
+   const QoreObject *p = test_object_param(params, 0);
    class AbstractPrivateData *spd = p ? p->getReferencedPrivateData(CID_QOBJECT, xsink) : NULL;
    QoreAbstractQObject *sender = spd ? dynamic_cast<QoreAbstractQObject *>(spd) : 0;
    assert(!spd || sender);
@@ -1068,7 +1068,7 @@ static class AbstractQoreNode *f_QObject_connect(const QoreListNode *params, cla
    }
    ReferenceHolder<AbstractPrivateData> holder1(spd, xsink);
 
-   QoreStringNode *str = test_string_param(params, 1);
+   const QoreStringNode *str = test_string_param(params, 1);
    if (!str)
    {
       xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing signal string as second argument");
@@ -1076,7 +1076,7 @@ static class AbstractQoreNode *f_QObject_connect(const QoreListNode *params, cla
    }
    const char *signal = str->getBuffer();
 
-   QoreObject *o = test_object_param(params, 2);
+   const QoreObject *o = test_object_param(params, 2);
    if (!o)
    {
       xsink->raiseException("QOBJECT-CONNECT-ERROR", "missing receiving object as third argument");
@@ -1114,7 +1114,7 @@ static class AbstractQoreNode *f_QObject_connect(const QoreListNode *params, cla
 static class AbstractQoreNode *f_SLOT(const QoreListNode *params, class ExceptionSink *xsink)
 {
    // get slot name
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p || !p->strlen())
    {
       xsink->raiseException("SLOT-ERROR", "missing slot name");
@@ -1132,7 +1132,7 @@ static class AbstractQoreNode *f_SLOT(const QoreListNode *params, class Exceptio
 static class AbstractQoreNode *f_SIGNAL(const QoreListNode *params, class ExceptionSink *xsink)
 {
    // get slot name
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p || !p->strlen())
    {
       xsink->raiseException("SIGNAL-ERROR", "missing signal name");
@@ -1150,7 +1150,7 @@ static class AbstractQoreNode *f_SIGNAL(const QoreListNode *params, class Except
 static class AbstractQoreNode *f_TR(const QoreListNode *params, class ExceptionSink *xsink)
 {
    // get slot name
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p || !p->strlen())
    {
       xsink->raiseException("TR-ERROR", "missing string argument to TR()");
@@ -1206,13 +1206,13 @@ static class AbstractQoreNode *f_qFatal(const QoreListNode *params, class Except
 
 static class AbstractQoreNode *f_qRound(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    return new QoreBigIntNode(qRound(p ? p->getAsFloat() : 0.0));
 }
 
 static class AbstractQoreNode *f_qsrand(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qsrand(p ? p->getAsInt() : 0);
    return 0;
 }
@@ -1249,7 +1249,7 @@ static AbstractQoreNode *f_QToolTip_palette(const QoreListNode *params, Exceptio
 //void setFont ( const QFont & font )
 static AbstractQoreNode *f_QToolTip_setFont(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreObject *p = test_object_param(params, 0);
+   const QoreObject *p = test_object_param(params, 0);
    QoreQFont *font = p ? (QoreQFont *)p->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
@@ -1264,7 +1264,7 @@ static AbstractQoreNode *f_QToolTip_setFont(const QoreListNode *params, Exceptio
 //void setPalette ( const QPalette & palette )
 static AbstractQoreNode *f_QToolTip_setPalette(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreObject *p = test_object_param(params, 0);
+   const QoreObject *p = test_object_param(params, 0);
    QoreQPalette *palette = p ? (QoreQPalette *)p->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!palette) {
       if (!xsink->isException())
@@ -1281,7 +1281,7 @@ static AbstractQoreNode *f_QToolTip_setPalette(const QoreListNode *params, Excep
 //void showText ( const QPoint & pos, const QString & text, QWidget * w = 0 )
 static class AbstractQoreNode *f_QToolTip_showText(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   QoreObject *p = test_object_param(params, 0);
+   const QoreObject *p = test_object_param(params, 0);
    QoreQPoint *pos = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
@@ -1289,7 +1289,7 @@ static class AbstractQoreNode *f_QToolTip_showText(const QoreListNode *params, c
       return 0;
    }
    ReferenceHolder<QoreQPoint> posHolder(pos, xsink);
-   QoreStringNode *str = test_string_param(params, 1);
+   const QoreStringNode *str = test_string_param(params, 1);
    if (!str) {
       xsink->raiseException("QTOOLTIP-SHOWTEXT-PARAM-ERROR", "expecting a string as second argument to QToolTip_showText()");
       return 0;
@@ -1328,7 +1328,7 @@ static class AbstractQoreNode *f_QToolTip_showText(const QoreListNode *params, c
 //QStyle * create ( const QString & key )
 static AbstractQoreNode *f_QStyleFactory_create(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;

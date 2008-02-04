@@ -34,18 +34,20 @@ class QoreClass *QC_QDragEnterEvent = 0;
 //QDragEnterEvent ( const QPoint & point, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers )
 static void QDRAGENTEREVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *point = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *o = test_object_param(params, 0);
+   QoreQPoint *point = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!point) {
       if (!xsink->isException())
          xsink->raiseException("QDRAGENTEREVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as first argument to QDragEnterEvent::constructor()");
       return;
    }
    ReferenceHolder<QoreQPoint> pointHolder(point, xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    Qt::DropActions actions = (Qt::DropActions)(p ? p->getAsInt() : 0);
-   p = get_param(params, 2);
-   QoreQMimeData *data = (p && p->type == NT_OBJECT) ? (QoreQMimeData *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQMimeData *data = o ? (QoreQMimeData *)o->getReferencedPrivateData(CID_QMIMEDATA, xsink) : 0;
    if (!data) {
       if (!xsink->isException())
          xsink->raiseException("QDRAGENTEREVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QMimeData object as third argument to QDragEnterEvent::constructor()");

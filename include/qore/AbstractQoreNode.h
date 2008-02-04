@@ -113,7 +113,7 @@ class AbstractQoreNode : public ReferenceObject
       // returns true if the node represents a value (default implementation)
       DLLEXPORT virtual bool is_value() const;
       
-      DLLEXPORT class AbstractQoreNode *RefSelf() const;
+      DLLEXPORT class AbstractQoreNode *refSelf() const;
       DLLEXPORT void ref() const;
 };
 

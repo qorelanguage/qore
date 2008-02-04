@@ -32,8 +32,8 @@ int CID_QGRIDLAYOUT;
 static void QGRIDLAYOUT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQGridLayout *qw;
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!parent)
       qw = new QoreQGridLayout(self);
@@ -54,7 +54,7 @@ static void QGRIDLAYOUT_copy(class QoreObject *self, class QoreObject *old, clas
 //void addItem ( QLayoutItem * item, int row, int column, int rowSpan = 1, int columnSpan = 1, Qt::Alignment alignment = 0 )
 //static AbstractQoreNode *QGRIDLAYOUT_addItem(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QLayoutItem* item = p;
 //   p = get_param(params, 1);
 //   int row = p ? p->getAsInt() : 0;
@@ -74,8 +74,8 @@ static void QGRIDLAYOUT_copy(class QoreObject *self, class QoreObject *old, clas
 //void addLayout ( QLayout * layout, int row, int column, Qt::Alignment alignment = 0 )
 AbstractQoreNode *QGRIDLAYOUT_addLayout(class QoreObject *self, QoreQGridLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQLayout *layout = p ? (QoreAbstractQLayout *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreAbstractQLayout *layout = o ? (QoreAbstractQLayout *)o->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
    if (!layout)
    {
       if (!xsink->isException())
@@ -84,14 +84,14 @@ AbstractQoreNode *QGRIDLAYOUT_addLayout(class QoreObject *self, QoreQGridLayout 
    }
    ReferenceHolder<QoreAbstractQLayout> holder(layout, xsink);
 
-   p = get_param(params, 1);
+   const AbstractQoreNode *p = get_param(params, 1);
    int row = p? p->getAsInt() : 0;
 
    p = get_param(params, 2);
    int col = p ? p->getAsInt() : 0;
 
    p = get_param(params, 3);
-   AbstractQoreNode *p1 = get_param(params, 4);
+   const AbstractQoreNode *p1 = get_param(params, 4);
    if (is_nothing(p1))
    {
       //printd(5, "addLayout(%08x, %d, %d, %d)\n", layout->getQLayout(), row, col, p ? p->getAsInt() : 0);
@@ -110,8 +110,8 @@ AbstractQoreNode *QGRIDLAYOUT_addLayout(class QoreObject *self, QoreQGridLayout 
 //void addWidget ( QWidget * widget, int fromRow, int fromColumn, int rowSpan, int columnSpan, Qt::Alignment alignment = 0 )
 AbstractQoreNode *QGRIDLAYOUT_addWidget(class QoreObject *self, QoreQGridLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *widget = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreAbstractQWidget *widget = o ? (QoreAbstractQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget)
    {
       if (!xsink->isException())
@@ -120,7 +120,7 @@ AbstractQoreNode *QGRIDLAYOUT_addWidget(class QoreObject *self, QoreQGridLayout 
    }
    ReferenceHolder<QoreAbstractQWidget> holder(widget, xsink);
 
-   p = get_param(params, 1);
+   const AbstractQoreNode *p = get_param(params, 1);
    if (is_nothing(p))
    {
       ql->getQLayout()->addWidget(widget->getQWidget());
@@ -132,7 +132,7 @@ AbstractQoreNode *QGRIDLAYOUT_addWidget(class QoreObject *self, QoreQGridLayout 
    int col = p ? p->getAsInt() : 0;
 
    p = get_param(params, 3);
-   AbstractQoreNode *p1 = get_param(params, 4);
+   const AbstractQoreNode *p1 = get_param(params, 4);
    if (is_nothing(p1))
    {
       //printd(5, "addWidget(%08x, %d, %d, %d)\n", widget->getQWidget(), row, col, p ? p->getAsInt() : 0);
@@ -150,7 +150,7 @@ AbstractQoreNode *QGRIDLAYOUT_addWidget(class QoreObject *self, QoreQGridLayout 
 //QRect cellRect ( int row, int column ) const
 //static AbstractQoreNode *QGRIDLAYOUT_cellRect(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   int row = p ? p->getAsInt() : 0;
 //   p = get_param(params, 1);
 //   int column = p ? p->getAsInt() : 0;
@@ -166,7 +166,7 @@ static AbstractQoreNode *QGRIDLAYOUT_columnCount(QoreObject *self, QoreQGridLayo
 //int columnMinimumWidth ( int column ) const
 static AbstractQoreNode *QGRIDLAYOUT_columnMinimumWidth(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qgl->qobj->columnMinimumWidth(column));
 }
@@ -174,7 +174,7 @@ static AbstractQoreNode *QGRIDLAYOUT_columnMinimumWidth(QoreObject *self, QoreQG
 //int columnStretch ( int column ) const
 static AbstractQoreNode *QGRIDLAYOUT_columnStretch(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qgl->qobj->columnStretch(column));
 }
@@ -182,7 +182,7 @@ static AbstractQoreNode *QGRIDLAYOUT_columnStretch(QoreObject *self, QoreQGridLa
 //void getItemPosition ( int index, int * row, int * column, int * rowSpan, int * columnSpan )
 //static AbstractQoreNode *QGRIDLAYOUT_getItemPosition(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   int index = p ? p->getAsInt() : 0;
 //   p = get_param(params, 1);
 //   ??? int* row = p;
@@ -217,7 +217,7 @@ static AbstractQoreNode *QGRIDLAYOUT_rowCount(QoreObject *self, QoreQGridLayout 
 //int rowMinimumHeight ( int row ) const
 static AbstractQoreNode *QGRIDLAYOUT_rowMinimumHeight(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qgl->qobj->rowMinimumHeight(row));
 }
@@ -225,7 +225,7 @@ static AbstractQoreNode *QGRIDLAYOUT_rowMinimumHeight(QoreObject *self, QoreQGri
 //int rowStretch ( int row ) const
 static AbstractQoreNode *QGRIDLAYOUT_rowStretch(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qgl->qobj->rowStretch(row));
 }
@@ -233,7 +233,7 @@ static AbstractQoreNode *QGRIDLAYOUT_rowStretch(QoreObject *self, QoreQGridLayou
 //void setColumnMinimumWidth ( int column, int minSize )
 static AbstractQoreNode *QGRIDLAYOUT_setColumnMinimumWidth(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int minSize = p ? p->getAsInt() : 0;
@@ -244,7 +244,7 @@ static AbstractQoreNode *QGRIDLAYOUT_setColumnMinimumWidth(QoreObject *self, Qor
 //void setColumnStretch ( int column, int stretch )
 static AbstractQoreNode *QGRIDLAYOUT_setColumnStretch(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int stretch = p ? p->getAsInt() : 0;
@@ -255,7 +255,7 @@ static AbstractQoreNode *QGRIDLAYOUT_setColumnStretch(QoreObject *self, QoreQGri
 //void setHorizontalSpacing ( int spacing )
 static AbstractQoreNode *QGRIDLAYOUT_setHorizontalSpacing(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int spacing = p ? p->getAsInt() : 0;
    qgl->qobj->setHorizontalSpacing(spacing);
    return 0;
@@ -264,7 +264,7 @@ static AbstractQoreNode *QGRIDLAYOUT_setHorizontalSpacing(QoreObject *self, Qore
 //void setOriginCorner ( Qt::Corner corner )
 static AbstractQoreNode *QGRIDLAYOUT_setOriginCorner(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Corner corner = (Qt::Corner)(p ? p->getAsInt() : 0);
    qgl->qobj->setOriginCorner(corner);
    return 0;
@@ -273,7 +273,7 @@ static AbstractQoreNode *QGRIDLAYOUT_setOriginCorner(QoreObject *self, QoreQGrid
 //void setRowMinimumHeight ( int row, int minSize )
 static AbstractQoreNode *QGRIDLAYOUT_setRowMinimumHeight(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int minSize = p ? p->getAsInt() : 0;
@@ -284,7 +284,7 @@ static AbstractQoreNode *QGRIDLAYOUT_setRowMinimumHeight(QoreObject *self, QoreQ
 //void setRowStretch ( int row, int stretch )
 static AbstractQoreNode *QGRIDLAYOUT_setRowStretch(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int stretch = p ? p->getAsInt() : 0;
@@ -295,7 +295,7 @@ static AbstractQoreNode *QGRIDLAYOUT_setRowStretch(QoreObject *self, QoreQGridLa
 //void setSpacing ( int spacing )
 static AbstractQoreNode *QGRIDLAYOUT_setSpacing(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int spacing = p ? p->getAsInt() : 0;
    qgl->qobj->setSpacing(spacing);
    return 0;
@@ -304,7 +304,7 @@ static AbstractQoreNode *QGRIDLAYOUT_setSpacing(QoreObject *self, QoreQGridLayou
 //void setVerticalSpacing ( int spacing )
 static AbstractQoreNode *QGRIDLAYOUT_setVerticalSpacing(QoreObject *self, QoreQGridLayout *qgl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int spacing = p ? p->getAsInt() : 0;
    qgl->qobj->setVerticalSpacing(spacing);
    return 0;

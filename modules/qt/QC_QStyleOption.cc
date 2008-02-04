@@ -37,7 +37,7 @@ class QoreClass *QC_QStyleOption = 0;
 //QStyleOption ( const QStyleOption & other )
 static void QSTYLEOPTION_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QSTYLEOPTION, new QoreQStyleOption());
       return;
@@ -57,8 +57,8 @@ static void QSTYLEOPTION_copy(class QoreObject *self, class QoreObject *old, cla
 //void initFrom ( const QWidget * widget )
 static AbstractQoreNode *QSTYLEOPTION_initFrom(QoreObject *self, QoreQStyleOption *qso, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQWidget *widget = p ? (QoreAbstractQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QSTYLEOPTION-INITFROM-PARAM-ERROR", "expecting a QWidget object as first argument to QStyleOption::initFrom()");
@@ -72,8 +72,8 @@ static AbstractQoreNode *QSTYLEOPTION_initFrom(QoreObject *self, QoreQStyleOptio
 //void setRect ( const QRect & rect )
 static AbstractQoreNode *QSTYLEOPTION_setRect(QoreObject *self, QoreQStyleOption *qso, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRect *rect = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRect *rect = p ? (QoreQRect *)p->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!rect) {
       if (!xsink->isException())
          xsink->raiseException("QSTYLEOPTION-SETRECT-PARAM-ERROR", "expecting a QRect object as first argument to QStyleOption::setRect()");
@@ -96,8 +96,8 @@ static AbstractQoreNode *QSTYLEOPTION_rect(QoreObject *self, QoreQStyleOption *q
 //void setPalette ( const QPalette & palette )
 static AbstractQoreNode *QSTYLEOPTION_setPalette(QoreObject *self, QoreQStyleOption *qso, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPalette *palette = p ? (QoreQPalette *)p->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!palette) {
       if (!xsink->isException())
          xsink->raiseException("QSTYLEOPTION-SETPALETTE-PARAM-ERROR", "expecting a QPalette object as first argument to QStyleOption::setPalette()");
@@ -120,8 +120,8 @@ static AbstractQoreNode *QSTYLEOPTION_palette(QoreObject *self, QoreQStyleOption
 //void setFontMetrics ( const QFontMetrics & fontMetrics )
 static AbstractQoreNode *QSTYLEOPTION_setFontMetrics(QoreObject *self, QoreQStyleOption *qso, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQFontMetrics *fontMetrics = (p && p->type == NT_OBJECT) ? (QoreQFontMetrics *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONTMETRICS, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQFontMetrics *fontMetrics = p ? (QoreQFontMetrics *)p->getReferencedPrivateData(CID_QFONTMETRICS, xsink) : 0;
    if (!fontMetrics) {
       if (!xsink->isException())
          xsink->raiseException("QSTYLEOPTION-SETFONTMETRICS-PARAM-ERROR", "expecting a QFontMetrics object as first argument to QStyleOption::setFontMetrics()");
@@ -144,7 +144,7 @@ static AbstractQoreNode *QSTYLEOPTION_fontMetrics(QoreObject *self, QoreQStyleOp
 //void setState ( QStyle::State state )
 static AbstractQoreNode *QSTYLEOPTION_setState(QoreObject *self, QoreQStyleOption *qso, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QStyle::State state = (QStyle::State)(p ? p->getAsInt() : 0);
    qso->state = state;
    return 0;
@@ -159,7 +159,7 @@ static AbstractQoreNode *QSTYLEOPTION_state(QoreObject *self, QoreQStyleOption *
 //void setDirection ( Qt::LayoutDirection direction )
 static AbstractQoreNode *QSTYLEOPTION_setDirection(QoreObject *self, QoreQStyleOption *qso, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::LayoutDirection direction = (Qt::LayoutDirection)(p ? p->getAsInt() : 0);
    qso->direction = direction;
    return 0;
@@ -174,7 +174,7 @@ static AbstractQoreNode *QSTYLEOPTION_direction(QoreObject *self, QoreQStyleOpti
 //void setType ( int type )
 static AbstractQoreNode *QSTYLEOPTION_setType(QoreObject *self, QoreQStyleOption *qso, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int type = p ? p->getAsInt() : 0;
    qso->type = type;
    return 0;
@@ -189,7 +189,7 @@ static AbstractQoreNode *QSTYLEOPTION_type(QoreObject *self, QoreQStyleOption *q
 //void setVersion ( int version )
 static AbstractQoreNode *QSTYLEOPTION_setVersion(QoreObject *self, QoreQStyleOption *qso, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int version = p ? p->getAsInt() : 0;
    qso->version = version;
    return 0;

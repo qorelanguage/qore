@@ -32,7 +32,7 @@ static void QKEYEVENT_constructor(class QoreObject *self, const QoreListNode *pa
 {
    QoreQKeyEvent *qke;
 
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QEvent::Type type = (QEvent::Type)(p ? p->getAsInt() : 0);
 
    p = get_param(params, 1);
@@ -41,7 +41,7 @@ static void QKEYEVENT_constructor(class QoreObject *self, const QoreListNode *pa
    p = get_param(params, 2);
    Qt::KeyboardModifiers km = (Qt::KeyboardModifiers)(p ? p->getAsInt() : 0);
 
-   QoreStringNode *str = test_string_param(params, 3);
+   const QoreStringNode *str = test_string_param(params, 3);
    const char *text = str ? str->getBuffer() : 0;
 
    p = get_param(params, 4);
@@ -84,7 +84,7 @@ static AbstractQoreNode *QKEYEVENT_key(QoreObject *self, QoreQKeyEvent *qke, con
 //bool matches ( QKeySequence::StandardKey key ) const
 static AbstractQoreNode *QKEYEVENT_matches(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QKeySequence::StandardKey key = (QKeySequence::StandardKey)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(qke->matches(key));
 }

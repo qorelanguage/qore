@@ -31,7 +31,7 @@ class QoreClass *QC_QTextLength = 0;
 //QTextLength ( Type type, qreal value )
 static void QTEXTLENGTH_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QTEXTLENGTH, new QoreQTextLength());
       return;
@@ -62,7 +62,7 @@ static AbstractQoreNode *QTEXTLENGTH_type(QoreObject *self, QoreQTextLength *qtl
 //qreal value ( qreal maximumLength ) const
 static AbstractQoreNode *QTEXTLENGTH_value(QoreObject *self, QoreQTextLength *qtl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal maximumLength = p ? p->getAsFloat() : 0.0;
    return new QoreFloatNode((double)qtl->value(maximumLength));
 }

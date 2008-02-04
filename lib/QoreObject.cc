@@ -150,6 +150,11 @@ const QoreClass *QoreObject::getClass() const
    return priv->myclass; 
 }
 
+const char *QoreObject::getClassName() const 
+{ 
+   return priv->myclass->getName(); 
+}
+
 int QoreObject::getStatus() const 
 { 
    return priv->status; 
@@ -170,7 +175,7 @@ bool QoreObject::isSystemObject() const
    return priv->system_object;
 }
 
-void QoreObject::tRef()
+void QoreObject::tRef() const
 {
    printd(5, "QoreObject::tRef(this=%08p) class=%s, tref %d->%d\n", this, priv->myclass->getName(), priv->tRefs.reference_count(), priv->tRefs.reference_count() + 1);
    priv->tRefs.ROreference();
@@ -236,7 +241,7 @@ void QoreObject::uninstantiateLVar(ExceptionSink *xsink)
    ::uninstantiateLVar(xsink);
 }
 
-void QoreObject::ref()
+void QoreObject::ref() const
 {
    printd(5, "QoreObject::ref(this=%08p) class=%s, %d->%d\n", this, priv->myclass->getName(), references, references + 1);
    ROreference();   // increment destructor-relevant references
@@ -986,7 +991,7 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
 
 AbstractQoreNode *QoreObject::realCopy() const
 {
-   return RefSelf();
+   return refSelf();
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than

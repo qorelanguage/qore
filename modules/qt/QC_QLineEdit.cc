@@ -37,7 +37,7 @@ class QoreClass *QC_QLineEdit = 0;
 //QLineEdit ( const QString & contents, QWidget * parent = 0 )
 static void QLINEEDIT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    if (is_nothing(p)) {
       self->setPrivate(CID_QLINEEDIT, new QoreQLineEdit(self));
@@ -49,7 +49,8 @@ static void QLINEEDIT_constructor(QoreObject *self, const QoreListNode *params, 
    if (got_string)
       p = get_param(params, 1);
 
-   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = dynamic_cast<const QoreObject *>(p);
+   QoreAbstractQWidget *parent = o ? (QoreAbstractQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent && !is_nothing(p)) {
       xsink->raiseException("QLINEEDIT-CONSTRUCTOR-ERROR", "expecting [widget] or string, [parent widget] as arguments to QLineEdit::constructor(), got type '%s'", p->getTypeName());
       return;
@@ -101,7 +102,7 @@ static AbstractQoreNode *QLINEEDIT_createStandardContextMenu(QoreObject *self, Q
 //void cursorBackward ( bool mark, int steps = 1 )
 static AbstractQoreNode *QLINEEDIT_cursorBackward(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
    p = get_param(params, 1);
    int steps = !is_nothing(p) ? p->getAsInt() : 1;
@@ -112,7 +113,7 @@ static AbstractQoreNode *QLINEEDIT_cursorBackward(QoreObject *self, QoreQLineEdi
 //void cursorForward ( bool mark, int steps = 1 )
 static AbstractQoreNode *QLINEEDIT_cursorForward(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
    p = get_param(params, 1);
    int steps = !is_nothing(p) ? p->getAsInt() : 1;
@@ -129,8 +130,8 @@ static AbstractQoreNode *QLINEEDIT_cursorPosition(QoreObject *self, QoreQLineEdi
 //int cursorPositionAt ( const QPoint & pos )
 static AbstractQoreNode *QLINEEDIT_cursorPositionAt(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *pos = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QLINEEDIT-CURSORPOSITIONAT-PARAM-ERROR", "expecting a QPoint object as first argument to QLineEdit::cursorPositionAt()");
@@ -143,7 +144,7 @@ static AbstractQoreNode *QLINEEDIT_cursorPositionAt(QoreObject *self, QoreQLineE
 //void cursorWordBackward ( bool mark )
 static AbstractQoreNode *QLINEEDIT_cursorWordBackward(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
    qle->qobj->cursorWordBackward(mark);
    return 0;
@@ -152,7 +153,7 @@ static AbstractQoreNode *QLINEEDIT_cursorWordBackward(QoreObject *self, QoreQLin
 //void cursorWordForward ( bool mark )
 static AbstractQoreNode *QLINEEDIT_cursorWordForward(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
    qle->qobj->cursorWordForward(mark);
    return 0;
@@ -193,7 +194,7 @@ static AbstractQoreNode *QLINEEDIT_dragEnabled(QoreObject *self, QoreQLineEdit *
 //void end ( bool mark )
 static AbstractQoreNode *QLINEEDIT_end(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
    qle->qobj->end(mark);
    return 0;
@@ -220,7 +221,7 @@ static AbstractQoreNode *QLINEEDIT_hasSelectedText(QoreObject *self, QoreQLineEd
 //void home ( bool mark )
 static AbstractQoreNode *QLINEEDIT_home(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool mark = p ? p->getAsBool() : false;
    qle->qobj->home(mark);
    return 0;
@@ -235,7 +236,7 @@ static AbstractQoreNode *QLINEEDIT_inputMask(QoreObject *self, QoreQLineEdit *ql
 //void insert ( const QString & newText )
 static AbstractQoreNode *QLINEEDIT_insert(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    QString newText;
    if (get_qstring(p, newText, xsink))
@@ -301,7 +302,7 @@ static AbstractQoreNode *QLINEEDIT_selectionStart(QoreObject *self, QoreQLineEdi
 //void setAlignment ( Qt::Alignment flag )
 static AbstractQoreNode *QLINEEDIT_setAlignment(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Alignment flag = (Qt::Alignment)(p ? p->getAsInt() : 0);
    qle->qobj->setAlignment(flag);
    return 0;
@@ -310,7 +311,7 @@ static AbstractQoreNode *QLINEEDIT_setAlignment(QoreObject *self, QoreQLineEdit 
 ////void setCompleter ( QCompleter * c )
 //static AbstractQoreNode *QLINEEDIT_setCompleter(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QCompleter* c = p;
 //   qle->qobj->setCompleter(c);
 //   return 0;
@@ -319,7 +320,7 @@ static AbstractQoreNode *QLINEEDIT_setAlignment(QoreObject *self, QoreQLineEdit 
 //void setCursorPosition ( int )
 static AbstractQoreNode *QLINEEDIT_setCursorPosition(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qle->qobj->setCursorPosition(x);
    return 0;
@@ -328,7 +329,7 @@ static AbstractQoreNode *QLINEEDIT_setCursorPosition(QoreObject *self, QoreQLine
 //void setDragEnabled ( bool b )
 static AbstractQoreNode *QLINEEDIT_setDragEnabled(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qle->qobj->setDragEnabled(b);
    return 0;
@@ -337,7 +338,7 @@ static AbstractQoreNode *QLINEEDIT_setDragEnabled(QoreObject *self, QoreQLineEdi
 //void setEchoMode ( EchoMode )
 static AbstractQoreNode *QLINEEDIT_setEchoMode(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QLineEdit::EchoMode echomode = (QLineEdit::EchoMode)(p ? p->getAsInt() : 0);
    qle->qobj->setEchoMode(echomode);
    return 0;
@@ -346,7 +347,7 @@ static AbstractQoreNode *QLINEEDIT_setEchoMode(QoreObject *self, QoreQLineEdit *
 //void setFrame ( bool )
 static AbstractQoreNode *QLINEEDIT_setFrame(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qle->qobj->setFrame(b);
    return 0;
@@ -355,7 +356,7 @@ static AbstractQoreNode *QLINEEDIT_setFrame(QoreObject *self, QoreQLineEdit *qle
 //void setInputMask ( const QString & inputMask )
 static AbstractQoreNode *QLINEEDIT_setInputMask(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString inputMask;
 
    if (get_qstring(p, inputMask, xsink))
@@ -368,7 +369,7 @@ static AbstractQoreNode *QLINEEDIT_setInputMask(QoreObject *self, QoreQLineEdit 
 //void setMaxLength ( int )
 static AbstractQoreNode *QLINEEDIT_setMaxLength(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qle->qobj->setMaxLength(x);
    return 0;
@@ -377,7 +378,7 @@ static AbstractQoreNode *QLINEEDIT_setMaxLength(QoreObject *self, QoreQLineEdit 
 //void setModified ( bool )
 static AbstractQoreNode *QLINEEDIT_setModified(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qle->qobj->setModified(b);
    return 0;
@@ -386,7 +387,7 @@ static AbstractQoreNode *QLINEEDIT_setModified(QoreObject *self, QoreQLineEdit *
 //void setReadOnly ( bool )
 static AbstractQoreNode *QLINEEDIT_setReadOnly(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qle->qobj->setReadOnly(b);
    return 0;
@@ -395,7 +396,7 @@ static AbstractQoreNode *QLINEEDIT_setReadOnly(QoreObject *self, QoreQLineEdit *
 //void setSelection ( int start, int length )
 static AbstractQoreNode *QLINEEDIT_setSelection(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int start = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int length = p ? p->getAsInt() : 0;
@@ -406,8 +407,8 @@ static AbstractQoreNode *QLINEEDIT_setSelection(QoreObject *self, QoreQLineEdit 
 //void setValidator ( const QValidator * v )
 static AbstractQoreNode *QLINEEDIT_setValidator(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQValidator *v = (p && p->type == NT_OBJECT) ? (QoreQValidator *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QVALIDATOR, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQValidator *v = p ? (QoreQValidator *)p->getReferencedPrivateData(CID_QVALIDATOR, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> vHolder(static_cast<AbstractPrivateData *>(v), xsink);
@@ -492,7 +493,7 @@ static AbstractQoreNode *QLINEEDIT_selectAll(QoreObject *self, QoreQLineEdit *ql
 //void setText ( const QString & )
 static AbstractQoreNode *QLINEEDIT_setText(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    
    QString text;
    if (get_qstring(p, text, xsink))

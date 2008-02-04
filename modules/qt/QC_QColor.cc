@@ -29,13 +29,13 @@ QoreClass *QC_QColor = 0;
 
 static void QCOLOR_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    QoreQColor *qc;
    if (is_nothing(p))
       qc = new QoreQColor();
    else if (p->type == NT_STRING)
-      qc = new QoreQColor((reinterpret_cast<QoreStringNode *>(p))->getBuffer());
+      qc = new QoreQColor((reinterpret_cast<const QoreStringNode *>(p))->getBuffer());
    else {
       int f = p->getAsInt();
       p = get_param(params, 1);
@@ -100,7 +100,7 @@ static AbstractQoreNode *QCOLOR_blueF(QoreObject *self, QoreQColor *qc, const Qo
 //QColor convertTo ( Spec colorSpec ) const
 static AbstractQoreNode *QCOLOR_convertTo(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    
    QColor::Spec colorSpec = (QColor::Spec)(p ? p->getAsInt() : 0);
    QoreQColor *n_qc = new QoreQColor(qc->convertTo(colorSpec));
@@ -125,7 +125,7 @@ static AbstractQoreNode *QCOLOR_cyanF(QoreObject *self, QoreQColor *qc, const Qo
 //QColor darker ( int factor = 200 ) const
 //static AbstractQoreNode *QCOLOR_darker(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   int factor = !is_nothing(p) ? p->getAsInt() : 200;
 //   ??? return new QoreBigIntNode(qc->darker(factor));
 //}
@@ -133,7 +133,7 @@ static AbstractQoreNode *QCOLOR_cyanF(QoreObject *self, QoreQColor *qc, const Qo
 //void getCmyk ( int * c, int * m, int * y, int * k, int * a = 0 )
 //static AbstractQoreNode *QCOLOR_getCmyk(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? int* c = p;
 //   p = get_param(params, 1);
 //   ??? int* m = p;
@@ -150,7 +150,7 @@ static AbstractQoreNode *QCOLOR_cyanF(QoreObject *self, QoreQColor *qc, const Qo
 //void getCmykF ( qreal * c, qreal * m, qreal * y, qreal * k, qreal * a = 0 )
 //static AbstractQoreNode *QCOLOR_getCmykF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? qreal* c = p;
 //   p = get_param(params, 1);
 //   ??? qreal* m = p;
@@ -167,7 +167,7 @@ static AbstractQoreNode *QCOLOR_cyanF(QoreObject *self, QoreQColor *qc, const Qo
 //void getHsv ( int * h, int * s, int * v, int * a = 0 ) const
 //static AbstractQoreNode *QCOLOR_getHsv(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? int* h = p;
 //   p = get_param(params, 1);
 //   ??? int* s = p;
@@ -182,7 +182,7 @@ static AbstractQoreNode *QCOLOR_cyanF(QoreObject *self, QoreQColor *qc, const Qo
 //void getHsvF ( qreal * h, qreal * s, qreal * v, qreal * a = 0 ) const
 //static AbstractQoreNode *QCOLOR_getHsvF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? qreal* h = p;
 //   p = get_param(params, 1);
 //   ??? qreal* s = p;
@@ -197,7 +197,7 @@ static AbstractQoreNode *QCOLOR_cyanF(QoreObject *self, QoreQColor *qc, const Qo
 //void getRgb ( int * r, int * g, int * b, int * a = 0 ) const
 //static AbstractQoreNode *QCOLOR_getRgb(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? int* r = p;
 //   p = get_param(params, 1);
 //   ??? int* g = p;
@@ -212,7 +212,7 @@ static AbstractQoreNode *QCOLOR_cyanF(QoreObject *self, QoreQColor *qc, const Qo
 //void getRgbF ( qreal * r, qreal * g, qreal * b, qreal * a = 0 ) const
 //static AbstractQoreNode *QCOLOR_getRgbF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? qreal* r = p;
 //   p = get_param(params, 1);
 //   ??? qreal* g = p;
@@ -311,7 +311,7 @@ static AbstractQoreNode *QCOLOR_saturationF(QoreObject *self, QoreQColor *qc, co
 //void setAlpha ( int alpha )
 static AbstractQoreNode *QCOLOR_setAlpha(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int alpha = p ? p->getAsInt() : 0;
    qc->setAlpha(alpha);
    return 0;
@@ -320,7 +320,7 @@ static AbstractQoreNode *QCOLOR_setAlpha(QoreObject *self, QoreQColor *qc, const
 //void setAlphaF ( qreal alpha )
 static AbstractQoreNode *QCOLOR_setAlphaF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float alpha = p ? p->getAsFloat() : 0;
    qc->setAlphaF(alpha);
    return 0;
@@ -329,7 +329,7 @@ static AbstractQoreNode *QCOLOR_setAlphaF(QoreObject *self, QoreQColor *qc, cons
 //void setBlue ( int blue )
 static AbstractQoreNode *QCOLOR_setBlue(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int blue = p ? p->getAsInt() : 0;
    qc->setBlue(blue);
    return 0;
@@ -338,7 +338,7 @@ static AbstractQoreNode *QCOLOR_setBlue(QoreObject *self, QoreQColor *qc, const 
 //void setBlueF ( qreal blue )
 static AbstractQoreNode *QCOLOR_setBlueF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float blue = p ? p->getAsFloat() : 0;
    qc->setBlueF(blue);
    return 0;
@@ -347,7 +347,7 @@ static AbstractQoreNode *QCOLOR_setBlueF(QoreObject *self, QoreQColor *qc, const
 //void setCmyk ( int c, int m, int y, int k, int a = 255 )
 static AbstractQoreNode *QCOLOR_setCmyk(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int c = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int m = p ? p->getAsInt() : 0;
@@ -364,7 +364,7 @@ static AbstractQoreNode *QCOLOR_setCmyk(QoreObject *self, QoreQColor *qc, const 
 //void setCmykF ( qreal c, qreal m, qreal y, qreal k, qreal a = 1.0 )
 static AbstractQoreNode *QCOLOR_setCmykF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float c = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float m = p ? p->getAsFloat() : 0;
@@ -381,7 +381,7 @@ static AbstractQoreNode *QCOLOR_setCmykF(QoreObject *self, QoreQColor *qc, const
 //void setGreen ( int green )
 static AbstractQoreNode *QCOLOR_setGreen(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int green = p ? p->getAsInt() : 0;
    qc->setGreen(green);
    return 0;
@@ -390,7 +390,7 @@ static AbstractQoreNode *QCOLOR_setGreen(QoreObject *self, QoreQColor *qc, const
 //void setGreenF ( qreal green )
 static AbstractQoreNode *QCOLOR_setGreenF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float green = p ? p->getAsFloat() : 0;
    qc->setGreenF(green);
    return 0;
@@ -399,7 +399,7 @@ static AbstractQoreNode *QCOLOR_setGreenF(QoreObject *self, QoreQColor *qc, cons
 //void setHsv ( int h, int s, int v, int a = 255 )
 static AbstractQoreNode *QCOLOR_setHsv(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int h = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int s = p ? p->getAsInt() : 0;
@@ -414,7 +414,7 @@ static AbstractQoreNode *QCOLOR_setHsv(QoreObject *self, QoreQColor *qc, const Q
 //void setHsvF ( qreal h, qreal s, qreal v, qreal a = 1.0 )
 static AbstractQoreNode *QCOLOR_setHsvF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float h = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float s = p ? p->getAsFloat() : 0;
@@ -429,7 +429,7 @@ static AbstractQoreNode *QCOLOR_setHsvF(QoreObject *self, QoreQColor *qc, const 
 //void setNamedColor ( const QString & name )
 static AbstractQoreNode *QCOLOR_setNamedColor(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString name;
    if (get_qstring(p, name, xsink))
       return 0;
@@ -440,7 +440,7 @@ static AbstractQoreNode *QCOLOR_setNamedColor(QoreObject *self, QoreQColor *qc, 
 //void setRed ( int red )
 static AbstractQoreNode *QCOLOR_setRed(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int red = p ? p->getAsInt() : 0;
    qc->setRed(red);
    return 0;
@@ -449,7 +449,7 @@ static AbstractQoreNode *QCOLOR_setRed(QoreObject *self, QoreQColor *qc, const Q
 //void setRedF ( qreal red )
 static AbstractQoreNode *QCOLOR_setRedF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float red = p ? p->getAsFloat() : 0;
    qc->setRedF(red);
    return 0;
@@ -459,7 +459,7 @@ static AbstractQoreNode *QCOLOR_setRedF(QoreObject *self, QoreQColor *qc, const 
 //void setRgb ( QRgb rgb )
 static AbstractQoreNode *QCOLOR_setRgb(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int r = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    if (is_nothing(p))
@@ -479,7 +479,7 @@ static AbstractQoreNode *QCOLOR_setRgb(QoreObject *self, QoreQColor *qc, const Q
 //void setRgbF ( qreal r, qreal g, qreal b, qreal a = 1.0 )
 static AbstractQoreNode *QCOLOR_setRgbF(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float r = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float g = p ? p->getAsFloat() : 0;
@@ -494,7 +494,7 @@ static AbstractQoreNode *QCOLOR_setRgbF(QoreObject *self, QoreQColor *qc, const 
 //void setRgba ( QRgb rgba )
 static AbstractQoreNode *QCOLOR_setRgba(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int rgba = p ? p->getAsInt() : 0;
    qc->setRgba(rgba);
    return 0;
@@ -551,7 +551,7 @@ static AbstractQoreNode *QCOLOR_yellowF(QoreObject *self, QoreQColor *qc, const 
 //QColor light (int f = 150) const
 static AbstractQoreNode *QCOLOR_light(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int f = !is_nothing(p) ? p->getAsInt() : 150;
    QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->light(f));
@@ -562,7 +562,7 @@ static AbstractQoreNode *QCOLOR_light(QoreObject *self, QoreQColor *qc, const Qo
 //QColor lighter (int f = 150) const
 static AbstractQoreNode *QCOLOR_lighter(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int f = !is_nothing(p) ? p->getAsInt() : 150;
    QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->lighter(f));
@@ -573,7 +573,7 @@ static AbstractQoreNode *QCOLOR_lighter(QoreObject *self, QoreQColor *qc, const 
 //QColor dark (int f = 200) const
 static AbstractQoreNode *QCOLOR_dark(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int f = !is_nothing(p) ? p->getAsInt() : 200;
    QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->dark(f));
@@ -584,7 +584,7 @@ static AbstractQoreNode *QCOLOR_dark(QoreObject *self, QoreQColor *qc, const Qor
 //QColor darker (int f = 200) const
 static AbstractQoreNode *QCOLOR_darker(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int f = !is_nothing(p) ? p->getAsInt() : 200;
    QoreObject *o_qc = new QoreObject(self->getClass(CID_QCOLOR), getProgram());
    QoreQColor *q_qc = new QoreQColor(qc->darker(f));
@@ -687,7 +687,7 @@ static AbstractQoreNode *f_QColor_colorNames(const QoreListNode *params, Excepti
 //QColor fromCmyk ( int c, int m, int y, int k, int a = 255 )
 static AbstractQoreNode *f_QColor_fromCmyk(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int c = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int m = p ? p->getAsInt() : 0;
@@ -706,7 +706,7 @@ static AbstractQoreNode *f_QColor_fromCmyk(const QoreListNode *params, Exception
 //QColor fromCmykF ( qreal c, qreal m, qreal y, qreal k, qreal a = 1.0 )
 static AbstractQoreNode *f_QColor_fromCmykF(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal c = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    qreal m = p ? p->getAsFloat() : 0.0;
@@ -725,7 +725,7 @@ static AbstractQoreNode *f_QColor_fromCmykF(const QoreListNode *params, Exceptio
 //QColor fromHsv ( int h, int s, int v, int a = 255 )
 static AbstractQoreNode *f_QColor_fromHsv(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int h = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int s = p ? p->getAsInt() : 0;
@@ -742,7 +742,7 @@ static AbstractQoreNode *f_QColor_fromHsv(const QoreListNode *params, ExceptionS
 //QColor fromHsvF ( qreal h, qreal s, qreal v, qreal a = 1.0 )
 static AbstractQoreNode *f_QColor_fromHsvF(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal h = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    qreal s = p ? p->getAsFloat() : 0.0;
@@ -760,7 +760,7 @@ static AbstractQoreNode *f_QColor_fromHsvF(const QoreListNode *params, Exception
 //QColor fromRgb ( int r, int g, int b, int a = 255 )
 static AbstractQoreNode *f_QColor_fromRgb(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int r = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int g = p ? p->getAsInt() : 0;
@@ -777,7 +777,7 @@ static AbstractQoreNode *f_QColor_fromRgb(const QoreListNode *params, ExceptionS
 //QColor fromRgbF ( qreal r, qreal g, qreal b, qreal a = 1.0 )
 static AbstractQoreNode *f_QColor_fromRgbF(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal r = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    qreal g = p ? p->getAsFloat() : 0.0;
@@ -794,7 +794,7 @@ static AbstractQoreNode *f_QColor_fromRgbF(const QoreListNode *params, Exception
 //QColor fromRgba ( QRgb rgba )
 static AbstractQoreNode *f_QColor_fromRgba(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int64 rgba = p ? p->getAsBigInt() : 0;
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(QColor::fromRgba(rgba));
@@ -806,7 +806,7 @@ static AbstractQoreNode *f_QColor_fromRgba(const QoreListNode *params, Exception
 //void setAllowX11ColorNames ( bool enabled )
 static AbstractQoreNode *f_QColor_setAllowX11ColorNames(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enabled = p ? p->getAsBool() : false;
    QColor::setAllowX11ColorNames(enabled);
    return 0;

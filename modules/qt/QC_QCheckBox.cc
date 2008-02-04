@@ -34,13 +34,13 @@ class QoreClass *QC_QCheckBox = 0;
 //QCheckBox ( const QString & text, QWidget * parent = 0 )
 static void QCHECKBOX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QCHECKBOX, new QoreQCheckBox(self));
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
+      QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
          return;
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -50,8 +50,9 @@ static void QCHECKBOX_constructor(QoreObject *self, const QoreListNode *params, 
    QString text;
    if (get_qstring(p, text, xsink))
       return;
-   p = get_param(params, 1);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -79,7 +80,7 @@ static AbstractQoreNode *QCHECKBOX_isTristate(QoreObject *self, QoreAbstractQChe
 //void setCheckState ( Qt::CheckState state )
 static AbstractQoreNode *QCHECKBOX_setCheckState(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::CheckState state = (Qt::CheckState)(p ? p->getAsInt() : 0);
    qcb->getQCheckBox()->setCheckState(state);
    return 0;
@@ -88,7 +89,7 @@ static AbstractQoreNode *QCHECKBOX_setCheckState(QoreObject *self, QoreAbstractQ
 //void setTristate ( bool y = true )
 static AbstractQoreNode *QCHECKBOX_setTristate(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool y = !is_nothing(p) ? p->getAsBool() : true;
    qcb->getQCheckBox()->setTristate(y);
    return 0;
@@ -98,8 +99,8 @@ static AbstractQoreNode *QCHECKBOX_setTristate(QoreObject *self, QoreAbstractQCh
 /*
 static AbstractQoreNode *QCHECKBOX_initStyleOption(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQStyleOptionButton *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionButton *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONBUTTON, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQStyleOptionButton *option = p ? (QoreQStyleOptionButton *)p->getReferencedPrivateData(CID_QSTYLEOPTIONBUTTON, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QCHECKBOX-INITSTYLEOPTION-PARAM-ERROR", "expecting a QStyleOptionButton object as first argument to QCheckBox::initStyleOption()");

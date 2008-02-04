@@ -29,7 +29,7 @@ QoreClass *QC_QFont = 0;
 
 static void QFONT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *str = test_string_param(params, 0);
+   const QoreStringNode *str = test_string_param(params, 0);
    if (!str) {
       self->setPrivate(CID_QFONT, new QoreQFont());
       return;
@@ -37,7 +37,7 @@ static void QFONT_constructor(class QoreObject *self, const QoreListNode *params
    const char *fname = str->getBuffer();
 
    // get point size
-   AbstractQoreNode *p = get_param(params, 1);
+   const AbstractQoreNode *p = get_param(params, 1);
    int point_size = p ? p->getAsInt() : -1;
 
    // get weight
@@ -96,7 +96,7 @@ static AbstractQoreNode *QFONT_fixedPitch(QoreObject *self, QoreQFont *qf, const
 //bool fromString ( const QString & descrip )
 static AbstractQoreNode *QFONT_fromString(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString descrip;
    if (get_qstring(p, descrip, xsink))
       return 0;
@@ -113,7 +113,7 @@ static AbstractQoreNode *QFONT_fromString(QoreObject *self, QoreQFont *qf, const
 //bool isCopyOf ( const QFont & f ) const
 //static AbstractQoreNode *QFONT_isCopyOf(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QFont& f = p;
 //   return new QoreBoolNode(qf->isCopyOf(f));
 //}
@@ -195,7 +195,7 @@ static AbstractQoreNode *QFONT_rawName(QoreObject *self, QoreQFont *qf, const Qo
 //QFont resolve ( const QFont & other ) const
 //static AbstractQoreNode *QFONT_resolve(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QFont& other = p;
 //   ??? return new QoreBigIntNode(qf->resolve(other));
 //}
@@ -203,7 +203,7 @@ static AbstractQoreNode *QFONT_rawName(QoreObject *self, QoreQFont *qf, const Qo
 //void setBold ( bool enable )
 static AbstractQoreNode *QFONT_setBold(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setBold(enable);
    return 0;
@@ -212,7 +212,7 @@ static AbstractQoreNode *QFONT_setBold(QoreObject *self, QoreQFont *qf, const Qo
 //void setFamily ( const QString & family )
 static AbstractQoreNode *QFONT_setFamily(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString family;
    if (get_qstring(p, family, xsink))
       return 0;
@@ -224,7 +224,7 @@ static AbstractQoreNode *QFONT_setFamily(QoreObject *self, QoreQFont *qf, const 
 //void setFixedPitch ( bool enable )
 static AbstractQoreNode *QFONT_setFixedPitch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setFixedPitch(enable);
    return 0;
@@ -233,7 +233,7 @@ static AbstractQoreNode *QFONT_setFixedPitch(QoreObject *self, QoreQFont *qf, co
 //void setItalic ( bool enable )
 static AbstractQoreNode *QFONT_setItalic(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setItalic(enable);
    return 0;
@@ -242,7 +242,7 @@ static AbstractQoreNode *QFONT_setItalic(QoreObject *self, QoreQFont *qf, const 
 //void setKerning ( bool enable )
 static AbstractQoreNode *QFONT_setKerning(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setKerning(enable);
    return 0;
@@ -251,7 +251,7 @@ static AbstractQoreNode *QFONT_setKerning(QoreObject *self, QoreQFont *qf, const
 //void setOverline ( bool enable )
 static AbstractQoreNode *QFONT_setOverline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setOverline(enable);
    return 0;
@@ -260,7 +260,7 @@ static AbstractQoreNode *QFONT_setOverline(QoreObject *self, QoreQFont *qf, cons
 //void setPixelSize ( int pixelSize )
 static AbstractQoreNode *QFONT_setPixelSize(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int pixelSize = p ? p->getAsInt() : 0;
    qf->setPixelSize(pixelSize);
    return 0;
@@ -269,7 +269,7 @@ static AbstractQoreNode *QFONT_setPixelSize(QoreObject *self, QoreQFont *qf, con
 //void setPointSize ( int pointSize )
 static AbstractQoreNode *QFONT_setPointSize(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int pointSize = p ? p->getAsInt() : 0;
    qf->setPointSize(pointSize);
    return 0;
@@ -278,7 +278,7 @@ static AbstractQoreNode *QFONT_setPointSize(QoreObject *self, QoreQFont *qf, con
 //void setPointSizeF ( qreal pointSize )
 static AbstractQoreNode *QFONT_setPointSizeF(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float pointSize = p ? p->getAsFloat() : 0;
    qf->setPointSizeF(pointSize);
    return 0;
@@ -287,7 +287,7 @@ static AbstractQoreNode *QFONT_setPointSizeF(QoreObject *self, QoreQFont *qf, co
 //void setRawMode ( bool enable )
 static AbstractQoreNode *QFONT_setRawMode(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setRawMode(enable);
    return 0;
@@ -296,7 +296,7 @@ static AbstractQoreNode *QFONT_setRawMode(QoreObject *self, QoreQFont *qf, const
 //void setRawName ( const QString & name )
 static AbstractQoreNode *QFONT_setRawName(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString name;
    if (get_qstring(p, name, xsink))
       return 0;
@@ -308,7 +308,7 @@ static AbstractQoreNode *QFONT_setRawName(QoreObject *self, QoreQFont *qf, const
 //void setStretch ( int factor )
 static AbstractQoreNode *QFONT_setStretch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int factor = p ? p->getAsInt() : 0;
    qf->setStretch(factor);
    return 0;
@@ -317,7 +317,7 @@ static AbstractQoreNode *QFONT_setStretch(QoreObject *self, QoreQFont *qf, const
 //void setStrikeOut ( bool enable )
 static AbstractQoreNode *QFONT_setStrikeOut(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setStrikeOut(enable);
    return 0;
@@ -326,7 +326,7 @@ static AbstractQoreNode *QFONT_setStrikeOut(QoreObject *self, QoreQFont *qf, con
 //void setStyle ( Style style )
 static AbstractQoreNode *QFONT_setStyle(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QFont::Style style = (QFont::Style)(p ? p->getAsInt() : 0);
    qf->setStyle(style);
    return 0;
@@ -335,7 +335,7 @@ static AbstractQoreNode *QFONT_setStyle(QoreObject *self, QoreQFont *qf, const Q
 //void setStyleHint ( StyleHint hint, StyleStrategy strategy = PreferDefault )
 static AbstractQoreNode *QFONT_setStyleHint(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QFont::StyleHint hint = (QFont::StyleHint)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QFont::StyleStrategy strategy = (QFont::StyleStrategy)(p ? p->getAsInt() : 0);
@@ -346,7 +346,7 @@ static AbstractQoreNode *QFONT_setStyleHint(QoreObject *self, QoreQFont *qf, con
 //void setStyleStrategy ( StyleStrategy s )
 static AbstractQoreNode *QFONT_setStyleStrategy(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QFont::StyleStrategy s = (QFont::StyleStrategy)(p ? p->getAsInt() : 0);
    qf->setStyleStrategy(s);
    return 0;
@@ -355,7 +355,7 @@ static AbstractQoreNode *QFONT_setStyleStrategy(QoreObject *self, QoreQFont *qf,
 //void setUnderline ( bool enable )
 static AbstractQoreNode *QFONT_setUnderline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : 0;
    qf->setUnderline(enable);
    return 0;
@@ -364,7 +364,7 @@ static AbstractQoreNode *QFONT_setUnderline(QoreObject *self, QoreQFont *qf, con
 //void setWeight ( int weight )
 static AbstractQoreNode *QFONT_setWeight(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int weight = p ? p->getAsInt() : 0;
    qf->setWeight(weight);
    return 0;

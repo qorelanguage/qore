@@ -696,15 +696,15 @@ class QoreListNode *QorePGResult::getQoreListNode(class ExceptionSink *xsink)
    return l.release();
 }
 
-static int check_hash_type(class QoreHash *h, class ExceptionSink *xsink)
+static int check_hash_type(const QoreHash *h, class ExceptionSink *xsink)
 {
-   class AbstractQoreNode *t = h->getKeyValue("^pgtype^");
+   const AbstractQoreNode *t = h->getKeyValue("^pgtype^");
    if (is_nothing(t))
    {
       xsink->raiseException("DBI:PGSQL:BIND-ERROR", "missing '^pgtype^' value in bind hash");
       return -1;
    }
-   QoreBigIntNode *b = dynamic_cast<QoreBigIntNode *>(t);
+   const QoreBigIntNode *b = dynamic_cast<const QoreBigIntNode *>(t);
    if (!b)
    {
       xsink->raiseException("DBI:PGSQL:BIND-ERROR", "'^pgtype^' key contains '%s' value, expecting integer", t->getTypeName());
@@ -713,7 +713,7 @@ static int check_hash_type(class QoreHash *h, class ExceptionSink *xsink)
    return b->val;
 }
 
-int QorePGResult::add(class AbstractQoreNode *v, class ExceptionSink *xsink)
+int QorePGResult::add(const AbstractQoreNode *v, class ExceptionSink *xsink)
 {
    parambuf *pb = new parambuf();
    parambuf_list.push_back(pb);
@@ -784,7 +784,7 @@ int QorePGResult::add(class AbstractQoreNode *v, class ExceptionSink *xsink)
    }
 
    if (ntype == NT_STRING) {
-      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(v);
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v);
       paramTypes[nParams] = TEXTOID;
       pb->str = NULL;
       TempEncodingHelper tmp(str, enc, xsink);
@@ -804,7 +804,7 @@ int QorePGResult::add(class AbstractQoreNode *v, class ExceptionSink *xsink)
 
    if (ntype == NT_BOOLEAN) {
       paramTypes[nParams]   = BOOLOID;
-      paramValues[nParams]  = (char *)&(reinterpret_cast<QoreBoolNode *>(v)->b);
+      paramValues[nParams]  = (char *)&(reinterpret_cast<const QoreBoolNode *>(v)->b);
       paramLengths[nParams] = sizeof(bool);
 
       ++nParams;
@@ -812,7 +812,7 @@ int QorePGResult::add(class AbstractQoreNode *v, class ExceptionSink *xsink)
    }
 
    if (ntype == NT_DATE) {
-      DateTimeNode *d = reinterpret_cast<DateTimeNode *>(v);
+      const DateTimeNode *d = reinterpret_cast<const DateTimeNode *>(v);
       if (d->isRelative())
       {
 	 paramTypes[nParams] = INTERVALOID;
@@ -864,7 +864,7 @@ int QorePGResult::add(class AbstractQoreNode *v, class ExceptionSink *xsink)
    }
 
    if (ntype == NT_BINARY) {
-      BinaryNode *b = reinterpret_cast<BinaryNode *>(v);
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(v);
       paramTypes[nParams] = BYTEAOID;
       paramValues[nParams] = (char *)b->getPtr();
       paramLengths[nParams] = b->size();
@@ -874,11 +874,11 @@ int QorePGResult::add(class AbstractQoreNode *v, class ExceptionSink *xsink)
    }
 
    if (ntype == NT_HASH) {
-      QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(v);
+      const QoreHashNode *vh = reinterpret_cast<const QoreHashNode *>(v);
       Oid type = check_hash_type(vh, xsink);
       if (type < 0)
 	 return -1;
-      class AbstractQoreNode *t = vh->getKeyValue("^value^");
+      const AbstractQoreNode *t = vh->getKeyValue("^value^");
       if (is_nothing(t) || is_null(t))
       {
 	 paramTypes[nParams] = 0;
@@ -907,7 +907,7 @@ int QorePGResult::add(class AbstractQoreNode *v, class ExceptionSink *xsink)
    }
 
    if (ntype == NT_LIST) {
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(v);
+      const QoreListNode *l = reinterpret_cast<const QoreListNode *>(v);
       int len = l->size();
       if (!len)
       {
@@ -975,7 +975,7 @@ qore_pg_array_header *QorePGBindArray::getHeader()
    return rv;
 }
 
-int QorePGBindArray::check_type(class AbstractQoreNode *n, class ExceptionSink *xsink)
+int QorePGBindArray::check_type(const AbstractQoreNode *n, class ExceptionSink *xsink)
 {
    // skip null types
    if (is_nothing(n) || is_null(n))
@@ -1020,21 +1020,19 @@ int QorePGBindArray::check_type(class AbstractQoreNode *n, class ExceptionSink *
 	 return 0;
       }
 
-      {
-	 DateTimeNode *date = dynamic_cast<DateTimeNode *>(n);
-	 if (date) {
-	    if (date->isRelative())
-	    {
-	       arrayoid = QPGT_INTERVALARRAYOID;
-	       oid = INTERVALOID;
-	    }
-	    else
-	    {
-	       arrayoid = QPGT_TIMESTAMPARRAYOID;
-	       oid = TIMESTAMPOID;
-	    }
-	    return 0;
+      if (type == NT_DATE) {
+	 const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(n);
+	 if (date->isRelative())
+	 {
+	    arrayoid = QPGT_INTERVALARRAYOID;
+	    oid = INTERVALOID;
 	 }
+	 else
+	 {
+	    arrayoid = QPGT_TIMESTAMPARRAYOID;
+	    oid = TIMESTAMPOID;
+	 }
+	 return 0;
       }
 
       if (type == NT_BINARY)
@@ -1072,8 +1070,8 @@ int QorePGBindArray::check_type(class AbstractQoreNode *n, class ExceptionSink *
       return -1;
    }
 
-   {
-      DateTimeNode *date = dynamic_cast<DateTimeNode *>(n);
+   if (type == NT_DATE) {
+      const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(n);
       if (date) {
 	 if (date->isRelative() && (oid == TIMESTAMPOID))
 	 {
@@ -1090,7 +1088,7 @@ int QorePGBindArray::check_type(class AbstractQoreNode *n, class ExceptionSink *
    return 0;
 }
 
-int QorePGBindArray::check_oid(class QoreHash *h, class ExceptionSink *xsink)
+int QorePGBindArray::check_oid(const QoreHash *h, class ExceptionSink *xsink)
 {
    int o = check_hash_type(h, xsink);
    if (o < 0)
@@ -1106,7 +1104,7 @@ int QorePGBindArray::check_oid(class QoreHash *h, class ExceptionSink *xsink)
    return 0;
 }
 
-int QorePGBindArray::new_dimension(QoreListNode *l, int current, class ExceptionSink *xsink)
+int QorePGBindArray::new_dimension(const QoreListNode *l, int current, class ExceptionSink *xsink)
 {
    if (current >= MAXDIM)
    {
@@ -1123,7 +1121,7 @@ int QorePGBindArray::new_dimension(QoreListNode *l, int current, class Exception
    return 0;
 }
 
-int QorePGBindArray::create_data(QoreListNode *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink)
+int QorePGBindArray::create_data(const QoreListNode *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink)
 {
    if (new_dimension(l, current, xsink))
       return -1;
@@ -1165,7 +1163,7 @@ void QorePGBindArray::check_size(int len)
    size += space;
 }
 
-int QorePGBindArray::bind(class AbstractQoreNode *n, const QoreEncoding *enc, class ExceptionSink *xsink)
+int QorePGBindArray::bind(const AbstractQoreNode *n, const QoreEncoding *enc, class ExceptionSink *xsink)
 {
    // bind a NULL for NOTHING or NULL
    if (is_nothing(n) || is_null(n)) {
@@ -1202,7 +1200,7 @@ int QorePGBindArray::bind(class AbstractQoreNode *n, const QoreEncoding *enc, cl
 
    if (type == NT_STRING)
    {
-      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(n);
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(n);
       TempEncodingHelper tmp(str, enc, xsink);
       if (!tmp)
 	 return -1;
@@ -1216,7 +1214,7 @@ int QorePGBindArray::bind(class AbstractQoreNode *n, const QoreEncoding *enc, cl
 
    if (type == NT_DATE)
    {
-      DateTimeNode *d = reinterpret_cast<DateTimeNode *>(n);
+      const DateTimeNode *d = reinterpret_cast<const DateTimeNode *>(n);
       if (d->isRelative())
       {
 	 int d_size = conn->has_interval_day() ? 16 : 12;
@@ -1260,7 +1258,7 @@ int QorePGBindArray::bind(class AbstractQoreNode *n, const QoreEncoding *enc, cl
 
    if (type == NT_BINARY)
    {
-      BinaryNode *b = reinterpret_cast<BinaryNode *>(n);
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(n);
       int len = b->size();
       check_size(len);
       memcpy(ptr, b->getPtr(), len);
@@ -1270,8 +1268,8 @@ int QorePGBindArray::bind(class AbstractQoreNode *n, const QoreEncoding *enc, cl
 
    if (type == NT_HASH)
    {
-      QoreHashNode *h = reinterpret_cast<QoreHashNode *>(n);
-      AbstractQoreNode *t = h->getKeyValue("^value^");
+      const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(n);
+      const AbstractQoreNode *t = h->getKeyValue("^value^");
       if (is_nothing(t) || is_null(t))
 	 check_size(-1);
       else
@@ -1289,17 +1287,17 @@ int QorePGBindArray::bind(class AbstractQoreNode *n, const QoreEncoding *enc, cl
    return 0;
 }
 
-int QorePGBindArray::process_list(QoreListNode *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink)
+int QorePGBindArray::process_list(const QoreListNode *l, int current, const QoreEncoding *enc, class ExceptionSink *xsink)
 {
-   ListIterator li(l);
+   ConstListIterator li(l);
    while (li.next())
    {
-      const QoreType *v_type;
-      class AbstractQoreNode *n = li.getValue();
-      v_type = n ? n->type : NT_NOTHING;
+      const QoreType *ntype;
+      const AbstractQoreNode *n = li.getValue();
+      ntype = n ? n->type : NT_NOTHING;
       if (type == NT_LIST)
       {
-	 QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
+	 const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);
 	 if (li.first())
 	    if (new_dimension(l, current + 1, xsink))
 	       return -1;
@@ -1310,7 +1308,7 @@ int QorePGBindArray::process_list(QoreListNode *l, int current, const QoreEncodi
       {
 	 if (check_type(n, xsink))
 	    return -1;
-	 if (v_type == NT_HASH && check_oid(reinterpret_cast<QoreHashNode *>(n), xsink))
+	 if (ntype == NT_HASH && check_oid(reinterpret_cast<const QoreHashNode *>(n), xsink))
 	    return -1;
 
 	 if (bind(n, enc, xsink))
@@ -1338,7 +1336,7 @@ int QorePGResult::parse(class QoreString *str, const QoreListNode *args, class E
          int offset = p - str->getBuffer();
 
          p++;
-         class AbstractQoreNode *v = args ? args->retrieve_entry(index++) : NULL;
+         const AbstractQoreNode *v = args ? args->retrieve_entry(index++) : NULL;
 	 if ((*p) == 'd')
 	 {
 	    DBI_concat_numeric(&tmp, v);

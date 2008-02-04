@@ -34,8 +34,8 @@ class QoreClass *QC_QWheelEvent = 0;
 //QWheelEvent ( const QPoint & pos, const QPoint & globalPos, int delta, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Qt::Orientation orient = Qt::Vertical )
 static void QWHEELEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQPoint *pos = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQPoint *pos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
 	 xsink->raiseException("QWHEELEVENT-CONSTRUCTOR-PARAM-ERROR", "QWheelEvent::constructor() was expecting a QPoint object as the first argument");
@@ -45,13 +45,14 @@ static void QWHEELEVENT_constructor(QoreObject *self, const QoreListNode *params
 
    QoreQPoint *globalPos = 0;
 
-   p = get_param(params, 1);
+   const AbstractQoreNode *p = get_param(params, 1);
    int offset = 1;
-   if (p && p->type == NT_OBJECT) {
-      globalPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   o = dynamic_cast<const QoreObject *>(p);
+   if (o) {
+      globalPos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
       if (!globalPos) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QWHEELEVENT-CONSTRUCTOR-PARAM-ERROR", "this version of QWheelEvent::constructor() expects an object derived from QPoint as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QWHEELEVENT-CONSTRUCTOR-PARAM-ERROR", "this version of QWheelEvent::constructor() expects an object derived from QPoint as the second argument");
 	 return;
       }
       p = get_param(params, ++offset);

@@ -90,7 +90,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_rightMargin(QoreObject *self, QoreQTex
 //void setAlignment ( Qt::Alignment alignment )
 static AbstractQoreNode *QTEXTBLOCKFORMAT_setAlignment(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
    qtbf->setAlignment(alignment);
    return 0;
@@ -99,7 +99,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_setAlignment(QoreObject *self, QoreQTe
 //void setBottomMargin ( qreal margin )
 static AbstractQoreNode *QTEXTBLOCKFORMAT_setBottomMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
    qtbf->setBottomMargin(margin);
    return 0;
@@ -108,7 +108,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_setBottomMargin(QoreObject *self, Qore
 //void setIndent ( int indentation )
 static AbstractQoreNode *QTEXTBLOCKFORMAT_setIndent(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int indentation = p ? p->getAsInt() : 0;
    qtbf->setIndent(indentation);
    return 0;
@@ -117,7 +117,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_setIndent(QoreObject *self, QoreQTextB
 //void setLeftMargin ( qreal margin )
 static AbstractQoreNode *QTEXTBLOCKFORMAT_setLeftMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
    qtbf->setLeftMargin(margin);
    return 0;
@@ -126,7 +126,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_setLeftMargin(QoreObject *self, QoreQT
 //void setNonBreakableLines ( bool b )
 static AbstractQoreNode *QTEXTBLOCKFORMAT_setNonBreakableLines(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qtbf->setNonBreakableLines(b);
    return 0;
@@ -135,7 +135,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_setNonBreakableLines(QoreObject *self,
 //void setPageBreakPolicy ( PageBreakFlags policy )
 static AbstractQoreNode *QTEXTBLOCKFORMAT_setPageBreakPolicy(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QTextBlockFormat::PageBreakFlags policy = (QTextBlockFormat::PageBreakFlags)(p ? p->getAsInt() : 0);
    qtbf->setPageBreakPolicy(policy);
    return 0;
@@ -144,7 +144,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_setPageBreakPolicy(QoreObject *self, Q
 //void setRightMargin ( qreal margin )
 static AbstractQoreNode *QTEXTBLOCKFORMAT_setRightMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
    qtbf->setRightMargin(margin);
    return 0;
@@ -153,7 +153,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_setRightMargin(QoreObject *self, QoreQ
 //void setTextIndent ( qreal indent )
 static AbstractQoreNode *QTEXTBLOCKFORMAT_setTextIndent(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal indent = p ? p->getAsFloat() : 0.0;
    qtbf->setTextIndent(indent);
    return 0;
@@ -162,7 +162,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_setTextIndent(QoreObject *self, QoreQT
 //void setTopMargin ( qreal margin )
 static AbstractQoreNode *QTEXTBLOCKFORMAT_setTopMargin(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
    qtbf->setTopMargin(margin);
    return 0;

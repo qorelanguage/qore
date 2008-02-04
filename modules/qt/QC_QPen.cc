@@ -38,7 +38,7 @@ class QoreClass *QC_QPen = 0;
 //QPen ( const QPen & pen )
 static void QPEN_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QPEN, new QoreQPen());
       return;
@@ -52,7 +52,7 @@ static void QPEN_constructor(QoreObject *self, const QoreListNode *params, Excep
       p = get_param(params, 2);
       Qt::PenStyle style;
       {
-	 PenStyleNode *ps = dynamic_cast<PenStyleNode *>(p);
+	 const PenStyleNode *ps = dynamic_cast<const PenStyleNode *>(p);
 	 if (ps)
 	    style = ps->getStyle();
 	 else
@@ -67,7 +67,7 @@ static void QPEN_constructor(QoreObject *self, const QoreListNode *params, Excep
       return;
    }
 
-   PenStyleNode *ps = dynamic_cast<PenStyleNode *>(p);
+   const PenStyleNode *ps = dynamic_cast<const PenStyleNode *>(p);
    if (ps) {
       Qt::PenStyle style = ps->getStyle();
       self->setPrivate(CID_QPEN, new QoreQPen(style));
@@ -153,7 +153,7 @@ static AbstractQoreNode *QPEN_miterLimit(QoreObject *self, QoreQPen *qp, const Q
 //void setBrush ( const QBrush & brush )
 static AbstractQoreNode *QPEN_setBrush(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QBrush brush;
    if (get_qbrush(p, brush, xsink))
       return 0;
@@ -164,7 +164,7 @@ static AbstractQoreNode *QPEN_setBrush(QoreObject *self, QoreQPen *qp, const Qor
 //void setCapStyle ( Qt::PenCapStyle style )
 static AbstractQoreNode *QPEN_setCapStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::PenCapStyle style = (Qt::PenCapStyle)(p ? p->getAsInt() : 0);
    qp->setCapStyle(style);
    return 0;
@@ -173,8 +173,8 @@ static AbstractQoreNode *QPEN_setCapStyle(QoreObject *self, QoreQPen *qp, const 
 //void setColor ( const QColor & color )
 static AbstractQoreNode *QPEN_setColor(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQColor *color = p ? (QoreQColor *)p->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
    if (!color) {
       if (!xsink->isException())
          xsink->raiseException("QPEN-SETCOLOR-PARAM-ERROR", "expecting a QColor object as first argument to QPen::setColor()");
@@ -188,7 +188,7 @@ static AbstractQoreNode *QPEN_setColor(QoreObject *self, QoreQPen *qp, const Qor
 //void setCosmetic ( bool cosmetic )
 static AbstractQoreNode *QPEN_setCosmetic(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool cosmetic = p ? p->getAsBool() : false;
    qp->setCosmetic(cosmetic);
    return 0;
@@ -197,7 +197,7 @@ static AbstractQoreNode *QPEN_setCosmetic(QoreObject *self, QoreQPen *qp, const 
 //void setDashOffset ( qreal offset )
 static AbstractQoreNode *QPEN_setDashOffset(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal offset = p ? p->getAsFloat() : 0.0;
    qp->setDashOffset(offset);
    return 0;
@@ -206,7 +206,7 @@ static AbstractQoreNode *QPEN_setDashOffset(QoreObject *self, QoreQPen *qp, cons
 ////void setDashPattern ( const QVector<qreal> & pattern )
 //static AbstractQoreNode *QPEN_setDashPattern(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QVector<qreal> pattern = p;
 //   qp->setDashPattern(pattern);
 //   return 0;
@@ -215,7 +215,7 @@ static AbstractQoreNode *QPEN_setDashOffset(QoreObject *self, QoreQPen *qp, cons
 //void setJoinStyle ( Qt::PenJoinStyle style )
 static AbstractQoreNode *QPEN_setJoinStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::PenJoinStyle style = (Qt::PenJoinStyle)(p ? p->getAsInt() : 0);
    qp->setJoinStyle(style);
    return 0;
@@ -224,7 +224,7 @@ static AbstractQoreNode *QPEN_setJoinStyle(QoreObject *self, QoreQPen *qp, const
 //void setMiterLimit ( qreal limit )
 static AbstractQoreNode *QPEN_setMiterLimit(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal limit = p ? p->getAsFloat() : 0.0;
    qp->setMiterLimit(limit);
    return 0;
@@ -233,8 +233,8 @@ static AbstractQoreNode *QPEN_setMiterLimit(QoreObject *self, QoreQPen *qp, cons
 //void setStyle ( Qt::PenStyle style )
 static AbstractQoreNode *QPEN_setStyle(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   PenStyleNode *ps = dynamic_cast<PenStyleNode *>(p);
+   const AbstractQoreNode *p = get_param(params, 0);
+   const PenStyleNode *ps = dynamic_cast<const PenStyleNode *>(p);
    if (!ps) {
       xsink->raiseException("QPEN-SETSTYLE-ERROR", "QPen::setStyle() expects a PenStyle constant as the sole argument, got type '%s' instead", p ? p->getTypeName() : "NOTHING");
       return 0;
@@ -248,7 +248,7 @@ static AbstractQoreNode *QPEN_setStyle(QoreObject *self, QoreQPen *qp, const Qor
 //void setWidth ( int width )
 static AbstractQoreNode *QPEN_setWidth(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
    qp->setWidth(width);
    return 0;
@@ -257,7 +257,7 @@ static AbstractQoreNode *QPEN_setWidth(QoreObject *self, QoreQPen *qp, const Qor
 //void setWidthF ( qreal width )
 static AbstractQoreNode *QPEN_setWidthF(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal width = p ? p->getAsFloat() : 0.0;
    qp->setWidthF(width);
    return 0;

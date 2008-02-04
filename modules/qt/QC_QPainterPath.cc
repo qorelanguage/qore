@@ -39,15 +39,16 @@ class QoreClass *QC_QPainterPath = 0;
 //QPainterPath ( const QPainterPath & path )
 static void QPAINTERPATH_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QPAINTERPATH, new QoreQPainterPath());
       return;
    }
-   QoreQPointF *startPoint = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+   const QoreObject *o = dynamic_cast<const QoreObject *>(p);
+   QoreQPointF *startPoint = o ? (QoreQPointF *)o->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
    if (!startPoint) {
       if (!xsink->isException())
-         xsink->raiseException("QPAINTERPATH-CONSTRUCTOR-PARAM-ERROR", "this version of QPainterPath::constructor() expects an object derived from QPointF as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+         xsink->raiseException("QPAINTERPATH-CONSTRUCTOR-PARAM-ERROR", "this version of QPainterPath::constructor() expects an object derived from QPointF as the first argument");
       return;
    }
    ReferenceHolder<AbstractPrivateData> startPointHolder(static_cast<AbstractPrivateData *>(startPoint), xsink);
@@ -64,12 +65,12 @@ static void QPAINTERPATH_copy(class QoreObject *self, class QoreObject *old, cla
 //void addEllipse ( qreal x, qreal y, qreal width, qreal height )
 static AbstractQoreNode *QPAINTERPATH_addEllipse(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRectF *boundingRectangle = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
+      QoreQRectF *boundingRectangle = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!boundingRectangle) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-ADDELLIPSE-PARAM-ERROR", "QPainterPath::addEllipse() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-ADDELLIPSE-PARAM-ERROR", "QPainterPath::addEllipse() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> boundingRectangleHolder(static_cast<AbstractPrivateData *>(boundingRectangle), xsink);
@@ -90,8 +91,8 @@ static AbstractQoreNode *QPAINTERPATH_addEllipse(QoreObject *self, QoreQPainterP
 //void addPath ( const QPainterPath & path )
 static AbstractQoreNode *QPAINTERPATH_addPath(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPainterPath *path = p ? (QoreQPainterPath *)p->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
    if (!path) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTERPATH-ADDPATH-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPainterPath::addPath()");
@@ -105,8 +106,8 @@ static AbstractQoreNode *QPAINTERPATH_addPath(QoreObject *self, QoreQPainterPath
 //void addPolygon ( const QPolygonF & polygon )
 static AbstractQoreNode *QPAINTERPATH_addPolygon(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPolygonF *polygon = (p && p->type == NT_OBJECT) ? (QoreQPolygonF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPolygonF *polygon = p ? (QoreQPolygonF *)p->getReferencedPrivateData(CID_QPOLYGONF, xsink) : 0;
    if (!polygon) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTERPATH-ADDPOLYGON-PARAM-ERROR", "expecting a QPolygonF object as first argument to QPainterPath::addPolygon()");
@@ -121,12 +122,12 @@ static AbstractQoreNode *QPAINTERPATH_addPolygon(QoreObject *self, QoreQPainterP
 //void addRect ( qreal x, qreal y, qreal width, qreal height )
 static AbstractQoreNode *QPAINTERPATH_addRect(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
+      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectangle) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-ADDRECT-PARAM-ERROR", "QPainterPath::addRect() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-ADDRECT-PARAM-ERROR", "QPainterPath::addRect() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
@@ -147,8 +148,8 @@ static AbstractQoreNode *QPAINTERPATH_addRect(QoreObject *self, QoreQPainterPath
 //void addRegion ( const QRegion & region )
 static AbstractQoreNode *QPAINTERPATH_addRegion(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRegion *region = (p && p->type == NT_OBJECT) ? (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRegion *region = p ? (QoreQRegion *)p->getReferencedPrivateData(CID_QREGION, xsink) : 0;
    if (!region) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTERPATH-ADDREGION-PARAM-ERROR", "expecting a QRegion object as first argument to QPainterPath::addRegion()");
@@ -165,12 +166,12 @@ static AbstractQoreNode *QPAINTERPATH_addRegion(QoreObject *self, QoreQPainterPa
 //void addRoundRect ( qreal x, qreal y, qreal w, qreal h, int roundness )
 static AbstractQoreNode *QPAINTERPATH_addRoundRect(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRectF *rect = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
+      QoreQRectF *rect = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rect) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QPAINTERPATH-ADDROUNDRECT-PARAM-ERROR", "QPainterPath::addRoundRect() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QPAINTERPATH-ADDROUNDRECT-PARAM-ERROR", "QPainterPath::addRoundRect() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 return 0;
       }
       ReferenceHolder<AbstractPrivateData> rHolder(static_cast<AbstractPrivateData *>(rect), xsink);
@@ -212,23 +213,25 @@ static AbstractQoreNode *QPAINTERPATH_addRoundRect(QoreObject *self, QoreQPainte
 //void addText ( qreal x, qreal y, const QFont & font, const QString & text )
 static AbstractQoreNode *QPAINTERPATH_addText(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPointF *point = (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
+      QoreQPointF *point = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
       if (!point) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-ADDTEXT-PARAM-ERROR", "QPainterPath::addText() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-ADDTEXT-PARAM-ERROR", "QPainterPath::addText() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(point), xsink);
-      p = get_param(params, 1);
-      QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+
+      class QoreObject *o = test_object_param(params, 1);
+      QoreQFont *font = o ? (QoreQFont *)o->getReferencedPrivateData(CID_QFONT, xsink) : 0;
       if (!font) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-ADDTEXT-PARAM-ERROR", "this version of QPainterPath::addText() expects an object derived from QFont as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-ADDTEXT-PARAM-ERROR", "this version of QPainterPath::addText() expects an object derived from QFont as the second argument");
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> fontHolder(static_cast<AbstractPrivateData *>(font), xsink);
+
       p = get_param(params, 2);
       QString text;
       if (get_qstring(p, text, xsink))
@@ -239,11 +242,12 @@ static AbstractQoreNode *QPAINTERPATH_addText(QoreObject *self, QoreQPainterPath
    qreal x = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    qreal y = p ? p->getAsFloat() : 0.0;
-   p = get_param(params, 2);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+
+   class QoreObject *o = test_object_param(params, 1);
+   QoreQFont *font = o ? (QoreQFont *)o->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
-         xsink->raiseException("QPAINTERPATH-ADDTEXT-PARAM-ERROR", "this version of QPainterPath::addText() expects an object derived from QFont as the third argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+         xsink->raiseException("QPAINTERPATH-ADDTEXT-PARAM-ERROR", "this version of QPainterPath::addText() expects an object derived from QFont as the third argument");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> fontHolder(static_cast<AbstractPrivateData *>(font), xsink);
@@ -258,7 +262,7 @@ static AbstractQoreNode *QPAINTERPATH_addText(QoreObject *self, QoreQPainterPath
 //qreal angleAtPercent ( qreal t ) const
 static AbstractQoreNode *QPAINTERPATH_angleAtPercent(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
    return new QoreFloatNode((double)qpp->angleAtPercent(t));
 }
@@ -267,12 +271,12 @@ static AbstractQoreNode *QPAINTERPATH_angleAtPercent(QoreObject *self, QoreQPain
 //void arcMoveTo ( qreal x, qreal y, qreal width, qreal height, qreal angle )
 static AbstractQoreNode *QPAINTERPATH_arcMoveTo(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
+      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectangle) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-ARCMOVETO-PARAM-ERROR", "QPainterPath::arcMoveTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-ARCMOVETO-PARAM-ERROR", "QPainterPath::arcMoveTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
@@ -298,13 +302,13 @@ static AbstractQoreNode *QPAINTERPATH_arcMoveTo(QoreObject *self, QoreQPainterPa
 //void arcTo ( qreal x, qreal y, qreal width, qreal height, qreal startAngle, qreal sweepLength )
 static AbstractQoreNode *QPAINTERPATH_arcTo(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   //printd(5, "QPainterPath::arcTo() p=%08p '%s' params=%d p=%d\n", p, p ? p->getTypeName() : "N/A", params ? params->size() : 0, p && p->type == NT_LIST ? (reinterpret_cast<QoreListNode *>(p))->size() : 0);
+   const AbstractQoreNode *p = get_param(params, 0);
+   //printd(5, "QPainterPath::arcTo() p=%08p '%s' params=%d p=%d\n", p, p ? p->getTypeName() : "N/A", params ? params->size() : 0, p && p->type == NT_LIST ? (reinterpret_cast<const QoreListNode *>(p))->size() : 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
+      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectangle) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-ARCTO-PARAM-ERROR", "QPainterPath::arcTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-ARCTO-PARAM-ERROR", "QPainterPath::arcTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
@@ -350,8 +354,8 @@ static AbstractQoreNode *QPAINTERPATH_closeSubpath(QoreObject *self, QoreQPainte
 //void connectPath ( const QPainterPath & path )
 static AbstractQoreNode *QPAINTERPATH_connectPath(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPainterPath *path = p ? (QoreQPainterPath *)p->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
    if (!path) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTERPATH-CONNECTPATH-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPainterPath::connectPath()");
@@ -367,16 +371,16 @@ static AbstractQoreNode *QPAINTERPATH_connectPath(QoreObject *self, QoreQPainter
 //bool contains ( const QRectF & rectangle ) const
 static AbstractQoreNode *QPAINTERPATH_contains(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQPainterPath *path = p ? (QoreQPainterPath *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreQPainterPath *path = p ? (QoreQPainterPath *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
    if (*xsink)
       return 0;
    if (!path) {
-      QoreQRectF *rectangle = p ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+      QoreQRectF *rectangle = p ? (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
       if (*xsink)
 	 return 0;
       if (!rectangle) {
-	 QoreQPointF *point = p ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+	 QoreQPointF *point = p ? (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
 	 if (*xsink)
 	    return 0;
 	 if (!point) {
@@ -406,28 +410,30 @@ static AbstractQoreNode *QPAINTERPATH_controlPointRect(QoreObject *self, QoreQPa
 //void cubicTo ( qreal c1X, qreal c1Y, qreal c2X, qreal c2Y, qreal endPointX, qreal endPointY )
 static AbstractQoreNode *QPAINTERPATH_cubicTo(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPointF *c1 = (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
+      QoreQPointF *c1 = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
       if (!c1) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-CUBICTO-PARAM-ERROR", "QPainterPath::cubicTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-CUBICTO-PARAM-ERROR", "QPainterPath::cubicTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> c1Holder(static_cast<AbstractPrivateData *>(c1), xsink);
-      p = get_param(params, 1);
-      QoreQPointF *c2 = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+
+      const QoreObject *o = test_object_param(params, 1);
+      QoreQPointF *c2 = o ? (QoreQPointF *)o->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
       if (!c2) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-CUBICTO-PARAM-ERROR", "this version of QPainterPath::cubicTo() expects an object derived from QPointF as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-CUBICTO-PARAM-ERROR", "this version of QPainterPath::cubicTo() expects an object derived from QPointF as the second argument");
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> c2Holder(static_cast<AbstractPrivateData *>(c2), xsink);
-      p = get_param(params, 2);
-      QoreQPointF *endPoint = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+
+      o = test_object_param(params, 2);
+      QoreQPointF *endPoint = o ? (QoreQPointF *)o->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
       if (!endPoint) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QPAINTERPATH-CUBICTO-PARAM-ERROR", "this version of QPainterPath::cubicTo() expects an object derived from QPointF as the third argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QPAINTERPATH-CUBICTO-PARAM-ERROR", "this version of QPainterPath::cubicTo() expects an object derived from QPointF as the third argument");
 	 return 0;
       }
       ReferenceHolder<AbstractPrivateData> endPointHolder(static_cast<AbstractPrivateData *>(endPoint), xsink);
@@ -462,7 +468,7 @@ static AbstractQoreNode *QPAINTERPATH_currentPosition(QoreObject *self, QoreQPai
 //const QPainterPath::Element & elementAt ( int index ) const
 static AbstractQoreNode *QPAINTERPATH_elementAt(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    QPainterPath::Element element = qpp->elementAt(index);
 }
@@ -483,8 +489,8 @@ static AbstractQoreNode *QPAINTERPATH_fillRule(QoreObject *self, QoreQPainterPat
 //QPainterPath intersected ( const QPainterPath & p ) const
 static AbstractQoreNode *QPAINTERPATH_intersected(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPainterPath *path = p ? (QoreQPainterPath *)p->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
    if (!path) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTERPATH-INTERSECTED-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPainterPath::intersected()");
@@ -501,10 +507,10 @@ static AbstractQoreNode *QPAINTERPATH_intersected(QoreObject *self, QoreQPainter
 //bool intersects ( const QPainterPath & p ) const
 static AbstractQoreNode *QPAINTERPATH_intersects(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQPainterPath *path = p ? (QoreQPainterPath *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreQPainterPath *path = p ? (QoreQPainterPath *)p->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
    if (!path) {
-      QoreQRectF *rectangle = p ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+      QoreQRectF *rectangle = p ? (QoreQRectF *)p->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
       if (!rectangle) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QPAINTERPATH-INTERSECTS-PARAM-ERROR", "QPainterPath::intersects() expects a QRectF or QPainterPath object as the first argument");
@@ -534,12 +540,13 @@ static AbstractQoreNode *QPAINTERPATH_length(QoreObject *self, QoreQPainterPath 
 //void lineTo ( qreal x, qreal y )
 static AbstractQoreNode *QPAINTERPATH_lineTo(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPointF *endPoint = (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
+      QoreQPointF *endPoint = (QoreQPointF *)o->getReferencedPrivateData(CID_QPOINTF, xsink);
       if (!endPoint) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-LINETO-PARAM-ERROR", "QPainterPath::lineTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-LINETO-PARAM-ERROR", "QPainterPath::lineTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> endPointHolder(static_cast<AbstractPrivateData *>(endPoint), xsink);
@@ -557,12 +564,12 @@ static AbstractQoreNode *QPAINTERPATH_lineTo(QoreObject *self, QoreQPainterPath 
 //void moveTo ( qreal x, qreal y )
 static AbstractQoreNode *QPAINTERPATH_moveTo(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPointF *point = (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
+      QoreQPointF *point = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
       if (!point) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-MOVETO-PARAM-ERROR", "QPainterPath::moveTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-MOVETO-PARAM-ERROR", "QPainterPath::moveTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(point), xsink);
@@ -579,7 +586,7 @@ static AbstractQoreNode *QPAINTERPATH_moveTo(QoreObject *self, QoreQPainterPath 
 //qreal percentAtLength ( qreal len ) const
 static AbstractQoreNode *QPAINTERPATH_percentAtLength(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal len = p ? p->getAsFloat() : 0.0;
    return new QoreFloatNode((double)qpp->percentAtLength(len));
 }
@@ -587,7 +594,7 @@ static AbstractQoreNode *QPAINTERPATH_percentAtLength(QoreObject *self, QoreQPai
 //QPointF pointAtPercent ( qreal t ) const
 static AbstractQoreNode *QPAINTERPATH_pointAtPercent(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
    QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qpp->pointAtPercent(t));
@@ -599,20 +606,21 @@ static AbstractQoreNode *QPAINTERPATH_pointAtPercent(QoreObject *self, QoreQPain
 //void quadTo ( qreal cx, qreal cy, qreal endPointX, qreal endPointY )
 static AbstractQoreNode *QPAINTERPATH_quadTo(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPointF *c = (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
+      QoreQPointF *c = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
       if (!c) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-QUADTO-PARAM-ERROR", "QPainterPath::quadTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-QUADTO-PARAM-ERROR", "QPainterPath::quadTo() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> cHolder(static_cast<AbstractPrivateData *>(c), xsink);
-      p = get_param(params, 1);
-      QoreQPointF *endPoint = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+
+      const QoreObject *o = test_object_param(params, 1);
+      QoreQPointF *endPoint = o ? (QoreQPointF *)o->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
       if (!endPoint) {
          if (!xsink->isException())
-            xsink->raiseException("QPAINTERPATH-QUADTO-PARAM-ERROR", "this version of QPainterPath::quadTo() expects an object derived from QPointF as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPAINTERPATH-QUADTO-PARAM-ERROR", "this version of QPainterPath::quadTo() expects an object derived from QPointF as the second argument");
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> endPointHolder(static_cast<AbstractPrivateData *>(endPoint), xsink);
@@ -633,7 +641,7 @@ static AbstractQoreNode *QPAINTERPATH_quadTo(QoreObject *self, QoreQPainterPath 
 //void setElementPositionAt ( int index, qreal x, qreal y )
 static AbstractQoreNode *QPAINTERPATH_setElementPositionAt(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    qreal x = p ? p->getAsFloat() : 0.0;
@@ -646,7 +654,7 @@ static AbstractQoreNode *QPAINTERPATH_setElementPositionAt(QoreObject *self, Qor
 //void setFillRule ( Qt::FillRule fillRule )
 static AbstractQoreNode *QPAINTERPATH_setFillRule(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::FillRule fillRule = (Qt::FillRule)(p ? p->getAsInt() : 0);
    qpp->setFillRule(fillRule);
    return 0;
@@ -655,7 +663,7 @@ static AbstractQoreNode *QPAINTERPATH_setFillRule(QoreObject *self, QoreQPainter
 //qreal slopeAtPercent ( qreal t ) const
 static AbstractQoreNode *QPAINTERPATH_slopeAtPercent(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
    return new QoreFloatNode((double)qpp->slopeAtPercent(t));
 }
@@ -663,8 +671,8 @@ static AbstractQoreNode *QPAINTERPATH_slopeAtPercent(QoreObject *self, QoreQPain
 //QPainterPath subtracted ( const QPainterPath & p ) const
 static AbstractQoreNode *QPAINTERPATH_subtracted(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPainterPath *path = p ? (QoreQPainterPath *)p->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
    if (!path) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTERPATH-SUBTRACTED-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPainterPath::subtracted()");
@@ -680,8 +688,8 @@ static AbstractQoreNode *QPAINTERPATH_subtracted(QoreObject *self, QoreQPainterP
 //QPainterPath subtractedInverted ( const QPainterPath & p ) const
 static AbstractQoreNode *QPAINTERPATH_subtractedInverted(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPainterPath *path = p ? (QoreQPainterPath *)p->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
    if (!path) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTERPATH-SUBTRACTEDINVERTED-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPainterPath::subtractedInverted()");
@@ -699,7 +707,7 @@ static AbstractQoreNode *QPAINTERPATH_subtractedInverted(QoreObject *self, QoreQ
 //QPolygonF toFillPolygon ( const QTransform & matrix ) const
 static AbstractQoreNode *QPAINTERPATH_toFillPolygon(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       QoreObject *o_qpf = new QoreObject(QC_QPolygonF, getProgram());
       QoreQPolygonF *q_qpf = new QoreQPolygonF(qpp->toFillPolygon());
@@ -707,7 +715,7 @@ static AbstractQoreNode *QPAINTERPATH_toFillPolygon(QoreObject *self, QoreQPaint
       return o_qpf;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQMatrix *matrix = (QoreQMatrix *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMATRIX, xsink);
+      QoreQMatrix *matrix = (QoreQMatrix *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QMATRIX, xsink);
       if (*xsink)
          return 0;
       ReferenceHolder<AbstractPrivateData> matrixHolder(static_cast<AbstractPrivateData *>(matrix), xsink);
@@ -729,12 +737,12 @@ static AbstractQoreNode *QPAINTERPATH_toFillPolygon(QoreObject *self, QoreQPaint
 //QList<QPolygonF> toFillPolygons ( const QTransform & matrix ) const
 static AbstractQoreNode *QPAINTERPATH_toFillPolygons(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       ??? return new QoreBigIntNode(qpp->toFillPolygons());
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQMatrix *matrix = (QoreQMatrix *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMATRIX, xsink);
+      QoreQMatrix *matrix = (QoreQMatrix *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QMATRIX, xsink);
       if (*xsink)
          return 0;
       ReferenceHolder<AbstractPrivateData> matrixHolder(static_cast<AbstractPrivateData *>(matrix), xsink);
@@ -759,12 +767,12 @@ static AbstractQoreNode *QPAINTERPATH_toReversed(QoreObject *self, QoreQPainterP
 //QList<QPolygonF> toSubpathPolygons ( const QTransform & matrix ) const
 static AbstractQoreNode *QPAINTERPATH_toSubpathPolygons(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       ??? return new QoreBigIntNode(qpp->toSubpathPolygons());
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQMatrix *matrix = (QoreQMatrix *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMATRIX, xsink);
+      QoreQMatrix *matrix = (QoreQMatrix *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QMATRIX, xsink);
       if (*xsink)
          return 0;
       ReferenceHolder<AbstractPrivateData> matrixHolder(static_cast<AbstractPrivateData *>(matrix), xsink);
@@ -778,8 +786,8 @@ static AbstractQoreNode *QPAINTERPATH_toSubpathPolygons(QoreObject *self, QoreQP
 //QPainterPath united ( const QPainterPath & p ) const
 static AbstractQoreNode *QPAINTERPATH_united(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPainterPath *path = p ? (QoreQPainterPath *)p->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
    if (!path) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTERPATH-UNITED-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPainterPath::united()");

@@ -138,7 +138,7 @@ class DateTimeNodeValueHelper {
       DLLLOCAL void *operator new(size_t); // not implemented, make sure it is not new'ed
 
    public:
-      DLLLOCAL DateTimeNodeValueHelper(AbstractQoreNode *n)
+      DLLLOCAL DateTimeNodeValueHelper(const AbstractQoreNode *n)
       {
 	 if (!n) {
 	    dt = ZeroDate;
@@ -147,9 +147,9 @@ class DateTimeNodeValueHelper {
 	 }
 
 	 {
-	    DateTimeNode *date = dynamic_cast<DateTimeNode *>(n);
+	    const DateTimeNode *date = dynamic_cast<const DateTimeNode *>(n);
 	    if (date) {
-	       dt = date;
+	       dt = const_cast<DateTimeNode *>(date);
 	       temp = false;
 	       return;
 	    }

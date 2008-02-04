@@ -62,7 +62,7 @@ static AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSink *xsi
 
    const QoreType *p0_type = p0->getType();
    if (p0_type == NT_BINARY)
-      return p0->RefSelf();
+      return p0->refSelf();
 
    if (p0_type == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);

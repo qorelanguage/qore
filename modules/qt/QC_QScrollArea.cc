@@ -33,11 +33,13 @@ class QoreClass *QC_QScrollArea = 0;
 //QScrollArea ( QWidget * parent = 0 )
 static void QSCROLLAREA_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const AbstractQoreNode *p = get_param(params, 0);
+   const QoreObject *o = dynamic_cast<const QoreObject *>(p);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   if (*xsink)
+      return;
    if (!is_nothing(p) && !parent) {
-      if (!xsink->isException())
-         xsink->raiseException("QSCROLLAREA-CONSTRUCTOR-PARAM-ERROR", "expecting either NOTHING or a QWidget object as first argument to QScrollArea::constructor()");
+      xsink->raiseException("QSCROLLAREA-CONSTRUCTOR-PARAM-ERROR", "expecting either NOTHING or a QWidget object as first argument to QScrollArea::constructor()");
       return;
    }
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
@@ -59,7 +61,7 @@ static AbstractQoreNode *QSCROLLAREA_alignment(QoreObject *self, QoreQScrollArea
 //void ensureVisible ( int x, int y, int xmargin = 50, int ymargin = 50 )
 static AbstractQoreNode *QSCROLLAREA_ensureVisible(QoreObject *self, QoreQScrollArea *qsa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int y = p ? p->getAsInt() : 0;
@@ -74,15 +76,16 @@ static AbstractQoreNode *QSCROLLAREA_ensureVisible(QoreObject *self, QoreQScroll
 //void ensureWidgetVisible ( QWidget * childWidget, int xmargin = 50, int ymargin = 50 )
 static AbstractQoreNode *QSCROLLAREA_ensureWidgetVisible(QoreObject *self, QoreQScrollArea *qsa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *childWidget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *childWidget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!childWidget) {
       if (!xsink->isException())
          xsink->raiseException("QSCROLLAREA-ENSUREWIDGETVISIBLE-PARAM-ERROR", "expecting a QWidget object as first argument to QScrollArea::ensureWidgetVisible()");
       return 0;
    }
    ReferenceHolder<QoreQWidget> childWidgetHolder(childWidget, xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    int xmargin = !is_nothing(p) ? p->getAsInt() : 50;
    p = get_param(params, 2);
    int ymargin = !is_nothing(p) ? p->getAsInt() : 50;
@@ -93,7 +96,7 @@ static AbstractQoreNode *QSCROLLAREA_ensureWidgetVisible(QoreObject *self, QoreQ
 //void setAlignment ( Qt::Alignment )
 static AbstractQoreNode *QSCROLLAREA_setAlignment(QoreObject *self, QoreQScrollArea *qsa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
    qsa->qobj->setAlignment(alignment);
    return 0;
@@ -102,8 +105,8 @@ static AbstractQoreNode *QSCROLLAREA_setAlignment(QoreObject *self, QoreQScrollA
 //void setWidget ( QWidget * widget )
 static AbstractQoreNode *QSCROLLAREA_setWidget(QoreObject *self, QoreQScrollArea *qsa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *widget = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QSCROLLAREA-SETWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QScrollArea::setWidget()");
@@ -118,7 +121,7 @@ static AbstractQoreNode *QSCROLLAREA_setWidget(QoreObject *self, QoreQScrollArea
 //void setWidgetResizable ( bool resizable )
 static AbstractQoreNode *QSCROLLAREA_setWidgetResizable(QoreObject *self, QoreQScrollArea *qsa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool resizable = p ? p->getAsBool() : false;
    qsa->qobj->setWidgetResizable(resizable);
    return 0;

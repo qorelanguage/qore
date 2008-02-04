@@ -34,13 +34,14 @@ class QoreClass *QC_QTimeEdit = 0;
 //QTimeEdit ( const QTime & time, QWidget * parent = 0 )
 static void QTIMEEDIT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QTIMEEDIT, new QoreQTimeEdit(self));
       return;
    }
 
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = dynamic_cast<const QoreObject *>(p);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    if (parent) {
@@ -51,8 +52,9 @@ static void QTIMEEDIT_constructor(QoreObject *self, const QoreListNode *params, 
    QTime time;
    if (get_qtime(p, time, xsink))
       return;
-   p = get_param(params, 1);
-   parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   o = test_object_param(params, 1);
+   parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);

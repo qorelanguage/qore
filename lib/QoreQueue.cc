@@ -40,16 +40,6 @@ QoreQueue::QoreQueue() : head(0), tail(0), len(0), waiting(0)
 {
 }
 
-QoreQueue::QoreQueue(AbstractQoreNode *n) : waiting(0)
-{
-   head = new QoreQueueNode(n);
-   head->next = NULL; 
-   head->prev = NULL;
-
-   tail = head;
-   len  = 1;
-}
-
 // queues should not be deleted when other threads might
 // be accessing them
 QoreQueue::~QoreQueue()
@@ -59,20 +49,19 @@ QoreQueue::~QoreQueue()
    traceout("QoreQueue::~QoreQueue()");
 }
 
-void QoreQueue::push(AbstractQoreNode *n)
+void QoreQueue::push(const AbstractQoreNode *n)
 {
    AutoLocker al(&l);
    if (len == Queue_Deleted)
       return;
 
-   // reference value for being stored in queue
-   if (n) 
-      n->ref();
    printd(5, "QoreQueue::push(%08p)\n", n);
+   // reference value for being stored in queue
+   AbstractQoreNode *v = n ? n->refSelf() : 0;
 
    if (!head)
    {
-      head = new QoreQueueNode(n);
+      head = new QoreQueueNode(v);
       head->next = NULL; 
       head->prev = NULL;
 
@@ -80,7 +69,7 @@ void QoreQueue::push(AbstractQoreNode *n)
    }
    else
    {
-      QoreQueueNode *qn = new QoreQueueNode(n);
+      QoreQueueNode *qn = new QoreQueueNode(v);
       tail->next = qn;
       qn->next = NULL; 
       qn->prev = tail;
@@ -94,20 +83,19 @@ void QoreQueue::push(AbstractQoreNode *n)
    len++;
 }
 
-void QoreQueue::insert(AbstractQoreNode *n)
+void QoreQueue::insert(const AbstractQoreNode *n)
 {
    AutoLocker al(&l);
    if (len == Queue_Deleted)
       return;
 
-   // reference value for being stored in queue
-   if (n) 
-      n->ref();
    printd(5, "QoreQueue::push(%08p)\n", n);
+   // reference value for being stored in queue
+   AbstractQoreNode *v = n ? n->refSelf() : 0;
 
    if (!head)
    {
-      head = new QoreQueueNode(n);
+      head = new QoreQueueNode(v);
       head->next = NULL; 
       head->prev = NULL;
 
@@ -115,7 +103,7 @@ void QoreQueue::insert(AbstractQoreNode *n)
    }
    else
    {
-      QoreQueueNode *qn = new QoreQueueNode(n);
+      QoreQueueNode *qn = new QoreQueueNode(v);
       qn->next = head;
       qn->prev = NULL;
       head->prev = qn;

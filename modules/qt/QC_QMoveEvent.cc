@@ -35,16 +35,17 @@ class QoreClass *QC_QMoveEvent = 0;
 
 static void QMOVEEVENT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQPoint *pos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QMOVEEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as first argument to QMoveEvent::constructor()");
       return;
    }
    ReferenceHolder<QoreQPoint> holder(pos, xsink);
-   p = get_param(params, 1);
-   QoreQPoint *oldPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+
+   o = test_object_param(params, 1);
+   QoreQPoint *oldPos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!oldPos) {
       if (!xsink->isException())
          xsink->raiseException("QMOVEEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as second argument to QMoveEvent::constructor()");

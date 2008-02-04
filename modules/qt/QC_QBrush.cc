@@ -45,24 +45,24 @@ static void QBRUSH_constructor(class QoreObject *self, const QoreListNode *param
 {
    QoreQBrush *qb;
 
-   AbstractQoreNode *p = get_param(params, 0);
-   //printd(5, "QBrush::constructor() p0=%08p '%s'\n", p, p && p->type == NT_OBJECT ? (reinterpret_cast<QoreObject *>(p))->getClass()->getName() : "n/a");
+   const AbstractQoreNode *p = get_param(params, 0);
+   //printd(5, "QBrush::constructor() p0=%08p '%s'\n", p, p && p->type == NT_OBJECT ? (reinterpret_cast<const QoreObject *>(p))->getClassName() : "n/a");
    if (is_nothing(p))
       qb = new QoreQBrush();
    else if (p->type == NT_OBJECT)
    {
-      QoreQColor *color = p ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+      QoreQColor *color = p ? (QoreQColor *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
       if (color) {
 	 ReferenceHolder<QoreQColor> holder(color, xsink);
 	 
 	 p = get_param(params, 1);
-	 //printd(5, "QBrush::constructor() p1=%08p '%s'\n", p, p && p->type == NT_OBJECT ? (reinterpret_cast<QoreObject *>(p))->getClass()->getName() : "n/a");
+	 //printd(5, "QBrush::constructor() p1=%08p '%s'\n", p, p && p->type == NT_OBJECT ? (reinterpret_cast<const QoreObject *>(p))->getClassName() : "n/a");
 	 if (p && p->type == NT_OBJECT) {
 
-	    AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+	    AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
 	    if (!apd_qpixmap) {
 	       if (!xsink->isException())
-		  xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QLabel::setPixmap() does not know how to handle arguments of class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+		  xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QLabel::setPixmap() does not know how to handle arguments of class '%s'", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	       return;
 	    }
 	    ReferenceHolder<AbstractPrivateData> holder(apd_qpixmap, xsink);
@@ -72,16 +72,16 @@ static void QBRUSH_constructor(class QoreObject *self, const QoreListNode *param
 	    qb = new QoreQBrush(*color, *(qpixmap->getQPixmap()));
 	 }
 
-	 Qt::BrushStyle style = p && p->type == NT_BRUSHSTYLE ? (reinterpret_cast<BrushStyleNode *>(p))->getStyle() : Qt::SolidPattern;	 
+	 Qt::BrushStyle style = p && p->type == NT_BRUSHSTYLE ? (reinterpret_cast<const BrushStyleNode *>(p))->getStyle() : Qt::SolidPattern;	 
 	 qb = new QoreQBrush(*color, style);
       }
       else {
-	 xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QBrush::constructor() does not take objects of class '%s' as an argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	 xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QBrush::constructor() does not take objects of class '%s' as an argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 return;
       }
    }
    else if (p->type == NT_BRUSHSTYLE) {
-      Qt::BrushStyle style = (reinterpret_cast<BrushStyleNode *>(p))->getStyle();
+      Qt::BrushStyle style = (reinterpret_cast<const BrushStyleNode *>(p))->getStyle();
       qb = new QoreQBrush(style);
    }
    else {
@@ -90,10 +90,10 @@ static void QBRUSH_constructor(class QoreObject *self, const QoreListNode *param
       p = get_param(params, 1);
       if (p && p->type == NT_OBJECT) {
 
-	 AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+	 AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
 	 if (!apd_qpixmap) {
 	    if (!xsink->isException())
-	       xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QLabel::setPixmap() does not know how to handle arguments of class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	       xsink->raiseException("QBRUSH-CONSTRUCTOR-ERROR", "QLabel::setPixmap() does not know how to handle arguments of class '%s'", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	    return;
 	 }
 	 ReferenceHolder<AbstractPrivateData> holder(apd_qpixmap, xsink);
@@ -155,13 +155,13 @@ static AbstractQoreNode *QBRUSH_isOpaque(QoreObject *self, QoreQBrush *qb, const
 //void setColor ( const QColor & color )
 static AbstractQoreNode *QBRUSH_setColor(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQColor *color = (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink);
+      QoreQColor *color = (QoreQColor *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink);
       if (!color)
       {
 	 if (!xsink->isException())
-	    xsink->raiseException("QBRUSH-SETCOLOR-PARAM-ERROR", "QBrush::setColor() cannot handle argument of class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QBRUSH-SETCOLOR-PARAM-ERROR", "QBrush::setColor() cannot handle argument of class '%s'", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 return 0;
       }
       ReferenceHolder<QoreQColor> holder(color, xsink);
@@ -177,7 +177,7 @@ static AbstractQoreNode *QBRUSH_setColor(QoreObject *self, QoreQBrush *qb, const
 //void setMatrix ( const QMatrix & matrix )
 //static AbstractQoreNode *QBRUSH_setMatrix(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QMatrix matrix = p;
 //   qb->getQBrush()->setMatrix(matrix);
 //   return 0;
@@ -186,12 +186,12 @@ static AbstractQoreNode *QBRUSH_setColor(QoreObject *self, QoreQBrush *qb, const
 //void setStyle ( Qt::BrushStyle style )
 static AbstractQoreNode *QBRUSH_setStyle(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_BRUSHSTYLE, 0);
+   const BrushStyleNode *p = test_brushstyle_param(params, 0);
    if (!p) {
       xsink->raiseException("QBRUSH-SETSTYLE-ERROR", "expecting a BrushStyle constant as the sole argument to QBrush::setStyle()");
       return 0;
    }
-   Qt::BrushStyle style = (reinterpret_cast<BrushStyleNode *>(p))->getStyle();
+   Qt::BrushStyle style = p->getStyle();
    qb->getQBrush()->setStyle(style);
    return 0;
 }
@@ -199,8 +199,8 @@ static AbstractQoreNode *QBRUSH_setStyle(QoreObject *self, QoreQBrush *qb, const
 //void setTexture ( const QPixmap & pixmap )
 static AbstractQoreNode *QBRUSH_setTexture(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPixmap *pixmap = p ? (QoreQPixmap *)p->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!pixmap) {
       if (!xsink->isException())
          xsink->raiseException("QBRUSH-SETTEXTURE-PARAM-ERROR", "expecting a QPixmap object as first argument to QBrush::setTexture()");
@@ -214,8 +214,8 @@ static AbstractQoreNode *QBRUSH_setTexture(QoreObject *self, QoreQBrush *qb, con
 //void setTextureImage ( const QImage & image )
 static AbstractQoreNode *QBRUSH_setTextureImage(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQImage *image = p ? (QoreQImage *)p->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
    if (!image) {
       if (!xsink->isException())
          xsink->raiseException("QBRUSH-SETTEXTUREIMAGE-PARAM-ERROR", "expecting a QImage object as first argument to QBrush::setTextureImage()");
@@ -229,7 +229,7 @@ static AbstractQoreNode *QBRUSH_setTextureImage(QoreObject *self, QoreQBrush *qb
 //void setTransform ( const QTransform & )
 //static AbstractQoreNode *QBRUSH_setTransform(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QTransform qtransform = p;
 //   qb->getQBrush()->setTransform(qtransform);
 //   return 0;

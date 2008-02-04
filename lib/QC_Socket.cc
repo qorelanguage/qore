@@ -555,7 +555,7 @@ static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, class mySocket
       return NULL;
    }
 
-   QoreHashNode *headers = test_hash_param(params, 3);
+   const QoreHashNode *headers = test_hash_param(params, 3);
    if (!headers)
    {
       xsink->raiseException("SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR", "expecting HTTP headers (hash) as fourth parameter of Socket::sendHTTPMessage() call");
@@ -625,7 +625,7 @@ static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, class mySocke
       return NULL;
    }
 
-   QoreHashNode *headers = test_hash_param(params, 3);
+   const QoreHashNode *headers = test_hash_param(params, 3);
    if (!headers)
    {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR", "expecting HTTP headers (hash) as fourth parameter of Socket::sendHTTPResponse() call");

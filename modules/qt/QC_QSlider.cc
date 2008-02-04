@@ -31,24 +31,24 @@ int CID_QSLIDER;
 static void QSLIDER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQSlider *qs;
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    QoreAbstractQWidget *parent;
 
    if (p0 && p0->type == NT_OBJECT)
    {
-      parent = p0 ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p0))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      parent = p0 ? (QoreAbstractQWidget *)(reinterpret_cast<const QoreObject *>(p0))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!parent) {
-	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as first parameter of QSlider::constructor() is not a subclass of QWidget", (reinterpret_cast<QoreObject *>(p0))->getClass()->getName());
+	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as first parameter of QSlider::constructor() is not a subclass of QWidget", (reinterpret_cast<const QoreObject *>(p0))->getClassName());
 	 return;
       }
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
       qs = new QoreQSlider(self, parent->getQWidget());
    }
    else if (p1 && p1->type == NT_OBJECT) {
-      parent = p1 ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p1))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      parent = p1 ? (QoreAbstractQWidget *)(reinterpret_cast<const QoreObject *>(p1))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!parent) {
-	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as second parameter of QSlider::constructor() is not a subclass of QWidget", (reinterpret_cast<QoreObject *>(p1))->getClass()->getName());
+	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as second parameter of QSlider::constructor() is not a subclass of QWidget", (reinterpret_cast<const QoreObject *>(p1))->getClassName());
 	 return;
       }
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
@@ -69,7 +69,7 @@ static void QSLIDER_copy(class QoreObject *self, class QoreObject *old, class Qo
 //void setTickInterval ( int ti )
 static AbstractQoreNode *QSLIDER_setTickInterval(QoreObject *self, QoreQSlider *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int ti = p ? p->getAsInt() : 0;
    qs->qobj->setTickInterval(ti);
    return 0;
@@ -78,7 +78,7 @@ static AbstractQoreNode *QSLIDER_setTickInterval(QoreObject *self, QoreQSlider *
 //void setTickPosition ( TickPosition position )
 static AbstractQoreNode *QSLIDER_setTickPosition(QoreObject *self, QoreQSlider *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QSlider::TickPosition position = (QSlider::TickPosition)(p ? p->getAsInt() : 0);
    qs->qobj->setTickPosition(position);
    return 0;

@@ -37,30 +37,37 @@ class QoreClass *QC_QSystemTrayIcon = 0;
 //QSystemTrayIcon ( const QIcon & icon, QObject * parent = 0 )
 static void QSYSTEMTRAYICON_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QSYSTEMTRAYICON, new QoreQSystemTrayIcon(self));
       return;
    }
-   if (p && p->type == NT_OBJECT) {
-      QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
-      if (!icon) {
-         QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
-         if (*xsink)
-            return;
-         ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-         self->setPrivate(CID_QSYSTEMTRAYICON, new QoreQSystemTrayIcon(self, parent ? parent->getQObject() : 0));
-         return;
-      }
-      ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
-      p = get_param(params, 1);
-      QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+
+   const QoreObject *o = dynamic_cast<const QoreObject *>(p);
+   QoreQIcon *icon = o ? (QoreQIcon *)o->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   if (*xsink)
+      return;
+   if (!icon) {
+      QoreAbstractQObject *parent = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
       if (*xsink)
-         return;
+	 return;
+      if (!parent) {
+	 xsink->raiseException("QSYSTEMTRAYICON-CONSTRUCTOR-ERROR", "QSystemTrayIcon::constructor() expects either no arguments, or an oject derived from either QIcon or QObject as the first argument");
+	 return;
+      }
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-      self->setPrivate(CID_QSYSTEMTRAYICON, new QoreQSystemTrayIcon(self, *(static_cast<QIcon *>(icon)), parent ? parent->getQObject() : 0));
+      self->setPrivate(CID_QSYSTEMTRAYICON, new QoreQSystemTrayIcon(self, parent ? parent->getQObject() : 0));
       return;
    }
+   ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
+
+   o = test_object_param(params, 1);
+   QoreAbstractQObject *parent = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   if (*xsink)
+      return;
+   ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
+   self->setPrivate(CID_QSYSTEMTRAYICON, new QoreQSystemTrayIcon(self, *(static_cast<QIcon *>(icon)), parent ? parent->getQObject() : 0));
+   return;
 }
 
 static void QSYSTEMTRAYICON_copy(class QoreObject *self, class QoreObject *old, class QoreQSystemTrayIcon *qsti, ExceptionSink *xsink)
@@ -113,8 +120,8 @@ static AbstractQoreNode *QSYSTEMTRAYICON_isVisible(QoreObject *self, QoreQSystem
 //void setContextMenu ( QMenu * menu )
 static AbstractQoreNode *QSYSTEMTRAYICON_setContextMenu(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreQMenu *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMENU, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQMenu *menu = p ? (QoreQMenu *)p->getReferencedPrivateData(CID_QMENU, xsink) : 0;
    if (!menu) {
       if (!xsink->isException())
          xsink->raiseException("QSYSTEMTRAYICON-SETCONTEXTMENU-PARAM-ERROR", "expecting a QMenu object as first argument to QSystemTrayIcon::setContextMenu()");
@@ -128,8 +135,8 @@ static AbstractQoreNode *QSYSTEMTRAYICON_setContextMenu(QoreObject *self, QoreQS
 //void setIcon ( const QIcon & icon )
 static AbstractQoreNode *QSYSTEMTRAYICON_setIcon(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQIcon *icon = p ? (QoreQIcon *)p->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QSYSTEMTRAYICON-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QSystemTrayIcon::setIcon()");
@@ -143,7 +150,7 @@ static AbstractQoreNode *QSYSTEMTRAYICON_setIcon(QoreObject *self, QoreQSystemTr
 //void setToolTip ( const QString & tip )
 static AbstractQoreNode *QSYSTEMTRAYICON_setToolTip(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString tip;
    if (get_qstring(p, tip, xsink))
       return 0;
@@ -154,7 +161,7 @@ static AbstractQoreNode *QSYSTEMTRAYICON_setToolTip(QoreObject *self, QoreQSyste
 //void showMessage ( const QString & title, const QString & message, MessageIcon icon = Information, int millisecondsTimeoutHint = 10000 )
 static AbstractQoreNode *QSYSTEMTRAYICON_showMessage(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
@@ -186,7 +193,7 @@ static AbstractQoreNode *QSYSTEMTRAYICON_hide(QoreObject *self, QoreQSystemTrayI
 //void setVisible ( bool visible )
 static AbstractQoreNode *QSYSTEMTRAYICON_setVisible(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool visible = p ? p->getAsBool() : false;
    qsti->qobj->setVisible(visible);
    return 0;

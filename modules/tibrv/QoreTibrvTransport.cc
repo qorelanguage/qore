@@ -42,7 +42,7 @@ QoreTibrvTransport::QoreTibrvTransport(const char *desc, const char *service, co
    transport.setDescription(desc);
 }
 
-int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, QoreHash *hash, ExceptionSink *xsink)
+int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, const QoreHash *hash, ExceptionSink *xsink)
 {
    ConstHashIterator hi(hash);
    
@@ -62,7 +62,7 @@ int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, QoreHash *hash, ExceptionSink *
 
 // add fields to message - we add fields using the name so we can have arrays with different typed elements, etc
 // returns 0 for success, -1 for error
-int QoreTibrvTransport::valueToField(const char *key, class AbstractQoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink)
+int QoreTibrvTransport::valueToField(const char *key, const AbstractQoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink)
 {
    //printd(5, "adding %s (%s)\n", key, v ? v->getTypeName() : "null");
    if (is_nothing(v)) {
@@ -70,27 +70,27 @@ int QoreTibrvTransport::valueToField(const char *key, class AbstractQoreNode *v,
       return 0;
    }
 
-   const QoreType *ntype = v->getType();
-   if (ntype == NT_INT) {
+   const QoreType *vtype = v->getType();
+   if (vtype == NT_INT) {
       msg->addI64(key, reinterpret_cast<const QoreBigIntNode *>(v)->val);
       return 0;
    }
 
-   if (ntype == NT_FLOAT) {
+   if (vtype == NT_FLOAT) {
       msg->addF64(key, reinterpret_cast<const QoreFloatNode *>(v)->f);
       return 0;
    }
 
-   if (ntype == NT_LIST) {
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(v);
+   if (vtype == NT_LIST) {
+      const QoreListNode *l = reinterpret_cast<const QoreListNode *>(v);
       for (int i = 0; i < l->size(); i++)
 	 if (valueToField(key, l->retrieve_entry(i), msg, xsink))
 	    return -1;
       return 0;
    }
 
-   if (ntype == NT_STRING) {
-      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(v);
+   if (vtype == NT_STRING) {
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v);
       TempEncodingHelper t(str, enc, xsink);
       if (*xsink)
 	 return -1;
@@ -99,20 +99,20 @@ int QoreTibrvTransport::valueToField(const char *key, class AbstractQoreNode *v,
       return 0;
    }
 
-   if (ntype == NT_DATE) {
-      DateTimeNode *date = reinterpret_cast<DateTimeNode *>(v);
+   if (vtype == NT_DATE) {
+      const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(v);
       TibrvMsgDateTime dt;
       dt.sec = date->getEpochSeconds();
       msg->addDateTime(key, dt);
       return 0;
    }
 
-   if (ntype == NT_HASH) {
-      QoreHashNode *h = dynamic_cast<QoreHashNode *>(v);
+   if (vtype == NT_HASH) {
+      const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(v);
       //check if it's a type-encoded hash
-      class AbstractQoreNode *t;
-      if (h->size() == 2 && (t = h->getKeyValue("^type^")) && (t->type == NT_STRING))
-	 doEncodedType(msg, key, (reinterpret_cast<QoreStringNode *>(t))->getBuffer(), h->getKeyValue("^value^"), xsink);
+      const AbstractQoreNode *t;
+      if (h->size() == 2 && (t = h->getKeyValue("^type^")) && (t->getType() == NT_STRING))
+	 doEncodedType(msg, key, (reinterpret_cast<const QoreStringNode *>(t))->getBuffer(), h->getKeyValue("^value^"), xsink);
       else
       {
 	 TibrvMsg m;
@@ -124,13 +124,13 @@ int QoreTibrvTransport::valueToField(const char *key, class AbstractQoreNode *v,
       return 0;
    }
 
-   if (ntype == NT_BOOLEAN) {
+   if (vtype == NT_BOOLEAN) {
       msg->addBool(key, (tibrv_bool)(reinterpret_cast<const QoreBoolNode *>(v)->b));
       return 0;
    }
    
-   if (ntype == NT_BINARY) {
-      BinaryNode *b = reinterpret_cast<BinaryNode *>(v);
+   if (vtype == NT_BINARY) {
+      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(v);
       msg->addOpaque(key, b->getPtr(), b->size());
       return 0;
    }
@@ -401,7 +401,7 @@ class AbstractQoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, cla
    return l.release();
 }
 
-int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char *type, class AbstractQoreNode *val, class ExceptionSink *xsink)
+int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char *type, const AbstractQoreNode *val, class ExceptionSink *xsink)
 {
    if (type[0] == 'i')
    {
@@ -433,7 +433,7 @@ int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char
       }
       else if (!strcmp(type, "paddr32"))
       {
-	 QoreStringNode *vstr = dynamic_cast<QoreStringNode *>(val);
+	 const QoreStringNode *vstr = dynamic_cast<const QoreStringNode *>(val);
 	 if (!vstr) {
 	    xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'ipaddr32' from qore type '%s' (expecting string)", val ? val->getTypeName() : "NOTHING");
 	    return -1;
@@ -516,7 +516,7 @@ int QoreTibrvTransport::doEncodedType(TibrvMsg *msg, const char *key, const char
    }
    else if (!strcmp(type, "xml"))
    {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(val);
+      const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(val);
       if (!str)
       {
 	 xsink->raiseException("TIBRV-MARSHALLING-ERROR", "can't serialize tibrv type 'xml' from qore type '%s' (need string)", val ? val->getTypeName() : "NOTHING");

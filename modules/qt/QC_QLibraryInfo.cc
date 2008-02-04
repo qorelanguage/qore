@@ -65,7 +65,7 @@ static AbstractQoreNode *f_QLibraryInfo_licensee(const QoreListNode *params, Exc
 //QString location ( LibraryLocation loc )
 static AbstractQoreNode *f_QLibraryInfo_location(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QLibraryInfo::LibraryLocation loc = (QLibraryInfo::LibraryLocation)(p ? p->getAsInt() : 0);
    return new QoreStringNode(QLibraryInfo::location(loc).toUtf8().data(), QCS_UTF8);
 }

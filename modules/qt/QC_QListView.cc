@@ -37,8 +37,8 @@ class QoreClass *QC_QListView = 0;
 //QListView ( QWidget * parent = 0 )
 static void QLISTVIEW_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *parent = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -82,7 +82,7 @@ static AbstractQoreNode *QLISTVIEW_gridSize(QoreObject *self, QoreAbstractQListV
 //bool isRowHidden ( int row ) const
 static AbstractQoreNode *QLISTVIEW_isRowHidden(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    return new QoreBoolNode(qlv->getQListView()->isRowHidden(row));
 }
@@ -126,7 +126,7 @@ static AbstractQoreNode *QLISTVIEW_resizeMode(QoreObject *self, QoreAbstractQLis
 //void setBatchSize ( int batchSize )
 static AbstractQoreNode *QLISTVIEW_setBatchSize(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int batchSize = p ? p->getAsInt() : 0;
    qlv->getQListView()->setBatchSize(batchSize);
    return 0;
@@ -135,7 +135,7 @@ static AbstractQoreNode *QLISTVIEW_setBatchSize(QoreObject *self, QoreAbstractQL
 //void setFlow ( Flow flow )
 static AbstractQoreNode *QLISTVIEW_setFlow(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QListView::Flow flow = (QListView::Flow)(p ? p->getAsInt() : 0);
    qlv->getQListView()->setFlow(flow);
    return 0;
@@ -144,8 +144,8 @@ static AbstractQoreNode *QLISTVIEW_setFlow(QoreObject *self, QoreAbstractQListVi
 //void setGridSize ( const QSize & size )
 static AbstractQoreNode *QLISTVIEW_setGridSize(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQSize *size = p ? (QoreQSize *)p->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QLISTVIEW-SETGRIDSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QListView::setGridSize()");
@@ -159,7 +159,7 @@ static AbstractQoreNode *QLISTVIEW_setGridSize(QoreObject *self, QoreAbstractQLi
 //void setLayoutMode ( LayoutMode mode )
 static AbstractQoreNode *QLISTVIEW_setLayoutMode(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QListView::LayoutMode mode = (QListView::LayoutMode)(p ? p->getAsInt() : 0);
    qlv->getQListView()->setLayoutMode(mode);
    return 0;
@@ -168,7 +168,7 @@ static AbstractQoreNode *QLISTVIEW_setLayoutMode(QoreObject *self, QoreAbstractQ
 //void setModelColumn ( int column )
 static AbstractQoreNode *QLISTVIEW_setModelColumn(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
    qlv->getQListView()->setModelColumn(column);
    return 0;
@@ -177,7 +177,7 @@ static AbstractQoreNode *QLISTVIEW_setModelColumn(QoreObject *self, QoreAbstract
 //void setMovement ( Movement movement )
 static AbstractQoreNode *QLISTVIEW_setMovement(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QListView::Movement movement = (QListView::Movement)(p ? p->getAsInt() : 0);
    qlv->getQListView()->setMovement(movement);
    return 0;
@@ -186,7 +186,7 @@ static AbstractQoreNode *QLISTVIEW_setMovement(QoreObject *self, QoreAbstractQLi
 //void setResizeMode ( ResizeMode mode )
 static AbstractQoreNode *QLISTVIEW_setResizeMode(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QListView::ResizeMode mode = (QListView::ResizeMode)(p ? p->getAsInt() : 0);
    qlv->getQListView()->setResizeMode(mode);
    return 0;
@@ -195,7 +195,7 @@ static AbstractQoreNode *QLISTVIEW_setResizeMode(QoreObject *self, QoreAbstractQ
 //void setRowHidden ( int row, bool hide )
 static AbstractQoreNode *QLISTVIEW_setRowHidden(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    bool hide = p ? p->getAsBool() : false;
@@ -206,7 +206,7 @@ static AbstractQoreNode *QLISTVIEW_setRowHidden(QoreObject *self, QoreAbstractQL
 //void setSelectionRectVisible ( bool show )
 static AbstractQoreNode *QLISTVIEW_setSelectionRectVisible(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool show = p ? p->getAsBool() : false;
    qlv->getQListView()->setSelectionRectVisible(show);
    return 0;
@@ -215,7 +215,7 @@ static AbstractQoreNode *QLISTVIEW_setSelectionRectVisible(QoreObject *self, Qor
 //void setSpacing ( int space )
 static AbstractQoreNode *QLISTVIEW_setSpacing(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int space = p ? p->getAsInt() : 0;
    qlv->getQListView()->setSpacing(space);
    return 0;
@@ -224,7 +224,7 @@ static AbstractQoreNode *QLISTVIEW_setSpacing(QoreObject *self, QoreAbstractQLis
 //void setUniformItemSizes ( bool enable )
 static AbstractQoreNode *QLISTVIEW_setUniformItemSizes(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qlv->getQListView()->setUniformItemSizes(enable);
    return 0;
@@ -233,7 +233,7 @@ static AbstractQoreNode *QLISTVIEW_setUniformItemSizes(QoreObject *self, QoreAbs
 //void setViewMode ( ViewMode mode )
 static AbstractQoreNode *QLISTVIEW_setViewMode(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QListView::ViewMode mode = (QListView::ViewMode)(p ? p->getAsInt() : 0);
    qlv->getQListView()->setViewMode(mode);
    return 0;
@@ -242,7 +242,7 @@ static AbstractQoreNode *QLISTVIEW_setViewMode(QoreObject *self, QoreAbstractQLi
 //void setWordWrap ( bool on )
 static AbstractQoreNode *QLISTVIEW_setWordWrap(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
    qlv->getQListView()->setWordWrap(on);
    return 0;
@@ -251,7 +251,7 @@ static AbstractQoreNode *QLISTVIEW_setWordWrap(QoreObject *self, QoreAbstractQLi
 //void setWrapping ( bool enable )
 static AbstractQoreNode *QLISTVIEW_setWrapping(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qlv->getQListView()->setWrapping(enable);
    return 0;
@@ -284,8 +284,8 @@ static AbstractQoreNode *QLISTVIEW_wordWrap(QoreObject *self, QoreAbstractQListV
 //QRect rectForIndex ( const QModelIndex & index ) const
 static AbstractQoreNode *QLISTVIEW_rectForIndex(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQModelIndex *index = p ? (QoreQModelIndex *)p->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QLISTVIEW-RECTFORINDEX-PARAM-ERROR", "expecting a QModelIndex object as first argument to QListView::rectForIndex()");
@@ -301,16 +301,17 @@ static AbstractQoreNode *QLISTVIEW_rectForIndex(QoreObject *self, QoreAbstractQL
 //void setPositionForIndex ( const QPoint & position, const QModelIndex & index )
 static AbstractQoreNode *QLISTVIEW_setPositionForIndex(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQPoint *position = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!position) {
       if (!xsink->isException())
          xsink->raiseException("QLISTVIEW-SETPOSITIONFORINDEX-PARAM-ERROR", "expecting a QPoint object as first argument to QListView::setPositionForIndex()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(position), xsink);
-   p = get_param(params, 1);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+
+   o = test_object_param(params, 1);
+   QoreQModelIndex *index = o ? (QoreQModelIndex *)o->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QLISTVIEW-SETPOSITIONFORINDEX-PARAM-ERROR", "expecting a QModelIndex object as second argument to QListView::setPositionForIndex()");

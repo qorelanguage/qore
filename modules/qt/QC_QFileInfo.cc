@@ -39,16 +39,16 @@ class QoreClass *QC_QFileInfo = 0;
 //QFileInfo ( const QFileInfo & fileinfo )
 static void QFILEINFO_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QFILEINFO, new QoreQFileInfo());
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQDir *dir = (QoreQDir *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDIR, xsink);
+      QoreQDir *dir = (QoreQDir *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QDIR, xsink);
       if (!dir) {
          if (!xsink->isException())
-            xsink->raiseException("QFILEINFO-CONSTRUCTOR-PARAM-ERROR", "QFileInfo::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QFILEINFO-CONSTRUCTOR-PARAM-ERROR", "QFileInfo::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> dirHolder(static_cast<AbstractPrivateData *>(dir), xsink);
@@ -293,7 +293,7 @@ static AbstractQoreNode *QFILEINFO_path(QoreObject *self, QoreQFileInfo *qfi, co
 //bool permission ( QFile::Permissions permissions ) const
 static AbstractQoreNode *QFILEINFO_permission(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QFile::Permissions permissions = (QFile::Permissions)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(qfi->permission(permissions));
 }
@@ -314,7 +314,7 @@ static AbstractQoreNode *QFILEINFO_refresh(QoreObject *self, QoreQFileInfo *qfi,
 //void setCaching ( bool enable )
 static AbstractQoreNode *QFILEINFO_setCaching(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qfi->setCaching(enable);
    return 0;
@@ -325,12 +325,12 @@ static AbstractQoreNode *QFILEINFO_setCaching(QoreObject *self, QoreQFileInfo *q
 //void setFile ( const QDir & dir, const QString & file )
 static AbstractQoreNode *QFILEINFO_setFile(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQDir *dir = (QoreQDir *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDIR, xsink);
+      QoreQDir *dir = (QoreQDir *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QDIR, xsink);
       if (!dir) {
          if (!xsink->isException())
-            xsink->raiseException("QFILEINFO-SETFILE-PARAM-ERROR", "QFileInfo::setFile() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QFILEINFO-SETFILE-PARAM-ERROR", "QFileInfo::setFile() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> dirHolder(static_cast<AbstractPrivateData *>(dir), xsink);

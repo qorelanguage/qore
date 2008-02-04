@@ -34,12 +34,12 @@ class QoreClass *QC_QIntValidator = 0;
 //QIntValidator ( int minimum, int maximum, QObject * parent )
 static void QINTVALIDATOR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
+      QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
       if (!parent) {
          if (!xsink->isException())
-            xsink->raiseException("QINTVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "QIntValidator::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QINTVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "QIntValidator::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -47,13 +47,15 @@ static void QINTVALIDATOR_constructor(QoreObject *self, const QoreListNode *para
       return;
    }
    int minimum = p ? p->getAsInt() : 0;
+
    p = get_param(params, 1);
    int maximum = p ? p->getAsInt() : 0;
-   p = get_param(params, 2);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 2);
+   QoreAbstractQObject *parent = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
-         xsink->raiseException("QINTVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "this version of QIntValidator::constructor() expects an object derived from QObject as the third argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+         xsink->raiseException("QINTVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "this version of QIntValidator::constructor() expects an object derived from QObject as the third argument");
       return;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -75,7 +77,7 @@ static AbstractQoreNode *QINTVALIDATOR_bottom(QoreObject *self, QoreQIntValidato
 //void setBottom ( int )
 static AbstractQoreNode *QINTVALIDATOR_setBottom(QoreObject *self, QoreQIntValidator *qiv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qiv->qobj->setBottom(x);
    return 0;
@@ -84,7 +86,7 @@ static AbstractQoreNode *QINTVALIDATOR_setBottom(QoreObject *self, QoreQIntValid
 //virtual void setRange ( int bottom, int top )
 static AbstractQoreNode *QINTVALIDATOR_setRange(QoreObject *self, QoreQIntValidator *qiv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int bottom = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int top = p ? p->getAsInt() : 0;
@@ -95,7 +97,7 @@ static AbstractQoreNode *QINTVALIDATOR_setRange(QoreObject *self, QoreQIntValida
 //void setTop ( int )
 static AbstractQoreNode *QINTVALIDATOR_setTop(QoreObject *self, QoreQIntValidator *qiv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qiv->qobj->setTop(x);
    return 0;

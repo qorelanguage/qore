@@ -26,12 +26,12 @@
 static AbstractQoreNode *f_sort(const QoreListNode *params, ExceptionSink *xsink)
 {
    // get list as first argument
-   AbstractQoreNode *lst = get_param(params, 0);
+   const AbstractQoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   QoreListNode *l = dynamic_cast<QoreListNode *>(lst);
+   const QoreListNode *l = dynamic_cast<const QoreListNode *>(lst);
    if (!l)
-      return lst->RefSelf();
+      return lst->refSelf();
    
    // check for a function name or call reference in second argument
    const AbstractQoreNode *fn = get_param(params, 1);
@@ -60,12 +60,12 @@ static AbstractQoreNode *f_sort(const QoreListNode *params, ExceptionSink *xsink
 static AbstractQoreNode *f_sortDescending(const QoreListNode *params, ExceptionSink *xsink)
 {
    // get list as first argument
-   AbstractQoreNode *lst = get_param(params, 0);
+   const AbstractQoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   QoreListNode *l = dynamic_cast<QoreListNode *>(lst);
+   const QoreListNode *l = dynamic_cast<const QoreListNode *>(lst);
    if (!l)
-      return lst->RefSelf();
+      return lst->refSelf();
    
    // check for a function name or call reference in second argument
    const AbstractQoreNode *fn = get_param(params, 1);
@@ -94,12 +94,12 @@ static AbstractQoreNode *f_sortDescending(const QoreListNode *params, ExceptionS
 static AbstractQoreNode *f_sortStable(const QoreListNode *params, ExceptionSink *xsink)
 {
    // get list as first argument
-   AbstractQoreNode *lst = get_param(params, 0);
+   const AbstractQoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   QoreListNode *l = dynamic_cast<QoreListNode *>(lst);
+   const QoreListNode *l = dynamic_cast<const QoreListNode *>(lst);
    if (!l)
-      return lst->RefSelf();
+      return lst->refSelf();
    
    // check for a function name or call reference in second argument
    const AbstractQoreNode *fn = get_param(params, 1);
@@ -128,12 +128,12 @@ static AbstractQoreNode *f_sortStable(const QoreListNode *params, ExceptionSink 
 static AbstractQoreNode *f_sortDescendingStable(const QoreListNode *params, ExceptionSink *xsink)
 {
    // get list as first argument
-   AbstractQoreNode *lst = get_param(params, 0);
+   const AbstractQoreNode *lst = get_param(params, 0);
    if (!lst)
       return 0;
-   QoreListNode *l = dynamic_cast<QoreListNode *>(lst);
+   const QoreListNode *l = dynamic_cast<const QoreListNode *>(lst);
    if (!l)
-      return lst->RefSelf();
+      return lst->refSelf();
    
    // check for a function name or call reference in second argument
    const AbstractQoreNode *fn = get_param(params, 1);
@@ -161,7 +161,7 @@ static AbstractQoreNode *f_sortDescendingStable(const QoreListNode *params, Exce
 
 static AbstractQoreNode *f_min(const QoreListNode *params, ExceptionSink *xsink)
 {   
-   QoreListNode *lst = test_list_param(params, 0);
+   const QoreListNode *lst = test_list_param(params, 0);
    if (lst)
    {
       const AbstractQoreNode *p = get_param(params, 1);
@@ -193,7 +193,7 @@ static AbstractQoreNode *f_min(const QoreListNode *params, ExceptionSink *xsink)
 
 static AbstractQoreNode *f_max(const QoreListNode *params, ExceptionSink *xsink)
 {   
-   QoreListNode *lst = test_list_param(params, 0);
+   const QoreListNode *lst = test_list_param(params, 0);
    if (lst)
    {
       const AbstractQoreNode *p = get_param(params, 1);

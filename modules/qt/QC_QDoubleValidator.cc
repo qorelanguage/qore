@@ -34,12 +34,12 @@ class QoreClass *QC_QDoubleValidator = 0;
 //QDoubleValidator ( double bottom, double top, int decimals, QObject * parent )
 static void QDOUBLEVALIDATOR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
+      QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
       if (!parent) {
          if (!xsink->isException())
-            xsink->raiseException("QDOUBLEVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "QDoubleValidator::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QDOUBLEVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "QDoubleValidator::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -47,15 +47,18 @@ static void QDOUBLEVALIDATOR_constructor(QoreObject *self, const QoreListNode *p
       return;
    }
    double bottom = p ? p->getAsFloat() : 0.0;
+
    p = get_param(params, 1);
    double top = p ? p->getAsFloat() : 0.0;
+
    p = get_param(params, 2);
    int decimals = p ? p->getAsInt() : 0;
-   p = get_param(params, 3);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 3);
+   QoreAbstractQObject *parent = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
-         xsink->raiseException("QDOUBLEVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "this version of QDoubleValidator::constructor() expects an object derived from QObject as the fourth argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+         xsink->raiseException("QDOUBLEVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "this version of QDoubleValidator::constructor() expects an object derived from QObject as the fourth argument");
       return;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -89,7 +92,7 @@ static AbstractQoreNode *QDOUBLEVALIDATOR_notation(QoreObject *self, QoreQDouble
 //void setBottom ( double )
 static AbstractQoreNode *QDOUBLEVALIDATOR_setBottom(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    double bottom = p ? p->getAsFloat() : 0.0;
    qdv->qobj->setBottom(bottom);
    return 0;
@@ -98,7 +101,7 @@ static AbstractQoreNode *QDOUBLEVALIDATOR_setBottom(QoreObject *self, QoreQDoubl
 //void setDecimals ( int )
 static AbstractQoreNode *QDOUBLEVALIDATOR_setDecimals(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qdv->qobj->setDecimals(x);
    return 0;
@@ -107,7 +110,7 @@ static AbstractQoreNode *QDOUBLEVALIDATOR_setDecimals(QoreObject *self, QoreQDou
 //void setNotation ( Notation )
 static AbstractQoreNode *QDOUBLEVALIDATOR_setNotation(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QDoubleValidator::Notation notation = (QDoubleValidator::Notation)(p ? p->getAsInt() : 0);
    qdv->qobj->setNotation(notation);
    return 0;
@@ -116,7 +119,7 @@ static AbstractQoreNode *QDOUBLEVALIDATOR_setNotation(QoreObject *self, QoreQDou
 //virtual void setRange ( double minimum, double maximum, int decimals = 0 )
 static AbstractQoreNode *QDOUBLEVALIDATOR_setRange(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    double minimum = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    double maximum = p ? p->getAsFloat() : 0.0;
@@ -129,7 +132,7 @@ static AbstractQoreNode *QDOUBLEVALIDATOR_setRange(QoreObject *self, QoreQDouble
 //void setTop ( double )
 static AbstractQoreNode *QDOUBLEVALIDATOR_setTop(QoreObject *self, QoreQDoubleValidator *qdv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    double top = p ? p->getAsFloat() : 0.0;
    qdv->qobj->setTop(top);
    return 0;

@@ -119,13 +119,14 @@ class QoreObject : public AbstractQoreNode
       DLLEXPORT class AbstractQoreNode *evalMethod(const class QoreString *name, const class QoreListNode *args, class ExceptionSink *xsink);
       DLLEXPORT const QoreClass *getClass(int cid) const;
       DLLEXPORT const QoreClass *getClass() const;
+      DLLEXPORT const char *getClassName() const;
       DLLEXPORT int getStatus() const;
       DLLEXPORT int isValid() const;
       DLLEXPORT class QoreProgram *getProgram() const;
       DLLEXPORT bool isSystemObject() const;
-      DLLEXPORT void tRef();
+      DLLEXPORT void tRef() const;
       DLLEXPORT void tDeref();
-      DLLEXPORT void ref();
+      DLLEXPORT void ref() const;
 
       DLLLOCAL class AbstractQoreNode *evalMember(const QoreString *member, class ExceptionSink *xsink);
       DLLLOCAL void instantiateLVar(lvh_t id);

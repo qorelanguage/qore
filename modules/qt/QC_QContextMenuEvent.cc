@@ -34,21 +34,22 @@ class QoreClass *QC_QContextMenuEvent = 0;
 //QContextMenuEvent ( Reason reason, const QPoint & pos )
 static void QCONTEXTMENUEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QContextMenuEvent::Reason reason = (QContextMenuEvent::Reason)(p ? p->getAsInt() : 0);
-   p = test_param(params, NT_OBJECT, 1);
-   QoreQPoint *pos = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQPoint *pos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
 	 xsink->raiseException("QCONTEXTMENUEVENT-CONSTRUCTOR-PARAM-ERROR", "QContextMenuEvent::constructor() expects a QPoint object as the second parameter");
       return;
    }
    ReferenceHolder<QoreQPoint> posHolder(pos, xsink);
-   p = test_param(params, NT_OBJECT, 2);
-   QoreQPoint *globalPos = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
-   if (!globalPos && p) {
+   o = test_object_param(params, 2);
+   QoreQPoint *globalPos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   if (!globalPos && o) {
       if (!xsink->isException())
-	 xsink->raiseException("QCONTEXTMENUEVENT-CONSTRUCTOR-PARAM-ERROR", "QContextMenuEvent::constructor() does not know how to handle arguments of class '%s' as the third parameter", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	 xsink->raiseException("QCONTEXTMENUEVENT-CONSTRUCTOR-PARAM-ERROR", "QContextMenuEvent::constructor() does not know how to handle arguments of class '%s' as the third parameter", o->getClassName());
       return;
    }
    ReferenceHolder<QoreQPoint> globalPosHolder(globalPos, xsink);

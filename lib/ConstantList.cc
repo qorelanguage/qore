@@ -158,7 +158,7 @@ QoreHashNode *ConstantList::getInfo()
    QoreHashNode *h = new QoreHashNode();
    
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
-      h->setKeyValue(i->first, i->second->RefSelf(), NULL);
+      h->setKeyValue(i->first, i->second->refSelf(), NULL);
    
    return h;
 }

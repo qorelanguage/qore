@@ -42,26 +42,28 @@ static void QCLEANLOOKSSTYLE_copy(class QoreObject *self, class QoreObject *old,
 //virtual void drawItemText ( QPainter * painter, const QRect & rectangle, int alignment, const QPalette & palette, bool enabled, const QString & text, QPalette::ColorRole textRole = QPalette::NoRole ) const
 static AbstractQoreNode *QCLEANLOOKSSTYLE_drawItemText(QoreObject *self, QoreAbstractQCleanlooksStyle *qcs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQPainter *painter = o ? (QoreQPainter *)o->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
    if (!painter) {
       if (!xsink->isException())
          xsink->raiseException("QCLEANLOOKSSTYLE-DRAWITEMTEXT-PARAM-ERROR", "expecting a QPainter object as first argument to QCleanlooksStyle::drawItemText()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> painterHolder(static_cast<AbstractPrivateData *>(painter), xsink);
-   p = get_param(params, 1);
-   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+
+   o = test_object_param(params, 1);
+   QoreQRect *rectangle = o ? (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!rectangle) {
       if (!xsink->isException())
          xsink->raiseException("QCLEANLOOKSSTYLE-DRAWITEMTEXT-PARAM-ERROR", "expecting a QRect object as second argument to QCleanlooksStyle::drawItemText()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
-   p = get_param(params, 2);
+   const AbstractQoreNode *p = get_param(params, 2);
    int alignment = p ? p->getAsInt() : 0;
-   p = get_param(params, 3);
-   QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+
+   o = test_object_param(params, 3);
+   QoreQPalette *palette = o ? (QoreQPalette *)o->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!palette) {
       if (!xsink->isException())
          xsink->raiseException("QCLEANLOOKSSTYLE-DRAWITEMTEXT-PARAM-ERROR", "expecting a QPalette object as fourth argument to QCleanlooksStyle::drawItemText()");

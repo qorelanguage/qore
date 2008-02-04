@@ -33,8 +33,8 @@ class QoreClass *QC_QTranslator = 0;
 //QTranslator ( QObject * parent = 0 )
 static void QTRANSLATOR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)p->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -56,7 +56,7 @@ static AbstractQoreNode *QTRANSLATOR_isEmpty(QoreObject *self, QoreQTranslator *
 //bool load ( const QString & filename, const QString & directory = QString(), const QString & search_delimiters = QString(), const QString & suffix = QString() )
 static AbstractQoreNode *QTRANSLATOR_load(QoreObject *self, QoreQTranslator *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString filename;
    if (get_qstring(p, filename, xsink))
       return 0;
@@ -79,7 +79,7 @@ static AbstractQoreNode *QTRANSLATOR_load(QoreObject *self, QoreQTranslator *qt,
 //QString translate ( const char * context, const char * sourceText, const char * comment, int n ) const
 static AbstractQoreNode *QTRANSLATOR_translate(QoreObject *self, QoreQTranslator *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QTRANSLATOR-TRANSLATE-PARAM-ERROR", "expecting a string as first argument to QTranslator::translate()");
       return 0;
@@ -99,7 +99,7 @@ static AbstractQoreNode *QTRANSLATOR_translate(QoreObject *self, QoreQTranslator
    if (num_params(params) < 4) 
       return new QoreStringNode(qt->qobj->translate(context, sourceText, comment).toUtf8().data(), QCS_UTF8);
 
-   AbstractQoreNode *pn = get_param(params, 3);
+   const AbstractQoreNode *pn = get_param(params, 3);
    int n = pn ? pn->getAsInt() : 0;
    return new QoreStringNode(qt->qobj->translate(context, sourceText, comment, n).toUtf8().data(), QCS_UTF8);
 }

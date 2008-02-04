@@ -29,7 +29,7 @@ int CID_WINDOW;
 
 void WC_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p0, *p1, *p2, *p3;
+   const AbstractQoreNode *p0, *p1, *p2, *p3;
    p0 = get_param(params, 0);
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
@@ -54,7 +54,7 @@ static void WC_copy(class QoreObject *self, class QoreObject *old, class Window 
 
 class AbstractQoreNode *WC_keypad(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    bool b = p0 ? p0->getAsBool() : false;
 
    return new QoreBigIntNode(w->keypad(b));
@@ -63,7 +63,7 @@ class AbstractQoreNode *WC_keypad(class QoreObject *self, class Window *w, const
 class AbstractQoreNode *WC_addstr(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    int rc;
-   QoreStringNode *p0 = test_string_param(params, 0);
+   const QoreStringNode *p0 = test_string_param(params, 0);
    if (p0)
       rc = w->qaddstr(p0->getBuffer());
    else
@@ -75,11 +75,11 @@ class AbstractQoreNode *WC_addstr(class QoreObject *self, class Window *w, const
 class AbstractQoreNode *WC_mvaddstr(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    int rc;
-   QoreStringNode *p2 = test_string_param(params, 2);
+   const QoreStringNode *p2 = test_string_param(params, 2);
    if (p2)
    {
-      class AbstractQoreNode *p0 = get_param(params, 0);
-      class AbstractQoreNode *p1 = get_param(params, 1);
+      const AbstractQoreNode *p0 = get_param(params, 0);
+      const AbstractQoreNode *p1 = get_param(params, 1);
       rc = w->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, p2->getBuffer());
    }
    else
@@ -97,8 +97,8 @@ class AbstractQoreNode *WC_printw(class QoreObject *self, class Window *w, const
 class AbstractQoreNode *WC_mvprintw(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
    TempQoreStringNode str(q_sprintf(params, 0, 2, xsink));
-   class AbstractQoreNode *p0 = get_param(params, 0);
-   class AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
 
    return new QoreBigIntNode(w->qmvaddstr(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0, str->getBuffer()));
 }
@@ -115,7 +115,7 @@ class AbstractQoreNode *WC_getch(class QoreObject *self, class Window *w, const 
 
 class AbstractQoreNode *WC_border(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7;
+   const AbstractQoreNode *p0, *p1, *p2, *p3, *p4, *p5, *p6, *p7;
    p0 = get_param(params, 0);
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
@@ -138,84 +138,84 @@ class AbstractQoreNode *WC_border(class QoreObject *self, class Window *w, const
 
 class AbstractQoreNode *WC_setColor(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    return new QoreBigIntNode(w->setColor(p0 ? p0->getAsInt() : COLOR_WHITE,
 					  p1 ? p1->getAsInt() : COLOR_BLACK));
 }
 
 class AbstractQoreNode *WC_setBackgroundColor(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(w->setBackgroundColor(p0 ? p0->getAsInt() : COLOR_BLACK));
 }
 
 class AbstractQoreNode *WC_setForegroundColor(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(w->setForegroundColor(p0 ? p0->getAsInt() : COLOR_WHITE));
 }
 
 class AbstractQoreNode *WC_attrset(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(w->qattrset(p0 ? p0->getAsInt() : 0));
 }
 
 class AbstractQoreNode *WC_attron(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(w->qattron(p0 ? p0->getAsInt() : 0));
 }
 
 class AbstractQoreNode *WC_attroff(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(w->qattroff(p0 ? p0->getAsInt() : 0));
 }
 
 class AbstractQoreNode *WC_moveWindow(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    return new QoreBigIntNode(w->moveWindow(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
 }
 
 class AbstractQoreNode *WC_move(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    return new QoreBigIntNode(w->qmove(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
 }
 
 class AbstractQoreNode *WC_scrollok(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(w->scrollok(p0 ? p0->getAsBool() : 0));
 }
 
 class AbstractQoreNode *WC_idlok(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(w->idlok(p0 ? p0->getAsBool() : 0));
 }
 
 class AbstractQoreNode *WC_clearok(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(w->clearok(p0 ? p0->getAsBool() : 0));
 }
 
 class AbstractQoreNode *WC_idcok(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    w->idcok(p0 ? p0->getAsBool() : 0);
    return NULL;
 }
 
 class AbstractQoreNode *WC_immedok(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    w->immedok(p0 ? p0->getAsBool() : 0);
    return NULL;
 }
@@ -234,8 +234,8 @@ class AbstractQoreNode *WC_clear(class QoreObject *self, class Window *w, const 
 
 class AbstractQoreNode *WC_setscrreg(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    return new QoreBigIntNode(w->qsetscrreg(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
 }
 
@@ -251,30 +251,30 @@ class AbstractQoreNode *WC_scroll(class QoreObject *self, class Window *w, const
 
 class AbstractQoreNode *WC_scrl(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(w->qscrl(p0 ? p0->getAsInt() : 0));
 }
 
 class AbstractQoreNode *WC_hline(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    return new QoreBigIntNode(w->qhline(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
 }
 
 class AbstractQoreNode *WC_vline(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    return new QoreBigIntNode(w->qvline(p0 ? p0->getAsInt() : 0, p1 ? p1->getAsInt() : 0));
 }
 
 class AbstractQoreNode *WC_mvhline(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
-   AbstractQoreNode *p2 = get_param(params, 2);
-   AbstractQoreNode *p3 = get_param(params, 3);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p2 = get_param(params, 2);
+   const AbstractQoreNode *p3 = get_param(params, 3);
    return new QoreBigIntNode(w->qmvhline(p0 ? p0->getAsInt() : 0, 
 					  p1 ? p1->getAsInt() : 0,
 					  p2 ? p2->getAsInt() : 0,
@@ -283,10 +283,10 @@ class AbstractQoreNode *WC_mvhline(class QoreObject *self, class Window *w, cons
 
 class AbstractQoreNode *WC_mvvline(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
-   AbstractQoreNode *p2 = get_param(params, 2);
-   AbstractQoreNode *p3 = get_param(params, 3);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p2 = get_param(params, 2);
+   const AbstractQoreNode *p3 = get_param(params, 3);
    return new QoreBigIntNode(w->qmvvline(p0 ? p0->getAsInt() : 0, 
 					  p1 ? p1->getAsInt() : 0,
 					  p2 ? p2->getAsInt() : 0,
@@ -295,29 +295,23 @@ class AbstractQoreNode *WC_mvvline(class QoreObject *self, class Window *w, cons
 
 class AbstractQoreNode *WC_addch(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *rv;
-   AbstractQoreNode *p0 = get_param(params, 0);
-   if (!is_nothing(p0) && (p0->type != NT_STRING || (reinterpret_cast<QoreStringNode *>(p0))->strlen()))
-      rv = new QoreBigIntNode(w->qaddch(getChar(p0)));
-   else
-      rv = NULL;
-   return rv;
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   
+   if (!is_nothing(p0) && (p0->getType() != NT_STRING || (reinterpret_cast<const QoreStringNode *>(p0))->strlen()))
+      return new QoreBigIntNode(w->qaddch(getChar(p0)));
+   return 0;
 }
 
 class AbstractQoreNode *WC_mvaddch(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *rv;
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
-   AbstractQoreNode *p2 = get_param(params, 2);
-   if (!is_nothing(p2) && (p2->type != NT_STRING || (reinterpret_cast<QoreStringNode *>(p2))->strlen()))
-      rv = new QoreBigIntNode(w->qmvaddch(p0 ? p0->getAsInt() : 0,
-					   p1 ? p1->getAsInt() : 0,
-					   getChar(p2)));
-   else
-      rv = NULL;
-
-   return rv;
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p2 = get_param(params, 2);
+   if (!is_nothing(p2) && (p2->getType() != NT_STRING || (reinterpret_cast<const QoreStringNode *>(p2))->strlen()))
+      return new QoreBigIntNode(w->qmvaddch(p0 ? p0->getAsInt() : 0,
+					    p1 ? p1->getAsInt() : 0,
+					    getChar(p2)));
+   return 0;
 }
 
 class AbstractQoreNode *WC_clrtoeol(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
@@ -345,10 +339,10 @@ class AbstractQoreNode *WC_getColumns(class QoreObject *self, class Window *w, c
 #ifdef HAVE_WRESIZE
 class AbstractQoreNode *WC_resize(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
-   AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    return new QoreBigIntNode(w->resize(p0 ? p0->getAsInt() : 0,
-					p1 ? p1->getAsInt() : 0));
+				       p1 ? p1->getAsInt() : 0));
 }
 #endif
 
@@ -374,7 +368,7 @@ class AbstractQoreNode *WC_getBegX(class QoreObject *self, class Window *w, cons
 
 class AbstractQoreNode *WC_nodelay(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    return new QoreBigIntNode(w->nodelay(p0 ? p0->getAsBool() : 0));
 }
 

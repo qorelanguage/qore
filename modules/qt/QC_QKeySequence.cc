@@ -30,11 +30,11 @@ static void QKEYSEQUENCE_constructor(class QoreObject *self, const QoreListNode 
 {
    QoreQKeySequence *qks;
 
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qks = new QoreQKeySequence();
    else if (p->type == NT_STRING)
-      qks = new QoreQKeySequence((reinterpret_cast<QoreStringNode *>(p))->getBuffer());
+      qks = new QoreQKeySequence((reinterpret_cast<const QoreStringNode *>(p))->getBuffer());
    else {
       int i = p->getAsInt();
 
@@ -80,8 +80,8 @@ static AbstractQoreNode *QKEYSEQUENCE_isEmpty(QoreObject *self, QoreQKeySequence
 //SequenceMatch matches ( const QKeySequence & seq ) const
 static AbstractQoreNode *QKEYSEQUENCE_matches(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQKeySequence *seq = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQKeySequence *seq = p ? (QoreQKeySequence *)p->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
    if (!seq) {
       if (!xsink->isException())
          xsink->raiseException("QKEYSEQUENCE-MATCHES-PARAM-ERROR", "expecting a QKeySequence object as first argument to QKeySequence::matches()");
@@ -94,7 +94,7 @@ static AbstractQoreNode *QKEYSEQUENCE_matches(QoreObject *self, QoreQKeySequence
 //QString toString ( SequenceFormat format = PortableText ) const
 static AbstractQoreNode *QKEYSEQUENCE_toString(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QKeySequence::SequenceFormat format = (QKeySequence::SequenceFormat)(p ? p->getAsInt() : 0);
    return new QoreStringNode(qks->toString(format).toUtf8().data(), QCS_UTF8);
 }

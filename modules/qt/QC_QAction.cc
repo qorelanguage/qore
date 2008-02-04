@@ -41,14 +41,14 @@ class QoreClass *QC_QAction = 0;
 //QAction ( const QIcon & icon, const QString & text, QObject * parent )
 static void QACTION_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
+      QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
-         QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
+         QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
          if (!parent) {
             if (!xsink->isException())
-               xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "QAction::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "QAction::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
             return;
          }
          ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -60,11 +60,11 @@ static void QACTION_constructor(QoreObject *self, const QoreListNode *params, Ex
       QString text;
       if (get_qstring(p, text, xsink))
          return;
-      p = get_param(params, 2);
-      QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+      const QoreObject *o = test_object_param(params, 2);
+      QoreAbstractQObject *parent = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
       if (!parent) {
          if (!xsink->isException())
-            xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "this version of QAction::constructor() expects an object derived from QObject as the third argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "this version of QAction::constructor() expects an object derived from QObject as the third argument");
          return;
       }
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -74,11 +74,11 @@ static void QACTION_constructor(QoreObject *self, const QoreListNode *params, Ex
    QString text;
    if (get_qstring(p, text, xsink))
       return;
-   p = get_param(params, 1);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 1);
+   QoreAbstractQObject *parent = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
-         xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "this version of QAction::constructor() expects an object derived from QObject as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+         xsink->raiseException("QACTION-CONSTRUCTOR-PARAM-ERROR", "this version of QAction::constructor() expects an object derived from QObject as the second argument");
       return;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -107,7 +107,7 @@ static AbstractQoreNode *QACTION_actionGroup(QoreObject *self, QoreAbstractQActi
 //void activate ( ActionEvent event )
 static AbstractQoreNode *QACTION_activate(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QAction::ActionEvent event = (QAction::ActionEvent)(p ? p->getAsInt() : 0);
    qa->getQAction()->activate(event);
    return 0;
@@ -220,8 +220,8 @@ static AbstractQoreNode *QACTION_parentWidget(QoreObject *self, QoreAbstractQAct
 //void setActionGroup ( QActionGroup * group )
 static AbstractQoreNode *QACTION_setActionGroup(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQActionGroup *group = (p && p->type == NT_OBJECT) ? (QoreQActionGroup *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTIONGROUP, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQActionGroup *group = p ? (QoreQActionGroup *)p->getReferencedPrivateData(CID_QACTIONGROUP, xsink) : 0;
    if (!group) {
       if (!xsink->isException())
          xsink->raiseException("QACTION-SETACTIONGROUP-PARAM-ERROR", "expecting a QActionGroup object as first argument to QAction::setActionGroup()");
@@ -235,7 +235,7 @@ static AbstractQoreNode *QACTION_setActionGroup(QoreObject *self, QoreAbstractQA
 //void setAutoRepeat ( bool )
 static AbstractQoreNode *QACTION_setAutoRepeat(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qa->getQAction()->setAutoRepeat(b);
    return 0;
@@ -244,7 +244,7 @@ static AbstractQoreNode *QACTION_setAutoRepeat(QoreObject *self, QoreAbstractQAc
 //void setCheckable ( bool )
 static AbstractQoreNode *QACTION_setCheckable(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qa->getQAction()->setCheckable(b);
    return 0;
@@ -253,7 +253,7 @@ static AbstractQoreNode *QACTION_setCheckable(QoreObject *self, QoreAbstractQAct
 //void setData ( const QVariant & userData )
 static AbstractQoreNode *QACTION_setData(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QVariant userData;
    if (get_qvariant(p, userData, xsink))
       return 0;
@@ -264,8 +264,8 @@ static AbstractQoreNode *QACTION_setData(QoreObject *self, QoreAbstractQAction *
 //void setFont ( const QFont & font )
 static AbstractQoreNode *QACTION_setFont(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQFont *font = p ? (QoreQFont *)p->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
          xsink->raiseException("QACTION-SETFONT-PARAM-ERROR", "expecting a QFont object as first argument to QAction::setFont()");
@@ -279,8 +279,8 @@ static AbstractQoreNode *QACTION_setFont(QoreObject *self, QoreAbstractQAction *
 //void setIcon ( const QIcon & icon )
 static AbstractQoreNode *QACTION_setIcon(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQIcon *icon = p ? (QoreQIcon *)p->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QACTION-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QAction::setIcon()");
@@ -294,7 +294,7 @@ static AbstractQoreNode *QACTION_setIcon(QoreObject *self, QoreAbstractQAction *
 //void setIconText ( const QString & text )
 static AbstractQoreNode *QACTION_setIconText(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
@@ -305,8 +305,8 @@ static AbstractQoreNode *QACTION_setIconText(QoreObject *self, QoreAbstractQActi
 //void setMenu ( QMenu * menu )
 static AbstractQoreNode *QACTION_setMenu(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQMenu *menu = (p && p->type == NT_OBJECT) ? (QoreAbstractQMenu *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMENU, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQMenu *menu = p ? (QoreAbstractQMenu *)p->getReferencedPrivateData(CID_QMENU, xsink) : 0;
    if (!menu) {
       if (!xsink->isException())
          xsink->raiseException("QACTION-SETMENU-PARAM-ERROR", "expecting a QMenu object as first argument to QAction::setMenu()");
@@ -320,7 +320,7 @@ static AbstractQoreNode *QACTION_setMenu(QoreObject *self, QoreAbstractQAction *
 //void setMenuRole ( MenuRole menuRole )
 static AbstractQoreNode *QACTION_setMenuRole(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QAction::MenuRole menuRole = (QAction::MenuRole)(p ? p->getAsInt() : 0);
    qa->getQAction()->setMenuRole(menuRole);
    return 0;
@@ -329,7 +329,7 @@ static AbstractQoreNode *QACTION_setMenuRole(QoreObject *self, QoreAbstractQActi
 //void setSeparator ( bool b )
 static AbstractQoreNode *QACTION_setSeparator(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qa->getQAction()->setSeparator(b);
    return 0;
@@ -338,7 +338,7 @@ static AbstractQoreNode *QACTION_setSeparator(QoreObject *self, QoreAbstractQAct
 //void setShortcut ( const QKeySequence & shortcut )
 static AbstractQoreNode *QACTION_setShortcut(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    QKeySequence shortcut;
    if (get_qkeysequence(p, shortcut, xsink))
@@ -351,7 +351,7 @@ static AbstractQoreNode *QACTION_setShortcut(QoreObject *self, QoreAbstractQActi
 //void setShortcutContext ( Qt::ShortcutContext context )
 static AbstractQoreNode *QACTION_setShortcutContext(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::ShortcutContext context = (Qt::ShortcutContext)(p ? p->getAsInt() : 0);
    qa->getQAction()->setShortcutContext(context);
    return 0;
@@ -361,13 +361,13 @@ static AbstractQoreNode *QACTION_setShortcutContext(QoreObject *self, QoreAbstra
 //void setShortcuts ( QKeySequence::StandardKey key )
 static AbstractQoreNode *QACTION_setShortcuts(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
-   QoreListNode  *l = dynamic_cast<QoreListNode *>(p);
+   const QoreListNode  *l = dynamic_cast<const QoreListNode *>(p);
    if (l) {
       QList<QKeySequence> shortcuts;
 
-      ListIterator li(l);
+      ConstListIterator li(l);
       while (li.next()) {
 	 QKeySequence ks;
 	 if (get_qkeysequence(li.getValue(), ks, xsink))
@@ -387,7 +387,7 @@ static AbstractQoreNode *QACTION_setShortcuts(QoreObject *self, QoreAbstractQAct
 //void setStatusTip ( const QString & statusTip )
 static AbstractQoreNode *QACTION_setStatusTip(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString statusTip;
    if (get_qstring(p, statusTip, xsink))
       return 0;
@@ -398,7 +398,7 @@ static AbstractQoreNode *QACTION_setStatusTip(QoreObject *self, QoreAbstractQAct
 //void setText ( const QString & text )
 static AbstractQoreNode *QACTION_setText(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
@@ -409,7 +409,7 @@ static AbstractQoreNode *QACTION_setText(QoreObject *self, QoreAbstractQAction *
 //void setToolTip ( const QString & tip )
 static AbstractQoreNode *QACTION_setToolTip(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString tip;
    if (get_qstring(p, tip, xsink))
       return 0;
@@ -420,7 +420,7 @@ static AbstractQoreNode *QACTION_setToolTip(QoreObject *self, QoreAbstractQActio
 //void setWhatsThis ( const QString & what )
 static AbstractQoreNode *QACTION_setWhatsThis(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString what;
    if (get_qstring(p, what, xsink))
       return 0;
@@ -460,8 +460,8 @@ static AbstractQoreNode *QACTION_shortcuts(QoreObject *self, QoreAbstractQAction
 //bool showStatusText ( QWidget * widget = 0 )
 static AbstractQoreNode *QACTION_showStatusText(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *widget = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -502,7 +502,7 @@ static AbstractQoreNode *QACTION_hover(QoreObject *self, QoreAbstractQAction *qa
 //void setChecked ( bool )
 static AbstractQoreNode *QACTION_setChecked(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qa->getQAction()->setChecked(b);
    return 0;
@@ -511,7 +511,7 @@ static AbstractQoreNode *QACTION_setChecked(QoreObject *self, QoreAbstractQActio
 //void setDisabled ( bool b )
 static AbstractQoreNode *QACTION_setDisabled(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qa->getQAction()->setDisabled(b);
    return 0;
@@ -520,7 +520,7 @@ static AbstractQoreNode *QACTION_setDisabled(QoreObject *self, QoreAbstractQActi
 //void setEnabled ( bool )
 static AbstractQoreNode *QACTION_setEnabled(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qa->getQAction()->setEnabled(b);
    return 0;
@@ -529,7 +529,7 @@ static AbstractQoreNode *QACTION_setEnabled(QoreObject *self, QoreAbstractQActio
 //void setVisible ( bool )
 static AbstractQoreNode *QACTION_setVisible(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qa->getQAction()->setVisible(b);
    return 0;

@@ -37,26 +37,26 @@ class QoreClass *QC_QLineF = 0;
 //QLineF ( const QLine & line )
 static void QLINEF_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QLINEF, new QoreQLineF());
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQLine *line = (QoreQLine *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINE, xsink);
+      QoreQLine *line = (QoreQLine *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QLINE, xsink);
       if (!line) {
-         QoreQPointF *p1 = (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
+         QoreQPointF *p1 = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
          if (!p1) {
             if (!xsink->isException())
-               xsink->raiseException("QLINEF-QLINEF-PARAM-ERROR", "QLineF::QLineF() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QLINEF-QLINEF-PARAM-ERROR", "QLineF::QLineF() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
             return;
          }
          ReferenceHolder<QoreQPointF> p1Holder(p1, xsink);
          p = get_param(params, 1);
-         QoreQPointF *p2 = p ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+         QoreQPointF *p2 = p ? (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
          if (!p2) {
             if (!xsink->isException())
-               xsink->raiseException("QLINEF-QLINEF-PARAM-ERROR", "this version of QLineF::QLineF() expects an object derived from QPointF as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QLINEF-QLINEF-PARAM-ERROR", "this version of QLineF::QLineF() expects an object derived from QPointF as the second argument");
             return;
          }
          ReferenceHolder<QoreQPointF> p2Holder(p2, xsink);
@@ -129,8 +129,8 @@ static AbstractQoreNode *QLINEF_y2(QoreObject *self, QoreQLineF *qlf, const Qore
 //qreal angle ( const QLineF & line ) const
 static AbstractQoreNode *QLINEF_angle(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQLineF *line = (p && p->type == NT_OBJECT) ? (QoreQLineF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINEF, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQLineF *line = p ? (QoreQLineF *)p->getReferencedPrivateData(CID_QLINEF, xsink) : 0;
    if (!line) {
       if (!xsink->isException())
          xsink->raiseException("QLINEF-ANGLE-PARAM-ERROR", "expecting a QLineF object as first argument to QLineF::angle()");
@@ -155,8 +155,8 @@ static AbstractQoreNode *QLINEF_dy(QoreObject *self, QoreQLineF *qlf, const Qore
 ////IntersectType intersect ( const QLineF & line, QPointF * intersectionPoint ) const
 //static AbstractQoreNode *QLINEF_intersect(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
-//   QoreQLineF *line = (p && p->type == NT_OBJECT) ? (QoreQLineF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINEF, xsink) : 0;
+//   QoreObject *p = test_object_param(params, 0);
+//   QoreQLineF *line = p ? (QoreQLineF *)p->getReferencedPrivateData(CID_QLINEF, xsink) : 0;
 //   if (!line) {
 //      if (!xsink->isException())
 //         xsink->raiseException("QLINEF-INTERSECT-PARAM-ERROR", "expecting a QLineF object as first argument to QLineF::intersect()");
@@ -164,7 +164,7 @@ static AbstractQoreNode *QLINEF_dy(QoreObject *self, QoreQLineF *qlf, const Qore
 //   }
 //   ReferenceHolder<QoreQLineF> lineHolder(line, xsink);
 //   p = get_param(params, 1);
-//   QoreQPointF *intersectionPoint = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+//   QoreQPointF *intersectionPoint = p ? (QoreQPointF *)p->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
 //   if (!intersectionPoint) {
 //      if (!xsink->isException())
 //         xsink->raiseException("QLINEF-INTERSECT-PARAM-ERROR", "expecting a QPointF object as second argument to QLineF::intersect()");
@@ -198,7 +198,7 @@ static AbstractQoreNode *QLINEF_normalVector(QoreObject *self, QoreQLineF *qlf, 
 //QPointF pointAt ( qreal t ) const
 static AbstractQoreNode *QLINEF_pointAt(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal t = p ? p->getAsFloat() : 0.0;
    QoreObject *o_qpf = new QoreObject(QC_QPointF, getProgram());
    QoreQPointF *q_qpf = new QoreQPointF(qlf->pointAt(t));
@@ -209,7 +209,7 @@ static AbstractQoreNode *QLINEF_pointAt(QoreObject *self, QoreQLineF *qlf, const
 //void setLength ( qreal length )
 static AbstractQoreNode *QLINEF_setLength(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal length = p ? p->getAsFloat() : 0.0;
    qlf->setLength(length);
    return 0;
@@ -228,12 +228,12 @@ static AbstractQoreNode *QLINEF_toLine(QoreObject *self, QoreQLineF *qlf, const 
 //void translate ( qreal dx, qreal dy )
 static AbstractQoreNode *QLINEF_translate(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPointF *offset = (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
+      QoreQPointF *offset = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
       if (!offset) {
          if (!xsink->isException())
-            xsink->raiseException("QLINEF-TRANSLATE-PARAM-ERROR", "QLineF::translate() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QLINEF-TRANSLATE-PARAM-ERROR", "QLineF::translate() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<QoreQPointF> offsetHolder(offset, xsink);

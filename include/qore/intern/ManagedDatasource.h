@@ -79,10 +79,10 @@ public:
    DLLLOCAL virtual void destructor(class ExceptionSink *xsink);
    DLLLOCAL virtual void deref(class ExceptionSink *xsink);
    DLLLOCAL virtual void deref();
-   DLLLOCAL class AbstractQoreNode *select(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL class AbstractQoreNode *selectRow(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL class AbstractQoreNode *selectRows(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL class AbstractQoreNode *exec(const QoreString *query_str, class QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL class AbstractQoreNode *select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL class AbstractQoreNode *selectRow(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL class AbstractQoreNode *selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL class AbstractQoreNode *exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
    DLLLOCAL int commit(ExceptionSink *xsink);
    DLLLOCAL int rollback(ExceptionSink *xsink);
    DLLLOCAL int open(ExceptionSink *xsink);

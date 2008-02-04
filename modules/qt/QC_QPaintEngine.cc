@@ -53,8 +53,8 @@ static void QPAINTENGINE_copy(class QoreObject *self, class QoreObject *old, cla
 //virtual bool begin ( QPaintDevice * pdev ) = 0
 static AbstractQoreNode *QPAINTENGINE_begin(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   AbstractPrivateData *apd_pdev = (p && p->type == NT_OBJECT) ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
+   const AbstractQoreNode *p = get_param(params, 0);
+   AbstractPrivateData *apd_pdev = (p && p->type == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
    if (!apd_pdev) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-BEGIN-PARAM-ERROR", "expecting a QPaintDevice object as first argument to QPaintEngine::begin()");
@@ -70,12 +70,12 @@ static AbstractQoreNode *QPAINTENGINE_begin(QoreObject *self, QoreAbstractQPaint
 //virtual void drawEllipse ( const QRect & rect )
 static AbstractQoreNode *QPAINTENGINE_drawEllipse(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQRect *rect = p ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreQRect *rect = p ? (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (*xsink)
       return 0;
    if (!rect) {
-      QoreQRectF *rect = p ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+      QoreQRectF *rect = p ? (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
       if (*xsink)
 	 return 0;
       if (!rect) {
@@ -95,32 +95,35 @@ static AbstractQoreNode *QPAINTENGINE_drawEllipse(QoreObject *self, QoreAbstract
 //virtual void drawImage ( const QRectF & rectangle, const QImage & image, const QRectF & sr, Qt::ImageConversionFlags flags = Qt::AutoColor )
 static AbstractQoreNode *QPAINTENGINE_drawImage(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreQRectF *rectangle = p ? (QoreQRectF *)p->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!rectangle) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWIMAGE-PARAM-ERROR", "expecting a QRectF object as first argument to QPaintEngine::drawImage()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
-   p = get_param(params, 1);
-   QoreQImage *image = (p && p->type == NT_OBJECT) ? (QoreQImage *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
+
+   p = test_object_param(params, 1);
+   QoreQImage *image = p ? (QoreQImage *)p->getReferencedPrivateData(CID_QIMAGE, xsink) : 0;
    if (!image) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWIMAGE-PARAM-ERROR", "expecting a QImage object as second argument to QPaintEngine::drawImage()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> imageHolder(static_cast<AbstractPrivateData *>(image), xsink);
-   p = get_param(params, 2);
-   QoreQRectF *sr = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+
+   p = test_object_param(params, 2);
+   QoreQRectF *sr = p ? (QoreQRectF *)p->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!sr) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWIMAGE-PARAM-ERROR", "expecting a QRectF object as third argument to QPaintEngine::drawImage()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> srHolder(static_cast<AbstractPrivateData *>(sr), xsink);
-   p = get_param(params, 3);
-   Qt::ImageConversionFlags flags = !is_nothing(p) ? (Qt::ImageConversionFlags)p->getAsInt() : Qt::AutoColor;
+
+   const AbstractQoreNode *p3 = get_param(params, 3);
+   Qt::ImageConversionFlags flags = !is_nothing(p3) ? (Qt::ImageConversionFlags)p3->getAsInt() : Qt::AutoColor;
    qpe->getQPaintEngine()->drawImage(*(static_cast<QRectF *>(rectangle)), *(static_cast<QImage *>(image)), *(static_cast<QRectF *>(sr)), flags);
    return 0;
 }
@@ -129,12 +132,12 @@ static AbstractQoreNode *QPAINTENGINE_drawImage(QoreObject *self, QoreAbstractQP
 //virtual void drawLines ( const QLine * lines, int lineCount )
 static AbstractQoreNode *QPAINTENGINE_drawLines(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQLine *lines = p ? (QoreQLine *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINE, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQLine *lines = o ? (QoreQLine *)o->getReferencedPrivateData(CID_QLINE, xsink) : 0;
    if (*xsink)
       return 0;
    if (!lines) {
-      QoreQLineF *lines = p ? (QoreQLineF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINEF, xsink) : 0;
+      QoreQLineF *lines = o ? (QoreQLineF *)o->getReferencedPrivateData(CID_QLINEF, xsink) : 0;
       if (*xsink)
 	 return 0;
       if (!lines) {
@@ -142,13 +145,15 @@ static AbstractQoreNode *QPAINTENGINE_drawLines(QoreObject *self, QoreAbstractQP
 	 return 0;
       }
       ReferenceHolder<AbstractPrivateData> linesHolder(static_cast<AbstractPrivateData *>(lines), xsink);
-      p = get_param(params, 1);
+
+      const AbstractQoreNode *p = get_param(params, 1);
       int lineCount = p ? p->getAsInt() : 0;
       qpe->getQPaintEngine()->drawLines(static_cast<QLineF *>(lines), lineCount);
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> linesHolder(static_cast<AbstractPrivateData *>(lines), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    int lineCount = p ? p->getAsInt() : 0;
    qpe->getQPaintEngine()->drawLines(static_cast<QLine *>(lines), lineCount);
    return 0;
@@ -157,8 +162,8 @@ static AbstractQoreNode *QPAINTENGINE_drawLines(QoreObject *self, QoreAbstractQP
 //virtual void drawPath ( const QPainterPath & path )
 static AbstractQoreNode *QPAINTENGINE_drawPath(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPainterPath *path = (p && p->type == NT_OBJECT) ? (QoreQPainterPath *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPainterPath *path = p ? (QoreQPainterPath *)p->getReferencedPrivateData(CID_QPAINTERPATH, xsink) : 0;
    if (!path) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWPATH-PARAM-ERROR", "expecting a QPainterPath object as first argument to QPaintEngine::drawPath()");
@@ -172,24 +177,26 @@ static AbstractQoreNode *QPAINTENGINE_drawPath(QoreObject *self, QoreAbstractQPa
 //virtual void drawPixmap ( const QRectF & r, const QPixmap & pm, const QRectF & sr ) = 0
 static AbstractQoreNode *QPAINTENGINE_drawPixmap(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRectF *r = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRectF *r = p ? (QoreQRectF *)p->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!r) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWPIXMAP-PARAM-ERROR", "expecting a QRectF object as first argument to QPaintEngine::drawPixmap()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> rHolder(static_cast<AbstractPrivateData *>(r), xsink);
-   p = get_param(params, 1);
-   QoreQPixmap *pm = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+
+   p = test_object_param(params, 1);
+   QoreQPixmap *pm = p ? (QoreQPixmap *)p->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!pm) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWPIXMAP-PARAM-ERROR", "expecting a QPixmap object as second argument to QPaintEngine::drawPixmap()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> pmHolder(static_cast<AbstractPrivateData *>(pm), xsink);
-   p = get_param(params, 2);
-   QoreQRectF *sr = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+
+   p = test_object_param(params, 2);
+   QoreQRectF *sr = p ? (QoreQRectF *)p->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!sr) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWPIXMAP-PARAM-ERROR", "expecting a QRectF object as third argument to QPaintEngine::drawPixmap()");
@@ -205,12 +212,12 @@ static AbstractQoreNode *QPAINTENGINE_drawPixmap(QoreObject *self, QoreAbstractQ
 //virtual void drawPoints ( const QPoint * points, int pointCount )
 static AbstractQoreNode *QPAINTENGINE_drawPoints(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQPoint *points = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *points = p ? (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (*xsink)
       return 0;
    if (!points) {
-      QoreQPointF *points = p ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+      QoreQPointF *points = p ? (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
       if (*xsink)
 	 return 0;
       if (!points) {
@@ -236,10 +243,10 @@ static AbstractQoreNode *QPAINTENGINE_drawPoints(QoreObject *self, QoreAbstractQ
 //virtual void drawPolygon ( const QPoint * points, int pointCount, PolygonDrawMode mode )
 static AbstractQoreNode *QPAINTENGINE_drawPolygon(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreQPoint *points = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *points = p ? (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!points) {
-      QoreQPointF *points = p ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+      QoreQPointF *points = p ? (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
       if (!points) {
 	 xsink->raiseException("QPAINTENGINE-DRAWPOLYGON-PARAM-ERROR", "QPaintEngine::drawPolygon() expects a XXXXthe first argument" XXXX);
 	 return 0;
@@ -267,14 +274,14 @@ static AbstractQoreNode *QPAINTENGINE_drawPolygon(QoreObject *self, QoreAbstract
 //virtual void drawRects ( const QRect * rects, int rectCount )
 static AbstractQoreNode *QPAINTENGINE_drawRects(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRect *rects = (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
+      QoreQRect *rects = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rects) {
-         QoreQRectF *rects = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
+         QoreQRectF *rects = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
          if (!rects) {
             if (!xsink->isException())
-               xsink->raiseException("QPAINTENGINE-DRAWRECTS-PARAM-ERROR", "QPaintEngine::drawRects() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QPAINTENGINE-DRAWRECTS-PARAM-ERROR", "QPaintEngine::drawRects() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
             return 0;
          }
          ReferenceHolder<AbstractPrivateData> rectsHolder(static_cast<AbstractPrivateData *>(rects), xsink);
@@ -296,8 +303,8 @@ static AbstractQoreNode *QPAINTENGINE_drawRects(QoreObject *self, QoreAbstractQP
 //virtual void drawTextItem ( const QPointF & p, const QTextItem & textItem )
 static AbstractQoreNode *QPAINTENGINE_drawTextItem(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPointF *p = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPointF *p = p ? (QoreQPointF *)p->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
    if (!p) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWTEXTITEM-PARAM-ERROR", "expecting a QPointF object as first argument to QPaintEngine::drawTextItem()");
@@ -314,24 +321,26 @@ static AbstractQoreNode *QPAINTENGINE_drawTextItem(QoreObject *self, QoreAbstrac
 //virtual void drawTiledPixmap ( const QRectF & rect, const QPixmap & pixmap, const QPointF & p )
 static AbstractQoreNode *QPAINTENGINE_drawTiledPixmap(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRectF *rect = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRectF *rect = p ? (QoreQRectF *)p->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!rect) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWTILEDPIXMAP-PARAM-ERROR", "expecting a QRectF object as first argument to QPaintEngine::drawTiledPixmap()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> rectHolder(static_cast<AbstractPrivateData *>(rect), xsink);
-   p = get_param(params, 1);
-   QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+
+   p = test_object_param(params, 1);
+   QoreQPixmap *pixmap = p ? (QoreQPixmap *)p->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!pixmap) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWTILEDPIXMAP-PARAM-ERROR", "expecting a QPixmap object as second argument to QPaintEngine::drawTiledPixmap()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
-   p = get_param(params, 2);
-   QoreQPointF *point = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+
+   p = test_object_param(params, 2);
+   QoreQPointF *point = p ? (QoreQPointF *)p->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
    if (!point) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-DRAWTILEDPIXMAP-PARAM-ERROR", "expecting a QPointF object as third argument to QPaintEngine::drawTiledPixmap()");
@@ -351,7 +360,7 @@ static AbstractQoreNode *QPAINTENGINE_end(QoreObject *self, QoreAbstractQPaintEn
 //bool hasFeature ( PaintEngineFeatures feature ) const
 static AbstractQoreNode *QPAINTENGINE_hasFeature(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPaintEngine::PaintEngineFeatures feature = (QPaintEngine::PaintEngineFeatures)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(qpe->getQPaintEngine()->hasFeature(feature));
 }
@@ -387,7 +396,7 @@ static AbstractQoreNode *QPAINTENGINE_painter(QoreObject *self, QoreAbstractQPai
 //void setActive ( bool state )
 static AbstractQoreNode *QPAINTENGINE_setActive(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool state = p ? p->getAsBool() : false;
    qpe->getQPaintEngine()->setActive(state);
    return 0;
@@ -403,7 +412,7 @@ static AbstractQoreNode *QPAINTENGINE_type(QoreObject *self, QoreAbstractQPaintE
 //virtual void updateState ( const QPaintEngineState & state ) = 0
 static AbstractQoreNode *QPAINTENGINE_updateState(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    ??? QPaintEngineState state = p;
    qpe->getQPaintEngine()->updateState(state);
    return 0;

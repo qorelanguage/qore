@@ -32,14 +32,14 @@ QoreClass *QC_QPicture = 0;
 static void QPICTURE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQPicture *qp;
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    if (p && p->type == NT_OBJECT)
    {
-      QoreQPicture *pic = (QoreQPicture *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPICTURE, xsink);
+      QoreQPicture *pic = (QoreQPicture *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPICTURE, xsink);
       if (!pic)
       {
-         xsink->raiseException("QPICTURE-CONSTRUCTOR-ERROR", "object passed to QPicture::constructor() is not derived from QWidget (class: '%s')", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+         xsink->raiseException("QPICTURE-CONSTRUCTOR-ERROR", "object passed to QPicture::constructor() is not derived from QWidget (class: '%s')", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return;
       }
     
@@ -99,7 +99,7 @@ static AbstractQoreNode *QPICTURE_isNull(QoreObject *self, QoreQPicture *qp, con
 //bool load ( QIODevice * dev, const char * format = 0 )
 static AbstractQoreNode *QPICTURE_load(QoreObject *self, QoreQPicture *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QPICTURE-LOAD-PARAM-ERROR", "expecting a string as first argument to QPicture::load()");
       return 0;
@@ -114,8 +114,8 @@ static AbstractQoreNode *QPICTURE_load(QoreObject *self, QoreQPicture *qp, const
 //bool play ( QPainter * painter )
 static AbstractQoreNode *QPICTURE_play(QoreObject *self, QoreQPicture *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPainter *painter = p ? (QoreQPainter *)p->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
    if (!painter) {
       if (!xsink->isException())
          xsink->raiseException("QPICTURE-PLAY-PARAM-ERROR", "expecting a QPainter object as first argument to QPicture::play()");
@@ -129,7 +129,7 @@ static AbstractQoreNode *QPICTURE_play(QoreObject *self, QoreQPicture *qp, const
 //bool save ( QIODevice * dev, const char * format = 0 )
 static AbstractQoreNode *QPICTURE_save(QoreObject *self, QoreQPicture *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QPICTURE-SAVE-PARAM-ERROR", "expecting a string as first argument to QPicture::save()");
       return 0;
@@ -143,8 +143,8 @@ static AbstractQoreNode *QPICTURE_save(QoreObject *self, QoreQPicture *qp, const
 //void setBoundingRect ( const QRect & r )
 static AbstractQoreNode *QPICTURE_setBoundingRect(QoreObject *self, QoreQPicture *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRect *r = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRect *r = p ? (QoreQRect *)p->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!r) {
       if (!xsink->isException())
          xsink->raiseException("QPICTURE-SETBOUNDINGRECT-PARAM-ERROR", "expecting a QRect object as first argument to QPicture::setBoundingRect()");
@@ -158,14 +158,14 @@ static AbstractQoreNode *QPICTURE_setBoundingRect(QoreObject *self, QoreQPicture
 //virtual void setData ( const char * data, uint size )
 static AbstractQoreNode *QPICTURE_setData(QoreObject *self, QoreQPicture *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *pstr = test_string_param(params, 0);
+   const QoreStringNode *pstr = test_string_param(params, 0);
    if (!pstr) {
       xsink->raiseException("QPICTURE-SETDATA-PARAM-ERROR", "expecting a string as first argument to QPicture::setData()");
       return 0;
    }
    const char *data = pstr->getBuffer();
 
-   AbstractQoreNode *p = get_param(params, 1);
+   const AbstractQoreNode *p = get_param(params, 1);
    int size = p ? p->getAsInt() : 0;
    qp->setData(data, size);
    return 0;

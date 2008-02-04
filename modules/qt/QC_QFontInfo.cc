@@ -34,8 +34,8 @@ class QoreClass *QC_QFontInfo = 0;
 //QFontInfo ( const QFontInfo & fi )
 static void QFONTINFO_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQFont *font = p ? (QoreQFont *)p->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
          xsink->raiseException("QFONTINFO-QFONTINFO-PARAM-ERROR", "expecting a QFont object as first argument to QFontInfo::QFontInfo()");

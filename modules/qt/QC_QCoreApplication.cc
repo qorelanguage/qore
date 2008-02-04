@@ -46,7 +46,7 @@ static void QCOREAPPLICATION_copy(class QoreObject *self, class QoreObject *old,
 //bool filterEvent ( void * message, long * result )
 static AbstractQoreNode *QCOREAPPLICATION_filterEvent(QoreObject *self, QoreAbstractQCoreApplication *qca, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    ??? void* message = p;
    p = get_param(params, 1);
    ??? long* result = p;
@@ -57,16 +57,17 @@ static AbstractQoreNode *QCOREAPPLICATION_filterEvent(QoreObject *self, QoreAbst
 //virtual bool notify ( QObject * receiver, QEvent * event )
 static AbstractQoreNode *QCOREAPPLICATION_notify(QoreObject *self, QoreAbstractQCoreApplication *qca, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreAbstractQObject *receiver = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!receiver) {
       if (!xsink->isException())
          xsink->raiseException("QCOREAPPLICATION-NOTIFY-PARAM-ERROR", "expecting a QObject object as first argument to QCoreApplication::notify()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
-   p = get_param(params, 1);
-   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+
+   o = test_object_param(params, 1);
+   QoreQEvent *event = o ? (QoreQEvent *)o->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QCOREAPPLICATION-NOTIFY-PARAM-ERROR", "expecting a QEvent object as second argument to QCoreApplication::notify()");
@@ -87,7 +88,7 @@ static AbstractQoreNode *QCOREAPPLICATION_setEventFilter(QoreObject *self, QoreA
 //virtual bool winEventFilter ( MSG * msg, long * result )
 static AbstractQoreNode *QCOREAPPLICATION_winEventFilter(QoreObject *self, QoreAbstractQCoreApplication *qca, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    ??? MSG* msg = p;
    p = get_param(params, 1);
    ??? long* result = p;
@@ -116,7 +117,7 @@ QoreClass *initQCoreApplicationClass(QoreClass *qobject)
 //void addLibraryPath ( const QString & path )
 static AbstractQoreNode *f_QCoreApplication_addLibraryPath(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString path;
    if (get_qstring(p, path, xsink))
       return 0;
@@ -167,7 +168,7 @@ static AbstractQoreNode *f_QCoreApplication_exec(const QoreListNode *params, Exc
 //void exit ( int returnCode = 0 )
 static AbstractQoreNode *f_QCoreApplication_exit(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int returnCode = !is_nothing(p) ? p->getAsInt() : 0;
    QCoreApplication::exit(returnCode);
    return 0;
@@ -189,8 +190,8 @@ static AbstractQoreNode *f_QCoreApplication_hasPendingEvents(const QoreListNode 
 //void installTranslator ( QTranslator * translationFile )
 static AbstractQoreNode *f_QCoreApplication_installTranslator(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQTranslator *translationFile = (p && p->type == NT_OBJECT) ? (QoreQTranslator *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTRANSLATOR, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreQTranslator *translationFile = p ? (QoreQTranslator *)p->getReferencedPrivateData(CID_QTRANSLATOR, xsink) : 0;
    if (!translationFile) {
       if (!xsink->isException())
          xsink->raiseException("QCOREAPPLICATION-INSTALLTRANSLATOR-PARAM-ERROR", "expecting a QTranslator object as first argument to QCoreApplication::installTranslator()");
@@ -245,24 +246,26 @@ static AbstractQoreNode *f_QCoreApplication_organizationName(const QoreListNode 
 //void postEvent ( QObject * receiver, QEvent * event, int priority )
 static AbstractQoreNode *f_QCoreApplication_postEvent(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQObject *receiver = p ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreAbstractQObject *receiver = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!receiver) {
       if (!xsink->isException())
 	 xsink->raiseException("QCOREAPPLICATION-POSTEVENT-PARAM-ERROR", "QCoreApplication::postEvent() was expecting a QObject passed as the first argument");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
-   p = get_param(params, 1);
-   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+
+   o = test_object_param(params, 1);
+   QoreQEvent *event = o ? (QoreQEvent *)o->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
 	 xsink->raiseException("QCOREAPPLICATION-POSTEVENT-PARAM-ERROR", "this version of QCoreApplication::postEvent() was expecting a QEvent as the second argument");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> eventHolder(static_cast<AbstractPrivateData *>(event), xsink);
+
    if (num_params(params) > 2) {
-      p = get_param(params, 2);
+      const AbstractQoreNode *p = get_param(params, 2);
       int priority = p ? p->getAsInt() : 0;
       QCoreApplication::postEvent(receiver->getQObject(), static_cast<QEvent *>(event), priority);
    }
@@ -275,7 +278,7 @@ static AbstractQoreNode *f_QCoreApplication_postEvent(const QoreListNode *params
 //void processEvents ( QEventLoop::ProcessEventsFlags flags, int maxtime )
 static AbstractQoreNode *f_QCoreApplication_processEvents(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       QCoreApplication::processEvents();
       return 0;
@@ -294,7 +297,7 @@ static AbstractQoreNode *f_QCoreApplication_processEvents(const QoreListNode *pa
 //void removeLibraryPath ( const QString & path )
 static AbstractQoreNode *f_QCoreApplication_removeLibraryPath(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString path;
    if (get_qstring(p, path, xsink))
       return 0;
@@ -306,8 +309,8 @@ static AbstractQoreNode *f_QCoreApplication_removeLibraryPath(const QoreListNode
 //void removePostedEvents ( QObject * receiver, int eventType )
 static AbstractQoreNode *f_QCoreApplication_removePostedEvents(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQObject *receiver = p ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreAbstractQObject *receiver = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!receiver) {
       if (!xsink->isException())
 	 xsink->raiseException("QCOREAPPLICATION-REMOVEPOSTEDEVENTS-PARAM-ERROR", "QCoreApplication::removePostedEvents() was expecting a QObject as the first argument");
@@ -315,7 +318,7 @@ static AbstractQoreNode *f_QCoreApplication_removePostedEvents(const QoreListNod
    }
    ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
    if (num_params(params) > 1) {
-      p = get_param(params, 1);
+      const AbstractQoreNode *p = get_param(params, 1);
       int eventType = p ? p->getAsInt() : 0;
       QCoreApplication::removePostedEvents(receiver->getQObject(), eventType);
    }
@@ -327,8 +330,8 @@ static AbstractQoreNode *f_QCoreApplication_removePostedEvents(const QoreListNod
 //void removeTranslator ( QTranslator * translationFile )
 static AbstractQoreNode *f_QCoreApplication_removeTranslator(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQTranslator *translationFile = (p && p->type == NT_OBJECT) ? (QoreQTranslator *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTRANSLATOR, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQTranslator *translationFile = p ? (QoreQTranslator *)p->getReferencedPrivateData(CID_QTRANSLATOR, xsink) : 0;
    if (!translationFile) {
       if (!xsink->isException())
          xsink->raiseException("QCOREAPPLICATION-REMOVETRANSLATOR-PARAM-ERROR", "expecting a QTranslator object as first argument to QCoreApplication::removeTranslator()");
@@ -342,16 +345,17 @@ static AbstractQoreNode *f_QCoreApplication_removeTranslator(const QoreListNode 
 //bool sendEvent ( QObject * receiver, QEvent * event )
 static AbstractQoreNode *f_QCoreApplication_sendEvent(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQObject *receiver = p ? (QoreAbstractQObject *)p->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!receiver) {
       if (!xsink->isException())
          xsink->raiseException("QCOREAPPLICATION-SENDEVENT-PARAM-ERROR", "expecting a QObject object as first argument to QCoreApplication::sendEvent()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
-   p = get_param(params, 1);
-   QoreQEvent *event = (p && p->type == NT_OBJECT) ? (QoreQEvent *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
+
+   p = test_object_param(params, 1);
+   QoreQEvent *event = p ? (QoreQEvent *)p->getReferencedPrivateData(CID_QEVENT, xsink) : 0;
    if (!event) {
       if (!xsink->isException())
          xsink->raiseException("QCOREAPPLICATION-SENDEVENT-PARAM-ERROR", "expecting a QEvent object as second argument to QCoreApplication::sendEvent()");
@@ -365,18 +369,20 @@ static AbstractQoreNode *f_QCoreApplication_sendEvent(const QoreListNode *params
 //void sendPostedEvents ()
 static AbstractQoreNode *f_QCoreApplication_sendPostedEvents(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       QCoreApplication::sendPostedEvents();
       return 0;
    }
-   QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   const QoreObject *o = dynamic_cast<const QoreObject *>(p);
+   QoreAbstractQObject *receiver = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!receiver) {
       if (!xsink->isException())
          xsink->raiseException("QCOREAPPLICATION-SENDPOSTEDEVENTS-PARAM-ERROR", "this version of QCoreApplication::sendPostedEvents() expects an object derived from QObject as the first argument");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
+
    p = get_param(params, 1);
    int event_type = p ? p->getAsInt() : 0;
    QCoreApplication::sendPostedEvents(receiver->getQObject(), event_type);
@@ -386,7 +392,7 @@ static AbstractQoreNode *f_QCoreApplication_sendPostedEvents(const QoreListNode 
 //void setApplicationName ( const QString & application )
 static AbstractQoreNode *f_QCoreApplication_setApplicationName(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString application;
    if (get_qstring(p, application, xsink))
       return 0;
@@ -397,7 +403,7 @@ static AbstractQoreNode *f_QCoreApplication_setApplicationName(const QoreListNod
 //void setAttribute ( Qt::ApplicationAttribute attribute, bool on = true )
 static AbstractQoreNode *f_QCoreApplication_setAttribute(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::ApplicationAttribute attribute = (Qt::ApplicationAttribute)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    bool on = !is_nothing(p) ? p->getAsBool() : true;
@@ -408,13 +414,13 @@ static AbstractQoreNode *f_QCoreApplication_setAttribute(const QoreListNode *par
 //void setLibraryPaths ( const QStringList & paths )
 static AbstractQoreNode *f_QCoreApplication_setLibraryPaths(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreListNode *p = test_list_param(params, 0);
+   const QoreListNode *p = test_list_param(params, 0);
    if (!p) {
       xsink->raiseException("QCOREAPPLICATION-SETLIBRARYPATHS-PARAM-ERROR", "expecting a list as first argument to QCoreApplication::setLibraryPaths()");
       return 0;
    }
    QStringList paths;
-   ListIterator li_paths(p);
+   ConstListIterator li_paths(p);
    while (li_paths.next())
    {
       QoreStringNodeValueHelper str(li_paths.getValue());
@@ -430,7 +436,7 @@ static AbstractQoreNode *f_QCoreApplication_setLibraryPaths(const QoreListNode *
 //void setOrganizationDomain ( const QString & orgDomain )
 static AbstractQoreNode *f_QCoreApplication_setOrganizationDomain(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString orgDomain;
    if (get_qstring(p, orgDomain, xsink))
       return 0;
@@ -441,7 +447,7 @@ static AbstractQoreNode *f_QCoreApplication_setOrganizationDomain(const QoreList
 //void setOrganizationName ( const QString & orgName )
 static AbstractQoreNode *f_QCoreApplication_setOrganizationName(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString orgName;
    if (get_qstring(p, orgName, xsink))
       return 0;
@@ -458,7 +464,7 @@ static AbstractQoreNode *f_QCoreApplication_startingUp(const QoreListNode *param
 //bool testAttribute ( Qt::ApplicationAttribute attribute )
 static AbstractQoreNode *f_QCoreApplication_testAttribute(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::ApplicationAttribute attribute = (Qt::ApplicationAttribute)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(QCoreApplication::testAttribute(attribute));
 }
@@ -467,7 +473,7 @@ static AbstractQoreNode *f_QCoreApplication_testAttribute(const QoreListNode *pa
 //QString translate ( const char * context, const char * sourceText, const char * comment = 0, Encoding encoding = CodecForTr )
 static AbstractQoreNode *f_QCoreApplication_translate(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QCOREAPPLICATION-TRANSLATE-PARAM-ERROR", "expecting a string as first argument to QCoreApplication::translate()");
       return 0;
@@ -484,7 +490,7 @@ static AbstractQoreNode *f_QCoreApplication_translate(const QoreListNode *params
    p = test_string_param(params, 2);
    const char *comment = p ? p->getBuffer() : 0;
 
-   AbstractQoreNode *pn = get_param(params, 3);
+   const AbstractQoreNode *pn = get_param(params, 3);
    QCoreApplication::Encoding encoding = (QCoreApplication::Encoding)(pn ? pn->getAsInt() : QCoreApplication::CodecForTr);
    if (num_params(params) < 5)
       return new QoreStringNode(QCoreApplication::translate(context, sourceText, comment, encoding).toUtf8().data(), QCS_UTF8);

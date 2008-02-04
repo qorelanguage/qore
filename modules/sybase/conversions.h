@@ -35,8 +35,8 @@
 // Sybase DATETIME datatype manipulation 
 // returns 0=OK, -1=error (exception raised)
 
-DLLLOCAL extern int DateTime_to_DATETIME(DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink);
-//DLLLOCAL extern int DateTime_to_DATETIME4(DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink);
+DLLLOCAL extern int DateTime_to_DATETIME(const DateTime* dt, CS_DATETIME& out, ExceptionSink* xsink);
+//DLLLOCAL extern int DateTime_to_DATETIME4(const DateTime* dt, CS_DATETIME4& out, ExceptionSink* xsink);
 
 DLLLOCAL extern DateTimeNode *TIME_to_DateTime(CS_DATETIME &dt);
 

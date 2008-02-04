@@ -651,7 +651,7 @@ static AbstractQoreNode *op_regex_subst(AbstractQoreNode *left, AbstractQoreNode
    (*v) = nv;
 
    // reference for return value if necessary
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_regex_trans(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -821,7 +821,7 @@ static AbstractQoreNode *op_assignment(AbstractQoreNode *left, AbstractQoreNode 
 
    // traceout("op_assignment()");
    if (ref_rv && (*v))
-      return (*v)->RefSelf();
+      return (*v)->refSelf();
 
    return NULL;
 }
@@ -993,7 +993,7 @@ static AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQoreNode
 
    // reference return value
    // traceout("op_plus_equals()");
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_minus_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1098,7 +1098,7 @@ static AbstractQoreNode *op_minus_equals(AbstractQoreNode *left, AbstractQoreNod
 
    // traceout("op_minus_equals()");
    // reference return value and return
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_and_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1136,7 +1136,7 @@ static AbstractQoreNode *op_and_equals(AbstractQoreNode *left, AbstractQoreNode 
    //traceout("op_and_equals()");
 
    // reference return value and return
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_or_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1169,7 +1169,7 @@ static AbstractQoreNode *op_or_equals(AbstractQoreNode *left, AbstractQoreNode *
 
    //traceout("op_or_equals()");
    // reference return value and return
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_modula_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1201,7 +1201,7 @@ static AbstractQoreNode *op_modula_equals(AbstractQoreNode *left, AbstractQoreNo
    b->val %= val;
 
    // reference return value and return
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_multiply_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1278,7 +1278,7 @@ static AbstractQoreNode *op_multiply_equals(AbstractQoreNode *left, AbstractQore
    //traceout("op_multiply_equals()");
 
    // reference return value and return
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_divide_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1361,7 +1361,7 @@ static AbstractQoreNode *op_divide_equals(AbstractQoreNode *left, AbstractQoreNo
 
    assert(*v);
    // reference return value and return
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_xor_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1396,7 +1396,7 @@ static AbstractQoreNode *op_xor_equals(AbstractQoreNode *left, AbstractQoreNode 
    b->val ^= val;
 
    // reference return value and return
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_shift_left_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1434,7 +1434,7 @@ static AbstractQoreNode *op_shift_left_equals(AbstractQoreNode *left, AbstractQo
    b->val <<= val;
 
    // reference return value and return
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_shift_right_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -1472,7 +1472,7 @@ static AbstractQoreNode *op_shift_right_equals(AbstractQoreNode *left, AbstractQ
    b->val >>= val;
 
    // reference return value and return
-   return ref_rv ? (*v)->RefSelf() : 0;
+   return ref_rv ? (*v)->refSelf() : 0;
 
    //traceout("op_shift_right_equals()");
    return NULL;
@@ -1489,7 +1489,7 @@ static AbstractQoreNode *op_plus_list(AbstractQoreNode *left, AbstractQoreNode *
 	 if (r)
 	    rv->merge(r);
 	 else
-	    rv->push(right->RefSelf());
+	    rv->push(right->refSelf());
 	 //printd(5, "op_plus_list() returning list=%08p size=%d\n", rv, rv->size());
 	 return rv;
       }
@@ -1500,7 +1500,7 @@ static AbstractQoreNode *op_plus_list(AbstractQoreNode *left, AbstractQoreNode *
       return 0;
 
    QoreListNode *rv = new QoreListNode();
-   rv->push(left->RefSelf());
+   rv->push(left->refSelf());
    rv->merge(r);
    return rv;
 }
@@ -1511,7 +1511,7 @@ static AbstractQoreNode *op_plus_hash_hash(AbstractQoreNode *left, AbstractQoreN
    if (lh) {
       QoreHashNode *rh = dynamic_cast<QoreHashNode *>(right);
       if (!rh)
-	 return left->RefSelf();
+	 return left->refSelf();
 
       ReferenceHolder<QoreHashNode> rv(lh->copy(), xsink);
       rv->merge(rh, xsink);
@@ -1520,7 +1520,7 @@ static AbstractQoreNode *op_plus_hash_hash(AbstractQoreNode *left, AbstractQoreN
       return rv.release();
    }
 
-   return right->type == NT_HASH ? right->RefSelf() : 0;
+   return right->type == NT_HASH ? right->refSelf() : 0;
 }
 
 static AbstractQoreNode *op_plus_hash_object(AbstractQoreNode *left, AbstractQoreNode *right, ExceptionSink *xsink)
@@ -1536,10 +1536,10 @@ static AbstractQoreNode *op_plus_hash_object(AbstractQoreNode *left, AbstractQor
 
 	 return rv.release();
       }
-      return left->RefSelf();
+      return left->refSelf();
    }
    QoreObject *r = dynamic_cast<QoreObject *>(right);
-   return r ? right->RefSelf() : 0;
+   return r ? right->refSelf() : 0;
 }
 
 // note that this will return a hash
@@ -1549,7 +1549,7 @@ static AbstractQoreNode *op_plus_object_hash(AbstractQoreNode *left, AbstractQor
    if (l) {
       QoreHashNode *rh = dynamic_cast<QoreHashNode *>(right);
       if (!rh)
-	 return left->RefSelf();
+	 return left->refSelf();
 
       ReferenceHolder<QoreHashNode> h(l->copyDataNode(xsink), xsink);
       if (*xsink)
@@ -1562,7 +1562,7 @@ static AbstractQoreNode *op_plus_object_hash(AbstractQoreNode *left, AbstractQor
       return h.release();
    }
    QoreHashNode *r = dynamic_cast<QoreHashNode *>(right);
-   return r ? right->RefSelf() : 0;
+   return r ? right->refSelf() : 0;
 }
 
 static int64 op_cmp_double(double left, double right)
@@ -1688,7 +1688,7 @@ static AbstractQoreNode *op_pre_inc(AbstractQoreNode *left, bool ref_rv, Excepti
 
    //printd(5, "op_pre_inc() ref_rv=%s\n", ref_rv ? "true" : "false");
    // reference for return value
-   return ref_rv ? (*n)->RefSelf() : 0;
+   return ref_rv ? (*n)->refSelf() : 0;
 }
 
 // variable assignment
@@ -1721,7 +1721,7 @@ static AbstractQoreNode *op_pre_dec(AbstractQoreNode *left, bool ref_rv, Excepti
    // traceout("op_pre_dec()");
 
    // reference return value
-   return ref_rv ? (*n)->RefSelf() : 0;
+   return ref_rv ? (*n)->refSelf() : 0;
 }
 
 // unshift lvalue, element
@@ -1765,7 +1765,7 @@ static AbstractQoreNode *op_unshift(AbstractQoreNode *left, AbstractQoreNode *el
 
    // reference for return value
    if (ref_rv)
-      return (*val)->RefSelf();
+      return (*val)->refSelf();
 
    return NULL;
 }
@@ -1865,7 +1865,7 @@ static AbstractQoreNode *op_push(AbstractQoreNode *left, AbstractQoreNode *elem,
    l->push(elem);
 
    // reference for return value
-   return ref_rv ? l->RefSelf() : 0;
+   return ref_rv ? l->refSelf() : 0;
 }
 
 // lvalue, offset, [length, [list]]
@@ -1942,7 +1942,7 @@ static AbstractQoreNode *op_splice(AbstractQoreNode *left, AbstractQoreNode *n_l
    }
 
    // reference for return value
-   return ref_rv ? (*val)->RefSelf() : 0;
+   return ref_rv ? (*val)->refSelf() : 0;
 }
 
 static int64 op_chomp(AbstractQoreNode *arg, AbstractQoreNode *x, ExceptionSink *xsink)
@@ -2065,7 +2065,7 @@ static AbstractQoreNode *op_trim(AbstractQoreNode *arg, AbstractQoreNode *x, boo
 
    // reference for return value
    if (ref_rv)
-      return (*val)->RefSelf();
+      return (*val)->refSelf();
    
    return 0;
 }
@@ -2128,7 +2128,7 @@ static AbstractQoreNode *get_node_type(AbstractQoreNode *n, const QoreType *t)
    
    if (t == NT_LIST) {
       QoreListNode *l = new QoreListNode();
-      l->push(n ? n->RefSelf() : 0);
+      l->push(n ? n->refSelf() : 0);
       return l;
    }
 

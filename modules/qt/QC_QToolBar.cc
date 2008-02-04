@@ -38,7 +38,7 @@ class QoreClass *QC_QToolBar = 0;
 //QToolBar ( QWidget * parent = 0 )
 static void QTOOLBAR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QTOOLBAR, new QoreQToolBar(self));
       return;
@@ -47,16 +47,17 @@ static void QTOOLBAR_constructor(QoreObject *self, const QoreListNode *params, E
    if (!get_qstring(p, title, xsink, true)) {
       if (*xsink)
 	 return;
-      
-      QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+      const QoreObject *o = dynamic_cast<const QoreObject *>(p);
+      QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (*xsink)
          return;
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
       self->setPrivate(CID_QTOOLBAR, new QoreQToolBar(self, parent ? parent->getQWidget() : 0));
       return;
    }
-   p = get_param(params, 1);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -73,12 +74,12 @@ static void QTOOLBAR_copy(class QoreObject *self, class QoreObject *old, class Q
 //QAction * actionAt ( int x, int y ) const
 static AbstractQoreNode *QTOOLBAR_actionAt(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())
-            xsink->raiseException("QTOOLBAR-ACTIONAT-PARAM-ERROR", "QToolBar::actionAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QTOOLBAR-ACTIONAT-PARAM-ERROR", "QToolBar::actionAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(point), xsink);
@@ -97,15 +98,15 @@ static AbstractQoreNode *QTOOLBAR_actionAt(QoreObject *self, QoreQToolBar *qtb, 
 //QAction * addAction ( const QIcon & icon, const QString & text, const QObject * receiver, const char * member )
 static AbstractQoreNode *QTOOLBAR_addAction(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    QString text;
    if (!get_qstring(p, text, xsink, true)) {
       if (num_params(params) == 1)
 	 return return_qaction(qtb->qobj->addAction(text));
 
-      p = get_param(params, 1);
-      QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+      const QoreObject *o = test_object_param(params, 1);
+      QoreAbstractQObject *receiver = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
       if (!receiver) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "this version of QToolBar::addAction() expects an object derived from QObject as the third argument");
@@ -113,7 +114,7 @@ static AbstractQoreNode *QTOOLBAR_addAction(QoreObject *self, QoreQToolBar *qtb,
       }
       ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
 
-      QoreStringNode *pstr = test_string_param(params, 2);
+      const QoreStringNode *pstr = test_string_param(params, 2);
       if (!pstr) {
 	 xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "expecting a string as fourth argument to QToolBar::addAction()");
 	 return 0;
@@ -128,12 +129,13 @@ static AbstractQoreNode *QTOOLBAR_addAction(QoreObject *self, QoreQToolBar *qtb,
       return 0;
    }
 
-   QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
+   const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
+   QoreQIcon *icon = (QoreQIcon *)o->getReferencedPrivateData(CID_QICON, xsink);
    if (!icon) {
-      QoreQAction *action = (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink);
+      QoreQAction *action = (QoreQAction *)o->getReferencedPrivateData(CID_QACTION, xsink);
       if (!action) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "QToolBar::addAction() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "QToolBar::addAction() does not know how to handle arguments of class '%s' as passed as the first argument", o->getClassName());
 	 return 0;
       }
       ReferenceHolder<AbstractPrivateData> actionHolder(static_cast<AbstractPrivateData *>(action), xsink);
@@ -141,11 +143,13 @@ static AbstractQoreNode *QTOOLBAR_addAction(QoreObject *self, QoreQToolBar *qtb,
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
+
    p = get_param(params, 1);
    if (get_qstring(p, text, xsink))
       return 0;
-   p = get_param(params, 2);
-   QoreAbstractQObject *receiver = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreAbstractQObject *receiver = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!receiver) {
       if (!xsink->isException())
 	 xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "this version of QToolBar::addAction() expects an object derived from QObject as the third argument");
@@ -153,7 +157,7 @@ static AbstractQoreNode *QTOOLBAR_addAction(QoreObject *self, QoreQToolBar *qtb,
    }
    ReferenceHolder<AbstractPrivateData> receiverHolder(static_cast<AbstractPrivateData *>(receiver), xsink);
 
-   QoreStringNode *pstr = test_string_param(params, 3);
+   const QoreStringNode *pstr = test_string_param(params, 3);
    if (!pstr) {
       xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "expecting a string as fourth argument to QToolBar::addAction()");
       return 0;
@@ -171,8 +175,8 @@ static AbstractQoreNode *QTOOLBAR_addSeparator(QoreObject *self, QoreQToolBar *q
 //QAction * addWidget ( QWidget * widget )
 static AbstractQoreNode *QTOOLBAR_addWidget(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *widget = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QTOOLBAR-ADDWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QToolBar::addWidget()");
@@ -207,8 +211,8 @@ static AbstractQoreNode *QTOOLBAR_iconSize(QoreObject *self, QoreQToolBar *qtb, 
 //QAction * insertSeparator ( QAction * before )
 static AbstractQoreNode *QTOOLBAR_insertSeparator(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQAction *before = (p && p->type == NT_OBJECT) ? (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQAction *before = p ? (QoreQAction *)p->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!before) {
       if (!xsink->isException())
          xsink->raiseException("QTOOLBAR-INSERTSEPARATOR-PARAM-ERROR", "expecting a QAction object as first argument to QToolBar::insertSeparator()");
@@ -221,16 +225,17 @@ static AbstractQoreNode *QTOOLBAR_insertSeparator(QoreObject *self, QoreQToolBar
 //QAction * insertWidget ( QAction * before, QWidget * widget )
 static AbstractQoreNode *QTOOLBAR_insertWidget(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQAction *before = (p && p->type == NT_OBJECT) ? (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQAction *before = o ? (QoreQAction *)o->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!before) {
       if (!xsink->isException())
          xsink->raiseException("QTOOLBAR-INSERTWIDGET-PARAM-ERROR", "expecting a QAction object as first argument to QToolBar::insertWidget()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> beforeHolder(static_cast<AbstractPrivateData *>(before), xsink);
-   p = get_param(params, 1);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   o = test_object_param(params, 1);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QTOOLBAR-INSERTWIDGET-PARAM-ERROR", "expecting a QWidget object as second argument to QToolBar::insertWidget()");
@@ -243,7 +248,7 @@ static AbstractQoreNode *QTOOLBAR_insertWidget(QoreObject *self, QoreQToolBar *q
 //bool isAreaAllowed ( Qt::ToolBarArea area ) const
 static AbstractQoreNode *QTOOLBAR_isAreaAllowed(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::ToolBarArea area = (Qt::ToolBarArea)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(qtb->qobj->isAreaAllowed(area));
 }
@@ -275,7 +280,7 @@ static AbstractQoreNode *QTOOLBAR_orientation(QoreObject *self, QoreQToolBar *qt
 //void setAllowedAreas ( Qt::ToolBarAreas areas )
 static AbstractQoreNode *QTOOLBAR_setAllowedAreas(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::ToolBarAreas areas = (Qt::ToolBarAreas)(p ? p->getAsInt() : 0);
    qtb->qobj->setAllowedAreas(areas);
    return 0;
@@ -284,7 +289,7 @@ static AbstractQoreNode *QTOOLBAR_setAllowedAreas(QoreObject *self, QoreQToolBar
 //void setFloatable ( bool floatable )
 static AbstractQoreNode *QTOOLBAR_setFloatable(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool floatable = p ? p->getAsBool() : false;
    qtb->qobj->setFloatable(floatable);
    return 0;
@@ -293,7 +298,7 @@ static AbstractQoreNode *QTOOLBAR_setFloatable(QoreObject *self, QoreQToolBar *q
 //void setMovable ( bool movable )
 static AbstractQoreNode *QTOOLBAR_setMovable(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool movable = p ? p->getAsBool() : false;
    qtb->qobj->setMovable(movable);
    return 0;
@@ -302,7 +307,7 @@ static AbstractQoreNode *QTOOLBAR_setMovable(QoreObject *self, QoreQToolBar *qtb
 //void setOrientation ( Qt::Orientation orientation )
 static AbstractQoreNode *QTOOLBAR_setOrientation(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
    qtb->qobj->setOrientation(orientation);
    return 0;
@@ -323,8 +328,8 @@ static AbstractQoreNode *QTOOLBAR_toolButtonStyle(QoreObject *self, QoreQToolBar
 //QWidget * widgetForAction ( QAction * action ) const
 static AbstractQoreNode *QTOOLBAR_widgetForAction(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQAction *action = p ? (QoreQAction *)p->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QTOOLBAR-WIDGETFORACTION-PARAM-ERROR", "expecting a QAction object as first argument to QToolBar::widgetForAction()");

@@ -76,42 +76,42 @@ class QoreClass *QC_QVariant = 0;
 ////QVariant ( Qt::GlobalColor color )
 static void QVARIANT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QVARIANT, new QoreQVariant());
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *qpoint = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *qpoint = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!qpoint) {
-         QoreQPointF *qpointf = (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
+         QoreQPointF *qpointf = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
          if (!qpointf) {
-            QoreQLine *qline = (QoreQLine *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINE, xsink);
+            QoreQLine *qline = (QoreQLine *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QLINE, xsink);
             if (!qline) {
-               QoreQLineF *qlinef = (QoreQLineF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINEF, xsink);
+               QoreQLineF *qlinef = (QoreQLineF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QLINEF, xsink);
                if (!qlinef) {
-                  QoreQRect *qrect = (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
+                  QoreQRect *qrect = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
                   if (!qrect) {
-                     QoreQRectF *qrectf = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
+                     QoreQRectF *qrectf = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
                      if (!qrectf) {
-                        QoreQUrl *qurl = (QoreQUrl *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QURL, xsink);
+                        QoreQUrl *qurl = (QoreQUrl *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QURL, xsink);
                         if (!qurl) {
-                           QoreQLocale *qlocale = (QoreQLocale *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLOCALE, xsink);
+                           QoreQLocale *qlocale = (QoreQLocale *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QLOCALE, xsink);
                            if (!qlocale) {
-                              QoreQSize *qsize = (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
+                              QoreQSize *qsize = (QoreQSize *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
                               if (!qsize) {
-				 QoreQByteArray *qba = (QoreQByteArray *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QBYTEARRAY, xsink);
+				 QoreQByteArray *qba = (QoreQByteArray *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QBYTEARRAY, xsink);
 				 if (!qba) {
-				    QoreQDateTime *qdt = (QoreQDateTime *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDATETIME, xsink);
+				    QoreQDateTime *qdt = (QoreQDateTime *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QDATETIME, xsink);
 				    if (!qdt) {
-				       QoreQDate *qd = (QoreQDate *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QDATE, xsink);
+				       QoreQDate *qd = (QoreQDate *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QDATE, xsink);
 				       if (!qd) {
-					  QoreQTime *qt = (QoreQTime *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTIME, xsink);
+					  QoreQTime *qt = (QoreQTime *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QTIME, xsink);
 					  if (!qt) {
-					     QoreQChar *qchar = (QoreQChar *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCHAR, xsink);
+					     QoreQChar *qchar = (QoreQChar *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCHAR, xsink);
 					     if (!qchar) {
 						if (!xsink->isException())
-						   xsink->raiseException("QVARIANT-CONSTRUCTOR-PARAM-ERROR", "QVariant::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+						   xsink->raiseException("QVARIANT-CONSTRUCTOR-PARAM-ERROR", "QVariant::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 						return;
 					     }
 					     ReferenceHolder<QoreQChar> qcharHolder(qchar, xsink);
@@ -236,7 +236,7 @@ static void QVARIANT_copy(class QoreObject *self, class QoreObject *old, class Q
 ////bool canConvert () const
 static AbstractQoreNode *QVARIANT_canConvert(QoreObject *self, QoreQVariant *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QVariant::Type t = (QVariant::Type)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(qv->canConvert(t));
 }
@@ -251,7 +251,7 @@ static AbstractQoreNode *QVARIANT_clear(QoreObject *self, QoreQVariant *qv, cons
 //bool convert ( Type t )
 static AbstractQoreNode *QVARIANT_convert(QoreObject *self, QoreQVariant *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QVariant::Type t = (QVariant::Type)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(qv->convert(t));
 }
@@ -277,7 +277,7 @@ static AbstractQoreNode *QVARIANT_isValid(QoreObject *self, QoreQVariant *qv, co
 ////void setValue ( const T & value )
 //static AbstractQoreNode *QVARIANT_setValue(QoreObject *self, QoreQVariant *qv, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? T value = p;
 //   qv->setValue(value);
 //   return 0;
@@ -397,7 +397,7 @@ static AbstractQoreNode *QVARIANT_toLocale(QoreObject *self, QoreQVariant *qv, c
 ////qlonglong toLongLong ( bool * ok = 0 ) const
 //static AbstractQoreNode *QVARIANT_toLongLong(QoreObject *self, QoreQVariant *qv, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   ??? return new QoreBigIntNode(qv->toLongLong(ok));
 //}
@@ -489,7 +489,7 @@ static AbstractQoreNode *QVARIANT_toTime(QoreObject *self, QoreQVariant *qv, con
 ////uint toUInt ( bool * ok = 0 ) const
 //static AbstractQoreNode *QVARIANT_toUInt(QoreObject *self, QoreQVariant *qv, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   return new QoreBigIntNode(qv->toUInt(ok));
 //}
@@ -497,7 +497,7 @@ static AbstractQoreNode *QVARIANT_toTime(QoreObject *self, QoreQVariant *qv, con
 ////qulonglong toULongLong ( bool * ok = 0 ) const
 //static AbstractQoreNode *QVARIANT_toULongLong(QoreObject *self, QoreQVariant *qv, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? bool* ok = p;
 //   ??? return new QoreBigIntNode(qv->toULongLong(ok));
 //}

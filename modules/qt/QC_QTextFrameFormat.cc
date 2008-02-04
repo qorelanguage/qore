@@ -124,7 +124,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_rightMargin(QoreObject *self, QoreQTex
 //void setBorder ( qreal width )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setBorder(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal width = p ? p->getAsFloat() : 0.0;
    qtff->setBorder(width);
    return 0;
@@ -133,7 +133,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setBorder(QoreObject *self, QoreQTextF
 //void setBorderBrush ( const QBrush & brush )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setBorderBrush(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QBrush brush;
    if (get_qbrush(p, brush, xsink))
       return 0;
@@ -144,7 +144,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setBorderBrush(QoreObject *self, QoreQ
 //void setBorderStyle ( BorderStyle style )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setBorderStyle(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QTextFrameFormat::BorderStyle style = (QTextFrameFormat::BorderStyle)(p ? p->getAsInt() : 0);
    qtff->setBorderStyle(style);
    return 0;
@@ -153,7 +153,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setBorderStyle(QoreObject *self, QoreQ
 //void setBottomMargin ( qreal margin )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setBottomMargin(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
    qtff->setBottomMargin(margin);
    return 0;
@@ -163,12 +163,12 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setBottomMargin(QoreObject *self, Qore
 //void setHeight ( qreal height )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setHeight(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQTextLength *height = (QoreQTextLength *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTLENGTH, xsink);
+      QoreQTextLength *height = (QoreQTextLength *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTLENGTH, xsink);
       if (!height) {
          if (!xsink->isException())
-            xsink->raiseException("QTEXTFRAMEFORMAT-SETHEIGHT-PARAM-ERROR", "QTextFrameFormat::setHeight() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QTEXTFRAMEFORMAT-SETHEIGHT-PARAM-ERROR", "QTextFrameFormat::setHeight() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<QoreQTextLength> heightHolder(height, xsink);
@@ -183,7 +183,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setHeight(QoreObject *self, QoreQTextF
 //void setLeftMargin ( qreal margin )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setLeftMargin(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
    qtff->setLeftMargin(margin);
    return 0;
@@ -192,7 +192,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setLeftMargin(QoreObject *self, QoreQT
 //void setMargin ( qreal margin )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setMargin(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
    qtff->setMargin(margin);
    return 0;
@@ -201,7 +201,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setMargin(QoreObject *self, QoreQTextF
 //void setPadding ( qreal width )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setPadding(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal width = p ? p->getAsFloat() : 0.0;
    qtff->setPadding(width);
    return 0;
@@ -210,7 +210,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setPadding(QoreObject *self, QoreQText
 //void setPageBreakPolicy ( PageBreakFlags policy )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setPageBreakPolicy(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QTextFrameFormat::PageBreakFlags policy = (QTextFrameFormat::PageBreakFlags)(p ? p->getAsInt() : 0);
    qtff->setPageBreakPolicy(policy);
    return 0;
@@ -219,7 +219,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setPageBreakPolicy(QoreObject *self, Q
 //void setPosition ( Position policy )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setPosition(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QTextFrameFormat::Position policy = (QTextFrameFormat::Position)(p ? p->getAsInt() : 0);
    qtff->setPosition(policy);
    return 0;
@@ -228,7 +228,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setPosition(QoreObject *self, QoreQTex
 //void setRightMargin ( qreal margin )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setRightMargin(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
    qtff->setRightMargin(margin);
    return 0;
@@ -237,7 +237,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setRightMargin(QoreObject *self, QoreQ
 //void setTopMargin ( qreal margin )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setTopMargin(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal margin = p ? p->getAsFloat() : 0.0;
    qtff->setTopMargin(margin);
    return 0;
@@ -247,12 +247,12 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setTopMargin(QoreObject *self, QoreQTe
 //void setWidth ( qreal width )
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setWidth(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQTextLength *width = (QoreQTextLength *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTLENGTH, xsink);
+      QoreQTextLength *width = (QoreQTextLength *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTLENGTH, xsink);
       if (!width) {
          if (!xsink->isException())
-            xsink->raiseException("QTEXTFRAMEFORMAT-SETWIDTH-PARAM-ERROR", "QTextFrameFormat::setWidth() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QTEXTFRAMEFORMAT-SETWIDTH-PARAM-ERROR", "QTextFrameFormat::setWidth() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<QoreQTextLength> widthHolder(width, xsink);

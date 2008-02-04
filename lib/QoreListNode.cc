@@ -182,7 +182,14 @@ bool QoreListNode::is_value() const
    return !priv->needs_eval;
 }
 
-AbstractQoreNode *QoreListNode::retrieve_entry(int num) const
+const AbstractQoreNode *QoreListNode::retrieve_entry(int num) const
+{
+   if (num >= priv->length || num < 0)
+      return NULL;
+   return priv->entry[num];
+}
+
+AbstractQoreNode *QoreListNode::retrieve_entry(int num)
 {
    if (num >= priv->length || num < 0)
       return NULL;
@@ -241,7 +248,7 @@ void QoreListNode::merge(const QoreListNode *list)
    for (int i = 0; i < list->priv->length; i++)
    {
       if (list->priv->entry[i])
-	 priv->entry[start + i] = list->priv->entry[i]->RefSelf();
+	 priv->entry[start + i] = list->priv->entry[i]->refSelf();
       else
 	 priv->entry[start + i] = NULL;
    }
@@ -371,7 +378,7 @@ QoreListNode *QoreListNode::copy() const
 {
    QoreListNode *nl = new QoreListNode();
    for (int i = 0; i < priv->length; i++)
-      nl->push(priv->entry[i] ? priv->entry[i]->RefSelf() : NULL);
+      nl->push(priv->entry[i] ? priv->entry[i]->refSelf() : NULL);
 
    return nl;
 }
@@ -380,7 +387,7 @@ QoreListNode *QoreListNode::copyListFrom(int offset) const
 {
    QoreListNode *nl = new QoreListNode();
    for (int i = offset; i < priv->length; i++)
-      nl->push(priv->entry[i] ? priv->entry[i]->RefSelf() : NULL);
+      nl->push(priv->entry[i] ? priv->entry[i]->refSelf() : NULL);
 
    return nl;
 }
@@ -759,12 +766,12 @@ void QoreListNode::splice_intern(int offset, int len, const AbstractQoreNode *l,
    // add in new entries
    const QoreListNode *lst = dynamic_cast<const QoreListNode *>(l);
    if (!lst) {
-      priv->entry[offset] = l ? l->RefSelf() : 0;
+      priv->entry[offset] = l ? l->refSelf() : 0;
       return;
    }
    for (int i = 0; i < n; i++) {
       const AbstractQoreNode *n = lst->retrieve_entry(i);
-      priv->entry[offset + i] = n ? n->RefSelf() : 0;
+      priv->entry[offset + i] = n ? n->refSelf() : 0;
    }
 }
 
@@ -798,7 +805,7 @@ AbstractQoreNode *QoreListNode::min() const
 	 assert(!xsink);
       }
    }
-   return rv ? rv->RefSelf() : NULL;
+   return rv ? rv->refSelf() : NULL;
 }
 
 AbstractQoreNode *QoreListNode::max() const
@@ -821,7 +828,7 @@ AbstractQoreNode *QoreListNode::max() const
 	 assert(!xsink);
       }
    }
-   return rv ? rv->RefSelf() : NULL;
+   return rv ? rv->refSelf() : NULL;
 }
 
 AbstractQoreNode *QoreListNode::min(const ResolvedFunctionReferenceNode *fr, ExceptionSink *xsink) const
@@ -844,7 +851,7 @@ AbstractQoreNode *QoreListNode::min(const ResolvedFunctionReferenceNode *fr, Exc
 	    rv = v;
       }
    }
-   return rv ? rv->RefSelf() : NULL;
+   return rv ? rv->refSelf() : NULL;
 }
 
 AbstractQoreNode *QoreListNode::max(const ResolvedFunctionReferenceNode *fr, ExceptionSink *xsink) const
@@ -867,7 +874,7 @@ AbstractQoreNode *QoreListNode::max(const ResolvedFunctionReferenceNode *fr, Exc
 	    rv = v;
       }
    }
-   return rv ? rv->RefSelf() : NULL;
+   return rv ? rv->refSelf() : NULL;
 }
 
 QoreListNode *QoreListNode::reverse() const
@@ -877,7 +884,7 @@ QoreListNode *QoreListNode::reverse() const
    for (int i = 0; i < priv->length; ++i)
    {
       AbstractQoreNode *n = priv->entry[priv->length - i - 1];
-      l->priv->entry[i] = n ? n->RefSelf() : NULL;
+      l->priv->entry[i] = n ? n->refSelf() : NULL;
    }
    return l;
 }
@@ -989,7 +996,7 @@ bool ConstListIterator::next()
    return true;
 }
 
-AbstractQoreNode *ConstListIterator::getValue() const
+const AbstractQoreNode *ConstListIterator::getValue() const
 {
    if (pos < 0)
       return NULL;

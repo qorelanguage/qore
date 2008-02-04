@@ -35,12 +35,11 @@ static void QMOUSEEVENT_constructor(class QoreObject *self, const QoreListNode *
 {
    QoreQMouseEvent *qr;
 
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QEvent::Type type = (QEvent::Type)(p ? p->getAsInt() : 0);
 
-   p = test_param(params, NT_OBJECT, 1);
-        
-   QoreQPoint *point = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 1);        
+   QoreQPoint *point = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (*xsink)
       return;
    if (!point) {
@@ -52,11 +51,12 @@ static void QMOUSEEVENT_constructor(class QoreObject *self, const QoreListNode *
    int offset = 0;
    QoreQPoint *globalPos = 0;
    if (p && p->type == NT_OBJECT) {
-      globalPos = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+      o = reinterpret_cast<const QoreObject *>(p);
+      globalPos = p ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
       if (*xsink)
 	 return;
       if (!globalPos) {
-	 xsink->raiseException("QMOUSEEVENT-CONSTRUCTOR-ERROR", "object in third argument is not derived from QPoint (class: '%s')", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	 xsink->raiseException("QMOUSEEVENT-CONSTRUCTOR-ERROR", "object in third argument is not derived from QPoint (class: '%s')", o->getClassName());
 	 return;
       }
 

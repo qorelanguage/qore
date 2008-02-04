@@ -31,13 +31,13 @@ QoreClass *QC_QBitmap = 0;
 static void QBITMAP_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQBitmap *qp;
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
    if (p && p->type == NT_OBJECT) {
-      AbstractPrivateData *apd = (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink);
+      AbstractPrivateData *apd = (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink);
       if (!apd) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QBITMAP-CONSTRUCTOR-PARAM-ERROR", "QBitmap::cosntructor() cannot handle arguments of class '%s' (expecting an object derived from QPixmap)", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QBITMAP-CONSTRUCTOR-PARAM-ERROR", "QBitmap::cosntructor() cannot handle arguments of class '%s' (expecting an object derived from QPixmap)", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 return;
       }
       ReferenceHolder<AbstractPrivateData> holder(apd, xsink);
@@ -47,7 +47,7 @@ static void QBITMAP_constructor(class QoreObject *self, const QoreListNode *para
       qp = new QoreQBitmap(*(qpix->getQPixmap()));
    }
    else if (p && p->type == NT_STRING) {
-      QoreStringNode *pstr = reinterpret_cast<QoreStringNode *>(p);
+      const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p);
       const char *filename = pstr->getBuffer();
 
       pstr = test_string_param(params, 1);
@@ -82,7 +82,7 @@ static AbstractQoreNode *QBITMAP_clear(QoreObject *self, QoreQBitmap *qb, const 
 //QBitmap transformed ( const QTransform & matrix ) const
 //static AbstractQoreNode *QBITMAP_transformed(QoreObject *self, QoreQBitmap *qb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QMatrix matrix = p;
 //   QoreObject *o_qb = new QoreObject(self->getClass(CID_QBITMAP), getProgram());
 //   QoreQBitmap *q_qb = new QoreQBitmap(qb->transformed(matrix));

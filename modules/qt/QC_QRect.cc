@@ -36,29 +36,31 @@ class QoreClass *QC_QRect = 0;
 //QRect ( int x, int y, int width, int height )
 static void QRECT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QRECT, new QoreQRect());
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *topLeft = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
+      QoreQPoint *topLeft = (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!topLeft) {
 	 if (!xsink->isException())
-	    xsink->raiseException("QRECT-CONSTRUCTOR-PARAM-ERROR", "QRect::constructor() does not know how to handle arguments of class '%s' as passed as the first argument (expecting QPoint or int)", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QRECT-CONSTRUCTOR-PARAM-ERROR", "QRect::constructor() does not know how to handle arguments of class '%s' as passed as the first argument (expecting QPoint or int)", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 return;
       }
       ReferenceHolder<AbstractPrivateData> topLeftHolder(static_cast<AbstractPrivateData *>(topLeft), xsink);
-      p = test_param(params, NT_OBJECT, 1);
-      QoreQSize *size = p ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+      
+      o = test_object_param(params, 1);
+      QoreQSize *size = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
       if (*xsink)
 	 return;
       if (!size) {
-	 QoreQPoint *bottomRight = p ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+	 QoreQPoint *bottomRight = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
 	 if (*xsink)
 	    return;
 	 if (!bottomRight) {
-	    xsink->raiseException("QRECT-CONSTRUCTOR-PARAM-ERROR", "QRect::constructor() does not know how to handle arguments of class '%s' as passed as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QRECT-CONSTRUCTOR-PARAM-ERROR", "QRect::constructor() does not know how to handle arguments of class '%s' as passed as the second argument", o->getClassName());
 	    return;
 	 }
 	 ReferenceHolder<AbstractPrivateData> bottomRightHolder(static_cast<AbstractPrivateData *>(bottomRight), xsink);
@@ -88,7 +90,7 @@ static void QRECT_copy(class QoreObject *self, class QoreObject *old, class Qore
 //void adjust ( int dx1, int dy1, int dx2, int dy2 )
 static AbstractQoreNode *QRECT_adjust(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int dx1 = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int dy1 = p ? p->getAsInt() : 0;
@@ -103,7 +105,7 @@ static AbstractQoreNode *QRECT_adjust(QoreObject *self, QoreQRect *qr, const Qor
 //QRect adjusted ( int dx1, int dy1, int dx2, int dy2 ) const
 static AbstractQoreNode *QRECT_adjusted(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int dx1 = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int dy1 = p ? p->getAsInt() : 0;
@@ -160,14 +162,15 @@ static AbstractQoreNode *QRECT_center(QoreObject *self, QoreQRect *qr, const Qor
 //bool contains ( const QRect & rectangle, bool proper = false ) const
 static AbstractQoreNode *QRECT_contains(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
+      QoreQRect *rectangle = (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rectangle) {
-         QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+         QoreQPoint *point = (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink);
          if (!point) {
             if (!xsink->isException())
-               xsink->raiseException("QRECT-CONTAINS-PARAM-ERROR", "QRect::contains() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QRECT-CONTAINS-PARAM-ERROR", "QRect::contains() does not know how to handle arguments of class '%s' as passed as the first argument", o->getClassName());
             return 0;
          }
          ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(point), xsink);
@@ -228,8 +231,8 @@ static AbstractQoreNode *QRECT_height(QoreObject *self, QoreQRect *qr, const Qor
 //QRect intersected ( const QRect & rectangle ) const
 static AbstractQoreNode *QRECT_intersected(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRect *rectangle = p ? (QoreQRect *)p->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!p || !rectangle)
    {
       if (!xsink->isException())
@@ -247,8 +250,8 @@ static AbstractQoreNode *QRECT_intersected(QoreObject *self, QoreQRect *qr, cons
 //bool intersects ( const QRect & rectangle ) const
 static AbstractQoreNode *QRECT_intersects(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRect *rectangle = p ? (QoreQRect *)p->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!p || !rectangle)
    {
       if (!xsink->isException())
@@ -286,7 +289,7 @@ static AbstractQoreNode *QRECT_left(QoreObject *self, QoreQRect *qr, const QoreL
 //void moveBottom ( int y )
 static AbstractQoreNode *QRECT_moveBottom(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int y = p ? p->getAsInt() : 0;
    qr->moveBottom(y);
    return 0;
@@ -295,8 +298,8 @@ static AbstractQoreNode *QRECT_moveBottom(QoreObject *self, QoreQRect *qr, const
 //void moveBottomLeft ( const QPoint & position )
 static AbstractQoreNode *QRECT_moveBottomLeft(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *position = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!p || !position)
    {
       if (!xsink->isException())
@@ -311,8 +314,8 @@ static AbstractQoreNode *QRECT_moveBottomLeft(QoreObject *self, QoreQRect *qr, c
 //void moveBottomRight ( const QPoint & position )
 static AbstractQoreNode *QRECT_moveBottomRight(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *position = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!p || !position)
    {
       if (!xsink->isException())
@@ -327,8 +330,8 @@ static AbstractQoreNode *QRECT_moveBottomRight(QoreObject *self, QoreQRect *qr, 
 //void moveCenter ( const QPoint & position )
 static AbstractQoreNode *QRECT_moveCenter(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *position = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!p || !position)
    {
       if (!xsink->isException())
@@ -343,7 +346,7 @@ static AbstractQoreNode *QRECT_moveCenter(QoreObject *self, QoreQRect *qr, const
 //void moveLeft ( int x )
 static AbstractQoreNode *QRECT_moveLeft(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qr->moveLeft(x);
    return 0;
@@ -352,7 +355,7 @@ static AbstractQoreNode *QRECT_moveLeft(QoreObject *self, QoreQRect *qr, const Q
 //void moveRight ( int x )
 static AbstractQoreNode *QRECT_moveRight(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qr->moveRight(x);
    return 0;
@@ -362,13 +365,13 @@ static AbstractQoreNode *QRECT_moveRight(QoreObject *self, QoreQRect *qr, const 
 //void moveTo ( int x, int y )
 static AbstractQoreNode *QRECT_moveTo(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!position)
       {
 	 if (!xsink->isException())
-	    xsink->raiseException("QRECT-MOVETO-PARAM-ERROR", "QRect::moveTo() cannot handle arguments of class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QRECT-MOVETO-PARAM-ERROR", "QRect::moveTo() cannot handle arguments of class '%s'", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 return 0;
       }
       ReferenceHolder<QoreQPoint> holder(position, xsink);
@@ -386,7 +389,7 @@ static AbstractQoreNode *QRECT_moveTo(QoreObject *self, QoreQRect *qr, const Qor
 //void moveTop ( int y )
 static AbstractQoreNode *QRECT_moveTop(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int y = p ? p->getAsInt() : 0;
    qr->moveTop(y);
    return 0;
@@ -395,8 +398,8 @@ static AbstractQoreNode *QRECT_moveTop(QoreObject *self, QoreQRect *qr, const Qo
 //void moveTopLeft ( const QPoint & position )
 static AbstractQoreNode *QRECT_moveTopLeft(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *position = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!p || !position)
    {
       if (!xsink->isException())
@@ -411,8 +414,8 @@ static AbstractQoreNode *QRECT_moveTopLeft(QoreObject *self, QoreQRect *qr, cons
 //void moveTopRight ( const QPoint & position )
 static AbstractQoreNode *QRECT_moveTopRight(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *position = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!p || !position)
    {
       if (!xsink->isException())
@@ -443,7 +446,7 @@ static AbstractQoreNode *QRECT_right(QoreObject *self, QoreQRect *qr, const Qore
 //void setBottom ( int y )
 static AbstractQoreNode *QRECT_setBottom(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int y = p ? p->getAsInt() : 0;
    qr->setBottom(y);
    return 0;
@@ -452,8 +455,8 @@ static AbstractQoreNode *QRECT_setBottom(QoreObject *self, QoreQRect *qr, const 
 //void setBottomLeft ( const QPoint & position )
 static AbstractQoreNode *QRECT_setBottomLeft(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *position = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!p || !position)
    {
       if (!xsink->isException())
@@ -468,8 +471,8 @@ static AbstractQoreNode *QRECT_setBottomLeft(QoreObject *self, QoreQRect *qr, co
 //void setBottomRight ( const QPoint & position )
 static AbstractQoreNode *QRECT_setBottomRight(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *position = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!p || !position)
    {
       if (!xsink->isException())
@@ -484,7 +487,7 @@ static AbstractQoreNode *QRECT_setBottomRight(QoreObject *self, QoreQRect *qr, c
 //void setCoords ( int x1, int y1, int x2, int y2 )
 static AbstractQoreNode *QRECT_setCoords(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x1 = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int y1 = p ? p->getAsInt() : 0;
@@ -499,7 +502,7 @@ static AbstractQoreNode *QRECT_setCoords(QoreObject *self, QoreQRect *qr, const 
 //void setHeight ( int height )
 static AbstractQoreNode *QRECT_setHeight(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int height = p ? p->getAsInt() : 0;
    qr->setHeight(height);
    return 0;
@@ -508,7 +511,7 @@ static AbstractQoreNode *QRECT_setHeight(QoreObject *self, QoreQRect *qr, const 
 //void setLeft ( int x )
 static AbstractQoreNode *QRECT_setLeft(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qr->setLeft(x);
    return 0;
@@ -517,7 +520,7 @@ static AbstractQoreNode *QRECT_setLeft(QoreObject *self, QoreQRect *qr, const Qo
 //void setRect ( int x, int y, int width, int height )
 static AbstractQoreNode *QRECT_setRect(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int y = p ? p->getAsInt() : 0;
@@ -532,7 +535,7 @@ static AbstractQoreNode *QRECT_setRect(QoreObject *self, QoreQRect *qr, const Qo
 //void setRight ( int x )
 static AbstractQoreNode *QRECT_setRight(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qr->setRight(x);
    return 0;
@@ -541,8 +544,8 @@ static AbstractQoreNode *QRECT_setRight(QoreObject *self, QoreQRect *qr, const Q
 //void setSize ( const QSize & size )
 static AbstractQoreNode *QRECT_setSize(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQSize *size = p ? (QoreQSize *)p->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QRECT-SETSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QRect::setSize()");
@@ -556,7 +559,7 @@ static AbstractQoreNode *QRECT_setSize(QoreObject *self, QoreQRect *qr, const Qo
 //void setTop ( int y )
 static AbstractQoreNode *QRECT_setTop(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int y = p ? p->getAsInt() : 0;
    qr->setTop(y);
    return 0;
@@ -565,8 +568,8 @@ static AbstractQoreNode *QRECT_setTop(QoreObject *self, QoreQRect *qr, const Qor
 //void setTopLeft ( const QPoint & position )
 static AbstractQoreNode *QRECT_setTopLeft(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *position = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!p || !position)
    {
       if (!xsink->isException())
@@ -581,8 +584,8 @@ static AbstractQoreNode *QRECT_setTopLeft(QoreObject *self, QoreQRect *qr, const
 //void setTopRight ( const QPoint & position )
 static AbstractQoreNode *QRECT_setTopRight(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPoint *position = p ? (QoreQPoint *)p->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!p || !position)
    {
       if (!xsink->isException())
@@ -597,7 +600,7 @@ static AbstractQoreNode *QRECT_setTopRight(QoreObject *self, QoreQRect *qr, cons
 //void setWidth ( int width )
 static AbstractQoreNode *QRECT_setWidth(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
    qr->setWidth(width);
    return 0;
@@ -606,7 +609,7 @@ static AbstractQoreNode *QRECT_setWidth(QoreObject *self, QoreQRect *qr, const Q
 //void setX ( int x )
 static AbstractQoreNode *QRECT_setX(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qr->setX(x);
    return 0;
@@ -615,7 +618,7 @@ static AbstractQoreNode *QRECT_setX(QoreObject *self, QoreQRect *qr, const QoreL
 //void setY ( int y )
 static AbstractQoreNode *QRECT_setY(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int y = p ? p->getAsInt() : 0;
    qr->setY(y);
    return 0;
@@ -660,13 +663,13 @@ static AbstractQoreNode *QRECT_topRight(QoreObject *self, QoreQRect *qr, const Q
 //void translate ( int dx, int dy )
 static AbstractQoreNode *QRECT_translate(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!offset)
       {
 	 if (!xsink->isException())
-	    xsink->raiseException("QRECT-TRANSLATE-PARAM-ERROR", "QRect::translate() cannot handle arguments of class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QRECT-TRANSLATE-PARAM-ERROR", "QRect::translate() cannot handle arguments of class '%s'", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 return 0;
       }
       ReferenceHolder<QoreQPoint> holder(offset, xsink);
@@ -685,12 +688,12 @@ static AbstractQoreNode *QRECT_translate(QoreObject *self, QoreQRect *qr, const 
 //QRect translated ( const QPoint & offset ) const
 static AbstractQoreNode *QRECT_translated(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!offset) {
          if (!xsink->isException())
-            xsink->raiseException("QRECT-TRANSLATED-PARAM-ERROR", "QRect::translated() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QRECT-TRANSLATED-PARAM-ERROR", "QRect::translated() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<QoreQPoint> offsetHolder(offset, xsink);
@@ -711,8 +714,8 @@ static AbstractQoreNode *QRECT_translated(QoreObject *self, QoreQRect *qr, const
 //QRect united ( const QRect & rectangle ) const
 static AbstractQoreNode *QRECT_united(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRect *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRect *rectangle = p ? (QoreQRect *)p->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!p || !rectangle)
    {
       if (!xsink->isException())

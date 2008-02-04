@@ -216,7 +216,7 @@ void ManagedDatasource::setAutoCommit(bool ac)
    Datasource::setAutoCommit(ac);
 }
 
-AbstractQoreNode *ManagedDatasource::select(const QoreString *query_str, QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv;
    
@@ -233,7 +233,7 @@ AbstractQoreNode *ManagedDatasource::select(const QoreString *query_str, QoreLis
 }
 
 // FIXME: should be a native DBI driver method
-AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv;
    
@@ -244,9 +244,9 @@ AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreListNo
       endDBAction();
 
       // return only hash of first row, if any
-      if (rv && rv->type == NT_LIST)
-      {
-	 AbstractQoreNode *h = (reinterpret_cast<QoreListNode *>(rv))->shift();
+      QoreListNode *l = dynamic_cast<QoreListNode *>(rv);
+      if (rv) {
+	 AbstractQoreNode *h = l->shift();
 	 rv->deref(xsink);
 	 rv = h;
       }
@@ -257,7 +257,7 @@ AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, QoreListNo
    return rv;
 }
 
-AbstractQoreNode *ManagedDatasource::selectRows(const QoreString *query_str, QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv;
    
@@ -273,7 +273,7 @@ AbstractQoreNode *ManagedDatasource::selectRows(const QoreString *query_str, Qor
    return rv;
 }
 
-AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, QoreListNode *args, ExceptionSink *xsink)
+AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv = NULL;
 

@@ -34,14 +34,14 @@ static void QPAINTEVENT_constructor(class QoreObject *self, const QoreListNode *
 {
    QoreQPaintEvent *qr;
 
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
+   const QoreObject *p = test_object_param(params, 0);
       
-   QoreQRect *rectangle = p ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreQRect *rectangle = p ? (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (*xsink)
       return;
    if (!rectangle)
    {
-      QoreQRegion *region = p ? (QoreQRegion *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink) : 0;
+      QoreQRegion *region = p ? (QoreQRegion *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink) : 0;
       if (!region) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QPAINTEVENT-CONSTRUCTOR-ERROR", "Expecting a QRect or QRegion object as argument to QPaintEvent::constructor()");

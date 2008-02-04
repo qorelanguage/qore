@@ -93,7 +93,7 @@ union my_val {
       double f8;
       void *ptr;
 
-      DLLLOCAL void assign(class DateTime *d)
+      DLLLOCAL void assign(const DateTime *d)
       {
 	 time.year = d->getYear();
 	 time.month = d->getMonth();
@@ -113,7 +113,7 @@ class MyBindNode {
       unsigned long len;
 
       struct {
-	    class AbstractQoreNode *value;   // value to be bound
+	    const AbstractQoreNode *value;   // value to be bound
 	    class QoreStringNode *tstr;   // temporary string to be deleted
       } data;
 
@@ -121,7 +121,7 @@ class MyBindNode {
       class MyBindNode *next;
 
       // for value nodes
-      DLLLOCAL inline MyBindNode(class AbstractQoreNode *v)
+      DLLLOCAL inline MyBindNode(const AbstractQoreNode *v)
       {
 	 bindtype = BN_VALUE;
 	 data.value = v;
@@ -170,7 +170,7 @@ class MyBindGroup {
       DLLLOCAL MyBindGroup(Datasource *ods, const class QoreString *ostr, const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL ~MyBindGroup();
 
-      DLLLOCAL inline void add(class AbstractQoreNode *v)
+      DLLLOCAL inline void add(const AbstractQoreNode *v)
       {
 	 add(new MyBindNode(v));
 	 printd(5, "MyBindGroup::add() value=%08p\n", v);

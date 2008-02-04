@@ -25,11 +25,11 @@
 #define QORE_LIB_MISC_H
 
 DLLEXPORT class BinaryNode   *qore_deflate(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
-DLLEXPORT class QoreStringNode *qore_inflate_to_string(class BinaryNode *b, const class QoreEncoding *enc, ExceptionSink *xsink);
-DLLEXPORT class BinaryNode   *qore_inflate_to_binary(class BinaryNode *b, class ExceptionSink *xsink);
+DLLEXPORT class QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const class QoreEncoding *enc, ExceptionSink *xsink);
+DLLEXPORT class BinaryNode   *qore_inflate_to_binary(const BinaryNode *b, class ExceptionSink *xsink);
 DLLEXPORT class BinaryNode   *qore_gzip(void *ptr, unsigned long len, int level, ExceptionSink *xsink);
-DLLEXPORT class QoreStringNode *qore_gunzip_to_string(class BinaryNode *bin, const class QoreEncoding *enc, ExceptionSink *xsink);
-DLLEXPORT class BinaryNode   *qore_gunzip_to_binary(class BinaryNode *bin, ExceptionSink *xsink);
+DLLEXPORT class QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const class QoreEncoding *enc, ExceptionSink *xsink);
+DLLEXPORT class BinaryNode   *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink);
 
 DLLLOCAL void init_misc_functions();
 

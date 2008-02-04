@@ -476,11 +476,11 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
    num_params = params->num_params;
    for (i = 0; i < num_params; i++)
    {
-      AbstractQoreNode *n = args ? args->retrieve_entry(i) : NULL;
+      AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : NULL;
       printd(4, "UserFunction::eval() %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->ids[i], params->ids[i], n, n ? n->getTypeName() : "(null)");
       if (n)
       {
-	 ReferenceNode *r = dynamic_cast<ReferenceNode *>(n);
+	 const ReferenceNode *r = dynamic_cast<const ReferenceNode *>(n);
          if (r)
          {
 	    bool is_self_ref = false;
@@ -604,7 +604,7 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
    {
       QoreObject *n = (i ? NULL : old);
       printd(5, "UserFunction::evalCopy(): instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
-      instantiateLVar(params->ids[i], n ? n->RefSelf() : 0);
+      instantiateLVar(params->ids[i], n ? n->refSelf() : 0);
    }
 
    QoreListNode *argv;
@@ -684,7 +684,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
    num_params = params->num_params;
    for (i = 0; i < num_params; i++)
    {
-      AbstractQoreNode *n = args ? args->retrieve_entry(i) : NULL;
+      AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : NULL;
       printd(4, "UserFunction::evalConstructor() %d: instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
       if (n)
       {
@@ -825,7 +825,7 @@ AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, Exceptio
    }
    else
    {
-      rv = n->RefSelf();
+      rv = n->refSelf();
       if (ntype == NT_SELF_VARREF)
 	 (*is_self_ref) = true;
    }

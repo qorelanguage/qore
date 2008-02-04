@@ -260,7 +260,7 @@ AbstractQoreNode *LVar::eval(ExceptionSink *xsink)
    if (vexp)
       return evalReference(xsink);
    else
-      return value ? value->RefSelf() : NULL;
+      return value ? value->refSelf() : NULL;
 }
 
 AbstractQoreNode *LVar::eval(bool &needs_deref, ExceptionSink *xsink)

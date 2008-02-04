@@ -158,7 +158,7 @@ static class AbstractQoreNode *qore_pgsql_get_server_version(class Datasource *d
 
 static class AbstractQoreNode *f_pgsql_bind(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   class AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int type = p? p->getAsInt() : 0;
    if (!type)
    {
@@ -168,7 +168,7 @@ static class AbstractQoreNode *f_pgsql_bind(const QoreListNode *params, class Ex
    p = get_param(params, 1);
    class QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("^pgtype^", new QoreBigIntNode(type), xsink);
-   h->setKeyValue("^value^", p ? p->RefSelf() : NULL, xsink);
+   h->setKeyValue("^value^", p ? p->refSelf() : NULL, xsink);
    return h;
 }
 

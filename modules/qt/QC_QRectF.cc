@@ -33,7 +33,7 @@ static void QRECTF_constructor(class QoreObject *self, const QoreListNode *param
 {
    QoreQRectF *qr;
 
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qr = new QoreQRectF();
    else {
@@ -59,7 +59,7 @@ static void QRECTF_copy(class QoreObject *self, class QoreObject *old, class Qor
 //void adjust ( qreal dx1, qreal dy1, qreal dx2, qreal dy2 )
 static AbstractQoreNode *QRECTF_adjust(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float dx1 = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float dy1 = p ? p->getAsFloat() : 0;
@@ -74,7 +74,7 @@ static AbstractQoreNode *QRECTF_adjust(QoreObject *self, QoreQRectF *qrf, const 
 //QRectF adjusted ( qreal dx1, qreal dy1, qreal dx2, qreal dy2 ) const
 static AbstractQoreNode *QRECTF_adjusted(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float dx1 = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float dy1 = p ? p->getAsFloat() : 0;
@@ -116,7 +116,7 @@ static AbstractQoreNode *QRECTF_bottom(QoreObject *self, QoreQRectF *qrf, const 
 //bool contains ( const QPointF & point ) const
 //static AbstractQoreNode *QRECTF_contains(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF point = p;
 //   return new QoreBoolNode(qrf->contains(point));
 //}
@@ -125,13 +125,13 @@ static AbstractQoreNode *QRECTF_bottom(QoreObject *self, QoreQRectF *qrf, const 
 //bool contains ( qreal x, qreal y ) const
 static AbstractQoreNode *QRECTF_contains(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
+      QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectangle)
       {
          if (!xsink->isException())
-            xsink->raiseException("QRECTF-CONTAINS-PARAM-ERROR", "QRectF::contains() cannot handle arguments of class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QRECTF-CONTAINS-PARAM-ERROR", "QRectF::contains() cannot handle arguments of class '%s'", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
 
@@ -148,7 +148,7 @@ static AbstractQoreNode *QRECTF_contains(QoreObject *self, QoreQRectF *qrf, cons
 //void getCoords ( qreal * x1, qreal * y1, qreal * x2, qreal * y2 ) const
 //static AbstractQoreNode *QRECTF_getCoords(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? qreal* x1 = p;
 //   p = get_param(params, 1);
 //   ??? qreal* y1 = p;
@@ -163,7 +163,7 @@ static AbstractQoreNode *QRECTF_contains(QoreObject *self, QoreQRectF *qrf, cons
 //void getRect ( qreal * x, qreal * y, qreal * width, qreal * height ) const
 //static AbstractQoreNode *QRECTF_getRect(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? qreal* x = p;
 //   p = get_param(params, 1);
 //   ??? qreal* y = p;
@@ -184,8 +184,8 @@ static AbstractQoreNode *QRECTF_height(QoreObject *self, QoreQRectF *qrf, const 
 //QRectF intersected ( const QRectF & rectangle ) const
 static AbstractQoreNode *QRECTF_intersected(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRectF *rectangle = p ? (QoreQRectF *)p->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!p || !rectangle)
    {
       if (!xsink->isException())
@@ -203,8 +203,8 @@ static AbstractQoreNode *QRECTF_intersected(QoreObject *self, QoreQRectF *qrf, c
 //bool intersects ( const QRectF & rectangle ) const
 static AbstractQoreNode *QRECTF_intersects(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRectF *rectangle = p ? (QoreQRectF *)p->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!p || !rectangle)
    {
       if (!xsink->isException())
@@ -242,7 +242,7 @@ static AbstractQoreNode *QRECTF_left(QoreObject *self, QoreQRectF *qrf, const Qo
 //void moveBottom ( qreal y )
 static AbstractQoreNode *QRECTF_moveBottom(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float y = p ? p->getAsFloat() : 0;
    qrf->moveBottom(y);
    return 0;
@@ -251,7 +251,7 @@ static AbstractQoreNode *QRECTF_moveBottom(QoreObject *self, QoreQRectF *qrf, co
 //void moveBottomLeft ( const QPointF & position )
 //static AbstractQoreNode *QRECTF_moveBottomLeft(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF position = p;
 //   qrf->moveBottomLeft(position);
 //   return 0;
@@ -260,7 +260,7 @@ static AbstractQoreNode *QRECTF_moveBottom(QoreObject *self, QoreQRectF *qrf, co
 //void moveBottomRight ( const QPointF & position )
 //static AbstractQoreNode *QRECTF_moveBottomRight(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF position = p;
 //   qrf->moveBottomRight(position);
 //   return 0;
@@ -269,7 +269,7 @@ static AbstractQoreNode *QRECTF_moveBottom(QoreObject *self, QoreQRectF *qrf, co
 //void moveCenter ( const QPointF & position )
 //static AbstractQoreNode *QRECTF_moveCenter(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF position = p;
 //   qrf->moveCenter(position);
 //   return 0;
@@ -278,7 +278,7 @@ static AbstractQoreNode *QRECTF_moveBottom(QoreObject *self, QoreQRectF *qrf, co
 //void moveLeft ( qreal x )
 static AbstractQoreNode *QRECTF_moveLeft(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float x = p ? p->getAsFloat() : 0;
    qrf->moveLeft(x);
    return 0;
@@ -287,7 +287,7 @@ static AbstractQoreNode *QRECTF_moveLeft(QoreObject *self, QoreQRectF *qrf, cons
 //void moveRight ( qreal x )
 static AbstractQoreNode *QRECTF_moveRight(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float x = p ? p->getAsFloat() : 0;
    qrf->moveRight(x);
    return 0;
@@ -296,7 +296,7 @@ static AbstractQoreNode *QRECTF_moveRight(QoreObject *self, QoreQRectF *qrf, con
 //void moveTo ( qreal x, qreal y )
 static AbstractQoreNode *QRECTF_moveTo(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float x = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float y = p ? p->getAsFloat() : 0;
@@ -307,7 +307,7 @@ static AbstractQoreNode *QRECTF_moveTo(QoreObject *self, QoreQRectF *qrf, const 
 //void moveTo ( const QPointF & position )
 //static AbstractQoreNode *QRECTF_moveTo(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF position = p;
 //   qrf->moveTo(position);
 //   return 0;
@@ -316,7 +316,7 @@ static AbstractQoreNode *QRECTF_moveTo(QoreObject *self, QoreQRectF *qrf, const 
 //void moveTop ( qreal y )
 static AbstractQoreNode *QRECTF_moveTop(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float y = p ? p->getAsFloat() : 0;
    qrf->moveTop(y);
    return 0;
@@ -325,7 +325,7 @@ static AbstractQoreNode *QRECTF_moveTop(QoreObject *self, QoreQRectF *qrf, const
 //void moveTopLeft ( const QPointF & position )
 //static AbstractQoreNode *QRECTF_moveTopLeft(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF position = p;
 //   qrf->moveTopLeft(position);
 //   return 0;
@@ -334,7 +334,7 @@ static AbstractQoreNode *QRECTF_moveTop(QoreObject *self, QoreQRectF *qrf, const
 //void moveTopRight ( const QPointF & position )
 //static AbstractQoreNode *QRECTF_moveTopRight(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF position = p;
 //   qrf->moveTopRight(position);
 //   return 0;
@@ -359,7 +359,7 @@ static AbstractQoreNode *QRECTF_right(QoreObject *self, QoreQRectF *qrf, const Q
 //void setBottom ( qreal y )
 static AbstractQoreNode *QRECTF_setBottom(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float y = p ? p->getAsFloat() : 0;
    qrf->setBottom(y);
    return 0;
@@ -368,7 +368,7 @@ static AbstractQoreNode *QRECTF_setBottom(QoreObject *self, QoreQRectF *qrf, con
 //void setBottomLeft ( const QPointF & position )
 //static AbstractQoreNode *QRECTF_setBottomLeft(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF position = p;
 //   qrf->setBottomLeft(position);
 //   return 0;
@@ -377,7 +377,7 @@ static AbstractQoreNode *QRECTF_setBottom(QoreObject *self, QoreQRectF *qrf, con
 //void setBottomRight ( const QPointF & position )
 //static AbstractQoreNode *QRECTF_setBottomRight(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF position = p;
 //   qrf->setBottomRight(position);
 //   return 0;
@@ -386,7 +386,7 @@ static AbstractQoreNode *QRECTF_setBottom(QoreObject *self, QoreQRectF *qrf, con
 //void setCoords ( qreal x1, qreal y1, qreal x2, qreal y2 )
 static AbstractQoreNode *QRECTF_setCoords(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float x1 = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float y1 = p ? p->getAsFloat() : 0;
@@ -401,7 +401,7 @@ static AbstractQoreNode *QRECTF_setCoords(QoreObject *self, QoreQRectF *qrf, con
 //void setHeight ( qreal height )
 static AbstractQoreNode *QRECTF_setHeight(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float height = p ? p->getAsFloat() : 0;
    qrf->setHeight(height);
    return 0;
@@ -410,7 +410,7 @@ static AbstractQoreNode *QRECTF_setHeight(QoreObject *self, QoreQRectF *qrf, con
 //void setLeft ( qreal x )
 static AbstractQoreNode *QRECTF_setLeft(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float x = p ? p->getAsFloat() : 0;
    qrf->setLeft(x);
    return 0;
@@ -419,7 +419,7 @@ static AbstractQoreNode *QRECTF_setLeft(QoreObject *self, QoreQRectF *qrf, const
 //void setRect ( qreal x, qreal y, qreal width, qreal height )
 static AbstractQoreNode *QRECTF_setRect(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float x = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float y = p ? p->getAsFloat() : 0;
@@ -434,7 +434,7 @@ static AbstractQoreNode *QRECTF_setRect(QoreObject *self, QoreQRectF *qrf, const
 //void setRight ( qreal x )
 static AbstractQoreNode *QRECTF_setRight(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float x = p ? p->getAsFloat() : 0;
    qrf->setRight(x);
    return 0;
@@ -443,7 +443,7 @@ static AbstractQoreNode *QRECTF_setRight(QoreObject *self, QoreQRectF *qrf, cons
 //void setSize ( const QSizeF & size )
 //static AbstractQoreNode *QRECTF_setSize(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QSizeF size = p;
 //   qrf->setSize(size);
 //   return 0;
@@ -452,7 +452,7 @@ static AbstractQoreNode *QRECTF_setRight(QoreObject *self, QoreQRectF *qrf, cons
 //void setTop ( qreal y )
 static AbstractQoreNode *QRECTF_setTop(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float y = p ? p->getAsFloat() : 0;
    qrf->setTop(y);
    return 0;
@@ -461,7 +461,7 @@ static AbstractQoreNode *QRECTF_setTop(QoreObject *self, QoreQRectF *qrf, const 
 //void setTopLeft ( const QPointF & position )
 //static AbstractQoreNode *QRECTF_setTopLeft(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF position = p;
 //   qrf->setTopLeft(position);
 //   return 0;
@@ -470,7 +470,7 @@ static AbstractQoreNode *QRECTF_setTop(QoreObject *self, QoreQRectF *qrf, const 
 //void setTopRight ( const QPointF & position )
 //static AbstractQoreNode *QRECTF_setTopRight(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF position = p;
 //   qrf->setTopRight(position);
 //   return 0;
@@ -479,7 +479,7 @@ static AbstractQoreNode *QRECTF_setTop(QoreObject *self, QoreQRectF *qrf, const 
 //void setWidth ( qreal width )
 static AbstractQoreNode *QRECTF_setWidth(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float width = p ? p->getAsFloat() : 0;
    qrf->setWidth(width);
    return 0;
@@ -488,7 +488,7 @@ static AbstractQoreNode *QRECTF_setWidth(QoreObject *self, QoreQRectF *qrf, cons
 //void setX ( qreal x )
 static AbstractQoreNode *QRECTF_setX(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float x = p ? p->getAsFloat() : 0;
    qrf->setX(x);
    return 0;
@@ -497,7 +497,7 @@ static AbstractQoreNode *QRECTF_setX(QoreObject *self, QoreQRectF *qrf, const Qo
 //void setY ( qreal y )
 static AbstractQoreNode *QRECTF_setY(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float y = p ? p->getAsFloat() : 0;
    qrf->setY(y);
    return 0;
@@ -550,7 +550,7 @@ static AbstractQoreNode *QRECTF_top(QoreObject *self, QoreQRectF *qrf, const Qor
 //void translate ( qreal dx, qreal dy )
 static AbstractQoreNode *QRECTF_translate(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float dx = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float dy = p ? p->getAsFloat() : 0;
@@ -561,7 +561,7 @@ static AbstractQoreNode *QRECTF_translate(QoreObject *self, QoreQRectF *qrf, con
 //void translate ( const QPointF & offset )
 //static AbstractQoreNode *QRECTF_translate(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF offset = p;
 //   qrf->translate(offset);
 //   return 0;
@@ -570,7 +570,7 @@ static AbstractQoreNode *QRECTF_translate(QoreObject *self, QoreQRectF *qrf, con
 //QRectF translated ( qreal dx, qreal dy ) const
 static AbstractQoreNode *QRECTF_translated(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    float dx = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float dy = p ? p->getAsFloat() : 0;
@@ -584,7 +584,7 @@ static AbstractQoreNode *QRECTF_translated(QoreObject *self, QoreQRectF *qrf, co
 //QRectF translated ( const QPointF & offset ) const
 //static AbstractQoreNode *QRECTF_translated(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF offset = p;
 //
 //   QoreQRectF *q_qrf = new QoreQRectF(qrf->translated(offset));
@@ -596,8 +596,8 @@ static AbstractQoreNode *QRECTF_translated(QoreObject *self, QoreQRectF *qrf, co
 //QRectF united ( const QRectF & rectangle ) const
 static AbstractQoreNode *QRECTF_united(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRectF *rectangle = (p && p->type == NT_OBJECT) ? (QoreQRectF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRectF *rectangle = p ? (QoreQRectF *)p->getReferencedPrivateData(CID_QRECTF, xsink) : 0;
    if (!p || !rectangle)
    {
       if (!xsink->isException())

@@ -35,15 +35,15 @@ class QoreClass *QC_QStyleOptionViewItemV2 = 0;
 //QStyleOptionViewItemV2 ( const QStyleOptionViewItem & other )
 static void QSTYLEOPTIONVIEWITEMV2_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QSTYLEOPTIONVIEWITEMV2, new QoreQStyleOptionViewItemV2());
       return;
    }
-   QoreQStyleOptionViewItem *other = p ? (QoreQStyleOptionViewItem *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
+   QoreQStyleOptionViewItem *other = p ? (QoreQStyleOptionViewItem *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONVIEWITEM, xsink) : 0;
    if (!other) {
       if (!xsink->isException())
-         xsink->raiseException("QSTYLEOPTIONVIEWITEMV2-QSTYLEOPTIONVIEWITEMV2-PARAM-ERROR", "this version of QStyleOptionViewItemV2::QStyleOptionViewItemV2() expects an object derived from QStyleOptionViewItem as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+         xsink->raiseException("QSTYLEOPTIONVIEWITEMV2-QSTYLEOPTIONVIEWITEMV2-PARAM-ERROR", "this version of QStyleOptionViewItemV2::QStyleOptionViewItemV2() expects an object derived from QStyleOptionViewItem as the first argument");
       return;
    }
    ReferenceHolder<QoreQStyleOptionViewItem> otherHolder(other, xsink);

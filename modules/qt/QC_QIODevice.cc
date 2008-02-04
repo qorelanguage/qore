@@ -83,7 +83,7 @@ static AbstractQoreNode *QIODEVICE_errorString(QoreObject *self, QoreAbstractQIO
 //bool getChar ( char * c )
 static AbstractQoreNode *QIODEVICE_getChar(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QIODEVICE-GETCHAR-PARAM-ERROR", "expecting a string as first argument to QIODevice::getChar()");
       return 0;
@@ -126,7 +126,7 @@ static AbstractQoreNode *QIODEVICE_isWritable(QoreObject *self, QoreAbstractQIOD
 //virtual bool open ( OpenMode mode )
 static AbstractQoreNode *QIODEVICE_open(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QIODevice::OpenMode mode = (QIODevice::OpenMode)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(qiod->getQIODevice()->open(mode));
 }
@@ -140,7 +140,7 @@ static AbstractQoreNode *QIODEVICE_openMode(QoreObject *self, QoreAbstractQIODev
 //QByteArray peek ( qint64 maxSize )
 static AbstractQoreNode *QIODEVICE_peek(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int64 maxSize = p ? p->getAsBigInt() : 0;
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qiod->getQIODevice()->peek(maxSize));
@@ -157,7 +157,7 @@ static AbstractQoreNode *QIODEVICE_pos(QoreObject *self, QoreAbstractQIODevice *
 //bool putChar ( char c )
 static AbstractQoreNode *QIODEVICE_putChar(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QIODEVICE-PUTCHAR-PARAM-ERROR", "expecting a string as first argument to QIODevice::putChar()");
       return 0;
@@ -169,7 +169,7 @@ static AbstractQoreNode *QIODEVICE_putChar(QoreObject *self, QoreAbstractQIODevi
 //QByteArray read ( qint64 maxSize )
 static AbstractQoreNode *QIODEVICE_read(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int64 maxSize = p ? p->getAsBigInt() : 0;
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qiod->getQIODevice()->read(maxSize));
@@ -189,7 +189,7 @@ static AbstractQoreNode *QIODEVICE_readAll(QoreObject *self, QoreAbstractQIODevi
 //QByteArray readLine ( qint64 maxSize = 0 )
 static AbstractQoreNode *QIODEVICE_readLine(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int64 maxSize = !is_nothing(p) ? p->getAsBigInt() : 0;
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qiod->getQIODevice()->readLine(maxSize));
@@ -206,7 +206,7 @@ static AbstractQoreNode *QIODEVICE_reset(QoreObject *self, QoreAbstractQIODevice
 //virtual bool seek ( qint64 pos )
 static AbstractQoreNode *QIODEVICE_seek(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int64 pos = p ? p->getAsBigInt() : 0;
    return new QoreBoolNode(qiod->getQIODevice()->seek(pos));
 }
@@ -214,7 +214,7 @@ static AbstractQoreNode *QIODEVICE_seek(QoreObject *self, QoreAbstractQIODevice 
 //void setTextModeEnabled ( bool enabled )
 static AbstractQoreNode *QIODEVICE_setTextModeEnabled(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enabled = p ? p->getAsBool() : false;
    qiod->getQIODevice()->setTextModeEnabled(enabled);
    return 0;
@@ -229,7 +229,7 @@ static AbstractQoreNode *QIODEVICE_size(QoreObject *self, QoreAbstractQIODevice 
 //void ungetChar ( char c )
 static AbstractQoreNode *QIODEVICE_ungetChar(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QIODEVICE-UNGETCHAR-PARAM-ERROR", "expecting a string as first argument to QIODevice::ungetChar()");
       return 0;
@@ -242,7 +242,7 @@ static AbstractQoreNode *QIODEVICE_ungetChar(QoreObject *self, QoreAbstractQIODe
 //virtual bool waitForBytesWritten ( int msecs )
 static AbstractQoreNode *QIODEVICE_waitForBytesWritten(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int msecs = p ? p->getAsInt() : 0;
    return new QoreBoolNode(qiod->getQIODevice()->waitForBytesWritten(msecs));
 }
@@ -250,7 +250,7 @@ static AbstractQoreNode *QIODEVICE_waitForBytesWritten(QoreObject *self, QoreAbs
 //virtual bool waitForReadyRead ( int msecs )
 static AbstractQoreNode *QIODEVICE_waitForReadyRead(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int msecs = p ? p->getAsInt() : 0;
    return new QoreBoolNode(qiod->getQIODevice()->waitForReadyRead(msecs));
 }
@@ -258,7 +258,7 @@ static AbstractQoreNode *QIODEVICE_waitForReadyRead(QoreObject *self, QoreAbstra
 //qint64 write ( const QByteArray & byteArray )
 static AbstractQoreNode *QIODEVICE_write(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QByteArray byteArray;
    if (get_qbytearray(p, byteArray, xsink))
       return 0;

@@ -34,8 +34,8 @@ class QoreClass *QC_QAbstractScrollArea = 0;
 //QAbstractScrollArea ( QWidget * parent = 0 )
 static void QABSTRACTSCROLLAREA_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *parent = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
    self->setPrivate(CID_QABSTRACTSCROLLAREA, new QoreQAbstractScrollArea(self, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0));
    return;
@@ -49,15 +49,16 @@ static void QABSTRACTSCROLLAREA_copy(class QoreObject *self, class QoreObject *o
 //void addScrollBarWidget ( QWidget * widget, Qt::Alignment alignment )
 static AbstractQoreNode *QABSTRACTSCROLLAREA_addScrollBarWidget(QoreObject *self, QoreAbstractQAbstractScrollArea *qasa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTSCROLLAREA-ADDSCROLLBARWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QAbstractScrollArea::addScrollBarWidget()");
       return 0;
    }
    ReferenceHolder<QoreQWidget> widgetHolder(widget, xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
    qasa->getQAbstractScrollArea()->addScrollBarWidget(static_cast<QWidget *>(widget->getQWidget()), alignment);
    return 0;
@@ -115,7 +116,7 @@ static AbstractQoreNode *QABSTRACTSCROLLAREA_maximumViewportSize(QoreObject *sel
 ////QWidgetQoreListNode scrollBarWidgets ( Qt::Alignment alignment )
 //static AbstractQoreNode *QABSTRACTSCROLLAREA_scrollBarWidgets(QoreObject *self, QoreAbstractQAbstractScrollArea *qasa, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
 //   ??? return new QoreBigIntNode(qasa->getQAbstractScrollArea()->scrollBarWidgets(alignment));
 //}
@@ -123,8 +124,8 @@ static AbstractQoreNode *QABSTRACTSCROLLAREA_maximumViewportSize(QoreObject *sel
 //void setCornerWidget ( QWidget * widget )
 static AbstractQoreNode *QABSTRACTSCROLLAREA_setCornerWidget(QoreObject *self, QoreAbstractQAbstractScrollArea *qasa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *widget = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTSCROLLAREA-SETCORNERWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QAbstractScrollArea::setCornerWidget()");
@@ -138,8 +139,8 @@ static AbstractQoreNode *QABSTRACTSCROLLAREA_setCornerWidget(QoreObject *self, Q
 //void setHorizontalScrollBar ( QScrollBar * scrollBar )
 static AbstractQoreNode *QABSTRACTSCROLLAREA_setHorizontalScrollBar(QoreObject *self, QoreAbstractQAbstractScrollArea *qasa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQScrollBar *scrollBar = (p && p->type == NT_OBJECT) ? (QoreQScrollBar *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSCROLLBAR, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQScrollBar *scrollBar = p ? (QoreQScrollBar *)p->getReferencedPrivateData(CID_QSCROLLBAR, xsink) : 0;
    if (!scrollBar) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTSCROLLAREA-SETHORIZONTALSCROLLBAR-PARAM-ERROR", "expecting a QScrollBar object as first argument to QAbstractScrollArea::setHorizontalScrollBar()");
@@ -153,7 +154,7 @@ static AbstractQoreNode *QABSTRACTSCROLLAREA_setHorizontalScrollBar(QoreObject *
 //void setHorizontalScrollBarPolicy ( Qt::ScrollBarPolicy )
 static AbstractQoreNode *QABSTRACTSCROLLAREA_setHorizontalScrollBarPolicy(QoreObject *self, QoreAbstractQAbstractScrollArea *qasa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::ScrollBarPolicy scrollbarpolicy = (Qt::ScrollBarPolicy)(p ? p->getAsInt() : 0);
    qasa->getQAbstractScrollArea()->setHorizontalScrollBarPolicy(scrollbarpolicy);
    return 0;
@@ -162,8 +163,8 @@ static AbstractQoreNode *QABSTRACTSCROLLAREA_setHorizontalScrollBarPolicy(QoreOb
 //void setVerticalScrollBar ( QScrollBar * scrollBar )
 static AbstractQoreNode *QABSTRACTSCROLLAREA_setVerticalScrollBar(QoreObject *self, QoreAbstractQAbstractScrollArea *qasa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQScrollBar *scrollBar = (p && p->type == NT_OBJECT) ? (QoreQScrollBar *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSCROLLBAR, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQScrollBar *scrollBar = p ? (QoreQScrollBar *)p->getReferencedPrivateData(CID_QSCROLLBAR, xsink) : 0;
    if (!scrollBar) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTSCROLLAREA-SETVERTICALSCROLLBAR-PARAM-ERROR", "expecting a QScrollBar object as first argument to QAbstractScrollArea::setVerticalScrollBar()");
@@ -177,7 +178,7 @@ static AbstractQoreNode *QABSTRACTSCROLLAREA_setVerticalScrollBar(QoreObject *se
 //void setVerticalScrollBarPolicy ( Qt::ScrollBarPolicy )
 static AbstractQoreNode *QABSTRACTSCROLLAREA_setVerticalScrollBarPolicy(QoreObject *self, QoreAbstractQAbstractScrollArea *qasa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::ScrollBarPolicy scrollbarpolicy = (Qt::ScrollBarPolicy)(p ? p->getAsInt() : 0);
    qasa->getQAbstractScrollArea()->setVerticalScrollBarPolicy(scrollbarpolicy);
    return 0;
@@ -186,8 +187,8 @@ static AbstractQoreNode *QABSTRACTSCROLLAREA_setVerticalScrollBarPolicy(QoreObje
 //void setViewport ( QWidget * widget )
 static AbstractQoreNode *QABSTRACTSCROLLAREA_setViewport(QoreObject *self, QoreAbstractQAbstractScrollArea *qasa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *widget = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTSCROLLAREA-SETVIEWPORT-PARAM-ERROR", "expecting a QWidget object as first argument to QAbstractScrollArea::setViewport()");
@@ -241,8 +242,8 @@ static AbstractQoreNode *QABSTRACTSCROLLAREA_viewport(QoreObject *self, QoreAbst
 //void setupViewport ( QWidget * viewport )
 static AbstractQoreNode *QABSTRACTSCROLLAREA_setupViewport(QoreObject *self, QoreAbstractQAbstractScrollArea *qasa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *viewport = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *viewport = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!viewport) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTSCROLLAREA-SETUPVIEWPORT-PARAM-ERROR", "expecting a QWidget object as first argument to QAbstractScrollArea::setupViewport()");

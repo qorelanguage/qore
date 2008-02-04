@@ -34,7 +34,7 @@ void TIBRVSENDER_constructor(class QoreObject *self, const QoreListNode *params,
    tracein("TIBRVSENDER_constructor");
 
    const char *service = NULL, *network = NULL, *daemon = NULL, *desc = NULL;
-   QoreStringNode *pt = test_string_param(params, 0);
+   const QoreStringNode *pt = test_string_param(params, 0);
    if (pt)
       desc = pt->getBuffer();
    pt = test_string_param(params, 1);
@@ -64,14 +64,14 @@ void TIBRVSENDER_copy(class QoreObject *self, class QoreObject *old, class QoreT
 
 static AbstractQoreNode *TIBRVSENDER_sendSubject(class QoreObject *self, class QoreTibrvSender *trvs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *pt = test_string_param(params, 0);
+   const QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVSENDER-SENDSUBJECT-ERROR", "missing subject string as first parameter to method");
       return NULL;
    }
    const char *subject = pt->getBuffer();
-   QoreHashNode *h = test_hash_param(params, 1);
+   const QoreHashNode *h = test_hash_param(params, 1);
    if (!h)
    {
       xsink->raiseException("TIBRVSENDER-SENDSUBJECT-ERROR", "missing data hash as second parameter to method");
@@ -86,14 +86,14 @@ static AbstractQoreNode *TIBRVSENDER_sendSubject(class QoreObject *self, class Q
 
 static AbstractQoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class QoreObject *self, class QoreTibrvSender *trvs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *pt = test_string_param(params, 0);
+   const QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing subject string as first parameter to method");
       return NULL;
    }
    const char *subject = pt->getBuffer();
-   QoreHashNode *h = test_hash_param(params, 1);
+   const QoreHashNode *h = test_hash_param(params, 1);
    if (!h)
    {
       xsink->raiseException("TIBRVSENDER-SENDSUBJECTWITHSYNCREPLY-ERROR", "missing data hash as second parameter to method");
@@ -106,7 +106,7 @@ static AbstractQoreNode *TIBRVSENDER_sendSubjectWithSyncReply(class QoreObject *
 
 class AbstractQoreNode *TIBRVSENDER_setStringEncoding(class QoreObject *self, class QoreTibrvSender *trvs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *pt = test_string_param(params, 0);
+   const QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVSENDER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");

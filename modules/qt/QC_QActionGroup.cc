@@ -34,8 +34,8 @@ QoreClass *QC_QActionGroup = 0;
 
 static void QACTIONGROUP_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQObject *parent = p ? (QoreAbstractQObject *)p->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (!parent)
    {
       if (!xsink->isException())
@@ -77,14 +77,14 @@ static AbstractQoreNode *QACTIONGROUP_actions(QoreObject *self, QoreQActionGroup
 //QAction * addAction ( const QIcon & icon, const QString & text )
 static AbstractQoreNode *QACTIONGROUP_addAction(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQAction *action = (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink);
+      QoreQAction *action = (QoreQAction *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink);
       if (!action) {
-         QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
+         QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
          if (!icon) {
             if (!xsink->isException())
-               xsink->raiseException("QACTIONGROUP-ADDACTION-PARAM-ERROR", "QActionGroup::addAction() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QACTIONGROUP-ADDACTION-PARAM-ERROR", "QActionGroup::addAction() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
             return 0;
          }
          ReferenceHolder<QoreQIcon> iconHolder(icon, xsink);
@@ -148,8 +148,8 @@ static AbstractQoreNode *QACTIONGROUP_isVisible(QoreObject *self, QoreQActionGro
 //void removeAction ( QAction * action )
 static AbstractQoreNode *QACTIONGROUP_removeAction(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQAction *action = p ? (QoreQAction *)p->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QACTIONGROUP-REMOVEACTION-PARAM-ERROR", "expecting a QAction object as first argument to QActionGroup::removeAction()");
@@ -164,7 +164,7 @@ static AbstractQoreNode *QACTIONGROUP_removeAction(QoreObject *self, QoreQAction
 //void setDisabled ( bool b )
 static AbstractQoreNode *QACTIONGROUP_setDisabled(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qag->qobj->setDisabled(b);
    return 0;
@@ -173,7 +173,7 @@ static AbstractQoreNode *QACTIONGROUP_setDisabled(QoreObject *self, QoreQActionG
 //void setEnabled ( bool )
 static AbstractQoreNode *QACTIONGROUP_setEnabled(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qag->qobj->setEnabled(b);
    return 0;
@@ -182,7 +182,7 @@ static AbstractQoreNode *QACTIONGROUP_setEnabled(QoreObject *self, QoreQActionGr
 //void setExclusive ( bool )
 static AbstractQoreNode *QACTIONGROUP_setExclusive(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qag->qobj->setExclusive(b);
    return 0;
@@ -191,7 +191,7 @@ static AbstractQoreNode *QACTIONGROUP_setExclusive(QoreObject *self, QoreQAction
 //void setVisible ( bool )
 static AbstractQoreNode *QACTIONGROUP_setVisible(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qag->qobj->setVisible(b);
    return 0;

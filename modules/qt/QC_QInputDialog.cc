@@ -33,15 +33,16 @@ class QoreClass *QC_QInputDialog = 0;
 //double getDouble ( QWidget * parent, const QString & title, const QString & label, double value = 0, double minValue = -2147483647, double maxValue = 2147483647, int decimals = 1, bool * ok = 0, Qt::WindowFlags f = 0 )
 static AbstractQoreNode *f_QInputDialog_getDouble(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QINPUTDIALOG-GETDOUBLE-PARAM-ERROR", "expecting a QWidget object as first argument to QInputDialog::getDouble()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
@@ -58,7 +59,7 @@ static AbstractQoreNode *f_QInputDialog_getDouble(const QoreListNode *params, Ex
    p = get_param(params, 6);
    int decimals = !is_nothing(p) ? p->getAsInt() : 1;
 
-   ReferenceNode *pr = test_reference_param(params, 7);
+   const ReferenceNode *pr = test_reference_param(params, 7);
 
    p = get_param(params, 8);
    Qt::WindowFlags f = (Qt::WindowFlags)(!is_nothing(p) ? p->getAsInt() : 0);
@@ -83,32 +84,38 @@ static AbstractQoreNode *f_QInputDialog_getDouble(const QoreListNode *params, Ex
 //int getInteger ( QWidget * parent, const QString & title, const QString & label, int value = 0, int minValue = -2147483647, int maxValue = 2147483647, int step = 1, bool * ok = 0, Qt::WindowFlags f = 0 )
 static AbstractQoreNode *f_QInputDialog_getInteger(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QINPUTDIALOG-GETINTEGER-PARAM-ERROR", "expecting a QWidget object as first argument to QInputDialog::getInteger()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
+
    p = get_param(params, 2);
    QString label;
    if (get_qstring(p, label, xsink))
       return 0;
+
    p = get_param(params, 3);
    int value = !is_nothing(p) ? p->getAsInt() : 0;
+
    p = get_param(params, 4);
    int minValue = !is_nothing(p) ? p->getAsInt() : -2147483647;
+
    p = get_param(params, 5);
    int maxValue = !is_nothing(p) ? p->getAsInt() : 2147483647;
+
    p = get_param(params, 6);
    int step = !is_nothing(p) ? p->getAsInt() : 1;
 
-   ReferenceNode *pr = test_reference_param(params, 7);
+   const ReferenceNode *pr = test_reference_param(params, 7);
 
    p = get_param(params, 8);
    Qt::WindowFlags f = (Qt::WindowFlags)(!is_nothing(p) ? p->getAsInt() : 0);
@@ -133,29 +140,31 @@ static AbstractQoreNode *f_QInputDialog_getInteger(const QoreListNode *params, E
 //QString getItem ( QWidget * parent, const QString & title, const QString & label, const QStringList & list, int current = 0, bool editable = true, bool * ok = 0, Qt::WindowFlags f = 0 )
 static AbstractQoreNode *f_QInputDialog_getItem(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QINPUTDIALOG-GETITEM-PARAM-ERROR", "expecting a QWidget object as first argument to QInputDialog::getItem()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
+
    p = get_param(params, 2);
    QString label;
    if (get_qstring(p, label, xsink))
       return 0;
-   QoreListNode *l = test_list_param(params, 3);
+   const QoreListNode *l = test_list_param(params, 3);
    if (!l) {
       xsink->raiseException("QINPUTDIALOG-GETITEM-PARAM-ERROR", "expecting a list as fourth argument to QInputDialog::getItem()");
       return 0;
    }
    QStringList list;
-   ListIterator li_list(l);
+   ConstListIterator li_list(l);
    while (li_list.next())
    {
       QoreStringNodeValueHelper str(li_list.getValue());
@@ -164,12 +173,14 @@ static AbstractQoreNode *f_QInputDialog_getItem(const QoreListNode *params, Exce
          return 0;
       list.push_back(tmp);
    }
+
    p = get_param(params, 4);
    int current = !is_nothing(p) ? p->getAsInt() : 0;
+
    p = get_param(params, 5);
    bool editable = !is_nothing(p) ? p->getAsBool() : true;
 
-   ReferenceNode *pr = test_reference_param(params, 6);
+   const ReferenceNode *pr = test_reference_param(params, 6);
 
    p = get_param(params, 7);
    Qt::WindowFlags f = (Qt::WindowFlags)(!is_nothing(p) ? p->getAsInt() : 0);
@@ -194,22 +205,25 @@ static AbstractQoreNode *f_QInputDialog_getItem(const QoreListNode *params, Exce
 //QString getText ( QWidget * parent, const QString & title, const QString & label, QLineEdit::EchoMode mode = QLineEdit::Normal, const QString & text = QString(), bool * ok = 0, Qt::WindowFlags f = 0 )
 static AbstractQoreNode *f_QInputDialog_getText(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent) {
       if (!xsink->isException())
          xsink->raiseException("QINPUTDIALOG-GETTEXT-PARAM-ERROR", "expecting a QWidget object as first argument to QInputDialog::getText()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    QString title;
    if (get_qstring(p, title, xsink))
       return 0;
+
    p = get_param(params, 2);
    QString label;
    if (get_qstring(p, label, xsink))
       return 0;
+
    p = get_param(params, 3);
    QLineEdit::EchoMode mode = !is_nothing(p) ? (QLineEdit::EchoMode)p->getAsInt() : QLineEdit::Normal;
    p = get_param(params, 4);
@@ -217,7 +231,7 @@ static AbstractQoreNode *f_QInputDialog_getText(const QoreListNode *params, Exce
    if (get_qstring(p, text, xsink, true))
       text = QString();
 
-   ReferenceNode *pr = test_reference_param(params, 5);
+   const ReferenceNode *pr = test_reference_param(params, 5);
 
    p = get_param(params, 6);
    Qt::WindowFlags f = (Qt::WindowFlags)(!is_nothing(p) ? p->getAsInt() : 0);

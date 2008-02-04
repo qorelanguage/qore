@@ -33,7 +33,7 @@ class QoreClass *QC_QPrinter = 0;
 //QPrinter ( PrinterMode mode = ScreenResolution )
 static void QPRINTER_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPrinter::PrinterMode mode = !is_nothing(p) ? (QPrinter::PrinterMode)p->getAsInt() : QPrinter::ScreenResolution;
    self->setPrivate(CID_QPRINTER, new QoreQPrinter(mode));
    return;
@@ -215,7 +215,7 @@ static AbstractQoreNode *QPRINTER_resolution(QoreObject *self, QoreQPrinter *qp,
 //void setCollateCopies ( bool collate )
 static AbstractQoreNode *QPRINTER_setCollateCopies(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool collate = p ? p->getAsBool() : false;
    qp->setCollateCopies(collate);
    return 0;
@@ -224,7 +224,7 @@ static AbstractQoreNode *QPRINTER_setCollateCopies(QoreObject *self, QoreQPrinte
 //void setColorMode ( ColorMode newColorMode )
 static AbstractQoreNode *QPRINTER_setColorMode(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPrinter::ColorMode newColorMode = (QPrinter::ColorMode)(p ? p->getAsInt() : 0);
    qp->setColorMode(newColorMode);
    return 0;
@@ -233,7 +233,7 @@ static AbstractQoreNode *QPRINTER_setColorMode(QoreObject *self, QoreQPrinter *q
 //void setCreator ( const QString & creator )
 static AbstractQoreNode *QPRINTER_setCreator(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString creator;
    if (get_qstring(p, creator, xsink))
       return 0;
@@ -244,7 +244,7 @@ static AbstractQoreNode *QPRINTER_setCreator(QoreObject *self, QoreQPrinter *qp,
 //void setDocName ( const QString & name )
 static AbstractQoreNode *QPRINTER_setDocName(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString name;
    if (get_qstring(p, name, xsink))
       return 0;
@@ -255,7 +255,7 @@ static AbstractQoreNode *QPRINTER_setDocName(QoreObject *self, QoreQPrinter *qp,
 //void setDoubleSidedPrinting ( bool doubleSided )
 static AbstractQoreNode *QPRINTER_setDoubleSidedPrinting(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool doubleSided = p ? p->getAsBool() : false;
    qp->setDoubleSidedPrinting(doubleSided);
    return 0;
@@ -264,7 +264,7 @@ static AbstractQoreNode *QPRINTER_setDoubleSidedPrinting(QoreObject *self, QoreQ
 //void setFontEmbeddingEnabled ( bool enable )
 static AbstractQoreNode *QPRINTER_setFontEmbeddingEnabled(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qp->setFontEmbeddingEnabled(enable);
    return 0;
@@ -273,7 +273,7 @@ static AbstractQoreNode *QPRINTER_setFontEmbeddingEnabled(QoreObject *self, Qore
 //void setFromTo ( int from, int to )
 static AbstractQoreNode *QPRINTER_setFromTo(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int from = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int to = p ? p->getAsInt() : 0;
@@ -284,7 +284,7 @@ static AbstractQoreNode *QPRINTER_setFromTo(QoreObject *self, QoreQPrinter *qp, 
 //void setFullPage ( bool fp )
 static AbstractQoreNode *QPRINTER_setFullPage(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool fp = p ? p->getAsBool() : false;
    qp->setFullPage(fp);
    return 0;
@@ -293,7 +293,7 @@ static AbstractQoreNode *QPRINTER_setFullPage(QoreObject *self, QoreQPrinter *qp
 //void setNumCopies ( int numCopies )
 static AbstractQoreNode *QPRINTER_setNumCopies(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int numCopies = p ? p->getAsInt() : 0;
    qp->setNumCopies(numCopies);
    return 0;
@@ -302,7 +302,7 @@ static AbstractQoreNode *QPRINTER_setNumCopies(QoreObject *self, QoreQPrinter *q
 //void setOrientation ( Orientation orientation )
 static AbstractQoreNode *QPRINTER_setOrientation(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPrinter::Orientation orientation = (QPrinter::Orientation)(p ? p->getAsInt() : 0);
    qp->setOrientation(orientation);
    return 0;
@@ -311,7 +311,7 @@ static AbstractQoreNode *QPRINTER_setOrientation(QoreObject *self, QoreQPrinter 
 //void setOutputFileName ( const QString & fileName )
 static AbstractQoreNode *QPRINTER_setOutputFileName(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString fileName;
    if (get_qstring(p, fileName, xsink))
       return 0;
@@ -322,7 +322,7 @@ static AbstractQoreNode *QPRINTER_setOutputFileName(QoreObject *self, QoreQPrint
 //void setOutputFormat ( OutputFormat format )
 static AbstractQoreNode *QPRINTER_setOutputFormat(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPrinter::OutputFormat format = (QPrinter::OutputFormat)(p ? p->getAsInt() : 0);
    qp->setOutputFormat(format);
    return 0;
@@ -331,7 +331,7 @@ static AbstractQoreNode *QPRINTER_setOutputFormat(QoreObject *self, QoreQPrinter
 //void setPageOrder ( PageOrder pageOrder )
 static AbstractQoreNode *QPRINTER_setPageOrder(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPrinter::PageOrder pageOrder = (QPrinter::PageOrder)(p ? p->getAsInt() : 0);
    qp->setPageOrder(pageOrder);
    return 0;
@@ -340,7 +340,7 @@ static AbstractQoreNode *QPRINTER_setPageOrder(QoreObject *self, QoreQPrinter *q
 //void setPageSize ( PageSize newPageSize )
 static AbstractQoreNode *QPRINTER_setPageSize(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPrinter::PageSize newPageSize = (QPrinter::PageSize)(p ? p->getAsInt() : 0);
    qp->setPageSize(newPageSize);
    return 0;
@@ -349,7 +349,7 @@ static AbstractQoreNode *QPRINTER_setPageSize(QoreObject *self, QoreQPrinter *qp
 //void setPaperSource ( PaperSource source )
 static AbstractQoreNode *QPRINTER_setPaperSource(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPrinter::PaperSource source = (QPrinter::PaperSource)(p ? p->getAsInt() : 0);
    qp->setPaperSource(source);
    return 0;
@@ -358,7 +358,7 @@ static AbstractQoreNode *QPRINTER_setPaperSource(QoreObject *self, QoreQPrinter 
 //void setPrintProgram ( const QString & printProg )
 static AbstractQoreNode *QPRINTER_setPrintProgram(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString printProg;
    if (get_qstring(p, printProg, xsink))
       return 0;
@@ -369,7 +369,7 @@ static AbstractQoreNode *QPRINTER_setPrintProgram(QoreObject *self, QoreQPrinter
 //void setPrintRange ( PrintRange range )
 static AbstractQoreNode *QPRINTER_setPrintRange(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QPrinter::PrintRange range = (QPrinter::PrintRange)(p ? p->getAsInt() : 0);
    qp->setPrintRange(range);
    return 0;
@@ -378,7 +378,7 @@ static AbstractQoreNode *QPRINTER_setPrintRange(QoreObject *self, QoreQPrinter *
 //void setPrinterName ( const QString & name )
 static AbstractQoreNode *QPRINTER_setPrinterName(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString name;
    if (get_qstring(p, name, xsink))
       return 0;
@@ -389,7 +389,7 @@ static AbstractQoreNode *QPRINTER_setPrinterName(QoreObject *self, QoreQPrinter 
 //void setPrinterSelectionOption ( const QString & option )
 static AbstractQoreNode *QPRINTER_setPrinterSelectionOption(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString option;
    if (get_qstring(p, option, xsink))
       return 0;
@@ -400,7 +400,7 @@ static AbstractQoreNode *QPRINTER_setPrinterSelectionOption(QoreObject *self, Qo
 //void setResolution ( int dpi )
 static AbstractQoreNode *QPRINTER_setResolution(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int dpi = p ? p->getAsInt() : 0;
    qp->setResolution(dpi);
    return 0;
@@ -410,7 +410,7 @@ static AbstractQoreNode *QPRINTER_setResolution(QoreObject *self, QoreQPrinter *
 //void setWinPageSize ( int pageSize )
 static AbstractQoreNode *QPRINTER_setWinPageSize(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int pageSize = p ? p->getAsInt() : 0;
    qp->setWinPageSize(pageSize);
    return 0;

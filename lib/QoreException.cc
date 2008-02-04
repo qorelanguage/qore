@@ -461,9 +461,9 @@ QoreException::QoreException(class QoreException *old, ExceptionSink *xsink) : p
 
    priv->next = old->priv->next ? new QoreException(old->priv->next, xsink) : NULL;
 
-   priv->err = old->priv->err ? old->priv->err->RefSelf() : NULL;
-   priv->desc = old->priv->desc ? old->priv->desc->RefSelf() : NULL;
-   priv->arg = old->priv->arg ? old->priv->arg->RefSelf() : NULL;
+   priv->err = old->priv->err ? old->priv->err->refSelf() : NULL;
+   priv->desc = old->priv->desc ? old->priv->desc->refSelf() : NULL;
+   priv->arg = old->priv->arg ? old->priv->arg->refSelf() : NULL;
 }
 
 QoreHashNode *QoreException::makeExceptionObject()
@@ -476,14 +476,14 @@ QoreHashNode *QoreException::makeExceptionObject()
    h->setKeyValue("file", new QoreStringNode(priv->file), NULL);
    h->setKeyValue("line", new QoreBigIntNode(priv->start_line), NULL);
    h->setKeyValue("endline", new QoreBigIntNode(priv->end_line), NULL);
-   h->setKeyValue("callstack", priv->callStack->RefSelf(), NULL);
+   h->setKeyValue("callstack", priv->callStack->refSelf(), NULL);
 
    if (priv->err)
-      h->setKeyValue("err", priv->err->RefSelf(), NULL);
+      h->setKeyValue("err", priv->err->refSelf(), NULL);
    if (priv->desc)
-      h->setKeyValue("desc", priv->desc->RefSelf(), NULL);
+      h->setKeyValue("desc", priv->desc->refSelf(), NULL);
    if (priv->arg)
-      h->setKeyValue("arg", priv->arg->RefSelf(), NULL);
+      h->setKeyValue("arg", priv->arg->refSelf(), NULL);
 
    // add chained exceptions with this "chain reaction" call
    if (priv->next)

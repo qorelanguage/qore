@@ -42,7 +42,7 @@ static AbstractQoreNode *QLAYOUT_activate(QoreObject *self, QoreAbstractQLayout 
 ////virtual void addItem ( QLayoutItem * item ) = 0
 //static AbstractQoreNode *QLAYOUT_addItem(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QLayoutItem* item = p;
 //   ql->getQLayout()->addItem(item);
 //   return 0;
@@ -51,8 +51,8 @@ static AbstractQoreNode *QLAYOUT_activate(QoreObject *self, QoreAbstractQLayout 
 //void addWidget ( QWidget * w )
 static AbstractQoreNode *QLAYOUT_addWidget(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *w = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQWidget *w = p ? (QoreAbstractQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!w) {
       if (!xsink->isException())
          xsink->raiseException("QLAYOUT-ADDWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QLayout::addWidget()");
@@ -87,7 +87,7 @@ static AbstractQoreNode *QLAYOUT_expandingDirections(QoreObject *self, QoreAbstr
 ////void getContentsMargins ( int * left, int * top, int * right, int * bottom ) const
 //static AbstractQoreNode *QLAYOUT_getContentsMargins(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? int* left = p;
 //   p = get_param(params, 1);
 //   ??? int* top = p;
@@ -102,8 +102,8 @@ static AbstractQoreNode *QLAYOUT_expandingDirections(QoreObject *self, QoreAbstr
 //virtual int indexOf ( QWidget * widget ) const
 static AbstractQoreNode *QLAYOUT_indexOf(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQWidget *widget = p ? (QoreAbstractQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QLAYOUT-INDEXOF-PARAM-ERROR", "expecting a QWidget object as first argument to QLayout::indexOf()");
@@ -122,7 +122,7 @@ static AbstractQoreNode *QLAYOUT_isEnabled(QoreObject *self, QoreAbstractQLayout
 ////virtual QLayoutItem * itemAt ( int index ) const = 0
 //static AbstractQoreNode *QLAYOUT_itemAt(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   int index = p ? p->getAsInt() : 0;
 //   ??? return ql->getQLayout()->itemAt(index);
 //}
@@ -160,7 +160,7 @@ static AbstractQoreNode *QLAYOUT_minimumSize(QoreObject *self, QoreAbstractQLayo
 ////void removeItem ( QLayoutItem * item )
 //static AbstractQoreNode *QLAYOUT_removeItem(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QLayoutItem* item = p;
 //   ql->getQLayout()->removeItem(item);
 //   return 0;
@@ -169,8 +169,8 @@ static AbstractQoreNode *QLAYOUT_minimumSize(QoreObject *self, QoreAbstractQLayo
 //void removeWidget ( QWidget * widget )
 static AbstractQoreNode *QLAYOUT_removeWidget(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQWidget *widget = p ? (QoreAbstractQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QLAYOUT-REMOVEWIDGET-PARAM-ERROR", "expecting a QWidget object as first argument to QLayout::removeWidget()");
@@ -185,22 +185,22 @@ static AbstractQoreNode *QLAYOUT_removeWidget(QoreObject *self, QoreAbstractQLay
 //bool setAlignment ( QLayout * l, Qt::Alignment alignment )
 static AbstractQoreNode *QLAYOUT_setAlignment(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQLayout *l = p ? (QoreAbstractQLayout *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreAbstractQLayout *l = o ? (QoreAbstractQLayout *)o->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
    if (!l) {
-      QoreAbstractQWidget *w = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      QoreAbstractQWidget *w = o ? (QoreAbstractQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!w) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QLAYOUT-SETALIGNMENT-PARAM-ERROR", "QLayout::setAlignment() expecting a QWidget or QLayout as first argument");
 	 return 0;
       }
       ReferenceHolder<QoreAbstractQWidget> wHolder(w, xsink);
-      p = get_param(params, 1);
+      const AbstractQoreNode *p = get_param(params, 1);
       Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
       return new QoreBoolNode(ql->getQLayout()->setAlignment(w->getQWidget(), alignment));
    }
    ReferenceHolder<QoreAbstractQLayout> lHolder(l, xsink);
-   p = get_param(params, 1);
+   const AbstractQoreNode *p = get_param(params, 1);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(ql->getQLayout()->setAlignment(l->getQLayout(), alignment));
 }
@@ -208,7 +208,7 @@ static AbstractQoreNode *QLAYOUT_setAlignment(QoreObject *self, QoreAbstractQLay
 //void setContentsMargins ( int left, int top, int right, int bottom )
 static AbstractQoreNode *QLAYOUT_setContentsMargins(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int left = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int top = p ? p->getAsInt() : 0;
@@ -223,7 +223,7 @@ static AbstractQoreNode *QLAYOUT_setContentsMargins(QoreObject *self, QoreAbstra
 //void setEnabled ( bool enable )
 static AbstractQoreNode *QLAYOUT_setEnabled(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    ql->getQLayout()->setEnabled(enable);
    return 0;
@@ -232,8 +232,8 @@ static AbstractQoreNode *QLAYOUT_setEnabled(QoreObject *self, QoreAbstractQLayou
 //void setMenuBar ( QWidget * widget )
 static AbstractQoreNode *QLAYOUT_setMenuBar(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQWidget *widget = p ? (QoreAbstractQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QLAYOUT-SETMENUBAR-PARAM-ERROR", "expecting a QWidget object as first argument to QLayout::setMenuBar()");
@@ -247,7 +247,7 @@ static AbstractQoreNode *QLAYOUT_setMenuBar(QoreObject *self, QoreAbstractQLayou
 //void setSizeConstraint ( SizeConstraint )
 static AbstractQoreNode *QLAYOUT_setSizeConstraint(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QLayout::SizeConstraint sizeconstraint = (QLayout::SizeConstraint)(p ? p->getAsInt() : 0);
    ql->getQLayout()->setSizeConstraint(sizeconstraint);
    return 0;
@@ -256,7 +256,7 @@ static AbstractQoreNode *QLAYOUT_setSizeConstraint(QoreObject *self, QoreAbstrac
 //void setSpacing ( int )
 static AbstractQoreNode *QLAYOUT_setSpacing(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    ql->getQLayout()->setSpacing(x);
    return 0;
@@ -277,7 +277,7 @@ static AbstractQoreNode *QLAYOUT_spacing(QoreObject *self, QoreAbstractQLayout *
 ////virtual QLayoutItem * takeAt ( int index ) = 0
 //static AbstractQoreNode *QLAYOUT_takeAt(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   int index = p ? p->getAsInt() : 0;
 //   ??? return ql->getQLayout()->takeAt(index);
 //}
@@ -292,7 +292,7 @@ static AbstractQoreNode *QLAYOUT_update(QoreObject *self, QoreAbstractQLayout *q
 //void setMargin (int);
 static AbstractQoreNode *QLAYOUT_setMargin(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int margin = p ? p->getAsInt() : 0;
    ql->getQLayout()->setMargin(margin);
 

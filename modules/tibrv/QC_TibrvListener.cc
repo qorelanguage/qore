@@ -33,7 +33,7 @@ void TIBRVLISTENER_constructor(class QoreObject *self, const QoreListNode *param
 {
    tracein("TIBRVLISTENER_constructor");
 
-   class QoreStringNode *pt = test_string_param(params, 0);
+   const QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVLISTENER-CONSTRUCTOR-ERROR", "missing subject string");
@@ -97,7 +97,7 @@ static AbstractQoreNode *TIBRVLISTENER_createInboxName(class QoreObject *self, c
 
 class AbstractQoreNode *TIBRVLISTENER_setStringEncoding(class QoreObject *self, class QoreTibrvListener *trvl, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *pt = test_string_param(params, 0);
+   const QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVLISTENER-SETSTRINGENCODING-ERROR", "missing string encoding as first parameter to method");

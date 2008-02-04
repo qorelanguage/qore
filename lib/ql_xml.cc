@@ -271,7 +271,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
       if (ls) {
 	 for (int j = 0; j < ls; j++)
 	 {
-	    AbstractQoreNode *v = l->retrieve_entry(j);
+	    const AbstractQoreNode *v = l->retrieve_entry(j);
 	    // indent all but first entry if necessary
 	    if (j && format)
 	    {
@@ -300,7 +300,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
       // inc = ignore node counter, see if special keys exists and increment counter even if they have no value
       int inc = 0;
       int vn = 0;
-      AbstractQoreNode *value = h->getKeyValueExistence("^value^");
+      const AbstractQoreNode *value = h->getKeyValueExistence("^value^");
       if (value == (AbstractQoreNode *)-1)
 	 value = NULL;
       else
@@ -325,7 +325,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
 	 }
       }
       
-      AbstractQoreNode *attrib = h->getKeyValueExistence("^attributes^");
+      const AbstractQoreNode *attrib = h->getKeyValueExistence("^attributes^");
       if (attrib == (AbstractQoreNode *)-1)
 	 attrib = NULL;
       else
@@ -341,9 +341,9 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
 	 {
 	    const char *key = hi.getKey();
 	    str->sprintf(" %s=\"", key);
-	    AbstractQoreNode *v = hi.getValue();
+	    const AbstractQoreNode *v = hi.getValue();
 	    if (v) {
-	       QoreStringNode *qsn = dynamic_cast<QoreStringNode *>(v);
+	       const QoreStringNode *qsn = dynamic_cast<const QoreStringNode *>(v);
 	       if (qsn) 
 		  str->concatAndHTMLEncode(qsn, xsink);
 	       else { // convert to string and add
@@ -485,7 +485,7 @@ static void makeXMLString(QoreString *str, const QoreHash *h, int indent, const 
 // usage: makeXMLString(string (top-level-element), object [, encoding])
 static AbstractQoreNode *f_makeXMLString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreHashNode *pobj;
+   const QoreHashNode *pobj;
    int i;
    const QoreEncoding *ccs;
    const QoreStringNode *pstr;
@@ -535,7 +535,7 @@ static AbstractQoreNode *f_makeXMLString(const QoreListNode *params, ExceptionSi
 // usage: makeFormattedXMLString(string (top-level-element), object [, encoding])
 static AbstractQoreNode *f_makeFormattedXMLString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreHashNode *pobj;
+   const QoreHashNode *pobj;
    int i;
    const QoreStringNode *pstr;
 
@@ -582,7 +582,7 @@ static AbstractQoreNode *f_makeFormattedXMLString(const QoreListNode *params, Ex
 
 static AbstractQoreNode *f_makeXMLFragment(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreHashNode *pobj;
+   const QoreHashNode *pobj;
 
    tracein("f_makeXMLFragment()");
    pobj = test_hash_param(params, 0);
@@ -606,9 +606,7 @@ static AbstractQoreNode *f_makeFormattedXMLFragment(const QoreListNode *params, 
 {
    tracein("f_makeFormattedXMLFragment()");
 
-   QoreHashNode *pobj;
-
-   pobj = test_hash_param(params, 0);
+   const QoreHashNode *pobj = test_hash_param(params, 0);
    if (!pobj)
       return NULL;
 
@@ -669,7 +667,7 @@ static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHash *h, 
 
       str->concat("</name>");
       if (format) str->concat('\n');
-      AbstractQoreNode *val = hi.getValue();
+      const AbstractQoreNode *val = hi.getValue();
       addXMLRPCValue(str, val, indent + 4, ccs, format, xsink);
       // indent
       if (format)

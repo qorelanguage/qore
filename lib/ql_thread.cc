@@ -56,7 +56,7 @@ AbstractQoreNode *f_save_thread_data(const QoreListNode *params, ExceptionSink *
    {
       const AbstractQoreNode *p1 = get_param(params, 1);
 
-      data->setKeyValue(reinterpret_cast<const QoreStringNode *>(p0), p1 ? p1->RefSelf() : 0, xsink);
+      data->setKeyValue(reinterpret_cast<const QoreStringNode *>(p0), p1 ? p1->refSelf() : 0, xsink);
    }
 
    return NULL;
@@ -102,7 +102,7 @@ AbstractQoreNode *f_get_thread_data(const QoreListNode *params, ExceptionSink *x
       return NULL;
    QoreHash *data = getProgram()->getThreadData();
    AbstractQoreNode *v = data->getKeyValue(p0->getBuffer());
-   return v ? v->RefSelf() : 0;
+   return v ? v->refSelf() : 0;
 }
 
 AbstractQoreNode *f_get_all_thread_data(const QoreListNode *params, ExceptionSink *xsink)

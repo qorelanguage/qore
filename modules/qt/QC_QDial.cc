@@ -34,8 +34,8 @@ class QoreClass *QC_QDial = 0;
 //QDial ( QWidget * parent = 0 )
 static void QDIAL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *parent = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -69,7 +69,7 @@ static AbstractQoreNode *QDIAL_notchesVisible(QoreObject *self, QoreQDial *qd, c
 //void setNotchTarget ( double target )
 static AbstractQoreNode *QDIAL_setNotchTarget(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    double target = p ? p->getAsFloat() : 0.0;
    qd->qobj->setNotchTarget(target);
    return 0;
@@ -84,7 +84,7 @@ static AbstractQoreNode *QDIAL_wrapping(QoreObject *self, QoreQDial *qd, const Q
 //void setNotchesVisible ( bool visible )
 static AbstractQoreNode *QDIAL_setNotchesVisible(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool visible = p ? p->getAsBool() : false;
    qd->qobj->setNotchesVisible(visible);
    return 0;
@@ -93,7 +93,7 @@ static AbstractQoreNode *QDIAL_setNotchesVisible(QoreObject *self, QoreQDial *qd
 //void setWrapping ( bool on )
 static AbstractQoreNode *QDIAL_setWrapping(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
    qd->qobj->setWrapping(on);
    return 0;
@@ -102,8 +102,8 @@ static AbstractQoreNode *QDIAL_setWrapping(QoreObject *self, QoreQDial *qd, cons
 //void initStyleOption ( QStyleOptionSlider * option ) const
 static AbstractQoreNode *QDIAL_initStyleOption(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQStyleOptionSlider *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionSlider *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONSLIDER, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQStyleOptionSlider *option = p ? (QoreQStyleOptionSlider *)p->getReferencedPrivateData(CID_QSTYLEOPTIONSLIDER, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QDIAL-INITSTYLEOPTION-PARAM-ERROR", "expecting a QStyleOptionSlider object as first argument to QDial::initStyleOption()");

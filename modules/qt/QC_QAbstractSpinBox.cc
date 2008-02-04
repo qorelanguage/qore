@@ -60,7 +60,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_correctionMode(QoreObject *self, QoreA
 //virtual void fixup ( QString & input ) const
 //static AbstractQoreNode *QABSTRACTSPINBOX_fixup(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   QString input;
 //   if (get_qstring(p, input, xsink))
 //      return 0;
@@ -109,7 +109,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_keyboardTracking(QoreObject *self, Qor
 //void setAccelerated ( bool on )
 static AbstractQoreNode *QABSTRACTSPINBOX_setAccelerated(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
    qasb->getQAbstractSpinBox()->setAccelerated(on);
    return 0;
@@ -118,7 +118,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_setAccelerated(QoreObject *self, QoreA
 //void setAlignment ( Qt::Alignment flag )
 static AbstractQoreNode *QABSTRACTSPINBOX_setAlignment(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Alignment flag = (Qt::Alignment)(p ? p->getAsInt() : 0);
    qasb->getQAbstractSpinBox()->setAlignment(flag);
    return 0;
@@ -127,7 +127,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_setAlignment(QoreObject *self, QoreAbs
 //void setButtonSymbols ( ButtonSymbols bs )
 static AbstractQoreNode *QABSTRACTSPINBOX_setButtonSymbols(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QAbstractSpinBox::ButtonSymbols bs = (QAbstractSpinBox::ButtonSymbols)(p ? p->getAsInt() : 0);
    qasb->getQAbstractSpinBox()->setButtonSymbols(bs);
    return 0;
@@ -136,7 +136,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_setButtonSymbols(QoreObject *self, Qor
 //void setCorrectionMode ( CorrectionMode cm )
 static AbstractQoreNode *QABSTRACTSPINBOX_setCorrectionMode(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QAbstractSpinBox::CorrectionMode cm = (QAbstractSpinBox::CorrectionMode)(p ? p->getAsInt() : 0);
    qasb->getQAbstractSpinBox()->setCorrectionMode(cm);
    return 0;
@@ -145,7 +145,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_setCorrectionMode(QoreObject *self, Qo
 //void setFrame ( bool )
 static AbstractQoreNode *QABSTRACTSPINBOX_setFrame(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qasb->getQAbstractSpinBox()->setFrame(b);
    return 0;
@@ -154,7 +154,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_setFrame(QoreObject *self, QoreAbstrac
 //void setKeyboardTracking ( bool kt )
 static AbstractQoreNode *QABSTRACTSPINBOX_setKeyboardTracking(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool kt = p ? p->getAsBool() : false;
    qasb->getQAbstractSpinBox()->setKeyboardTracking(kt);
    return 0;
@@ -163,7 +163,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_setKeyboardTracking(QoreObject *self, 
 //void setReadOnly ( bool r )
 static AbstractQoreNode *QABSTRACTSPINBOX_setReadOnly(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool r = p ? p->getAsBool() : false;
    qasb->getQAbstractSpinBox()->setReadOnly(r);
    return 0;
@@ -172,7 +172,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_setReadOnly(QoreObject *self, QoreAbst
 //void setSpecialValueText ( const QString & txt )
 static AbstractQoreNode *QABSTRACTSPINBOX_setSpecialValueText(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString txt;
 
    if (get_qstring(p, txt, xsink))
@@ -185,7 +185,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_setSpecialValueText(QoreObject *self, 
 //void setWrapping ( bool w )
 static AbstractQoreNode *QABSTRACTSPINBOX_setWrapping(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool w = p ? p->getAsBool() : false;
    qasb->getQAbstractSpinBox()->setWrapping(w);
    return 0;
@@ -200,7 +200,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_specialValueText(QoreObject *self, Qor
 //virtual void stepBy ( int steps )
 static AbstractQoreNode *QABSTRACTSPINBOX_stepBy(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int steps = p ? p->getAsInt() : 0;
    qasb->getQAbstractSpinBox()->stepBy(steps);
    return 0;
@@ -215,13 +215,13 @@ static AbstractQoreNode *QABSTRACTSPINBOX_text(QoreObject *self, QoreAbstractQAb
 //virtual QValidator::State validate ( QString & input, int & pos ) const
 //static AbstractQoreNode *QABSTRACTSPINBOX_validate(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//  QoreStringNode *p = test_string_param(params, 0);
+//  const QoreStringNode *p = test_string_param(params, 0);
 //   if (!p) {
 //      xsink->raiseException("QABSTRACTSPINBOX-VALIDATE-PARAM-ERROR", "expecting a string as first argument to QAbstractSpinBox::validate()");
 //      return 0;
 //   }
 //   const char *input = p->getBuffer();
-//   AbstractQoreNode *p2 = get_param(params, 1);
+//   const AbstractQoreNode *p2 = get_param(params, 1);
 //   int pos = p2 ? p2->getAsInt() : 0;
 //   return new QoreBigIntNode(qasb->getQAbstractSpinBox()->validate(input, pos));
 //}

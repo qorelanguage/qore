@@ -35,16 +35,16 @@ class QoreClass *QC_QPointF = 0;
 //QPointF ( qreal x, qreal y )
 static void QPOINTF_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QPOINTF, new QoreQPointF());
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())
-            xsink->raiseException("QPOINTF-QPOINTF-PARAM-ERROR", "QPointF::QPointF() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QPOINTF-QPOINTF-PARAM-ERROR", "QPointF::QPointF() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return;
       }
       ReferenceHolder<QoreQPoint> pointHolder(point, xsink);
@@ -85,7 +85,7 @@ static AbstractQoreNode *QPOINTF_isNull(QoreObject *self, QoreQPointF *qpf, cons
 //void setX ( qreal x )
 static AbstractQoreNode *QPOINTF_setX(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal x = p ? p->getAsFloat() : 0.0;
    qpf->setX(x);
    return 0;
@@ -94,7 +94,7 @@ static AbstractQoreNode *QPOINTF_setX(QoreObject *self, QoreQPointF *qpf, const 
 //void setY ( qreal y )
 static AbstractQoreNode *QPOINTF_setY(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal y = p ? p->getAsFloat() : 0.0;
    qpf->setY(y);
    return 0;

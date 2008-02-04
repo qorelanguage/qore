@@ -171,7 +171,7 @@ AbstractQoreNode *ConstHashIterator::eval(ExceptionSink *xsink) const
    return NULL;
 }
 
-class QoreString *ConstHashIterator::getKeyString() const
+QoreString *ConstHashIterator::getKeyString() const
 {
    if (!ptr)
       return NULL;
@@ -196,7 +196,7 @@ const char *ConstHashIterator::getKey() const
    return ptr->key;
 }
 
-AbstractQoreNode *ConstHashIterator::getValue() const
+const AbstractQoreNode *ConstHashIterator::getValue() const
 {
    if (ptr)
       return ptr->node;
@@ -306,7 +306,7 @@ AbstractQoreNode *QoreHash::takeKeyValue(const QoreString *key, ExceptionSink *x
    return rv;
 }
 
-AbstractQoreNode *QoreHash::getKeyValueExistence(const QoreString *key, ExceptionSink *xsink) const
+AbstractQoreNode *QoreHash::getKeyValueExistence(const QoreString *key, ExceptionSink *xsink)
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
@@ -318,6 +318,11 @@ AbstractQoreNode *QoreHash::getKeyValueExistence(const QoreString *key, Exceptio
       return rv;
    }
    return getKeyValueExistence(key->getBuffer());
+}
+
+const AbstractQoreNode *QoreHash::getKeyValueExistence(const QoreString *key, ExceptionSink *xsink) const
+{
+   return const_cast<QoreHash *>(this)->getKeyValueExistence(key, xsink);
 }
 
 void QoreHash::setKeyValue(const QoreString *key, AbstractQoreNode *value, ExceptionSink *xsink)
@@ -358,7 +363,7 @@ AbstractQoreNode **QoreHash::getExistingValuePtr(const QoreString *key, Exceptio
    return getExistingValuePtr(key->getBuffer());
 }
 
-AbstractQoreNode *QoreHash::getKeyValue(const QoreString *key, ExceptionSink *xsink) const
+AbstractQoreNode *QoreHash::getKeyValue(const QoreString *key, ExceptionSink *xsink)
 {
    if (key->getEncoding() != QCS_DEFAULT)
    {
@@ -370,6 +375,11 @@ AbstractQoreNode *QoreHash::getKeyValue(const QoreString *key, ExceptionSink *xs
       return rv;
    }
    return getKeyValue(key->getBuffer());
+}
+
+const AbstractQoreNode *QoreHash::getKeyValue(const QoreString *key, ExceptionSink *xsink) const
+{
+   return const_cast<QoreHash *>(this)->getKeyValue(key, xsink);
 }
 
 // retrieve keys in order they were inserted
@@ -395,7 +405,7 @@ void QoreHash::merge(const class QoreHash *h, ExceptionSink *xsink)
    
    while (where)
    {
-      setKeyValue(where->key, where->node ? where->node->RefSelf() : NULL, xsink);
+      setKeyValue(where->key, where->node ? where->node->refSelf() : NULL, xsink);
       where = where->next;
    }
 }
@@ -437,7 +447,7 @@ void QoreHash::copy_intern(QoreHash *new_hash) const
    class HashMember *where = member_list;
    while (where)
    {
-      new_hash->setKeyValue(where->key, where->node ? where->node->RefSelf() : 0, 0);
+      new_hash->setKeyValue(where->key, where->node ? where->node->refSelf() : 0, 0);
       where = where->next;
    }
 }
@@ -547,7 +557,7 @@ AbstractQoreNode **QoreHash::getKeyValuePtr(const char *key)
    return newKeyValue(key, NULL);
 }
 
-AbstractQoreNode *QoreHash::getKeyValue(const char *key) const
+AbstractQoreNode *QoreHash::getKeyValue(const char *key)
 {
    assert(key);
 
@@ -559,7 +569,12 @@ AbstractQoreNode *QoreHash::getKeyValue(const char *key) const
    return NULL;
 }
 
-AbstractQoreNode *QoreHash::getKeyValueExistence(const char *key) const
+const AbstractQoreNode *QoreHash::getKeyValue(const char *key) const
+{
+   return const_cast<QoreHash *>(this)->getKeyValue(key);
+}
+
+AbstractQoreNode *QoreHash::getKeyValueExistence(const char *key)
 {
    assert(key);
 
@@ -569,6 +584,11 @@ AbstractQoreNode *QoreHash::getKeyValueExistence(const char *key) const
       return i->second->node;
 
    return (AbstractQoreNode *)-1;
+}
+
+const AbstractQoreNode *QoreHash::getKeyValueExistence(const char *key) const
+{
+   return const_cast<QoreHash *>(this)->getKeyValueExistence(key);
 }
 
 // does a "soft" compare (values of different types are converted if necessary and then compared)
@@ -751,7 +771,7 @@ int QoreHash::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 
       str.sprintf("%s : ", hi.getKey());
 
-      AbstractQoreNode *n = hi.getValue();
+      const AbstractQoreNode *n = hi.getValue();
       if (!n) n = Nothing;
       if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
 	 return -1;

@@ -40,13 +40,13 @@ class QoreClass *QC_QTableWidgetItem = 0;
 //QTableWidgetItem ( const QTableWidgetItem & other )
 static void QTABLEWIDGETITEM_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    //printd(0, "QTableWidgetItem() self=%08p, p=%s\n", self, p ? p->getTypeName() : "(null)");
    if (p && p->type == NT_OBJECT) {
-      QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
+      QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
          if (!xsink->isException())
-            xsink->raiseException("QTABLEWIDGETITEM-CONSTRUCTOR-PARAM-ERROR", "QTableWidgetItem::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QTABLEWIDGETITEM-CONSTRUCTOR-PARAM-ERROR", "QTableWidgetItem::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return;
       }
       ReferenceHolder<AbstractPrivateData> iconHolder(static_cast<AbstractPrivateData *>(icon), xsink);
@@ -108,7 +108,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_column(QoreObject *self, QoreQTableWid
 //virtual QVariant data ( int role ) const
 static AbstractQoreNode *QTABLEWIDGETITEM_data(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int role = p ? p->getAsInt() : 0;
    return return_qvariant(qtwi->qore_obj->data(role));
 }
@@ -155,7 +155,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_isSelected(QoreObject *self, QoreQTabl
 ////virtual void read ( QDataStream & in )
 //static AbstractQoreNode *QTABLEWIDGETITEM_read(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QDataStream in = p;
 //   qtwi->qore_obj->read(in);
 //   return 0;
@@ -170,7 +170,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_row(QoreObject *self, QoreQTableWidget
 //void setBackground ( const QBrush & brush )
 static AbstractQoreNode *QTABLEWIDGETITEM_setBackground(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QBrush brush;
    if (get_qbrush(p, brush, xsink))
       return 0;
@@ -181,7 +181,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setBackground(QoreObject *self, QoreQT
 //void setCheckState ( Qt::CheckState state )
 static AbstractQoreNode *QTABLEWIDGETITEM_setCheckState(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::CheckState state = (Qt::CheckState)(p ? p->getAsInt() : 0);
    qtwi->qore_obj->setCheckState(state);
    return 0;
@@ -190,7 +190,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setCheckState(QoreObject *self, QoreQT
 //virtual void setData ( int role, const QVariant & value )
 static AbstractQoreNode *QTABLEWIDGETITEM_setData(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int role = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QVariant value;
@@ -203,7 +203,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setData(QoreObject *self, QoreQTableWi
 //void setFlags ( Qt::ItemFlags flags )
 static AbstractQoreNode *QTABLEWIDGETITEM_setFlags(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::ItemFlags flags = (Qt::ItemFlags)(p ? p->getAsInt() : 0);
    qtwi->qore_obj->setFlags(flags);
    return 0;
@@ -212,8 +212,8 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setFlags(QoreObject *self, QoreQTableW
 //void setFont ( const QFont & font )
 static AbstractQoreNode *QTABLEWIDGETITEM_setFont(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQFont *font = p ? (QoreQFont *)p->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGETITEM-SETFONT-PARAM-ERROR", "expecting a QFont object as first argument to QTableWidgetItem::setFont()");
@@ -227,7 +227,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setFont(QoreObject *self, QoreQTableWi
 //void setForeground ( const QBrush & brush )
 static AbstractQoreNode *QTABLEWIDGETITEM_setForeground(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QBrush brush;
    if (get_qbrush(p, brush, xsink))
       return 0;
@@ -238,8 +238,8 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setForeground(QoreObject *self, QoreQT
 //void setIcon ( const QIcon & icon )
 static AbstractQoreNode *QTABLEWIDGETITEM_setIcon(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQIcon *icon = p ? (QoreQIcon *)p->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGETITEM-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QTableWidgetItem::setIcon()");
@@ -253,7 +253,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setIcon(QoreObject *self, QoreQTableWi
 //void setSelected ( bool select )
 static AbstractQoreNode *QTABLEWIDGETITEM_setSelected(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool select = p ? p->getAsBool() : false;
    qtwi->qore_obj->setSelected(select);
    return 0;
@@ -262,8 +262,8 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setSelected(QoreObject *self, QoreQTab
 //void setSizeHint ( const QSize & size )
 static AbstractQoreNode *QTABLEWIDGETITEM_setSizeHint(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQSize *size = p ? (QoreQSize *)p->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QTABLEWIDGETITEM-SETSIZEHINT-PARAM-ERROR", "expecting a QSize object as first argument to QTableWidgetItem::setSizeHint()");
@@ -277,7 +277,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setSizeHint(QoreObject *self, QoreQTab
 //void setStatusTip ( const QString & statusTip )
 static AbstractQoreNode *QTABLEWIDGETITEM_setStatusTip(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString statusTip;
    if (get_qstring(p, statusTip, xsink))
       return 0;
@@ -288,7 +288,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setStatusTip(QoreObject *self, QoreQTa
 //void setText ( const QString & text )
 static AbstractQoreNode *QTABLEWIDGETITEM_setText(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
@@ -299,7 +299,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setText(QoreObject *self, QoreQTableWi
 //void setTextAlignment ( int alignment )
 static AbstractQoreNode *QTABLEWIDGETITEM_setTextAlignment(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int alignment = p ? p->getAsInt() : 0;
    qtwi->qore_obj->setTextAlignment(alignment);
    return 0;
@@ -308,7 +308,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setTextAlignment(QoreObject *self, Qor
 //void setToolTip ( const QString & toolTip )
 static AbstractQoreNode *QTABLEWIDGETITEM_setToolTip(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString toolTip;
    if (get_qstring(p, toolTip, xsink))
       return 0;
@@ -319,7 +319,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_setToolTip(QoreObject *self, QoreQTabl
 //void setWhatsThis ( const QString & whatsThis )
 static AbstractQoreNode *QTABLEWIDGETITEM_setWhatsThis(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString whatsThis;
    if (get_qstring(p, whatsThis, xsink))
       return 0;
@@ -381,7 +381,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_whatsThis(QoreObject *self, QoreQTable
 ////virtual void write ( QDataStream & out ) const
 //static AbstractQoreNode *QTABLEWIDGETITEM_write(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QDataStream out = p;
 //   qtwi->qore_obj->write(out);
 //   return 0;

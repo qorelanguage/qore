@@ -34,11 +34,11 @@ static void QLABEL_constructor(class QoreObject *self, const QoreListNode *param
 {
    QoreQLabel *ql;
 
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    const char *text = 0;
 
    {
-      QoreStringNode *pstr = dynamic_cast<QoreStringNode *>(p);
+      const QoreStringNode *pstr = dynamic_cast<const QoreStringNode *>(p);
       if (pstr) {
 	 text = pstr->getBuffer();
 	 p = get_param(params, 1);
@@ -48,10 +48,10 @@ static void QLABEL_constructor(class QoreObject *self, const QoreListNode *param
    QoreAbstractQWidget *parent = 0;
    if (p && p->type == NT_OBJECT)
    {
-      parent = (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
+      parent = (QoreAbstractQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (!parent)
       {
-         xsink->raiseException("QLABEL-CONSTRUCTOR-ERROR", "object passed to QLabel::constructor() is not derived from QWidget (class: '%s')", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+         xsink->raiseException("QLABEL-CONSTRUCTOR-ERROR", "object passed to QLabel::constructor() is not derived from QWidget (class: '%s')", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return;
       }
    }
@@ -146,7 +146,7 @@ static AbstractQoreNode *QLABEL_pixmap(QoreObject *self, QoreQLabel *ql, const Q
 //void setAlignment ( Qt::Alignment )
 static AbstractQoreNode *QLABEL_setAlignment(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
    ql->qobj->setAlignment(alignment);
    return 0;
@@ -155,8 +155,8 @@ static AbstractQoreNode *QLABEL_setAlignment(QoreObject *self, QoreQLabel *ql, c
 //void setBuddy ( QWidget * buddy )
 static AbstractQoreNode *QLABEL_setBuddy(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *buddy = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQWidget *buddy = p ? (QoreAbstractQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!buddy) {
       if (!xsink->isException())
          xsink->raiseException("QLABEL-SETBUDDY-PARAM-ERROR", "expecting a QWidget object as first argument to QLabel::setBuddy()");
@@ -170,7 +170,7 @@ static AbstractQoreNode *QLABEL_setBuddy(QoreObject *self, QoreQLabel *ql, const
 //void setIndent ( int )
 static AbstractQoreNode *QLABEL_setIndent(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    ql->qobj->setIndent(x);
    return 0;
@@ -179,7 +179,7 @@ static AbstractQoreNode *QLABEL_setIndent(QoreObject *self, QoreQLabel *ql, cons
 //void setMargin ( int )
 static AbstractQoreNode *QLABEL_setMargin(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    ql->qobj->setMargin(x);
    return 0;
@@ -188,7 +188,7 @@ static AbstractQoreNode *QLABEL_setMargin(QoreObject *self, QoreQLabel *ql, cons
 //void setOpenExternalLinks ( bool open )
 static AbstractQoreNode *QLABEL_setOpenExternalLinks(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool open = p ? p->getAsBool() : false;
    ql->qobj->setOpenExternalLinks(open);
    return 0;
@@ -197,7 +197,7 @@ static AbstractQoreNode *QLABEL_setOpenExternalLinks(QoreObject *self, QoreQLabe
 //void setScaledContents ( bool )
 static AbstractQoreNode *QLABEL_setScaledContents(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    ql->qobj->setScaledContents(b);
    return 0;
@@ -206,7 +206,7 @@ static AbstractQoreNode *QLABEL_setScaledContents(QoreObject *self, QoreQLabel *
 //void setTextFormat ( Qt::TextFormat )
 static AbstractQoreNode *QLABEL_setTextFormat(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::TextFormat textformat = (Qt::TextFormat)(p ? p->getAsInt() : 0);
    ql->qobj->setTextFormat(textformat);
    return 0;
@@ -215,7 +215,7 @@ static AbstractQoreNode *QLABEL_setTextFormat(QoreObject *self, QoreQLabel *ql, 
 //void setTextInteractionFlags ( Qt::TextInteractionFlags flags )
 static AbstractQoreNode *QLABEL_setTextInteractionFlags(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::TextInteractionFlags flags = (Qt::TextInteractionFlags)(p ? p->getAsInt() : 0);
    ql->qobj->setTextInteractionFlags(flags);
    return 0;
@@ -224,7 +224,7 @@ static AbstractQoreNode *QLABEL_setTextInteractionFlags(QoreObject *self, QoreQL
 //void setWordWrap ( bool on )
 static AbstractQoreNode *QLABEL_setWordWrap(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
    ql->qobj->setWordWrap(on);
    return 0;
@@ -264,8 +264,8 @@ static AbstractQoreNode *QLABEL_clear(QoreObject *self, QoreQLabel *ql, const Qo
 //void setMovie ( QMovie * movie )
 static AbstractQoreNode *QLABEL_setMovie(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQMovie *movie = (p && p->type == NT_OBJECT) ? (QoreQMovie *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMOVIE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQMovie *movie = p ? (QoreQMovie *)p->getReferencedPrivateData(CID_QMOVIE, xsink) : 0;
    if (!movie) {
       if (!xsink->isException())
          xsink->raiseException("QLABEL-SETMOVIE-PARAM-ERROR", "expecting a QMovie object as first argument to QLabel::setMovie()");
@@ -280,7 +280,7 @@ static AbstractQoreNode *QLABEL_setMovie(QoreObject *self, QoreQLabel *ql, const
 //void setNum ( double num )
 static AbstractQoreNode *QLABEL_setNum(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_INT) {
       int num = p ? p->getAsInt() : 0;
       ql->qobj->setNum(num);
@@ -294,8 +294,8 @@ static AbstractQoreNode *QLABEL_setNum(QoreObject *self, QoreQLabel *ql, const Q
 //void setPicture ( const QPicture & picture )
 static AbstractQoreNode *QLABEL_setPicture(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPicture *picture = (p && p->type == NT_OBJECT) ? (QoreQPicture *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPICTURE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPicture *picture = p ? (QoreQPicture *)p->getReferencedPrivateData(CID_QPICTURE, xsink) : 0;
    if (!picture) {
       if (!xsink->isException())
          xsink->raiseException("QLABEL-SETPICTURE-PARAM-ERROR", "expecting a QPicture object as first argument to QLabel::setPicture()");
@@ -309,8 +309,8 @@ static AbstractQoreNode *QLABEL_setPicture(QoreObject *self, QoreQLabel *ql, con
 //void setPixmap ( const QPixmap & )
 static AbstractQoreNode *QLABEL_setPixmap(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+   const AbstractQoreNode *p = get_param(params, 0);
+   AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!apd_qpixmap) {
       if (!xsink->isException())
          xsink->raiseException("QLABEL-SETPIXMAP-PARAM-ERROR", "expecting a QPixmap object as first argument to QLabel::setPixmap()");
@@ -326,7 +326,7 @@ static AbstractQoreNode *QLABEL_setPixmap(QoreObject *self, QoreQLabel *ql, cons
 //void setText ( const QString & )
 static AbstractQoreNode *QLABEL_setText(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *p = test_string_param(params, 0);
+   const QoreStringNode *p = test_string_param(params, 0);
    if (!p) {
       xsink->raiseException("QLABEL-SETTEXT-PARAM-ERROR", "expecting a string as first argument to QLabel::setText()");
       return 0;

@@ -35,14 +35,14 @@ class QoreClass *QC_QChar = 0;
 //QChar ( SpecialCharacter ch )
 static void QCHAR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QCHAR, new QoreQChar());
       return;
    }
    int code;
    if (p->type == NT_STRING) {
-      code = (reinterpret_cast<QoreStringNode *>(p))->getUnicodePoint(0, xsink);
+      code = (reinterpret_cast<const QoreStringNode *>(p))->getUnicodePoint(0, xsink);
       if (*xsink)
 	 return;
    }

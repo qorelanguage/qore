@@ -53,7 +53,7 @@ static AbstractQoreNode *QTEXTLISTFORMAT_isValid(QoreObject *self, QoreQTextList
 //void setIndent ( int indentation )
 static AbstractQoreNode *QTEXTLISTFORMAT_setIndent(QoreObject *self, QoreQTextListFormat *qtlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int indentation = p ? p->getAsInt() : 0;
    qtlf->setIndent(indentation);
    return 0;
@@ -62,7 +62,7 @@ static AbstractQoreNode *QTEXTLISTFORMAT_setIndent(QoreObject *self, QoreQTextLi
 //void setStyle ( Style style )
 static AbstractQoreNode *QTEXTLISTFORMAT_setStyle(QoreObject *self, QoreQTextListFormat *qtlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QTextListFormat::Style style = (QTextListFormat::Style)(p ? p->getAsInt() : 0);
    qtlf->setStyle(style);
    return 0;

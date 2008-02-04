@@ -44,7 +44,7 @@ class QoreClass *QC_QTextFormat = 0;
 //QTextFormat ( const QTextFormat & other )
 static void QTEXTFORMAT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QTEXTFORMAT, new QoreQTextFormat());
       return;
@@ -71,7 +71,7 @@ static AbstractQoreNode *QTEXTFORMAT_background(QoreObject *self, QoreQTextForma
 //bool boolProperty ( int propertyId ) const
 static AbstractQoreNode *QTEXTFORMAT_boolProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
    return new QoreBoolNode(qtf->boolProperty(propertyId));
 }
@@ -79,7 +79,7 @@ static AbstractQoreNode *QTEXTFORMAT_boolProperty(QoreObject *self, QoreQTextFor
 //QBrush brushProperty ( int propertyId ) const
 static AbstractQoreNode *QTEXTFORMAT_brushProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
    QoreObject *o_qb = new QoreObject(QC_QBrush, getProgram());
    QoreQBrush *q_qb = new QoreQBrush(qtf->brushProperty(propertyId));
@@ -104,7 +104,7 @@ static AbstractQoreNode *QTEXTFORMAT_clearForeground(QoreObject *self, QoreQText
 //void clearProperty ( int propertyId )
 static AbstractQoreNode *QTEXTFORMAT_clearProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
    qtf->clearProperty(propertyId);
    return 0;
@@ -113,7 +113,7 @@ static AbstractQoreNode *QTEXTFORMAT_clearProperty(QoreObject *self, QoreQTextFo
 //QColor colorProperty ( int propertyId ) const
 static AbstractQoreNode *QTEXTFORMAT_colorProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
    QoreObject *o_qc = new QoreObject(QC_QColor, getProgram());
    QoreQColor *q_qc = new QoreQColor(qtf->colorProperty(propertyId));
@@ -124,7 +124,7 @@ static AbstractQoreNode *QTEXTFORMAT_colorProperty(QoreObject *self, QoreQTextFo
 //qreal doubleProperty ( int propertyId ) const
 static AbstractQoreNode *QTEXTFORMAT_doubleProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
    return new QoreFloatNode((double)qtf->doubleProperty(propertyId));
 }
@@ -141,7 +141,7 @@ static AbstractQoreNode *QTEXTFORMAT_foreground(QoreObject *self, QoreQTextForma
 //bool hasProperty ( int propertyId ) const
 static AbstractQoreNode *QTEXTFORMAT_hasProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
    return new QoreBoolNode(qtf->hasProperty(propertyId));
 }
@@ -149,7 +149,7 @@ static AbstractQoreNode *QTEXTFORMAT_hasProperty(QoreObject *self, QoreQTextForm
 //int intProperty ( int propertyId ) const
 static AbstractQoreNode *QTEXTFORMAT_intProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qtf->intProperty(propertyId));
 }
@@ -205,7 +205,7 @@ static AbstractQoreNode *QTEXTFORMAT_layoutDirection(QoreObject *self, QoreQText
 //QTextLength lengthProperty ( int propertyId ) const
 static AbstractQoreNode *QTEXTFORMAT_lengthProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
    QoreObject *o_qtl = new QoreObject(QC_QTextLength, getProgram());
    QoreQTextLength *q_qtl = new QoreQTextLength(qtf->lengthProperty(propertyId));
@@ -216,7 +216,7 @@ static AbstractQoreNode *QTEXTFORMAT_lengthProperty(QoreObject *self, QoreQTextF
 ////QVector<QTextLength> lengthVectorProperty ( int propertyId ) const
 //static AbstractQoreNode *QTEXTFORMAT_lengthVectorProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   int propertyId = p ? p->getAsInt() : 0;
 //   ??? return new QoreBigIntNode(qtf->lengthVectorProperty(propertyId));
 //}
@@ -224,8 +224,8 @@ static AbstractQoreNode *QTEXTFORMAT_lengthProperty(QoreObject *self, QoreQTextF
 //void merge ( const QTextFormat & other )
 static AbstractQoreNode *QTEXTFORMAT_merge(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQTextFormat *other = (p && p->type == NT_OBJECT) ? (QoreQTextFormat *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTFORMAT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQTextFormat *other = p ? (QoreQTextFormat *)p->getReferencedPrivateData(CID_QTEXTFORMAT, xsink) : 0;
    if (!other) {
       if (!xsink->isException())
          xsink->raiseException("QTEXTFORMAT-MERGE-PARAM-ERROR", "expecting a QTextFormat object as first argument to QTextFormat::merge()");
@@ -251,7 +251,7 @@ static AbstractQoreNode *QTEXTFORMAT_objectType(QoreObject *self, QoreQTextForma
 //QPen penProperty ( int propertyId ) const
 static AbstractQoreNode *QTEXTFORMAT_penProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
    QoreObject *o_qp = new QoreObject(QC_QPen, getProgram());
    QoreQPen *q_qp = new QoreQPen(qtf->penProperty(propertyId));
@@ -268,7 +268,7 @@ static AbstractQoreNode *QTEXTFORMAT_penProperty(QoreObject *self, QoreQTextForm
 ////QVariant property ( int propertyId ) const
 //static AbstractQoreNode *QTEXTFORMAT_property(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   int propertyId = p ? p->getAsInt() : 0;
 //   ??? return new QoreBigIntNode(qtf->property(propertyId));
 //}
@@ -282,7 +282,7 @@ static AbstractQoreNode *QTEXTFORMAT_propertyCount(QoreObject *self, QoreQTextFo
 //void setBackground ( const QBrush & brush )
 static AbstractQoreNode *QTEXTFORMAT_setBackground(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QBrush brush;
    if (get_qbrush(p, brush, xsink))
       return 0;
@@ -293,7 +293,7 @@ static AbstractQoreNode *QTEXTFORMAT_setBackground(QoreObject *self, QoreQTextFo
 //void setForeground ( const QBrush & brush )
 static AbstractQoreNode *QTEXTFORMAT_setForeground(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QBrush brush;
    if (get_qbrush(p, brush, xsink))
       return 0;
@@ -304,7 +304,7 @@ static AbstractQoreNode *QTEXTFORMAT_setForeground(QoreObject *self, QoreQTextFo
 //void setLayoutDirection ( Qt::LayoutDirection direction )
 static AbstractQoreNode *QTEXTFORMAT_setLayoutDirection(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::LayoutDirection direction = (Qt::LayoutDirection)(p ? p->getAsInt() : 0);
    qtf->setLayoutDirection(direction);
    return 0;
@@ -313,7 +313,7 @@ static AbstractQoreNode *QTEXTFORMAT_setLayoutDirection(QoreObject *self, QoreQT
 //void setObjectIndex ( int index )
 static AbstractQoreNode *QTEXTFORMAT_setObjectIndex(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    qtf->setObjectIndex(index);
    return 0;
@@ -322,7 +322,7 @@ static AbstractQoreNode *QTEXTFORMAT_setObjectIndex(QoreObject *self, QoreQTextF
 //void setObjectType ( int type )
 static AbstractQoreNode *QTEXTFORMAT_setObjectType(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int type = p ? p->getAsInt() : 0;
    qtf->setObjectType(type);
    return 0;
@@ -332,7 +332,7 @@ static AbstractQoreNode *QTEXTFORMAT_setObjectType(QoreObject *self, QoreQTextFo
 ////void setProperty ( int propertyId, const QVector<QTextLength> & value )
 //static AbstractQoreNode *QTEXTFORMAT_setProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   int propertyId = p ? p->getAsInt() : 0;
 //   p = get_param(params, 1);
 //   ??? QVariant value = p;
@@ -343,7 +343,7 @@ static AbstractQoreNode *QTEXTFORMAT_setObjectType(QoreObject *self, QoreQTextFo
 //QString stringProperty ( int propertyId ) const
 static AbstractQoreNode *QTEXTFORMAT_stringProperty(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
    return new QoreStringNode(qtf->stringProperty(propertyId).toUtf8().data(), QCS_UTF8);
 }

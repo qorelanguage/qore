@@ -34,13 +34,13 @@ class QoreClass *QC_QDateEdit = 0;
 //QDateEdit ( const QDate & date, QWidget * parent = 0 )
 static void QDATEEDIT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QDATEEDIT, new QoreQDateEdit(self));
       return;
    }
 
-   QoreQWidget *parent = (p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = (p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (parent) {
       ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
       self->setPrivate(CID_QDATEEDIT, new QoreQDateEdit(self, parent->getQWidget()));
@@ -51,7 +51,7 @@ static void QDATEEDIT_constructor(QoreObject *self, const QoreListNode *params, 
    if (get_qdate(p, date, xsink))
       return;
 
-   QoreObject *p1 = test_object_param(params, 1);
+   const QoreObject *p1 = test_object_param(params, 1);
    parent = p1 ? (QoreQWidget *)p1->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
    

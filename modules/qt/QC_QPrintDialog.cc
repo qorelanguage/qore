@@ -34,16 +34,17 @@ class QoreClass *QC_QPrintDialog = 0;
 //QPrintDialog ( QPrinter * printer, QWidget * parent = 0 )
 static void QPRINTDIALOG_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPrinter *printer = (p && p->type == NT_OBJECT) ? (QoreQPrinter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPRINTER, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 0);
+   QoreQPrinter *printer = o ? (QoreQPrinter *)o->getReferencedPrivateData(CID_QPRINTER, xsink) : 0;
    if (!printer) {
       if (!xsink->isException())
          xsink->raiseException("QPRINTDIALOG-CONSTRUCTOR-PARAM-ERROR", "expecting a QPrinter object as first argument to QPrintDialog::constructor()");
       return;
    }
    ReferenceHolder<AbstractPrivateData> printerHolder(static_cast<AbstractPrivateData *>(printer), xsink);
-   p = get_param(params, 1);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   o = test_object_param(params, 1);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);

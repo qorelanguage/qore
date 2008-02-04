@@ -89,16 +89,17 @@ class QoreListNode : public AbstractQoreNode
       // returns true if the node represents a value (default implementation)
       DLLEXPORT virtual bool is_value() const;
 
-      DLLEXPORT class AbstractQoreNode *retrieve_entry(int index) const;
+      DLLEXPORT AbstractQoreNode *retrieve_entry(int index);
+      DLLEXPORT const AbstractQoreNode *retrieve_entry(int index) const;
       DLLEXPORT int getEntryAsInt(int index) const;
-      DLLEXPORT class AbstractQoreNode **get_entry_ptr(int index);
-      DLLEXPORT class AbstractQoreNode **getExistingEntryPtr(int index);
+      DLLEXPORT AbstractQoreNode **get_entry_ptr(int index);
+      DLLEXPORT AbstractQoreNode **getExistingEntryPtr(int index);
       DLLEXPORT void set_entry(int index, class AbstractQoreNode *val, class ExceptionSink *xsink);
-      DLLEXPORT class AbstractQoreNode *eval_entry(int num, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *eval_entry(int num, class ExceptionSink *xsink) const;
       DLLEXPORT void push(class AbstractQoreNode *val);
       DLLEXPORT void insert(class AbstractQoreNode *val);
-      DLLEXPORT class AbstractQoreNode *pop();
-      DLLEXPORT class AbstractQoreNode *shift();
+      DLLEXPORT AbstractQoreNode *pop();
+      DLLEXPORT AbstractQoreNode *shift();
       DLLEXPORT void merge(const class QoreListNode *list);
       DLLEXPORT int delete_entry(int index, class ExceptionSink *xsink);
       DLLEXPORT void pop_entry(int index, class ExceptionSink *xsink);
@@ -193,8 +194,8 @@ class ListIterator
    public:
       DLLEXPORT ListIterator(QoreListNode *lst);
       DLLEXPORT bool next();
-      DLLEXPORT class AbstractQoreNode *getValue() const;
-      DLLEXPORT class AbstractQoreNode **getValuePtr() const;
+      DLLEXPORT AbstractQoreNode *getValue() const;
+      DLLEXPORT AbstractQoreNode **getValuePtr() const;
       DLLEXPORT class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       DLLEXPORT bool first() const;
       DLLEXPORT bool last() const;
@@ -210,7 +211,7 @@ class ConstListIterator
    public:
       DLLEXPORT ConstListIterator(const QoreListNode *lst);
       DLLEXPORT bool next();
-      DLLEXPORT class AbstractQoreNode *getValue() const;
+      DLLEXPORT const AbstractQoreNode *getValue() const;
       DLLEXPORT class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       DLLEXPORT bool first() const;
       DLLEXPORT bool last() const;

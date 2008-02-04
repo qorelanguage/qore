@@ -67,7 +67,7 @@ struct lvih_intern {
       
       DLLLOCAL AbstractQoreNode *getArg()
       {
-	 return ref->RefSelf();
+	 return ref->refSelf();
       }
 };
 

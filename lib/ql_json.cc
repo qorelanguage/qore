@@ -473,12 +473,10 @@ static int doJSONValue(class QoreString *str, const AbstractQoreNode *v, int for
 
 static AbstractQoreNode *f_makeJSONString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *val;
-   const QoreStringNode *pcs;
-
    tracein("f_makeJSONString()");
-   val = get_param(params, 0);
+   const AbstractQoreNode *val = get_param(params, 0);
 
+   const QoreStringNode *pcs;
    const QoreEncoding *ccs;
    if ((pcs = test_string_param(params, 1)))
       ccs = QEM.findCreate(pcs);
@@ -493,12 +491,10 @@ static AbstractQoreNode *f_makeJSONString(const QoreListNode *params, ExceptionS
 
 static AbstractQoreNode *f_makeFormattedJSONString(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *val;
-   const QoreStringNode *pcs;
-
    tracein("f_makeFormattedJSONString()");
-   val = get_param(params, 0);
+   const AbstractQoreNode *val = get_param(params, 0);
 
+   const QoreStringNode *pcs;
    const QoreEncoding *ccs;
    if ((pcs = test_string_param(params, 1)))
       ccs = QEM.findCreate(pcs);
@@ -889,7 +885,7 @@ static AbstractQoreNode *f_makeJSONRPC11ErrorString(const QoreListNode *params, 
       return NULL;
    }
 
-   QoreStringNode *mess = test_string_param(params, 1);
+   const QoreStringNode *mess = test_string_param(params, 1);
    if (!mess || !mess->strlen())
    {
       xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error message string not passed as second argument)");
@@ -942,7 +938,7 @@ static AbstractQoreNode *f_makeFormattedJSONRPC11ErrorString(const QoreListNode 
       return NULL;
    }
    
-   QoreStringNode *mess = test_string_param(params, 1);
+   const QoreStringNode *mess = test_string_param(params, 1);
    if (!mess || !mess->strlen())
    {
       xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error message string not passed as second argument)");

@@ -133,7 +133,7 @@ static AbstractQoreNode *DSP_vexec(QoreObject *self, class DatasourcePool *ds, c
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
    
-   QoreListNode *args = test_list_param(params, 1);
+   const QoreListNode *args = test_list_param(params, 1);
    return ds->exec(p0, args, xsink);
 }
 
@@ -173,7 +173,7 @@ static AbstractQoreNode *DSP_vselect(QoreObject *self, class DatasourcePool *ds,
    if (!p0)
       return NULL;
    
-   QoreListNode *args = test_list_param(params, 1);
+   const QoreListNode *args = test_list_param(params, 1);
    return ds->select(p0, args, xsink);
 }
 
@@ -183,7 +183,7 @@ static AbstractQoreNode *DSP_vselectRow(QoreObject *self, class DatasourcePool *
    if (!p0)
       return NULL;
    
-   QoreListNode *args = test_list_param(params, 1);
+   const QoreListNode *args = test_list_param(params, 1);
    return ds->selectRow(p0, args, xsink);
 }
 
@@ -193,7 +193,7 @@ static AbstractQoreNode *DSP_vselectRows(QoreObject *self, class DatasourcePool 
    if (!p0)
       return NULL;
    
-   QoreListNode *args = test_list_param(params, 1);
+   const QoreListNode *args = test_list_param(params, 1);
    return ds->selectRows(p0, args, xsink);
 }
 

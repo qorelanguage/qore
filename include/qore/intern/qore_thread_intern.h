@@ -100,7 +100,7 @@ DLLLOCAL extern pthread_attr_t ta_default;
 // for object implementation
 DLLLOCAL class QoreObject *getStackObject();
 // for methods that behave differently when called within the method itself
-DLLLOCAL bool inMethod(const char *name, class QoreObject *o);
+DLLLOCAL bool inMethod(const char *name, const QoreObject *o);
 
 class CodeContextHelper {
    private:
@@ -109,7 +109,7 @@ class CodeContextHelper {
       class ExceptionSink *xsink;
 	 
    public:
-      DLLLOCAL CodeContextHelper(const char *code = NULL, class QoreObject *obj = NULL, class ExceptionSink *xs = NULL);
+      DLLLOCAL CodeContextHelper(const char *code = NULL, const QoreObject *obj = NULL, ExceptionSink *xs = NULL);
       DLLLOCAL ~CodeContextHelper();
 };
 

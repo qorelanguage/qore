@@ -31,7 +31,7 @@
 //QRgb customColor ( int i )
 static AbstractQoreNode *f_QColorDialog_customColor(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int i = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(QColorDialog::customColor(i));
 }
@@ -45,13 +45,14 @@ static AbstractQoreNode *f_QColorDialog_customCount(const QoreListNode *params, 
 //QColor getColor ( const QColor & initial = Qt::white, QWidget * parent = 0 )
 static AbstractQoreNode *f_QColorDialog_getColor(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQColor *initial = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQColor *initial = p ? (QoreQColor *)p->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> initialHolder(static_cast<AbstractPrivateData *>(initial), xsink);
-   p = get_param(params, 1);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   p = test_object_param(params, 1);
+   QoreQWidget *parent = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -65,12 +66,12 @@ static AbstractQoreNode *f_QColorDialog_getColor(const QoreListNode *params, Exc
 //QRgb getRgba ( QRgb initial = 0xffffffff, bool * ok = 0, QWidget * parent = 0 )
 static AbstractQoreNode *f_QColorDialog_getRgba(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int64 initial = !is_nothing(p) ? p->getAsBigInt() : 0xffffffff;
    p = get_param(params, 1);
    ??? bool* ok = p;
    p = get_param(params, 2);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreQWidget *parent = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -81,7 +82,7 @@ static AbstractQoreNode *f_QColorDialog_getRgba(const QoreListNode *params, Exce
 //void setCustomColor ( int number, QRgb color )
 static AbstractQoreNode *f_QColorDialog_setCustomColor(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int number = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int64 color = p ? p->getAsBigInt() : 0;
@@ -92,7 +93,7 @@ static AbstractQoreNode *f_QColorDialog_setCustomColor(const QoreListNode *param
 //void setStandardColor ( int number, QRgb color )
 static AbstractQoreNode *f_QColorDialog_setStandardColor(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int number = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int64 color = p ? p->getAsBigInt() : 0;

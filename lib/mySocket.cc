@@ -289,14 +289,14 @@ int mySocket::recvu4LSB(int timeout, unsigned int *b)
 }
 
 // send HTTP message
-int mySocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, class QoreHash *headers, const void *ptr, int size)
+int mySocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHash *headers, const void *ptr, int size)
 {
    SafeLocker sl(this);
    return socket->sendHTTPMessage(method, path, http_version, headers, ptr, size);
 }
 
 // send HTTP response
-int mySocket::sendHTTPResponse(int code, const char *desc, const char *http_version, class QoreHash *headers, const void *ptr, int size)
+int mySocket::sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHash *headers, const void *ptr, int size)
 {
    SafeLocker sl(this);
    return socket->sendHTTPResponse(code, desc, http_version, headers, ptr, size);

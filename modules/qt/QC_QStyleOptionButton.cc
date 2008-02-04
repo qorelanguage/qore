@@ -76,7 +76,7 @@ static AbstractQoreNode *QSTYLEOPTIONBUTTON_text(QoreObject *self, QoreQStyleOpt
 //void setFeatures ( ButtonFeatures features )
 static AbstractQoreNode *QSTYLEOPTIONBUTTON_setFeatures(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QStyleOptionButton::ButtonFeatures features = (QStyleOptionButton::ButtonFeatures)(p ? p->getAsInt() : 0);
    qsob->features = features;
    return 0;
@@ -85,8 +85,8 @@ static AbstractQoreNode *QSTYLEOPTIONBUTTON_setFeatures(QoreObject *self, QoreQS
 //void setIcon ( const QIcon & icon )
 static AbstractQoreNode *QSTYLEOPTIONBUTTON_setIcon(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQIcon *icon = p ? (QoreQIcon *)p->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QSTYLEOPTIONBUTTON-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QStyleOptionButton::setIcon()");
@@ -100,8 +100,8 @@ static AbstractQoreNode *QSTYLEOPTIONBUTTON_setIcon(QoreObject *self, QoreQStyle
 //void setIconSize ( const QSize & size )
 static AbstractQoreNode *QSTYLEOPTIONBUTTON_setIconSize(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQSize *size = p ? (QoreQSize *)p->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QSTYLEOPTIONBUTTON-SETICONSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QStyleOptionButton::setIconSize()");
@@ -115,7 +115,7 @@ static AbstractQoreNode *QSTYLEOPTIONBUTTON_setIconSize(QoreObject *self, QoreQS
 //void setText ( const QString & text )
 static AbstractQoreNode *QSTYLEOPTIONBUTTON_setText(QoreObject *self, QoreQStyleOptionButton *qsob, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;

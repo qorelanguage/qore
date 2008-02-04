@@ -39,13 +39,13 @@ class QoreClass *QC_QMovie = 0;
 //QMovie ( const QString & fileName, const QByteArray & format = QByteArray(), QObject * parent = 0 )
 static void QMOVIE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QMOVIE, new QoreQMovie(self));
       return;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
+      QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
       if (*xsink)
          return;
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -59,8 +59,9 @@ static void QMOVIE_constructor(QoreObject *self, const QoreListNode *params, Exc
    QByteArray format;
    if (get_qbytearray(p, format, xsink, true))
       format = QByteArray();
-   p = get_param(params, 2);
-   QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 2);
+   QoreAbstractQObject *parent = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -160,7 +161,7 @@ static AbstractQoreNode *QMOVIE_isValid(QoreObject *self, QoreQMovie *qm, const 
 //bool jumpToFrame ( int frameNumber )
 static AbstractQoreNode *QMOVIE_jumpToFrame(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int frameNumber = p ? p->getAsInt() : 0;
    return new QoreBoolNode(qm->qobj->jumpToFrame(frameNumber));
 }
@@ -189,8 +190,8 @@ static AbstractQoreNode *QMOVIE_scaledSize(QoreObject *self, QoreQMovie *qm, con
 //void setBackgroundColor ( const QColor & color )
 static AbstractQoreNode *QMOVIE_setBackgroundColor(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQColor *color = (p && p->type == NT_OBJECT) ? (QoreQColor *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQColor *color = p ? (QoreQColor *)p->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
    if (!color) {
       if (!xsink->isException())
          xsink->raiseException("QMOVIE-SETBACKGROUNDCOLOR-PARAM-ERROR", "expecting a QColor object as first argument to QMovie::setBackgroundColor()");
@@ -204,7 +205,7 @@ static AbstractQoreNode *QMOVIE_setBackgroundColor(QoreObject *self, QoreQMovie 
 //void setCacheMode ( CacheMode mode )
 static AbstractQoreNode *QMOVIE_setCacheMode(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMovie::CacheMode mode = (QMovie::CacheMode)(p ? p->getAsInt() : 0);
    qm->qobj->setCacheMode(mode);
    return 0;
@@ -214,7 +215,7 @@ static AbstractQoreNode *QMOVIE_setCacheMode(QoreObject *self, QoreQMovie *qm, c
 //void setDevice ( QIODevice * device )
 static AbstractQoreNode *QMOVIE_setDevice(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    ??? QIODevice* device = p;
    qm->qobj->setDevice(device);
    return 0;
@@ -224,7 +225,7 @@ static AbstractQoreNode *QMOVIE_setDevice(QoreObject *self, QoreQMovie *qm, cons
 //void setFileName ( const QString & fileName )
 static AbstractQoreNode *QMOVIE_setFileName(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString fileName;
    if (get_qstring(p, fileName, xsink))
       return 0;
@@ -236,7 +237,7 @@ static AbstractQoreNode *QMOVIE_setFileName(QoreObject *self, QoreQMovie *qm, co
 //void setFormat ( const QByteArray & format )
 static AbstractQoreNode *QMOVIE_setFormat(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QByteArray format;
    if (get_qbytearray(p, format, xsink))
       return 0;
@@ -247,8 +248,8 @@ static AbstractQoreNode *QMOVIE_setFormat(QoreObject *self, QoreQMovie *qm, cons
 //void setScaledSize ( const QSize & size )
 static AbstractQoreNode *QMOVIE_setScaledSize(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQSize *size = p ? (QoreQSize *)p->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QMOVIE-SETSCALEDSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QMovie::setScaledSize()");
@@ -280,7 +281,7 @@ static AbstractQoreNode *QMOVIE_jumpToNextFrame(QoreObject *self, QoreQMovie *qm
 //void setPaused ( bool paused )
 static AbstractQoreNode *QMOVIE_setPaused(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool paused = p ? p->getAsBool() : false;
    qm->qobj->setPaused(paused);
    return 0;
@@ -289,7 +290,7 @@ static AbstractQoreNode *QMOVIE_setPaused(QoreObject *self, QoreQMovie *qm, cons
 //void setSpeed ( int percentSpeed )
 static AbstractQoreNode *QMOVIE_setSpeed(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int percentSpeed = p ? p->getAsInt() : 0;
    qm->qobj->setSpeed(percentSpeed);
    return 0;

@@ -671,7 +671,7 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper()
    td->current_obj = old_obj;
 }
 
-CodeContextHelper::CodeContextHelper(const char *code, QoreObject *obj, ExceptionSink *xs)
+CodeContextHelper::CodeContextHelper(const char *code, const QoreObject *obj, ExceptionSink *xs)
 {
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    old_code = td->current_code;
@@ -680,7 +680,7 @@ CodeContextHelper::CodeContextHelper(const char *code, QoreObject *obj, Exceptio
    if (obj)
       obj->ref();
    td->current_code = code;
-   td->current_obj = obj;
+   td->current_obj = const_cast<QoreObject *>(obj);
    //printd(5, "CodeContextHelper::CodeContextHelper(%s, %08p) this=%08p, old=%s, %08p\n", code ? code : "null", obj, this, old_code ? old_code : "null", old_obj);
 }
 
@@ -735,13 +735,11 @@ bool inMethod(const char *name, const QoreObject *o)
    if (td->current_obj == o && td->current_code == name)
       return true;
    return false;
-   //return thread_list[gettid()].callStack->inMethod(name, o);
 }
 
 QoreObject *getStackObject()
 {
    return ((ThreadData *)pthread_getspecific(thread_data_key))->current_obj;
-   //return thread_list[gettid()].callStack->getStackObject();
 }
 
 ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm)

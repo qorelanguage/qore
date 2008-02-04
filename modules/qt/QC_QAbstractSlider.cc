@@ -86,7 +86,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_pageStep(QoreObject *self, QoreAbstract
 //void setInvertedAppearance ( bool )
 static AbstractQoreNode *QABSTRACTSLIDER_setInvertedAppearance(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qas->getQAbstractSlider()->setInvertedAppearance(b);
    return 0;
@@ -95,7 +95,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setInvertedAppearance(QoreObject *self,
 //void setInvertedControls ( bool )
 static AbstractQoreNode *QABSTRACTSLIDER_setInvertedControls(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qas->getQAbstractSlider()->setInvertedControls(b);
    return 0;
@@ -104,7 +104,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setInvertedControls(QoreObject *self, Q
 //void setMaximum ( int )
 static AbstractQoreNode *QABSTRACTSLIDER_setMaximum(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qas->getQAbstractSlider()->setMaximum(x);
    return 0;
@@ -113,7 +113,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setMaximum(QoreObject *self, QoreAbstra
 //void setMinimum ( int )
 static AbstractQoreNode *QABSTRACTSLIDER_setMinimum(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qas->getQAbstractSlider()->setMinimum(x);
    return 0;
@@ -122,7 +122,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setMinimum(QoreObject *self, QoreAbstra
 //void setPageStep ( int )
 static AbstractQoreNode *QABSTRACTSLIDER_setPageStep(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qas->getQAbstractSlider()->setPageStep(x);
    return 0;
@@ -131,7 +131,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setPageStep(QoreObject *self, QoreAbstr
 //void setRange ( int min, int max )
 static AbstractQoreNode *QABSTRACTSLIDER_setRange(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int min = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int max = p ? p->getAsInt() : 0;
@@ -142,7 +142,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setRange(QoreObject *self, QoreAbstract
 //void setSingleStep ( int )
 static AbstractQoreNode *QABSTRACTSLIDER_setSingleStep(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qas->getQAbstractSlider()->setSingleStep(x);
    return 0;
@@ -151,7 +151,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setSingleStep(QoreObject *self, QoreAbs
 //void setSliderDown ( bool )
 static AbstractQoreNode *QABSTRACTSLIDER_setSliderDown(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qas->getQAbstractSlider()->setSliderDown(b);
    return 0;
@@ -160,7 +160,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setSliderDown(QoreObject *self, QoreAbs
 //void setSliderPosition ( int )
 static AbstractQoreNode *QABSTRACTSLIDER_setSliderPosition(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qas->getQAbstractSlider()->setSliderPosition(x);
    return 0;
@@ -169,7 +169,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setSliderPosition(QoreObject *self, Qor
 //void setTracking ( bool enable )
 static AbstractQoreNode *QABSTRACTSLIDER_setTracking(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qas->getQAbstractSlider()->setTracking(enable);
    return 0;
@@ -190,7 +190,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_sliderPosition(QoreObject *self, QoreAb
 //void triggerAction ( SliderAction action )
 static AbstractQoreNode *QABSTRACTSLIDER_triggerAction(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QAbstractSlider::SliderAction action = (QAbstractSlider::SliderAction)(p ? p->getAsInt() : 0);
    qas->getQAbstractSlider()->triggerAction(action);
    return 0;
@@ -206,7 +206,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_value(QoreObject *self, QoreAbstractQAb
 //void setOrientation ( Qt::Orientation )
 static AbstractQoreNode *QABSTRACTSLIDER_setOrientation(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
    qas->getQAbstractSlider()->setOrientation(orientation);
    return 0;
@@ -215,7 +215,7 @@ static AbstractQoreNode *QABSTRACTSLIDER_setOrientation(QoreObject *self, QoreAb
 //void setValue ( int )
 static AbstractQoreNode *QABSTRACTSLIDER_setValue(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qas->getQAbstractSlider()->setValue(x);
    return 0;

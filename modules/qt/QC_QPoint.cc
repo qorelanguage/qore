@@ -35,7 +35,7 @@ static void QPOINT_constructor(class QoreObject *self, const QoreListNode *param
 {
    QoreQPoint *qr;
 
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qr = new QoreQPoint();
    else {
@@ -82,7 +82,7 @@ static AbstractQoreNode *QPOINT_manhattanLength(QoreObject *self, QoreQPoint *qp
 //void setX ( int x )
 static AbstractQoreNode *QPOINT_setX(QoreObject *self, QoreQPoint *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qp->setX(x);
    return 0;
@@ -91,7 +91,7 @@ static AbstractQoreNode *QPOINT_setX(QoreObject *self, QoreQPoint *qp, const Qor
 //void setY ( int y )
 static AbstractQoreNode *QPOINT_setY(QoreObject *self, QoreQPoint *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int y = p ? p->getAsInt() : 0;
    qp->setY(y);
    return 0;

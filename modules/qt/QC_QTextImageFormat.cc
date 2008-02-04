@@ -62,7 +62,7 @@ static AbstractQoreNode *QTEXTIMAGEFORMAT_name(QoreObject *self, QoreQTextImageF
 //void setHeight ( qreal height )
 static AbstractQoreNode *QTEXTIMAGEFORMAT_setHeight(QoreObject *self, QoreQTextImageFormat *qtif, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal height = p ? p->getAsFloat() : 0.0;
    qtif->setHeight(height);
    return 0;
@@ -71,7 +71,7 @@ static AbstractQoreNode *QTEXTIMAGEFORMAT_setHeight(QoreObject *self, QoreQTextI
 //void setName ( const QString & name )
 static AbstractQoreNode *QTEXTIMAGEFORMAT_setName(QoreObject *self, QoreQTextImageFormat *qtif, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString name;
    if (get_qstring(p, name, xsink))
       return 0;
@@ -82,7 +82,7 @@ static AbstractQoreNode *QTEXTIMAGEFORMAT_setName(QoreObject *self, QoreQTextIma
 //void setWidth ( qreal width )
 static AbstractQoreNode *QTEXTIMAGEFORMAT_setWidth(QoreObject *self, QoreQTextImageFormat *qtif, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    qreal width = p ? p->getAsFloat() : 0.0;
    qtif->setWidth(width);
    return 0;

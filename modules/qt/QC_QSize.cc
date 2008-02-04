@@ -33,7 +33,7 @@ static void QSIZE_constructor(class QoreObject *self, const QoreListNode *params
 {
    QoreQSize *qr;
 
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qr = new QoreQSize();
    else {
@@ -55,8 +55,8 @@ static void QSIZE_copy(class QoreObject *self, class QoreObject *old, class Qore
 //QSize boundedTo ( const QSize & otherSize ) const
 static AbstractQoreNode *QSIZE_boundedTo(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQSize *otherSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQSize *otherSize = p ? (QoreQSize *)p->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!otherSize) {
       if (!xsink->isException())
          xsink->raiseException("QSIZE-BOUNDEDTO-PARAM-ERROR", "expecting a QSize object as first argument to QSize::boundedTo()");
@@ -72,8 +72,8 @@ static AbstractQoreNode *QSIZE_boundedTo(QoreObject *self, QoreQSize *qs, const 
 //QSize expandedTo ( const QSize & otherSize ) const
 static AbstractQoreNode *QSIZE_expandedTo(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQSize *otherSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQSize *otherSize = p ? (QoreQSize *)p->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!otherSize) {
       if (!xsink->isException())
          xsink->raiseException("QSIZE-EXPANDEDTO-PARAM-ERROR", "expecting a QSize object as first argument to QSize::expandedTo()");
@@ -126,12 +126,12 @@ static AbstractQoreNode *QSIZE_isValid(QoreObject *self, QoreQSize *qs, const Qo
 //void scale ( const QSize & size, Qt::AspectRatioMode mode )
 static AbstractQoreNode *QSIZE_scale(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQSize *size = (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
+      QoreQSize *size = (QoreQSize *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
       if (!size) {
          if (!xsink->isException())
-            xsink->raiseException("QSIZE-SCALE-PARAM-ERROR", "QSize::scale() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QSIZE-SCALE-PARAM-ERROR", "QSize::scale() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<QoreQSize> sizeHolder(size, xsink);
@@ -152,7 +152,7 @@ static AbstractQoreNode *QSIZE_scale(QoreObject *self, QoreQSize *qs, const Qore
 //void setHeight ( int height )
 static AbstractQoreNode *QSIZE_setHeight(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int height = p ? p->getAsInt() : 0;
    qs->setHeight(height);
    return 0;
@@ -161,7 +161,7 @@ static AbstractQoreNode *QSIZE_setHeight(QoreObject *self, QoreQSize *qs, const 
 //void setWidth ( int width )
 static AbstractQoreNode *QSIZE_setWidth(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int width = p ? p->getAsInt() : 0;
    qs->setWidth(width);
    return 0;

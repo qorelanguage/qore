@@ -46,7 +46,7 @@ static void QMODELINDEX_copy(class QoreObject *self, class QoreObject *old, clas
 //QModelIndex child ( int row, int column ) const
 static AbstractQoreNode *QMODELINDEX_child(QoreObject *self, QoreQModelIndex *qmi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;
@@ -65,7 +65,7 @@ static AbstractQoreNode *QMODELINDEX_column(QoreObject *self, QoreQModelIndex *q
 //QVariant data ( int role = Qt::DisplayRole ) const
 static AbstractQoreNode *QMODELINDEX_data(QoreObject *self, QoreQModelIndex *qmi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int role = !is_nothing(p) ? p->getAsInt() : Qt::DisplayRole;
    return return_qvariant(qmi->data(role));
 }
@@ -131,7 +131,7 @@ static AbstractQoreNode *QMODELINDEX_row(QoreObject *self, QoreQModelIndex *qmi,
 //QModelIndex sibling ( int row, int column ) const
 static AbstractQoreNode *QMODELINDEX_sibling(QoreObject *self, QoreQModelIndex *qmi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int column = p ? p->getAsInt() : 0;

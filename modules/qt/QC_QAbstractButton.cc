@@ -36,8 +36,8 @@ static void QABSTRACTBUTTON_constructor(QoreObject *self, const QoreListNode *pa
 {
    xsink->raiseException("QABSTRACTBUTTON-CONSTRUCTOR-ERROR", "QAbstractButton is an abstract class");
 /*
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
    self->setPrivate(CID_QABSTRACTBUTTON, new QoreQAbstractButton(self, parent ? parent->getQWidget() : 0));
    return;
@@ -118,7 +118,7 @@ static AbstractQoreNode *QABSTRACTBUTTON_isDown(QoreObject *self, QoreAbstractQA
 //void setAutoExclusive ( bool )
 static AbstractQoreNode *QABSTRACTBUTTON_setAutoExclusive(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qab->getQAbstractButton()->setAutoExclusive(b);
    return 0;
@@ -127,7 +127,7 @@ static AbstractQoreNode *QABSTRACTBUTTON_setAutoExclusive(QoreObject *self, Qore
 //void setAutoRepeat ( bool )
 static AbstractQoreNode *QABSTRACTBUTTON_setAutoRepeat(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qab->getQAbstractButton()->setAutoRepeat(b);
    return 0;
@@ -136,7 +136,7 @@ static AbstractQoreNode *QABSTRACTBUTTON_setAutoRepeat(QoreObject *self, QoreAbs
 //void setAutoRepeatDelay ( int )
 static AbstractQoreNode *QABSTRACTBUTTON_setAutoRepeatDelay(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qab->getQAbstractButton()->setAutoRepeatDelay(x);
    return 0;
@@ -145,7 +145,7 @@ static AbstractQoreNode *QABSTRACTBUTTON_setAutoRepeatDelay(QoreObject *self, Qo
 //void setAutoRepeatInterval ( int )
 static AbstractQoreNode *QABSTRACTBUTTON_setAutoRepeatInterval(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qab->getQAbstractButton()->setAutoRepeatInterval(x);
    return 0;
@@ -154,7 +154,7 @@ static AbstractQoreNode *QABSTRACTBUTTON_setAutoRepeatInterval(QoreObject *self,
 //void setCheckable ( bool )
 static AbstractQoreNode *QABSTRACTBUTTON_setCheckable(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qab->getQAbstractButton()->setCheckable(b);
    return 0;
@@ -163,7 +163,7 @@ static AbstractQoreNode *QABSTRACTBUTTON_setCheckable(QoreObject *self, QoreAbst
 //void setDown ( bool )
 static AbstractQoreNode *QABSTRACTBUTTON_setDown(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qab->getQAbstractButton()->setDown(b);
    return 0;
@@ -172,8 +172,8 @@ static AbstractQoreNode *QABSTRACTBUTTON_setDown(QoreObject *self, QoreAbstractQ
 //void setIcon ( const QIcon & icon )
 static AbstractQoreNode *QABSTRACTBUTTON_setIcon(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQIcon *icon = p ? (QoreQIcon *)p->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTBUTTON-SETICON-PARAM-ERROR", "expecting a QIcon object as first argument to QAbstractButton::setIcon()");
@@ -187,7 +187,7 @@ static AbstractQoreNode *QABSTRACTBUTTON_setIcon(QoreObject *self, QoreAbstractQ
 //void setShortcut ( const QKeySequence & key )
 static AbstractQoreNode *QABSTRACTBUTTON_setShortcut(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    
    QKeySequence key;
    if (get_qkeysequence(p, key, xsink))
@@ -200,7 +200,7 @@ static AbstractQoreNode *QABSTRACTBUTTON_setShortcut(QoreObject *self, QoreAbstr
 //void setText ( const QString & text )
 static AbstractQoreNode *QABSTRACTBUTTON_setText(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       return 0;
 
@@ -231,7 +231,7 @@ static AbstractQoreNode *QABSTRACTBUTTON_text(QoreObject *self, QoreAbstractQAbs
 //void animateClick ( int msec = 100 )
 static AbstractQoreNode *QABSTRACTBUTTON_animateClick(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int msec = !is_nothing(p) ? p->getAsInt() : 100;
    qab->getQAbstractButton()->animateClick(msec);
    return 0;
@@ -247,7 +247,7 @@ static AbstractQoreNode *QABSTRACTBUTTON_click(QoreObject *self, QoreAbstractQAb
 //void setChecked ( bool )
 static AbstractQoreNode *QABSTRACTBUTTON_setChecked(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qab->getQAbstractButton()->setChecked(b);
    return 0;
@@ -256,8 +256,8 @@ static AbstractQoreNode *QABSTRACTBUTTON_setChecked(QoreObject *self, QoreAbstra
 //void setIconSize ( const QSize & size )
 static AbstractQoreNode *QABSTRACTBUTTON_setIconSize(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQSize *size = p ? (QoreQSize *)p->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QABSTRACTBUTTON-SETICONSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QAbstractButton::setIconSize()");

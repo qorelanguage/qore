@@ -33,18 +33,20 @@ class QoreClass *QC_QHelpEvent = 0;
 //QHelpEvent ( Type type, const QPoint & pos, const QPoint & globalPos )
 static void QHELPEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QHelpEvent::Type type = (QHelpEvent::Type)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQPoint *pos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QHELPEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as second argument to QHelpEvent::constructor()");
       return;
    }
    ReferenceHolder<AbstractPrivateData> posHolder(static_cast<AbstractPrivateData *>(pos), xsink);
-   p = get_param(params, 2);
-   QoreQPoint *globalPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQPoint *globalPos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!globalPos) {
       if (!xsink->isException())
          xsink->raiseException("QHELPEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as third argument to QHelpEvent::constructor()");

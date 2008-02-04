@@ -52,11 +52,10 @@ class QoreQueue
    public:
       DLLLOCAL QoreQueue();
       DLLLOCAL ~QoreQueue();
-      DLLLOCAL QoreQueue(AbstractQoreNode *n);
       // push at the end of the queue
-      DLLLOCAL void push(AbstractQoreNode *n);
+      DLLLOCAL void push(const AbstractQoreNode *n);
       // insert at the beginning of the queue
-      DLLLOCAL void insert(AbstractQoreNode *n);
+      DLLLOCAL void insert(const AbstractQoreNode *n);
       DLLLOCAL AbstractQoreNode *shift(class ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
       DLLLOCAL AbstractQoreNode *pop(class ExceptionSink *xsink, int timeout_ms = 0, bool *to = 0);
       DLLLOCAL int size() const

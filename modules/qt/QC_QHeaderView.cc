@@ -35,10 +35,11 @@ class QoreClass *QC_QHeaderView = 0;
 //QHeaderView ( Qt::Orientation orientation, QWidget * parent = 0 )
 static void QHEADERVIEW_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -84,7 +85,7 @@ static AbstractQoreNode *QHEADERVIEW_hiddenSectionCount(QoreObject *self, QoreAb
 //void hideSection ( int logicalIndex )
 static AbstractQoreNode *QHEADERVIEW_hideSection(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    qhv->getQHeaderView()->hideSection(logicalIndex);
    return 0;
@@ -111,7 +112,7 @@ static AbstractQoreNode *QHEADERVIEW_isMovable(QoreObject *self, QoreAbstractQHe
 //bool isSectionHidden ( int logicalIndex ) const
 static AbstractQoreNode *QHEADERVIEW_isSectionHidden(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    return new QoreBoolNode(qhv->getQHeaderView()->isSectionHidden(logicalIndex));
 }
@@ -131,7 +132,7 @@ static AbstractQoreNode *QHEADERVIEW_length(QoreObject *self, QoreAbstractQHeade
 //int logicalIndex ( int visualIndex ) const
 static AbstractQoreNode *QHEADERVIEW_logicalIndex(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int visualIndex = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qhv->getQHeaderView()->logicalIndex(visualIndex));
 }
@@ -141,12 +142,12 @@ static AbstractQoreNode *QHEADERVIEW_logicalIndex(QoreObject *self, QoreAbstract
 //int logicalIndexAt ( const QPoint & pos ) const
 static AbstractQoreNode *QHEADERVIEW_logicalIndexAt(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *pos = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *pos = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!pos) {
          if (!xsink->isException())
-            xsink->raiseException("QHEADERVIEW-LOGICALINDEXAT-PARAM-ERROR", "QHeaderView::logicalIndexAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QHEADERVIEW-LOGICALINDEXAT-PARAM-ERROR", "QHeaderView::logicalIndexAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> posHolder(static_cast<AbstractPrivateData *>(pos), xsink);
@@ -172,7 +173,7 @@ static AbstractQoreNode *QHEADERVIEW_minimumSectionSize(QoreObject *self, QoreAb
 //void moveSection ( int from, int to )
 static AbstractQoreNode *QHEADERVIEW_moveSection(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int from = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int to = p ? p->getAsInt() : 0;
@@ -195,7 +196,7 @@ static AbstractQoreNode *QHEADERVIEW_orientation(QoreObject *self, QoreAbstractQ
 //ResizeMode resizeMode ( int logicalIndex ) const
 static AbstractQoreNode *QHEADERVIEW_resizeMode(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qhv->getQHeaderView()->resizeMode(logicalIndex));
 }
@@ -203,7 +204,7 @@ static AbstractQoreNode *QHEADERVIEW_resizeMode(QoreObject *self, QoreAbstractQH
 //void resizeSection ( int logicalIndex, int size )
 static AbstractQoreNode *QHEADERVIEW_resizeSection(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int size = p ? p->getAsInt() : 0;
@@ -214,7 +215,7 @@ static AbstractQoreNode *QHEADERVIEW_resizeSection(QoreObject *self, QoreAbstrac
 //void resizeSections ( QHeaderView::ResizeMode mode )
 static AbstractQoreNode *QHEADERVIEW_resizeSections(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QHeaderView::ResizeMode mode = (QHeaderView::ResizeMode)(p ? p->getAsInt() : 0);
    qhv->getQHeaderView()->resizeSections(mode);
    return 0;
@@ -223,7 +224,7 @@ static AbstractQoreNode *QHEADERVIEW_resizeSections(QoreObject *self, QoreAbstra
 //bool restoreState ( const QByteArray & state )
 static AbstractQoreNode *QHEADERVIEW_restoreState(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QByteArray state;
    if (get_qbytearray(p, state, xsink))
       return 0;
@@ -242,7 +243,7 @@ static AbstractQoreNode *QHEADERVIEW_saveState(QoreObject *self, QoreAbstractQHe
 //int sectionPosition ( int logicalIndex ) const
 static AbstractQoreNode *QHEADERVIEW_sectionPosition(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qhv->getQHeaderView()->sectionPosition(logicalIndex));
 }
@@ -250,7 +251,7 @@ static AbstractQoreNode *QHEADERVIEW_sectionPosition(QoreObject *self, QoreAbstr
 //int sectionSize ( int logicalIndex ) const
 static AbstractQoreNode *QHEADERVIEW_sectionSize(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qhv->getQHeaderView()->sectionSize(logicalIndex));
 }
@@ -258,7 +259,7 @@ static AbstractQoreNode *QHEADERVIEW_sectionSize(QoreObject *self, QoreAbstractQ
 //int sectionSizeHint ( int logicalIndex ) const
 static AbstractQoreNode *QHEADERVIEW_sectionSizeHint(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qhv->getQHeaderView()->sectionSizeHint(logicalIndex));
 }
@@ -266,7 +267,7 @@ static AbstractQoreNode *QHEADERVIEW_sectionSizeHint(QoreObject *self, QoreAbstr
 //int sectionViewportPosition ( int logicalIndex ) const
 static AbstractQoreNode *QHEADERVIEW_sectionViewportPosition(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qhv->getQHeaderView()->sectionViewportPosition(logicalIndex));
 }
@@ -286,7 +287,7 @@ static AbstractQoreNode *QHEADERVIEW_sectionsMoved(QoreObject *self, QoreAbstrac
 //void setCascadingSectionResizes ( bool enable )
 static AbstractQoreNode *QHEADERVIEW_setCascadingSectionResizes(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qhv->getQHeaderView()->setCascadingSectionResizes(enable);
    return 0;
@@ -295,7 +296,7 @@ static AbstractQoreNode *QHEADERVIEW_setCascadingSectionResizes(QoreObject *self
 //void setClickable ( bool clickable )
 static AbstractQoreNode *QHEADERVIEW_setClickable(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool clickable = p ? p->getAsBool() : false;
    qhv->getQHeaderView()->setClickable(clickable);
    return 0;
@@ -304,7 +305,7 @@ static AbstractQoreNode *QHEADERVIEW_setClickable(QoreObject *self, QoreAbstract
 //void setDefaultAlignment ( Qt::Alignment alignment )
 static AbstractQoreNode *QHEADERVIEW_setDefaultAlignment(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
    qhv->getQHeaderView()->setDefaultAlignment(alignment);
    return 0;
@@ -313,7 +314,7 @@ static AbstractQoreNode *QHEADERVIEW_setDefaultAlignment(QoreObject *self, QoreA
 //void setDefaultSectionSize ( int size )
 static AbstractQoreNode *QHEADERVIEW_setDefaultSectionSize(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int size = p ? p->getAsInt() : 0;
    //printd(0, "QHeaderView::setDefaultSectionSize() obj=%08p, QoreAbstractQHeaderView=%08p, QHeaderView=%08p\n", self, qhv, qhv->getQHeaderView());
    qhv->getQHeaderView()->setDefaultSectionSize(size);
@@ -323,7 +324,7 @@ static AbstractQoreNode *QHEADERVIEW_setDefaultSectionSize(QoreObject *self, Qor
 //void setHighlightSections ( bool highlight )
 static AbstractQoreNode *QHEADERVIEW_setHighlightSections(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool highlight = p ? p->getAsBool() : false;
    qhv->getQHeaderView()->setHighlightSections(highlight);
    return 0;
@@ -332,7 +333,7 @@ static AbstractQoreNode *QHEADERVIEW_setHighlightSections(QoreObject *self, Qore
 //void setMinimumSectionSize ( int size )
 static AbstractQoreNode *QHEADERVIEW_setMinimumSectionSize(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int size = p ? p->getAsInt() : 0;
    qhv->getQHeaderView()->setMinimumSectionSize(size);
    return 0;
@@ -341,7 +342,7 @@ static AbstractQoreNode *QHEADERVIEW_setMinimumSectionSize(QoreObject *self, Qor
 //void setMovable ( bool movable )
 static AbstractQoreNode *QHEADERVIEW_setMovable(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool movable = p ? p->getAsBool() : false;
    qhv->getQHeaderView()->setMovable(movable);
    return 0;
@@ -351,7 +352,7 @@ static AbstractQoreNode *QHEADERVIEW_setMovable(QoreObject *self, QoreAbstractQH
 //void setResizeMode ( int logicalIndex, ResizeMode mode )
 static AbstractQoreNode *QHEADERVIEW_setResizeMode(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (num_params(params) == 1) {
       QHeaderView::ResizeMode mode = (QHeaderView::ResizeMode)(p ? p->getAsInt() : 0);
       qhv->getQHeaderView()->setResizeMode(mode);
@@ -368,7 +369,7 @@ static AbstractQoreNode *QHEADERVIEW_setResizeMode(QoreObject *self, QoreAbstrac
 //void setSectionHidden ( int logicalIndex, bool hide )
 static AbstractQoreNode *QHEADERVIEW_setSectionHidden(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    bool hide = p ? p->getAsBool() : false;
@@ -379,7 +380,7 @@ static AbstractQoreNode *QHEADERVIEW_setSectionHidden(QoreObject *self, QoreAbst
 //void setSortIndicator ( int logicalIndex, Qt::SortOrder order )
 static AbstractQoreNode *QHEADERVIEW_setSortIndicator(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    Qt::SortOrder order = (Qt::SortOrder)(p ? p->getAsInt() : 0);
@@ -390,7 +391,7 @@ static AbstractQoreNode *QHEADERVIEW_setSortIndicator(QoreObject *self, QoreAbst
 //void setSortIndicatorShown ( bool show )
 static AbstractQoreNode *QHEADERVIEW_setSortIndicatorShown(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool show = p ? p->getAsBool() : false;
    qhv->getQHeaderView()->setSortIndicatorShown(show);
    return 0;
@@ -399,7 +400,7 @@ static AbstractQoreNode *QHEADERVIEW_setSortIndicatorShown(QoreObject *self, Qor
 //void setStretchLastSection ( bool stretch )
 static AbstractQoreNode *QHEADERVIEW_setStretchLastSection(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool stretch = p ? p->getAsBool() : false;
    qhv->getQHeaderView()->setStretchLastSection(stretch);
    return 0;
@@ -408,7 +409,7 @@ static AbstractQoreNode *QHEADERVIEW_setStretchLastSection(QoreObject *self, Qor
 //void showSection ( int logicalIndex )
 static AbstractQoreNode *QHEADERVIEW_showSection(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    qhv->getQHeaderView()->showSection(logicalIndex);
    return 0;
@@ -450,7 +451,7 @@ static AbstractQoreNode *QHEADERVIEW_stretchSectionCount(QoreObject *self, QoreA
 //void swapSections ( int first, int second )
 static AbstractQoreNode *QHEADERVIEW_swapSections(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int first = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int second = p ? p->getAsInt() : 0;
@@ -461,7 +462,7 @@ static AbstractQoreNode *QHEADERVIEW_swapSections(QoreObject *self, QoreAbstract
 //int visualIndex ( int logicalIndex ) const
 static AbstractQoreNode *QHEADERVIEW_visualIndex(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qhv->getQHeaderView()->visualIndex(logicalIndex));
 }
@@ -469,7 +470,7 @@ static AbstractQoreNode *QHEADERVIEW_visualIndex(QoreObject *self, QoreAbstractQ
 //int visualIndexAt ( int position ) const
 static AbstractQoreNode *QHEADERVIEW_visualIndexAt(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int position = p ? p->getAsInt() : 0;
    return new QoreBigIntNode(qhv->getQHeaderView()->visualIndexAt(position));
 }
@@ -477,7 +478,7 @@ static AbstractQoreNode *QHEADERVIEW_visualIndexAt(QoreObject *self, QoreAbstrac
 //void headerDataChanged ( Qt::Orientation orientation, int logicalFirst, int logicalLast )
 static AbstractQoreNode *QHEADERVIEW_headerDataChanged(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::Orientation orientation = (Qt::Orientation)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    int logicalFirst = p ? p->getAsInt() : 0;
@@ -490,7 +491,7 @@ static AbstractQoreNode *QHEADERVIEW_headerDataChanged(QoreObject *self, QoreAbs
 //void setOffset ( int offset )
 static AbstractQoreNode *QHEADERVIEW_setOffset(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int offset = p ? p->getAsInt() : 0;
    qhv->getQHeaderView()->setOffset(offset);
    return 0;
@@ -506,7 +507,7 @@ static AbstractQoreNode *QHEADERVIEW_setOffsetToLastSection(QoreObject *self, Qo
 //void setOffsetToSectionPosition ( int visualIndex )
 static AbstractQoreNode *QHEADERVIEW_setOffsetToSectionPosition(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int visualIndex = p ? p->getAsInt() : 0;
    qhv->getQHeaderView()->setOffsetToSectionPosition(visualIndex);
    return 0;

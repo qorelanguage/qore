@@ -373,7 +373,7 @@ inline AbstractQoreNode *QPartNode::getNodeValue(ExceptionSink *xsink, int dyn)
       (*n)->val.object->dereference(xsink);
    }
    if (!rv && deflt)
-      rv = deflt->RefSelf();
+      rv = deflt->refSelf();
    return rv;
 }
 

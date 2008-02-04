@@ -58,7 +58,7 @@ static AbstractQoreNode *QMIMEDATA_colorData(QoreObject *self, QoreQMimeData *qm
 //QByteArray data ( const QString & mimeType ) const
 static AbstractQoreNode *QMIMEDATA_data(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString mimeType;
    if (get_qstring(p, mimeType, xsink))
       return 0;
@@ -88,7 +88,7 @@ static AbstractQoreNode *QMIMEDATA_hasColor(QoreObject *self, QoreQMimeData *qmd
 //virtual bool hasFormat ( const QString & mimeType ) const
 static AbstractQoreNode *QMIMEDATA_hasFormat(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString mimeType;
    if (get_qstring(p, mimeType, xsink))
       return 0;
@@ -135,7 +135,7 @@ static AbstractQoreNode *QMIMEDATA_imageData(QoreObject *self, QoreQMimeData *qm
 //void setColorData ( const QVariant & color )
 static AbstractQoreNode *QMIMEDATA_setColorData(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QVariant color;
    if (get_qvariant(p, color, xsink))
       return 0;
@@ -146,7 +146,7 @@ static AbstractQoreNode *QMIMEDATA_setColorData(QoreObject *self, QoreQMimeData 
 //void setData ( const QString & mimeType, const QByteArray & data )
 static AbstractQoreNode *QMIMEDATA_setData(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString mimeType;
    if (get_qstring(p, mimeType, xsink))
       return 0;
@@ -162,7 +162,7 @@ static AbstractQoreNode *QMIMEDATA_setData(QoreObject *self, QoreQMimeData *qmd,
 //void setHtml ( const QString & html )
 static AbstractQoreNode *QMIMEDATA_setHtml(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString html;
    if (get_qstring(p, html, xsink))
       return 0;
@@ -174,7 +174,7 @@ static AbstractQoreNode *QMIMEDATA_setHtml(QoreObject *self, QoreQMimeData *qmd,
 //void setImageData ( const QVariant & image )
 static AbstractQoreNode *QMIMEDATA_setImageData(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QVariant image;
    if (get_qvariant(p, image, xsink))
       return 0;
@@ -185,7 +185,7 @@ static AbstractQoreNode *QMIMEDATA_setImageData(QoreObject *self, QoreQMimeData 
 //void setText ( const QString & text )
 static AbstractQoreNode *QMIMEDATA_setText(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
@@ -197,7 +197,7 @@ static AbstractQoreNode *QMIMEDATA_setText(QoreObject *self, QoreQMimeData *qmd,
 ////void setUrls ( const QList<QUrl> & urls )
 //static AbstractQoreNode *QMIMEDATA_setUrls(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QList<QUrl> urls = p;
 //   qmd->qobj->setUrls(urls);
 //   return 0;

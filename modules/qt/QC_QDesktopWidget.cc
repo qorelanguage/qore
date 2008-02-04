@@ -48,14 +48,14 @@ static void QDESKTOPWIDGET_copy(class QoreObject *self, class QoreObject *old, c
 //const QRect availableGeometry ( const QPoint & p ) const
 static AbstractQoreNode *QDESKTOPWIDGET_availableGeometry(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
-         QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
+         QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
          if (!widget) {
             if (!xsink->isException())
-               xsink->raiseException("QDESKTOPWIDGET-AVAILABLEGEOMETRY-PARAM-ERROR", "QDesktopWidget::availableGeometry() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QDESKTOPWIDGET-AVAILABLEGEOMETRY-PARAM-ERROR", "QDesktopWidget::availableGeometry() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
             return 0;
          }
          ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -98,7 +98,7 @@ static AbstractQoreNode *QDESKTOPWIDGET_primaryScreen(QoreObject *self, QoreQDes
 //QWidget * screen ( int screen = -1 )
 static AbstractQoreNode *QDESKTOPWIDGET_screen(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int screen = !is_nothing(p) ? p->getAsInt() : -1;
    QWidget *qt_qobj = qdw->qobj->screen(screen);
    if (!qt_qobj)
@@ -120,14 +120,14 @@ static AbstractQoreNode *QDESKTOPWIDGET_screen(QoreObject *self, QoreQDesktopWid
 //const QRect screenGeometry ( const QPoint & p ) const
 static AbstractQoreNode *QDESKTOPWIDGET_screenGeometry(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
-         QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
+         QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
          if (!widget) {
             if (!xsink->isException())
-               xsink->raiseException("QDESKTOPWIDGET-SCREENGEOMETRY-PARAM-ERROR", "QDesktopWidget::screenGeometry() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QDESKTOPWIDGET-SCREENGEOMETRY-PARAM-ERROR", "QDesktopWidget::screenGeometry() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
             return 0;
          }
          ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -153,18 +153,18 @@ static AbstractQoreNode *QDESKTOPWIDGET_screenGeometry(QoreObject *self, QoreQDe
 //int screenNumber ( const QPoint & point ) const
 static AbstractQoreNode *QDESKTOPWIDGET_screenNumber(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       return new QoreBigIntNode(qdw->qobj->screenNumber());
    }
-   QoreQPoint *point = (p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *point = (p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!point) {
-      QoreQWidget *widget = (p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      QoreQWidget *widget = (p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!widget) {
 	 if (*xsink)
 	    return 0;
 	 if (p->type == NT_OBJECT)
-	    xsink->raiseException("QDESKTOPWIDGET-SCREENNUMBER-PARAM-ERROR", "expecting either NOTHING, a QWidget, or a QPoint object as the sole argument to QDesktopWidget::screenNumber(), got class '%s'", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+	    xsink->raiseException("QDESKTOPWIDGET-SCREENNUMBER-PARAM-ERROR", "expecting either NOTHING, a QWidget, or a QPoint object as the sole argument to QDesktopWidget::screenNumber(), got class '%s'", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 else
 	    xsink->raiseException("QDESKTOPWIDGET-SCREENNUMBER-PARAM-ERROR", "expecting either NOTHING, a QWidget, or a QPoint object as the sole argument to QDesktopWidget::screenNumber(), got '%s'", p->getTypeName());
       }

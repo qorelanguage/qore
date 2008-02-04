@@ -33,18 +33,20 @@ class QoreClass *QC_QActionEvent = 0;
 //QActionEvent ( int type, QAction * action, QAction * before = 0 )
 static void QACTIONEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int type = p ? p->getAsInt() : 0;
-   p = get_param(params, 1);
-   QoreQAction *action = (p && p->type == NT_OBJECT) ? (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQAction *action = o ? (QoreQAction *)o->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (!action) {
       if (!xsink->isException())
          xsink->raiseException("QACTIONEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QAction object as second argument to QActionEvent::constructor()");
       return;
    }
    ReferenceHolder<QoreQAction> actionHolder(action, xsink);
-   p = get_param(params, 2);
-   QoreQAction *before = (p && p->type == NT_OBJECT) ? (QoreQAction *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQAction *before = o ? (QoreQAction *)o->getReferencedPrivateData(CID_QACTION, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<QoreQAction> beforeHolder(before, xsink);

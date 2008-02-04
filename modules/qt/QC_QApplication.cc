@@ -138,15 +138,15 @@ static AbstractQoreNode *f_QApplication_activeWindow(const QoreListNode *params,
 //void alert ( QWidget * widget, int msec = 0 )
 static AbstractQoreNode *f_QApplication_alert(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!widget) {
       if (!xsink->isException())
          xsink->raiseException("QAPPLICATION-ALERT-PARAM-ERROR", "expecting a QWidget object as first argument to QApplication::alert()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   p = get_param(params, 1);
+   const AbstractQoreNode *p = get_param(params, 1);
    int msec = !is_nothing(p) ? p->getAsInt() : 0;
    QApplication::alert(static_cast<QWidget *>(widget->getQWidget()), msec);
    return 0;
@@ -168,7 +168,7 @@ static AbstractQoreNode *f_QApplication_beep(const QoreListNode *params, Excepti
 ////void changeOverrideCursor ( const QCursor & cursor )
 //static AbstractQoreNode *f_QApplication_changeOverrideCursor(const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QCursor cursor = p;
 //   QApplication::changeOverrideCursor(cursor);
 //   return 0;
@@ -186,7 +186,7 @@ static AbstractQoreNode *f_QApplication_clipboard(const QoreListNode *params, cl
       o->setPrivate(CID_QCLIPBOARD, qcb);
       C_Clipboard = o;
    }
-   return C_Clipboard->RefSelf();
+   return C_Clipboard->refSelf();
 }
 
 //int colorSpec ()
@@ -255,18 +255,19 @@ static AbstractQoreNode *f_QApplication_focusWidget(const QoreListNode *params, 
 //QFont font ( const char * className )
 static AbstractQoreNode *f_QApplication_font(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
       QoreQFont *q_qf = new QoreQFont(QApplication::font());
       o_qf->setPrivate(CID_QFONT, q_qf);
       return o_qf;
    }
-   if (p->type == NT_OBJECT) {
-      QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
+   const QoreType *ptype = p->getType();
+   if (ptype == NT_OBJECT) {
+      QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (!widget) {
          if (!xsink->isException())
-            xsink->raiseException("QAPPLICATION-FONT-PARAM-ERROR", "QApplication::font() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QAPPLICATION-FONT-PARAM-ERROR", "QApplication::font() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -275,11 +276,11 @@ static AbstractQoreNode *f_QApplication_font(const QoreListNode *params, Excepti
       o_qf->setPrivate(CID_QFONT, q_qf);
       return o_qf;
    }
-   QoreStringNode *pstr = dynamic_cast<QoreStringNode *>(p);
-   if (!pstr) {
+   if (ptype != NT_STRING) {
       xsink->raiseException("QAPPLICATION-FONT-PARAM-ERROR", "QApplication::font() expects either a string, a QWidget as the sole argument or no arguments at all");
       return 0;
    }
+   const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p);
    const char *className = pstr->getBuffer();
    QoreObject *o_qf = new QoreObject(QC_QFont, getProgram());
    QoreQFont *q_qf = new QoreQFont(QApplication::font(className));
@@ -308,7 +309,7 @@ static AbstractQoreNode *f_QApplication_globalStrut(const QoreListNode *params, 
 //bool isEffectEnabled ( Qt::UIEffect effect )
 static AbstractQoreNode *f_QApplication_isEffectEnabled(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::UIEffect effect = (Qt::UIEffect)(p ? p->getAsInt() : 0);
    return new QoreBoolNode(QApplication::isEffectEnabled(effect));
 }
@@ -383,7 +384,7 @@ static AbstractQoreNode *f_QApplication_mouseButtons(const QoreListNode *params,
 //QPalette palette ( const char * className )
 static AbstractQoreNode *f_QApplication_palette(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       QoreObject *o_qp = new QoreObject(QC_QPalette, getProgram());
       QoreQPalette *q_qp = new QoreQPalette(QApplication::palette());
@@ -391,10 +392,10 @@ static AbstractQoreNode *f_QApplication_palette(const QoreListNode *params, Exce
       return o_qp;
    }
    if (p && p->type == NT_OBJECT) {
-      QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
+      QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (!widget) {
          if (!xsink->isException())
-            xsink->raiseException("QAPPLICATION-PALETTE-PARAM-ERROR", "QApplication::palette() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QAPPLICATION-PALETTE-PARAM-ERROR", "QApplication::palette() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -403,7 +404,7 @@ static AbstractQoreNode *f_QApplication_palette(const QoreListNode *params, Exce
       o_qp->setPrivate(CID_QPALETTE, q_qp);
       return o_qp;
    }
-   QoreStringNode *pstr = dynamic_cast<QoreStringNode *>(p);
+   const QoreStringNode *pstr = dynamic_cast<const QoreStringNode *>(p);
    if (!pstr) {
       xsink->raiseException("QAPPLICATION-PALETTE-PARAM-ERROR", "expecting a string as first argument to QApplication::palette()");
       return 0;
@@ -431,7 +432,7 @@ static AbstractQoreNode *f_QApplication_quitOnLastWindowClosed(const QoreListNod
 ////QDecoration * qwsSetDecoration ( const QString & decoration )
 //static AbstractQoreNode *f_QApplication_qwsSetDecoration(const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QDecoration* decoration = p;
 //   QApplication::qwsSetDecoration(decoration);
 //   return 0;
@@ -447,8 +448,8 @@ static AbstractQoreNode *f_QApplication_restoreOverrideCursor(const QoreListNode
 //void setActiveWindow ( QWidget * active )
 static AbstractQoreNode *f_QApplication_setActiveWindow(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *active = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *active = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!active) {
       if (!xsink->isException())
          xsink->raiseException("QAPPLICATION-SETACTIVEWINDOW-PARAM-ERROR", "expecting a QWidget object as first argument to QApplication::setActiveWindow()");
@@ -462,7 +463,7 @@ static AbstractQoreNode *f_QApplication_setActiveWindow(const QoreListNode *para
 //void setColorSpec ( int spec )
 static AbstractQoreNode *f_QApplication_setColorSpec(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int spec = p ? p->getAsInt() : 0;
    QApplication::setColorSpec(spec);
    return 0;
@@ -471,7 +472,7 @@ static AbstractQoreNode *f_QApplication_setColorSpec(const QoreListNode *params,
 //void setCursorFlashTime ( int )
 static AbstractQoreNode *f_QApplication_setCursorFlashTime(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    QApplication::setCursorFlashTime(x);
    return 0;
@@ -480,7 +481,7 @@ static AbstractQoreNode *f_QApplication_setCursorFlashTime(const QoreListNode *p
 //void setDesktopSettingsAware ( bool on )
 static AbstractQoreNode *f_QApplication_setDesktopSettingsAware(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
    QApplication::setDesktopSettingsAware(on);
    return 0;
@@ -489,7 +490,7 @@ static AbstractQoreNode *f_QApplication_setDesktopSettingsAware(const QoreListNo
 //void setDoubleClickInterval ( int )
 static AbstractQoreNode *f_QApplication_setDoubleClickInterval(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    QApplication::setDoubleClickInterval(x);
    return 0;
@@ -498,7 +499,7 @@ static AbstractQoreNode *f_QApplication_setDoubleClickInterval(const QoreListNod
 //void setEffectEnabled ( Qt::UIEffect effect, bool enable = true )
 static AbstractQoreNode *f_QApplication_setEffectEnabled(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::UIEffect effect = (Qt::UIEffect)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    bool enable = !is_nothing(p) ? p->getAsBool() : true;
@@ -509,15 +510,15 @@ static AbstractQoreNode *f_QApplication_setEffectEnabled(const QoreListNode *par
 //void setFont ( const QFont & font, const char * className = 0 )
 static AbstractQoreNode *f_QApplication_setFont(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQFont *font = (p && p->type == NT_OBJECT) ? (QoreQFont *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QFONT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQFont *font = p ? (QoreQFont *)p->getReferencedPrivateData(CID_QFONT, xsink) : 0;
    if (!font) {
       if (!xsink->isException())
          xsink->raiseException("QAPPLICATION-SETFONT-PARAM-ERROR", "expecting a QFont object as first argument to QApplication::setFont()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> fontHolder(static_cast<AbstractPrivateData *>(font), xsink);
-   QoreStringNode *pstr = test_string_param(params, 1);
+   const QoreStringNode *pstr = test_string_param(params, 1);
    const char *className = pstr ? pstr->getBuffer() : 0;
    QApplication::setFont(*(static_cast<QFont *>(font)), className);
    return 0;
@@ -526,7 +527,7 @@ static AbstractQoreNode *f_QApplication_setFont(const QoreListNode *params, Exce
 ////void setGlobalStrut ( const QSize & )
 //static AbstractQoreNode *f_QApplication_setGlobalStrut(const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? const^QSize const^qsize = p;
 //   QApplication::setGlobalStrut(const^qsize);
 //   return 0;
@@ -535,7 +536,7 @@ static AbstractQoreNode *f_QApplication_setFont(const QoreListNode *params, Exce
 //void setKeyboardInputInterval ( int )
 static AbstractQoreNode *f_QApplication_setKeyboardInputInterval(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    QApplication::setKeyboardInputInterval(x);
    return 0;
@@ -545,7 +546,7 @@ static AbstractQoreNode *f_QApplication_setKeyboardInputInterval(const QoreListN
 //void setKeypadNavigationEnabled ( bool enable )
 static AbstractQoreNode *f_QApplication_setKeypadNavigationEnabled(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    QApplication::setKeypadNavigationEnabled(enable);
    return 0;
@@ -555,7 +556,7 @@ static AbstractQoreNode *f_QApplication_setKeypadNavigationEnabled(const QoreLis
 //void setLayoutDirection ( Qt::LayoutDirection direction )
 static AbstractQoreNode *f_QApplication_setLayoutDirection(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::LayoutDirection direction = (Qt::LayoutDirection)(p ? p->getAsInt() : 0);
    QApplication::setLayoutDirection(direction);
    return 0;
@@ -564,7 +565,7 @@ static AbstractQoreNode *f_QApplication_setLayoutDirection(const QoreListNode *p
 ////void setOverrideCursor ( const QCursor & cursor )
 //static AbstractQoreNode *f_QApplication_setOverrideCursor(const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QCursor cursor = p;
 //   QApplication::setOverrideCursor(cursor);
 //   return 0;
@@ -573,15 +574,15 @@ static AbstractQoreNode *f_QApplication_setLayoutDirection(const QoreListNode *p
 //void setPalette ( const QPalette & palette, const char * className = 0 )
 static AbstractQoreNode *f_QApplication_setPalette(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQPalette *palette = (p && p->type == NT_OBJECT) ? (QoreQPalette *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQPalette *palette = p ? (QoreQPalette *)p->getReferencedPrivateData(CID_QPALETTE, xsink) : 0;
    if (!palette) {
       if (!xsink->isException())
          xsink->raiseException("QAPPLICATION-SETPALETTE-PARAM-ERROR", "expecting a QPalette object as first argument to QApplication::setPalette()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> paletteHolder(static_cast<AbstractPrivateData *>(palette), xsink);
-   QoreStringNode *pstr = test_string_param(params, 1);
+   const QoreStringNode *pstr = test_string_param(params, 1);
    const char *className = pstr ? pstr->getBuffer() : 0;
    QApplication::setPalette(*(palette->getQPalette()), className);
    return 0;
@@ -590,7 +591,7 @@ static AbstractQoreNode *f_QApplication_setPalette(const QoreListNode *params, E
 //void setQuitOnLastWindowClosed ( bool quit )
 static AbstractQoreNode *f_QApplication_setQuitOnLastWindowClosed(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool quit = p ? p->getAsBool() : false;
    QApplication::setQuitOnLastWindowClosed(quit);
    return 0;
@@ -599,7 +600,7 @@ static AbstractQoreNode *f_QApplication_setQuitOnLastWindowClosed(const QoreList
 //void setStartDragDistance ( int l )
 static AbstractQoreNode *f_QApplication_setStartDragDistance(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int l = p ? p->getAsInt() : 0;
    QApplication::setStartDragDistance(l);
    return 0;
@@ -608,7 +609,7 @@ static AbstractQoreNode *f_QApplication_setStartDragDistance(const QoreListNode 
 //void setStartDragTime ( int ms )
 static AbstractQoreNode *f_QApplication_setStartDragTime(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int ms = p ? p->getAsInt() : 0;
    QApplication::setStartDragTime(ms);
    return 0;
@@ -618,12 +619,13 @@ static AbstractQoreNode *f_QApplication_setStartDragTime(const QoreListNode *par
 //QStyle * setStyle ( const QString & style )
 static AbstractQoreNode *f_QApplication_setStyle(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreAbstractQStyle *style = (QoreAbstractQStyle *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLE, xsink);
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
+      QoreAbstractQStyle *style = (QoreAbstractQStyle *)o->getReferencedPrivateData(CID_QSTYLE, xsink);
       if (!style) {
          if (!xsink->isException())
-            xsink->raiseException("QAPPLICATION-SETSTYLE-PARAM-ERROR", "QApplication::setStyle() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QAPPLICATION-SETSTYLE-PARAM-ERROR", "QApplication::setStyle() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> styleHolder(static_cast<AbstractPrivateData *>(style), xsink);
@@ -639,7 +641,7 @@ static AbstractQoreNode *f_QApplication_setStyle(const QoreListNode *params, Exc
 //void setWheelScrollLines ( int )
 static AbstractQoreNode *f_QApplication_setWheelScrollLines(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    QApplication::setWheelScrollLines(x);
    return 0;
@@ -648,8 +650,8 @@ static AbstractQoreNode *f_QApplication_setWheelScrollLines(const QoreListNode *
 //void setWindowIcon ( const QIcon & icon )
 static AbstractQoreNode *f_QApplication_setWindowIcon(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQIcon *icon = p ? (QoreQIcon *)p->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QAPPLICATION-SETWINDOWICON-PARAM-ERROR", "expecting a QIcon object as first argument to QApplication::setWindowIcon()");
@@ -702,12 +704,12 @@ static AbstractQoreNode *f_QApplication_syncX(const QoreListNode *params, Except
 //QWidget * topLevelAt ( int x, int y )
 static AbstractQoreNode *f_QApplication_topLevelAt(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())
-            xsink->raiseException("QAPPLICATION-TOPLEVELAT-PARAM-ERROR", "QApplication::topLevelAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QAPPLICATION-TOPLEVELAT-PARAM-ERROR", "QApplication::topLevelAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(point), xsink);
@@ -755,12 +757,12 @@ static AbstractQoreNode *f_QApplication_wheelScrollLines(const QoreListNode *par
 //QWidget * widgetAt ( int x, int y )
 static AbstractQoreNode *f_QApplication_widgetAt(const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
+      QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())
-            xsink->raiseException("QAPPLICATION-WIDGETAT-PARAM-ERROR", "QApplication::widgetAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QAPPLICATION-WIDGETAT-PARAM-ERROR", "QApplication::widgetAt() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClass()->getName());
          return 0;
       }
       ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(point), xsink);

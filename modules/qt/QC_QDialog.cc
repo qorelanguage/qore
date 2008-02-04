@@ -33,12 +33,13 @@ class QoreClass *QC_QDialog = 0;
 //QDialog ( QWidget * parent = 0, Qt::WindowFlags f = 0 )
 static void QDIALOG_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *o = test_object_param(params, 0);
+   QoreQWidget *parent = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   p = get_param(params, 1);
+
+   const AbstractQoreNode *p = get_param(params, 1);
    Qt::WindowFlags f = (Qt::WindowFlags)(!is_nothing(p) ? p->getAsInt() : 0);
    self->setPrivate(CID_QDIALOG, new QoreQDialog(self, parent ? static_cast<QWidget *>(parent->getQWidget()) : 0, f));
    return;
@@ -64,7 +65,7 @@ static AbstractQoreNode *QDIALOG_result(QoreObject *self, QoreAbstractQDialog *q
 //void setModal ( bool modal )
 static AbstractQoreNode *QDIALOG_setModal(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool modal = p ? p->getAsBool() : false;
    qd->getQDialog()->setModal(modal);
    return 0;
@@ -73,7 +74,7 @@ static AbstractQoreNode *QDIALOG_setModal(QoreObject *self, QoreAbstractQDialog 
 //void setResult ( int i )
 static AbstractQoreNode *QDIALOG_setResult(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int i = p ? p->getAsInt() : 0;
    qd->getQDialog()->setResult(i);
    return 0;
@@ -82,7 +83,7 @@ static AbstractQoreNode *QDIALOG_setResult(QoreObject *self, QoreAbstractQDialog
 //void setSizeGripEnabled ( bool )
 static AbstractQoreNode *QDIALOG_setSizeGripEnabled(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qd->getQDialog()->setSizeGripEnabled(b);
    return 0;
@@ -98,7 +99,7 @@ static AbstractQoreNode *QDIALOG_accept(QoreObject *self, QoreAbstractQDialog *q
 //virtual void done ( int r )
 static AbstractQoreNode *QDIALOG_done(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int r = p ? p->getAsInt() : 0;
    qd->done(r);
    return 0;

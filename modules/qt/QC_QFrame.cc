@@ -31,15 +31,14 @@ int CID_QFRAME;
 static void QFRAME_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQFrame *qw;
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
-
+   const QoreObject *o = test_object_param(params, 0);
+   QoreAbstractQWidget *parent = o ? (QoreAbstractQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (!parent)
       qw = new QoreQFrame(self);
    else 
    {
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
-      p = get_param(params, 1);
+      const AbstractQoreNode *p = get_param(params, 1);
       int window_flags = p ? p->getAsInt() : 0;
       qw = new QoreQFrame(self, parent->getQWidget(), (Qt::WindowFlags)window_flags);
    }
@@ -100,8 +99,8 @@ static AbstractQoreNode *QFRAME_midLineWidth(QoreObject *self, QoreAbstractQFram
 //void setFrameRect ( const QRect & )
 static AbstractQoreNode *QFRAME_setFrameRect(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRect *qrect = (p && p->type == NT_OBJECT) ? (QoreQRect *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRect *qrect = p ? (QoreQRect *)p->getReferencedPrivateData(CID_QRECT, xsink) : 0;
    if (!qrect) {
       if (!xsink->isException())
          xsink->raiseException("QFRAME-SETFRAMERECT-PARAM-ERROR", "expecting a QRect object as first argument to QFrame::setFrameRect()");
@@ -115,7 +114,7 @@ static AbstractQoreNode *QFRAME_setFrameRect(QoreObject *self, QoreAbstractQFram
 //void setFrameShadow ( Shadow )
 static AbstractQoreNode *QFRAME_setFrameShadow(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QFrame::Shadow shadow = (QFrame::Shadow)(p ? p->getAsInt() : 0);
    qf->getQFrame()->setFrameShadow(shadow);
    return 0;
@@ -124,7 +123,7 @@ static AbstractQoreNode *QFRAME_setFrameShadow(QoreObject *self, QoreAbstractQFr
 //void setFrameShape ( Shape )
 static AbstractQoreNode *QFRAME_setFrameShape(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QFrame::Shape shape = (QFrame::Shape)(p ? p->getAsInt() : 0);
    qf->getQFrame()->setFrameShape(shape);
    return 0;
@@ -133,7 +132,7 @@ static AbstractQoreNode *QFRAME_setFrameShape(QoreObject *self, QoreAbstractQFra
 //void setFrameStyle ( int style )
 static AbstractQoreNode *QFRAME_setFrameStyle(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int style = p ? p->getAsInt() : 0;
    qf->getQFrame()->setFrameStyle(style);
    return 0;
@@ -142,7 +141,7 @@ static AbstractQoreNode *QFRAME_setFrameStyle(QoreObject *self, QoreAbstractQFra
 //void setLineWidth ( int )
 static AbstractQoreNode *QFRAME_setLineWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qf->getQFrame()->setLineWidth(x);
    return 0;
@@ -151,7 +150,7 @@ static AbstractQoreNode *QFRAME_setLineWidth(QoreObject *self, QoreAbstractQFram
 //void setMidLineWidth ( int )
 static AbstractQoreNode *QFRAME_setMidLineWidth(QoreObject *self, QoreAbstractQFrame *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int x = p ? p->getAsInt() : 0;
    qf->getQFrame()->setMidLineWidth(x);
    return 0;

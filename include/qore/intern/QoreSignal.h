@@ -55,7 +55,7 @@ class QoreSignalHandler {
       sh_status_e status;
 
       DLLLOCAL void init();
-      DLLLOCAL void set(int sig, class ResolvedFunctionReferenceNode *n_funcref);
+      DLLLOCAL void set(int sig, const ResolvedFunctionReferenceNode *n_funcref);
       DLLLOCAL void del(int sig, class ExceptionSink *xsink);
       DLLLOCAL void runHandler(int sig, class ExceptionSink *xsink);
       DLLLOCAL bool isSet() const
@@ -98,9 +98,9 @@ class QoreSignalManager
       DLLLOCAL QoreSignalManager();
       DLLLOCAL static void init(bool disable_signal_mask = false);
       DLLLOCAL static void del();
-      DLLLOCAL static int setHandler(int sig, class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink);
-      DLLLOCAL static int removeHandler(int sig, class ExceptionSink *xsink);
-      DLLLOCAL static void addSignalConstants(class QoreNamespace *ns);
+      DLLLOCAL static int setHandler(int sig, const ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink);
+      DLLLOCAL static int removeHandler(int sig, ExceptionSink *xsink);
+      DLLLOCAL static void addSignalConstants(QoreNamespace *ns);
       DLLLOCAL static const char *getSignalName(int sig);
       DLLLOCAL static void signal_handler_thread();
       DLLLOCAL static void lock_idle();

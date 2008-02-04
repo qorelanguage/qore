@@ -165,14 +165,14 @@ const QoreEncoding *QoreHTTPClient::getEncoding() const
 int QoreHTTPClient::setOptions(const QoreHash* opts, ExceptionSink* xsink)
 {
    // process new protocols
-   AbstractQoreNode *n = opts->getKeyValue("protocols");  
+   const AbstractQoreNode *n = opts->getKeyValue("protocols");  
    {
-      QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
+      const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(n);
       if (h) {
 	 ConstHashIterator hi(h);
 	 while (hi.next())
 	 {
-	    AbstractQoreNode *v = hi.getValue();
+	    const AbstractQoreNode *v = hi.getValue();
 	    const QoreType *vtype = v ? v->getType() : 0;
 	    if (!v || (vtype != NT_HASH && vtype != NT_INT))
 	    {
@@ -182,10 +182,10 @@ int QoreHTTPClient::setOptions(const QoreHash* opts, ExceptionSink* xsink)
 	    bool need_ssl = false;
 	    int need_port;
 	    if (vtype == NT_INT)
-	       need_port = (reinterpret_cast<QoreBigIntNode *>(v))->val;
+	       need_port = (reinterpret_cast<const QoreBigIntNode *>(v))->val;
 	    else
 	    {
-	       QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(v);
+	       const QoreHashNode *vh = reinterpret_cast<const QoreHashNode *>(v);
 	       const AbstractQoreNode *p = vh->getKeyValue("port");
 	       need_port = p ? p->getAsInt() : 0;
 	       if (!need_port)
@@ -214,18 +214,18 @@ int QoreHTTPClient::setOptions(const QoreHash* opts, ExceptionSink* xsink)
    // check if proxy is true
    n = opts->getKeyValue("proxy"); 
    if (n && n->type == NT_STRING)
-      if (set_proxy_url_unlocked((reinterpret_cast<QoreStringNode *>(n))->getBuffer(), xsink))
+      if (set_proxy_url_unlocked((reinterpret_cast<const QoreStringNode *>(n))->getBuffer(), xsink))
 	 return -1;
 
    // parse url option if present
    n = opts->getKeyValue("url");  
    if (n && n->type == NT_STRING)
-      if (set_url_unlocked((reinterpret_cast<QoreStringNode *>(n))->getBuffer(), xsink))
+      if (set_url_unlocked((reinterpret_cast<const QoreStringNode *>(n))->getBuffer(), xsink))
 	 return -1;
 
    n = opts->getKeyValue("default_path");  
    if (n && n->type == NT_STRING)
-      priv->default_path = (reinterpret_cast<QoreStringNode *>(n))->getBuffer();
+      priv->default_path = (reinterpret_cast<const QoreStringNode *>(n))->getBuffer();
 
    // set default timeout if given in option hash - accept relative date/time values as well as integers
    n = opts->getKeyValue("timeout");  
@@ -237,7 +237,7 @@ int QoreHTTPClient::setOptions(const QoreHash* opts, ExceptionSink* xsink)
    {
       if (n->type == NT_STRING)
       {
-	 if (setHTTPVersion((reinterpret_cast<QoreStringNode *>(n))->getBuffer(), xsink))
+	 if (setHTTPVersion((reinterpret_cast<const QoreStringNode *>(n))->getBuffer(), xsink))
 	    return -1;
       }
       else
@@ -727,8 +727,8 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       {
 	 if (!strcasecmp(hi.getKey(), "connection") || (priv->proxy_port && !strcasecmp(hi.getKey(), "proxy-connection")))
 	 {
-	    AbstractQoreNode *v = hi.getValue();
-	    if (v && v->type == NT_STRING && !strcasecmp((reinterpret_cast<QoreStringNode *>(v))->getBuffer(), "close"))
+	    const AbstractQoreNode *v = hi.getValue();
+	    if (v && v->type == NT_STRING && !strcasecmp((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), "close"))
 	       keep_alive = false;
 	 }
 
@@ -738,9 +738,9 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	    continue;
 
 	 // otherwise set the value in the hash
-	 AbstractQoreNode *n = hi.getValue();
+	 const AbstractQoreNode *n = hi.getValue();
 	 if (!is_nothing(n))
-	    nh.setKeyValue(hi.getKey(), n->RefSelf(), xsink);
+	    nh.setKeyValue(hi.getKey(), n->refSelf(), xsink);
       }
    }
 
@@ -857,7 +857,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 
 	 QoreString tmp;
 	 tmp.sprintf("qore-redirect-stack-%d", redirect_count);
-	 redirect_hash.setKeyValue(tmp.getBuffer(), v->RefSelf(), xsink);
+	 redirect_hash.setKeyValue(tmp.getBuffer(), v->refSelf(), xsink);
 
 	 if (set_url_unlocked(location, xsink))
 	 {

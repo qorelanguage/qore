@@ -83,4 +83,10 @@ class BrushStyleNode : public SimpleQoreNode
 
 void addBrushStyleType();
 
+static inline const BrushStyleNode *test_brushstyle_param(const QoreListNode *n, int i)
+{
+   if (!n) return 0;
+   return dynamic_cast<const BrushStyleNode *>(n->retrieve_entry(i));
+}
+
 #endif // _QORE_QT_BRUSHSTYLE_H

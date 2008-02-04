@@ -107,7 +107,7 @@ QoreHashNode *QoreHashNode::copy() const
 AbstractQoreNode *QoreHashNode::eval(ExceptionSink *xsink) const
 {
    if (!needs_eval())
-      return RefSelf();
+      return refSelf();
 
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 

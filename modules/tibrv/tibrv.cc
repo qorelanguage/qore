@@ -33,7 +33,7 @@
 static class AbstractQoreNode *f_tibrvSetDaemonCert(const QoreListNode *params, class ExceptionSink *xsink)
 {
    // get daemon name (format: "ssl:<host>:<port_number>")
-   QoreStringNode *str = test_string_param(params, 0);
+   const QoreStringNode *str = test_string_param(params, 0);
    const char *name = str ? str->getBuffer() : TIBRV_SECURE_DAEMON_ANY_NAME;
 
    // get certificate (SSLCertificate class)
@@ -99,7 +99,7 @@ static class AbstractQoreNode *f_tibrvSetUserCertWithKey(const QoreListNode *par
    pemcert->concat(pempk->getBuffer());
    delete pempk;
 
-   QoreStringNode *str = test_string_param(params, 2);
+   const QoreStringNode *str = test_string_param(params, 2);
    const char *pw = str ? str->getBuffer() : NULL;
 
    TibrvStatus status = TibrvSdContext::setUserCertWithKey(pemcert->getBuffer(), pw);
@@ -111,11 +111,11 @@ static class AbstractQoreNode *f_tibrvSetUserCertWithKey(const QoreListNode *par
 }
 #endif
 
-static QoreHashNode *tibrv_hash_helper(char *key, class AbstractQoreNode *val)
+static QoreHashNode *tibrv_hash_helper(char *key, const AbstractQoreNode *val)
 {
    QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("^type^", new QoreStringNode(key), NULL);
-   h->setKeyValue("^value^", val ? val->RefSelf() : 0, NULL);
+   h->setKeyValue("^value^", val ? val->refSelf() : 0, NULL);
    return h;
 }
 

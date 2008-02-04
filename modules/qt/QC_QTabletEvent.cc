@@ -34,26 +34,29 @@ class QoreClass *QC_QTabletEvent = 0;
 //QTabletEvent ( Type type, const QPoint & pos, const QPoint & globalPos, const QPointF & hiResGlobalPos, int device, int pointerType, qreal pressure, int xTilt, int yTilt, qreal tangentialPressure, qreal rotation, int z, Qt::KeyboardModifiers keyState, qint64 uniqueID )
 static void QTABLETEVENT_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QTabletEvent::Type type = (QTabletEvent::Type)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQPoint *pos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQPoint *pos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!pos) {
       if (!xsink->isException())
          xsink->raiseException("QTABLETEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as second argument to QTabletEvent::constructor()");
       return;
    }
    ReferenceHolder<QoreQPoint> posHolder(pos, xsink);
-   p = get_param(params, 2);
-   QoreQPoint *globalPos = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQPoint *globalPos = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!globalPos) {
       if (!xsink->isException())
          xsink->raiseException("QTABLETEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPoint object as third argument to QTabletEvent::constructor()");
       return;
    }
    ReferenceHolder<QoreQPoint> globalPosHolder(globalPos, xsink);
-   p = get_param(params, 3);
-   QoreQPointF *hiResGlobalPos = (p && p->type == NT_OBJECT) ? (QoreQPointF *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+
+   o = test_object_param(params, 3);
+   QoreQPointF *hiResGlobalPos = o ? (QoreQPointF *)o->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
    if (!hiResGlobalPos) {
       if (!xsink->isException())
          xsink->raiseException("QTABLETEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a QPointF object as fourth argument to QTabletEvent::constructor()");

@@ -34,7 +34,7 @@ class QoreClass *QC_QRegExp = 0;
 //QRegExp ( const QRegExp & rx )
 static void QREGEXP_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QREGEXP, new QoreQRegExp());
       return;
@@ -58,7 +58,7 @@ static void QREGEXP_copy(class QoreObject *self, class QoreObject *old, class Qo
 //QString cap ( int nth = 0 )
 static AbstractQoreNode *QREGEXP_cap(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int nth = !is_nothing(p) ? p->getAsInt() : 0;
    return new QoreStringNode(qre->cap(nth).toUtf8().data(), QCS_UTF8);
 }
@@ -88,7 +88,7 @@ static AbstractQoreNode *QREGEXP_errorString(QoreObject *self, QoreQRegExp *qre,
 //bool exactMatch ( const QString & str ) const
 static AbstractQoreNode *QREGEXP_exactMatch(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString str;
    if (get_qstring(p, str, xsink))
       return 0;
@@ -98,7 +98,7 @@ static AbstractQoreNode *QREGEXP_exactMatch(QoreObject *self, QoreQRegExp *qre, 
 //int indexIn ( const QString & str, int offset = 0, CaretMode caretMode = CaretAtZero ) const
 static AbstractQoreNode *QREGEXP_indexIn(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString str;
    if (get_qstring(p, str, xsink))
       return 0;
@@ -130,7 +130,7 @@ static AbstractQoreNode *QREGEXP_isValid(QoreObject *self, QoreQRegExp *qre, con
 //int lastIndexIn ( const QString & str, int offset = -1, CaretMode caretMode = CaretAtZero ) const
 static AbstractQoreNode *QREGEXP_lastIndexIn(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString str;
    if (get_qstring(p, str, xsink))
       return 0;
@@ -168,7 +168,7 @@ static AbstractQoreNode *QREGEXP_patternSyntax(QoreObject *self, QoreQRegExp *qr
 //int pos ( int nth = 0 )
 static AbstractQoreNode *QREGEXP_pos(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int nth = !is_nothing(p) ? p->getAsInt() : 0;
    return new QoreBigIntNode(qre->pos(nth));
 }
@@ -176,7 +176,7 @@ static AbstractQoreNode *QREGEXP_pos(QoreObject *self, QoreQRegExp *qre, const Q
 //void setCaseSensitivity ( Qt::CaseSensitivity cs )
 static AbstractQoreNode *QREGEXP_setCaseSensitivity(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::CaseSensitivity cs = (Qt::CaseSensitivity)(p ? p->getAsInt() : 0);
    qre->setCaseSensitivity(cs);
    return 0;
@@ -185,7 +185,7 @@ static AbstractQoreNode *QREGEXP_setCaseSensitivity(QoreObject *self, QoreQRegEx
 //void setMinimal ( bool minimal )
 static AbstractQoreNode *QREGEXP_setMinimal(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool minimal = p ? p->getAsBool() : false;
    qre->setMinimal(minimal);
    return 0;
@@ -194,7 +194,7 @@ static AbstractQoreNode *QREGEXP_setMinimal(QoreObject *self, QoreQRegExp *qre, 
 //void setPattern ( const QString & pattern )
 static AbstractQoreNode *QREGEXP_setPattern(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString pattern;
    if (get_qstring(p, pattern, xsink))
       return 0;
@@ -205,7 +205,7 @@ static AbstractQoreNode *QREGEXP_setPattern(QoreObject *self, QoreQRegExp *qre, 
 //void setPatternSyntax ( PatternSyntax syntax )
 static AbstractQoreNode *QREGEXP_setPatternSyntax(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QRegExp::PatternSyntax syntax = (QRegExp::PatternSyntax)(p ? p->getAsInt() : 0);
    qre->setPatternSyntax(syntax);
    return 0;

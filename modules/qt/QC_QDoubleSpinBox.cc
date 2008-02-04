@@ -33,8 +33,8 @@ class QoreClass *QC_QDoubleSpinBox = 0;
 //QDoubleSpinBox ( QWidget * parent = 0 )
 static void QDOUBLESPINBOX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *parent = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return;
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -80,7 +80,7 @@ static AbstractQoreNode *QDOUBLESPINBOX_prefix(QoreObject *self, QoreQDoubleSpin
 //void setDecimals ( int prec )
 static AbstractQoreNode *QDOUBLESPINBOX_setDecimals(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int prec = p ? p->getAsInt() : 0;
    qdsb->qobj->setDecimals(prec);
    return 0;
@@ -89,7 +89,7 @@ static AbstractQoreNode *QDOUBLESPINBOX_setDecimals(QoreObject *self, QoreQDoubl
 //void setMaximum ( double max )
 static AbstractQoreNode *QDOUBLESPINBOX_setMaximum(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    double max = p ? p->getAsFloat() : 0.0;
    qdsb->qobj->setMaximum(max);
    return 0;
@@ -98,7 +98,7 @@ static AbstractQoreNode *QDOUBLESPINBOX_setMaximum(QoreObject *self, QoreQDouble
 //void setMinimum ( double min )
 static AbstractQoreNode *QDOUBLESPINBOX_setMinimum(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    double min = p ? p->getAsFloat() : 0.0;
    qdsb->qobj->setMinimum(min);
    return 0;
@@ -107,7 +107,7 @@ static AbstractQoreNode *QDOUBLESPINBOX_setMinimum(QoreObject *self, QoreQDouble
 //void setPrefix ( const QString & prefix )
 static AbstractQoreNode *QDOUBLESPINBOX_setPrefix(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString prefix;
    if (get_qstring(p, prefix, xsink))
       return 0;
@@ -118,7 +118,7 @@ static AbstractQoreNode *QDOUBLESPINBOX_setPrefix(QoreObject *self, QoreQDoubleS
 //void setRange ( double minimum, double maximum )
 static AbstractQoreNode *QDOUBLESPINBOX_setRange(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    double minimum = p ? p->getAsFloat() : 0.0;
    p = get_param(params, 1);
    double maximum = p ? p->getAsFloat() : 0.0;
@@ -129,7 +129,7 @@ static AbstractQoreNode *QDOUBLESPINBOX_setRange(QoreObject *self, QoreQDoubleSp
 //void setSingleStep ( double val )
 static AbstractQoreNode *QDOUBLESPINBOX_setSingleStep(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    double val = p ? p->getAsFloat() : 0.0;
    qdsb->qobj->setSingleStep(val);
    return 0;
@@ -138,7 +138,7 @@ static AbstractQoreNode *QDOUBLESPINBOX_setSingleStep(QoreObject *self, QoreQDou
 //void setSuffix ( const QString & suffix )
 static AbstractQoreNode *QDOUBLESPINBOX_setSuffix(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString suffix;
    if (get_qstring(p, suffix, xsink))
       return 0;
@@ -161,7 +161,7 @@ static AbstractQoreNode *QDOUBLESPINBOX_suffix(QoreObject *self, QoreQDoubleSpin
 //virtual QString textFromValue ( double value ) const
 static AbstractQoreNode *QDOUBLESPINBOX_textFromValue(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    double value = p ? p->getAsFloat() : 0.0;
    return new QoreStringNode(qdsb->qobj->textFromValue(value).toUtf8().data(), QCS_UTF8);
 }
@@ -175,7 +175,7 @@ static AbstractQoreNode *QDOUBLESPINBOX_value(QoreObject *self, QoreQDoubleSpinB
 //virtual double valueFromText ( const QString & text ) const
 static AbstractQoreNode *QDOUBLESPINBOX_valueFromText(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
@@ -185,7 +185,7 @@ static AbstractQoreNode *QDOUBLESPINBOX_valueFromText(QoreObject *self, QoreQDou
 //void setValue ( double val )
 static AbstractQoreNode *QDOUBLESPINBOX_setValue(QoreObject *self, QoreQDoubleSpinBox *qdsb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    double val = p ? p->getAsFloat() : 0.0;
    qdsb->qobj->setValue(val);
    return 0;

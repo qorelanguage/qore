@@ -355,7 +355,7 @@ static class AbstractQoreNode *f_qiflush(const QoreListNode *params, class Excep
 static class AbstractQoreNode *f_halfdelay(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
-   class AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    int d = p0 ? p0->getAsInt() : 0;
    if (!d)
       return NULL;
@@ -366,7 +366,7 @@ static class AbstractQoreNode *f_halfdelay(const QoreListNode *params, class Exc
 static class AbstractQoreNode *f_curs_set(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
-   class AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
 
    return new QoreBigIntNode(curs_set(p0 ? p0->getAsInt() : 0));
 }
@@ -416,8 +416,8 @@ static class AbstractQoreNode *f_has_colors(const QoreListNode *params, class Ex
 static class AbstractQoreNode *f_get_color_pair(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
-   class AbstractQoreNode *p0 = get_param(params, 0);
-   class AbstractQoreNode *p1 = get_param(params, 1);
+   const AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p1 = get_param(params, 1);
    int fg = p0 ? p0->getAsInt() : 0;
    int bg = p1 ? p1->getAsInt() : 0;
 
@@ -611,7 +611,7 @@ static class AbstractQoreNode *f_ACS_BLOCK(const QoreListNode *params, class Exc
 static class AbstractQoreNode *f_mousemask(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
-   class AbstractQoreNode *p0 = get_param(params, 0);
+   const AbstractQoreNode *p0 = get_param(params, 0);
    int d = p0 ? p0->getAsInt() : 0;
 
    return new QoreBigIntNode(mousemask(d, NULL));

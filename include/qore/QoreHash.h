@@ -55,6 +55,7 @@ class HashIterator
       DLLEXPORT HashIterator(class QoreHash &h);
       DLLEXPORT class HashMember *next();
       DLLEXPORT const char *getKey() const;
+      // caller owns QoreString returned
       DLLEXPORT class QoreString *getKeyString() const;
       DLLEXPORT class AbstractQoreNode *getValue() const;
       // deletes the key from the hash and returns the value, caller owns the reference
@@ -83,9 +84,10 @@ class ConstHashIterator
       DLLEXPORT ConstHashIterator(const class QoreHash &h);
       DLLEXPORT class HashMember *next();
       DLLEXPORT const char *getKey() const;
+      // caller owns QoreString returned
       DLLEXPORT class QoreString *getKeyString() const;
-      DLLEXPORT class AbstractQoreNode *getValue() const;
-      DLLEXPORT class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT const AbstractQoreNode *getValue() const;
+      DLLEXPORT AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       DLLEXPORT bool first() const;
       DLLEXPORT bool last() const;
 };
@@ -122,11 +124,17 @@ class QoreHash
       DLLEXPORT const char *getFirstKey() const;
       DLLEXPORT const char *getLastKey() const;
       // returns (AbstractQoreNode *)-1 if the key doesn't exist
-      DLLEXPORT class AbstractQoreNode *getKeyValueExistence(const char *key) const;
+      DLLEXPORT AbstractQoreNode *getKeyValueExistence(const char *key);
       // returns (AbstractQoreNode *)-1 if the key doesn't exist
-      DLLEXPORT class AbstractQoreNode *getKeyValueExistence(const class QoreString *key, class ExceptionSink *xsink) const;
-      DLLEXPORT class AbstractQoreNode *getKeyValue(const class QoreString *key, class ExceptionSink *xsink) const;
-      DLLEXPORT class AbstractQoreNode *getKeyValue(const char *key) const;
+      DLLEXPORT const AbstractQoreNode *getKeyValueExistence(const char *key) const;
+      // returns (AbstractQoreNode *)-1 if the key doesn't exist
+      DLLEXPORT AbstractQoreNode *getKeyValueExistence(const class QoreString *key, class ExceptionSink *xsink);
+      // returns (AbstractQoreNode *)-1 if the key doesn't exist
+      DLLEXPORT const AbstractQoreNode *getKeyValueExistence(const class QoreString *key, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *getKeyValue(const class QoreString *key, class ExceptionSink *xsink);
+      DLLEXPORT const AbstractQoreNode *getKeyValue(const class QoreString *key, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *getKeyValue(const char *key);
+      DLLEXPORT const AbstractQoreNode *getKeyValue(const char *key) const;
       DLLEXPORT class QoreHash *copy() const;
       DLLEXPORT class QoreHashNode *copyNode() const;
       DLLEXPORT class AbstractQoreNode **getKeyValuePtr(const class QoreString *key, class ExceptionSink *xsink);

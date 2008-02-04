@@ -39,17 +39,17 @@ QByteArray static_void_sig = QMetaObject::normalizedSignature("void a()");
 static void QSHORTCUT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQShortcut *qs;
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
 
-   QoreAbstractQWidget *parent = (QoreAbstractQWidget *)((p && p->type == NT_OBJECT) ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
+   QoreAbstractQWidget *parent = (QoreAbstractQWidget *)((p && p->type == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
    if (!parent) {
       QKeySequence key;
 
       if (get_qkeysequence(p, key, xsink))
 	 return;
 
-      p = test_param(params, NT_OBJECT, 1);
-      parent = (QoreAbstractQWidget *)(p ? (reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
+      const QoreObject *o = test_object_param(params, 1);
+      parent = o ? (QoreAbstractQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!parent) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QSHORTCUT-CONSTRUCTOR-PARAM-ERROR", "QShortcut::constructor() was expecting an object derived from QWidget as the second argument when the first argument is a QKeySequence object");
@@ -57,7 +57,7 @@ static void QSHORTCUT_constructor(class QoreObject *self, const QoreListNode *pa
       }
       ReferenceHolder<QoreAbstractQWidget> parentHolder(parent, xsink);
 
-      QoreStringNode *pstr = test_string_param(params, 2);
+      const QoreStringNode *pstr = test_string_param(params, 2);
       const char *member = pstr && pstr->strlen() ? pstr->getBuffer() : 0;
 
       pstr = test_string_param(params, 3);
@@ -137,7 +137,7 @@ static AbstractQoreNode *QSHORTCUT_key(QoreObject *self, QoreQShortcut *qs, cons
 //void setAutoRepeat ( bool on )
 static AbstractQoreNode *QSHORTCUT_setAutoRepeat(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool on = p ? p->getAsBool() : false;
    qs->qobj->setAutoRepeat(on);
    return 0;
@@ -146,7 +146,7 @@ static AbstractQoreNode *QSHORTCUT_setAutoRepeat(QoreObject *self, QoreQShortcut
 //void setContext ( Qt::ShortcutContext context )
 static AbstractQoreNode *QSHORTCUT_setContext(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    Qt::ShortcutContext context = (Qt::ShortcutContext)(p ? p->getAsInt() : 0);
    qs->qobj->setContext(context);
    return 0;
@@ -155,7 +155,7 @@ static AbstractQoreNode *QSHORTCUT_setContext(QoreObject *self, QoreQShortcut *q
 //void setEnabled ( bool enable )
 static AbstractQoreNode *QSHORTCUT_setEnabled(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qs->qobj->setEnabled(enable);
    return 0;
@@ -164,8 +164,8 @@ static AbstractQoreNode *QSHORTCUT_setEnabled(QoreObject *self, QoreQShortcut *q
 //void setKey ( const QKeySequence & key )
 static AbstractQoreNode *QSHORTCUT_setKey(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQKeySequence *key = (p && p->type == NT_OBJECT) ? (QoreQKeySequence *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQKeySequence *key = p ? (QoreQKeySequence *)p->getReferencedPrivateData(CID_QKEYSEQUENCE, xsink) : 0;
    if (!key) {
       if (!xsink->isException())
          xsink->raiseException("QSHORTCUT-SETKEY-PARAM-ERROR", "expecting a QKeySequence object as first argument to QShortcut::setKey()");
@@ -179,7 +179,7 @@ static AbstractQoreNode *QSHORTCUT_setKey(QoreObject *self, QoreQShortcut *qs, c
 //void setWhatsThis ( const QString & text )
 static AbstractQoreNode *QSHORTCUT_setWhatsThis(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
 
    if (get_qstring(p, text, xsink))

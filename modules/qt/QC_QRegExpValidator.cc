@@ -35,14 +35,14 @@ class QoreClass *QC_QRegExpValidator = 0;
 //QRegExpValidator ( const QRegExp & rx, QObject * parent )
 static void QREGEXPVALIDATOR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQRegExp *rx = (QoreQRegExp *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGEXP, xsink);
+      QoreQRegExp *rx = (QoreQRegExp *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QREGEXP, xsink);
       if (!rx) {
-         QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
+         QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
          if (!parent) {
             if (!xsink->isException())
-               xsink->raiseException("QREGEXPVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "QRegExpValidator::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+               xsink->raiseException("QREGEXPVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "QRegExpValidator::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
             return;
          }
          ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -50,11 +50,12 @@ static void QREGEXPVALIDATOR_constructor(QoreObject *self, const QoreListNode *p
          return;
       }
       ReferenceHolder<AbstractPrivateData> rxHolder(static_cast<AbstractPrivateData *>(rx), xsink);
-      p = get_param(params, 1);
-      QoreAbstractQObject *parent = (p && p->type == NT_OBJECT) ? (QoreAbstractQObject *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
+
+      const QoreObject *o = test_object_param(params, 1);
+      QoreAbstractQObject *parent = o ? (QoreAbstractQObject *)o->getReferencedPrivateData(CID_QOBJECT, xsink) : 0;
       if (!parent) {
          if (!xsink->isException())
-            xsink->raiseException("QREGEXPVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "this version of QRegExpValidator::constructor() expects an object derived from QObject as the second argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QREGEXPVALIDATOR-CONSTRUCTOR-PARAM-ERROR", "this version of QRegExpValidator::constructor() expects an object derived from QObject as the second argument");
          return;
       }
       ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
@@ -80,8 +81,8 @@ static AbstractQoreNode *QREGEXPVALIDATOR_regExp(QoreObject *self, QoreQRegExpVa
 //void setRegExp ( const QRegExp & rx )
 static AbstractQoreNode *QREGEXPVALIDATOR_setRegExp(QoreObject *self, QoreQRegExpValidator *qrev, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQRegExp *rx = (p && p->type == NT_OBJECT) ? (QoreQRegExp *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QREGEXP, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQRegExp *rx = p ? (QoreQRegExp *)p->getReferencedPrivateData(CID_QREGEXP, xsink) : 0;
    if (!rx) {
       if (!xsink->isException())
          xsink->raiseException("QREGEXPVALIDATOR-SETREGEXP-PARAM-ERROR", "expecting a QRegExp object as first argument to QRegExpValidator::setRegExp()");

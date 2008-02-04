@@ -119,7 +119,7 @@ static AbstractQoreNode *DS_vexec(QoreObject *self, class ManagedDatasource *ds,
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   QoreListNode *args = test_list_param(params, 1);
+   const QoreListNode *args = test_list_param(params, 1);
    return ds->exec(p0, args, xsink);
 }
 
@@ -159,7 +159,7 @@ static AbstractQoreNode *DS_vselect(QoreObject *self, class ManagedDatasource *d
    if (!p0)
       return NULL;
 
-   QoreListNode *args = test_list_param(params, 1);
+   const QoreListNode *args = test_list_param(params, 1);
    return ds->select(p0, args, xsink);
 }
 
@@ -169,7 +169,7 @@ static AbstractQoreNode *DS_vselectRow(QoreObject *self, class ManagedDatasource
    if (!p0)
       return NULL;
    
-   QoreListNode *args = test_list_param(params, 1);
+   const QoreListNode *args = test_list_param(params, 1);
    return ds->selectRow(p0, args, xsink);
 }
 
@@ -179,14 +179,14 @@ static AbstractQoreNode *DS_vselectRows(QoreObject *self, class ManagedDatasourc
    if (!p0)
       return NULL;
 
-   QoreListNode *args = test_list_param(params, 1);
+   const QoreListNode *args = test_list_param(params, 1);
    return ds->selectRows(p0, args, xsink);
 }
 
 /*
 static AbstractQoreNode *DS_describe(QoreObject *self, class ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
-   const AbstractQoreNode *p = test_string_param(params, 0);
+   const Abstracconst tQoreNode *p = test_string_param(params, 0);
    if (!p)
       return NULL;
 

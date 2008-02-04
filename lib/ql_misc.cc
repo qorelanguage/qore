@@ -266,12 +266,12 @@ static AbstractQoreNode *f_getFeatureList(const QoreListNode *params, ExceptionS
 
 static AbstractQoreNode *f_hash_values(const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreHashNode *p0 = test_hash_param(params, 0);
+   const QoreHashNode *p0 = test_hash_param(params, 0);
    if (!p0)
       return NULL;
 
    ReferenceHolder<QoreListNode> l(new QoreListNode(), xsink);
-   class HashIterator hi(p0);
+   ConstHashIterator hi(p0);
    while (hi.next() && !xsink->isEvent())
       l->push(hi.eval(xsink));
 
@@ -404,7 +404,7 @@ BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, Exceptio
    return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 
-QoreStringNode *qore_inflate_to_string(BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink)
+QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *enc, ExceptionSink *xsink)
 {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
@@ -466,7 +466,7 @@ QoreStringNode *qore_inflate_to_string(BinaryNode *b, const QoreEncoding *enc, E
    return str;
 }
 
-BinaryNode *qore_inflate_to_binary(BinaryNode *b, ExceptionSink *xsink)
+BinaryNode *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink)
 {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
@@ -590,7 +590,7 @@ BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSi
    return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 
-QoreStringNode *qore_gunzip_to_string(BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink)
+QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink)
 {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
@@ -653,7 +653,7 @@ QoreStringNode *qore_gunzip_to_string(BinaryNode *bin, const QoreEncoding *enc, 
    return str;
 }
 
-BinaryNode *qore_gunzip_to_binary(BinaryNode *bin, ExceptionSink *xsink)
+BinaryNode *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink)
 {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
@@ -748,7 +748,7 @@ static AbstractQoreNode *f_compress(const QoreListNode *params, ExceptionSink *x
 static AbstractQoreNode *f_uncompress_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    // need binary argument
-   BinaryNode *p0 = test_binary_param(params, 0);
+   const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
       return NULL;
 
@@ -763,7 +763,7 @@ static AbstractQoreNode *f_uncompress_to_string(const QoreListNode *params, Exce
 static AbstractQoreNode *f_uncompress_to_binary(const QoreListNode *params, ExceptionSink *xsink)
 {
    // need binary argument
-   BinaryNode *p0 = test_binary_param(params, 0);
+   const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
       return NULL;
 
@@ -813,7 +813,7 @@ static AbstractQoreNode *f_gzip(const QoreListNode *params, ExceptionSink *xsink
 static AbstractQoreNode *f_gunzip_to_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    // need binary argument
-   BinaryNode *p0 = test_binary_param(params, 0);
+   const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
       return 0;
 
@@ -828,7 +828,7 @@ static AbstractQoreNode *f_gunzip_to_string(const QoreListNode *params, Exceptio
 static AbstractQoreNode *f_gunzip_to_binary(const QoreListNode *params, ExceptionSink *xsink)
 {
    // need binary argument
-   BinaryNode *p0 = test_binary_param(params, 0);
+   const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
       return NULL;
 
@@ -1008,7 +1008,7 @@ static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, Except
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
       return 0;
    }
-   ResolvedFunctionReferenceNode *p1 = test_funcref_param(params, 1);
+   const ResolvedFunctionReferenceNode *p1 = test_funcref_param(params, 1);
    if (!p1)
    {
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "expecting call reference as second argument to set_signal_handler()");

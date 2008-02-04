@@ -117,13 +117,12 @@ FeatureList::~FeatureList()
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
-static int process_opt(QoreString *cstr, char *param, AbstractQoreNode *node, int type, int *taken, ExceptionSink *xsink)
+static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *node, int type, int *taken, ExceptionSink *xsink)
 {
    char *str = param;
    int opts = 0;
    int width = -1;
    int decimals = -1;
-   AbstractQoreNode *arg = node;
    int length;
    char fmt[20], *f;
    QoreString tbuf(cstr->getEncoding());
@@ -132,7 +131,7 @@ static int process_opt(QoreString *cstr, char *param, AbstractQoreNode *node, in
 	  param, type, node, node ? node->getTypeName() : "(null)", node ? node->reference_count() : -1);
 #ifdef DEBUG
    if (node && node->type == NT_STRING) {
-      QoreStringNode *str = reinterpret_cast<QoreStringNode *>(node);
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(node);
       printd(5, "process_opt() %08p (%d) \"%s\"\n", str->getBuffer(), str->strlen(), str->getBuffer());
    }
 #endif
@@ -276,8 +275,6 @@ static int process_opt(QoreString *cstr, char *param, AbstractQoreNode *node, in
 	 tbuf.concat(*param);
 	 *taken = 0;
    }
-   if (arg != node)
-      arg->deref(NULL);
 
    cstr->concat(&tbuf, xsink);
    return (int)(param - str);
@@ -314,14 +311,14 @@ QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, Exc
 
 QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink)
 {
-   QoreStringNode *fmt;
-   AbstractQoreNode *args;
+   const QoreStringNode *fmt;
+   const AbstractQoreNode *args;
 
    if (!(fmt = test_string_param(params, offset)))
       return new QoreStringNode();
 
    args = get_param(params, offset + 1);
-   QoreListNode *arg_list = dynamic_cast<QoreListNode *>(args);
+   const QoreListNode *arg_list = dynamic_cast<const QoreListNode *>(args);
 
    QoreStringNode *buf = new QoreStringNode(fmt->getEncoding());
    int j = 0;
@@ -330,7 +327,7 @@ QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, Ex
    {
       int taken = 1;
       bool havearg = false;
-      AbstractQoreNode *arg = NULL;
+      const AbstractQoreNode *arg = NULL;
 
       if ((fmt->getBuffer()[i] == '%'))
       {

@@ -61,7 +61,7 @@ void AbstractQoreNode::ref() const
    ROreference();
 }
 
-AbstractQoreNode *AbstractQoreNode::RefSelf() const
+AbstractQoreNode *AbstractQoreNode::refSelf() const
 {
    ref();
    return const_cast<AbstractQoreNode *>(this);
@@ -114,7 +114,7 @@ bool AbstractQoreNode::is_value() const
  */
 AbstractQoreNode *AbstractQoreNode::eval(ExceptionSink *xsink) const
 {
-   return RefSelf();
+   return refSelf();
 }
 
 /*
@@ -364,7 +364,7 @@ static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionS
    // if it's not an immediate hash, then there can't be any
    // variable references in it at any level, so return copy
    if (!n->needsEval())
-      return n->RefSelf();
+      return n->refSelf();
 
    QoreHashNode *h = new QoreHashNode(1);
    ConstHashIterator hi(n);
@@ -438,7 +438,7 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
    if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode *>(n)->type == VT_LOCAL)
       return eval_notnull(n, xsink);
 
-   return n->RefSelf();
+   return n->refSelf();
 }
 
 // get the value of the type in a string context, empty string for complex types (default implementation)

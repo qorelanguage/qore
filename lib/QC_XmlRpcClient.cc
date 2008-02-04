@@ -47,7 +47,7 @@ static void XRC_constructor(QoreObject *self, const QoreListNode *params, Except
    client->addProtocol("xmlrpc", 80, false);
    client->addProtocol("xmlrpcs", 443, true);
 
-   QoreHashNode* n = test_hash_param(params, 0);
+   const QoreHashNode* n = test_hash_param(params, 0);
    if (n && client->setOptions(n, xsink))
       return;
 

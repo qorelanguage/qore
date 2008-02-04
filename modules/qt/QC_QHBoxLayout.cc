@@ -31,8 +31,8 @@ int CID_QHBOXLAYOUT;
 static void QHBOXL_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreQHBoxLayout *qw;
-   AbstractQoreNode *p = test_param(params, NT_OBJECT, 0);
-   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   const QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQWidget *parent = p ? (QoreAbstractQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
 
    if (!parent)
       qw = new QoreQHBoxLayout(self);

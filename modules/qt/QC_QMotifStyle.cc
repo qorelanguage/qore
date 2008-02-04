@@ -29,12 +29,12 @@
 #include "qore-qt.h"
 
 int CID_QMOTIFSTYLE;
-class QoreClass *QC_QMotifStyle = 0;
+QoreClass *QC_QMotifStyle = 0;
 
 //QMotifStyle ( bool useHighlightCols = false )
 static void QMOTIFSTYLE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool useHighlightCols = p ? p->getAsBool() : false;
    self->setPrivate(CID_QMOTIFSTYLE, new QoreQMotifStyle(self, useHighlightCols));
    return;
@@ -48,7 +48,7 @@ static void QMOTIFSTYLE_copy(class QoreObject *self, class QoreObject *old, clas
 //void setUseHighlightColors ( bool arg )
 static AbstractQoreNode *QMOTIFSTYLE_setUseHighlightColors(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool arg = p ? p->getAsBool() : false;
    qms->getQMotifStyle()->setUseHighlightColors(arg);
    return 0;
@@ -63,26 +63,29 @@ static AbstractQoreNode *QMOTIFSTYLE_useHighlightColors(QoreObject *self, QoreAb
 //virtual void drawComplexControl ( ComplexControl control, const QStyleOptionComplex * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
 static AbstractQoreNode *QMOTIFSTYLE_drawComplexControl(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMotifStyle::ComplexControl control = (QMotifStyle::ComplexControl)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQStyleOptionComplex *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionComplex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONCOMPLEX, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQStyleOptionComplex *option = o ? (QoreQStyleOptionComplex *)o->getReferencedPrivateData(CID_QSTYLEOPTIONCOMPLEX, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-DRAWCOMPLEXCONTROL-PARAM-ERROR", "expecting a QStyleOptionComplex object as second argument to QMotifStyle::drawComplexControl()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
-   p = get_param(params, 2);
-   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQPainter *painter = o ? (QoreQPainter *)o->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
    if (!painter) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-DRAWCOMPLEXCONTROL-PARAM-ERROR", "expecting a QPainter object as third argument to QMotifStyle::drawComplexControl()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> painterHolder(static_cast<AbstractPrivateData *>(painter), xsink);
-   p = get_param(params, 3);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   o = test_object_param(params, 3);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -93,26 +96,29 @@ static AbstractQoreNode *QMOTIFSTYLE_drawComplexControl(QoreObject *self, QoreAb
 //virtual void drawControl ( ControlElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
 static AbstractQoreNode *QMOTIFSTYLE_drawControl(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMotifStyle::ControlElement element = (QMotifStyle::ControlElement)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQStyleOption *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOption *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQStyleOption *option = o ? (QoreQStyleOption *)o->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-DRAWCONTROL-PARAM-ERROR", "expecting a QStyleOption object as second argument to QMotifStyle::drawControl()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
-   p = get_param(params, 2);
-   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQPainter *painter = o ? (QoreQPainter *)o->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
    if (!painter) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-DRAWCONTROL-PARAM-ERROR", "expecting a QPainter object as third argument to QMotifStyle::drawControl()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> painterHolder(static_cast<AbstractPrivateData *>(painter), xsink);
-   p = get_param(params, 3);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   o = test_object_param(params, 3);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -123,26 +129,29 @@ static AbstractQoreNode *QMOTIFSTYLE_drawControl(QoreObject *self, QoreAbstractQ
 //virtual void drawPrimitive ( PrimitiveElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const = 0
 static AbstractQoreNode *QMOTIFSTYLE_drawPrimitive(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMotifStyle::PrimitiveElement element = (QMotifStyle::PrimitiveElement)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQStyleOption *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOption *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQStyleOption *option = o ? (QoreQStyleOption *)o->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-DRAWPRIMITIVE-PARAM-ERROR", "expecting a QStyleOption object as second argument to QMotifStyle::drawPrimitive()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
-   p = get_param(params, 2);
-   QoreQPainter *painter = (p && p->type == NT_OBJECT) ? (QoreQPainter *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQPainter *painter = o ? (QoreQPainter *)o->getReferencedPrivateData(CID_QPAINTER, xsink) : 0;
    if (!painter) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-DRAWPRIMITIVE-PARAM-ERROR", "expecting a QPainter object as third argument to QMotifStyle::drawPrimitive()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> painterHolder(static_cast<AbstractPrivateData *>(painter), xsink);
-   p = get_param(params, 3);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   o = test_object_param(params, 3);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -153,18 +162,20 @@ static AbstractQoreNode *QMOTIFSTYLE_drawPrimitive(QoreObject *self, QoreAbstrac
 //virtual QPixmap generatedIconPixmap ( QIcon::Mode iconMode, const QPixmap & pixmap, const QStyleOption * option ) const = 0
 static AbstractQoreNode *QMOTIFSTYLE_generatedIconPixmap(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QIcon::Mode iconMode = (QIcon::Mode)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQPixmap *pixmap = (p && p->type == NT_OBJECT) ? (QoreQPixmap *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQPixmap *pixmap = o ? (QoreQPixmap *)o->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!pixmap) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-GENERATEDICONPIXMAP-PARAM-ERROR", "expecting a QPixmap object as second argument to QMotifStyle::generatedIconPixmap()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> pixmapHolder(static_cast<AbstractPrivateData *>(pixmap), xsink);
-   p = get_param(params, 2);
-   QoreQStyleOption *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOption *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQStyleOption *option = o ? (QoreQStyleOption *)o->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-GENERATEDICONPIXMAP-PARAM-ERROR", "expecting a QStyleOption object as third argument to QMotifStyle::generatedIconPixmap()");
@@ -180,26 +191,28 @@ static AbstractQoreNode *QMOTIFSTYLE_generatedIconPixmap(QoreObject *self, QoreA
 //virtual SubControl hitTestComplexControl ( ComplexControl control, const QStyleOptionComplex * option, const QPoint & position, const QWidget * widget = 0 ) const = 0
 static AbstractQoreNode *QMOTIFSTYLE_hitTestComplexControl(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMotifStyle::ComplexControl control = (QMotifStyle::ComplexControl)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQStyleOptionComplex *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionComplex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONCOMPLEX, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQStyleOptionComplex *option = o ? (QoreQStyleOptionComplex *)o->getReferencedPrivateData(CID_QSTYLEOPTIONCOMPLEX, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-HITTESTCOMPLEXCONTROL-PARAM-ERROR", "expecting a QStyleOptionComplex object as second argument to QMotifStyle::hitTestComplexControl()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
-   p = get_param(params, 2);
-   QoreQPoint *position = (p && p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQPoint *position = o ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!position) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-HITTESTCOMPLEXCONTROL-PARAM-ERROR", "expecting a QPoint object as third argument to QMotifStyle::hitTestComplexControl()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> positionHolder(static_cast<AbstractPrivateData *>(position), xsink);
-   p = get_param(params, 3);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   o = test_object_param(params, 3);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -209,15 +222,15 @@ static AbstractQoreNode *QMOTIFSTYLE_hitTestComplexControl(QoreObject *self, Qor
 //virtual int pixelMetric ( PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) const = 0
 static AbstractQoreNode *QMOTIFSTYLE_pixelMetric(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMotifStyle::PixelMetric metric = (QMotifStyle::PixelMetric)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQStyleOption *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOption *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQStyleOption *option = o ? (QoreQStyleOption *)o->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
-   p = get_param(params, 2);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   o = test_object_param(params, 2);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -227,26 +240,26 @@ static AbstractQoreNode *QMOTIFSTYLE_pixelMetric(QoreObject *self, QoreAbstractQ
 //virtual QSize sizeFromContents ( ContentsType type, const QStyleOption * option, const QSize & contentsSize, const QWidget * widget = 0 ) const = 0
 static AbstractQoreNode *QMOTIFSTYLE_sizeFromContents(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMotifStyle::ContentsType type = (QMotifStyle::ContentsType)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQStyleOption *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOption *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQStyleOption *option = o ? (QoreQStyleOption *)o->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-SIZEFROMCONTENTS-PARAM-ERROR", "expecting a QStyleOption object as second argument to QMotifStyle::sizeFromContents()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
-   p = get_param(params, 2);
-   QoreQSize *contentsSize = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   o = test_object_param(params, 2);
+   QoreQSize *contentsSize = o ? (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!contentsSize) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-SIZEFROMCONTENTS-PARAM-ERROR", "expecting a QSize object as third argument to QMotifStyle::sizeFromContents()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> contentsSizeHolder(static_cast<AbstractPrivateData *>(contentsSize), xsink);
-   p = get_param(params, 3);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   o = test_object_param(params, 3);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -259,15 +272,15 @@ static AbstractQoreNode *QMOTIFSTYLE_sizeFromContents(QoreObject *self, QoreAbst
 //virtual int styleHint ( StyleHint hint, const QStyleOption * option = 0, const QWidget * widget = 0, QStyleHintReturn * returnData = 0 ) const = 0
 static AbstractQoreNode *QMOTIFSTYLE_styleHint(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMotifStyle::StyleHint hint = (QMotifStyle::StyleHint)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQStyleOption *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOption *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQStyleOption *option = o ? (QoreQStyleOption *)o->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
-   p = get_param(params, 2);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   o = test_object_param(params, 2);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -277,20 +290,22 @@ static AbstractQoreNode *QMOTIFSTYLE_styleHint(QoreObject *self, QoreAbstractQMo
 //virtual QRect subControlRect ( ComplexControl control, const QStyleOptionComplex * option, SubControl subControl, const QWidget * widget = 0 ) const = 0
 static AbstractQoreNode *QMOTIFSTYLE_subControlRect(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMotifStyle::ComplexControl control = (QMotifStyle::ComplexControl)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQStyleOptionComplex *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOptionComplex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTIONCOMPLEX, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQStyleOptionComplex *option = o ? (QoreQStyleOptionComplex *)o->getReferencedPrivateData(CID_QSTYLEOPTIONCOMPLEX, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-SUBCONTROLRECT-PARAM-ERROR", "expecting a QStyleOptionComplex object as second argument to QMotifStyle::subControlRect()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
+
    p = get_param(params, 2);
    QMotifStyle::SubControl subControl = (QMotifStyle::SubControl)(p ? p->getAsInt() : 0);
-   p = get_param(params, 3);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   o = test_object_param(params, 3);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
@@ -303,18 +318,19 @@ static AbstractQoreNode *QMOTIFSTYLE_subControlRect(QoreObject *self, QoreAbstra
 //virtual QRect subElementRect ( SubElement element, const QStyleOption * option, const QWidget * widget = 0 ) const = 0
 static AbstractQoreNode *QMOTIFSTYLE_subElementRect(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QMotifStyle::SubElement element = (QMotifStyle::SubElement)(p ? p->getAsInt() : 0);
-   p = get_param(params, 1);
-   QoreQStyleOption *option = (p && p->type == NT_OBJECT) ? (QoreQStyleOption *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQStyleOption *option = o ? (QoreQStyleOption *)o->getReferencedPrivateData(CID_QSTYLEOPTION, xsink) : 0;
    if (!option) {
       if (!xsink->isException())
          xsink->raiseException("QMOTIFSTYLE-SUBELEMENTRECT-PARAM-ERROR", "expecting a QStyleOption object as second argument to QMotifStyle::subElementRect()");
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> optionHolder(static_cast<AbstractPrivateData *>(option), xsink);
-   p = get_param(params, 2);
-   QoreQWidget *widget = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+
+   o = test_object_param(params, 2);
+   QoreQWidget *widget = o ? (QoreQWidget *)o->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);

@@ -306,7 +306,7 @@ void QoreQtDynamicSignal::emit_signal(QObject *obj, int id, const QoreListNode *
    for (int i = 0; i < num_args; ++i)
    {
       // get argument QoreNode
-      AbstractQoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
+      const AbstractQoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
 
       switch (type_list[i])
       {
@@ -356,7 +356,7 @@ void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, c
    for (int i = 0; i < num_args; ++i)
    {
       // get argument QoreNode
-      AbstractQoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
+      const AbstractQoreNode *n = args ? args->retrieve_entry(i + 1) : 0;
       const char *str = params[i].data();
       
       if (!strcmp(str, "int"))
@@ -375,7 +375,7 @@ void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, c
       }
       else if (!strcmp(str, "QWidget*"))
       {
-	 QoreQWidget *widget = (n && n->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(n))->getReferencedPrivateData(CID_QWIDGET, &xsink) : 0;
+	 QoreQWidget *widget = (n && n->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<const QoreObject *>(n))->getReferencedPrivateData(CID_QWIDGET, &xsink) : 0;
 	 sig_args[i + 1] = arg_list[i].set(widget);
       }
       else {

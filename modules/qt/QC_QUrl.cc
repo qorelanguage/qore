@@ -36,7 +36,7 @@ class QoreClass *QC_QUrl = 0;
 //QUrl ( const QString & url, ParsingMode parsingMode )
 static void QURL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       self->setPrivate(CID_QURL, new QoreQUrl());
       return;
@@ -63,7 +63,7 @@ static void QURL_copy(class QoreObject *self, class QoreObject *old, class QoreQ
 //void addQueryItem ( const QString & key, const QString & value )
 static AbstractQoreNode *QURL_addQueryItem(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString key;
 
    if (get_qstring(p, key, xsink))
@@ -81,7 +81,7 @@ static AbstractQoreNode *QURL_addQueryItem(QoreObject *self, QoreQUrl *qu, const
 //QStringList allQueryItemValues ( const QString & key ) const
 static AbstractQoreNode *QURL_allQueryItemValues(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
@@ -147,7 +147,7 @@ static AbstractQoreNode *QURL_hasQuery(QoreObject *self, QoreQUrl *qu, const Qor
 //bool hasQueryItem ( const QString & key ) const
 static AbstractQoreNode *QURL_hasQueryItem(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
@@ -169,8 +169,8 @@ static AbstractQoreNode *QURL_isEmpty(QoreObject *self, QoreQUrl *qu, const Qore
 //bool isParentOf ( const QUrl & childUrl ) const
 static AbstractQoreNode *QURL_isParentOf(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQUrl *childUrl = (p && p->type == NT_OBJECT) ? (QoreQUrl *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QURL, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQUrl *childUrl = p ? (QoreQUrl *)p->getReferencedPrivateData(CID_QURL, xsink) : 0;
    if (!childUrl) {
       if (!xsink->isException())
          xsink->raiseException("QURL-ISPARENTOF-PARAM-ERROR", "expecting a QUrl object as first argument to QUrl::isParentOf()");
@@ -208,7 +208,7 @@ static AbstractQoreNode *QURL_path(QoreObject *self, QoreQUrl *qu, const QoreLis
 //int port ( int defaultPort ) const
 static AbstractQoreNode *QURL_port(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p)) {
       return new QoreBigIntNode(qu->port());
    }
@@ -219,7 +219,7 @@ static AbstractQoreNode *QURL_port(QoreObject *self, QoreQUrl *qu, const QoreLis
 //QString queryItemValue ( const QString & key ) const
 static AbstractQoreNode *QURL_queryItemValue(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
@@ -253,7 +253,7 @@ static AbstractQoreNode *QURL_queryValueDelimiter(QoreObject *self, QoreQUrl *qu
 //void removeAllQueryItems ( const QString & key )
 static AbstractQoreNode *QURL_removeAllQueryItems(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
@@ -264,7 +264,7 @@ static AbstractQoreNode *QURL_removeAllQueryItems(QoreObject *self, QoreQUrl *qu
 //void removeQueryItem ( const QString & key )
 static AbstractQoreNode *QURL_removeQueryItem(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
@@ -275,8 +275,8 @@ static AbstractQoreNode *QURL_removeQueryItem(QoreObject *self, QoreQUrl *qu, co
 //QUrl resolved ( const QUrl & relative ) const
 static AbstractQoreNode *QURL_resolved(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQUrl *relative = (p && p->type == NT_OBJECT) ? (QoreQUrl *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QURL, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQUrl *relative = p ? (QoreQUrl *)p->getReferencedPrivateData(CID_QURL, xsink) : 0;
    if (!relative) {
       if (!xsink->isException())
          xsink->raiseException("QURL-RESOLVED-PARAM-ERROR", "expecting a QUrl object as first argument to QUrl::resolved()");
@@ -298,7 +298,7 @@ static AbstractQoreNode *QURL_scheme(QoreObject *self, QoreQUrl *qu, const QoreL
 //void setAuthority ( const QString & authority )
 static AbstractQoreNode *QURL_setAuthority(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString authority;
    if (get_qstring(p, authority, xsink))
       return 0;
@@ -309,7 +309,7 @@ static AbstractQoreNode *QURL_setAuthority(QoreObject *self, QoreQUrl *qu, const
 //void setEncodedQuery ( const QByteArray & query )
 static AbstractQoreNode *QURL_setEncodedQuery(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QByteArray query;
    if (get_qbytearray(p, query, xsink))
       return 0;
@@ -321,7 +321,7 @@ static AbstractQoreNode *QURL_setEncodedQuery(QoreObject *self, QoreQUrl *qu, co
 //void setEncodedUrl ( const QByteArray & encodedUrl, ParsingMode parsingMode )
 static AbstractQoreNode *QURL_setEncodedUrl(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QByteArray encodedUrl;
    if (get_qbytearray(p, encodedUrl, xsink))
       return 0;
@@ -334,7 +334,7 @@ static AbstractQoreNode *QURL_setEncodedUrl(QoreObject *self, QoreQUrl *qu, cons
 //void setFragment ( const QString & fragment )
 static AbstractQoreNode *QURL_setFragment(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString fragment;
    if (get_qstring(p, fragment, xsink))
       return 0;
@@ -345,7 +345,7 @@ static AbstractQoreNode *QURL_setFragment(QoreObject *self, QoreQUrl *qu, const 
 //void setHost ( const QString & host )
 static AbstractQoreNode *QURL_setHost(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString host;
    if (get_qstring(p, host, xsink))
       return 0;
@@ -356,7 +356,7 @@ static AbstractQoreNode *QURL_setHost(QoreObject *self, QoreQUrl *qu, const Qore
 //void setPassword ( const QString & password )
 static AbstractQoreNode *QURL_setPassword(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString password;
    if (get_qstring(p, password, xsink))
       return 0;
@@ -367,7 +367,7 @@ static AbstractQoreNode *QURL_setPassword(QoreObject *self, QoreQUrl *qu, const 
 //void setPath ( const QString & path )
 static AbstractQoreNode *QURL_setPath(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString path;
    if (get_qstring(p, path, xsink))
       return 0;
@@ -378,7 +378,7 @@ static AbstractQoreNode *QURL_setPath(QoreObject *self, QoreQUrl *qu, const Qore
 //void setPort ( int port )
 static AbstractQoreNode *QURL_setPort(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int port = p ? p->getAsInt() : 0;
    qu->setPort(port);
    return 0;
@@ -387,7 +387,7 @@ static AbstractQoreNode *QURL_setPort(QoreObject *self, QoreQUrl *qu, const Qore
 //void setQueryDelimiters ( char valueDelimiter, char pairDelimiter )
 static AbstractQoreNode *QURL_setQueryDelimiters(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreStringNode *str = test_string_param(params, 0);
+   const QoreStringNode *str = test_string_param(params, 0);
    if (!str) {
       xsink->raiseException("QURL-SETQUERYDELIMITERS-ERROR", "expecting a string as first argument");
       return 0;
@@ -407,7 +407,7 @@ static AbstractQoreNode *QURL_setQueryDelimiters(QoreObject *self, QoreQUrl *qu,
 ////void setQueryItems ( const QList<QPair<QString, QString> > & query )
 //static AbstractQoreNode *QURL_setQueryItems(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   QUrl::const^QList<QPair<QString const^qlist<qpair<qstring = (QUrl::const^QList<QPair<QString)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 1);
 //   ??? > query = p;
@@ -418,7 +418,7 @@ static AbstractQoreNode *QURL_setQueryDelimiters(QoreObject *self, QoreQUrl *qu,
 //void setScheme ( const QString & scheme )
 static AbstractQoreNode *QURL_setScheme(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString scheme;
    if (get_qstring(p, scheme, xsink))
       return 0;
@@ -430,7 +430,7 @@ static AbstractQoreNode *QURL_setScheme(QoreObject *self, QoreQUrl *qu, const Qo
 //void setUrl ( const QString & url, ParsingMode parsingMode )
 static AbstractQoreNode *QURL_setUrl(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString url;
    if (get_qstring(p, url, xsink))
       return 0;
@@ -447,7 +447,7 @@ static AbstractQoreNode *QURL_setUrl(QoreObject *self, QoreQUrl *qu, const QoreL
 //void setUserInfo ( const QString & userInfo )
 static AbstractQoreNode *QURL_setUserInfo(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString userInfo;
    if (get_qstring(p, userInfo, xsink))
       return 0;
@@ -458,7 +458,7 @@ static AbstractQoreNode *QURL_setUserInfo(QoreObject *self, QoreQUrl *qu, const 
 //void setUserName ( const QString & userName )
 static AbstractQoreNode *QURL_setUserName(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString userName;
    if (get_qstring(p, userName, xsink))
       return 0;
@@ -469,7 +469,7 @@ static AbstractQoreNode *QURL_setUserName(QoreObject *self, QoreQUrl *qu, const 
 //QByteArray toEncoded ( FormattingOptions options = None ) const
 static AbstractQoreNode *QURL_toEncoded(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QUrl::FormattingOptions options = (QUrl::FormattingOptions)(p ? p->getAsInt() : 0);
    QoreObject *o_qba = new QoreObject(QC_QByteArray, getProgram());
    QoreQByteArray *q_qba = new QoreQByteArray(qu->toEncoded(options));
@@ -486,7 +486,7 @@ static AbstractQoreNode *QURL_toLocalFile(QoreObject *self, QoreQUrl *qu, const 
 //QString toString ( FormattingOptions options = None ) const
 static AbstractQoreNode *QURL_toString(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QUrl::FormattingOptions options = (QUrl::FormattingOptions)(p ? p->getAsInt() : 0);
    return new QoreStringNode(qu->toString(options).toUtf8().data(), QCS_UTF8);
 }

@@ -37,8 +37,8 @@ class QoreClass *QC_QComboBox = 0;
 //QComboBox ( QWidget * parent = 0 )
 static void QCOMBOBOX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQWidget *parent = (p && p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQWidget *parent = p ? (QoreQWidget *)p->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
    ReferenceHolder<QoreQWidget> parentHolder(parent, xsink);
    self->setPrivate(CID_QCOMBOBOX, new QoreQComboBox(self, parent ? parent->getQWidget() : 0));
    return;
@@ -53,12 +53,12 @@ static void QCOMBOBOX_copy(class QoreObject *self, class QoreObject *old, class 
 //void addItem ( const QIcon & icon, const QString & text, const QVariant & userData = QVariant() )
 static AbstractQoreNode *QCOMBOBOX_addItem(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    if (p && p->type == NT_OBJECT) {
-      QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
+      QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
          if (!xsink->isException())
-            xsink->raiseException("QCOMBOBOX-ADDITEM-PARAM-ERROR", "QComboBox::addItem() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<QoreObject *>(p))->getClass()->getName());
+            xsink->raiseException("QCOMBOBOX-ADDITEM-PARAM-ERROR", "QComboBox::addItem() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
          return 0;
       }
       ReferenceHolder<QoreQIcon> iconHolder(icon, xsink);
@@ -90,13 +90,13 @@ static AbstractQoreNode *QCOMBOBOX_addItem(QoreObject *self, QoreQComboBox *qcb,
 //void addItems ( const QStringList & texts )
 static AbstractQoreNode *QCOMBOBOX_addItems(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   QoreListNode *p = test_list_param(params, 0);
+   const QoreListNode *p = test_list_param(params, 0);
    if (!p) {
       xsink->raiseException("QCOMBOBOX-ADDITEMS-PARAM-ERROR", "expecting a list as first argument to QComboBox::addItems()");
       return 0;
    }
    QStringList texts;
-   ListIterator li_texts(p);
+   ConstListIterator li_texts(p);
    while (li_texts.next())
    {
       QoreStringNodeValueHelper str(li_texts.getValue());
@@ -142,7 +142,7 @@ static AbstractQoreNode *QCOMBOBOX_duplicatesEnabled(QoreObject *self, QoreQComb
 //int findData ( const QVariant & data, int role = Qt::UserRole, Qt::MatchFlags flags = Qt::MatchExactly | Qt::MatchCaseSensitive ) const
 static AbstractQoreNode *QCOMBOBOX_findData(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QVariant data;
    if (get_qvariant(p, data, xsink))
       return 0;
@@ -156,7 +156,7 @@ static AbstractQoreNode *QCOMBOBOX_findData(QoreObject *self, QoreQComboBox *qcb
 //int findText ( const QString & text, Qt::MatchFlags flags = Qt::MatchExactly | Qt::MatchCaseSensitive ) const
 static AbstractQoreNode *QCOMBOBOX_findText(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;
@@ -192,10 +192,11 @@ static AbstractQoreNode *QCOMBOBOX_iconSize(QoreObject *self, QoreQComboBox *qcb
 //void insertItem ( int index, const QIcon & icon, const QString & text, const QVariant & userData = QVariant() )
 static AbstractQoreNode *QCOMBOBOX_insertItem(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   p = get_param(params, 1);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQIcon *icon = o ? (QoreQIcon *)o->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (*xsink)
       return 0;
    int offset = 1;
@@ -223,15 +224,15 @@ static AbstractQoreNode *QCOMBOBOX_insertItem(QoreObject *self, QoreQComboBox *q
 //void insertItems ( int index, const QStringList & list )
 static AbstractQoreNode *QCOMBOBOX_insertItems(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   QoreListNode *l = test_list_param(params, 1);
+   const QoreListNode *l = test_list_param(params, 1);
    if (!l) {
       xsink->raiseException("QCOMBOBOX-INSERTITEMS-PARAM-ERROR", "expecting a list as second argument to QComboBox::insertItems()");
       return 0;
    }
    QStringList list;
-   ListIterator li_list(l);
+   ConstListIterator li_list(l);
    while (li_list.next())
    {
       QoreStringNodeValueHelper str(li_list.getValue());
@@ -259,7 +260,7 @@ static AbstractQoreNode *QCOMBOBOX_isEditable(QoreObject *self, QoreQComboBox *q
 //QVariant itemData ( int index, int role = Qt::UserRole ) const
 static AbstractQoreNode *QCOMBOBOX_itemData(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int role = !is_nothing(p) ? p->getAsInt() : Qt::UserRole;
@@ -282,7 +283,7 @@ static AbstractQoreNode *QCOMBOBOX_itemDelegate(QoreObject *self, QoreQComboBox 
 //QIcon itemIcon ( int index ) const
 static AbstractQoreNode *QCOMBOBOX_itemIcon(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    QoreObject *o_qi = new QoreObject(QC_QIcon, getProgram());
    QoreQIcon *q_qi = new QoreQIcon(qcb->getQComboBox()->itemIcon(index));
@@ -293,7 +294,7 @@ static AbstractQoreNode *QCOMBOBOX_itemIcon(QoreObject *self, QoreQComboBox *qcb
 //QString itemText ( int index ) const
 static AbstractQoreNode *QCOMBOBOX_itemText(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    return new QoreStringNode(qcb->getQComboBox()->itemText(index).toUtf8().data(), QCS_UTF8);
 }
@@ -344,7 +345,7 @@ static AbstractQoreNode *QCOMBOBOX_modelColumn(QoreObject *self, QoreQComboBox *
 //void removeItem ( int index )
 static AbstractQoreNode *QCOMBOBOX_removeItem(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    qcb->getQComboBox()->removeItem(index);
    return 0;
@@ -362,7 +363,7 @@ static AbstractQoreNode *QCOMBOBOX_rootModelIndex(QoreObject *self, QoreQComboBo
 ////void setCompleter ( QCompleter * completer )
 //static AbstractQoreNode *QCOMBOBOX_setCompleter(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QCompleter* completer = p;
 //   qcb->getQComboBox()->setCompleter(completer);
 //   return 0;
@@ -371,7 +372,7 @@ static AbstractQoreNode *QCOMBOBOX_rootModelIndex(QoreObject *self, QoreQComboBo
 //void setDuplicatesEnabled ( bool enable )
 static AbstractQoreNode *QCOMBOBOX_setDuplicatesEnabled(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool enable = p ? p->getAsBool() : false;
    qcb->getQComboBox()->setDuplicatesEnabled(enable);
    return 0;
@@ -380,7 +381,7 @@ static AbstractQoreNode *QCOMBOBOX_setDuplicatesEnabled(QoreObject *self, QoreQC
 //void setEditable ( bool editable )
 static AbstractQoreNode *QCOMBOBOX_setEditable(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool editable = p ? p->getAsBool() : false;
    qcb->getQComboBox()->setEditable(editable);
    return 0;
@@ -389,7 +390,7 @@ static AbstractQoreNode *QCOMBOBOX_setEditable(QoreObject *self, QoreQComboBox *
 //void setFrame ( bool )
 static AbstractQoreNode *QCOMBOBOX_setFrame(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    bool b = p ? p->getAsBool() : false;
    qcb->getQComboBox()->setFrame(b);
    return 0;
@@ -398,8 +399,8 @@ static AbstractQoreNode *QCOMBOBOX_setFrame(QoreObject *self, QoreQComboBox *qcb
 //void setIconSize ( const QSize & size )
 static AbstractQoreNode *QCOMBOBOX_setIconSize(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQSize *size = (p && p->type == NT_OBJECT) ? (QoreQSize *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQSize *size = p ? (QoreQSize *)p->getReferencedPrivateData(CID_QSIZE, xsink) : 0;
    if (!size) {
       if (!xsink->isException())
          xsink->raiseException("QCOMBOBOX-SETICONSIZE-PARAM-ERROR", "expecting a QSize object as first argument to QComboBox::setIconSize()");
@@ -413,7 +414,7 @@ static AbstractQoreNode *QCOMBOBOX_setIconSize(QoreObject *self, QoreQComboBox *
 //void setInsertPolicy ( InsertPolicy policy )
 static AbstractQoreNode *QCOMBOBOX_setInsertPolicy(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QComboBox::InsertPolicy policy = (QComboBox::InsertPolicy)(p ? p->getAsInt() : 0);
    qcb->getQComboBox()->setInsertPolicy(policy);
    return 0;
@@ -422,7 +423,7 @@ static AbstractQoreNode *QCOMBOBOX_setInsertPolicy(QoreObject *self, QoreQComboB
 //void setItemData ( int index, const QVariant & value, int role = Qt::UserRole )
 static AbstractQoreNode *QCOMBOBOX_setItemData(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QVariant value;
@@ -437,8 +438,8 @@ static AbstractQoreNode *QCOMBOBOX_setItemData(QoreObject *self, QoreQComboBox *
 //void setItemDelegate ( QAbstractItemDelegate * delegate )
 static AbstractQoreNode *QCOMBOBOX_setItemDelegate(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreAbstractQAbstractItemDelegate *delegate = (p && p->type == NT_OBJECT) ? (QoreAbstractQAbstractItemDelegate *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreAbstractQAbstractItemDelegate *delegate = p ? (QoreAbstractQAbstractItemDelegate *)p->getReferencedPrivateData(CID_QABSTRACTITEMDELEGATE, xsink) : 0;
    if (!delegate) {
       if (!xsink->isException())
          xsink->raiseException("QCOMBOBOX-SETITEMDELEGATE-PARAM-ERROR", "expecting a QAbstractItemDelegate object as first argument to QComboBox::setItemDelegate()");
@@ -452,10 +453,11 @@ static AbstractQoreNode *QCOMBOBOX_setItemDelegate(QoreObject *self, QoreQComboB
 //void setItemIcon ( int index, const QIcon & icon )
 static AbstractQoreNode *QCOMBOBOX_setItemIcon(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   p = get_param(params, 1);
-   QoreQIcon *icon = (p && p->type == NT_OBJECT) ? (QoreQIcon *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
+
+   const QoreObject *o = test_object_param(params, 1);
+   QoreQIcon *icon = o ? (QoreQIcon *)o->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (!icon) {
       if (!xsink->isException())
          xsink->raiseException("QCOMBOBOX-SETITEMICON-PARAM-ERROR", "expecting a QIcon object as second argument to QComboBox::setItemIcon()");
@@ -469,7 +471,7 @@ static AbstractQoreNode *QCOMBOBOX_setItemIcon(QoreObject *self, QoreQComboBox *
 //void setItemText ( int index, const QString & text )
 static AbstractQoreNode *QCOMBOBOX_setItemText(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    QString text;
@@ -483,8 +485,8 @@ static AbstractQoreNode *QCOMBOBOX_setItemText(QoreObject *self, QoreQComboBox *
 //void setLineEdit ( QLineEdit * edit )
 static AbstractQoreNode *QCOMBOBOX_setLineEdit(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQLineEdit *edit = (p && p->type == NT_OBJECT) ? (QoreQLineEdit *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QLINEEDIT, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQLineEdit *edit = p ? (QoreQLineEdit *)p->getReferencedPrivateData(CID_QLINEEDIT, xsink) : 0;
    if (!edit) {
       if (!xsink->isException())
          xsink->raiseException("QCOMBOBOX-SETLINEEDIT-PARAM-ERROR", "expecting a QLineEdit object as first argument to QComboBox::setLineEdit()");
@@ -498,7 +500,7 @@ static AbstractQoreNode *QCOMBOBOX_setLineEdit(QoreObject *self, QoreQComboBox *
 //void setMaxCount ( int max )
 static AbstractQoreNode *QCOMBOBOX_setMaxCount(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int max = p ? p->getAsInt() : 0;
    qcb->getQComboBox()->setMaxCount(max);
    return 0;
@@ -507,7 +509,7 @@ static AbstractQoreNode *QCOMBOBOX_setMaxCount(QoreObject *self, QoreQComboBox *
 //void setMaxVisibleItems ( int maxItems )
 static AbstractQoreNode *QCOMBOBOX_setMaxVisibleItems(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int maxItems = p ? p->getAsInt() : 0;
    qcb->getQComboBox()->setMaxVisibleItems(maxItems);
    return 0;
@@ -516,7 +518,7 @@ static AbstractQoreNode *QCOMBOBOX_setMaxVisibleItems(QoreObject *self, QoreQCom
 //void setMinimumContentsLength ( int characters )
 static AbstractQoreNode *QCOMBOBOX_setMinimumContentsLength(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int characters = p ? p->getAsInt() : 0;
    qcb->getQComboBox()->setMinimumContentsLength(characters);
    return 0;
@@ -525,7 +527,7 @@ static AbstractQoreNode *QCOMBOBOX_setMinimumContentsLength(QoreObject *self, Qo
 ////void setModel ( QAbstractItemModel * model )
 //static AbstractQoreNode *QCOMBOBOX_setModel(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QAbstractItemModel* model = p;
 //   qcb->getQComboBox()->setModel(model);
 //   return 0;
@@ -534,7 +536,7 @@ static AbstractQoreNode *QCOMBOBOX_setMinimumContentsLength(QoreObject *self, Qo
 //void setModelColumn ( int visibleColumn )
 static AbstractQoreNode *QCOMBOBOX_setModelColumn(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int visibleColumn = p ? p->getAsInt() : 0;
    qcb->getQComboBox()->setModelColumn(visibleColumn);
    return 0;
@@ -543,8 +545,8 @@ static AbstractQoreNode *QCOMBOBOX_setModelColumn(QoreObject *self, QoreQComboBo
 //void setRootModelIndex ( const QModelIndex & index )
 static AbstractQoreNode *QCOMBOBOX_setRootModelIndex(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
-   QoreQModelIndex *index = (p && p->type == NT_OBJECT) ? (QoreQModelIndex *)(reinterpret_cast<QoreObject *>(p))->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
+   QoreObject *p = test_object_param(params, 0);
+   QoreQModelIndex *index = p ? (QoreQModelIndex *)p->getReferencedPrivateData(CID_QMODELINDEX, xsink) : 0;
    if (!index) {
       if (!xsink->isException())
          xsink->raiseException("QCOMBOBOX-SETROOTMODELINDEX-PARAM-ERROR", "expecting a QModelIndex object as first argument to QComboBox::setRootModelIndex()");
@@ -558,7 +560,7 @@ static AbstractQoreNode *QCOMBOBOX_setRootModelIndex(QoreObject *self, QoreQComb
 //void setSizeAdjustPolicy ( SizeAdjustPolicy policy )
 static AbstractQoreNode *QCOMBOBOX_setSizeAdjustPolicy(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QComboBox::SizeAdjustPolicy policy = (QComboBox::SizeAdjustPolicy)(p ? p->getAsInt() : 0);
    qcb->getQComboBox()->setSizeAdjustPolicy(policy);
    return 0;
@@ -567,7 +569,7 @@ static AbstractQoreNode *QCOMBOBOX_setSizeAdjustPolicy(QoreObject *self, QoreQCo
 ////void setValidator ( const QValidator * validator )
 //static AbstractQoreNode *QCOMBOBOX_setValidator(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QValidator* validator = p;
 //   qcb->getQComboBox()->setValidator(validator);
 //   return 0;
@@ -576,7 +578,7 @@ static AbstractQoreNode *QCOMBOBOX_setSizeAdjustPolicy(QoreObject *self, QoreQCo
 ////void setView ( QAbstractItemView * itemView )
 //static AbstractQoreNode *QCOMBOBOX_setView(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 //{
-//   AbstractQoreNode *p = get_param(params, 0);
+//   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QAbstractItemView* itemView = p;
 //   qcb->getQComboBox()->setView(itemView);
 //   return 0;
@@ -624,7 +626,7 @@ static AbstractQoreNode *QCOMBOBOX_clearEditText(QoreObject *self, QoreQComboBox
 //void setCurrentIndex ( int index )
 static AbstractQoreNode *QCOMBOBOX_setCurrentIndex(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    qcb->getQComboBox()->setCurrentIndex(index);
    return 0;
@@ -633,7 +635,7 @@ static AbstractQoreNode *QCOMBOBOX_setCurrentIndex(QoreObject *self, QoreQComboB
 //void setEditText ( const QString & text )
 static AbstractQoreNode *QCOMBOBOX_setEditText(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   AbstractQoreNode *p = get_param(params, 0);
+   const AbstractQoreNode *p = get_param(params, 0);
    QString text;
    if (get_qstring(p, text, xsink))
       return 0;

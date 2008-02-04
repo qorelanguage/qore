@@ -33,7 +33,7 @@ static void TIBRVFTMONITOR_constructor(class QoreObject *self, const QoreListNod
 {
    tracein("TIBRVFTMONITOR_constructor");
 
-   QoreStringNode *pt = test_string_param(params, 0);
+   const QoreStringNode *pt = test_string_param(params, 0);
    if (!pt)
    {
       xsink->raiseException("TIBRVFTMONITOR-CONSTRUCTOR-ERROR", "missing fault-tolerant group name as first parameter to TibrvFtMonitor::constructor()");
@@ -42,7 +42,7 @@ static void TIBRVFTMONITOR_constructor(class QoreObject *self, const QoreListNod
    const char *groupName = pt->getBuffer();
 
    int64 lostInterval;
-   AbstractQoreNode *pn = get_param(params, 1);
+   const AbstractQoreNode *pn = get_param(params, 1);
    lostInterval = pn ? pn->getAsInt() : 0;
    if (lostInterval <= 0)
    {
