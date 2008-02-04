@@ -55,6 +55,15 @@ class VarRefNode : public ParseNode
       DLLLOCAL virtual AbstractQoreNode *eval(ExceptionSink *xsink) const;
       DLLLOCAL virtual AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
 
+      // default implementation is getAsBigInt()
+      DLLLOCAL virtual int64 bigIntEval(class ExceptionSink *xsink) const;
+      // default implementation is getAsInt()
+      DLLLOCAL virtual int integerEval(class ExceptionSink *xsink) const;
+      // default implementation is getAsBool()
+      DLLLOCAL virtual bool boolEval(class ExceptionSink *xsink) const;
+      // default implementation is getAsFloat()
+      DLLLOCAL virtual double floatEval(class ExceptionSink *xsink) const;
+
       DLLLOCAL void resolve();
       // returns -1 if the variable did not already exist
       DLLLOCAL int resolveExisting();

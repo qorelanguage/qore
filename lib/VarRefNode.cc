@@ -122,6 +122,30 @@ AbstractQoreNode *VarRefNode::eval(bool &needs_deref, ExceptionSink *xsink) cons
    return ref.var->eval(xsink);
 }
 
+int64 VarRefNode::bigIntEval(class ExceptionSink *xsink) const
+{
+   QoreNodeEvalOptionalRefHolder rv(this, xsink);
+   return rv ? rv->getAsBigInt() : 0;
+}
+
+int VarRefNode::integerEval(class ExceptionSink *xsink) const
+{
+   QoreNodeEvalOptionalRefHolder rv(this, xsink);
+   return rv ? rv->getAsInt() : 0;
+}
+
+bool VarRefNode::boolEval(class ExceptionSink *xsink) const
+{
+   QoreNodeEvalOptionalRefHolder rv(this, xsink);
+   return rv ? rv->getAsBool() : 0;
+}
+
+double VarRefNode::floatEval(class ExceptionSink *xsink) const
+{
+   QoreNodeEvalOptionalRefHolder rv(this, xsink);
+   return rv ? rv->getAsFloat() : 0;
+}
+
 AbstractQoreNode **VarRefNode::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink)
 {
    if (type == VT_LOCAL)
