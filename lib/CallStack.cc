@@ -116,7 +116,6 @@ void CallStack::pop(ExceptionSink *xsink)
    if (tail)
       tail->next = NULL;
    c->objectDeref(xsink);
-   delete c;
    traceout("CallStack::pop()");
 }
 
