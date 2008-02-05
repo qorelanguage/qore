@@ -300,15 +300,17 @@ class QoreNodeEvalOptionalRefHolder {
       DLLLOCAL void *operator new(size_t);
 
    public:
-      DLLLOCAL QoreNodeEvalOptionalRefHolder(ExceptionSink *n_xsink) : xsink(n_xsink)
+      DLLLOCAL QoreNodeEvalOptionalRefHolder(ExceptionSink *n_xsink) : val(0), xsink(n_xsink), needs_deref(false)
       {
-	 needs_deref = false;
-	 val = 0;
       }
       DLLLOCAL QoreNodeEvalOptionalRefHolder(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink)
       {
-	 needs_deref = false;
-	 val = exp ? exp->eval(needs_deref, xsink) : 0;
+	 if (exp)
+	    val = exp->eval(needs_deref, xsink);
+	 else {
+	    val = 0;
+	    needs_deref = false;
+	 }	    
       }
       DLLLOCAL ~QoreNodeEvalOptionalRefHolder()
       {

@@ -62,6 +62,12 @@ struct qore_list_private {
 	 if (entry)
 	    free(entry);
       }
+      DLLLOCAL void clear()
+      {
+	 entry = 0;
+	 length = 0;
+	 needs_eval = false;
+      }
 };
 
 void QoreListNode::check_offset(int &offset)
@@ -1037,4 +1043,9 @@ bool QoreListNode::isVariableList() const
 void QoreListNode::setVariableList()
 {
    priv->vlist = true;
+}
+
+void QoreListNode::clear()
+{
+   priv->clear();
 }

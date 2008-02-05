@@ -257,117 +257,102 @@ AbstractQoreNode *LVar::evalReference(ExceptionSink *xsink)
 
 AbstractQoreNode *LVar::eval(ExceptionSink *xsink)
 {
-   if (vexp)
-      return evalReference(xsink);
-   else
+   if (!vexp)
       return value ? value->refSelf() : NULL;
+   else
+      return evalReference(xsink);
 }
 
 AbstractQoreNode *LVar::eval(bool &needs_deref, ExceptionSink *xsink)
 {
-   AbstractQoreNode *rv;
-
-   if (vexp)
-   {
-      needs_deref = true;
-      rv = evalReference(xsink);
-   }
-   else
+   if (!vexp)
    {
       needs_deref = false;
-      rv = value;
+      return value;
    }
-   
-   return rv;
+   needs_deref = true;
+   return evalReference(xsink);
 }
 
 AbstractQoreNode **LVar::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink)
 {
-   if (vexp)
-   {
-      // mask the ID in case it's a recursive reference
-      lvh_t save = id;
-      id = NULL;
-      AbstractQoreNode **rv;
-      if (obj)
-      {
-	 ObjectSubstitutionHelper osh(obj);
-	 rv = get_var_value_ptr(vexp, vl, xsink);
-      }
-      else
-	 rv = get_var_value_ptr(vexp, vl, xsink);
-      id = save;
-      return rv;
+   if (!vexp)
+      return &value;
+
+   // mask the ID in case it's a recursive reference
+   lvh_t save = id;
+   id = 0;
+   AbstractQoreNode **rv;
+   if (obj) {
+      ObjectSubstitutionHelper osh(obj);
+      rv = get_var_value_ptr(vexp, vl, xsink);
    }
-   return &value;
+   else
+      rv = get_var_value_ptr(vexp, vl, xsink);
+   id = save;
+   return rv;
 }
 
 AbstractQoreNode *LVar::getValue(class AutoVLock *vl, ExceptionSink *xsink)
 {
-   if (vexp)
+   if (!vexp)
+      return value;
+
+   // mask the ID in case it's a recursive reference
+   lvh_t save = id;
+   id = 0;
+   AbstractQoreNode *rv;
+   if (obj)
    {
-      // mask the ID in case it's a recursive reference
-      lvh_t save = id;
-      id = NULL;
-      AbstractQoreNode *rv;
-      if (obj)
-      {
-	 ObjectSubstitutionHelper osh(obj);
-	 rv = getNoEvalVarValue(vexp, vl, xsink);
-      }
-      else
-	 rv = getNoEvalVarValue(vexp, vl, xsink);
-      id = save;
-      return rv;
+      ObjectSubstitutionHelper osh(obj);
+      rv = getNoEvalVarValue(vexp, vl, xsink);
    }
-   return value;
+   else
+      rv = getNoEvalVarValue(vexp, vl, xsink);
+   id = save;
+   return rv;
 }
 
 void LVar::setValue(AbstractQoreNode *val, ExceptionSink *xsink)
 {
-   if (vexp)
-   {
-      ObjectSubstitutionHelper osh(obj);
-      AutoVLock vl;
-
-      // mask the ID in case it's a recursive reference
-      lvh_t save = id;
-      id = NULL;
-      AbstractQoreNode **valp = get_var_value_ptr(vexp, &vl, xsink);
-      id = save;
-
-      if (!xsink->isEvent())
-      {
-	 discard(*valp, xsink);
-	 *valp = val;
-	 vl.del();
-      }
-      else
-      {
-	 vl.del();
-	 discard(val, xsink);
-      }
-   }
-   else 
-   {
+   if (!vexp) {
       if (value)
 	 value->deref(xsink);
       value = val;
+      return;
+   }
+
+   ObjectSubstitutionHelper osh(obj);
+   AutoVLock vl;
+
+   // mask the ID in case it's a recursive reference
+   lvh_t save = id;
+   id = NULL;
+   AbstractQoreNode **valp = get_var_value_ptr(vexp, &vl, xsink);
+   id = save;
+   
+   if (!*xsink) {
+      discard(*valp, xsink);
+      *valp = val;
+      vl.del();
+   }
+   else {
+      vl.del();
+      discard(val, xsink);
    }
 }
 
 void LVar::deref(ExceptionSink *xsink)
 {
    // if there is a reference expression, decrement the reference counter
-   if (vexp)
-   {
-      vexp->deref(xsink);
-      if (obj)
-	 obj->tDeref();
-   }
-   else
+   if (!vexp) {
       discard(value, xsink);
-   //delete this;
+      return;
+   }
+
+   vexp->deref(xsink);
+   if (obj)
+      obj->tDeref();
 }
 
 static inline AbstractQoreNode **do_list_val_ptr(QoreTreeNode *tree, class AutoVLock *vlp, ExceptionSink *xsink)
@@ -808,24 +793,14 @@ void uninstantiateLVar(ExceptionSink *xsink)
 }
 
 // pushes local variable on stack by value
-class LVar *instantiateLVar(lvh_t id, AbstractQoreNode *value)
+LVar *instantiateLVar(lvh_t id, AbstractQoreNode *value)
 {
-   printd(3, "instantiating lvar '%s' by value (val=%08p)\n", id, value);
-   // allocate new local variable structure
-   class LVar *lvar = thread_instantiate_lvar();
-   lvar->set(id, value);
-
-   return lvar;
+   return thread_instantiate_lvar(id, value);
 }
 
-class LVar *instantiateLVar(lvh_t id, AbstractQoreNode *ve, QoreObject *o)
+LVar *instantiateLVar(lvh_t id, AbstractQoreNode *ve, QoreObject *o)
 {
-   printd(3, "instantiating lvar %08p '%s' by reference (ve=%08p, o=%08p)\n", id, id, ve, o);
-   // if we're instantiating the same variable recursively, then don't instantiate it at all
-   // allocate new local variable structure
-   class LVar *lvar = thread_instantiate_lvar();
-   lvar->set(id, ve, o);
-   return lvar;
+   return thread_instantiate_lvar(id, ve, o);
 }
 
 #if 0

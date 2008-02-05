@@ -111,6 +111,7 @@ class QoreHash
   protected:
       class HashMember *member_list;
       class HashMember *tail;
+      int len;
       hm_hm_t hm;
       bool needs_eval;
 

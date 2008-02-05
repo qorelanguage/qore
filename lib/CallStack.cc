@@ -109,6 +109,17 @@ void CallStack::push(const char *f, int t, QoreObject *o)
    traceout("CallStack::push()");
 }
 
+void CallStack::push(CallNode *c)
+{
+   tracein("CallStack::push()");
+   c->next = NULL;
+   c->prev = tail;
+   if (tail)
+      tail->next = c;
+   tail = c;
+   traceout("CallStack::push()");
+}
+
 void CallStack::pop(ExceptionSink *xsink)
 {
    tracein("CallStack::pop()");

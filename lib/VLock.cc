@@ -25,13 +25,11 @@
 
 #include <assert.h>
 
-/*
 struct qore_avl_private {
       abstract_lock_list_t l;
 };
-*/
 
-AutoVLock::AutoVLock()
+AutoVLock::AutoVLock() : counter(0), priv(0)
 {
    //printd(5, "AutoVLock::AutoVLock() this=%08p\n", this);
 }
@@ -40,25 +38,35 @@ AutoVLock::~AutoVLock()
 {
    //printd(5, "AutoVLock::~AutoVLock() this=%08p size=%d\n", this, size());
    del();
+   delete priv;
 }
 
 void AutoVLock::del()
 {
    //printd(5, "AutoVLock::del() this=%08p size=%d\n", this, size());
 
-   abstract_lock_list_t::iterator i;
-   while ((i = begin()) != end())
-   {
-      //printd(5, "AutoVLock::del() this=%08p releasing=%08p\n", this, *i);
-      (*i)->release();
-      erase(i);
+   if (priv) {
+      abstract_lock_list_t::iterator i;
+      while ((i = priv->l.begin()) != priv->l.end()) {
+	 //printd(5, "AutoVLock::del() this=%08p releasing=%08p\n", this, *i);
+	 (*i)->release();
+	 priv->l.erase(i);
+      }
    }
+   while (counter)
+      fp[--counter]->release();
 }
 
 void AutoVLock::push(class AbstractSmartLock *p)
 {
    //printd(5, "AutoVLock::push(%08p) this=%08p\n", p, this);
-   push_back(p);
+   if (counter == QORE_AVL_INTERN) {
+      if (!priv)
+	 priv = new qore_avl_private;
+      priv->l.push_back(p);
+      return;
+   }
+   fp[counter++] = p;
 }
 
 int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int timeout_ms)

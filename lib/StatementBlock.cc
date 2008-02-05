@@ -123,8 +123,9 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 
    assert(xsink);
 
+   bool obe = on_block_exit_list.size();
    // push on block exit iterator if necessary
-   if (on_block_exit_list.size())
+   if (obe)
       pushBlock(on_block_exit_list.end());
    
    // execute block
@@ -133,7 +134,7 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 	 break;
 
    // execute on block exit code if applicable
-   if (on_block_exit_list.size())
+   if (obe)
    {
       ExceptionSink obe_xsink;
       int nrc = 0;

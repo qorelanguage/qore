@@ -164,7 +164,7 @@ public:
       }
       return &curr->lvar[curr->pos++];
    }
-   DLLLOCAL void uninstantiate(ExceptionSink *xsink)
+   DLLLOCAL void uninstantiate()
    {
       if (!curr->pos)
       {
@@ -178,6 +178,10 @@ public:
       }
       --curr->pos;
       printd(5, "uninstantiating lvar \"%s\"\n", curr->lvar[curr->pos].id);
+   }
+   DLLLOCAL void uninstantiate(ExceptionSink *xsink)
+   {
+      uninstantiate();
       curr->lvar[curr->pos].deref(xsink);
    }
    DLLLOCAL class LVar *find(lvh_t id)
@@ -232,13 +236,25 @@ class ThreadData
 
       DLLLOCAL ThreadData(int ptid, QoreProgram *p);
       DLLLOCAL ~ThreadData();
-      DLLLOCAL class LVar *instantiate_lvar()
+      DLLLOCAL LVar *instantiate_lvar(lvh_t id, AbstractQoreNode *value)
       {
-	 return lvstack.instantiate();
+	 LVar *v = lvstack.instantiate();
+	 v->set(id, value);
+	 return v;
+      }
+      DLLLOCAL LVar *instantiate_lvar(lvh_t id, AbstractQoreNode *ve, QoreObject *o)
+      {
+	 LVar *v = lvstack.instantiate();
+	 v->set(id, ve, o);
+	 return v;
       }
       DLLLOCAL void uninstantiate_lvar(ExceptionSink *xsink)
       {
 	 lvstack.uninstantiate(xsink);
+      }
+      DLLLOCAL void uninstantiate_lvar()
+      {
+	 lvstack.uninstantiate();
       }
       DLLLOCAL class LVar *find_lvar(lvh_t id)
       {
@@ -578,14 +594,26 @@ class VLock *getVLock()
    return &td->vlock;
 }
 
-class LVar *thread_instantiate_lvar()
+class LVar *thread_instantiate_lvar(lvh_t id, AbstractQoreNode *value)
 {
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->instantiate_lvar();
+   printd(3, "instantiating lvar '%s' by value (val=%08p)\n", id, value);
+   return ((ThreadData *)pthread_getspecific(thread_data_key))->instantiate_lvar(id, value);
+}
+
+class LVar *thread_instantiate_lvar(lvh_t id, AbstractQoreNode *ve, QoreObject *o)
+{
+   printd(3, "instantiating lvar %08p '%s' by reference (ve=%08p, o=%08p)\n", id, id, ve, o);
+   return ((ThreadData *)pthread_getspecific(thread_data_key))->instantiate_lvar(id, ve, o);
 }
 
 void thread_uninstantiate_lvar(ExceptionSink *xsink)
 {
    ((ThreadData *)pthread_getspecific(thread_data_key))->uninstantiate_lvar(xsink);
+}
+
+void thread_uninstantiate_lvar()
+{
+   ((ThreadData *)pthread_getspecific(thread_data_key))->uninstantiate_lvar();
 }
 
 class LVar *thread_find_lvar(lvh_t id)
@@ -940,9 +968,10 @@ namespace {
       AbstractQoreNode *rv;
       {
 	 CodeContextHelper cch(NULL, btp->callobj, &xsink);
-	 
+#ifdef DEBUG
 	 // push this call on the thread stack
-	 pushCall("background operator", CT_NEWTHREAD, btp->callobj);
+	 CallStackHelper csh("background operator", CT_NEWTHREAD, btp->callobj, &xsink);
+#endif
 	 
 	 // dereference call object if present
 	 btp->derefCallObj();
@@ -952,9 +981,6 @@ namespace {
 	 
 	 // if there is an object, we dereference the extra reference here
 	 btp->derefObj(&xsink);
-	 
-	 // pop the call from the stack
-	 popCall(&xsink);
       }
       
       // dereference any return value from the background expression

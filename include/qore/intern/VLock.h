@@ -27,9 +27,14 @@
 #include <qore/Qore.h>
 #include <qore/intern/AbstractSmartLock.h>
 
+#include <vector>
 #include <map>
 
 typedef std::map<int, class VLock *> vlock_map_t;
+
+// testing shows that a vector is slightly faster than a deque for this usage
+// and must faster than a list
+typedef std::vector<AbstractSmartLock *> abstract_lock_list_t;
 
 // for tracking locks per thread and detecting deadlocks
 class VLock : protected abstract_lock_list_t

@@ -239,6 +239,7 @@ void QoreHash::internDeleteKey(class HashMember *om)
    free(om->key);
    // free om memory
    delete om;
+   --len;
 }
 
 // this function should only be called when the key doesn't exist
@@ -259,6 +260,7 @@ AbstractQoreNode **QoreHash::newKeyValue(const char *key, AbstractQoreNode *valu
 
    hm[om->key] = om;
 
+   ++len;
    return &om->node;
 }
 
@@ -514,6 +516,7 @@ QoreHash::QoreHash(bool ne)
    needs_eval = ne; 
    member_list = NULL; 
    tail = NULL; 
+   len = 0;
 }
 
 
@@ -595,7 +598,7 @@ const AbstractQoreNode *QoreHash::getKeyValueExistence(const char *key) const
 // 0 = equal, 1 = not equal
 bool QoreHash::compareSoft(const QoreHash *h, ExceptionSink *xsink) const
 {
-   if (h->hm.size() != hm.size())
+   if (h->len != len)
       return 1;
 
    for (hm_hm_t::const_iterator i = hm.begin(); i != hm.end(); i++)
@@ -615,7 +618,7 @@ bool QoreHash::compareSoft(const QoreHash *h, ExceptionSink *xsink) const
 // 0 = equal, 1 = not equal
 bool QoreHash::compareHard(const QoreHash *h, ExceptionSink *xsink) const
 {
-   if (h->hm.size() != hm.size())
+   if (h->len != len)
       return 1;
 
    for (hm_hm_t::const_iterator i = hm.begin(); i != hm.end(); i++)
@@ -727,7 +730,7 @@ AbstractQoreNode *QoreHash::takeKeyValue(const char *key)
 
 int QoreHash::size() const 
 { 
-   return hm.size(); 
+   return len; 
 }
 
 bool QoreHash::needsEval() const

@@ -134,6 +134,7 @@ class QoreListNode : public AbstractQoreNode
       DLLLOCAL bool isVariableList() const;
       DLLLOCAL void setVariableList();
       DLLLOCAL void clearNeedsEval();
+      DLLLOCAL void clear();
 };
 
 class StackList : public QoreListNode

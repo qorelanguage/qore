@@ -400,7 +400,8 @@ bool needsEval(class AbstractQoreNode *n)
    }
 
    //printd(5, "needsEval() type %s = true\n", n->getTypeName());
-   return n->needs_eval();
+   // we don't return needs_eval() here because some node types are not meant to be evaluated directly but are also not values
+   return !n->is_value();
 }
 
 static bool hasEffect(class AbstractQoreNode *n)

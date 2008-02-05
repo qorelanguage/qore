@@ -110,8 +110,8 @@ class UserFunction : public ReferenceObject
 
       // the object owns the memory for "nme"
       DLLLOCAL UserFunction(char *nme, class Paramlist *parms, class StatementBlock *states, bool synced = false);
-      DLLLOCAL class AbstractQoreNode *eval(const class QoreListNode *args, class QoreObject *self, class ExceptionSink *xsink, const char *class_name = 0) const;
-      DLLLOCAL class AbstractQoreNode *evalConstructor(const class QoreListNode *args, class QoreObject *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *eval(const class QoreListNode *args, class QoreObject *self, class ExceptionSink *xsink, const char *class_name = 0) const;
+      DLLLOCAL AbstractQoreNode *evalConstructor(const class QoreListNode *args, class QoreObject *self, class BCList *bcl, class BCEAList *scbceal, const char *class_name, class ExceptionSink *xsink) const;
       DLLLOCAL void evalCopy(class QoreObject *old, class QoreObject *self, const char *class_name, class ExceptionSink *xsink) const;
       DLLLOCAL bool isSynchronized() const 
       { 

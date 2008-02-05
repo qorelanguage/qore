@@ -632,8 +632,10 @@ static AbstractQoreNode *op_regex_subst(AbstractQoreNode *left, AbstractQoreNode
    // get current value and save
    class AutoVLock vl;
    AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   if (!v) {
+      assert(*xsink);
+      return 0;
+   }
 
    // if it's not a string, then do nothing
    if (!(*v) || (*v)->type != NT_STRING)
@@ -659,8 +661,10 @@ static AbstractQoreNode *op_regex_trans(AbstractQoreNode *left, AbstractQoreNode
    // get current value and save
    class AutoVLock vl;
    AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   if (!v) {
+      assert(*xsink);
+      return 0;
+   }
 
    // if it's not a string, then do nothing
    if (!(*v) || (*v)->type != NT_STRING)
@@ -781,10 +785,6 @@ static AbstractQoreNode *op_new_object(AbstractQoreNode *left, AbstractQoreNode 
 
 static AbstractQoreNode *op_assignment(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **v;
-
-   // tracein("op_assignment()");
-
    /* assign new value, this value gets referenced with the
       eval(xsink) call, so there's no need to reference it again
       for the variable assignment - however it does need to be
@@ -796,9 +796,11 @@ static AbstractQoreNode *op_assignment(AbstractQoreNode *left, AbstractQoreNode 
 
    // get current value and save
    class AutoVLock vl;
-   v = get_var_value_ptr(left, &vl, xsink);
-   if (*xsink)
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   if (!v) {
+      assert(*xsink);
       return 0;
+   }
 
    // dereference old value if necessary
    discard(*v, xsink);
@@ -852,8 +854,10 @@ static AbstractQoreNode *op_list_assignment(AbstractQoreNode *n_left, AbstractQo
 
       class AutoVLock vl;
       v = get_var_value_ptr(lv, &vl, xsink);
-      if (*xsink)
+      if (!v) {
+	 assert(*xsink);
 	 return 0;
+      }
       
       // dereference old value if necessary
       discard(*v, xsink);
@@ -885,23 +889,19 @@ static AbstractQoreNode *op_list_assignment(AbstractQoreNode *n_left, AbstractQo
 
 static AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **v;
-
-   //QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-   //if (*xsink || !new_right)
-   //return 0;
-
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   if (!v) {
+      assert(*xsink);
       return 0;
-   
+   }
+
    // dereferences happen in each section so that the
    // already referenced value can be passed to list->push()
    // if necessary
    // do list plus-equals if left-hand side is a list
-   const QoreType *vtype = *v ? (*v)->getType() : 0;
+   const QoreType *vtype = *v ? (*v)->type : 0;
    if (vtype == NT_LIST)
    {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
@@ -1029,13 +1029,13 @@ static AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQoreNode
 
 static AbstractQoreNode *op_minus_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **v;
-
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, &vl, xsink);
-   if (*xsink)
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   if (!v) {
+      assert(*xsink);
       return 0;
+   }
 
    if (!right)
       return ref_rv ? (*v)->refSelf() : 0;
@@ -1137,18 +1137,18 @@ static AbstractQoreNode *op_minus_equals(AbstractQoreNode *left, AbstractQoreNod
 
 static AbstractQoreNode *op_and_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **v;
-
    //tracein("op_and_equals()");
    int64 val = right->bigIntEval(xsink);
-   if (xsink->isEvent())
+   if (*xsink)
       return NULL;
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   if (!v) {
+      assert(*xsink);
+      return 0;
+   }
    
    QoreBigIntNode *b;
    // get new value if necessary
@@ -1182,8 +1182,10 @@ static AbstractQoreNode *op_or_equals(AbstractQoreNode *left, AbstractQoreNode *
    // get ptr to current value
    class AutoVLock vl;
    AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   if (!v) {
+      assert(*xsink);
+      return 0;
+   }
 
    QoreBigIntNode *b;
    // get new value if necessary
@@ -1215,8 +1217,10 @@ static AbstractQoreNode *op_modula_equals(AbstractQoreNode *left, AbstractQoreNo
    // get ptr to current value
    class AutoVLock vl;
    AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   if (!v) {
+      assert(*xsink);
+      return 0;
+   }
 
    QoreBigIntNode *b;
    // get new value if necessary
@@ -1243,8 +1247,10 @@ static AbstractQoreNode *op_multiply_equals(AbstractQoreNode *left, AbstractQore
    // get ptr to current value
    class AutoVLock vl;
    AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (*xsink)
+   if (!v) {
+      assert(*xsink);
       return 0;
+   }
 
    // is either side a float?
    if ((*v) && (*v)->type == NT_FLOAT)
@@ -1318,18 +1324,17 @@ static AbstractQoreNode *op_multiply_equals(AbstractQoreNode *left, AbstractQore
 
 static AbstractQoreNode *op_divide_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **v;
-   //tracein("op_divide_equals()");
-
    QoreNodeEvalOptionalRefHolder res(right, xsink);
    if (*xsink)
       return 0;
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, &vl, xsink);
-   if (*xsink)
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   if (!v) {
+      assert(*xsink);
       return 0;
+   }
 
    // is either side a float?
    if (res && res->type == NT_FLOAT)
@@ -1408,8 +1413,10 @@ static AbstractQoreNode *op_xor_equals(AbstractQoreNode *left, AbstractQoreNode 
    // get ptr to current value
    class AutoVLock vl;
    AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
-   if (*xsink)
+   if (!v) {
+      assert(*xsink);
       return 0;
+   }
 
    QoreBigIntNode *b;
 
@@ -1436,19 +1443,17 @@ static AbstractQoreNode *op_xor_equals(AbstractQoreNode *left, AbstractQoreNode 
 
 static AbstractQoreNode *op_shift_left_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **v;
-
-   //tracein("op_shift_left_equals()");
-
    int64 val = right->bigIntEval(xsink);
    if (xsink->isEvent())
       return NULL;
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   if (!v) {
+      assert(*xsink);
+      return 0;
+   }
 
    QoreBigIntNode *b;
    // get new value if necessary
@@ -1474,8 +1479,6 @@ static AbstractQoreNode *op_shift_left_equals(AbstractQoreNode *left, AbstractQo
 
 static AbstractQoreNode *op_shift_right_equals(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **v;
-
    //tracein("op_shift_right_equals()");
 
    int64 val = right->bigIntEval(xsink);
@@ -1484,9 +1487,11 @@ static AbstractQoreNode *op_shift_right_equals(AbstractQoreNode *left, AbstractQ
 
    // get ptr to current value
    class AutoVLock vl;
-   v = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   AbstractQoreNode **v = get_var_value_ptr(left, &vl, xsink);
+   if (!v) {
+      assert(*xsink);
+      return 0;
+   }
 
    QoreBigIntNode *b;
    // get new value if necessary
@@ -1644,16 +1649,15 @@ static int64 op_shift_right_int(int64 left, int64 right)
 // variable assignment
 static AbstractQoreNode *op_post_inc(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **n, *rv;
-
-   // tracein("op_post_inc()");
    class AutoVLock vl;
-   n = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   AbstractQoreNode **n = get_var_value_ptr(left, &vl, xsink);
+   if (!n) {
+      assert(*xsink);
+      return 0;
+   }
 
    // reference for return value is reference for variable assignment (if not null)
-   rv = *n;
+   AbstractQoreNode *rv = *n;
 
    // acquire new value
    QoreBigIntNode *b = new QoreBigIntNode((*n) ? (*n)->getAsBigInt() : 0);
@@ -1662,7 +1666,6 @@ static AbstractQoreNode *op_post_inc(AbstractQoreNode *left, bool ref_rv, Except
    // increment value
    b->val++;
 
-   // traceout("op_post_inc");
    // return original value (may be null or non-integer)
    return rv;
 }
@@ -1670,17 +1673,16 @@ static AbstractQoreNode *op_post_inc(AbstractQoreNode *left, bool ref_rv, Except
 // variable assignment
 static AbstractQoreNode *op_post_dec(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **n, *rv;
-   // tracein("op_post_dec()");
-
    class AutoVLock vl;
-   n = get_var_value_ptr(left, &vl, xsink);
+   AbstractQoreNode **n = get_var_value_ptr(left, &vl, xsink);
    //printd(5, "op_post_dec() n=%08p, *n=%08p\n", n, *n);
-   if (xsink->isEvent())
-      return NULL;
+   if (!n) {
+      assert(*xsink);
+      return 0;
+   }
 
    // reference for return value is reference for variable assignment (if not null)
-   rv = *n;
+   AbstractQoreNode *rv = *n;
 
    // acquire new value
    QoreBigIntNode *b = new QoreBigIntNode((*n) ? (*n)->getAsBigInt() : 0);
@@ -1698,12 +1700,12 @@ static AbstractQoreNode *op_post_dec(AbstractQoreNode *left, bool ref_rv, Except
 // variable assignment
 static AbstractQoreNode *op_pre_inc(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **n;
-
    class AutoVLock vl;
-   n = get_var_value_ptr(left, &vl, xsink);
-   if (*xsink)
+   AbstractQoreNode **n = get_var_value_ptr(left, &vl, xsink);
+   if (!n) {
+      assert(*xsink);
       return 0;
+   }
 
    QoreBigIntNode *b;
    // acquire new value if necessary
@@ -1729,13 +1731,12 @@ static AbstractQoreNode *op_pre_inc(AbstractQoreNode *left, bool ref_rv, Excepti
 // variable assignment
 static AbstractQoreNode *op_pre_dec(AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink)
 {
-   AbstractQoreNode **n;
-   // tracein("op_pre_dec()");
-
    class AutoVLock vl;
-   n = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   AbstractQoreNode **n = get_var_value_ptr(left, &vl, xsink);
+   if (!n) {
+      assert(*xsink);
+      return 0;
+   }
 
    QoreBigIntNode *b;
    // acquire new value if necessary
@@ -1765,9 +1766,11 @@ static AbstractQoreNode *op_unshift(AbstractQoreNode *left, AbstractQoreNode *el
    printd(5, "op_unshift(%08p, %08p, isEvent=%d)\n", left, elem, xsink->isEvent());
 
    class AutoVLock vl;
-   AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (*xsink)
+   AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink); 
+   if (!val) {
+      assert(*xsink);
       return 0;
+   }
 
    QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
    // value is not a list, so throw exception
@@ -1812,8 +1815,11 @@ static AbstractQoreNode *op_shift(AbstractQoreNode *left, AbstractQoreNode *x, b
 
    class AutoVLock vl;
    AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (*xsink)
+   if (!val) {
+      assert(*xsink);
       return 0;
+   }
+
    QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
    if (!l)
       return NULL;
@@ -1838,8 +1844,11 @@ static AbstractQoreNode *op_pop(AbstractQoreNode *left, AbstractQoreNode *x, boo
 
    class AutoVLock vl;
    AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (*xsink)
+   if (!val) {
+      assert(*xsink);
       return 0;
+   }
+
    QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
    if (!l)
       return NULL;
@@ -1869,8 +1878,11 @@ static AbstractQoreNode *op_push(AbstractQoreNode *left, AbstractQoreNode *elem,
 
    class AutoVLock vl;
    AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (*xsink)
+   if (!val) {
+      assert(*xsink);
       return 0;
+   }
+
    QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
    if (!l) {
       xsink->raiseException("PUSH-ERROR", "first argument to push is not a list");
@@ -1913,8 +1925,10 @@ static AbstractQoreNode *op_splice(AbstractQoreNode *left, AbstractQoreNode *n_l
 
    class AutoVLock vl;
    AbstractQoreNode **val = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   if (!val) {
+      assert(*xsink);
+      return 0;
+   }
 
    // if value is not a list or string, throw exception
    if (!(*val) || ((*val)->type != NT_LIST && (*val)->type != NT_STRING))
@@ -1986,8 +2000,10 @@ static int64 op_chomp(AbstractQoreNode *arg, AbstractQoreNode *x, ExceptionSink 
    
    class AutoVLock vl;
    AbstractQoreNode **val = get_var_value_ptr(arg, &vl, xsink);
-   if (xsink->isEvent())
+   if (!val) {
+      assert(*xsink);
       return 0;
+   }
 
    if (!(*val) || ((*val)->type != NT_STRING && (*val)->type != NT_LIST && (*val)->type != NT_HASH))
       return 0;
@@ -2049,8 +2065,10 @@ static AbstractQoreNode *op_trim(AbstractQoreNode *arg, AbstractQoreNode *x, boo
    
    class AutoVLock vl;
    AbstractQoreNode **val = get_var_value_ptr(arg, &vl, xsink);
-   if (xsink->isEvent())
+   if (!val) {
+      assert(*xsink);
       return 0;
+   }
    
    if (!(*val) || ((*val)->type != NT_STRING && (*val)->type != NT_LIST && (*val)->type != NT_HASH))
       return 0;
