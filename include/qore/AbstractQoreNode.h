@@ -346,7 +346,9 @@ class QoreNodeEvalOptionalRefHolder {
 	 return rv;
       }
       DLLLOCAL AbstractQoreNode *operator->() { return val; }
+      DLLLOCAL const AbstractQoreNode *operator->() const { return val; }
       DLLLOCAL AbstractQoreNode *operator*() { return val; }
+      DLLLOCAL const AbstractQoreNode *operator*() const { return val; }
       DLLLOCAL operator bool() const { return val != 0; }
 };
 

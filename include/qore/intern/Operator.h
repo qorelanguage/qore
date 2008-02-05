@@ -665,8 +665,8 @@ class Operator {
 
       DLLLOCAL static int match(const QoreType *ntype, const QoreType *rtype);
       DLLLOCAL int findFunction(const QoreType *ltype, const QoreType *rtype) const; 
-      DLLLOCAL int get_function(QoreNodeEvalOptionalRefHolder &nleft, ExceptionSink *xsink) const;
-      DLLLOCAL int get_function(QoreNodeEvalOptionalRefHolder &nleft, QoreNodeEvalOptionalRefHolder &nright, ExceptionSink *xsink) const;
+      DLLLOCAL int get_function(const QoreNodeEvalOptionalRefHolder &nleft, ExceptionSink *xsink) const;
+      DLLLOCAL int get_function(const QoreNodeEvalOptionalRefHolder &nleft, const QoreNodeEvalOptionalRefHolder &nright, ExceptionSink *xsink) const;
 
    public:
       DLLLOCAL Operator(int arg, char *n, char *desc, int n_evalArgs, bool n_effect, bool n_lvalue = false);

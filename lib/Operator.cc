@@ -1702,8 +1702,8 @@ static AbstractQoreNode *op_pre_inc(AbstractQoreNode *left, bool ref_rv, Excepti
 
    class AutoVLock vl;
    n = get_var_value_ptr(left, &vl, xsink);
-   if (xsink->isEvent())
-      return NULL;
+   if (*xsink)
+      return 0;
 
    QoreBigIntNode *b;
    // acquire new value if necessary
@@ -1719,7 +1719,7 @@ static AbstractQoreNode *op_pre_inc(AbstractQoreNode *left, bool ref_rv, Excepti
    }
 
    // increment value
-   b->val++;
+   ++b->val;
 
    //printd(5, "op_pre_inc() ref_rv=%s\n", ref_rv ? "true" : "false");
    // reference for return value
@@ -3588,7 +3588,7 @@ int Operator::match(const QoreType *ntype, const QoreType *rtype)
       return 0;
 }
 
-int Operator::get_function(QoreNodeEvalOptionalRefHolder &nleft, ExceptionSink *xsink) const
+int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, ExceptionSink *xsink) const
 {
    int t;
    // find operator function
@@ -3603,7 +3603,7 @@ int Operator::get_function(QoreNodeEvalOptionalRefHolder &nleft, ExceptionSink *
    return t;
 }
 
-int Operator::get_function(QoreNodeEvalOptionalRefHolder &nleft, QoreNodeEvalOptionalRefHolder &nright, ExceptionSink *xsink) const
+int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, const QoreNodeEvalOptionalRefHolder &nright, ExceptionSink *xsink) const
 {
    int t;
    // find operator function
