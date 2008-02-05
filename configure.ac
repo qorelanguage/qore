@@ -2209,7 +2209,7 @@ show_library_feature()
 show_library_feature optimizations $enable_optimization
 show_library_feature "single compilation unit" $enable_single_compilation_unit
 show_library_feature debug $enable_debug
-show_library_feature profiling $enable_profiling
+show_library_feature profiling $enable_profile
 
 if test "$enable_shared" = "yes"; then
    echo "*** MODULES ***"
