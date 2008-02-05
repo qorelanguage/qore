@@ -763,7 +763,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	 CodeContextHelper cch(name, self, xsink);
 #ifdef DEBUG
 	 // push call on stack
-	 CallStackHelper csh(name, CT_USER, self, xsink)
+	 CallStackHelper csh(name, CT_USER, self, xsink);
 #endif
 
 	 // instantiate "$self" variable

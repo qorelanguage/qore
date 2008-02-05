@@ -97,18 +97,6 @@ CallStack::~CallStack()
    }
 }
 
-void CallStack::push(const char *f, int t, QoreObject *o)
-{
-   tracein("CallStack::push()");
-   CallNode *c = new CallNode(f, t, o);
-   c->next = NULL;
-   c->prev = tail;
-   if (tail)
-      tail->next = c;
-   tail = c;
-   traceout("CallStack::push()");
-}
-
 void CallStack::push(CallNode *c)
 {
    tracein("CallStack::push()");

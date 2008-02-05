@@ -68,7 +68,7 @@ DLLLOCAL void thread_uninstantiate_lvar();
 DLLLOCAL class LVar *thread_find_lvar(lvh_t id);
 
 #ifdef DEBUG
-DLLLOCAL void pushCall(const char *f, int type, class QoreObject *o = NULL);
+DLLLOCAL void pushCall(class CallNode *cn);
 DLLLOCAL void popCall(class ExceptionSink *xsink);
 DLLLOCAL class CallStack *getCallStack();
 DLLLOCAL class QoreListNode *getCallStackList();

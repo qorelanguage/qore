@@ -736,9 +736,9 @@ ArgvContextHelper::~ArgvContextHelper()
 }
 
 #ifdef DEBUG
-void pushCall(const char *f, int type, QoreObject *o)
+void pushCall(class CallNode *cn)
 {
-   thread_list[gettid()].callStack->push(f, type, o);
+   thread_list[gettid()].callStack->push(cn);
 }
 
 void popCall(ExceptionSink *xsink)
