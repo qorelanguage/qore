@@ -24,14 +24,22 @@
 
 #define _QORE_AUTOVLOCK_H
 
-struct qore_avl_private;
+#include <vector>
+
+// for performance reasons this implementation is not private
+// this object is allocated on the stack
+
+class AbstractSmartLock;
+
+// this list will mostly have entries pushed and popped on the end
+// testing shows that a vector is slightly faster than a deque for this usage
+// and must faster than a list
+typedef std::vector<AbstractSmartLock *> abstract_lock_list_t;
 
 // AutoVLock is for grabbing a series of locks that will only be deleted when the AutoVLock structure is deleted
-class AutoVLock
+class AutoVLock : protected abstract_lock_list_t
 {
    private:
-      struct qore_avl_private *priv; // private implementation
-
       // not implemented
       AutoVLock(const AutoVLock&);
       AutoVLock& operator=(const AutoVLock&);

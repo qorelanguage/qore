@@ -27,13 +27,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/AbstractSmartLock.h>
 
-#include <vector>
 #include <map>
-
-// this list will mostly have entries pushed and popped on the end
-// testing shows that a vector is slightly faster than a deque for this usage
-// and must faster than a list
-typedef std::vector<AbstractSmartLock *> abstract_lock_list_t;
 
 typedef std::map<int, class VLock *> vlock_map_t;
 
