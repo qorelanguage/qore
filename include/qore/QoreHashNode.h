@@ -68,6 +68,8 @@ class QoreHashNode : public AbstractQoreNode, public QoreHash
       // deletes the object when the reference count = 0
       DLLEXPORT virtual void deref(class ExceptionSink *xsink);
       DLLEXPORT virtual bool is_value() const;
+
+      DLLEXPORT QoreHashNode *hashRefSelf() const;
 };
 
 #endif

@@ -126,6 +126,7 @@ class QoreListNode : public AbstractQoreNode
       DLLEXPORT void splice(int offset, int length, const AbstractQoreNode *l, class ExceptionSink *xsink);
       DLLEXPORT int size() const;
       DLLEXPORT QoreListNode *reverse() const;
+      DLLEXPORT QoreListNode *listRefSelf() const;
 
       // needed only while parsing
       DLLLOCAL QoreListNode(bool i);

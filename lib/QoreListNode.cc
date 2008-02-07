@@ -1049,3 +1049,9 @@ void QoreListNode::clear()
 {
    priv->clear();
 }
+
+QoreListNode *QoreListNode::listRefSelf() const
+{
+   ref();
+   return const_cast<QoreListNode *>(this);
+}

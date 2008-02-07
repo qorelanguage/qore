@@ -138,3 +138,9 @@ bool QoreHashNode::is_value() const
 {
    return !needs_eval();
 }
+
+QoreHashNode *QoreHashNode::hashRefSelf() const
+{
+   ref();
+   return const_cast<QoreHashNode *>(this);
+}
