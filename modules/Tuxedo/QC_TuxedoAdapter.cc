@@ -1035,7 +1035,7 @@ static AbstractQoreNode* setUnchainedTxTransactions(QoreObject* self, QoreTuxedo
 static AbstractQoreNode* setTxTransactionsTimeout(QoreObject* self, QoreTuxedoAdapter* adapter, const QoreListNode *params, ExceptionSink* xsink)
 {
   const AbstractQoreNode* n = get_param(params, 0);
-  long timeout;
+  long timeout = 0;
   if (n) {
      const DateTimeNode *date = dynamic_cast<const DateTimeNode *>(n);
      if (date) 
