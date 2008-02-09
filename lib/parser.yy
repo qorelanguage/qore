@@ -1834,8 +1834,11 @@ exp:    scalar
 	      $1->val.tree->op = OP_OBJECT_FUNC_REF;
 	      $$ = $1;
 	   }
-	   else
+	   else {
+	      if ($1->type == NT_VARREF && $1->val.vref->type != VT_UNRESOLVED)
+		 parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '%s' declared as a function reference call", $1->val.vref->type == VT_GLOBAL ? "global" : "local",  $1->val.vref->name);
 	      $$ = new QoreNode(new FunctionReferenceCall($1, makeArgs($3)));
+	   }
 	}
         | BASE_CLASS_CALL '(' myexp ')'
         {

@@ -1,3 +1,9 @@
+2008.02.09: David Nichols
+	* fixed a bug where a local variable declared as an immediate call 
+	  reference call would cause a run-time core dump
+
+*** v0.6.2.3 RELEASE ***
+
 2008.02.02: David Nichols
 	* fixed a bug in regex_subst() (in RegexSubst::parseRT()) that would
 	  cause a run-time crash if a regular-expression parse exception were
@@ -100,9 +106,13 @@
 	  deflate methods, in particular this causes problems with browsers and
 	  XML-RPC or JSON-RPC HTTP payloads
 
+*** v0.6.2.2 RELEASE ***
+
 2007.10.16: David Nichols
 	* fixed a memory bug in XML parsing with multiple out-of-order keys
 	  (backported from 0.7.0)
+
+*** v0.6.2.1 RELEASE ***
 
 2007.09.25: David Nichols
 	* fixed a memory bug in QoreString::parseBase64ToString()
