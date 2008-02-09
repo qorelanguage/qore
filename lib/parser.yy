@@ -1845,8 +1845,12 @@ exp:    scalar
 		 tree->op = OP_OBJECT_FUNC_REF;
 		 $$ = $1;
 	      }
-	      else
+	      else {
+		 VarRefNode *r = dynamic_cast<VarRefNode *>($1);
+		 if (r && r->type != VT_UNRESOLVED)
+		    parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '%s' declared as a function reference call", r->type == VT_GLOBAL ? "global" : "local", r->name);
 		 $$ = new FunctionReferenceCallNode($1, makeArgs($3));
+	      }
 	   }
 	}
         | BASE_CLASS_CALL '(' myexp ')'
