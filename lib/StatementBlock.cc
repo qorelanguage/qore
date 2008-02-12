@@ -95,7 +95,7 @@ void StatementBlock::addStatement(class AbstractStatement *s)
       statement_list.push_back(s);
       OnBlockExitStatement *obe = dynamic_cast<OnBlockExitStatement *>(s);
       if (obe)
-	 on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
+	 on_block_exit_list.push_front(std::make_pair(obe->type, obe->getCode()));
    }
    
    //traceout("StatementBlock::addStatement()");
@@ -234,7 +234,7 @@ lvh_t find_local_var(char *name)
 static inline void checkSelf(AbstractQoreNode *n, lvh_t selfid)
 {
    // if it's a variable reference
-   const QoreType *ntype = n->getType();
+   const QoreType *ntype = n->type;
    if (ntype == NT_VARREF)
    {
       VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
@@ -276,7 +276,7 @@ static inline int getBaseLVType(AbstractQoreNode *n)
 {
    while (true)
    {
-      const QoreType *ntype = n->getType();
+      const QoreType *ntype = n->type;
       if (ntype == NT_SELF_VARREF)
 	 return VT_OBJECT;
       if (ntype == NT_VARREF)
@@ -317,7 +317,7 @@ int process_node(AbstractQoreNode **node, lvh_t oflag, int pflag)
    if (!(*node))
       return 0;
 
-   const QoreType *ntype = (*node)->getType();
+   const QoreType *ntype = (*node)->type;
    if (ntype == NT_REFERENCE)
    {
       // otherwise throw a parse exception if an illegal reference is used
@@ -465,7 +465,7 @@ int process_node(AbstractQoreNode **node, lvh_t oflag, int pflag)
 	 for (i = 0; i < f->args->size(); i++)
 	 {
 	    AbstractQoreNode **n = f->args->get_entry_ptr(i);
-	    if ((*n)->getType() == NT_REFERENCE)
+	    if ((*n)->type == NT_REFERENCE)
 	    {
 	       if (!f->existsUserParam(i))
 		  parse_error("not enough parameters in \"%s\" to accept reference expression", f->getName());
