@@ -127,7 +127,7 @@ DLLLOCAL virtual int compare(const AbstractQoreNode *val) const
 
 bool QoreListNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
-   const QoreListNode *l = dynamic_cast<const QoreListNode *>(v);
+   const QoreListNode *l = v && v->type == NT_LIST ? reinterpret_cast<const QoreListNode *>(v) : 0;
    if (!l)
       return false;
 
@@ -141,7 +141,7 @@ bool QoreListNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink
 
 bool QoreListNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
-   const QoreListNode *l = dynamic_cast<const QoreListNode *>(v);
+   const QoreListNode *l = v && v->type == NT_LIST ? reinterpret_cast<const QoreListNode *>(v) : 0;
    if (!l)
       return false;
 
@@ -265,13 +265,13 @@ int QoreListNode::delete_entry(int ind, ExceptionSink *xsink)
    if (ind >= priv->length || ind < 0)
       return 1;
 
-   QoreObject *o = dynamic_cast<QoreObject *>(priv->entry[ind]);
-   if (o) 
-      o->doDelete(xsink);
+   AbstractQoreNode *e = priv->entry[ind];
+   if (e && e->type == NT_OBJECT)
+      reinterpret_cast<QoreObject *>(e)->doDelete(xsink);
 
-   if (priv->entry[ind])
+   if (e)
    {
-      priv->entry[ind]->deref(xsink);
+      e->deref(xsink);
       priv->entry[ind] = NULL;
    }
 
@@ -288,13 +288,13 @@ void QoreListNode::pop_entry(int ind, ExceptionSink *xsink)
    if (ind >= priv->length || ind < 0)
       return;
 
-   QoreObject *o = dynamic_cast<QoreObject *>(priv->entry[ind]);
-   if (o) 
-      o->doDelete(xsink);
+   AbstractQoreNode *e = priv->entry[ind];
+   if (e && e->type == NT_OBJECT)
+      reinterpret_cast<QoreObject *>(e)->doDelete(xsink);
 
-   if (priv->entry[ind])
+   if (e)
    {
-      priv->entry[ind]->deref(xsink);
+      e->deref(xsink);
       priv->entry[ind] = NULL;
    }
 
@@ -770,11 +770,11 @@ void QoreListNode::splice_intern(int offset, int len, const AbstractQoreNode *l,
    }
 
    // add in new entries
-   const QoreListNode *lst = dynamic_cast<const QoreListNode *>(l);
-   if (!lst) {
+   if (!l || l->type != NT_LIST) {
       priv->entry[offset] = l ? l->refSelf() : 0;
       return;
    }
+   const QoreListNode *lst = reinterpret_cast<const QoreListNode *>(l);
    for (int i = 0; i < n; i++) {
       const AbstractQoreNode *n = lst->retrieve_entry(i);
       priv->entry[offset + i] = n ? n->refSelf() : 0;

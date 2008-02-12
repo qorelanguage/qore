@@ -115,9 +115,13 @@ static QoreListNode *makeArgs(AbstractQoreNode *arg)
 {
    if (!arg)
       return 0;
-   QoreListNode *l = dynamic_cast<QoreListNode *>(arg);
-   if (l && !l->isFinalized())
-      return l;
+
+   QoreListNode *l;
+   if (arg->type == NT_LIST) {
+      l = reinterpret_cast<QoreListNode *>(arg);
+      if (!l->isFinalized())
+	 return l;
+   }
 
    l = new QoreListNode(arg->needs_eval());
    l->push(arg);
@@ -127,14 +131,12 @@ static QoreListNode *makeArgs(AbstractQoreNode *arg)
 HashElement::HashElement(class AbstractQoreNode *k, class AbstractQoreNode *v)
 {
    //tracein("HashElement::HashElement()");
-   QoreStringNode *str = dynamic_cast<QoreStringNode *>(k);
-   if (!str)
-   {
+   if (!k || k->type != NT_STRING) {
       parse_error("object member name must be a string value!");
       key = strdup("");
    }
    else
-      key = strdup(str->getBuffer());
+      key = strdup(reinterpret_cast<QoreStringNode *>(k)->getBuffer());
    k->deref(0);
    value = v;
    //traceout("HashElement::HashElement()");
@@ -224,12 +226,13 @@ static QoreListNode *make_list(class AbstractQoreNode *a1, class AbstractQoreNod
 static QoreListNode *splice_expressions(class AbstractQoreNode *a1, class AbstractQoreNode *a2)
 {
    //tracein("splice_expressions()");
-   QoreListNode *l = dynamic_cast<QoreListNode *>(a1);
-   if (l && !l->isFinalized())
-   {
-      //printd(5, "LIST x\n");
-      l->push(a2);
-      return l;
+   if (a1 && a1->type == NT_LIST) {
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(a1);
+      if (!l->isFinalized()) {
+	 //printd(5, "LIST x\n");
+	 l->push(a2);
+	 return l;
+      }
    }
    return make_list(a1, a2);
 }
@@ -344,14 +347,12 @@ static int check_lvalue(class AbstractQoreNode *node)
 
 static inline int check_vars(class AbstractQoreNode *n)
 {
-   {
-      QoreListNode *l = dynamic_cast<QoreListNode *>(n);
-      if (l) {
-	 for (int i = 0; i < l->size(); i++)
-	    if (l->retrieve_entry(i)->type != NT_VARREF)
-	       return 1;
-	 return 0;
-      }
+   if (n && n->type == NT_LIST) {
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
+      for (int i = 0; i < l->size(); i++)
+	 if (l->retrieve_entry(i)->type != NT_VARREF)
+	    return 1;
+      return 0;
    }
    return check_lvalue(n);
 }
@@ -1138,9 +1139,8 @@ try_statement:
 	   char *param = NULL;
 	   if ($5)
 	   {
-	      VarRefNode *v = dynamic_cast<VarRefNode *>($5);
-	      if (v)
-		 param = v->takeName();
+	      if ($5->type == NT_VARREF) 
+		 param = reinterpret_cast<VarRefNode *>($5)->takeName();
 	      else
 		 parse_error("only one parameter accepted in catch block for exception hash");
 	      $5->deref(0);
@@ -1406,9 +1406,12 @@ list:
         { $$ = splice_expressions($1, $3); }
         | exp ','
         {
-	   QoreListNode *l = dynamic_cast<QoreListNode *>($1);
-	   if (!l) {
-	      parse_error("problem in parsing ',' in list: left is not a list (type: '%s'", $1->getTypeName());
+	   QoreListNode *l;
+	   if ($1 && $1->type == NT_LIST) 
+	      l = reinterpret_cast<QoreListNode *>($1);
+	   else
+	   {
+	      parse_error("problem in parsing ',' in list: left side of comma is not a list (type: '%s')", $1 ? $1->getTypeName() : "NOTHING");
 	      // so we don't insert null values in the parse tree
 	      l = new QoreListNode();
 	   }
@@ -1462,11 +1465,10 @@ exp:    scalar
 	   for (int i = 0; i < $3->size(); i++)
 	   {
 	      AbstractQoreNode *n = $3->retrieve_entry(i);
-	      VarRefNode *v = dynamic_cast<VarRefNode *>(n);
-	      if (!v)
+	      if (!n || n->type != NT_VARREF)
 		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else
-		 v->type = VT_LOCAL;
+		 reinterpret_cast<VarRefNode *>(n)->type = VT_LOCAL;
 	   }
 	   $$ = $3;
 	}
@@ -1481,11 +1483,11 @@ exp:    scalar
 	   for (int i = 0; i < $3->size(); i++)
 	   {
 	      class AbstractQoreNode *n = $3->retrieve_entry(i);
-	      VarRefNode *v = dynamic_cast<VarRefNode *>(n);
-	      if (!v)
+	      if (!n || n->type != NT_VARREF) 
 		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else
 	      {
+		 VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
 		 v->type = VT_GLOBAL;
 		 getProgram()->addGlobalVarDef(v->name);
 	      }
@@ -1605,8 +1607,8 @@ exp:    scalar
 	}
 	| exp '=' exp
         {
-	   QoreListNode *l = dynamic_cast<QoreListNode *>($1);
-	   if (l) {
+	   if ($1 && $1->type == NT_LIST) {
+	      QoreListNode *l = reinterpret_cast<QoreListNode *>($1);
 	      bool ok = true;
 	      for (int i = 0; i < l->size(); i++)
 	      {
@@ -1650,7 +1652,7 @@ exp:    scalar
         { $$ = makeTree(OP_KEYS, $2, NULL); }
         | TOK_UNSHIFT exp  // unshift list, element
         {
-	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
+	   QoreListNode *l = $2 && $2->type == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->getTypeName());
 	      $$ = makeErrorTree(OP_UNSHIFT, $2, NULL);
@@ -1679,7 +1681,7 @@ exp:    scalar
 	}
         | TOK_PUSH exp  // push lvalue-list, element
         {
-	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
+	   QoreListNode *l = $2 && $2->type == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->getTypeName());
 	      $$ = makeErrorTree(OP_PUSH, $2, NULL);
@@ -1729,7 +1731,7 @@ exp:    scalar
 	}
         | TOK_SPLICE exp  // splice lvalue-list, offset, [length, list]
         {
-	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
+	   QoreListNode *l = $2 && $2->type == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() < 2 || l->size() > 4) {
 	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (%s)", $2->getTypeName());
 	      $$ = makeErrorTree(OP_SPLICE, $2, NULL);
@@ -2042,9 +2044,8 @@ exp:    scalar
 	| '(' exp ')'                
         { 
 	   $$ = $2;
-	   QoreListNode *l = dynamic_cast<QoreListNode *>($2);
-	   if (l)
-	      l->setFinalized(); 
+	   if ($2 && $2->type == NT_LIST)
+	      reinterpret_cast<QoreListNode *>($2)->setFinalized(); 
 	}
         | '(' ')' { QoreListNode *l = new QoreListNode(); l->setFinalized(); $$ = l; }
 	;
