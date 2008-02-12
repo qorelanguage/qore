@@ -103,7 +103,7 @@ static AbstractQoreNode *SOCKET_bind(QoreObject *self, class mySocket *s, const 
    const AbstractQoreNode *p0, *p1;
    // if parameters are not correct
    p0 = get_param(params, 0);
-   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   const QoreType *p0_type = p0 ? p0->type : 0;
    if (!p0 || (p0_type != NT_STRING && p0_type != NT_INT))
    {
       xsink->raiseException("SOCKET-BIND-PARAMETER-ERROR", "no parameter passed to Socket::bind() call, expecing string for UNIX socket ('path/file') or int for INET socket (port number)");
@@ -820,7 +820,7 @@ static AbstractQoreNode *SOCKET_setCertificate(QoreObject *self, class mySocket 
    const AbstractQoreNode *p0 = get_param(params, 0);
    class QoreSSLCertificate *cert;
    
-   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   const QoreType *p0_type = p0 ? p0->type : 0;
    if (p0_type == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
       // try and create object
@@ -852,7 +852,7 @@ static AbstractQoreNode *SOCKET_setPrivateKey(QoreObject *self, class mySocket *
    // first check parameters
    const AbstractQoreNode *p0 = get_param(params, 0);
    QoreSSLPrivateKey *pk;
-   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   const QoreType *p0_type = p0 ? p0->type : 0;
    if (p0_type == NT_STRING) {
       // get passphrase if present
       const QoreStringNode *p1 = test_string_param(params, 1);

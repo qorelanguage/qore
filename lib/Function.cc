@@ -478,9 +478,8 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	 printd(4, "UserFunction::eval() %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->ids[i], params->ids[i], n, n ? n->getTypeName() : "(null)");
 	 if (n)
 	 {
-	    const ReferenceNode *r = dynamic_cast<const ReferenceNode *>(n);
-	    if (r)
-	    {
+	    if (n->type == NT_REFERENCE) {
+	       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
 	       bool is_self_ref = false;
 	       n = doPartialEval(r->lvexp, &is_self_ref, xsink);
 	       //printd(5, "UserFunction::eval() ref self_ref=%d, self=%08p (%s) so=%08p (%s)\n", is_self_ref, self, self ? self->getClass()->name : "NULL", getStackObject(), getStackObject() ? getStackObject()->getClass()->name : "NULL");
@@ -693,9 +692,8 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	 printd(4, "UserFunction::evalConstructor() %d: instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
 	 if (n)
 	 {
-	    ReferenceNode *r = dynamic_cast<ReferenceNode *>(n);
-	    if (r)
-	    {
+	    if (n->type == NT_REFERENCE) {
+	       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
 	       bool is_self_ref = false;
 	       n = doPartialEval(r->lvexp, &is_self_ref, xsink);
 	       if (!xsink->isEvent())
@@ -817,7 +815,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv = NULL;
-   const QoreType *ntype = n->getType();
+   const QoreType *ntype = n->type;
    if (ntype == NT_TREE)
    {
       QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);

@@ -61,20 +61,18 @@ AbstractQoreNode *QoreHashNode::realCopy() const
 // the type passed must always be equal to the current type
 bool QoreHashNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
-   const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(v);
-   if (!h)
+   if (!v || v->type != NT_HASH)
       return false;
 
-   return !compareSoft(h, xsink);
+   return !compareSoft(reinterpret_cast<const QoreHashNode *>(v), xsink);
 }
 
 bool QoreHashNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
-   const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(v);
-   if (!h)
+   if (!v || v->type != NT_HASH)
       return false;
 
-   return !compareHard(h, xsink);
+   return !compareHard(reinterpret_cast<const QoreHashNode *>(v), xsink);
 }
 
 // returns the data type

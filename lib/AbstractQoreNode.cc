@@ -351,7 +351,7 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
 {
    if (!n) return 0;
 
-   const QoreType *ntype = n->getType();
+   const QoreType *ntype = n->type;
 
    if (ntype == NT_LIST)
       return crlr_list_copy(reinterpret_cast<const QoreListNode *>(n), xsink);

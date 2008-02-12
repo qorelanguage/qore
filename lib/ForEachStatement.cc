@@ -61,7 +61,8 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
       tlist->deref(xsink);
       tlist = NULL;
    }
-   QoreListNode *l_tlist = dynamic_cast<QoreListNode *>(tlist);
+   
+   QoreListNode *l_tlist = tlist && tlist->type == NT_LIST ? reinterpret_cast<QoreListNode *>(tlist) : 0;
 
    // execute "foreach" body
    if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
@@ -166,7 +167,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    else
       tlist = NULL;
 
-   QoreListNode *l_tlist = dynamic_cast<QoreListNode *>(tlist);
+   QoreListNode *l_tlist = tlist && tlist->type == NT_LIST ? reinterpret_cast<QoreListNode *>(tlist) : 0;
 
    AutoVLock vl;
 
@@ -314,7 +315,7 @@ int ForEachStatement::parseInitImpl(lvh_t oflag, int pflag)
    // save local variables 
    lvars = new LVList(lvids);
 
-   is_ref = (list->getType() == NT_REFERENCE);
+   is_ref = (list->type == NT_REFERENCE);
 
    return 0;
 }

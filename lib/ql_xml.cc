@@ -343,9 +343,8 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
 	    str->sprintf(" %s=\"", key);
 	    const AbstractQoreNode *v = hi.getValue();
 	    if (v) {
-	       const QoreStringNode *qsn = dynamic_cast<const QoreStringNode *>(v);
-	       if (qsn) 
-		  str->concatAndHTMLEncode(qsn, xsink);
+	       if (v->type == NT_STRING) 
+		  str->concatAndHTMLEncode(reinterpret_cast<const QoreStringNode *>(v), xsink);
 	       else { // convert to string and add
 		  QoreStringValueHelper temp(n);
 		  str->concat(*temp, xsink);

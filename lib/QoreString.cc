@@ -431,12 +431,12 @@ void QoreString::splice(int offset, int num, ExceptionSink *xsink)
 
 void QoreString::splice(int offset, int num, const AbstractQoreNode *strn, ExceptionSink *xsink)
 {
-   const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(strn);
-   if (!str)
-   {
+   if (!strn || strn->type != NT_STRING) {
       splice(offset, num, xsink);
       return;
    }
+
+   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(strn);
 
    if (!priv->charset->isMultiByte())
    {

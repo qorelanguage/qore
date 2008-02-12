@@ -167,13 +167,13 @@ int QoreHTTPClient::setOptions(const QoreHash* opts, ExceptionSink* xsink)
    // process new protocols
    const AbstractQoreNode *n = opts->getKeyValue("protocols");  
    {
-      const QoreHashNode *h = dynamic_cast<const QoreHashNode *>(n);
-      if (h) {
+      if (n && n->type == NT_HASH) {
+	 const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(n);
 	 ConstHashIterator hi(h);
 	 while (hi.next())
 	 {
 	    const AbstractQoreNode *v = hi.getValue();
-	    const QoreType *vtype = v ? v->getType() : 0;
+	    const QoreType *vtype = v ? v->type : 0;
 	    if (!v || (vtype != NT_HASH && vtype != NT_INT))
 	    {
 	       xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());
@@ -647,15 +647,15 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
    while (true)
    {
       ReferenceHolder<AbstractQoreNode> ans(priv->m_socket.readHTTPHeader(priv->timeout, &rc), xsink);
-      ah = dynamic_cast<QoreHashNode *>(*ans);
-      if (!ah)
-      {
-	 if (ans)
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "malformed HTTP header received from socket %s, could not parse header", priv->socketpath.c_str());
-	 else
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket %s closed on remote end without a response", priv->socketpath.c_str());
+      if (!(*ans)) {
+	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket %s closed on remote end without a response", priv->socketpath.c_str());
 	 return 0;
       }
+      if ((*ans)->type != NT_HASH) {
+	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "malformed HTTP header received from socket %s, could not parse header", priv->socketpath.c_str());
+	 return 0;
+      }
+      ah = reinterpret_cast<QoreHashNode *>(*ans);
 
       if (rc <= 0)
       {

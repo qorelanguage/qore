@@ -572,13 +572,12 @@ AbstractQoreNode *getExistingVarValue(AbstractQoreNode *n, ExceptionSink *xsink,
       // if it's a list reference
       if (tree->op == OP_LIST_REF)
       {
-	 QoreListNode *l = dynamic_cast<QoreListNode *>(val);
 	 // if it's not a list then return NULL
-	 if (!l)
+	 if (val->type != NT_LIST)
 	    return 0;
 
 	 // otherwise return value
-	 return l->retrieve_entry(tree->right->integerEval(xsink));
+	 return reinterpret_cast<QoreListNode *>(val)->retrieve_entry(tree->right->integerEval(xsink));
       }
       
       // if it's an object reference
@@ -706,8 +705,8 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
       if (val && *val)
       {
 	 printd(5, "delete_var_node() setting ptr %08p (val=%08p) to NULL\n", val, (*val));
-	 QoreObject *o = dynamic_cast<QoreObject *>(*val);
-	 if (o) {
+	 if ((*val)->type == NT_OBJECT) {
+	    QoreObject *o = reinterpret_cast<QoreObject *>(*val);
 	    if (o->isSystemObject())
 	       xsink->raiseException("SYSTEM-OBJECT-ERROR", "you cannot delete a system constant object");
 	    else
