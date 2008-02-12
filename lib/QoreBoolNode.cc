@@ -58,22 +58,22 @@ void QoreBoolNode::getDateTimeRepresentation(DateTime &dt) const
    dt.setDate((int64)b);
 }
 
-bool QoreBoolNode::getAsBool() const
+bool QoreBoolNode::getAsBoolImpl() const
 {
    return b;
 }
 
-int QoreBoolNode::getAsInt() const
+int QoreBoolNode::getAsIntImpl() const
 {
    return b;
 }
 
-int64 QoreBoolNode::getAsBigInt() const
+int64 QoreBoolNode::getAsBigIntImpl() const
 {
    return b;
 }
 
-double QoreBoolNode::getAsFloat() const
+double QoreBoolNode::getAsFloatImpl() const
 {
    return b;
 }

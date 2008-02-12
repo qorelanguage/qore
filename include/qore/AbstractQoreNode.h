@@ -44,6 +44,11 @@ class AbstractQoreNode : public ReferenceObject
       DLLLOCAL AbstractQoreNode(const AbstractQoreNode&);
       DLLLOCAL AbstractQoreNode& operator=(const AbstractQoreNode&);
 
+      DLLEXPORT virtual bool getAsBoolImpl() const { return false; }
+      DLLEXPORT virtual int getAsIntImpl() const { return 0; }
+      DLLEXPORT virtual int64 getAsBigIntImpl() const { return 0; }
+      DLLEXPORT virtual double getAsFloatImpl() const { return 0.0; }
+
    protected:
       DLLEXPORT virtual ~AbstractQoreNode();
 
@@ -51,6 +56,11 @@ class AbstractQoreNode : public ReferenceObject
       const QoreType *type;
 
       DLLEXPORT AbstractQoreNode(const QoreType *t);
+
+      DLLEXPORT bool getAsBool() const;
+      DLLEXPORT int getAsInt() const;
+      DLLEXPORT int64 getAsBigInt() const;
+      DLLEXPORT double getAsFloat() const;
 
       // get the value of the type in a string context (default implementation = del = false and returns NullString)
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
@@ -63,11 +73,6 @@ class AbstractQoreNode : public ReferenceObject
       DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
       // assign date representation to a DateTime (no action for complex types = default implementation)
       DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
-
-      DLLEXPORT virtual bool getAsBool() const;
-      DLLEXPORT virtual int getAsInt() const;
-      DLLEXPORT virtual int64 getAsBigInt() const;
-      DLLEXPORT virtual double getAsFloat() const;
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -272,7 +277,14 @@ DLLEXPORT int64 getMsZeroBigInt(const AbstractQoreNode *a);
 DLLEXPORT int getMsMinusOneInt(const AbstractQoreNode *a);
 DLLEXPORT int64 getMsMinusOneBigInt(const AbstractQoreNode *a);
 DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode *a);
-DLLEXPORT bool is_nothing(const class AbstractQoreNode *n);
+
+static inline bool is_nothing(const class AbstractQoreNode *n)
+{
+   if (!n || n->type == NT_NOTHING)
+      return true;
+   
+   return false;
+}
 
 DLLLOCAL class AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);
 

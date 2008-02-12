@@ -36,6 +36,11 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       DLLLOCAL QoreStringNode(QoreString *str);
       DLLLOCAL QoreStringNode& operator=(const QoreStringNode&); // not implemented
 
+      DLLLOCAL virtual bool getAsBoolImpl() const;
+      DLLLOCAL virtual int getAsIntImpl() const;
+      DLLLOCAL virtual int64 getAsBigIntImpl() const;
+      DLLLOCAL virtual double getAsFloatImpl() const;
+
    protected:
       // destructor only called when references = 0, use deref() instead
       DLLEXPORT virtual ~QoreStringNode();
@@ -61,10 +66,6 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       DLLEXPORT QoreStringNode(char c);
 
       DLLEXPORT virtual bool needs_eval() const;
-      DLLEXPORT virtual bool getAsBool() const;
-      DLLEXPORT virtual int getAsInt() const;
-      DLLEXPORT virtual int64 getAsBigInt() const;
-      DLLEXPORT virtual double getAsFloat() const;
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed

@@ -51,9 +51,10 @@ void AbstractQoreNode::ref() const
 {
 #ifdef DEBUG
 #if TRACK_REFS
-   const QoreObject *o = dynamic_cast<const QoreObject *>(this);
-   if (o)
+   if (type == NT_OBJECT) {
+      const QoreObject *o = reinterpret_cast<const QoreObject *>(this);
       printd(5, "AbstractQoreNode::ref() %08p type=%s (%d->%d) object=%08p, class=%s\n", this, getTypeName(), references, references + 1, o, o->getClass()->getName());
+   }
    else
       printd(5, "AbstractQoreNode::ref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
 #endif
@@ -122,94 +123,56 @@ AbstractQoreNode *AbstractQoreNode::eval(ExceptionSink *xsink) const
  */
 AbstractQoreNode *AbstractQoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const
 {
-   /*
-     needs_deref = false;
-     return const_cast<AbstractQoreNode *>(this);
-    */
-
-   if (!needs_eval())
-   {
-      needs_deref = false;
-      return const_cast<AbstractQoreNode *>(this);
-   }
-   needs_deref = true;
-   return eval(xsink);
+   needs_deref = false;
+   return const_cast<AbstractQoreNode *>(this);
 }
 
 int64 AbstractQoreNode::bigIntEval(ExceptionSink *xsink) const
 {
-   // return getAsBigInt();
-
-   if (!needs_eval())
-      return getAsBigInt();
-
-   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-   if (*xsink || !rv)
-      return 0;
-
-   return rv->getAsBigInt();
+   return getAsBigInt();
 }
 
 int AbstractQoreNode::integerEval(ExceptionSink *xsink) const
 {
-   // return getAsInt();
-
-   if (!needs_eval())
-      return getAsInt();
-
-   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-   if (*xsink || !rv)
-      return 0;
-
-   return rv->getAsInt();
+   return getAsInt();
 }
 
 bool AbstractQoreNode::boolEval(ExceptionSink *xsink) const
 {
-   //return getAsBool();
-
-   if (!needs_eval())
-      return getAsBool();
-
-   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-   if (*xsink || !rv)
-      return false;
-
-   return rv->getAsBool();
+   return getAsBool();
 }
 
 double AbstractQoreNode::floatEval(ExceptionSink *xsink) const
 {
-   // return getAsFloat()
-
-   if (!needs_eval())
-      return getAsFloat();
-
-   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-   if (*xsink || !rv)
-      return 0.0;
-
-   return rv->getAsFloat();
+   return getAsFloat();
 }
 
 bool AbstractQoreNode::getAsBool() const
 {
-   return false;
+   if (type == NT_BOOLEAN)
+      return reinterpret_cast<const QoreBoolNode *>(this)->b;
+   return getAsBoolImpl();
 }
 
 int AbstractQoreNode::getAsInt() const
 {
-   return 0;
+   if (type == NT_INT)
+      return reinterpret_cast<const QoreBigIntNode *>(this)->val;
+   return getAsIntImpl();
 }
 
 int64 AbstractQoreNode::getAsBigInt() const
 {
-   return 0;
+   if (type == NT_INT)
+      return reinterpret_cast<const QoreBigIntNode *>(this)->val;
+   return getAsBigIntImpl();
 }
 
 double AbstractQoreNode::getAsFloat() const
 {
-   return 0.0;
+   if (type == NT_FLOAT)
+      return reinterpret_cast<const QoreFloatNode *>(this)->f;
+   return getAsFloatImpl();
 }
 
 // for getting relative time values or integer values
@@ -218,11 +181,9 @@ int getSecZeroInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return 0;
 
-   {
-      const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(a);
-      if (d)
-	 return (int)d->getRelativeSeconds();
-   }
+   if (a->type == NT_DATE)
+      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds();
+
    return a->getAsInt();
 }
 
@@ -231,11 +192,9 @@ int64 getSecZeroBigInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return 0;
 
-   {
-      const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(a);
-      if (d)
-	 return d->getRelativeSeconds();
-   }
+   if (a->type == NT_DATE)
+      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds();
+
    return a->getAsBigInt();
 }
 
@@ -245,11 +204,9 @@ int getSecMinusOneInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return -1;
 
-   {
-      const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(a);
-      if (d)
-	 return (int)d->getRelativeSeconds();
-   }
+   if (a->type == NT_DATE)
+      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds();
+
    return a->getAsInt();
 }
 
@@ -257,11 +214,10 @@ int64 getSecMinusOneBigInt(const AbstractQoreNode *a)
 {
    if (is_nothing(a))
       return -1;
-   {
-      const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(a);
-      if (d)
-	 return d->getRelativeSeconds();
-   }
+
+   if (a->type == NT_DATE)
+      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds();
+
    return a->getAsBigInt();
 }
 
@@ -270,11 +226,9 @@ int getMsZeroInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return 0;
 
-   {
-      const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(a);
-      if (d)
-	 return d->getRelativeMilliseconds();
-   }
+   if (a->type == NT_DATE)
+      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds();
+
    return a->getAsInt();
 }
 
@@ -283,11 +237,9 @@ int64 getMsZeroBigInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return 0;
 
-   {
-      const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(a);
-      if (d)
-	 return d->getRelativeMilliseconds();
-   }
+   if (a->type == NT_DATE)
+      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds();
+
    return a->getAsBigInt();
 }
 
@@ -297,11 +249,9 @@ int getMsMinusOneInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return -1;
 
-   {
-      const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(a);
-      if (d)
-	 return (int)d->getRelativeMilliseconds();
-   }
+   if (a->type == NT_DATE)
+      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds();
+
    return a->getAsInt();
 }
 
@@ -310,11 +260,9 @@ int64 getMsMinusOneBigInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return -1;
 
-   {
-      const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(a);
-      if (d)
-	 return d->getRelativeMilliseconds();
-   }
+   if (a->type == NT_DATE)
+      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds();
+
    return a->getAsBigInt();
 }
 
@@ -323,24 +271,10 @@ int getMicroSecZeroInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return 0;
 
-   {
-      const DateTimeNode *d = dynamic_cast<const DateTimeNode *>(a);
-      if (d)
-	 return (int)d->getRelativeMilliseconds() * 1000;
-   }
-   return a->getAsInt();
-}
+   if (a->type == NT_DATE)
+      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds() * 1000;
 
-bool is_nothing(const AbstractQoreNode *n)
-{
-   if (!n || (dynamic_cast<const QoreNothingNode *>(n)))
-      return true;
-   
-   const QoreObject *o = dynamic_cast<const QoreObject *>(n);
-   if (o)
-      return !o->isValid();
-   
-   return false;
+   return a->getAsInt();
 }
 
 static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink *xsink)

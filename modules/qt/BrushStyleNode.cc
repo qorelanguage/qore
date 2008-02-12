@@ -50,22 +50,22 @@ void BrushStyleNode::getStringRepresentation(QoreString &str) const
    str.concat(i->second);
 }
 
-bool BrushStyleNode::getAsBool() const
+bool BrushStyleNode::getAsBoolImpl() const
 {
    return (bool)val;
 }
 
-int BrushStyleNode::getAsInt() const
+int BrushStyleNode::getAsIntImpl() const
 {
    return (int)val;
 }
 
-int64 BrushStyleNode::getAsBigInt() const
+int64 BrushStyleNode::getAsBigIntImpl() const
 {
    return (int64)val;
 }
 
-double BrushStyleNode::getAsFloat() const
+double BrushStyleNode::getAsFloatImpl() const
 {
    return (double)val;
 }

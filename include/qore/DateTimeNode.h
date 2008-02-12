@@ -36,6 +36,11 @@ class DateTimeNode : public SimpleQoreNode, public DateTime
       DLLLOCAL DateTimeNode(const DateTime *);
       DLLLOCAL DateTimeNode& operator=(const DateTimeNode &);
 
+      DLLEXPORT virtual bool getAsBoolImpl() const;
+      DLLEXPORT virtual int getAsIntImpl() const;
+      DLLEXPORT virtual int64 getAsBigIntImpl() const;
+      DLLEXPORT virtual double getAsFloatImpl() const;
+
    protected:
       // destructor only called when references = 0, use deref() instead
       DLLEXPORT virtual ~DateTimeNode();
@@ -61,11 +66,6 @@ class DateTimeNode : public SimpleQoreNode, public DateTime
       DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
       // assign date representation to a DateTime (no action for complex types = default implementation)
       DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
-
-      DLLEXPORT virtual bool getAsBool() const;
-      DLLEXPORT virtual int getAsInt() const;
-      DLLEXPORT virtual int64 getAsBigInt() const;
-      DLLEXPORT virtual double getAsFloat() const;
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -112,8 +112,15 @@ class DateTimeValueHelper {
    public:
       DLLLOCAL DateTimeValueHelper(const AbstractQoreNode *n)
       {
-	 if (n)
-	    dt = n->getDateTimeRepresentation(del);
+	 // optmization without virtual function call for most common case
+	 if (n) {
+	    if (n->type == NT_DATE) {
+	       dt = reinterpret_cast<const DateTimeNode *>(n);
+	       del = false;
+	    }
+	    else
+	       dt = n->getDateTimeRepresentation(del);
+	 }
 	 else {
 	    dt = ZeroDate;
 	    del = false;
@@ -146,13 +153,11 @@ class DateTimeNodeValueHelper {
 	    return;
 	 }
 
-	 {
-	    const DateTimeNode *date = dynamic_cast<const DateTimeNode *>(n);
-	    if (date) {
-	       dt = const_cast<DateTimeNode *>(date);
-	       temp = false;
-	       return;
-	    }
+	 // optmization without virtual function call for most common case
+	 if (n->type == NT_DATE) {
+	    dt = const_cast<DateTimeNode *>(reinterpret_cast<const DateTimeNode *>(n));
+	    temp = false;
+	    return;
 	 }
 
 	 dt = new DateTimeNode();

@@ -28,6 +28,12 @@
 
 class QoreBigIntNode : public SimpleQoreNode
 {
+   private:
+      DLLLOCAL virtual bool getAsBoolImpl() const;
+      DLLLOCAL virtual int getAsIntImpl() const;
+      DLLLOCAL virtual int64 getAsBigIntImpl() const;
+      DLLLOCAL virtual double getAsFloatImpl() const;
+
    protected:
       DLLEXPORT virtual ~QoreBigIntNode();
 
@@ -52,11 +58,6 @@ class QoreBigIntNode : public SimpleQoreNode
       DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
       // assign date representation to a DateTime (no action for complex types = default implementation)
       DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
-
-      DLLEXPORT virtual bool getAsBool() const;
-      DLLEXPORT virtual int getAsInt() const;
-      DLLEXPORT virtual int64 getAsBigInt() const;
-      DLLEXPORT virtual double getAsFloat() const;
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed

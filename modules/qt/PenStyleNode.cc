@@ -50,22 +50,22 @@ void PenStyleNode::getStringRepresentation(QoreString &str) const
    str.concat(i->second);
 }
 
-bool PenStyleNode::getAsBool() const
+bool PenStyleNode::getAsBoolImpl() const
 {
    return (bool)val;
 }
 
-int PenStyleNode::getAsInt() const
+int PenStyleNode::getAsIntImpl() const
 {
    return (int)val;
 }
 
-int64 PenStyleNode::getAsBigInt() const
+int64 PenStyleNode::getAsBigIntImpl() const
 {
    return (int64)val;
 }
 
-double PenStyleNode::getAsFloat() const
+double PenStyleNode::getAsFloatImpl() const
 {
    return (double)val;
 }

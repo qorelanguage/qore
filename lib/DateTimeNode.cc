@@ -89,22 +89,22 @@ void DateTimeNode::getDateTimeRepresentation(DateTime &dt) const
    dt.setDate(*this);
 }
 
-bool DateTimeNode::getAsBool() const
+bool DateTimeNode::getAsBoolImpl() const
 {
    return getEpochSeconds() ? true : false;
 }
 
-int DateTimeNode::getAsInt() const
+int DateTimeNode::getAsIntImpl() const
 {
    return getEpochSeconds();
 }
 
-int64 DateTimeNode::getAsBigInt() const
+int64 DateTimeNode::getAsBigIntImpl() const
 {
    return getEpochSeconds();
 }
 
-double DateTimeNode::getAsFloat() const
+double DateTimeNode::getAsFloatImpl() const
 {
    return (double)getEpochSeconds();
 }

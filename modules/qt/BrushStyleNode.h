@@ -33,6 +33,11 @@ class BrushStyleNode : public SimpleQoreNode
    private:
       Qt::BrushStyle val;
 
+      DLLLOCAL virtual bool getAsBoolImpl() const;
+      DLLLOCAL virtual int getAsIntImpl() const;
+      DLLLOCAL virtual int64 getAsBigIntImpl() const;
+      DLLLOCAL virtual double getAsFloatImpl() const;
+
    public:
       DLLLOCAL BrushStyleNode(Qt::BrushStyle v) : SimpleQoreNode(NT_BRUSHSTYLE), val(v)
       {
@@ -47,11 +52,6 @@ class BrushStyleNode : public SimpleQoreNode
       DLLLOCAL virtual QoreString *getStringRepresentation(bool &del) const;
       // concatenate string representation to a QoreString (no action for complex types = default implementation)
       DLLLOCAL virtual void getStringRepresentation(QoreString &str) const;
-
-      DLLLOCAL virtual bool getAsBool() const;
-      DLLLOCAL virtual int getAsInt() const;
-      DLLLOCAL virtual int64 getAsBigInt() const;
-      DLLLOCAL virtual double getAsFloat() const;
 
       // FIXME: move QoreString * to first argument
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks

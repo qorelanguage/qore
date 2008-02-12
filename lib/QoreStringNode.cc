@@ -83,7 +83,7 @@ QoreStringNode::QoreStringNode(const char *str, int len, const class QoreEncodin
 }
 
 // virtual function
-int QoreStringNode::getAsInt() const
+int QoreStringNode::getAsIntImpl() const
 {
    return strtoll(getBuffer(), 0, 10);
 }
@@ -93,12 +93,12 @@ bool QoreStringNode::needs_eval() const
    return false;
 }
 
-int64 QoreStringNode::getAsBigInt() const
+int64 QoreStringNode::getAsBigIntImpl() const
 {
    return strtoll(getBuffer(), 0, 10);   
 }
 
-double QoreStringNode::getAsFloat() const
+double QoreStringNode::getAsFloatImpl() const
 {
    return atof(getBuffer());
 }
@@ -123,7 +123,7 @@ int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink)
    return 0;
 }
 
-bool QoreStringNode::getAsBool() const
+bool QoreStringNode::getAsBoolImpl() const
 {
    return strtoll(getBuffer(), 0, 10) ? true : false;
 }
