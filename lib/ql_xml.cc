@@ -174,7 +174,7 @@ static void concatSimpleValue(QoreString *str, const AbstractQoreNode *n, Except
 {
    //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->type == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
-   const QoreType *ntype = n ? n->getType() : 0;
+   const QoreType *ntype = n ? n->type : 0;
 
    if (ntype == NT_STRING) {
       const QoreStringNode *qsn = reinterpret_cast<const QoreStringNode *>(n);
@@ -212,7 +212,7 @@ static void concatSimpleCDataValue(QoreString *str, const AbstractQoreNode *n, E
 {
    //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->type == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
-   const QoreType *ntype = n ? n->getType() : 0;
+   const QoreType *ntype = n ? n->type : 0;
 
    if (ntype == NT_STRING) {
       const QoreStringNode *qsn = reinterpret_cast<const QoreStringNode *>(n);
@@ -262,7 +262,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
       return;
    }
 
-   const QoreType *ntype = n->getType();
+   const QoreType *ntype = n->type;
 
    if (ntype == NT_LIST) {
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);
@@ -685,7 +685,7 @@ static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHash *h, 
 static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    assert(n);
-   const QoreType *ntype = n->getType();
+   const QoreType *ntype = n->type;
 
    if (ntype == NT_BOOLEAN)
       str->sprintf("<boolean>%d</boolean>", reinterpret_cast<const QoreBoolNode *>(n)->b);

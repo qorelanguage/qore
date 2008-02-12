@@ -95,7 +95,7 @@ void StatementBlock::addStatement(class AbstractStatement *s)
       statement_list.push_back(s);
       OnBlockExitStatement *obe = dynamic_cast<OnBlockExitStatement *>(s);
       if (obe)
-	 on_block_exit_list.push_front(std::make_pair(obe->type, obe->getCode()));
+	 on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
    }
    
    //traceout("StatementBlock::addStatement()");
