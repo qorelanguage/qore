@@ -601,6 +601,16 @@ bool QoreHash::compareSoft(const QoreHash *h, ExceptionSink *xsink) const
    if (h->len != len)
       return 1;
 
+   ConstHashIterator hi(this);
+   while (hi.next()) {
+      hm_hm_t::const_iterator j = h->hm.find(hi.getKey());
+      if (j == h->hm.end())
+	 return 1;
+
+      if (::compareSoft(hi.getValue(), j->second->node, xsink))
+	 return 1;
+   }
+/*
    for (hm_hm_t::const_iterator i = hm.begin(); i != hm.end(); i++)
    {
       hm_hm_t::const_iterator j = h->hm.find(i->first);
@@ -610,7 +620,7 @@ bool QoreHash::compareSoft(const QoreHash *h, ExceptionSink *xsink) const
       if (::compareSoft(i->second->node, j->second->node, xsink))
 	 return 1;
    }
-
+*/
    return 0;
 }
 
@@ -621,6 +631,16 @@ bool QoreHash::compareHard(const QoreHash *h, ExceptionSink *xsink) const
    if (h->len != len)
       return 1;
 
+   ConstHashIterator hi(this);
+   while (hi.next()) {
+      hm_hm_t::const_iterator j = h->hm.find(hi.getKey());
+      if (j == h->hm.end())
+	 return 1;
+
+      if (::compareHard(hi.getValue(), j->second->node, xsink))
+	 return 1;
+   }
+/*
    for (hm_hm_t::const_iterator i = hm.begin(); i != hm.end(); i++)
    {
       hm_hm_t::const_iterator j = h->hm.find(i->first);
@@ -630,7 +650,7 @@ bool QoreHash::compareHard(const QoreHash *h, ExceptionSink *xsink) const
       if (::compareHard(i->second->node, j->second->node, xsink))
 	 return 1;
    }
-
+*/
    return 0;
 }
 

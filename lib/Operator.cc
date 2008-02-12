@@ -74,15 +74,21 @@ static inline void ensure_unique_float(AbstractQoreNode **v, ExceptionSink *xsin
 static inline void ensure_unique_int(AbstractQoreNode **v, ExceptionSink *xsink)
 {
    assert(*v);
-   QoreBigIntNode *b = dynamic_cast<QoreBigIntNode *>(*v);
-   if (!b)
-   {
+   if ((*v)->type != NT_INT) {
       int64 i = (*v)->getAsBigInt();
       (*v)->deref(xsink);
       (*v) = new QoreBigIntNode(i);
    }
    else
       ensure_unique(v, xsink);
+}
+
+static int64 get_as_big_int(const AbstractQoreNode *v)
+{
+   assert(v);
+   if (v->type == NT_INT)
+      return reinterpret_cast<const QoreBigIntNode *>(v)->val;
+   return v->getAsBigInt();
 }
 
 // operator functions for builtin types
@@ -103,9 +109,10 @@ static bool op_log_eq_bigint(int64 left, int64 right)
 
 static bool op_log_eq_binary(AbstractQoreNode *left, AbstractQoreNode *right)
 {
-   assert(left->type == NT_BINARY || right->type == NT_BINARY);
-   const BinaryNode *l = dynamic_cast<const BinaryNode *>(left);
-   const BinaryNode *r = dynamic_cast<const BinaryNode *>(right);
+   const BinaryNode *l = left->type == NT_BINARY ? reinterpret_cast<const BinaryNode *>(left) : 0;
+   const BinaryNode *r = right->type == NT_BINARY ? reinterpret_cast<const BinaryNode *>(right) : 0;
+   assert(l || r);
+
    if (!l || !r)
       return false;
    return !l->compare(r);
@@ -113,9 +120,10 @@ static bool op_log_eq_binary(AbstractQoreNode *left, AbstractQoreNode *right)
 
 static bool op_log_ne_binary(AbstractQoreNode *left, AbstractQoreNode *right)
 {
-   assert(left->type == NT_BINARY || right->type == NT_BINARY);
-   const BinaryNode *l = dynamic_cast<const BinaryNode *>(left);
-   const BinaryNode *r = dynamic_cast<const BinaryNode *>(right);
+   const BinaryNode *l = left->type == NT_BINARY ? reinterpret_cast<const BinaryNode *>(left) : 0;
+   const BinaryNode *r = right->type == NT_BINARY ? reinterpret_cast<const BinaryNode *>(right) : 0;
+   assert(l || r);
+
    if (!l || !r)
       return true;
    return l->compare(r);
@@ -297,11 +305,11 @@ static inline bool list_is_equal(const QoreListNode *l, const QoreListNode *r, E
 
 static bool op_log_eq_list(AbstractQoreNode *left, AbstractQoreNode *right, ExceptionSink *xsink)
 {
-   QoreListNode *l = dynamic_cast<QoreListNode *>(left);
+   QoreListNode *l = left->type == NT_LIST ? reinterpret_cast<QoreListNode *>(left) : 0;
    if (!l)
       return false;
 
-   QoreListNode *r = dynamic_cast<QoreListNode *>(right);
+   QoreListNode *r = right->type == NT_LIST ? reinterpret_cast<QoreListNode *>(right) : 0;
    if (!r)
       return false;
    
@@ -310,11 +318,11 @@ static bool op_log_eq_list(AbstractQoreNode *left, AbstractQoreNode *right, Exce
 
 static bool op_log_eq_hash(AbstractQoreNode *left, AbstractQoreNode *right, ExceptionSink *xsink)
 {
-   QoreHashNode *lh = dynamic_cast<QoreHashNode *>(left);
+   QoreHashNode *lh = left->type == NT_HASH ? reinterpret_cast<QoreHashNode *>(left) : 0;
    if (!lh)
       return false;
 
-   QoreHashNode *rh = dynamic_cast<QoreHashNode *>(right);
+   QoreHashNode *rh = right->type == NT_HASH ? reinterpret_cast<QoreHashNode *>(right) : 0;
    if (!rh)
       return false;
 
@@ -349,11 +357,11 @@ static bool op_log_eq_null(AbstractQoreNode *left, AbstractQoreNode *right, Exce
 
 static bool op_log_ne_list(AbstractQoreNode *left, AbstractQoreNode *right, ExceptionSink *xsink)
 {
-   QoreListNode *l = dynamic_cast<QoreListNode *>(left);
+   QoreListNode *l = left->type == NT_LIST ? reinterpret_cast<QoreListNode *>(left) : 0;
    if (!l)
       return true;
 
-   QoreListNode *r = dynamic_cast<QoreListNode *>(right);
+   QoreListNode *r = right->type == NT_LIST ? reinterpret_cast<QoreListNode *>(right) : 0;
    if (!r)
       return true;
    
@@ -436,7 +444,7 @@ static bool op_instanceof(AbstractQoreNode *l, AbstractQoreNode *r, ExceptionSin
    if (*xsink || !nl)
       return false;
 
-   assert(r && r->getType() == NT_CLASSREF);
+   assert(r && r->type == NT_CLASSREF);
    QoreObject *o = dynamic_cast<QoreObject *>(*nl);
    if (o && o->validInstanceOf(reinterpret_cast<const ClassRefNode *>(r)->getID()))
       return true;
@@ -642,7 +650,7 @@ static AbstractQoreNode *op_regex_subst(AbstractQoreNode *left, AbstractQoreNode
       return NULL;
 
    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-   assert(right && right->getType() == NT_REGEX_SUBST);
+   assert(right && right->type == NT_REGEX_SUBST);
    RegexSubstNode *rs = reinterpret_cast<RegexSubstNode *>(right);
    QoreStringNode *nv = rs->exec((*vs), xsink);
    if (xsink->isEvent())
@@ -670,7 +678,7 @@ static AbstractQoreNode *op_regex_trans(AbstractQoreNode *left, AbstractQoreNode
    if (!(*v) || (*v)->type != NT_STRING)
       return NULL;
 
-   assert(right && right->getType() == NT_REGEX_TRANS);
+   assert(right && right->type == NT_REGEX_TRANS);
    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
    QoreStringNode *nv = reinterpret_cast<const RegexTransNode *>(right)->exec((*vs), xsink);
    if (*xsink)
@@ -744,7 +752,7 @@ static AbstractQoreNode *op_object_method_call(AbstractQoreNode *left, AbstractQ
    if (*xsink)
       return 0;
 
-   assert(func && func->getType() == NT_FUNCTION_CALL);
+   assert(func && func->type == NT_FUNCTION_CALL);
    FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(func);
 
    {
@@ -774,7 +782,7 @@ static AbstractQoreNode *op_new_object(AbstractQoreNode *left, AbstractQoreNode 
 {
    tracein("op_new_object()");
    
-   assert(left->getType() == NT_SCOPE_REF);
+   assert(left->type == NT_SCOPE_REF);
    ScopedObjectCallNode *c = reinterpret_cast<ScopedObjectCallNode *>(left);
    AbstractQoreNode *rv = c->oc->execConstructor(c->args, xsink);
    printd(5, "op_new_object() returning node=%08p (type=%s)\n", rv, c->oc->getName());
@@ -966,7 +974,8 @@ static AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQoreNode
    }
    else if (vtype == NT_FLOAT)
    {
-      double f = right ? right->floatEval(xsink) : 0.0;
+      // optimization to remove the need for a virtual function call in the most common case
+      double f = right ? (right->type == NT_FLOAT ? reinterpret_cast<QoreFloatNode *>(right)->f : right->floatEval(xsink)) : 0.0;
       if (*xsink || f == 0.0)
 	 return 0;
 
@@ -1000,7 +1009,8 @@ static AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQoreNode
    }
    else // do integer plus-equals
    {
-      int64 iv = right ? right->bigIntEval(xsink) : 0;
+      // optimization to remove the need for a virtual function call in the most common case
+      int64 iv = right ? (right->type == NT_INT ? reinterpret_cast<QoreBigIntNode *>(right)->val : right->bigIntEval(xsink)) : 0;
       if (*xsink)
 	 return 0;
 
@@ -1041,15 +1051,18 @@ static AbstractQoreNode *op_minus_equals(AbstractQoreNode *left, AbstractQoreNod
       return ref_rv ? (*v)->refSelf() : 0;
 
    // do float minus-equals if left side is a float
-   const QoreType *vtype = *v ? (*v)->getType() : 0;
+   const QoreType *vtype = *v ? (*v)->type : 0;
    if (vtype == NT_FLOAT) {
-      double f = right->floatEval(xsink);
+      // optimization to remove the need for a virtual function call in the most common case
+      double f = right ? (right->type == NT_FLOAT ? reinterpret_cast<QoreFloatNode *>(right)->f : right->floatEval(xsink)) : 0.0;
       if (*xsink)
 	 return 0;
 
-      ensure_unique(v, xsink);
-      QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
-      (*vf)->f -= f;
+      if (f) {
+	 ensure_unique(v, xsink);
+	 QoreFloatNode **vf = reinterpret_cast<QoreFloatNode **>(v);
+	 (*vf)->f -= f;
+      }
    }
    else if (vtype == NT_DATE) {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
@@ -1101,11 +1114,15 @@ static AbstractQoreNode *op_minus_equals(AbstractQoreNode *left, AbstractQoreNod
       if (*v)
 	 (*v)->deref(xsink); // exception not possible here
 
-      QoreFloatNode *f = dynamic_cast<QoreFloatNode *>(*new_right);
-      if (f)
+      if (new_right->type == NT_FLOAT) {
+	 QoreFloatNode *f = reinterpret_cast<QoreFloatNode *>(*new_right);
 	 (*v) = new QoreFloatNode(-f->f);
-      else
-	 (*v) = new QoreBigIntNode(-new_right->getAsBigInt());
+      }
+      else {
+	 // optimization to eliminate a virtual function call in the most common case
+	 int64 i = get_as_big_int(*new_right);
+	 (*v) = new QoreBigIntNode(-i);
+      }
    }
    else { // do integer minus-equals
       int64 iv = right ? right->bigIntEval(xsink) : 0;
@@ -1307,7 +1324,7 @@ static AbstractQoreNode *op_multiply_equals(AbstractQoreNode *left, AbstractQore
 	       QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(*v);
 	       
 	       // multiply current value with arg val
-	       b->val *= res->getAsBigInt();
+	       b->val *= get_as_big_int(*res);
 	    }
 	    else // if factor is NOTHING, assign 0
 	    {
@@ -1378,7 +1395,7 @@ static AbstractQoreNode *op_divide_equals(AbstractQoreNode *left, AbstractQoreNo
    }
    else // do integer divide equals
    {
-      int64 val = res ? res->getAsBigInt() : 0;
+      int64 val = res ? get_as_big_int(*res) : 0;
       if (!val) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression!");
 	 return 0;
@@ -1521,8 +1538,9 @@ static AbstractQoreNode *op_shift_right_equals(AbstractQoreNode *left, AbstractQ
 // this is the default (highest-priority) function for the + operator, so any type could be sent here on either side
 static AbstractQoreNode *op_plus_list(AbstractQoreNode *left, AbstractQoreNode *right)
 {
+
    {
-      QoreListNode *l = dynamic_cast<QoreListNode *>(left);
+      QoreListNode *l = left->type == NT_LIST ? reinterpret_cast<QoreListNode *>(left) : 0;
       if (l) {
 	 QoreListNode *rv = l->copy();
 	 QoreListNode *r = dynamic_cast<QoreListNode *>(right);
@@ -1660,7 +1678,7 @@ static AbstractQoreNode *op_post_inc(AbstractQoreNode *left, bool ref_rv, Except
    AbstractQoreNode *rv = *n;
 
    // acquire new value
-   QoreBigIntNode *b = new QoreBigIntNode((*n) ? (*n)->getAsBigInt() : 0);
+   QoreBigIntNode *b = new QoreBigIntNode((*n) ? get_as_big_int(*n) : 0);
    (*n) = b;
 
    // increment value
@@ -1685,7 +1703,7 @@ static AbstractQoreNode *op_post_dec(AbstractQoreNode *left, bool ref_rv, Except
    AbstractQoreNode *rv = *n;
 
    // acquire new value
-   QoreBigIntNode *b = new QoreBigIntNode((*n) ? (*n)->getAsBigInt() : 0);
+   QoreBigIntNode *b = new QoreBigIntNode((*n) ? get_as_big_int(*n) : 0);
    (*n) = b;
 
    // decrement value
@@ -1772,13 +1790,13 @@ static AbstractQoreNode *op_unshift(AbstractQoreNode *left, AbstractQoreNode *el
       return 0;
    }
 
-   QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
    // value is not a list, so throw exception
-   if (!l)
-   {
+   if (!*val || (*val)->type != NT_LIST) {
       xsink->raiseException("UNSHIFT-ERROR", "first argument to unshift is not a list");
       return 0;
    }
+
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
 
    if (!l->is_unique()) {
       l = l->copy();
@@ -1820,9 +1838,10 @@ static AbstractQoreNode *op_shift(AbstractQoreNode *left, AbstractQoreNode *x, b
       return 0;
    }
 
-   QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
-   if (!l)
-      return NULL;
+   if (!*val || (*val)->type != NT_LIST)
+      return 0;
+
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
 
    if (!l->is_unique()) {
       l = l->copy();
@@ -1849,9 +1868,10 @@ static AbstractQoreNode *op_pop(AbstractQoreNode *left, AbstractQoreNode *x, boo
       return 0;
    }
 
-   QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
-   if (!l)
-      return NULL;
+   if (!*val || (*val)->type != NT_LIST)
+      return 0;
+
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
 
    if (!l->is_unique()) {
       l = l->copy();
@@ -1883,11 +1903,12 @@ static AbstractQoreNode *op_push(AbstractQoreNode *left, AbstractQoreNode *elem,
       return 0;
    }
 
-   QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
-   if (!l) {
+   if (!*val || (*val)->type != NT_LIST) {
       xsink->raiseException("PUSH-ERROR", "first argument to push is not a list");
       return 0;
    }
+
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
 
    if (!l->is_unique()) {
       l = l->copy();
@@ -2005,40 +2026,38 @@ static int64 op_chomp(AbstractQoreNode *arg, AbstractQoreNode *x, ExceptionSink 
       return 0;
    }
 
-   if (!(*val) || ((*val)->type != NT_STRING && (*val)->type != NT_LIST && (*val)->type != NT_HASH))
+   if (!(*val))
+      return 0;
+
+   const QoreType *vtype = (*val)->type;
+   if (vtype != NT_STRING && vtype != NT_LIST && vtype != NT_HASH)
       return 0;
 
    // note that no exception can happen here
    ensure_unique(val, xsink);
    assert(!*xsink);
 
-   {
-      QoreStringNode *str = dynamic_cast<QoreStringNode *>(*val);
-      if (str) {
-	 return str->chomp();
-      }
-   }
+   if (vtype == NT_STRING)
+      return reinterpret_cast<QoreStringNode *>(*val)->chomp();
 
    int64 count = 0;   
 
-   {
-      QoreListNode *l = dynamic_cast<QoreListNode *>(*val);
-      if (l) {
-	 ListIterator li(l);
-	 while (li.next())
+   if (vtype == NT_LIST) {
+      QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
+      ListIterator li(l);
+      while (li.next())
+      {
+	 AbstractQoreNode **v = li.getValuePtr();
+	 if (*v && (*v)->type == NT_STRING)
 	 {
-	    AbstractQoreNode **v = li.getValuePtr();
-	    if (*v && (*v)->type == NT_STRING)
-	    {
-	       // note that no exception can happen here
-	       ensure_unique(v, xsink);
-	       assert(!*xsink);
-	       QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
-	       count += (*vs)->chomp();
-	    }
-	 }      
-	 return count;
-      }
+	    // note that no exception can happen here
+	    ensure_unique(v, xsink);
+	    assert(!*xsink);
+	    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
+	    count += (*vs)->chomp();
+	 }
+      }      
+      return count;
    }
 
    // must be a hash
@@ -2278,7 +2297,7 @@ int64 OperatorFunction::bigint_eval(AbstractQoreNode *left, AbstractQoreNode *ri
 
    if (args == 1) {
       ReferenceHolder<AbstractQoreNode> rv(op_func(left, 0, true, xsink), xsink);
-      return *rv ? rv->getAsBigInt() : false;
+      return *rv ? get_as_big_int(*rv) : 0;
    }
 
    ReferenceHolder<AbstractQoreNode> r(xsink);
@@ -2291,7 +2310,7 @@ int64 OperatorFunction::bigint_eval(AbstractQoreNode *left, AbstractQoreNode *ri
    }
 
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, true, xsink), xsink);
-   return *rv ? rv->getAsBigInt() : 0;
+   return *rv ? get_as_big_int(*rv) : 0;
 }
 
 double OperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2339,7 +2358,7 @@ bool NodeOperatorFunction::bool_eval(AbstractQoreNode *left, AbstractQoreNode *r
 int64 NodeOperatorFunction::bigint_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, xsink), xsink);
-   return *rv ? rv->getAsBigInt() : 0;
+   return *rv ? get_as_big_int(*rv) : 0;
 }
 
 double NodeOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2362,7 +2381,7 @@ bool EffectNoEvalOperatorFunction::bool_eval(AbstractQoreNode *left, AbstractQor
 int64 EffectNoEvalOperatorFunction::bigint_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, right, true, xsink), xsink);
-   return *rv ? rv->getAsBigInt() : 0;
+   return *rv ? get_as_big_int(*rv) : 0;
 }
 
 double EffectNoEvalOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2521,7 +2540,7 @@ int64 VarRefOperatorFunction::bigint_eval(AbstractQoreNode *left, AbstractQoreNo
 {
    assert(left);
    ReferenceHolder<AbstractQoreNode> rv(op_func(left, true, xsink), xsink);
-   return *rv ? rv->getAsBigInt() : 0;
+   return *rv ? get_as_big_int(*rv) : 0;
 }
 
 double VarRefOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2556,7 +2575,7 @@ int64 StringStringStringOperatorFunction::bigint_eval(AbstractQoreNode *left, Ab
    QoreStringValueHelper r(right);
 
    TempQoreStringNode rv(op_func(*l, *r, xsink));
-   return *rv ? rv->getAsBigInt() : 0;
+   return *rv ? get_as_big_int(*rv) : 0;
 }
 
 double StringStringStringOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2885,23 +2904,23 @@ AbstractQoreNode *BoolIntOperatorFunction::eval(AbstractQoreNode *left, Abstract
    if (!ref_rv)
       return 0;
 
-   bool b = op_func(left->getAsBigInt(), right->getAsBigInt());
+   bool b = op_func(get_as_big_int(left), get_as_big_int(right));
    return new QoreBoolNode(b);
 }
 
 bool BoolIntOperatorFunction::bool_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return op_func(left->getAsBigInt(), right->getAsBigInt());
+   return op_func(get_as_big_int(left), get_as_big_int(right));
 }
 
 int64 BoolIntOperatorFunction::bigint_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return (int64)op_func(left->getAsBigInt(), right->getAsBigInt());
+   return (int64)op_func(get_as_big_int(left), get_as_big_int(right));
 }
 
 double BoolIntOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return (double)op_func(left->getAsBigInt(), right->getAsBigInt());
+   return (double)op_func(get_as_big_int(left), get_as_big_int(right));
 }
 
 AbstractQoreNode *IntIntOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
@@ -2910,23 +2929,23 @@ AbstractQoreNode *IntIntOperatorFunction::eval(AbstractQoreNode *left, AbstractQ
    if (!ref_rv)
       return 0;
 
-   int64 i = op_func(left->getAsBigInt(), right->getAsBigInt());
+   int64 i = op_func(get_as_big_int(left), get_as_big_int(right));
    return new QoreBigIntNode(i);
 }
 
 bool IntIntOperatorFunction::bool_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return (bool)op_func(left->getAsBigInt(), right->getAsBigInt());
+   return (bool)op_func(get_as_big_int(left), get_as_big_int(right));
 }
 
 int64 IntIntOperatorFunction::bigint_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return op_func(left->getAsBigInt(), right->getAsBigInt());
+   return op_func(get_as_big_int(left), get_as_big_int(right));
 }
 
 double IntIntOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return (double)op_func(left->getAsBigInt(), right->getAsBigInt());
+   return (double)op_func(get_as_big_int(left), get_as_big_int(right));
 }
 
 AbstractQoreNode *DivideIntOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
@@ -2935,23 +2954,23 @@ AbstractQoreNode *DivideIntOperatorFunction::eval(AbstractQoreNode *left, Abstra
    if (!ref_rv)
       return 0;
 
-   int64 i = op_func(left->getAsBigInt(), right->getAsBigInt(), xsink);
+   int64 i = op_func(get_as_big_int(left), get_as_big_int(right), xsink);
    return *xsink ? 0 : new QoreBigIntNode(i);
 }
 
 bool DivideIntOperatorFunction::bool_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return (bool)op_func(left->getAsBigInt(), right->getAsBigInt(), xsink);
+   return (bool)op_func(get_as_big_int(left), get_as_big_int(right), xsink);
 }
 
 int64 DivideIntOperatorFunction::bigint_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return op_func(left->getAsBigInt(), right->getAsBigInt(), xsink);
+   return op_func(get_as_big_int(left), get_as_big_int(right), xsink);
 }
 
 double DivideIntOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return (double)op_func(left->getAsBigInt(), right->getAsBigInt(), xsink);
+   return (double)op_func(get_as_big_int(left), get_as_big_int(right), xsink);
 }
 
 AbstractQoreNode *UnaryMinusIntOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
@@ -2960,23 +2979,23 @@ AbstractQoreNode *UnaryMinusIntOperatorFunction::eval(AbstractQoreNode *left, Ab
    if (!ref_rv)
       return 0;
 
-   int64 i = -left->getAsBigInt();
+   int64 i = -get_as_big_int(left);
    return new QoreBigIntNode(i);
 }
 
 bool UnaryMinusIntOperatorFunction::bool_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return (bool)-left->getAsBigInt();
+   return (bool)-get_as_big_int(left);
 }
 
 int64 UnaryMinusIntOperatorFunction::bigint_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return -left->getAsBigInt();
+   return -get_as_big_int(left);
 }
 
 double UnaryMinusIntOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return (double)-left->getAsBigInt();
+   return (double)-get_as_big_int(left);
 }
 
 AbstractQoreNode *BoolFloatOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
@@ -3134,22 +3153,22 @@ AbstractQoreNode *IntegerNotOperatorFunction::eval(AbstractQoreNode *left, Abstr
    if (!ref_rv)
       return 0;
 
-   return new QoreBigIntNode(~left->getAsBigInt());
+   return new QoreBigIntNode(~get_as_big_int(left));
 }
 
 bool IntegerNotOperatorFunction::bool_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return (bool)~left->getAsBigInt();
+   return (bool)~get_as_big_int(left);
 }
 
 int64 IntegerNotOperatorFunction::bigint_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return ~left->getAsBigInt();
+   return ~get_as_big_int(left);
 }
 
 double IntegerNotOperatorFunction::float_eval(AbstractQoreNode *left, AbstractQoreNode *right, int args, ExceptionSink *xsink) const
 {
-   return (double)(~left->getAsBigInt());
+   return (double)(~get_as_big_int(left));
 }
 
 AbstractQoreNode *CompareDateOperatorFunction::eval(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const

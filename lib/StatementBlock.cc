@@ -254,9 +254,10 @@ static inline void checkSelf(AbstractQoreNode *n, lvh_t selfid)
       tree = reinterpret_cast<QoreTreeNode *>(n);
    }
 
-   VarRefNode *v = dynamic_cast<VarRefNode *>(tree->left);
-   if (!v)
+   if (tree->left->type != NT_VARREF)
       return;
+
+   VarRefNode *v = reinterpret_cast<VarRefNode *>(tree->left);
 
    // left must be variable reference, check if the tree is
    // a list reference; if so, it's invalid

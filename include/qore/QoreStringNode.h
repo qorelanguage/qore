@@ -128,8 +128,15 @@ class QoreStringValueHelper {
    public:
       DLLLOCAL QoreStringValueHelper(const AbstractQoreNode *n)
       {
-	 if (n)
-	    str = n->getStringRepresentation(del);
+	 if (n) {
+	    //optimization to remove the need for a virtual function call in the most common case
+	    if (n->type == NT_STRING) {
+	       del = false;
+	       str = const_cast<QoreStringNode *>(reinterpret_cast<const QoreStringNode *>(n));
+	    }
+	    else
+	       str = n->getStringRepresentation(del);
+	 }
 	 else {
 	    str = NullString;
 	    del = false;
@@ -138,7 +145,13 @@ class QoreStringValueHelper {
       DLLLOCAL QoreStringValueHelper(const AbstractQoreNode *n, const QoreEncoding *enc, ExceptionSink *xsink)
       {
 	 if (n) {
-	    str = n->getStringRepresentation(del);
+	    //optimization to remove the need for a virtual function call in the most common case
+	    if (n->type == NT_STRING) {
+	       del = false;
+	       str = const_cast<QoreStringNode *>(reinterpret_cast<const QoreStringNode *>(n));
+	    }
+	    else
+	       str = n->getStringRepresentation(del);
 	    if (str->getEncoding() != enc) {
 	       QoreString *t = str->convertEncoding(enc, xsink);
 	       if (!t)
