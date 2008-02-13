@@ -26,16 +26,23 @@
 
 #include <qore/AbstractQoreNode.h>
 
+//! This is the list container type in Qore
+/**
+   it is both a value type and can hold parse expressions as well (in which case it needs to be evaluated)
+ */
 class QoreListNode : public AbstractQoreNode
 {   
       friend class StackList;
 
    private:
-      // not implemented
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreListNode(const QoreListNode&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreListNode& operator=(const QoreListNode&);
 
    protected:
+      //! this structure holds the private implementation for the type
       struct qore_list_private *priv;
 
       DLLLOCAL void resize(int num);
@@ -44,49 +51,72 @@ class QoreListNode : public AbstractQoreNode
       DLLLOCAL void check_offset(int &offset);
       DLLLOCAL void check_offset(int &offset, int &len);
       DLLLOCAL void deref_intern(class ExceptionSink *xisnk);
-      // qsort sorts the list in-place (unstable)
+
+      //! qsort sorts the list in-place (unstable)
       DLLLOCAL int qsort(const class ResolvedFunctionReferenceNode *fr, int left, int right, bool ascending, class ExceptionSink *xsink);
-      // mergesort sorts the list in-place (stable)
+
+      //! mergesort sorts the list in-place (stable)
       DLLLOCAL int mergesort(const class ResolvedFunctionReferenceNode *fr, bool ascending, class ExceptionSink *xsink);
 
+      //! the destructor is protected so it cannot be called directly
+      /**
+	 use the deref(ExceptionSink) function to release the reference count
+       */
       DLLEXPORT virtual ~QoreListNode();
 
    public:
       DLLEXPORT QoreListNode();
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
+      //! concatenate the verbose string representation of the list (including all contained values) to an existing QoreString
+      /** concatenate the verbose string representation of the list (including all contained values, for %n and %N in print formatting), foff is for multi-line formatting offset, -1 = no line breaks
+	  returns -1 for exception raised, 0 = OK
+      */
       DLLEXPORT int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+
+      //! returns a QoreString giving the verbose string representation of the List (including all contained values)
+      /** get the verbose string representation of the list (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+	  if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+      */
       DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      // default implementation returns false
+      //! returns true if the list contains parse expressions and therefore needs evaluation to return a value, false if not
       DLLEXPORT virtual bool needs_eval() const;
+
+      //! performs a deep copy of the list and returns the new list
       DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
-      // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
-      // the "val" passed
-      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
-      // the type passed must always be equal to the current type
+      //! tests for equality (including all contained values) with possible type conversion (soft compare)
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
+      //! tests for equality (including all contained values) without type conversions (hard compare)
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      // returns the data type
+      //! returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
-      // returns the type name as a c string
+
+      //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
-      // eval(): return value requires a deref(xsink)
-      // default implementation = returns "this" with incremented atomic reference count
+
+      //! evaluates the object and returns a value (or 0)
+      /** return value requires a deref(xsink)
+	  default implementation = returns "refSelf()"
+      */
       DLLEXPORT virtual class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
-      // eval(): return value requires a deref(xsink) if needs_deref is true
-      // default implementation = needs_deref = false, returns "this"
-      // note: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
+
+      //! optionally evaluates the argument
+      /** return value requires a deref(xsink) if needs_deref is true
+	  default implementation = needs_deref = false, returns "this"
+	  note: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
+      */
       DLLEXPORT virtual class AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
-      // deletes the object when the reference count = 0
+
+      // decrements the reference count
+      /** deletes the object when the reference count = 0.  The ExceptionSink argument is needed for those types that could throw an exception when they are deleted (ex: QoreObject) - which could be contained in the list
+       */
       DLLEXPORT virtual void deref(class ExceptionSink *xsink);
-      // returns true if the node represents a value (default implementation)
+
+      //! returns true if the list does not contain any parse expressions, otherwise returns false
       DLLEXPORT virtual bool is_value() const;
 
       DLLEXPORT AbstractQoreNode *retrieve_entry(int index);
@@ -116,16 +146,33 @@ class QoreListNode : public AbstractQoreNode
       DLLEXPORT QoreListNode *sortDescending(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
       DLLEXPORT QoreListNode *sortDescendingStable() const;
       DLLEXPORT QoreListNode *sortDescendingStable(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+
+      //! returns the element having the lowest value (determined by calling OP_LOG_LT - the less-than operator)
       DLLEXPORT AbstractQoreNode *min() const;
+
+      //! returns the element having the highest value (determined by calling OP_LOG_GT - the less-than operator)
       DLLEXPORT AbstractQoreNode *max() const;
+
+      //! returns the element having the lowest value (determined by calling the function reference passed to give lexical order)
       DLLEXPORT AbstractQoreNode *min(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+
+      //! returns the element having the highest value (determined by calling the function reference passed to give lexical order)
       DLLEXPORT AbstractQoreNode *max(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
-      // the "l" AbstractQoreNode will be referenced for the assignment in the QoreListNode
+
+      //! adds a single value or a list ("l") to list possition "offset", while removing "length" elements
+      /** the "l" AbstractQoreNode will be referenced for the assignment in the QoreListNode
+       */
       DLLEXPORT void splice(int offset, int length, const AbstractQoreNode *l, class ExceptionSink *xsink);
+
+      //! returns the number of elements in the list
       DLLEXPORT int size() const;
+
+      //! returns a list with the order of the elements reversed
       DLLEXPORT QoreListNode *reverse() const;
+
+      //! returns "this" with an incremented reference count
       DLLEXPORT QoreListNode *listRefSelf() const;
 
       // needed only while parsing

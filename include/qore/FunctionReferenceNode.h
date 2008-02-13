@@ -24,34 +24,6 @@
 
 #define _QORE_FUNCTIONREFERENCENODE_H
 
-class FunctionReferenceCallNode : public ParseNode
-{
-   private:
-      class AbstractQoreNode *exp;    // must evaluate to an AbstractFunctionReference
-      class QoreListNode *args;
-
-   public:
-      DLLLOCAL FunctionReferenceCallNode(class AbstractQoreNode *n_exp, class QoreListNode *n_args);
-      DLLLOCAL virtual ~FunctionReferenceCallNode();
-
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
-
-      // returns the data type
-      DLLLOCAL virtual const QoreType *getType() const;
-      // returns the type name as a c string
-      DLLLOCAL virtual const char *getTypeName() const;
-      // eval(): return value requires a deref(xsink)
-      DLLLOCAL virtual AbstractQoreNode *eval(ExceptionSink *xsink) const;
-
-      DLLLOCAL int parseInit(lvh_t oflag, int pflag);
-};
-
 // cannot be a ParseNode or SimpleQoreNode because we require deref(xsink)
 class AbstractFunctionReferenceNode : public AbstractQoreNode
 {

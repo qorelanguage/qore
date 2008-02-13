@@ -53,7 +53,7 @@
 #include <qore/QoreString.h>
 #include <qore/DateTime.h>
 #include <qore/QoreType.h>
-#include <qore/charset.h>
+#include <qore/QoreEncoding.h>
 #include <qore/BuiltinFunctionList.h>
 #include <qore/qore_thread.h>
 #include <qore/LockedObject.h>
@@ -70,6 +70,8 @@
 
 // include private definitions if compiling the library
 #ifdef _QORE_LIB_INTERN
+#include <qore/intern/ParseNode.h>
+#include <qore/intern/FunctionReferenceCallNode.h>
 #include <qore/intern/Function.h>
 #include <qore/intern/AbstractStatement.h>
 #include <qore/intern/QoreLibIntern.h>

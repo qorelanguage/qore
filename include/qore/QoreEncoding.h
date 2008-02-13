@@ -1,5 +1,5 @@
 /*
-  charset.h
+  QoreEncoding.h
 
   Qore Programming Language
 
@@ -34,6 +34,9 @@
 
 #include <string>
 
+// for performance reasons this is not a class hierarchy with virtual methods
+// this ugly implementation with function pointers is much faster
+
 // for multi-byte character set encodings: gives the length of the string in characters
 typedef int (*mbcs_length_t)(const char *);
 // for multi-byte character set encodings: gives the number of bytes for the number of chars
@@ -61,6 +64,7 @@ public:
       DLLLOCAL ~QoreEncoding()
       {
       }
+
       DLLLOCAL int getLength(const char *p) const
       {
 	 return flength ? flength(p) : strlen(p);
@@ -109,20 +113,21 @@ class QoreEncodingManager
       DLLEXPORT static const QoreEncoding *findCreate(const QoreString *str);
       DLLEXPORT static void showEncodings();
       DLLEXPORT static void showAliases();
-      DLLEXPORT static void init(const char *def);
+      DLLEXPORT static const QoreEncoding *add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc);
 
+      DLLLOCAL static void init(const char *def);
       DLLLOCAL QoreEncodingManager();
       DLLLOCAL ~QoreEncodingManager();
-      DLLLOCAL static const QoreEncoding *add(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc);
 };
 
 DLLEXPORT extern QoreEncodingManager QEM;
 
 // builtin character encodings
-DLLEXPORT extern const QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
-   *QCS_ISO_8859_2, *QCS_ISO_8859_3, *QCS_ISO_8859_4, *QCS_ISO_8859_5,
-   *QCS_ISO_8859_6, *QCS_ISO_8859_7, *QCS_ISO_8859_8, *QCS_ISO_8859_9,
-   *QCS_ISO_8859_10, *QCS_ISO_8859_11, *QCS_ISO_8859_13, *QCS_ISO_8859_14,
-   *QCS_ISO_8859_15, *QCS_ISO_8859_16, *QCS_KOI8_R, *QCS_KOI8_U, *QCS_KOI7;
+DLLEXPORT extern const QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, 
+   *QCS_ISO_8859_1, *QCS_ISO_8859_2, *QCS_ISO_8859_3, *QCS_ISO_8859_4, 
+   *QCS_ISO_8859_5, *QCS_ISO_8859_6, *QCS_ISO_8859_7, *QCS_ISO_8859_8, 
+   *QCS_ISO_8859_9, *QCS_ISO_8859_10, *QCS_ISO_8859_11, *QCS_ISO_8859_13, 
+   *QCS_ISO_8859_14, *QCS_ISO_8859_15, *QCS_ISO_8859_16, *QCS_KOI8_R, *QCS_KOI8_U, 
+   *QCS_KOI7;
 
 #endif // _QORE_CHARSET_H

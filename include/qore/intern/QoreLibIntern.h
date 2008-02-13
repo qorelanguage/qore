@@ -68,4 +68,6 @@ DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(const char *err, const char *fmt, ...);
 DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 
+DLLLOCAL class AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);
+
 #endif

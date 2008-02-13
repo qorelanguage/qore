@@ -33,7 +33,7 @@ noinst_HEADERS = \
 	include/qore/QoreString.h \
 	include/qore/common.h \
 	include/qore/config.h \
-	include/qore/charset.h \
+	include/qore/QoreEncoding.h \
 	include/qore/DateTime.h \
 	include/qore/support.h \
 	include/qore/QoreException.h \
@@ -154,6 +154,8 @@ noinst_HEADERS = \
 	include/qore/intern/AbstractSmartLock.h \
 	include/qore/intern/VLock.h \
 	include/qore/intern/AutoNamespaceList.h \
+	include/qore/intern/FunctionReferenceCallNode.h \
+	include/qore/intern/ParseNode.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
