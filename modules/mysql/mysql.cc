@@ -1023,7 +1023,7 @@ static class AbstractQoreNode *qore_mysql_do_sql_horizontal(const Datasource *ds
 #endif // HAVE_MYSQL_STMT
 
 /*
-static class QoreHash *qore_mysql_describe(Datasource *ds, char *table_name, ExceptionSink *xsink)
+static class QoreHashNode *qore_mysql_describe(Datasource *ds, char *table_name, ExceptionSink *xsink)
 {
    tracein("qore_mysql_describe()");
 

@@ -52,23 +52,6 @@ typedef std::set<const char *, ltcstrcase> ccharcase_set_t;
 typedef std::set<std::string, ltstrcase> strcase_set_t;
 typedef std::map<std::string, std::string> header_map_t;
 
-class SafeHash : public QoreHash
-{
-      // none of these operators/methods are implemented - here to make sure they are not used
-      DLLLOCAL void *operator new(size_t); 
-      DLLLOCAL SafeHash(bool i);
-      DLLLOCAL void deleteAndDeref(class ExceptionSink *xsink);
-
-   public:
-      DLLLOCAL SafeHash()
-      {
-      }
-      DLLLOCAL ~SafeHash()
-      {
-	 dereference(NULL);
-      }
-};
-
 class QoreHTTPClient : public AbstractPrivateData, public LockedObject
 {
    private:
@@ -84,10 +67,10 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       // returns -1 if an exception was thrown, 0 for OK
       DLLLOCAL int connect_unlocked(class ExceptionSink *xsink);
       DLLLOCAL void disconnect_unlocked();
-      DLLLOCAL class QoreHashNode *send_internal(const char *meth, const char *mpath, const class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLLOCAL class QoreHashNode *send_internal(const char *meth, const char *mpath, const class QoreHashNode *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
       DLLLOCAL void setSocketPath();
       DLLLOCAL const char *getMsgPath(const char *mpath, class QoreString &pstr);
-      DLLLOCAL class QoreHashNode *getResponseHeader(const char *meth, const char *mpath, class QoreHash &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink);
+      DLLLOCAL class QoreHashNode *getResponseHeader(const char *meth, const char *mpath, class QoreHashNode &nh, const void *data, unsigned size, int &code, class ExceptionSink *xsink);
       DLLLOCAL class AbstractQoreNode *getHostHeaderValue();
 
       // not implemented
@@ -102,7 +85,7 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
 
       // set options with a hash, returns -1 if an exception was thrown, 0 for OK
       // NOTE: this function is unlocked and designed only to be called with the constructor
-      DLLEXPORT int setOptions(const class QoreHash *opts, ExceptionSink* xsink);
+      DLLEXPORT int setOptions(const class QoreHashNode *opts, ExceptionSink* xsink);
       // useful for c++ derived classes
       DLLEXPORT void setDefaultPort(int prt);
       // useful for c++ derived classes
@@ -150,13 +133,13 @@ class QoreHTTPClient : public AbstractPrivateData, public LockedObject
       DLLEXPORT void disconnect();
 
       // caller owns the AbstractQoreNode reference returned
-      DLLEXPORT class QoreHashNode *send(const char *meth, const char *path, const class QoreHash *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
+      DLLEXPORT class QoreHashNode *send(const char *meth, const char *path, const class QoreHashNode *headers, const void *data, unsigned size, bool getbody, class ExceptionSink *xsink);
       // caller owns the AbstractQoreNode reference returned
-      DLLEXPORT class AbstractQoreNode *get(const char *path, const class QoreHash *headers, class ExceptionSink *xsink);
+      DLLEXPORT class AbstractQoreNode *get(const char *path, const class QoreHashNode *headers, class ExceptionSink *xsink);
       // caller owns the AbstractQoreNode reference returned
-      DLLEXPORT class QoreHashNode *head(const char *path, const class QoreHash *headers, class ExceptionSink *xsink);
+      DLLEXPORT class QoreHashNode *head(const char *path, const class QoreHashNode *headers, class ExceptionSink *xsink);
       // caller owns the AbstractQoreNode reference returned
-      DLLEXPORT class AbstractQoreNode *post(const char *path, const class QoreHash *headers, const void *data, unsigned size, class ExceptionSink *xsink);
+      DLLEXPORT class AbstractQoreNode *post(const char *path, const class QoreHashNode *headers, const void *data, unsigned size, class ExceptionSink *xsink);
       DLLEXPORT void setDefaultHeaderValue(const char *header, const char *val);
 };
 

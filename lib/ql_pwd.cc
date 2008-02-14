@@ -29,12 +29,12 @@
 // for the getpwuid function
 static class LockedObject lck_getpwuid;
 
-static inline void assign_value(QoreHash *h, char *key, char *val)
+static inline void assign_value(QoreHashNode *h, char *key, char *val)
 {
    h->setKeyValue(key, new QoreStringNode(val), NULL);
 }
 
-static inline void assign_value(QoreHash *h, char *key, int val)
+static inline void assign_value(QoreHashNode *h, char *key, int val)
 {
    h->setKeyValue(key, new QoreBigIntNode(val), NULL);
 }

@@ -162,7 +162,7 @@ const QoreEncoding *QoreHTTPClient::getEncoding() const
    return priv->m_socket.getEncoding();
 }
 
-int QoreHTTPClient::setOptions(const QoreHash* opts, ExceptionSink* xsink)
+int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink)
 {
    // process new protocols
    const AbstractQoreNode *n = opts->getKeyValue("protocols");  
@@ -623,7 +623,7 @@ const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr
    return (const char *)pstr.getBuffer();
 }
 
-QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, class QoreHash &nh, const void *data, unsigned size, int &code, ExceptionSink *xsink)
+QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, class QoreHashNode &nh, const void *data, unsigned size, int &code, ExceptionSink *xsink)
 {
    QoreString pathstr(priv->m_socket.getEncoding());
    const char *msgpath = getMsgPath(mpath, pathstr);
@@ -704,7 +704,7 @@ AbstractQoreNode *QoreHTTPClient::getHostHeaderValue()
    return str;
 }
 
-QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, const QoreHash *headers, const void *data, unsigned size, bool getbody, ExceptionSink *xsink)
+QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, ExceptionSink *xsink)
 {
    // check if method is valid
    ccharcase_set_t::const_iterator i = method_set.find(meth);
@@ -961,7 +961,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    AbstractQoreNode *body = 0;
    if (te && !strcasecmp((reinterpret_cast<QoreStringNode *>(te))->getBuffer(), "chunked")) // check for chunked response body
    {
-      class QoreHash *nah;
+      class QoreHashNode *nah;
       if (content_encoding)
 	 nah = priv->m_socket.readHTTPChunkedBodyBinary(priv->timeout, xsink);
       else
@@ -1051,12 +1051,12 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    return ans.release();
 }
 
-QoreHashNode *QoreHTTPClient::send(const char *meth, const char *new_path, const QoreHash *headers, const void *data, unsigned size, bool getbody, ExceptionSink *xsink)
+QoreHashNode *QoreHTTPClient::send(const char *meth, const char *new_path, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, ExceptionSink *xsink)
 {
    return send_internal(meth, new_path, headers, data, size, getbody, xsink);
 }
 
-AbstractQoreNode *QoreHTTPClient::get(const char *new_path, const QoreHash *headers, ExceptionSink *xsink)
+AbstractQoreNode *QoreHTTPClient::get(const char *new_path, const QoreHashNode *headers, ExceptionSink *xsink)
 {
    ReferenceHolder<QoreHashNode> ans(send_internal("GET", new_path, headers, 0, 0, true, xsink), xsink);
    if (!ans)
@@ -1065,12 +1065,12 @@ AbstractQoreNode *QoreHTTPClient::get(const char *new_path, const QoreHash *head
    return ans->takeKeyValue("body");
 }
 
-QoreHashNode *QoreHTTPClient::head(const char *new_path, const QoreHash *headers, ExceptionSink *xsink)
+QoreHashNode *QoreHTTPClient::head(const char *new_path, const QoreHashNode *headers, ExceptionSink *xsink)
 {
    return send_internal("HEAD", new_path, headers, NULL, 0, false, xsink);
 }
 
-AbstractQoreNode *QoreHTTPClient::post(const char *new_path, const QoreHash *headers, const void *data, unsigned size, ExceptionSink *xsink)
+AbstractQoreNode *QoreHTTPClient::post(const char *new_path, const QoreHashNode *headers, const void *data, unsigned size, ExceptionSink *xsink)
 {
    ReferenceHolder<QoreHashNode> ans(send_internal("POST", new_path, headers, data, size, true, xsink), xsink);
    if (!ans)

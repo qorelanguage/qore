@@ -106,9 +106,9 @@ class mySocket : public AbstractPrivateData, public LockedObject
       DLLLOCAL int recvu2LSB(int timeout, unsigned short *b);
       DLLLOCAL int recvu4LSB(int timeout, unsigned int *b);
       // send HTTP message
-      DLLLOCAL int sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHash *headers, const void *ptr, int size);
+      DLLLOCAL int sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *ptr, int size);
       // send HTTP response
-      DLLLOCAL int sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHash *headers, const void *ptr, int size);
+      DLLLOCAL int sendHTTPResponse(int code, const char *desc, const char *http_version, const QoreHashNode *headers, const void *ptr, int size);
       // read and parse HTTP header
       DLLLOCAL class AbstractQoreNode *readHTTPHeader(int timeout, int *rc);
       // receive a binary message in HTTP chunked format

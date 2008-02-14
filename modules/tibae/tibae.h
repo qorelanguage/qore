@@ -55,6 +55,6 @@
 #include "TibCommandLine.h"
 
 DLLLOCAL class AbstractQoreNode *map_mdata_to_node(MData *md, class ExceptionSink *xsink);
-DLLLOCAL void set_properties(MAppProperties *appProperties, const QoreHash *h, TibCommandLine &tcl, ExceptionSink *xsink);
+DLLLOCAL void set_properties(MAppProperties *appProperties, const QoreHashNode *h, TibCommandLine &tcl, ExceptionSink *xsink);
 
 #endif

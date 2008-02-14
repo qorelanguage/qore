@@ -42,7 +42,7 @@ QoreTibrvTransport::QoreTibrvTransport(const char *desc, const char *service, co
    transport.setDescription(desc);
 }
 
-int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, const QoreHash *hash, ExceptionSink *xsink)
+int QoreTibrvTransport::hashToMsg(TibrvMsg *msg, const QoreHashNode *hash, ExceptionSink *xsink)
 {
    ConstHashIterator hi(hash);
    

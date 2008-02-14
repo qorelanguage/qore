@@ -48,10 +48,10 @@ struct qore_object_private {
       mutable class VRMutex g;
       class KeyList *privateData;
       class ReferenceObject tRefs;  // reference-references
-      class QoreHash *data;
+      class QoreHashNode *data;
       QoreProgram *pgm;
 
-      DLLLOCAL qore_object_private(const QoreClass *oc, QoreProgram *p, QoreHash *n_data) : 
+      DLLLOCAL qore_object_private(const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
 	 myclass(oc), status(OS_OK), system_object(!p), privateData(0), data(n_data), pgm(p)
       {
 	 printd(5, "QoreObject::QoreObject() this=%08p, pgm=%08p, class=%s, refs 0->1\n", this, p, oc->getName());
@@ -129,11 +129,11 @@ class KeyList
 
 };
 
-QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p) : AbstractQoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, new QoreHash()))
+QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p) : AbstractQoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, new QoreHashNode()))
 {
 }
 
-QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, class QoreHash *h) : AbstractQoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, h))
+QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, class QoreHashNode *h) : AbstractQoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, h))
 {
 }
 
@@ -419,7 +419,7 @@ inline void QoreObject::doDeleteIntern(ExceptionSink *xsink)
    if (priv->g.enter(xsink) >= 0)
    {
       priv->status = OS_DELETED;
-      QoreHash *td = priv->data;
+      QoreHashNode *td = priv->data;
       priv->data = NULL;
       priv->g.exit();
       cleanup(xsink, td);
@@ -463,7 +463,7 @@ void QoreObject::obliterate(ExceptionSink *xsink)
 	 if (priv->status == OS_OK)
 	 {
 	    priv->status = OS_DELETED;
-	    QoreHash *td = priv->data;
+	    QoreHashNode *td = priv->data;
 	    priv->data = NULL;
 	    priv->g.exit();
 	    
@@ -641,7 +641,7 @@ int QoreObject::size(ExceptionSink *xsink) const
 
 // adds all elements (and references them) from the hash passed, leaves the
 // hash passed alone
-void QoreObject::merge(const class QoreHash *h, ExceptionSink *xsink)
+void QoreObject::merge(const class QoreHashNode *h, ExceptionSink *xsink)
 {
    if (priv->g.enter(xsink) < 0)
       return;
@@ -657,7 +657,7 @@ void QoreObject::merge(const class QoreHash *h, ExceptionSink *xsink)
 
 // adds all elements (already referenced) from the hash passed, deletes the
 // hash passed
-void QoreObject::assimilate(class QoreHash *h, ExceptionSink *xsink)
+void QoreObject::assimilate(class QoreHashNode *h, ExceptionSink *xsink)
 {
    if (priv->g.enter(xsink) < 0)
       return;
@@ -670,15 +670,6 @@ void QoreObject::assimilate(class QoreHash *h, ExceptionSink *xsink)
    priv->data->assimilate(h, xsink);
    priv->g.exit();
 }
-
-/*
-// to be called only in builtin constructors - no locking necessary
-inline void QoreObject::doDeleteNoDestructor(ExceptionSink *xsink)
-{
-   priv->status = OS_DELETED;
-   data->dereference(xsink);
-}
-*/
 
 AbstractQoreNode *QoreObject::evalFirstKeyValue(ExceptionSink *xsink) const
 {
@@ -728,35 +719,16 @@ AbstractQoreNode *QoreObject::evalMemberExistence(const char *mem, ExceptionSink
    return rv;
 }
 
-/*
-// this method should never be necessary as objects cannot contain parse expressions, only data
-QoreHash *QoreObject::evalData(ExceptionSink *xsink) const
+QoreHashNode *QoreObject::copyData(ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
-      return NULL;
+      return 0;
    if (priv->status == OS_DELETED)
    {
       priv->g.exit();
-      // need to return an empty hash here
-      return new QoreHash();
+      return 0;
    }
-   QoreHash *rv = priv->data->eval(xsink);
-   priv->g.exit();
-   return rv;
-}
-*/
-
-QoreHash *QoreObject::copyData(ExceptionSink *xsink) const
-{
-   if (priv->g.enter(xsink) < 0)
-      return NULL;
-   if (priv->status == OS_DELETED)
-   {
-      priv->g.exit();
-      // need to return an empty hash here
-      return new QoreHash();
-   }
-   QoreHash *rv = priv->data->copy();
+   QoreHashNode *rv = priv->data->copy();
    priv->g.exit();
    return rv;
 }
@@ -770,12 +742,12 @@ QoreHashNode *QoreObject::copyDataNode(ExceptionSink *xsink) const
       priv->g.exit();
       return 0;
    }
-   QoreHashNode *rv = priv->data->copyNode();
+   QoreHashNode *rv = priv->data->copy();
    priv->g.exit();
    return rv;
 }
 
-void QoreObject::mergeDataToHash(QoreHash *hash, ExceptionSink *xsink)
+void QoreObject::mergeDataToHash(QoreHashNode *hash, ExceptionSink *xsink)
 {
    if (priv->g.enter(xsink) < 0)
       return;
@@ -892,7 +864,7 @@ void QoreObject::addPrivateDataToString(QoreString *str, ExceptionSink *xsink) c
    str->concat(')');
 }
 
-void QoreObject::cleanup(ExceptionSink *xsink, class QoreHash *td)
+void QoreObject::cleanup(ExceptionSink *xsink, class QoreHashNode *td)
 {
    if (priv->privateData)
    {
@@ -911,7 +883,7 @@ void QoreObject::cleanup(ExceptionSink *xsink, class QoreHash *td)
 #endif
    }
    
-   td->derefAndDelete(xsink);
+   td->deref(xsink);
 }
 
 void QoreObject::defaultSystemDestructor(int classID, ExceptionSink *xsink)
@@ -936,7 +908,7 @@ QoreString *QoreObject::getAsString(bool &del, int foff, ExceptionSink *xsink) c
 
 int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
-   TempQoreHash h(copyData(xsink), xsink);
+   TempQoreHashNode h(copyData(xsink), xsink);
    if (*xsink)
       return -1;
 

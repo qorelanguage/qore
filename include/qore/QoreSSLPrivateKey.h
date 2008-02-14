@@ -53,7 +53,7 @@ class QoreSSLPrivateKey : public AbstractPrivateData
       DLLLOCAL int64 getVersion() const;
       // returns the length in bits
       DLLLOCAL int64 getBitLength() const;
-      // caller owns the QoreHash returned
+      // caller owns the QoreHashNode returned
       DLLLOCAL class QoreHashNode *getInfo() const;
 };
 

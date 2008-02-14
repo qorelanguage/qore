@@ -38,7 +38,7 @@
 #include <typeinfo>
 
 extern QoreListNode *ARGV, *QORE_ARGV;
-extern class QoreHash *ENV;
+extern class QoreHashNode *ENV;
 
 class SBNode {
    public:
@@ -97,7 +97,7 @@ struct qore_program_private {
 	    var->setValue(QORE_ARGV->copy(), NULL);
 	 
 	 var = global_var_list.newVar("ENV");
-	 var->setValue(ENV->copyNode(), NULL);
+	 var->setValue(ENV->copy(), NULL);
       }
 
       DLLLOCAL ~qore_program_private()
@@ -703,12 +703,12 @@ void QoreProgram::parsePending(const char *code, const char *label, ExceptionSin
 
 void QoreProgram::startThread()
 {
-   pthread_setspecific(priv->thread_local_storage, new QoreHash());
+   pthread_setspecific(priv->thread_local_storage, new QoreHashNode());
 }
 
-class QoreHash *QoreProgram::getThreadData()
+class QoreHashNode *QoreProgram::getThreadData()
 {
-   return (class QoreHash *)pthread_getspecific(priv->thread_local_storage);
+   return (class QoreHashNode *)pthread_getspecific(priv->thread_local_storage);
 }
 
 AbstractQoreNode *QoreProgram::run(ExceptionSink *xsink)
@@ -721,19 +721,19 @@ AbstractQoreNode *QoreProgram::run(ExceptionSink *xsink)
    return runTopLevel(xsink);
 }
 
-class QoreHash *QoreProgram::clearThreadData(ExceptionSink *xsink)
+class QoreHashNode *QoreProgram::clearThreadData(ExceptionSink *xsink)
 {
-   class QoreHash *h = (class QoreHash *)pthread_getspecific(priv->thread_local_storage);
+   class QoreHashNode *h = (class QoreHashNode *)pthread_getspecific(priv->thread_local_storage);
    printd(5, "QoreProgram::clearThreadData() this=%08p h=%08p (size=%d)\n", this, h, h->size());
-   h->dereference(xsink);
+   h->clear(xsink);
    return h;
 }
 
 void QoreProgram::endThread(ExceptionSink *xsink)
 {
    // delete thread local storage data
-   class QoreHash *h = clearThreadData(xsink);
-   h->derefAndDelete(xsink);
+   class QoreHashNode *h = clearThreadData(xsink);
+   h->deref(xsink);
 }
 
 // called during parsing (priv->plock already grabbed)

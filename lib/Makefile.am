@@ -84,7 +84,6 @@ libqore_la_SOURCES = \
 	DateTime.cc \
 	QoreLib.cc \
 	QoreString.cc \
-	QoreHash.cc \
 	QoreObject.cc \
 	QoreListNode.cc \
 	qore-main.cc \

@@ -102,7 +102,7 @@ int QoreGetOpt::add(const char *name, char short_opt, char *long_opt, class Qore
    return 0;
 }
 
-static void inline addError(class QoreHash *h, QoreStringNode *err)
+static void inline addError(class QoreHashNode *h, QoreStringNode *err)
 {
    //printd(5, "addError() adding: %s\n", err->getBuffer());
    QoreListNode **v = reinterpret_cast<QoreListNode **>(h->getKeyValuePtr("_ERRORS_"));
@@ -146,7 +146,7 @@ AbstractQoreNode *QoreGetOpt::parseDate(const char *val)
    return new DateTimeNode(val);
 }
 
-void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char *val)
+void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHashNode *h, const char *val)
 {
    // get current value
    AbstractQoreNode **cv = h->getKeyValuePtr(n->name);
@@ -240,7 +240,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHash *h, const char
    (*cv) = v;
 }
 
-char *QoreGetOpt::getNextArgument(QoreListNode *l, class QoreHash *h, int &i, const char *lopt, char sopt)
+char *QoreGetOpt::getNextArgument(QoreListNode *l, class QoreHashNode *h, int &i, const char *lopt, char sopt)
 {
    if (i < (l->size() - 1))
    {
@@ -258,7 +258,7 @@ char *QoreGetOpt::getNextArgument(QoreListNode *l, class QoreHash *h, int &i, co
    return NULL;
 }
 
-void QoreGetOpt::processLongArg(const char *arg, QoreListNode *l, class QoreHash *h, int &i, bool modify)
+void QoreGetOpt::processLongArg(const char *arg, QoreListNode *l, class QoreHashNode *h, int &i, bool modify)
 {
    const char *opt;
    char *val;
@@ -304,7 +304,7 @@ void QoreGetOpt::processLongArg(const char *arg, QoreListNode *l, class QoreHash
       l->pop_entry(--i, NULL);
 }
 
-int QoreGetOpt::processShortArg(const char *arg, QoreListNode *l, class QoreHash *h, int &i, int &j, bool modify)
+int QoreGetOpt::processShortArg(const char *arg, QoreListNode *l, class QoreHashNode *h, int &i, int &j, bool modify)
 {
    char opt = (arg + j)[0];
    // find option

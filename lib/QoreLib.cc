@@ -575,7 +575,7 @@ void initENV(char *env[])
 {
    // set up environment hash
    int i = 0;
-   ENV = new QoreHash();
+   ENV = new QoreHashNode();
    while (env[i])
    {
       char *p;
@@ -597,11 +597,11 @@ void delete_global_variables()
 {
    tracein("delete_global_variables()");
    if (QORE_ARGV)
-      QORE_ARGV->deref(NULL);
+      QORE_ARGV->deref(0);
    if (ARGV)
-      ARGV->deref(NULL);
+      ARGV->deref(0);
    if (ENV)
-      ENV->derefAndDelete(NULL);
+      ENV->deref(0);
    traceout("delete_global_variables()");
 }
 

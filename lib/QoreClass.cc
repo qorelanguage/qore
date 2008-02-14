@@ -1068,14 +1068,15 @@ void QoreMethod::evalConstructor(QoreObject *self, const QoreListNode *args, cla
    printd(5, "QoreMethod::evalConstructor() %s::%s() (object=%08p, pgm=%08p)\n", oname, priv->name, self, self->getProgram());
 #endif
 
-   QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
-   if (*xsink)
-      return;
-
    if (priv->type == OTF_USER)
-      discard(priv->func.userFunc->evalConstructor(*new_args, self, bcl, bceal, priv->parent_class->getName(), xsink), xsink);
+      discard(priv->func.userFunc->evalConstructor(args, self, bcl, bceal, priv->parent_class->getName(), xsink), xsink);
    else
    {
+      // evalute arguments before calling builtin method
+      QoreListNodeEvalOptionalRefHolder new_args(args, xsink);
+      if (*xsink)
+	 return;
+
       // switch to new program for imported objects
       ProgramContextHelper pch(self->getProgram());
       priv->func.builtin->evalConstructor(self, *new_args, bcl, bceal, priv->parent_class->getName(), xsink);
@@ -1292,7 +1293,7 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
    if (bceal)
       bceal->deref(xsink);
 
-   if (xsink->isEvent())
+   if (*xsink)
    {
       // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
       // which will clear out all the private data by running their dereference methods which should generally be OK
@@ -1429,7 +1430,7 @@ inline void QoreClass::execSubclassSystemDestructor(QoreObject *self, ExceptionS
 
 QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const
 {
-   class QoreHash *h = old->copyData(xsink);
+   class QoreHashNode *h = old->copyData(xsink);
    if (*xsink)
       return NULL;
 

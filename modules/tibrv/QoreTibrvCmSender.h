@@ -43,10 +43,10 @@ class QoreTibrvCmSender : public AbstractPrivateData, public QoreTibrvCmTranspor
 	 : QoreTibrvCmTransport(cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon, xsink)  { }
 
       // time_limit for certified delivery in ms
-      void sendSubject(const char *subject, const QoreHash *data, const char *replySubject, int64 time_limit, ExceptionSink *xsink);
+      void sendSubject(const char *subject, const QoreHashNode *data, const char *replySubject, int64 time_limit, ExceptionSink *xsink);
 
       // timeout and time_limit for certified delivery in ms
-      QoreHashNode *sendSubjectWithSyncReply(const char *subject, const QoreHash *data, int64 timeout, int64 time_limit, ExceptionSink *xsink);
+      QoreHashNode *sendSubjectWithSyncReply(const char *subject, const QoreHashNode *data, int64 timeout, int64 time_limit, ExceptionSink *xsink);
 };
 
 #endif

@@ -37,7 +37,7 @@
 
 static void remove_pending_calls(MApp* app);
 
-static const char *get_class(const QoreHash *h)
+static const char *get_class(const QoreHashNode *h)
 {
    const AbstractQoreNode *t;
 
@@ -50,7 +50,7 @@ static const char *get_class(const QoreHash *h)
    return str->getBuffer();
 }
 
-QoreApp::QoreApp(MAppProperties *pMAP, const char *name, QoreHash *clh,
+QoreApp::QoreApp(MAppProperties *pMAP, const char *name, QoreHashNode *clh,
 		 const char *svc, const char *net, const char *dmn, const char *sbj) : MApp(pMAP)
 {
    appProps = pMAP;
@@ -1030,7 +1030,7 @@ QoreEventHandler::~QoreEventHandler()
 // Tibco.Operations related functionality
 
 //------------------------------------------------------------------------------
-void QoreApp::setRequestParameters(MOperationRequest& req, const QoreHash *params, ExceptionSink* xsink)
+void QoreApp::setRequestParameters(MOperationRequest& req, const QoreHashNode *params, ExceptionSink* xsink)
 {
    const MOperationDescription *mod = req.getOperationDescription();
 
@@ -1107,7 +1107,7 @@ struct OperationsListener : public MOperationReplyListener
 } // anonymous namespace
 
 //------------------------------------------------------------------------------
-AbstractQoreNode* QoreApp::operationsCallWithSyncResult(const char *class_name, const char *method_name, const QoreHash *parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
+AbstractQoreNode* QoreApp::operationsCallWithSyncResult(const char *class_name, const char *method_name, const QoreHashNode *parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
 {
   try {
     MOperationRequest req(this, class_name, method_name, client_name);
@@ -1131,7 +1131,7 @@ AbstractQoreNode* QoreApp::operationsCallWithSyncResult(const char *class_name, 
 }
 
 //------------------------------------------------------------------------------
-void QoreApp::operationsOneWayCall(const char *class_name, const char *method_name, const QoreHash *parameters, const char *client_name, ExceptionSink* xsink)
+void QoreApp::operationsOneWayCall(const char *class_name, const char *method_name, const QoreHashNode *parameters, const char *client_name, ExceptionSink* xsink)
 {
   try {
     MOperationRequest req(this, class_name, method_name, client_name);
@@ -1235,7 +1235,7 @@ static void remove_pending_calls(MApp* app)
 }
 
 //------------------------------------------------------------------------------
-void QoreApp::operationsAsyncCall(const char *class_name, const char *method_name, const QoreHash *parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
+void QoreApp::operationsAsyncCall(const char *class_name, const char *method_name, const QoreHashNode *parameters, unsigned timeout, const char *client_name, ExceptionSink* xsink)
 {
   try {
     std::auto_ptr<MOperationRequest> req(new MOperationRequest(this, class_name, method_name, client_name));

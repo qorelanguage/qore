@@ -78,7 +78,7 @@ void AbstractQoreNode::deref(ExceptionSink *xsink)
       printd(5, "AbstractQoreNode::deref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
 
 #endif
-   if (references > 51200 || references < 0)
+   if (references > 51200 || references <= 0)
    {
       if (type == NT_STRING)
 	 printd(0, "AbstractQoreNode::deref() WARNING, node %08p references=%d (type=%s) (val=\"%s\")\n",
@@ -297,7 +297,7 @@ static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionS
 {
    // if it's not an immediate hash, then there can't be any
    // variable references in it at any level, so return copy
-   if (!n->needsEval())
+   if (!n->QoreHashNode::needs_eval())
       return n->refSelf();
 
    QoreHashNode *h = new QoreHashNode(1);

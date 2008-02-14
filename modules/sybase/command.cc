@@ -558,7 +558,7 @@ int command::setup_output_buffers(const row_result_t &input_row_descriptions, ro
 
 int command::append_buffers_to_list(PlaceholderList *placeholder_list, row_result_t &column_info, 
 				    row_output_buffers& all_buffers, 
-				    class QoreHash *h, ExceptionSink *xsink)
+				    class QoreHashNode *h, ExceptionSink *xsink)
 {
    //const QoreEncoding *encoding = m_conn.getEncoding();
 

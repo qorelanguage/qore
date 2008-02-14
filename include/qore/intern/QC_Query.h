@@ -178,8 +178,8 @@ class Query : public ReferenceObject
       int exec_count;
       inline Query(char *nme, Datasource *ds, char *qstr, int stc, ExceptionSink *xsink);
       inline ~Query();
-      inline class QoreHash *exec(ExceptionSink *xsink);
-      inline class QoreHash *check(ExceptionSink *xsink);
+      inline class QoreHashNode *exec(ExceptionSink *xsink);
+      inline class QoreHashNode *check(ExceptionSink *xsink);
       inline void setSQL(char *qstr, ExceptionSink *xsink);
       inline void deref();
       inline int isStatic() { return options & QO_STATIC; }
@@ -644,19 +644,19 @@ inline Query::~Query()
    //traceout("Query::~Query()");
 }
 
-inline class QoreHash *Query::exec(ExceptionSink *xsink)
+inline class QoreHashNode *Query::exec(ExceptionSink *xsink)
 {
    if (!qpl)
       return NULL;
    class QoreString *str = qpl->getSQL(xsink, isDynamic());
    if (xsink->isEvent())
       return NULL;
-   class QoreHash *h = datasource->select(str->getBuffer(), xsink);
+   class QoreHashNode *h = datasource->select(str->getBuffer(), xsink);
    delete str;
    return h;
 }
 
-inline class QoreHash *Query::check(ExceptionSink *xsink)
+inline class QoreHashNode *Query::check(ExceptionSink *xsink)
 {
    if (!qpl)
       return NULL;

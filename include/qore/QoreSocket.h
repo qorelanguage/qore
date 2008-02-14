@@ -93,7 +93,7 @@ class QoreSocket
       DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
       // read until \r\n and return the string
       DLLLOCAL class QoreStringNode *readHTTPData(int timeout, int *rc, int state = -1);
-      DLLLOCAL static void convertHeaderToHash(class QoreHash *h, char *p);
+      DLLLOCAL static void convertHeaderToHash(class QoreHashNode *h, char *p);
       
       // not implemented
       DLLLOCAL QoreSocket(const QoreSocket&);
@@ -160,14 +160,14 @@ class QoreSocket
       // receive and write data to a file descriptor
       DLLEXPORT int recv(int fd, int size, int timeout);
       // send an HTTP message
-      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHash *headers, const void *data, int size);
+      DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHashNode *headers, const void *data, int size);
       // send an HTTP response
-      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const class QoreHash *headers, const void *data, int size);
+      DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const class QoreHashNode *headers, const void *data, int size);
       // read and parse HTTP header (caller owns AbstractQoreNode reference returned)
       DLLEXPORT class AbstractQoreNode *readHTTPHeader(int timeout, int *prc);
-      // receive a binary message in HTTP chunked format (caller owns QoreHash returned)
+      // receive a binary message in HTTP chunked format (caller owns QoreHashNode returned)
       DLLEXPORT class QoreHashNode *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
-      // receive a string message in HTTP chunked format (caller owns QoreHash returned)
+      // receive a string message in HTTP chunked format (caller owns QoreHashNode returned)
       DLLEXPORT class QoreHashNode *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
       // set send timeout in milliseconds
       DLLEXPORT int setSendTimeout(int ms);

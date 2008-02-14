@@ -168,7 +168,7 @@ inline xml_stack::xml_stack()
 
 } // anonymous namespace
 
-static void makeXMLString(QoreString *str, const QoreHash *h, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink);
+static void makeXMLString(QoreString *str, const QoreHashNode *h, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink);
 
 static void concatSimpleValue(QoreString *str, const AbstractQoreNode *n, ExceptionSink *xsink)
 {
@@ -390,7 +390,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
       if (ntype == NT_OBJECT) {
 	 const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
 	 // get snapshot of data
-	 TempQoreHash h(o->copyData(xsink), xsink);
+	 TempQoreHashNode h(o->copyData(xsink), xsink);
 	 if (!*xsink)
 	 {
 	    if (format)
@@ -412,7 +412,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
    //traceout("addXMLElement()");
 }
 
-static void makeXMLString(QoreString *str, const QoreHash *h, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
+static void makeXMLString(QoreString *str, const QoreHashNode *h, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    tracein("makeXMLString()");
    ConstHashIterator hi(h);
@@ -624,7 +624,7 @@ static AbstractQoreNode *f_makeFormattedXMLFragment(const QoreListNode *params, 
 
 static void addXMLRPCValue(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink);
 
-static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHash *h, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
+static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHashNode *h, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    str->concat("<struct>");
    if (format) str->concat('\n');

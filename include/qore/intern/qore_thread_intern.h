@@ -64,7 +64,6 @@ DLLLOCAL class VLock *getVLock();
 DLLLOCAL class LVar *thread_instantiate_lvar(lvh_t id, AbstractQoreNode *value);
 DLLLOCAL class LVar *thread_instantiate_lvar(lvh_t id, AbstractQoreNode *ve, QoreObject *o);
 DLLLOCAL void thread_uninstantiate_lvar(class ExceptionSink *xsink);
-DLLLOCAL void thread_uninstantiate_lvar();
 DLLLOCAL class LVar *thread_find_lvar(lvh_t id);
 
 #ifdef DEBUG

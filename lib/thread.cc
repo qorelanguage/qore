@@ -164,7 +164,7 @@ public:
       }
       return &curr->lvar[curr->pos++];
    }
-   DLLLOCAL void uninstantiate()
+   DLLLOCAL void uninstantiate(ExceptionSink *xsink)
    {
       if (!curr->pos)
       {
@@ -178,10 +178,6 @@ public:
       }
       --curr->pos;
       printd(5, "uninstantiating lvar \"%s\"\n", curr->lvar[curr->pos].id);
-   }
-   DLLLOCAL void uninstantiate(ExceptionSink *xsink)
-   {
-      uninstantiate();
       curr->lvar[curr->pos].deref(xsink);
    }
    DLLLOCAL class LVar *find(lvh_t id)
@@ -251,10 +247,6 @@ class ThreadData
       DLLLOCAL void uninstantiate_lvar(ExceptionSink *xsink)
       {
 	 lvstack.uninstantiate(xsink);
-      }
-      DLLLOCAL void uninstantiate_lvar()
-      {
-	 lvstack.uninstantiate();
       }
       DLLLOCAL class LVar *find_lvar(lvh_t id)
       {
@@ -610,11 +602,6 @@ class LVar *thread_instantiate_lvar(lvh_t id, AbstractQoreNode *ve, QoreObject *
 void thread_uninstantiate_lvar(ExceptionSink *xsink)
 {
    ((ThreadData *)pthread_getspecific(thread_data_key))->uninstantiate_lvar(xsink);
-}
-
-void thread_uninstantiate_lvar()
-{
-   ((ThreadData *)pthread_getspecific(thread_data_key))->uninstantiate_lvar();
 }
 
 class LVar *thread_find_lvar(lvh_t id)
@@ -1068,8 +1055,6 @@ static AbstractQoreNode *op_background(AbstractQoreNode *left, AbstractQoreNode 
       return NULL;
    }
    printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
-
-   printd(5, "create_thread() created thread with TID %d\n", ptid);
    if (ref_rv)
       return new QoreBigIntNode(tid);
    return NULL;

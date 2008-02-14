@@ -913,7 +913,7 @@ static AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQoreNode
       // do not need ensure_unique() for objects
       if (new_right->type == NT_OBJECT)
       {
-	 QoreHash *h = reinterpret_cast<QoreObject *>(*new_right)->copyData(xsink);
+	 QoreHashNode *h = reinterpret_cast<QoreObject *>(*new_right)->copyData(xsink);
 	 if (h)
 	    o->assimilate(h, xsink);
       }
@@ -1702,7 +1702,7 @@ static AbstractQoreNode *op_pre_inc(AbstractQoreNode *left, bool ref_rv, Excepti
 
    //printd(5, "op_pre_inc() ref_rv=%s\n", ref_rv ? "true" : "false");
    // reference for return value
-   return ref_rv ? (*n)->refSelf() : 0;
+   return ref_rv ? b->refSelf() : 0;
 }
 
 // variable assignment

@@ -312,7 +312,7 @@ class QorePGBindArray {
       // returns -1 for exception, 0 for OK
       DLLLOCAL int check_type(const AbstractQoreNode *n, ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
-      DLLLOCAL int check_oid(const QoreHash *h, ExceptionSink *xsink);
+      DLLLOCAL int check_oid(const QoreHashNode *h, ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK
       DLLLOCAL int new_dimension(const QoreListNode *l, int current, ExceptionSink *xsink);
       // returns -1 for exception, 0 for OK

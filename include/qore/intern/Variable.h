@@ -121,6 +121,6 @@ DLLLOCAL class LVar *instantiateLVar(lvh_t id, class AbstractQoreNode *ve, class
 DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
 DLLLOCAL class LVar *find_lvar(lvh_t id);
 
-DLLLOCAL extern class QoreHash *ENV;
+DLLLOCAL extern class QoreHashNode *ENV;
 
 #endif // _QORE_VARIABLE_H

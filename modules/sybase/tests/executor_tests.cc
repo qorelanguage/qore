@@ -31,7 +31,7 @@ TEST()
 
   assert(res);
   assert(res->type == NT_HASH);
-  QoreHash* h = res->val.hash;
+  QoreHashNode* h = res->val.hash;
   assert(h->size() == 1);
 
   AbstractQoreNode* val = h->getKeyValue("column1");

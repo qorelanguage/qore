@@ -696,7 +696,7 @@ class QoreListNode *QorePGResult::getQoreListNode(class ExceptionSink *xsink)
    return l.release();
 }
 
-static int check_hash_type(const QoreHash *h, class ExceptionSink *xsink)
+static int check_hash_type(const QoreHashNode *h, class ExceptionSink *xsink)
 {
    const AbstractQoreNode *t = h->getKeyValue("^pgtype^");
    if (is_nothing(t))
@@ -1088,7 +1088,7 @@ int QorePGBindArray::check_type(const AbstractQoreNode *n, class ExceptionSink *
    return 0;
 }
 
-int QorePGBindArray::check_oid(const QoreHash *h, class ExceptionSink *xsink)
+int QorePGBindArray::check_oid(const QoreHashNode *h, class ExceptionSink *xsink)
 {
    int o = check_hash_type(h, xsink);
    if (o < 0)

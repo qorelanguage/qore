@@ -5,13 +5,13 @@ namespace  Hash_tests {
 
 TEST()
 {
-  printf("testing QoreHash::derefAndDelete()\n");
+  printf("testing QoreHashNode::derefAndDelete()\n");
   ExceptionSink xsink;
-  QoreHash* h = new QoreHash;
+  QoreHashNode* h = new QoreHashNode;
   h->derefAndDelete(&xsink);
   assert(!xsink);
 
-  h = new QoreHash;
+  h = new QoreHashNode;
   h->setKeyValue("aaa", new AbstractQoreNode(true), &xsink);
   assert(!xsink);
   h->setKeyValue("bbbb", new AbstractQoreNode(1.1), &xsink);

@@ -47,7 +47,7 @@ class command
       int get_row_description(row_result_t &result, unsigned column_count, class ExceptionSink *xsink);
       int setup_output_buffers(const row_result_t &input_row_descriptions, row_output_buffers &result, class ExceptionSink *xsink);
       class AbstractQoreNode *read_rows(PlaceholderList *placeholder_list, bool list, ExceptionSink* xsink);
-      int append_buffers_to_list(PlaceholderList *placeholder_list, row_result_t &column_info, row_output_buffers& all_buffers, class QoreHash *h, ExceptionSink* xsink);
+      int append_buffers_to_list(PlaceholderList *placeholder_list, row_result_t &column_info, row_output_buffers& all_buffers, class QoreHashNode *h, ExceptionSink* xsink);
       class QoreHashNode *output_buffers_to_hash(PlaceholderList *placeholder_list, row_result_t column_info, row_output_buffers& all_buffers, ExceptionSink* xsink);
       class AbstractQoreNode *get_node(const CS_DATAFMT& datafmt, const output_value_buffer& buffer, ExceptionSink* xsink);
 

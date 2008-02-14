@@ -80,7 +80,7 @@ class QoreTibrvTransport
       int doEncodedType(TibrvMsg *msg, const char *key, const char *type, const AbstractQoreNode *val, class ExceptionSink *xsink);
       QoreHashNode *parseMsg(TibrvMsg *msg, class ExceptionSink *xsink);
       QoreHashNode *msgToHash(TibrvMsg *msg, class ExceptionSink *xsink);
-      int hashToMsg(TibrvMsg *msg, const QoreHash *hash, class ExceptionSink *xsink);
+      int hashToMsg(TibrvMsg *msg, const QoreHashNode *hash, class ExceptionSink *xsink);
       int valueToField(const char *key, const AbstractQoreNode *v, TibrvMsg *msg, class ExceptionSink *xsink);
       AbstractQoreNode *fieldToNode(TibrvMsgField *field, class ExceptionSink *xsink);
       AbstractQoreNode *listToNode(TibrvMsgField *field, class ExceptionSink *xsink);

@@ -42,22 +42,19 @@ class QoreObject : public AbstractQoreNode
 
       // must only be called when inside the gate
       DLLLOCAL inline void doDeleteIntern(class ExceptionSink *xsink);
-      DLLLOCAL void cleanup(class ExceptionSink *xsink, class QoreHash *td);
+      DLLLOCAL void cleanup(class ExceptionSink *xsink, class QoreHashNode *td);
       DLLLOCAL void addVirtualPrivateData(AbstractPrivateData *apd);
 
       // not implemented
       DLLLOCAL QoreObject(const QoreObject&);
       DLLLOCAL QoreObject& operator=(const QoreObject&);
 
-      // FIXME: delete this
-      DLLLOCAL class QoreHash *evalData(class ExceptionSink *xsink) const;
-      
    protected:
       DLLLOCAL virtual ~QoreObject();
 
    public:
       DLLEXPORT QoreObject(const QoreClass *oc, class QoreProgram *p);
-      DLLEXPORT QoreObject(const QoreClass *oc, class QoreProgram *p, class QoreHash *d);
+      DLLEXPORT QoreObject(const QoreClass *oc, class QoreProgram *p, class QoreHashNode *d);
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -106,12 +103,12 @@ class QoreObject : public AbstractQoreNode
       DLLEXPORT class AbstractQoreNode *evalMemberNoMethod(const char *mem, class ExceptionSink *xsink) const;
       // caller owns the AbstractQoreNode (reference) returned
       DLLEXPORT class AbstractQoreNode *evalMemberExistence(const char *mem, class ExceptionSink *xsink) const;
-      // caller owns the QoreHash returned
-      DLLEXPORT class QoreHash *copyData(class ExceptionSink *xsink) const;
+      // caller owns the QoreHashNode returned
+      DLLEXPORT class QoreHashNode *copyData(class ExceptionSink *xsink) const;
       // caller owns the QoreHashNode returned
       DLLEXPORT class QoreHashNode *copyDataNode(class ExceptionSink *xsink) const;
-      // copies all data to the passed QoreHash
-      DLLEXPORT void mergeDataToHash(class QoreHash *hash, class ExceptionSink *xsink);
+      // copies all data to the passed QoreHashNode
+      DLLEXPORT void mergeDataToHash(class QoreHashNode *hash, class ExceptionSink *xsink);
       // sets private data to the passed key, used in constructors
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
       DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink) const;
@@ -131,8 +128,8 @@ class QoreObject : public AbstractQoreNode
       DLLLOCAL class AbstractQoreNode *evalMember(const QoreString *member, class ExceptionSink *xsink);
       DLLLOCAL void instantiateLVar(lvh_t id);
       DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
-      DLLLOCAL void merge(const class QoreHash *h, class ExceptionSink *xsink);
-      DLLLOCAL void assimilate(class QoreHash *h, class ExceptionSink *xsink);
+      DLLLOCAL void merge(const class QoreHashNode *h, class ExceptionSink *xsink);
+      DLLLOCAL void assimilate(class QoreHashNode *h, class ExceptionSink *xsink);
       DLLLOCAL class KeyNode *getReferencedPrivateDataNode(int key);
       DLLLOCAL AbstractPrivateData *getAndClearPrivateData(int key, class ExceptionSink *xsink);
       DLLLOCAL class AbstractQoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreListNode *args, class ExceptionSink *xsink);

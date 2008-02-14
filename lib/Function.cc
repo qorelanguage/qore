@@ -463,50 +463,39 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
    
    ReferenceHolder<QoreListNode> argv(xsink);
 
-   // do not evaluate arguments if not necessary
-   bool do_eval = (args && args->needs_eval());
-   if (!do_eval) {
-      for (int i = 0; i < num_params; i++) {
-	 AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : NULL;
-	 printd(4, "UserFunction::eval() %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->ids[i], params->ids[i], n, n ? n->getTypeName() : "(null)");
-	 thread_instantiate_lvar(params->ids[i], n);
-      }
-   }
-   else {
-      for (int i = 0; i < num_params; i++) {
-	 AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : NULL;
-	 printd(4, "UserFunction::eval() %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->ids[i], params->ids[i], n, n ? n->getTypeName() : "(null)");
-	 if (n)
-	 {
-	    if (n->type == NT_REFERENCE) {
-	       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
-	       bool is_self_ref = false;
-	       n = doPartialEval(r->lvexp, &is_self_ref, xsink);
-	       //printd(5, "UserFunction::eval() ref self_ref=%d, self=%08p (%s) so=%08p (%s)\n", is_self_ref, self, self ? self->getClass()->name : "NULL", getStackObject(), getStackObject() ? getStackObject()->getClass()->name : "NULL");
-	       if (!*xsink)
-		  thread_instantiate_lvar(params->ids[i], n, is_self_ref ? getStackObject() : 0);
-	    }
-	    else
-	    {
-	       n = n->eval(xsink);
-	       if (!xsink->isEvent())
-		  thread_instantiate_lvar(params->ids[i], n);
-	    }
-	    // the above if block will only instantiate the local variable if no
-	    // exceptions have occurred. therefore here we do the cleanup the rest
-	    // of any already instantiated local variables if an exception does occur
-	    if (*xsink)
-	    {
-	       if (n)
-		  n->deref(xsink);
-	       while (i--)
-		  thread_uninstantiate_lvar(xsink);
-	       return 0;
-	    }
+   for (int i = 0; i < num_params; i++) {
+      AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : NULL;
+      printd(4, "UserFunction::eval() eval %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->ids[i], params->ids[i], n, n ? n->getTypeName() : "(null)");
+      if (n)
+      {
+	 if (n->type == NT_REFERENCE) {
+	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
+	    bool is_self_ref = false;
+	    n = doPartialEval(r->lvexp, &is_self_ref, xsink);
+	    //printd(5, "UserFunction::eval() ref self_ref=%d, self=%08p (%s) so=%08p (%s)\n", is_self_ref, self, self ? self->getClass()->name : "NULL", getStackObject(), getStackObject() ? getStackObject()->getClass()->name : "NULL");
+	    if (!*xsink)
+	       thread_instantiate_lvar(params->ids[i], n, is_self_ref ? getStackObject() : 0);
 	 }
 	 else
-	    thread_instantiate_lvar(params->ids[i], 0);
+	 {
+	    n = n->eval(xsink);
+	    if (!xsink->isEvent())
+	       thread_instantiate_lvar(params->ids[i], n);
+	 }
+	 // the above if block will only instantiate the local variable if no
+	 // exceptions have occurred. therefore here we do the cleanup the rest
+	 // of any already instantiated local variables if an exception does occur
+	 if (*xsink)
+	 {
+	    if (n)
+	       n->deref(xsink);
+	    while (i--)
+	       thread_uninstantiate_lvar(xsink);
+	    return 0;
+	 }
       }
+      else
+	 thread_instantiate_lvar(params->ids[i], 0);
    }
 
    // if there are more arguments than parameters
@@ -522,10 +511,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	 if (*xsink) {
 	    // uninstantiate local vars from param list
 	    for (int j = 0; j < num_params; j++)
-	       if (!do_eval)
-		  thread_uninstantiate_lvar();
-	       else
-		  thread_uninstantiate_lvar(xsink);
+	       thread_uninstantiate_lvar(xsink);
 	    return 0;
 	 }
       }
@@ -577,10 +563,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 
       // uninstantiate local vars from param list
       for (int i = 0; i < num_params; i++)
-	 if (!do_eval)
-	    thread_uninstantiate_lvar();
-	 else
-	    thread_uninstantiate_lvar(xsink);
+	 thread_uninstantiate_lvar(xsink);
    }
    if (xsink->isException())
       xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClass()->getName()) : NULL, name, o_fn, o_ln, o_eln);
@@ -676,51 +659,40 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
    // instantiate local vars from param list
    int num_params = params->num_params;
 
-   // do not evaluate arguments if not necessary
-   bool do_eval = (args && args->needs_eval());
-   if (!do_eval) {
-      for (int i = 0; i < num_params; i++) {
-	 AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : NULL;
-	 printd(4, "UserFunction::eval() %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->ids[i], params->ids[i], n, n ? n->getTypeName() : "(null)");
-	 thread_instantiate_lvar(params->ids[i], n);
-      }
-   }
-   else {
-      for (int i = 0; i < num_params; i++)
+   for (int i = 0; i < num_params; i++)
+   {
+      AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : NULL;
+      printd(4, "UserFunction::evalConstructor() eval %d: instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
+      if (n)
       {
-	 AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : NULL;
-	 printd(4, "UserFunction::evalConstructor() %d: instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
-	 if (n)
-	 {
-	    if (n->type == NT_REFERENCE) {
-	       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
-	       bool is_self_ref = false;
-	       n = doPartialEval(r->lvexp, &is_self_ref, xsink);
-	       if (!xsink->isEvent())
-		  instantiateLVar(params->ids[i], n, is_self_ref ? getStackObject() : NULL);
-	    }
-	    else
-	    {
-	       n = n->eval(xsink);
-	       if (!xsink->isEvent())
-		  instantiateLVar(params->ids[i], n);
-	    }
-	    // the above if block will only instantiate the local variable if no
-	    // exceptions have occurred. therefore here we do the cleanup the rest
-	    // of any already instantiated local variables if an exception does occur
-	    if (xsink->isEvent())
-	    {
-	       if (n)
-		  n->deref(xsink);
-	       for (int j = i; j; j--)
-		  uninstantiateLVar(xsink);
-	       traceout("UserFunction::evalConstructor()");
-	       return NULL;
-	    }
+	 if (n->type == NT_REFERENCE) {
+	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
+	    bool is_self_ref = false;
+	    n = doPartialEval(r->lvexp, &is_self_ref, xsink);
+	    if (!xsink->isEvent())
+	       instantiateLVar(params->ids[i], n, is_self_ref ? getStackObject() : NULL);
 	 }
 	 else
-	    instantiateLVar(params->ids[i], NULL);
+	 {
+	    n = n->eval(xsink);
+	    if (!xsink->isEvent())
+	       instantiateLVar(params->ids[i], n);
+	 }
+	 // the above if block will only instantiate the local variable if no
+	 // exceptions have occurred. therefore here we do the cleanup the rest
+	 // of any already instantiated local variables if an exception does occur
+	 if (xsink->isEvent())
+	 {
+	    if (n)
+	       n->deref(xsink);
+	    for (int j = i; j; j--)
+	       uninstantiateLVar(xsink);
+	    traceout("UserFunction::evalConstructor()");
+	    return NULL;
+	 }
       }
+      else
+	 instantiateLVar(params->ids[i], NULL);
    }
 
    // if there are more arguments than parameters
@@ -737,10 +709,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	 if (*xsink) {
 	    // uninstantiate local vars from param list
 	    for (int j = 0; j < num_params; j++)
-	       if (!do_eval)
-		  thread_uninstantiate_lvar();
-	       else
-		  thread_uninstantiate_lvar(xsink);
+	       thread_uninstantiate_lvar(xsink);
 	    return 0;
 	 }
       }
@@ -799,10 +768,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 
       // uninstantiate local vars from param list
       for (int i = 0; i < num_params; i++)
-	 if (!do_eval)
-	    thread_uninstantiate_lvar();
-	 else
-	    thread_uninstantiate_lvar(xsink);
+	 thread_uninstantiate_lvar(xsink);
    }
    if (xsink->isException())
       xsink->addStackInfo(CT_USER, class_name, name, o_fn, o_ln, o_eln);

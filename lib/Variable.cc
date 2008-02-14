@@ -29,7 +29,7 @@
 #include <assert.h>
 
 // global environment hash
-class QoreHash *ENV;
+class QoreHashNode *ENV;
 
 #include <qore/QoreType.h>
 
@@ -346,10 +346,12 @@ void LVar::deref(ExceptionSink *xsink)
 {
    // if there is a reference expression, decrement the reference counter
    if (!vexp) {
+      printd(5, "LVar::deref() uninstantiating local variable '%s' val=%08p\n", id, value);
       discard(value, xsink);
       return;
    }
 
+   printd(5, "LVar::deref() uninstantiating local variable '%s' reference expression vexp=%08p\n", id, vexp);
    vexp->deref(xsink);
    if (obj)
       obj->tDeref();

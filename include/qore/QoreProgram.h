@@ -61,7 +61,6 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void importUserFunction(class QoreProgram *p, class UserFunction *uf, class ExceptionSink *xsink);
       DLLLOCAL void internParseRollback();
       DLLLOCAL int internParsePending(const char *code, const char *label);
-      DLLLOCAL class QoreHash *clearThreadData(class ExceptionSink *xsink);
       DLLLOCAL void del(class ExceptionSink *xsink);
 
       // not implemented
@@ -138,7 +137,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void exportUserFunction(const char *name, class QoreProgram *p, class ExceptionSink *xsink);
       DLLLOCAL void endThread(class ExceptionSink *xsink);
       DLLLOCAL void startThread();
-      DLLLOCAL class QoreHash *getThreadData();
+      DLLLOCAL class QoreHashNode *getThreadData();
       DLLLOCAL void depRef();
       DLLLOCAL void depDeref(class ExceptionSink *xsink);
       DLLLOCAL void addFeature(const char *f);
@@ -152,6 +151,7 @@ class QoreProgram : public AbstractPrivateData
       // before loading new modules - note this should only be assigned
       // to a AutoLock or SafeLocker object!
       DLLLOCAL class LockedObject *getParseLock();
+      DLLLOCAL class QoreHashNode *clearThreadData(class ExceptionSink *xsink);
 };
 
 DLLLOCAL void addProgramConstants(class QoreNamespace *ns);

@@ -64,7 +64,6 @@
 #include "DateTime.cc"
 #include "QoreLib.cc"
 #include "QoreString.cc"
-#include "QoreHash.cc"
 #include "QoreObject.cc"
 #include "QoreListNode.cc"
 #include "qore-main.cc"

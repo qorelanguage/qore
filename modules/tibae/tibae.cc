@@ -163,7 +163,7 @@ class AbstractQoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    return NULL;
 }
 
-void set_properties(MAppProperties *appProperties, const QoreHash *h, TibCommandLine &tcl, ExceptionSink *xsink)
+void set_properties(MAppProperties *appProperties, const QoreHashNode *h, TibCommandLine &tcl, ExceptionSink *xsink)
 {
    tracein("set_properties()");
 

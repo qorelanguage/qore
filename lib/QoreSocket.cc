@@ -1275,7 +1275,7 @@ int QoreSocket::recv(int fd, int size, int timeout)
    return rc;
 }
 
-static void do_headers(QoreString &hdr, const QoreHash *headers, int size)
+static void do_headers(QoreString &hdr, const QoreHashNode *headers, int size)
 {
    if (headers)
    {
@@ -1310,7 +1310,7 @@ static void do_headers(QoreString &hdr, const QoreHash *headers, int size)
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHash *headers, const void *data, int size)
+int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHashNode *headers, const void *data, int size)
 {
    // prepare header string
    QoreString hdr(priv->charsetid);
@@ -1331,7 +1331,7 @@ int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char
 }
 
 // returns 0 for success
-int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, const class QoreHash *headers, const void *data, int size)
+int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_version, const class QoreHashNode *headers, const void *data, int size)
 {
    // prepare header string
    QoreString hdr(priv->charsetid);
@@ -1412,7 +1412,7 @@ QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state)
 }
 
 // static method
-void QoreSocket::convertHeaderToHash(class QoreHash *h, char *p)
+void QoreSocket::convertHeaderToHash(class QoreHashNode *h, char *p)
 {
    while (*p)
    {

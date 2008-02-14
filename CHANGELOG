@@ -1,3 +1,10 @@
+2007.02.14: David Nichols
+	* more API docs as doxygen comments in header files
+	* eliminated QoreHash, QoreHashNode is the only hash implementation now
+
+2007.02.13: David Nichols
+	* started adding API documentation for doxygen to header files
+
 2007.02.09: David Nichols
 	* fixed a bug where a local variable declared as an immediate call 
           reference call would cause a run-time core dump

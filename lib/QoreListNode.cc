@@ -365,6 +365,8 @@ QoreListNode *QoreListNode::evalList(bool &needs_deref, ExceptionSink *xsink) co
    QoreListNode *rv = evalList(xsink);
    if (rv)
       needs_deref = true;
+   else
+      needs_deref = false;
    return rv;
 }
 

@@ -256,7 +256,7 @@ class OraBindGroup {
       class Datasource *ds;
       bool hasOutput;
 
-      DLLLOCAL void parseOld(class QoreHash *h, class ExceptionSink *xsink);
+      DLLLOCAL void parseOld(class QoreHashNode *h, class ExceptionSink *xsink);
       DLLLOCAL void parseQuery(const QoreListNode *args, class ExceptionSink *xsink);
       DLLLOCAL QoreHashNode *getOutputHash(class ExceptionSink *xsink);
 
