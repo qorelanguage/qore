@@ -699,12 +699,11 @@ class QoreNode *Object::evalMemberExistence(const char *mem, class ExceptionSink
 class Hash *Object::evalData(class ExceptionSink *xsink)
 {
    if (g.enter(xsink) < 0)
-      return NULL;
+      return 0;
    if (status == OS_DELETED)
    {
       g.exit();
-      // need to return an empty hash here
-      return new Hash();
+      return 0;
    }
    class Hash *rv = data->eval(xsink);
    g.exit();

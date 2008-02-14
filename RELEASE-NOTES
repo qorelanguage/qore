@@ -1,4 +1,8 @@
-RELEASE NOTES for qore v0.6.2.3, 0.6.2.2 and 0.6.2.1
+RELEASE NOTES for qore v0.6.2.4 - v0.6.2
+
+0.6.2.4 is a bugfix release from 0.6.2.3
+        * fixed a bug where a local variable declared as an immediate call reference call would cause a run-time core dump
+	* fixed a memory leak the use of Object::evalData() when an exception occurs
 
 0.6.2.3 is a bugfix release from 0.6.2.2
 	* compression of strings no longer includes the trailing null (broke XML-RPC and JSON-RPC communication over the HTTP server with compression with some browsers)

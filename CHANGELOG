@@ -1,3 +1,7 @@
+2008.02.14: David Nichols
+	* fixed a memory leak the use of Object::evalData() when an exception
+	  occurs
+
 2008.02.09: David Nichols
 	* fixed a bug where a local variable declared as an immediate call 
 	  reference call would cause a run-time core dump
