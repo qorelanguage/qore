@@ -1507,15 +1507,14 @@ void QoreString::addch(char c, unsigned times)
    if (priv->allocated) {
       priv->check_char(priv->len + times + STR_CLASS_BLOCK); // more data will follow the padding
       memset(priv->buf + priv->len, c, times);
-      priv->buf[priv->len + times] = 0;
-      priv->len += times;
    } else {
       priv->allocated = times + STR_CLASS_BLOCK;
       priv->allocated = (priv->allocated / 16 + 1) * 16; // use complete cache line
       priv->buf = (char*)malloc(sizeof(char) * priv->allocated);
       memset(priv->buf, c, times);
-      priv->buf[times] = 0;
    }
+   priv->len += times;
+   priv->buf[priv->len] = 0;
 }
 
 int QoreString::concatUnicode(unsigned code, ExceptionSink *xsink)
