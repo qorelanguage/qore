@@ -67,7 +67,7 @@ const char *SelfVarrefNode::getTypeName() const
 AbstractQoreNode *SelfVarrefNode::eval(ExceptionSink *xsink) const
 {
    assert(getStackObject());
-   return getStackObject()->evalMemberNoMethod(str, xsink);
+   return getStackObject()->getReferencedMemberNoMethod(str, xsink);
 }
 
 char *SelfVarrefNode::takeString()

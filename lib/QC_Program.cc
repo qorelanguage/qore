@@ -140,11 +140,7 @@ static AbstractQoreNode *PROGRAM_callFunction(QoreObject *self, QoreProgram *p, 
 
    ReferenceHolder<QoreListNode> args(xsink);
    if (params->size() > 1)
-   {
-      args = params->evalFrom(1, xsink);
-      if (*xsink)
-	 return 0;
-   }
+      args = params->copyListFrom(1);
 
    return p->callFunction(p0->getBuffer(), *args, xsink);
 }

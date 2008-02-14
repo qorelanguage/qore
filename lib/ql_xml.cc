@@ -300,8 +300,9 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
       // inc = ignore node counter, see if special keys exists and increment counter even if they have no value
       int inc = 0;
       int vn = 0;
-      const AbstractQoreNode *value = h->getKeyValueExistence("^value^");
-      if (value == (AbstractQoreNode *)-1)
+      bool exists;
+      const AbstractQoreNode *value = h->getKeyValueExistence("^value^", exists);
+      if (!exists)
 	 value = NULL;
       else
       {
@@ -313,8 +314,8 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
 	 while (true)
 	 {
 	    val.sprintf("^value%d^", vn);
-	    value = h->getKeyValueExistence(val.getBuffer());
-	    if (value == (AbstractQoreNode *)-1)
+	    value = h->getKeyValueExistence(val.getBuffer(), exists);
+	    if (!exists)
 	    {
 	       value = NULL;
 	       break;
@@ -325,8 +326,8 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
 	 }
       }
       
-      const AbstractQoreNode *attrib = h->getKeyValueExistence("^attributes^");
-      if (attrib == (AbstractQoreNode *)-1)
+      const AbstractQoreNode *attrib = h->getKeyValueExistence("^attributes^", exists);
+      if (!exists)
 	 attrib = NULL;
       else
 	 inc++;

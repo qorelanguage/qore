@@ -692,8 +692,7 @@ static AbstractQoreNode *op_object_ref(AbstractQoreNode *left, AbstractQoreNode 
 	 return 0;
 
       QoreStringNodeValueHelper key(*mem);
-
-      return h->evalKey(key->getBuffer(), xsink);      
+      return h->evalKeyValue(*key, xsink);      
    }
    if (op->type != NT_OBJECT)
       return 0;
@@ -913,9 +912,9 @@ static AbstractQoreNode *op_plus_equals(AbstractQoreNode *left, AbstractQoreNode
       // do not need ensure_unique() for objects
       if (new_right->type == NT_OBJECT)
       {
-	 QoreHashNode *h = reinterpret_cast<QoreObject *>(*new_right)->copyData(xsink);
+	 ReferenceHolder<QoreHashNode> h(reinterpret_cast<QoreObject *>(*new_right)->copyData(xsink), xsink);
 	 if (h)
-	    o->assimilate(h, xsink);
+	    o->merge(*h, xsink);
       }
       else if (new_right->type == NT_HASH)
 	 o->merge(reinterpret_cast<QoreHashNode *>(*new_right), xsink);
@@ -1568,7 +1567,7 @@ static AbstractQoreNode *op_plus_object_hash(AbstractQoreNode *left, AbstractQor
       QoreObject *l = reinterpret_cast<QoreObject *>(left);
       QoreHashNode *rh = reinterpret_cast<QoreHashNode *>(right);
 
-      ReferenceHolder<QoreHashNode> h(l->copyDataNode(xsink), xsink);
+      ReferenceHolder<QoreHashNode> h(l->copyData(xsink), xsink);
       if (*xsink)
 	 return 0;
       

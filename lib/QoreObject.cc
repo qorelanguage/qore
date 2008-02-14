@@ -298,11 +298,12 @@ AbstractQoreNode *QoreObject::evalMember(const QoreString *member, ExceptionSink
 	    priv->g.exit();
 	 else
 	 {
-	    rv = priv->data->evalKeyExistence(mem, xsink);
+	    bool exists;
+	    rv = priv->data->getReferencedKeyValue(mem, exists);
 	    priv->g.exit();
 	    
 	    // execute memberGate method for objects where no member exists
-	    if (rv == (AbstractQoreNode *)-1)
+	    if (!exists)
 	       rv = priv->myclass->evalMemberGate(this, *tstr, xsink);
 	 }
       }
@@ -655,40 +656,9 @@ void QoreObject::merge(const class QoreHashNode *h, ExceptionSink *xsink)
    priv->g.exit();
 }
 
-// adds all elements (already referenced) from the hash passed, deletes the
-// hash passed
-void QoreObject::assimilate(class QoreHashNode *h, ExceptionSink *xsink)
+AbstractQoreNode *QoreObject::getReferencedMemberNoMethod(const char *mem, ExceptionSink *xsink) const
 {
-   if (priv->g.enter(xsink) < 0)
-      return;
-   if (priv->status == OS_DELETED)
-   {
-      priv->g.exit();
-      makeAccessDeletedObjectException(xsink, priv->myclass->getName());
-      return;
-   }
-   priv->data->assimilate(h, xsink);
-   priv->g.exit();
-}
-
-AbstractQoreNode *QoreObject::evalFirstKeyValue(ExceptionSink *xsink) const
-{
-   if (priv->g.enter(xsink) < 0)
-      return NULL;
-   if (priv->status == OS_DELETED)
-   {
-      priv->g.exit();
-      makeAccessDeletedObjectException(xsink, priv->myclass->getName());
-      return NULL;
-   }
-   AbstractQoreNode *rv = priv->data->evalFirstKeyValue(xsink);
-   priv->g.exit();
-   return rv;
-}
-
-AbstractQoreNode *QoreObject::evalMemberNoMethod(const char *mem, ExceptionSink *xsink) const
-{
-   printd(5, "QoreObject::evalMemberNoMethod(this=%08p, mem=%08p (%s), xsink=%08p, data->size()=%d)\n",
+   printd(5, "QoreObject::getReferencedMemberNoMethod(this=%08p, mem=%08p (%s), xsink=%08p, data->size()=%d)\n",
 	  this, mem, mem, xsink, priv->data ? priv->data->size() : -1);
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -698,23 +668,7 @@ AbstractQoreNode *QoreObject::evalMemberNoMethod(const char *mem, ExceptionSink 
       makeAccessDeletedObjectException(xsink, mem, priv->myclass->getName());
       return NULL;
    }
-   AbstractQoreNode *rv = priv->data->evalKey(mem, xsink);
-   priv->g.exit();
-   return rv;
-}
-
-// it's OK to return NULL here to duplicate the behaviour of NOTHING
-AbstractQoreNode *QoreObject::evalMemberExistence(const char *mem, ExceptionSink *xsink) const
-{
-   if (priv->g.enter(xsink) < 0)
-      return NULL;
-   if (priv->status == OS_DELETED)
-   {
-      priv->g.exit();
-      makeAccessDeletedObjectException(xsink, mem, priv->myclass->getName());
-      return NULL;
-   }
-   AbstractQoreNode *rv = priv->data->evalKeyExistence(mem, xsink);
+   AbstractQoreNode *rv = priv->data->getReferencedKeyValue(mem);
    priv->g.exit();
    return rv;
 }
@@ -723,20 +677,6 @@ QoreHashNode *QoreObject::copyData(ExceptionSink *xsink) const
 {
    if (priv->g.enter(xsink) < 0)
       return 0;
-   if (priv->status == OS_DELETED)
-   {
-      priv->g.exit();
-      return 0;
-   }
-   QoreHashNode *rv = priv->data->copy();
-   priv->g.exit();
-   return rv;
-}
-
-QoreHashNode *QoreObject::copyDataNode(ExceptionSink *xsink) const
-{
-   if (priv->g.enter(xsink) < 0)
-      return NULL;
    if (priv->status == OS_DELETED)
    {
       priv->g.exit();

@@ -29,6 +29,7 @@
 //! This is the list container type in Qore, dynamically allocated only, reference counted
 /**
    it is both a value type and can hold parse expressions as well (in which case it needs to be evaluated)
+   the first element in the list is element 0
  */
 class QoreListNode : public AbstractQoreNode
 {   
@@ -70,15 +71,13 @@ class QoreListNode : public AbstractQoreNode
       DLLEXPORT QoreListNode();
 
       //! concatenate the verbose string representation of the list (including all contained values) to an existing QoreString
-      /** concatenate the verbose string representation of the list (including all contained values, for %n and %N in print formatting),
-	  "foff" is for multi-line formatting offset, -1 = no line breaks
+      /** used for %n and %N printf formatting, "foff" is for multi-line formatting offset, -1 = no line breaks
 	  returns -1 for exception raised, 0 = OK
       */
       DLLEXPORT int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
       //! returns a QoreString giving the verbose string representation of the List (including all contained values)
-      /** get the verbose string representation of the list (for %n and %N), 
-	  "foff" is for multi-line formatting offset, -1 = no line breaks
+      /** used for %n and %N printf formatting, "foff" is for multi-line formatting offset, -1 = no line breaks
 	  if "del" is true, then the returned QoreString * should be deleted, if false, then it must not be
 	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
       */
@@ -102,24 +101,24 @@ class QoreListNode : public AbstractQoreNode
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      //! evaluates the object and returns a value (or 0)
+      //! evaluates the list and returns a value (or 0)
       /** return value requires a deref(xsink)
-	  if the object does not require evaluation then "refSelf()" is used to 
+	  if the list does not require evaluation then "refSelf()" is used to 
 	  return the same object with an incremented reference count
 	  NOTE: if the object requires evaluation and there is an exception, 0 will be returned
       */
       DLLEXPORT virtual class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
 
-      //! optionally evaluates the argument
+      //! optionally evaluates the list
       /** return value requires a deref(xsink) if needs_deref is true
-	  NOTE: if the object requires evaluation and there is an exception, 0 will be returned
+	  NOTE: if the list requires evaluation and there is an exception, 0 will be returned
 	  NOTE: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
       */
       DLLEXPORT virtual class AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
 
       // decrements the reference count
       /** deletes the object when the reference count = 0.  The ExceptionSink 
-	  argumentis needed for those types that could throw an exception when 
+	  argument is needed for those types that could throw an exception when 
 	  they are deleted (ex: QoreObject) - which could be contained in the list
        */
       DLLEXPORT virtual void deref(class ExceptionSink *xsink);
@@ -138,27 +137,85 @@ class QoreListNode : public AbstractQoreNode
 
       DLLEXPORT AbstractQoreNode **get_entry_ptr(int index);
       DLLEXPORT AbstractQoreNode **getExistingEntryPtr(int index);
-      DLLEXPORT void set_entry(int index, class AbstractQoreNode *val, class ExceptionSink *xsink);
-      DLLEXPORT AbstractQoreNode *eval_entry(int num, class ExceptionSink *xsink) const;
+      DLLEXPORT void set_entry(int index, AbstractQoreNode *val, class ExceptionSink *xsink);
       DLLEXPORT void push(class AbstractQoreNode *val);
       DLLEXPORT void insert(class AbstractQoreNode *val);
+
+      //! returns the last element of the list, the length is decremented by one, caller owns the reference
+      /** if the list is empty the 0 is returned (NOTE: the last entry could also be 0 as well)
+       */
       DLLEXPORT AbstractQoreNode *pop();
+
+      //! returns the first element of the list, all other entries are moved down to fill up the first position, caller owns the reference
+      /** if the list is empty the 0 is returned (NOTE: the first entry could also be 0 as well)
+	  with the current implementation the execution time for this function is O(n) where n is the length of the list
+       */
       DLLEXPORT AbstractQoreNode *shift();
-      DLLEXPORT void merge(const class QoreListNode *list);
+
+      //! appends the elements of "list" to this list
+      DLLEXPORT void merge(const QoreListNode *list);
+
       DLLEXPORT int delete_entry(int index, class ExceptionSink *xsink);
+
       DLLEXPORT void pop_entry(int index, class ExceptionSink *xsink);
+
+      //! evaluates the list and returns a value (or 0)
+      /** return value requires a deref(xsink)
+	  if the list does not require evaluation then "refSelf()" is used to 
+	  return the same object with an incremented reference count
+	  NOTE: if the object requires evaluation and there is an exception, 0 will be returned
+      */
       DLLEXPORT QoreListNode *evalList(class ExceptionSink *xsink) const;
+
+      //! optionally evaluates the list
+      /** return value requires a deref(xsink) if needs_deref is true
+	  NOTE: if the list requires evaluation and there is an exception, 0 will be returned
+	  NOTE: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
+      */
       DLLEXPORT QoreListNode *evalList(bool &needs_deref, class ExceptionSink *xsink) const;
-      DLLEXPORT QoreListNode *evalFrom(int offset, class ExceptionSink *xsink) const;
+
+      //! performs a deep copy of the list and returns the new list
       DLLEXPORT QoreListNode *copy() const;
+
+      //! performs a deep copy of the list starting from element "offset" and returns the new list
+      /** therefore element 0 of the new list is element "offset" in the source list
+       */
       DLLEXPORT QoreListNode *copyListFrom(int offset) const;
+
+      //! returns a new list based on quicksorting the source list ("this")
+      /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+	  different data types and still be sorted
+       */
       DLLEXPORT QoreListNode *sort() const;
+
+      //! returns a new list based on quicksorting the source list ("this") using the passed function reference to determine lexical order
       DLLEXPORT QoreListNode *sort(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+
+      //! returns a new list based on executing mergesort on the source list ("this")
+      /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+	  different data types and still be sorted
+       */
       DLLEXPORT QoreListNode *sortStable() const;
+
+      //! returns a new list based on executing mergesort on the source list ("this") using the passed function reference to determine lexical order
       DLLEXPORT QoreListNode *sortStable(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+
+      //! returns a new list based on quicksorting the source list ("this") in descending order
+      /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+	  different data types and still be sorted
+       */
       DLLEXPORT QoreListNode *sortDescending() const;
+
+      //! returns a new list based on quicksorting the source list ("this") in descending order, using the passed function reference to determine lexical order
       DLLEXPORT QoreListNode *sortDescending(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
+
+      //! returns a new list based on executing mergesort on the source list ("this") in descending order
+      /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+	  different data types and still be sorted
+       */
       DLLEXPORT QoreListNode *sortDescendingStable() const;
+
+      //! returns a new list based on executing mergesort on the source list ("this") in descending order, using the passed function reference to determine lexical order
       DLLEXPORT QoreListNode *sortDescendingStable(const class ResolvedFunctionReferenceNode *fr, class ExceptionSink *xsink) const;
 
       //! returns the element having the lowest value (determined by calling OP_LOG_LT - the less-than "<" operator)
@@ -214,41 +271,13 @@ class QoreListNode : public AbstractQoreNode
       DLLLOCAL void clearNeedsEval();
       //! this function is not exported in the qore library
       DLLLOCAL void clear();
-};
-
-//! For use on the stack only: allows QoreListNode to be allocated on the stack
-/** the ExceptionSink object required for the deref() is passed to the constructor
- */
-class StackList : public QoreListNode
-{
-   private:
-      class ExceptionSink *xsink;
-      
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL void *operator new(size_t); 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL StackList();
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL StackList(bool i);
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL StackList(const StackList&);
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL StackList& operator=(const StackList&);
-   
-   public:
-      DLLEXPORT StackList(class ExceptionSink *xs)
-      {
-	 xsink = xs;
-      }
-      DLLEXPORT ~StackList()
-      {
-	 deref_intern(xsink);
-      }
-      DLLEXPORT class AbstractQoreNode *getAndClear(int i);
+      //! this function is not exported in the qore library
+      DLLLOCAL AbstractQoreNode *eval_entry(int num, class ExceptionSink *xsink) const;
 };
 
 //! For use on the stack only: manages a QoreListNode reference count
 /** The QoreListNode object is dereferenced when this object is destroyed
+    ReferenceHolder<QoreListNode> can also be used for the same purpose and provides more functionality
  */
 class TempList {
    private:
@@ -292,7 +321,6 @@ class ListIterator
       DLLEXPORT bool next();
       DLLEXPORT AbstractQoreNode *getValue() const;
       DLLEXPORT AbstractQoreNode **getValuePtr() const;
-      DLLEXPORT class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       DLLEXPORT bool first() const;
       DLLEXPORT bool last() const;
       //DLLEXPORT void setValue(class AbstractQoreNode *val, class ExceptionSink *xsink) const;
@@ -312,7 +340,6 @@ class ConstListIterator
       DLLEXPORT ConstListIterator(const QoreListNode *lst);
       DLLEXPORT bool next();
       DLLEXPORT const AbstractQoreNode *getValue() const;
-      DLLEXPORT class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
       DLLEXPORT bool first() const;
       DLLEXPORT bool last() const;
 };

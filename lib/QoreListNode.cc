@@ -39,6 +39,39 @@
 
 typedef ReferenceHolder<QoreListNode> safe_qorelist_t;
 
+//! For use on the stack only: allows QoreListNode to be allocated on the stack
+/** the ExceptionSink object required for the deref() is passed to the constructor
+    this class is not safe; it could be misused (for example, by calling ref() or refSelf())
+    therefore it's a private class implemented only in this file
+ */
+class StackList : public QoreListNode
+{
+   private:
+      class ExceptionSink *xsink;
+      
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL void *operator new(size_t); 
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL StackList();
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL StackList(bool i);
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL StackList(const StackList&);
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL StackList& operator=(const StackList&);
+   
+   public:
+      DLLEXPORT StackList(class ExceptionSink *xs)
+      {
+	 xsink = xs;
+      }
+      DLLEXPORT ~StackList()
+      {
+	 deref_intern(xsink);
+      }
+      DLLEXPORT class AbstractQoreNode *getAndClear(int i);
+};
+
 struct qore_list_private {
       AbstractQoreNode **entry;
       int length;
@@ -263,7 +296,7 @@ void QoreListNode::merge(const QoreListNode *list)
 int QoreListNode::delete_entry(int ind, ExceptionSink *xsink)
 {
    if (ind >= priv->length || ind < 0)
-      return 1;
+      return -1;
 
    AbstractQoreNode *e = priv->entry[ind];
    if (e && e->type == NT_OBJECT)
@@ -272,7 +305,7 @@ int QoreListNode::delete_entry(int ind, ExceptionSink *xsink)
    if (e)
    {
       e->deref(xsink);
-      priv->entry[ind] = NULL;
+      priv->entry[ind] = 0;
    }
 
    // resize list if deleting last element
@@ -368,18 +401,6 @@ QoreListNode *QoreListNode::evalList(bool &needs_deref, ExceptionSink *xsink) co
    else
       needs_deref = false;
    return rv;
-}
-
-QoreListNode *QoreListNode::evalFrom(int offset, ExceptionSink *xsink) const
-{
-   ReferenceHolder<QoreListNode> nl(new QoreListNode(), xsink);
-   for (int i = offset; i < priv->length; i++)
-   {
-      nl->push(priv->entry[i] ? priv->entry[i]->eval(xsink) : NULL);
-      if (*xsink)
-	 return 0;
-   }
-   return nl.release();
 }
 
 QoreListNode *QoreListNode::copy() const
@@ -688,7 +709,6 @@ void QoreListNode::resize(int num)
    {
       int d = num >> 2;
       priv->allocated = num + (d < LIST_PAD ? LIST_PAD : d);
-      //priv->allocated = num + LIST_PAD;
       priv->entry = (AbstractQoreNode **)realloc(priv->entry, sizeof (AbstractQoreNode *) * priv->allocated);
       for (int i = priv->length; i < priv->allocated; i++)
 	 priv->entry[i] = NULL;
@@ -987,12 +1007,6 @@ bool ListIterator::first() const
    return !pos; 
 } 
 
-AbstractQoreNode *ListIterator::eval(ExceptionSink *xsink) const
-{
-   // QoreListNode::eval_entry() checks if the offset is < 0 already
-   return l->eval_entry(pos, xsink);
-}
-
 ConstListIterator::ConstListIterator(const QoreListNode *lst) : l(lst), pos(-1)
 { 
 }
@@ -1020,12 +1034,6 @@ bool ConstListIterator::first() const
 {
    return !pos; 
 } 
-
-AbstractQoreNode *ConstListIterator::eval(ExceptionSink *xsink) const
-{
-   // QoreListNode::eval_entry() checks if the offset is < 0 already
-   return l->eval_entry(pos, xsink);
-}
 
 bool QoreListNode::isFinalized() const
 {

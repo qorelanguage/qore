@@ -270,15 +270,12 @@ static AbstractQoreNode *f_hash_values(const QoreListNode *params, ExceptionSink
    if (!p0)
       return NULL;
 
-   ReferenceHolder<QoreListNode> l(new QoreListNode(), xsink);
+   QoreListNode *l = new QoreListNode();
    ConstHashIterator hi(p0);
-   while (hi.next() && !xsink->isEvent())
-      l->push(hi.eval(xsink));
+   while (hi.next())
+      l->push(hi.getReferencedValue());
 
-   if (*xsink)
-      return NULL;
-
-   return l.release();
+   return l;
 }
 
 void do_zlib_exception(int rc, char *func, ExceptionSink *xsink)

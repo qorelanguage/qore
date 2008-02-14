@@ -123,8 +123,9 @@ AbstractQoreNode *Context::evalValue(char *field, ExceptionSink *xsink)
    if (!value)
       return NULL;
 
-   AbstractQoreNode *v = value->evalKeyExistence(field, xsink);
-   if (v == (AbstractQoreNode *)-1)
+   bool exists;
+   AbstractQoreNode *v = value->getReferencedKeyValue(field, exists);
+   if (!exists)
    {
       xsink->raiseException("CONTEXT-EXCEPTION", "\"%s\" is not a valid key for this context", field);
       return NULL;
@@ -145,7 +146,7 @@ QoreHashNode *Context::getRow(ExceptionSink *xsink)
 {
    printd(5, "Context::getRow() value=%08p %s\n", value, value ? value->getTypeName() : "NULL");
    if (!value)
-      return NULL;
+      return 0;
 
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
@@ -155,13 +156,11 @@ QoreHashNode *Context::getRow(ExceptionSink *xsink)
       const char *key = hi.getKey();
       printd(5, "Context::getRow() key=%s\n", key);
       // get list from hash
-      ReferenceHolder<AbstractQoreNode> v(hi.eval(xsink), xsink);
-      if (*xsink)
-	 return 0;
+      ReferenceHolder<AbstractQoreNode> v(hi.getReferencedValue(), xsink);
       assert(*v && v->type == NT_LIST);
       // set key value to list entry
       QoreListNode *l = reinterpret_cast<QoreListNode *>(*v);
-      h->setKeyValue(key, l->eval_entry(row_list[pos], xsink), NULL);
+      h->setKeyValue(key, l->eval_entry(row_list[pos], xsink), 0);
    }
    
    return h.release();
@@ -331,9 +330,9 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
       if (!value)
 	 return;
 
-      ReferenceHolder<AbstractQoreNode> fkv(value->evalFirstKeyValue(xsink), xsink);
+      AbstractQoreNode *fkv = value->getFirstKeyValue();
 
-      QoreListNode *l = dynamic_cast<QoreListNode *>(*fkv);
+      QoreListNode *l = dynamic_cast<QoreListNode *>(fkv);
       if (l) {
 	 max_pos = l->size();
 	 row_list = (int *)malloc(sizeof(int) * max_pos);

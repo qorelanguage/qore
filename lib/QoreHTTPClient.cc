@@ -38,6 +38,38 @@
 #  include "tests/QoreHTTPClient_tests.cc"
 #endif
 
+//! used for having a QoreHashNode on the stack
+/** this is not safe because the object could be misused (i.e. refSelf() called and reference used elsewhere)
+    therefore it's a private object just implemented in this file
+ */
+class StackHash : public QoreHashNode
+{
+   private:
+      class ExceptionSink *xsink;
+   
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL void *operator new(size_t); 
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL StackHash(const StackHash&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL StackHash& operator=(const StackHash&);
+   
+   public:
+      //! creates the hash on the stack, "xs" will be used when the object is deleted
+      DLLLOCAL StackHash(class ExceptionSink *xs)
+      {
+	 xsink = xs;
+      }
+
+      //! dereferences the members of the hash and destroys the object
+      DLLLOCAL ~StackHash()
+      {
+	 deref_intern(xsink);
+      }
+};
+
 DLLLOCAL ccharcase_set_t QoreHTTPClient::method_set;
 DLLLOCAL strcase_set_t QoreHTTPClient::header_ignore;
 
@@ -961,7 +993,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    AbstractQoreNode *body = 0;
    if (te && !strcasecmp((reinterpret_cast<QoreStringNode *>(te))->getBuffer(), "chunked")) // check for chunked response body
    {
-      class QoreHashNode *nah;
+      ReferenceHolder<QoreHashNode> nah(xsink);
       if (content_encoding)
 	 nah = priv->m_socket.readHTTPChunkedBodyBinary(priv->timeout, xsink);
       else
@@ -970,7 +1002,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 return 0;
       
       body = nah->takeKeyValue("body");
-      ans->assimilate(nah, xsink);
+      ans->merge(*nah, xsink);
    }
    else if (getbody || (len && strcmp(meth, "HEAD")))
    {

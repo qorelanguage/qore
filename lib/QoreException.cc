@@ -329,7 +329,7 @@ QoreException::QoreException(const char *e, QoreStringNode *d) : priv(new qore_e
    get_pgm_counter(priv->start_line, priv->end_line);
    const char *f = get_pgm_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreListNode(); //getCallStackList());
+   priv->callStack = new QoreListNode();
 
    priv->err = new QoreStringNode(e);
    priv->desc = d;
@@ -347,7 +347,7 @@ ParseException::ParseException(const char *e, QoreStringNode *d)
    get_parse_location(priv->start_line, priv->end_line);
    const char *f = get_parse_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreListNode(); //getCallStackList());
+   priv->callStack = new QoreListNode();
 
    priv->err = new QoreStringNode(e);
    priv->desc = d;
@@ -364,7 +364,7 @@ ParseException::ParseException(int s_line, int e_line, const char *e, QoreString
    priv->end_line = e_line;
    const char *f = get_parse_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreListNode(); //getCallStackList());
+   priv->callStack = new QoreListNode();
 
    priv->err = new QoreStringNode(e);
    priv->desc = d;
@@ -408,7 +408,7 @@ QoreException::QoreException(QoreListNode *l) : priv(new qore_ex_private)
    get_pgm_counter(priv->start_line, priv->end_line);   
    const char *f = get_pgm_file();
    priv->file = f ? strdup(f) : NULL;
-   priv->callStack = new QoreListNode(); //getCallStackList());
+   priv->callStack = new QoreListNode();
    priv->next = NULL;
 
    // must be a list

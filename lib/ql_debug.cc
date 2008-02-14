@@ -105,7 +105,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
 	       QoreStringNode *entry = reinterpret_cast<QoreStringNode *>(l->retrieve_entry(i));
 	       s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
 	       AbstractQoreNode *nn;
-	       dni(s, nn = o->evalMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
+	       dni(s, nn = o->getReferencedMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
 	       discard(nn, xsink);
 	       if (i != (l->size() - 1))
 		  s->concat('\n');

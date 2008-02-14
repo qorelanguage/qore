@@ -191,8 +191,9 @@ QoreHashNode *QoreTibrvTransport::msgToHash(TibrvMsg *msg, class ExceptionSink *
       if (xsink->isException())
 	 return 0;
 
-      AbstractQoreNode *ev = h->getKeyValueExistence(key);
-      if (ev != (AbstractQoreNode *)-1)
+      bool exists;
+      AbstractQoreNode *ev = h->getKeyValueExistence(key, exists);
+      if (exists)
       {
 	 AbstractQoreNode **evp = h->getKeyValuePtr(key);
 	 QoreListNode *l = dynamic_cast<QoreListNode *>(ev);
