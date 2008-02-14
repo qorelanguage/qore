@@ -1691,8 +1691,8 @@ static void do_test(bool is_fml32)
   res->deref(&xsink);
   assert(!xsink.isException());
 
-  empty->derefAndDelete(&xsink);
-  typed_names->derefAndDelete(&xsink);
+  empty->deref(&xsink);
+  typed_names->deref(&xsink);
   assert(!xsink.isException());
 }
 
@@ -2310,9 +2310,9 @@ static void do_test2(bool is_fml32)
 
   // cleanup
   res->deref(&xsink);
-  data->derefAndDelete(&xsink);
+  data->deref(&xsink);
 */
-  typed_names->derefAndDelete(&xsink);
+  typed_names->deref(&xsink);
 }
 
 TEST()
