@@ -536,7 +536,7 @@ static AbstractQoreNode *f_parseJSON(const QoreListNode *params, ExceptionSink *
    return parseJSONValue(p0, xsink);
 }
 
-class QoreString *makeJSONRPC11RequestStringArgs(const QoreListNode *params, ExceptionSink *xsink)
+QoreStringNode *makeJSONRPC11RequestStringArgs(const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
@@ -567,7 +567,7 @@ class QoreString *makeJSONRPC11RequestStringArgs(const QoreListNode *params, Exc
    return str.release();
 }
 
-class QoreString *makeJSONRPC11RequestString(const QoreListNode *params, ExceptionSink *xsink)
+QoreStringNode *makeJSONRPC11RequestString(const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))

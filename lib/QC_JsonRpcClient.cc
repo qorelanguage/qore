@@ -67,7 +67,7 @@ static AbstractQoreNode *JRC_callArgs(QoreObject *self, QoreHTTPClient *client, 
       return NULL;
 
    // create the outgoing message in JSON-RPC call format
-   TempString msg(makeJSONRPC11RequestStringArgs(params, xsink));
+   SimpleRefHolder<QoreStringNode> msg(makeJSONRPC11RequestStringArgs(params, xsink));
    if (!msg)
       return NULL;
    // send the message to the server and get the response as an JSON string
@@ -92,7 +92,7 @@ static AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, cons
       return NULL;
 
    // create the outgoing message in JSON-RPC call format
-   TempString msg(makeJSONRPC11RequestString(params, xsink));
+   SimpleRefHolder<QoreStringNode> msg(makeJSONRPC11RequestStringArgs(params, xsink));
    if (!msg)
       return NULL;
    // send the message to the server and get the response as an JSON string
