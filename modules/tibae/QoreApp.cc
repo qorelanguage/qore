@@ -97,7 +97,7 @@ QoreApp::~QoreApp()
    free(daemon);
    free(subject);
    if (classlist)
-      classlist->derefAndDelete(NULL);
+      classlist->deref(NULL);
    
    delete appProps;
    
