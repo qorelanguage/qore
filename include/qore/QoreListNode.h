@@ -71,15 +71,21 @@ class QoreListNode : public AbstractQoreNode
       DLLEXPORT QoreListNode();
 
       //! concatenate the verbose string representation of the list (including all contained values) to an existing QoreString
-      /** used for %n and %N printf formatting, "foff" is for multi-line formatting offset, -1 = no line breaks
-	  returns -1 for exception raised, 0 = OK
+      /** used for %n and %N printf formatting
+	  @param str the string representation of the type will be concatenated to this QoreString reference
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return -1 for exception raised, 0 = OK
       */
       DLLEXPORT int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
       //! returns a QoreString giving the verbose string representation of the List (including all contained values)
-      /** used for %n and %N printf formatting, "foff" is for multi-line formatting offset, -1 = no line breaks
-	  if "del" is true, then the returned QoreString * should be deleted, if false, then it must not be
+      /** used for %n and %N printf formatting
+	  @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+	  @see QoreNodeAsStringHelper
       */
       DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
@@ -90,6 +96,10 @@ class QoreListNode : public AbstractQoreNode
       DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
       //! tests for equality ("deep compare" including all contained values) with possible type conversion (soft compare)
+      /**
+	 @param v the value to compare
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
       //! tests for equality ("deep compare" including all contained values) without type conversions (hard compare)

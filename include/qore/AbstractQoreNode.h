@@ -114,16 +114,23 @@ class AbstractQoreNode : public ReferenceObject
        */
       DLLEXPORT double getAsFloat() const;
 
-      //! returns the value of the object in a string context
-      /** get the value of the type in a string context (default implementation = del = false and returns NullString)
-	  if del is true, then the returned QoreString * should be deleted, if false, then it must not be deleted.
-	  NOTE: Use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
+      //! concatenate the verbose string representation of the list (including all contained values for container types) to an existing QoreString
+      /** used for %n and %N printf formatting
+	  @param str the string representation of the type will be concatenated to this QoreString reference
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return -1 for exception raised, 0 = OK
       */
       DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
 
-      //! concatentate the string value of the object to an existing QoreString
-      /** concatenate string representation to a QoreString (no action for complex types = default implementation) 
-       */
+      //! returns a QoreString giving the verbose string representation of the List (including all contained values for container types)
+      /** used for %n and %N printf formatting
+	  @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+	  @see QoreNodeAsStringHelper
+      */
       DLLEXPORT virtual void getStringRepresentation(QoreString &str) const;
 
       //! returns the DateTime representation of this type (default implementation: returns ZeroDate, del = false)
@@ -159,10 +166,18 @@ class AbstractQoreNode : public ReferenceObject
       //! pure virtual function, returns a copy of the object
       DLLEXPORT virtual AbstractQoreNode *realCopy() const = 0;
 
-      //! pure virtual function, tests for equality with possible type conversion
+      //! tests for equality ("deep compare" including all contained values for container types) with possible type conversion (soft compare)
+      /**
+	 @param v the value to compare
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const = 0;
 
-      //! pure virtual function, tests for equality without type conversion
+      //! tests for equality ("deep compare" including all contained values for container types) without type conversions (hard compare)
+      /**
+	 @param v the value to compare
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const = 0;
 
       //! returns the data type
