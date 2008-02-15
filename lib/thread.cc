@@ -177,7 +177,7 @@ public:
 	 curr = curr->prev;
       }
       --curr->pos;
-      printd(5, "uninstantiating lvar \"%s\"\n", curr->lvar[curr->pos].id);
+      printd(5, "uninstantiating lvar \"%s\"\n", curr->lvar[curr->pos].get_id());
       curr->lvar[curr->pos].deref(xsink);
    }
    DLLLOCAL class LVar *find(lvh_t id)
@@ -188,7 +188,7 @@ public:
 	 int p = w->pos;
 	 while (p)
 	 {
-	    if (w->lvar[--p].id == id)
+	    if (w->lvar[--p].get_id() == id)
 	       return &w->lvar[p];
 	 }
 	 w = w->prev;
@@ -1001,7 +1001,7 @@ namespace {
    }
 }
 
-static AbstractQoreNode *op_background(AbstractQoreNode *left, AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
+static AbstractQoreNode *op_background(const AbstractQoreNode *left, const AbstractQoreNode *ignored, bool ref_rv, ExceptionSink *xsink)
 {
    if (!left)
       return NULL;

@@ -115,7 +115,7 @@ AbstractQoreNode *Var::eval(ExceptionSink *xsink)
 }
 
 // note: the caller must exit the gate!
-AbstractQoreNode **Var::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink)
+AbstractQoreNode **Var::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (gate.enter(xsink) < 0)
       return NULL;
@@ -133,7 +133,7 @@ AbstractQoreNode **Var::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink)
       return rv;
    }
    vl->push(&gate);
-   return &v.val.value;
+   return const_cast<AbstractQoreNode **>(&v.val.value);
 }
 
 // note: the caller must exit the gate!
@@ -274,10 +274,10 @@ AbstractQoreNode *LVar::eval(bool &needs_deref, ExceptionSink *xsink)
    return evalReference(xsink);
 }
 
-AbstractQoreNode **LVar::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink)
+AbstractQoreNode **LVar::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (!vexp)
-      return &value;
+      return const_cast<AbstractQoreNode **>(&value);
 
    // mask the ID in case it's a recursive reference
    lvh_t save = id;
@@ -357,7 +357,7 @@ void LVar::deref(ExceptionSink *xsink)
       obj->tDeref();
 }
 
-static inline AbstractQoreNode **do_list_val_ptr(QoreTreeNode *tree, class AutoVLock *vlp, ExceptionSink *xsink)
+static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, class AutoVLock *vlp, ExceptionSink *xsink)
 {
    // first get index
    int ind = tree->right->integerEval(xsink);
@@ -401,7 +401,7 @@ static inline AbstractQoreNode **do_list_val_ptr(QoreTreeNode *tree, class AutoV
 }
 
 // for objects and hashes
-static inline AbstractQoreNode **do_object_val_ptr(QoreTreeNode *tree, class AutoVLock *vlp, ExceptionSink *xsink)
+static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, class AutoVLock *vlp, ExceptionSink *xsink)
 {
    QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
    if (*xsink)
@@ -460,19 +460,19 @@ static inline AbstractQoreNode **do_object_val_ptr(QoreTreeNode *tree, class Aut
 }
 
 // this function will change the lvalue to the right type if needed (used for assignments)
-AbstractQoreNode **get_var_value_ptr(AbstractQoreNode *n, AutoVLock *vlp, ExceptionSink *xsink)
+AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, ExceptionSink *xsink)
 {
    const QoreType *ntype = n->type;
    //printd(5, "get_var_value_ptr(%08p) %s\n", n, n->getTypeName());
    if (ntype == NT_VARREF)
    {
-      VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
+      const VarRefNode *v = reinterpret_cast<const VarRefNode *>(n);
       //printd(5, "get_var_value_ptr(): vref=%s (%08p)\n", v->name, v);
       return v->getValuePtr(vlp, xsink);
    }
    else if (ntype == NT_SELF_VARREF)
    {
-      SelfVarrefNode *v = reinterpret_cast<SelfVarrefNode *>(n);
+      const SelfVarrefNode *v = reinterpret_cast<const SelfVarrefNode *>(n);
       // need to check for deleted objects
       // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
       AbstractQoreNode **rv = getStackObject()->getMemberValuePtr(v->str, vlp, xsink);
@@ -482,7 +482,7 @@ AbstractQoreNode **get_var_value_ptr(AbstractQoreNode *n, AutoVLock *vlp, Except
    }
 
    // it must be a tree
-   QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
+   const QoreTreeNode *tree = reinterpret_cast<const QoreTreeNode *>(n);
    if (tree->op == OP_LIST_REF)
       return do_list_val_ptr(tree, vlp, xsink);
    return do_object_val_ptr(tree, vlp, xsink);
@@ -553,18 +553,18 @@ AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, class AutoVLock *vl, Ex
 
 // finds object value pointers without making any changes to the referenced structures
 // will *not* execute memberGate methods
-AbstractQoreNode *getExistingVarValue(AbstractQoreNode *n, ExceptionSink *xsink, class AutoVLock *vl, AbstractQoreNode **pt)
+AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink, class AutoVLock *vl, AbstractQoreNode **pt)
 {
    printd(5, "getExistingVarValue(%08p) %s\n", n, n->getTypeName());
    const QoreType *ntype = n->type;
    if (ntype == NT_VARREF)
-      return reinterpret_cast<VarRefNode *>(n)->getValue(vl, xsink);
+      return reinterpret_cast<const VarRefNode *>(n)->getValue(vl, xsink);
 
    if (ntype == NT_SELF_VARREF)
-      return getStackObject()->getMemberValueNoMethod(reinterpret_cast<SelfVarrefNode *>(n)->str, vl, xsink);
+      return getStackObject()->getMemberValueNoMethod(reinterpret_cast<const SelfVarrefNode *>(n)->str, vl, xsink);
 
    // it's a variable reference tree
-   QoreTreeNode *tree = ntype == NT_TREE ? reinterpret_cast<QoreTreeNode *>(n) : 0;
+   const QoreTreeNode *tree = ntype == NT_TREE ? reinterpret_cast<const QoreTreeNode *>(n) : 0;
    if (tree && (tree->op == OP_LIST_REF || tree->op == OP_OBJECT_REF))
    {
       AbstractQoreNode *val = getExistingVarValue(tree->left, xsink, vl, pt);

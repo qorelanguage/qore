@@ -69,8 +69,8 @@ class VarRefNode : public ParseNode
       DLLLOCAL int resolveExisting();
 
       DLLLOCAL void setValue(class AbstractQoreNode *val, class ExceptionSink *xsink);
-      DLLLOCAL AbstractQoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink);
-      DLLLOCAL AbstractQoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink) const;
 
       // takes the name - caller owns the memory
       DLLLOCAL char *takeName();

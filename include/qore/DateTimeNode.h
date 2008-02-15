@@ -174,15 +174,18 @@ class DateTimeNodeValueHelper {
       DLLLOCAL const DateTimeNode *operator->() { return dt; }
       DLLLOCAL const DateTimeNode *operator*() { return dt; }
 
-      // takes the referenced value and leaves this object empty, value is referenced if necessary
-      DLLLOCAL DateTimeNode *takeReferencedValue()
+      //! returns a referenced value - the caller will own the reference
+      /**
+	  The value is referenced if necessary (if it was a temporary value)
+	  @return the DateTimeNode value, where the caller will own the reference count
+      */
+      DLLLOCAL DateTimeNode *getReferencedValue()
       {
-         DateTimeNode *rv = dt;
-	 if (dt && !temp)
-	    rv->ref();
-         dt = 0;
-         temp = false;
-         return rv;
+	 if (temp)
+	    temp = false;
+	 else if (dt)
+	    dt->ref();
+	 return dt;
       }
 };
 

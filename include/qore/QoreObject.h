@@ -110,17 +110,21 @@ class QoreObject : public AbstractQoreNode
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      // decrements the reference count
-      /** deletes the object when the reference count = 0.  The ExceptionSink 
-	  argument is needed for those types that could throw an exception when 
-	  they are deleted (ex: QoreObject) - which could be contained in this object as well
+      //! decrements the reference count
+      /** deletes the object when the reference count = 0.  If necessary, the destructor will be run
+	  (if it hasn't already been run).  Note that other objects could be deleted as well if they
+	  are members of this object, any exceptions thrown there will also be added to "xsink"
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT virtual void deref(class ExceptionSink *xsink);
 
-      //! returns true if the list does not contain any parse expressions, otherwise returns false
+      //! returns false
       DLLEXPORT virtual bool is_value() const;
 
+      //! returns true if this object is a valid instance of the classid passed
+      /**
+	 @param cid the class ID to check
+       */
       DLLEXPORT bool validInstanceOf(int cid) const;
 
       //! sets the value of the given member to the given value

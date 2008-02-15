@@ -230,17 +230,21 @@ class QoreStringNodeValueHelper {
       }
       DLLLOCAL const QoreStringNode *operator->() { return str; }
       DLLLOCAL const QoreStringNode *operator*() { return str; }
-      // takes the referenced value and leaves this object empty, value is referenced if necessary
-      DLLLOCAL QoreStringNode *takeReferencedValue()
-      {
-         QoreStringNode *rv = str;
-	 if (str && !temp)
-	    str->ref();
 
-         str = 0;
-         temp = false;
-         return rv;
+      //! returns a referenced value - the caller will own the reference
+      /**
+	 The string is referenced if necessary (if it was a temporary value)
+	 @return the string value, where the caller will own the reference count
+      */
+      DLLLOCAL QoreStringNode *getReferencedValue()
+      {
+	 if (temp)
+	    temp = false;
+	 else if (str)
+	    str->ref();
+	 return str;
       }
+
 };
 
 class TempQoreStringNode {

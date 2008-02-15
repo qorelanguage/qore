@@ -938,7 +938,6 @@ const char *QoreObject::getTypeName() const
    return "object";
 }
 
-// returns true if the node represents a value (default implementation)
 bool QoreObject::is_value() const
 {
    return false;

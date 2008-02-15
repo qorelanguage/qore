@@ -235,6 +235,14 @@ AbstractQoreNode *QoreListNode::retrieve_entry(int num)
    return priv->entry[num];
 }
 
+AbstractQoreNode *QoreListNode::get_referenced_entry(int num) const
+{
+   if (num >= priv->length || num < 0)
+      return 0;
+   AbstractQoreNode *rv = priv->entry[num];
+   return rv ? rv->refSelf() : 0;
+}
+
 int QoreListNode::getEntryAsInt(int num) const
 {
    if (num >= priv->length || num < 0 || !priv->entry[num])

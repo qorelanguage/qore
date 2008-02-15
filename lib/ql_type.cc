@@ -51,7 +51,7 @@ static AbstractQoreNode *f_float(const QoreListNode *params, ExceptionSink *xsin
 static AbstractQoreNode *f_string(const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreStringNodeValueHelper str(get_param(params, 0));
-   return str.takeReferencedValue();
+   return str.getReferencedValue();
 }
 
 static AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSink *xsink)
@@ -79,7 +79,7 @@ static AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSink *xsi
 static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink)
 {
    DateTimeNodeValueHelper date(get_param(params, 0));
-   return date.takeReferencedValue();
+   return date.getReferencedValue();
 }
 
 static AbstractQoreNode *f_list(const QoreListNode *params, ExceptionSink *xsink)

@@ -46,36 +46,35 @@
 // structure for local variables
 class LVar {
    private:
-      class AbstractQoreNode *value;
-      class AbstractQoreNode *vexp;  // partially evaluated lvalue expression for references
-      class QoreObject *obj;     // for references to object members
+      AbstractQoreNode *value;
+      AbstractQoreNode *vexp;  // partially evaluated lvalue expression for references
+      QoreObject *obj;     // for references to object members
+      mutable lvh_t id;
 
-      DLLLOCAL class AbstractQoreNode *evalReference(class ExceptionSink *xsink);
-      
+      DLLLOCAL AbstractQoreNode *evalReference(class ExceptionSink *xsink);
+
    public:
-      lvh_t id;
-      //class LVar *next;
 
-      /*
-      DLLLOCAL LVar(lvh_t nid, class AbstractQoreNode *nvalue);
-      DLLLOCAL LVar(lvh_t nid, class AbstractQoreNode *ve, class QoreObject *o);
-       */
       DLLLOCAL void set(lvh_t nid, class AbstractQoreNode *nvalue);
       DLLLOCAL void set(lvh_t nid, class AbstractQoreNode *ve, class QoreObject *o);
       
-      DLLLOCAL class AbstractQoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
       DLLLOCAL void setValue(class AbstractQoreNode *val, class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode *eval(class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *eval(class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink);
       DLLLOCAL bool checkRecursiveReference(lvh_t nid);
       DLLLOCAL void deref(class ExceptionSink *xsink);
+      DLLLOCAL lvh_t get_id() const
+      {
+	 return id;
+      }
 };
 
 union VarValue {
       // for value
       struct {
-	    class AbstractQoreNode *value;
+	    AbstractQoreNode *value;
 	    char *name;
       } val;
       // for imported variables
@@ -108,12 +107,12 @@ class Var : public ReferenceObject
       DLLLOCAL bool isImported() const;
       DLLLOCAL void deref(class ExceptionSink *xsink);
       DLLLOCAL class AbstractQoreNode *eval(class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLLOCAL class AbstractQoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink) const;
       DLLLOCAL class AbstractQoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
 };
 
 DLLLOCAL class AbstractQoreNode *getNoEvalVarValue(class AbstractQoreNode *n, class AutoVLock *vl, class ExceptionSink *xsink);
-DLLLOCAL class AbstractQoreNode *getExistingVarValue(class AbstractQoreNode *n, class ExceptionSink *xsink, class AutoVLock *vl, class AbstractQoreNode **pt);
+DLLLOCAL class AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, class ExceptionSink *xsink, class AutoVLock *vl, class AbstractQoreNode **pt);
 DLLLOCAL void delete_var_node(class AbstractQoreNode *node, class ExceptionSink *xsink);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL class LVar *instantiateLVar(lvh_t id, class AbstractQoreNode *value);

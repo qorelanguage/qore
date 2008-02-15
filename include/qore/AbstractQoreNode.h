@@ -49,24 +49,24 @@ class AbstractQoreNode : public ReferenceObject
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL AbstractQoreNode& operator=(const AbstractQoreNode&);
 
-      //! default implementation
+      //! default implementation, returns false
       /**
-	 The default implementation returns "false".  This function is called by the normal class function "getAsBool()"
+	 This function is called by the normal class function "getAsBool()"
        */
       DLLEXPORT virtual bool getAsBoolImpl() const { return false; }
-      //! default implementation
+      //! default implementation, returns 0
       /**
-	 The default implementation returns 0.  This function is called by the normal class function "getAsInt()"
+	 This function is called by the normal class function "getAsInt()"
        */
       DLLEXPORT virtual int getAsIntImpl() const { return 0; }
-      //! default implementation
+      //! default implementation, returns 0
       /**
-	 The default implementation returns 0.  This function is called by the normal class function "getAsBigInt()"
+	 This function is called by the normal class function "getAsBigInt()"
        */
       DLLEXPORT virtual int64 getAsBigIntImpl() const { return 0; }
-      //! default implementation
+      //! default implementation, returns 0.0
       /**
-	 The default implementation returns 0.0.  This function is called by the normal class function "getAsFloat()"
+	 This function is called by the normal class function "getAsFloat()"
        */
       DLLEXPORT virtual double getAsFloatImpl() const { return 0.0; }
 
@@ -113,15 +113,42 @@ class AbstractQoreNode : public ReferenceObject
 	 calls getAsFloatImpl() if necessary (there is an optimization for the QoreFloatNode class) to return the floating-point value of the object
        */
       DLLEXPORT double getAsFloat() const;
+      
+      //! returns the value of the type converted to a string, default implementation, returns the empty string
+      /** NOTE: do not use this function directly, use QoreStringValueHelper instead
+	  @param del output parameter: if del is true, then the resulting QoreString pointer belongs to the caller (and must be deleted manually), if false it must not be
+	  @return a QoreString pointer, use the del output parameter to determine ownership of the pointer
+	  @see QoreStringValueHelper
+       */
+      DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
 
-      //! concatenate the verbose string representation of the list (including all contained values for container types) to an existing QoreString
+      //! concatentates the value of the type to an existing QoreString reference, default implementation does nothing
+      /**
+	 @param str a reference to a QoreString where the value of the type will be concatenated
+       */
+      DLLEXPORT virtual void getStringRepresentation(QoreString &str) const;
+
+      //! returns the DateTime representation of this type (default implementation: returns ZeroDate, del = false)
+      /** NOTE: Use the DateTimeValueHelper class instead of using this function directly
+	  @param del output parameter: if del is true, then the returned DateTime pointer belongs to the caller (and must be deleted manually), if false, then it must not be
+	  @see DateTimeValueHelper
+       */
+      DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
+
+      //! assigns the date representation of a value to the DateTime reference passed, default implementation does nothing
+      /** 
+	  @param dt the DateTime reference to be assigned
+       */
+      DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
+
+      //! concatenate the verbose string representation of the value (including all contained values for container types) to an existing QoreString
       /** used for %n and %N printf formatting
 	  @param str the string representation of the type will be concatenated to this QoreString reference
 	  @param foff for multi-line formatting offset, -1 = no line breaks
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return -1 for exception raised, 0 = OK
       */
-      DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
+      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const = 0;
 
       //! returns a QoreString giving the verbose string representation of the List (including all contained values for container types)
       /** used for %n and %N printf formatting
@@ -131,31 +158,6 @@ class AbstractQoreNode : public ReferenceObject
 	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
 	  @see QoreNodeAsStringHelper
       */
-      DLLEXPORT virtual void getStringRepresentation(QoreString &str) const;
-
-      //! returns the DateTime representation of this type (default implementation: returns ZeroDate, del = false)
-      /** if del is true, then the returned DateTime * should be deleted, if false, then it should not
-	  NOTE: Use the DateTimeValueHelper class (defined in QoreDateTimeNode.h) instead of using this function directly
-       */
-      DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
-
-      /** assign date representation to a DateTime (no action for complex types = default implementation)
-       */
-      DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
-
-      //! concatenate the verbose string representation of the object to an existing QoreString
-      /** concatenate the verbose string representation of the object (for %n and %N in print formatting), foff is for multi-line formatting offset, -1 = no line breaks
-	  the ExceptionSink is only needed for QoreObject where a method may be executed.
-	  returns -1 for exception raised, 0 = OK
-      */
-      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const = 0;
-
-      //! returns a QoreString giving the verbose string representation of the object
-      /** get the verbose string representation of the object (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-	  the ExceptionSink is only needed for QoreObject where a method may be executed.
-	  if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
-      */
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const = 0;
 
       //! returns true if the object needs evaluation to return a value, false if not
@@ -163,7 +165,7 @@ class AbstractQoreNode : public ReferenceObject
        */
       DLLEXPORT virtual bool needs_eval() const;
 
-      //! pure virtual function, returns a copy of the object
+      //! returns a copy of the object, the caller owns the reference count
       DLLEXPORT virtual AbstractQoreNode *realCopy() const = 0;
 
       //! tests for equality ("deep compare" including all contained values for container types) with possible type conversion (soft compare)
@@ -195,32 +197,41 @@ class AbstractQoreNode : public ReferenceObject
       //! optionally evaluates the argument
       /** return value requires a deref(xsink) if needs_deref is true
 	  default implementation = needs_deref = false, returns "this"
-	  note: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
+	  NOTE: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
+	  @param needs_deref this is an output parameter, if needs_deref is true then the value returned must be dereferenced
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @see QoreNodeEvalOptionalRefHolder
       */
       DLLEXPORT virtual AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
 
       //! evaluates the object and returns a 64-bit integer value
       /** default implementation is getAsBigInt()
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT virtual int64 bigIntEval(class ExceptionSink *xsink) const;
 
       //! evaluates the object and returns an integer value
       /** default implementation is getAsInt()
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT virtual int integerEval(class ExceptionSink *xsink) const;
 
       //! evaluates the object and returns a boolean value
       /** default implementation is getAsBool()
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT virtual bool boolEval(class ExceptionSink *xsink) const;
 
       //! evaluates the object and returns a floating-point value
       /** default implementation is getAsFloat()
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT virtual double floatEval(class ExceptionSink *xsink) const;
 
-      // decrements the reference count
-      /** deletes the object when the reference count = 0.  The ExceptionSink argument is needed for those types that could throw an exception when they are deleted (ex: QoreObject)
+      //! decrements the reference count
+      /** deletes the object when the reference count = 0.  
+	  The ExceptionSink argument is needed for those types that could throw an exception when they are deleted (ex: QoreObject)
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT virtual void deref(class ExceptionSink *xsink);
 
@@ -381,25 +392,8 @@ class QoreNodeEvalOptionalRefHolder {
 	 return val;
       }
 
-      //! takes the referenced value and leaves this object empty, value is referenced if necessary
-      DLLLOCAL AbstractQoreNode *takeReferencedValue()
-      {
-	 AbstractQoreNode *rv = val;
-	 if (val && !needs_deref)
-	    rv->ref();
-	 val = 0;
-	 needs_deref = false;
-	 return rv;
-      }
-
-      //! returns the object being managed
-      DLLLOCAL AbstractQoreNode *operator->() { return val; }
-
       //! returns the object being managed
       DLLLOCAL const AbstractQoreNode *operator->() const { return val; }
-
-      //! returns the object being managed
-      DLLLOCAL AbstractQoreNode *operator*() { return val; }
 
       //! returns the object being managed
       DLLLOCAL const AbstractQoreNode *operator*() const { return val; }

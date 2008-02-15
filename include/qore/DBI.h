@@ -57,13 +57,28 @@
 // DBI method signatures - note that only get_client_version uses a "const Datasource" 
 // the others do not so that automatic reconnects can be supported (which will normally
 // require writing to the Datasource)
+
+//! this is the signature for the "open" method - must be defined in each DBI driver
 typedef int (*q_dbi_open_t)(class Datasource *, class ExceptionSink *xsink);
+
+//! this is the signature for the "close" method - must be defined in each DBI driver
 typedef int (*q_dbi_close_t)(class Datasource *);
+
+//! this is the signature for the "select" method - must be defined in each DBI driver
 typedef class AbstractQoreNode *(*q_dbi_select_t)(class Datasource *, const class QoreString *, const class QoreListNode *, class ExceptionSink *xsink);
+
+//! this is the signature for the "selectRows" method - must be defined in each DBI driver
 typedef class AbstractQoreNode *(*q_dbi_select_rows_t)(class Datasource *, const class QoreString *, const class QoreListNode *, class ExceptionSink *xsink);
+
+//! this is the signature for the "execSQL" method - must be defined in each DBI driver
 typedef class AbstractQoreNode *(*q_dbi_exec_t)(class Datasource *, const class QoreString *, const class QoreListNode *args, class ExceptionSink *xsink);
+
+//! this is the signature for the "commit" method - must be defined in each DBI driver
 typedef int (*q_dbi_commit_t)(class Datasource *, class ExceptionSink *xsink);
+
+//! this is the signature for the "rollback" method - must be defined in each DBI driver
 typedef int (*q_dbi_rollback_t)(class Datasource *, class ExceptionSink *xsink);
+
 typedef int (*q_dbi_begin_transaction_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_auto_commit_t)(class Datasource *, class ExceptionSink *xsink);
 typedef int (*q_dbi_abort_transaction_start_t)(class Datasource *, class ExceptionSink *xsink);
@@ -76,6 +91,9 @@ typedef safe_dslist<qore_dbi_method_t> dbi_method_list_t;
 
 struct qore_dbi_mlist_private;
 
+//! this is the data structure Qore DBI drivers will use to pass the supported DBI methods
+/** the minimum methods that must be supported are: open, close, select, selectRows, execSQL, commit, and rollback
+ */
 class qore_dbi_method_list
 {
    private:
@@ -140,17 +158,27 @@ class DBIDriverFunctions {
 
 struct qore_dbi_private;
 
-// most of these functions are not exported; the Datasource class should be used 
-// instead of using the DBIDriver class directly
+//! this class provides the internal link to the database driver for Qore's DBI layer
+/**
+   most of these functions are not exported; the Datasource class should be used 
+   instead of using the DBIDriver class directly
+   @see Datasource
+*/
 class DBIDriver {
    private:
+      //! private implementation
       struct qore_dbi_private *priv;
 
-      // not implemented
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL DBIDriver(const DBIDriver&);
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL DBIDriver& operator=(const DBIDriver&);
 
    public:
+      //! this is the only public exported function available in this class
+      /**
+	 @return the name of the driver (ex: "oracle")
+       */
       DLLEXPORT const char *getName() const;
 
       DLLLOCAL DBIDriver(const char *name, const dbi_method_list_t &methods, int cps);
@@ -174,15 +202,35 @@ class DBIDriver {
 
 struct qore_dbi_dlist_private;
 
+//! this class is used to register and find DBI drivers loaded in qore
+/**
+   this class will all use the ModuleManager to try and load a driver if it is not already loaded when find() is called
+   @see ModuleManager
+ */
 class DBIDriverList
 {
    private:
+      //! private implementation
       struct qore_dbi_dlist_private *priv;
 
       DLLLOCAL DBIDriver *find_intern(const char *name) const;
 
 public:
+      //! registers a new DBI driver
+      /**
+	 @param name the name of the driver (ex: "oracle")
+	 @param methods the list of methods the driver supports
+	 @param caps the capabilities the driver supports
+	 @return the DBIDriver object created
+       */
       DLLEXPORT class DBIDriver *registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps);
+
+      //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
+      /**
+	 @param name the name of the driver to find (or load)
+	 @return the DBIDriver found or 0 if not found and was not loaded
+	 @see ModuleManager
+       */
       DLLEXPORT DBIDriver *find(const char *name) const;
 
       DLLLOCAL DBIDriverList();
@@ -193,10 +241,14 @@ public:
 // 
 DLLEXPORT extern class DBIDriverList DBI;
 DLLEXPORT class QoreHashNode *parseDatasource(const char *ds, class ExceptionSink *xsink);
-// concatenates a numeric value to the QoreString from the QoreNode
+
+//! concatenates a numeric value to the QoreString from the QoreNode
 DLLEXPORT void DBI_concat_numeric(class QoreString *str, const class AbstractQoreNode *v);
-// concatenates a string value to the QoreString from the AbstractQoreNode, note that no escaping is done here
-// this function is most useful for table prefixes, etc in queries
+
+//! concatenates a string value to the QoreString from the AbstractQoreNode
+/** NOTE: no escaping is done here
+    this function is most useful for table prefixes, etc in queries
+*/
 DLLEXPORT int DBI_concat_string(class QoreString *str, const class AbstractQoreNode *v, class ExceptionSink *xsink);
 
 DLLLOCAL void init_dbi_functions();

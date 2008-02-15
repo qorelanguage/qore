@@ -266,7 +266,7 @@ void ExceptionSink::raiseException(QoreException *e)
    insert(e);
 }
 
-void ExceptionSink::raiseException(QoreListNode *n)
+void ExceptionSink::raiseException(const QoreListNode *n)
 {
    insert(new QoreException(n));
 }
@@ -402,7 +402,7 @@ void QoreException::del(ExceptionSink *xsink)
    delete this;
 }
 
-QoreException::QoreException(QoreListNode *l) : priv(new qore_ex_private)
+QoreException::QoreException(const QoreListNode *l) : priv(new qore_ex_private)
 {
    priv->type = ET_USER;
    get_pgm_counter(priv->start_line, priv->end_line);   
@@ -414,20 +414,12 @@ QoreException::QoreException(QoreListNode *l) : priv(new qore_ex_private)
    // must be a list
    if (l)
    {
-      priv->err = l->retrieve_entry(0);
-      if (priv->err)
-	 priv->err->ref();
-      priv->desc = l->retrieve_entry(1);
-      if (priv->desc)
-	 priv->desc->ref();
+      priv->err = l->get_referenced_entry(0);
+      priv->desc = l->get_referenced_entry(1);
       if (l->size() > 3)
 	 priv->arg = l->copyListFrom(2);
       else
-      {
-	 priv->arg = l->retrieve_entry(2);
-	 if (priv->arg)
-	    priv->arg->ref();
-      }
+	 priv->arg = l->get_referenced_entry(2);
    }
    else {
       priv->err = priv->desc = 0;

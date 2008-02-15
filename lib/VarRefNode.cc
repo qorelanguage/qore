@@ -146,14 +146,14 @@ double VarRefNode::floatEval(class ExceptionSink *xsink) const
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode **VarRefNode::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink)
+AbstractQoreNode **VarRefNode::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL)
       return find_lvar(ref.id)->getValuePtr(vl, xsink);
    return ref.var->getValuePtr(vl, xsink);
 }
 
-AbstractQoreNode *VarRefNode::getValue(class AutoVLock *vl, ExceptionSink *xsink)
+AbstractQoreNode *VarRefNode::getValue(class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL)
       return find_lvar(ref.id)->getValue(vl, xsink);
