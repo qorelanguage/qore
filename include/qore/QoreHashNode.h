@@ -354,7 +354,10 @@ class ConstHashIterator
       DLLLOCAL void* operator new(size_t);
 
    public:
+      //! initializes the iterator with the passed hash
       DLLEXPORT ConstHashIterator(const QoreHashNode *h);
+
+      //! initializes the iterator with the passed hash
       DLLEXPORT ConstHashIterator(const QoreHashNode &h);
 
       //! moves to the next element, returns false when there are no more elements to iterate

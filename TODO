@@ -1,5 +1,6 @@
 see docs/roadmap.html
 
+* make it so that there is only ever one Nothing and Null object
 * find out why ref_rv is set to true for op_background even when the result is not used
 * implement bool_eval(), etc for VarRefNode
 * try implementing QoreNode::ref(), is_unique(), reference_count() as virtual (disable access to reference_count) and making Null and Nothing as not-reference counted objects and see if it improves performance

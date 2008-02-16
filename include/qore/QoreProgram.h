@@ -1,7 +1,7 @@
 /*
   QoreProgram.h
 
-  Program QoreObject Definition
+  Program Object Definition
 
   Qore Programming Language
 
@@ -30,12 +30,6 @@
 
 class AbstractFunctionReferenceNode;
 
-// the two-layered reference counting is to eliminate problems from circular references
-// when a program has a global variable that contains an object that references the program...
-// objects now reference the dependency counter, so when the object's counter reaches zero and
-// the global variable list is deleted, then the variables will in turn dereference the program
-// so it can be deleted...
-
 // warnings - must correspond with the string order in QoreProgram.cc
 #define QP_WARN_WARNING_MASK_UNCHANGED   (1 << 0)
 #define QP_WARN_DUPLICATE_LOCAL_VARS     (1 << 1)
@@ -49,9 +43,18 @@ DLLEXPORT extern const char *qore_warnings[];
 DLLEXPORT int get_warning_code(const char *str);
 DLLEXPORT extern unsigned qore_num_warnings;
 
+//! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
+/** This class implements a transaction and thread-safe container for qore-language code
+    This class implements two-layered reference counting to address problems with circular references.
+    When a program has a global variable that contains an object that references the program...
+    objects now reference the dependency counter, so when the object's counter reaches zero and
+    the global variable list is deleted, then the variables will in turn dereference the program
+    so it can be deleted.
+ */
 class QoreProgram : public AbstractPrivateData
 {
    private:
+      //! private implementation
       struct qore_program_private *priv;
       
       DLLLOCAL void nextSB();
@@ -63,19 +66,32 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL int internParsePending(const char *code, const char *label);
       DLLLOCAL void del(class ExceptionSink *xsink);
 
-      // not implemented
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreProgram(const QoreProgram&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreProgram& operator=(const QoreProgram&);
       
    protected:
+      //! the destructor is private in order to prohibit the objkect from being allocated on the stack
+      /** the destructor is run when the reference count reaches 0 
+       */
       DLLLOCAL virtual ~QoreProgram();
 
    public:
+      //! creates the object
       DLLEXPORT QoreProgram();
-      DLLEXPORT class AbstractQoreNode *callFunction(const char *name, const class QoreListNode *args, class ExceptionSink *xsink);
-      DLLEXPORT class AbstractQoreNode *callFunction(class UserFunction *func, const class QoreListNode *args, class ExceptionSink *xsink);
-      DLLEXPORT class AbstractQoreNode *run(class ExceptionSink *xsink);
-      DLLEXPORT class AbstractQoreNode *runTopLevel(class ExceptionSink *xsink);
+      //! calls a function from the function name and returns the return value
+      /** if the function does not exist, an exception is added to "xsink"
+       */
+      DLLEXPORT AbstractQoreNode *callFunction(const char *name, const class QoreListNode *args, class ExceptionSink *xsink);
+
+      //! runs the program (instantiates the program class if a program class has been set
+      /**
+	 @see setExecClass()
+       */
+      DLLEXPORT AbstractQoreNode *run(class ExceptionSink *xsink);
+      DLLEXPORT AbstractQoreNode *runTopLevel(class ExceptionSink *xsink);
       DLLEXPORT void parseFileAndRun(const char *filename);
       DLLEXPORT void parseAndRun(FILE *, const char *name);
       DLLEXPORT void parseAndRun(const char *str, const char *name);
@@ -94,18 +110,35 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT bool existsFunction(const char *name);
       DLLEXPORT virtual void deref(class ExceptionSink *xsink);
       DLLEXPORT void lockOptions();
-      // setExecClass() NOTE: string passed here will copied
+      
+      //! sets the name of the application class to be executed (instantiated) instead of top-level code
+      /** normally parse option PO_NO_TOP_LEVEL_STATEMENTS should be set as well
+	  NOTE: string passed here will copied
+	  @param ecn the name of the class to be executed as the program class
+      */
       DLLEXPORT void setExecClass(const char *ecn = NULL);
       DLLEXPORT void parseSetParseOptions(int po);
       DLLEXPORT void waitForTermination();
       DLLEXPORT void waitForTerminationAndDeref(class ExceptionSink *xsink);
       DLLEXPORT class QoreNamespace *getQoreNS() const;
       DLLEXPORT class RootQoreNamespace *getRootNS() const;
-      // returns 0 for success, -1 for error
+      //! sets the warning mask
+      /**
+	 @param code the new warning mask
+	 @return 0 for success, -1 for error
+      */
       DLLEXPORT int setWarningMask(int wm);
-      // returns 0 for success, -1 for error
+      //! enables a warning by its code
+      /**
+	 @param code the warning code to enable
+	 @return 0 for success, -1 for error
+      */
       DLLEXPORT int enableWarning(int code);
-      // returns 0 for success, -1 for error
+      //! disables a warning by its code
+      /**
+	 @param code the warning code to disable
+	 @return 0 for success, -1 for error
+      */
       DLLEXPORT int disableWarning(int code);
       DLLEXPORT int getParseOptions() const;
       DLLEXPORT void setParseOptions(int po, class ExceptionSink *xsink);
@@ -118,6 +151,12 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT class UserFunction *findUserFunction(const char *name);
       
       DLLLOCAL QoreProgram(class QoreProgram *pgm, int po, bool ec = false, const char *ecn = NULL);
+
+      //! calls a function from a UserFunction pointer and returns the return value
+      /** if the function does not exist, an exception is added to "xsink"
+       */
+      DLLLOCAL AbstractQoreNode *callFunction(class UserFunction *func, const class QoreListNode *args, class ExceptionSink *xsink);
+
       DLLLOCAL void registerUserFunction(class UserFunction *u);
       DLLLOCAL void resolveFunction(class FunctionCallNode *f);      
       DLLLOCAL AbstractFunctionReferenceNode *resolveFunctionReference(class UnresolvedFunctionReferenceNode *fr);      
