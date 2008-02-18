@@ -32,14 +32,14 @@
 
 #define QORE_AUTONAMESPACELIST_H
 
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 #include <qore/ModuleManager.h>
 
 #include <qore/safe_dslist>
 
 typedef safe_dslist<qore_module_ns_init_t> anslist_t;
 
-class AutoNamespaceList : public LockedObject, public anslist_t
+class AutoNamespaceList : public QoreThreadLock, public anslist_t
 {
    public:
       DLLLOCAL void add(qore_module_ns_init_t ns_init)

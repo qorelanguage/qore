@@ -1016,7 +1016,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       }
       else
       {
-	 TempQoreStringNode bstr(priv->m_socket.recv(len, priv->timeout, &rc));
+	 QoreStringNodeHolder bstr(priv->m_socket.recv(len, priv->timeout, &rc));
 	 if (rc > 0 && bstr)
 	    body = bstr.release();
       }

@@ -40,7 +40,7 @@ class ModuleManager MM;
 class StringList ModuleManager::autoDirList;
 class StringList ModuleManager::moduleDirList;
 bool ModuleManager::show_errors = false;
-class LockedObject ModuleManager::mutex;
+class QoreThreadLock ModuleManager::mutex;
 module_map_t ModuleManager::map;
 
 #ifdef QORE_MONOLITHIC
@@ -194,7 +194,7 @@ class ModuleInfo *ModuleManager::find(const char *name)
 
 void ModuleManager::addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del)
 {
-   TempQoreStringNode str(init());
+   QoreStringNodeHolder str(init());
    if (str)
    {
       fprintf(stderr, "WARNING! cannot initialize builtin feature '%s': %s\n", fn, str->getBuffer());
@@ -288,7 +288,7 @@ void ModuleManager::init(bool se)
 	    char *p = strrchr(name, '.');
 	    if (p)
 	      *p = '\0';
-	    TempQoreStringNode errstr(loadModuleFromPath(globbuf.gl_pathv[i], name));
+	    QoreStringNodeHolder errstr(loadModuleFromPath(globbuf.gl_pathv[i], name));
 	    if (errstr && show_errors)
 	       fprintf(stderr, "error loading %s\n", errstr->getBuffer());
 	    free(name);

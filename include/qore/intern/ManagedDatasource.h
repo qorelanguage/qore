@@ -34,7 +34,7 @@
 #ifdef _QORE_LIB_INTERN
 
 #include <qore/common.h>
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 #include <qore/QoreCondition.h>
 #include <qore/Datasource.h>
 #include <qore/AbstractThreadResource.h>
@@ -45,7 +45,7 @@
 class ManagedDatasource : public AbstractThreadResource, public Datasource
 {
 private:
-   class LockedObject ds_lock;     // connection/transaction lock
+   class QoreThreadLock ds_lock;     // connection/transaction lock
 
    int counter,                    // flag if SQL is in progress
       tid,                         // TID of thread holding the connection/transaction lock

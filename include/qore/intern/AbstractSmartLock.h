@@ -25,7 +25,7 @@
 #define _QORE_ABSTRACTSMARTLOCK_H
 
 #include <qore/Qore.h>
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 #include <qore/QoreCondition.h>
 #include <qore/AbstractThreadResource.h>
 
@@ -55,7 +55,7 @@ class AbstractSmartLock : public AbstractThreadResource
       DLLLOCAL int verify_wait_unlocked(int mtid, class ExceptionSink *xsink);
 
    public:
-      LockedObject asl_lock;
+      QoreThreadLock asl_lock;
       QoreCondition asl_cond;
 
       DLLLOCAL AbstractSmartLock() : vl(NULL), tid(-1), waiting(0)  {}

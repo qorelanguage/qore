@@ -28,7 +28,7 @@
 class Environment Env;
 
 #ifdef NEED_ENVIRON_LOCK
-static class LockedObject lck_environ;
+static class QoreThreadLock lck_environ;
 #endif
 
 Environment::Environment()

@@ -40,7 +40,7 @@ static int utf8cpos(const char *p, const char *e);
 
 encoding_map_t QoreEncodingManager::emap;
 const_encoding_map_t QoreEncodingManager::amap;
-class LockedObject QoreEncodingManager::mutex;
+class QoreThreadLock QoreEncodingManager::mutex;
 class QoreEncodingManager QEM;
 
 const QoreEncoding *QoreEncodingManager::addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc)

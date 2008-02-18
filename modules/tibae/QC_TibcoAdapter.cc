@@ -49,7 +49,7 @@ void TIBAE_constructor(class QoreObject *self, const QoreListNode *params, Excep
    }
 
    session_name = p0->getBuffer();
-   TempQoreHashNode classlist(xsink);
+   QoreHashNodeHolder classlist(xsink);
    if ((p2 = test_hash_param(params, 2)))
    {
       // FIXME: check that classlist hash has only String values!

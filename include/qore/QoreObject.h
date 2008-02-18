@@ -35,7 +35,7 @@
     objects store this data as well as any member data.
     
     objects have two levels of reference counts - one is for the existence of the c++ object (tRefs below)
-    the other is for the scope of the object (the parent ReferenceObject) - when this reaches 0 the
+    the other is for the scope of the object (the parent QoreReferenceCounter) - when this reaches 0 the
     object will have its destructor run (if it hasn't already been deleted)
     only when tRefs reaches 0, meaning that no more pointers are pointing to this object will the object
     actually be deleted
@@ -191,12 +191,17 @@ class QoreObject : public AbstractQoreNode
        */
       DLLEXPORT void mergeDataToHash(class QoreHashNode *hash, class ExceptionSink *xsink);
 
-      //! sets private data to the passed key, used in Qore-language constructors
+      //! sets private data for the object against the class ID passed, used in C++ functions implementing Qore constructors
+      /**
+	 @param key the class ID of the class to set the private data for
+	 @param pd the private data for the given class ID
+       */
       DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
 
-      //! returns the private data corresponding to the key passed with an incremented reference count, caller owns the reference
+      //! returns the private data corresponding to the class ID passed with an incremented reference count, caller owns the reference
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param key the class ID of the class to get the private data for
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink) const;
 

@@ -25,9 +25,9 @@
 #define _QORE_BUILTINMETHOD_H
 
 #include <qore/intern/Function.h>
-#include <qore/ReferenceObject.h>
+#include <qore/QoreReferenceCounter.h>
 
-class BuiltinMethod : public BuiltinFunction, public ReferenceObject
+class BuiltinMethod : public BuiltinFunction, public QoreReferenceCounter
 {
 protected:
    DLLLOCAL inline ~BuiltinMethod() {}

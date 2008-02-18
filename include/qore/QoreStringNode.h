@@ -29,12 +29,18 @@
 #include <qore/AbstractQoreNode.h>
 #include <qore/QoreString.h>
 
+//! Qore's string value type, reference counted, dynamically-allocated only
+/** for a version that can be used on the stack, use QoreString
+    @see QoreString
+    @see QoreEncoding
+ */
 class QoreStringNode : public SimpleQoreNode, public QoreString
 {
    private:
-      // these functions are not actually implemented
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreStringNode(QoreString *str);
-      DLLLOCAL QoreStringNode& operator=(const QoreStringNode&); // not implemented
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL QoreStringNode& operator=(const QoreStringNode&);
 
       DLLLOCAL virtual bool getAsBoolImpl() const;
       DLLLOCAL virtual int getAsIntImpl() const;
@@ -42,23 +48,50 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       DLLLOCAL virtual double getAsFloatImpl() const;
 
    protected:
-      // destructor only called when references = 0, use deref() instead
+      //! destructor only called when references = 0, use deref() instead
       DLLEXPORT virtual ~QoreStringNode();
 
    public:
       DLLEXPORT QoreStringNode();
 
+      //! creates a new object from a string and sets the character encoding
+      /**
+	 @param str the string data is copied to the new QoreStringNode object
+	 @param enc the encoding for the string
+       */
       DLLEXPORT QoreStringNode(const char *str, const class QoreEncoding *enc = QCS_DEFAULT);
-      // copies str
+
+      //! creates a new QoreStringNode from an existing QoreString reference
+      /**
+	 @param str copies the data into the new QoreStringNode
+      */
       DLLEXPORT QoreStringNode(const QoreString &str);
-      // copies str
+
+      //! creates a new QoreStringNode from an existing QoreStringNode reference
+      /**
+	 @param str copies the data into the new QoreStringNode
+      */
       DLLEXPORT QoreStringNode(const QoreStringNode &str);
-      // copies str
+
+      //! creates a new object from a std::string and sets the character encoding
+      /**
+	 @param str the string data is copied to the new QoreStringNode object
+	 @param enc the encoding for the string
+       */
       DLLEXPORT QoreStringNode(const std::string &str, const class QoreEncoding *enc = QCS_DEFAULT);
+
       // copies binary object and makes a base64-encoded string out of it
       DLLEXPORT QoreStringNode(const class BinaryNode *b);
-      // takes ownership of the nbuf passed
+
+      //! creates a new object; takes ownership of the char pointer passed, all parameters are mandatory
+      /**
+	 @param nbuf the pointer for the character data
+	 @param nlen the length of the string in bytes (not including the trailing '\0')
+	 @param nallocated the number of bytes allocated for this buffer (if unknown, set to nlen + 1)
+	 @param enc the encoding for the string
+      */
       DLLEXPORT QoreStringNode(char *nbuf, int nlen, int nallocated, const class QoreEncoding *enc);
+
       // copies str
       DLLEXPORT QoreStringNode(const char *str, int len, const class QoreEncoding *new_qorecharset = QCS_DEFAULT);
 
@@ -67,66 +100,119 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
 
       DLLEXPORT virtual bool needs_eval() const;
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
+      //! concatenates the string data in double quotes to an existing QoreString
+      /** used for %n and %N printf formatting.  An exception may be thrown if there is an encoding conversion error
+	  @param str the string representation of the type will be concatenated to this QoreString reference
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return -1 for exception raised, 0 = OK
+      */
       DLLEXPORT int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+
+      //! returns a QoreString giving the string data in double quotes
+      /** used for %n and %N printf formatting
+	  @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+	  @see QoreNodeAsStringHelper
+      */
       DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      // get the value of the type in a string context (0 (NULL) for complex types = default implementation)
-      // if del is true, then the returned QoreString should be deleted, if false, then it should not
+      //! returns this string, del is set to false
+      /** NOTE: do not use this function directly, use QoreStringValueHelper instead
+	  @param del output parameter: if del is true, then the resulting QoreString pointer belongs to the caller (and must be deleted manually), if false it must not be
+	  @return a QoreString pointer, use the del output parameter to determine ownership of the pointer
+	  @see QoreStringValueHelper
+       */
       DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
-      // concatenate string representation to a QoreString (no action for complex types = default implementation)
+
+      //! concatentates the value of the type to an existing QoreString reference
+      /**
+	 @param str a reference to a QoreString where the value of the type will be concatenated
+       */
       DLLEXPORT virtual void getStringRepresentation(QoreString &str) const;
 
-      // if del is true, then the returned DateTime * should be deleted, if false, then it should not
+      //! returns the DateTime representation of this string
+      /** NOTE: Use the DateTimeValueHelper class instead of using this function directly
+	  @param del output parameter: if del is true, then the returned DateTime pointer belongs to the caller (and must be deleted manually), if false, then it must not be
+	  @see DateTimeValueHelper
+       */
       DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
-      // assign date representation to a DateTime * (no action for complex types = default implementation)
+
+      //! assigns the date representation of this string to the DateTime reference passed
+      /** 
+	  @param dt the DateTime reference to be assigned
+       */
       DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
 
+      //! returns a copy of the object, the caller owns the reference count
       DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
+      //! tests for equality ("deep compare" including all contained values for container types) with possible type and character encoding conversion (soft compare)
+      /** this function does not throw any Qore-language exceptions with QoreStringNode
+	  @param v the value to compare
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
+      //! tests for equality ("deep compare" including all contained values for container types) without type or character encoding conversions (hard compare)
+      /** if the character encodings of the two strings differ, the comparison fails immediately
+	  this function does not throw any Qore-language exceptions with QoreStringNode
+	  @param v the value to compare
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      // returns the data type
+      //! returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
+
+      //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
       DLLEXPORT QoreStringNode *convertEncoding(const class QoreEncoding *nccs, class ExceptionSink *xsink) const;
       DLLEXPORT QoreStringNode *substr(int offset) const;
       DLLEXPORT QoreStringNode *substr(int offset, int length) const;
 
-      // return a QoreString with the characters reversed
+      //! return a QoreStringNode with the characters reversed
       DLLEXPORT QoreStringNode *reverse() const;
 
       // copy function
       DLLEXPORT QoreStringNode *copy() const;
 
-      // creates a new QoreStringNode from a string and converts its encoding
+      //! creates a new QoreStringNode from a string and converts its encoding
       DLLEXPORT static QoreStringNode *createAndConvertEncoding(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink);
-      // parses the string as a base64-encoded binary and returns the decoded value as a QoreStringNode
+      //! parses the string as a base64-encoded binary and returns the decoded value as a QoreStringNode
       DLLEXPORT class QoreStringNode *parseBase64ToString(class ExceptionSink *xsink) const;
 
-      // constructor supporting createAndConvertEncoding()
+      //! constructor supporting createAndConvertEncoding(), not exported in the library
       DLLLOCAL QoreStringNode(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink);
+
+      //! constructor using the private implementation of QoreString; not exported in the library
       DLLLOCAL QoreStringNode(struct qore_string_private *p);
 };
 
 extern QoreStringNode *NullString;
 
+//! this class is used to safely manage calls to AbstractQoreNode::getStringRepresentation() when a simple QoreString value is needed, stack only, may not be dynamically allocated
+/** the QoreString value returned by this function is managed safely in an exception-safe way with this class
+ */
 class QoreStringValueHelper {
    private:
       QoreString *str;
       bool del;
 
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreStringValueHelper(const QoreStringValueHelper&); // not implemented
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreStringValueHelper& operator=(const QoreStringValueHelper&); // not implemented
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
 
    public:
+      //! creates the object and acquires a pointer to the QoreString representation of the AbstractQoreNode passed
       DLLLOCAL QoreStringValueHelper(const AbstractQoreNode *n)
       {
 	 if (n) {
@@ -143,6 +229,10 @@ class QoreStringValueHelper {
 	    del = false;
 	 }
       }
+
+      //! gets the QoreString representation and ensures that it's in the desired encoding
+      /** a Qore-language exception may be thrown if an encoding error occurs
+       */
       DLLLOCAL QoreStringValueHelper(const AbstractQoreNode *n, const QoreEncoding *enc, ExceptionSink *xsink)
       {
 	 if (n) {
@@ -168,14 +258,30 @@ class QoreStringValueHelper {
 	    del = false;
 	 }
       }
+
+      //! destroys the object and deletes the QoreString pointer being managed if it was a temporary pointer
       DLLLOCAL ~QoreStringValueHelper()
       {
 	 if (del)
 	    delete str;
       }
+
+      //! returns the object being managed
+      /**
+	 @return the object being managed
+       */
       DLLLOCAL const QoreString *operator->() { return str; }
+
+      //! returns the object being managed
+      /**
+	 @return the object being managed
+       */
       DLLLOCAL const QoreString *operator*() { return str; }
-      // returns a copy of the string that the caller owns
+
+      //! returns a copy of the QoreString that the caller owns
+      /** the object may be left empty after this call
+	  @return a QoreString pointer owned by the called
+       */
       DLLLOCAL QoreString *giveString()
       {
 	 if (!str)
@@ -188,20 +294,30 @@ class QoreStringValueHelper {
 	 str = 0;
 	 return rv;
       }
+
+      //! returns true if the pointer being managed is temporary
       DLLLOCAL bool is_temp() const
       {
 	 return del;
       }
 };
 
+//! this class is used to safely manage calls to AbstractQoreNode::getStringRepresentation() when a QoreStringNode value is needded, stack only, may not be dynamically allocated
+/** the QoreStringNode value returned by this function is managed safely in an exception-safe way with this class
+ */
 class QoreStringNodeValueHelper {
    private:
       QoreStringNode *str;
       bool temp;
 
-      DLLLOCAL QoreStringNodeValueHelper(const QoreStringNodeValueHelper&); // not implemented
-      DLLLOCAL QoreStringNodeValueHelper& operator=(const QoreStringNodeValueHelper&); // not implemented
-      DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL QoreStringNodeValueHelper(const QoreStringNodeValueHelper&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL QoreStringNodeValueHelper& operator=(const QoreStringNodeValueHelper&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL void* operator new(size_t);
 
    public:
       DLLLOCAL QoreStringNodeValueHelper(const AbstractQoreNode *n)
@@ -223,12 +339,24 @@ class QoreStringNodeValueHelper {
 	    temp = true;
 	 }
       }
+
+      //! destroys the object and dereferences the QoreStringNode if it is a temporary pointer
       DLLLOCAL ~QoreStringNodeValueHelper()
       {
 	 if (temp)
 	    str->deref();
       }
+
+      //! returns the object being managed
+      /**
+	 @return the object being managed
+       */
       DLLLOCAL const QoreStringNode *operator->() { return str; }
+
+      //! returns the object being managed
+      /**
+	 @return the object being managed
+       */
       DLLLOCAL const QoreStringNode *operator*() { return str; }
 
       //! returns a referenced value - the caller will own the reference
@@ -244,56 +372,35 @@ class QoreStringNodeValueHelper {
 	    str->ref();
 	 return str;
       }
-
 };
 
-class TempQoreStringNode {
-   private:
-      QoreStringNode *str;
+#include <qore/ReferenceHolder.h>
 
-      DLLLOCAL TempQoreStringNode(const TempQoreStringNode&); // not implemented
-      DLLLOCAL TempQoreStringNode& operator=(const TempQoreStringNode&); // not implemented
-      DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
-
-   public:
-      DLLLOCAL TempQoreStringNode(QoreStringNode *s)
-      {
-	 str = s;
-      }
-      DLLLOCAL ~TempQoreStringNode()
-      {
-	 if (str)
-	    str->deref();
-      }
-      DLLLOCAL QoreStringNode *operator->() { return str; }
-      DLLLOCAL QoreStringNode *operator*() { return str; }
-      DLLLOCAL operator bool() const { return str != 0; }
-      DLLLOCAL void operator=(QoreStringNode *nv)
-      {
-	 if (str)
-	    str->deref();
-	 str = nv;
-      }
-      DLLLOCAL QoreStringNode *release() 
-      {
-	 QoreStringNode *rv = str;
-	 str = 0;
-	 return rv;
-      }
-};
+//! For use on the stack only: manages a QoreStringNode reference count
+/**
+   @see SimpleRefHolder
+ */
+typedef SimpleRefHolder<QoreStringNode> QoreStringNodeHolder;
 
 extern QoreString NothingTypeString;
 
+//! safely manages the return values to AbstractQoreNode::getAsString(), stack only, cannot be dynamically allocated
 class QoreNodeAsStringHelper {
    private:
       QoreString *str;
       bool del;
 
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreNodeAsStringHelper(const QoreNodeAsStringHelper&); // not implemented
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreNodeAsStringHelper& operator=(const QoreNodeAsStringHelper&); // not implemented
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
 
    public:
+      //! makes the call to AbstractQoreNode::getAsString() and manages the return values
       DLLLOCAL QoreNodeAsStringHelper(const AbstractQoreNode *n, int offset, ExceptionSink *xsink)
       {
 	 if (n)
@@ -303,14 +410,30 @@ class QoreNodeAsStringHelper {
 	    del = false;
 	 }
       }
+
+      //! destroys the object and deletes the QoreString pointer being managed if it was a temporary pointer
       DLLLOCAL ~QoreNodeAsStringHelper()
       {
 	 if (del)
 	    delete str;
       }
+
+      //! returns the object being managed
+      /**
+	 @return the object being managed
+       */
       DLLLOCAL const QoreString *operator->() { return str; }
+
+      //! returns the object being managed
+      /**
+	 @return the object being managed
+       */
       DLLLOCAL const QoreString *operator*() { return str; }
-      // returns a copy of the string that the caller owns
+
+      //! returns a copy of the QoreString that the caller owns
+      /** the object may be left empty after this call
+	  @return a QoreString pointer owned by the called
+       */
       DLLLOCAL QoreString *giveString()
       {
 	 if (!str)

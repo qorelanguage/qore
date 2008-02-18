@@ -93,7 +93,7 @@ DatasourcePool::~DatasourcePool()
 
 void DatasourcePool::destructor(ExceptionSink *xsink)
 {
-   AutoLocker al((LockedObject *)this);
+   AutoLocker al((QoreThreadLock *)this);
 
    for (int i = 0; i < cmax; i++)
    {
@@ -142,7 +142,7 @@ void DatasourcePool::freeDS()
    //printd(0, "DatasourcePool::freeDS() remove_thread_resource(this=%08p), tid=%d\n", this, tid);
    remove_thread_resource(this);
 
-   AutoLocker al((LockedObject *)this);
+   AutoLocker al((QoreThreadLock *)this);
 
    thread_use_t::iterator i = tmap.find(tid);
    free_list.push_back(i->second);
@@ -155,7 +155,7 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink)
 {
    int tid = gettid();
    
-   SafeLocker sl((LockedObject *)this);
+   SafeLocker sl((QoreThreadLock *)this);
    // see if thread already has a datasource allocated
    thread_use_t::iterator i = tmap.find(tid);
    if (i != tmap.end())
@@ -203,7 +203,7 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink)
 	 {
 	    // otherwise we sleep until a connection becomes available
 	    wait_count++;
-	    wait((LockedObject *)this);
+	    wait((QoreThreadLock *)this);
 	    wait_count--;
 	    continue;
 	 }
@@ -377,7 +377,7 @@ QoreStringNode *DatasourcePool::toString()
 {
    QoreStringNode *str = new QoreStringNode();
 
-   SafeLocker sl((LockedObject *)this);
+   SafeLocker sl((QoreThreadLock *)this);
    str->sprintf("this=%08p, min=%d, max=%d, cmax=%d, wait_count=%d, thread_map = (", this, min, max, cmax, wait_count);
    thread_use_t::const_iterator ti = tmap.begin();
    while (ti != tmap.end())
@@ -455,7 +455,7 @@ void DatasourcePool::cleanup(ExceptionSink *xsink)
 
    int tid = gettid();
    // thread must have a Datasource allocated
-   SafeLocker sl((LockedObject *)this);
+   SafeLocker sl((QoreThreadLock *)this);
    thread_use_t::iterator i = tmap.find(tid);
    assert(i != tmap.end());
    sl.unlock();
@@ -476,7 +476,7 @@ void DatasourcePool::cleanup(ExceptionSink *xsink)
 bool DatasourcePool::inTransaction()
 {
    int tid = gettid();
-   AutoLocker al((LockedObject *)this);
+   AutoLocker al((QoreThreadLock *)this);
    return tmap.find(tid) != tmap.end();
 }
 

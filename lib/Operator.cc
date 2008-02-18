@@ -509,7 +509,7 @@ static double op_divide_float(double left, double right, ExceptionSink *xsink)
 
 static QoreStringNode *op_plus_string(const QoreString *left, const QoreString *right, ExceptionSink *xsink)
 {
-   TempQoreStringNode str(new QoreStringNode(*left));
+   QoreStringNodeHolder str(new QoreStringNode(*left));
    //printd(5, "op_plus_string() (%d) %08p \"%s\" + (%d) %08p \"%s\"\n", left->strlen(), left->getBuffer(), left->getBuffer(), right->strlen(), right->getBuffer(), right->getBuffer());
    //printd(5, "op_plus_string() str= (%d) %08p \"%s\"\n", str->strlen(), str->getBuffer(), str->getBuffer());
    str->concat(right, xsink);
@@ -2512,7 +2512,7 @@ bool StringStringStringOperatorFunction::bool_eval(const AbstractQoreNode *left,
    QoreStringValueHelper l(left);
    QoreStringValueHelper r(right);
 
-   TempQoreStringNode rv(op_func(*l, *r, xsink));
+   QoreStringNodeHolder rv(op_func(*l, *r, xsink));
    return *rv ? rv->getAsBool() : false;
 }
 
@@ -2521,7 +2521,7 @@ int64 StringStringStringOperatorFunction::bigint_eval(const AbstractQoreNode *le
    QoreStringValueHelper l(left);
    QoreStringValueHelper r(right);
 
-   TempQoreStringNode rv(op_func(*l, *r, xsink));
+   QoreStringNodeHolder rv(op_func(*l, *r, xsink));
    return *rv ? rv->getAsBigInt() : 0;
 }
 
@@ -2530,7 +2530,7 @@ double StringStringStringOperatorFunction::float_eval(const AbstractQoreNode *le
    QoreStringValueHelper l(left);
    QoreStringValueHelper r(right);
 
-   TempQoreStringNode rv(op_func(*l, *r, xsink));
+   QoreStringNodeHolder rv(op_func(*l, *r, xsink));
    return *rv ? rv->getAsFloat() : 0.0;
 }
 

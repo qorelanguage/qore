@@ -384,36 +384,13 @@ class QoreListNode : public AbstractQoreNode
       DLLLOCAL AbstractQoreNode *eval_entry(int num, class ExceptionSink *xsink) const;
 };
 
+#include <qore/ReferenceHolder.h>
+
 //! For use on the stack only: manages a QoreListNode reference count
-/** The QoreListNode object is dereferenced when this object is destroyed
-    ReferenceHolder<QoreListNode> can also be used for the same purpose and provides more functionality
+/**
+   @see ReferenceHolder
  */
-class TempList {
-   private:
-      QoreListNode *l;
-      class ExceptionSink *xsink;
-
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL void *operator new(size_t); 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL TempList(const TempList&);
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL TempList& operator=(const TempList&);
-
-   public:
-      DLLEXPORT TempList(QoreListNode *lst, class ExceptionSink *xs) : l(lst), xsink(xs)
-      {
-      }
-      DLLEXPORT ~TempList()
-      {
-	 if (l)
-	    l->deref(xsink);
-      }
-      DLLEXPORT QoreListNode *operator->(){ return l; };
-      DLLEXPORT QoreListNode *operator*() { return l; };
-      DLLEXPORT operator bool() const { return l != 0; }
-      DLLLOCAL QoreListNode *release() { QoreListNode *rv = l; l = 0; return rv; }
-};
+typedef ReferenceHolder<QoreListNode> QoreListNodeHolder;
 
 //! For use on the stack only: iterates through a the elements of a QoreListNode
 class ListIterator

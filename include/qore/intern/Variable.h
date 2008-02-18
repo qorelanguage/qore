@@ -85,7 +85,7 @@ union VarValue {
 };
 
 // structure for global variables
-class Var : public ReferenceObject
+class Var : public QoreReferenceCounter
 {
    private:
       int type;

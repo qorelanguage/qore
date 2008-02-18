@@ -22,14 +22,14 @@
 
 #include <qore/Qore.h>
 
-FunctionCallNode::FunctionCallNode(class UserFunction *u, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(UserFunction *u, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
 {
    ftype = FC_USER;
    f.ufunc = u;
    args = a;
 }
 
-FunctionCallNode::FunctionCallNode(class BuiltinFunction *b, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
+FunctionCallNode::FunctionCallNode(const BuiltinFunction *b, QoreListNode *a) : ParseNode(NT_FUNCTION_CALL)
 {
    ftype = FC_BUILTIN;
    f.bfunc = b;

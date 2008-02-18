@@ -391,7 +391,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
       if (ntype == NT_OBJECT) {
 	 const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
 	 // get snapshot of data
-	 TempQoreHashNode h(o->copyData(xsink), xsink);
+	 QoreHashNodeHolder h(o->copyData(xsink), xsink);
 	 if (!*xsink)
 	 {
 	    if (format)
@@ -814,7 +814,7 @@ QoreStringNode *makeXMLRPCCallString(const QoreEncoding *ccs, const QoreListNode
       return NULL;
    }
 
-   TempQoreStringNode str(new QoreStringNode(ccs));
+   QoreStringNodeHolder str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodCall><methodName>", ccs->getCode());
    str->concatAndHTMLEncode(p0, xsink);
    if (*xsink)
@@ -870,7 +870,7 @@ QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreList
       return NULL;
    }
 
-   TempQoreStringNode str(new QoreStringNode(ccs));
+   QoreStringNodeHolder str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodCall><methodName>", ccs->getCode());
    str->concatAndHTMLEncode(p0, xsink);
    if (*xsink)
@@ -1988,7 +1988,7 @@ static AbstractQoreNode *f_makeXMLRPCResponseString(const QoreListNode *params, 
       return NULL;
    }
 
-   TempQoreStringNode str(new QoreStringNode(ccs));
+   QoreStringNodeHolder str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?><methodResponse><params>", ccs->getCode());
 
    // now loop through the params
@@ -2046,7 +2046,7 @@ static AbstractQoreNode *f_makeFormattedXMLRPCCallStringArgs(const QoreListNode 
       return 0;
    }
 
-   TempQoreStringNode str(new QoreStringNode(ccs));
+   QoreStringNodeHolder str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodCall>\n  <methodName>", ccs->getCode());
    str->concatAndHTMLEncode(p0->getBuffer());
    str->concat("</methodName>\n  <params>\n");
@@ -2100,7 +2100,7 @@ static AbstractQoreNode *f_makeFormattedXMLRPCCallString(const QoreListNode *par
       return NULL;
    }
 
-   TempQoreStringNode str(new QoreStringNode(ccs));
+   QoreStringNodeHolder str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodCall>\n  <methodName>", ccs->getCode());
    str->concatAndHTMLEncode(p0->getBuffer());
    str->concat("</methodName>\n  <params>\n");
@@ -2141,7 +2141,7 @@ static AbstractQoreNode *f_makeFormattedXMLRPCResponseString(const QoreListNode 
       return NULL;
    }
 
-   TempQoreStringNode str(new QoreStringNode(ccs));
+   QoreStringNodeHolder str(new QoreStringNode(ccs));
    str->sprintf("<?xml version=\"1.0\" encoding=\"%s\"?>\n<methodResponse>\n  <params>\n", ccs->getCode());
 
    // now loop through the params
@@ -2178,7 +2178,7 @@ static AbstractQoreNode *f_makeFormattedXMLRPCValueString(const QoreListNode *pa
       return NULL;
    }
 
-   TempQoreStringNode str(new QoreStringNode(ccs));
+   QoreStringNodeHolder str(new QoreStringNode(ccs));
    addXMLRPCValue(*str, p, 0, ccs, 1, xsink);
    if (*xsink)
       return 0;

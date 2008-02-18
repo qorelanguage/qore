@@ -381,7 +381,7 @@ AbstractQoreNode *StaticUserFunctionReferenceNode::exec(const QoreListNode *args
    return 0;
 }
 
-BuiltinFunctionReferenceNode::BuiltinFunctionReferenceNode(BuiltinFunction *n_bf) : bf(n_bf)
+BuiltinFunctionReferenceNode::BuiltinFunctionReferenceNode(const BuiltinFunction *n_bf) : bf(n_bf)
 {
 }
 

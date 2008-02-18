@@ -61,7 +61,7 @@ static int     current_tid = 1;
 
 DLLLOCAL bool threads_initialized = false;
 
-DLLLOCAL LockedObject lThreadList;
+DLLLOCAL QoreThreadLock lThreadList;
 
 // recursive mutex attribute
 DLLLOCAL pthread_mutexattr_t ma_recursive;
@@ -69,11 +69,11 @@ DLLLOCAL pthread_mutexattr_t ma_recursive;
 DLLLOCAL pthread_key_t   thread_data_key;
 
 #ifndef HAVE_GETHOSTBYNAME_R
-DLLLOCAL class LockedObject lck_gethostbyname;
+DLLLOCAL class QoreThreadLock lck_gethostbyname;
 #endif
 
 #ifndef HAVE_GETHOSTBYADDR_R
-DLLLOCAL class LockedObject lck_gethostbyaddr;
+DLLLOCAL class QoreThreadLock lck_gethostbyaddr;
 #endif
 
 // total number of threads running

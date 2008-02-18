@@ -329,7 +329,7 @@ AbstractQoreNode *QoreHashNode::eval(ExceptionSink *xsink) const
    if (!needs_eval_flag)
       return hashRefSelf();
 
-   TempQoreHashNode h(new QoreHashNode(), xsink);
+   QoreHashNodeHolder h(new QoreHashNode(), xsink);
 
    HashMember *where = member_list;
    while (where) {

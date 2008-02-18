@@ -1,5 +1,7 @@
 see docs/roadmap.html
 
+* eliminate needs_eval() and is_value() as virtual functions, including bitfield bools (when reimplementing QoreType as an 20-bit integer)
+* have QoreStringNode::getAsString() return a standard empty string ("") when possible (also should not be reference counted)
 * make it so that there is only ever one Nothing and Null object
 * find out why ref_rv is set to true for op_background even when the result is not used
 * implement bool_eval(), etc for VarRefNode

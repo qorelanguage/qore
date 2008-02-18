@@ -34,7 +34,7 @@
 #define _QORUS_DATASOURCE_POOL_H
 
 #include <qore/Datasource.h>
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 #include <qore/QoreCondition.h>
 #include <qore/QoreString.h>
 #include <qore/AbstractThreadResource.h>
@@ -45,7 +45,7 @@
 typedef std::map<int, int> thread_use_t;   // for marking a datasource in use
 typedef std::deque<int> free_list_t;       // for the free list
 
-class DatasourcePool : public AbstractThreadResource, public QoreCondition, public LockedObject
+class DatasourcePool : public AbstractThreadResource, public QoreCondition, public QoreThreadLock
 {
    private:
       class Datasource **pool;

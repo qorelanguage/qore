@@ -1,5 +1,5 @@
 /*
- ReferenceObject.cc
+ QoreReferenceCounter.cc
  
  Qore Programming Language
  
@@ -22,14 +22,7 @@
 
 #include <qore/Qore.h>
 
-struct qore_ro_private {
-#if !defined(HAVE_ATOMIC_MACROS)
-// for atomic reference updates
-      class LockedObject mRO;
-#endif
-};
-
-ReferenceObject::ReferenceObject()
+QoreReferenceCounter::QoreReferenceCounter()
 {
    references = 1;
 #if !defined(HAVE_ATOMIC_MACROS)
@@ -37,36 +30,36 @@ ReferenceObject::ReferenceObject()
 #endif
 }
 
-ReferenceObject::~ReferenceObject()
+QoreReferenceCounter::~QoreReferenceCounter()
 {
 #if !defined(HAVE_ATOMIC_MACROS)
    delete ropriv;
 #endif
 }
 
-void ReferenceObject::ROreference() const
+void QoreReferenceCounter::ROreference() const
 {
 #ifdef DEBUG
    if (references < 0 || references > 100000) {
-      printd(0, "ReferenceObject::ROreference() this=%08p references=%d\n", this, references);
+      printd(0, "QoreReferenceCounter::ROreference() this=%08p references=%d\n", this, references);
       assert(false);
    }
 #endif
 #ifdef HAVE_ATOMIC_MACROS
    atomic_inc(&references);
 #else
-   ropriv->mRO.lock();
+   mRO.lock();
    ++references; 
-   ropriv->mRO.unlock();
+   mRO.unlock();
 #endif
 }
 
 // returns true when references reach zero
-bool ReferenceObject::ROdereference() const
+bool QoreReferenceCounter::ROdereference() const
 {
 #ifdef DEBUG
    if (references <= 0 || references > 100000) {
-      printd(0, "ReferenceObject::ROdereference() this=%08p references=%d\n", this, references);
+      printd(0, "QoreReferenceCounter::ROdereference() this=%08p references=%d\n", this, references);
       assert(false);
    }
 #endif
@@ -86,9 +79,9 @@ bool ReferenceObject::ROdereference() const
    }
    return atomic_dec(&references);
 #else
-   ropriv->mRO.lock();
+   mRO.lock();
    int rc = --references;
-   ropriv->mRO.unlock();
+   mRO.unlock();
    return !rc;
 #endif
 }

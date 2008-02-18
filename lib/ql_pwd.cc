@@ -27,7 +27,7 @@
 #include <pwd.h>
 
 // for the getpwuid function
-static class LockedObject lck_getpwuid;
+static class QoreThreadLock lck_getpwuid;
 
 static inline void assign_value(QoreHashNode *h, char *key, char *val)
 {

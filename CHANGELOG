@@ -1,3 +1,8 @@
+2007.02.17: David Nichols
+	* more API and doxygen updates
+	* changed BinaryNode to use unsigned long as the length instead of
+	  unsigned
+
 2007.02.14: David Nichols
 	* more API docs as doxygen comments in header files
 	* eliminated QoreHash, QoreHashNode is the only hash implementation now

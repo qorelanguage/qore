@@ -24,7 +24,7 @@
 
 #define _QORE_QOREQUEUE_H
 
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 #include <qore/QoreCondition.h>
 
 class QoreQueueNode 
@@ -43,7 +43,7 @@ class QoreQueue
    private:
       enum queue_status_e { Queue_Deleted = -1 };
 
-      LockedObject l;
+      QoreThreadLock l;
       QoreCondition cond;
       QoreQueueNode *head, *tail;
       int len;

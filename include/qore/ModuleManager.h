@@ -26,7 +26,7 @@
 
 #include <qore/common.h>
 #include <qore/StringList.h>
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -79,7 +79,7 @@ class ModuleManager
    private:
       DLLLOCAL static bool show_errors;
       DLLLOCAL static class StringList autoDirList, moduleDirList;
-      DLLLOCAL static class LockedObject mutex;
+      DLLLOCAL static class QoreThreadLock mutex;
       DLLLOCAL static module_map_t map;
       
       DLLLOCAL static void add(ModuleInfo *m);

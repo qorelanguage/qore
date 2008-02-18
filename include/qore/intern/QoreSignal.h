@@ -24,7 +24,7 @@
 
 #define _QORE_QORESIGNAL_H
 
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 #include <qore/QoreCondition.h>
 #include <qore/QoreCounter.h>
 
@@ -92,7 +92,7 @@ class QoreSignalManager
       static int num_handlers;
       static bool thread_running;
       static QoreSignalHandler handlers[QORE_SIGNAL_MAX];
-      static class LockedObject mutex;
+      static class QoreThreadLock mutex;
       static sig_cmd_e cmd;
       
       DLLLOCAL QoreSignalManager();

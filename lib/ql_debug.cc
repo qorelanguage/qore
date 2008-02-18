@@ -155,7 +155,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
 //static 
 AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink)
 {
-   TempQoreStringNode s(new QoreStringNode());
+   QoreStringNodeHolder s(new QoreStringNode());
    dni(*s, get_param(params, 0), 0, xsink);
    if (*xsink)
       return 0;

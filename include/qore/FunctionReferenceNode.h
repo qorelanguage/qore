@@ -24,36 +24,69 @@
 
 #define _QORE_FUNCTIONREFERENCENODE_H
 
-// cannot be a ParseNode or SimpleQoreNode because we require deref(xsink)
+//! base class for call references, reference-counted, dynamically allocated only
+/** cannot be a ParseNode or SimpleQoreNode because we require deref(xsink)
+ */
 class AbstractFunctionReferenceNode : public AbstractQoreNode
 {
+   private:
+      //! this function will never be executed for parse types; this function should never be called directly
+      /** in debug mode this function calls assert(false)
+       */
+      DLLLOCAL virtual class AbstractQoreNode *realCopy() const;
+
+      //! this function will never be executed for parse types; this function should never be called directly
+      /** in debug mode this function calls assert(false)
+       */
+      DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
+      //! this function will never be executed for parse types; this function should never be called directly
+      /** in debug mode this function calls assert(false)
+       */
+      DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
    public:
       DLLLOCAL AbstractFunctionReferenceNode();
       DLLLOCAL virtual ~AbstractFunctionReferenceNode();
 
-      // parse types should never be copied
-      DLLLOCAL virtual class AbstractQoreNode *realCopy() const;
-      DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+      //! returns true
       DLLLOCAL virtual bool needs_eval() const;
+
+      //! returns false
       DLLLOCAL virtual bool is_value() const;
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
+
+      //! concatenate the verbose string representation of the value to an existing QoreString
+      /** used for %n and %N printf formatting
+	  @param str the string representation of the type will be concatenated to this QoreString reference
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink not used by this implementation of the function
+	  @return -1 for exception raised, 0 = OK
+      */
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+
+      //! returns a QoreString giving the verbose string representation of the value
+      /** used for %n and %N printf formatting
+	  @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink not used by this implementation of the function
+	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+	  @see QoreNodeAsStringHelper
+      */
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
-      // returns the data type
+
+      //! returns the data type
       DLLLOCAL virtual const QoreType *getType() const;
-      // returns the type name as a c string
+
+      //! returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
+
       DLLLOCAL virtual int64 bigIntEval(ExceptionSink *xsink) const;
       DLLLOCAL virtual int integerEval(ExceptionSink *xsink) const;
       DLLLOCAL virtual bool boolEval(ExceptionSink *xsink) const;
       DLLLOCAL virtual double floatEval(ExceptionSink *xsink) const;
 };
 
+//! base class for resolved call references
 class ResolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
 {
    public:
@@ -64,6 +97,7 @@ class ResolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
       }
 };
 
+//! an unresolved call reference, only present temporarily in the parse tree
 class UnresolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
 {
    public:
@@ -76,19 +110,20 @@ class UnresolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
       DLLLOCAL void deref(ExceptionSink *xsink);
 };
 
+//! a call reference to a user function
 class UserFunctionReferenceNode : public ResolvedFunctionReferenceNode
 {
       UserFunction *uf;
       QoreProgram *pgm;
 
    public:
-      //DLLLOCAL UserFunctionReferenceNode(class UserFunction *n_uf);
       DLLLOCAL UserFunctionReferenceNode(class UserFunction *n_uf, class QoreProgram *n_pgm);
       DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL virtual QoreProgram *getProgram() const;
       DLLLOCAL virtual void deref(ExceptionSink *xsink);
 };
 
+//! a call reference to a user function from within the same QoreProgram object
 class StaticUserFunctionReferenceNode : public ResolvedFunctionReferenceNode
 {
       UserFunction *uf;
@@ -100,15 +135,17 @@ class StaticUserFunctionReferenceNode : public ResolvedFunctionReferenceNode
       DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
+//! a call reference to a builtin function
 class BuiltinFunctionReferenceNode : public ResolvedFunctionReferenceNode
 {
-      class BuiltinFunction *bf;
+      const class BuiltinFunction *bf;
 
    public:
-      DLLLOCAL BuiltinFunctionReferenceNode(class BuiltinFunction *n_bf);
+      DLLLOCAL BuiltinFunctionReferenceNode(const class BuiltinFunction *n_bf);
       DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
+//! a call reference to an imported function
 class ImportedFunctionReferenceNode :  public ResolvedFunctionReferenceNode
 {
       class ImportedFunctionCall *ifunc;
@@ -120,6 +157,7 @@ class ImportedFunctionReferenceNode :  public ResolvedFunctionReferenceNode
       DLLLOCAL virtual QoreProgram *getProgram() const;
 };
 
+//! a run-time call reference to a method of a particular object
 class RunTimeObjectMethodReferenceNode : public ResolvedFunctionReferenceNode
 {
    private:
@@ -134,6 +172,7 @@ class RunTimeObjectMethodReferenceNode : public ResolvedFunctionReferenceNode
       DLLLOCAL virtual QoreProgram *getProgram() const;
 };
 
+//! a run-time call reference to a method of a particular object where the method's class is explicitly specified
 class RunTimeObjectScopedMethodReferenceNode : public ResolvedFunctionReferenceNode
 {
    private:

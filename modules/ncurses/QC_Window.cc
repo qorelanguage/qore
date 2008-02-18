@@ -90,13 +90,13 @@ class AbstractQoreNode *WC_mvaddstr(class QoreObject *self, class Window *w, con
 
 class AbstractQoreNode *WC_printw(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
    return new QoreBigIntNode(w->qaddstr(str->getBuffer()));
 }
 
 class AbstractQoreNode *WC_mvprintw(class QoreObject *self, class Window *w, const QoreListNode *params, ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_sprintf(params, 0, 2, xsink));
+   QoreStringNodeHolder str(q_sprintf(params, 0, 2, xsink));
    const AbstractQoreNode *p0 = get_param(params, 0);
    const AbstractQoreNode *p1 = get_param(params, 1);
 

@@ -26,23 +26,33 @@
 
 #define _QORE_ABSTRACTPRIVATEDATA_H
 
-#include <qore/ReferenceObject.h>
+#include <qore/QoreReferenceCounter.h>
 
-class AbstractPrivateData : public ReferenceObject
+//! the base class for all data to be used as private data of Qore objects
+/** C++ constructor code for Qore classes must set private data of the class
+    against the class ID using QoreObject::setPrivate()
+ */
+class AbstractPrivateData : public QoreReferenceCounter
 {
    protected:
+      //! as these objects are reference counted, the destructor should be called only when the reference count = 0 and not manually
       DLLEXPORT virtual ~AbstractPrivateData() {}
 
    public:
+      //! increments the reference count of the object
       DLLEXPORT void ref()
       {
 	 ROreference();
       }
+
+      //! decrememnts the reference count of the object, the default implementation cannot throw a Qore-language exception
       DLLEXPORT virtual void deref(class ExceptionSink *xsink)
       {
 	 if (ROdereference())
 	    delete this;
       }
+
+      //! decrememnts the reference count of the object without the possibility of throwing a Qore-language exception
       DLLEXPORT virtual void deref()
       {
 	 if (ROdereference())

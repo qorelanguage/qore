@@ -275,7 +275,7 @@ static AbstractQoreNode *getJSONValue(const char *&buf, int &line_number, const 
 
    if (*buf == '"')
    {
-      TempQoreStringNode str(new QoreStringNode(enc));
+      QoreStringNodeHolder str(new QoreStringNode(enc));
       return getJSONStringToken(*(*str), buf, line_number, xsink) ? 0 : str.release();
    }
 
@@ -483,7 +483,7 @@ static AbstractQoreNode *f_makeJSONString(const QoreListNode *params, ExceptionS
    else
       ccs = QCS_UTF8;
 
-   TempQoreStringNode str(new QoreStringNode(ccs));
+   QoreStringNodeHolder str(new QoreStringNode(ccs));
    if (doJSONValue(*str, val, -1, xsink))
       return 0;
    return str.release();
@@ -501,7 +501,7 @@ static AbstractQoreNode *f_makeFormattedJSONString(const QoreListNode *params, E
    else
       ccs = QCS_UTF8;
 
-   TempQoreStringNode str(new QoreStringNode(ccs));
+   QoreStringNodeHolder str(new QoreStringNode(ccs));
    if (doJSONValue(*str, val, 0, xsink))
       return 0;
    return str.release();
@@ -547,7 +547,7 @@ QoreStringNode *makeJSONRPC11RequestStringArgs(const QoreListNode *params, Excep
 
    const AbstractQoreNode *p1 = get_param(params, 1);
 
-   TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
 
    // write version key first
    str->concat("{ \"version\" : \"1.1\", \"method\" : ");
@@ -576,7 +576,7 @@ QoreStringNode *makeJSONRPC11RequestString(const QoreListNode *params, Exception
       return NULL;
    }
 
-   TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
 
    // write version key first
    str->concat("{ \"version\" : \"1.1\", \"method\" : ");
@@ -616,7 +616,7 @@ static AbstractQoreNode *f_makeJSONRPCRequestString(const QoreListNode *params, 
    p2 = get_param(params, 2);
    p3 = get_param(params, 3);
 
-   TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
 
    // write version key first if present
    if (p1)
@@ -668,7 +668,7 @@ static AbstractQoreNode *f_makeFormattedJSONRPCRequestString(const QoreListNode 
    p2 = get_param(params, 2);
    p3 = get_param(params, 3);
 
-   TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
 
    // write version key first if present
    if (p1)
@@ -713,7 +713,7 @@ static AbstractQoreNode *f_makeJSONRPCResponseString(const QoreListNode *params,
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
 
-   TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
 
    // write version key first if present
    if (p0)
@@ -755,7 +755,7 @@ static AbstractQoreNode *f_makeFormattedJSONRPCResponseString(const QoreListNode
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
 
-   TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
 
    // write version key first if present
    if (p0)
@@ -797,7 +797,7 @@ static AbstractQoreNode *f_makeJSONRPCErrorString(const QoreListNode *params, Ex
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
 
-   TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
 
    // write version key first if present
    if (!is_nothing(p0))
@@ -839,7 +839,7 @@ static AbstractQoreNode *f_makeFormattedJSONRPCErrorString(const QoreListNode *p
    p1 = get_param(params, 1);
    p2 = get_param(params, 2);
 
-   TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
 
    // write version key first if present
    if (p0)
@@ -892,7 +892,7 @@ static AbstractQoreNode *f_makeJSONRPC11ErrorString(const QoreListNode *params, 
       return NULL;
    }
 
-   TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
 
    str->concat("{ \"version\" : \"1.1\", ");
 
@@ -945,7 +945,7 @@ static AbstractQoreNode *f_makeFormattedJSONRPC11ErrorString(const QoreListNode 
       return NULL;
    }
 
-   TempQoreStringNode str(new QoreStringNode(QCS_UTF8));
+   QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
    str->sprintf("{\n  \"version\" : \"1.1\",\n  ");
 
    // get optional "id" value

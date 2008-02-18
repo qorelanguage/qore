@@ -28,12 +28,12 @@ class QoreStringNode *ncurses_module_init();
 void ncurses_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns);
 void ncurses_module_delete();
 
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 
 class q_nc_init_class {
    private:
       bool initialized;
-      class LockedObject l;
+      class QoreThreadLock l;
 
       void init_intern();
 

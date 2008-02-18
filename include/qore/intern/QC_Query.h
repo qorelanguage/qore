@@ -41,7 +41,7 @@ class QueryNode {
 };
 
 // list of all Queries
-class QueryList : public LockedObject
+class QueryList : public QoreThreadLock
 {
    private:
       class QueryNode *head, *tail;
@@ -155,7 +155,7 @@ class KeyNode {
       char *vcolumn;
 };
 
-class Query : public ReferenceObject
+class Query : public QoreReferenceCounter
 {
       class KeyNode *keys;
       class QPartQoreListNode *qpl;

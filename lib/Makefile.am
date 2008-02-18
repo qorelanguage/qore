@@ -117,7 +117,7 @@ libqore_la_SOURCES = \
 	RegexSubstNode.cc \
 	RegexTransNode.cc \
 	Sequence.cc \
-	ReferenceObject.cc \
+	QoreReferenceCounter.cc \
 	Environment.cc \
 	SmartMutex.cc \
 	QoreCounter.cc \

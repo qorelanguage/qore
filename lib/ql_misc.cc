@@ -881,7 +881,7 @@ static AbstractQoreNode *f_splice(const QoreListNode *params, ExceptionSink *xsi
 
    if (p0_type == NT_STRING) {
       const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p0);
-      TempQoreStringNode str(pstr->copy());
+      QoreStringNodeHolder str(pstr->copy());
       
       if (!p3)
 	 if (is_nothing(p2))

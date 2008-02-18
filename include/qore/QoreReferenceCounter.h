@@ -1,9 +1,9 @@
 /*
-  ReferenceObject.h
+  QoreReferenceCounter.h
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004
+  Copyright (C) 2003 - 2008 David Nichols, all rights reserved
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,34 +20,56 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_REFERENCE_OBJECT_H
+#ifndef _QORE_QOREREFERENCECOUNTER_H
 
-#define _QORE_REFERENCE_OBJECT_H
+#define _QORE_QOREREFERENCECOUNTER_H
 
 #include <qore/common.h>
 #include <qore/macros.h>
 
-struct qore_ro_private;
-
-class ReferenceObject 
+//! provides atomic reference counting to Qore objects
+class QoreReferenceCounter 
 {
    protected:
       mutable int references;
-      mutable struct qore_ro_private *ropriv;
+#ifndef HAVE_ATOMIC_MACROS
+      //! pthread lock to ensure atomicity of updates for architectures where we don't have an atomic increment and decrement implementation
+      class QoreThreadLock mRO;
+#endif
 
    public:
-      DLLEXPORT ReferenceObject();
-      DLLEXPORT ~ReferenceObject();
+      //! creates the reference counter object
+      DLLEXPORT QoreReferenceCounter();
+
+      //! destroys the reference counter object
+      DLLEXPORT ~QoreReferenceCounter();
+
+      //! gets the reference count
+      /**
+	 @return returns the current reference count
+       */
       DLLEXPORT int reference_count() const 
       { 
 	 return references; 
       }
+      
+      //! returns true if the reference count is 1
+      /**
+	 @return returns true if the reference count is 1
+       */
       DLLEXPORT bool is_unique() const 
       { 
 	 return references == 1; 
       }
+
+      //! atomically increments the reference count
       DLLEXPORT void ROreference() const;
+
+      //! atomically decrements the reference count
+      /**
+	 returns true if the reference count is now zero
+       */
       DLLEXPORT bool ROdereference() const;
 };
 
-#endif // _QORE_REFERENCE_OBJECT_H
+#endif // _QORE_QOREREFERENCECOUNTER_H

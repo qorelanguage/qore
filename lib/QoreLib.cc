@@ -42,11 +42,11 @@ DLLLOCAL QoreListNode *ARGV = NULL;
 DLLLOCAL QoreListNode *QORE_ARGV = NULL;
 
 #ifndef HAVE_LOCALTIME_R
-DLLLOCAL class LockedObject lck_localtime;
+DLLLOCAL class QoreThreadLock lck_localtime;
 #endif
 
 #ifndef HAVE_GMTIME_R
-DLLLOCAL class LockedObject lck_gmtime;
+DLLLOCAL class QoreThreadLock lck_gmtime;
 #endif
 
 char table64[64] = {

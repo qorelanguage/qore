@@ -377,7 +377,7 @@ static AbstractQoreNode *SOCKET_recv(QoreObject *self, class mySocket *s, const 
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 1));
    int rc;
-   TempQoreStringNode msg(bs ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
+   QoreStringNodeHolder msg(bs ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
 	
    if (rc > 0)
       return msg.release();

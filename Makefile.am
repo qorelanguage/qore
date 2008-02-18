@@ -16,7 +16,7 @@ noinst_HEADERS = \
 	include/qore/ThreadResourceList.h \
 	include/qore/AbstractThreadResource.h \
 	include/qore/QoreProgram.h \
-	include/qore/ReferenceObject.h \
+	include/qore/QoreReferenceCounter.h \
 	include/qore/AbstractPrivateData.h \
 	include/qore/QoreType.h \
 	include/qore/QoreListNode.h \
@@ -28,7 +28,7 @@ noinst_HEADERS = \
 	include/qore/params.h \
 	include/qore/node_types.h \
 	include/qore/BuiltinFunctionList.h \
-	include/qore/LockedObject.h \
+	include/qore/QoreThreadLock.h \
 	include/qore/QoreClass.h \
 	include/qore/QoreString.h \
 	include/qore/common.h \

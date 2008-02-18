@@ -236,43 +236,13 @@ class QoreHashNode : public AbstractQoreNode
       DLLLOCAL AbstractQoreNode *getFirstKeyValue() const;
 };
 
-//! used to manage a QoreHashNode reference
-/** also ReferenceHolder<QoreHashNode> can be used that serves the same purpose and provides more functionality  
- */
-class TempQoreHashNode {
-   private:
-      QoreHashNode *h;
-      ExceptionSink *xsink;
-      
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL TempQoreHashNode(const TempQoreHashNode&);
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL TempQoreHashNode& operator=(const TempQoreHashNode&);
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL void* operator new(size_t);
+#include <qore/ReferenceHolder.h>
 
-   public:
-      DLLLOCAL TempQoreHashNode(QoreHashNode *nh, ExceptionSink *xs) : h(nh), xsink(xs)
-      {
-      }
-      DLLLOCAL TempQoreHashNode(ExceptionSink *xs) : h(0), xsink(xs)
-      {
-      }
-      DLLLOCAL ~TempQoreHashNode()
-      {
-	 if (h)
-	    h->deref(xsink);
-      }
-      DLLLOCAL QoreHashNode *operator->() { return h; }
-      DLLLOCAL QoreHashNode *operator*() { return h; }
-      DLLLOCAL void operator=(QoreHashNode *nv) { if (h) h->deref(xsink); h = nv; }
-      DLLLOCAL QoreHashNode *release() 
-      {
-	 QoreHashNode *rv = h;
-	 h = 0;
-	 return rv;
-      }
-};
+//! For use on the stack only: manages a QoreHashNode reference count
+/**
+   @see ReferenceHolder
+ */
+typedef ReferenceHolder<QoreHashNode> QoreHashNodeHolder;
 
 //! iterator class for QoreHashNode, to be only created on the stack
 class HashIterator

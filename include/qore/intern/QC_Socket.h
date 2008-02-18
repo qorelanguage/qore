@@ -32,11 +32,11 @@ DLLEXPORT extern int CID_SOCKET;
 
 #include <qore/QoreSocket.h>
 #include <qore/AbstractPrivateData.h>
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 #include <qore/intern/QC_SSLCertificate.h>
 #include <qore/intern/QC_SSLPrivateKey.h>
 
-class mySocket : public AbstractPrivateData, public LockedObject
+class mySocket : public AbstractPrivateData, public QoreThreadLock
 {
    private:
       class QoreSocket *socket;

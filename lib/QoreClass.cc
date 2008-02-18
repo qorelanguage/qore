@@ -46,7 +46,7 @@ struct qore_qc_private {
                                    //   instead they will get the private data from this class
       bool sys, initialized;       // system class?, is initialized?
       int domain;                  // capabilities of builtin class to use in the context of parse restrictions
-      class ReferenceObject nref;  // namespace references
+      class QoreReferenceCounter nref;  // namespace references
 
       DLLLOCAL qore_qc_private(const char *nme, int dom = 0)
       {

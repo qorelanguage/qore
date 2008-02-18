@@ -160,7 +160,7 @@ int ThreadResourceList::remove(AbstractThreadResource *atr)
 // there must be only one of these
 void ThreadResourceList::remove(AbstractThreadResource *atr, int tid)
 {
-   AutoLocker al((LockedObject *)this);
+   AutoLocker al((QoreThreadLock *)this);
 
    //printd(0, "TRL::remove(atr=%08p, tid=%d) this=%08p, head=%08p\n", atr, tid, this, head);
    class ThreadResourceNode *w = head;

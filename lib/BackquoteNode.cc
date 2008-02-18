@@ -85,7 +85,7 @@ AbstractQoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink)
    }
 
    // allocate buffer for return value
-   TempQoreStringNode s(new QoreStringNode());
+   QoreStringNodeHolder s(new QoreStringNode());
 
    // read in result string
    while (1)

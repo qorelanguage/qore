@@ -34,7 +34,7 @@
 #include <time.h>
 
 #ifdef TIBCO_MDT_BUG
-extern class LockedObject l_mdate_time;
+extern class QoreThreadLock l_mdate_time;
 #endif
 
 class QoreApp : public AbstractPrivateData, public MApp
@@ -50,7 +50,7 @@ class QoreApp : public AbstractPrivateData, public MApp
 
       // for receive
       char *rcv_subject;
-      class LockedObject rcv_lock;
+      class QoreThreadLock rcv_lock;
 
       class QoreHashNode *classlist;
 

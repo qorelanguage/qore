@@ -26,7 +26,7 @@
 struct qore_counter_private {
       enum cond_status_e { Cond_Deleted = -1 };
 
-      LockedObject l;
+      QoreThreadLock l;
       QoreCondition cond;
       int cnt;
       int waiting;

@@ -1166,7 +1166,7 @@ static class AbstractQoreNode *f_QAPP(const QoreListNode *params, class Exceptio
 
 static class AbstractQoreNode *f_qDebug(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
       return 0;
 
@@ -1176,7 +1176,7 @@ static class AbstractQoreNode *f_qDebug(const QoreListNode *params, class Except
 
 static class AbstractQoreNode *f_qWarning(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
       return 0;
 
@@ -1186,7 +1186,7 @@ static class AbstractQoreNode *f_qWarning(const QoreListNode *params, class Exce
 
 static class AbstractQoreNode *f_qCritical(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
       return 0;
 
@@ -1196,7 +1196,7 @@ static class AbstractQoreNode *f_qCritical(const QoreListNode *params, class Exc
 
 static class AbstractQoreNode *f_qFatal(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
    if (*xsink)
       return 0;
 

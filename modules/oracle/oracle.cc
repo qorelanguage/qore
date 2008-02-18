@@ -423,7 +423,7 @@ class AbstractQoreNode *OraColumn::getValue(class Datasource *ds, class Exceptio
 	 ub4 amt = 0;
 	 if (dtype == SQLT_CLOB)
 	 {
-	    TempQoreStringNode str(new QoreStringNode(ds->getQoreEncoding()));
+	    QoreStringNodeHolder str(new QoreStringNode(ds->getQoreEncoding()));
 	    // read LOB data in streaming callback mode
 	    ora_checkerr(d_ora->errhp,
 			 OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)val.ptr, &amt, 1, buf, LOB_BLOCK_SIZE,
@@ -1001,7 +1001,7 @@ class AbstractQoreNode *OraBindNode::getValue(class Datasource *ds, class Except
       ub4 amt = 0;
       if (buftype == SQLT_CLOB)
       {
-	 TempQoreStringNode str(new QoreStringNode(ds->getQoreEncoding()));
+	 QoreStringNodeHolder str(new QoreStringNode(ds->getQoreEncoding()));
 	 // read LOB data in streaming callback mode
 	 ora_checkerr(d_ora->errhp,
 		      OCILobRead(d_ora->svchp, d_ora->errhp, (OCILobLocator *)buf.ptr, &amt, 1, bbuf, LOB_BLOCK_SIZE,

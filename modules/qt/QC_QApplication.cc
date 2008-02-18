@@ -35,7 +35,7 @@ DLLLOCAL int CID_QAPPLICATION;
 DLLLOCAL int static_argc    = 0;
 DLLLOCAL char **static_argv = 0;
 
-static LockedObject qapp_lock;
+static QoreThreadLock qapp_lock;
 static QoreObject *qore_qapp = 0;
 
 void qapp_dec()
@@ -176,7 +176,7 @@ static AbstractQoreNode *f_QApplication_beep(const QoreListNode *params, Excepti
 
 static AbstractQoreNode *f_QApplication_clipboard(const QoreListNode *params, class ExceptionSink *xsink)
 {
-   static LockedObject lClipboard;
+   static QoreThreadLock lClipboard;
 
    AutoLocker al(&lClipboard);
 

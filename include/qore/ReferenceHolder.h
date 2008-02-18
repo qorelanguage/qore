@@ -2,7 +2,7 @@
   ReferenceHolder.h
 
   Smart pointer like class that dereferences
-  obtained pointer to a ReferenceObject in its destructor.
+  obtained pointer to a QoreReferenceCounter in its destructor.
 
   Qore Programming Language
 

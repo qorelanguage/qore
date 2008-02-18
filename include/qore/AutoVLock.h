@@ -26,32 +26,42 @@
 
 class AbstractSmartLock;
 
-struct qore_avl_private;
-
 #ifndef QORE_AVL_INTERN
 #define QORE_AVL_INTERN 5
 #endif
 
-// AutoVLock is for grabbing a series of locks that will only be deleted when the AutoVLock structure is deleted
+//! AutoVLock is a container for safely managing AbstractSmartLock objects, required for functions accessing global variables and object data where locking is necessary
+/** This object is used for nested lock management and automatically releasing all locks.
+    For performance reasons a minimal list is included directly in this implementation.
+ */
 class AutoVLock
 {
    private:
-      // for performance reasons a minimal list is included directly
-      // in this implementation
+      //! the count of locks held directly in this structure
       int counter;
+      //! the list of locks held directly in this structure
       AbstractSmartLock *fp[QORE_AVL_INTERN];
+      //! private implementation of the generic lock container
       struct qore_avl_private *priv;
    
-      // not implemented
-      AutoVLock(const AutoVLock&);
-      AutoVLock& operator=(const AutoVLock&);
-      void *operator new(size_t);
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL AutoVLock(const AutoVLock&);
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL AutoVLock& operator=(const AutoVLock&);
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL void *operator new(size_t);
    
    public:
+      //! creates an empty lock container
       DLLEXPORT AutoVLock();
+
+      //! releases all locks held and destroys the container
       DLLEXPORT ~AutoVLock();
+
+      //! manually releases all locks held
       DLLEXPORT void del();
 
+      //! pushes a lock on the list
       DLLLOCAL void push(class AbstractSmartLock *asl);
 };
 

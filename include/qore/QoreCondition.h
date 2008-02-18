@@ -27,7 +27,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 
 class QoreCondition
 {
@@ -45,8 +45,8 @@ class QoreCondition
       DLLEXPORT int broadcast();
       DLLEXPORT int wait(pthread_mutex_t *m);
       DLLEXPORT int wait(pthread_mutex_t *m, int timeout_ms); // timeout in milli seconds
-      DLLEXPORT int wait(LockedObject *l) { return wait(&l->ptm_lock); }
-      DLLEXPORT int wait(LockedObject *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in milli seconds
+      DLLEXPORT int wait(QoreThreadLock *l) { return wait(&l->ptm_lock); }
+      DLLEXPORT int wait(QoreThreadLock *l, int timeout) { return wait(&l->ptm_lock, timeout); } // timeout in milli seconds
 };
 
 #endif // QORE_CONDITION

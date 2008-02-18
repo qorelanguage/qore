@@ -128,8 +128,8 @@ typedef safe_dslist<class BCNode *> bclist_t;
 //  destructors called in reverse order (tail->head) (stored in BCSMList)
 //  note that this data structure cannot be modified even if the class is
 //  copied to a subprogram object and extended
-//  this class is a ReferenceObject so it won't be copied when the class is copied
-class BCList : public ReferenceObject, public bclist_t
+//  this class is a QoreReferenceCounter so it won't be copied when the class is copied
+class BCList : public QoreReferenceCounter, public bclist_t
 {
    private:
       bool init;

@@ -55,7 +55,7 @@
 #include <qore/QoreEncoding.h>
 #include <qore/BuiltinFunctionList.h>
 #include <qore/qore_thread.h>
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 #include <qore/QoreCondition.h>
 #include <qore/DBI.h>
 #include <qore/Datasource.h>

@@ -196,7 +196,7 @@ QoreStringNode *QoreFile::readLine(ExceptionSink *xsink)
    
    int ch;
 
-   TempQoreStringNode str(new QoreStringNode(priv->charset));
+   QoreStringNodeHolder str(new QoreStringNode(priv->charset));
    while ((ch = readChar()) >= 0)
    {
       char c = ch;

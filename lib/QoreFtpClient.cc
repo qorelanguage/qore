@@ -209,7 +209,7 @@ void QoreFtpClient::stripEOL(class QoreString *str)
 int QoreFtpClient::setBinaryMode(bool t, ExceptionSink *xsink)
 {
    // set transfer mode
-   TempQoreStringNode resp(sendMsg("TYPE", (char *)(t ? "I" : "A"), xsink));
+   QoreStringNodeHolder resp(sendMsg("TYPE", (char *)(t ? "I" : "A"), xsink));
    if (xsink->isEvent())
       return -1;
    int code = getFTPCode(*resp);
@@ -295,7 +295,7 @@ int QoreFtpClient::disconnect()
 // private unlocked
 QoreStringNode *QoreFtpClient::getResponse(ExceptionSink *xsink)
 {
-   TempQoreStringNode resp(0);
+   QoreStringNodeHolder resp(0);
    int rc;
    // if there is data in the buffer, then take it, otherwise read
    if (!priv->buffer.strlen())
@@ -333,7 +333,7 @@ QoreStringNode *QoreFtpClient::getResponse(ExceptionSink *xsink)
 	 // if we have not got the whole message
 	 else if (*p == '\0')
 	 {
-	    TempQoreStringNode r(priv->control.recv(-1, &rc));
+	    QoreStringNodeHolder r(priv->control.recv(-1, &rc));
 	    if (!r)
 	    {
 	       xsink->raiseException("FTP-RECEIVE-ERROR", "short message received on control port");
@@ -730,7 +730,7 @@ QoreStringNode *QoreFtpClient::list(const char *path, bool long_list, ExceptionS
    else if (priv->secure_data && priv->data.upgradeClientToSSL(NULL, NULL, xsink))
       return NULL;
 
-   TempQoreStringNode l(new QoreStringNode());
+   QoreStringNodeHolder l(new QoreStringNode());
 
    // read until done
    while (true)
@@ -972,7 +972,7 @@ int QoreFtpClient::cwd(const char *dir, ExceptionSink *xsink)
       xsink->raiseException("FTP-NOT-CONNECTED", "QoreFtpClient::connect() must be called before the QoreFtpClient::cwd()");
       return -1;
    }
-   TempQoreStringNode p(sendMsg("CWD", dir, xsink));
+   QoreStringNodeHolder p(sendMsg("CWD", dir, xsink));
 
    sl.unlock();
    if (xsink->isEvent())
@@ -996,7 +996,7 @@ QoreStringNode *QoreFtpClient::pwd(ExceptionSink *xsink)
       return NULL;
    }
 
-   TempQoreStringNode p(sendMsg("PWD", NULL, xsink));
+   QoreStringNodeHolder p(sendMsg("PWD", NULL, xsink));
    sl.unlock();
    if ((getFTPCode(*p) / 100) == 2)
    {
@@ -1020,7 +1020,7 @@ int QoreFtpClient::del(const char *file, ExceptionSink *xsink)
       return -1;
    }
 
-   TempQoreStringNode p(sendMsg("DELE", file, xsink));
+   QoreStringNodeHolder p(sendMsg("DELE", file, xsink));
    sl.unlock();
    if (xsink->isEvent())
       return -1;

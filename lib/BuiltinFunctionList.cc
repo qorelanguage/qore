@@ -48,7 +48,7 @@
 
 bool BuiltinFunctionList::init_done = false;
 hm_bf_t BuiltinFunctionList::hm;
-class LockedObject BuiltinFunctionList::mutex;
+class QoreThreadLock BuiltinFunctionList::mutex;
 class BuiltinFunctionList builtinFunctions;
 
 BuiltinFunctionList::BuiltinFunctionList()
@@ -94,9 +94,9 @@ void BuiltinFunctionList::clear()
    }
 }
 
-class BuiltinFunction *BuiltinFunctionList::find(const char *name)
+const BuiltinFunction *BuiltinFunctionList::find(const char *name)
 {
-   class BuiltinFunction *rv = NULL;
+   const BuiltinFunction *rv = NULL;
    if (init_done)
       mutex.lock();
    hm_bf_t::iterator i = hm.find(name);

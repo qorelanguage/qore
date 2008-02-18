@@ -66,7 +66,7 @@ static AbstractQoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, 
       return NULL;
 
    // create the outgoing message in XML-RPC call format
-   TempQoreStringNode msg(makeXMLRPCCallStringArgs(client->getEncoding(), params, xsink));
+   QoreStringNodeHolder msg(makeXMLRPCCallStringArgs(client->getEncoding(), params, xsink));
    if (!msg)
       return NULL;
    // send the message to the server and get the response as an XML string
@@ -91,7 +91,7 @@ static AbstractQoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, cons
       return NULL;
 
    // create the outgoing message in XML-RPC call format
-   TempQoreStringNode msg(makeXMLRPCCallString(client->getEncoding(), params, xsink));
+   QoreStringNodeHolder msg(makeXMLRPCCallString(client->getEncoding(), params, xsink));
    if (!msg)
       return NULL;
    // send the message to the server and get the response as an XML string

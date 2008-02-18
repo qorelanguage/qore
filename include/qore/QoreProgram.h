@@ -189,7 +189,7 @@ class QoreProgram : public AbstractPrivateData
       // for run-time module loading; the parse lock must be grabbed
       // before loading new modules - note this should only be assigned
       // to a AutoLock or SafeLocker object!
-      DLLLOCAL class LockedObject *getParseLock();
+      DLLLOCAL class QoreThreadLock *getParseLock();
       DLLLOCAL class QoreHashNode *clearThreadData(class ExceptionSink *xsink);
 };
 

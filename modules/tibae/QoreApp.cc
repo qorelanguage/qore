@@ -1193,20 +1193,20 @@ typedef struct s_async_call_context
 
 typedef std::map<pending_call_key, async_call_context_t > pending_async_calls_t;
 static pending_async_calls_t g_pending_async_calls;
-static LockedObject g_mutex;
+static QoreThreadLock g_mutex;
 
 
 static void add_pending_call(const char *class_name, const char *method_name, MApp* app, async_call_context_t call_context)
 {
   g_mutex.lock();
-  ON_BLOCK_EXIT_OBJ(g_mutex, &LockedObject::unlock);
+  ON_BLOCK_EXIT_OBJ(g_mutex, &QoreThreadLock::unlock);
   g_pending_async_calls[pending_call_key(class_name, method_name, app)] = call_context;
 }
 
 static async_call_context_t extract_pending_call(const char *class_name, const char *method_name, MApp* app)
 {
   g_mutex.lock();
-  ON_BLOCK_EXIT_OBJ(g_mutex, &LockedObject::unlock);
+  ON_BLOCK_EXIT_OBJ(g_mutex, &QoreThreadLock::unlock);
   pending_async_calls_t::iterator it = g_pending_async_calls.find(pending_call_key(class_name, method_name, app));
   if (it == g_pending_async_calls.end()) {
     return async_call_context_t();
@@ -1220,7 +1220,7 @@ static async_call_context_t extract_pending_call(const char *class_name, const c
 static void remove_pending_calls(MApp* app)
 {
   g_mutex.lock();
-  ON_BLOCK_EXIT_OBJ(g_mutex, &LockedObject::unlock);
+  ON_BLOCK_EXIT_OBJ(g_mutex, &QoreThreadLock::unlock);
   for (pending_async_calls_t::iterator it = g_pending_async_calls.begin(), end = g_pending_async_calls.end(); it != end;) {
     if (it->first.m_app == app) {
       pending_async_calls_t::iterator next = it;

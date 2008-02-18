@@ -401,7 +401,7 @@ static AbstractQoreNode *FILE_writei8LSB(QoreObject *self, class File *f, const 
 
 static AbstractQoreNode *FILE_printf(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
    if (!str)
       return 0;
 
@@ -412,7 +412,7 @@ static AbstractQoreNode *FILE_printf(QoreObject *self, class File *f, const Qore
 
 static AbstractQoreNode *FILE_vprintf(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_vsprintf(params, 0, 0, xsink));
+   QoreStringNodeHolder str(q_vsprintf(params, 0, 0, xsink));
    if (!str)
       return 0;
 
@@ -423,7 +423,7 @@ static AbstractQoreNode *FILE_vprintf(QoreObject *self, class File *f, const Qor
 
 static AbstractQoreNode *FILE_f_printf(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_sprintf(params, 1, 0, xsink));
+   QoreStringNodeHolder str(q_sprintf(params, 1, 0, xsink));
    if (!str)
       return 0;
 
@@ -434,7 +434,7 @@ static AbstractQoreNode *FILE_f_printf(QoreObject *self, class File *f, const Qo
 
 static AbstractQoreNode *FILE_f_vprintf(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_vsprintf(params, 1, 0, xsink));
+   QoreStringNodeHolder str(q_vsprintf(params, 1, 0, xsink));
    if (!str)
       return 0;
 

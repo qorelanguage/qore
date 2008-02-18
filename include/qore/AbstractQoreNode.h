@@ -25,7 +25,7 @@
 #define _QORE_NODE_H
 
 #include <qore/common.h>
-#include <qore/ReferenceObject.h>
+#include <qore/QoreReferenceCounter.h>
 #include <qore/node_types.h>
 
 #include <string>
@@ -41,7 +41,7 @@ class QoreString;
 /**
    Defines the interface for all value and parse types in Qore expression trees.  Default implementations are given for most virtual functions.
  */
-class AbstractQoreNode : public ReferenceObject
+class AbstractQoreNode : public QoreReferenceCounter
 {
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -150,7 +150,7 @@ class AbstractQoreNode : public ReferenceObject
       */
       DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const = 0;
 
-      //! returns a QoreString giving the verbose string representation of the List (including all contained values for container types)
+      //! returns a QoreString giving the verbose string representation of the value (including all contained values for container types)
       /** used for %n and %N printf formatting
 	  @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
 	  @param foff for multi-line formatting offset, -1 = no line breaks

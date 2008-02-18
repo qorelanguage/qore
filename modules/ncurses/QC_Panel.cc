@@ -28,7 +28,7 @@
 
 int CID_PANEL;
 
-//class LockedObject nc_panel_update_lock;
+//class QoreThreadLock nc_panel_update_lock;
 
 void PC_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
@@ -100,13 +100,13 @@ AbstractQoreNode *PC_mvaddstr(class QoreObject *self, class Panel *p, const Qore
 
 AbstractQoreNode *PC_printw(class QoreObject *self, class Panel *p, const QoreListNode *params, ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink));
+   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink));
    return new QoreBigIntNode(p->qaddstr(str->getBuffer()));
 }
 
 AbstractQoreNode *PC_mvprintw(class QoreObject *self, class Panel *p, const QoreListNode *params, ExceptionSink *xsink)
 {
-   TempQoreStringNode str(q_sprintf(params, 0, 2, xsink));
+   QoreStringNodeHolder str(q_sprintf(params, 0, 2, xsink));
    const AbstractQoreNode *p0 = get_param(params, 0);
    const AbstractQoreNode *p1 = get_param(params, 1);
 

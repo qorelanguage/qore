@@ -25,7 +25,7 @@
 
 #include <qore/common.h>
 #include <qore/AbstractPrivateData.h>
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 #include <qore/QoreSocket.h>
 
 #include <string>
@@ -52,7 +52,7 @@ typedef std::set<const char *, ltcstrcase> ccharcase_set_t;
 typedef std::set<std::string, ltstrcase> strcase_set_t;
 typedef std::map<std::string, std::string> header_map_t;
 
-class QoreHTTPClient : public AbstractPrivateData, public LockedObject
+class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock
 {
    private:
       DLLLOCAL static ccharcase_set_t method_set;

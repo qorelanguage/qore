@@ -61,7 +61,7 @@ typedef vector<pair<string, string> > env_t;
 // Set given environment variables and return back to original state in destructor.
 struct EnvironmentSetter
 {
-  static LockedObject m_mutex; // needs to be static
+  static QoreThreadLock m_mutex; // needs to be static
   env_t m_old_env;
   EnvironmentSetter(const env_t& new_env);
   ~EnvironmentSetter();
@@ -85,7 +85,7 @@ EnvironmentSetter::EnvironmentSetter(const env_t& new_env)
   }
 }
 
-LockedObject EnvironmentSetter::m_mutex;
+QoreThreadLock EnvironmentSetter::m_mutex;
 
 EnvironmentSetter::~EnvironmentSetter()
 {

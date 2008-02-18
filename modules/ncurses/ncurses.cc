@@ -43,7 +43,7 @@ DLLEXPORT qore_module_ns_init_t qore_module_ns_init = ncurses_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = ncurses_module_delete;
 #endif
 
-class LockedObject lUpdate, lGetch;
+class QoreThreadLock lUpdate, lGetch;
 
 static inline void init_colors()
 {
@@ -252,7 +252,7 @@ static class AbstractQoreNode *f_initscr(const QoreListNode *params, class Excep
 static class AbstractQoreNode *f_printw(const QoreListNode *params, class ExceptionSink *xsink)
 {
    q_nc_init.init();
-   TempQoreStringNode str(q_sprintf(params, 0, 0, xsink)); 
+   QoreStringNodeHolder str(q_sprintf(params, 0, 0, xsink)); 
    // note: need cast for solaris curses
    int rc = printw((char *)str->getBuffer());
    return new QoreBigIntNode(rc);

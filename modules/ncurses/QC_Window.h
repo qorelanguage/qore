@@ -28,12 +28,12 @@
 
 #include <curses.h>
 
-extern class LockedObject lUpdate, lGetch;
+extern class QoreThreadLock lUpdate, lGetch;
 
 extern int CID_Window;
 class QoreClass *initWindowClass();
 
-class Window : public AbstractPrivateData, public LockedObject {
+class Window : public AbstractPrivateData, public QoreThreadLock {
    private:
 
    protected:

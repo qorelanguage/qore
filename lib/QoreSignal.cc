@@ -28,7 +28,7 @@
 class QoreSignalManager QSM;
 
 int QoreSignalManager::num_handlers = 0;
-LockedObject QoreSignalManager::mutex;
+QoreThreadLock QoreSignalManager::mutex;
 sigset_t QoreSignalManager::mask;
 bool QoreSignalManager::thread_running = false;
 QoreCondition QoreSignalManager::cond;

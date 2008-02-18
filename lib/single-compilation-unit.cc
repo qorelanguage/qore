@@ -101,7 +101,7 @@
 #include "RegexSubstNode.cc"
 #include "RegexTransNode.cc"
 #include "Sequence.cc"
-#include "ReferenceObject.cc"
+#include "QoreReferenceCounter.cc"
 #include "QoreHTTPClient.cc"
 #include "ParseOptionMap.cc"
 #include "Environment.cc"

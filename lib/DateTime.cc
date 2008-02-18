@@ -957,7 +957,7 @@ int DateTime::getLastDayOfMonth(int month, int year)
    return isLeapYear(year) ? 29 : 28;
 }
 
-DateTime::DateTime(struct tm *tms) : priv(new qore_dt_private)
+DateTime::DateTime(const struct tm *tms) : priv(new qore_dt_private)
 {
    setDate(tms);
 }
@@ -991,7 +991,7 @@ void DateTime::getTM(struct tm *tms) const
    tms->tm_isdst = -1;
 }
 
-void DateTime::setDate(struct tm *tms, short ms)
+void DateTime::setDate(const struct tm *tms, short ms)
 {
    priv->year = 1900 + tms->tm_year;
    priv->month = tms->tm_mon + 1;

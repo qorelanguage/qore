@@ -26,11 +26,14 @@
 
 #include <qore/AbstractQoreNode.h>
 
+//! holds arbitrary binary data
+/** this class is implemented simply as a pointer and a length indicator
+ */
 class BinaryNode : public SimpleQoreNode
 {
    private:
       void *ptr;
-      unsigned len;
+      unsigned long len;
 
       // not yet implemented
       DLLLOCAL BinaryNode(const BinaryNode&);
@@ -40,45 +43,75 @@ class BinaryNode : public SimpleQoreNode
       DLLEXPORT virtual ~BinaryNode();
 
    public:
-      DLLEXPORT BinaryNode(void *p = NULL, unsigned size = 0);
+      DLLEXPORT BinaryNode(void *p = NULL, unsigned long size = 0);
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
+      //! concatenate the verbose string representation of the value to an existing QoreString
+      /** used for %n and %N printf formatting
+	  @param str the string representation of the type will be concatenated to this QoreString reference
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return -1 for exception raised, 0 = OK
+      */
       DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+
+      //! returns a QoreString giving the verbose string representation of the List (including all contained values for container types)
+      /** used for %n and %N printf formatting
+	  @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+	  @see QoreNodeAsStringHelper
+      */
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
-      // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
-      // the "val" passed
-      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
-      // the type passed must always be equal to the current type
+      //! tests for equality
+      /** this function does not throw a Qore-language exception with the BinaryNode class
+	  @param v the value to compare
+	  @param xsink is not used in this implementation of the function
+       */
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
+      //! tests for equality
+      /** this function does not throw a Qore-language exception with the BinaryNode class
+	  @param v the value to compare
+	  @param xsink is not used in this implementation of the function
+       */
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      // returns the data type
+      //! returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
-      // returns the type name as a c string
+
+      //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      // returns 0 = equal, 1 = not equal
+      //! returns 0 = equal, 1 = not equal
       DLLEXPORT int compare(const BinaryNode *obj) const;
 
-      DLLEXPORT unsigned size() const;
+      //! returns the number of bytes in the object
+      DLLEXPORT unsigned long size() const;
 
+      //! returns a copy of the object
+      /**
+	 @return a copy of the current object
+       */
       DLLEXPORT class BinaryNode *copy() const;
-
+      
+      //! returns the pointer to the data
       DLLEXPORT const void *getPtr() const;
+      
+      //! resizes the object and appends a copy of the data passed to the object
+      DLLEXPORT void append(const void *nptr, unsigned long size);
 
-      DLLEXPORT void append(const void *nptr, unsigned size);
-
+      //! resizes the object and appends a copy of the data passed to the object
       DLLEXPORT void append(const BinaryNode *b);
 
+      //! returns the data being managed and leaves this object empty
+      /**
+	 @return the data being managed (leaves this object empty)
+       */
       DLLEXPORT void *giveBuffer();
-
 };
 
 #endif // _QORE_BINARYOBJECT_H

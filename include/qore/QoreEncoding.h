@@ -25,7 +25,7 @@
 #define _QORE_CHARSET_H
 
 #include <qore/common.h>
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 
 #include <strings.h>
 #include <string.h>
@@ -102,7 +102,7 @@ class QoreEncodingManager
    private:
       DLLLOCAL static encoding_map_t emap;
       DLLLOCAL static const_encoding_map_t amap;
-      DLLLOCAL static class LockedObject mutex;
+      DLLLOCAL static class QoreThreadLock mutex;
    
       DLLLOCAL static const QoreEncoding *addUnlocked(const char *code, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, const char *desc);
       DLLLOCAL static const QoreEncoding *findUnlocked(const char *name);

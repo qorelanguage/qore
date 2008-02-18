@@ -63,9 +63,9 @@ struct qore_program_private {
       class CharPtrList featureList;
       
       // parse lock, making parsing actions atomic and thread-safe
-      class LockedObject plock;
+      class QoreThreadLock plock;
       // depedency counter, when this hits zero, the object is deleted
-      class ReferenceObject dc;
+      class QoreReferenceCounter dc;
       class SBNode *sb_head, *sb_tail;
       ExceptionSink *parseSink, *warnSink;
       class RootQoreNamespace *RootNS;
@@ -266,7 +266,7 @@ QoreProgram::QoreProgram(QoreProgram *pgm, int po, bool ec, const char *ecn) : p
    pgm->priv->featureList.populate(&priv->featureList);
 }
 
-class LockedObject *QoreProgram::getParseLock()
+class QoreThreadLock *QoreProgram::getParseLock()
 {
    return &priv->plock;
 }
@@ -365,7 +365,7 @@ void QoreProgram::addGlobalVarDef(const char *name)
 void QoreProgram::makeParseException(const char *err, QoreStringNode *desc)
 {
    tracein("QoreProgram::makeParseException()");
-   TempQoreStringNode d(desc);
+   QoreStringNodeHolder d(desc);
    if (!priv->requires_exception)
    {
       class QoreException *ne = new ParseException(err, d.release());
@@ -377,7 +377,7 @@ void QoreProgram::makeParseException(const char *err, QoreStringNode *desc)
 void QoreProgram::makeParseException(QoreStringNode *desc)
 {
    tracein("QoreProgram::makeParseException()");
-   TempQoreStringNode d(desc);
+   QoreStringNodeHolder d(desc);
    if (!priv->requires_exception)
    {
       class QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
@@ -389,7 +389,7 @@ void QoreProgram::makeParseException(QoreStringNode *desc)
 void QoreProgram::makeParseException(int sline, int eline, QoreStringNode *desc)
 {
    tracein("QoreProgram::makeParseException()");
-   TempQoreStringNode d(desc);
+   QoreStringNodeHolder d(desc);
    if (!priv->requires_exception)
    {
       class QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", d.release());
@@ -764,7 +764,7 @@ void QoreProgram::resolveFunction(FunctionCallNode *f)
       return;
    }
 
-   class BuiltinFunction *bfc;
+   const BuiltinFunction *bfc;
    if ((bfc = builtinFunctions.find(fname)))
    {
       printd(5, "resolved builtin function call to %s\n", fname);
@@ -809,7 +809,7 @@ AbstractFunctionReferenceNode *QoreProgram::resolveFunctionReference(UnresolvedF
       }
    }
    
-   class BuiltinFunction *bfc;
+   const BuiltinFunction *bfc;
    if ((bfc = builtinFunctions.find(fname)))
    {
       printd(5, "resolved function reference to builtin function to %s\n", fname);
@@ -1084,7 +1084,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
       fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args));
    else
    {
-      class BuiltinFunction *bfc;
+      const BuiltinFunction *bfc;
       if ((bfc = builtinFunctions.find(name)))
       {
 	 // check parse options & function type

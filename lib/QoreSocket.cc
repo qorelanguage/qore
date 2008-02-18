@@ -1357,7 +1357,7 @@ int QoreSocket::sendHTTPResponse(int code, const char *desc, const char *http_ve
 QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state)
 {
    // read in HHTP header until \r\n\r\n or \n\n from socket
-   TempQoreStringNode hdr(new QoreStringNode(priv->charsetid));
+   QoreStringNodeHolder hdr(new QoreStringNode(priv->charsetid));
 
    while (true)
    {
@@ -1456,7 +1456,7 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
       return NULL;
    }
 
-   TempQoreStringNode hdr(readHTTPData(timeout, rc));
+   QoreStringNodeHolder hdr(readHTTPData(timeout, rc));
    if (!hdr)
       return NULL;
 
@@ -1638,7 +1638,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
    }
 
    // read footers or nothing
-   TempQoreStringNode hdr(readHTTPData(timeout, &rc, 1));
+   QoreStringNodeHolder hdr(readHTTPData(timeout, &rc, 1));
    if (!hdr)
    {
       doException(rc, "readHTTPChunkedBodyBinary", xsink);
@@ -1657,7 +1657,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 // receive a message in HTTP chunked format
 QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
 {
-   TempQoreStringNode buf(new QoreStringNode(priv->charsetid));
+   QoreStringNodeHolder buf(new QoreStringNode(priv->charsetid));
    class QoreString str; // for reading the size of each chunk
    
    int rc;
@@ -1751,7 +1751,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
    }
 
    // read footers or nothing
-   TempQoreStringNode hdr(readHTTPData(timeout, &rc, 1));
+   QoreStringNodeHolder hdr(readHTTPData(timeout, &rc, 1));
    if (!hdr)
    {
       doException(rc, "readHTTPChunkedBody", xsink);

@@ -61,7 +61,7 @@
 
 struct qore_ftp_private;
 
-class QoreFtpClient : public LockedObject
+class QoreFtpClient : public QoreThreadLock
 {
    private:
       struct qore_ftp_private *priv;

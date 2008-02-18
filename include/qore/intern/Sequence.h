@@ -24,9 +24,9 @@
 
 #define _QORE_SEQUENCE_H
 
-#include <qore/LockedObject.h>
+#include <qore/QoreThreadLock.h>
 
-class Sequence : public LockedObject
+class Sequence : public QoreThreadLock
 {
    private:
       int val;

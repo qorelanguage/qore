@@ -60,7 +60,7 @@ class FunctionCallNode : public ParseNode
    public:
       union uFCall {
 	    class UserFunction *ufunc;
-	    class BuiltinFunction *bfunc;
+	    const BuiltinFunction *bfunc;
 	    class SelfFunctionCall *sfunc;
 	    class ImportedFunctionCall *ifunc;
 	    char *c_str;
@@ -69,7 +69,7 @@ class FunctionCallNode : public ParseNode
       int ftype;
 
       DLLLOCAL FunctionCallNode(class UserFunction *u, QoreListNode *a);
-      DLLLOCAL FunctionCallNode(class BuiltinFunction *b, QoreListNode *a);
+      DLLLOCAL FunctionCallNode(const BuiltinFunction *b, QoreListNode *a);
 
       // "self" in-object function call constructors
       DLLLOCAL FunctionCallNode(QoreListNode *a, char *name);

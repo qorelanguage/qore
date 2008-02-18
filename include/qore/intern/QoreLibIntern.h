@@ -25,10 +25,10 @@
 #define _QORE_QORELIBINTERN_H
 
 #ifndef HAVE_GETHOSTBYNAME_R
-DLLLOCAL extern LockedObject lck_gethostbyname;
+DLLLOCAL extern QoreThreadLock lck_gethostbyname;
 #endif
 #ifndef HAVE_GETHOSTBYADDR_R
-DLLLOCAL extern LockedObject lck_gethostbyaddr;
+DLLLOCAL extern QoreThreadLock lck_gethostbyaddr;
 #endif
 
 #ifndef UNIX_PATH_MAX
@@ -44,11 +44,11 @@ DLLLOCAL extern LockedObject lck_gethostbyaddr;
 #endif
 
 #ifndef HAVE_LOCALTIME_R
-DLLLOCAL extern LockedObject lck_localtime;
+DLLLOCAL extern QoreThreadLock lck_localtime;
 #endif
 
 #ifndef HAVE_GMTIME_R
-DLLLOCAL extern LockedObject lck_gmtime;
+DLLLOCAL extern QoreThreadLock lck_gmtime;
 #endif
 
 DLLLOCAL extern char table64[64];

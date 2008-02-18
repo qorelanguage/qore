@@ -675,7 +675,7 @@ class QoreHashNode *QorePGResult::getHash(class ExceptionSink *xsink)
 
 class QoreListNode *QorePGResult::getQoreListNode(class ExceptionSink *xsink)
 {
-   TempList l(new QoreListNode(), xsink);
+   ReferenceHolder<QoreListNode> l(new QoreListNode(), xsink);
 
    int num_columns = PQnfields(res);
 

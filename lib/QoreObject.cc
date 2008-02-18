@@ -47,7 +47,7 @@ struct qore_object_private {
       bool system_object;
       mutable class VRMutex g;
       class KeyList *privateData;
-      class ReferenceObject tRefs;  // reference-references
+      class QoreReferenceCounter tRefs;  // reference-references
       class QoreHashNode *data;
       QoreProgram *pgm;
 
@@ -848,7 +848,7 @@ QoreString *QoreObject::getAsString(bool &del, int foff, ExceptionSink *xsink) c
 
 int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
-   TempQoreHashNode h(copyData(xsink), xsink);
+   QoreHashNodeHolder h(copyData(xsink), xsink);
    if (*xsink)
       return -1;
 

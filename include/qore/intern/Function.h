@@ -24,7 +24,7 @@
 
 #define _QORE_FUNCTION_H
 
-#include <qore/ReferenceObject.h>
+#include <qore/QoreReferenceCounter.h>
 #include <qore/Restrictions.h>
 #include <qore/common.h>
 
@@ -93,7 +93,7 @@ class Paramlist {
       DLLLOCAL ~Paramlist();
 };
 
-class UserFunction : public ReferenceObject
+class UserFunction : public QoreReferenceCounter
 {
    private:
       bool synchronized;
