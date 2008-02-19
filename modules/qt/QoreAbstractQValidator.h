@@ -27,7 +27,7 @@
 #include "QoreAbstractQObject.h"
 #include "QoreQtEventDispatcher.h"
 
-#include <qore/LVarInstantiatorHelper.h>
+#include <qore/ReferenceArgumentHelper.h>
 
 class QoreAbstractQValidator : public QoreAbstractQObject
 {

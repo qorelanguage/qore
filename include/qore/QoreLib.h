@@ -37,27 +37,42 @@
 #include <stdio.h>
 #include <ctype.h>
 
-// function to try and make a class name out of a file path, returns a new string that must be free()ed
+//! function to try and make a class name out of a file path, returns a new string that must be free()ed
 DLLEXPORT char *make_class_name(const char *fn);
-// some string formatting functions that work with Qore data structures
+
+//! a string formatting function that works with Qore data structures
 DLLEXPORT class QoreStringNode *q_sprintf(const class QoreListNode *params, int field, int offset, class ExceptionSink *xsink);
+
+//! a string formatting function that works with Qore data structures
 DLLEXPORT class QoreStringNode *q_vsprintf(const class QoreListNode *params, int field, int offset, class ExceptionSink *xsink);
+
+//! thread-safe version of "localtime()"
 DLLEXPORT struct tm *q_localtime(const time_t *clock, struct tm *tms);
+
+//! thread-safe version of "gmtime()"
 DLLEXPORT struct tm *q_gmtime(const time_t *clock, struct tm *tms);
-// thread-safe basename function (resulting pointer must be free()ed)
+
+//! thread-safe basename function (resulting pointer must be free()ed)
 DLLEXPORT char *q_basename(const char *path);
-// returns a pointer within the same string
+
+//! returns a pointer within the same string
 DLLEXPORT char *q_basenameptr(const char *path);
-// thread-safe basename function (resulting pointer must be free()ed)
+
+//! thread-safe dirname function (resulting pointer must be free()ed)
 DLLEXPORT char *q_dirname(const char *path);
+
+//! sets up the Qore ARGV and QORE_ARGV values
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
 
+//! for retrieving a pointer to a pointer to an lvalue expression
 // implemented in Variable.h
 DLLEXPORT AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
-// implemented in Variable.h, only returns a value if the variable's value is of type string
+
+//! for retrieving a pointer to a pointer to an lvalue expression, only returns a value if the variable's value is of type string
+// implemented in Variable.h
 DLLEXPORT class QoreStringNode **get_string_var_value_ptr(class AbstractQoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
 
-//! stl-like list containing all presently-loaded Qore features
+//! STL-like list containing all presently-loaded Qore features
 /** this list must be thread-safe for reading, writing under a lock
  */
 class FeatureList : public safe_dslist<std::string>
@@ -77,7 +92,7 @@ class FeatureList : public safe_dslist<std::string>
       DLLLOCAL ~FeatureList();
 };
 
-// list of qore features
+//! list of qore features
 DLLEXPORT extern FeatureList qoreFeatureList;
 
 //! find one of any characters in a string

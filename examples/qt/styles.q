@@ -38,7 +38,7 @@ class NorwegianWoodStyle inherits QMotifStyle
 	my $backgroundImage = new QPixmap("images/woodbackground.png");
 	my $buttonImage = new QPixmap("images/woodbutton.png");
 	my $midImage = $buttonImage.copy();
-
+        
 	my $painter = new QPainter();
 	$painter.begin($midImage);
 	$painter.setPen(Qt::NoPen);

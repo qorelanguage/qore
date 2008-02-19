@@ -13,7 +13,7 @@ class T {
 
 	 AbstractQoreNode *val = new QoreStringNode(input.toUtf8().data(), QCS_UTF8);
 	 ExceptionSink xsink;
-	 LVarInstantiatorHelper lvh("arg0", val, &xsink);
+	 ReferenceArgumentHelper lvh("arg0", val, &xsink);
 
 	 ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(lvh.getArg());
@@ -34,8 +34,8 @@ class T {
 	    return validate_parent(input, pos);
 
 	 ExceptionSink xsink;
-	 LVarInstantiatorHelper arg0("arg0", new QoreStringNode(input.toUtf8().data(), QCS_UTF8), &xsink);
-	 LVarInstantiatorHelper arg1("arg1", new QoreBigIntNode(pos), &xsink);
+	 ReferenceArgumentHelper arg0("arg0", new QoreStringNode(input.toUtf8().data(), QCS_UTF8), &xsink);
+	 ReferenceArgumentHelper arg1("arg1", new QoreBigIntNode(pos), &xsink);
 
 	 ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
 	 args->push(arg0.getArg());

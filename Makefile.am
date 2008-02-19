@@ -10,7 +10,7 @@ SUBDIRS = modules lib
 INCLUDES = -I$(top_srcdir)/include
 
 noinst_HEADERS = \
-	include/qore/LVarInstantiatorHelper.h \
+	include/qore/ReferenceArgumentHelper.h \
 	include/qore/types/Number.h \
 	include/qore/qore_thread.h \
 	include/qore/ThreadResourceList.h \

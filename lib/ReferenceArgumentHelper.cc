@@ -1,5 +1,5 @@
 /*
-  LVarInstantiatorHelper.cc
+  ReferenceArgumentHelper.cc
 
   Qore Programming Language
 
@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-#include "LVarInstantiatorHelper.h"
+#include "ReferenceArgumentHelper.h"
 
 struct lvih_intern {
       LVar *lv;
@@ -32,7 +32,7 @@ struct lvih_intern {
       DLLLOCAL lvih_intern(const char *name, AbstractQoreNode *val, ExceptionSink *xs) : xsink(xs)
       {
 	 char *new_name = strdup(name);
-	 printd(5, "LVarInstantiatorHelper::LVarInstantiatorHelper() instantiating '%s' %08p (val=%08p type='%s') \n", new_name, new_name, val, val ? val->getTypeName() : "n/a");
+	 printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating '%s' %08p (val=%08p type='%s') \n", new_name, new_name, val, val ? val->getTypeName() : "n/a");
 	 lv = instantiateLVar(new_name, val);
 	 VarRefNode *vr = new VarRefNode(new_name, VT_LOCAL);
 	 vr->ref.id = new_name;
@@ -71,21 +71,21 @@ struct lvih_intern {
       }
 };
 
-LVarInstantiatorHelper::LVarInstantiatorHelper(const char *name, AbstractQoreNode *val, ExceptionSink *xsink) : priv(new lvih_intern(name, val, xsink))
+ReferenceArgumentHelper::ReferenceArgumentHelper(const char *name, AbstractQoreNode *val, ExceptionSink *xsink) : priv(new lvih_intern(name, val, xsink))
 {
 }
 
-LVarInstantiatorHelper::~LVarInstantiatorHelper()
+ReferenceArgumentHelper::~ReferenceArgumentHelper()
 {
    delete priv;
 }
 
-AbstractQoreNode *LVarInstantiatorHelper::getArg() const
+AbstractQoreNode *ReferenceArgumentHelper::getArg() const
 {
    return priv->getArg();
 }
 
-AbstractQoreNode *LVarInstantiatorHelper::getOutputValue()
+AbstractQoreNode *ReferenceArgumentHelper::getOutputValue()
 {
    return priv->getOutputValue();
 }

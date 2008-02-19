@@ -5,8 +5,6 @@
 
   Copyright (C) 2003 - 2008 David Nichols, all rights reserved
 
-  Abstract class for objects that need to be able to lock themselves
-
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -31,9 +29,7 @@
 
 //! provides a mutually-exclusive thread lock
 /** This class is just a simple wrapper for pthread_mutex_t.  It does not provide any special
-    logic for checking for correct usage, etc.  The base class for the intelligent thread
-    locking primitive management in Qore, see AbstractSmartLock
-    @see AbstractSmartLock
+    logic for checking for correct usage, etc.
  */
 class QoreThreadLock {
       friend class QoreCondition;

@@ -24,8 +24,6 @@
 
 #define _QORE_QT_QOREABSTRACTQSTYLE_H
 
-#include <qore/LVarInstantiatorHelper.h>
-
 #include "QoreAbstractQObject.h"
 #include "QoreQtEventDispatcher.h"
 

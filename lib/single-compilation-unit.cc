@@ -107,7 +107,7 @@
 #include "ParseOptionMap.cc"
 #include "SystemEnvironment.cc"
 #include "QoreCounter.cc"
-#include "LVarInstantiatorHelper.cc"
+#include "ReferenceArgumentHelper.cc"
 #include "ql_thread.cc"
 #include "ql_io.cc"
 #include "ql_time.cc"

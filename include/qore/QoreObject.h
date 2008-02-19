@@ -211,6 +211,12 @@ class QoreObject : public AbstractQoreNode
        */
       DLLEXPORT AbstractQoreNode *evalMethod(const class QoreString *name, const class QoreListNode *args, class ExceptionSink *xsink);
 
+      //! runs the destructor on the object (if it hasn't already been deleted)
+      /**
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT void doDelete(class ExceptionSink *xsink);
+
       DLLEXPORT const QoreClass *getClass(int cid) const;
       DLLEXPORT const QoreClass *getClass() const;
       DLLEXPORT const char *getClassName() const;
@@ -261,11 +267,6 @@ class QoreObject : public AbstractQoreNode
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLLOCAL void obliterate(class ExceptionSink *xsink);
-
-      /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-       */
-      DLLLOCAL void doDelete(class ExceptionSink *xsink);
 
       /**
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
