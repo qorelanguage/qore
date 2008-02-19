@@ -614,14 +614,14 @@ int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xs
    return -1;
 }
 
-class AbstractQoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data)
+QoreObject *return_object(QoreClass *qclass, AbstractPrivateData *data)
 {
    QoreObject *qore_object = new QoreObject(qclass, getProgram());
    qore_object->setPrivate(qclass->getID(), data);
    return qore_object;
 }
 
-class AbstractQoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink)
+AbstractQoreNode *return_qstyle(const QString &style, QStyle *qs, ExceptionSink *xsink)
 {
    if (!qs) {
       xsink->raiseException("QSTYLEFACTORY-CREATE-ERROR", "unable to create style", style.toUtf8().data());

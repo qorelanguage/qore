@@ -242,6 +242,7 @@ class T {
 	 args->push(return_qobject(application));
 	 discard(dispatch_event_intern(qore_obj, m_polish, *args, &xsink), &xsink);
       }
+
       DLLLOCAL virtual void polish ( QPalette & palette ) 
       {
 	 if (!m_polish) {
@@ -250,25 +251,19 @@ class T {
 	 }
 
 	 ExceptionSink xsink;
-         LVarInstantiatorHelper lvh("arg0", return_object(QC_QPalette, new QoreQPalette(&palette)), &xsink);
 
 	 ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
-	 args->push(lvh.getArg());
+	 QoreObject *q_palette = return_object(QC_QPalette, new QoreQPalette(&palette));
+	 args->push(q_palette);
 
 	 // execute method and discard any return value
          discard(m_polish->eval(qore_obj, *args, &xsink), &xsink);
 
-/*
-	 AbstractQoreNode *out = lvh.getOutputValue();
-         QoreObject *o = dynamic_cast<QoreObject *>(out);
-	 QoreQPalette *qp = o ? (QoreQPalette *)o->getReferencedPrivateData(CID_QPALETTE, &xsink) : 0;
-	 if (!qp) {
-	    xsink.raiseException("QSTYLE-POLISH-ERROR", "palette argument was returned as type '%s'", out ? out->getTypeName() : 0);
-	    return;
-	 }
-	 ReferenceHolder<QoreQPalette> pHolder(qp, &xsink);
-*/
+	 // delete the Qore object wrapper to ensure that it won't be accessed outside its scope
+	 // does not delete or otherwise affect the QPalette object
+	 q_palette->doDelete(&xsink);
       }
+
       DLLLOCAL virtual QSize sizeFromContents ( QStyle::ContentsType type, const QStyleOption * option, const QSize & contentsSize, const QWidget * widget = 0 ) const 
       {
          if (!m_sizeFromContents)
@@ -518,7 +513,7 @@ class T {
       }									
       DLLLOCAL virtual void parent_polish ( QPalette & palette ) 
       {
-	 QOREQTYPE::polish(palette); 
+	 QOREQTYPE::polish(palette);
       } 
       DLLLOCAL virtual QPalette parent_standardPalette () const 
       {			

@@ -51,7 +51,7 @@ DLLLOCAL int get_qchar(const AbstractQoreNode *n, QChar &c, class ExceptionSink 
 DLLLOCAL int get_qstring(const AbstractQoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception = false);
 DLLLOCAL int get_qkeysequence(const AbstractQoreNode *n, QKeySequence &qks, class ExceptionSink *xsink, bool suppress_exception = false);
 
-DLLLOCAL AbstractQoreNode *return_object(QoreClass *qclass, AbstractPrivateData *data);
+DLLLOCAL QoreObject *return_object(QoreClass *qclass, AbstractPrivateData *data);
 DLLLOCAL AbstractQoreNode *return_qvariant(const QVariant &qv);
 DLLLOCAL AbstractQoreNode *return_qstyle(const QString &style, class QStyle *qs, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *return_qobject(QObject *o);

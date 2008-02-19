@@ -56,27 +56,28 @@ static void QPIXMAP_constructor(class QoreObject *self, const QoreListNode *para
       qp = new QoreQPixmap(fileName, format, flags);
       //printd(5, "QPixmap::constructor('%s', %08p, %d) valid=%s\n", fileName.toUtf8().data(), format, (int)flags, !qp->isNull() ? "true" : "false");
    }
-
-   const QoreType *ntype = p ? p->getType() : 0;
+   else {
+      const QoreType *ntype = p ? p->getType() : 0;
 /*
-   if (ntype == NT_BINARY)
+  if (ntype == NT_BINARY)
       qp = new QoreQPixmap(reinterpret_cast<const BinaryNode *>(p));
 */
-   if (ntype == NT_OBJECT) {
-      QoreQSize *size = (QoreQSize *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
-      if (!size) {
-         if (!xsink->isException())
-            xsink->raiseException("QPIXMAP-CONSTRUCTOR-PARAM-ERROR", "QPixmap::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
-         return;
+      if (ntype == NT_OBJECT) {
+	 QoreQSize *size = (QoreQSize *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
+	 if (!size) {
+	    if (!xsink->isException())
+	       xsink->raiseException("QPIXMAP-CONSTRUCTOR-PARAM-ERROR", "QPixmap::constructor() does not know how to handle arguments of class '%s' as passed as the first argument", (reinterpret_cast<const QoreObject *>(p))->getClassName());
+	    return;
+	 }
+	 ReferenceHolder<QoreQSize> sizeHolder(size, xsink);
+	 qp = new QoreQPixmap(*(static_cast<QSize *>(size)));
       }
-      ReferenceHolder<QoreQSize> sizeHolder(size, xsink);
-      qp = new QoreQPixmap(*(static_cast<QSize *>(size)));
-   }
-   else {
-      int w = p ? p->getAsInt() : 0;
-      p = get_param(params, 1);
-      int h = p ? p->getAsInt() : 0;
-      qp = new QoreQPixmap(w, h);
+      else {
+	 int w = p ? p->getAsInt() : 0;
+	 p = get_param(params, 1);
+	 int h = p ? p->getAsInt() : 0;
+	 qp = new QoreQPixmap(w, h);
+      }
    }
 
    self->setPrivate(CID_QPIXMAP, qp);
@@ -85,7 +86,6 @@ static void QPIXMAP_constructor(class QoreObject *self, const QoreListNode *para
 static void QPIXMAP_copy(class QoreObject *self, class QoreObject *old, class QoreQPixmap *qlcdn, ExceptionSink *xsink)
 {
    self->setPrivate(CID_QPIXMAP, new QoreQPixmap(*qlcdn));
-   //xsink->raiseException("QPIXMAP-COPY-ERROR", "objects of this class cannot be copied");
 }
 
 //QPixmap alphaChannel () const
