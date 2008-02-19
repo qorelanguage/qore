@@ -452,13 +452,10 @@ QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *
    // how much data was decompressed
    len = bsize - d_stream.avail_out;
 
-   // implement qppropriate QoreStringNode constructor so that a buffer can be taken and a null added if necessary
-   QoreStringNode *str = new QoreStringNode(enc);
-   // add closing \0 if necessary
-   if (((char *)buf)[len - 1])
-      str->takeAndTerminate((char *)buf, len);
-   else // otherwise take string and set length
-      str->take((char *)buf, len - 1);
+   // create the string
+   QoreStringNode *str = new QoreStringNode((char *)buf, len, len, enc);
+   // terminate and set length as appropriate by checking the final byte
+   str->terminate(((char *)buf)[len - 1] ? len : len - 1);
 
    return str;
 }
@@ -639,13 +636,10 @@ QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding 
    // how much data was decompressed
    len = bsize - d_stream.avail_out;
 
-   // implement qppropriate QoreStringNode constructor so that a buffer can be taken and a null added if necessary
-   QoreStringNode *str = new QoreStringNode(enc);
-   // add closing \0 if necessary
-   if (((char *)buf)[len - 1])
-      str->takeAndTerminate((char *)buf, len);
-   else // otherwise take string and set length
-      str->take((char *)buf, len - 1);
+   // create the string
+   QoreStringNode *str = new QoreStringNode((char *)buf, len, len, enc);
+   // terminate and set length as appropriate by checking the final byte
+   str->terminate(((char *)buf)[len - 1] ? len : len - 1);
 
    return str;
 }

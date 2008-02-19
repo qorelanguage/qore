@@ -293,16 +293,9 @@ QoreStringNode *QoreFile::read(int size, ExceptionSink *xsink)
    char *buf = readBlock(size);
    if (!buf)
       return NULL;
-   
-   QoreStringNode *str = new QoreStringNode(priv->charset);
-   if (buf[size - 1] == '\0')
-      str->take(buf, size - 1);
-   else
-   {
-      buf[size] = '\0';
-      str->take(buf, size);
-   }
-   
+
+   QoreStringNode *str = new QoreStringNode(buf, size, size, priv->charset);
+   str->terminate(buf[size - 1] ? size : size - 1);
    return str;
 }
 

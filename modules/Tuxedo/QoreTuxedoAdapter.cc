@@ -52,130 +52,119 @@ using std::vector;
 using std::pair;
 using std::auto_ptr;
 
+// define an anonymous namespace
 namespace {
+   typedef vector<pair<string, string> > env_t;
 
-typedef vector<pair<string, string> > env_t;
-
-
-//------------------------------------------------------------------------------
 // Set given environment variables and return back to original state in destructor.
-struct EnvironmentSetter
-{
-  static QoreThreadLock m_mutex; // needs to be static
-  env_t m_old_env;
-  EnvironmentSetter(const env_t& new_env);
-  ~EnvironmentSetter();
-};
+   struct EnvironmentSetter : AtomicEnvironmentSetter
+   {
+      env_t m_old_env;
+      EnvironmentSetter(const env_t& new_env);
+      ~EnvironmentSetter();
+   };
 
-EnvironmentSetter::EnvironmentSetter(const env_t& new_env)
-{
-  m_mutex.lock();
-  Environment env;
+   EnvironmentSetter::EnvironmentSetter(const env_t& new_env)
+   {
+      for (env_t::const_iterator it = new_env.begin(), end = new_env.end(); it != end; ++it) {
+	 QoreString* old = get(it->first.c_str());
+	 const char* s = old ? old->getBuffer() : "";
+	 m_old_env.push_back(std::pair<std::string, std::string>(it->first, s));
+	 
+	 if (it->second.empty()) {      
+	    unset(it->first.c_str());
+	 } else {
+	    set(it->first.c_str(), it->second.c_str(), 1);
+	 }
+      }
+   }
 
-  for (env_t::const_iterator it = new_env.begin(), end = new_env.end(); it != end; ++it) {
-    QoreString* old = env.get(it->first.c_str());
-    const char* s = old ? old->getBuffer() : "";
-    m_old_env.push_back(std::pair<std::string, std::string>(it->first, s));
+   EnvironmentSetter::~EnvironmentSetter()
+   {
+      for (env_t::const_iterator it = m_old_env.begin(), end = m_old_env.end(); it != end; ++it) {
+	 if (it->second.empty()) {
+	    unset(it->first.c_str());
+	 } else {
+	    set(it->first.c_str(), it->second.c_str(), 1);
+	 }
+      }
+      
+   }
 
-    if (it->second.empty()) {      
-      env.unset(it->first.c_str());
-    } else {
-      env.set(it->first.c_str(), it->second.c_str(), 1);
-    }
-  }
-}
-
-QoreThreadLock EnvironmentSetter::m_mutex;
-
-EnvironmentSetter::~EnvironmentSetter()
-{
-  for (env_t::const_iterator it = m_old_env.begin(), end = m_old_env.end(); it != end; ++it) {
-    Environment env;
-    if (it->second.empty()) {
-      env.unset(it->first.c_str());
-    } else {
-      env.set(it->first.c_str(), it->second.c_str(), 1);
-    }
-  }
-
-  m_mutex.unlock();
-}
-
-//------------------------------------------------------------------------------
-// Set environment variables needed to parse FML definitions, return back to original in destructor.
-class FmlEnvironmentSetter
-{
-private:
-  auto_ptr<EnvironmentSetter> m_setter;
-
-  void set(const string& value, bool is_fml32) {
-    env_t new_env;
-    new_env.push_back(pair<std::string, std::string>(is_fml32 ? "FIELDTBLS32" : "FIELDTBLS", value));
-    // all file names are expected to be absolute paths
-    new_env.push_back(pair<std::string, std::string>(is_fml32 ? "FLDTBLDIR32" : "FLDTBLDIR", string())); 
-    m_setter.reset(new EnvironmentSetter(new_env));
-  }
-
-public:
-  FmlEnvironmentSetter(const vector<string>& files, bool is_fml32) {
-    string joined_files;
-    for (unsigned i = 0, n = files.size(); i != n; ++i) {
-      joined_files += files[i];
-      if (i + 1 != n) joined_files += ","; // that's the Tuxedo way
-    }
-    set(joined_files, is_fml32);
-  }
-  FmlEnvironmentSetter(const string& file, bool is_fml32) {
-    set(file, is_fml32);
-  }
-};
-
+   //------------------------------------------------------------------------------
+   // Set environment variables needed to parse FML definitions, return back to original in destructor.
+   class FmlEnvironmentSetter
+   {
+      private:
+	 auto_ptr<EnvironmentSetter> m_setter;
+	 
+	 void set(const string& value, bool is_fml32) {
+	    env_t new_env;
+	    new_env.push_back(pair<std::string, std::string>(is_fml32 ? "FIELDTBLS32" : "FIELDTBLS", value));
+	    // all file names are expected to be absolute paths
+	    new_env.push_back(pair<std::string, std::string>(is_fml32 ? "FLDTBLDIR32" : "FLDTBLDIR", string())); 
+	    m_setter.reset(new EnvironmentSetter(new_env));
+	 }
+	 
+      public:
+	 FmlEnvironmentSetter(const vector<string>& files, bool is_fml32) {
+	    string joined_files;
+	    for (unsigned i = 0, n = files.size(); i != n; ++i) {
+	       joined_files += files[i];
+	       if (i + 1 != n) joined_files += ","; // that's the Tuxedo way
+	    }
+	    set(joined_files, is_fml32);
+	 }
+	 FmlEnvironmentSetter(const string& file, bool is_fml32) {
+	    set(file, is_fml32);
+	 }
+   };
+   
 //------------------------------------------------------------------------------
 // Extract all names from given table description file.
 // See http://edocs.bea.com/tuxedo/tux91/fml/fml04.htm#1010346
-static vector<string> read_names_from_fml_description_file(const char* filename, ExceptionSink* xsink)
-{
-   vector<string> result;
-  FILE* f = fopen(filename, "r");
-  if (!f) {
-    xsink->raiseException("FML-DESCRIPTION-TABLE-ERROR", "read_names_from_fml_description_file(): the file [ %s ] cannot be opened.", filename);
-    return result;
-  }
-  ON_BLOCK_EXIT(fclose, f);
-
-  char line[1024];
-  while (fgets(line, sizeof(line), f)) {
-    char* thumb = line;
-    while (isspace(*thumb)) ++thumb;
-    if (!*thumb) continue;
-    if (strstr(thumb, "*base") == thumb) continue;
-    if (*thumb == '#') continue;
-
-     char* name_end = thumb;
-     while (!isspace(*name_end) && *name_end) ++name_end;
-     *name_end = 0;
-
-     if (name_end == thumb) continue; // ???
-     result.push_back(thumb);
-  }
-  return result;
-}
-
-//-----------------------------------------------------------------------------
-// Extract all names from all given table description file.
-static vector<string> read_names_from_all_fml_description_files(const vector<string>& files, ExceptionSink* xsink)
-{
-   vector<string> result;
-   for (unsigned i = 0; i < files.size(); ++i) {
-     vector<string> aux = read_names_from_fml_description_file(files[i].c_str(), xsink);
-     if (xsink->isException()) {
-       return vector<string>();
-     }
-     result.insert(result.end(), aux.begin(), aux.end());
+   static vector<string> read_names_from_fml_description_file(const char* filename, ExceptionSink* xsink)
+   {
+      vector<string> result;
+      FILE* f = fopen(filename, "r");
+      if (!f) {
+	 xsink->raiseException("FML-DESCRIPTION-TABLE-ERROR", "read_names_from_fml_description_file(): the file [ %s ] cannot be opened.", filename);
+	 return result;
+      }
+      ON_BLOCK_EXIT(fclose, f);
+      
+      char line[1024];
+      while (fgets(line, sizeof(line), f)) {
+	 char* thumb = line;
+	 while (isspace(*thumb)) ++thumb;
+	 if (!*thumb) continue;
+	 if (strstr(thumb, "*base") == thumb) continue;
+	 if (*thumb == '#') continue;
+	 
+	 char* name_end = thumb;
+	 while (!isspace(*name_end) && *name_end) ++name_end;
+	 *name_end = 0;
+	 
+	 if (name_end == thumb) continue; // ???
+	 result.push_back(thumb);
+      }
+      return result;
    }
-   return result;
-}
-
+   
+   //-----------------------------------------------------------------------------
+   // Extract all names from all given table description file.
+   static vector<string> read_names_from_all_fml_description_files(const vector<string>& files, ExceptionSink* xsink)
+   {
+      vector<string> result;
+      for (unsigned i = 0; i < files.size(); ++i) {
+	 vector<string> aux = read_names_from_fml_description_file(files[i].c_str(), xsink);
+	 if (xsink->isException()) {
+	    return vector<string>();
+	 }
+	 result.insert(result.end(), aux.begin(), aux.end());
+      }
+      return result;
+   }
 } // namespace
 
 #ifdef DEBUG
@@ -186,24 +175,23 @@ TEST()
   envs.push_back(pair<std::string, std::string>("test_aaa", "xyz"));
   envs.push_back(pair<std::string, std::string>("test_bbb", ""));
 
-  Environment env;
-  env.set("test_aaa", "old aaa", 1);
-  env.set("test_bbb", "old bbb", 1);
+  SysEnv.set("test_aaa", "old aaa", 1);
+  SysEnv.set("test_bbb", "old bbb", 1);
 
   { 
     EnvironmentSetter setter(envs);
-    QoreString* s = env.get("test_aaa");
+    QoreString* s = SysEnv.get("test_aaa");
     assert(s);
     assert(!strcmp(s->getBuffer(), "xyz"));
     delete s;
-    s = env.get("test_bbb");
+    s = SysEnv.get("test_bbb");
     assert(!s);
   }
-  QoreString* s =env.get("test_aaa");
+  QoreString* s = SysEnv.get("test_aaa");
   assert(s);
   assert(!strcmp(s->getBuffer(), "old aaa"));
   delete s;
-  s = env.get("test_bbb");
+  s = SysEnv.get("test_bbb");
   assert(s);
   assert(!strcmp(s->getBuffer(), "old bbb"));
   delete s;

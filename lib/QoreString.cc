@@ -51,7 +51,7 @@ static const struct code_table html_codes[] =
   { '>', "&gt;", 4 },
   { '"', "&quot;", 6 } }; 
 
-#define NUM_HTML_CODES sizeof(html_codes)
+#define NUM_HTML_CODES (sizeof(html_codes) / sizeof (struct code_table))
 
 QoreString::QoreString() : priv(new qore_string_private)
 {
@@ -258,23 +258,13 @@ int QoreString::compare(const char *str) const
    return strcmp(priv->buf, str);
 }
 
-void QoreString::allocate(int size)
-{
-   priv->check_char(size);
-   priv->len = size;
-   priv->buf[size] = '\0';
-}
-
 void QoreString::terminate(int size)
 {
-   if (size < priv->len)
-   {
-      priv->len = size;
-      priv->buf[size] = '\0';
-      // FIXME: change all size instances to "unsigned"
-      if ((unsigned)size < priv->allocated)
-	 priv->allocated = size + 1;
-   }
+   if (size > priv->len)
+      priv->check_char(size);
+
+   priv->len = size;
+   priv->buf[size] = '\0';
 }
 
 void QoreString::take(char *str)
@@ -325,7 +315,8 @@ void QoreString::takeAndTerminate(char *str, int size)
    if (priv->buf)
       free(priv->buf);
    priv->buf = str;
-   priv->len = priv->allocated = size;
+   priv->len = size;
+   priv->allocated = size + 1;
    priv->check_char(size);
    priv->buf[size] = '\0';
 }
@@ -369,7 +360,7 @@ void QoreString::set(const QoreString *str)
 {
    priv->len = 0;
    priv->charset = str->priv->charset;
-   ensureBufferSize(str->priv->len + 1);
+   allocate(str->priv->len + 1);
    // copy string and trailing null
    memcpy(priv->buf, str->priv->buf, str->priv->len + 1);
 }
@@ -527,7 +518,7 @@ int QoreString::convert_encoding_intern(const char *src, int src_len, const Qore
    
    // now convert value
    int al = src_len + STR_CLASS_BLOCK;
-   targ.ensureBufferSize(al + 1);
+   targ.allocate(al + 1);
    while (true)
    {
       size_t ilen = src_len;
@@ -548,7 +539,7 @@ int QoreString::convert_encoding_intern(const char *src, int src_len, const Qore
 	    }
 	    case E2BIG:
 	       al += STR_CLASS_BLOCK;
-	       targ.ensureBufferSize(al + 1);
+	       targ.allocate(al + 1);
 	       break;
 	    default:
 	    {
@@ -679,6 +670,8 @@ void QoreString::concatHex(const char *binbuf, int size)
 // FIXME: this is slow, each concatenated character gets terminated as well
 void QoreString::concatAndHTMLEncode(const QoreString *str, ExceptionSink *xsink)
 {
+   //printd(5, "QoreString::concatAndHTMLDecode() '%s'\n", str->getBuffer());
+
    // if it's not a null string
    if (str && str->priv->len)
    {
@@ -686,7 +679,7 @@ void QoreString::concatAndHTMLEncode(const QoreString *str, ExceptionSink *xsink
       if (!cstr)
 	 return;
 
-      ensureBufferSize(priv->len + cstr->priv->len + cstr->priv->len / 10 + 10); // avoid reallocations inside the loop, value guesstimated
+      allocate(priv->len + cstr->priv->len + cstr->priv->len / 10 + 10); // avoid reallocations inside the loop, value guesstimated
       for (int i = 0; i < cstr->priv->len; i++)
       {
 	 // concatenate translated character
@@ -742,7 +735,7 @@ void QoreString::concatAndHTMLDecode(const QoreString *str)
    // if it's not a null string
    if (str && str->priv->len)
    {
-      ensureBufferSize(priv->len + str->priv->len); // avoid reallocations within the loop
+      allocate(priv->len + str->priv->len); // avoid reallocations within the loop
 
       int i = 0;
       while (str->priv->buf[i])
@@ -1283,18 +1276,12 @@ int QoreString::compareSoft(const QoreString *str, ExceptionSink *xsink) const
 	 return 0;
       else
 	 return 1;
-   // convert priv->charsets if necessary
-   if (priv->charset != str->priv->charset)
-   {
-      class QoreString *t = str->convertEncoding(priv->charset, xsink);
-      if (xsink->isEvent())
-	 return 1;
-      int rc = strcmp(priv->buf, t->priv->buf);
-      delete t;
-      return rc;
-   }
 
-   return strcmp(priv->buf, str->priv->buf);
+   TempEncodingHelper t(str, priv->charset, xsink);
+   if (*xsink)
+      return 1;
+
+   return strcmp(priv->buf, t->priv->buf);
 }
 
 void QoreString::concatEscape(const char *str, char c, char esc_char)
@@ -1445,7 +1432,7 @@ class BinaryNode *QoreString::parseHex(ExceptionSink *xsink) const
    return ::parseHex(priv->buf, priv->len, xsink);
 }
 
-void QoreString::ensureBufferSize(unsigned requested_size)
+void QoreString::allocate(unsigned requested_size)
 {
    if ((unsigned)priv->allocated >= requested_size) {
       return;  

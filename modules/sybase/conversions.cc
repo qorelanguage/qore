@@ -63,7 +63,7 @@ int DateTime_to_DATETIME(const DateTime* dt, CS_DATETIME &out, ExceptionSink* xs
    {
       QoreStringNode *desc = new QoreStringNode();
       desc->sprintf("maximum sybase datetime value is 9999-12-31, date passed: ");
-      dt->format(desc, "YYYY-DD-MM");
+      dt->format(*desc, "YYYY-DD-MM");
       xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
       return -1;
    }
@@ -71,7 +71,7 @@ int DateTime_to_DATETIME(const DateTime* dt, CS_DATETIME &out, ExceptionSink* xs
    {
       QoreStringNode *desc = new QoreStringNode();
       desc->sprintf("minumum sybase datetime value is 1753-01-01, date passed: ");
-      dt->format(desc, "YYYY-DD-MM");
+      dt->format(*desc, "YYYY-DD-MM");
       xsink->raiseException("DBI:SYBASE:DATE-ERROR", desc);
       return -1;
    }

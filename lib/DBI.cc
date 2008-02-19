@@ -51,6 +51,40 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_LOB_SUPPORT,            "LargeObjectSupport" },
 };
 
+class DBIDriverFunctions {
+   public:
+      q_dbi_open_t open;
+      q_dbi_close_t close;
+      q_dbi_select_t select;
+      q_dbi_select_rows_t selectRows;
+      q_dbi_exec_t execSQL;
+      q_dbi_commit_t commit;
+      q_dbi_rollback_t rollback;
+      q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
+      q_dbi_auto_commit_t auto_commit;             // for DBI drivers that require an explicit commit 
+      q_dbi_abort_transaction_start_t abort_transaction_start;  // for DBI drivers that require a rollback in order to use
+							        // the connection after an exception as the first statement
+							        // in a transaction
+      q_dbi_get_server_version_t get_server_version;
+      q_dbi_get_client_version_t get_client_version;
+      
+      DLLLOCAL DBIDriverFunctions()
+      {
+	 open = NULL;
+	 close = NULL;
+	 select = NULL;
+	 selectRows = NULL;
+	 execSQL = NULL;
+	 commit = NULL;
+	 rollback = NULL;
+	 begin_transaction = NULL;
+	 auto_commit = NULL;
+	 abort_transaction_start = NULL;
+	 get_server_version = NULL;
+	 get_client_version = NULL;
+      }
+};
+
 struct qore_dbi_mlist_private {
       dbi_method_list_t l;
 };
@@ -277,12 +311,13 @@ AbstractQoreNode *DBIDriver::getClientVersion(const Datasource *ds, ExceptionSin
    return 0;
 }
 
-// it's not necessary to lock this object because it will only be written to in one thread at a time
-// (within the module lock)
-// note that a safe_dslist is used because it can be safely read in multiple threads while
-// being written to (in the lock).  The list should never be that long so the penalty for searching
-// a linked list with strcmp() against using a hash with explicit locking around all searches
-// should be acceptable...
+/* it's not necessary to lock this object because it will only be written to in one thread at a time
+   (within the module lock)
+   note that a safe_dslist is used because it can be safely read in multiple threads while
+   being written to (in the lock).  The list should never be that long so the penalty for searching
+   a linked list with strcmp() against using a hash with explicit locking around all searches
+   should be acceptable...
+*/
 struct qore_dbi_dlist_private {
       dbi_list_t l;
 

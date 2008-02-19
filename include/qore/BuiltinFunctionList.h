@@ -31,7 +31,7 @@
 
 DLLLOCAL void init_builtin_functions();
 
-//! the list of all builtin functions in the library
+//! the container that manages all builtin functions in the library
 /** The object is thread-safe; a hash or hash-map is used for lookups.
     There is only one of these, therefore we have static members and methods.
  */

@@ -91,7 +91,7 @@ class DateTime {
       // result should be empty
       DLLLOCAL static int getDateFromISOWeekIntern(DateTime &result, int year, int week, int day, class ExceptionSink *xsink);
 
-      // not implemented
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL DateTime& operator=(const DateTime&);
       
    public:
@@ -103,16 +103,16 @@ class DateTime {
 
       //! constructor for setting all parameters
       /**
-	 @param y the year value
-	 @param mo the months value
-	 @param d the days value
-	 @param h the hours value
-	 @param mi the minutes value
-	 @param s the seconds value
-	 @param ms the milliseconds value
-	 @param r the relative flag
+	 @param n_year the year value
+	 @param n_month the months value
+	 @param n_day the days value
+	 @param n_hour the hours value
+	 @param n_minute the minutes value
+	 @param n_second the seconds value
+	 @param n_ms the milliseconds value
+	 @param n_relative the relative flag
        */
-      DLLEXPORT DateTime(int y, int mo, int d, int h = 0, int mi = 0, int s = 0, short ms = 0, bool r = false);
+      DLLEXPORT DateTime(int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, short n_ms = 0, bool n_relative = false);
 
       //! constructor for setting an absolute date based on the number of seconds from January 1, 1970
       /**
@@ -139,6 +139,7 @@ class DateTime {
       */
       DLLEXPORT DateTime(const struct tm *tms);
 
+      //! copy constructor
       DLLEXPORT DateTime(const DateTime &dt);
 
       //! destroys the object and frees all memory
@@ -215,39 +216,40 @@ class DateTime {
        */
       DLLEXPORT void getISOWeek(int &year, int &week, int &day) const;
 
-      //! formats the date/time value to a QoreString (must be a pointer to a valid QoreString object)
+      //! formats the date/time value to a QoreString
       /** the formatted date/time value will be appended to the QoreString argument according to the format string
 	  FIXME: currently locale settings are ignored
 	  Format codes are as follows:
-	  + YY: last two-digits of year
-	  + YYYY: four-digit year
-	  + M: month number (1-12)
-	  + MM: month number (1-12), zero padded
-	  + Month: long month string (ex: January)
-	  + MONTH: long month string capitalised (ex: JANUARY)
-	  + Mon: abbreviated month (ex: Jan)
-	  + MON: abbreviated month capitalised (ex: JAN)
-	  + D: day number (1 - 31)
-	  + DD: day number (1 - 31), zero padded
-	  + Day: long day of week string (ex: Monday)
-	  + DAY: long day of week string capitalised (ex: MONDAY)
-	  + Dy: abbreviated day of week string (ex: Mon)
-	  + DY: abbreviated day of week string capitalised (ex: MON)
-	  + H: hour number (0 - 23)
-	  + HH: hour number (00 - 23), zero padded
-	  + h: hour number (1 - 12)
-	  + hh: hour number (01 - 12), zero padded
-	  + m: minute number (0 - 59)
-	  + mm: minute number (00 - 59), zero padded
-	  + S: second number (0 - 59)
-	  + SS: second number (00 - 59), zero padded
-	  + ms: milliseconds (000 - 999), zero padded
-	  + P: AM or PM
-	  + p: am or pm
-	  @param str a pointer to a valid QoreString object where the formatted date data will be written (appended)
+	  - YY: last two-digits of year
+	  - YYYY: four-digit year
+	  - M: month number (1-12)
+	  - MM: month number (1-12), zero padded
+	  - Month: long month string (ex: January)
+	  - MONTH: long month string capitalised (ex: JANUARY)
+	  - Mon: abbreviated month (ex: Jan)
+	  - MON: abbreviated month capitalised (ex: JAN)
+	  - D: day number (1 - 31)
+	  - DD: day number (1 - 31), zero padded
+	  - Day: long day of week string (ex: Monday)
+	  - DAY: long day of week string capitalised (ex: MONDAY)
+	  - Dy: abbreviated day of week string (ex: Mon)
+	  - DY: abbreviated day of week string capitalised (ex: MON)
+	  - H: hour number (0 - 23)
+	  - HH: hour number (00 - 23), zero padded
+	  - h: hour number (1 - 12)
+	  - hh: hour number (01 - 12), zero padded
+	  - m: minute number (0 - 59)
+	  - mm: minute number (00 - 59), zero padded
+	  - S: second number (0 - 59)
+	  - SS: second number (00 - 59), zero padded
+	  - ms: milliseconds (000 - 999), zero padded
+	  - P: AM or PM
+	  - p: am or pm
+	  .
+	  @param str the QoreString where the formatted date data will be written (appended)
 	  @param fmt the format string as per the above description
        */
-      DLLEXPORT void format(class QoreString *str, const char *fmt) const;
+      DLLEXPORT void format(class QoreString &str, const char *fmt) const;
 
       //! returns true if the value is a relative date-time value
       /**

@@ -61,7 +61,7 @@ typedef std::set<int> int_set_t;
 #include <umem.h>
 #endif
 
-// functor template for deleting pointers
+//! functor template for calling free() on pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void>
 {
       void operator()(T *ptr)
@@ -70,7 +70,7 @@ template <typename T> struct free_ptr : std::unary_function <T*, void>
       }
 };
 
-// functor template for deleting elements
+//! functor template for deleting elements
 template <typename T> struct simple_delete
 {
       void operator()(T *ptr)
@@ -79,7 +79,7 @@ template <typename T> struct simple_delete
       }
 };
 
-// functor template for dereferencing elements
+//! functor template for dereferencing elements
 template <typename T> struct simple_deref
 {
       void operator()(T *ptr)
@@ -92,6 +92,7 @@ template <typename T> struct simple_deref
       }
 };
 
+//! for simple c-string less-than comparisons
 class ltstr
 {
   public:
@@ -101,39 +102,35 @@ class ltstr
    }
 };
 
+//! for simple c-string case-insensitive less-than comparisons
 class ltcstrcase
 {
-  public:
-   bool operator()(const char* s1, const char* s2) const
-   {
-      return strcasecmp(s1, s2) < 0;
-   }
+   public:
+      bool operator()(const char* s1, const char* s2) const
+      {
+	 return strcasecmp(s1, s2) < 0;
+      }
 };
 
-// for case-insensitive maps
+//! for std::string case-insensitive less-than comparisons
 class ltstrcase
 {
-  public:
-   bool operator()(std::string s1, std::string s2) const
-   {
-      return strcasecmp(s1.c_str(), s2.c_str()) < 0;
-   }
+   public:
+      bool operator()(std::string s1, std::string s2) const
+      {
+	 return strcasecmp(s1.c_str(), s2.c_str()) < 0;
+      }
 };
 
+//! for char less-than comparisons
 class ltchar
 {
-  public:
-   bool operator()(const char s1, const char s2) const
-   {
-      return s1 < s2;
-   }
+   public:
+      bool operator()(const char s1, const char s2) const
+      {
+	 return s1 < s2;
+      }
 };
-
-enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };
-
-typedef std::pair<enum obe_type_e, class StatementBlock *> qore_conditional_block_exit_statement_t;
-
-typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 
 #include <set>
 typedef std::set<char *, ltstr> strset_t;

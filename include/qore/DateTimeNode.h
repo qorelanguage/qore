@@ -29,77 +29,196 @@
 #include <qore/AbstractQoreNode.h>
 #include <qore/DateTime.h>
 
+//! Qore's parse tree/value type for date-time values, reference-counted, dynamically-allocated only
 class DateTimeNode : public SimpleQoreNode, public DateTime
 {
    private:
-      // these functions are not actually implemented
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL DateTimeNode(const DateTime *);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL DateTimeNode& operator=(const DateTimeNode &);
 
+      //! returns a boolean value based on the number of seconds after 1970-01-01 00:00:00 (start of the UNIX epoch)
+      /** so 1970-01-01 00:00:00.000 is false (ZeroDate), every other date is true
+	  basically the date is converted to the epoch seconds offset then 0 is false, non-0 is true
+	  @return false if the date is 1970-01-01 00:00:00.000 (ZeroDate), true for every other date
+       */
       DLLEXPORT virtual bool getAsBoolImpl() const;
+
+      //! returns the seconds offset from 1970-01-01 00:00:00 (start of the UNIX epoch) 
+      /**
+	 @return the seconds offset from 1970-01-01 00:00:00 (start of the UNIX epoch) 
+       */
       DLLEXPORT virtual int getAsIntImpl() const;
+
+      //! returns the seconds offset from 1970-01-01 00:00:00 (start of the UNIX epoch) 
+      /**
+	 @return the seconds offset from 1970-01-01 00:00:00 (start of the UNIX epoch) 
+       */
       DLLEXPORT virtual int64 getAsBigIntImpl() const;
+
+      //! returns the seconds offset from 1970-01-01 00:00:00 (start of the UNIX epoch) 
+      /**
+	 @return the seconds offset from 1970-01-01 00:00:00 (start of the UNIX epoch) 
+       */
       DLLEXPORT virtual double getAsFloatImpl() const;
 
    protected:
-      // destructor only called when references = 0, use deref() instead
+      //! protected destructor only called when references = 0, use deref() instead
       DLLEXPORT virtual ~DateTimeNode();
 
    public:
+      //! constructor for an empty object
+      /**
+	 @param r sets the "relative" flag for the object
+       */
       DLLEXPORT DateTimeNode(bool r = false);
+
+      //! constructor for setting all parameters
+      /**
+	 @param n_year the year value
+	 @param n_month the months value
+	 @param n_day the days value
+	 @param n_hour the hours value
+	 @param n_minute the minutes value
+	 @param n_second the seconds value
+	 @param n_ms the milliseconds value
+	 @param n_relative the relative flag
+       */
       DLLEXPORT DateTimeNode(int y, int mo, int d, int h = 0, int mi = 0, int s = 0, short ms = 0, bool r = false);
+
+      //! constructor for setting an absolute date based on the number of seconds from January 1, 1970
+      /**
+	 @param seconds the number of seconds from January 1, 1970
+       */
       DLLEXPORT DateTimeNode(int64 seconds);
+
+      //! constructor for setting an absolute date based on the number of seconds from January 1, 1970 (plus milliseconds)
+      /**
+	 @param seconds the number of seconds from January 1, 1970
+	 @param ms the milliseconds portion of the time	 
+       */
       DLLEXPORT DateTimeNode(int64 seconds, int ms);
+
+      //! constructor for setting the date from a string in the format YYYYMMDDHHmmSS
+      /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
+	  @param date the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
+       */
       DLLEXPORT DateTimeNode(const char *date);
+
+      //! constructor for setting an absolute date based on a "struct tm"
+      /**
+	 @param tms a structure giving the absolute date to set 
+      */
       DLLEXPORT DateTimeNode(struct tm *tms);
+
+      //! copy constructor
       DLLEXPORT DateTimeNode(const DateTimeNode &dt);
+
+      //! constructor to set the date from a DateTime value
       DLLEXPORT DateTimeNode(const DateTime &dt);
 
-      // get the value of the type in a string context (default implementation = del = false and returns NullString)
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
+      //! returns a string in the format YYYYMMDDHHmmSS, del is set to true
+      /** NOTE: do not use this function directly, use QoreStringValueHelper instead
+	  @param del output parameter: if del is true, then the resulting QoreString pointer belongs to the caller (and must be deleted manually), if false it must not be
+	  @return a QoreString pointer, use the del output parameter to determine ownership of the pointer
+	  @see QoreStringValueHelper
+       */
       DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
-      // concatenate string representation to a QoreString (no action for complex types = default implementation)
+
+      //! concatentates the date/time value in the format YYYYMMDDHHmmDD to an existing QoreString reference
+      /**
+	 @param str a reference to a QoreString where date/time value will be concatenated in the format YYYYMMDDHHmmDD
+       */
       DLLEXPORT virtual void getStringRepresentation(QoreString &str) const;
 
-      // if del is true, then the returned DateTime * should be deleted, if false, then it should not
+      //! returns "this" as a DateTime, del is set to false
+      /** NOTE: Use the DateTimeValueHelper class instead of using this function directly
+	  @param del output parameter: if del is true, then the returned DateTime pointer belongs to the caller (and must be deleted manually), if false, then it must not be
+	  @see DateTimeValueHelper
+       */
       DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
-      // assign date representation to a DateTime (no action for complex types = default implementation)
+
+      //! assigns this date/time representation to the passed DateTime reference
+      /**
+	 @param dt the reference where the current date/time value will be copied
+       */
       DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
-      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+      //! returns the date/time value as a formatted string for %n and %N printf formatting, del is set to true
+      /** the format for absolute date/time value is: YYYY-MM-DD HH:mm:SS 
+	  the format for relative date/time values is: <time: x years, x months, ...>
+	  NOTE: do not use this function directly, use QoreStringValueHelper instead
+	  @param del output parameter: always set to true by this function, meaning that the caller owns the QoreString pointer returned (and must delete it manually)
+	  @return a QoreString pointer, use the del output parameter to determine ownership of the pointer
+	  @see QoreStringValueHelper
+       */
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+
+      //! concatenates a string representation of the date/time value (designed for %n and %N printf formatting) to a QoreString reference
+      /** the format for absolute date/time value is: YYYY-MM-DD HH:mm:SS
+	  the format for relative date/time values is: <time: x years, x months, ...>
+	  @param str the QoreString reference to concatenate the date/time value to
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @see QoreNodeAsStringHelper
+      */
+      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
       DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
-      // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
-      // the "val" passed
-      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
-      // the type passed must always be equal to the current type
+      //! tests for equality with possible type conversion (soft compare)
+      /** this function does not throw any Qore-language exceptions
+	  @param v the value to compare
+	  @param xsink is not used in this implementation of the function
+       */
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      // returns the data type
+      //! returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
+
+      //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
+      //! returns a copy of the DateTimeNode, the caller owns the pointer's reference count
+      /**
+	 @return a copy of the DateTimeNode, the caller owns the pointer's reference count
+       */
       DLLEXPORT DateTimeNode *copy() const;
-      
+
+      //! adds a DateTime value to the current value and returns the new value, the caller owns the pointer's reference count
+      /** 
+	  @return a new DateTimeNode value, the caller owns the pointer's reference count
+       */
       DLLEXPORT DateTimeNode *add(const class DateTime *dt) const;
+
+      //! subtracts a DateTime value from the current value and returns the new value, the caller owns the pointer's reference count
+      /** 
+	  @return a new DateTimeNode value, the caller owns the pointer's reference count
+       */
       DLLEXPORT DateTimeNode *subtractBy(const class DateTime *dt) const;
 
-      // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
-      // a NULL return value means an exception was raised
+      //! returns a DateTimeNode value as generated from the ISO-8601 week information
+      /** NOTE: ISO-8601 week days go from 1 - 7 = Mon - Sun, a 0 return value means an exception was raised
+	  in the case the ISO-8601 week information is invalid
+	  @param year the ISO-8601 year (may differ from the actual calendar year)
+	  @param week the ISO-8601 week number in the year
+	  @param day the ISO-8601 day number (1=Mon, 7=Sun)
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
       DLLEXPORT static DateTimeNode *getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink);
 };
 
 extern DateTimeNode *ZeroDate;
 
+//! manages calls to AbstractQoreNode::getDateTimeRepresentation() when a simple DateTime value is required
+/** calls to this function include a flag that indicates if the value should be deleted or not afterwards;
+    this class manages the return value in an easy and exception-safe way
+    if a DateTimeNode value is required instead, use DateTimeNodeValueHelper
+    @see DateTimeNodeValueHelper
+ */
 class DateTimeValueHelper {
    private:
       const DateTime *dt;
@@ -110,6 +229,7 @@ class DateTimeValueHelper {
       DLLLOCAL void *operator new(size_t); // not implemented, make sure it is not new'ed
 
    public:
+      //! gets the DateTime value and set the delete flag
       DLLLOCAL DateTimeValueHelper(const AbstractQoreNode *n)
       {
 	 // optmization without virtual function call for most common case
@@ -126,6 +246,8 @@ class DateTimeValueHelper {
 	    del = false;
 	 }
       }
+
+      //! deletes the DateTime value being managed if necessary
       DLLLOCAL ~DateTimeValueHelper()
       {
 	 if (del)
@@ -135,6 +257,10 @@ class DateTimeValueHelper {
       DLLLOCAL const DateTime *operator*() { return dt; }
 };
 
+//! manages calls to AbstractQoreNode::getDateTimeRepresentation() when a DateTimeNode value is required
+/** if a simple DateTime value is required instead, use DateTimeValueHelper
+    @see DateTimeNodeHelper
+ */
 class DateTimeNodeValueHelper {
    private:
       DateTimeNode *dt;
@@ -145,6 +271,7 @@ class DateTimeNodeValueHelper {
       DLLLOCAL void *operator new(size_t); // not implemented, make sure it is not new'ed
 
    public:
+      //! gets the DateTimeNode value and sets the temporary flag
       DLLLOCAL DateTimeNodeValueHelper(const AbstractQoreNode *n)
       {
 	 if (!n) {
@@ -165,6 +292,7 @@ class DateTimeNodeValueHelper {
 	 temp = true;
       }
 
+      //! dereferences the DateTimeNode value if necessary
       DLLLOCAL ~DateTimeNodeValueHelper()
       {
 	 if (dt && temp)

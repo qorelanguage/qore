@@ -220,17 +220,13 @@ class CryptoHelper : public BaseHelper
 	 return b;
       }
 
-      DLLLOCAL QoreStringNode *getString()
+      DLLLOCAL QoreStringNode *getString(const QoreEncoding *enc = QCS_DEFAULT)
       {
-	 QoreStringNode *str = new QoreStringNode();
-	 // terminate string only if necessary
-	 if (output[output_len - 1] == '\0')
-	    str->take((char *)output, output_len - 1);
-	 else
-	 {
-	    output[output_len] = '\0';
-	    str->take((char *)output, output_len);
-	 }
+	 // create the string
+	 QoreStringNode *str = new QoreStringNode((char *)output, output_len, output_len, enc);
+	 // terminate and set length as appropriate by checking the final byte
+	 str->terminate(((char *)output)[output_len - 1] ? output_len : output_len - 1);
+
 	 output = NULL;
 	 return str;
       }

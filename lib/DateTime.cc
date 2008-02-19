@@ -194,7 +194,7 @@ int DateTime::getDayOfWeek() const
    return getDayOfWeek(priv->year, priv->month, priv->day);
 }
 
-void DateTime::format(class QoreString *str, const char *fmt) const
+void DateTime::format(QoreString &str, const char *fmt) const
 {
    struct tm nt;
 
@@ -208,22 +208,22 @@ void DateTime::format(class QoreString *str, const char *fmt) const
          case 'Y':
             if (s[1] != 'Y')
             {
-               str->concat('Y');
+               str.concat('Y');
                break;
             }
             s++;
             if ((s[1] == 'Y') && (s[2] == 'Y'))
             {
-               str->sprintf("%04d", priv->year);
+               str.sprintf("%04d", priv->year);
                s += 2;
             }
             else
-               str->sprintf("%02d", priv->year - (priv->year / 100) * 100);
+               str.sprintf("%02d", priv->year - (priv->year / 100) * 100);
             break;
          case 'M':
             if (s[1] == 'M')
             {
-               str->sprintf("%02d", priv->month);
+               str.sprintf("%02d", priv->month);
                s++;
                break;
             }
@@ -234,15 +234,15 @@ void DateTime::format(class QoreString *str, const char *fmt) const
                {
                   s += 2;
                   if (priv->month && (priv->month <= 12))
-                     str->sprintf("%s", months[(int)priv->month - 1].long_name);
+                     str.sprintf("%s", months[(int)priv->month - 1].long_name);
                   else
-                     str->sprintf("Month%d", priv->month - 1);
+                     str.sprintf("Month%d", priv->month - 1);
                   break;
                }
                if (priv->month && (priv->month <= 12))
-                  str->sprintf("%s", months[(int)priv->month - 1].abbr);
+                  str.sprintf("%s", months[(int)priv->month - 1].abbr);
                else
-                  str->sprintf("M%02d", priv->month);
+                  str.sprintf("M%02d", priv->month);
                break;
             }
             if ((s[1] == 'O') && (s[2] == 'N'))
@@ -253,30 +253,30 @@ void DateTime::format(class QoreString *str, const char *fmt) const
                   s += 2;
                   if (priv->month && (priv->month <= 12))
                   {
-                     char *t = (char *)str->getBuffer() + str->strlen();
-                     str->sprintf("%s", months[(int)priv->month - 1].long_name);
+                     char *t = (char *)str.getBuffer() + str.strlen();
+                     str.sprintf("%s", months[(int)priv->month - 1].long_name);
                      strtoupper(t);
                   }
                   else
-                     str->sprintf("MONTH%d", priv->month);
+                     str.sprintf("MONTH%d", priv->month);
                   break;
                }
                if (priv->month && (priv->month <= 12))
                {
-                  char *t = (char *)str->getBuffer() + str->strlen();
-                  str->sprintf("%s", months[(int)priv->month - 1].abbr);
+                  char *t = (char *)str.getBuffer() + str.strlen();
+                  str.sprintf("%s", months[(int)priv->month - 1].abbr);
                   strtoupper(t);
                }
                else
-                  str->sprintf("M%02d", priv->month);
+                  str.sprintf("M%02d", priv->month);
                break;
             }
-            str->sprintf("%d", priv->month);
+            str.sprintf("%d", priv->month);
             break;
          case 'D':
             if (s[1] == 'D')
             {
-               str->sprintf("%02d", priv->day);
+               str.sprintf("%02d", priv->day);
                s++;
                break;
             }
@@ -285,9 +285,9 @@ void DateTime::format(class QoreString *str, const char *fmt) const
                s += 2;
                getTM(&nt);
                if (mktime(&nt) == -1) // invalid time
-                  str->sprintf("Day%d", priv->day);
+                  str.sprintf("Day%d", priv->day);
                else
-                  str->sprintf("%s", days[nt.tm_wday].long_name);
+                  str.sprintf("%s", days[nt.tm_wday].long_name);
                break;
             }
             if ((s[1] == 'A') && (s[2] == 'Y'))
@@ -295,11 +295,11 @@ void DateTime::format(class QoreString *str, const char *fmt) const
                s += 2;
                getTM(&nt);
                if (mktime(&nt) == -1) // invalid time
-                  str->sprintf("DAY%d", priv->day);
+                  str.sprintf("DAY%d", priv->day);
                else
                {
-                  char *t = (char *)str->getBuffer() + str->strlen();
-                  str->sprintf("%s", days[nt.tm_wday].long_name);
+                  char *t = (char *)str.getBuffer() + str.strlen();
+                  str.sprintf("%s", days[nt.tm_wday].long_name);
                   strtoupper(t);
                }
                break;
@@ -309,88 +309,88 @@ void DateTime::format(class QoreString *str, const char *fmt) const
                s++;;
                getTM(&nt);
                if (mktime(&nt) == -1) // invalid time
-                  str->sprintf("D%02d", priv->day);
+                  str.sprintf("D%02d", priv->day);
                else
                {
-                  char *t = (char *)str->getBuffer() + str->strlen();
-                  str->sprintf("%s", days[nt.tm_wday].abbr);
+                  char *t = (char *)str.getBuffer() + str.strlen();
+                  str.sprintf("%s", days[nt.tm_wday].abbr);
                   if (*s == 'Y')
                      strtoupper(t);
                }
                break;
             }
-            str->sprintf("%d", priv->day);
+            str.sprintf("%d", priv->day);
             break;
          case 'H':
             if (s[1] == 'H')
             {
-               str->sprintf("%02d", priv->hour);
+               str.sprintf("%02d", priv->hour);
                s++;
             }
             else
-               str->sprintf("%d", priv->hour);
+               str.sprintf("%d", priv->hour);
             break;
          case 'h':
             if (s[1] == 'h')
             {
-               str->sprintf("%02d", ampm(priv->hour));
+               str.sprintf("%02d", ampm(priv->hour));
                s++;
             }
             else
-               str->sprintf("%d", ampm(priv->hour));
+               str.sprintf("%d", ampm(priv->hour));
             break;
          case 'P':
             if (priv->hour > 11)
-               str->sprintf("PM");
+               str.sprintf("PM");
             else
-               str->sprintf("AM");
+               str.sprintf("AM");
             break;
          case 'p':
             if (priv->hour > 11)
-               str->sprintf("pm");
+               str.sprintf("pm");
             else
-               str->sprintf("am");
+               str.sprintf("am");
             break;
          case 'm':
             if (s[1] == 'm')
             {
-               str->sprintf("%02d", priv->minute);
+               str.sprintf("%02d", priv->minute);
                s++;
             }
             else if (s[1] == 's')
             {
-               str->sprintf("%03d", priv->millisecond);
+               str.sprintf("%03d", priv->millisecond);
                s++;
             }
             else
-               str->sprintf("%d", priv->minute);
+               str.sprintf("%d", priv->minute);
             break;
          case 'S':
             if (s[1] == 'S')
             {
-               str->sprintf("%02d", priv->second);
+               str.sprintf("%02d", priv->second);
                s++;
             }
             else
-               str->sprintf("%d", priv->second);
+               str.sprintf("%d", priv->second);
             break;
          case 'u':
             if (s[1] == 'u')
             {
-               str->sprintf("%02d", priv->millisecond);
+               str.sprintf("%02d", priv->millisecond);
                s++;
             }
             else
-               str->sprintf("%d", priv->millisecond);
+               str.sprintf("%d", priv->millisecond);
             break;
          default:
-	    str->concat(*s);
+	    str.concat(*s);
             break;
       }
       s++;
    }
 
-   printd(5, "DateTime::format() returning \"%s\"\n", str->getBuffer());
+   printd(5, "DateTime::format() returning \"%s\"\n", str.getBuffer());
    traceout("DateTime::format()");
 }
 

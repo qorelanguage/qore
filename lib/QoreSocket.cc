@@ -1228,9 +1228,8 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc)
    }
 
    buf[*rc] = '\0';
-   QoreStringNode *msg = new QoreStringNode(priv->charsetid);
-   msg->take(buf);
-   return msg;
+
+   return new QoreStringNode(buf, (*rc) - 1, (*rc), priv->charsetid);
 }
 
 // receive data and write to file descriptor
@@ -1594,7 +1593,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
       }
       
       // prepare string for chunk
-      str.ensureBufferSize(size + 1);
+      str.allocate(size + 1);
       
       // read chunk directly into string buffer    
       int bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
@@ -1710,7 +1709,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
       str.clear();
       
       // prepare string for chunk
-      buf->ensureBufferSize((unsigned)(buf->strlen() + size + 1));
+      buf->allocate((unsigned)(buf->strlen() + size + 1));
       
       // read chunk directly into string buffer    
       int bs = size < DEFAULT_SOCKET_BUFSIZE ? size : DEFAULT_SOCKET_BUFSIZE;
@@ -1731,7 +1730,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
 	    bs = size - br;
       }
       // ensure new data read is included in string size
-      buf->allocate(buf->strlen() + size);
+      buf->terminate(buf->strlen() + size);
       // DEBUG
       //printd(0, "got chunk (%d bytes): %s\n", br, buf->getBuffer() + buf->strlen() -  size);
 

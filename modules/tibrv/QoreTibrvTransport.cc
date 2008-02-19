@@ -298,7 +298,7 @@ AbstractQoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Ex
 	 int len = field->size;
 	 if (!((char *)data.buf)[len - 1])
 	    len--;
-	 str->allocate(len);
+	 str->terminate(len);
 	 memcpy((char *)str->getBuffer(), data.buf, len);
 	 return str;
       }

@@ -110,14 +110,19 @@ class AutoLocker {
 
    public:
       //! creates the object and grabs the lock
-      DLLEXPORT AutoLocker(QoreThreadLock *l)
+      DLLLOCAL AutoLocker(QoreThreadLock *l) : lck(l)
       {
-	 lck = l;
+	 lck->lock();
+      }
+
+      //! creates the object and grabs the lock
+      DLLLOCAL AutoLocker(QoreThreadLock &l) : lck(&l)
+      {
 	 lck->lock();
       }
 
       //! destroys the object and grabs the lock
-      DLLEXPORT ~AutoLocker()
+      DLLLOCAL ~AutoLocker()
       {
 	 lck->unlock();
       }
@@ -151,6 +156,13 @@ class SafeLocker
    public:
       //! creates the object and grabs the lock
       DLLEXPORT SafeLocker(QoreThreadLock *l) : lck(l)
+      {
+	 lck->lock();
+	 locked = true;
+      }
+
+      //! creates the object and grabs the lock
+      DLLEXPORT SafeLocker(QoreThreadLock &l) : lck(&l)
       {
 	 lck->lock();
 	 locked = true;

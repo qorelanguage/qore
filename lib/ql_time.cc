@@ -72,7 +72,7 @@ static AbstractQoreNode *f_format_date(const QoreListNode *params, ExceptionSink
    
    DateTimeValueHelper temp(p1);
    QoreStringNode *rv = new QoreStringNode();
-   temp->format(rv, p0->getBuffer());
+   temp->format(*rv, p0->getBuffer());
    
    printd(5, "format_date() returning \"%s\"\n", rv->getBuffer());
    return rv;

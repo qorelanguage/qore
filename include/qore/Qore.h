@@ -46,7 +46,7 @@
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreObject.h>
 #include <qore/QoreNamespace.h>
-#include <qore/QoreException.h>
+#include <qore/ExceptionSink.h>
 #include <qore/BinaryNode.h>
 #include <qore/support.h>
 #include <qore/QoreString.h>
@@ -61,7 +61,7 @@
 #include <qore/Datasource.h>
 #include <qore/QoreClass.h>
 #include <qore/ScopeGuard.h>
-#include <qore/Environment.h>
+#include <qore/SystemEnvironment.h>
 #include <qore/AutoVLock.h>
 #include <qore/FunctionReferenceNode.h>
 #include <qore/ReferenceNode.h>
@@ -91,6 +91,7 @@
 #include <qore/intern/FindNode.h>
 #include <qore/intern/VRMutex.h>
 #include <qore/intern/VLock.h>
+#include <qore/intern/QoreException.h>
 #include <qore/intern/qore_thread_intern.h>
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/VarRefNode.h>

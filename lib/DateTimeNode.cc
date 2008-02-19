@@ -126,7 +126,7 @@ QoreString *DateTimeNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 int DateTimeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
    if (!priv->relative) {
-      format(&str, "YYYY-MM-DD HH:mm:SS");
+      format(str, "YYYY-MM-DD HH:mm:SS");
       if (priv->millisecond)
 	 str.sprintf(".%03d", priv->millisecond);
       return 0;

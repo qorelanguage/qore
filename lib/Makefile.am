@@ -71,6 +71,7 @@ libqore_la_SOURCES = \
 	QoreType.cc \
 	ModuleManager.cc \
 	QoreException.cc \
+	ExceptionSink.cc \
 	QoreClass.cc \
 	Context.cc \
 	FindNode.cc \
@@ -118,7 +119,7 @@ libqore_la_SOURCES = \
 	RegexTransNode.cc \
 	Sequence.cc \
 	QoreReferenceCounter.cc \
-	Environment.cc \
+	SystemEnvironment.cc \
 	SmartMutex.cc \
 	QoreCounter.cc \
 	FunctionReferenceNode.cc \

@@ -57,7 +57,30 @@ DLLEXPORT AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, c
 // implemented in Variable.h, only returns a value if the variable's value is of type string
 DLLEXPORT class QoreStringNode **get_string_var_value_ptr(class AbstractQoreNode *lvalue, class AutoVLock *vl, class ExceptionSink *xsink);
 
-// find one of any characters in a string
+//! stl-like list containing all presently-loaded Qore features
+/** this list must be thread-safe for reading, writing under a lock
+ */
+class FeatureList : public safe_dslist<std::string>
+{
+   private:
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL FeatureList(const FeatureList&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL FeatureList& operator=(const FeatureList&);
+
+   public:
+      //! initialized by the library, constructor not exported
+      DLLLOCAL FeatureList();
+
+      //! destructor not exported
+      DLLLOCAL ~FeatureList();
+};
+
+// list of qore features
+DLLEXPORT extern FeatureList qoreFeatureList;
+
+//! find one of any characters in a string
 static inline char *strchrs(const char *str, const char *chars)
 {
    while (*str)
@@ -69,7 +92,7 @@ static inline char *strchrs(const char *str, const char *chars)
    return 0;
 }
 
-// find a character in a string up to len
+//! find a character in a string up to len
 static inline char *strnchr(const char *str, int len, char c)
 {
    int i = 0;
@@ -82,6 +105,7 @@ static inline char *strnchr(const char *str, int len, char c)
    return 0;
 }
 
+//! convert a string to lower-case in place
 static inline void strtolower(char *str)
 {
    while (*(str))
@@ -91,6 +115,7 @@ static inline void strtolower(char *str)
    }
 }
 
+//! convert a string to upper-case in place
 static inline char *strtoupper(char *str)
 {
    char *p = str;
@@ -101,21 +126,5 @@ static inline char *strtoupper(char *str)
    }
    return str;
 }
-
-// this list must be thread-safe for reading, writing under a lock
-class FeatureList : public safe_dslist<std::string>
-{
-   private:
-      // not implemented
-      DLLLOCAL FeatureList(const FeatureList&);
-      DLLLOCAL FeatureList& operator=(const FeatureList&);
-
-   public:
-      DLLLOCAL FeatureList();
-      DLLLOCAL ~FeatureList();
-};
-
-// list of qore features
-DLLEXPORT extern FeatureList qoreFeatureList;
 
 #endif // _QORE_QORELIB_H

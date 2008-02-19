@@ -36,7 +36,7 @@ noinst_HEADERS = \
 	include/qore/QoreEncoding.h \
 	include/qore/DateTime.h \
 	include/qore/support.h \
-	include/qore/QoreException.h \
+	include/qore/ExceptionSink.h \
 	include/qore/AbstractQoreNode.h \
 	include/qore/QoreStringNode.h \
 	include/qore/DateTimeNode.h \
@@ -65,7 +65,7 @@ noinst_HEADERS = \
 	include/qore/qore_bitopts.h \
 	include/qore/QoreSSLBase.h \
 	include/qore/Datasource.h \
-	include/qore/Environment.h \
+	include/qore/SystemEnvironment.h \
 	include/qore/ParseOptionMap.h \
 	include/qore/QoreHTTPClient.h \
 	include/qore/DBI.h \
@@ -150,6 +150,7 @@ noinst_HEADERS = \
 	include/qore/intern/ThrowStatement.h \
 	include/qore/intern/SwitchStatement.h \
 	include/qore/intern/QoreClassIntern.h \
+	include/qore/intern/QoreException.h \
 	include/qore/intern/AbstractSmartLock.h \
 	include/qore/intern/VLock.h \
 	include/qore/intern/AutoNamespaceList.h \

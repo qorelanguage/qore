@@ -39,6 +39,7 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreStringNode(QoreString *str);
+
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreStringNode& operator=(const QoreStringNode&);
 
@@ -52,6 +53,7 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       DLLEXPORT virtual ~QoreStringNode();
 
    public:
+      //! creates an empty string and assigns the default encoding QCS_DEFAULT
       DLLEXPORT QoreStringNode();
 
       //! creates a new object from a string and sets the character encoding
@@ -119,10 +121,9 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       */
       DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      //! returns this string, del is set to false
-      /** NOTE: do not use this function directly, use QoreStringValueHelper instead
-	  @param del output parameter: if del is true, then the resulting QoreString pointer belongs to the caller (and must be deleted manually), if false it must not be
-	  @return a QoreString pointer, use the del output parameter to determine ownership of the pointer
+      //! returns the current string and sets del to false
+      /** NOTE: do not call this function directly, use QoreStringValueHelper instead
+	  @param del output parameter: always sets del to false
 	  @see QoreStringValueHelper
        */
       DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
@@ -150,7 +151,7 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
       //! tests for equality ("deep compare" including all contained values for container types) with possible type and character encoding conversion (soft compare)
-      /** this function does not throw any Qore-language exceptions with QoreStringNode
+      /** An exception could be raised if character set encoding is required to do the compare the the conversion fails
 	  @param v the value to compare
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
@@ -158,9 +159,9 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
 
       //! tests for equality ("deep compare" including all contained values for container types) without type or character encoding conversions (hard compare)
       /** if the character encodings of the two strings differ, the comparison fails immediately
-	  this function does not throw any Qore-language exceptions with QoreStringNode
+	  this function does not throw any Qore-language exceptions as no character set encoding conversions are made
 	  @param v the value to compare
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @param xsink is not used in this implementation of the function
        */
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
@@ -196,6 +197,11 @@ extern QoreStringNode *NullString;
 
 //! this class is used to safely manage calls to AbstractQoreNode::getStringRepresentation() when a simple QoreString value is needed, stack only, may not be dynamically allocated
 /** the QoreString value returned by this function is managed safely in an exception-safe way with this class
+    \Example
+    \code
+    QoreStringValueHelper str(n);
+    printf("str='%s'\n", str->getBuffer());
+    \endcode
  */
 class QoreStringValueHelper {
    private:
@@ -280,7 +286,7 @@ class QoreStringValueHelper {
 
       //! returns a copy of the QoreString that the caller owns
       /** the object may be left empty after this call
-	  @return a QoreString pointer owned by the called
+	  @return a QoreString pointer owned by the caller
        */
       DLLLOCAL QoreString *giveString()
       {
@@ -304,6 +310,12 @@ class QoreStringValueHelper {
 
 //! this class is used to safely manage calls to AbstractQoreNode::getStringRepresentation() when a QoreStringNode value is needed, stack only, may not be dynamically allocated
 /** the QoreStringNode value returned by this function is managed safely in an exception-safe way with this class
+    \Example
+    \code
+    QoreStringNodeValueHelper str(n);
+    printf("str='%s'\n", str->getBuffer());
+    return str.getReferencedValue();
+    \endcode
  */
 class QoreStringNodeValueHelper {
    private:
@@ -385,6 +397,14 @@ typedef SimpleRefHolder<QoreStringNode> QoreStringNodeHolder;
 extern QoreString NothingTypeString;
 
 //! safely manages the return values to AbstractQoreNode::getAsString(), stack only, cannot be dynamically allocated
+/**
+   \Example
+   \code
+   QoreNodeAsStringHelper str(n, FMT_NONE, xsink);
+   if (*xsink)
+      return 0;
+   \endcode
+ */
 class QoreNodeAsStringHelper {
    private:
       QoreString *str;
@@ -432,7 +452,7 @@ class QoreNodeAsStringHelper {
 
       //! returns a copy of the QoreString that the caller owns
       /** the object may be left empty after this call
-	  @return a QoreString pointer owned by the called
+	  @return a QoreString pointer owned by the caller
        */
       DLLLOCAL QoreString *giveString()
       {

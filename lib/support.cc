@@ -198,14 +198,14 @@ class QoreString *findFileInEnvPath(const char *file, const char *varname)
       return new QoreString(file);
 
    // get path from environment
-   class QoreString str;
-   if (Env.get(varname, &str))
-      return NULL;
+   QoreString str;
+   if (SysEnv.get(varname, str))
+      return 0;
    char *idir = (char *)str.getBuffer();
 
    // if path is empty, return null
    if (!idir)
-      return NULL;
+      return 0;
 
    // duplicate string for invasive searches
    QoreString plist(idir);
@@ -218,10 +218,9 @@ class QoreString *findFileInEnvPath(const char *file, const char *varname)
       if (p != idir)
       {
 	 *p = '\0';
-	 QoreString *str = new QoreString(idir);
-	 if (tryIncludeDir(str, file))
-	    return str;
-	 delete str;
+	 TempString str(new QoreString(idir));
+	 if (tryIncludeDir(*str, file))
+	    return str.release();
       }
       idir = p + 1;
    }
@@ -229,11 +228,10 @@ class QoreString *findFileInEnvPath(const char *file, const char *varname)
    // try last directory
    if (idir[0])
    {
-      QoreString *str = new QoreString(idir);
-      if (tryIncludeDir(str, file))
-	 return str;
-      delete str;
+      TempString str(new QoreString(idir));
+      if (tryIncludeDir(*str, file))
+	 return str.release();
    }
 
-   return NULL;
+   return 0;
 }

@@ -24,6 +24,12 @@
 
 #define _QORE_QORELIBINTERN_H
 
+enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };
+
+typedef std::pair<enum obe_type_e, class StatementBlock *> qore_conditional_block_exit_statement_t;
+
+typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
+
 #ifndef HAVE_GETHOSTBYNAME_R
 DLLLOCAL extern QoreThreadLock lck_gethostbyname;
 #endif

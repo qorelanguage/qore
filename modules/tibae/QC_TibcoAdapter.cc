@@ -109,7 +109,7 @@ void TIBAE_constructor(class QoreObject *self, const QoreListNode *params, Excep
    }
    catch (MException &te)
    {
-      xsink->raiseException("TIBCO-EXCEPTION", "QoreException thrown in Tibco() constructor %s: %s",
+      xsink->raiseException("TIBCO-EXCEPTION", "Exception thrown in Tibco() constructor %s: %s",
 			 te.getType().c_str(), te.getDescription().c_str());
       if (myQoreApp)
 	 myQoreApp->deref(xsink);

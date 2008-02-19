@@ -119,7 +119,7 @@ void QoreApp::deref(ExceptionSink *xsink)
       }
       catch (MException &te)
       {
-         //xsink->raiseException("TIBCO-EXCEPTION", "QoreException caught in TibcoAdapter::destructor(): %s: %s",
+         //xsink->raiseException("TIBCO-EXCEPTION", "Exception caught in TibcoAdapter::destructor(): %s: %s",
          //te.getType().c_str(), te.getDescription().c_str());
       }
    }
