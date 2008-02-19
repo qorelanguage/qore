@@ -24,7 +24,7 @@
 
 #include <qore/Qore.h>
 #include <qore/minitest.hpp>
-#include <qore/Environment.h>
+#include <qore/SystemEnvironment.h>
 
 #include <limits.h>
 #include <float.h>
@@ -56,54 +56,61 @@ using std::auto_ptr;
 namespace {
    typedef vector<pair<string, string> > env_t;
 
-// Set given environment variables and return back to original state in destructor.
+   // Set given environment variables and return back to original state in destructor.
    struct EnvironmentSetter : AtomicEnvironmentSetter
    {
-      env_t m_old_env;
-      EnvironmentSetter(const env_t& new_env);
-      ~EnvironmentSetter();
-   };
+      protected:
+	 void set_and_save(const env_t& new_env)
+	 {
+	    for (env_t::const_iterator it = new_env.begin(), end = new_env.end(); it != end; ++it) {
+	       QoreString* old = get(it->first.c_str());
+	       const char* s = old ? old->getBuffer() : "";
+	       m_old_env.push_back(std::pair<std::string, std::string>(it->first, s));
+	       
+	       if (it->second.empty()) {      
+		  unset(it->first.c_str());
+	       } else {
+		  set(it->first.c_str(), it->second.c_str(), 1);
+	       }
+	    }
+	 }
 
-   EnvironmentSetter::EnvironmentSetter(const env_t& new_env)
-   {
-      for (env_t::const_iterator it = new_env.begin(), end = new_env.end(); it != end; ++it) {
-	 QoreString* old = get(it->first.c_str());
-	 const char* s = old ? old->getBuffer() : "";
-	 m_old_env.push_back(std::pair<std::string, std::string>(it->first, s));
+	 EnvironmentSetter()
+	 {
+	 }
 	 
-	 if (it->second.empty()) {      
-	    unset(it->first.c_str());
-	 } else {
-	    set(it->first.c_str(), it->second.c_str(), 1);
-	 }
-      }
-   }
+      public:
+	 env_t m_old_env;
 
-   EnvironmentSetter::~EnvironmentSetter()
-   {
-      for (env_t::const_iterator it = m_old_env.begin(), end = m_old_env.end(); it != end; ++it) {
-	 if (it->second.empty()) {
-	    unset(it->first.c_str());
-	 } else {
-	    set(it->first.c_str(), it->second.c_str(), 1);
+	 EnvironmentSetter(const env_t& new_env)
+	 {
+	    set_and_save(new_env);
 	 }
-      }
-      
-   }
+
+	 ~EnvironmentSetter()
+	 {
+	    for (env_t::const_iterator it = m_old_env.begin(), end = m_old_env.end(); it != end; ++it) {
+	       if (it->second.empty()) {
+		  unset(it->first.c_str());
+	       } else {
+		  set(it->first.c_str(), it->second.c_str(), 1);
+	       }
+	    }
+	 }
+
+   };
 
    //------------------------------------------------------------------------------
    // Set environment variables needed to parse FML definitions, return back to original in destructor.
-   class FmlEnvironmentSetter
+   class FmlEnvironmentSetter : public EnvironmentSetter
    {
       private:
-	 auto_ptr<EnvironmentSetter> m_setter;
-	 
 	 void set(const string& value, bool is_fml32) {
 	    env_t new_env;
 	    new_env.push_back(pair<std::string, std::string>(is_fml32 ? "FIELDTBLS32" : "FIELDTBLS", value));
 	    // all file names are expected to be absolute paths
 	    new_env.push_back(pair<std::string, std::string>(is_fml32 ? "FLDTBLDIR32" : "FLDTBLDIR", string())); 
-	    m_setter.reset(new EnvironmentSetter(new_env));
+	    set_and_save(new_env);
 	 }
 	 
       public:
