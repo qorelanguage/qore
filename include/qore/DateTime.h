@@ -24,19 +24,15 @@
 
 #define QORE_DATETIME_H
 
-#include <qore/common.h>
-#include <stdlib.h>
 #include <time.h>
-#include <string.h>
 
-struct date_s {
-   char *long_name;
-   char *abbr;
-};
-
-//! holds absolute and relative date/time values in Qore
-/** conversion to and from integers is based on a 64-bit offset in seconds since January 1, 1970
-    (the start of the UNIX epoch).
+//! Holds absolute and relative date/time values in Qore with precision to the millisecond
+/** Date arithmetic and date formatting is supported by this class.  Conversion to and from
+    integers is based on a 64-bit offset in seconds since January 1, 1970 (the start of the
+    UNIX epoch).  Qore's DateTime values have years, months, days, hours, minutes, seconds,
+    and millisecond fields.
+    This is a "normal" class, for the equivalent Qore parse tree/value type, see DateTimeNode
+    @see DateTimeNode
  */
 class DateTime {
       friend class DateTimeNode;
@@ -47,9 +43,6 @@ class DateTime {
       // for calculating the days passed in a year
       static const int positive_months[];
       static const int negative_months[];
-      // month and day names (in English)
-      static const struct date_s months[];
-      static const struct date_s days[];
 
       //! private date data - most are ints so relative dates can hold a lot of data
       struct qore_dt_private *priv;
@@ -134,9 +127,9 @@ class DateTime {
        */
       DLLEXPORT DateTime(int64 seconds, int ms);
 
-      //! constructor for setting the date from a string, the string is converted to an integer and then setDate(int64) is called on it
-      /**
-	 @param date the string is converted to a 64-bit integer to be used for setting the date
+      //! constructor for setting the date from a string in the format YYYYMMDDHHmmSS
+      /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
+	  @param date the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
        */
       DLLEXPORT DateTime(const char *date);
 
@@ -151,15 +144,46 @@ class DateTime {
       //! destroys the object and frees all memory
       DLLEXPORT ~DateTime();
 
+      //! sets a "struct tm" from the current date/time value
       DLLEXPORT void getTM(struct tm *tms) const;
 
+      //! sets the absolute date value based on the number of seconds from January 1, 1970
+      /**
+	 @param seconds the number of seconds from January 1, 1970
+       */
       DLLEXPORT void setDate(int64 seconds);
+
+      //! sets the absolute date value based on the number of seconds from January 1, 1970 (plus milliseconds)
+      /**
+	 @param seconds the number of seconds from January 1, 1970
+	 @param ms the milliseconds portion of the time	 
+       */
       DLLEXPORT void setDate(int64 seconds, int ms);
+
+      //! sets an absolute date value from a string in the format YYYYMMDDHHmmSS
+      /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
+	  @param date the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
+       */
       DLLEXPORT void setDate(const char *str);
+
+      //! sets a relative date from a string in the format YYYYMMDDHHmmSS
       DLLEXPORT void setRelativeDate(const char *str);
+
+      //! sets the absolute date from a "struct tm" pointer and millisecond value
       DLLEXPORT void setDate(const struct tm *tms, short ms = 0);
+
+      //! sets the date from a DateTime reference
       DLLEXPORT void setDate(const DateTime &date);
+
+      //! sets the time from hours, minutes, seconds, and milliseconds
+      /**
+	 @param h the hours value
+	 @param m the minutes value
+	 @param s the seconds value
+	 @param ms the milliseconds value
+       */
       DLLEXPORT void setTime(int h, int m, int s, short ms = 0);
+
       DLLEXPORT bool checkValidity() const;
       DLLEXPORT bool isEqual(const class DateTime *dt) const;
       DLLEXPORT class DateTime *add(const class DateTime *dt) const;
@@ -171,6 +195,10 @@ class DateTime {
        */
       DLLEXPORT int64 getEpochSeconds() const;
 
+      //! returns the ordinal number of the day in the year for absolute dates, sometimes (mistakenly) referred to as the Julian date
+      /** does not return sensible values for relative dates
+	  @return the number of the day in the year
+       */
       DLLEXPORT int getDayNumber() const;
 
       //! returns the day of week for the current date (0-6, Sun-Sat)
@@ -187,37 +215,104 @@ class DateTime {
        */
       DLLEXPORT void getISOWeek(int &year, int &week, int &day) const;
 
+      //! formats the date/time value to a QoreString (must be a pointer to a valid QoreString object)
+      /** the formatted date/time value will be appended to the QoreString argument according to the format string
+	  FIXME: currently locale settings are ignored
+	  Format codes are as follows:
+	  + YY: last two-digits of year
+	  + YYYY: four-digit year
+	  + M: month number (1-12)
+	  + MM: month number (1-12), zero padded
+	  + Month: long month string (ex: January)
+	  + MONTH: long month string capitalised (ex: JANUARY)
+	  + Mon: abbreviated month (ex: Jan)
+	  + MON: abbreviated month capitalised (ex: JAN)
+	  + D: day number (1 - 31)
+	  + DD: day number (1 - 31), zero padded
+	  + Day: long day of week string (ex: Monday)
+	  + DAY: long day of week string capitalised (ex: MONDAY)
+	  + Dy: abbreviated day of week string (ex: Mon)
+	  + DY: abbreviated day of week string capitalised (ex: MON)
+	  + H: hour number (0 - 23)
+	  + HH: hour number (00 - 23), zero padded
+	  + h: hour number (1 - 12)
+	  + hh: hour number (01 - 12), zero padded
+	  + m: minute number (0 - 59)
+	  + mm: minute number (00 - 59), zero padded
+	  + S: second number (0 - 59)
+	  + SS: second number (00 - 59), zero padded
+	  + ms: milliseconds (000 - 999), zero padded
+	  + P: AM or PM
+	  + p: am or pm
+	  @param str a pointer to a valid QoreString object where the formatted date data will be written (appended)
+	  @param fmt the format string as per the above description
+       */
       DLLEXPORT void format(class QoreString *str, const char *fmt) const;
-      DLLEXPORT void getString(class QoreString *str) const;
 
       //! returns true if the value is a relative date-time value
+      /**
+	 @return true if the value is a relative date-time value
+       */
       DLLEXPORT bool isRelative() const;
 
-      //! returns true if the value is an absoluter date-time value
+      //! returns true if the value is an absolute date-time value
+      /**
+	 @return true if the value is an absolute date-time value
+       */
       DLLEXPORT bool isAbsolute() const;
 
       //! returns the year portion of the date-time value
+      /**
+	 @return the year portion of the date-time value
+       */
       DLLEXPORT short getYear() const;
 
       //! returns the month portion of the date-time value
+      /**
+	 @return the month portion of the date-time value
+       */
       DLLEXPORT int getMonth() const;
 
       //! returns the day portion of the date-time value
+      /**
+	 @return the day portion of the date-time value
+       */
       DLLEXPORT int getDay() const;
 
       //! returns the hour portion of the date-time value
+      /**
+	 @return the hour portion of the date-time value
+       */
       DLLEXPORT int getHour() const;
 
       //! returns the minute portion of the date-time value
+      /**
+	 @return the minute portion of the date-time value
+       */
       DLLEXPORT int getMinute() const;
 
       //! returns the second portion of the date-time value
+      /**
+	 @return the second portion of the date-time value
+       */
       DLLEXPORT int getSecond() const;
 
       //! returns the millisecond portion of the date-time value
+      /**
+	 @return the millisecond portion of the date-time value
+       */
       DLLEXPORT int getMillisecond() const;
 
+      //! returns the difference as the number of seconds between the date/time value and the local time at the moment of the call
+      /**
+	 @return the difference as the number of seconds between the date/time value and the local time at the moment of the call
+       */
       DLLEXPORT int64 getRelativeSeconds() const;
+
+      //! returns the difference as the number of milliseconds between the date/time value and the local time at the moment of the call
+      /**
+	 @return the difference as the number of milliseconds between the date/time value and the local time at the moment of the call
+       */
       DLLEXPORT int64 getRelativeMilliseconds() const;
       
       // static methods

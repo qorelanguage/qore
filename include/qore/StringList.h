@@ -60,23 +60,4 @@ class TempCharPtrStore : public std::vector<char *>
    }
 };
 
-class CharPtrList : public safe_dslist<const char *>
-{
-   public:
-      // returns 0 for found, -1 for not found
-      // FIXME: use STL find algorithm
-      DLLLOCAL int find(const char *str) const
-      {
-	 const_iterator i = begin();
-	 while (i != end())
-	 {
-	    if (!strcmp(*i, str))
-	       return 0;
-	    i++;
-	 }
-   
-	 return -1;
-      }
-};
-
 #endif

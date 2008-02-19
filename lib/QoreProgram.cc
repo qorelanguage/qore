@@ -40,6 +40,25 @@
 extern QoreListNode *ARGV, *QORE_ARGV;
 extern class QoreHashNode *ENV;
 
+class CharPtrList : public safe_dslist<const char *>
+{
+   public:
+      // returns 0 for found, -1 for not found
+      // FIXME: use STL find algorithm
+      DLLLOCAL int find(const char *str) const
+      {
+	 const_iterator i = begin();
+	 while (i != end())
+	 {
+	    if (!strcmp(*i, str))
+	       return 0;
+	    i++;
+	 }
+   
+	 return -1;
+      }
+};
+
 class SBNode {
    public:
       class StatementBlock *statements;
@@ -123,7 +142,7 @@ struct qore_program_private {
 	 }
       }
 
-      void nextSB()
+      DLLLOCAL void nextSB()
       {
 	 if (sb_tail && !sb_tail->statements)
 	    return;
@@ -135,7 +154,7 @@ struct qore_program_private {
 	 sb_tail = sbn;
       }
 
-      QoreListNode *getFeatureList() const
+      DLLLOCAL QoreListNode *getFeatureList() const
       {
 	 QoreListNode *l = new QoreListNode();
 	 

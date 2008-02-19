@@ -39,12 +39,19 @@
 // to be used for trim
 static char default_whitespace[] = { ' ', '\t', '\n', '\r', '\v', '\0' };
 
-const struct code_table QoreString::html_codes[] = 
+struct code_table {
+      char symbol;
+      char *code;
+      int len;
+};
+
+static const struct code_table html_codes[] = 
 { { '&', "&amp;", 5 },
   { '<', "&lt;", 4 },
   { '>', "&gt;", 4 },
   { '"', "&quot;", 6 } }; 
 
+#define NUM_HTML_CODES sizeof(html_codes)
 
 QoreString::QoreString() : priv(new qore_string_private)
 {

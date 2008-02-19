@@ -462,7 +462,7 @@ static int doJSONValue(class QoreString *str, const AbstractQoreNode *v, int for
       const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(v);
       // this will be serialized as a string
       str->concat('"');
-      date->getString(str);
+      date->DateTimeNode::getAsString(*str, 0, 0);
       str->concat('"');
       return 0;
    }

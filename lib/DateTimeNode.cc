@@ -117,15 +117,41 @@ QoreString *DateTimeNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 {
    del = true;
    class QoreString *str = new QoreString();
-   getString(str);
+   getAsString(*str, foff, xsink);
    return str;
 }
 
+#define PL(n) (n == 1 ? "" : "s")
+
 int DateTimeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
 {
-   getString(&str);
+   if (!priv->relative) {
+      format(&str, "YYYY-MM-DD HH:mm:SS");
+      if (priv->millisecond)
+	 str.sprintf(".%03d", priv->millisecond);
+      return 0;
+   }
+
+   int f = 0;
+   str.concat("<time:");
+   if (priv->year)
+      str.sprintf(" %d year%s", priv->year, PL(priv->year)), f++;
+   if (priv->month)
+      str.sprintf(" %d month%s", priv->month, PL(priv->month)), f++;
+   if (priv->day)
+      str.sprintf(" %d day%s", priv->day, PL(priv->day)), f++;
+   if (priv->hour)
+      str.sprintf(" %d hour%s", priv->hour, PL(priv->hour)), f++;
+   if (priv->minute)
+      str.sprintf(" %d minute%s", priv->minute, PL(priv->minute)), f++;
+   if (priv->second || (!f && !priv->millisecond))
+      str.sprintf(" %d second%s", priv->second, PL(priv->second));
+   if (priv->millisecond)
+      str.sprintf(" %d millisecond%s", priv->millisecond, PL(priv->millisecond));
+   str.concat('>');
    return 0;
 }
+#undef PL
 
 AbstractQoreNode *DateTimeNode::realCopy() const
 {

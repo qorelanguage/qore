@@ -302,7 +302,7 @@ class QoreStringValueHelper {
       }
 };
 
-//! this class is used to safely manage calls to AbstractQoreNode::getStringRepresentation() when a QoreStringNode value is needded, stack only, may not be dynamically allocated
+//! this class is used to safely manage calls to AbstractQoreNode::getStringRepresentation() when a QoreStringNode value is needed, stack only, may not be dynamically allocated
 /** the QoreStringNode value returned by this function is managed safely in an exception-safe way with this class
  */
 class QoreStringNodeValueHelper {

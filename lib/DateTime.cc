@@ -24,42 +24,20 @@
 #include <qore/intern/qore_date_private.h>
 
 #include <time.h>
+#include <stdlib.h>
+#include <string.h>
 
-/*
- * date format codes: (NI = not implemented yet)
- * YY: last two-digits of year
- * YYYY: four-digit year
- * M: month number (1-12)
- * MM: month number (1-12), zero padded
- * Month: long month string (ex: January)
- * MONTH: long month string capitolised (ex: JANUARY)
- * Mon: abbreviated month (ex: Jan)
- * MON: abbreviated month capitolised (ex: JAN)
- * D: day number (1 - 31)
- * DD: day number (1 - 31), zero padded
- * Day: long day of week string (ex: Monday)
- * DAY: long day of week string capitolised (ex: MONDAY)
- * Dy: abbreviated day of week string (ex: Mon)
- * DY: abbreviated day of week string capitolised (ex: MON)
- * H: hour number (0 - 23)
- * HH: hour number (00 - 23), zero padded
- * h: hour number (1 - 12)
- * hh: hour number (01 - 12), zero padded
- * m: minute number (0 - 59)
- * mm: minute number (00 - 59), zero padded
- * S: second number (0 - 59)
- * SS: second number (00 - 59), zero padded
- * ms: milliseconds (000 - 999), zero padded
- * P: AM or PM
- * p: am or pm
- */
+struct date_s {
+   char *long_name;
+   char *abbr;
+};
 
 const int DateTime::month_lengths[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
 const int DateTime::positive_months[] = { 0,  31,  59,  90,  120,  151,  181,  212,  243,  273,  304,  334,  365 };
 const int DateTime::negative_months[] = { 0, -31, -61, -92, -122, -153, -184, -214, -245, -275, -306, -334, -365 };
 
-const struct date_s DateTime::months[] = {
+// month names (in English)
+const struct date_s months[] = {
    { "January", "Jan" },
    { "February", "Feb" },
    { "March", "Mar" },
@@ -74,7 +52,8 @@ const struct date_s DateTime::months[] = {
    { "December", "Dec" }
 };
 
-const struct date_s DateTime::days[] = {
+// day names (in English!) FIXME: add locale-awareness!
+const struct date_s days[] = {
    { "Sunday", "Sun" },
    { "Monday", "Mon" },
    { "Tuesday", "Tue" },
@@ -855,38 +834,6 @@ int DateTime::getDateFromISOWeekIntern(DateTime &result, int year, int week, int
 int DateTime::compareDates(const class DateTime *left, const class DateTime *right)
 {
    return qore_dt_private::compareDates(left->priv, right->priv);
-}
-
-#define PL(n) (n == 1 ? "" : "s")
-
-void DateTime::getString(class QoreString *str) const
-{
-   if (priv->relative)
-   {
-      int f = 0;
-      str->concat("<time:");
-      if (priv->year)
-	 str->sprintf(" %d year%s", priv->year, PL(priv->year)), f++;
-      if (priv->month)
-	 str->sprintf(" %d month%s", priv->month, PL(priv->month)), f++;
-      if (priv->day)
-	 str->sprintf(" %d day%s", priv->day, PL(priv->day)), f++;
-      if (priv->hour)
-	 str->sprintf(" %d hour%s", priv->hour, PL(priv->hour)), f++;
-      if (priv->minute)
-	 str->sprintf(" %d minute%s", priv->minute, PL(priv->minute)), f++;
-      if (priv->second || (!f && !priv->millisecond))
-	 str->sprintf(" %d second%s", priv->second, PL(priv->second));
-      if (priv->millisecond)
-	 str->sprintf(" %d millisecond%s", priv->millisecond, PL(priv->millisecond));
-      str->concat('>');
-   }
-   else
-   {
-      format(str, "YYYY-MM-DD HH:mm:SS");
-      if (priv->millisecond)
-	 str->sprintf(".%03d", priv->millisecond);
-   }
 }
 
 // FIXME: implement and use
