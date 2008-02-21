@@ -6,8 +6,8 @@ see README-SVN to lean how to build qore from svn sources
 
 Build Requirements
 ------------------
-*) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry.  flex 2.5.33 is recommended)
-qore requires this very new version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  many linux distributions ship with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.33 at:
+*) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry.  flex 2.5.34 is recommended)
+qore requires this very new version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  many linux distributions ship with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.34 at:
 	 http://sourceforge.net/projects/flex
 
 *) bison 1.85 (or better, 2.* versions are fine)
