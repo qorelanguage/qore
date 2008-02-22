@@ -135,7 +135,7 @@ static AbstractQoreNode *QMATRIX_isInvertible(QoreObject *self, QoreQMatrix *qm,
 static AbstractQoreNode *QMATRIX_map(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          QoreQRegion *region = (QoreQRegion *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink);
@@ -161,7 +161,7 @@ static AbstractQoreNode *QMATRIX_map(QoreObject *self, QoreQMatrix *qm, const Qo
 static AbstractQoreNode *QMATRIX_mapRect(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectangle) {
          QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);

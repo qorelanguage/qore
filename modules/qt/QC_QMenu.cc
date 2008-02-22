@@ -127,7 +127,7 @@ static AbstractQoreNode *QMENU_addAction(QoreObject *self, QoreQMenu *qm, const 
 
    QoreQIcon *icon = 0;
    const QoreObject *o;
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       o = reinterpret_cast<const QoreObject *>(p);
       icon = (QoreQIcon *)o->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
@@ -212,7 +212,7 @@ static AbstractQoreNode *QMENU_addAction(QoreObject *self, QoreQMenu *qm, const 
 static AbstractQoreNode *QMENU_addMenu(QoreObject *self, QoreQMenu *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
          QoreAbstractQMenu *menu = (QoreAbstractQMenu *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QMENU, xsink);

@@ -115,7 +115,7 @@ static AbstractQoreNode *QMENUBAR_addAction(QoreObject *self, QoreAbstractQMenuB
 static AbstractQoreNode *QMENUBAR_addMenu(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
          QoreQMenu *menu = (QoreQMenu *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QMENU, xsink);

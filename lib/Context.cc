@@ -137,8 +137,8 @@ AbstractQoreNode *Context::evalValue(char *field, ExceptionSink *xsink)
 
    AbstractQoreNode *rv = l->retrieve_entry(row_list[pos]);
    if (rv) rv->ref();
-   //printd(5, "Context::evalValue(%s) this=%08p pos=%d rv=%08p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->type == NT_INT ? ((QoreBigIntNode *)rv)->val : -1);
-   //printd(5, "Context::evalValue(%s) pos=%d, val=%s\n", field, pos, rv && rv->type == NT_STRING ? rv->val.String->getBuffer() : "?");
+   //printd(5, "Context::evalValue(%s) this=%08p pos=%d rv=%08p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->getType() == NT_INT ? ((QoreBigIntNode *)rv)->val : -1);
+   //printd(5, "Context::evalValue(%s) pos=%d, val=%s\n", field, pos, rv && rv->getType() == NT_STRING ? rv->val.String->getBuffer() : "?");
    return rv;
 }
 
@@ -157,7 +157,7 @@ QoreHashNode *Context::getRow(ExceptionSink *xsink)
       printd(5, "Context::getRow() key=%s\n", key);
       // get list from hash
       ReferenceHolder<AbstractQoreNode> v(hi.getReferencedValue(), xsink);
-      assert(*v && v->type == NT_LIST);
+      assert(*v && v->getType() == NT_LIST);
       // set key value to list entry
       QoreListNode *l = reinterpret_cast<QoreListNode *>(*v);
       h->setKeyValue(key, l->eval_entry(row_list[pos], xsink), 0);
@@ -205,7 +205,7 @@ static inline int compare_templist(class Templist t1, class Templist t2)
    ExceptionSink xsink;
    int rc = (int)OP_LOG_LT->bool_eval(t1.node, t2.node, &xsink);
 
-   //printd(5, "t1.node->type=%s t2.node->type=%s\n", t1.node->getTypeName(), t2.node->getTypeName());
+   //printd(5, "t1.node->getType()=%s t2.node->getType()=%s\n", t1.node->getTypeName(), t2.node->getTypeName());
    //   print_node(stderr, t1.node); printd(1," == "); print_node(stderr, t2.node);
    //   printd(5, " result = %d\n", rc);
    return rc;

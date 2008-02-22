@@ -126,7 +126,7 @@ static AbstractQoreNode *QRECTF_bottom(QoreObject *self, QoreQRectF *qrf, const 
 static AbstractQoreNode *QRECTF_contains(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectangle)
       {

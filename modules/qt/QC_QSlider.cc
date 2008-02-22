@@ -35,7 +35,7 @@ static void QSLIDER_constructor(class QoreObject *self, const QoreListNode *para
    const AbstractQoreNode *p1 = get_param(params, 1);
    QoreAbstractQWidget *parent;
 
-   if (p0 && p0->type == NT_OBJECT)
+   if (p0 && p0->getType() == NT_OBJECT)
    {
       parent = p0 ? (QoreAbstractQWidget *)(reinterpret_cast<const QoreObject *>(p0))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!parent) {
@@ -45,7 +45,7 @@ static void QSLIDER_constructor(class QoreObject *self, const QoreListNode *para
       ReferenceHolder<QoreAbstractQWidget> holder(parent, xsink);
       qs = new QoreQSlider(self, parent->getQWidget());
    }
-   else if (p1 && p1->type == NT_OBJECT) {
+   else if (p1 && p1->getType() == NT_OBJECT) {
       parent = p1 ? (QoreAbstractQWidget *)(reinterpret_cast<const QoreObject *>(p1))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!parent) {
 	 xsink->raiseException("QSLIDER-CONSTRUCTOR-ERROR", "class '%s' passed as second parameter of QSlider::constructor() is not a subclass of QWidget", (reinterpret_cast<const QoreObject *>(p1))->getClassName());

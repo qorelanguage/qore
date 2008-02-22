@@ -28,27 +28,18 @@ static inline class QoreNamespace *get_type_ns()
 {
    class QoreNamespace *Type = new QoreNamespace("Type");
 
-   Type->addConstant("Boolean",        new QoreStringNode(NT_BOOLEAN->getName()));
-   Type->addConstant("Int",            new QoreStringNode(NT_INT->getName()));
-   Type->addConstant("Float",          new QoreStringNode(NT_FLOAT->getName()));
-   Type->addConstant("String",         new QoreStringNode(NT_STRING->getName()));
-   Type->addConstant("Date",           new QoreStringNode(NT_DATE->getName()));
-   Type->addConstant("NothingType",    new QoreStringNode(NT_NOTHING->getName()));
-   Type->addConstant("NullType",       new QoreStringNode(NT_NULL->getName()));
-   Type->addConstant("Binary",         new QoreStringNode(NT_BINARY->getName()));
-   Type->addConstant("List",           new QoreStringNode(NT_LIST->getName()));
-   Type->addConstant("Hash",           new QoreStringNode(NT_HASH->getName())); 
-   Type->addConstant("Object",         new QoreStringNode(NT_OBJECT->getName())); 
-   Type->addConstant("CallReference",  new QoreStringNode(NT_FUNCREF->getName()));
-   //Type->addConstant("FList", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_FLIST));
-   //Type->addConstant("BackquoteExpression", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_BACKQUOTE));
-   //Type->addConstant("ContextRef", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_CONTEXTREF));
-   //Type->addConstant("VariableReference", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_VARREF));
-   //Type->addConstant("ExpressionTree", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_TREE));
-   //Type->addConstant("FindExpression", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_FIND));
-   //Type->addConstant("FunctionCall", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_FUNCTION_CALL));
-   //Type->addConstant("ObjectVariableReference", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_SELF_VARREF));
-   //Type->addConstant("ScopedReference", new QoreStringNode("")); //new QoreStringNode((int64)(int)NT_SCOPE_REF));
+   Type->addConstant("Boolean",        new QoreStringNode(QoreBoolNode::getStaticTypeName()));
+   Type->addConstant("Int",            new QoreStringNode(QoreBigIntNode::getStaticTypeName()));
+   Type->addConstant("Float",          new QoreStringNode(QoreFloatNode::getStaticTypeName()));
+   Type->addConstant("String",         new QoreStringNode(QoreStringNode::getStaticTypeName()));
+   Type->addConstant("Date",           new QoreStringNode(DateTimeNode::getStaticTypeName()));
+   Type->addConstant("NothingType",    new QoreStringNode(QoreNothingNode::getStaticTypeName()));
+   Type->addConstant("NullType",       new QoreStringNode(QoreNullNode::getStaticTypeName()));
+   Type->addConstant("Binary",         new QoreStringNode(BinaryNode::getStaticTypeName()));
+   Type->addConstant("List",           new QoreStringNode(QoreListNode::getStaticTypeName()));
+   Type->addConstant("Hash",           new QoreStringNode(QoreHashNode::getStaticTypeName())); 
+   Type->addConstant("Object",         new QoreStringNode(QoreObject::getStaticTypeName())); 
+   Type->addConstant("CallReference",  new QoreStringNode(AbstractFunctionReferenceNode::getStaticTypeName()));
 
    return Type;
 }

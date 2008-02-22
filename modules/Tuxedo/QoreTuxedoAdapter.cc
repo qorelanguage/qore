@@ -1633,14 +1633,14 @@ static void do_test(bool is_fml32)
     const char* key = it.getKey();
     AbstractQoreNode* val = it.getValue();
 
-    assert(val->type == NT_LIST);
+    assert(val->getType() == NT_LIST);
     QoreListNode* l = reinterpret_cast<QoreListNode *>(val);
     assert(l->size() == 2);
     AbstractQoreNode* id = l->retrieve_entry(0);
-    assert(id->type == NT_INT);
+    assert(id->getType() == NT_INT);
     FLDID32 id_val = (FLDID32)id->getAsInt();
     AbstractQoreNode* type = l->retrieve_entry(1);
-    assert(type->type == NT_INT);
+    assert(type->getType() == NT_INT);
     int type_val = (int)type->getAsInt();
     
     if (is_fml32) {
@@ -1723,7 +1723,7 @@ static pair<FLDID32, int> fml_name2id(const char* name, const QoreHashNode* desc
      return result;
   }
   // already known to be list with (int, int)
-  assert(n->type == NT_LIST);
+  assert(n->getType() == NT_LIST);
   const QoreListNode* l = reinterpret_cast<const QoreListNode *>(n);
   assert(l->size() == 2);
   const QoreBigIntNode *b = reinterpret_cast<const QoreBigIntNode *>(l->retrieve_entry(0));
@@ -1740,18 +1740,18 @@ static pair<string, int> fml_id2name(FLDID32 id, const QoreHashNode* description
    ConstHashIterator it(description_info);
    while (it.next()) {
       const AbstractQoreNode* n = it.getValue();
-      assert(n->type == NT_LIST);
+      assert(n->getType() == NT_LIST);
       const QoreListNode* l = reinterpret_cast<const QoreListNode *>(n);
       assert(l->size() == 2);
       n = l->retrieve_entry(0);
-      assert(n->type == NT_INT);
+      assert(n->getType() == NT_INT);
       FLDID32 this_id = (FLDID32)n->getAsInt();
       if (this_id != id) continue;
       
       pair<string, int> result;
       result.first = it.getKey();
       n = l->retrieve_entry(1);
-      assert(n->type == NT_INT);
+      assert(n->getType() == NT_INT);
       result.second = (int)n->getAsInt();
       return result;
    }
@@ -2251,33 +2251,33 @@ static void do_test2(bool is_fml32)
   assert(extracted_data->size() == 3);
   // value 1
   AbstractQoreNode* n = extracted_data->retrieve_entry(0);
-  assert(n->type == NT_LIST);
+  assert(n->getType() == NT_LIST);
   sublist = reinterpret_cast<QoreListNode *>(n);
   assert(sublist->size() == 2);
   n = sublist->retrieve_entry(0);
-  assert(n->type == NT_STRING);
+  assert(n->getType() == NT_STRING);
   char* s = n->getBuffer();
   if (strcmp(s, "a_long") != 0) {
     assert(false);
   }
   n = sublist->retrieve_entry(1);
-  assert(n->type == NT_INT);
+  assert(n->getType() == NT_INT);
   assert(n->getAsBigInt() == 12345678);
 
   // value 2
   n = extracted_data->retrieve_entry(1);
-  assert(n->type == NT_LIST);
+  assert(n->getType() == NT_LIST);
   sublist = reinterpret_cast<QoreListNode *>(n);
   assert(sublist->size() == 2);
 
   n = sublist->retrieve_entry(0);
-  assert(n->type == NT_STRING);
+  assert(n->getType() == NT_STRING);
   s = n->getBuffer();
   if (strcmp(s, "a_string") != 0) {
     assert(false);
   }
   n = sublist->retrieve_entry(1);
-  assert(n->type == NT_STRING);
+  assert(n->getType() == NT_STRING);
   s = n->getBuffer();
   if (strcmp(s, "string1") != 0) {
     assert(false);
@@ -2285,18 +2285,18 @@ static void do_test2(bool is_fml32)
 
   // value 3
   n = extracted_data->retrieve_entry(2);
-  assert(n->type == NT_LIST);
+  assert(n->getType() == NT_LIST);
   sublist = reinterpret_cast<QoreListNode *>(n);
   assert(sublist->size() == 2);
 
   n = sublist->retrieve_entry(0);
-  assert(n->type == NT_STRING);
+  assert(n->getType() == NT_STRING);
   s = n->getBuffer();
   if (strcmp(s, "a_string") != 0) {
     assert(false);
   }
   n = sublist->retrieve_entry(1);
-  assert(n->type == NT_STRING);
+  assert(n->getType() == NT_STRING);
   s = n->getBuffer();
   if (strcmp(s, "string2") != 0) {
     assert(false);

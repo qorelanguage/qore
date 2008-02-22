@@ -103,7 +103,7 @@ static AbstractQoreNode *SOCKET_bind(QoreObject *self, class mySocket *s, const 
    const AbstractQoreNode *p0, *p1;
    // if parameters are not correct
    p0 = get_param(params, 0);
-   const QoreType *p0_type = p0 ? p0->type : 0;
+   const QoreType *p0_type = p0 ? p0->getType() : 0;
    if (!p0 || (p0_type != NT_STRING && p0_type != NT_INT))
    {
       xsink->raiseException("SOCKET-BIND-PARAMETER-ERROR", "no parameter passed to Socket::bind() call, expecing string for UNIX socket ('path/file') or int for INET socket (port number)");
@@ -175,7 +175,7 @@ static AbstractQoreNode *SOCKET_listen(QoreObject *self, class mySocket *s, cons
 static AbstractQoreNode *SOCKET_send(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_STRING && p0->type != NT_BINARY))
+   if (!p0 || (p0->getType() != NT_STRING && p0->getType() != NT_BINARY))
    {
       xsink->raiseException("SOCKET-SEND-PARAMETER-ERROR", "expecting string or binary data as first parameter of Socket::send() call");
       return NULL;
@@ -183,7 +183,7 @@ static AbstractQoreNode *SOCKET_send(QoreObject *self, class mySocket *s, const 
 
    int rc;
 
-   if (p0->type == NT_STRING)
+   if (p0->getType() == NT_STRING)
       rc = s->send((reinterpret_cast<const QoreStringNode *>(p0)), xsink);
    else
       rc = s->send(reinterpret_cast<const BinaryNode *>(p0));
@@ -200,7 +200,7 @@ static AbstractQoreNode *SOCKET_send(QoreObject *self, class mySocket *s, const 
 static AbstractQoreNode *SOCKET_sendBinary(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_STRING && p0->type != NT_BINARY))
+   if (!p0 || (p0->getType() != NT_STRING && p0->getType() != NT_BINARY))
    {
       xsink->raiseException("SOCKET-SEND-BINARY-PARAMETER-ERROR", "expecting string or binary data as first parameter of Socket::sendBinary() call");
       return NULL;
@@ -209,7 +209,7 @@ static AbstractQoreNode *SOCKET_sendBinary(QoreObject *self, class mySocket *s, 
    int rc = 0;
 
    // send strings with no conversions
-   if (p0->type == NT_STRING) {
+   if (p0->getType() == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
       rc = s->send(str->getBuffer(), str->strlen());
    }
@@ -573,13 +573,13 @@ static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, class mySocket
    int size = 0;
 
    if (p4)
-      if (p4->type == NT_STRING)
+      if (p4->getType() == NT_STRING)
       {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p4);
 	 ptr = str->getBuffer();
 	 size = str->strlen();
       }
-      else if (p4->type == NT_BINARY)
+      else if (p4->getType() == NT_BINARY)
       {
 	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p4);
 	 ptr = b->getPtr();
@@ -642,13 +642,13 @@ static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, class mySocke
    int size = 0;
 
    if (p4)
-      if (p4->type == NT_STRING)
+      if (p4->getType() == NT_STRING)
       {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p4);
 	 ptr = str->getBuffer();
 	 size = str->strlen();
       }
-      else if (p4->type == NT_BINARY)
+      else if (p4->getType() == NT_BINARY)
       {
 	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p4);
 	 ptr = b->getPtr();
@@ -820,7 +820,7 @@ static AbstractQoreNode *SOCKET_setCertificate(QoreObject *self, class mySocket 
    const AbstractQoreNode *p0 = get_param(params, 0);
    class QoreSSLCertificate *cert;
    
-   const QoreType *p0_type = p0 ? p0->type : 0;
+   const QoreType *p0_type = p0 ? p0->getType() : 0;
    if (p0_type == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
       // try and create object
@@ -852,7 +852,7 @@ static AbstractQoreNode *SOCKET_setPrivateKey(QoreObject *self, class mySocket *
    // first check parameters
    const AbstractQoreNode *p0 = get_param(params, 0);
    QoreSSLPrivateKey *pk;
-   const QoreType *p0_type = p0 ? p0->type : 0;
+   const QoreType *p0_type = p0 ? p0->getType() : 0;
    if (p0_type == NT_STRING) {
       // get passphrase if present
       const QoreStringNode *p1 = test_string_param(params, 1);

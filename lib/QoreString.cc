@@ -429,7 +429,7 @@ void QoreString::splice(int offset, int num, ExceptionSink *xsink)
 
 void QoreString::splice(int offset, int num, const AbstractQoreNode *strn, ExceptionSink *xsink)
 {
-   if (!strn || strn->type != NT_STRING) {
+   if (!strn || strn->getType() != NT_STRING) {
       splice(offset, num, xsink);
       return;
    }

@@ -40,7 +40,7 @@ static void QPOINTF_constructor(QoreObject *self, const QoreListNode *params, Ex
       self->setPrivate(CID_QPOINTF, new QoreQPointF());
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())

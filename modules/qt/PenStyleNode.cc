@@ -133,6 +133,6 @@ void addPenStyleType()
    psmap[(int)Qt::CustomDashLine] = "CustomDashLine";
 
    // add types for enums
-   NT_PENSTYLE = new QoreType("PenStyle");
+   NT_PENSTYLE = new QoreType();
    QTM.add(NT_PENSTYLE);
 }

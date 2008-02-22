@@ -145,7 +145,7 @@ void addBrushStyleType()
    bsmap[(int)Qt::TexturePattern] = "TexturePattern";  
 
    // add types for enums
-   NT_BRUSHSTYLE = new QoreType("BrushStyle");
+   NT_BRUSHSTYLE = new QoreType();
 
    QTM.add(NT_BRUSHSTYLE);
 }

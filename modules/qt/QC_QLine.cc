@@ -40,7 +40,7 @@ static void QLINE_constructor(QoreObject *self, const QoreListNode *params, Exce
       self->setPrivate(CID_QLINE, new QoreQLine());
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *p1 = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!p1) {
          if (!xsink->isException())
@@ -141,7 +141,7 @@ static AbstractQoreNode *QLINE_isNull(QoreObject *self, QoreQLine *ql, const Qor
 static AbstractQoreNode *QLINE_translate(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!offset) {
          if (!xsink->isException())

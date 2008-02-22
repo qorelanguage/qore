@@ -126,5 +126,5 @@ const QoreType *QoreFloatNode::getType() const
 // returns the type name as a c string
 const char *QoreFloatNode::getTypeName() const
 {
-   return "float";
+   return getStaticTypeName();
 }

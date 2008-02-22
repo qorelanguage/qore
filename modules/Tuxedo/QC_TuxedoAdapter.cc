@@ -138,7 +138,7 @@ TEST()
      if (!rv) {
        assert(false);
      } else
-     if (rv->type != NT_INT) {
+     if (rv->getType() != NT_INT) {
        assert(false);
      } else
 	if (rv->getAsInt() != 10) {
@@ -181,7 +181,7 @@ TEST()
      if (!rv) {
        assert(false);
      } else
-     if (rv->type != NT_INT) {
+     if (rv->getType() != NT_INT) {
        assert(false);
      } else
 	if (rv->getAsInt() != 10) {
@@ -283,7 +283,7 @@ TEST()
      if (!rv) {
        assert(false);
      } else
-     if (rv->type != NT_INT) {
+     if (rv->getType() != NT_INT) {
        assert(false);
      } else
 	if (rv->getAsInt() != 10) {
@@ -389,7 +389,7 @@ TEST()
      if (!rv) {
        assert(false);
      } else
-     if (rv->type != NT_INT) {
+     if (rv->getType() != NT_INT) {
        assert(false);
      } else
 	if (rv->getAsInt() != 10) {
@@ -444,7 +444,7 @@ TEST()
      if (!rv) {
        assert(false);
      } else
-     if (rv->type != NT_INT) {
+     if (rv->getType() != NT_INT) {
        assert(false);
      } else
 	if (rv->getAsInt() != 10) {
@@ -731,7 +731,7 @@ TEST()
      if (!rv) {
        assert(false);
      } else
-     if (rv->type != NT_INT) {
+     if (rv->getType() != NT_INT) {
        assert(false);
      } else
 	if (rv->getAsInt() != 10) {

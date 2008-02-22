@@ -58,6 +58,13 @@ class QoreObject : public AbstractQoreNode
       DLLLOCAL QoreObject& operator=(const QoreObject&);
 
    protected:
+      //! runs the destructor if necessary and dereferences all members
+      /** Note that other objects could be deleted as well if they
+	  are members of this object, any exceptions thrown there will also be added to "xsink"
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT virtual bool derefImpl(class ExceptionSink *xsink);
+
       DLLLOCAL virtual ~QoreObject();
 
    public:
@@ -110,16 +117,13 @@ class QoreObject : public AbstractQoreNode
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      //! decrements the reference count
-      /** deletes the object when the reference count = 0.  If necessary, the destructor will be run
-	  (if it hasn't already been run).  Note that other objects could be deleted as well if they
-	  are members of this object, any exceptions thrown there will also be added to "xsink"
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-       */
-      DLLEXPORT virtual void deref(class ExceptionSink *xsink);
-
       //! returns false
       DLLEXPORT virtual bool is_value() const;
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "object";
+      }
 
       //! returns true if this object is a valid instance of the classid passed
       /**

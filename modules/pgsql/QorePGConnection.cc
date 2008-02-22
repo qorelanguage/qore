@@ -986,7 +986,7 @@ int QorePGBindArray::check_type(const AbstractQoreNode *n, class ExceptionSink *
       xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "cannot bind NULL values within an array");
       return -1;
    }
-   const QoreType *t = n->type;
+   const QoreType *t = n->getType();
    if (!type)
    {
       type = t;
@@ -1060,7 +1060,7 @@ int QorePGBindArray::check_type(const AbstractQoreNode *n, class ExceptionSink *
       }
 */
 
-      xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "don't know how to bind type '%s'", type->getName());
+      xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "don't know how to bind type '%s'", n->getTypeName());
       return -1;
    }
 
@@ -1294,7 +1294,7 @@ int QorePGBindArray::process_list(const QoreListNode *l, int current, const Qore
    {
       const QoreType *ntype;
       const AbstractQoreNode *n = li.getValue();
-      ntype = n ? n->type : NT_NOTHING;
+      ntype = n ? n->getType() : NT_NOTHING;
       if (type == NT_LIST)
       {
 	 const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);

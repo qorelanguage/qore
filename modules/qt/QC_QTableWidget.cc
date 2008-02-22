@@ -38,7 +38,7 @@ class QoreClass *QC_QTableWidget = 0;
 static void QTABLEWIDGET_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
          return;
@@ -207,7 +207,7 @@ static AbstractQoreNode *QTABLEWIDGET_item(QoreObject *self, QoreQTableWidget *q
 static AbstractQoreNode *QTABLEWIDGET_itemAt(QoreObject *self, QoreQTableWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())

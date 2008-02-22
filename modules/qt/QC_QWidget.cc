@@ -148,7 +148,7 @@ static AbstractQoreNode *QWIDGET_childAt(QoreObject *self, QoreAbstractQWidget *
 {
    QWidget *qt_qobj;
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())
@@ -794,7 +794,7 @@ static AbstractQoreNode *QWIDGET_minimumWidth(class QoreObject *self, QoreAbstra
 static AbstractQoreNode *QWIDGET_move(QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *qpoint = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!qpoint) {
          if (!xsink->isException())
@@ -959,7 +959,7 @@ static AbstractQoreNode *QWIDGET_repaint(QoreObject *self, QoreAbstractQWidget *
       qw->getQWidget()->repaint();
       return 0;
    }
-   if (p->type == NT_OBJECT) {
+   if (p->getType() == NT_OBJECT) {
       QoreQRect *r = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
       if (!r) {
 	 QoreQRegion *rgn = (QoreQRegion *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink);
@@ -994,7 +994,7 @@ static AbstractQoreNode *QWIDGET_repaint(QoreObject *self, QoreAbstractQWidget *
 static AbstractQoreNode *QWIDGET_resize(QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQSize *size = (QoreQSize *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
       if (!size) {
          if (!xsink->isException())
@@ -1116,7 +1116,7 @@ static AbstractQoreNode *QWIDGET_setBackgroundRole(class QoreObject *self, QoreA
 static AbstractQoreNode *QWIDGET_setBaseSize(QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQSize *qsize = (QoreQSize *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
       if (!qsize) {
          if (!xsink->isException())
@@ -1844,7 +1844,7 @@ static AbstractQoreNode *QWIDGET_update(QoreObject *self, QoreAbstractQWidget *q
       qw->getQWidget()->update();
       return 0;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRegion *rgn = (QoreQRegion *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QREGION, xsink);
       if (!rgn) {
          QoreQRect *r = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);

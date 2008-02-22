@@ -100,8 +100,6 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       // creates a string from a single character
       DLLEXPORT QoreStringNode(char c);
 
-      DLLEXPORT virtual bool needs_eval() const;
-
       //! concatenates the string data in double quotes to an existing QoreString
       /** used for %n and %N printf formatting.  An exception may be thrown if there is an encoding conversion error
 	  @param str the string representation of the type will be concatenated to this QoreString reference
@@ -171,8 +169,26 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
+      //! converts the encoding of the string to the specified encoding, returns 0 if an error occurs, the caller owns the pointer returned
+      /** if the encoding is the same as the current encoding, a copy of the string is returned
+	  @param nccs the encoding for the new string
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return the new string with the desired encoding or 0 if an error occured
+       */
       DLLEXPORT QoreStringNode *convertEncoding(const class QoreEncoding *nccs, class ExceptionSink *xsink) const;
+
+      //! returns a new string consisting of all the characters from the current string starting with character position "offset"
+      /** offset is a character offset and not a byte offset
+	  @param offset the offset in characters from the beginning of the string (starting with 0)
+	  @return the new string
+       */
       DLLEXPORT QoreStringNode *substr(int offset) const;
+
+      //! returns a new string consisting of "length" characters from the current string starting with character position "offset"
+      /** offset and length spoecify characters, not bytes
+	  @param offset the offset in characters from the beginning of the string (starting with 0)
+	  @return the new string
+       */
       DLLEXPORT QoreStringNode *substr(int offset, int length) const;
 
       //! return a QoreStringNode with the characters reversed
@@ -183,6 +199,7 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
 
       //! creates a new QoreStringNode from a string and converts its encoding
       DLLEXPORT static QoreStringNode *createAndConvertEncoding(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink);
+
       //! parses the string as a base64-encoded binary and returns the decoded value as a QoreStringNode
       DLLEXPORT class QoreStringNode *parseBase64ToString(class ExceptionSink *xsink) const;
 
@@ -191,6 +208,11 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
 
       //! constructor using the private implementation of QoreString; not exported in the library
       DLLLOCAL QoreStringNode(struct qore_string_private *p);
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "string";
+      }
 };
 
 extern QoreStringNode *NullString;
@@ -223,7 +245,7 @@ class QoreStringValueHelper {
       {
 	 if (n) {
 	    //optimization to remove the need for a virtual function call in the most common case
-	    if (n->type == NT_STRING) {
+	    if (n->getType() == NT_STRING) {
 	       del = false;
 	       str = const_cast<QoreStringNode *>(reinterpret_cast<const QoreStringNode *>(n));
 	    }
@@ -243,7 +265,7 @@ class QoreStringValueHelper {
       {
 	 if (n) {
 	    //optimization to remove the need for a virtual function call in the most common case
-	    if (n->type == NT_STRING) {
+	    if (n->getType() == NT_STRING) {
 	       del = false;
 	       str = const_cast<QoreStringNode *>(reinterpret_cast<const QoreStringNode *>(n));
 	    }
@@ -400,9 +422,11 @@ extern QoreString NothingTypeString;
 /**
    \Example
    \code
+   // FMT_NONE gives all information on a single line
    QoreNodeAsStringHelper str(n, FMT_NONE, xsink);
    if (*xsink)
       return 0;
+    printf("str='%s'\n", str->getBuffer());
    \endcode
  */
 class QoreNodeAsStringHelper {

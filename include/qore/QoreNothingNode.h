@@ -26,13 +26,13 @@
 
 #include <qore/AbstractQoreNode.h>
 
-class QoreNothingNode : public SimpleQoreNode
+class QoreNothingNode : public UniqueQoreNode
 {
    protected:
-      DLLEXPORT virtual ~QoreNothingNode();
 
    public:
       DLLEXPORT QoreNothingNode();
+      DLLEXPORT virtual ~QoreNothingNode();
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -55,14 +55,18 @@ class QoreNothingNode : public SimpleQoreNode
       DLLEXPORT virtual const QoreType *getType() const;
       // returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "nothing";
+      }
 };
 
-DLLEXPORT extern QoreNothingNode *Nothing;
+DLLEXPORT extern QoreNothingNode Nothing;
 
 static inline QoreNothingNode *nothing()
 {
-   Nothing->ref();
-   return Nothing;
+   return &Nothing;
 }
 
 #endif

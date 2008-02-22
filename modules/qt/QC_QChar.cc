@@ -41,7 +41,7 @@ static void QCHAR_constructor(QoreObject *self, const QoreListNode *params, Exce
       return;
    }
    int code;
-   if (p->type == NT_STRING) {
+   if (p->getType() == NT_STRING) {
       code = (reinterpret_cast<const QoreStringNode *>(p))->getUnicodePoint(0, xsink);
       if (*xsink)
 	 return;

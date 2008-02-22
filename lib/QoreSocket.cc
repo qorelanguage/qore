@@ -1285,7 +1285,7 @@ static void do_headers(QoreString &hdr, const QoreHashNode *headers, int size)
 	 const AbstractQoreNode *v = hi.getValue();
 	 if (v)
 	 {
-	    const QoreType *vtype = v->type;
+	    const QoreType *vtype = v->getType();
 
 	    if (vtype == NT_STRING) {
 	       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v);

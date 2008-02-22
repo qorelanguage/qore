@@ -30,22 +30,6 @@ QoreBigIntNode::QoreBigIntNode(int64 v) : SimpleQoreNode(NT_INT), val(v)
 {
 }
 
-QoreBigIntNode::QoreBigIntNode(long v) : SimpleQoreNode(NT_INT), val(v)
-{
-}
-
-QoreBigIntNode::QoreBigIntNode(int v) : SimpleQoreNode(NT_INT), val(v)
-{
-}
-
-QoreBigIntNode::QoreBigIntNode(unsigned long v) : SimpleQoreNode(NT_INT), val(v)
-{
-}
-
-QoreBigIntNode::QoreBigIntNode(unsigned int v) : SimpleQoreNode(NT_INT), val(v)
-{
-}
-
 QoreBigIntNode::~QoreBigIntNode()
 {
 }
@@ -145,5 +129,5 @@ const QoreType *QoreBigIntNode::getType() const
 // returns the type name as a c string
 const char *QoreBigIntNode::getTypeName() const
 {
-   return "integer";
+   return getStaticTypeName();
 }

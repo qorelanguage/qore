@@ -40,7 +40,7 @@ static void QLOCALE_constructor(QoreObject *self, const QoreListNode *params, Ex
       self->setPrivate(CID_QLOCALE, new QoreQLocale());
       return;
    }
-   if (p && p->type == NT_STRING) {
+   if (p && p->getType() == NT_STRING) {
       QString name;
       if (get_qstring(p, name, xsink))
 	 return;
@@ -225,7 +225,7 @@ static AbstractQoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, c
 //static AbstractQoreNode *QLOCALE_toString(QoreObject *self, QoreQLocale *ql, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QDate date;
 //      if (get_qdate(p, date, xsink))
 //         return 0;
@@ -235,7 +235,7 @@ static AbstractQoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, c
 //   int prec = !is_nothing(p) ? p->getAsInt() : 6;
 //   return new QoreStringNode(ql->toString(date, f, prec).toUtf8().data(), QCS_UTF8);
 //   }
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QDate date;
 //      if (get_qdate(p, date, xsink))
 //         return 0;
@@ -245,7 +245,7 @@ static AbstractQoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, c
 //   int prec = !is_nothing(p) ? p->getAsInt() : 6;
 //   return new QoreStringNode(ql->toString(date, f, prec).toUtf8().data(), QCS_UTF8);
 //   }
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QTime time;
 //      if (get_qtime(p, time, xsink))
 //         return 0;
@@ -255,7 +255,7 @@ static AbstractQoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, c
 //   int prec = !is_nothing(p) ? p->getAsInt() : 6;
 //   return new QoreStringNode(ql->toString(time, f, prec).toUtf8().data(), QCS_UTF8);
 //   }
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QTime time;
 //      if (get_qtime(p, time, xsink))
 //         return 0;
@@ -265,27 +265,27 @@ static AbstractQoreNode *QLOCALE_toLongLong(QoreObject *self, QoreQLocale *ql, c
 //   int prec = !is_nothing(p) ? p->getAsInt() : 6;
 //   return new QoreStringNode(ql->toString(time, f, prec).toUtf8().data(), QCS_UTF8);
 //   }
-//   if (p && p->type == NT_INT) {
+//   if (p && p->getType() == NT_INT) {
 //      QLocale::qlonglong i = (QLocale::qlonglong)(p ? p->getAsInt() : 0);
 //      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
-//   if (p && p->type == NT_INT) {
+//   if (p && p->getType() == NT_INT) {
 //      QLocale::qulonglong i = (QLocale::qulonglong)(p ? p->getAsInt() : 0);
 //      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
-//   if (p && p->type == NT_INT) {
+//   if (p && p->getType() == NT_INT) {
 //      QLocale::short i = (QLocale::short)(p ? p->getAsInt() : 0);
 //      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
-//   if (p && p->type == NT_INT) {
+//   if (p && p->getType() == NT_INT) {
 //      QLocale::ushort i = (QLocale::ushort)(p ? p->getAsInt() : 0);
 //      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
-//   if (p && p->type == NT_INT) {
+//   if (p && p->getType() == NT_INT) {
 //      int i = p ? p->getAsInt() : 0;
 //      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }
-//   if (p && p->type == NT_INT) {
+//   if (p && p->getType() == NT_INT) {
 //      unsigned i = p ? p->getAsBigInt() : 0;
 //      return new QoreStringNode(ql->toString(i).toUtf8().data(), QCS_UTF8);
 //   }

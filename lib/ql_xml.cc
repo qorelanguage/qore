@@ -172,9 +172,9 @@ static void makeXMLString(QoreString *str, const QoreHashNode *h, int indent, co
 
 static void concatSimpleValue(QoreString *str, const AbstractQoreNode *n, ExceptionSink *xsink)
 {
-   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->type == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
+   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
-   const QoreType *ntype = n ? n->type : 0;
+   const QoreType *ntype = n ? n->getType() : 0;
 
    if (ntype == NT_STRING) {
       const QoreStringNode *qsn = reinterpret_cast<const QoreStringNode *>(n);
@@ -210,9 +210,9 @@ static void concatSimpleValue(QoreString *str, const AbstractQoreNode *n, Except
 
 static void concatSimpleCDataValue(QoreString *str, const AbstractQoreNode *n, ExceptionSink *xsink)
 {
-   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->type == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
+   //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
-   const QoreType *ntype = n ? n->type : 0;
+   const QoreType *ntype = n ? n->getType() : 0;
 
    if (ntype == NT_STRING) {
       const QoreStringNode *qsn = reinterpret_cast<const QoreStringNode *>(n);
@@ -262,7 +262,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
       return;
    }
 
-   const QoreType *ntype = n->type;
+   const QoreType *ntype = n->getType();
 
    if (ntype == NT_LIST) {
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);
@@ -333,7 +333,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
 	 inc++;
       
       // add attributes for objects
-      if (attrib && attrib->type == NT_HASH)
+      if (attrib && attrib->getType() == NT_HASH)
       {
 	 const QoreHashNode *ah = reinterpret_cast<const QoreHashNode *>(attrib);
 	 // add attributes to node
@@ -344,7 +344,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
 	    str->sprintf(" %s=\"", key);
 	    const AbstractQoreNode *v = hi.getValue();
 	    if (v) {
-	       if (v->type == NT_STRING) 
+	       if (v->getType() == NT_STRING) 
 		  str->concatAndHTMLEncode(reinterpret_cast<const QoreStringNode *>(v), xsink);
 	       else { // convert to string and add
 		  QoreStringValueHelper temp(n);
@@ -685,7 +685,7 @@ static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHashNode 
 static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    assert(n);
-   const QoreType *ntype = n->type;
+   const QoreType *ntype = n->getType();
 
    if (ntype == NT_BOOLEAN)
       str->sprintf("<boolean>%d</boolean>", reinterpret_cast<const QoreBoolNode *>(n)->b);
@@ -902,7 +902,7 @@ QoreStringNode *makeXMLRPCCallStringArgs(const QoreEncoding *ccs, const QoreList
       }
       str->concat("</params>"); 
    }
-   else if (p1 && p1->type != NT_LIST)
+   else if (p1 && p1->getType() != NT_LIST)
    {
       str->concat("<params><param>"); 
       addXMLRPCValue(*str, p1, 0, ccs, 0, xsink);
@@ -1116,7 +1116,7 @@ static int getXMLData(xmlTextReader *reader, xml_stack *xstack, const QoreEncodi
 	       return 0;
 
 	    AbstractQoreNode *n = xstack->getNode();
-	    if (n && n->type == NT_HASH)
+	    if (n && n->getType() == NT_HASH)
 	    {
 	       QoreHashNode *h = reinterpret_cast<QoreHashNode *>(n);
 	       if (!xstack->getCDataCount())

@@ -719,7 +719,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_changePersistentIndex(QoreObject *se
 //   p = get_param(params, 1);
 //   int column = p ? p->getAsInt() : 0;
 //   p = get_param(params, 2);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      ??? void* ptr = p;
 //      QoreObject *o_qmi = new QoreObject(QC_QModelIndex, getProgram());
 //      QoreQModelIndex *q_qmi = new QoreQModelIndex(qaim->getQAbstractItemModel()->createIndex(row, column, ptr));

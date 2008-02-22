@@ -217,7 +217,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHashNode *h, const 
 	 l = new QoreListNode();
 	 (*cv) = l;
       }
-      //else printf("cv->type=%s\n", cv->getTypeName());
+      //else printf("cv->getType()=%s\n", cv->getTypeName());
       l->push(v);
       return;
    }

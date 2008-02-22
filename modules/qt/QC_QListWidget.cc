@@ -55,7 +55,7 @@ static void QLISTWIDGET_copy(class QoreObject *self, class QoreObject *old, clas
 static AbstractQoreNode *QLISTWIDGET_addItem(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
       QoreQListWidgetItem *item = (QoreQListWidgetItem *)o->getReferencedPrivateData(CID_QLISTWIDGETITEM, xsink);
       if (!item) {
@@ -232,7 +232,7 @@ static AbstractQoreNode *QLISTWIDGET_item(QoreObject *self, QoreAbstractQListWid
 static AbstractQoreNode *QLISTWIDGET_itemAt(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())

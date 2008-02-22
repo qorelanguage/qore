@@ -428,27 +428,27 @@ inline void QoreObject::doDeleteIntern(ExceptionSink *xsink)
 }
 
 // does a deep dereference and execs destructor if necessary
-void QoreObject::deref(ExceptionSink *xsink)
+bool QoreObject::derefImpl(ExceptionSink *xsink)
 {
-   printd(5, "QoreObject::deref() this=%08p, class=%s %d->%d\n", this, priv->myclass->getName(), references, references - 1);
-   if (ROdereference()) {
-      // FIXME: what the hell do we do if this happens?
-      if (priv->g.enter(xsink) >= 0)
-      {
-	 printd(5, "QoreObject::dereference() class=%s deleting this=%08p\n", priv->myclass->getName(), this);
-	 if (priv->status == OS_OK) {
-	    // reference for destructor
-	    ROreference();
-	    doDeleteIntern(xsink);
-	    ROdereference();
-	 }
-	 else {
-	    priv->g.exit();
-	    printd(5, "QoreObject::dereference() %08p class=%s data=%08p status=%d\n", this, priv->myclass->getName(), priv->data, priv->status);
-	 }
-	 tDeref();
-      }
+   printd(5, "QoreObject::derefImpl() this=%08p, class=%s %d->%d\n", this, priv->myclass->getName(), references, references - 1);
+   if (priv->g.enter(xsink) < 0) {
+      assert(false);
+      return false;   // FIXME: what the hell do we do if this happens?
    }
+
+   printd(5, "QoreObject::derefImpl() class=%s deleting this=%08p\n", priv->myclass->getName(), this);
+   if (priv->status == OS_OK) {
+      // reference for destructor
+      ROreference();
+      doDeleteIntern(xsink);
+      ROdereference();
+   }
+   else {
+      priv->g.exit();
+      printd(5, "QoreObject::derefImpl() %08p class=%s data=%08p status=%d\n", this, priv->myclass->getName(), priv->data, priv->status);
+   }
+   tDeref();
+   return false;
 }
 
 // this method is called when there is an exception in a constructor and the object should be deleted
@@ -890,7 +890,7 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
          str.sprintf("%s : ", hi.getKey());
 
 	 AbstractQoreNode *n = hi.getValue();
-	 if (!n) n = Nothing;
+	 if (!n) n = &Nothing;
 	 if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
 	    return -1;
       }
@@ -935,7 +935,7 @@ const QoreType *QoreObject::getType() const
 // returns the type name as a c string
 const char *QoreObject::getTypeName() const
 {
-   return "object";
+   return getStaticTypeName();
 }
 
 bool QoreObject::is_value() const

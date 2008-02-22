@@ -26,13 +26,14 @@
 
 #include <qore/AbstractQoreNode.h>
 
-class QoreNullNode : public SimpleQoreNode
+class QoreNullNode : public UniqueQoreNode
 {
    protected:
-      DLLEXPORT virtual ~QoreNullNode();
 
    public:
       DLLEXPORT QoreNullNode();
+
+      DLLEXPORT virtual ~QoreNullNode();
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -55,6 +56,11 @@ class QoreNullNode : public SimpleQoreNode
       DLLEXPORT virtual const QoreType *getType() const;
       // returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "NULL";
+      }
 };
 
 static inline bool is_null(const AbstractQoreNode *n)
@@ -62,12 +68,11 @@ static inline bool is_null(const AbstractQoreNode *n)
    return dynamic_cast<const QoreNullNode *>(n);
 }
 
-DLLEXPORT extern QoreNullNode *Null;
+DLLEXPORT extern QoreNullNode Null;
 
 static inline QoreNullNode *null()
 {
-   Null->ref();
-   return Null;
+   return &Null;
 }
 
 #endif

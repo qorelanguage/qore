@@ -73,6 +73,11 @@ class QoreFloatNode : public SimpleQoreNode
       DLLEXPORT virtual const QoreType *getType() const;
       // returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "float";
+      }
 };
 
 #endif

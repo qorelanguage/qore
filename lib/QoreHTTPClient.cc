@@ -66,7 +66,7 @@ class StackHash : public QoreHashNode
       //! dereferences the members of the hash and destroys the object
       DLLLOCAL ~StackHash()
       {
-	 deref_intern(xsink);
+	 derefImpl(xsink);
       }
 };
 
@@ -199,13 +199,13 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink)
    // process new protocols
    const AbstractQoreNode *n = opts->getKeyValue("protocols");  
    {
-      if (n && n->type == NT_HASH) {
+      if (n && n->getType() == NT_HASH) {
 	 const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(n);
 	 ConstHashIterator hi(h);
 	 while (hi.next())
 	 {
 	    const AbstractQoreNode *v = hi.getValue();
-	    const QoreType *vtype = v ? v->type : 0;
+	    const QoreType *vtype = v ? v->getType() : 0;
 	    if (!v || (vtype != NT_HASH && vtype != NT_INT))
 	    {
 	       xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());
@@ -245,18 +245,18 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink)
 
    // check if proxy is true
    n = opts->getKeyValue("proxy"); 
-   if (n && n->type == NT_STRING)
+   if (n && n->getType() == NT_STRING)
       if (set_proxy_url_unlocked((reinterpret_cast<const QoreStringNode *>(n))->getBuffer(), xsink))
 	 return -1;
 
    // parse url option if present
    n = opts->getKeyValue("url");  
-   if (n && n->type == NT_STRING)
+   if (n && n->getType() == NT_STRING)
       if (set_url_unlocked((reinterpret_cast<const QoreStringNode *>(n))->getBuffer(), xsink))
 	 return -1;
 
    n = opts->getKeyValue("default_path");  
-   if (n && n->type == NT_STRING)
+   if (n && n->getType() == NT_STRING)
       priv->default_path = (reinterpret_cast<const QoreStringNode *>(n))->getBuffer();
 
    // set default timeout if given in option hash - accept relative date/time values as well as integers
@@ -267,7 +267,7 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink)
    n = opts->getKeyValue("http_version");  
    if (n)
    {
-      if (n->type == NT_STRING)
+      if (n->getType() == NT_STRING)
       {
 	 if (setHTTPVersion((reinterpret_cast<const QoreStringNode *>(n))->getBuffer(), xsink))
 	    return -1;
@@ -683,7 +683,7 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
 	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket %s closed on remote end without a response", priv->socketpath.c_str());
 	 return 0;
       }
-      if ((*ans)->type != NT_HASH) {
+      if ((*ans)->getType() != NT_HASH) {
 	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "malformed HTTP header received from socket %s, could not parse header", priv->socketpath.c_str());
 	 return 0;
       }
@@ -760,7 +760,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 if (!strcasecmp(hi.getKey(), "connection") || (priv->proxy_port && !strcasecmp(hi.getKey(), "proxy-connection")))
 	 {
 	    const AbstractQoreNode *v = hi.getValue();
-	    if (v && v->type == NT_STRING && !strcasecmp((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), "close"))
+	    if (v && v->getType() == NT_STRING && !strcasecmp((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), "close"))
 	       keep_alive = false;
 	 }
 

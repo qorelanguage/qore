@@ -50,7 +50,7 @@ static void QFILEDIALOG_constructor(QoreObject *self, const QoreListNode *params
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
 
    p = get_param(params, 1);
-   if (p && p->type == NT_STRING) {
+   if (p && p->getType() == NT_STRING) {
       QString caption;
       if (get_qstring(p, caption, xsink, true))
 	 caption = QString();
@@ -266,7 +266,7 @@ static AbstractQoreNode *QFILEDIALOG_setDefaultSuffix(QoreObject *self, QoreQFil
 static AbstractQoreNode *QFILEDIALOG_setDirectory(QoreObject *self, QoreQFileDialog *qfd, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQDir *directory = (QoreQDir *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QDIR, xsink);
       if (!directory) {
          if (!xsink->isException())

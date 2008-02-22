@@ -141,6 +141,6 @@ const QoreType *BinaryNode::getType() const
 // returns the type name as a c string
 const char *BinaryNode::getTypeName() const
 {
-   return "binary";
+   return getStaticTypeName();
 }
 

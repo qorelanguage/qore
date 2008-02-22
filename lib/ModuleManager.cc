@@ -23,6 +23,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/ModuleInfo.h>
 #include <qore/intern/AutoNamespaceList.h>
 
 #include <dlfcn.h>

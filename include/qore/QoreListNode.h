@@ -53,7 +53,6 @@ class QoreListNode : public AbstractQoreNode
       DLLLOCAL void splice_intern(int offset, int length, const AbstractQoreNode *l, class ExceptionSink *xsink);
       DLLLOCAL void check_offset(int &offset);
       DLLLOCAL void check_offset(int &offset, int &len);
-      DLLLOCAL void deref_intern(class ExceptionSink *xisnk);
 
       //! qsort sorts the list in-place (unstable)
       DLLLOCAL int qsort(const class ResolvedFunctionReferenceNode *fr, int left, int right, bool ascending, class ExceptionSink *xsink);
@@ -66,6 +65,15 @@ class QoreListNode : public AbstractQoreNode
 	 use the deref(ExceptionSink) function to release the reference count
        */
       DLLEXPORT virtual ~QoreListNode();
+
+      //! dereferences all elements of the list
+      /** The ExceptionSink argument is needed for those types that could throw
+	  an exception when they are deleted (ex: QoreObject) - which could be 
+	  contained in the list
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return true if the object can be deleted, false if not (externally-managed)
+       */
+      DLLEXPORT virtual bool derefImpl(class ExceptionSink *xsink);
 
    public:
       DLLEXPORT QoreListNode();
@@ -134,16 +142,13 @@ class QoreListNode : public AbstractQoreNode
       */
       DLLEXPORT virtual class AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
 
-      // decrements the reference count
-      /** deletes the object when the reference count = 0.  The ExceptionSink 
-	  argument is needed for those types that could throw an exception when 
-	  they are deleted (ex: QoreObject) - which could be contained in the list
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-       */
-      DLLEXPORT virtual void deref(class ExceptionSink *xsink);
-
       //! returns true if the list does not contain any parse expressions, otherwise returns false
       DLLEXPORT virtual bool is_value() const;
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "list";
+      }
 
       //! returns the element at "index" (first element is index 0)
       /** the value is not referenced for the caller

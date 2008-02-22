@@ -54,7 +54,7 @@ static void QPAINTENGINE_copy(class QoreObject *self, class QoreObject *old, cla
 static AbstractQoreNode *QPAINTENGINE_begin(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   AbstractPrivateData *apd_pdev = (p && p->type == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
+   AbstractPrivateData *apd_pdev = (p && p->getType() == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
    if (!apd_pdev) {
       if (!xsink->isException())
          xsink->raiseException("QPAINTENGINE-BEGIN-PARAM-ERROR", "expecting a QPaintDevice object as first argument to QPaintEngine::begin()");
@@ -275,7 +275,7 @@ static AbstractQoreNode *QPAINTENGINE_drawPolygon(QoreObject *self, QoreAbstract
 static AbstractQoreNode *QPAINTENGINE_drawRects(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRect *rects = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rects) {
          QoreQRectF *rects = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);

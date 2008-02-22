@@ -95,6 +95,10 @@ AbstractFunctionReferenceNode::AbstractFunctionReferenceNode() : AbstractQoreNod
 {
 }
 
+AbstractFunctionReferenceNode::AbstractFunctionReferenceNode(bool n_there_can_be_only_one) : AbstractQoreNode(NT_FUNCREF, n_there_can_be_only_one)
+{
+}
+
 AbstractFunctionReferenceNode::~AbstractFunctionReferenceNode()
 {
 }
@@ -156,7 +160,7 @@ const QoreType *AbstractFunctionReferenceNode::getType() const
 // returns the type name as a c string
 const char *AbstractFunctionReferenceNode::getTypeName() const
 {
-   return "function reference";
+   return getStaticTypeName();
 }
 
 int64 AbstractFunctionReferenceNode::bigIntEval(ExceptionSink *xsink) const
@@ -312,7 +316,7 @@ QoreProgram *RunTimeObjectMethodReferenceNode::getProgram() const
    return obj->getProgram();
 }
 
-UnresolvedFunctionReferenceNode::UnresolvedFunctionReferenceNode(char *n_str) : str(n_str)
+UnresolvedFunctionReferenceNode::UnresolvedFunctionReferenceNode(char *n_str) : AbstractFunctionReferenceNode(true), str(n_str)
 {
 }
 
@@ -332,11 +336,12 @@ void UnresolvedFunctionReferenceNode::deref()
    delete this;
 }
 
-void UnresolvedFunctionReferenceNode::deref(ExceptionSink *xsink)
+/*
+void UnresolvedFunctionReferenceNode::derefImpl(ExceptionSink *xsink)
 {
    assert(is_unique());
-   delete this;
 }
+*/
 
 UserFunctionReferenceNode::UserFunctionReferenceNode(UserFunction *n_uf, QoreProgram *n_pgm) : uf(n_uf), pgm(n_pgm)
 {
@@ -349,15 +354,12 @@ QoreProgram *UserFunctionReferenceNode::getProgram() const
    return pgm;
 }
 
-void UserFunctionReferenceNode::deref(ExceptionSink *xsink)
+bool UserFunctionReferenceNode::derefImpl(ExceptionSink *xsink)
 {
    //printd(5, "UserFunctionReferenceNode::deref() this=%08p pgm=%08p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
-   if (ROdereference())
-   {
-      //printd(5, "UserFunctionReferenceNode::deref() this=%08p calling QoreProgram::depDeref() pgm=%08p\n", this, pgm);
-      pgm->depDeref(xsink);
-      delete this;	 
-   }
+   //printd(5, "UserFunctionReferenceNode::deref() this=%08p calling QoreProgram::depDeref() pgm=%08p\n", this, pgm);
+   pgm->depDeref(xsink);
+   return true;
 }
 
 AbstractQoreNode *UserFunctionReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const

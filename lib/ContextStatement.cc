@@ -46,7 +46,7 @@ ContextModList::~ContextModList()
    cxtmod_list_t::iterator i;
    while ((i = begin()) != end())
    {
-      //printd(5, "CML::~CML() %d (%08p)\n", (*i)->type, (*i)->c.exp);
+      //printd(5, "CML::~CML() %d (%08p)\n", (*i)->getType(), (*i)->c.exp);
       if (*i)
 	 delete *i;
       erase(i);
@@ -56,7 +56,7 @@ ContextModList::~ContextModList()
 void ContextModList::addContextMod(ContextMod *cm)
 {
    push_back(cm);
-   //printd(5, "CML::CML() %d (%08p)\n", cm->type, cm->c.exp);
+   //printd(5, "CML::CML() %d (%08p)\n", cm->getType(), cm->c.exp);
 }
 
 ContextStatement::ContextStatement(int start_line, int end_line, char *n, AbstractQoreNode *expr, class ContextModList *mods, class StatementBlock *cd) : AbstractStatement(start_line, end_line)

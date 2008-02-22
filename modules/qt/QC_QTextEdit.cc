@@ -46,7 +46,7 @@ static void QTEXTEDIT_constructor(QoreObject *self, const QoreListNode *params, 
       self->setPrivate(CID_QTEXTEDIT, new QoreQTextEdit(self));
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
          return;

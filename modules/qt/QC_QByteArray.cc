@@ -46,7 +46,7 @@ static void QBYTEARRAY_constructor(QoreObject *self, const QoreListNode *params,
       self->setPrivate(CID_QBYTEARRAY, new QoreQByteArray(pstr->getBuffer(), pstr->strlen()));
       return;
    }
-   if (p->type != NT_BINARY) {
+   if (p->getType() != NT_BINARY) {
       xsink->raiseException("QBYTEARRAY-CONSTRUCTOR-ERROR", "expecting a string or binary object as sole argument to QByteArray::constructor()");
       return;
    }
@@ -134,14 +134,14 @@ static AbstractQoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *
 //static AbstractQoreNode *QBYTEARRAY_contains(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
 //      return new QoreBoolNode(qba->contains(ba));
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-CONTAINS-PARAM-ERROR", "expecting a string as first argument to QByteArray::contains()");
 //         return 0;
 //      }
@@ -162,14 +162,14 @@ static AbstractQoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *
 //   if (is_nothing(p)) {
 //      return new QoreBigIntNode(qba->count());
 //   }
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
 //      return new QoreBigIntNode(qba->count(ba));
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-COUNT-PARAM-ERROR", "expecting a string as first argument to QByteArray::count()");
 //         return 0;
 //      }
@@ -201,14 +201,14 @@ static AbstractQoreNode *QBYTEARRAY_data(QoreObject *self, QoreQByteArray *qba, 
 //static AbstractQoreNode *QBYTEARRAY_endsWith(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
 //      return new QoreBoolNode(qba->endsWith(ba));
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-ENDSWITH-PARAM-ERROR", "expecting a string as first argument to QByteArray::endsWith()");
 //         return 0;
 //      }
@@ -245,7 +245,7 @@ static AbstractQoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, 
 //static AbstractQoreNode *QBYTEARRAY_indexOf(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
@@ -253,8 +253,8 @@ static AbstractQoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, 
 //   int from = p ? p->getAsInt() : 0;
 //   return new QoreBigIntNode(qba->indexOf(ba, from));
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-INDEXOF-PARAM-ERROR", "expecting a string as first argument to QByteArray::indexOf()");
 //         return 0;
 //      }
@@ -263,8 +263,8 @@ static AbstractQoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, 
 //   int from = p ? p->getAsInt() : 0;
 //   return new QoreBigIntNode(qba->indexOf(str, from));
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-INDEXOF-PARAM-ERROR", "expecting a string as first argument to QByteArray::indexOf()");
 //         return 0;
 //      }
@@ -288,7 +288,7 @@ static AbstractQoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, 
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   int i = p ? p->getAsInt() : 0;
 //   p = get_param(params, 1);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
@@ -297,8 +297,8 @@ static AbstractQoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, 
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-INSERT-PARAM-ERROR", "expecting a string as second argument to QByteArray::insert()");
 //         return 0;
 //      }
@@ -308,8 +308,8 @@ static AbstractQoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, 
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-INSERT-PARAM-ERROR", "expecting a string as second argument to QByteArray::insert()");
 //         return 0;
 //      }
@@ -345,7 +345,7 @@ static AbstractQoreNode *QBYTEARRAY_isNull(QoreObject *self, QoreQByteArray *qba
 //static AbstractQoreNode *QBYTEARRAY_lastIndexOf(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
@@ -353,8 +353,8 @@ static AbstractQoreNode *QBYTEARRAY_isNull(QoreObject *self, QoreQByteArray *qba
 //   int from = !is_nothing(p) ? p->getAsInt() : -1;
 //   return new QoreBigIntNode(qba->lastIndexOf(ba, from));
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-LASTINDEXOF-PARAM-ERROR", "expecting a string as first argument to QByteArray::lastIndexOf()");
 //         return 0;
 //      }
@@ -363,8 +363,8 @@ static AbstractQoreNode *QBYTEARRAY_isNull(QoreObject *self, QoreQByteArray *qba
 //   int from = !is_nothing(p) ? p->getAsInt() : -1;
 //   return new QoreBigIntNode(qba->lastIndexOf(str, from));
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-LASTINDEXOF-PARAM-ERROR", "expecting a string as first argument to QByteArray::lastIndexOf()");
 //         return 0;
 //      }
@@ -433,7 +433,7 @@ static AbstractQoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, c
 //static AbstractQoreNode *QBYTEARRAY_prepend(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
@@ -442,8 +442,8 @@ static AbstractQoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, c
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-PREPEND-PARAM-ERROR", "expecting a string as first argument to QByteArray::prepend()");
 //         return 0;
 //      }
@@ -466,15 +466,15 @@ static AbstractQoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, c
 //static AbstractQoreNode *QBYTEARRAY_push_back(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray other;
 //      if (get_qbytearray(p, other, xsink))
 //         return 0;
 //      qba->push_back(other);
 //      return 0;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-PUSH_BACK-PARAM-ERROR", "expecting a string as first argument to QByteArray::push_back()");
 //         return 0;
 //      }
@@ -493,15 +493,15 @@ static AbstractQoreNode *QBYTEARRAY_mid(QoreObject *self, QoreQByteArray *qba, c
 //static AbstractQoreNode *QBYTEARRAY_push_front(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray other;
 //      if (get_qbytearray(p, other, xsink))
 //         return 0;
 //      qba->push_front(other);
 //      return 0;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-PUSH_FRONT-PARAM-ERROR", "expecting a string as first argument to QByteArray::push_front()");
 //         return 0;
 //      }
@@ -544,12 +544,12 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //static AbstractQoreNode *QBYTEARRAY_replace(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray before;
 //      if (get_qbytearray(p, before, xsink))
 //         return 0;
 //   p = get_param(params, 1);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray after;
 //      if (get_qbytearray(p, after, xsink))
 //         return 0;
@@ -558,8 +558,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -569,8 +569,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -590,14 +590,14 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //   return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as first argument to QByteArray::replace()");
 //         return 0;
 //      }
 //      const char *before = p->getBuffer();
 //   p = get_param(params, 1);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray after;
 //      if (get_qbytearray(p, after, xsink))
 //         return 0;
@@ -606,8 +606,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -617,8 +617,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -638,12 +638,12 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //   return o_qba;
 //   }
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray before;
 //      if (get_qbytearray(p, before, xsink))
 //         return 0;
 //   p = get_param(params, 1);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray after;
 //      if (get_qbytearray(p, after, xsink))
 //         return 0;
@@ -652,8 +652,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -663,8 +663,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -684,14 +684,14 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //   return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as first argument to QByteArray::replace()");
 //         return 0;
 //      }
 //      const char *before = p->getBuffer();
 //   p = get_param(params, 1);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray after;
 //      if (get_qbytearray(p, after, xsink))
 //         return 0;
@@ -700,8 +700,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -711,8 +711,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -732,14 +732,14 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //   return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as first argument to QByteArray::replace()");
 //         return 0;
 //      }
 //      const char *before = p->getBuffer();
 //   p = get_param(params, 1);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray after;
 //      if (get_qbytearray(p, after, xsink))
 //         return 0;
@@ -748,8 +748,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -759,8 +759,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -780,14 +780,14 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //   o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //   return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as first argument to QByteArray::replace()");
 //         return 0;
 //      }
 //      const char *before = p->getBuffer();
 //   p = get_param(params, 1);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray after;
 //      if (get_qbytearray(p, after, xsink))
 //         return 0;
@@ -796,8 +796,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -807,8 +807,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -830,7 +830,7 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //   }
 //   int pos = p ? p->getAsInt() : 0;
 //   p = get_param(params, 1);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray after;
 //      if (get_qbytearray(p, after, xsink))
 //         return 0;
@@ -839,8 +839,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -850,8 +850,8 @@ static AbstractQoreNode *QBYTEARRAY_remove(QoreObject *self, QoreQByteArray *qba
 //      o_qba->setPrivate(CID_QBYTEARRAY, q_qba);
 //      return o_qba;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-REPLACE-PARAM-ERROR", "expecting a string as second argument to QByteArray::replace()");
 //         return 0;
 //      }
@@ -930,7 +930,7 @@ static AbstractQoreNode *QBYTEARRAY_rightJustified(QoreObject *self, QoreQByteAr
 static AbstractQoreNode *QBYTEARRAY_setNum(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_INT) {
+   if (p && p->getType() == NT_INT) {
       int n = reinterpret_cast<const QoreBigIntNode *>(p)->val;
       p = get_param(params, 1);
       int base = (!is_nothing(p) ? p->getAsInt() : 10);
@@ -941,7 +941,7 @@ static AbstractQoreNode *QBYTEARRAY_setNum(QoreObject *self, QoreQByteArray *qba
       double n = p ? p->getAsFloat() : 0.0;
       p = get_param(params, 1);
       char f;
-      if (p && p->type == NT_STRING)
+      if (p && p->getType() == NT_STRING)
 	 f = (reinterpret_cast<const QoreStringNode *>(p))->getBuffer()[0];
       else
 	 f = 'g';
@@ -992,14 +992,14 @@ static AbstractQoreNode *QBYTEARRAY_squeeze(QoreObject *self, QoreQByteArray *qb
 //static AbstractQoreNode *QBYTEARRAY_startsWith(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
 //      return new QoreBoolNode(qba->startsWith(ba));
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QBYTEARRAY-STARTSWITH-PARAM-ERROR", "expecting a string as first argument to QByteArray::startsWith()");
 //         return 0;
 //      }

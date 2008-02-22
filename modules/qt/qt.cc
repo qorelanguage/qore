@@ -302,7 +302,7 @@ int get_qtime(const AbstractQoreNode *n, QTime &time, class ExceptionSink *xsink
       class QoreQDateTime *qdt = o ? (QoreQDateTime *)o->getReferencedPrivateData(CID_QDATETIME, xsink) : 0;
       if (!qdt) {
 	 if (!*xsink) {
-	    if (n && n->type == NT_OBJECT) 
+	    if (n && n->getType() == NT_OBJECT) 
 	       xsink->raiseException("QTIME-ERROR", "class '%s' is not derived from QTime or QDateTime", o->getClass()->getName());
 	    else
 	       xsink->raiseException("QTIME-ERROR", "cannot convert type '%s' to QTime", n ? n->getTypeName() : "NOTHING");
@@ -555,7 +555,7 @@ int get_qkeysequence(const AbstractQoreNode *n, QKeySequence &ks, class Exceptio
 
 int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xsink)
 {
-   //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->getTypeName() : "n/a", n && n->type == NT_OBJECT ? n->getClass()->getName() : "n/a");
+   //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->getTypeName() : "n/a", n && n->getType() == NT_OBJECT ? n->getClass()->getName() : "n/a");
    if (n) {
       const QoreType *ntype = n->getType();
       if (ntype == NT_OBJECT) {

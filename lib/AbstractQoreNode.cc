@@ -33,17 +33,17 @@
 
 #endif
 
-AbstractQoreNode::AbstractQoreNode(const QoreType *t) : type(t)
+AbstractQoreNode::AbstractQoreNode(const QoreType *t, bool n_there_can_be_only_one) : type(t), there_can_be_only_one(n_there_can_be_only_one)
 {
 #if TRACK_REFS
-   printd(5, "AbstractQoreNode::ref() %08p type=%s (0->1)\n", this, getTypeName());
+   printd(5, "AbstractQoreNode::ref() %08p type=%08p (0->1)\n", this, type);
 #endif
 }
 
 AbstractQoreNode::~AbstractQoreNode()
 {
 #if 0
-   printd(5, "AbstractQoreNode::~AbstractQoreNode() type=%s\n", getTypeName());
+   printd(5, "AbstractQoreNode::~AbstractQoreNode() type=%08p (%s)\n", type, getTypeName());
 #endif
 }
 
@@ -59,13 +59,19 @@ void AbstractQoreNode::ref() const
       printd(5, "AbstractQoreNode::ref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
 #endif
 #endif
-   ROreference();
+   if (!there_can_be_only_one)
+      ROreference();
 }
 
 AbstractQoreNode *AbstractQoreNode::refSelf() const
 {
    ref();
    return const_cast<AbstractQoreNode *>(this);
+}
+
+bool AbstractQoreNode::derefImpl(ExceptionSink *xsink)
+{
+   return true;
 }
 
 void AbstractQoreNode::deref(ExceptionSink *xsink)
@@ -91,10 +97,11 @@ void AbstractQoreNode::deref(ExceptionSink *xsink)
 #endif
    assert(references > 0);
 
-   if (ROdereference())
+   if (!there_can_be_only_one && ROdereference())
    {
-      // now delete this QoreNode
-      delete this;
+      if (derefImpl(xsink))
+	 // now delete this QoreNode
+	 delete this;
    }
 
    //traceout("AbstractQoreNode::deref()");
@@ -181,7 +188,7 @@ int getSecZeroInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return 0;
 
-   if (a->type == NT_DATE)
+   if (a->getType() == NT_DATE)
       return reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds();
 
    return a->getAsInt();
@@ -192,7 +199,7 @@ int64 getSecZeroBigInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return 0;
 
-   if (a->type == NT_DATE)
+   if (a->getType() == NT_DATE)
       return reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds();
 
    return a->getAsBigInt();
@@ -204,7 +211,7 @@ int getSecMinusOneInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return -1;
 
-   if (a->type == NT_DATE)
+   if (a->getType() == NT_DATE)
       return reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds();
 
    return a->getAsInt();
@@ -215,7 +222,7 @@ int64 getSecMinusOneBigInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return -1;
 
-   if (a->type == NT_DATE)
+   if (a->getType() == NT_DATE)
       return reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds();
 
    return a->getAsBigInt();
@@ -226,7 +233,7 @@ int getMsZeroInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return 0;
 
-   if (a->type == NT_DATE)
+   if (a->getType() == NT_DATE)
       return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds();
 
    return a->getAsInt();
@@ -237,7 +244,7 @@ int64 getMsZeroBigInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return 0;
 
-   if (a->type == NT_DATE)
+   if (a->getType() == NT_DATE)
       return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds();
 
    return a->getAsBigInt();
@@ -249,7 +256,7 @@ int getMsMinusOneInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return -1;
 
-   if (a->type == NT_DATE)
+   if (a->getType() == NT_DATE)
       return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds();
 
    return a->getAsInt();
@@ -260,7 +267,7 @@ int64 getMsMinusOneBigInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return -1;
 
-   if (a->type == NT_DATE)
+   if (a->getType() == NT_DATE)
       return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds();
 
    return a->getAsBigInt();
@@ -271,7 +278,7 @@ int getMicroSecZeroInt(const AbstractQoreNode *a)
    if (is_nothing(a))
       return 0;
 
-   if (a->type == NT_DATE)
+   if (a->getType() == NT_DATE)
       return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds() * 1000;
 
    return a->getAsInt();
@@ -351,7 +358,7 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
 {
    if (!n) return 0;
 
-   const QoreType *ntype = n->type;
+   const QoreType *ntype = n->getType();
 
    if (ntype == NT_LIST)
       return crlr_list_copy(reinterpret_cast<const QoreListNode *>(n), xsink);
@@ -400,15 +407,10 @@ void AbstractQoreNode::getDateTimeRepresentation(DateTime &dt) const
    dt.setDate(0LL);
 }
 
-// returns the data type
-const QoreType *AbstractQoreNode::getType() const
-{
-   return type;
-}
-
 const char *AbstractQoreNode::getTypeName() const
 {
-   return type->getName();
+   assert(false);
+   return 0;
 }
 
 SimpleQoreNode::SimpleQoreNode(const QoreType *t) : AbstractQoreNode(t)
@@ -417,6 +419,11 @@ SimpleQoreNode::SimpleQoreNode(const QoreType *t) : AbstractQoreNode(t)
 
 void SimpleQoreNode::deref()
 {
+   if (there_can_be_only_one) {
+      assert(is_unique());
+      delete this;
+   }
+
    if (ROdereference())
       delete this;   
 }

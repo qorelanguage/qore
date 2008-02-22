@@ -33,7 +33,7 @@ static void QKEYSEQUENCE_constructor(class QoreObject *self, const QoreListNode 
    const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qks = new QoreQKeySequence();
-   else if (p->type == NT_STRING)
+   else if (p->getType() == NT_STRING)
       qks = new QoreQKeySequence((reinterpret_cast<const QoreStringNode *>(p))->getBuffer());
    else {
       int i = p->getAsInt();

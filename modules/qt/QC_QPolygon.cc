@@ -63,7 +63,7 @@ static void QPOLYGON_constructor(QoreObject *self, const QoreListNode *params, E
       self->setPrivate(CID_QPOLYGON, new QoreQPolygon());
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPolygon *polygon = (QoreQPolygon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGON, xsink);
       if (!polygon) {
          QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
@@ -169,7 +169,7 @@ static AbstractQoreNode *QPOLYGON_putPoints(QoreObject *self, QoreQPolygon *qp, 
    p = get_param(params, 1);
    int nPoints = p ? p->getAsInt() : 0;
    p = get_param(params, 2);
-   if (!p || p->type == NT_OBJECT) {
+   if (!p || p->getType() == NT_OBJECT) {
       xsink->raiseException("QPOLYGON-PUTPOINTS-PARAM-ERROR", "QPolygon::putPoints() expects a QPolygon object as the third argument");
       return 0;
    }
@@ -194,7 +194,7 @@ static AbstractQoreNode *QPOLYGON_setPoint(QoreObject *self, QoreQPolygon *qp, c
    const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
 	 if (!xsink->isException())
@@ -250,7 +250,7 @@ static AbstractQoreNode *QPOLYGON_subtracted(QoreObject *self, QoreQPolygon *qp,
 static AbstractQoreNode *QPOLYGON_translate(QoreObject *self, QoreQPolygon *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!offset) {
          if (!xsink->isException())

@@ -406,7 +406,7 @@ void DBI_concat_numeric(class QoreString *str, const AbstractQoreNode *v)
       return;
    }
 
-   if (v->type == NT_FLOAT || (v->type == NT_STRING && strchr((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), '.')))
+   if (v->getType() == NT_FLOAT || (v->getType() == NT_STRING && strchr((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), '.')))
    {
       str->sprintf("%g", v->getAsFloat());
       return;

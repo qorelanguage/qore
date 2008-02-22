@@ -145,7 +145,7 @@ class AbstractQoreNode *connection::exec_intern(class QoreString *cmd_text, cons
    if (*xsink)
       return 0;
 
-   //printd(5, "execute_command_impl() result=%08p (%lld)\n", result, result && result->type == NT_INT ? result->getAsBigInt() : 0LL);
+   //printd(5, "execute_command_impl() result=%08p (%lld)\n", result, result && result->getType() == NT_INT ? result->getAsBigInt() : 0LL);
    return result.release();
 }
 
@@ -492,7 +492,7 @@ class AbstractQoreNode *connection::get_server_version(class ExceptionSink *xsin
    class AbstractQoreNode *res = exec_intern(&ver_str, 0, true, xsink);
    if (!res)
       return 0;
-   assert(res->type == NT_HASH);
+   assert(res->getType() == NT_HASH);
    HashIterator hi(reinterpret_cast<QoreHashNode *>(res));
    hi.next();
    AbstractQoreNode *rv = hi.takeValueAndDelete();

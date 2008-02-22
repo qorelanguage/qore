@@ -46,6 +46,7 @@ class AbstractQoreNode : public QoreReferenceCounter
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL AbstractQoreNode(const AbstractQoreNode&);
+
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL AbstractQoreNode& operator=(const AbstractQoreNode&);
 
@@ -70,7 +71,24 @@ class AbstractQoreNode : public QoreReferenceCounter
        */
       DLLEXPORT virtual double getAsFloatImpl() const { return 0.0; }
 
+      //! decrements the reference count
+      /** deletes the object when the reference count = 0.  
+	  The ExceptionSink argument is needed for those types that could throw an exception when they are deleted (ex: QoreObject)
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return true if the object can be deleted, false if not (externally-managed)
+       */
+      DLLEXPORT virtual bool derefImpl(class ExceptionSink *xsink);
+
    protected:
+      //! the type of the object
+      /**
+	 instead of using a virtual method to return a default type code for each implemented type, it's stored as an attribute of the base class.  This makes it possible to avoid making virtual function calls as a performance optimization in many cases, also it allows very fast type determination without makiing either a virtual function call or using dynamic_cast<> at the epense of more memory usage
+       */
+      const QoreType *type;
+
+      //! if this is set to true, then reference counting is turned off for objects of this class
+      bool there_can_be_only_one;
+
       //! default destructor does nothing
       /**
 	 The destructor is protected because it should not be called directly, which also means that these objects cannot normally be created on the stack.  They are referenced counted, and the deref() function should be used to decrement the reference count rather than using the delete operator.  Because the QoreObject class at least could throw a Qore Exception when it is deleted, the deref() function takes an ExceptionSink argument by default as well. 
@@ -78,17 +96,12 @@ class AbstractQoreNode : public QoreReferenceCounter
       DLLEXPORT virtual ~AbstractQoreNode();
 
    public:
-      //! the type of the object
-      /**
-	 instead of using a virtual method to return a default type code for each implemented type, it's stored as an attribute of the base class.  This makes it possible to avoid making virtual function calls as a performance optimization in many cases, also it allows very fast type determination without makiing either a virtual function call or using dynamic_cast<> at the epense of more memory usage
-       */
-      const QoreType *type;
-
       //! constructor takes the type
-      /**
-	 The type code for the class is passed as the argument to the constructor
+      /** The type code for the class is passed as the argument to the constructor
+	  @param t the Qore type code identifying this class in the Qore type system
+	  @param n_there_can_be_only_one whereas this type is normally reference counted, if this is set to true, then referencing counting is turned off for this type.  This can only be turned on when the type represents a single value.
        */
-      DLLEXPORT AbstractQoreNode(const QoreType *t);
+      DLLEXPORT AbstractQoreNode(const QoreType *t, bool n_there_can_be_only_one = false);
 
       //! returns the boolean value of the object
       /**
@@ -113,8 +126,8 @@ class AbstractQoreNode : public QoreReferenceCounter
 	 calls getAsFloatImpl() if necessary (there is an optimization for the QoreFloatNode class) to return the floating-point value of the object
        */
       DLLEXPORT double getAsFloat() const;
-      
-      //! returns the value of the type converted to a string, default implementation, returns the empty string
+
+      //! returns the value of the type converted to a string, default implementation: returns the empty string
       /** NOTE: do not use this function directly, use QoreStringValueHelper instead
 	  @param del output parameter: if del is true, then the resulting QoreString pointer belongs to the caller (and must be deleted manually), if false it must not be
 	  @return a QoreString pointer, use the del output parameter to determine ownership of the pointer
@@ -183,7 +196,10 @@ class AbstractQoreNode : public QoreReferenceCounter
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const = 0;
 
       //! returns the data type
-      DLLEXPORT virtual const QoreType *getType() const;
+      DLLLOCAL const QoreType *getType() const
+      {
+	 return type;
+      }
 
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
@@ -228,15 +244,15 @@ class AbstractQoreNode : public QoreReferenceCounter
        */
       DLLEXPORT virtual double floatEval(class ExceptionSink *xsink) const;
 
-      //! decrements the reference count
-      /** deletes the object when the reference count = 0.  
+      //! returns true if the node represents a value (default implementation)
+      DLLEXPORT virtual bool is_value() const;
+
+      //! decrements the reference count and calls derefImpl() if there_can_be_only_one is false, otherwise does nothing
+      /** if there_can_be_only_one is false, calls derefImpl() and deletes the object when the reference count = 0.  
 	  The ExceptionSink argument is needed for those types that could throw an exception when they are deleted (ex: QoreObject)
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT virtual void deref(class ExceptionSink *xsink);
-
-      //! returns true if the node represents a value (default implementation)
-      DLLEXPORT virtual bool is_value() const;
+      DLLEXPORT void deref(class ExceptionSink *xsink);
 
       //! returns "this" with an incremented reference count
       DLLEXPORT AbstractQoreNode *refSelf() const;
@@ -249,7 +265,6 @@ class AbstractQoreNode : public QoreReferenceCounter
 /**
    This class adds the deref() function without an ExceptionSink argument.
  */
-
 class SimpleQoreNode : public AbstractQoreNode 
 {
    private:
@@ -270,6 +285,34 @@ class SimpleQoreNode : public AbstractQoreNode
 	 This function is not virtual and should be used when possible for SimpleQoreNode objects
        */
       DLLEXPORT void deref();
+};
+
+//! base class non-referenced-counted parse and value types (where there_can_be_only_one is true)
+class UniqueQoreNode : public AbstractQoreNode 
+{
+   private:
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL UniqueQoreNode& operator=(const UniqueQoreNode&);
+
+   public:
+      //! constructor takes the type argument
+      DLLLOCAL UniqueQoreNode(const QoreType *t) : AbstractQoreNode(t, true)
+      {
+      }
+
+      DLLLOCAL virtual ~UniqueQoreNode()
+      {
+      }
+      
+      //! copy constructor
+      DLLLOCAL UniqueQoreNode(const UniqueQoreNode &) : AbstractQoreNode(type, true)
+      {
+      }
+
+      DLLLOCAL void deref()
+      {
+	 delete this;
+      }
 };
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
@@ -302,7 +345,7 @@ DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode *a);
 //! to check if an AbstractQoreNode object is NOTHING
 static inline bool is_nothing(const AbstractQoreNode *n)
 {
-   if (!n || n->type == NT_NOTHING)
+   if (!n || n->getType() == NT_NOTHING)
       return true;
    
    return false;

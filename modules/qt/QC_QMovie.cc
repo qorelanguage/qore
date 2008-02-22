@@ -44,7 +44,7 @@ static void QMOVIE_constructor(QoreObject *self, const QoreListNode *params, Exc
       self->setPrivate(CID_QMOVIE, new QoreQMovie(self));
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);
       if (*xsink)
          return;

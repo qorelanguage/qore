@@ -75,7 +75,7 @@ static void QTOOLBAR_copy(class QoreObject *self, class QoreObject *old, class Q
 static AbstractQoreNode *QTOOLBAR_actionAt(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())
@@ -124,7 +124,7 @@ static AbstractQoreNode *QTOOLBAR_addAction(QoreObject *self, QoreQToolBar *qtb,
    }
    if (*xsink)
       return 0;
-   if (!p | p->type != NT_OBJECT) {
+   if (!p | p->getType() != NT_OBJECT) {
       xsink->raiseException("QTOOLBAR-ADDACTION-PARAM-ERROR", "QToolBar::addAction() does not know how to handle arguments of type '%s' as the first argument", p ? p->getTypeName() : "NOTHING");
       return 0;
    }

@@ -56,7 +56,7 @@ static void QPAINTER_constructor(class QoreObject *self, const QoreListNode *par
    QoreQPainter *qp;
 
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT)
+   if (p && p->getType() == NT_OBJECT)
    {
       AbstractPrivateData *apd = (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTDEVICE, xsink);
       if (apd) {
@@ -102,7 +102,7 @@ static AbstractQoreNode *QPAINTER_begin(QoreObject *self, QoreQPainter *qp, cons
 {
    const AbstractQoreNode *p = get_param(params, 0);
 
-   AbstractPrivateData *apd = (p && p->type == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
+   AbstractPrivateData *apd = (p && p->getType() == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPAINTDEVICE, xsink) : 0;
    if (!apd)
    {
       if (!xsink->isException())
@@ -123,7 +123,7 @@ static AbstractQoreNode *QPAINTER_begin(QoreObject *self, QoreQPainter *qp, cons
 static AbstractQoreNode *QPAINTER_boundingRect(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRectF *rectanglef = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectanglef) {
 	  QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
@@ -270,7 +270,7 @@ static AbstractQoreNode *QPAINTER_deviceMatrix(QoreObject *self, QoreQPainter *q
 static AbstractQoreNode *QPAINTER_drawArc(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRectF *rectanglef = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectanglef)
       {
@@ -319,7 +319,7 @@ static AbstractQoreNode *QPAINTER_drawArc(QoreObject *self, QoreQPainter *qp, co
 static AbstractQoreNode *QPAINTER_drawChord(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRectF *rectanglef = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectanglef)
       {
@@ -369,7 +369,7 @@ static AbstractQoreNode *QPAINTER_drawChord(QoreObject *self, QoreQPainter *qp, 
 static AbstractQoreNode *QPAINTER_drawConvexPolygon(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPolygonF *polygonf = (QoreQPolygonF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGONF, xsink);
       if (!polygonf) {
 	 QoreQPolygon *polygon = (QoreQPolygon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGON, xsink);
@@ -388,7 +388,7 @@ static AbstractQoreNode *QPAINTER_drawConvexPolygon(QoreObject *self, QoreQPaint
    }
 
 /*
-   if (!p || p->type != NT_LIST) {
+   if (!p || p->getType() != NT_LIST) {
       xsink->raiseException("QPAINTER-DRAWCONVEXPOLYGON-PARAM-ERROR", "expecting QPolygon, QPolygonF, or list of QPoints or QPointFs as argument to QPainter::drawConvexPolygon()");
       return 0;
    }
@@ -404,7 +404,7 @@ static AbstractQoreNode *QPAINTER_drawConvexPolygon(QoreObject *self, QoreQPaint
 static AbstractQoreNode *QPAINTER_drawEllipse(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRectF *rectanglef = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectanglef)
       {
@@ -441,7 +441,7 @@ static AbstractQoreNode *QPAINTER_drawEllipse(QoreObject *self, QoreQPainter *qp
 static AbstractQoreNode *QPAINTER_drawImage(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
       QoreQRectF *target = (QoreQRectF *)o->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!target) {
@@ -518,7 +518,7 @@ static AbstractQoreNode *QPAINTER_drawImage(QoreObject *self, QoreQPainter *qp, 
 static AbstractQoreNode *QPAINTER_drawLine(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
       QoreQLine *line = (QoreQLine *)o->getReferencedPrivateData(CID_QLINE, xsink);
       if (!line) {
@@ -612,7 +612,7 @@ static AbstractQoreNode *QPAINTER_drawPath(QoreObject *self, QoreQPainter *qp, c
 static AbstractQoreNode *QPAINTER_drawPicture(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
       QoreQPoint *point = (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
@@ -667,7 +667,7 @@ static AbstractQoreNode *QPAINTER_drawPicture(QoreObject *self, QoreQPainter *qp
 static AbstractQoreNode *QPAINTER_drawPie(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
       QoreQRectF *rectanglef = (QoreQRectF *)o->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectanglef)
@@ -717,7 +717,7 @@ static AbstractQoreNode *QPAINTER_drawPie(QoreObject *self, QoreQPainter *qp, co
 static AbstractQoreNode *QPAINTER_drawPoint(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!position) {
          QoreQPointF *position = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
@@ -812,7 +812,7 @@ static AbstractQoreNode *QPAINTER_drawPolyline(QoreObject *self, QoreQPainter *q
 static AbstractQoreNode *QPAINTER_drawRect(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRectF *rectanglef = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectanglef)
       {
@@ -859,7 +859,7 @@ static AbstractQoreNode *QPAINTER_drawRects(QoreObject *self, QoreQPainter *qp, 
 static AbstractQoreNode *QPAINTER_drawRoundRect(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRectF *rf = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rf)
       {
@@ -912,7 +912,7 @@ static AbstractQoreNode *QPAINTER_drawText(QoreObject *self, QoreQPainter *qp, c
 {
    const AbstractQoreNode *p = get_param(params, 0);
    const QoreObject *o;
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       o = reinterpret_cast<const QoreObject *>(p);
       QoreQRectF *rectanglef = (QoreQRectF *)o->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectanglef) {
@@ -1025,7 +1025,7 @@ static AbstractQoreNode *QPAINTER_drawTiledPixmap(QoreObject *self, QoreQPainter
 {
    const AbstractQoreNode *p = get_param(params, 0);
    const QoreObject *o;
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       o = reinterpret_cast<const QoreObject *>(p);
       QoreQRect *rectangle = (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rectangle) {
@@ -1104,7 +1104,7 @@ static AbstractQoreNode *QPAINTER_end(QoreObject *self, QoreQPainter *qp, const 
 static AbstractQoreNode *QPAINTER_eraseRect(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRectF *rectanglef = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectanglef)
       {
@@ -1159,7 +1159,7 @@ static AbstractQoreNode *QPAINTER_fillPath(QoreObject *self, QoreQPainter *qp, c
 static AbstractQoreNode *QPAINTER_fillRect(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRectF *rectanglef = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectanglef)
       {
@@ -1363,7 +1363,7 @@ static AbstractQoreNode *QPAINTER_setBackgroundMode(QoreObject *self, QoreQPaint
 static AbstractQoreNode *QPAINTER_setBrush(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_BRUSHSTYLE) {
+   if (p && p->getType() == NT_BRUSHSTYLE) {
       Qt::BrushStyle style = (reinterpret_cast<const BrushStyleNode *>(p))->getStyle();
       qp->getQPainter()->setBrush(style);
    }
@@ -1381,7 +1381,7 @@ static AbstractQoreNode *QPAINTER_setBrush(QoreObject *self, QoreQPainter *qp, c
 static AbstractQoreNode *QPAINTER_setBrushOrigin(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!position) {
          QoreQPointF *positionf = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
@@ -1428,7 +1428,7 @@ static AbstractQoreNode *QPAINTER_setClipPath(QoreObject *self, QoreQPainter *qp
 static AbstractQoreNode *QPAINTER_setClipRect(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
 
       QoreQRectF *rectanglef = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
       if (!rectanglef) {
@@ -1548,7 +1548,7 @@ static AbstractQoreNode *QPAINTER_setOpacity(QoreObject *self, QoreQPainter *qp,
 static AbstractQoreNode *QPAINTER_setPen(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQColor *color = (QoreQColor *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink);
       if (!color)
       {
@@ -1628,7 +1628,7 @@ static AbstractQoreNode *QPAINTER_setViewTransformEnabled(QoreObject *self, Qore
 static AbstractQoreNode *QPAINTER_setViewport(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rectangle)
       {
@@ -1657,7 +1657,7 @@ static AbstractQoreNode *QPAINTER_setViewport(QoreObject *self, QoreQPainter *qp
 static AbstractQoreNode *QPAINTER_setWindow(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rectangle)
       {
@@ -1772,7 +1772,7 @@ static AbstractQoreNode *QPAINTER_testRenderHint(QoreObject *self, QoreQPainter 
 static AbstractQoreNode *QPAINTER_translate(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!offset) {
          QoreQPointF *offsetf = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);

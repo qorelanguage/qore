@@ -46,7 +46,7 @@ static void QLISTWIDGETITEM_constructor(QoreObject *self, const QoreListNode *pa
       return;
    }
    
-   QoreQIcon *icon = p->type == NT_OBJECT ? (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
+   QoreQIcon *icon = p->getType() == NT_OBJECT ? (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink) : 0;
    if (*xsink)
       return;
 
@@ -75,7 +75,7 @@ static void QLISTWIDGETITEM_constructor(QoreObject *self, const QoreListNode *pa
       }
    }
 
-   QoreQListWidget *parent = p && p->type == NT_OBJECT ? (QoreQListWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGET, xsink) : 0;
+   QoreQListWidget *parent = p && p->getType() == NT_OBJECT ? (QoreQListWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QLISTWIDGET, xsink) : 0;
    if (*xsink)
       return;
 

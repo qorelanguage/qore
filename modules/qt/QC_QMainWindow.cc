@@ -75,13 +75,13 @@ static void QMAINWINDOW_copy(class QoreObject *self, class QoreObject *old, clas
 //static AbstractQoreNode *QMAINWINDOW_addToolBar(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      ??? QToolBar* toolbar = p;
 //      qmw->qobj->addToolBar(toolbar);
 //      return 0;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QMAINWINDOW-ADDTOOLBAR-PARAM-ERROR", "expecting a string as first argument to QMainWindow::addToolBar()");
 //         return 0;
 //      }

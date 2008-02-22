@@ -86,6 +86,11 @@ class BinaryNode : public SimpleQoreNode
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "binary";
+      }
+
       //! returns 0 = equal, 1 = not equal
       DLLEXPORT int compare(const BinaryNode *obj) const;
 

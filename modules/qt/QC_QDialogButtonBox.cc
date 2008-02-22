@@ -42,7 +42,7 @@ static void QDIALOGBUTTONBOX_constructor(QoreObject *self, const QoreListNode *p
       self->setPrivate(CID_QDIALOGBUTTONBOX, new QoreQDialogButtonBox(self));
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
          return;
@@ -60,7 +60,7 @@ static void QDIALOGBUTTONBOX_constructor(QoreObject *self, const QoreListNode *p
    }
    p = get_param(params, 1);
    if (num_params(params) == 2) {
-      if (p && p->type == NT_OBJECT) {
+      if (p && p->getType() == NT_OBJECT) {
 	 QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
 	 if (*xsink)
 	    return;
@@ -99,7 +99,7 @@ static void QDIALOGBUTTONBOX_copy(class QoreObject *self, class QoreObject *old,
 static AbstractQoreNode *QDIALOGBUTTONBOX_addButton(QoreObject *self, QoreQDialogButtonBox *qdbb, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQAbstractButton *button = (QoreQAbstractButton *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink);
       if (!button) {
          if (!xsink->isException())
@@ -113,7 +113,7 @@ static AbstractQoreNode *QDIALOGBUTTONBOX_addButton(QoreObject *self, QoreQDialo
       return 0;
    }
    QPushButton *qt_qobj;
-   if (p && p->type == NT_STRING) {
+   if (p && p->getType() == NT_STRING) {
       QString text;
       if (get_qstring(p, text, xsink))
          return 0;

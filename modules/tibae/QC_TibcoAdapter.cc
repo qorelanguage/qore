@@ -62,7 +62,7 @@ void TIBAE_constructor(class QoreObject *self, const QoreListNode *params, Excep
       const QoreStringNode *str = dynamic_cast<const QoreStringNode *>(p);
       if (str)
 	 service = str->getBuffer();
-      else if (p->type == NT_INT)
+      else if (p->getType() == NT_INT)
       {
 	 tmp.sprintf("%lld", reinterpret_cast<const QoreBigIntNode *>(p)->val);
 	 service = tmp.getBuffer();

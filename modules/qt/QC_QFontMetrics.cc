@@ -86,7 +86,7 @@ static AbstractQoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFo
 //static AbstractQoreNode *QFONTMETRICS_boundingRect(QoreObject *self, QoreQFontMetrics *qfm, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_OBJECT) {
+//   if (p && p->getType() == NT_OBJECT) {
 //      QoreQRect *rect = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
 //      if (!rect) {
 //         if (!xsink->isException())
@@ -97,7 +97,7 @@ static AbstractQoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFo
 //      p = get_param(params, 1);
 //      int flags = p ? p->getAsInt() : 0;
 //      p = get_param(params, 2);
-//      if (!p || p->type != NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QFONTMETRICS-BOUNDINGRECT-PARAM-ERROR", "expecting a string as third argument to QFontMetrics::boundingRect()");
 //         return 0;
 //      }
@@ -111,8 +111,8 @@ static AbstractQoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFo
 //      o_qr->setPrivate(CID_QRECT, q_qr);
 //      return o_qr;
 //   }
-//   if (p && p->type == NT_STRING) {
-//      if (!p || p->type != NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
+//      if (!p || p->getType() != NT_STRING) {
 //         xsink->raiseException("QFONTMETRICS-BOUNDINGRECT-PARAM-ERROR", "expecting a string as first argument to QFontMetrics::boundingRect()");
 //         return 0;
 //      }
@@ -132,7 +132,7 @@ static AbstractQoreNode *QFONTMETRICS_averageCharWidth(QoreObject *self, QoreQFo
 //   p = get_param(params, 4);
 //   int flags = p ? p->getAsInt() : 0;
 //   p = get_param(params, 5);
-//   if (!p || p->type != NT_STRING) {
+//   if (!p || p->getType() != NT_STRING) {
 //      xsink->raiseException("QFONTMETRICS-BOUNDINGRECT-PARAM-ERROR", "expecting a string as sixth argument to QFontMetrics::boundingRect()");
 //      return 0;
 //   }
@@ -276,7 +276,7 @@ static AbstractQoreNode *QFONTMETRICS_rightBearing(QoreObject *self, QoreQFontMe
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   int flags = p ? p->getAsInt() : 0;
 //   p = get_param(params, 1);
-//   if (!p || p->type != NT_STRING) {
+//   if (!p || p->getType() != NT_STRING) {
 //      xsink->raiseException("QFONTMETRICS-SIZE-PARAM-ERROR", "expecting a string as second argument to QFontMetrics::size()");
 //      return 0;
 //   }

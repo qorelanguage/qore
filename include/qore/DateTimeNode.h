@@ -182,6 +182,11 @@ class DateTimeNode : public SimpleQoreNode, public DateTime
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "date";
+      }
+
       //! returns a copy of the DateTimeNode, the caller owns the pointer's reference count
       /**
 	 @return a copy of the DateTimeNode, the caller owns the pointer's reference count
@@ -211,7 +216,7 @@ class DateTimeNode : public SimpleQoreNode, public DateTime
       DLLEXPORT static DateTimeNode *getDateFromISOWeek(int year, int week, int day, class ExceptionSink *xsink);
 };
 
-extern DateTimeNode *ZeroDate;
+DLLEXPORT extern DateTimeNode *ZeroDate;
 
 //! manages calls to AbstractQoreNode::getDateTimeRepresentation() when a simple DateTime value is required
 /** calls to this function include a flag that indicates if the value should be deleted or not afterwards;
@@ -234,7 +239,7 @@ class DateTimeValueHelper {
       {
 	 // optmization without virtual function call for most common case
 	 if (n) {
-	    if (n->type == NT_DATE) {
+	    if (n->getType() == NT_DATE) {
 	       dt = reinterpret_cast<const DateTimeNode *>(n);
 	       del = false;
 	    }
@@ -281,7 +286,7 @@ class DateTimeNodeValueHelper {
 	 }
 
 	 // optmization without virtual function call for most common case
-	 if (n->type == NT_DATE) {
+	 if (n->getType() == NT_DATE) {
 	    dt = const_cast<DateTimeNode *>(reinterpret_cast<const DateTimeNode *>(n));
 	    temp = false;
 	    return;

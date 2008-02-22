@@ -40,7 +40,7 @@ static void QPUSHBUTTON_constructor(QoreObject *self, const QoreListNode *params
       self->setPrivate(CID_QPUSHBUTTON, new QoreQPushButton(self));
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
          QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);

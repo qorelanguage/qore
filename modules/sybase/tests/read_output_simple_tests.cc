@@ -33,11 +33,11 @@ TEST()
     assert(false);
   }
   assert(result);
-  assert(result->type == NT_HASH);
+  assert(result->getType() == NT_HASH);
   assert(result->val.hash->size() == 1); // one column
   AbstractQoreNode* col = result->val.hash->getKeyValue("column1");
   assert(col);
-  assert(col->type == NT_INT);
+  assert(col->getType() == NT_INT);
   int n = (int)col->val.intval; // 22 for Sybase on my machine
   assert(n >= 10 && n <= 60);
   
@@ -75,7 +75,7 @@ TEST()
     assert(false);
   }
   assert(result);
-  assert(result->type == NT_LIST);
+  assert(result->getType() == NT_LIST);
   int n = (int)result->val.list->size(); // 48 for sybase on my machine
   assert(n >= 30 && n <= 100);
 

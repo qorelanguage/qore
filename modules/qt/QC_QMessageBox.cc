@@ -45,7 +45,7 @@ static void QMESSAGEBOX_constructor(QoreObject *self, const QoreListNode *params
       self->setPrivate(CID_QMESSAGEBOX, new QoreQMessageBox(self));
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
          return;
@@ -87,7 +87,7 @@ static void QMESSAGEBOX_copy(class QoreObject *self, class QoreObject *old, clas
 static AbstractQoreNode *QMESSAGEBOX_addButton(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQAbstractButton *button = (QoreQAbstractButton *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink);
       if (!button) {
          if (!xsink->isException())
@@ -102,7 +102,7 @@ static AbstractQoreNode *QMESSAGEBOX_addButton(QoreObject *self, QoreQMessageBox
    }
    QPushButton *qt_qobj;
 
-   if (p && p->type == NT_STRING) {
+   if (p && p->getType() == NT_STRING) {
       QString text;
       if (get_qstring(p, text, xsink))
          return 0;
@@ -274,7 +274,7 @@ static AbstractQoreNode *QMESSAGEBOX_removeButton(QoreObject *self, QoreQMessage
 //static AbstractQoreNode *QMESSAGEBOX_setDefaultButton(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      ??? QPushButton* button = p;
 //      qmb->qobj->setDefaultButton(button);
 //      return 0;
@@ -300,7 +300,7 @@ static AbstractQoreNode *QMESSAGEBOX_setDetailedText(QoreObject *self, QoreQMess
 static AbstractQoreNode *QMESSAGEBOX_setEscapeButton(QoreObject *self, QoreQMessageBox *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQAbstractButton *button = (QoreQAbstractButton *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QABSTRACTBUTTON, xsink);
       if (!button) {
          if (!xsink->isException())

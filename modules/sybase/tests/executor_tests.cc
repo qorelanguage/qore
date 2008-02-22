@@ -30,13 +30,13 @@ TEST()
   }
 
   assert(res);
-  assert(res->type == NT_HASH);
+  assert(res->getType() == NT_HASH);
   QoreHashNode* h = res->val.hash;
   assert(h->size() == 1);
 
   AbstractQoreNode* val = h->getKeyValue("column1");
   assert(val);
-  assert(val->type == NT_INT);
+  assert(val->getType() == NT_INT);
   assert(val->val.intval >= 10 && val->val.intval < 80); // 48 on my machine
   
   if (res) res->deref(&xsink);
@@ -66,8 +66,8 @@ TEST()
   }
 
   assert(res);
-  assert(res->type == NT_LIST);
-printf("##### %s\n", res->type->getAsString(res, 0, 0)->getBuffer());
+  assert(res->getType() == NT_LIST);
+printf("##### %s\n", res->getType()->getAsString(res, 0, 0)->getBuffer());
 
   if (res) res->deref(&xsink);
 }

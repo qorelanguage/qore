@@ -41,7 +41,7 @@ static void QSHORTCUT_constructor(class QoreObject *self, const QoreListNode *pa
    QoreQShortcut *qs;
    const AbstractQoreNode *p = get_param(params, 0);
 
-   QoreAbstractQWidget *parent = (QoreAbstractQWidget *)((p && p->type == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
+   QoreAbstractQWidget *parent = (QoreAbstractQWidget *)((p && p->getType() == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0);
    if (!parent) {
       QKeySequence key;
 

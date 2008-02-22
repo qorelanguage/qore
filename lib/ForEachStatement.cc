@@ -62,7 +62,7 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
       tlist = NULL;
    }
    
-   QoreListNode *l_tlist = tlist && tlist->type == NT_LIST ? reinterpret_cast<QoreListNode *>(tlist) : 0;
+   QoreListNode *l_tlist = tlist && tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(tlist) : 0;
 
    // execute "foreach" body
    if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
@@ -80,7 +80,7 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
 	    // dereference single value (because it won't be assigned
 	    // to the variable and dereferenced later because an 
 	    // exception has been thrown)
-	    if (tlist->type != NT_LIST)
+	    if (tlist->getType() != NT_LIST)
 	       tlist->deref(xsink);
 	    break;
 	 }
@@ -97,7 +97,7 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
 	       // dereference single value (because it won't be assigned
 	       // to the variable and dereferenced later because an 
 	       // exception has been thrown)
-	       if (tlist->type != NT_LIST)
+	       if (tlist->getType() != NT_LIST)
 		  tlist->deref(xsink);
 	       break;
 	    }
@@ -167,7 +167,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    else
       tlist = NULL;
 
-   QoreListNode *l_tlist = tlist && tlist->type == NT_LIST ? reinterpret_cast<QoreListNode *>(tlist) : 0;
+   QoreListNode *l_tlist = tlist && tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(tlist) : 0;
 
    AutoVLock vl;
 
@@ -315,7 +315,7 @@ int ForEachStatement::parseInitImpl(lvh_t oflag, int pflag)
    // save local variables 
    lvars = new LVList(lvids);
 
-   is_ref = (list->type == NT_REFERENCE);
+   is_ref = (list->getType() == NT_REFERENCE);
 
    return 0;
 }

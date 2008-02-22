@@ -88,11 +88,6 @@ int QoreStringNode::getAsIntImpl() const
    return strtoll(getBuffer(), 0, 10);
 }
 
-bool QoreStringNode::needs_eval() const
-{
-   return false;
-}
-
 int64 QoreStringNode::getAsBigIntImpl() const
 {
    return strtoll(getBuffer(), 0, 10);   
@@ -309,5 +304,5 @@ const QoreType *QoreStringNode::getType() const
 
 const char *QoreStringNode::getTypeName() const
 {
-   return "string";
+   return getStaticTypeName();
 }

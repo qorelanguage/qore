@@ -26,12 +26,20 @@
 
 #include <qore/AbstractQoreNode.h>
 
+//! this class implements Qore's 64-bit integer data type, reference-counted, dynamically-allocated only
 class QoreBoolNode : public SimpleQoreNode
 {
    private:
+      //! returns the value as a boolean
       DLLLOCAL virtual bool getAsBoolImpl() const;
+
+      //! returns the value as an integer
       DLLLOCAL virtual int getAsIntImpl() const;
+
+      //! returns the value as a 64-bit integer
       DLLLOCAL virtual int64 getAsBigIntImpl() const;
+
+      //! returns the value as a float
       DLLLOCAL virtual double getAsFloatImpl() const;
 
    protected:
@@ -75,6 +83,12 @@ class QoreBoolNode : public SimpleQoreNode
       DLLEXPORT virtual const QoreType *getType() const;
       // returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "bool";
+      }
+
 };
 
 #endif

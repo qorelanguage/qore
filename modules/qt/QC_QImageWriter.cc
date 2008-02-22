@@ -42,7 +42,7 @@ static void QIMAGEWRITER_constructor(QoreObject *self, const QoreListNode *param
       self->setPrivate(CID_QIMAGEWRITER, new QoreQImageWriter());
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreAbstractQIODevice *device = (QoreAbstractQIODevice *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QIODEVICE, xsink);
       if (!device) {
          if (!xsink->isException())

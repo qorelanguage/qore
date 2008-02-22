@@ -22,8 +22,16 @@
 
 #include <qore/Qore.h>
 
-QoreNullNode::QoreNullNode() : SimpleQoreNode(NT_NULL)
+#ifdef DEBUG
+static bool null_flag = 0;
+#endif
+
+QoreNullNode::QoreNullNode() : UniqueQoreNode(NT_NULL)
 {
+#ifdef DEBUG
+   assert(!null_flag);
+   null_flag = true;
+#endif
 }
 
 QoreNullNode::~QoreNullNode()
@@ -75,5 +83,5 @@ const QoreType *QoreNullNode::getType() const
 // returns the type name as a c string
 const char *QoreNullNode::getTypeName() const
 {
-   return "NULL";
+   return getStaticTypeName();
 }

@@ -391,7 +391,7 @@ static AbstractQoreNode *f_QApplication_palette(const QoreListNode *params, Exce
       o_qp->setPrivate(CID_QPALETTE, q_qp);
       return o_qp;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (!widget) {
          if (!xsink->isException())
@@ -620,7 +620,7 @@ static AbstractQoreNode *f_QApplication_setStartDragTime(const QoreListNode *par
 static AbstractQoreNode *f_QApplication_setStyle(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
       QoreAbstractQStyle *style = (QoreAbstractQStyle *)o->getReferencedPrivateData(CID_QSTYLE, xsink);
       if (!style) {
@@ -705,7 +705,7 @@ static AbstractQoreNode *f_QApplication_syncX(const QoreListNode *params, Except
 static AbstractQoreNode *f_QApplication_topLevelAt(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())
@@ -758,7 +758,7 @@ static AbstractQoreNode *f_QApplication_wheelScrollLines(const QoreListNode *par
 static AbstractQoreNode *f_QApplication_widgetAt(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          if (!xsink->isException())

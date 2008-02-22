@@ -380,7 +380,7 @@ static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, class AutoVL
    if (!(*val))
       l = new QoreListNode();
    else {
-      if ((*val)->type != NT_LIST) {
+      if ((*val)->getType() != NT_LIST) {
 	 (*val)->deref(xsink);
 	 l = new QoreListNode();
       }
@@ -415,7 +415,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, class Auto
 
    //printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->getTypeName() : "(null)");
 
-   QoreHashNode *h = (*val && (*val)->type == NT_HASH) ? reinterpret_cast<QoreHashNode *>(*val) : 0;
+   QoreHashNode *h = (*val && (*val)->getType() == NT_HASH) ? reinterpret_cast<QoreHashNode *>(*val) : 0;
    QoreObject *o = 0;
 
    // if the variable's value is not already a hash or an object, then make it a hash
@@ -429,7 +429,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, class Auto
       }
    }
    else {
-      o = (*val && (*val)->type == NT_OBJECT) ? reinterpret_cast<QoreObject *>(*val) : 0;
+      o = (*val && (*val)->getType() == NT_OBJECT) ? reinterpret_cast<QoreObject *>(*val) : 0;
       if (!o) {
 	 if (*val)
 	    (*val)->deref(xsink);
@@ -462,7 +462,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, class Auto
 // this function will change the lvalue to the right type if needed (used for assignments)
 AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, ExceptionSink *xsink)
 {
-   const QoreType *ntype = n->type;
+   const QoreType *ntype = n->getType();
    //printd(5, "get_var_value_ptr(%08p) %s\n", n, n->getTypeName());
    if (ntype == NT_VARREF)
    {
@@ -491,7 +491,7 @@ AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, 
 QoreStringNode **get_string_var_value_ptr(AbstractQoreNode *n, class AutoVLock *vlp, ExceptionSink *xsink)
 {
    AbstractQoreNode **v = get_var_value_ptr(n, vlp, xsink);
-   if (!v || !(*v) || (*v)->type != NT_STRING)
+   if (!v || !(*v) || (*v)->getType() != NT_STRING)
       return 0;
 
    return reinterpret_cast<QoreStringNode **>(v);
@@ -503,10 +503,10 @@ QoreStringNode **get_string_var_value_ptr(AbstractQoreNode *n, class AutoVLock *
 AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, class AutoVLock *vl, ExceptionSink *xsink)
 {
    printd(5, "getNoEvalVarValue(%08p) %s\n", n, n->getTypeName());
-   if (n->type == NT_VARREF)
+   if (n->getType() == NT_VARREF)
       return reinterpret_cast<VarRefNode *>(n)->getValue(vl, xsink);
 
-   if (n->type == NT_SELF_VARREF)
+   if (n->getType() == NT_SELF_VARREF)
       return getStackObject()->getMemberValueNoMethod(reinterpret_cast<SelfVarrefNode *>(n)->str, vl, xsink);
 
    // it's a variable reference tree
@@ -518,7 +518,7 @@ AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, class AutoVLock *vl, Ex
    // if it's a list reference
    if (tree->op == OP_LIST_REF)
    {
-      if (val->type != NT_LIST)
+      if (val->getType() != NT_LIST)
 	 return 0;
       // if it's not a list then return NULL
       QoreListNode *l = reinterpret_cast<QoreListNode *>(val);
@@ -534,10 +534,10 @@ AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, class AutoVLock *vl, Ex
       
    // it's an object reference
    // if not an object or a hash, return NULL
-   QoreHashNode *h = val->type == NT_HASH ? reinterpret_cast<QoreHashNode *>(val) : 0;
+   QoreHashNode *h = val->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(val) : 0;
    QoreObject *o;
    if (!h)
-      o = val->type == NT_OBJECT ? reinterpret_cast<QoreObject *>(val) : 0;
+      o = val->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(val) : 0;
    else
       o = 0;
    if (!o && !h)
@@ -556,7 +556,7 @@ AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, class AutoVLock *vl, Ex
 AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink, class AutoVLock *vl, AbstractQoreNode **pt)
 {
    printd(5, "getExistingVarValue(%08p) %s\n", n, n->getTypeName());
-   const QoreType *ntype = n->type;
+   const QoreType *ntype = n->getType();
    if (ntype == NT_VARREF)
       return reinterpret_cast<const VarRefNode *>(n)->getValue(vl, xsink);
 
@@ -575,7 +575,7 @@ AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *
       if (tree->op == OP_LIST_REF)
       {
 	 // if it's not a list then return NULL
-	 if (val->type != NT_LIST)
+	 if (val->getType() != NT_LIST)
 	    return 0;
 
 	 // otherwise return value
@@ -585,10 +585,10 @@ AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *
       // if it's an object reference
       if (tree->op == OP_OBJECT_REF)
       {
-	 QoreHashNode *h = val->type == NT_HASH ? reinterpret_cast<QoreHashNode *>(val) : 0;
+	 QoreHashNode *h = val->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(val) : 0;
 	 QoreObject *o;
 	 if (!h)
-	    o = val->type == NT_OBJECT ? reinterpret_cast<QoreObject *>(val) : 0;
+	    o = val->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(val) : 0;
 	 else
 	    o = 0;
 
@@ -631,7 +631,7 @@ AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *
 static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, ExceptionSink *xsink, class AutoVLock *vl, AbstractQoreNode **pt)
 {
    printd(5, "getUniqueExistingVarValuePtr(%08p) %s\n", n, n->getTypeName());
-   const QoreType *ntype = n->type;
+   const QoreType *ntype = n->getType();
    if (ntype == NT_VARREF)
       return reinterpret_cast<VarRefNode *>(n)->getValuePtr(vl, xsink);
 
@@ -648,16 +648,16 @@ static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, Exce
 
       // if it's a list reference
       if (tree->op == OP_LIST_REF) {
-	 if ((*val)->type != NT_LIST)  // if it's not a list then return NULL
+	 if ((*val)->getType() != NT_LIST)  // if it's not a list then return NULL
 	    return 0;
          // otherwise return value
 	 return reinterpret_cast<QoreListNode *>(*val)->getExistingEntryPtr(tree->right->integerEval(xsink));
       }
 
-      QoreHashNode *h = (*val)->type == NT_HASH ? reinterpret_cast<QoreHashNode *>(*val) : 0;
+      QoreHashNode *h = (*val)->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(*val) : 0;
       QoreObject *o;
       if (!h)
-	 o = (*val)->type == NT_OBJECT ? reinterpret_cast<QoreObject *>(*val) : 0;
+	 o = (*val)->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*val) : 0;
       else
 	 o = 0;
       
@@ -697,7 +697,7 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
    AutoVLock vl;
    AbstractQoreNode **val;
    
-   const QoreType *lvtype = lvalue->type;
+   const QoreType *lvtype = lvalue->getType();
 
    // if the node is a variable reference, then find value
    // ptr, dereference it, and return
@@ -707,7 +707,7 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
       if (val && *val)
       {
 	 printd(5, "delete_var_node() setting ptr %08p (val=%08p) to NULL\n", val, (*val));
-	 if ((*val)->type == NT_OBJECT) {
+	 if ((*val)->getType() == NT_OBJECT) {
 	    QoreObject *o = reinterpret_cast<QoreObject *>(*val);
 	    if (o->isSystemObject())
 	       xsink->raiseException("SYSTEM-OBJECT-ERROR", "you cannot delete a system constant object");
@@ -751,7 +751,7 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
    if (tree->op == OP_LIST_REF)
    {
       // if it's not a list then return
-      if ((*val)->type != NT_LIST)
+      if ((*val)->getType() != NT_LIST)
 	 return;
 
       QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
@@ -766,10 +766,10 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
       return;
    }
 
-   QoreHashNode *h = (*val)->type == NT_HASH ? reinterpret_cast<QoreHashNode *>(*val) : 0;
+   QoreHashNode *h = (*val)->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(*val) : 0;
    QoreObject *o;
    if (!h)
-      o = (*val)->type == NT_OBJECT ? reinterpret_cast<QoreObject *>(*val) : 0;
+      o = (*val)->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*val) : 0;
    else
       o = 0;
 

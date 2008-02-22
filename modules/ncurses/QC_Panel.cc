@@ -386,7 +386,7 @@ AbstractQoreNode *PC_mvvline(class QoreObject *self, class Panel *p, const QoreL
 AbstractQoreNode *PC_addch(class QoreObject *self, class Panel *p, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   if (!is_nothing(p0) && (p0->type != NT_STRING || (reinterpret_cast<const QoreStringNode *>(p0))->strlen()))
+   if (!is_nothing(p0) && (p0->getType() != NT_STRING || (reinterpret_cast<const QoreStringNode *>(p0))->strlen()))
       return new QoreBigIntNode(p->qaddch(getChar(p0)));
    return 0;
 }
@@ -396,7 +396,7 @@ AbstractQoreNode *PC_mvaddch(class QoreObject *self, class Panel *p, const QoreL
    const AbstractQoreNode *p0 = get_param(params, 0);
    const AbstractQoreNode *p1 = get_param(params, 1);
    const AbstractQoreNode *p2 = get_param(params, 2);
-   if (!is_nothing(p2) && (p2->type != NT_STRING || (reinterpret_cast<const QoreStringNode *>(p2))->strlen()))
+   if (!is_nothing(p2) && (p2->getType() != NT_STRING || (reinterpret_cast<const QoreStringNode *>(p2))->strlen()))
       return new QoreBigIntNode(p->qmvaddch(p0 ? p0->getAsInt() : 0,
 					    p1 ? p1->getAsInt() : 0,
 					    getChar(p2)));

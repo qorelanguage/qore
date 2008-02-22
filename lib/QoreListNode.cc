@@ -67,7 +67,7 @@ class StackList : public QoreListNode
       }
       DLLEXPORT ~StackList()
       {
-	 deref_intern(xsink);
+	 derefImpl(xsink);
       }
       DLLEXPORT class AbstractQoreNode *getAndClear(int i);
 };
@@ -160,7 +160,7 @@ DLLLOCAL virtual int compare(const AbstractQoreNode *val) const
 
 bool QoreListNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
-   const QoreListNode *l = v && v->type == NT_LIST ? reinterpret_cast<const QoreListNode *>(v) : 0;
+   const QoreListNode *l = v && v->getType() == NT_LIST ? reinterpret_cast<const QoreListNode *>(v) : 0;
    if (!l)
       return false;
 
@@ -174,7 +174,7 @@ bool QoreListNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink
 
 bool QoreListNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
-   const QoreListNode *l = v && v->type == NT_LIST ? reinterpret_cast<const QoreListNode *>(v) : 0;
+   const QoreListNode *l = v && v->getType() == NT_LIST ? reinterpret_cast<const QoreListNode *>(v) : 0;
    if (!l)
       return false;
 
@@ -195,7 +195,7 @@ const QoreType *QoreListNode::getType() const
 // returns the type name as a c string
 const char *QoreListNode::getTypeName() const
 {
-   return "list";
+   return getStaticTypeName();
 }
 
 // eval(): return value requires a deref(xsink) if needs_deref is true
@@ -204,16 +204,6 @@ const char *QoreListNode::getTypeName() const
 AbstractQoreNode *QoreListNode::eval(bool &needs_deref, ExceptionSink *xsink) const
 {
    return evalList(needs_deref, xsink);
-}
-
-// deletes the object when the reference count = 0
-void QoreListNode::deref(ExceptionSink *xsink)
-{
-   //printd(5, "QoreListNode::deref() this=%08p %d -> %d\n", this, reference_count(), reference_count() - 1);
-   if (ROdereference()) {
-      deref_intern(xsink);
-      delete this;
-   }
 }
 
 bool QoreListNode::is_value() const
@@ -307,7 +297,7 @@ int QoreListNode::delete_entry(int ind, ExceptionSink *xsink)
       return -1;
 
    AbstractQoreNode *e = priv->entry[ind];
-   if (e && e->type == NT_OBJECT)
+   if (e && e->getType() == NT_OBJECT)
       reinterpret_cast<QoreObject *>(e)->doDelete(xsink);
 
    if (e)
@@ -330,7 +320,7 @@ void QoreListNode::pop_entry(int ind, ExceptionSink *xsink)
       return;
 
    AbstractQoreNode *e = priv->entry[ind];
-   if (e && e->type == NT_OBJECT)
+   if (e && e->getType() == NT_OBJECT)
       reinterpret_cast<QoreObject *>(e)->doDelete(xsink);
 
    if (e)
@@ -454,7 +444,7 @@ void QoreListNode::splice(int offset, int len, const AbstractQoreNode *l, Except
 
 static int compareListEntries(AbstractQoreNode *l, AbstractQoreNode *r)
 {
-   //printd(5, "compareListEntries(%08p, %08p) (%s %s)\n", l, r, l->type == NT_STRING ? l->val.String->getBuffer() : "?", r->type == NT_STRING ? r->val.String->getBuffer() : "?");
+   //printd(5, "compareListEntries(%08p, %08p) (%s %s)\n", l, r, l->getType() == NT_STRING ? l->val.String->getBuffer() : "?", r->getType() == NT_STRING ? r->val.String->getBuffer() : "?");
 
    // sort non-existant values last
    if (is_nothing(l))
@@ -685,7 +675,7 @@ QoreListNode *QoreListNode::sortStable(const ResolvedFunctionReferenceNode *fr, 
 }
 
 // does a deep dereference
-void QoreListNode::deref_intern(ExceptionSink *xsink)
+bool QoreListNode::derefImpl(ExceptionSink *xsink)
 {
    for (int i = 0; i < priv->length; i++)
       if (priv->entry[i])
@@ -693,6 +683,7 @@ void QoreListNode::deref_intern(ExceptionSink *xsink)
 #ifdef DEBUG
    priv->length = 0;
 #endif
+   return true;
 }
 
 void QoreListNode::resize(int num)
@@ -776,7 +767,7 @@ void QoreListNode::splice_intern(int offset, int len, const AbstractQoreNode *l,
    int n;
    if (!l)
       n = 1;
-   else if (l->type == NT_LIST)
+   else if (l->getType() == NT_LIST)
       n = (reinterpret_cast<const QoreListNode *>(l))->size();
    else
       n = 1;
@@ -800,7 +791,7 @@ void QoreListNode::splice_intern(int offset, int len, const AbstractQoreNode *l,
    }
 
    // add in new entries
-   if (!l || l->type != NT_LIST) {
+   if (!l || l->getType() != NT_LIST) {
       priv->entry[offset] = l ? l->refSelf() : 0;
       return;
    }
@@ -946,7 +937,7 @@ int QoreListNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
       }
       
       AbstractQoreNode *n = priv->entry[i];
-      if (!n) n = Nothing;
+      if (!n) n = &Nothing;
       if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
 	 return -1;
       

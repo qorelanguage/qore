@@ -33,7 +33,7 @@ static void QLCDNUMBER_constructor(class QoreObject *self, const QoreListNode *p
 {
    QoreQLCDNumber *qlcdn;
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type != NT_OBJECT)
+   if (p && p->getType() != NT_OBJECT)
    {
       int num_digits = p->getAsInt();
       QoreObject *o = test_object_param(params, 1);
@@ -108,7 +108,7 @@ static class AbstractQoreNode *QLCDNUMBER_checkOverflow(class QoreObject *self, 
 {
    const AbstractQoreNode *p = get_param(params, 0);
    bool rc;
-   if (p && p->type == NT_FLOAT)
+   if (p && p->getType() == NT_FLOAT)
       rc = qlcdn->qobj->checkOverflow(reinterpret_cast<const QoreFloatNode *>(p)->f);
    else
       rc = qlcdn->qobj->checkOverflow(p ? p->getAsInt() : 0);

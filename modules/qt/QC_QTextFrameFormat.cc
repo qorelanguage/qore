@@ -164,7 +164,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setBottomMargin(QoreObject *self, Qore
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setHeight(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQTextLength *height = (QoreQTextLength *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTLENGTH, xsink);
       if (!height) {
          if (!xsink->isException())
@@ -248,7 +248,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_setTopMargin(QoreObject *self, QoreQTe
 static AbstractQoreNode *QTEXTFRAMEFORMAT_setWidth(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQTextLength *width = (QoreQTextLength *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QTEXTLENGTH, xsink);
       if (!width) {
          if (!xsink->isException())

@@ -54,17 +54,16 @@ DLLEXPORT class QoreType *NT_NOTHING, *NT_INT, *NT_FLOAT, *NT_STRING, *NT_DATE,
    *NT_OBJMETHREF, *NT_FUNCREF, *NT_FUNCREFCALL;
 
 // default value nodes for builtin types
-QoreNothingNode *Nothing;
-QoreNullNode *Null;
+QoreNothingNode Nothing;
+QoreNullNode Null;
 QoreBoolNode *True, *False;
 QoreListNode *emptyList;
 QoreHashNode *emptyHash;
 QoreStringNode *NullString;
 DateTimeNode *ZeroDate;
 
-QoreType::QoreType(const char *p_name)
+QoreType::QoreType()
 {
-   name                   = p_name;
    id = QoreTypeManager::lastid++;
 }
 
@@ -81,50 +80,45 @@ int QoreType::getID() const
    return id; 
 }
 
-const char *QoreType::getName() const
-{
-   return name;
-}
-
 QoreTypeManager::QoreTypeManager()
 {
    tracein("QoreTypeManager::QoreTypeManager()");
    
    // register system data types
    // first, value types for operator matrix optimization
-   add(NT_NOTHING = new QoreType("nothing"));
-   add(NT_INT = new QoreType("integer"));
-   add(NT_FLOAT = new QoreType("float"));
-   add(NT_STRING = new QoreType("string"));
-   add(NT_DATE = new QoreType("date"));
-   add(NT_BOOLEAN = new QoreType("boolean"));
-   add(NT_NULL = new QoreType("NULL"));
-   add(NT_BINARY = new QoreType("binary"));
-   add(NT_LIST = new QoreType("list"));
-   add(NT_HASH = new QoreType("hash"));
-   add(NT_OBJECT = new QoreType("object"));
+   add(NT_NOTHING = new QoreType);
+   add(NT_INT = new QoreType);
+   add(NT_FLOAT = new QoreType);
+   add(NT_STRING = new QoreType);
+   add(NT_DATE = new QoreType);
+   add(NT_BOOLEAN = new QoreType);
+   add(NT_NULL = new QoreType);
+   add(NT_BINARY = new QoreType);
+   add(NT_LIST = new QoreType);
+   add(NT_HASH = new QoreType);
+   add(NT_OBJECT = new QoreType);
 
    // now parse types
-   add(NT_BACKQUOTE = new QoreType("backquote"));
-   add(NT_CONTEXTREF = new QoreType("context reference"));
-   add(NT_COMPLEXCONTEXTREF = new QoreType("complex context reference"));
-   add(NT_VARREF = new QoreType("variable reference"));
-   add(NT_TREE = new QoreType("expression tree"));
-   add(NT_FIND = new QoreType("find"));
-   add(NT_FUNCTION_CALL = new QoreType("function call"));
-   add(NT_SELF_VARREF = new QoreType("in-object variable reference"));
-   add(NT_SCOPE_REF = new QoreType("scoped object call"));
-   add(NT_CONSTANT = new QoreType("constant reference"));
-   add(NT_BAREWORD = new QoreType("bareword"));
-   add(NT_REFERENCE = new QoreType("reference to lvalue"));
-   add(NT_CONTEXT_ROW = new QoreType("get context row"));
-   add(NT_REGEX_SUBST = new QoreType("regular expression substitution"));
-   add(NT_REGEX_TRANS = new QoreType("transliteration"));
-   add(NT_REGEX = new QoreType("regular expression"));
-   add(NT_CLASSREF = new QoreType("class reference"));
-   add(NT_OBJMETHREF = new QoreType("object method reference"));
-   add(NT_FUNCREF = new QoreType("call reference"));
-   add(NT_FUNCREFCALL = new QoreType("call reference call"));
+   add(NT_BACKQUOTE = new QoreType);
+   add(NT_CONTEXTREF = new QoreType);
+   add(NT_COMPLEXCONTEXTREF = new QoreType);
+   add(NT_VARREF = new QoreType);
+   add(NT_TREE = new QoreType);
+   add(NT_FIND = new QoreType);
+   add(NT_FUNCTION_CALL = new QoreType);
+   add(NT_SELF_VARREF = new QoreType);
+   add(NT_SCOPE_REF = new QoreType);
+   add(NT_CONSTANT = new QoreType);
+   add(NT_BAREWORD = new QoreType);
+   add(NT_REFERENCE = new QoreType);
+   add(NT_CONTEXT_ROW = new QoreType);
+   add(NT_REGEX_SUBST = new QoreType);
+   add(NT_REGEX_TRANS = new QoreType);
+   add(NT_REGEX = new QoreType);
+   add(NT_CLASSREF = new QoreType);
+   add(NT_OBJMETHREF = new QoreType);
+   add(NT_FUNCREF = new QoreType);
+   add(NT_FUNCREFCALL = new QoreType);
 
    // from now on, assign IDs in the user space 
    lastid = QTM_USER_START;
@@ -138,8 +132,6 @@ void QoreTypeManager::init()
    // initialize global default values
    False         = new QoreBoolNode(false);
    True          = new QoreBoolNode(true);
-   Nothing       = new QoreNothingNode();
-   Null          = new QoreNullNode();
    NullString    = new QoreStringNode("");
    ZeroDate      = new DateTimeNode((int64)0);
    
@@ -152,12 +144,10 @@ void QoreTypeManager::del()
    // dereference global default values
    True->deref();
    False->deref();
-   Nothing->deref();
-   Null->deref();
    NullString->deref();
    ZeroDate->deref();
-   emptyList->deref(NULL);
-   emptyHash->deref(NULL);
+   emptyList->deref(0);
+   emptyHash->deref(0);
 }
 
 QoreTypeManager::~QoreTypeManager()
@@ -196,7 +186,7 @@ bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, Exception
          return 1;
    if (is_nothing(r))
       return 1;
-   if (l->type != r->type)
+   if (l->getType() != r->getType())
       return 1;
 
    // logical equals always returns an integer result

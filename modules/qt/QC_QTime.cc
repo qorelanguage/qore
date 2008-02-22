@@ -35,7 +35,7 @@ static void QTIME_constructor(class QoreObject *self, const QoreListNode *params
    const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qdt = new QoreQTime();
-   else if (p->type == NT_DATE) {
+   else if (p->getType() == NT_DATE) {
       const DateTimeNode *dt = reinterpret_cast<const DateTimeNode *>(p);
       qdt = new QoreQTime(dt->getHour(), dt->getMinute(), dt->getSecond(), dt->getMillisecond());
    }

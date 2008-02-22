@@ -108,7 +108,7 @@ static AbstractQoreNode *QPIXMAP_cacheKey(QoreObject *self, QoreAbstractQPixmap 
 static AbstractQoreNode *QPIXMAP_QT_copy(QoreObject *self, QoreAbstractQPixmap *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rectangle) {
          if (!xsink->isException())
@@ -198,7 +198,7 @@ static AbstractQoreNode *QPIXMAP_detach(QoreObject *self, QoreAbstractQPixmap *q
 static AbstractQoreNode *QPIXMAP_fill(QoreObject *self, QoreAbstractQPixmap *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQColor *fillColor = (QoreQColor *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink);
       if (fillColor) {
 	 ReferenceHolder<QoreQColor> fillColorHolder(fillColor, xsink);
@@ -216,7 +216,7 @@ static AbstractQoreNode *QPIXMAP_fill(QoreObject *self, QoreAbstractQPixmap *qp,
       ReferenceHolder<QoreAbstractQWidget> widgetHolder(widget, xsink);
 
       p = get_param(params, 1);
-      if (p && p->type == NT_OBJECT) {
+      if (p && p->getType() == NT_OBJECT) {
 
 	 QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
 	 if (!offset) {
@@ -301,7 +301,7 @@ static AbstractQoreNode *QPIXMAP_load(QoreObject *self, QoreAbstractQPixmap *qp,
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? uchar* data = p;
 //   p = get_param(params, 1);
-//   if (p && p->type == NT_STRING) {
+//   if (p && p->getType() == NT_STRING) {
 //      const char *format = p ? p->getBuffer() : 0;
 //   p = get_param(params, 2);
 //   const char *format = p ? p->getBuffer() : 0;
@@ -360,7 +360,7 @@ static AbstractQoreNode *QPIXMAP_scaled(QoreObject *self, QoreAbstractQPixmap *q
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QoreQSize *size = 0;
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       size = (QoreQSize *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
       if (!size) {
          if (!xsink->isException())
@@ -419,7 +419,7 @@ static AbstractQoreNode *QPIXMAP_scaledToWidth(QoreObject *self, QoreAbstractQPi
 static AbstractQoreNode *QPIXMAP_setAlphaChannel(QoreObject *self, QoreAbstractQPixmap *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   AbstractPrivateData *apd_alphaChannel = (p && p->type == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+   AbstractPrivateData *apd_alphaChannel = (p && p->getType() == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!apd_alphaChannel) {
       if (!xsink->isException())
          xsink->raiseException("QPIXMAP-SETALPHACHANNEL-PARAM-ERROR", "expecting a QPixmap object as first argument to QPixmap::setAlphaChannel()");

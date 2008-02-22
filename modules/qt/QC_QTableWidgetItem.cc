@@ -42,7 +42,7 @@ static void QTABLEWIDGETITEM_constructor(QoreObject *self, const QoreListNode *p
 {
    const AbstractQoreNode *p = get_param(params, 0);
    //printd(0, "QTableWidgetItem() self=%08p, p=%s\n", self, p ? p->getTypeName() : "(null)");
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
          if (!xsink->isException())
@@ -59,7 +59,7 @@ static void QTABLEWIDGETITEM_constructor(QoreObject *self, const QoreListNode *p
       self->setPrivate(CID_QTABLEWIDGETITEM, new QoreQTableWidgetItem(*(static_cast<QIcon *>(icon)), text, type));
       return;
    }
-   if (p && p->type == NT_STRING) {
+   if (p && p->getType() == NT_STRING) {
       QString text;
       if (get_qstring(p, text, xsink))
          return;

@@ -61,8 +61,14 @@ class QoreHashNode : public AbstractQoreNode
       hm_hm_t hm;
       bool needs_eval_flag;
 
-      //! dereferences each element in the hash, does not reset member pointers
-      DLLEXPORT void deref_intern(class ExceptionSink *xsink);
+      //! dereferences all elements of the hash
+      /** The ExceptionSink argument is needed for those types that could throw
+	  an exception when they are deleted (ex: QoreObject) - which could be 
+	  contained in the hash
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return true if the object can be deleted, false if not (externally-managed)
+       */
+      DLLEXPORT virtual bool derefImpl(class ExceptionSink *xsink);
  
       //! deletes the object, cannot be called directly (use deref(ExceptionSink *) instead)
       DLLEXPORT virtual ~QoreHashNode();
@@ -130,15 +136,13 @@ class QoreHashNode : public AbstractQoreNode
       */
       DLLEXPORT virtual class AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
 
-      //! decrements the reference count
-      /** deletes the object when the reference count = 0.  The ExceptionSink 
-	  argumentis needed for those types that could throw an exception when 
-	  they are deleted (ex: QoreObject) - which could be contained in the list
-       */
-      DLLEXPORT virtual void deref(class ExceptionSink *xsink);
-
       //! returns true if the hash does not contain any parse expressions, otherwise returns false
       DLLEXPORT virtual bool is_value() const;
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "hash";
+      }
 
       //! returns "this" with an incremented reference count
       DLLEXPORT QoreHashNode *hashRefSelf() const;
@@ -217,7 +221,6 @@ class QoreHashNode : public AbstractQoreNode
       DLLEXPORT class QoreListNode *getKeys() const;
       DLLEXPORT bool compareSoft(const QoreHashNode *h, class ExceptionSink *xsink) const;
       DLLEXPORT bool compareHard(const QoreHashNode *h, class ExceptionSink *xsink) const;
-
 
       DLLEXPORT int size() const;
 

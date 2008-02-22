@@ -46,11 +46,11 @@ AbstractQoreNode *f_thread_list(const QoreListNode *params, ExceptionSink *xsink
 AbstractQoreNode *f_save_thread_data(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_HASH && p0->type != NT_STRING))
+   if (!p0 || (p0->getType() != NT_HASH && p0->getType() != NT_STRING))
       return NULL;
 
    QoreHashNode *data = getProgram()->getThreadData();
-   if (p0->type == NT_HASH)
+   if (p0->getType() == NT_HASH)
       data->merge(reinterpret_cast<const QoreHashNode *>(p0), xsink);
    else
    {

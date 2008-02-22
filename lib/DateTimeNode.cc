@@ -181,7 +181,7 @@ const QoreType *DateTimeNode::getType() const
 
 const char *DateTimeNode::getTypeName() const
 {
-   return "date";
+   return getStaticTypeName();
 }
 
 class DateTimeNode *DateTimeNode::copy() const

@@ -80,7 +80,7 @@ TEST()
     assert(false);
   }
   assert(result);
-  assert(result->type == NT_HASH);
+  assert(result->getType() == NT_HASH);
   assert(result->val.hash->size() == 1);
   
   result->deref(&xsink);

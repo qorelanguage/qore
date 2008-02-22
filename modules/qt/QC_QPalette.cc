@@ -38,14 +38,14 @@ static void QPALETTE_constructor(class QoreObject *self, const QoreListNode *par
    const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qp = new QoreQPalette();
-   else if (p->type == NT_OBJECT)
+   else if (p->getType() == NT_OBJECT)
    {
       QoreQColor *button = (QoreQColor *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink);
       if (button) {
 	 ReferenceHolder<QoreQColor> holder(button, xsink);
 	 
 	 p = get_param(params, 1);
-	 QoreQColor *window = p && p->type == NT_OBJECT ? (QoreQColor *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
+	 QoreQColor *window = p && p->getType() == NT_OBJECT ? (QoreQColor *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QCOLOR, xsink) : 0;
 	 if (!window)
 	    qp = new QoreQPalette(*button);
 	 else
@@ -411,7 +411,7 @@ static AbstractQoreNode *QPALETTE_setColor(QoreObject *self, QoreQPalette *qp, c
    p = get_param(params, 1);
    int a2 = 0;
    bool got_a2 = false;
-   if (!p || p->type != NT_OBJECT) {
+   if (!p || p->getType() != NT_OBJECT) {
       a2 = p ? p->getAsInt() : 0;
       got_a2 = true;
       p = get_param(params, 2);

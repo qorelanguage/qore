@@ -155,14 +155,14 @@ Paramlist::Paramlist(AbstractQoreNode *params)
       return;
    }
 
-   if (params->type == NT_VARREF) {
+   if (params->getType() == NT_VARREF) {
       num_params = 1;
       names = new char *[1];
       names[0] = strdup(reinterpret_cast<const VarRefNode *>(params)->name);
       return;
    }
 
-   if (params->type != NT_LIST) {
+   if (params->getType() != NT_LIST) {
       param_error();
       num_params = 0;
       names = NULL;
@@ -175,7 +175,7 @@ Paramlist::Paramlist(AbstractQoreNode *params)
    names = new char *[num_params];
    for (int i = 0; i < num_params; i++)
    {
-      if (l->retrieve_entry(i)->type != NT_VARREF)
+      if (l->retrieve_entry(i)->getType() != NT_VARREF)
       {
 	 param_error();
 	 num_params = 0;
@@ -468,7 +468,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
       printd(4, "UserFunction::eval() eval %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->ids[i], params->ids[i], n, n ? n->getTypeName() : "(null)");
       if (n)
       {
-	 if (n->type == NT_REFERENCE) {
+	 if (n->getType() == NT_REFERENCE) {
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->lvexp, &is_self_ref, xsink);
@@ -665,7 +665,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
       printd(4, "UserFunction::evalConstructor() eval %d: instantiating param lvar %d (%08p)\n", i, params->ids[i], n);
       if (n)
       {
-	 if (n->type == NT_REFERENCE) {
+	 if (n->getType() == NT_REFERENCE) {
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->lvexp, &is_self_ref, xsink);
@@ -781,7 +781,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv = NULL;
-   const QoreType *ntype = n->type;
+   const QoreType *ntype = n->getType();
    if (ntype == NT_TREE)
    {
       QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);

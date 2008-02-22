@@ -143,7 +143,7 @@ static AbstractQoreNode *QHEADERVIEW_logicalIndex(QoreObject *self, QoreAbstract
 static AbstractQoreNode *QHEADERVIEW_logicalIndexAt(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *pos = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!pos) {
          if (!xsink->isException())

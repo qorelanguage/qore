@@ -127,5 +127,5 @@ const QoreType *QoreBoolNode::getType() const
 // returns the type name as a c string
 const char *QoreBoolNode::getTypeName() const
 {
-   return "boolean";
+   return getStaticTypeName();
 }

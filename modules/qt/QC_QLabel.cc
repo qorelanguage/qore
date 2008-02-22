@@ -46,7 +46,7 @@ static void QLABEL_constructor(class QoreObject *self, const QoreListNode *param
    }
 
    QoreAbstractQWidget *parent = 0;
-   if (p && p->type == NT_OBJECT)
+   if (p && p->getType() == NT_OBJECT)
    {
       parent = (QoreAbstractQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (!parent)
@@ -281,7 +281,7 @@ static AbstractQoreNode *QLABEL_setMovie(QoreObject *self, QoreQLabel *ql, const
 static AbstractQoreNode *QLABEL_setNum(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_INT) {
+   if (p && p->getType() == NT_INT) {
       int num = p ? p->getAsInt() : 0;
       ql->qobj->setNum(num);
       return 0;
@@ -310,7 +310,7 @@ static AbstractQoreNode *QLABEL_setPicture(QoreObject *self, QoreQLabel *ql, con
 static AbstractQoreNode *QLABEL_setPixmap(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   AbstractPrivateData *apd_qpixmap = (p && p->type == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
+   AbstractPrivateData *apd_qpixmap = (p && p->getType() == NT_OBJECT) ? (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink) : 0;
    if (!apd_qpixmap) {
       if (!xsink->isException())
          xsink->raiseException("QLABEL-SETPIXMAP-PARAM-ERROR", "expecting a QPixmap object as first argument to QLabel::setPixmap()");

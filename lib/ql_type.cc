@@ -60,7 +60,7 @@ static AbstractQoreNode *f_binary(const QoreListNode *params, ExceptionSink *xsi
    if (!p0)
       return new BinaryNode();
 
-   const QoreType *p0_type = p0->type;
+   const QoreType *p0_type = p0->getType();
    if (p0_type == NT_BINARY)
       return p0->refSelf();
 
@@ -105,7 +105,7 @@ static AbstractQoreNode *f_type(const QoreListNode *params, ExceptionSink *xsink
 {
    const AbstractQoreNode *p = get_param(params, 0);
    if (!p)
-      return new QoreStringNode(NT_NOTHING->getName());
+      return new QoreStringNode("nothing");
    else
       return new QoreStringNode(p->getTypeName());
 }

@@ -40,7 +40,7 @@ static void QINPUTMETHODEVENT_constructor(QoreObject *self, const QoreListNode *
 
    xsink->raiseException("QINPUTMETHODEVENT-CONSTRUCTOR-PARAM-ERROR", "not implemented");
 
-//   if (!p || p->type != NT_STRING) {
+//   if (!p || p->getType() != NT_STRING) {
 //      xsink->raiseException("QINPUTMETHODEVENT-CONSTRUCTOR-PARAM-ERROR", "expecting a string as first argument to QInputMethodEvent::constructor()");
 //      return;
 //   }

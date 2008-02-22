@@ -36,7 +36,7 @@ static AbstractQoreNode *f_length(const QoreListNode *params, ExceptionSink *xsi
 
    int l;
 
-   if (p0->type == NT_BINARY)
+   if (p0->getType() == NT_BINARY)
       l = (reinterpret_cast<const BinaryNode *>(p0))->size();
    else
    {
@@ -554,7 +554,7 @@ static AbstractQoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsin
    if (!p)
       return 0;
 
-   const QoreType *ptype = p->type;
+   const QoreType *ptype = p->getType();
    if (ptype == NT_STRING) {
       const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p);
       QoreStringNode *str = pstr->copy();
@@ -588,7 +588,7 @@ static AbstractQoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink
    const QoreStringNode *p1 = test_string_param(params, 1);
    const char *chars = p1 ? p1->getBuffer() : 0;
 
-   const QoreType *p0_type = p0->type;
+   const QoreType *p0_type = p0->getType();
 
    if (p0_type == NT_STRING) {
       const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p0);

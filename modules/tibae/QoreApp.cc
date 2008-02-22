@@ -131,7 +131,7 @@ const MBaseClassDescription *QoreApp::find_class(const char *cn, ExceptionSink *
    AbstractQoreNode *t = NULL;
 
    const char *cdesc;
-   if (classlist && (t = classlist->getKeyValue(cn)) && t->type == NT_STRING)
+   if (classlist && (t = classlist->getKeyValue(cn)) && t->getType() == NT_STRING)
       cdesc = (reinterpret_cast<QoreStringNode *>(t))->getBuffer();
    else
       cdesc = cn;
@@ -487,7 +487,7 @@ MData *QoreApp::instantiate_sequence(const MSequenceClassDescription *msd, const
 {
    // ensure value is a QORE list
    // check if class info embedded
-   if (v && v->type == NT_HASH)
+   if (v && v->getType() == NT_HASH)
    {
       const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(v);
       const char *cn;
@@ -538,7 +538,7 @@ MData *QoreApp::instantiate_modeledclass(const MModeledClassDescription *mcd, co
       return new MInstance(mcr, mcd->getFullName());
    }
    const QoreHashNode *h;
-   if (v->type == NT_HASH)
+   if (v->getType() == NT_HASH)
       h = reinterpret_cast<const QoreHashNode *>(v);
    else
    {
@@ -610,7 +610,7 @@ MData *QoreApp::instantiate_union(const MUnionDescription *mud, const AbstractQo
       return new MUnion(mcr, mud->getFullName());
    }
    const QoreHashNode *h;
-   if (v->type == NT_HASH)
+   if (v->getType() == NT_HASH)
       h = reinterpret_cast<const QoreHashNode *>(v);
    else
    {

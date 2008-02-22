@@ -44,7 +44,7 @@ static void QREGION_constructor(QoreObject *self, const QoreListNode *params, Ex
       self->setPrivate(CID_QREGION, new QoreQRegion());
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQBitmap *bm = (QoreQBitmap *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QBITMAP, xsink);
       if (!bm) {
          QoreQRect *r = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);

@@ -296,7 +296,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 
 	 if (e->err)
 	 {
-	    if (e->err->type == NT_STRING) {
+	    if (e->err->getType() == NT_STRING) {
 	       QoreStringNode *err = reinterpret_cast<QoreStringNode *>(e->err);
 	       printe("%s", err->getBuffer());
 	    }
@@ -312,7 +312,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 
 	 if (e->desc)
 	 {
-	    if (e->desc->type == NT_STRING) {
+	    if (e->desc->getType() == NT_STRING) {
 	       QoreStringNode *desc = reinterpret_cast<QoreStringNode *>(e->desc);
 	       printe("%s%s", hdr ? ", desc: " : ": ", desc->getBuffer());
 	    }
@@ -326,7 +326,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
 	 
 	 if (e->arg)
 	 {
-	    if (e->arg->type == NT_STRING) {
+	    if (e->arg->getType() == NT_STRING) {
 	       QoreStringNode *arg = reinterpret_cast<QoreStringNode *>(e->arg);
 	       printe("%s%s", hdr ? ", arg: " : "", arg->getBuffer());
 	    }

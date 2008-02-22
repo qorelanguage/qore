@@ -375,7 +375,7 @@ void emit_static_signal(QObject *sender, int signalId, const QMetaMethod &qmm, c
       }
       else if (!strcmp(str, "QWidget*"))
       {
-	 QoreQWidget *widget = (n && n->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<const QoreObject *>(n))->getReferencedPrivateData(CID_QWIDGET, &xsink) : 0;
+	 QoreQWidget *widget = (n && n->getType() == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<const QoreObject *>(n))->getReferencedPrivateData(CID_QWIDGET, &xsink) : 0;
 	 sig_args[i + 1] = arg_list[i].set(widget);
       }
       else {

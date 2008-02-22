@@ -116,14 +116,14 @@ static AbstractQoreNode *HC_send(QoreObject *self, class QoreHTTPClient *client,
    const AbstractQoreNode *p = get_param(params, 0);
    if (!is_nothing(p))
    {
-      if (p->type == NT_STRING)
+      if (p->getType() == NT_STRING)
       {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
 	 assert(str);
 	 ptr = str->getBuffer();
 	 size = str->strlen();
       }
-      else if (p->type == NT_BINARY)
+      else if (p->getType() == NT_BINARY)
       {
 	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
          ptr = b->getPtr();
@@ -197,13 +197,13 @@ static AbstractQoreNode *HC_post(QoreObject *self, class QoreHTTPClient *client,
    const AbstractQoreNode *p = get_param(params, 1);
    if (!is_nothing(p))
    {
-      if (p->type == NT_STRING)
+      if (p->getType() == NT_STRING)
       {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
 	 ptr = str->getBuffer();
 	 size = str->strlen();
       }
-      else if (p->type == NT_BINARY)
+      else if (p->getType() == NT_BINARY)
       {
 	 const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
          ptr = b->getPtr();

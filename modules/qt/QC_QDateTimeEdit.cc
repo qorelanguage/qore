@@ -43,7 +43,7 @@ static void QDATETIMEEDIT_constructor(QoreObject *self, const QoreListNode *para
    }
 
    QoreQWidget *parent = 0;
-   if (p->type == NT_OBJECT) {
+   if (p->getType() == NT_OBJECT) {
       parent = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
 	 return;

@@ -43,14 +43,13 @@ DLLEXPORT extern class QoreString NothingTypeString, NullTypeString, TrueString,
 
 class QoreType {
    private:
-      const char *name;
       int  id;
 
    public:
       // note that this method is not thread safe - should only be called in library or module initialization
-      DLLEXPORT QoreType(const char *p_name);
+      DLLEXPORT QoreType();
       DLLEXPORT int getID() const;
-      DLLEXPORT const char *getName() const;
+      //DLLEXPORT const char *getName() const;
       // compare = 0 means values are equal
 };
 

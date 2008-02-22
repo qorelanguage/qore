@@ -49,7 +49,7 @@ static void QDESKTOPWIDGET_copy(class QoreObject *self, class QoreObject *old, c
 static AbstractQoreNode *QDESKTOPWIDGET_availableGeometry(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
@@ -121,7 +121,7 @@ static AbstractQoreNode *QDESKTOPWIDGET_screen(QoreObject *self, QoreQDesktopWid
 static AbstractQoreNode *QDESKTOPWIDGET_screenGeometry(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *point = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!point) {
          QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
@@ -157,13 +157,13 @@ static AbstractQoreNode *QDESKTOPWIDGET_screenNumber(QoreObject *self, QoreQDesk
    if (is_nothing(p)) {
       return new QoreBigIntNode(qdw->qobj->screenNumber());
    }
-   QoreQPoint *point = (p->type == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
+   QoreQPoint *point = (p->getType() == NT_OBJECT) ? (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
    if (!point) {
-      QoreQWidget *widget = (p->type == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
+      QoreQWidget *widget = (p->getType() == NT_OBJECT) ? (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink) : 0;
       if (!widget) {
 	 if (*xsink)
 	    return 0;
-	 if (p->type == NT_OBJECT)
+	 if (p->getType() == NT_OBJECT)
 	    xsink->raiseException("QDESKTOPWIDGET-SCREENNUMBER-PARAM-ERROR", "expecting either NOTHING, a QWidget, or a QPoint object as the sole argument to QDesktopWidget::screenNumber(), got class '%s'", (reinterpret_cast<const QoreObject *>(p))->getClassName());
 	 else
 	    xsink->raiseException("QDESKTOPWIDGET-SCREENNUMBER-PARAM-ERROR", "expecting either NOTHING, a QWidget, or a QPoint object as the sole argument to QDesktopWidget::screenNumber(), got '%s'", p->getTypeName());

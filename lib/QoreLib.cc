@@ -127,10 +127,10 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
    char fmt[20], *f;
    QoreString tbuf(cstr->getEncoding());
 
-   printd(5, "process_opt(): param=%s type=%d node=%08p node->type=%s refs=%d\n",
+   printd(5, "process_opt(): param=%s type=%d node=%08p node->getType()=%s refs=%d\n",
 	  param, type, node, node ? node->getTypeName() : "(null)", node ? node->reference_count() : -1);
 #ifdef DEBUG
-   if (node && node->type == NT_STRING) {
+   if (node && node->getType() == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(node);
       printd(5, "process_opt() %08p (%d) \"%s\"\n", str->getBuffer(), str->strlen(), str->getBuffer());
    }

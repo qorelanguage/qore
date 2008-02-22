@@ -50,7 +50,7 @@ static void QMOUSEEVENT_constructor(class QoreObject *self, const QoreListNode *
    p = get_param(params, 2);
    int offset = 0;
    QoreQPoint *globalPos = 0;
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       o = reinterpret_cast<const QoreObject *>(p);
       globalPos = p ? (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink) : 0;
       if (*xsink)

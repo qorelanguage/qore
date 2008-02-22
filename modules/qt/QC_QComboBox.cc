@@ -54,7 +54,7 @@ static void QCOMBOBOX_copy(class QoreObject *self, class QoreObject *old, class 
 static AbstractQoreNode *QCOMBOBOX_addItem(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);
       if (!icon) {
          if (!xsink->isException())

@@ -54,7 +54,7 @@ class qore_gz_header : public gz_header
 static AbstractQoreNode *f_call_function(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   const QoreType *p0_type = p0 ? p0->type : 0;
+   const QoreType *p0_type = p0 ? p0->getType() : 0;
    if (p0_type != NT_FUNCREF && p0_type != NT_STRING) {
       xsink->raiseException("CALL-FUNCTION-PARAMETER-ERROR", "invalid argument passed to call_function(), first argument must be either function name or call reference");
       return 0;
@@ -77,7 +77,7 @@ static AbstractQoreNode *f_call_function(const QoreListNode *params, ExceptionSi
 static AbstractQoreNode *f_call_function_args(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   const QoreType *p0_type = p0 ? p0->type : 0;
+   const QoreType *p0_type = p0 ? p0->getType() : 0;
    if (p0_type != NT_FUNCREF && p0_type != NT_STRING) {
       xsink->raiseException("CALL-FUNCTION-ARGS-PARAMETER-ERROR",
 			    "invalid argument passed to call_function_args(), first argument must be either function name or call reference");
@@ -114,7 +114,7 @@ static AbstractQoreNode *f_existsFunction(const QoreListNode *params, ExceptionS
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
 
-   const QoreType *p0_type = p0 ? p0->type : 0;
+   const QoreType *p0_type = p0 ? p0->getType() : 0;
    // always return true if the argument is a call reference
    if (p0_type == NT_FUNCREF)
       return boolean_true();
@@ -714,13 +714,13 @@ static AbstractQoreNode *f_compress(const QoreListNode *params, ExceptionSink *x
 
    const void *ptr;
    unsigned long len;
-   if (p0->type == NT_STRING)
+   if (p0->getType() == NT_STRING)
    {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
       ptr = str->getBuffer();
       len = str->strlen();
    }
-   else if (p0->type == NT_BINARY)
+   else if (p0->getType() == NT_BINARY)
    {
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
       ptr = b->getPtr();
@@ -779,13 +779,13 @@ static AbstractQoreNode *f_gzip(const QoreListNode *params, ExceptionSink *xsink
 
    const void *ptr;
    unsigned long len;
-   if (p0->type == NT_STRING)
+   if (p0->getType() == NT_STRING)
    {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
       ptr = str->getBuffer();
       len = str->strlen();
    }
-   else if (p0->type == NT_BINARY)
+   else if (p0->getType() == NT_BINARY)
    {
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
       ptr = b->getPtr();
@@ -834,13 +834,13 @@ static AbstractQoreNode *f_getByte(const QoreListNode *params, ExceptionSink *xs
       return NULL;
    unsigned char *ptr;
    int size;
-   if (p0->type == NT_BINARY)
+   if (p0->getType() == NT_BINARY)
    {
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p0);
       ptr = (unsigned char *)b->getPtr();
       size = b->size();
    }
-   else if (p0->type == NT_STRING)
+   else if (p0->getType() == NT_STRING)
    {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
       ptr = (unsigned char *)str->getBuffer();
@@ -871,7 +871,7 @@ static AbstractQoreNode *f_splice(const QoreListNode *params, ExceptionSink *xsi
    const QoreStringNode *p3 = test_string_param(params, 3);
    int start = p1->getAsInt();
 
-   const QoreType *p0_type = p0->type;
+   const QoreType *p0_type = p0->getType();
 
    if (p0_type == NT_STRING) {
       const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p0);
@@ -911,11 +911,11 @@ static AbstractQoreNode *f_splice(const QoreListNode *params, ExceptionSink *xsi
 static AbstractQoreNode *f_makeHexString(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_BINARY && p0->type != NT_STRING))
+   if (!p0 || (p0->getType() != NT_BINARY && p0->getType() != NT_STRING))
       return NULL;
 
    QoreStringNode *str = new QoreStringNode();
-   if (p0->type == NT_STRING)
+   if (p0->getType() == NT_STRING)
       str->concatHex(reinterpret_cast<const QoreStringNode *>(p0));
    else
       str->concatHex(reinterpret_cast<const BinaryNode *>(p0));

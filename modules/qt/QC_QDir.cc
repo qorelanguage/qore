@@ -117,8 +117,8 @@ static AbstractQoreNode *QDIR_dirName(QoreObject *self, QoreQDir *qd, const Qore
 //   if (is_nothing(p)) {
 //      ??? return new QoreBigIntNode(qd->entryInfoList());
 //   }
-//   if (p && p->type == NT_???) {
-//      if (!p || p->type != NT_LIST) {
+//   if (p && p->getType() == NT_???) {
+//      if (!p || p->getType() != NT_LIST) {
 //         xsink->raiseException("QDIR-ENTRYINFOLIST-PARAM-ERROR", "expecting a list as first argument to QDir::entryInfoList()");
 //         return 0;
 //      }
@@ -154,8 +154,8 @@ static AbstractQoreNode *QDIR_dirName(QoreObject *self, QoreQDir *qd, const Qore
 //         l->push(new QoreStringNode((*i).toUtf8().data(), QCS_UTF8));
 //      return l;
 //   }
-//   if (p && p->type == NT_???) {
-//      if (!p || p->type != NT_LIST) {
+//   if (p && p->getType() == NT_???) {
+//      if (!p || p->getType() != NT_LIST) {
 //         xsink->raiseException("QDIR-ENTRYLIST-PARAM-ERROR", "expecting a list as first argument to QDir::entryList()");
 //         return 0;
 //      }

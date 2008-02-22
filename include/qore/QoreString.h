@@ -33,7 +33,7 @@
 extern const class QoreEncoding *QCS_DEFAULT;
 
 //! Qore's string type supported by the QoreEncoding class
-/** A QoreString is implemented by a char pointer, a length, and a QoreEncoding pointer.
+/** A QoreString is implemented by a char pointer, a byte length, and a QoreEncoding pointer.
     For the equivalent Qore parse tree/value type, see QoreStringNode
     @see QoreStringNode
  */
@@ -236,9 +236,13 @@ class QoreString {
       DLLEXPORT void terminate(int size);
 
       //! this will concatentate a formatted string to the existing string according to the format string and the arguments
+      /** NOTE that the formatted string is concatenated to the end of the current string!
+       */
       DLLEXPORT int sprintf(const char *fmt, ...);
 
       //! this will concatentate a formatted string to the existing string according to the format string and the arguments
+      /** NOTE that the formatted string is concatenated to the end of the current string!
+       */
       DLLEXPORT int vsprintf(const char *fmt, va_list args);
 
       //! takes ownership of the character pointer passed and assigns it to the string (frees memory previously allocated)
@@ -280,12 +284,28 @@ class QoreString {
       DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
       DLLEXPORT void splice(int offset, int length, const class AbstractQoreNode *strn, class ExceptionSink *xsink);
-      DLLEXPORT class QoreString *substr(int offset) const;
-      DLLEXPORT class QoreString *substr(int offset, int length) const;
+
+      //! returns a new string consisting of all the characters from the current string starting with character position "offset"
+      /** offset is a character offset and not a byte offset
+	  @param offset the offset in characters from the beginning of the string (starting with 0)
+	  @return the new string
+       */
+      DLLEXPORT QoreString *substr(int offset) const;
+
+      //! returns a new string consisting of "length" characters from the current string starting with character position "offset"
+      /** offset and length spoecify characters, not bytes
+	  @param offset the offset in characters from the beginning of the string (starting with 0)
+	  @return the new string
+       */
+      DLLEXPORT QoreString *substr(int offset, int length) const;
+
+      //! removes a single \n\r or \n from the end of the string and returns the number of characters removed
       DLLEXPORT int chomp();
 
       //! returns the encoding for the string
       DLLEXPORT const class QoreEncoding *getEncoding() const;
+
+      //! returns an exact copy of the string
       DLLEXPORT QoreString *copy() const;
 
       //! converts the string to lower-case in place
@@ -381,6 +401,16 @@ class QoreString {
 DLLEXPORT class QoreString *checkEncoding(const class QoreString *str, const class QoreEncoding *enc, class ExceptionSink *xsink);
 
 //! class used to hold a possibly temporary QoreString pointer, stack only, cannot be dynamically allocated
+/**
+   \Example
+   \code
+   TempString rv(new QoreString());
+   ...
+   if (error)
+       return 0; // here the memory is automatically released
+   return rv.release();
+   \endcode
+ */
 class TempString {
    private:
       QoreString *str;
@@ -425,6 +455,14 @@ class TempString {
     the destructor will delete any temporary string if necessary.  Note that the constructor may add Qore-language exception information
     to the "xsink" parameter in case character set encoding conversion was necessary and failed
     @see QoreString
+   \Example
+   \code
+   // ensure a string is in UTF-8 encoding
+   TempEncodingHelper utf8_str(str, QCS_UTF8, xsink);
+   if (!str) // !str is only true if an exception has been thrown in the conversion
+      return 0;
+   printf("%s\n", utf8_str->getBuffer());
+   \endcode
  */
 class TempEncodingHelper {
    private:

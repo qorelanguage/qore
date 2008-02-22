@@ -373,7 +373,7 @@ static int doJSONValue(class QoreString *str, const AbstractQoreNode *v, int for
       return 0;
    }
 
-   const QoreType *vtype = v->type;
+   const QoreType *vtype = v->getType();
 
    if (vtype == NT_LIST) {
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(v);

@@ -39,7 +39,7 @@ static int qpolygonf_add_points(QoreQPolygonF *qp, const QoreListNode *l, class 
    while (li.next())
    {
       const AbstractQoreNode *n = li.getValue();
-      QoreQPointF *point = (n && n->type == NT_OBJECT) ?  (QoreQPointF *)(reinterpret_cast<const QoreObject *>(n))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
+      QoreQPointF *point = (n && n->getType() == NT_OBJECT) ?  (QoreQPointF *)(reinterpret_cast<const QoreObject *>(n))->getReferencedPrivateData(CID_QPOINTF, xsink) : 0;
       if (!point) {
 	 if (!xsink->isException())
 	    xsink->raiseException("QPOINT-LIST-TYPE-ERROR", "expecting only objects derived from QPointF, found other type ('%s')", n ? n->getTypeName() : "NOTHING");
@@ -64,7 +64,7 @@ static void QPOLYGONF_constructor(QoreObject *self, const QoreListNode *params, 
       self->setPrivate(CID_QPOLYGONF, new QoreQPolygonF());
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPolygonF *polygonf = (QoreQPolygonF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOLYGONF, xsink);
       if (!polygonf) {
          QoreQRectF *rectangle = (QoreQRectF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECTF, xsink);
@@ -190,7 +190,7 @@ static AbstractQoreNode *QPOLYGONF_toPolygon(QoreObject *self, QoreQPolygonF *qp
 static AbstractQoreNode *QPOLYGONF_translate(QoreObject *self, QoreQPolygonF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPointF *offset = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
       if (!offset) {
          if (!xsink->isException())

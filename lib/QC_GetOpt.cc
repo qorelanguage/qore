@@ -29,34 +29,44 @@ int CID_GETOPT;
 
 static inline int process_type(const char *key, int &attributes, char *opt, class QoreType *&at, ExceptionSink *xsink)
 {
+   assert(!at);
+   const char *type_name = 0;
    // get type
    switch (*opt)
    {
       case 's':
 	 at = NT_STRING;
+	 type_name = QoreStringNode::getStaticTypeName();
 	 break;
       case 'i':
 	 at = NT_INT;
+	 type_name = QoreBigIntNode::getStaticTypeName();
 	 break;
       case 'f':
 	 at = NT_FLOAT;
+	 type_name = QoreFloatNode::getStaticTypeName();
 	 break;
       case 'b':
 	 at = NT_BOOLEAN;
+	 type_name = QoreBoolNode::getStaticTypeName();
 	 break;
       case 'd':
 	 at = NT_DATE;
+	 type_name = DateTimeNode::getStaticTypeName();
 	 break;
       case 'h':
 	 at = NT_HASH;
+	 type_name = QoreHashNode::getStaticTypeName();
 	 break;
       case '@':
 	 at = NT_STRING;
 	 attributes |= QGO_OPT_LIST;
+	 type_name = QoreStringNode::getStaticTypeName();
 	 break;
       case '+':
 	 at = NT_INT;
 	 attributes |= QGO_OPT_ADDITIVE;
+	 type_name = QoreBigIntNode::getStaticTypeName();
 	 break;
    }
    if (!at)
@@ -103,7 +113,7 @@ static inline int process_type(const char *key, int &attributes, char *opt, clas
       }
       if (at != NT_INT && at != NT_FLOAT)
       {
-	 xsink->raiseException("GETOPT-OPTION-ERROR", "additive attributes for type '%s' are not supported (option '%s')", at->getName(), key);
+	 xsink->raiseException("GETOPT-OPTION-ERROR", "additive attributes for type '%s' are not supported (option '%s')", type_name, key);
 	 return -1;
       }
       attributes |= QGO_OPT_ADDITIVE;
@@ -236,7 +246,7 @@ static AbstractQoreNode *GETOPT_parse(QoreObject *self, class GetOpt *g, const Q
 
    QoreListNode *l;
    class AutoVLock vl;
-   if (p0->type == NT_REFERENCE)
+   if (p0->getType() == NT_REFERENCE)
    {
       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
       AbstractQoreNode **vp = get_var_value_ptr(r->lvexp, &vl, xsink);

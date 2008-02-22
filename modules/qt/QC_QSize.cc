@@ -127,7 +127,7 @@ static AbstractQoreNode *QSIZE_isValid(QoreObject *self, QoreQSize *qs, const Qo
 static AbstractQoreNode *QSIZE_scale(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQSize *size = (QoreQSize *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QSIZE, xsink);
       if (!size) {
          if (!xsink->isException())

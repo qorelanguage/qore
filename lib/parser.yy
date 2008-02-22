@@ -117,7 +117,7 @@ static QoreListNode *makeArgs(AbstractQoreNode *arg)
       return 0;
 
    QoreListNode *l;
-   if (arg->type == NT_LIST) {
+   if (arg->getType() == NT_LIST) {
       l = reinterpret_cast<QoreListNode *>(arg);
       if (!l->isFinalized())
 	 return l;
@@ -131,7 +131,7 @@ static QoreListNode *makeArgs(AbstractQoreNode *arg)
 HashElement::HashElement(class AbstractQoreNode *k, class AbstractQoreNode *v)
 {
    //tracein("HashElement::HashElement()");
-   if (!k || k->type != NT_STRING) {
+   if (!k || k->getType() != NT_STRING) {
       parse_error("object member name must be a string value!");
       key = strdup("");
    }
@@ -226,7 +226,7 @@ static QoreListNode *make_list(class AbstractQoreNode *a1, class AbstractQoreNod
 static QoreListNode *splice_expressions(class AbstractQoreNode *a1, class AbstractQoreNode *a2)
 {
    //tracein("splice_expressions()");
-   if (a1 && a1->type == NT_LIST) {
+   if (a1 && a1->getType() == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(a1);
       if (!l->isFinalized()) {
 	 //printd(5, "LIST x\n");
@@ -304,7 +304,7 @@ static inline class QoreClass *parseFindClass(char *name)
 
 static AbstractQoreNode *process_dot(class AbstractQoreNode *l, class AbstractQoreNode *r)
 {
-   const QoreType *rtype = r->type;
+   const QoreType *rtype = r->getType();
    if (rtype == NT_BAREWORD)
    {
       BarewordNode *b = reinterpret_cast<BarewordNode *>(r);
@@ -327,7 +327,7 @@ static AbstractQoreNode *process_dot(class AbstractQoreNode *l, class AbstractQo
 // returns 0 for OK, -1 for error
 static int check_lvalue(class AbstractQoreNode *node)
 {
-   const QoreType *ntype = node->type;
+   const QoreType *ntype = node->getType();
    //printd(5, "type=%s\n", node->getTypeName());
    if (ntype == NT_VARREF)
       return 0;
@@ -347,10 +347,10 @@ static int check_lvalue(class AbstractQoreNode *node)
 
 static inline int check_vars(class AbstractQoreNode *n)
 {
-   if (n && n->type == NT_LIST) {
+   if (n && n->getType() == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
       for (int i = 0; i < l->size(); i++)
-	 if (l->retrieve_entry(i)->type != NT_VARREF)
+	 if (l->retrieve_entry(i)->getType() != NT_VARREF)
 	    return 1;
       return 0;
    }
@@ -363,7 +363,7 @@ bool needsEval(class AbstractQoreNode *n)
    if (!n)
       return false;
 
-   const QoreType *ntype = n->type;
+   const QoreType *ntype = n->getType();
 
    // if it's a constant
    if (ntype == NT_BAREWORD || ntype == NT_CONSTANT)
@@ -408,7 +408,7 @@ bool needsEval(class AbstractQoreNode *n)
 static bool hasEffect(class AbstractQoreNode *n)
 {
    // check for expressions with no effect
-   const QoreType *ntype = n->type;
+   const QoreType *ntype = n->getType();
    if (ntype == NT_FUNCTION_CALL || ntype == NT_FIND || ntype == NT_FUNCREFCALL)
       return true;
 
@@ -888,7 +888,7 @@ statement:
 	exp ';'
         {
 	   // if the expression has no effect and it's not a variable declaration
-	   const QoreType *t = $1 ? $1->type : 0;
+	   const QoreType *t = $1 ? $1->getType() : 0;
 	   if (!hasEffect($1)
 	       && (t != NT_VARREF || reinterpret_cast<VarRefNode *>($1)->type == VT_UNRESOLVED)
 	       && (t != NT_LIST || !reinterpret_cast<QoreListNode *>($1)->isVariableList()))
@@ -954,7 +954,7 @@ statement:
         | TOK_FOREACH exp TOK_IN '(' exp ')' statement_or_block
         {
 	   $$ = new ForEachStatement(@1.first_line, @7.last_line, $2, $5, $7);
-	   const QoreType *t = $2 ? $2->type : 0;
+	   const QoreType *t = $2 ? $2->getType() : 0;
 	   if (t != NT_VARREF && t != NT_SELF_VARREF)
 	      parse_error("foreach variable expression is not a variable reference");
 	}
@@ -1139,7 +1139,7 @@ try_statement:
 	   char *param = NULL;
 	   if ($5)
 	   {
-	      if ($5->type == NT_VARREF) 
+	      if ($5->getType() == NT_VARREF) 
 		 param = reinterpret_cast<VarRefNode *>($5)->takeName();
 	      else
 		 parse_error("only one parameter accepted in catch block for exception hash");
@@ -1407,7 +1407,7 @@ list:
         | exp ','
         {
 	   QoreListNode *l;
-	   if ($1 && $1->type == NT_LIST) 
+	   if ($1 && $1->getType() == NT_LIST) 
 	      l = reinterpret_cast<QoreListNode *>($1);
 	   else
 	   {
@@ -1465,7 +1465,7 @@ exp:    scalar
 	   for (int i = 0; i < $3->size(); i++)
 	   {
 	      AbstractQoreNode *n = $3->retrieve_entry(i);
-	      if (!n || n->type != NT_VARREF)
+	      if (!n || n->getType() != NT_VARREF)
 		 parse_error("element %d in list following 'my' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else
 		 reinterpret_cast<VarRefNode *>(n)->type = VT_LOCAL;
@@ -1483,7 +1483,7 @@ exp:    scalar
 	   for (int i = 0; i < $3->size(); i++)
 	   {
 	      class AbstractQoreNode *n = $3->retrieve_entry(i);
-	      if (!n || n->type != NT_VARREF) 
+	      if (!n || n->getType() != NT_VARREF) 
 		 parse_error("element %d in list following 'our' is not a variable reference (%s)", i, n ? n->getTypeName() : "NOTHING");
 	      else
 	      {
@@ -1607,7 +1607,7 @@ exp:    scalar
 	}
 	| exp '=' exp
         {
-	   if ($1 && $1->type == NT_LIST) {
+	   if ($1 && $1->getType() == NT_LIST) {
 	      QoreListNode *l = reinterpret_cast<QoreListNode *>($1);
 	      bool ok = true;
 	      for (int i = 0; i < l->size(); i++)
@@ -1652,7 +1652,7 @@ exp:    scalar
         { $$ = makeTree(OP_KEYS, $2, NULL); }
         | TOK_UNSHIFT exp  // unshift list, element
         {
-	   QoreListNode *l = $2 && $2->type == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->getTypeName());
 	      $$ = makeErrorTree(OP_UNSHIFT, $2, NULL);
@@ -1681,7 +1681,7 @@ exp:    scalar
 	}
         | TOK_PUSH exp  // push lvalue-list, element
         {
-	   QoreListNode *l = $2 && $2->type == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->getTypeName());
 	      $$ = makeErrorTree(OP_PUSH, $2, NULL);
@@ -1731,7 +1731,7 @@ exp:    scalar
 	}
         | TOK_SPLICE exp  // splice lvalue-list, offset, [length, list]
         {
-	   QoreListNode *l = $2 && $2->type == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
+	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() < 2 || l->size() > 4) {
 	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (%s)", $2->getTypeName());
 	      $$ = makeErrorTree(OP_SPLICE, $2, NULL);
@@ -1793,7 +1793,7 @@ exp:    scalar
 	| exp '(' myexp ')'
         {
 	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
-	   const QoreType *t = $1 ? $1->type : 0;
+	   const QoreType *t = $1 ? $1->getType() : 0;
 	   if (t == NT_BAREWORD)
 	   {
 	      BarewordNode *b = reinterpret_cast<BarewordNode *>($1);
@@ -1826,7 +1826,7 @@ exp:    scalar
 	      
 	      if (t == NT_TREE) {
 		 tree = reinterpret_cast<QoreTreeNode *>($1);
-		 if (!(tree->op == OP_OBJECT_REF && tree->right && tree->right->type == NT_STRING))
+		 if (!(tree->op == OP_OBJECT_REF && tree->right && tree->right->getType() == NT_STRING))
 		    tree = 0;
 	      }
 	      else
@@ -1930,7 +1930,7 @@ exp:    scalar
         | '!' exp                    { $$ = makeTree(OP_NOT, $2, NULL); }
         | '\\' exp
         {
-	   const QoreType *t = $2 ? $2->type : 0;
+	   const QoreType *t = $2 ? $2->getType() : 0;
 
 	   if (t == NT_FUNCTION_CALL)
 	   {
@@ -1964,7 +1964,7 @@ exp:    scalar
 	      if (t == NT_TREE) {
 		 QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>($2);
 		 if (tree->op == OP_OBJECT_FUNC_REF) {
-		    assert(tree->right->type == NT_FUNCTION_CALL);
+		    assert(tree->right->getType() == NT_FUNCTION_CALL);
 		    FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>(tree->right);
 		    if (f->getFunctionType() == FC_METHOD) {
 		       if (f->args) {
@@ -1997,7 +1997,7 @@ exp:    scalar
 	}
         | TOK_NEW exp //function_call
         {
-	   const QoreType *t = $2 ? $2->type : 0;
+	   const QoreType *t = $2 ? $2->getType() : 0;
 	   if (t == NT_SCOPE_REF)
 	   { 
 	      $$ = makeTree(OP_NEW, $2, NULL); 
@@ -2044,7 +2044,7 @@ exp:    scalar
 	| '(' exp ')'                
         { 
 	   $$ = $2;
-	   if ($2 && $2->type == NT_LIST)
+	   if ($2 && $2->getType() == NT_LIST)
 	      reinterpret_cast<QoreListNode *>($2)->setFinalized(); 
 	}
         | '(' ')' { QoreListNode *l = new QoreListNode(); l->setFinalized(); $$ = l; }
@@ -2068,7 +2068,7 @@ scalar:
         | string      { $$ = $1; }
         | DATETIME    { $$ = $1; }
         | TOK_NULL    { $$ = new QoreNullNode(); }
-        | TOK_NOTHING { $$ = new QoreNothingNode(); }
+        | TOK_NOTHING { $$ = nothing(); }
 	;
 
 %%

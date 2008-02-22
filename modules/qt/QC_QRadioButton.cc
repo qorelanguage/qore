@@ -39,7 +39,7 @@ static void QRADIOBUTTON_constructor(QoreObject *self, const QoreListNode *param
       self->setPrivate(CID_QRADIOBUTTON, new QoreQRadioButton(self));
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQWidget *parent = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (*xsink)
 	 return;

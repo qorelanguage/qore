@@ -34,7 +34,7 @@ static void QCOLOR_constructor(class QoreObject *self, const QoreListNode *param
    QoreQColor *qc;
    if (is_nothing(p))
       qc = new QoreQColor();
-   else if (p->type == NT_STRING)
+   else if (p->getType() == NT_STRING)
       qc = new QoreQColor((reinterpret_cast<const QoreStringNode *>(p))->getBuffer());
    else {
       int f = p->getAsInt();

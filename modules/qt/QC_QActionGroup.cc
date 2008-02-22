@@ -78,7 +78,7 @@ static AbstractQoreNode *QACTIONGROUP_actions(QoreObject *self, QoreQActionGroup
 static AbstractQoreNode *QACTIONGROUP_addAction(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQAction *action = (QoreQAction *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QACTION, xsink);
       if (!action) {
          QoreQIcon *icon = (QoreQIcon *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QICON, xsink);

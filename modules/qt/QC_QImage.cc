@@ -145,7 +145,7 @@ static AbstractQoreNode *QIMAGE_color(QoreObject *self, QoreQImage *qi, const Qo
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   QImage::Format format = (QImage::Format)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 1);
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      ??? QVector<QRgb> colorTable = p;
 //   p = get_param(params, 2);
 //   }
@@ -161,7 +161,7 @@ static AbstractQoreNode *QIMAGE_color(QoreObject *self, QoreQImage *qi, const Qo
 static AbstractQoreNode *QIMAGE_QT_copy(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRect *rectangle = (QoreQRect *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rectangle) {
          if (!xsink->isException())
@@ -367,7 +367,7 @@ static AbstractQoreNode *QIMAGE_offset(QoreObject *self, QoreQImage *qi, const Q
 static AbstractQoreNode *QIMAGE_pixel(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!position) {
          if (!xsink->isException())
@@ -388,7 +388,7 @@ static AbstractQoreNode *QIMAGE_pixel(QoreObject *self, QoreQImage *qi, const Qo
 static AbstractQoreNode *QIMAGE_pixelIndex(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!position) {
          if (!xsink->isException())
@@ -577,7 +577,7 @@ static AbstractQoreNode *QIMAGE_setOffset(QoreObject *self, QoreQImage *qi, cons
 static AbstractQoreNode *QIMAGE_setPixel(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!position) {
          if (!xsink->isException())
@@ -666,7 +666,7 @@ static AbstractQoreNode *QIMAGE_textKeys(QoreObject *self, QoreQImage *qi, const
 static AbstractQoreNode *QIMAGE_valid(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *pos = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!pos) {
          if (!xsink->isException())

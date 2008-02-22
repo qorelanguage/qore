@@ -41,7 +41,7 @@ static void QRECT_constructor(QoreObject *self, const QoreListNode *params, Exce
       self->setPrivate(CID_QRECT, new QoreQRect());
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
       QoreQPoint *topLeft = (QoreQPoint *)o->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!topLeft) {
@@ -163,7 +163,7 @@ static AbstractQoreNode *QRECT_center(QoreObject *self, QoreQRect *qr, const Qor
 static AbstractQoreNode *QRECT_contains(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
       QoreQRect *rectangle = (QoreQRect *)o->getReferencedPrivateData(CID_QRECT, xsink);
       if (!rectangle) {
@@ -366,7 +366,7 @@ static AbstractQoreNode *QRECT_moveRight(QoreObject *self, QoreQRect *qr, const 
 static AbstractQoreNode *QRECT_moveTo(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *position = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!position)
       {
@@ -664,7 +664,7 @@ static AbstractQoreNode *QRECT_topRight(QoreObject *self, QoreQRect *qr, const Q
 static AbstractQoreNode *QRECT_translate(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!offset)
       {
@@ -689,7 +689,7 @@ static AbstractQoreNode *QRECT_translate(QoreObject *self, QoreQRect *qr, const 
 static AbstractQoreNode *QRECT_translated(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *offset = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!offset) {
          if (!xsink->isException())

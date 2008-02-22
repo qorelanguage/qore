@@ -1,3 +1,7 @@
+2007.02.22: David Nichols
+	* more API and doxygen updates
+	* performance-related API changes
+
 2007.02.17: David Nichols
 	* more API and doxygen updates
 	* changed BinaryNode to use unsigned long as the length instead of

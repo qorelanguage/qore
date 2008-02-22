@@ -81,7 +81,7 @@ static void QVARIANT_constructor(QoreObject *self, const QoreListNode *params, E
       self->setPrivate(CID_QVARIANT, new QoreQVariant());
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQPoint *qpoint = (QoreQPoint *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINT, xsink);
       if (!qpoint) {
          QoreQPointF *qpointf = (QoreQPointF *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPOINTF, xsink);
@@ -170,55 +170,55 @@ static void QVARIANT_constructor(QoreObject *self, const QoreListNode *params, E
       self->setPrivate(CID_QVARIANT, new QoreQVariant(*(static_cast<QPoint *>(qpoint))));
       return;
    }
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      ??? QDataStream s = p;
 //      self->setPrivate(CID_QVARIANT, new QoreQVariant(s));
 //      return;
 //   }
-   if (p && p->type == NT_STRING) {
+   if (p && p->getType() == NT_STRING) {
       QString qstring;
       
       get_qstring(p, qstring, xsink);
       self->setPrivate(CID_QVARIANT, new QoreQVariant(qstring));
       return;
    }
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      ??? QLatin1String qlatin1string = p;
 //      self->setPrivate(CID_QVARIANT, new QoreQVariant(qlatin1string));
 //      return;
 //   }
-//   if (p && p->type == NT_???) {
+//   if (p && p->getType() == NT_???) {
 //      ??? QStringList qstringlist = p;
 //      self->setPrivate(CID_QVARIANT, new QoreQVariant(qstringlist));
 //      return;
 //   }
-   if (p && p->type == NT_DATE) {
+   if (p && p->getType() == NT_DATE) {
       QDateTime qdatetime;
       if (get_qdatetime(p, qdatetime, xsink))
          return;
       self->setPrivate(CID_QVARIANT, new QoreQVariant(qdatetime));
       return;
    }
-   if (p && p->type == NT_INT) {
+   if (p && p->getType() == NT_INT) {
       int int_val = p ? p->getAsInt() : 0;
       self->setPrivate(CID_QVARIANT, new QoreQVariant(int_val));
       return;
    }
-   if (p && p->type == NT_BOOLEAN) {
+   if (p && p->getType() == NT_BOOLEAN) {
       bool val = p ? p->getAsBool() : false;
       self->setPrivate(CID_QVARIANT, new QoreQVariant(val));
       return;
    }
-//   if (p && p->type == NT_INT) {
+//   if (p && p->getType() == NT_INT) {
 //      QVariant::QMap<QString qmap<qstring = (QVariant::QMap<QString)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 1);
 //   }
-//   if (p && p->type == NT_INT) {
+//   if (p && p->getType() == NT_INT) {
 //      Qt::GlobalColor color = (Qt::GlobalColor)(p ? p->getAsInt() : 0);
 //      self->setPrivate(CID_QVARIANT, new QoreQVariant(color));
 //      return;
 //   }
-   if (p && p->type == NT_FLOAT) {
+   if (p && p->getType() == NT_FLOAT) {
       double val = p ? p->getAsFloat() : 0.0;
       self->setPrivate(CID_QVARIANT, new QoreQVariant(val));
       return;

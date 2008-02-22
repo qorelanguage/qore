@@ -263,11 +263,11 @@ TEST()
   assert(res[3].m_type == CS_SMALLINT_TYPE);
   assert(res[4].m_type == CS_CHAR_TYPE);
 
-  assert(res[0].m_node->type == NT_BOOLEAN);
+  assert(res[0].m_node->getType() == NT_BOOLEAN);
   assert(res[1].m_node == 0);
   assert(res[2].m_node == 0);
-  assert(res[3].m_node->type == NT_INT);
-  assert(res[4].m_node->type == NT_STRING);
+  assert(res[3].m_node->getType() == NT_INT);
+  assert(res[4].m_node->getType() == NT_STRING);
 }
 */
 

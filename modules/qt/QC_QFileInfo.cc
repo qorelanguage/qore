@@ -44,7 +44,7 @@ static void QFILEINFO_constructor(QoreObject *self, const QoreListNode *params, 
       self->setPrivate(CID_QFILEINFO, new QoreQFileInfo());
       return;
    }
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQDir *dir = (QoreQDir *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QDIR, xsink);
       if (!dir) {
          if (!xsink->isException())
@@ -326,7 +326,7 @@ static AbstractQoreNode *QFILEINFO_setCaching(QoreObject *self, QoreQFileInfo *q
 static AbstractQoreNode *QFILEINFO_setFile(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQDir *dir = (QoreQDir *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QDIR, xsink);
       if (!dir) {
          if (!xsink->isException())

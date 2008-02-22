@@ -33,7 +33,7 @@ static void QBITMAP_constructor(class QoreObject *self, const QoreListNode *para
    QoreQBitmap *qp;
    const AbstractQoreNode *p = get_param(params, 0);
 
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       AbstractPrivateData *apd = (reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPIXMAP, xsink);
       if (!apd) {
 	 if (!xsink->isException())
@@ -46,7 +46,7 @@ static void QBITMAP_constructor(class QoreObject *self, const QoreListNode *para
 
       qp = new QoreQBitmap(*(qpix->getQPixmap()));
    }
-   else if (p && p->type == NT_STRING) {
+   else if (p && p->getType() == NT_STRING) {
       const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p);
       const char *filename = pstr->getBuffer();
 

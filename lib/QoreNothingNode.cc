@@ -22,12 +22,21 @@
 
 #include <qore/Qore.h>
 
-QoreNothingNode::QoreNothingNode() : SimpleQoreNode(NT_NOTHING)
+#ifdef DEBUG
+static bool nothing_flag = 0;
+#endif
+
+QoreNothingNode::QoreNothingNode() : UniqueQoreNode(NT_NOTHING)
 {
+#ifdef DEBUG
+   assert(!nothing_flag);
+   nothing_flag = true;
+#endif
 }
 
 QoreNothingNode::~QoreNothingNode()
 {
+   //printd(0, "QoreNothingNode::~QoreNothingNode() called this=%08p\n", this);
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -49,7 +58,7 @@ QoreString *QoreNothingNode::getAsString(bool &del, int foff, ExceptionSink *xsi
 
 AbstractQoreNode *QoreNothingNode::realCopy() const
 {
-   return new QoreNothingNode();
+   return const_cast<QoreNothingNode *>(this);
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
@@ -75,5 +84,5 @@ const QoreType *QoreNothingNode::getType() const
 // returns the type name as a c string
 const char *QoreNothingNode::getTypeName() const
 {
-   return "nothing";
+   return getStaticTypeName();
 }

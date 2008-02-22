@@ -157,7 +157,7 @@ class T {
       }
       DLLLOCAL virtual bool event(QEvent *event)
       {
-	 //printd(5, QLSTR(QOREQTYPE) "::event(%08p) this=%08p func=%08p type=%d qore_obj=%08p\n", event, this, e_paintEvent, (int)event->type(), qore_obj);
+	 //printd(5, QLSTR(QOREQTYPE) "::event(%08p) this=%08p func=%08p type=%d qore_obj=%08p\n", event, this, e_paintEvent, (int)event->getType()(), qore_obj);
 	 if (!e_event || !qore_obj)
 	    return QOREQTYPE::event(event);
 

@@ -34,7 +34,7 @@ static void QPICTURE_constructor(class QoreObject *self, const QoreListNode *par
    QoreQPicture *qp;
    const AbstractQoreNode *p = get_param(params, 0);
 
-   if (p && p->type == NT_OBJECT)
+   if (p && p->getType() == NT_OBJECT)
    {
       QoreQPicture *pic = (QoreQPicture *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QPICTURE, xsink);
       if (!pic)

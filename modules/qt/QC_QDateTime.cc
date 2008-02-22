@@ -36,12 +36,12 @@ static void QDATETIME_constructor(class QoreObject *self, const QoreListNode *pa
    const AbstractQoreNode *p = get_param(params, 0);
    if (is_nothing(p))
       qdt = new QoreQDateTime();
-   else if (p->type == NT_DATE) {
+   else if (p->getType() == NT_DATE) {
       const DateTimeNode *dt = reinterpret_cast<const DateTimeNode *>(p);
       qdt = new QoreQDateTime(QDate(dt->getYear(), dt->getMonth(), dt->getDay()), 
 			      QTime(dt->getHour(), dt->getMinute(), dt->getSecond(), dt->getMillisecond()));
    }
-   else if (p->type != NT_OBJECT) {
+   else if (p->getType() != NT_OBJECT) {
       xsink->raiseException("QDATETIME-CONSTRUCTOR-ERROR", "don't know how to handle argument of type '%s' in QDateTime::constructor()", p->getTypeName());
       return;
    }
@@ -54,7 +54,7 @@ static void QDATETIME_constructor(class QoreObject *self, const QoreListNode *pa
       ReferenceHolder<QoreQDate> date_holder(date, xsink);
 
       p = get_param(params, 1);
-      if (!p || p->type != NT_OBJECT) {
+      if (!p || p->getType() != NT_OBJECT) {
 	 qdt = new QoreQDateTime(*date);
       }
       else {

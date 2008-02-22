@@ -990,7 +990,7 @@ int RootQoreNamespace::parseInitConstantValue(AbstractQoreNode **val, int level)
 
    while (true)
    {
-      const QoreType *vtype = (*val)->type;
+      const QoreType *vtype = (*val)->getType();
       if (vtype == NT_BAREWORD)
       {
 	 if (resolveSimpleConstant(val, level + 1))
@@ -1005,7 +1005,7 @@ int RootQoreNamespace::parseInitConstantValue(AbstractQoreNode **val, int level)
 	 break;
    }
 
-   const QoreType *vtype = (*val)->type;
+   const QoreType *vtype = (*val)->getType();
    if (vtype == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
       for (int i = 0; i < l->size(); i++)
@@ -1048,7 +1048,7 @@ int RootQoreNamespace::parseInitConstantValue(AbstractQoreNode **val, int level)
 // returns 0 for success, non-zero for error
 int RootQoreNamespace::resolveSimpleConstant(AbstractQoreNode **node, int level) const
 {
-   assert(*node && (*node)->type == NT_BAREWORD);
+   assert(*node && (*node)->getType() == NT_BAREWORD);
    BarewordNode *b = reinterpret_cast<BarewordNode *>(*node);
    printd(5, "RootQoreNamespace::resolveSimpleConstant(%s, %d)\n", b->str, level);
 
@@ -1067,7 +1067,7 @@ int RootQoreNamespace::resolveSimpleConstant(AbstractQoreNode **node, int level)
 
 int RootQoreNamespace::resolveScopedConstant(AbstractQoreNode **node, int level) const
 {
-   assert(node && (*node)->type == NT_CONSTANT);
+   assert(node && (*node)->getType() == NT_CONSTANT);
    ConstantNode *c = reinterpret_cast<ConstantNode *>(*node);
    printd(5, "resolveScopedConstant(%s, %d)\n", c->scoped_ref->ostr, level);
 

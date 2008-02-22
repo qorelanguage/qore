@@ -192,7 +192,7 @@ static AbstractQoreNode *QOBJECT_dumpObjectTree(QoreObject *self, QoreAbstractQO
 //static AbstractQoreNode *QOBJECT_findChild(QoreObject *self, QoreAbstractQObject *qo, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
+//   if (!p || p->getType() != NT_STRING) {
 //      xsink->raiseException("QOBJECT-FINDCHILD-PARAM-ERROR", "expecting a string as first argument to QObject::findChild()");
 //      return 0;
 //   }
@@ -204,7 +204,7 @@ static AbstractQoreNode *QOBJECT_dumpObjectTree(QoreObject *self, QoreAbstractQO
 //static AbstractQoreNode *QOBJECT_findChildren(QoreObject *self, QoreAbstractQObject *qo, const QoreListNode *params, ExceptionSink *xsink)
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
-//   if (!p || p->type != NT_STRING) {
+//   if (!p || p->getType() != NT_STRING) {
 //      xsink->raiseException("QOBJECT-FINDCHILDREN-PARAM-ERROR", "expecting a string as first argument to QObject::findChildren()");
 //      return 0;
 //   }

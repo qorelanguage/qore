@@ -45,6 +45,9 @@ class AbstractFunctionReferenceNode : public AbstractQoreNode
        */
       DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
+   protected:
+      DLLLOCAL AbstractFunctionReferenceNode(bool n_there_can_be_only_one);
+
    public:
       DLLLOCAL AbstractFunctionReferenceNode();
       DLLLOCAL virtual ~AbstractFunctionReferenceNode();
@@ -84,6 +87,11 @@ class AbstractFunctionReferenceNode : public AbstractQoreNode
       DLLLOCAL virtual int integerEval(ExceptionSink *xsink) const;
       DLLLOCAL virtual bool boolEval(ExceptionSink *xsink) const;
       DLLLOCAL virtual double floatEval(ExceptionSink *xsink) const;
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "function reference";
+      }
 };
 
 //! base class for resolved call references
@@ -100,6 +108,8 @@ class ResolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
 //! an unresolved call reference, only present temporarily in the parse tree
 class UnresolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
 {
+   protected:
+
    public:
       char *str;
       
@@ -107,7 +117,6 @@ class UnresolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
       DLLLOCAL virtual ~UnresolvedFunctionReferenceNode();
       DLLLOCAL AbstractFunctionReferenceNode *resolve();
       DLLLOCAL void deref();
-      DLLLOCAL void deref(ExceptionSink *xsink);
 };
 
 //! a call reference to a user function
@@ -116,11 +125,13 @@ class UserFunctionReferenceNode : public ResolvedFunctionReferenceNode
       UserFunction *uf;
       QoreProgram *pgm;
 
+   protected:
+      DLLLOCAL virtual bool derefImpl(ExceptionSink *xsink);
+
    public:
       DLLLOCAL UserFunctionReferenceNode(class UserFunction *n_uf, class QoreProgram *n_pgm);
       DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
       DLLLOCAL virtual QoreProgram *getProgram() const;
-      DLLLOCAL virtual void deref(ExceptionSink *xsink);
 };
 
 //! a call reference to a user function from within the same QoreProgram object

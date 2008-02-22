@@ -36,7 +36,7 @@ class QoreClass *QC_QRegExpValidator = 0;
 static void QREGEXPVALIDATOR_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   if (p && p->type == NT_OBJECT) {
+   if (p && p->getType() == NT_OBJECT) {
       QoreQRegExp *rx = (QoreQRegExp *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QREGEXP, xsink);
       if (!rx) {
          QoreAbstractQObject *parent = (QoreAbstractQObject *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QOBJECT, xsink);

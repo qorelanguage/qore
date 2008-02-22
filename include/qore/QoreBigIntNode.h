@@ -26,12 +26,20 @@
 
 #include <qore/AbstractQoreNode.h>
 
+//! this class implements Qore's 64-bit integer data type, reference-counted, dynamically-allocated only
 class QoreBigIntNode : public SimpleQoreNode
 {
    private:
+      //! returns the value as a boolean
       DLLLOCAL virtual bool getAsBoolImpl() const;
+
+      //! returns the value as an integer
       DLLLOCAL virtual int getAsIntImpl() const;
+
+      //! returns the value as a 64-bit integer
       DLLLOCAL virtual int64 getAsBigIntImpl() const;
+
+      //! returns the value as a float
       DLLLOCAL virtual double getAsFloatImpl() const;
 
    protected:
@@ -40,46 +48,86 @@ class QoreBigIntNode : public SimpleQoreNode
    public:
       int64 val;
 
+      //! creates a new integer with the value 0
       DLLEXPORT QoreBigIntNode();
-      DLLEXPORT QoreBigIntNode(int64 v);
-      DLLEXPORT QoreBigIntNode(unsigned long v);
-      DLLEXPORT QoreBigIntNode(long v);
-      DLLEXPORT QoreBigIntNode(unsigned int v);
-      DLLEXPORT QoreBigIntNode(int v);
 
-      // get the value of the type in a string context (default implementation = del = false and returns NullString)
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
+      //! creates a new integer with the value of "v"
+      /**
+	 @param v the value of the integer
+       */
+      DLLEXPORT QoreBigIntNode(int64 v);
+
+      //! returns a string representing the integer and sets del to true
+      /** NOTE: do not call this function directly, use QoreStringValueHelper instead
+	  @param del output parameter: always sets del to false
+	  @see QoreStringValueHelper
+       */
       DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
-      // concatenate string representation to a QoreString (no action for complex types = default implementation)
+
+      //! concatentates the string representation of the integer to an existing QoreString reference
+      /**
+	 @param str a reference to a QoreString where the value of the type will be concatenated
+       */
       DLLEXPORT virtual void getStringRepresentation(QoreString &str) const;
 
-      // if del is true, then the returned DateTime * should be deleted, if false, then it should not
+      //! returns the DateTime representation of this integer (interpreted as an offset in seconds from January 1, 1970)
+      /** NOTE: Use the DateTimeValueHelper class instead of using this function directly
+	  @param del output parameter: if del is true, then the returned DateTime pointer belongs to the caller (and must be deleted manually), if false, then it must not be
+	  @see DateTimeValueHelper
+       */
       DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
-      // assign date representation to a DateTime (no action for complex types = default implementation)
+
+      //! assigns the date representation of this integer (interpreted as an offset in seconds from January 1, 1970) to the DateTime reference passed
+      /** 
+	  @param dt the DateTime reference to be assigned
+       */
       DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
+      //! concatenates the value of the integer to an existing QoreString
+      /** used for %n and %N printf formatting.  This implementation of the function never throws a Qore-language exception
+	  @param str the string representation of the type will be concatenated to this QoreString reference
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink is ignored
+	  @return always returns 0
+      */
       DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+
+      //! returns a QoreString representing the integer
+      /** used for %n and %N printf formatting
+	  @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink is ignored
+	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+	  @see QoreNodeAsStringHelper
+      */
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
-      // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
-      // the "val" passed
-      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
-      // the type passed must always be equal to the current type
+      //! tests for equality with the possibility of type conversion (soft compare)
+      /** this implementation of the function does not throw any Qore-language exceptions
+	  @param v the value to compare
+	  @param xsink is ignored in this version of the function
+       */
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
+      //! tests for equality without the possibility of type conversion (hard compare)
+      /** this implementation of the function does not throw any Qore-language exceptions
+	  @param v the value to compare
+	  @param xsink is ignored in this version of the function
+       */
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      // returns the data type
+      //! returns the data type
       DLLEXPORT virtual const QoreType *getType() const;
-      // returns the type name as a c string
+
+      //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
+
+      DLLLOCAL static const char *getStaticTypeName()
+      {
+	 return "integer";
+      }
 };
 
 #endif

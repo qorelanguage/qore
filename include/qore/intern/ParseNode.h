@@ -24,17 +24,17 @@
 
 #define _QORE_PARSENODE_H
 
-class ParseNode : public SimpleQoreNode
+class ParseNode : public UniqueQoreNode
 {
    private:
       // not implemented
       DLLLOCAL ParseNode& operator=(const ParseNode&);
 
    public:
-      DLLLOCAL ParseNode(const QoreType *t) : SimpleQoreNode(t)
+      DLLLOCAL ParseNode(const QoreType *t) : UniqueQoreNode(t)
       {
       }
-      DLLLOCAL ParseNode(const ParseNode &) : SimpleQoreNode(type)
+      DLLLOCAL ParseNode(const ParseNode &) : UniqueQoreNode(type)
       {
       }
       // parse types should never be copied
@@ -143,6 +143,7 @@ class ParseNoEvalNode : public ParseNode
 	 assert(false);
 	 return 0.0;
       }
+/*
       DLLLOCAL virtual void deref()
       {
 	 assert(is_unique());
@@ -153,6 +154,7 @@ class ParseNoEvalNode : public ParseNode
 	 assert(is_unique());
 	 delete this;
       }
+*/
 };
 
 #endif

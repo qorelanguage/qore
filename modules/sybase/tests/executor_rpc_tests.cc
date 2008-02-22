@@ -242,11 +242,11 @@ TEST()
     assert(false);
   }
   assert(res);
-  assert(res->type == NT_HASH);
+  assert(res->getType() == NT_HASH);
   assert(res->val.hash->size() == 1);
   AbstractQoreNode* n = res->val.hash->getKeyValue("sintparam");
   assert(n);
-  assert(n->type == NT_INT);
+  assert(n->getType() == NT_INT);
   assert(n->val.intval == 200);
 
   res->deref(&xsink);

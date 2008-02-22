@@ -33,6 +33,8 @@
 #  include "tests/Hash_tests.cc"
 #endif
 
+const char *qore_hash_type_name = "hash";
+
 // FIXME: use STL list instead
 // to maintain the order of inserts
 class HashMember {
@@ -77,7 +79,7 @@ AbstractQoreNode *QoreHashNode::realCopy() const
 // the type passed must always be equal to the current type
 bool QoreHashNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
-   if (!v || v->type != NT_HASH)
+   if (!v || v->getType() != NT_HASH)
       return false;
 
    return !compareSoft(reinterpret_cast<const QoreHashNode *>(v), xsink);
@@ -85,7 +87,7 @@ bool QoreHashNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink
 
 bool QoreHashNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
-   if (!v || v->type != NT_HASH)
+   if (!v || v->getType() != NT_HASH)
       return false;
 
    return !compareHard(reinterpret_cast<const QoreHashNode *>(v), xsink);
@@ -99,7 +101,7 @@ const QoreType *QoreHashNode::getType() const
 
 const char *QoreHashNode::getTypeName() const
 {
-   return "hash";
+   return qore_hash_type_name;
 }
 
 
@@ -531,14 +533,14 @@ AbstractQoreNode **QoreHashNode::getExistingValuePtr(const char *key)
    return NULL;
 }
 
-void QoreHashNode::deref_intern(ExceptionSink *xsink)
+bool QoreHashNode::derefImpl(ExceptionSink *xsink)
 {
-   //printd(5, "QoreHashNode::deref_intern() this=%08p member_list=%08p\n", this, member_list);
+   //printd(5, "QoreHashNode::derefImpl() this=%08p member_list=%08p\n", this, member_list);
    class HashMember *where = member_list;
    while (where)
    {
 #if 0
-      printd(5, "QoreHashNode::deref_intern() this=%08p %s=%08p type=%s references=%d\n", this,
+      printd(5, "QoreHashNode::derefImpl() this=%08p %s=%08p type=%s references=%d\n", this,
 	     where->key ? where->key : "(null)",
 	     where->node, where->node ? where->node->getTypeName() : "(null)",
 	     where->node ? where->node->reference_count() : 0);
@@ -554,20 +556,13 @@ void QoreHashNode::deref_intern(ExceptionSink *xsink)
 #ifdef DEBUG
    member_list = 0;
 #endif
-}
-
-void QoreHashNode::deref(ExceptionSink *xsink)
-{
-   if (ROdereference()) {
-      deref_intern(xsink);
-      delete this;
-   }
+   return true;
 }
 
 void QoreHashNode::clear(ExceptionSink *xsink)
 {
    assert(is_unique());
-   deref_intern(xsink);
+   derefImpl(xsink);
    member_list = 0;
    tail = 0;
    hm.clear();
@@ -589,7 +584,7 @@ void QoreHashNode::deleteKey(const char *key, ExceptionSink *xsink)
    // dereference node if present
    if (m->node)
    {
-      if (m->node->type == NT_OBJECT)
+      if (m->node->getType() == NT_OBJECT)
 	 reinterpret_cast<QoreObject *>(m->node)->doDelete(xsink);
       m->node->deref(xsink);
    }
@@ -664,7 +659,7 @@ int QoreHashNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
       str.sprintf("%s : ", hi.getKey());
 
       const AbstractQoreNode *n = hi.getValue();
-      if (!n) n = Nothing;
+      if (!n) n = &Nothing;
       if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
 	 return -1;
    }

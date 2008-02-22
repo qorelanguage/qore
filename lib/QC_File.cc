@@ -271,14 +271,14 @@ static AbstractQoreNode *FILE_readBinary(QoreObject *self, class File *f, const 
 static AbstractQoreNode *FILE_write(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   if (!p0 || (p0->type != NT_STRING && p0->type != NT_BINARY))
+   if (!p0 || (p0->getType() != NT_STRING && p0->getType() != NT_BINARY))
    {
       xsink->raiseException("FILE-WRITE-PARAMETER-ERROR", "expecting string or binary object to write as first parameter of File::write()");
       return NULL;
    }
 
    int rc;
-   if (p0->type == NT_STRING)
+   if (p0->getType() == NT_STRING)
       rc = f->write(reinterpret_cast<const QoreStringNode *>(p0), xsink);
    else
       rc = f->write(reinterpret_cast<const BinaryNode *>(p0), xsink);
