@@ -26,7 +26,7 @@
 
 #include <QBrush>
 
-DLLLOCAL extern QoreType *NT_BRUSHSTYLE;
+DLLLOCAL extern qore_type_t NT_BRUSHSTYLE;
 
 class BrushStyleNode : public SimpleValueQoreNode
 {
@@ -42,6 +42,7 @@ class BrushStyleNode : public SimpleValueQoreNode
       DLLLOCAL BrushStyleNode(Qt::BrushStyle v) : SimpleValueQoreNode(NT_BRUSHSTYLE), val(v)
       {
       }
+
       DLLLOCAL ~BrushStyleNode()
       {
       }
@@ -50,6 +51,7 @@ class BrushStyleNode : public SimpleValueQoreNode
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
       DLLLOCAL virtual QoreString *getStringRepresentation(bool &del) const;
+
       // concatenate string representation to a QoreString (no action for complex types = default implementation)
       DLLLOCAL virtual void getStringRepresentation(QoreString &str) const;
 
@@ -59,19 +61,16 @@ class BrushStyleNode : public SimpleValueQoreNode
       // the ExceptionSink is only needed for QoreObject where a method may be executed
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
       DLLLOCAL virtual class AbstractQoreNode *realCopy() const;
 
-      // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
-      // the "val" passed
-      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
       // the type passed must always be equal to the current type
       DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
       DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      // returns the data type
-      DLLLOCAL virtual qore_type_t getType() const;
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 

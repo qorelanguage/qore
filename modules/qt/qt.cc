@@ -179,8 +179,6 @@
 
 #include <assert.h>
 
-QoreType *NT_BRUSHSTYLE = 0, *NT_PENSTYLE = 0;
-
 AbstractQoreNode *C_Clipboard = 0;
 
 static class QoreStringNode *qt_module_init();

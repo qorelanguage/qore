@@ -27,6 +27,8 @@
 
 static qt_enum_map_t psmap;
 
+qore_type_t NT_PENSTYLE = -1;
+
 // get the value of the type in a string context (default implementation = del = false and returns NullString)
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
@@ -109,12 +111,6 @@ bool PenStyleNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink
    return ps->val == val;
 }
 
-// returns the data type
-qore_type_t PenStyleNode::getType() const
-{
-   return NT_PENSTYLE;
-}
-
 // returns the type name as a c string
 const char *PenStyleNode::getTypeName() const
 {
@@ -133,6 +129,5 @@ void addPenStyleType()
    psmap[(int)Qt::CustomDashLine] = "CustomDashLine";
 
    // add types for enums
-   NT_PENSTYLE = new QoreType();
-   QTM.add(NT_PENSTYLE);
+   NT_PENSTYLE = get_next_type_id();
 }

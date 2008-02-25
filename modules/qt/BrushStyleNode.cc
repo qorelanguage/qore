@@ -27,6 +27,8 @@
 
 static qt_enum_map_t bsmap;
 
+qore_type_t NT_BRUSHSTYLE = -1;
+
 // get the value of the type in a string context (default implementation = del = false and returns NullString)
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
@@ -109,12 +111,6 @@ bool BrushStyleNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsi
    return ps->val == val;
 }
 
-// returns the data type
-qore_type_t BrushStyleNode::getType() const
-{
-   return NT_BRUSHSTYLE;
-}
-
 // returns the type name as a c string
 const char *BrushStyleNode::getTypeName() const
 {
@@ -145,7 +141,5 @@ void addBrushStyleType()
    bsmap[(int)Qt::TexturePattern] = "TexturePattern";  
 
    // add types for enums
-   NT_BRUSHSTYLE = new QoreType();
-
-   QTM.add(NT_BRUSHSTYLE);
+   NT_BRUSHSTYLE = get_next_type_id();
 }
