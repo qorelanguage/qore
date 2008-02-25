@@ -50,7 +50,7 @@ static void QTRANSLATOR_copy(class QoreObject *self, class QoreObject *old, clas
 //virtual bool isEmpty () const
 static AbstractQoreNode *QTRANSLATOR_isEmpty(QoreObject *self, QoreQTranslator *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qt->qobj->isEmpty());
+   return get_bool_node(qt->qobj->isEmpty());
 }
 
 //bool load ( const QString & filename, const QString & directory = QString(), const QString & search_delimiters = QString(), const QString & suffix = QString() )
@@ -72,7 +72,7 @@ static AbstractQoreNode *QTRANSLATOR_load(QoreObject *self, QoreQTranslator *qt,
    QString suffix;
    if (get_qstring(p, suffix, xsink, true))
       suffix = QString();
-   return new QoreBoolNode(qt->qobj->load(filename, directory, search_delimiters, suffix));
+   return get_bool_node(qt->qobj->load(filename, directory, search_delimiters, suffix));
 }
 
 //virtual QString translate ( const char * context, const char * sourceText, const char * comment = 0 ) const

@@ -92,7 +92,7 @@ static AbstractQoreNode *QMODELINDEX_internalId(QoreObject *self, QoreQModelInde
 //bool isValid () const
 static AbstractQoreNode *QMODELINDEX_isValid(QoreObject *self, QoreQModelIndex *qmi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qmi->isValid());
+   return get_bool_node(qmi->isValid());
 }
 
 //const QAbstractItemModel * model () const

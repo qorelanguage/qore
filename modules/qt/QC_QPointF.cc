@@ -67,7 +67,7 @@ static void QPOINTF_copy(class QoreObject *self, class QoreObject *old, class Qo
 //bool isNull () const
 static AbstractQoreNode *QPOINTF_isNull(QoreObject *self, QoreQPointF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpf->isNull());
+   return get_bool_node(qpf->isNull());
 }
 
 ////qreal & rx ()

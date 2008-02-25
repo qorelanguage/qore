@@ -156,7 +156,7 @@ static AbstractQoreNode *QSCROLLAREA_widget(QoreObject *self, QoreQScrollArea *q
 //bool widgetResizable () const
 static AbstractQoreNode *QSCROLLAREA_widgetResizable(QoreObject *self, QoreQScrollArea *qsa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qsa->qobj->widgetResizable());
+   return get_bool_node(qsa->qobj->widgetResizable());
 }
 
 QoreClass *initQScrollAreaClass(QoreClass *qabstractscrollarea)

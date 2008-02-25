@@ -118,7 +118,7 @@ static AbstractQoreNode *QRECTF_bottom(QoreObject *self, QoreQRectF *qrf, const 
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPointF point = p;
-//   return new QoreBoolNode(qrf->contains(point));
+//   return get_bool_node(qrf->contains(point));
 //}
 
 //bool contains ( const QRectF & rectangle ) const
@@ -136,13 +136,13 @@ static AbstractQoreNode *QRECTF_contains(QoreObject *self, QoreQRectF *qrf, cons
       }
 
       ReferenceHolder<QoreQRectF> holder(rectangle, xsink);
-      return new QoreBoolNode(qrf->contains(*((QRectF *)rectangle)));
+      return get_bool_node(qrf->contains(*((QRectF *)rectangle)));
    }
 
    float x = p ? p->getAsFloat() : 0;
    p = get_param(params, 1);
    float y = p ? p->getAsFloat() : 0;
-   return new QoreBoolNode(qrf->contains(x, y));
+   return get_bool_node(qrf->contains(x, y));
 }
 
 //void getCoords ( qreal * x1, qreal * y1, qreal * x2, qreal * y2 ) const
@@ -212,25 +212,25 @@ static AbstractQoreNode *QRECTF_intersects(QoreObject *self, QoreQRectF *qrf, co
       return 0;
    }
    ReferenceHolder<QoreQRectF> holder(rectangle, xsink);
-   return new QoreBoolNode(qrf->intersects(*((QRectF *)rectangle)));
+   return get_bool_node(qrf->intersects(*((QRectF *)rectangle)));
 }
 
 //bool isEmpty () const
 static AbstractQoreNode *QRECTF_isEmpty(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qrf->isEmpty());
+   return get_bool_node(qrf->isEmpty());
 }
 
 //bool isNull () const
 static AbstractQoreNode *QRECTF_isNull(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qrf->isNull());
+   return get_bool_node(qrf->isNull());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QRECTF_isValid(QoreObject *self, QoreQRectF *qrf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qrf->isValid());
+   return get_bool_node(qrf->isValid());
 }
 
 //qreal left () const

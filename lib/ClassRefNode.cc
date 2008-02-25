@@ -53,7 +53,7 @@ QoreString *ClassRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 }
 
 // returns the data type
-const QoreType *ClassRefNode::getType() const
+qore_type_t ClassRefNode::getType() const
 {
    return NT_CLASSREF;
 }

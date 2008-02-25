@@ -75,7 +75,7 @@ static AbstractQoreNode *f_QInputDialog_getDouble(const QoreListNode *params, Ex
 
       if (*vp)
 	 (*vp)->deref(xsink);
-      (*vp) = new QoreBoolNode(ok);
+      (*vp) = get_bool_node(ok);
    }
 
    return new QoreFloatNode(rv);
@@ -131,7 +131,7 @@ static AbstractQoreNode *f_QInputDialog_getInteger(const QoreListNode *params, E
 
       if (*vp)
 	 (*vp)->deref(xsink);
-      (*vp) = new QoreBoolNode(ok);
+      (*vp) = get_bool_node(ok);
    }
 
    return new QoreBigIntNode(rv);
@@ -196,7 +196,7 @@ static AbstractQoreNode *f_QInputDialog_getItem(const QoreListNode *params, Exce
 
       if (*vp)
 	 (*vp)->deref(xsink);
-      (*vp) = new QoreBoolNode(ok);
+      (*vp) = get_bool_node(ok);
    }
 
    return new QoreStringNode(rv.toUtf8().data(), QCS_UTF8);
@@ -247,7 +247,7 @@ static AbstractQoreNode *f_QInputDialog_getText(const QoreListNode *params, Exce
 
       if (*vp)
 	 (*vp)->deref(xsink);
-      (*vp) = new QoreBoolNode(ok);
+      (*vp) = get_bool_node(ok);
    }
 
    return new QoreStringNode(rv.toUtf8().data(), QCS_UTF8);

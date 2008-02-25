@@ -147,7 +147,7 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
 	 continue;
       }
       
-      const QoreType *ntype = val ? val->getType() : 0;
+      qore_type_t ntype = val ? val->getType() : 0;
       if (ntype == NT_STRING)
       {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(val);
@@ -216,7 +216,7 @@ int command::set_params(sybase_query &query, const QoreListNode *args, Exception
 
       if (ntype == NT_BOOLEAN)
       {
-	 CS_BIT bval = reinterpret_cast<const QoreBoolNode *>(val)->b;
+	 CS_BIT bval = reinterpret_cast<const QoreBoolNode *>(val)->getValue();
 	 datafmt.datatype = CS_BIT_TYPE;
 	 err = ct_param(m_cmd, &datafmt, &bval, sizeof(val), 0);
 	 if (err != CS_SUCCEED) {
@@ -699,7 +699,7 @@ class AbstractQoreNode *command::get_node(const CS_DATAFMT& datafmt, const outpu
     case CS_BIT_TYPE:
     {
       CS_BIT* value = (CS_BIT*)(buffer.value);
-      return new QoreBoolNode(*value != 0);
+      return get_bool_node(*value != 0);
     }
 
     case CS_DATETIME_TYPE:

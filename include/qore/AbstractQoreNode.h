@@ -37,8 +37,6 @@
 
 class QoreString;
 
-// FIXME: include an "is_scalar" bit to avoid calling bitIntEvalImpl(), etc when the value type is not a scalar
-
 //! The base class for all value and parse types in Qore expression trees
 /**
    Defines the interface for all value and parse types in Qore expression trees.  Default implementations are given for most virtual functions.
@@ -126,16 +124,16 @@ class AbstractQoreNode : public QoreReferenceCounter
       /**
 	 instead of using a virtual method to return a default type code for each implemented type, it's stored as an attribute of the base class.  This makes it possible to avoid making virtual function calls as a performance optimization in many cases, also it allows very fast type determination without makiing either a virtual function call or using dynamic_cast<> at the epense of more memory usage
        */
-      const QoreType *type;
+      qore_type_t type : 10;
 
       //! this is true for values, if false then either the type needs evaluation to produce a value or is a parse expression
-      bool value;
+      bool value : 1;
 
       //! if this is true then the type can be evaluated
-      bool needs_eval_flag;
+      bool needs_eval_flag : 1;
 
       //! if this is set to true, then reference counting is turned off for objects of this class
-      bool there_can_be_only_one;
+      bool there_can_be_only_one : 1;
 
       //! default destructor does nothing
       /**
@@ -149,7 +147,7 @@ class AbstractQoreNode : public QoreReferenceCounter
 	  @param t the Qore type code identifying this class in the Qore type system
 	  @param n_there_can_be_only_one whereas this type is normally reference counted, if this is set to true, then referencing counting is turned off for this type.  This can only be turned on when the type represents a single value.
        */
-      DLLEXPORT AbstractQoreNode(const QoreType *t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false);
+      DLLEXPORT AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false);
 
       //! returns the boolean value of the object
       /**
@@ -247,7 +245,7 @@ class AbstractQoreNode : public QoreReferenceCounter
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const = 0;
 
       //! returns the data type
-      DLLLOCAL const QoreType *getType() const
+      DLLLOCAL qore_type_t getType() const
       {
 	 return type;
       }
@@ -339,7 +337,7 @@ class SimpleQoreNode : public AbstractQoreNode
 
    public:
       //! constructor takes the type and value arguments
-      DLLLOCAL SimpleQoreNode(const QoreType *t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false) : AbstractQoreNode(t, n_value, n_needs_eval, n_there_can_be_only_one)
+      DLLLOCAL SimpleQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false) : AbstractQoreNode(t, n_value, n_needs_eval, n_there_can_be_only_one)
       {
       }
 
@@ -364,7 +362,7 @@ class UniqueQoreNode : public AbstractQoreNode
 
    public:
       //! constructor takes the type argument
-      DLLLOCAL UniqueQoreNode(const QoreType *t, bool value, bool needs_eval) : AbstractQoreNode(t, value, needs_eval, true)
+      DLLLOCAL UniqueQoreNode(qore_type_t t, bool value, bool needs_eval) : AbstractQoreNode(t, value, needs_eval, true)
       {
       }
 
@@ -392,7 +390,7 @@ class SimpleValueQoreNode : public SimpleQoreNode
       DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
    public:
-      DLLLOCAL SimpleValueQoreNode(const QoreType *t, bool n_there_can_be_only_one = false) : SimpleQoreNode(t, true, false, n_there_can_be_only_one)
+      DLLLOCAL SimpleValueQoreNode(qore_type_t t, bool n_there_can_be_only_one = false) : SimpleQoreNode(t, true, false, n_there_can_be_only_one)
       {
       }
 };
@@ -409,7 +407,7 @@ class UniqueValueQoreNode : public UniqueQoreNode
 
    public:
       //! constructor takes the type argument
-      DLLLOCAL UniqueValueQoreNode(const QoreType *t) : UniqueQoreNode(t, true, false)
+      DLLLOCAL UniqueValueQoreNode(qore_type_t t) : UniqueQoreNode(t, true, false)
       {
       }
 

@@ -107,7 +107,7 @@ static AbstractQoreNode *QFILEINFO_bundleName(QoreObject *self, QoreQFileInfo *q
 //bool caching () const
 static AbstractQoreNode *QFILEINFO_caching(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->caching());
+   return get_bool_node(qfi->caching());
 }
 
 //QString canonicalFilePath () const
@@ -155,7 +155,7 @@ static AbstractQoreNode *QFILEINFO_dir(QoreObject *self, QoreQFileInfo *qfi, con
 //bool exists () const
 static AbstractQoreNode *QFILEINFO_exists(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->exists());
+   return get_bool_node(qfi->exists());
 }
 
 //QString fileName () const
@@ -185,67 +185,67 @@ static AbstractQoreNode *QFILEINFO_groupId(QoreObject *self, QoreQFileInfo *qfi,
 //bool isAbsolute () const
 static AbstractQoreNode *QFILEINFO_isAbsolute(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isAbsolute());
+   return get_bool_node(qfi->isAbsolute());
 }
 
 //bool isBundle () const
 static AbstractQoreNode *QFILEINFO_isBundle(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isBundle());
+   return get_bool_node(qfi->isBundle());
 }
 
 //bool isDir () const
 static AbstractQoreNode *QFILEINFO_isDir(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isDir());
+   return get_bool_node(qfi->isDir());
 }
 
 //bool isExecutable () const
 static AbstractQoreNode *QFILEINFO_isExecutable(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isExecutable());
+   return get_bool_node(qfi->isExecutable());
 }
 
 //bool isFile () const
 static AbstractQoreNode *QFILEINFO_isFile(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isFile());
+   return get_bool_node(qfi->isFile());
 }
 
 //bool isHidden () const
 static AbstractQoreNode *QFILEINFO_isHidden(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isHidden());
+   return get_bool_node(qfi->isHidden());
 }
 
 //bool isReadable () const
 static AbstractQoreNode *QFILEINFO_isReadable(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isReadable());
+   return get_bool_node(qfi->isReadable());
 }
 
 //bool isRelative () const
 static AbstractQoreNode *QFILEINFO_isRelative(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isRelative());
+   return get_bool_node(qfi->isRelative());
 }
 
 //bool isRoot () const
 static AbstractQoreNode *QFILEINFO_isRoot(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isRoot());
+   return get_bool_node(qfi->isRoot());
 }
 
 //bool isSymLink () const
 static AbstractQoreNode *QFILEINFO_isSymLink(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isSymLink());
+   return get_bool_node(qfi->isSymLink());
 }
 
 //bool isWritable () const
 static AbstractQoreNode *QFILEINFO_isWritable(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->isWritable());
+   return get_bool_node(qfi->isWritable());
 }
 
 //QDateTime lastModified () const
@@ -269,7 +269,7 @@ static AbstractQoreNode *QFILEINFO_lastRead(QoreObject *self, QoreQFileInfo *qfi
 //bool makeAbsolute ()
 static AbstractQoreNode *QFILEINFO_makeAbsolute(QoreObject *self, QoreQFileInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->makeAbsolute());
+   return get_bool_node(qfi->makeAbsolute());
 }
 
 //QString owner () const
@@ -295,7 +295,7 @@ static AbstractQoreNode *QFILEINFO_permission(QoreObject *self, QoreQFileInfo *q
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QFile::Permissions permissions = (QFile::Permissions)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qfi->permission(permissions));
+   return get_bool_node(qfi->permission(permissions));
 }
 
 //QFile::Permissions permissions () const

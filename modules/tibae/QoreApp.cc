@@ -285,7 +285,7 @@ MData *QoreApp::do_primitive_type(const MPrimitiveClassDescription *pcd, const A
    if (!v)
       return NULL;
 
-   const QoreType *ntype = v->getType();
+   qore_type_t ntype = v->getType();
 
    if (ntype == NT_HASH) {
       const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(v);

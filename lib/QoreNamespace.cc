@@ -990,7 +990,7 @@ int RootQoreNamespace::parseInitConstantValue(AbstractQoreNode **val, int level)
 
    while (true)
    {
-      const QoreType *vtype = (*val)->getType();
+      qore_type_t vtype = (*val)->getType();
       if (vtype == NT_BAREWORD)
       {
 	 if (resolveSimpleConstant(val, level + 1))
@@ -1005,7 +1005,7 @@ int RootQoreNamespace::parseInitConstantValue(AbstractQoreNode **val, int level)
 	 break;
    }
 
-   const QoreType *vtype = (*val)->getType();
+   qore_type_t vtype = (*val)->getType();
    if (vtype == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
       for (int i = 0; i < l->size(); i++)

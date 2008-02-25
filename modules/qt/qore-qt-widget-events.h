@@ -541,7 +541,7 @@ class T {
 	 
 	 ExceptionSink xsink;
 	 ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
-	 args->push(new QoreBoolNode(visible));
+	 args->push(get_bool_node(visible));
 
 	 discard(dispatch_event_intern(qore_obj, p_setVisible, *args, &xsink), &xsink);
       }

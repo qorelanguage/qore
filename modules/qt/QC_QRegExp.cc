@@ -92,7 +92,7 @@ static AbstractQoreNode *QREGEXP_exactMatch(QoreObject *self, QoreQRegExp *qre, 
    QString str;
    if (get_qstring(p, str, xsink))
       return 0;
-   return new QoreBoolNode(qre->exactMatch(str));
+   return get_bool_node(qre->exactMatch(str));
 }
 
 //int indexIn ( const QString & str, int offset = 0, CaretMode caretMode = CaretAtZero ) const
@@ -112,19 +112,19 @@ static AbstractQoreNode *QREGEXP_indexIn(QoreObject *self, QoreQRegExp *qre, con
 //bool isEmpty () const
 static AbstractQoreNode *QREGEXP_isEmpty(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qre->isEmpty());
+   return get_bool_node(qre->isEmpty());
 }
 
 //bool isMinimal () const
 static AbstractQoreNode *QREGEXP_isMinimal(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qre->isMinimal());
+   return get_bool_node(qre->isMinimal());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QREGEXP_isValid(QoreObject *self, QoreQRegExp *qre, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qre->isValid());
+   return get_bool_node(qre->isValid());
 }
 
 //int lastIndexIn ( const QString & str, int offset = -1, CaretMode caretMode = CaretAtZero ) const

@@ -225,7 +225,7 @@ static AbstractQoreNode *QBOXLAYOUT_setStretchFactor(QoreObject *self, QoreAbstr
       QoreAbstractQLayout *layout = o ? (QoreAbstractQLayout *)o->getReferencedPrivateData(CID_QLAYOUT, xsink) : 0;
       if (layout) {
 	 ReferenceHolder<QoreAbstractQLayout> holder(layout, xsink);
-	 return new QoreBoolNode(qbl->getQBoxLayout()->setStretchFactor(layout->getQLayout(), stretch));
+	 return get_bool_node(qbl->getQBoxLayout()->setStretchFactor(layout->getQLayout(), stretch));
       }
    }
 
@@ -236,7 +236,7 @@ static AbstractQoreNode *QBOXLAYOUT_setStretchFactor(QoreObject *self, QoreAbstr
       return 0;
    }
    ReferenceHolder<QoreAbstractQWidget> holder(widget, xsink);
-   return new QoreBoolNode(qbl->getQBoxLayout()->setStretchFactor(widget->getQWidget(), stretch));
+   return get_bool_node(qbl->getQBoxLayout()->setStretchFactor(widget->getQWidget(), stretch));
 }
 
 //int spacing () const

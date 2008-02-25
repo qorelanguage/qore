@@ -138,13 +138,13 @@ static AbstractQoreNode *QDATE_daysTo(QoreObject *self, QoreQDate *qd, const Qor
 //bool isNull () const
 static AbstractQoreNode *QDATE_isNull(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qd->isNull());
+   return get_bool_node(qd->isNull());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QDATE_isValid(QoreObject *self, QoreQDate *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qd->isValid());
+   return get_bool_node(qd->isValid());
 }
 
 //int month () const
@@ -162,7 +162,7 @@ static AbstractQoreNode *QDATE_setDate(QoreObject *self, QoreQDate *qd, const Qo
    int month = p ? p->getAsInt() : 0;
    p = get_param(params, 2);
    int day = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qd->setDate(year, month, day));
+   return get_bool_node(qd->setDate(year, month, day));
 }
 
 //int toJulianDay () const

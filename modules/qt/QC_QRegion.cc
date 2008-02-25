@@ -104,7 +104,7 @@ static AbstractQoreNode *QREGION_boundingRect(QoreObject *self, QoreQRegion *qr,
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QPoint p = p;
-//   return new QoreBoolNode(qr->contains(p));
+//   return get_bool_node(qr->contains(p));
 //}
 
 //bool contains ( const QRect & r ) const
@@ -119,7 +119,7 @@ static AbstractQoreNode *QREGION_contains(QoreObject *self, QoreQRegion *qr, con
       return 0;
    }
    ReferenceHolder<QoreQRect> holder(r, xsink);
-   return new QoreBoolNode(qr->contains(*((QRect *)r)));
+   return get_bool_node(qr->contains(*((QRect *)r)));
 }
 
 //Handle handle () const
@@ -162,16 +162,16 @@ static AbstractQoreNode *QREGION_intersects(QoreObject *self, QoreQRegion *qr, c
 	 return 0;
       }
       ReferenceHolder<QoreQRect> holder(rect, xsink);
-      return new QoreBoolNode(qr->intersects(*((QRect *)rect)));
+      return get_bool_node(qr->intersects(*((QRect *)rect)));
    }
    ReferenceHolder<QoreQRegion> holder(region, xsink);
-   return new QoreBoolNode(qr->intersects(*((QRegion *)region)));
+   return get_bool_node(qr->intersects(*((QRegion *)region)));
 }
 
 //bool isEmpty () const
 static AbstractQoreNode *QREGION_isEmpty(QoreObject *self, QoreQRegion *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qr->isEmpty());
+   return get_bool_node(qr->isEmpty());
 }
 
 //QVector<QRect> rects () const

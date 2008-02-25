@@ -90,7 +90,7 @@ QoreString *RegexSubstNode::getAsString(bool &del, int foff, ExceptionSink *xsin
 }
 
 // returns the data type
-const QoreType *RegexSubstNode::getType() const
+qore_type_t RegexSubstNode::getType() const
 {
    return NT_REGEX_SUBST;
 }

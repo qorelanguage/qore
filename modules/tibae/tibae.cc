@@ -141,7 +141,7 @@ class AbstractQoreNode *map_mdata_to_node(MData *md, ExceptionSink *xsink)
    
    const MBool *mb;
    if ((mb = MBool::downCast(md)))
-      return new QoreBoolNode((bool)mb->getAsBoolean());
+      return get_bool_node((bool)mb->getAsBoolean());
 
    const MBinary *mbin;
    if ((mbin = MBinary::downCast(md)))

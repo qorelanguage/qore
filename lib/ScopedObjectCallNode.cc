@@ -56,7 +56,7 @@ QoreString *ScopedObjectCallNode::getAsString(bool &del, int foff, ExceptionSink
 }
 
 // returns the data type
-const QoreType *ScopedObjectCallNode::getType() const
+qore_type_t ScopedObjectCallNode::getType() const
 {
    return NT_SCOPE_REF;
 }

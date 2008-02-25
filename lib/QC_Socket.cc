@@ -103,7 +103,7 @@ static AbstractQoreNode *SOCKET_bind(QoreObject *self, class mySocket *s, const 
    const AbstractQoreNode *p0, *p1;
    // if parameters are not correct
    p0 = get_param(params, 0);
-   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   qore_type_t p0_type = p0 ? p0->getType() : 0;
    if (!p0 || (p0_type != NT_STRING && p0_type != NT_INT))
    {
       xsink->raiseException("SOCKET-BIND-PARAMETER-ERROR", "no parameter passed to Socket::bind() call, expecing string for UNIX socket ('path/file') or int for INET socket (port number)");
@@ -777,12 +777,12 @@ static AbstractQoreNode *SOCKET_getCharset(QoreObject *self, class mySocket *s, 
 static AbstractQoreNode *SOCKET_isDataAvailable(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   return new QoreBoolNode(s->isDataAvailable(p0 ? p0->getAsInt() : 0));
+   return get_bool_node(s->isDataAvailable(p0 ? p0->getAsInt() : 0));
 }
 
 static AbstractQoreNode *SOCKET_isOpen(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(s->isOpen());
+   return get_bool_node(s->isOpen());
 }
 
 static AbstractQoreNode *SOCKET_getSSLCipherName(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
@@ -805,7 +805,7 @@ static AbstractQoreNode *SOCKET_getSSLCipherVersion(QoreObject *self, class mySo
 
 static AbstractQoreNode *SOCKET_isSecure(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(s->isSecure());
+   return get_bool_node(s->isSecure());
 }
 
 static AbstractQoreNode *SOCKET_verifyPeerCertificate(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
@@ -820,7 +820,7 @@ static AbstractQoreNode *SOCKET_setCertificate(QoreObject *self, class mySocket 
    const AbstractQoreNode *p0 = get_param(params, 0);
    class QoreSSLCertificate *cert;
    
-   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   qore_type_t p0_type = p0 ? p0->getType() : 0;
    if (p0_type == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p0);
       // try and create object
@@ -852,7 +852,7 @@ static AbstractQoreNode *SOCKET_setPrivateKey(QoreObject *self, class mySocket *
    // first check parameters
    const AbstractQoreNode *p0 = get_param(params, 0);
    QoreSSLPrivateKey *pk;
-   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   qore_type_t p0_type = p0 ? p0->getType() : 0;
    if (p0_type == NT_STRING) {
       // get passphrase if present
       const QoreStringNode *p1 = test_string_param(params, 1);

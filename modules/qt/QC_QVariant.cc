@@ -238,7 +238,7 @@ static AbstractQoreNode *QVARIANT_canConvert(QoreObject *self, QoreQVariant *qv,
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QVariant::Type t = (QVariant::Type)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qv->canConvert(t));
+   return get_bool_node(qv->canConvert(t));
 }
 
 //void clear ()
@@ -253,7 +253,7 @@ static AbstractQoreNode *QVARIANT_convert(QoreObject *self, QoreQVariant *qv, co
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QVariant::Type t = (QVariant::Type)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qv->convert(t));
+   return get_bool_node(qv->convert(t));
 }
 
 ////DataPtr & data_ptr ()
@@ -265,13 +265,13 @@ static AbstractQoreNode *QVARIANT_convert(QoreObject *self, QoreQVariant *qv, co
 //bool isNull () const
 static AbstractQoreNode *QVARIANT_isNull(QoreObject *self, QoreQVariant *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qv->isNull());
+   return get_bool_node(qv->isNull());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QVARIANT_isValid(QoreObject *self, QoreQVariant *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qv->isValid());
+   return get_bool_node(qv->isValid());
 }
 
 ////void setValue ( const T & value )
@@ -292,7 +292,7 @@ static AbstractQoreNode *QVARIANT_isValid(QoreObject *self, QoreQVariant *qv, co
 //bool toBool () const
 static AbstractQoreNode *QVARIANT_toBool(QoreObject *self, QoreQVariant *qv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qv->toBool());
+   return get_bool_node(qv->toBool());
 }
 
 //QByteArray toByteArray () const

@@ -255,7 +255,7 @@ static AbstractQoreNode* TIBAE_operationsCallWithSyncResult(QoreObject* self, Qo
   
    int next_item = 3;
    const AbstractQoreNode* n = get_param(params, 3);
-   const QoreType *ntype = n ? n->getType() : 0;
+   qore_type_t ntype = n ? n->getType() : 0;
    if (ntype == NT_INT) {
       timeout = (unsigned)(reinterpret_cast<const QoreBigIntNode *>(n)->val);
       ++next_item;
@@ -332,7 +332,7 @@ static AbstractQoreNode* TIBAE_operationsAsyncCall(QoreObject* self, QoreApp* my
 
    int next_item = 3;
    const AbstractQoreNode *n = get_param(params, 3);
-   const QoreType *ntype = n ? n->getType() : 0;
+   qore_type_t ntype = n ? n->getType() : 0;
    if (ntype == NT_INT) {
       timeout = (unsigned)(reinterpret_cast<const QoreBigIntNode *>(n)->val);
       ++next_item;

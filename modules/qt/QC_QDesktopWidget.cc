@@ -80,7 +80,7 @@ static AbstractQoreNode *QDESKTOPWIDGET_availableGeometry(QoreObject *self, Qore
 //bool isVirtualDesktop () const
 static AbstractQoreNode *QDESKTOPWIDGET_isVirtualDesktop(QoreObject *self, QoreQDesktopWidget *qdw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qdw->qobj->isVirtualDesktop());
+   return get_bool_node(qdw->qobj->isVirtualDesktop());
 }
 
 //int numScreens () const

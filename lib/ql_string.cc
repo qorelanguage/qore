@@ -420,7 +420,7 @@ static AbstractQoreNode *f_regex(const QoreListNode *params, ExceptionSink *xsin
    if (*xsink)
       return NULL;
 
-   return new QoreBoolNode(qr.exec(p0, xsink));
+   return get_bool_node(qr.exec(p0, xsink));
 }
 
 // syntax: regex_subst(string, pattern, substitution_pattern, options)
@@ -554,7 +554,7 @@ static AbstractQoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsin
    if (!p)
       return 0;
 
-   const QoreType *ptype = p->getType();
+   qore_type_t ptype = p->getType();
    if (ptype == NT_STRING) {
       const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p);
       QoreStringNode *str = pstr->copy();
@@ -588,7 +588,7 @@ static AbstractQoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink
    const QoreStringNode *p1 = test_string_param(params, 1);
    const char *chars = p1 ? p1->getBuffer() : 0;
 
-   const QoreType *p0_type = p0->getType();
+   qore_type_t p0_type = p0->getType();
 
    if (p0_type == NT_STRING) {
       const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p0);

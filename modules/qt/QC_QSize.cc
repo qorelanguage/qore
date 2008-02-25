@@ -95,19 +95,19 @@ static AbstractQoreNode *QSIZE_height(QoreObject *self, QoreQSize *qs, const Qor
 //bool isEmpty () const
 static AbstractQoreNode *QSIZE_isEmpty(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qs->isEmpty());
+   return get_bool_node(qs->isEmpty());
 }
 
 //bool isNull () const
 static AbstractQoreNode *QSIZE_isNull(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qs->isNull());
+   return get_bool_node(qs->isNull());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QSIZE_isValid(QoreObject *self, QoreQSize *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qs->isValid());
+   return get_bool_node(qs->isValid());
 }
 
 //int & rheight ()

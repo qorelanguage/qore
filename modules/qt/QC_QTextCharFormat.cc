@@ -74,19 +74,19 @@ static AbstractQoreNode *QTEXTCHARFORMAT_fontFamily(QoreObject *self, QoreQTextC
 //bool fontFixedPitch () const
 static AbstractQoreNode *QTEXTCHARFORMAT_fontFixedPitch(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtcf->fontFixedPitch());
+   return get_bool_node(qtcf->fontFixedPitch());
 }
 
 //bool fontItalic () const
 static AbstractQoreNode *QTEXTCHARFORMAT_fontItalic(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtcf->fontItalic());
+   return get_bool_node(qtcf->fontItalic());
 }
 
 //bool fontOverline () const
 static AbstractQoreNode *QTEXTCHARFORMAT_fontOverline(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtcf->fontOverline());
+   return get_bool_node(qtcf->fontOverline());
 }
 
 //qreal fontPointSize () const
@@ -98,13 +98,13 @@ static AbstractQoreNode *QTEXTCHARFORMAT_fontPointSize(QoreObject *self, QoreQTe
 //bool fontStrikeOut () const
 static AbstractQoreNode *QTEXTCHARFORMAT_fontStrikeOut(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtcf->fontStrikeOut());
+   return get_bool_node(qtcf->fontStrikeOut());
 }
 
 //bool fontUnderline () const
 static AbstractQoreNode *QTEXTCHARFORMAT_fontUnderline(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtcf->fontUnderline());
+   return get_bool_node(qtcf->fontUnderline());
 }
 
 //int fontWeight () const
@@ -116,13 +116,13 @@ static AbstractQoreNode *QTEXTCHARFORMAT_fontWeight(QoreObject *self, QoreQTextC
 //bool isAnchor () const
 static AbstractQoreNode *QTEXTCHARFORMAT_isAnchor(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtcf->isAnchor());
+   return get_bool_node(qtcf->isAnchor());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QTEXTCHARFORMAT_isValid(QoreObject *self, QoreQTextCharFormat *qtcf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtcf->isValid());
+   return get_bool_node(qtcf->isValid());
 }
 
 //void setAnchor ( bool anchor )

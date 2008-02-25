@@ -340,7 +340,7 @@ class BGThreadParams {
 	 // get and reference the current stack object, if any, for the new call stack
 	 callobj = getStackObject();
 
-	 const QoreType *fctype = fc->getType();
+	 qore_type_t fctype = fc->getType();
 	 if (callobj && fctype == NT_FUNCTION_CALL && reinterpret_cast<FunctionCallNode *>(fc)->getFunctionType() == FC_SELF)
 	 {
 	    // we reference the object so it won't go out of scope while the thread is running

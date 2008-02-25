@@ -90,7 +90,7 @@ static AbstractQoreNode *QLABEL_alignment(QoreObject *self, QoreQLabel *ql, cons
 //bool hasScaledContents () const
 static AbstractQoreNode *QLABEL_hasScaledContents(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(ql->qobj->hasScaledContents());
+   return get_bool_node(ql->qobj->hasScaledContents());
 }
 
 //int indent () const
@@ -122,7 +122,7 @@ static AbstractQoreNode *QLABEL_movie(QoreObject *self, QoreQLabel *ql, const Qo
 //bool openExternalLinks () const
 static AbstractQoreNode *QLABEL_openExternalLinks(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(ql->qobj->openExternalLinks());
+   return get_bool_node(ql->qobj->openExternalLinks());
 }
 
 //const QPicture * picture () const
@@ -251,7 +251,7 @@ static AbstractQoreNode *QLABEL_textInteractionFlags(QoreObject *self, QoreQLabe
 //bool wordWrap () const
 static AbstractQoreNode *QLABEL_wordWrap(QoreObject *self, QoreQLabel *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(ql->qobj->wordWrap());
+   return get_bool_node(ql->qobj->wordWrap());
 }
 
 //void clear ()

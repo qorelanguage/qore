@@ -86,7 +86,7 @@ static AbstractQoreNode *QFILEDIALOG_acceptMode(QoreObject *self, QoreQFileDialo
 //bool confirmOverwrite () const
 static AbstractQoreNode *QFILEDIALOG_confirmOverwrite(QoreObject *self, QoreQFileDialog *qfd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfd->qobj->confirmOverwrite());
+   return get_bool_node(qfd->qobj->confirmOverwrite());
 }
 
 //QString defaultSuffix () const
@@ -139,7 +139,7 @@ static AbstractQoreNode *QFILEDIALOG_history(QoreObject *self, QoreQFileDialog *
 //bool isReadOnly () const
 static AbstractQoreNode *QFILEDIALOG_isReadOnly(QoreObject *self, QoreQFileDialog *qfd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfd->qobj->isReadOnly());
+   return get_bool_node(qfd->qobj->isReadOnly());
 }
 
 //QAbstractItemDelegate * itemDelegate () const
@@ -172,7 +172,7 @@ static AbstractQoreNode *QFILEDIALOG_labelText(QoreObject *self, QoreQFileDialog
 //bool resolveSymlinks () const
 static AbstractQoreNode *QFILEDIALOG_resolveSymlinks(QoreObject *self, QoreQFileDialog *qfd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfd->qobj->resolveSymlinks());
+   return get_bool_node(qfd->qobj->resolveSymlinks());
 }
 
 //bool restoreState ( const QByteArray & state )
@@ -182,7 +182,7 @@ static AbstractQoreNode *QFILEDIALOG_restoreState(QoreObject *self, QoreQFileDia
    QByteArray state;
    if (get_qbytearray(p, state, xsink))
       return 0;
-   return new QoreBoolNode(qfd->qobj->restoreState(state));
+   return get_bool_node(qfd->qobj->restoreState(state));
 }
 
 //QByteArray saveState () const

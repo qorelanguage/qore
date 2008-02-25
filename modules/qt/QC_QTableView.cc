@@ -123,13 +123,13 @@ static AbstractQoreNode *QTABLEVIEW_isColumnHidden(QoreObject *self, QoreAbstrac
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int column = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qtv->getQTableView()->isColumnHidden(column));
+   return get_bool_node(qtv->getQTableView()->isColumnHidden(column));
 }
 
 //bool isCornerButtonEnabled () const
 static AbstractQoreNode *QTABLEVIEW_isCornerButtonEnabled(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtv->getQTableView()->isCornerButtonEnabled());
+   return get_bool_node(qtv->getQTableView()->isCornerButtonEnabled());
 }
 
 //bool isRowHidden ( int row ) const
@@ -137,13 +137,13 @@ static AbstractQoreNode *QTABLEVIEW_isRowHidden(QoreObject *self, QoreAbstractQT
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qtv->getQTableView()->isRowHidden(row));
+   return get_bool_node(qtv->getQTableView()->isRowHidden(row));
 }
 
 //bool isSortingEnabled () const
 static AbstractQoreNode *QTABLEVIEW_isSortingEnabled(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtv->getQTableView()->isSortingEnabled());
+   return get_bool_node(qtv->getQTableView()->isSortingEnabled());
 }
 
 //int rowAt ( int y ) const
@@ -308,7 +308,7 @@ static AbstractQoreNode *QTABLEVIEW_setWordWrap(QoreObject *self, QoreAbstractQT
 //bool showGrid () const
 static AbstractQoreNode *QTABLEVIEW_showGrid(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtv->getQTableView()->showGrid());
+   return get_bool_node(qtv->getQTableView()->showGrid());
 }
 
 //void sortByColumn ( int column, Qt::SortOrder order )
@@ -334,7 +334,7 @@ static AbstractQoreNode *QTABLEVIEW_verticalHeader(QoreObject *self, QoreAbstrac
 //bool wordWrap () const
 static AbstractQoreNode *QTABLEVIEW_wordWrap(QoreObject *self, QoreAbstractQTableView *qtv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtv->getQTableView()->wordWrap());
+   return get_bool_node(qtv->getQTableView()->wordWrap());
 }
 
 //void hideColumn ( int column )

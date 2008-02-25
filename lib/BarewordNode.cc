@@ -53,7 +53,7 @@ QoreString *BarewordNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 }
 
 // returns the data type
-const QoreType *BarewordNode::getType() const
+qore_type_t BarewordNode::getType() const
 {
    return NT_BAREWORD;
 }

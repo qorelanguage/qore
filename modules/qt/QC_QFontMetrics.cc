@@ -201,7 +201,7 @@ static AbstractQoreNode *QFONTMETRICS_inFont(QoreObject *self, QoreQFontMetrics 
    if (get_qchar(p, ch, xsink))
       return 0;
 
-   return new QoreBoolNode(qfm->inFont(ch));
+   return get_bool_node(qfm->inFont(ch));
 }
 
 //int leading () const

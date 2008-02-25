@@ -160,13 +160,13 @@ static AbstractQoreNode *QDATETIME_daysTo(QoreObject *self, QoreQDateTime *qdt, 
 //bool isNull () const
 static AbstractQoreNode *QDATETIME_isNull(QoreObject *self, QoreQDateTime *qdt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qdt->isNull());
+   return get_bool_node(qdt->isNull());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QDATETIME_isValid(QoreObject *self, QoreQDateTime *qdt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qdt->isValid());
+   return get_bool_node(qdt->isValid());
 }
 
 //int secsTo ( const QDateTime & other ) const

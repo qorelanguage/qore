@@ -71,7 +71,7 @@ class BrushStyleNode : public SimpleValueQoreNode
       DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
       // returns the data type
-      DLLLOCAL virtual const QoreType *getType() const;
+      DLLLOCAL virtual qore_type_t getType() const;
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 

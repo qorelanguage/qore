@@ -83,19 +83,19 @@ static void QPUSHBUTTON_copy(class QoreObject *self, class QoreObject *old, clas
 //bool autoDefault () const
 static AbstractQoreNode *QPUSHBUTTON_autoDefault(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpb->getQPushButton()->autoDefault());
+   return get_bool_node(qpb->getQPushButton()->autoDefault());
 }
 
 //bool isDefault () const
 static AbstractQoreNode *QPUSHBUTTON_isDefault(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpb->getQPushButton()->isDefault());
+   return get_bool_node(qpb->getQPushButton()->isDefault());
 }
 
 //bool isFlat () const
 static AbstractQoreNode *QPUSHBUTTON_isFlat(QoreObject *self, QoreAbstractQPushButton *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpb->getQPushButton()->isFlat());
+   return get_bool_node(qpb->getQPushButton()->isFlat());
 }
 
 //QMenu * menu () const

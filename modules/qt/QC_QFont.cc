@@ -60,7 +60,7 @@ static void QFONT_copy(class QoreObject *self, class QoreObject *old, class Qore
 //bool bold () const
 static AbstractQoreNode *QFONT_bold(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qf->bold());
+   return get_bool_node(qf->bold());
 }
 
 //QString defaultFamily () const
@@ -72,7 +72,7 @@ static AbstractQoreNode *QFONT_defaultFamily(QoreObject *self, QoreQFont *qf, co
 //bool exactMatch () const
 static AbstractQoreNode *QFONT_exactMatch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qf->exactMatch());
+   return get_bool_node(qf->exactMatch());
 }
 
 //QString family () const
@@ -84,7 +84,7 @@ static AbstractQoreNode *QFONT_family(QoreObject *self, QoreQFont *qf, const Qor
 //bool fixedPitch () const
 static AbstractQoreNode *QFONT_fixedPitch(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qf->fixedPitch());
+   return get_bool_node(qf->fixedPitch());
 }
 
 //FT_Face freetypeFace () const
@@ -101,7 +101,7 @@ static AbstractQoreNode *QFONT_fromString(QoreObject *self, QoreQFont *qf, const
    if (get_qstring(p, descrip, xsink))
       return 0;
 
-   return new QoreBoolNode(qf->fromString(descrip));
+   return get_bool_node(qf->fromString(descrip));
 }
 
 //HFONT handle () const
@@ -115,19 +115,19 @@ static AbstractQoreNode *QFONT_fromString(QoreObject *self, QoreQFont *qf, const
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QFont& f = p;
-//   return new QoreBoolNode(qf->isCopyOf(f));
+//   return get_bool_node(qf->isCopyOf(f));
 //}
 
 //bool italic () const
 static AbstractQoreNode *QFONT_italic(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qf->italic());
+   return get_bool_node(qf->italic());
 }
 
 //bool kerning () const
 static AbstractQoreNode *QFONT_kerning(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qf->kerning());
+   return get_bool_node(qf->kerning());
 }
 
 //QString key () const
@@ -159,7 +159,7 @@ static AbstractQoreNode *QFONT_macFontID(QoreObject *self, QoreQFont *qf, const 
 //bool overline () const
 static AbstractQoreNode *QFONT_overline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qf->overline());
+   return get_bool_node(qf->overline());
 }
 
 //int pixelSize () const
@@ -183,7 +183,7 @@ static AbstractQoreNode *QFONT_pointSizeF(QoreObject *self, QoreQFont *qf, const
 //bool rawMode () const
 static AbstractQoreNode *QFONT_rawMode(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qf->rawMode());
+   return get_bool_node(qf->rawMode());
 }
 
 //QString rawName () const
@@ -379,7 +379,7 @@ static AbstractQoreNode *QFONT_stretch(QoreObject *self, QoreQFont *qf, const Qo
 //bool strikeOut () const
 static AbstractQoreNode *QFONT_strikeOut(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qf->strikeOut());
+   return get_bool_node(qf->strikeOut());
 }
 
 //Style style () const
@@ -409,7 +409,7 @@ static AbstractQoreNode *QFONT_toString(QoreObject *self, QoreQFont *qf, const Q
 //bool underline () const
 static AbstractQoreNode *QFONT_underline(QoreObject *self, QoreQFont *qf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qf->underline());
+   return get_bool_node(qf->underline());
 }
 
 //int weight () const

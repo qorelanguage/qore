@@ -36,7 +36,7 @@ static void QLAYOUT_constructor(class QoreObject *self, const QoreListNode *para
 //bool activate ()
 static AbstractQoreNode *QLAYOUT_activate(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(ql->getQLayout()->activate());
+   return get_bool_node(ql->getQLayout()->activate());
 }
 
 ////virtual void addItem ( QLayoutItem * item ) = 0
@@ -116,7 +116,7 @@ static AbstractQoreNode *QLAYOUT_indexOf(QoreObject *self, QoreAbstractQLayout *
 //bool isEnabled () const
 static AbstractQoreNode *QLAYOUT_isEnabled(QoreObject *self, QoreAbstractQLayout *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(ql->getQLayout()->isEnabled());
+   return get_bool_node(ql->getQLayout()->isEnabled());
 }
 
 ////virtual QLayoutItem * itemAt ( int index ) const = 0
@@ -197,12 +197,12 @@ static AbstractQoreNode *QLAYOUT_setAlignment(QoreObject *self, QoreAbstractQLay
       ReferenceHolder<QoreAbstractQWidget> wHolder(w, xsink);
       const AbstractQoreNode *p = get_param(params, 1);
       Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
-      return new QoreBoolNode(ql->getQLayout()->setAlignment(w->getQWidget(), alignment));
+      return get_bool_node(ql->getQLayout()->setAlignment(w->getQWidget(), alignment));
    }
    ReferenceHolder<QoreAbstractQLayout> lHolder(l, xsink);
    const AbstractQoreNode *p = get_param(params, 1);
    Qt::Alignment alignment = (Qt::Alignment)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(ql->getQLayout()->setAlignment(l->getQLayout(), alignment));
+   return get_bool_node(ql->getQLayout()->setAlignment(l->getQLayout(), alignment));
 }
 
 //void setContentsMargins ( int left, int top, int right, int bottom )

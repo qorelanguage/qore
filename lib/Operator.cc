@@ -531,7 +531,7 @@ static int64 op_elements(const AbstractQoreNode *left, const AbstractQoreNode *n
    if (*xsink || !np)
       return 0;
 
-   const QoreType *ltype = np->getType();
+   qore_type_t ltype = np->getType();
 
    if (ltype == NT_LIST)
       return reinterpret_cast<const QoreListNode *>(*np)->size();
@@ -864,7 +864,7 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
    // already referenced value can be passed to list->push()
    // if necessary
    // do list plus-equals if left-hand side is a list
-   const QoreType *vtype = *v ? (*v)->getType() : 0;
+   qore_type_t vtype = *v ? (*v)->getType() : 0;
    if (vtype == NT_LIST)
    {
       QoreNodeEvalOptionalRefHolder new_right(right, xsink);
@@ -1006,7 +1006,7 @@ static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const Abs
       return ref_rv ? (*v)->refSelf() : 0;
 
    // do float minus-equals if left side is a float
-   const QoreType *vtype = *v ? (*v)->getType() : 0;
+   qore_type_t vtype = *v ? (*v)->getType() : 0;
    if (vtype == NT_FLOAT) {
       // optimization to remove the need for a virtual function call in the most common case
       double f = right ? (right->getType() == NT_FLOAT ? reinterpret_cast<const QoreFloatNode *>(right)->f : right->floatEval(xsink)) : 0.0;
@@ -1979,7 +1979,7 @@ static int64 op_chomp(const AbstractQoreNode *arg, const AbstractQoreNode *x, Ex
    if (!(*val))
       return 0;
 
-   const QoreType *vtype = (*val)->getType();
+   qore_type_t vtype = (*val)->getType();
    if (vtype != NT_STRING && vtype != NT_LIST && vtype != NT_HASH)
       return 0;
 
@@ -2122,7 +2122,7 @@ static AbstractQoreNode *op_regex_extract(const QoreString *left, const QoreRege
    return right->extractSubstrings(left, xsink);
 }
 
-static AbstractQoreNode *get_node_type(const AbstractQoreNode *n, const QoreType *t)
+static AbstractQoreNode *get_node_type(const AbstractQoreNode *n, qore_type_t t)
 {
    assert(n);
    assert(n->getType() != t);
@@ -2140,7 +2140,7 @@ static AbstractQoreNode *get_node_type(const AbstractQoreNode *n, const QoreType
       return new QoreFloatNode(n->getAsFloat());
 
    if (t == NT_BOOLEAN)
-      return new QoreBoolNode(n->getAsBool());
+      return get_bool_node(n->getAsBool());
 
    if (t == NT_DATE) {
       DateTimeNode *dt = new DateTimeNode();
@@ -2159,23 +2159,23 @@ static AbstractQoreNode *get_node_type(const AbstractQoreNode *n, const QoreType
    return 0;
 }
 
-AbstractOperatorFunction::AbstractOperatorFunction(const QoreType *lt, const QoreType *rt) : ltype(lt), rtype(rt)
+AbstractOperatorFunction::AbstractOperatorFunction(qore_type_t lt, qore_type_t rt) : ltype(lt), rtype(rt)
 {
 }
 
-OperatorFunction::OperatorFunction(const QoreType *lt, const QoreType *rt, op_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
+OperatorFunction::OperatorFunction(qore_type_t lt, qore_type_t rt, op_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
 {
 }
 
-BoolOperatorFunction::BoolOperatorFunction(const QoreType *lt, const QoreType *rt, op_bool_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
+BoolOperatorFunction::BoolOperatorFunction(qore_type_t lt, qore_type_t rt, op_bool_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
 {
 }
 
-BigIntOperatorFunction::BigIntOperatorFunction(const QoreType *lt, const QoreType *rt, op_bigint_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
+BigIntOperatorFunction::BigIntOperatorFunction(qore_type_t lt, qore_type_t rt, op_bigint_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
 {
 }
 
-FloatOperatorFunction::FloatOperatorFunction(const QoreType *lt, const QoreType *rt, op_float_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
+FloatOperatorFunction::FloatOperatorFunction(qore_type_t lt, qore_type_t rt, op_float_func_t f) : AbstractOperatorFunction(lt, rt), op_func(f)
 {
 }
 
@@ -2428,7 +2428,7 @@ double NoConvertOperatorFunction::float_eval(const AbstractQoreNode *left, const
 AbstractQoreNode *EffectBoolOperatorFunction::eval(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, int args, ExceptionSink *xsink) const
 {
    bool b = op_func(left, right, xsink);
-   return *xsink ? 0 : new QoreBoolNode(b);
+   return *xsink ? 0 : get_bool_node(b);
 }
 
 bool EffectBoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2452,7 +2452,7 @@ AbstractQoreNode *SimpleBoolOperatorFunction::eval(const AbstractQoreNode *left,
       return 0;
 
    bool b = op_func(left, right);
-   return new QoreBoolNode(b);
+   return get_bool_node(b);
 }
 
 bool SimpleBoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2585,7 +2585,7 @@ AbstractQoreNode *BoolOperatorFunction::eval(const AbstractQoreNode *left, const
       bool rv = op_func(left, 0, xsink);
       if (!ref_rv || *xsink)
 	 return 0;
-      return new QoreBoolNode(rv);
+      return get_bool_node(rv);
    }
 
    ReferenceHolder<AbstractQoreNode> r(xsink);
@@ -2600,7 +2600,7 @@ AbstractQoreNode *BoolOperatorFunction::eval(const AbstractQoreNode *left, const
    bool rv = op_func(left, right, xsink);
    if (!ref_rv || *xsink)
       return 0;
-   return new QoreBoolNode(rv);
+   return get_bool_node(rv);
 }
 
 bool BoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2690,13 +2690,13 @@ AbstractQoreNode *NoConvertBoolOperatorFunction::eval(const AbstractQoreNode *le
       bool rv = op_func(left, 0, xsink);
       if (!ref_rv || *xsink)
 	 return 0;
-      return new QoreBoolNode(rv);
+      return get_bool_node(rv);
    }
 
    bool rv = op_func(left, right, xsink);
    if (!ref_rv || *xsink)
       return 0;
-   return new QoreBoolNode(rv);
+   return get_bool_node(rv);
 }
 
 bool NoConvertBoolOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2738,7 +2738,7 @@ AbstractQoreNode *BoolStrStrOperatorFunction::eval(const AbstractQoreNode *left,
    }
    if (!ref_rv || *xsink)
       return 0;
-   return new QoreBoolNode(rv);
+   return get_bool_node(rv);
 }
 
 bool BoolStrStrOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2782,7 +2782,7 @@ AbstractQoreNode *BoolDateOperatorFunction::eval(const AbstractQoreNode *left, c
    DateTimeNodeValueHelper l(left);
    DateTimeNodeValueHelper r(right);
    bool b = op_func(*l, *r);
-   return new QoreBoolNode(b);
+   return get_bool_node(b);
 }
 
 bool BoolDateOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2852,7 +2852,7 @@ AbstractQoreNode *BoolIntOperatorFunction::eval(const AbstractQoreNode *left, co
       return 0;
 
    bool b = op_func(left->getAsBigInt(), right->getAsBigInt());
-   return new QoreBoolNode(b);
+   return get_bool_node(b);
 }
 
 bool BoolIntOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -2952,7 +2952,7 @@ AbstractQoreNode *BoolFloatOperatorFunction::eval(const AbstractQoreNode *left, 
       return 0;
 
    bool b = op_func(left->getAsFloat(), right->getAsFloat());
-   return new QoreBoolNode(b);
+   return get_bool_node(b);
 }
 
 bool BoolFloatOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -3076,7 +3076,7 @@ AbstractQoreNode *BoolNotOperatorFunction::eval(const AbstractQoreNode *left, co
    if (!ref_rv)
       return 0;
 
-   return new QoreBoolNode(!left->getAsBool());
+   return get_bool_node(!left->getAsBool());
 }
 
 bool BoolNotOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -3162,7 +3162,7 @@ AbstractQoreNode *LogicOperatorFunction::eval(const AbstractQoreNode *left, cons
       return 0;
 
    bool b = op_func(left->getAsBool(), right->getAsBool());
-   return new QoreBoolNode(b);
+   return get_bool_node(b);
 }
 
 bool LogicOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -3193,7 +3193,7 @@ AbstractQoreNode *BoolStrRegexOperatorFunction::eval(const AbstractQoreNode *lef
 
    QoreStringValueHelper l(*le);
    bool rv = op_func(*l, reinterpret_cast<const QoreRegexNode *>(right), xsink);
-   return *xsink ? 0 : new QoreBoolNode(rv);
+   return *xsink ? 0 : get_bool_node(rv);
 }
 
 bool BoolStrRegexOperatorFunction::bool_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, int args, ExceptionSink *xsink) const
@@ -3556,14 +3556,14 @@ void Operator::init()
       return;
    opMatrix = new int[NUM_VALUE_TYPES][NUM_VALUE_TYPES];
    // create function lookup matrix
-   for (int i = 0; i < NUM_VALUE_TYPES; i++)
-      for (int j = 0; j < NUM_VALUE_TYPES; j++)
-	 opMatrix[i][j] = findFunction(QTM.find(i), QTM.find(j));
+   for (qore_type_t i = 0; i < NUM_VALUE_TYPES; i++)
+      for (qore_type_t j = 0; j < NUM_VALUE_TYPES; j++)
+	 opMatrix[i][j] = findFunction(i, j);
 }
 
 // if there is no exact match, the first partial match counts as a match
 // static method
-int Operator::match(const QoreType *ntype, const QoreType *rtype)
+int Operator::match(qore_type_t ntype, qore_type_t rtype)
 {
    // if any type is OK, or an exact match
    if (rtype == NT_ALL || ntype == rtype || (rtype == NT_VARREF && ntype == NT_SELF_VARREF))
@@ -3578,8 +3578,8 @@ int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, Exception
    // find operator function
    if (functions.size() == 1)
       t = 0;
-   else if (nleft->getType()->getID() < NUM_VALUE_TYPES)
-      t = opMatrix[nleft->getType()->getID()][NT_NOTHING->getID()];
+   else if (nleft->getType() < NUM_VALUE_TYPES)
+      t = opMatrix[nleft->getType()][NT_NOTHING];
    else
       t = findFunction(nleft->getType(), NT_NOTHING);
    
@@ -3593,8 +3593,8 @@ int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, const Qor
    // find operator function
    if (functions.size() == 1)
       t = 0;
-   else if (nleft->getType()->getID() < NUM_VALUE_TYPES && nright->getType()->getID() < NUM_VALUE_TYPES)
-      t = opMatrix[nleft->getType()->getID()][nright->getType()->getID()];
+   else if (nleft->getType() < NUM_VALUE_TYPES && nright->getType() < NUM_VALUE_TYPES)
+      t = opMatrix[nleft->getType()][nright->getType()];
    else
       t = findFunction(nleft->getType(), nright->getType());
 
@@ -3777,7 +3777,7 @@ double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode
    return functions[0]->float_eval(left, right, args, xsink);
 }
 
-int Operator::findFunction(const QoreType *ltype, const QoreType *rtype) const
+int Operator::findFunction(qore_type_t ltype, qore_type_t rtype) const
 {
    int m = -1;
    
@@ -3810,22 +3810,22 @@ int Operator::findFunction(const QoreType *ltype, const QoreType *rtype) const
    return m == -1 ? 0 : m;
 }
 
-void Operator::addFunction(const QoreType *lt, const QoreType *rt, op_func_t f)
+void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_func_t f)
 {
    functions.push_back(new OperatorFunction(lt, rt, f));
 }
 
-void Operator::addFunction(const QoreType *lt, const QoreType *rt, op_bool_func_t f)
+void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_bool_func_t f)
 {
    functions.push_back(new BoolOperatorFunction(lt, rt, f));
 }
 
-void Operator::addFunction(const QoreType *lt, const QoreType *rt, op_bigint_func_t f)
+void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_bigint_func_t f)
 {
    functions.push_back(new BigIntOperatorFunction(lt, rt, f));
 }
 
-void Operator::addFunction(const QoreType *lt, const QoreType *rt, op_float_func_t f)
+void Operator::addFunction(qore_type_t lt, qore_type_t rt, op_float_func_t f)
 {
    functions.push_back(new FloatOperatorFunction(lt, rt, f));
 }

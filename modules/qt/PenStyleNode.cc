@@ -110,7 +110,7 @@ bool PenStyleNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink
 }
 
 // returns the data type
-const QoreType *PenStyleNode::getType() const
+qore_type_t PenStyleNode::getType() const
 {
    return NT_PENSTYLE;
 }

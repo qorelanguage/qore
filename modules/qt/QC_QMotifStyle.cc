@@ -57,7 +57,7 @@ static AbstractQoreNode *QMOTIFSTYLE_setUseHighlightColors(QoreObject *self, Qor
 //bool useHighlightColors () const
 static AbstractQoreNode *QMOTIFSTYLE_useHighlightColors(QoreObject *self, QoreAbstractQMotifStyle *qms, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qms->getQMotifStyle()->useHighlightColors());
+   return get_bool_node(qms->getQMotifStyle()->useHighlightColors());
 }
 
 //virtual void drawComplexControl ( ComplexControl control, const QStyleOptionComplex * option, QPainter * painter, const QWidget * widget = 0 ) const = 0

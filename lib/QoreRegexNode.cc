@@ -74,7 +74,7 @@ QoreString *QoreRegexNode::getAsString(bool &del, int foff, ExceptionSink *xsink
 }
 
 // returns the data type
-const QoreType *QoreRegexNode::getType() const
+qore_type_t QoreRegexNode::getType() const
 {
    return NT_REGEX;
 }

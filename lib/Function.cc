@@ -781,7 +781,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink)
 {
    AbstractQoreNode *rv = NULL;
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
    if (ntype == NT_TREE)
    {
       QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);

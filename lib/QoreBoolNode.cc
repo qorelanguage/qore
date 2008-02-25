@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-QoreBoolNode::QoreBoolNode(bool n_b) : SimpleValueQoreNode(NT_BOOLEAN), b(n_b)
+QoreBoolNode::QoreBoolNode(bool n_b) : UniqueValueQoreNode(NT_BOOLEAN), b(n_b)
 {
 }
 
@@ -97,7 +97,7 @@ QoreString *QoreBoolNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 
 AbstractQoreNode *QoreBoolNode::realCopy() const
 {
-   return new QoreBoolNode(b);
+   return get_bool_node(b);
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
@@ -122,4 +122,25 @@ bool QoreBoolNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink
 const char *QoreBoolNode::getTypeName() const
 {
    return getStaticTypeName();
+}
+
+#ifdef DEBUG
+static bool qore_bool_true_init = false;
+static bool qore_bool_false_init = false;
+#endif
+
+QoreBoolTrueNode::QoreBoolTrueNode() : QoreBoolNode(true)
+{
+#ifdef DEBUG
+   assert(!qore_bool_true_init);
+   qore_bool_true_init = true;
+#endif
+}
+
+QoreBoolFalseNode::QoreBoolFalseNode() : QoreBoolNode(false)
+{
+#ifdef DEBUG
+   assert(!qore_bool_false_init);
+   qore_bool_false_init = true;
+#endif
 }

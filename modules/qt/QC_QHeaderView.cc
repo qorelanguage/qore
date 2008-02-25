@@ -55,7 +55,7 @@ static void QHEADERVIEW_copy(class QoreObject *self, class QoreObject *old, clas
 //bool cascadingSectionResizes () const
 static AbstractQoreNode *QHEADERVIEW_cascadingSectionResizes(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qhv->getQHeaderView()->cascadingSectionResizes());
+   return get_bool_node(qhv->getQHeaderView()->cascadingSectionResizes());
 }
 
 //int count () const
@@ -94,19 +94,19 @@ static AbstractQoreNode *QHEADERVIEW_hideSection(QoreObject *self, QoreAbstractQ
 //bool highlightSections () const
 static AbstractQoreNode *QHEADERVIEW_highlightSections(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qhv->getQHeaderView()->highlightSections());
+   return get_bool_node(qhv->getQHeaderView()->highlightSections());
 }
 
 //bool isClickable () const
 static AbstractQoreNode *QHEADERVIEW_isClickable(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qhv->getQHeaderView()->isClickable());
+   return get_bool_node(qhv->getQHeaderView()->isClickable());
 }
 
 //bool isMovable () const
 static AbstractQoreNode *QHEADERVIEW_isMovable(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qhv->getQHeaderView()->isMovable());
+   return get_bool_node(qhv->getQHeaderView()->isMovable());
 }
 
 //bool isSectionHidden ( int logicalIndex ) const
@@ -114,13 +114,13 @@ static AbstractQoreNode *QHEADERVIEW_isSectionHidden(QoreObject *self, QoreAbstr
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int logicalIndex = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qhv->getQHeaderView()->isSectionHidden(logicalIndex));
+   return get_bool_node(qhv->getQHeaderView()->isSectionHidden(logicalIndex));
 }
 
 //bool isSortIndicatorShown () const
 static AbstractQoreNode *QHEADERVIEW_isSortIndicatorShown(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qhv->getQHeaderView()->isSortIndicatorShown());
+   return get_bool_node(qhv->getQHeaderView()->isSortIndicatorShown());
 }
 
 //int length () const
@@ -228,7 +228,7 @@ static AbstractQoreNode *QHEADERVIEW_restoreState(QoreObject *self, QoreAbstract
    QByteArray state;
    if (get_qbytearray(p, state, xsink))
       return 0;
-   return new QoreBoolNode(qhv->getQHeaderView()->restoreState(state));
+   return get_bool_node(qhv->getQHeaderView()->restoreState(state));
 }
 
 //QByteArray saveState () const
@@ -275,13 +275,13 @@ static AbstractQoreNode *QHEADERVIEW_sectionViewportPosition(QoreObject *self, Q
 //bool sectionsHidden () const
 static AbstractQoreNode *QHEADERVIEW_sectionsHidden(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qhv->getQHeaderView()->sectionsHidden());
+   return get_bool_node(qhv->getQHeaderView()->sectionsHidden());
 }
 
 //bool sectionsMoved () const
 static AbstractQoreNode *QHEADERVIEW_sectionsMoved(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qhv->getQHeaderView()->sectionsMoved());
+   return get_bool_node(qhv->getQHeaderView()->sectionsMoved());
 }
 
 //void setCascadingSectionResizes ( bool enable )
@@ -439,7 +439,7 @@ static AbstractQoreNode *QHEADERVIEW_sortIndicatorSection(QoreObject *self, Qore
 //bool stretchLastSection () const
 static AbstractQoreNode *QHEADERVIEW_stretchLastSection(QoreObject *self, QoreAbstractQHeaderView *qhv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qhv->getQHeaderView()->stretchLastSection());
+   return get_bool_node(qhv->getQHeaderView()->stretchLastSection());
 }
 
 //int stretchSectionCount () const

@@ -39,25 +39,25 @@ static void QABSTRACTSLIDER_copy(class QoreObject *self, class QoreObject *old, 
 //bool hasTracking () const
 static AbstractQoreNode *QABSTRACTSLIDER_hasTracking(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qas->getQAbstractSlider()->hasTracking());
+   return get_bool_node(qas->getQAbstractSlider()->hasTracking());
 }
 
 //bool invertedAppearance () const
 static AbstractQoreNode *QABSTRACTSLIDER_invertedAppearance(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qas->getQAbstractSlider()->invertedAppearance());
+   return get_bool_node(qas->getQAbstractSlider()->invertedAppearance());
 }
 
 //bool invertedControls () const
 static AbstractQoreNode *QABSTRACTSLIDER_invertedControls(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qas->getQAbstractSlider()->invertedControls());
+   return get_bool_node(qas->getQAbstractSlider()->invertedControls());
 }
 
 //bool isSliderDown () const
 static AbstractQoreNode *QABSTRACTSLIDER_isSliderDown(QoreObject *self, QoreAbstractQAbstractSlider *qas, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qas->getQAbstractSlider()->isSliderDown());
+   return get_bool_node(qas->getQAbstractSlider()->isSliderDown());
 }
 
 //int maximum () const

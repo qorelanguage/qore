@@ -54,7 +54,7 @@ class qore_gz_header : public gz_header
 static AbstractQoreNode *f_call_function(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   qore_type_t p0_type = p0 ? p0->getType() : 0;
    if (p0_type != NT_FUNCREF && p0_type != NT_STRING) {
       xsink->raiseException("CALL-FUNCTION-PARAMETER-ERROR", "invalid argument passed to call_function(), first argument must be either function name or call reference");
       return 0;
@@ -77,7 +77,7 @@ static AbstractQoreNode *f_call_function(const QoreListNode *params, ExceptionSi
 static AbstractQoreNode *f_call_function_args(const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
-   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   qore_type_t p0_type = p0 ? p0->getType() : 0;
    if (p0_type != NT_FUNCREF && p0_type != NT_STRING) {
       xsink->raiseException("CALL-FUNCTION-ARGS-PARAMETER-ERROR",
 			    "invalid argument passed to call_function_args(), first argument must be either function name or call reference");
@@ -114,7 +114,7 @@ static AbstractQoreNode *f_existsFunction(const QoreListNode *params, ExceptionS
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
 
-   const QoreType *p0_type = p0 ? p0->getType() : 0;
+   qore_type_t p0_type = p0 ? p0->getType() : 0;
    // always return true if the argument is a call reference
    if (p0_type == NT_FUNCREF)
       return boolean_true();
@@ -871,7 +871,7 @@ static AbstractQoreNode *f_splice(const QoreListNode *params, ExceptionSink *xsi
    const QoreStringNode *p3 = test_string_param(params, 3);
    int start = p1->getAsInt();
 
-   const QoreType *p0_type = p0->getType();
+   qore_type_t p0_type = p0->getType();
 
    if (p0_type == NT_STRING) {
       const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p0);

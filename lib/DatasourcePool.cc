@@ -167,7 +167,7 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink)
    }
    
    // will be a new allocation, not already in a transaction
-   new_ds = True;
+   new_ds = true;
    class Datasource *ds;
    
    // see if there is a datasource free

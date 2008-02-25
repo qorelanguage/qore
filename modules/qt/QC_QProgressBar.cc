@@ -62,13 +62,13 @@ static AbstractQoreNode *QPROGRESSBAR_format(QoreObject *self, QoreQProgressBar 
 //bool invertedAppearance ()
 static AbstractQoreNode *QPROGRESSBAR_invertedAppearance(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpb->qobj->invertedAppearance());
+   return get_bool_node(qpb->qobj->invertedAppearance());
 }
 
 //bool isTextVisible () const
 static AbstractQoreNode *QPROGRESSBAR_isTextVisible(QoreObject *self, QoreQProgressBar *qpb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpb->qobj->isTextVisible());
+   return get_bool_node(qpb->qobj->isTextVisible());
 }
 
 //int maximum () const

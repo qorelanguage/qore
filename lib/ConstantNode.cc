@@ -52,7 +52,7 @@ QoreString *ConstantNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 }
 
 // returns the data type
-const QoreType *ConstantNode::getType() const
+qore_type_t ConstantNode::getType() const
 {
    return NT_CONSTANT;
 }

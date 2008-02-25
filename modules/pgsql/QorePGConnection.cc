@@ -39,7 +39,7 @@ qore_pg_array_type_map_t QorePGResult::array_type_map;
 // bind functions
 static class AbstractQoreNode *qpg_data_bool(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
 {
-   return new QoreBoolNode(*((bool *)data));
+   return get_bool_node(*((bool *)data));
 }
 
 static class AbstractQoreNode *qpg_data_bytea(char *data, int type, int len, class QorePGConnection *conn, const QoreEncoding *enc)
@@ -741,7 +741,7 @@ int QorePGResult::add(const AbstractQoreNode *v, class ExceptionSink *xsink)
       return 0;
    }
 
-   const QoreType *ntype = v->getType();
+   qore_type_t ntype = v->getType();
    if (ntype == NT_INT) {
       const QoreBigIntNode *b = reinterpret_cast<const QoreBigIntNode *>(v);
       if (b->val <= 32767 && b->val > -32768)
@@ -804,7 +804,8 @@ int QorePGResult::add(const AbstractQoreNode *v, class ExceptionSink *xsink)
 
    if (ntype == NT_BOOLEAN) {
       paramTypes[nParams]   = BOOLOID;
-      paramValues[nParams]  = (char *)&(reinterpret_cast<const QoreBoolNode *>(v)->b);
+      pb->b = reinterpret_cast<const QoreBoolNode *>(v)->getValue();
+      paramValues[nParams]  = (char *)&pb->b;
       paramLengths[nParams] = sizeof(bool);
 
       ++nParams;
@@ -986,7 +987,7 @@ int QorePGBindArray::check_type(const AbstractQoreNode *n, class ExceptionSink *
       xsink->raiseException("DBI:PGSQL:ARRAY-ERROR", "cannot bind NULL values within an array");
       return -1;
    }
-   const QoreType *t = n->getType();
+   qore_type_t t = n->getType();
    if (!type)
    {
       type = t;
@@ -1193,7 +1194,7 @@ int QorePGBindArray::bind(const AbstractQoreNode *n, const QoreEncoding *enc, cl
    {
       check_size(sizeof(bool));
       bool *b = (bool *)ptr;
-      *b = htonl(reinterpret_cast<const QoreBoolNode *>(n)->b);
+      *b = htonl(reinterpret_cast<const QoreBoolNode *>(n)->getValue());
       ptr += sizeof(bool);
       return 0;
    }   
@@ -1292,7 +1293,7 @@ int QorePGBindArray::process_list(const QoreListNode *l, int current, const Qore
    ConstListIterator li(l);
    while (li.next())
    {
-      const QoreType *ntype;
+      qore_type_t ntype;
       const AbstractQoreNode *n = li.getValue();
       ntype = n ? n->getType() : NT_NOTHING;
       if (type == NT_LIST)

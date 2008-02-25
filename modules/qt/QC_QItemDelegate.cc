@@ -96,7 +96,7 @@ static AbstractQoreNode *QITEMDELEGATE_createEditor(QoreObject *self, QoreAbstra
 //bool hasClipping () const
 static AbstractQoreNode *QITEMDELEGATE_hasClipping(QoreObject *self, QoreAbstractQItemDelegate *qid, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qid->getQItemDelegate()->hasClipping());
+   return get_bool_node(qid->getQItemDelegate()->hasClipping());
 }
 
 ////QItemEditorFactory * itemEditorFactory () const

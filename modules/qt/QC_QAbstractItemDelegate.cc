@@ -106,7 +106,7 @@ static AbstractQoreNode *QABSTRACTITEMDELEGATE_createEditor(QoreObject *self, Qo
 //      return 0;
 //   }
 //   ReferenceHolder<QoreQModelIndex> indexHolder(index, xsink);
-//   return new QoreBoolNode(qaid->getQAbstractItemDelegate()->editorEvent(event, model, *(static_cast<QStyleOptionViewItem *>(option)), *(static_cast<QModelIndex *>(index))));
+//   return get_bool_node(qaid->getQAbstractItemDelegate()->editorEvent(event, model, *(static_cast<QStyleOptionViewItem *>(option)), *(static_cast<QModelIndex *>(index))));
 //}
 
 //virtual void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const = 0
@@ -273,7 +273,7 @@ static AbstractQoreNode *QABSTRACTITEMDELEGATE_updateEditorGeometry(QoreObject *
 //      return 0;
 //   }
 //   ReferenceHolder<QoreQModelIndex> indexHolder(index, xsink);
-//   return new QoreBoolNode(qaid->getQAbstractItemDelegate()->helpEvent(event, view, *(static_cast<QStyleOptionViewItem *>(option)), *(static_cast<QModelIndex *>(index))));
+//   return get_bool_node(qaid->getQAbstractItemDelegate()->helpEvent(event, view, *(static_cast<QStyleOptionViewItem *>(option)), *(static_cast<QModelIndex *>(index))));
 //}
 
 QoreClass *initQAbstractItemDelegateClass(QoreClass *qobject)

@@ -45,7 +45,7 @@ static void QBASICTIMER_copy(class QoreObject *self, class QoreObject *old, clas
 //bool isActive () const
 static AbstractQoreNode *QBASICTIMER_isActive(QoreObject *self, QoreQBasicTimer *qbt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qbt->isActive());
+   return get_bool_node(qbt->isActive());
 }
 
 //void start ( int msec, QObject * object )

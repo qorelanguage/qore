@@ -61,13 +61,13 @@ static AbstractQoreNode *QTIMER_interval(QoreObject *self, QoreQTimer *qt, const
 //bool isActive () const
 static AbstractQoreNode *QTIMER_isActive(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qt->qobj->isActive());
+   return get_bool_node(qt->qobj->isActive());
 }
 
 //bool isSingleShot () const
 static AbstractQoreNode *QTIMER_isSingleShot(QoreObject *self, QoreQTimer *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qt->qobj->isSingleShot());
+   return get_bool_node(qt->qobj->isSingleShot());
 }
 
 //void setInterval ( int msec )

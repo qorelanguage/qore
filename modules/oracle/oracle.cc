@@ -709,7 +709,7 @@ void OraBindGroup::parseQuery(const QoreListNode *args, class ExceptionSink *xsi
 	 if (!args || args->size() <= index || !(v = args->retrieve_entry(index++)))
 	    add(tstr.giveBuffer(), -1, "string");
 	 else {
-	    const QoreType *vtype = v->getType();
+	    qore_type_t vtype = v->getType();
 	    if (vtype == NT_HASH)
 	    {
 	       const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(v);
@@ -771,7 +771,7 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
       return;
    }
 
-   const QoreType *ntype = data.v.value->getType();
+   qore_type_t ntype = data.v.value->getType();
    
    if (ntype == NT_STRING) {
       const QoreStringNode *bstr = reinterpret_cast<const QoreStringNode *>(data.v.value);

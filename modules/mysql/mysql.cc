@@ -811,7 +811,7 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
       return 0;
    }
 
-   const QoreType *ntype = data.value->getType();
+   qore_type_t ntype = data.value->getType();
 
    if (ntype == NT_STRING)
    {
@@ -859,7 +859,7 @@ int MyBindNode::bindValue(const QoreEncoding *enc, MYSQL_BIND *buf, class Except
 
    if (ntype == NT_BOOLEAN)
    {
-      vbuf.i4 = reinterpret_cast<const QoreBoolNode *>(data.value)->b;
+      vbuf.i4 = reinterpret_cast<const QoreBoolNode *>(data.value)->getValue();
       buf->buffer_type = MYSQL_TYPE_LONG;
       buf->buffer = (char *)&vbuf.i4;
       return 0;

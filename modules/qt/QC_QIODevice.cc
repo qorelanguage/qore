@@ -45,7 +45,7 @@ static void QIODEVICE_copy(class QoreObject *self, class QoreObject *old, class 
 //virtual bool atEnd () const
 static AbstractQoreNode *QIODEVICE_atEnd(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qiod->getQIODevice()->atEnd());
+   return get_bool_node(qiod->getQIODevice()->atEnd());
 }
 
 //virtual qint64 bytesAvailable () const
@@ -63,7 +63,7 @@ static AbstractQoreNode *QIODEVICE_bytesToWrite(QoreObject *self, QoreAbstractQI
 //virtual bool canReadLine () const
 static AbstractQoreNode *QIODEVICE_canReadLine(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qiod->getQIODevice()->canReadLine());
+   return get_bool_node(qiod->getQIODevice()->canReadLine());
 }
 
 //virtual void close ()
@@ -89,38 +89,38 @@ static AbstractQoreNode *QIODEVICE_getChar(QoreObject *self, QoreAbstractQIODevi
       return 0;
    }
    const char *c = p->getBuffer();
-   return new QoreBoolNode(qiod->getQIODevice()->getChar(c));
+   return get_bool_node(qiod->getQIODevice()->getChar(c));
 }
 */
 
 //bool isOpen () const
 static AbstractQoreNode *QIODEVICE_isOpen(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qiod->getQIODevice()->isOpen());
+   return get_bool_node(qiod->getQIODevice()->isOpen());
 }
 
 //bool isReadable () const
 static AbstractQoreNode *QIODEVICE_isReadable(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qiod->getQIODevice()->isReadable());
+   return get_bool_node(qiod->getQIODevice()->isReadable());
 }
 
 //virtual bool isSequential () const
 static AbstractQoreNode *QIODEVICE_isSequential(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qiod->getQIODevice()->isSequential());
+   return get_bool_node(qiod->getQIODevice()->isSequential());
 }
 
 //bool isTextModeEnabled () const
 static AbstractQoreNode *QIODEVICE_isTextModeEnabled(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qiod->getQIODevice()->isTextModeEnabled());
+   return get_bool_node(qiod->getQIODevice()->isTextModeEnabled());
 }
 
 //bool isWritable () const
 static AbstractQoreNode *QIODEVICE_isWritable(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qiod->getQIODevice()->isWritable());
+   return get_bool_node(qiod->getQIODevice()->isWritable());
 }
 
 //virtual bool open ( OpenMode mode )
@@ -128,7 +128,7 @@ static AbstractQoreNode *QIODEVICE_open(QoreObject *self, QoreAbstractQIODevice 
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QIODevice::OpenMode mode = (QIODevice::OpenMode)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qiod->getQIODevice()->open(mode));
+   return get_bool_node(qiod->getQIODevice()->open(mode));
 }
 
 //OpenMode openMode () const
@@ -163,7 +163,7 @@ static AbstractQoreNode *QIODEVICE_putChar(QoreObject *self, QoreAbstractQIODevi
       return 0;
    }
    const char c = p->getBuffer()[0];
-   return new QoreBoolNode(qiod->getQIODevice()->putChar(c));
+   return get_bool_node(qiod->getQIODevice()->putChar(c));
 }
 
 //QByteArray read ( qint64 maxSize )
@@ -200,7 +200,7 @@ static AbstractQoreNode *QIODEVICE_readLine(QoreObject *self, QoreAbstractQIODev
 //virtual bool reset ()
 static AbstractQoreNode *QIODEVICE_reset(QoreObject *self, QoreAbstractQIODevice *qiod, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qiod->getQIODevice()->reset());
+   return get_bool_node(qiod->getQIODevice()->reset());
 }
 
 //virtual bool seek ( qint64 pos )
@@ -208,7 +208,7 @@ static AbstractQoreNode *QIODEVICE_seek(QoreObject *self, QoreAbstractQIODevice 
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int64 pos = p ? p->getAsBigInt() : 0;
-   return new QoreBoolNode(qiod->getQIODevice()->seek(pos));
+   return get_bool_node(qiod->getQIODevice()->seek(pos));
 }
 
 //void setTextModeEnabled ( bool enabled )
@@ -244,7 +244,7 @@ static AbstractQoreNode *QIODEVICE_waitForBytesWritten(QoreObject *self, QoreAbs
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int msecs = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qiod->getQIODevice()->waitForBytesWritten(msecs));
+   return get_bool_node(qiod->getQIODevice()->waitForBytesWritten(msecs));
 }
 
 //virtual bool waitForReadyRead ( int msecs )
@@ -252,7 +252,7 @@ static AbstractQoreNode *QIODEVICE_waitForReadyRead(QoreObject *self, QoreAbstra
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int msecs = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qiod->getQIODevice()->waitForReadyRead(msecs));
+   return get_bool_node(qiod->getQIODevice()->waitForReadyRead(msecs));
 }
 
 //qint64 write ( const QByteArray & byteArray )

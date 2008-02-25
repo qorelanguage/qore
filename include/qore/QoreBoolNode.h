@@ -27,7 +27,7 @@
 #include <qore/AbstractQoreNode.h>
 
 //! this class implements Qore's 64-bit integer data type, reference-counted, dynamically-allocated only
-class QoreBoolNode : public SimpleValueQoreNode
+class QoreBoolNode : public UniqueValueQoreNode
 {
    private:
       //! returns the value as a boolean
@@ -43,22 +43,24 @@ class QoreBoolNode : public SimpleValueQoreNode
       DLLLOCAL virtual double getAsFloatImpl() const;
 
    protected:
-      DLLEXPORT virtual ~QoreBoolNode();
-
-   public:
       bool b;
 
-      DLLEXPORT QoreBoolNode(bool n_b);
+      DLLLOCAL QoreBoolNode(bool n_b);
+
+   public:
+      DLLEXPORT virtual ~QoreBoolNode();
 
       // get the value of the type in a string context (default implementation = del = false and returns NullString)
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
       DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
+
       // concatenate string representation to a QoreString (no action for complex types = default implementation)
       DLLEXPORT virtual void getStringRepresentation(QoreString &str) const;
 
       // if del is true, then the returned DateTime * should be deleted, if false, then it should not
-      DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
+      DLLEXPORT virtual DateTime *getDateTimeRepresentation(bool &del) const;
+
       // assign date representation to a DateTime (no action for complex types = default implementation)
       DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
 
@@ -67,14 +69,12 @@ class QoreBoolNode : public SimpleValueQoreNode
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
       // returns -1 for exception raised, 0 = OK
       DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
-      // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
-      // the "val" passed
-      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
       // the type passed must always be equal to the current type
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
@@ -87,6 +87,30 @@ class QoreBoolNode : public SimpleValueQoreNode
 	 return "bool";
       }
 
+      DLLLOCAL bool getValue() const
+      {
+	 return b;
+      }
 };
+
+class QoreBoolTrueNode : public QoreBoolNode
+{
+   public:
+      DLLEXPORT QoreBoolTrueNode();
+};
+
+class QoreBoolFalseNode : public QoreBoolNode
+{
+   public:
+      DLLEXPORT QoreBoolFalseNode();
+};
+
+DLLEXPORT extern QoreBoolFalseNode False;
+DLLEXPORT extern QoreBoolTrueNode True;
+
+static inline QoreBoolNode *get_bool_node(bool v)
+{
+   return v ? (QoreBoolNode *)&True : (QoreBoolNode *)&False;
+}
 
 #endif

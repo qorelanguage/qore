@@ -92,7 +92,7 @@ static AbstractQoreNode *QTABBAR_currentIndex(QoreObject *self, QoreAbstractQTab
 //bool drawBase () const
 static AbstractQoreNode *QTABBAR_drawBase(QoreObject *self, QoreAbstractQTabBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtb->getQTabBar()->drawBase());
+   return get_bool_node(qtb->getQTabBar()->drawBase());
 }
 
 //Qt::TextElideMode elideMode () const
@@ -145,7 +145,7 @@ static AbstractQoreNode *QTABBAR_isTabEnabled(QoreObject *self, QoreAbstractQTab
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qtb->getQTabBar()->isTabEnabled(index));
+   return get_bool_node(qtb->getQTabBar()->isTabEnabled(index));
 }
 
 //void removeTab ( int index )
@@ -396,7 +396,7 @@ static AbstractQoreNode *QTABBAR_tabWhatsThis(QoreObject *self, QoreAbstractQTab
 //bool usesScrollButtons () const
 static AbstractQoreNode *QTABBAR_usesScrollButtons(QoreObject *self, QoreAbstractQTabBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtb->getQTabBar()->usesScrollButtons());
+   return get_bool_node(qtb->getQTabBar()->usesScrollButtons());
 }
 
 //void setCurrentIndex ( int index )

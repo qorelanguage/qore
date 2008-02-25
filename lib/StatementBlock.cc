@@ -234,7 +234,7 @@ lvh_t find_local_var(char *name)
 static inline void checkSelf(AbstractQoreNode *n, lvh_t selfid)
 {
    // if it's a variable reference
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
    if (ntype == NT_VARREF)
    {
       VarRefNode *v = reinterpret_cast<VarRefNode *>(n);
@@ -276,7 +276,7 @@ static inline int getBaseLVType(AbstractQoreNode *n)
 {
    while (true)
    {
-      const QoreType *ntype = n->getType();
+      qore_type_t ntype = n->getType();
       if (ntype == NT_SELF_VARREF)
 	 return VT_OBJECT;
       if (ntype == NT_VARREF)
@@ -317,7 +317,7 @@ int process_node(AbstractQoreNode **node, lvh_t oflag, int pflag)
    if (!(*node))
       return 0;
 
-   const QoreType *ntype = (*node)->getType();
+   qore_type_t ntype = (*node)->getType();
    if (ntype == NT_REFERENCE)
    {
       // otherwise throw a parse exception if an illegal reference is used

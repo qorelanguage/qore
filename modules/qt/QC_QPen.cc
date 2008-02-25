@@ -129,13 +129,13 @@ static AbstractQoreNode *QPEN_dashOffset(QoreObject *self, QoreQPen *qp, const Q
 //bool isCosmetic () const
 static AbstractQoreNode *QPEN_isCosmetic(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->isCosmetic());
+   return get_bool_node(qp->isCosmetic());
 }
 
 //bool isSolid () const
 static AbstractQoreNode *QPEN_isSolid(QoreObject *self, QoreQPen *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->isSolid());
+   return get_bool_node(qp->isSolid());
 }
 
 //Qt::PenJoinStyle joinStyle () const

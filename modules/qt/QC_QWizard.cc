@@ -133,7 +133,7 @@ static AbstractQoreNode *QWIZARD_hasVisitedPage(QoreObject *self, QoreAbstractQW
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int id = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qw->getQWizard()->hasVisitedPage(id));
+   return get_bool_node(qw->getQWizard()->hasVisitedPage(id));
 }
 
 //virtual int nextId () const
@@ -370,7 +370,7 @@ static AbstractQoreNode *QWIZARD_testOption(QoreObject *self, QoreAbstractQWizar
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QWizard::WizardOption option = (QWizard::WizardOption)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qw->getQWizard()->testOption(option));
+   return get_bool_node(qw->getQWizard()->testOption(option));
 }
 
 //Qt::TextFormat titleFormat () const
@@ -382,7 +382,7 @@ static AbstractQoreNode *QWIZARD_titleFormat(QoreObject *self, QoreAbstractQWiza
 //virtual bool validateCurrentPage ()
 static AbstractQoreNode *QWIZARD_validateCurrentPage(QoreObject *self, QoreAbstractQWizard *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWizard()->validateCurrentPage());
+   return get_bool_node(qw->getQWizard()->validateCurrentPage());
 }
 
 //QList<int> visitedPages () const

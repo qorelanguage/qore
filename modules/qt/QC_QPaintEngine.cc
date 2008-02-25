@@ -63,7 +63,7 @@ static AbstractQoreNode *QPAINTENGINE_begin(QoreObject *self, QoreAbstractQPaint
    ReferenceHolder<AbstractPrivateData> holder(apd_pdev, xsink);
    QoreAbstractQPaintDevice *pdev = dynamic_cast<QoreAbstractQPaintDevice *>(apd_pdev);
    assert(pdev);
-   return new QoreBoolNode(qpe->getQPaintEngine()->begin(pdev->getQPaintDevice()));
+   return get_bool_node(qpe->getQPaintEngine()->begin(pdev->getQPaintDevice()));
 }
 
 //virtual void drawEllipse ( const QRectF & rect )
@@ -354,7 +354,7 @@ static AbstractQoreNode *QPAINTENGINE_drawTiledPixmap(QoreObject *self, QoreAbst
 //virtual bool end () = 0
 static AbstractQoreNode *QPAINTENGINE_end(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpe->getQPaintEngine()->end());
+   return get_bool_node(qpe->getQPaintEngine()->end());
 }
 
 //bool hasFeature ( PaintEngineFeatures feature ) const
@@ -362,13 +362,13 @@ static AbstractQoreNode *QPAINTENGINE_hasFeature(QoreObject *self, QoreAbstractQ
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QPaintEngine::PaintEngineFeatures feature = (QPaintEngine::PaintEngineFeatures)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qpe->getQPaintEngine()->hasFeature(feature));
+   return get_bool_node(qpe->getQPaintEngine()->hasFeature(feature));
 }
 
 //bool isActive () const
 static AbstractQoreNode *QPAINTENGINE_isActive(QoreObject *self, QoreAbstractQPaintEngine *qpe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpe->getQPaintEngine()->isActive());
+   return get_bool_node(qpe->getQPaintEngine()->isActive());
 }
 
 //QPaintDevice * paintDevice () const

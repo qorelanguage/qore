@@ -33,7 +33,7 @@
 
 #endif
 
-AbstractQoreNode::AbstractQoreNode(const QoreType *t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one)
+AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one)
 {
 #if TRACK_REFS
    printd(5, "AbstractQoreNode::ref() %08p type=%08p (0->1)\n", this, type);
@@ -110,7 +110,7 @@ void AbstractQoreNode::deref(ExceptionSink *xsink)
 // AbstractQoreNode::eval(): return value requires a dereference
 AbstractQoreNode *AbstractQoreNode::eval(ExceptionSink *xsink) const
 {
-   if (!needs_eval())
+   if (!needs_eval_flag)
       return refSelf();
    return evalImpl(xsink);
 }
@@ -118,7 +118,7 @@ AbstractQoreNode *AbstractQoreNode::eval(ExceptionSink *xsink) const
 // AbstractQoreNode::eval(): return value requires a dereference if needs_deref is true
 AbstractQoreNode *AbstractQoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const
 {
-   if (!needs_eval()) {
+   if (!needs_eval_flag) {
       needs_deref = false;
       return const_cast<AbstractQoreNode *>(this);
    }
@@ -152,28 +152,28 @@ double AbstractQoreNode::floatEvalImpl(ExceptionSink *xsink) const
 
 int64 AbstractQoreNode::bigIntEval(ExceptionSink *xsink) const
 {
-   if (needs_eval())
+   if (needs_eval_flag)
       return bigIntEvalImpl(xsink);
    return getAsBigInt();
 }
 
 int AbstractQoreNode::integerEval(ExceptionSink *xsink) const
 {
-   if (needs_eval())
+   if (needs_eval_flag)
       return integerEvalImpl(xsink);
    return getAsInt();
 }
 
 bool AbstractQoreNode::boolEval(ExceptionSink *xsink) const
 {
-   if (needs_eval())
+   if (needs_eval_flag)
       return boolEvalImpl(xsink);
    return getAsBool();
 }
 
 double AbstractQoreNode::floatEval(ExceptionSink *xsink) const
 {
-   if (needs_eval())
+   if (needs_eval_flag)
       return floatEvalImpl(xsink);
    return getAsFloat();
 }
@@ -181,7 +181,7 @@ double AbstractQoreNode::floatEval(ExceptionSink *xsink) const
 bool AbstractQoreNode::getAsBool() const
 {
    if (type == NT_BOOLEAN)
-      return reinterpret_cast<const QoreBoolNode *>(this)->b;
+      return reinterpret_cast<const QoreBoolNode *>(this)->getValue();
    return getAsBoolImpl();
 }
 
@@ -328,7 +328,7 @@ static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionS
 {
    // if it's not an immediate hash, then there can't be any
    // variable references in it at any level, so return copy
-   if (!n->QoreHashNode::needs_eval())
+   if (!n->needs_eval())
       return n->refSelf();
 
    QoreHashNode *h = new QoreHashNode(1);
@@ -382,7 +382,7 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
 {
    if (!n) return 0;
 
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
 
    if (ntype == NT_LIST)
       return crlr_list_copy(reinterpret_cast<const QoreListNode *>(n), xsink);

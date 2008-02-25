@@ -122,7 +122,7 @@ static AbstractQoreNode *QACTION_activate(QoreObject *self, QoreAbstractQAction 
 //bool autoRepeat () const
 static AbstractQoreNode *QACTION_autoRepeat(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qa->getQAction()->autoRepeat());
+   return get_bool_node(qa->getQAction()->autoRepeat());
 }
 
 //QVariant data () const
@@ -158,31 +158,31 @@ static AbstractQoreNode *QACTION_iconText(QoreObject *self, QoreAbstractQAction 
 //bool isCheckable () const
 static AbstractQoreNode *QACTION_isCheckable(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qa->getQAction()->isCheckable());
+   return get_bool_node(qa->getQAction()->isCheckable());
 }
 
 //bool isChecked () const
 static AbstractQoreNode *QACTION_isChecked(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qa->getQAction()->isChecked());
+   return get_bool_node(qa->getQAction()->isChecked());
 }
 
 //bool isEnabled () const
 static AbstractQoreNode *QACTION_isEnabled(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qa->getQAction()->isEnabled());
+   return get_bool_node(qa->getQAction()->isEnabled());
 }
 
 //bool isSeparator () const
 static AbstractQoreNode *QACTION_isSeparator(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qa->getQAction()->isSeparator());
+   return get_bool_node(qa->getQAction()->isSeparator());
 }
 
 //bool isVisible () const
 static AbstractQoreNode *QACTION_isVisible(QoreObject *self, QoreAbstractQAction *qa, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qa->getQAction()->isVisible());
+   return get_bool_node(qa->getQAction()->isVisible());
 }
 
 //QMenu * menu () const
@@ -465,7 +465,7 @@ static AbstractQoreNode *QACTION_showStatusText(QoreObject *self, QoreAbstractQA
    if (*xsink)
       return 0;
    ReferenceHolder<AbstractPrivateData> widgetHolder(static_cast<AbstractPrivateData *>(widget), xsink);
-   return new QoreBoolNode(qa->getQAction()->showStatusText(widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
+   return get_bool_node(qa->getQAction()->showStatusText(widget ? static_cast<QWidget *>(widget->getQWidget()) : 0));
 }
 
 //QString statusTip () const

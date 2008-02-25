@@ -105,97 +105,97 @@ static AbstractQoreNode *QCHAR_direction(QoreObject *self, QoreQChar *qc, const 
 //bool hasMirrored () const
 static AbstractQoreNode *QCHAR_hasMirrored(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->hasMirrored());
+   return get_bool_node(qc->hasMirrored());
 }
 
 //bool isDigit () const
 static AbstractQoreNode *QCHAR_isDigit(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isDigit());
+   return get_bool_node(qc->isDigit());
 }
 
 //bool isHighSurrogate () const
 static AbstractQoreNode *QCHAR_isHighSurrogate(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isHighSurrogate());
+   return get_bool_node(qc->isHighSurrogate());
 }
 
 //bool isLetter () const
 static AbstractQoreNode *QCHAR_isLetter(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isLetter());
+   return get_bool_node(qc->isLetter());
 }
 
 //bool isLetterOrNumber () const
 static AbstractQoreNode *QCHAR_isLetterOrNumber(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isLetterOrNumber());
+   return get_bool_node(qc->isLetterOrNumber());
 }
 
 //bool isLowSurrogate () const
 static AbstractQoreNode *QCHAR_isLowSurrogate(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isLowSurrogate());
+   return get_bool_node(qc->isLowSurrogate());
 }
 
 //bool isLower () const
 static AbstractQoreNode *QCHAR_isLower(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isLower());
+   return get_bool_node(qc->isLower());
 }
 
 //bool isMark () const
 static AbstractQoreNode *QCHAR_isMark(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isMark());
+   return get_bool_node(qc->isMark());
 }
 
 //bool isNull () const
 static AbstractQoreNode *QCHAR_isNull(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isNull());
+   return get_bool_node(qc->isNull());
 }
 
 //bool isNumber () const
 static AbstractQoreNode *QCHAR_isNumber(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isNumber());
+   return get_bool_node(qc->isNumber());
 }
 
 //bool isPrint () const
 static AbstractQoreNode *QCHAR_isPrint(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isPrint());
+   return get_bool_node(qc->isPrint());
 }
 
 //bool isPunct () const
 static AbstractQoreNode *QCHAR_isPunct(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isPunct());
+   return get_bool_node(qc->isPunct());
 }
 
 //bool isSpace () const
 static AbstractQoreNode *QCHAR_isSpace(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isSpace());
+   return get_bool_node(qc->isSpace());
 }
 
 //bool isSymbol () const
 static AbstractQoreNode *QCHAR_isSymbol(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isSymbol());
+   return get_bool_node(qc->isSymbol());
 }
 
 //bool isTitleCase () const
 static AbstractQoreNode *QCHAR_isTitleCase(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isTitleCase());
+   return get_bool_node(qc->isTitleCase());
 }
 
 //bool isUpper () const
 static AbstractQoreNode *QCHAR_isUpper(QoreObject *self, QoreQChar *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isUpper());
+   return get_bool_node(qc->isUpper());
 }
 
 //Joining joining () const

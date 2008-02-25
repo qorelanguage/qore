@@ -67,7 +67,7 @@ static void QWIDGET_copy(class QoreObject *self, class QoreObject *old, class Qo
 //bool acceptDrops () const
 static AbstractQoreNode *QWIDGET_acceptDrops(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->acceptDrops());
+   return get_bool_node(qw->getQWidget()->acceptDrops());
 }
 
 //QString accessibleDescription () const
@@ -124,7 +124,7 @@ static AbstractQoreNode *QWIDGET_adjustSize(class QoreObject *self, QoreAbstract
 //bool autoFillBackground () const
 static AbstractQoreNode *QWIDGET_autoFillBackground(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->autoFillBackground());
+   return get_bool_node(qw->getQWidget()->autoFillBackground());
 }
 
 //QPalette::ColorRole backgroundRole () const
@@ -385,20 +385,20 @@ static AbstractQoreNode *QWIDGET_grabShortcut(QoreObject *self, QoreAbstractQWid
 //bool hasEditFocus () const
 static AbstractQoreNode *QWIDGET_hasEditFocus(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->hasEditFocus());
+   return get_bool_node(qw->getQWidget()->hasEditFocus());
 }
 #endif
 
 //bool hasFocus () const
 static AbstractQoreNode *QWIDGET_hasFocus(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->hasFocus());
+   return get_bool_node(qw->getQWidget()->hasFocus());
 }
 
 //bool hasMouseTracking () const
 static AbstractQoreNode *QWIDGET_hasMouseTracking(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->hasMouseTracking());
+   return get_bool_node(qw->getQWidget()->hasMouseTracking());
 }
 
 //int height () const
@@ -462,7 +462,7 @@ static AbstractQoreNode *QWIDGET_insertAction(QoreObject *self, QoreAbstractQWid
 //bool isActiveWindow () const
 static AbstractQoreNode *QWIDGET_isActiveWindow(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->isActiveWindow());
+   return get_bool_node(qw->getQWidget()->isActiveWindow());
 }
 
 //bool isAncestorOf ( const QWidget * child ) const
@@ -478,13 +478,13 @@ static AbstractQoreNode *QWIDGET_isAncestorOf(class QoreObject *self, QoreAbstra
    }
    ReferenceHolder<QoreAbstractQWidget> holder(qwa, xsink);
 
-   return new QoreBoolNode(qw->getQWidget()->isAncestorOf(qwa->getQWidget()));
+   return get_bool_node(qw->getQWidget()->isAncestorOf(qwa->getQWidget()));
 }
 
 //bool isEnabled () const
 static AbstractQoreNode *QWIDGET_isEnabled(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->isEnabled());
+   return get_bool_node(qw->getQWidget()->isEnabled());
 }
 
 //bool isEnabledTo ( QWidget * ancestor ) const
@@ -500,43 +500,43 @@ static AbstractQoreNode *QWIDGET_isEnabledTo(class QoreObject *self, QoreAbstrac
    }
    ReferenceHolder<QoreAbstractQWidget> holder(qwa, xsink);
 
-   return new QoreBoolNode(qw->getQWidget()->isEnabledTo(qwa->getQWidget()));
+   return get_bool_node(qw->getQWidget()->isEnabledTo(qwa->getQWidget()));
 }
 
 //bool isFullScreen () const
 static AbstractQoreNode *QWIDGET_isFullScreen(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->isFullScreen());
+   return get_bool_node(qw->getQWidget()->isFullScreen());
 }
 
 //bool isHidden () const
 static AbstractQoreNode *QWIDGET_isHidden(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->isHidden());
+   return get_bool_node(qw->getQWidget()->isHidden());
 }
 
 //bool isMaximized () const
 static AbstractQoreNode *QWIDGET_isMaximized(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->isMaximized());
+   return get_bool_node(qw->getQWidget()->isMaximized());
 }
 
 //bool isMinimized () const
 static AbstractQoreNode *QWIDGET_isMinimized(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->isMinimized());
+   return get_bool_node(qw->getQWidget()->isMinimized());
 }
 
 //bool isModal () const
 static AbstractQoreNode *QWIDGET_isModal(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->isModal());
+   return get_bool_node(qw->getQWidget()->isModal());
 }
 
 //bool isVisible () const
 static AbstractQoreNode *QWIDGET_isVisible(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->isVisible());
+   return get_bool_node(qw->getQWidget()->isVisible());
 }
 
 //bool isVisibleTo ( QWidget * ancestor ) const
@@ -552,19 +552,19 @@ static AbstractQoreNode *QWIDGET_isVisibleTo(class QoreObject *self, QoreAbstrac
    }
    ReferenceHolder<QoreAbstractQWidget> holder(qwa, xsink);
 
-   return new QoreBoolNode(qw->getQWidget()->isVisibleTo(qwa->getQWidget()));
+   return get_bool_node(qw->getQWidget()->isVisibleTo(qwa->getQWidget()));
 }
 
 //bool isWindow () const
 static AbstractQoreNode *QWIDGET_isWindow(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->isWindow());
+   return get_bool_node(qw->getQWidget()->isWindow());
 }
 
 //bool isWindowModified () const
 static AbstractQoreNode *QWIDGET_isWindowModified(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->isWindowModified());
+   return get_bool_node(qw->getQWidget()->isWindowModified());
 }
 
 //QLayout * layout () const
@@ -1019,7 +1019,7 @@ static AbstractQoreNode *QWIDGET_restoreGeometry(QoreObject *self, QoreAbstractQ
    QByteArray geometry;
    if (get_qbytearray(p, geometry, xsink))
       return 0;
-   return new QoreBoolNode(qw->getQWidget()->restoreGeometry(geometry));
+   return get_bool_node(qw->getQWidget()->restoreGeometry(geometry));
 }
 
 //QByteArray saveGeometry () const
@@ -1797,7 +1797,7 @@ static AbstractQoreNode *QWIDGET_testAttribute(QoreObject *self, QoreAbstractQWi
 {
    const AbstractQoreNode *p = get_param(params, 0);
    Qt::WidgetAttribute attribute = (Qt::WidgetAttribute)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qw->getQWidget()->testAttribute(attribute));
+   return get_bool_node(qw->getQWidget()->testAttribute(attribute));
 }
 
 //QString toolTip () const
@@ -1809,7 +1809,7 @@ static AbstractQoreNode *QWIDGET_toolTip(class QoreObject *self, QoreAbstractQWi
 //bool underMouse () const
 static AbstractQoreNode *QWIDGET_underMouse(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->underMouse());
+   return get_bool_node(qw->getQWidget()->underMouse());
 }
 
 //void unsetCursor ()
@@ -1882,7 +1882,7 @@ static AbstractQoreNode *QWIDGET_updateGeometry(class QoreObject *self, QoreAbst
 //bool updatesEnabled () const
 static AbstractQoreNode *QWIDGET_updatesEnabled(class QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->updatesEnabled());
+   return get_bool_node(qw->getQWidget()->updatesEnabled());
 }
 
 //QRegion visibleRegion () const
@@ -2019,7 +2019,7 @@ static AbstractQoreNode *QWIDGET_y(class QoreObject *self, QoreAbstractQWidget *
 //bool close ()
 static AbstractQoreNode *QWIDGET_close(QoreObject *self, QoreAbstractQWidget *qw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qw->getQWidget()->close());
+   return get_bool_node(qw->getQWidget()->close());
 }
 
 //void hide ()
@@ -2313,7 +2313,7 @@ static AbstractQoreNode *QWIDGET_event(QoreObject *self, QoreQWidget *qw, const 
       return 0;
    }
    ReferenceHolder<QoreQEvent> eventHolder(event, xsink);
-   return new QoreBoolNode(qw->event(static_cast<QEvent *>(event)));
+   return get_bool_node(qw->event(static_cast<QEvent *>(event)));
 }
 
 //virtual void focusInEvent ( QFocusEvent * event )
@@ -2428,7 +2428,7 @@ static AbstractQoreNode *QWIDGET_leaveEvent(QoreObject *self, QoreQWidget *qw, c
 //   QWidget::EventHandlerCallRef caller = (QWidget::EventHandlerCallRef)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 1);
 //   QWidget::EventRef event = (QWidget::EventRef)(p ? p->getAsInt() : 0);
-//   return new QoreBoolNode(qw->macEvent(caller, event));
+//   return get_bool_node(qw->macEvent(caller, event));
 //}
 
 //virtual void mouseDoubleClickEvent ( QMouseEvent * event )
@@ -2526,7 +2526,7 @@ static AbstractQoreNode *QWIDGET_paintEvent(QoreObject *self, QoreQWidget *qw, c
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QWSEvent* event = p;
-//   return new QoreBoolNode(qw->qwsEvent(event));
+//   return get_bool_node(qw->qwsEvent(event));
 //}
 
 //virtual void resizeEvent ( QResizeEvent * event )
@@ -2596,7 +2596,7 @@ static AbstractQoreNode *QWIDGET_wheelEvent(QoreObject *self, QoreQWidget *qw, c
 //   ??? MSG* message = p;
 //   p = get_param(params, 1);
 //   ??? long* result = p;
-//   return new QoreBoolNode(qw->winEvent(message, result));
+//   return get_bool_node(qw->winEvent(message, result));
 //}
 
 ////virtual bool x11Event ( XEvent * event )
@@ -2604,7 +2604,7 @@ static AbstractQoreNode *QWIDGET_wheelEvent(QoreObject *self, QoreQWidget *qw, c
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? XEvent* event = p;
-//   return new QoreBoolNode(qw->x11Event(event));
+//   return get_bool_node(qw->x11Event(event));
 //}
 
 

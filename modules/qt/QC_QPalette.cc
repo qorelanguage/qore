@@ -268,7 +268,7 @@ static AbstractQoreNode *QPALETTE_isBrushSet(QoreObject *self, QoreQPalette *qp,
    QPalette::ColorGroup cg = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QPalette::ColorRole cr = (QPalette::ColorRole)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qp->getQPalette()->isBrushSet(cg, cr));
+   return get_bool_node(qp->getQPalette()->isBrushSet(cg, cr));
 }
 
 //bool isCopyOf ( const QPalette & p ) const
@@ -282,7 +282,7 @@ static AbstractQoreNode *QPALETTE_isCopyOf(QoreObject *self, QoreQPalette *qp, c
       return 0;
    }
    ReferenceHolder<QoreQPalette> pHolder(palette, xsink);
-   return new QoreBoolNode(qp->getQPalette()->isCopyOf(*(palette->getQPalette())));
+   return get_bool_node(qp->getQPalette()->isCopyOf(*(palette->getQPalette())));
 }
 
 //bool isEqual ( ColorGroup cg1, ColorGroup cg2 ) const
@@ -292,7 +292,7 @@ static AbstractQoreNode *QPALETTE_isEqual(QoreObject *self, QoreQPalette *qp, co
    QPalette::ColorGroup cg1 = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
    p = get_param(params, 1);
    QPalette::ColorGroup cg2 = (QPalette::ColorGroup)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qp->getQPalette()->isEqual(cg1, cg2));
+   return get_bool_node(qp->getQPalette()->isEqual(cg1, cg2));
 }
 
 //const QBrush & light () const

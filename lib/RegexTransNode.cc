@@ -67,7 +67,7 @@ QoreString *RegexTransNode::getAsString(bool &del, int foff, ExceptionSink *xsin
 }
 
 // returns the data type
-const QoreType *RegexTransNode::getType() const
+qore_type_t RegexTransNode::getType() const
 {
    return NT_REGEX_TRANS;
 }

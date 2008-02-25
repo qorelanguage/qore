@@ -75,7 +75,7 @@ static void QTEXTEDIT_copy(class QoreObject *self, class QoreObject *old, class 
 //bool acceptRichText () const
 static AbstractQoreNode *QTEXTEDIT_acceptRichText(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qte->getQTextEdit()->acceptRichText());
+   return get_bool_node(qte->getQTextEdit()->acceptRichText());
 }
 
 //Qt::Alignment alignment () const
@@ -107,7 +107,7 @@ static AbstractQoreNode *QTEXTEDIT_autoFormatting(QoreObject *self, QoreAbstract
 //bool canPaste () const
 static AbstractQoreNode *QTEXTEDIT_canPaste(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qte->getQTextEdit()->canPaste());
+   return get_bool_node(qte->getQTextEdit()->canPaste());
 }
 
 //QMenu * createStandardContextMenu ()
@@ -226,7 +226,7 @@ static AbstractQoreNode *QTEXTEDIT_find(QoreObject *self, QoreAbstractQTextEdit 
       return 0;
    p = get_param(params, 1);
    QTextDocument::FindFlags options = (QTextDocument::FindFlags)(!is_nothing(p) ? p->getAsInt() : 0);
-   return new QoreBoolNode(qte->getQTextEdit()->find(exp, options));
+   return get_bool_node(qte->getQTextEdit()->find(exp, options));
 }
 
 //QString fontFamily () const
@@ -238,7 +238,7 @@ static AbstractQoreNode *QTEXTEDIT_fontFamily(QoreObject *self, QoreAbstractQTex
 //bool fontItalic () const
 static AbstractQoreNode *QTEXTEDIT_fontItalic(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qte->getQTextEdit()->fontItalic());
+   return get_bool_node(qte->getQTextEdit()->fontItalic());
 }
 
 //qreal fontPointSize () const
@@ -250,7 +250,7 @@ static AbstractQoreNode *QTEXTEDIT_fontPointSize(QoreObject *self, QoreAbstractQ
 //bool fontUnderline () const
 static AbstractQoreNode *QTEXTEDIT_fontUnderline(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qte->getQTextEdit()->fontUnderline());
+   return get_bool_node(qte->getQTextEdit()->fontUnderline());
 }
 
 //int fontWeight () const
@@ -262,13 +262,13 @@ static AbstractQoreNode *QTEXTEDIT_fontWeight(QoreObject *self, QoreAbstractQTex
 //bool isReadOnly () const
 static AbstractQoreNode *QTEXTEDIT_isReadOnly(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qte->getQTextEdit()->isReadOnly());
+   return get_bool_node(qte->getQTextEdit()->isReadOnly());
 }
 
 //bool isUndoRedoEnabled () const
 static AbstractQoreNode *QTEXTEDIT_isUndoRedoEnabled(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qte->getQTextEdit()->isUndoRedoEnabled());
+   return get_bool_node(qte->getQTextEdit()->isUndoRedoEnabled());
 }
 
 //int lineWrapColumnOrWidth () const
@@ -329,7 +329,7 @@ static AbstractQoreNode *QTEXTEDIT_moveCursor(QoreObject *self, QoreAbstractQTex
 //bool overwriteMode () const
 static AbstractQoreNode *QTEXTEDIT_overwriteMode(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qte->getQTextEdit()->overwriteMode());
+   return get_bool_node(qte->getQTextEdit()->overwriteMode());
 }
 
 //void print ( QPrinter * printer ) const
@@ -517,7 +517,7 @@ static AbstractQoreNode *QTEXTEDIT_setWordWrapMode(QoreObject *self, QoreAbstrac
 //bool tabChangesFocus () const
 static AbstractQoreNode *QTEXTEDIT_tabChangesFocus(QoreObject *self, QoreAbstractQTextEdit *qte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qte->getQTextEdit()->tabChangesFocus());
+   return get_bool_node(qte->getQTextEdit()->tabChangesFocus());
 }
 
 //int tabStopWidth () const

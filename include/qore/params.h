@@ -40,16 +40,6 @@ static inline const AbstractQoreNode *get_param(const QoreListNode *n, int i)
    return is_nothing(p) ? NULL : p;
 }
 
-/*
-static inline const AbstractQoreNode *test_param(const QoreListNode *n, class QoreType *type, int i)
-{
-   if (!n) return NULL;
-   AbstractQoreNode *p = n->retrieve_entry(i);
-   if (is_nothing(p)) return NULL;
-   return (p->type == type) ? p : NULL;
-}
-*/
-
 static inline const BinaryNode *test_binary_param(const QoreListNode *n, int i)
 {
    if (!n) return 0;

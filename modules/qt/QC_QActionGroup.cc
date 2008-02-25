@@ -130,19 +130,19 @@ static AbstractQoreNode *QACTIONGROUP_checkedAction(QoreObject *self, QoreQActio
 //bool isEnabled () const
 static AbstractQoreNode *QACTIONGROUP_isEnabled(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qag->qobj->isEnabled());
+   return get_bool_node(qag->qobj->isEnabled());
 }
 
 //bool isExclusive () const
 static AbstractQoreNode *QACTIONGROUP_isExclusive(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qag->qobj->isExclusive());
+   return get_bool_node(qag->qobj->isExclusive());
 }
 
 //bool isVisible () const
 static AbstractQoreNode *QACTIONGROUP_isVisible(QoreObject *self, QoreQActionGroup *qag, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qag->qobj->isVisible());
+   return get_bool_node(qag->qobj->isVisible());
 }
 
 //void removeAction ( QAction * action )

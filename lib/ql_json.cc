@@ -373,7 +373,7 @@ static int doJSONValue(class QoreString *str, const AbstractQoreNode *v, int for
       return 0;
    }
 
-   const QoreType *vtype = v->getType();
+   qore_type_t vtype = v->getType();
 
    if (vtype == NT_LIST) {
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(v);
@@ -454,7 +454,7 @@ static int doJSONValue(class QoreString *str, const AbstractQoreNode *v, int for
 
    if (vtype == NT_BOOLEAN)
    {
-      str->concat(reinterpret_cast<const QoreBoolNode *>(v)->b ? "true" : "false");
+      str->concat(reinterpret_cast<const QoreBoolNode *>(v)->getValue() ? "true" : "false");
       return 0;
    }
 

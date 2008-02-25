@@ -251,7 +251,7 @@ static AbstractQoreNode *QCOLOR_hueF(QoreObject *self, QoreQColor *qc, const Qor
 //bool isValid () const
 static AbstractQoreNode *QCOLOR_isValid(QoreObject *self, QoreQColor *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->isValid());
+   return get_bool_node(qc->isValid());
 }
 
 //int magenta () const
@@ -670,7 +670,7 @@ class QoreClass *initQColorClass()
 //bool allowX11ColorNames ()
 static AbstractQoreNode *f_QColor_allowX11ColorNames(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QColor::allowX11ColorNames());
+   return get_bool_node(QColor::allowX11ColorNames());
 }
 #endif
 

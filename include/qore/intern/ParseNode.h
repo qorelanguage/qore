@@ -33,7 +33,7 @@ class ParseNode : public UniqueQoreNode
    protected:
 
    public:
-      DLLLOCAL ParseNode(const QoreType *t, bool n_needs_eval = true) : UniqueQoreNode(t, false, n_needs_eval)
+      DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : UniqueQoreNode(t, false, n_needs_eval)
       {
       }
       DLLLOCAL ParseNode(const ParseNode &) : UniqueQoreNode(type, false, needs_eval_flag)
@@ -98,7 +98,7 @@ class ParseNoEvalNode : public ParseNode
       }
 
    public:
-      DLLLOCAL ParseNoEvalNode(const QoreType *t) : ParseNode(t, false)
+      DLLLOCAL ParseNoEvalNode(qore_type_t t) : ParseNode(t, false)
       {
       }
       DLLLOCAL ParseNoEvalNode(const ParseNode &) : ParseNode(type, false)

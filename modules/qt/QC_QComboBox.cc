@@ -136,7 +136,7 @@ static AbstractQoreNode *QCOMBOBOX_currentText(QoreObject *self, QoreQComboBox *
 //bool duplicatesEnabled () const
 static AbstractQoreNode *QCOMBOBOX_duplicatesEnabled(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qcb->getQComboBox()->duplicatesEnabled());
+   return get_bool_node(qcb->getQComboBox()->duplicatesEnabled());
 }
 
 //int findData ( const QVariant & data, int role = Qt::UserRole, Qt::MatchFlags flags = Qt::MatchExactly | Qt::MatchCaseSensitive ) const
@@ -169,7 +169,7 @@ static AbstractQoreNode *QCOMBOBOX_findText(QoreObject *self, QoreQComboBox *qcb
 //bool hasFrame () const
 static AbstractQoreNode *QCOMBOBOX_hasFrame(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qcb->getQComboBox()->hasFrame());
+   return get_bool_node(qcb->getQComboBox()->hasFrame());
 }
 
 //virtual void hidePopup ()
@@ -254,7 +254,7 @@ static AbstractQoreNode *QCOMBOBOX_insertPolicy(QoreObject *self, QoreQComboBox 
 //bool isEditable () const
 static AbstractQoreNode *QCOMBOBOX_isEditable(QoreObject *self, QoreQComboBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qcb->getQComboBox()->isEditable());
+   return get_bool_node(qcb->getQComboBox()->isEditable());
 }
 
 //QVariant itemData ( int index, int role = Qt::UserRole ) const

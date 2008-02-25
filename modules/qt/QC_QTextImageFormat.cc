@@ -50,7 +50,7 @@ static AbstractQoreNode *QTEXTIMAGEFORMAT_height(QoreObject *self, QoreQTextImag
 //bool isValid () const
 static AbstractQoreNode *QTEXTIMAGEFORMAT_isValid(QoreObject *self, QoreQTextImageFormat *qtif, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtif->isValid());
+   return get_bool_node(qtif->isValid());
 }
 
 //QString name () const

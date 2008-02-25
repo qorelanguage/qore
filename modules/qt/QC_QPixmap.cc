@@ -57,7 +57,7 @@ static void QPIXMAP_constructor(class QoreObject *self, const QoreListNode *para
       //printd(5, "QPixmap::constructor('%s', %08p, %d) valid=%s\n", fileName.toUtf8().data(), format, (int)flags, !qp->isNull() ? "true" : "false");
    }
    else {
-      const QoreType *ntype = p ? p->getType() : 0;
+      qore_type_t ntype = p ? p->getType() : 0;
 /*
   if (ntype == NT_BINARY)
       qp = new QoreQPixmap(reinterpret_cast<const BinaryNode *>(p));
@@ -251,13 +251,13 @@ static AbstractQoreNode *QPIXMAP_fill(QoreObject *self, QoreAbstractQPixmap *qp,
 //bool hasAlpha () const
 static AbstractQoreNode *QPIXMAP_hasAlpha(QoreObject *self, QoreAbstractQPixmap *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->getQPixmap()->hasAlpha());
+   return get_bool_node(qp->getQPixmap()->hasAlpha());
 }
 
 //bool hasAlphaChannel () const
 static AbstractQoreNode *QPIXMAP_hasAlphaChannel(QoreObject *self, QoreAbstractQPixmap *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->getQPixmap()->hasAlphaChannel());
+   return get_bool_node(qp->getQPixmap()->hasAlphaChannel());
 }
 
 //int height () const
@@ -269,13 +269,13 @@ static AbstractQoreNode *QPIXMAP_height(QoreObject *self, QoreAbstractQPixmap *q
 //bool isNull () const
 static AbstractQoreNode *QPIXMAP_isNull(QoreObject *self, QoreAbstractQPixmap *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->getQPixmap()->isNull());
+   return get_bool_node(qp->getQPixmap()->isNull());
 }
 
 //bool isQBitmap () const
 static AbstractQoreNode *QPIXMAP_isQBitmap(QoreObject *self, QoreAbstractQPixmap *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->getQPixmap()->isQBitmap());
+   return get_bool_node(qp->getQPixmap()->isQBitmap());
 }
 
 //bool load ( const QString & fileName, const char * format = 0, Qt::ImageConversionFlags flags = Qt::AutoColor )
@@ -291,7 +291,7 @@ static AbstractQoreNode *QPIXMAP_load(QoreObject *self, QoreAbstractQPixmap *qp,
 
    p = get_param(params, 2);
    Qt::ImageConversionFlags flags = !is_nothing(p) ? (Qt::ImageConversionFlags)p->getAsInt() :  Qt::AutoColor;
-   return new QoreBoolNode(qp->getQPixmap()->load(fileName, format, flags));
+   return get_bool_node(qp->getQPixmap()->load(fileName, format, flags));
 }
 
 //bool loadFromData ( const uchar * data, uint len, const char * format = 0, Qt::ImageConversionFlags flags = Qt::AutoColor )
@@ -307,14 +307,14 @@ static AbstractQoreNode *QPIXMAP_load(QoreObject *self, QoreAbstractQPixmap *qp,
 //   const char *format = p ? p->getBuffer() : 0;
 //   p = get_param(params, 3);
 //   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
-//   return new QoreBoolNode(qp->getQPixmap()->loadFromData(data, format, format, flags));
+//   return get_bool_node(qp->getQPixmap()->loadFromData(data, format, format, flags));
 //   }
 //   unsigned len = p ? p->getAsBigInt() : 0;
 //   p = get_param(params, 2);
 //   const char *format = p ? p->getBuffer() : 0;
 //   p = get_param(params, 3);
 //   Qt::ImageConversionFlags flags = (Qt::ImageConversionFlags)(p ? p->getAsInt() : 0);
-//   return new QoreBoolNode(qp->getQPixmap()->loadFromData(data, len, format, flags));
+//   return get_bool_node(qp->getQPixmap()->loadFromData(data, len, format, flags));
 //}
 
 //QBitmap mask () const
@@ -351,7 +351,7 @@ static AbstractQoreNode *QPIXMAP_save(QoreObject *self, QoreAbstractQPixmap *qp,
 
    const AbstractQoreNode *pn = get_param(params, 2);
    int quality = !is_nothing(pn) ? pn->getAsInt() : -1;
-   return new QoreBoolNode(qp->getQPixmap()->save(fileName, format, quality));
+   return get_bool_node(qp->getQPixmap()->save(fileName, format, quality));
 }
 
 //QPixmap scaled ( const QSize & size, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio, Qt::TransformationMode transformMode = Qt::FastTransformation ) const

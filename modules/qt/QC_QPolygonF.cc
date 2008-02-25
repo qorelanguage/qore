@@ -133,7 +133,7 @@ static AbstractQoreNode *QPOLYGONF_containsPoint(QoreObject *self, QoreQPolygonF
    ReferenceHolder<QoreQPointF> holder(point, xsink);
    const AbstractQoreNode *p = get_param(params, 1);
    Qt::FillRule fillRule = (Qt::FillRule)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qpf->containsPoint(*(static_cast<QPointF *>(point)), fillRule));
+   return get_bool_node(qpf->containsPoint(*(static_cast<QPointF *>(point)), fillRule));
 }
 
 //QPolygonF intersected ( const QPolygonF & r ) const
@@ -156,7 +156,7 @@ static AbstractQoreNode *QPOLYGONF_intersected(QoreObject *self, QoreQPolygonF *
 //bool isClosed () const
 static AbstractQoreNode *QPOLYGONF_isClosed(QoreObject *self, QoreQPolygonF *qpf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpf->isClosed());
+   return get_bool_node(qpf->isClosed());
 }
 
 //QPolygonF subtracted ( const QPolygonF & r ) const

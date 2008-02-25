@@ -63,7 +63,7 @@ static AbstractQoreNode *QDIAL_notchTarget(QoreObject *self, QoreQDial *qd, cons
 //bool notchesVisible () const
 static AbstractQoreNode *QDIAL_notchesVisible(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qd->qobj->notchesVisible());
+   return get_bool_node(qd->qobj->notchesVisible());
 }
 
 //void setNotchTarget ( double target )
@@ -78,7 +78,7 @@ static AbstractQoreNode *QDIAL_setNotchTarget(QoreObject *self, QoreQDial *qd, c
 //bool wrapping () const
 static AbstractQoreNode *QDIAL_wrapping(QoreObject *self, QoreQDial *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qd->qobj->wrapping());
+   return get_bool_node(qd->qobj->wrapping());
 }
 
 //void setNotchesVisible ( bool visible )

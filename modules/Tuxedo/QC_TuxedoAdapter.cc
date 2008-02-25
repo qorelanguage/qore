@@ -220,7 +220,7 @@ static AbstractQoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, cons
     return xsink->raiseException(err_name, "Service name string cannot be empty");
   }
   const AbstractQoreNode* data = get_param(params, 1);
-  const QoreType *dtype = data ? data->getType() : 0;
+  qore_type_t dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32)");
 
@@ -231,7 +231,7 @@ static AbstractQoreNode* call(QoreObject* self, QoreTuxedoAdapter* adapter, cons
 
   const AbstractQoreNode *n = get_param(params, 2);
   if (!is_nothing(n)) {
-     const QoreType *ntype = n->getType();
+     qore_type_t ntype = n->getType();
      if (ntype == NT_HASH)
 	call_settings = reinterpret_cast<const QoreHashNode *>(n);
      else {
@@ -318,7 +318,7 @@ static AbstractQoreNode* asyncCall(QoreObject* self, QoreTuxedoAdapter* adapter,
     return xsink->raiseException(err_name, "Service name string cannot be empty");
   }
   const AbstractQoreNode* data = get_param(params, 1);
-  const QoreType *dtype = data ? data->getType() : 0;
+  qore_type_t dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32)");
 
@@ -510,7 +510,7 @@ static AbstractQoreNode* joinConversation(QoreObject* self, QoreTuxedoAdapter* a
     return xsink->raiseException(err_name, "Service name string cannot be empty");
   }
   const AbstractQoreNode* data = get_param(params, 1);
-  const QoreType *dtype = data ? data->getType() : 0;
+  qore_type_t dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32)");
 
@@ -558,7 +558,7 @@ static AbstractQoreNode* sendConversationData(QoreObject* self, QoreTuxedoAdapte
   long handle = (long)(n ? n->getAsBigInt() : 0);
 
   const AbstractQoreNode* data = get_param(params, 1);
-  const QoreType *dtype = data ? data->getType() : 0;
+  qore_type_t dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32)");
 
@@ -628,7 +628,7 @@ static AbstractQoreNode* enqueue(QoreObject* self, QoreTuxedoAdapter* adapter, c
   if (!queue_name || !queue_name[0]) return xsink->raiseException(err_name, "Queue name cannot be empty");
 
   const AbstractQoreNode* data = get_param(params, 2);
-  const QoreType *dtype = data ? data->getType() : 0;
+  qore_type_t dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32)");
 
@@ -910,7 +910,7 @@ static AbstractQoreNode* isTransactionRunning(QoreObject* self, QoreTuxedoAdapte
   if (res == -1) {
     return xsink->raiseExceptionArg("TUXEDO-ERROR", make_tuxedo_err_hash(tperrno, "tpgetlev"), "tpgetlev() failed with error %d", tperrno);
   }
-  return new QoreBoolNode(res != 0);
+  return get_bool_node(res != 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -924,7 +924,7 @@ static AbstractQoreNode* postEvent(QoreObject* self, QoreTuxedoAdapter* adapter,
     return xsink->raiseException(err_name, "Event name string cannot be empty");
   }
   const AbstractQoreNode* data = get_param(params, 1);
-  const QoreType *dtype = data ? data->getType() : 0;
+  qore_type_t dtype = data ? data->getType() : 0;
   if (dtype && !(dtype == NT_NOTHING || dtype == NT_STRING || dtype == NT_BINARY || dtype == NT_HASH))
     return xsink->raiseException(err_name, "Allowed data: NOTHING, string, binary, hash (FML or FML32)");
 

@@ -81,7 +81,7 @@ static AbstractQoreNode *QPAINTDEVICE_numColors(QoreObject *self, QoreAbstractQP
 //bool paintingActive () const
 static AbstractQoreNode *QPAINTDEVICE_paintingActive(QoreObject *self, QoreAbstractQPaintDevice *qpd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpd->getQPaintDevice()->paintingActive());
+   return get_bool_node(qpd->getQPaintDevice()->paintingActive());
 }
 
 //int physicalDpiX () const

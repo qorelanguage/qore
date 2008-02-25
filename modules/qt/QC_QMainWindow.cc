@@ -185,13 +185,13 @@ static AbstractQoreNode *QMAINWINDOW_iconSize(QoreObject *self, QoreQMainWindow 
 //bool isAnimated () const
 static AbstractQoreNode *QMAINWINDOW_isAnimated(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qmw->qobj->isAnimated());
+   return get_bool_node(qmw->qobj->isAnimated());
 }
 
 //bool isDockNestingEnabled () const
 static AbstractQoreNode *QMAINWINDOW_isDockNestingEnabled(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qmw->qobj->isDockNestingEnabled());
+   return get_bool_node(qmw->qobj->isDockNestingEnabled());
 }
 
 //QMenuBar * menuBar () const
@@ -262,7 +262,7 @@ static AbstractQoreNode *QMAINWINDOW_restoreState(QoreObject *self, QoreQMainWin
       return 0;
    p = get_param(params, 1);
    int version = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qmw->qobj->restoreState(state, version));
+   return get_bool_node(qmw->qobj->restoreState(state, version));
 }
 
 //QByteArray saveState ( int version = 0 ) const
@@ -426,7 +426,7 @@ static AbstractQoreNode *QMAINWINDOW_setUnifiedTitleAndToolBarOnMac(QoreObject *
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QToolBar* toolbar = p;
-//   return new QoreBoolNode(qmw->qobj->toolBarBreak(toolbar));
+//   return get_bool_node(qmw->qobj->toolBarBreak(toolbar));
 //}
 
 //Qt::ToolButtonStyle toolButtonStyle () const
@@ -438,7 +438,7 @@ static AbstractQoreNode *QMAINWINDOW_toolButtonStyle(QoreObject *self, QoreQMain
 //bool unifiedTitleAndToolBarOnMac () const
 static AbstractQoreNode *QMAINWINDOW_unifiedTitleAndToolBarOnMac(QoreObject *self, QoreQMainWindow *qmw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qmw->qobj->unifiedTitleAndToolBarOnMac());
+   return get_bool_node(qmw->qobj->unifiedTitleAndToolBarOnMac());
 }
 
 //void setAnimated ( bool enabled )

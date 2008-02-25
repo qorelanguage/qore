@@ -185,7 +185,7 @@ static AbstractQoreNode *PROGRAM_existsFunction(QoreObject *self, QoreProgram *p
    if (!(p0 = test_string_param(params, 0)))
       return NULL;
 
-   return new QoreBoolNode(p->existsFunction(p0->getBuffer()));
+   return get_bool_node(p->existsFunction(p0->getBuffer()));
 }
 
 static AbstractQoreNode *PROGRAM_run(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)

@@ -97,13 +97,13 @@ static AbstractQoreNode *QTIME_hour(QoreObject *self, QoreQTime *qt, const QoreL
 //bool isNull () const
 static AbstractQoreNode *QTIME_isNull(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qt->isNull());
+   return get_bool_node(qt->isNull());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QTIME_isValid(QoreObject *self, QoreQTime *qt, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qt->isValid());
+   return get_bool_node(qt->isValid());
 }
 
 //int minute () const
@@ -169,7 +169,7 @@ static AbstractQoreNode *QTIME_setHMS(QoreObject *self, QoreQTime *qt, const Qor
    int s = p ? p->getAsInt() : 0;
    p = get_param(params, 3);
    int ms = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qt->setHMS(h, m, s, ms));
+   return get_bool_node(qt->setHMS(h, m, s, ms));
 }
 
 //void start ()

@@ -38,7 +38,7 @@ static AbstractQoreNode *f_sort(const QoreListNode *params, ExceptionSink *xsink
    if (is_nothing(fn))
       return l->sort();
 
-   const QoreType *fntype = fn->getType();
+   qore_type_t fntype = fn->getType();
    
    if (fntype == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(fn);
@@ -72,7 +72,7 @@ static AbstractQoreNode *f_sortDescending(const QoreListNode *params, ExceptionS
    if (is_nothing(fn))
       return l->sortDescending();
 
-   const QoreType *fntype = fn->getType();
+   qore_type_t fntype = fn->getType();
    
    if (fntype == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(fn);
@@ -106,7 +106,7 @@ static AbstractQoreNode *f_sortStable(const QoreListNode *params, ExceptionSink 
    if (is_nothing(fn))
       return l->sortStable();
 
-   const QoreType *fntype = fn->getType();
+   qore_type_t fntype = fn->getType();
    
    if (fntype == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(fn);
@@ -140,7 +140,7 @@ static AbstractQoreNode *f_sortDescendingStable(const QoreListNode *params, Exce
    if (is_nothing(fn))
       return l->sortDescendingStable();
 
-   const QoreType *fntype = fn->getType();
+   qore_type_t fntype = fn->getType();
    
    if (fntype == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(fn);
@@ -168,7 +168,7 @@ static AbstractQoreNode *f_min(const QoreListNode *params, ExceptionSink *xsink)
       if (is_nothing(p))
 	 return lst->min();
 
-      const QoreType *ptype = p->getType();
+      qore_type_t ptype = p->getType();
       
       if (ptype == NT_STRING) {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
@@ -200,7 +200,7 @@ static AbstractQoreNode *f_max(const QoreListNode *params, ExceptionSink *xsink)
       if (is_nothing(p))
 	 return lst->max();
       
-      const QoreType *ptype = p->getType();
+      qore_type_t ptype = p->getType();
       
       if (ptype == NT_STRING) {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
@@ -227,7 +227,7 @@ static AbstractQoreNode *f_reverse(const QoreListNode *params, ExceptionSink *xs
 { 
    const AbstractQoreNode *p = get_param(params, 0);
 
-   const QoreType *ptype = p ? p->getType() : 0;
+   qore_type_t ptype = p ? p->getType() : 0;
    
    if (ptype == NT_LIST)
       return reinterpret_cast<const QoreListNode *>(p)->reverse();

@@ -74,19 +74,19 @@ static AbstractQoreNode *QWIZARDPAGE_initializePage(QoreObject *self, QoreAbstra
 //bool isCommitPage () const
 static AbstractQoreNode *QWIZARDPAGE_isCommitPage(QoreObject *self, QoreAbstractQWizardPage *qwp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qwp->getQWizardPage()->isCommitPage());
+   return get_bool_node(qwp->getQWizardPage()->isCommitPage());
 }
 
 //virtual bool isComplete () const
 static AbstractQoreNode *QWIZARDPAGE_isComplete(QoreObject *self, QoreAbstractQWizardPage *qwp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qwp->getQWizardPage()->isComplete());
+   return get_bool_node(qwp->getQWizardPage()->isComplete());
 }
 
 //bool isFinalPage () const
 static AbstractQoreNode *QWIZARDPAGE_isFinalPage(QoreObject *self, QoreAbstractQWizardPage *qwp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qwp->getQWizardPage()->isFinalPage());
+   return get_bool_node(qwp->getQWizardPage()->isFinalPage());
 }
 
 //virtual int nextId () const
@@ -191,7 +191,7 @@ static AbstractQoreNode *QWIZARDPAGE_title(QoreObject *self, QoreAbstractQWizard
 //virtual bool validatePage ()
 static AbstractQoreNode *QWIZARDPAGE_validatePage(QoreObject *self, QoreAbstractQWizardPage *qwp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qwp->getQWizardPage()->validatePage());
+   return get_bool_node(qwp->getQWizardPage()->validatePage());
 }
 
 //QVariant field ( const QString & name ) const

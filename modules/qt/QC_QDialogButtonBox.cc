@@ -185,7 +185,7 @@ static AbstractQoreNode *QDIALOGBUTTONBOX_buttons(QoreObject *self, QoreQDialogB
 //bool centerButtons () const
 static AbstractQoreNode *QDIALOGBUTTONBOX_centerButtons(QoreObject *self, QoreQDialogButtonBox *qdbb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qdbb->qobj->centerButtons());
+   return get_bool_node(qdbb->qobj->centerButtons());
 }
 
 //void clear ()

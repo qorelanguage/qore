@@ -58,7 +58,7 @@ static void QPOINT_copy(class QoreObject *self, class QoreObject *old, class Qor
 //bool isNull () const
 static AbstractQoreNode *QPOINT_isNull(QoreObject *self, QoreQPoint *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->isNull());
+   return get_bool_node(qp->isNull());
 }
 
 //int manhattanLength () const

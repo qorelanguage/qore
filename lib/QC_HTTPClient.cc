@@ -75,7 +75,7 @@ static AbstractQoreNode *HC_setSecure(QoreObject *self, class QoreHTTPClient *cl
 
 static AbstractQoreNode *HC_isSecure(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(client->isSecure());
+   return get_bool_node(client->isSecure());
 }
 
 static AbstractQoreNode *HC_verifyPeerCertificate(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
@@ -295,7 +295,7 @@ AbstractQoreNode *f_setProxySecure(QoreObject *self, class QoreHTTPClient *clien
 
 AbstractQoreNode *f_isProxySecure(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(client->isProxySecure());
+   return get_bool_node(client->isProxySecure());
 }
 
 AbstractQoreNode *f_setMaxRedirects(QoreObject *self, class QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink)

@@ -388,13 +388,13 @@ static AbstractQoreNode *QPAINTERPATH_contains(QoreObject *self, QoreQPainterPat
 	    return 0;
 	 }
 	 ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(point), xsink);
-	 return new QoreBoolNode(qpp->contains(*(static_cast<QPointF *>(point))));
+	 return get_bool_node(qpp->contains(*(static_cast<QPointF *>(point))));
       }
       ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
-      return new QoreBoolNode(qpp->contains(*(static_cast<QRectF *>(rectangle))));
+      return get_bool_node(qpp->contains(*(static_cast<QRectF *>(rectangle))));
    }
    ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(path), xsink);
-   return new QoreBoolNode(qpp->contains(*(static_cast<QPainterPath *>(path))));
+   return get_bool_node(qpp->contains(*(static_cast<QPainterPath *>(path))));
 }
 
 //QRectF controlPointRect () const
@@ -517,17 +517,17 @@ static AbstractQoreNode *QPAINTERPATH_intersects(QoreObject *self, QoreQPainterP
 	 return 0;
       }
       ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
-      return new QoreBoolNode(qpp->intersects(*(static_cast<QRectF *>(rectangle))));
+      return get_bool_node(qpp->intersects(*(static_cast<QRectF *>(rectangle))));
    }
    ReferenceHolder<AbstractPrivateData> pHolder(static_cast<AbstractPrivateData *>(path), xsink);
-   return new QoreBoolNode(qpp->intersects(*(static_cast<QPainterPath *>(path))));
+   return get_bool_node(qpp->intersects(*(static_cast<QPainterPath *>(path))));
 }
 
 
 //bool isEmpty () const
 static AbstractQoreNode *QPAINTERPATH_isEmpty(QoreObject *self, QoreQPainterPath *qpp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qpp->isEmpty());
+   return get_bool_node(qpp->isEmpty());
 }
 
 //qreal length () const

@@ -155,7 +155,7 @@ static AbstractQoreNode *QMOVIE_frameRect(QoreObject *self, QoreQMovie *qm, cons
 //bool isValid () const
 static AbstractQoreNode *QMOVIE_isValid(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qm->qobj->isValid());
+   return get_bool_node(qm->qobj->isValid());
 }
 
 //bool jumpToFrame ( int frameNumber )
@@ -163,7 +163,7 @@ static AbstractQoreNode *QMOVIE_jumpToFrame(QoreObject *self, QoreQMovie *qm, co
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int frameNumber = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qm->qobj->jumpToFrame(frameNumber));
+   return get_bool_node(qm->qobj->jumpToFrame(frameNumber));
 }
 
 //int loopCount () const
@@ -275,7 +275,7 @@ static AbstractQoreNode *QMOVIE_state(QoreObject *self, QoreQMovie *qm, const Qo
 //bool jumpToNextFrame ()
 static AbstractQoreNode *QMOVIE_jumpToNextFrame(QoreObject *self, QoreQMovie *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qm->qobj->jumpToNextFrame());
+   return get_bool_node(qm->qobj->jumpToNextFrame());
 }
 
 //void setPaused ( bool paused )

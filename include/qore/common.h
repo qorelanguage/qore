@@ -33,6 +33,8 @@
 #include <list>
 #include <set>
 
+typedef short qore_type_t;
+
 // set of integers
 typedef std::set<int> int_set_t;
 

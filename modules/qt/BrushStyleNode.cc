@@ -110,7 +110,7 @@ bool BrushStyleNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsi
 }
 
 // returns the data type
-const QoreType *BrushStyleNode::getType() const
+qore_type_t BrushStyleNode::getType() const
 {
    return NT_BRUSHSTYLE;
 }

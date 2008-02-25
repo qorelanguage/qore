@@ -113,13 +113,13 @@ static AbstractQoreNode *QMATRIX_inverted(QoreObject *self, QoreQMatrix *qm, con
 //bool isIdentity () const
 static AbstractQoreNode *QMATRIX_isIdentity(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qm->isIdentity());
+   return get_bool_node(qm->isIdentity());
 }
 
 //bool isInvertible () const
 static AbstractQoreNode *QMATRIX_isInvertible(QoreObject *self, QoreQMatrix *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qm->isInvertible());
+   return get_bool_node(qm->isInvertible());
 }
 
 //void map ( qreal x, qreal y, qreal * tx, qreal * ty ) const

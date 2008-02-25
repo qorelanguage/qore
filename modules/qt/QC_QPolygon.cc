@@ -128,7 +128,7 @@ static AbstractQoreNode *QPOLYGON_containsPoint(QoreObject *self, QoreQPolygon *
    ReferenceHolder<QoreQPoint> holder(pt, xsink);
    const AbstractQoreNode *p = get_param(params, 1);
    Qt::FillRule fillRule = (Qt::FillRule)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qp->containsPoint(*(static_cast<QPoint *>(pt)), fillRule));
+   return get_bool_node(qp->containsPoint(*(static_cast<QPoint *>(pt)), fillRule));
 }
 
 //QPolygon intersected ( const QPolygon & r ) const

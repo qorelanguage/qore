@@ -47,13 +47,13 @@ static void QPRINTER_copy(class QoreObject *self, class QoreObject *old, class Q
 //bool abort ()
 static AbstractQoreNode *QPRINTER_abort(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->abort());
+   return get_bool_node(qp->abort());
 }
 
 //bool collateCopies () const
 static AbstractQoreNode *QPRINTER_collateCopies(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->collateCopies());
+   return get_bool_node(qp->collateCopies());
 }
 
 //ColorMode colorMode () const
@@ -77,13 +77,13 @@ static AbstractQoreNode *QPRINTER_docName(QoreObject *self, QoreQPrinter *qp, co
 //bool doubleSidedPrinting () const
 static AbstractQoreNode *QPRINTER_doubleSidedPrinting(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->doubleSidedPrinting());
+   return get_bool_node(qp->doubleSidedPrinting());
 }
 
 //bool fontEmbeddingEnabled () const
 static AbstractQoreNode *QPRINTER_fontEmbeddingEnabled(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->fontEmbeddingEnabled());
+   return get_bool_node(qp->fontEmbeddingEnabled());
 }
 
 //int fromPage () const
@@ -95,13 +95,13 @@ static AbstractQoreNode *QPRINTER_fromPage(QoreObject *self, QoreQPrinter *qp, c
 //bool fullPage () const
 static AbstractQoreNode *QPRINTER_fullPage(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->fullPage());
+   return get_bool_node(qp->fullPage());
 }
 
 //bool newPage ()
 static AbstractQoreNode *QPRINTER_newPage(QoreObject *self, QoreQPrinter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->newPage());
+   return get_bool_node(qp->newPage());
 }
 
 //int numCopies () const

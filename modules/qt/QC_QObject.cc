@@ -62,7 +62,7 @@ static AbstractQoreNode *QOBJECT_blockSignals(QoreObject *self, QoreAbstractQObj
 {
    const AbstractQoreNode *p = get_param(params, 0);
    bool block = p ? p->getAsBool() : 0;
-   return new QoreBoolNode(qo->getQObject()->blockSignals(block));
+   return get_bool_node(qo->getQObject()->blockSignals(block));
 }
 
 //const QObjectQoreListNode & children () const
@@ -100,7 +100,7 @@ static AbstractQoreNode *QOBJECT_connect(QoreObject *self, QoreAbstractQObject *
 
    //p = get_param(params, 3);
    //Qt::ConnectionType type = (Qt::ConnectionType)(p ? p->getAsInt() : 0);
-   //return new QoreBoolNode(qo->getQObject()->connect(sender->getQObject(), signal, method, type));
+   //return get_bool_node(qo->getQObject()->connect(sender->getQObject(), signal, method, type));
 
    qo->connectDynamic(sender, signal, method, xsink);
    return 0;
@@ -112,7 +112,7 @@ static AbstractQoreNode *QOBJECT_disconnect(QoreObject *self, QoreAbstractQObjec
 {
 
    const AbstractQoreNode *p = get_param(params, 0);
-   const QoreType *ptype = p ? p->getType() : 0;
+   qore_type_t ptype = p ? p->getType() : 0;
    if (ptype != NT_STRING && ptype != NT_OBJECT) {
       xsink->raiseException("QOBJECT-DISCONNECT-PARAM-ERROR", "expecting a string or QObject as first argument to QObject::disconnect()");
       return 0;
@@ -150,9 +150,9 @@ static AbstractQoreNode *QOBJECT_disconnect(QoreObject *self, QoreAbstractQObjec
    const char *method = pstr->getBuffer();
 
    if (signal)
-      return new QoreBoolNode(qo->getQObject()->disconnect(signal, receiver->getQObject(), method));
+      return get_bool_node(qo->getQObject()->disconnect(signal, receiver->getQObject(), method));
 
-   return new QoreBoolNode(qo->getQObject()->disconnect(receiver->getQObject(), method));
+   return get_bool_node(qo->getQObject()->disconnect(receiver->getQObject(), method));
 }
 
 //void dumpObjectInfo ()
@@ -180,7 +180,7 @@ static AbstractQoreNode *QOBJECT_dumpObjectTree(QoreObject *self, QoreAbstractQO
 //{
 //   const AbstractQoreNode *p = get_param(params, 0);
 //   ??? QEvent* e = p;
-//   return new QoreBoolNode(qo->getQObject()->event(e));
+//   return get_bool_node(qo->getQObject()->event(e));
 //}
 
 //virtual bool eventFilter ( QObject * watched, QEvent * event )
@@ -228,7 +228,7 @@ static AbstractQoreNode *QOBJECT_inherits(QoreObject *self, QoreAbstractQObject 
       return 0;
    }
    const char *className = p->getBuffer();
-   return new QoreBoolNode(qo->getQObject()->inherits(className));
+   return get_bool_node(qo->getQObject()->inherits(className));
 }
 
 //void installEventFilter ( QObject * filterObj )
@@ -250,7 +250,7 @@ static AbstractQoreNode *QOBJECT_installEventFilter(QoreObject *self, QoreAbstra
 //bool isWidgetType () const
 static AbstractQoreNode *QOBJECT_isWidgetType(QoreObject *self, QoreAbstractQObject *qo, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qo->getQObject()->isWidgetType());
+   return get_bool_node(qo->getQObject()->isWidgetType());
 }
 
 //void killTimer ( int id )
@@ -372,13 +372,13 @@ static AbstractQoreNode *QOBJECT_setProperty(QoreObject *self, QoreAbstractQObje
    if (get_qvariant(p, value, xsink))
       return 0;
 
-   return new QoreBoolNode(qo->getQObject()->setProperty(name, value));
+   return get_bool_node(qo->getQObject()->setProperty(name, value));
 }
 
 //bool signalsBlocked () const
 static AbstractQoreNode *QOBJECT_signalsBlocked(QoreObject *self, QoreAbstractQObject *qo, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qo->getQObject()->signalsBlocked());
+   return get_bool_node(qo->getQObject()->signalsBlocked());
 }
 
 //int startTimer ( int interval )

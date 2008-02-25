@@ -182,7 +182,7 @@ static AbstractQoreNode *QLINEEDIT_displayText(QoreObject *self, QoreQLineEdit *
 //bool dragEnabled () const
 static AbstractQoreNode *QLINEEDIT_dragEnabled(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qle->qobj->dragEnabled());
+   return get_bool_node(qle->qobj->dragEnabled());
 }
 
 ////EchoMode echoMode () const
@@ -203,19 +203,19 @@ static AbstractQoreNode *QLINEEDIT_end(QoreObject *self, QoreQLineEdit *qle, con
 //bool hasAcceptableInput () const
 static AbstractQoreNode *QLINEEDIT_hasAcceptableInput(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qle->qobj->hasAcceptableInput());
+   return get_bool_node(qle->qobj->hasAcceptableInput());
 }
 
 //bool hasFrame () const
 static AbstractQoreNode *QLINEEDIT_hasFrame(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qle->qobj->hasFrame());
+   return get_bool_node(qle->qobj->hasFrame());
 }
 
 //bool hasSelectedText () const
 static AbstractQoreNode *QLINEEDIT_hasSelectedText(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qle->qobj->hasSelectedText());
+   return get_bool_node(qle->qobj->hasSelectedText());
 }
 
 //void home ( bool mark )
@@ -249,25 +249,25 @@ static AbstractQoreNode *QLINEEDIT_insert(QoreObject *self, QoreQLineEdit *qle, 
 //bool isModified () const
 static AbstractQoreNode *QLINEEDIT_isModified(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qle->qobj->isModified());
+   return get_bool_node(qle->qobj->isModified());
 }
 
 //bool isReadOnly () const
 static AbstractQoreNode *QLINEEDIT_isReadOnly(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qle->qobj->isReadOnly());
+   return get_bool_node(qle->qobj->isReadOnly());
 }
 
 //bool isRedoAvailable () const
 static AbstractQoreNode *QLINEEDIT_isRedoAvailable(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qle->qobj->isRedoAvailable());
+   return get_bool_node(qle->qobj->isRedoAvailable());
 }
 
 //bool isUndoAvailable () const
 static AbstractQoreNode *QLINEEDIT_isUndoAvailable(QoreObject *self, QoreQLineEdit *qle, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qle->qobj->isUndoAvailable());
+   return get_bool_node(qle->qobj->isUndoAvailable());
 }
 
 //int maxLength () const

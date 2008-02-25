@@ -39,7 +39,7 @@ static void QBYTEARRAY_constructor(QoreObject *self, const QoreListNode *params,
       self->setPrivate(CID_QBYTEARRAY, new QoreQByteArray());
       return;
    }
-   const QoreType *ntype = p->getType();
+   qore_type_t ntype = p->getType();
 
    if (ntype == NT_STRING) {
       const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(p);
@@ -138,7 +138,7 @@ static AbstractQoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
-//      return new QoreBoolNode(qba->contains(ba));
+//      return get_bool_node(qba->contains(ba));
 //   }
 //   if (p && p->getType() == NT_STRING) {
 //      if (!p || p->getType() != NT_STRING) {
@@ -146,10 +146,10 @@ static AbstractQoreNode *QBYTEARRAY_constData(QoreObject *self, QoreQByteArray *
 //         return 0;
 //      }
 //      const char *str = p->getBuffer();
-//      return new QoreBoolNode(qba->contains(str));
+//      return get_bool_node(qba->contains(str));
 //   }
 //   QByteArray::char ch = (QByteArray::char)(p ? p->getAsInt() : 0);
-//   return new QoreBoolNode(qba->contains(ch));
+//   return get_bool_node(qba->contains(ch));
 //}
 
 ////int count ( const QByteArray & ba ) const
@@ -205,7 +205,7 @@ static AbstractQoreNode *QBYTEARRAY_data(QoreObject *self, QoreQByteArray *qba, 
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
-//      return new QoreBoolNode(qba->endsWith(ba));
+//      return get_bool_node(qba->endsWith(ba));
 //   }
 //   if (p && p->getType() == NT_STRING) {
 //      if (!p || p->getType() != NT_STRING) {
@@ -213,10 +213,10 @@ static AbstractQoreNode *QBYTEARRAY_data(QoreObject *self, QoreQByteArray *qba, 
 //         return 0;
 //      }
 //      const char *str = p->getBuffer();
-//      return new QoreBoolNode(qba->endsWith(str));
+//      return get_bool_node(qba->endsWith(str));
 //   }
 //   QByteArray::char ch = (QByteArray::char)(p ? p->getAsInt() : 0);
-//   return new QoreBoolNode(qba->endsWith(ch));
+//   return get_bool_node(qba->endsWith(ch));
 //}
 
 //QByteArray & fill ( char ch, int size = -1 )
@@ -329,13 +329,13 @@ static AbstractQoreNode *QBYTEARRAY_fill(QoreObject *self, QoreQByteArray *qba, 
 //bool isEmpty () const
 static AbstractQoreNode *QBYTEARRAY_isEmpty(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qba->isEmpty());
+   return get_bool_node(qba->isEmpty());
 }
 
 //bool isNull () const
 static AbstractQoreNode *QBYTEARRAY_isNull(QoreObject *self, QoreQByteArray *qba, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qba->isNull());
+   return get_bool_node(qba->isNull());
 }
 
 ////int lastIndexOf ( const QByteArray & ba, int from = -1 ) const
@@ -996,7 +996,7 @@ static AbstractQoreNode *QBYTEARRAY_squeeze(QoreObject *self, QoreQByteArray *qb
 //      QByteArray ba;
 //      if (get_qbytearray(p, ba, xsink))
 //         return 0;
-//      return new QoreBoolNode(qba->startsWith(ba));
+//      return get_bool_node(qba->startsWith(ba));
 //   }
 //   if (p && p->getType() == NT_STRING) {
 //      if (!p || p->getType() != NT_STRING) {
@@ -1004,10 +1004,10 @@ static AbstractQoreNode *QBYTEARRAY_squeeze(QoreObject *self, QoreQByteArray *qb
 //         return 0;
 //      }
 //      const char *str = p->getBuffer();
-//      return new QoreBoolNode(qba->startsWith(str));
+//      return get_bool_node(qba->startsWith(str));
 //   }
 //   QByteArray::char ch = (QByteArray::char)(p ? p->getAsInt() : 0);
-//   return new QoreBoolNode(qba->startsWith(ch));
+//   return get_bool_node(qba->startsWith(ch));
 //}
 
 //QByteArray toBase64 () const

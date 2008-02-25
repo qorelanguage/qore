@@ -176,22 +176,22 @@ static AbstractQoreNode *QRECT_contains(QoreObject *self, QoreQRect *qr, const Q
          ReferenceHolder<AbstractPrivateData> pointHolder(static_cast<AbstractPrivateData *>(point), xsink);
          p = get_param(params, 1);
          bool proper = p ? p->getAsBool() : false;
-         return new QoreBoolNode(qr->contains(*(static_cast<QPoint *>(point)), proper));
+         return get_bool_node(qr->contains(*(static_cast<QPoint *>(point)), proper));
       }
       ReferenceHolder<AbstractPrivateData> rectangleHolder(static_cast<AbstractPrivateData *>(rectangle), xsink);
       p = get_param(params, 1);
       bool proper = p ? p->getAsBool() : false;
-      return new QoreBoolNode(qr->contains(*(static_cast<QRect *>(rectangle)), proper));
+      return get_bool_node(qr->contains(*(static_cast<QRect *>(rectangle)), proper));
    }
    int x = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int y = p ? p->getAsInt() : 0;
    if (num_params(params) == 2)
-      return new QoreBoolNode(qr->contains(x, y));
+      return get_bool_node(qr->contains(x, y));
 
    p = get_param(params, 2);
    bool proper = p ? p->getAsBool() : false;
-   return new QoreBoolNode(qr->contains(x, y, proper));
+   return get_bool_node(qr->contains(x, y, proper));
 }
 
 //void getCoords ( int * x1, int * y1, int * x2, int * y2 ) const
@@ -259,25 +259,25 @@ static AbstractQoreNode *QRECT_intersects(QoreObject *self, QoreQRect *qr, const
       return 0;
    }
    ReferenceHolder<QoreQRect> holder(rectangle, xsink);
-   return new QoreBoolNode(qr->intersects(*((QRect *)rectangle)));
+   return get_bool_node(qr->intersects(*((QRect *)rectangle)));
 }
 
 //bool isEmpty () const
 static AbstractQoreNode *QRECT_isEmpty(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qr->isEmpty());
+   return get_bool_node(qr->isEmpty());
 }
 
 //bool isNull () const
 static AbstractQoreNode *QRECT_isNull(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qr->isNull());
+   return get_bool_node(qr->isNull());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QRECT_isValid(QoreObject *self, QoreQRect *qr, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qr->isValid());
+   return get_bool_node(qr->isValid());
 }
 
 //int left () const

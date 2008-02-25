@@ -174,7 +174,7 @@ static void concatSimpleValue(QoreString *str, const AbstractQoreNode *n, Except
 {
    //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
-   const QoreType *ntype = n ? n->getType() : 0;
+   qore_type_t ntype = n ? n->getType() : 0;
 
    if (ntype == NT_STRING) {
       const QoreStringNode *qsn = reinterpret_cast<const QoreStringNode *>(n);
@@ -194,7 +194,7 @@ static void concatSimpleValue(QoreString *str, const AbstractQoreNode *n, Except
    }
 
    if (ntype == NT_BOOLEAN) {
-      str->sprintf("%d", reinterpret_cast<const QoreBoolNode *>(n)->b);
+      str->sprintf("%d", reinterpret_cast<const QoreBoolNode *>(n)->getValue());
       return;
    }
 
@@ -212,7 +212,7 @@ static void concatSimpleCDataValue(QoreString *str, const AbstractQoreNode *n, E
 {
    //printd(0, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
 
-   const QoreType *ntype = n ? n->getType() : 0;
+   qore_type_t ntype = n ? n->getType() : 0;
 
    if (ntype == NT_STRING) {
       const QoreStringNode *qsn = reinterpret_cast<const QoreStringNode *>(n);
@@ -236,7 +236,7 @@ static void concatSimpleCDataValue(QoreString *str, const AbstractQoreNode *n, E
    }
 
    if (ntype == NT_BOOLEAN) {
-      str->sprintf("%d", reinterpret_cast<const QoreBoolNode *>(n)->b);
+      str->sprintf("%d", reinterpret_cast<const QoreBoolNode *>(n)->getValue());
       return;
    }
 
@@ -262,7 +262,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
       return;
    }
 
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
 
    if (ntype == NT_LIST) {
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);
@@ -685,10 +685,10 @@ static inline void addXMLRPCValueInternHash(QoreString *str, const QoreHashNode 
 static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int indent, const QoreEncoding *ccs, int format, ExceptionSink *xsink)
 {
    assert(n);
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
 
    if (ntype == NT_BOOLEAN)
-      str->sprintf("<boolean>%d</boolean>", reinterpret_cast<const QoreBoolNode *>(n)->b);
+      str->sprintf("<boolean>%d</boolean>", reinterpret_cast<const QoreBoolNode *>(n)->getValue());
 
    else if (ntype == NT_INT)
       str->sprintf("<i4>%d</i4>", reinterpret_cast<const QoreBigIntNode *>(n)->val);
@@ -1783,7 +1783,7 @@ static void doEmptyValue(class XmlRpcValue *v, char *name, int depth, ExceptionS
    else if (!strcmp(name, "i4") || !strcmp(name, "int"))
       v->set(zero());
    else if (!strcmp(name, "boolean"))
-      v->set(new QoreBoolNode(false));
+      v->set(get_bool_node(false));
    else if (!strcmp(name, "struct"))
       v->set(new QoreHashNode());
    else if (!strcmp(name, "array"))

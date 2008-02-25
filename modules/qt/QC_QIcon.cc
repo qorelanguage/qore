@@ -151,7 +151,7 @@ static AbstractQoreNode *QICON_cacheKey(QoreObject *self, QoreQIcon *qi, const Q
 //bool isNull () const
 static AbstractQoreNode *QICON_isNull(QoreObject *self, QoreQIcon *qi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qi->isNull());
+   return get_bool_node(qi->isNull());
 }
 
 //void paint ( QPainter * painter, const QRect & rect, Qt::Alignment alignment = Qt::AlignCenter, Mode mode = Normal, State state = Off ) const

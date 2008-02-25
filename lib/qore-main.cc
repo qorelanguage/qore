@@ -69,7 +69,7 @@ void qore_init(char *def_charset, bool show_module_errors, int n_qore_library_op
    QEM.init(def_charset);
 
    // create default type values
-   QTM.init();
+   init_qore_types();
 
    // set up core operators
    oplist.init();
@@ -105,7 +105,7 @@ void qore_cleanup()
    MM.cleanup();
 
    // delete default type values
-   QTM.del();
+   delete_qore_types();
 
    // cleanup openssl library
    EVP_cleanup();

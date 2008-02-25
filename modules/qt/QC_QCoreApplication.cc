@@ -50,7 +50,7 @@ static AbstractQoreNode *QCOREAPPLICATION_filterEvent(QoreObject *self, QoreAbst
    ??? void* message = p;
    p = get_param(params, 1);
    ??? long* result = p;
-   return new QoreBoolNode(qca->getQCoreApplication()->filterEvent(message, result));
+   return get_bool_node(qca->getQCoreApplication()->filterEvent(message, result));
 }
 */
 
@@ -74,7 +74,7 @@ static AbstractQoreNode *QCOREAPPLICATION_notify(QoreObject *self, QoreAbstractQ
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> eventHolder(static_cast<AbstractPrivateData *>(event), xsink);
-   return new QoreBoolNode(qca->getQCoreApplication()->notify(receiver->getQObject(), static_cast<QEvent *>(event)));
+   return get_bool_node(qca->getQCoreApplication()->notify(receiver->getQObject(), static_cast<QEvent *>(event)));
 }
 
 //EventFilter setEventFilter ( EventFilter filter )
@@ -92,7 +92,7 @@ static AbstractQoreNode *QCOREAPPLICATION_winEventFilter(QoreObject *self, QoreA
    ??? MSG* msg = p;
    p = get_param(params, 1);
    ??? long* result = p;
-   return new QoreBoolNode(qca->getQCoreApplication()->winEventFilter(msg, result));
+   return get_bool_node(qca->getQCoreApplication()->winEventFilter(msg, result));
 }
 */
 
@@ -156,7 +156,7 @@ static AbstractQoreNode *f_QCoreApplication_arguments(const QoreListNode *params
 //bool closingDown ()
 static AbstractQoreNode *f_QCoreApplication_closingDown(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QCoreApplication::closingDown());
+   return get_bool_node(QCoreApplication::closingDown());
 }
 
 //int exec ()
@@ -184,7 +184,7 @@ static AbstractQoreNode *f_QCoreApplication_flush(const QoreListNode *params, Ex
 //bool hasPendingEvents ()
 static AbstractQoreNode *f_QCoreApplication_hasPendingEvents(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QCoreApplication::hasPendingEvents());
+   return get_bool_node(QCoreApplication::hasPendingEvents());
 }
 
 //void installTranslator ( QTranslator * translationFile )
@@ -362,7 +362,7 @@ static AbstractQoreNode *f_QCoreApplication_sendEvent(const QoreListNode *params
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> eventHolder(static_cast<AbstractPrivateData *>(event), xsink);
-   return new QoreBoolNode(QCoreApplication::sendEvent(receiver->getQObject(), static_cast<QEvent *>(event)));
+   return get_bool_node(QCoreApplication::sendEvent(receiver->getQObject(), static_cast<QEvent *>(event)));
 }
 
 //void sendPostedEvents ( QObject * receiver, int event_type )
@@ -458,7 +458,7 @@ static AbstractQoreNode *f_QCoreApplication_setOrganizationName(const QoreListNo
 //bool startingUp ()
 static AbstractQoreNode *f_QCoreApplication_startingUp(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QCoreApplication::startingUp());
+   return get_bool_node(QCoreApplication::startingUp());
 }
 
 //bool testAttribute ( Qt::ApplicationAttribute attribute )
@@ -466,7 +466,7 @@ static AbstractQoreNode *f_QCoreApplication_testAttribute(const QoreListNode *pa
 {
    const AbstractQoreNode *p = get_param(params, 0);
    Qt::ApplicationAttribute attribute = (Qt::ApplicationAttribute)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(QCoreApplication::testAttribute(attribute));
+   return get_bool_node(QCoreApplication::testAttribute(attribute));
 }
 
 //QString translate ( const char * context, const char * sourceText, const char * comment, Encoding encoding, int n )

@@ -53,7 +53,7 @@ static void QDIALOG_copy(class QoreObject *self, class QoreObject *old, class Qo
 //bool isSizeGripEnabled () const
 static AbstractQoreNode *QDIALOG_isSizeGripEnabled(QoreObject *self, QoreAbstractQDialog *qd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qd->getQDialog()->isSizeGripEnabled());
+   return get_bool_node(qd->getQDialog()->isSizeGripEnabled());
 }
 
 //int result () const

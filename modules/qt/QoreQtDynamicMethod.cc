@@ -193,7 +193,7 @@ void QoreQtDynamicSlot::call(void **arguments)
       }
       else if (type_list[i] == QQT_TYPE_BOOL) {
 	 bool *ptr = reinterpret_cast<bool *>(arguments[i + 1]);
-	 args->push(new QoreBoolNode(*ptr));
+	 args->push(get_bool_node(*ptr));
       }
       else if (type_list[i] == QQT_TYPE_FLOAT) {
 	 float *ptr = reinterpret_cast<float *>(arguments[i + 1]);

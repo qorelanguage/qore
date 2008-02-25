@@ -54,13 +54,13 @@ static void QFONTINFO_copy(class QoreObject *self, class QoreObject *old, class 
 //bool bold () const
 static AbstractQoreNode *QFONTINFO_bold(QoreObject *self, QoreQFontInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->bold());
+   return get_bool_node(qfi->bold());
 }
 
 //bool exactMatch () const
 static AbstractQoreNode *QFONTINFO_exactMatch(QoreObject *self, QoreQFontInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->exactMatch());
+   return get_bool_node(qfi->exactMatch());
 }
 
 //QString family () const
@@ -72,13 +72,13 @@ static AbstractQoreNode *QFONTINFO_family(QoreObject *self, QoreQFontInfo *qfi, 
 //bool fixedPitch () const
 static AbstractQoreNode *QFONTINFO_fixedPitch(QoreObject *self, QoreQFontInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->fixedPitch());
+   return get_bool_node(qfi->fixedPitch());
 }
 
 //bool italic () const
 static AbstractQoreNode *QFONTINFO_italic(QoreObject *self, QoreQFontInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->italic());
+   return get_bool_node(qfi->italic());
 }
 
 //int pixelSize () const
@@ -102,7 +102,7 @@ static AbstractQoreNode *QFONTINFO_pointSizeF(QoreObject *self, QoreQFontInfo *q
 //bool rawMode () const
 static AbstractQoreNode *QFONTINFO_rawMode(QoreObject *self, QoreQFontInfo *qfi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfi->rawMode());
+   return get_bool_node(qfi->rawMode());
 }
 
 //QFont::Style style () const

@@ -212,7 +212,7 @@ static AbstractQoreNode *QTABWIDGET_isTabEnabled(QoreObject *self, QoreQTabWidge
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int index = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qtw->qobj->isTabEnabled(index));
+   return get_bool_node(qtw->qobj->isTabEnabled(index));
 }
 
 //void removeTab ( int index )
@@ -411,7 +411,7 @@ static AbstractQoreNode *QTABWIDGET_tabWhatsThis(QoreObject *self, QoreQTabWidge
 //bool usesScrollButtons () const
 static AbstractQoreNode *QTABWIDGET_usesScrollButtons(QoreObject *self, QoreQTabWidget *qtw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtw->qobj->usesScrollButtons());
+   return get_bool_node(qtw->qobj->usesScrollButtons());
 }
 
 //QWidget * widget ( int index ) const

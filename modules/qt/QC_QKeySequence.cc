@@ -74,7 +74,7 @@ static AbstractQoreNode *QKEYSEQUENCE_count(QoreObject *self, QoreQKeySequence *
 //bool isEmpty () const
 static AbstractQoreNode *QKEYSEQUENCE_isEmpty(QoreObject *self, QoreQKeySequence *qks, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qks->isEmpty());
+   return get_bool_node(qks->isEmpty());
 }
 
 //SequenceMatch matches ( const QKeySequence & seq ) const

@@ -82,7 +82,7 @@ static AbstractQoreNode *QMIMEDATA_formats(QoreObject *self, QoreQMimeData *qmd,
 //bool hasColor () const
 static AbstractQoreNode *QMIMEDATA_hasColor(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qmd->qobj->hasColor());
+   return get_bool_node(qmd->qobj->hasColor());
 }
 
 //virtual bool hasFormat ( const QString & mimeType ) const
@@ -93,31 +93,31 @@ static AbstractQoreNode *QMIMEDATA_hasFormat(QoreObject *self, QoreQMimeData *qm
    if (get_qstring(p, mimeType, xsink))
       return 0;
 
-   return new QoreBoolNode(qmd->qobj->hasFormat(mimeType));
+   return get_bool_node(qmd->qobj->hasFormat(mimeType));
 }
 
 //bool hasHtml () const
 static AbstractQoreNode *QMIMEDATA_hasHtml(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qmd->qobj->hasHtml());
+   return get_bool_node(qmd->qobj->hasHtml());
 }
 
 //bool hasImage () const
 static AbstractQoreNode *QMIMEDATA_hasImage(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qmd->qobj->hasImage());
+   return get_bool_node(qmd->qobj->hasImage());
 }
 
 //bool hasText () const
 static AbstractQoreNode *QMIMEDATA_hasText(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qmd->qobj->hasText());
+   return get_bool_node(qmd->qobj->hasText());
 }
 
 //bool hasUrls () const
 static AbstractQoreNode *QMIMEDATA_hasUrls(QoreObject *self, QoreQMimeData *qmd, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qmd->qobj->hasUrls());
+   return get_bool_node(qmd->qobj->hasUrls());
 }
 
 //QString html () const

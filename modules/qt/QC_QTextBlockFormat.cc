@@ -60,7 +60,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_indent(QoreObject *self, QoreQTextBloc
 //bool isValid () const
 static AbstractQoreNode *QTEXTBLOCKFORMAT_isValid(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtbf->isValid());
+   return get_bool_node(qtbf->isValid());
 }
 
 //qreal leftMargin () const
@@ -72,7 +72,7 @@ static AbstractQoreNode *QTEXTBLOCKFORMAT_leftMargin(QoreObject *self, QoreQText
 //bool nonBreakableLines () const
 static AbstractQoreNode *QTEXTBLOCKFORMAT_nonBreakableLines(QoreObject *self, QoreQTextBlockFormat *qtbf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtbf->nonBreakableLines());
+   return get_bool_node(qtbf->nonBreakableLines());
 }
 
 //PageBreakFlags pageBreakPolicy () const

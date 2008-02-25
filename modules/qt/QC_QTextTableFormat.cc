@@ -84,7 +84,7 @@ static AbstractQoreNode *QTEXTTABLEFORMAT_headerRowCount(QoreObject *self, QoreQ
 //bool isValid () const
 static AbstractQoreNode *QTEXTTABLEFORMAT_isValid(QoreObject *self, QoreQTextTableFormat *qttf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qttf->isValid());
+   return get_bool_node(qttf->isValid());
 }
 
 //void setAlignment ( Qt::Alignment alignment )

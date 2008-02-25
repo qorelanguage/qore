@@ -41,7 +41,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
    
    s->sprintf("node=%08p refs=%d type=%s ", n, n->reference_count(), n->getTypeName());
 
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
 
    if (ntype == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(n);

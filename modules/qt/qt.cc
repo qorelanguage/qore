@@ -322,7 +322,7 @@ int get_qtime(const AbstractQoreNode *n, QTime &time, class ExceptionSink *xsink
 
 int get_qbytearray(const AbstractQoreNode *n, QByteArray &ba, class ExceptionSink *xsink, bool suppress_exception)
 {
-   const QoreType *ntype = n ? n->getType() : 0;
+   qore_type_t ntype = n ? n->getType() : 0;
 
    if (ntype == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
@@ -363,7 +363,7 @@ int get_qvariant(const AbstractQoreNode *n, QVariant &qva, class ExceptionSink *
 {
    //printd(5, "get_variant() n=%08p %s\n", n, n ? n->getTypeName() : "n/a");
    if (n) {
-      const QoreType *ntype = n->getType();
+      qore_type_t ntype = n->getType();
 
       if (ntype == NT_OBJECT) {
 	 const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
@@ -418,7 +418,7 @@ int get_qvariant(const AbstractQoreNode *n, QVariant &qva, class ExceptionSink *
 
 int get_qchar(const AbstractQoreNode *n, QChar &c, class ExceptionSink *xsink, bool suppress_exception)
 {
-   const QoreType *ntype = n ? n->getType() : 0;
+   qore_type_t ntype = n ? n->getType() : 0;
    
    if (ntype == NT_STRING) {
       const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(n);
@@ -451,7 +451,7 @@ int get_qchar(const AbstractQoreNode *n, QChar &c, class ExceptionSink *xsink, b
 
 int get_qstring(const AbstractQoreNode *n, QString &str, class ExceptionSink *xsink, bool suppress_exception)
 {
-   const QoreType *ntype = n ? n->getType() : 0;
+   qore_type_t ntype = n ? n->getType() : 0;
 
    if (ntype == NT_STRING) {
       const QoreStringNode *pstr = reinterpret_cast<const QoreStringNode *>(n);
@@ -516,7 +516,7 @@ int get_qstring(const AbstractQoreNode *n, QString &str, class ExceptionSink *xs
 
 int get_qkeysequence(const AbstractQoreNode *n, QKeySequence &ks, class ExceptionSink *xsink, bool suppress_exception)
 {
-   const QoreType *ntype = n ? n->getType() : 0;
+   qore_type_t ntype = n ? n->getType() : 0;
 
    if (ntype == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
@@ -557,7 +557,7 @@ int get_qbrush(const AbstractQoreNode *n, QBrush &brush, class ExceptionSink *xs
 {
    //printd(5, "get_qbrush(n=%08p '%s' '%s')\n", n, n ? n->getTypeName() : "n/a", n && n->getType() == NT_OBJECT ? n->getClass()->getName() : "n/a");
    if (n) {
-      const QoreType *ntype = n->getType();
+      qore_type_t ntype = n->getType();
       if (ntype == NT_OBJECT) {
 	 const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
 	 if (o) {
@@ -771,7 +771,7 @@ class AbstractQoreNode *return_qvariant(const QVariant &qv)
       case QVariant::Bitmap:
 	 return return_object(QC_QBitmap, new QoreQBitmap(qv.value<QBitmap>()));
       case QVariant::Bool:
-	 return new QoreBoolNode(qv.toBool());
+	 return get_bool_node(qv.toBool());
       case QVariant::Brush:
 	 return return_object(QC_QBrush, new QoreQBrush(qv.value<QBrush>()));
       case QVariant::Color:
@@ -1105,7 +1105,7 @@ static class AbstractQoreNode *f_QObject_connect(const QoreListNode *params, cla
    int conn_type = is_nothing(p) ? Qt::AutoConnection : p->getAsInt();
 
    bool b = QObject::connect(sender->getQObject(), signal, receiver->getQObject(), member, (enum Qt::ConnectionType)conn_type);
-   return new QoreBoolNode(b);
+   return get_bool_node(b);
    */
    receiver->connectDynamic(sender, signal, member, xsink);
    return 0;

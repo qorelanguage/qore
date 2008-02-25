@@ -72,7 +72,7 @@ static AbstractQoreNode *QKEYEVENT_count(QoreObject *self, QoreQKeyEvent *qke, c
 //bool isAutoRepeat () const
 static AbstractQoreNode *QKEYEVENT_isAutoRepeat(QoreObject *self, QoreQKeyEvent *qke, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qke->isAutoRepeat());
+   return get_bool_node(qke->isAutoRepeat());
 }
 
 //int key () const
@@ -86,7 +86,7 @@ static AbstractQoreNode *QKEYEVENT_matches(QoreObject *self, QoreQKeyEvent *qke,
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QKeySequence::StandardKey key = (QKeySequence::StandardKey)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qke->matches(key));
+   return get_bool_node(qke->matches(key));
 }
 
 //Qt::KeyboardModifiers modifiers () const

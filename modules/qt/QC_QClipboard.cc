@@ -81,19 +81,19 @@ static AbstractQoreNode *QCLIPBOARD_mimeData(QoreObject *self, QoreQClipboard *q
 //bool ownsClipboard () const
 static AbstractQoreNode *QCLIPBOARD_ownsClipboard(QoreObject *self, QoreQClipboard *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->qobj->ownsClipboard());
+   return get_bool_node(qc->qobj->ownsClipboard());
 }
 
 //bool ownsFindBuffer () const
 static AbstractQoreNode *QCLIPBOARD_ownsFindBuffer(QoreObject *self, QoreQClipboard *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->qobj->ownsFindBuffer());
+   return get_bool_node(qc->qobj->ownsFindBuffer());
 }
 
 //bool ownsSelection () const
 static AbstractQoreNode *QCLIPBOARD_ownsSelection(QoreObject *self, QoreQClipboard *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->qobj->ownsSelection());
+   return get_bool_node(qc->qobj->ownsSelection());
 }
 
 //QPixmap pixmap ( Mode mode = Clipboard ) const
@@ -176,13 +176,13 @@ static AbstractQoreNode *QCLIPBOARD_setText(QoreObject *self, QoreQClipboard *qc
 //bool supportsFindBuffer () const
 static AbstractQoreNode *QCLIPBOARD_supportsFindBuffer(QoreObject *self, QoreQClipboard *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->qobj->supportsFindBuffer());
+   return get_bool_node(qc->qobj->supportsFindBuffer());
 }
 
 //bool supportsSelection () const
 static AbstractQoreNode *QCLIPBOARD_supportsSelection(QoreObject *self, QoreQClipboard *qc, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qc->qobj->supportsSelection());
+   return get_bool_node(qc->qobj->supportsSelection());
 }
 
 //QString text ( Mode mode = Clipboard ) const

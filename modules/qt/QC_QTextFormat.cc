@@ -73,7 +73,7 @@ static AbstractQoreNode *QTEXTFORMAT_boolProperty(QoreObject *self, QoreQTextFor
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qtf->boolProperty(propertyId));
+   return get_bool_node(qtf->boolProperty(propertyId));
 }
 
 //QBrush brushProperty ( int propertyId ) const
@@ -143,7 +143,7 @@ static AbstractQoreNode *QTEXTFORMAT_hasProperty(QoreObject *self, QoreQTextForm
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int propertyId = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qtf->hasProperty(propertyId));
+   return get_bool_node(qtf->hasProperty(propertyId));
 }
 
 //int intProperty ( int propertyId ) const
@@ -157,43 +157,43 @@ static AbstractQoreNode *QTEXTFORMAT_intProperty(QoreObject *self, QoreQTextForm
 //bool isBlockFormat () const
 static AbstractQoreNode *QTEXTFORMAT_isBlockFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtf->isBlockFormat());
+   return get_bool_node(qtf->isBlockFormat());
 }
 
 //bool isCharFormat () const
 static AbstractQoreNode *QTEXTFORMAT_isCharFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtf->isCharFormat());
+   return get_bool_node(qtf->isCharFormat());
 }
 
 //bool isFrameFormat () const
 static AbstractQoreNode *QTEXTFORMAT_isFrameFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtf->isFrameFormat());
+   return get_bool_node(qtf->isFrameFormat());
 }
 
 //bool isImageFormat () const
 static AbstractQoreNode *QTEXTFORMAT_isImageFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtf->isImageFormat());
+   return get_bool_node(qtf->isImageFormat());
 }
 
 //bool isListFormat () const
 static AbstractQoreNode *QTEXTFORMAT_isListFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtf->isListFormat());
+   return get_bool_node(qtf->isListFormat());
 }
 
 //bool isTableFormat () const
 static AbstractQoreNode *QTEXTFORMAT_isTableFormat(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtf->isTableFormat());
+   return get_bool_node(qtf->isTableFormat());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QTEXTFORMAT_isValid(QoreObject *self, QoreQTextFormat *qtf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtf->isValid());
+   return get_bool_node(qtf->isValid());
 }
 
 //Qt::LayoutDirection layoutDirection () const

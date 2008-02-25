@@ -92,7 +92,7 @@ static AbstractQoreNode *QPICTURE_data(QoreObject *self, QoreQPicture *qp, const
 //bool isNull () const
 static AbstractQoreNode *QPICTURE_isNull(QoreObject *self, QoreQPicture *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->isNull());
+   return get_bool_node(qp->isNull());
 }
 
 //bool load ( const QString & fileName, const char * format = 0 )
@@ -108,7 +108,7 @@ static AbstractQoreNode *QPICTURE_load(QoreObject *self, QoreQPicture *qp, const
 
    p = test_string_param(params, 1);
    const char *format = p ? p->getBuffer() : 0;
-   return new QoreBoolNode(qp->load(fileName, format));
+   return get_bool_node(qp->load(fileName, format));
 }
 
 //bool play ( QPainter * painter )
@@ -122,7 +122,7 @@ static AbstractQoreNode *QPICTURE_play(QoreObject *self, QoreQPicture *qp, const
       return 0;
    }
    ReferenceHolder<QoreQPainter> holder(painter, xsink);
-   return new QoreBoolNode(qp->play((QPainter *)painter));
+   return get_bool_node(qp->play((QPainter *)painter));
 }
 
 //bool save ( const QString & fileName, const char * format = 0 )
@@ -137,7 +137,7 @@ static AbstractQoreNode *QPICTURE_save(QoreObject *self, QoreQPicture *qp, const
    const char *fileName = p->getBuffer();
    p = test_string_param(params, 1);
    const char *format = p ? p->getBuffer() : 0;
-   return new QoreBoolNode(qp->save(fileName, format));
+   return get_bool_node(qp->save(fileName, format));
 }
 
 //void setBoundingRect ( const QRect & r )

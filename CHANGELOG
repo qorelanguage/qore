@@ -1,5 +1,10 @@
 2008.02.25: David Nichols
 	* more performance-related API changes
+	* split QoreBoolNode into QoreBoolTrueNode and QoreBoolFalseNode, made
+	  them unique in the library (there will only ever be one of each)
+	* removed the QoreType class, node type is now a code (qore_type_t)
+	* packed type and boolean bits into less than 2 bytes in 
+	  AbstractQoreNode
 
 2008.02.22: David Nichols
 	* more API and doxygen updates

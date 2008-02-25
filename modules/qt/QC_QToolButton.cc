@@ -58,7 +58,7 @@ static AbstractQoreNode *QTOOLBUTTON_arrowType(QoreObject *self, QoreAbstractQTo
 //bool autoRaise () const
 static AbstractQoreNode *QTOOLBUTTON_autoRaise(QoreObject *self, QoreAbstractQToolButton *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtb->getQToolButton()->autoRaise());
+   return get_bool_node(qtb->getQToolButton()->autoRaise());
 }
 
 //QAction * defaultAction () const

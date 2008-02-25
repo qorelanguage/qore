@@ -41,7 +41,7 @@ class QoreClass *QC_QMenu = 0;
 static void QMENU_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p = get_param(params, 0);
-   const QoreType *ptype = p ? p->getType() : 0;
+   qore_type_t ptype = p ? p->getType() : 0;
    if (ptype == NT_STRING) {
       QString title;
 
@@ -364,19 +364,19 @@ static AbstractQoreNode *QMENU_insertSeparator(QoreObject *self, QoreQMenu *qm, 
 //bool isEmpty () const
 static AbstractQoreNode *QMENU_isEmpty(QoreObject *self, QoreQMenu *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qm->getQMenu()->isEmpty());
+   return get_bool_node(qm->getQMenu()->isEmpty());
 }
 
 //bool isTearOffEnabled () const
 static AbstractQoreNode *QMENU_isTearOffEnabled(QoreObject *self, QoreQMenu *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qm->getQMenu()->isTearOffEnabled());
+   return get_bool_node(qm->getQMenu()->isTearOffEnabled());
 }
 
 //bool isTearOffMenuVisible () const
 static AbstractQoreNode *QMENU_isTearOffMenuVisible(QoreObject *self, QoreQMenu *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qm->getQMenu()->isTearOffMenuVisible());
+   return get_bool_node(qm->getQMenu()->isTearOffMenuVisible());
 }
 
 //QAction * menuAction () const
@@ -412,7 +412,7 @@ static AbstractQoreNode *QMENU_popup(QoreObject *self, QoreQMenu *qm, const Qore
 //bool separatorsCollapsible () const
 static AbstractQoreNode *QMENU_separatorsCollapsible(QoreObject *self, QoreQMenu *qm, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qm->getQMenu()->separatorsCollapsible());
+   return get_bool_node(qm->getQMenu()->separatorsCollapsible());
 }
 
 //void setActiveAction ( QAction * act )

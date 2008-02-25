@@ -213,7 +213,7 @@ static AbstractQoreNode *QLISTWIDGET_insertItems(QoreObject *self, QoreAbstractQ
 //bool isSortingEnabled () const
 static AbstractQoreNode *QLISTWIDGET_isSortingEnabled(QoreObject *self, QoreAbstractQListWidget *qlw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qlw->getQListWidget()->isSortingEnabled());
+   return get_bool_node(qlw->getQListWidget()->isSortingEnabled());
 }
 
 //QListWidgetItem * item ( int row ) const

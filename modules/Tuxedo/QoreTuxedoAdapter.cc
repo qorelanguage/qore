@@ -1048,7 +1048,7 @@ void QoreTuxedoAdapter::setSendBuffer(const AbstractQoreNode* n, const QoreHashN
   if (is_nothing(n))
     return;
 
-  const QoreType *ntype = n->getType();
+  qore_type_t ntype = n->getType();
 
   if (ntype == NT_BINARY) {
      const BinaryNode* bin = reinterpret_cast<const BinaryNode *>(n);

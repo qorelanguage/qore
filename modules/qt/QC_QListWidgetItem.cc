@@ -165,13 +165,13 @@ static AbstractQoreNode *QLISTWIDGETITEM_icon(QoreObject *self, QoreQListWidgetI
 //bool isHidden () const
 static AbstractQoreNode *QLISTWIDGETITEM_isHidden(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qlwi->getQListWidgetItem()->isHidden());
+   return get_bool_node(qlwi->getQListWidgetItem()->isHidden());
 }
 
 //bool isSelected () const
 static AbstractQoreNode *QLISTWIDGETITEM_isSelected(QoreObject *self, QoreQListWidgetItem *qlwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qlwi->getQListWidgetItem()->isSelected());
+   return get_bool_node(qlwi->getQListWidgetItem()->isSelected());
 }
 
 //QListWidget * listWidget () const

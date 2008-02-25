@@ -67,7 +67,7 @@ class T {
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreBigIntNode(alignment));
 	 args->push(return_object(QC_QPalette, new QoreQPalette(palette)));
-	 args->push(new QoreBoolNode(enabled));
+	 args->push(get_bool_node(enabled));
 	 args->push(new QoreStringNode(text.toUtf8().data()));
 	 args->push(new QoreBigIntNode(textRole));
 
@@ -189,7 +189,7 @@ class T {
 	 args->push(return_object(QC_QFontMetrics, new QoreQFontMetrics(metrics)));
 	 args->push(return_object(QC_QRect, new QoreQRect(rectangle)));
 	 args->push(new QoreBigIntNode(alignment));
-	 args->push(new QoreBoolNode(enabled));
+	 args->push(get_bool_node(enabled));
 	 args->push(new QoreStringNode(text.toUtf8().data()));
 
 	 ReferenceHolder<AbstractQoreNode> rv(dispatch_event_intern(qore_obj, m_itemTextRect, *args, &xsink), &xsink);

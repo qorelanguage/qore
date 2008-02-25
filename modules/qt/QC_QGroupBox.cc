@@ -65,19 +65,19 @@ static AbstractQoreNode *QGROUPBOX_alignment(QoreObject *self, QoreAbstractQGrou
 //bool isCheckable () const
 static AbstractQoreNode *QGROUPBOX_isCheckable(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qgb->getQGroupBox()->isCheckable());
+   return get_bool_node(qgb->getQGroupBox()->isCheckable());
 }
 
 //bool isChecked () const
 static AbstractQoreNode *QGROUPBOX_isChecked(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qgb->getQGroupBox()->isChecked());
+   return get_bool_node(qgb->getQGroupBox()->isChecked());
 }
 
 //bool isFlat () const
 static AbstractQoreNode *QGROUPBOX_isFlat(QoreObject *self, QoreAbstractQGroupBox *qgb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qgb->getQGroupBox()->isFlat());
+   return get_bool_node(qgb->getQGroupBox()->isFlat());
 }
 
 //void setAlignment ( int alignment )

@@ -98,7 +98,7 @@ static void QSHORTCUT_copy(class QoreObject *self, class QoreObject *old, class 
 //bool autoRepeat () const
 static AbstractQoreNode *QSHORTCUT_autoRepeat(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qs->qobj->autoRepeat());
+   return get_bool_node(qs->qobj->autoRepeat());
 }
 
 //Qt::ShortcutContext context ()
@@ -116,7 +116,7 @@ static AbstractQoreNode *QSHORTCUT_id(QoreObject *self, QoreQShortcut *qs, const
 //bool isEnabled () const
 static AbstractQoreNode *QSHORTCUT_isEnabled(QoreObject *self, QoreQShortcut *qs, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qs->qobj->isEnabled());
+   return get_bool_node(qs->qobj->isEnabled());
 }
 
 //QKeySequence key () const

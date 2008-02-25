@@ -84,19 +84,19 @@ static AbstractQoreNode *QLISTVIEW_isRowHidden(QoreObject *self, QoreAbstractQLi
 {
    const AbstractQoreNode *p = get_param(params, 0);
    int row = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qlv->getQListView()->isRowHidden(row));
+   return get_bool_node(qlv->getQListView()->isRowHidden(row));
 }
 
 //bool isSelectionRectVisible () const
 static AbstractQoreNode *QLISTVIEW_isSelectionRectVisible(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qlv->getQListView()->isSelectionRectVisible());
+   return get_bool_node(qlv->getQListView()->isSelectionRectVisible());
 }
 
 //bool isWrapping () const
 static AbstractQoreNode *QLISTVIEW_isWrapping(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qlv->getQListView()->isWrapping());
+   return get_bool_node(qlv->getQListView()->isWrapping());
 }
 
 //LayoutMode layoutMode () const
@@ -266,7 +266,7 @@ static AbstractQoreNode *QLISTVIEW_spacing(QoreObject *self, QoreAbstractQListVi
 //bool uniformItemSizes () const
 static AbstractQoreNode *QLISTVIEW_uniformItemSizes(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qlv->getQListView()->uniformItemSizes());
+   return get_bool_node(qlv->getQListView()->uniformItemSizes());
 }
 
 //ViewMode viewMode () const
@@ -278,7 +278,7 @@ static AbstractQoreNode *QLISTVIEW_viewMode(QoreObject *self, QoreAbstractQListV
 //bool wordWrap () const
 static AbstractQoreNode *QLISTVIEW_wordWrap(QoreObject *self, QoreAbstractQListView *qlv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qlv->getQListView()->wordWrap());
+   return get_bool_node(qlv->getQListView()->wordWrap());
 }
 
 //QRect rectForIndex ( const QModelIndex & index ) const

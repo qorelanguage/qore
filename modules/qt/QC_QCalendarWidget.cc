@@ -90,19 +90,19 @@ static AbstractQoreNode *QCALENDARWIDGET_horizontalHeaderFormat(QoreObject *self
 //bool isDateEditEnabled () const
 static AbstractQoreNode *QCALENDARWIDGET_isDateEditEnabled(QoreObject *self, QoreQCalendarWidget *qcw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qcw->qobj->isDateEditEnabled());
+   return get_bool_node(qcw->qobj->isDateEditEnabled());
 }
 
 //bool isGridVisible () const
 static AbstractQoreNode *QCALENDARWIDGET_isGridVisible(QoreObject *self, QoreQCalendarWidget *qcw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qcw->qobj->isGridVisible());
+   return get_bool_node(qcw->qobj->isGridVisible());
 }
 
 //bool isNavigationBarVisible () const
 static AbstractQoreNode *QCALENDARWIDGET_isNavigationBarVisible(QoreObject *self, QoreQCalendarWidget *qcw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qcw->qobj->isNavigationBarVisible());
+   return get_bool_node(qcw->qobj->isNavigationBarVisible());
 }
 
 //QDate maximumDate () const

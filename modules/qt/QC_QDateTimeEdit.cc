@@ -74,7 +74,7 @@ static void QDATETIMEEDIT_copy(class QoreObject *self, class QoreObject *old, cl
 //bool calendarPopup () const
 static AbstractQoreNode *QDATETIMEEDIT_calendarPopup(QoreObject *self, QoreAbstractQDateTimeEdit *qdte, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qdte->getQDateTimeEdit()->calendarPopup());
+   return get_bool_node(qdte->getQDateTimeEdit()->calendarPopup());
 }
 
 //void clearMaximumDate ()

@@ -43,7 +43,7 @@ static void QIMAGE_constructor(class QoreObject *self, const QoreListNode *param
    QoreQImage *qp;
    const AbstractQoreNode *p = get_param(params, 0);
 
-   const QoreType *ntype = p ? p->getType() : 0;
+   qore_type_t ntype = p ? p->getType() : 0;
    if (ntype == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(p); 
       QoreQSize *size = (QoreQSize *)o->getReferencedPrivateData(CID_QSIZE, xsink);
@@ -93,7 +93,7 @@ static void QIMAGE_copy(class QoreObject *self, class QoreObject *old, class Qor
 //bool allGray () const
 static AbstractQoreNode *QIMAGE_allGray(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qi->allGray());
+   return get_bool_node(qi->allGray());
 }
 
 //QImage alphaChannel () const
@@ -264,7 +264,7 @@ static AbstractQoreNode *QIMAGE_format(QoreObject *self, QoreQImage *qi, const Q
 //bool hasAlphaChannel () const
 static AbstractQoreNode *QIMAGE_hasAlphaChannel(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qi->hasAlphaChannel());
+   return get_bool_node(qi->hasAlphaChannel());
 }
 
 //int height () const
@@ -285,13 +285,13 @@ static AbstractQoreNode *QIMAGE_invertPixels(QoreObject *self, QoreQImage *qi, c
 //bool isGrayscale () const
 static AbstractQoreNode *QIMAGE_isGrayscale(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qi->isGrayscale());
+   return get_bool_node(qi->isGrayscale());
 }
 
 //bool isNull () const
 static AbstractQoreNode *QIMAGE_isNull(QoreObject *self, QoreQImage *qi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qi->isNull());
+   return get_bool_node(qi->isNull());
 }
 
 //bool load ( const QString & fileName, const char * format = 0 )
@@ -308,7 +308,7 @@ static AbstractQoreNode *QIMAGE_load(QoreObject *self, QoreQImage *qi, const Qor
    pstr = test_string_param(params, 1);
    const char *format = pstr ? pstr->getBuffer() : 0;
 
-   return new QoreBoolNode(qi->load(fileName, format));
+   return get_bool_node(qi->load(fileName, format));
 }
 
 //bool loadFromData ( const uchar * data, int len, const char * format = 0 )
@@ -325,7 +325,7 @@ static AbstractQoreNode *QIMAGE_loadFromData(QoreObject *self, QoreQImage *qi, c
    const QoreStringNode *str = test_string_param(params, 1);
    format = str ? str->getBuffer() : 0;
 
-   return new QoreBoolNode(qi->loadFromData((const uchar *)data->getPtr(), data->size(), format));
+   return get_bool_node(qi->loadFromData((const uchar *)data->getPtr(), data->size(), format));
 }
 
 //QImage mirrored ( bool horizontal = false, bool vertical = true ) const
@@ -439,7 +439,7 @@ static AbstractQoreNode *QIMAGE_save(QoreObject *self, QoreQImage *qi, const Qor
    const AbstractQoreNode *p = get_param(params, 2);
    int quality = !is_nothing(p) ? p->getAsInt() : -1;
 
-   return new QoreBoolNode(qi->save(fileName, format, quality));
+   return get_bool_node(qi->save(fileName, format, quality));
 }
 
 //QImage scaled ( const QSize & size, Qt::AspectRatioMode aspectRatioMode = Qt::IgnoreAspectRatio, Qt::TransformationMode transformMode = Qt::FastTransformation ) const
@@ -674,12 +674,12 @@ static AbstractQoreNode *QIMAGE_valid(QoreObject *self, QoreQImage *qi, const Qo
          return 0;
       }
       ReferenceHolder<QoreQPoint> posHolder(pos, xsink);
-      return new QoreBoolNode(qi->valid(*(static_cast<QPoint *>(pos))));
+      return get_bool_node(qi->valid(*(static_cast<QPoint *>(pos))));
    }
    int x = p ? p->getAsInt() : 0;
    p = get_param(params, 1);
    int y = p ? p->getAsInt() : 0;
-   return new QoreBoolNode(qi->valid(x, y));
+   return get_bool_node(qi->valid(x, y));
 }
 
 //int width () const

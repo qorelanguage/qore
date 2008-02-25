@@ -46,13 +46,13 @@ static void QFOCUSEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 //bool gotFocus () const
 static AbstractQoreNode *QFOCUSEVENT_gotFocus(QoreObject *self, QoreQFocusEvent *qfe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfe->gotFocus());
+   return get_bool_node(qfe->gotFocus());
 }
 
 //bool lostFocus () const
 static AbstractQoreNode *QFOCUSEVENT_lostFocus(QoreObject *self, QoreQFocusEvent *qfe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qfe->lostFocus());
+   return get_bool_node(qfe->lostFocus());
 }
 
 //Qt::FocusReason reason () const

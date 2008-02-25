@@ -359,7 +359,7 @@ class QoreStringNodeValueHelper {
 	    return;
 	 }
 
-	 const QoreType *ntype = n->getType();
+	 qore_type_t ntype = n->getType();
 	 if (ntype == NT_STRING) {
 	    str = const_cast<QoreStringNode *>(reinterpret_cast<const QoreStringNode *>(n));
 	    temp = false;

@@ -61,7 +61,7 @@ static AbstractQoreNode *QEVENT_ignore(QoreObject *self, QoreQEvent *qe, const Q
 //bool isAccepted () const
 static AbstractQoreNode *QEVENT_isAccepted(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qe->isAccepted());
+   return get_bool_node(qe->isAccepted());
 }
 
 //void setAccepted ( bool accepted )
@@ -76,7 +76,7 @@ static AbstractQoreNode *QEVENT_setAccepted(QoreObject *self, QoreQEvent *qe, co
 //bool spontaneous () const
 static AbstractQoreNode *QEVENT_spontaneous(QoreObject *self, QoreQEvent *qe, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qe->spontaneous());
+   return get_bool_node(qe->spontaneous());
 }
 
 //Type type () const

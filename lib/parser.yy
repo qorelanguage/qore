@@ -304,7 +304,7 @@ static inline class QoreClass *parseFindClass(char *name)
 
 static AbstractQoreNode *process_dot(class AbstractQoreNode *l, class AbstractQoreNode *r)
 {
-   const QoreType *rtype = r->getType();
+   qore_type_t rtype = r->getType();
    if (rtype == NT_BAREWORD)
    {
       BarewordNode *b = reinterpret_cast<BarewordNode *>(r);
@@ -327,7 +327,7 @@ static AbstractQoreNode *process_dot(class AbstractQoreNode *l, class AbstractQo
 // returns 0 for OK, -1 for error
 static int check_lvalue(class AbstractQoreNode *node)
 {
-   const QoreType *ntype = node->getType();
+   qore_type_t ntype = node->getType();
    //printd(5, "type=%s\n", node->getTypeName());
    if (ntype == NT_VARREF)
       return 0;
@@ -363,7 +363,7 @@ bool needsEval(class AbstractQoreNode *n)
    if (!n)
       return false;
 
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
 
    // if it's a constant
    if (ntype == NT_BAREWORD || ntype == NT_CONSTANT)
@@ -408,7 +408,7 @@ bool needsEval(class AbstractQoreNode *n)
 static bool hasEffect(class AbstractQoreNode *n)
 {
    // check for expressions with no effect
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
    if (ntype == NT_FUNCTION_CALL || ntype == NT_FIND || ntype == NT_FUNCREFCALL)
       return true;
 
@@ -888,7 +888,7 @@ statement:
 	exp ';'
         {
 	   // if the expression has no effect and it's not a variable declaration
-	   const QoreType *t = $1 ? $1->getType() : 0;
+	   qore_type_t t = $1 ? $1->getType() : 0;
 	   if (!hasEffect($1)
 	       && (t != NT_VARREF || reinterpret_cast<VarRefNode *>($1)->type == VT_UNRESOLVED)
 	       && (t != NT_LIST || !reinterpret_cast<QoreListNode *>($1)->isVariableList()))
@@ -954,7 +954,7 @@ statement:
         | TOK_FOREACH exp TOK_IN '(' exp ')' statement_or_block
         {
 	   $$ = new ForEachStatement(@1.first_line, @7.last_line, $2, $5, $7);
-	   const QoreType *t = $2 ? $2->getType() : 0;
+	   qore_type_t t = $2 ? $2->getType() : 0;
 	   if (t != NT_VARREF && t != NT_SELF_VARREF)
 	      parse_error("foreach variable expression is not a variable reference");
 	}
@@ -1793,7 +1793,7 @@ exp:    scalar
 	| exp '(' myexp ')'
         {
 	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
-	   const QoreType *t = $1 ? $1->getType() : 0;
+	   qore_type_t t = $1 ? $1->getType() : 0;
 	   if (t == NT_BAREWORD)
 	   {
 	      BarewordNode *b = reinterpret_cast<BarewordNode *>($1);
@@ -1930,7 +1930,7 @@ exp:    scalar
         | '!' exp                    { $$ = makeTree(OP_NOT, $2, NULL); }
         | '\\' exp
         {
-	   const QoreType *t = $2 ? $2->getType() : 0;
+	   qore_type_t t = $2 ? $2->getType() : 0;
 
 	   if (t == NT_FUNCTION_CALL)
 	   {
@@ -1997,7 +1997,7 @@ exp:    scalar
 	}
         | TOK_NEW exp //function_call
         {
-	   const QoreType *t = $2 ? $2->getType() : 0;
+	   qore_type_t t = $2 ? $2->getType() : 0;
 	   if (t == NT_SCOPE_REF)
 	   { 
 	      $$ = makeTree(OP_NEW, $2, NULL); 

@@ -70,7 +70,7 @@ int QoreTibrvTransport::valueToField(const char *key, const AbstractQoreNode *v,
       return 0;
    }
 
-   const QoreType *vtype = v->getType();
+   qore_type_t vtype = v->getType();
    if (vtype == NT_INT) {
       msg->addI64(key, reinterpret_cast<const QoreBigIntNode *>(v)->val);
       return 0;
@@ -125,7 +125,7 @@ int QoreTibrvTransport::valueToField(const char *key, const AbstractQoreNode *v,
    }
 
    if (vtype == NT_BOOLEAN) {
-      msg->addBool(key, (tibrv_bool)(reinterpret_cast<const QoreBoolNode *>(v)->b));
+      msg->addBool(key, (tibrv_bool)(reinterpret_cast<const QoreBoolNode *>(v)->getValue()));
       return 0;
    }
    
@@ -272,7 +272,7 @@ AbstractQoreNode *QoreTibrvTransport::fieldToNode(TibrvMsgField *field, class Ex
       }
 
       case TIBRVMSG_BOOL:
-	 return new QoreBoolNode((bool)data.boolean);
+	 return get_bool_node((bool)data.boolean);
 
       case TIBRVMSG_MSG:
       {
@@ -391,7 +391,7 @@ class AbstractQoreNode *QoreTibrvTransport::listToNode(TibrvMsgField *field, cla
       {
 	 tibrv_bool *c = (tibrv_bool *)data.buf;
 	 for (unsigned i = 0; i < field->count; i++)
-	    l->push(new QoreBoolNode((bool)c[i]));
+	    l->push(get_bool_node((bool)c[i]));
 	 break;
       }
 

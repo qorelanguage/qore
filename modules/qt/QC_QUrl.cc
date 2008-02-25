@@ -135,13 +135,13 @@ static AbstractQoreNode *QURL_fragment(QoreObject *self, QoreQUrl *qu, const Qor
 //bool hasFragment () const
 static AbstractQoreNode *QURL_hasFragment(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qu->hasFragment());
+   return get_bool_node(qu->hasFragment());
 }
 
 //bool hasQuery () const
 static AbstractQoreNode *QURL_hasQuery(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qu->hasQuery());
+   return get_bool_node(qu->hasQuery());
 }
 
 //bool hasQueryItem ( const QString & key ) const
@@ -151,7 +151,7 @@ static AbstractQoreNode *QURL_hasQueryItem(QoreObject *self, QoreQUrl *qu, const
    QString key;
    if (get_qstring(p, key, xsink))
       return 0;
-   return new QoreBoolNode(qu->hasQueryItem(key));
+   return get_bool_node(qu->hasQueryItem(key));
 }
 
 //QString host () const
@@ -163,7 +163,7 @@ static AbstractQoreNode *QURL_host(QoreObject *self, QoreQUrl *qu, const QoreLis
 //bool isEmpty () const
 static AbstractQoreNode *QURL_isEmpty(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qu->isEmpty());
+   return get_bool_node(qu->isEmpty());
 }
 
 //bool isParentOf ( const QUrl & childUrl ) const
@@ -177,19 +177,19 @@ static AbstractQoreNode *QURL_isParentOf(QoreObject *self, QoreQUrl *qu, const Q
       return 0;
    }
    ReferenceHolder<QoreQUrl> childUrlHolder(childUrl, xsink);
-   return new QoreBoolNode(qu->isParentOf(*(static_cast<QUrl *>(childUrl))));
+   return get_bool_node(qu->isParentOf(*(static_cast<QUrl *>(childUrl))));
 }
 
 //bool isRelative () const
 static AbstractQoreNode *QURL_isRelative(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qu->isRelative());
+   return get_bool_node(qu->isRelative());
 }
 
 //bool isValid () const
 static AbstractQoreNode *QURL_isValid(QoreObject *self, QoreQUrl *qu, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qu->isValid());
+   return get_bool_node(qu->isValid());
 }
 
 //QString password () const

@@ -205,7 +205,7 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink)
 	 while (hi.next())
 	 {
 	    const AbstractQoreNode *v = hi.getValue();
-	    const QoreType *vtype = v ? v->getType() : 0;
+	    qore_type_t vtype = v ? v->getType() : 0;
 	    if (!v || (vtype != NT_HASH && vtype != NT_INT))
 	    {
 	       xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());

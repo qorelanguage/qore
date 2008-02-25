@@ -76,7 +76,7 @@ static void QIMAGEWRITER_copy(class QoreObject *self, class QoreObject *old, cla
 //bool canWrite () const
 static AbstractQoreNode *QIMAGEWRITER_canWrite(QoreObject *self, QoreQImageWriter *qiw, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qiw->canWrite());
+   return get_bool_node(qiw->canWrite());
 }
 
 //int compression () const
@@ -228,7 +228,7 @@ static AbstractQoreNode *QIMAGEWRITER_supportsOption(QoreObject *self, QoreQImag
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QImageIOHandler::ImageOption option = (QImageIOHandler::ImageOption)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qiw->supportsOption(option));
+   return get_bool_node(qiw->supportsOption(option));
 }
 
 //bool write ( const QImage & image )
@@ -242,7 +242,7 @@ static AbstractQoreNode *QIMAGEWRITER_write(QoreObject *self, QoreQImageWriter *
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> imageHolder(static_cast<AbstractPrivateData *>(image), xsink);
-   return new QoreBoolNode(qiw->write(*(static_cast<QImage *>(image))));
+   return get_bool_node(qiw->write(*(static_cast<QImage *>(image))));
 }
 
 QoreClass *initQImageWriterClass()

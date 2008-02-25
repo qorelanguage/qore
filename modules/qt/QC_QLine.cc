@@ -133,7 +133,7 @@ static AbstractQoreNode *QLINE_dy(QoreObject *self, QoreQLine *ql, const QoreLis
 //bool isNull () const
 static AbstractQoreNode *QLINE_isNull(QoreObject *self, QoreQLine *ql, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(ql->isNull());
+   return get_bool_node(ql->isNull());
 }
 
 //void translate ( const QPoint & offset )

@@ -52,13 +52,13 @@ static void QABSTRACTBUTTON_copy(class QoreObject *self, class QoreObject *old, 
 //bool autoExclusive () const
 static AbstractQoreNode *QABSTRACTBUTTON_autoExclusive(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qab->getQAbstractButton()->autoExclusive());
+   return get_bool_node(qab->getQAbstractButton()->autoExclusive());
 }
 
 //bool autoRepeat () const
 static AbstractQoreNode *QABSTRACTBUTTON_autoRepeat(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qab->getQAbstractButton()->autoRepeat());
+   return get_bool_node(qab->getQAbstractButton()->autoRepeat());
 }
 
 //int autoRepeatDelay () const
@@ -100,19 +100,19 @@ static AbstractQoreNode *QABSTRACTBUTTON_iconSize(QoreObject *self, QoreAbstract
 //bool isCheckable () const
 static AbstractQoreNode *QABSTRACTBUTTON_isCheckable(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qab->getQAbstractButton()->isCheckable());
+   return get_bool_node(qab->getQAbstractButton()->isCheckable());
 }
 
 //bool isChecked () const
 static AbstractQoreNode *QABSTRACTBUTTON_isChecked(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qab->getQAbstractButton()->isChecked());
+   return get_bool_node(qab->getQAbstractButton()->isChecked());
 }
 
 //bool isDown () const
 static AbstractQoreNode *QABSTRACTBUTTON_isDown(QoreObject *self, QoreAbstractQAbstractButton *qab, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qab->getQAbstractButton()->isDown());
+   return get_bool_node(qab->getQAbstractButton()->isDown());
 }
 
 //void setAutoExclusive ( bool )

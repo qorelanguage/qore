@@ -72,7 +72,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_canFetchMore(QoreObject *self, QoreA
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->canFetchMore(*(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->canFetchMore(*(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual int columnCount ( const QModelIndex & parent = QModelIndex() ) const = 0
@@ -130,7 +130,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_dropMimeData(QoreObject *self, QoreA
       return 0;
    }
    ReferenceHolder<AbstractPrivateData> parentHolder(static_cast<AbstractPrivateData *>(parent), xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->dropMimeData(static_cast<QMimeData *>(data->qobj), action, row, column, *(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->dropMimeData(static_cast<QMimeData *>(data->qobj), action, row, column, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual void fetchMore ( const QModelIndex & parent )
@@ -173,7 +173,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_hasChildren(QoreObject *self, QoreAb
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->hasChildren(*(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->hasChildren(*(static_cast<QModelIndex *>(parent))));
 }
 
 //bool hasIndex ( int row, int column, const QModelIndex & parent = QModelIndex() ) const
@@ -191,7 +191,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_hasIndex(QoreObject *self, QoreAbstr
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->hasIndex(row, column, *(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->hasIndex(row, column, *(static_cast<QModelIndex *>(parent))));
 }
 
 ////virtual QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const
@@ -240,7 +240,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_insertColumn(QoreObject *self, QoreA
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->insertColumn(column, *(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->insertColumn(column, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual bool insertColumns ( int column, int count, const QModelIndex & parent = QModelIndex() )
@@ -260,7 +260,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_insertColumns(QoreObject *self, Qore
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->insertColumns(column, count, *(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->insertColumns(column, count, *(static_cast<QModelIndex *>(parent))));
 }
 
 //bool insertRow ( int row, const QModelIndex & parent = QModelIndex() )
@@ -277,7 +277,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_insertRow(QoreObject *self, QoreAbst
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->insertRow(row, *(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->insertRow(row, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual bool insertRows ( int row, int count, const QModelIndex & parent = QModelIndex() )
@@ -297,7 +297,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_insertRows(QoreObject *self, QoreAbs
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->insertRows(row, count, *(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->insertRows(row, count, *(static_cast<QModelIndex *>(parent))));
 }
 
 ////virtual QMap<int, QVariant> itemData ( const QModelIndex & index ) const
@@ -385,7 +385,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_removeColumn(QoreObject *self, QoreA
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->removeColumn(column, *(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->removeColumn(column, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual bool removeColumns ( int column, int count, const QModelIndex & parent = QModelIndex() )
@@ -404,7 +404,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_removeColumns(QoreObject *self, Qore
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->removeColumns(column, count, *(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->removeColumns(column, count, *(static_cast<QModelIndex *>(parent))));
 }
 
 //bool removeRow ( int row, const QModelIndex & parent = QModelIndex() )
@@ -421,7 +421,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_removeRow(QoreObject *self, QoreAbst
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->removeRow(row, *(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->removeRow(row, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual bool removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() )
@@ -440,7 +440,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_removeRows(QoreObject *self, QoreAbs
       return 0;
    }
    ReferenceHolder<QoreQModelIndex> parentHolder(parent, xsink);
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->removeRows(row, count, *(static_cast<QModelIndex *>(parent))));
+   return get_bool_node(qaim->getQAbstractItemModel()->removeRows(row, count, *(static_cast<QModelIndex *>(parent))));
 }
 
 //virtual int rowCount ( const QModelIndex & parent = QModelIndex() ) const = 0
@@ -475,7 +475,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_setData(QoreObject *self, QoreAbstra
       return 0;
    p = get_param(params, 2);
    int role = !is_nothing(p) ? p->getAsInt() : Qt::EditRole;
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->setData(*(static_cast<QModelIndex *>(index)), value, role));
+   return get_bool_node(qaim->getQAbstractItemModel()->setData(*(static_cast<QModelIndex *>(index)), value, role));
 }
 
 //virtual bool setHeaderData ( int section, Qt::Orientation orientation, const QVariant & value, int role = Qt::EditRole )
@@ -491,7 +491,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_setHeaderData(QoreObject *self, Qore
       return 0;
    p = get_param(params, 3);
    int role = !is_nothing(p) ? p->getAsInt() : Qt::EditRole;
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->setHeaderData(section, orientation, value, role));
+   return get_bool_node(qaim->getQAbstractItemModel()->setHeaderData(section, orientation, value, role));
 }
 
 ////virtual bool setItemData ( const QModelIndex & index, const QMap<int, QVariant> & roles )
@@ -509,7 +509,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_setHeaderData(QoreObject *self, Qore
 //   QAbstractItemModel::const^QMap<int const^qmap<int = (QAbstractItemModel::const^QMap<int)(p ? p->getAsInt() : 0);
 //   p = get_param(params, 2);
 //   ??? QVariant> roles = p;
-//   return new QoreBoolNode(qaim->getQAbstractItemModel()->setItemData(*(static_cast<QModelIndex *>(index)), const^qmap<int, roles));
+//   return get_bool_node(qaim->getQAbstractItemModel()->setItemData(*(static_cast<QModelIndex *>(index)), const^qmap<int, roles));
 //}
 
 //void setSupportedDragActions ( Qt::DropActions actions )
@@ -593,7 +593,7 @@ static AbstractQoreNode *QABSTRACTITEMMODEL_revert(QoreObject *self, QoreAbstrac
 //virtual bool submit ()
 static AbstractQoreNode *QABSTRACTITEMMODEL_submit(QoreObject *self, QoreAbstractQAbstractItemModel *qaim, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qaim->getQAbstractItemModel()->submit());
+   return get_bool_node(qaim->getQAbstractItemModel()->submit());
 }
 
 //void beginInsertColumns ( const QModelIndex & parent, int first, int last )

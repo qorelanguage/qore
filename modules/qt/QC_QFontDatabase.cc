@@ -56,7 +56,7 @@ static AbstractQoreNode *QFONTDATABASE_bold(QoreObject *self, QoreQFontDatabase 
    if (get_qstring(p, style, xsink))
       return 0;
 
-   return new QoreBoolNode(qfd->bold(family, style));
+   return get_bool_node(qfd->bold(family, style));
 }
 
 //QStringList families ( WritingSystem writingSystem = Any ) const
@@ -104,9 +104,9 @@ static AbstractQoreNode *QFONTDATABASE_isBitmapScalable(QoreObject *self, QoreQF
 
    p = test_string_param(params, 1);
    if (p)
-      return new QoreBoolNode(qfd->isBitmapScalable(family, p->getBuffer()));
+      return get_bool_node(qfd->isBitmapScalable(family, p->getBuffer()));
 
-   return new QoreBoolNode(qfd->isBitmapScalable(family));
+   return get_bool_node(qfd->isBitmapScalable(family));
 }
 
 //bool isFixedPitch ( const QString & family, const QString & style = QString() ) const
@@ -122,9 +122,9 @@ static AbstractQoreNode *QFONTDATABASE_isFixedPitch(QoreObject *self, QoreQFontD
    p = test_string_param(params, 1);
    const char *style = p ? p->getBuffer() : 0;
    if (style)
-      return new QoreBoolNode(qfd->isFixedPitch(family, style));
+      return get_bool_node(qfd->isFixedPitch(family, style));
 
-   return new QoreBoolNode(qfd->isFixedPitch(family));
+   return get_bool_node(qfd->isFixedPitch(family));
 }
 
 //bool isScalable ( const QString & family, const QString & style = QString() ) const
@@ -139,8 +139,8 @@ static AbstractQoreNode *QFONTDATABASE_isScalable(QoreObject *self, QoreQFontDat
    p = test_string_param(params, 1);
    const char *style = p ? p->getBuffer() : 0;
    if (style)
-      return new QoreBoolNode(qfd->isScalable(family, style));
-   return new QoreBoolNode(qfd->isScalable(family));
+      return get_bool_node(qfd->isScalable(family, style));
+   return get_bool_node(qfd->isScalable(family));
 }
 
 //bool isSmoothlyScalable ( const QString & family, const QString & style = QString() ) const
@@ -156,8 +156,8 @@ static AbstractQoreNode *QFONTDATABASE_isSmoothlyScalable(QoreObject *self, Qore
    p = test_string_param(params, 1);
    const char *style = p ? p->getBuffer() : 0;
    if (style)
-      return new QoreBoolNode(qfd->isSmoothlyScalable(family, style));
-   return new QoreBoolNode(qfd->isSmoothlyScalable(family));
+      return get_bool_node(qfd->isSmoothlyScalable(family, style));
+   return get_bool_node(qfd->isSmoothlyScalable(family));
 }
 
 //bool italic ( const QString & family, const QString & style ) const
@@ -173,7 +173,7 @@ static AbstractQoreNode *QFONTDATABASE_italic(QoreObject *self, QoreQFontDatabas
    if (get_qstring(p, style, xsink))
       return 0;
 
-   return new QoreBoolNode(qfd->italic(family, style));
+   return get_bool_node(qfd->italic(family, style));
 }
 
 ////QList<int> pointSizes ( const QString & family, const QString & style = QString() )

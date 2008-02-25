@@ -30,64 +30,30 @@
 #include <map>
 
 // global default values
-DLLEXPORT extern class QoreBoolNode *False, *True;
-DLLEXPORT extern class QoreListNode *emptyList;
-DLLEXPORT extern class QoreHashNode *emptyHash;
-DLLEXPORT extern class QoreStringNode *NullString;
-DLLEXPORT extern class DateTimeNode *ZeroDate;
+DLLEXPORT extern QoreListNode *emptyList;
+DLLEXPORT extern QoreHashNode *emptyHash;
+DLLEXPORT extern QoreStringNode *NullString;
+DLLEXPORT extern DateTimeNode *ZeroDate;
 
-DLLEXPORT extern class QoreString NothingTypeString, NullTypeString, TrueString, 
+DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString, 
    FalseString, EmptyHashString, EmptyListString;
 
-#define QTM_USER_START   200
+DLLEXPORT qore_type_t get_next_type_id();
 
-class QoreType {
-   private:
-      int  id;
-
-   public:
-      // note that this method is not thread safe - should only be called in library or module initialization
-      DLLEXPORT QoreType();
-      DLLEXPORT int getID() const;
-      //DLLEXPORT const char *getName() const;
-      // compare = 0 means values are equal
-};
-
-typedef std::map<int, class QoreType *> qore_type_map_t;
-
-class QoreTypeManager : public qore_type_map_t
-{
-   friend class QoreType;
-   
-   private:
-      DLLLOCAL static int lastid;
-      DLLLOCAL static QoreType *typelist[NUM_VALUE_TYPES];
-      
-   public:
-      DLLEXPORT void add(class QoreType *t);
-
-      DLLLOCAL QoreTypeManager();
-      DLLLOCAL ~QoreTypeManager();
-      DLLLOCAL static void init();
-      DLLLOCAL static void del();
-      DLLLOCAL class QoreType *find(int id);
-};
-
-DLLEXPORT extern class QoreTypeManager QTM;
+DLLLOCAL void init_qore_types();
+DLLLOCAL void delete_qore_types();
 
 DLLEXPORT bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
 DLLEXPORT bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, class ExceptionSink *xsink);
 
-static inline class AbstractQoreNode *boolean_false()
+static inline AbstractQoreNode *boolean_false()
 {
-   False->ref();
-   return False;
+   return &False;
 }
 
-static inline class AbstractQoreNode *boolean_true()
+static inline AbstractQoreNode *boolean_true()
 {
-   True->ref();
-   return True;
+   return &True;
 }
 
 static inline class QoreBigIntNode *zero()

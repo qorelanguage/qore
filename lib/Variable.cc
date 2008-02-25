@@ -462,7 +462,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, class Auto
 // this function will change the lvalue to the right type if needed (used for assignments)
 AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, ExceptionSink *xsink)
 {
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
    //printd(5, "get_var_value_ptr(%08p) %s\n", n, n->getTypeName());
    if (ntype == NT_VARREF)
    {
@@ -556,7 +556,7 @@ AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, class AutoVLock *vl, Ex
 AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink, class AutoVLock *vl, AbstractQoreNode **pt)
 {
    printd(5, "getExistingVarValue(%08p) %s\n", n, n->getTypeName());
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
    if (ntype == NT_VARREF)
       return reinterpret_cast<const VarRefNode *>(n)->getValue(vl, xsink);
 
@@ -631,7 +631,7 @@ AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *
 static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, ExceptionSink *xsink, class AutoVLock *vl, AbstractQoreNode **pt)
 {
    printd(5, "getUniqueExistingVarValuePtr(%08p) %s\n", n, n->getTypeName());
-   const QoreType *ntype = n->getType();
+   qore_type_t ntype = n->getType();
    if (ntype == NT_VARREF)
       return reinterpret_cast<VarRefNode *>(n)->getValuePtr(vl, xsink);
 
@@ -697,7 +697,7 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
    AutoVLock vl;
    AbstractQoreNode **val;
    
-   const QoreType *lvtype = lvalue->getType();
+   qore_type_t lvtype = lvalue->getType();
 
    // if the node is a variable reference, then find value
    // ptr, dereference it, and return

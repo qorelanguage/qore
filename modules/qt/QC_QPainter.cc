@@ -113,7 +113,7 @@ static AbstractQoreNode *QPAINTER_begin(QoreObject *self, QoreQPainter *qp, cons
    ReferenceHolder<AbstractPrivateData> holder(apd, xsink);
    QoreAbstractQPaintDevice *device = dynamic_cast<QoreAbstractQPaintDevice *>(apd);
    assert(device);
-   return new QoreBoolNode(qp->getQPainter()->begin(device->getQPaintDevice()));
+   return get_bool_node(qp->getQPainter()->begin(device->getQPaintDevice()));
 }
 
 //QRectF boundingRect ( const QRectF & rectangle, int flags, const QString & text )
@@ -1095,7 +1095,7 @@ static AbstractQoreNode *QPAINTER_drawTiledPixmap(QoreObject *self, QoreQPainter
 //bool end ()
 static AbstractQoreNode *QPAINTER_end(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->getQPainter()->end());
+   return get_bool_node(qp->getQPainter()->end());
 }
 
 //void eraseRect ( const QRectF & rectangle )
@@ -1232,7 +1232,7 @@ static AbstractQoreNode *QPAINTER_fontMetrics(QoreObject *self, QoreQPainter *qp
 //bool hasClipping () const
 static AbstractQoreNode *QPAINTER_hasClipping(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->getQPainter()->hasClipping());
+   return get_bool_node(qp->getQPainter()->hasClipping());
 }
 
 //void initFrom ( const QWidget * widget )
@@ -1254,7 +1254,7 @@ static AbstractQoreNode *QPAINTER_initFrom(QoreObject *self, QoreQPainter *qp, c
 //bool isActive () const
 static AbstractQoreNode *QPAINTER_isActive(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->getQPainter()->isActive());
+   return get_bool_node(qp->getQPainter()->isActive());
 }
 
 //Qt::LayoutDirection layoutDirection () const
@@ -1757,7 +1757,7 @@ static AbstractQoreNode *QPAINTER_testRenderHint(QoreObject *self, QoreQPainter 
 {
    const AbstractQoreNode *p = get_param(params, 0);
    QPainter::RenderHint hint = (QPainter::RenderHint)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qp->getQPainter()->testRenderHint(hint));
+   return get_bool_node(qp->getQPainter()->testRenderHint(hint));
 }
 
 //const QTransform & transform () const
@@ -1800,7 +1800,7 @@ static AbstractQoreNode *QPAINTER_translate(QoreObject *self, QoreQPainter *qp, 
 //bool viewTransformEnabled () const
 static AbstractQoreNode *QPAINTER_viewTransformEnabled(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->getQPainter()->viewTransformEnabled());
+   return get_bool_node(qp->getQPainter()->viewTransformEnabled());
 }
 
 //QRect viewport () const
@@ -1835,7 +1835,7 @@ static AbstractQoreNode *QPAINTER_worldMatrix(QoreObject *self, QoreQPainter *qp
 //bool worldMatrixEnabled () const
 static AbstractQoreNode *QPAINTER_worldMatrixEnabled(QoreObject *self, QoreQPainter *qp, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qp->getQPainter()->worldMatrixEnabled());
+   return get_bool_node(qp->getQPainter()->worldMatrixEnabled());
 }
 
 //const QTransform & worldTransform () const

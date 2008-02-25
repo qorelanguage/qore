@@ -266,7 +266,7 @@ static AbstractQoreNode *DSP_getClientVersion(QoreObject *self, class Datasource
 
 static AbstractQoreNode *DSP_inTransaction(QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(ds->inTransaction());
+   return get_bool_node(ds->inTransaction());
 }
 
 class QoreClass *initDatasourcePoolClass()

@@ -223,7 +223,7 @@ static AbstractQoreNode *QMENUBAR_insertSeparator(QoreObject *self, QoreAbstract
 //bool isDefaultUp () const
 static AbstractQoreNode *QMENUBAR_isDefaultUp(QoreObject *self, QoreAbstractQMenuBar *qmb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qmb->getQMenuBar()->isDefaultUp());
+   return get_bool_node(qmb->getQMenuBar()->isDefaultUp());
 }
 
 //void setActiveAction ( QAction * act )

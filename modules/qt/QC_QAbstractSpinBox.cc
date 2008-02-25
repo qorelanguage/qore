@@ -72,13 +72,13 @@ static AbstractQoreNode *QABSTRACTSPINBOX_correctionMode(QoreObject *self, QoreA
 //bool hasAcceptableInput () const
 static AbstractQoreNode *QABSTRACTSPINBOX_hasAcceptableInput(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qasb->getQAbstractSpinBox()->hasAcceptableInput());
+   return get_bool_node(qasb->getQAbstractSpinBox()->hasAcceptableInput());
 }
 
 //bool hasFrame () const
 static AbstractQoreNode *QABSTRACTSPINBOX_hasFrame(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qasb->getQAbstractSpinBox()->hasFrame());
+   return get_bool_node(qasb->getQAbstractSpinBox()->hasFrame());
 }
 
 //void interpretText ()
@@ -91,19 +91,19 @@ static AbstractQoreNode *QABSTRACTSPINBOX_interpretText(QoreObject *self, QoreAb
 //bool isAccelerated () const
 static AbstractQoreNode *QABSTRACTSPINBOX_isAccelerated(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qasb->getQAbstractSpinBox()->isAccelerated());
+   return get_bool_node(qasb->getQAbstractSpinBox()->isAccelerated());
 }
 
 //bool isReadOnly () const
 static AbstractQoreNode *QABSTRACTSPINBOX_isReadOnly(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qasb->getQAbstractSpinBox()->isReadOnly());
+   return get_bool_node(qasb->getQAbstractSpinBox()->isReadOnly());
 }
 
 //bool keyboardTracking () const
 static AbstractQoreNode *QABSTRACTSPINBOX_keyboardTracking(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qasb->getQAbstractSpinBox()->keyboardTracking());
+   return get_bool_node(qasb->getQAbstractSpinBox()->keyboardTracking());
 }
 
 //void setAccelerated ( bool on )
@@ -229,7 +229,7 @@ static AbstractQoreNode *QABSTRACTSPINBOX_text(QoreObject *self, QoreAbstractQAb
 //bool wrapping () const
 static AbstractQoreNode *QABSTRACTSPINBOX_wrapping(QoreObject *self, QoreAbstractQAbstractSpinBox *qasb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qasb->getQAbstractSpinBox()->wrapping());
+   return get_bool_node(qasb->getQAbstractSpinBox()->wrapping());
 }
 
 //virtual void clear ()

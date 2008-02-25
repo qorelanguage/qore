@@ -82,7 +82,7 @@ static AbstractQoreNode *QTEXTFRAMEFORMAT_height(QoreObject *self, QoreQTextFram
 //bool isValid () const
 static AbstractQoreNode *QTEXTFRAMEFORMAT_isValid(QoreObject *self, QoreQTextFrameFormat *qtff, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtff->isValid());
+   return get_bool_node(qtff->isValid());
 }
 
 //qreal leftMargin () const

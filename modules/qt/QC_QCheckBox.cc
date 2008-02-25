@@ -74,7 +74,7 @@ static AbstractQoreNode *QCHECKBOX_checkState(QoreObject *self, QoreAbstractQChe
 //bool isTristate () const
 static AbstractQoreNode *QCHECKBOX_isTristate(QoreObject *self, QoreAbstractQCheckBox *qcb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qcb->getQCheckBox()->isTristate());
+   return get_bool_node(qcb->getQCheckBox()->isTristate());
 }
 
 //void setCheckState ( Qt::CheckState state )

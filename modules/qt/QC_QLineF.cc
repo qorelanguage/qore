@@ -177,7 +177,7 @@ static AbstractQoreNode *QLINEF_dy(QoreObject *self, QoreQLineF *qlf, const Qore
 //bool isNull () const
 static AbstractQoreNode *QLINEF_isNull(QoreObject *self, QoreQLineF *qlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qlf->isNull());
+   return get_bool_node(qlf->isNull());
 }
 
 //qreal length () const

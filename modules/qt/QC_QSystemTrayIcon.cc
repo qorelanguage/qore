@@ -114,7 +114,7 @@ static AbstractQoreNode *QSYSTEMTRAYICON_icon(QoreObject *self, QoreQSystemTrayI
 //bool isVisible () const
 static AbstractQoreNode *QSYSTEMTRAYICON_isVisible(QoreObject *self, QoreQSystemTrayIcon *qsti, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qsti->qobj->isVisible());
+   return get_bool_node(qsti->qobj->isVisible());
 }
 
 //void setContextMenu ( QMenu * menu )
@@ -257,13 +257,13 @@ QoreNamespace *initQSystemTrayIconNS(QoreClass *qobject)
 //bool isSystemTrayAvailable ()
 static AbstractQoreNode *f_QSystemTrayIcon_isSystemTrayAvailable(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QSystemTrayIcon::isSystemTrayAvailable());
+   return get_bool_node(QSystemTrayIcon::isSystemTrayAvailable());
 }
 
 //bool supportsMessages ()
 static AbstractQoreNode *f_QSystemTrayIcon_supportsMessages(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QSystemTrayIcon::supportsMessages());
+   return get_bool_node(QSystemTrayIcon::supportsMessages());
 }
 
 void initQSystemTrayIconStaticFunctions()

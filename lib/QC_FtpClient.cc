@@ -304,12 +304,12 @@ static AbstractQoreNode *FC_setInsecureData(QoreObject *self, class QoreFtpClien
 
 static AbstractQoreNode *FC_isSecure(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(f->isSecure());
+   return get_bool_node(f->isSecure());
 }
 
 static AbstractQoreNode *FC_isDataSecure(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(f->isDataSecure());
+   return get_bool_node(f->isDataSecure());
 }
 
 static AbstractQoreNode *FC_getSSLCipherName(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)

@@ -183,7 +183,7 @@ struct qore_bind_info {
       bool in_place;
 };
 
-typedef std::map<const QoreType *, qore_bind_info> qore_pg_bind_map;
+typedef std::map<qore_type_t , qore_bind_info> qore_pg_bind_map;
 */
 
 typedef class AbstractQoreNode *(*qore_pg_data_func_t)(char *data, int type, int size, class QorePGConnection *conn, const QoreEncoding *enc);
@@ -222,6 +222,7 @@ class QorePGConnection
 };
 
 union parambuf {
+      bool b;
       short i2;
       int i4;
       int64 i8;
@@ -305,7 +306,7 @@ class QorePGBindArray {
       int dim[MAXDIM];
       char *ptr;
       qore_pg_array_header *hdr;
-      const QoreType *type;
+      qore_type_t type;
       int oid, arrayoid, format;
       class QorePGConnection *conn;
 

@@ -100,7 +100,7 @@ static AbstractQoreNode *DS_setAutoCommit(QoreObject *self, class ManagedDatasou
 
 static AbstractQoreNode *DS_getAutoCommit(QoreObject *self, class ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(ds->getAutoCommit());
+   return get_bool_node(ds->getAutoCommit());
 }
 
 static AbstractQoreNode *DS_exec(QoreObject *self, class ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink)
@@ -325,7 +325,7 @@ static AbstractQoreNode *DS_getClientVersion(QoreObject *self, class ManagedData
 
 static AbstractQoreNode *DS_inTransaction(QoreObject *self, class ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(ds->isInTransaction());
+   return get_bool_node(ds->isInTransaction());
 }
 
 class QoreClass *initDatasourceClass()

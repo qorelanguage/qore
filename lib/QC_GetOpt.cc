@@ -27,9 +27,9 @@
 
 int CID_GETOPT;
 
-static inline int process_type(const char *key, int &attributes, char *opt, class QoreType *&at, ExceptionSink *xsink)
+static inline int process_type(const char *key, int &attributes, char *opt, qore_type_t &at, ExceptionSink *xsink)
 {
-   assert(!at);
+   assert(at == -1);
    const char *type_name = 0;
    // get type
    switch (*opt)
@@ -69,7 +69,7 @@ static inline int process_type(const char *key, int &attributes, char *opt, clas
 	 type_name = QoreBigIntNode::getStaticTypeName();
 	 break;
    }
-   if (!at)
+   if (at == -1)
    {
       xsink->raiseException("GETOPT-OPTION-ERROR", "type '%c' for key '%s' is unknown", *opt, key);
       return -1;
@@ -153,8 +153,8 @@ static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, Exc
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k, v ? v->getTypeName() : "NOTHING");
 	 break;
       }
-
-      class QoreType *at = NULL;
+      
+      qore_type_t at = -1;
       char *long_opt = NULL, short_opt = '\0';
       int attributes = QGO_OPT_NONE;
 
@@ -233,12 +233,12 @@ static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, Exc
       g->deref();
 }
 
-static void GETOPT_copy(QoreObject *self, QoreObject *old, class GetOpt *g, ExceptionSink *xsink)
+static void GETOPT_copy(QoreObject *self, QoreObject *old, GetOpt *g, ExceptionSink *xsink)
 {
    xsink->raiseException("GETOPT-COPY-ERROR", "copying GetOpt objects is not supported");
 }
 
-static AbstractQoreNode *GETOPT_parse(QoreObject *self, class GetOpt *g, const QoreListNode *params, ExceptionSink *xsink)
+static AbstractQoreNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)

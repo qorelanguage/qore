@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-QoreGetOptNode::QoreGetOptNode(const char *n, char so, char *lo, class QoreType *at, int o)
+QoreGetOptNode::QoreGetOptNode(const char *n, char so, char *lo, qore_type_t at, int o)
 {
    name = n  ? strdup(n) : NULL;
    short_opt = so;
@@ -77,7 +77,7 @@ class QoreGetOptNode *QoreGetOpt::find(char opt) const
    return NULL;
 }
 
-int QoreGetOpt::add(const char *name, char short_opt, char *long_opt, class QoreType *argtype, int option)
+int QoreGetOpt::add(const char *name, char short_opt, char *long_opt, qore_type_t argtype, int option)
 {
    // check input for validity
    if (!name || !name[0])
@@ -85,7 +85,7 @@ int QoreGetOpt::add(const char *name, char short_opt, char *long_opt, class Qore
    if (!short_opt && (!long_opt || !long_opt[0]))
       return QGO_ERR_NO_OPTION;
 
-   //printf("QoreGetOpt::add(%s, %03d (%c), %s, %08p, %d)\n", name, short_opt, short_opt ? short_opt : '-', long_opt, argtype, option);
+   //printf("QoreGetOpt::add(%s, %03d (%c), %s, %d, %d)\n", name, short_opt, short_opt ? short_opt : '-', long_opt, argtype, option);
    // look for duplicate entries
    if (short_opt && find(short_opt))
       return QGO_ERR_DUP_SHORT_OPT;
@@ -152,7 +152,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHashNode *h, const 
    AbstractQoreNode **cv = h->getKeyValuePtr(n->name);
 
    // get a value ready
-   if (!n->argtype)
+   if (n->argtype == -1)
    {
       if (*cv)
 	 return;
@@ -198,7 +198,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHashNode *h, const 
    else if (n->argtype == NT_DATE)
       v = parseDate(val);
    else if (n->argtype == NT_BOOLEAN)
-      v = new QoreBoolNode((bool)strtol(val, NULL, 10));
+      v = get_bool_node((bool)strtol(val, NULL, 10));
    else // default string
       v = new QoreStringNode(val);
    
@@ -318,7 +318,7 @@ int QoreGetOpt::processShortArg(const char *arg, QoreListNode *l, class QoreHash
    }
    bool do_modify = false;
    const char *val = NULL;
-   if (w->argtype)
+   if (w->argtype != -1)
    {
       if ((j < (signed)(strlen(arg) - 1))
 	  && ((w->option & QGO_OPT_MANDATORY) || ((arg + j + 1)[0] == '=')))

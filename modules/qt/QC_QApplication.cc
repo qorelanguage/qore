@@ -222,7 +222,7 @@ static AbstractQoreNode *f_QApplication_desktop(const QoreListNode *params, Exce
 //bool desktopSettingsAware ()
 static AbstractQoreNode *f_QApplication_desktopSettingsAware(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QApplication::desktopSettingsAware());
+   return get_bool_node(QApplication::desktopSettingsAware());
 }
 
 //int doubleClickInterval ()
@@ -262,7 +262,7 @@ static AbstractQoreNode *f_QApplication_font(const QoreListNode *params, Excepti
       o_qf->setPrivate(CID_QFONT, q_qf);
       return o_qf;
    }
-   const QoreType *ptype = p->getType();
+   qore_type_t ptype = p->getType();
    if (ptype == NT_OBJECT) {
       QoreQWidget *widget = (QoreQWidget *)(reinterpret_cast<const QoreObject *>(p))->getReferencedPrivateData(CID_QWIDGET, xsink);
       if (!widget) {
@@ -311,19 +311,19 @@ static AbstractQoreNode *f_QApplication_isEffectEnabled(const QoreListNode *para
 {
    const AbstractQoreNode *p = get_param(params, 0);
    Qt::UIEffect effect = (Qt::UIEffect)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(QApplication::isEffectEnabled(effect));
+   return get_bool_node(QApplication::isEffectEnabled(effect));
 }
 
 //bool isLeftToRight ()
 static AbstractQoreNode *f_QApplication_isLeftToRight(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QApplication::isLeftToRight());
+   return get_bool_node(QApplication::isLeftToRight());
 }
 
 //bool isRightToLeft ()
 static AbstractQoreNode *f_QApplication_isRightToLeft(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QApplication::isRightToLeft());
+   return get_bool_node(QApplication::isRightToLeft());
 }
 
 //Qt::LayoutDirection keyboardInputDirection ()
@@ -357,7 +357,7 @@ static AbstractQoreNode *f_QApplication_keyboardModifiers(const QoreListNode *pa
 //bool keypadNavigationEnabled ()
 static AbstractQoreNode *f_QApplication_keypadNavigationEnabled(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QApplication::keypadNavigationEnabled());
+   return get_bool_node(QApplication::keypadNavigationEnabled());
 }
 #endif
 
@@ -419,7 +419,7 @@ static AbstractQoreNode *f_QApplication_palette(const QoreListNode *params, Exce
 //bool quitOnLastWindowClosed ()
 static AbstractQoreNode *f_QApplication_quitOnLastWindowClosed(const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(QApplication::quitOnLastWindowClosed());
+   return get_bool_node(QApplication::quitOnLastWindowClosed());
 }
 
 ////QDecoration & qwsDecoration ()

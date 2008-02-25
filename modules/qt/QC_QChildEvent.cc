@@ -56,7 +56,7 @@ static void QCHILDEVENT_copy(class QoreObject *self, class QoreObject *old, clas
 //bool added () const
 static AbstractQoreNode *QCHILDEVENT_added(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qce->added());
+   return get_bool_node(qce->added());
 }
 
 //QObject * child () const
@@ -68,13 +68,13 @@ static AbstractQoreNode *QCHILDEVENT_child(QoreObject *self, QoreQChildEvent *qc
 //bool polished () const
 static AbstractQoreNode *QCHILDEVENT_polished(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qce->polished());
+   return get_bool_node(qce->polished());
 }
 
 //bool removed () const
 static AbstractQoreNode *QCHILDEVENT_removed(QoreObject *self, QoreQChildEvent *qce, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qce->removed());
+   return get_bool_node(qce->removed());
 }
 
 QoreClass *initQChildEventClass(QoreClass *qevent)

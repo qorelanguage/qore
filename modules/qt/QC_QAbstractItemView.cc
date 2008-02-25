@@ -49,7 +49,7 @@ static void QABSTRACTITEMVIEW_copy(class QoreObject *self, class QoreObject *old
 //bool alternatingRowColors () const
 static AbstractQoreNode *QABSTRACTITEMVIEW_alternatingRowColors(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qaiv->getQAbstractItemView()->alternatingRowColors());
+   return get_bool_node(qaiv->getQAbstractItemView()->alternatingRowColors());
 }
 
 //void closePersistentEditor ( const QModelIndex & index )
@@ -85,13 +85,13 @@ static AbstractQoreNode *QABSTRACTITEMVIEW_dragDropMode(QoreObject *self, QoreAb
 //bool dragDropOverwriteMode () const
 static AbstractQoreNode *QABSTRACTITEMVIEW_dragDropOverwriteMode(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qaiv->getQAbstractItemView()->dragDropOverwriteMode());
+   return get_bool_node(qaiv->getQAbstractItemView()->dragDropOverwriteMode());
 }
 
 //bool dragEnabled () const
 static AbstractQoreNode *QABSTRACTITEMVIEW_dragEnabled(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qaiv->getQAbstractItemView()->dragEnabled());
+   return get_bool_node(qaiv->getQAbstractItemView()->dragEnabled());
 }
 
 //EditTriggers editTriggers () const
@@ -103,7 +103,7 @@ static AbstractQoreNode *QABSTRACTITEMVIEW_editTriggers(QoreObject *self, QoreAb
 //bool hasAutoScroll () const
 static AbstractQoreNode *QABSTRACTITEMVIEW_hasAutoScroll(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qaiv->getQAbstractItemView()->hasAutoScroll());
+   return get_bool_node(qaiv->getQAbstractItemView()->hasAutoScroll());
 }
 
 //ScrollMode horizontalScrollMode () const
@@ -528,7 +528,7 @@ static AbstractQoreNode *QABSTRACTITEMVIEW_setVerticalScrollMode(QoreObject *sel
 //bool showDropIndicator () const
 static AbstractQoreNode *QABSTRACTITEMVIEW_showDropIndicator(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qaiv->getQAbstractItemView()->showDropIndicator());
+   return get_bool_node(qaiv->getQAbstractItemView()->showDropIndicator());
 }
 
 //virtual int sizeHintForColumn ( int column ) const
@@ -567,7 +567,7 @@ static AbstractQoreNode *QABSTRACTITEMVIEW_sizeHintForRow(QoreObject *self, Qore
 //bool tabKeyNavigation () const
 static AbstractQoreNode *QABSTRACTITEMVIEW_tabKeyNavigation(QoreObject *self, QoreAbstractQAbstractItemView *qaiv, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qaiv->getQAbstractItemView()->tabKeyNavigation());
+   return get_bool_node(qaiv->getQAbstractItemView()->tabKeyNavigation());
 }
 
 //Qt::TextElideMode textElideMode () const

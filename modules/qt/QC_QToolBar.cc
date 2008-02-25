@@ -250,25 +250,25 @@ static AbstractQoreNode *QTOOLBAR_isAreaAllowed(QoreObject *self, QoreQToolBar *
 {
    const AbstractQoreNode *p = get_param(params, 0);
    Qt::ToolBarArea area = (Qt::ToolBarArea)(p ? p->getAsInt() : 0);
-   return new QoreBoolNode(qtb->qobj->isAreaAllowed(area));
+   return get_bool_node(qtb->qobj->isAreaAllowed(area));
 }
 
 //bool isFloatable () const
 static AbstractQoreNode *QTOOLBAR_isFloatable(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtb->qobj->isFloatable());
+   return get_bool_node(qtb->qobj->isFloatable());
 }
 
 //bool isFloating () const
 static AbstractQoreNode *QTOOLBAR_isFloating(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtb->qobj->isFloating());
+   return get_bool_node(qtb->qobj->isFloating());
 }
 
 //bool isMovable () const
 static AbstractQoreNode *QTOOLBAR_isMovable(QoreObject *self, QoreQToolBar *qtb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtb->qobj->isMovable());
+   return get_bool_node(qtb->qobj->isMovable());
 }
 
 //Qt::Orientation orientation () const

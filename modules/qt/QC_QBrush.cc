@@ -137,13 +137,13 @@ static AbstractQoreNode *QBRUSH_color(QoreObject *self, QoreQBrush *qb, const Qo
 //bool isDetached () const
 static AbstractQoreNode *QBRUSH_isDetached(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qb->getQBrush()->isDetached());
+   return get_bool_node(qb->getQBrush()->isDetached());
 }
 
 //bool isOpaque () const
 static AbstractQoreNode *QBRUSH_isOpaque(QoreObject *self, QoreQBrush *qb, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qb->getQBrush()->isOpaque());
+   return get_bool_node(qb->getQBrush()->isOpaque());
 }
 
 //const QMatrix & matrix () const

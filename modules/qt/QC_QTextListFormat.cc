@@ -47,7 +47,7 @@ static AbstractQoreNode *QTEXTLISTFORMAT_indent(QoreObject *self, QoreQTextListF
 //bool isValid () const
 static AbstractQoreNode *QTEXTLISTFORMAT_isValid(QoreObject *self, QoreQTextListFormat *qtlf, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtlf->isValid());
+   return get_bool_node(qtlf->isValid());
 }
 
 //void setIndent ( int indentation )

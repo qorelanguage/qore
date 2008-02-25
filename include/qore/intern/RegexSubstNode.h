@@ -55,7 +55,7 @@ class RegexSubstNode : public ParseNoEvalNode, public QoreRegexBase
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       // returns the data type
-      DLLLOCAL virtual const QoreType *getType() const;
+      DLLLOCAL virtual qore_type_t getType() const;
       // returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 

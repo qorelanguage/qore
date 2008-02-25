@@ -149,7 +149,7 @@ static AbstractQoreNode *QTABLEWIDGETITEM_icon(QoreObject *self, QoreQTableWidge
 //bool isSelected () const
 static AbstractQoreNode *QTABLEWIDGETITEM_isSelected(QoreObject *self, QoreQTableWidgetItem *qtwi, const QoreListNode *params, ExceptionSink *xsink)
 {
-   return new QoreBoolNode(qtwi->qore_obj->isSelected());
+   return get_bool_node(qtwi->qore_obj->isSelected());
 }
 
 ////virtual void read ( QDataStream & in )
