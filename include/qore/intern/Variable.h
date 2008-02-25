@@ -106,13 +106,13 @@ class Var : public QoreReferenceCounter
       DLLLOCAL void makeReference(class Var *v, class ExceptionSink *xsink, bool ro = false);
       DLLLOCAL bool isImported() const;
       DLLLOCAL void deref(class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode *eval(class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink) const;
-      DLLLOCAL class AbstractQoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *eval(class ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
 };
 
-DLLLOCAL class AbstractQoreNode *getNoEvalVarValue(class AbstractQoreNode *n, class AutoVLock *vl, class ExceptionSink *xsink);
-DLLLOCAL class AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, class ExceptionSink *xsink, class AutoVLock *vl, class AbstractQoreNode **pt);
+DLLLOCAL AbstractQoreNode *getNoEvalVarValue(class AbstractQoreNode *n, class AutoVLock *vl, class ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, class ExceptionSink *xsink, class AutoVLock *vl, ReferenceHolder<AbstractQoreNode> &pt);
 DLLLOCAL void delete_var_node(class AbstractQoreNode *node, class ExceptionSink *xsink);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL class LVar *instantiateLVar(lvh_t id, class AbstractQoreNode *value);

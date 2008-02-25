@@ -1,18 +1,13 @@
 see docs/roadmap.html
 
-* eliminate needs_eval() and is_value() as virtual functions, including bitfield bools (when reimplementing QoreType as an 20-bit integer)
 * have QoreStringNode::getAsString() return a standard empty string ("") when possible (also should not be reference counted)
-* make it so that there is only ever one Nothing and Null object
 * find out why ref_rv is set to true for op_background even when the result is not used
-* implement bool_eval(), etc for VarRefNode
-* try implementing QoreNode::ref(), is_unique(), reference_count() as virtual (disable access to reference_count) and making Null and Nothing as not-reference counted objects and see if it improves performance
 * remove QoreNothingNode and use 0 everywhere instead
 * implement function class hierarchies for returning different types (bool, int64, double, node)
 * change get/test_*params() to return const values
 * implement optimized foreach statement for hash key iteration
 * implement optimization to check a program for use of parse(), parseCommit() and background to convert all global variables to local to avoid locking
 * make QoreHash implementation private
-* change getExistingVarValue to take a ReferenceHolder argument instead of a temporary QoreNode * arg
 * make ThreadResourceList private
 * tag functions if they have no effect except returning a value so if the value is not used at the top level a warning may be emitted
 * implement find_key operator, taking a regular expression to find a key in a hash
@@ -22,7 +17,7 @@ see docs/roadmap.html
 * update round() to allow the specification of significant digits
 * implement support for builtin methodGate methods, custom DBI Datasource method extensions
 * implement public_instanceof operator
-* implement auto-reconnect for mssql and other drivers (mysql has it already)
+* implement auto-reconnect for oracle, pgsql, mssql and other drivers (mysql has it already)
 * implement a mechanism for a thread to sleep until another thread terminates (join)
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
 * add support for ranges [2..9]
@@ -45,6 +40,10 @@ docs:
 * document optimizations
 
 done 0.7.0:
+* change getExistingVarValue to take a ReferenceHolder argument instead of a temporary QoreNode * arg
+* implement bool_eval(), etc for VarRefNode
+* make it so that there is only ever one Nothing and Null object
+* eliminate needs_eval() and is_value() as virtual functions, including bitfield bools (when reimplementing QoreType as an 20-bit integer)
 * implement -,-= with hash, list of strings to remove lists of hash keys
 * update Operator.cc ex: op_plus_eq: use getAsFlaat() on evaluated argument instead of convert()
 * migrate to "pimpl" approach for exported classes in qore library

@@ -390,28 +390,18 @@ static bool op_exists(const AbstractQoreNode *left, const AbstractQoreNode *x, E
    if (!left->needs_eval())
       return true;
 
-   AbstractQoreNode *tn = NULL;
-   class AutoVLock vl;
+   ReferenceHolder<AbstractQoreNode> tn(xsink);
+   AutoVLock vl;
+   AbstractQoreNode *n = getExistingVarValue(left, xsink, &vl, tn);
 
-   // FIXME: modify getExistingVarValue() to take a ReferenceHolder<AbstractQoreNode>
-   AbstractQoreNode *n = getExistingVarValue(left, xsink, &vl, &tn);
    // return if an exception happened
-   if (xsink->isEvent())
+   if (*xsink)
    {
       vl.del();
-      if (tn) tn->deref(xsink);
-      //traceout("op_exists()");
       return false;
    }
 
-   bool b;
-   // FIXME: this should return false for objects that have been deleted
-   if (is_nothing(n))
-      b = false;
-   else
-      b = true;
-   if (tn) tn->deref(xsink);
-   return b;
+   return is_nothing(n) ? false : true;
 }
 
 static bool op_instanceof(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink)
