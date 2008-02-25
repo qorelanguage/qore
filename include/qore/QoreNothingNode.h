@@ -65,8 +65,6 @@ class QoreNothingNode : public UniqueValueQoreNode
       */
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
-
       //! tests for equality with possible type conversion (soft compare)
       /** since no type can be implicitly converted to NOTHING, this comparison is the same as is_equal_hard() for QoreNothingNode
 	  @param v the value to compare

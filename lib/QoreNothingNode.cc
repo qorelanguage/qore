@@ -62,11 +62,6 @@ QoreString *QoreNothingNode::getAsString(bool &del, int foff, ExceptionSink *xsi
    return &NothingTypeString;
 }
 
-AbstractQoreNode *QoreNothingNode::realCopy() const
-{
-   return const_cast<QoreNothingNode *>(this);
-}
-
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
 // the "val" passed
 //DLLLOCAL int QoreNothingNode::compare(const AbstractQoreNode *val) const;

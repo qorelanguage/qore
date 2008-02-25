@@ -124,7 +124,7 @@ class AbstractQoreNode : public QoreReferenceCounter
       /**
 	 instead of using a virtual method to return a default type code for each implemented type, it's stored as an attribute of the base class.  This makes it possible to avoid making virtual function calls as a performance optimization in many cases, also it allows very fast type determination without makiing either a virtual function call or using dynamic_cast<> at the epense of more memory usage
        */
-      qore_type_t type : 10;
+      qore_type_t type : 11;
 
       //! this is true for values, if false then either the type needs evaluation to produce a value or is a parse expression
       bool value : 1;
@@ -137,7 +137,7 @@ class AbstractQoreNode : public QoreReferenceCounter
 
       //! default destructor does nothing
       /**
-	 The destructor is protected because it should not be called directly, which also means that these objects cannot normally be created on the stack.  They are referenced counted, and the deref() function should be used to decrement the reference count rather than using the delete operator.  Because the QoreObject class at least could throw a Qore Exception when it is deleted, the deref() function takes an ExceptionSink argument by default as well. 
+	 The destructor is protected because it should not be called directly, which also means that these objects cannot normally be created on the stack.  They are referenced counted, and the deref() function should be used to decrement the reference count rather than using the delete operator.  Because the QoreObject class at least could throw a Qore Exception when it is deleted, AbstractQoreNode::deref() takes an ExceptionSink pointer argument by default as well. 
        */
       DLLEXPORT virtual ~AbstractQoreNode();
 
@@ -145,6 +145,8 @@ class AbstractQoreNode : public QoreReferenceCounter
       //! constructor takes the type
       /** The type code for the class is passed as the argument to the constructor
 	  @param t the Qore type code identifying this class in the Qore type system
+	  @param n_value determines if this is a value type or not
+	  @param n_needs_eval determines if the type needs evaluation when AbstractQoreNode::eval() is called
 	  @param n_there_can_be_only_one whereas this type is normally reference counted, if this is set to true, then referencing counting is turned off for this type.  This can only be turned on when the type represents a single value.
        */
       DLLEXPORT AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false);
@@ -353,59 +355,80 @@ class SimpleQoreNode : public AbstractQoreNode
       DLLEXPORT void deref();
 };
 
-//! base class non-referenced-counted parse and value types (where there_can_be_only_one is true)
-class UniqueQoreNode : public AbstractQoreNode 
-{
-   private:
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL UniqueQoreNode& operator=(const UniqueQoreNode&);
-
-   public:
-      //! constructor takes the type argument
-      DLLLOCAL UniqueQoreNode(qore_type_t t, bool value, bool needs_eval) : AbstractQoreNode(t, value, needs_eval, true)
-      {
-      }
-
-      //! copy constructor
-      DLLLOCAL UniqueQoreNode(const UniqueQoreNode &) : AbstractQoreNode(type, value, needs_eval_flag, true)
-      {
-      }
-};
-
+//! base class for simple value types
 class SimpleValueQoreNode : public SimpleQoreNode
 {
    private:
 
    protected:
+      //! should never be called for value types
+      /** in debugging builds of the library, calls to this function will abort 
+       */
       DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+
+      //! should never be called for value types
+      /** in debugging builds of the library, calls to this function will abort 
+       */
       DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+
+      //! should never be called for value types
+      /** in debugging builds of the library, calls to this function will abort 
+       */
       DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+
+      //! should never be called for value types
+      /** in debugging builds of the library, calls to this function will abort 
+       */
       DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+
+      //! should never be called for value types
+      /** in debugging builds of the library, calls to this function will abort 
+       */
       DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+
+      //! should never be called for value types
+      /** in debugging builds of the library, calls to this function will abort 
+       */
       DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
    public:
+      //! creates the object by assigning the type code and setting the "value" flag, unsetting the "needs_eval" flag, and setting "there_can_be_only_one"
       DLLLOCAL SimpleValueQoreNode(qore_type_t t, bool n_there_can_be_only_one = false) : SimpleQoreNode(t, true, false, n_there_can_be_only_one)
+      {
+      }
+
+      DLLLOCAL SimpleValueQoreNode(const SimpleValueQoreNode &v) : SimpleQoreNode(type, true, false, there_can_be_only_one)
       {
       }
 };
 
-class UniqueValueQoreNode : public UniqueQoreNode
+//! this class is for value types that will exists only once in the Qore library, reference counting is disabled
+/** these types must be statically allocated
+ */
+class UniqueValueQoreNode : public SimpleValueQoreNode 
 {
+   private:
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL UniqueValueQoreNode& operator=(const UniqueValueQoreNode&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL void *operator new(size_t);
+
    protected:
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
-      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
    public:
       //! constructor takes the type argument
-      DLLLOCAL UniqueValueQoreNode(qore_type_t t) : UniqueQoreNode(t, true, false)
+      DLLLOCAL UniqueValueQoreNode(qore_type_t t) : SimpleValueQoreNode(t, true)
       {
       }
 
+      //! copy constructor
+      DLLLOCAL UniqueValueQoreNode(const UniqueValueQoreNode &) : SimpleValueQoreNode(type, true)
+      {
+      }
+
+      //! returns itself; objects of this type are not reference-counted and only deleted manually (by static destruction)
+      DLLEXPORT virtual AbstractQoreNode *realCopy() const;
 };
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
@@ -455,6 +478,11 @@ static inline void discard(AbstractQoreNode *n, ExceptionSink *xsink)
 /**
    This class can only be used on the stack (cannot be allocated dynamically).
    This class is designed to avoid atomic reference count increments and decrements whenever possible and to avoid an "eval()" call for types that do not require it (such as value types).  It is used extensively internally but normally should not need to be used outside of the qore library itself.
+   \Example
+   \code
+   QoreNodeEvalOptionalRefHolder evaluated_node(node, xsink);
+   return evaluated_node ? evaluated_node->getAsBool() : false;
+   \endcode
  */
 class QoreNodeEvalOptionalRefHolder {
    private:

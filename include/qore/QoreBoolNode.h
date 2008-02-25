@@ -73,8 +73,6 @@ class QoreBoolNode : public UniqueValueQoreNode
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
-
       // the type passed must always be equal to the current type
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;

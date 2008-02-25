@@ -30,7 +30,6 @@
 #define TRACK_REFS 1
 
 #if TRACK_REFS
-
 #endif
 
 AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one)
@@ -439,7 +438,7 @@ void SimpleQoreNode::deref()
 {
    if (there_can_be_only_one) {
       assert(is_unique());
-      delete this;
+      return;
    }
 
    if (ROdereference())
@@ -482,38 +481,7 @@ double SimpleValueQoreNode::floatEvalImpl(ExceptionSink *xsink) const
    return 0.0;
 }
 
-AbstractQoreNode *UniqueValueQoreNode::evalImpl(ExceptionSink *xsink) const
+AbstractQoreNode *UniqueValueQoreNode::realCopy() const
 {
-   assert(false);
-   return 0;
-}
-
-AbstractQoreNode *UniqueValueQoreNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
-{
-   assert(false);
-   return 0;
-}
-
-int64 UniqueValueQoreNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
-   assert(false);
-   return 0;
-}
-
-int UniqueValueQoreNode::integerEvalImpl(ExceptionSink *xsink) const
-{
-   assert(false);
-   return 0;
-}
-
-bool UniqueValueQoreNode::boolEvalImpl(ExceptionSink *xsink) const
-{
-   assert(false);
-   return false;
-}
-
-double UniqueValueQoreNode::floatEvalImpl(ExceptionSink *xsink) const
-{
-   assert(false);
-   return 0.0;
+   return const_cast<UniqueValueQoreNode *>(this);
 }

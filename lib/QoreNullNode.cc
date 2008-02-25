@@ -61,11 +61,6 @@ QoreString *QoreNullNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
    return &NullTypeString;
 }
 
-AbstractQoreNode *QoreNullNode::realCopy() const
-{
-   return new QoreNullNode();
-}
-
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
 // the "val" passed
 //DLLLOCAL int QoreNullNode::compare(const AbstractQoreNode *val) const;

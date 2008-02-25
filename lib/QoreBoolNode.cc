@@ -95,11 +95,6 @@ QoreString *QoreBoolNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
    return b ? &TrueString : &FalseString;
 }
 
-AbstractQoreNode *QoreBoolNode::realCopy() const
-{
-   return get_bool_node(b);
-}
-
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
 // the "val" passed
 //DLLLOCAL int compare(const AbstractQoreNode *val) const;
