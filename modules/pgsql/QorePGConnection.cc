@@ -943,7 +943,7 @@ int QorePGResult::add(const AbstractQoreNode *v, class ExceptionSink *xsink)
 }
 
 QorePGBindArray::QorePGBindArray(class QorePGConnection *r_conn) : ndim(0), size(0), allocated(0), elements(0),
-								   ptr(NULL), hdr(NULL), type(NULL), oid(0), arrayoid(0),
+								   ptr(NULL), hdr(NULL), type(-1), oid(0), arrayoid(0),
 								   format(1), conn(r_conn)
 {
 }
@@ -988,7 +988,7 @@ int QorePGBindArray::check_type(const AbstractQoreNode *n, class ExceptionSink *
       return -1;
    }
    qore_type_t t = n->getType();
-   if (!type)
+   if (type == -1)
    {
       type = t;
       // check that type is supported
