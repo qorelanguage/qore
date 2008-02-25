@@ -279,14 +279,13 @@ class AbstractQoreNode : public QoreReferenceCounter
       //! evaluates the object and returns a value (or 0)
       /** return value requires a deref(xsink) (if not 0).  If needs_eval() returns false,
 	  then this function just returns refSelf().  Otherwise evalImpl() is returned.
-	  \Example
-	  \code
+	  @code
 	  ReferenceHolder<AbstractQoreNode> value(n->eval(xsink));
 	  if (!value) // note that if a qore-language exception occured, then value = 0
 	     return 0;
 	  ...
 	  return value.release();
-	  \endcode
+	  @endcode
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return the result of the evaluation, if non-0, must be dereferenced manually
 	  @see ReferenceHolder
@@ -509,11 +508,10 @@ static inline void discard(AbstractQoreNode *n, ExceptionSink *xsink)
 /**
    This class can only be used on the stack (cannot be allocated dynamically).
    This class is designed to avoid atomic reference count increments and decrements whenever possible and to avoid an "eval()" call for types that do not require it (such as value types).  It is used extensively internally but normally should not need to be used outside of the qore library itself.
-   \Example
-   \code
+   @code
    QoreNodeEvalOptionalRefHolder evaluated_node(node, xsink);
    return evaluated_node ? evaluated_node->getAsBool() : false;
-   \endcode
+   @endcode
  */
 class QoreNodeEvalOptionalRefHolder {
    private:

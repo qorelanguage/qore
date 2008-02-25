@@ -402,14 +402,13 @@ DLLEXPORT class QoreString *checkEncoding(const class QoreString *str, const cla
 
 //! class used to hold a possibly temporary QoreString pointer, stack only, cannot be dynamically allocated
 /**
-   \Example
-   \code
+   @code
    TempString rv(new QoreString());
    ...
    if (error)
        return 0; // here the memory is automatically released
    return rv.release();
-   \endcode
+   @endcode
  */
 class TempString {
    private:
@@ -455,14 +454,13 @@ class TempString {
     the destructor will delete any temporary string if necessary.  Note that the constructor may add Qore-language exception information
     to the "xsink" parameter in case character set encoding conversion was necessary and failed
     @see QoreString
-   \Example
-   \code
-   // ensure a string is in UTF-8 encoding
-   TempEncodingHelper utf8_str(str, QCS_UTF8, xsink);
-   if (!str) // !str is only true if an exception has been thrown in the conversion
-      return 0;
-   printf("%s\n", utf8_str->getBuffer());
-   \endcode
+    @code
+    // ensure a string is in UTF-8 encoding
+    TempEncodingHelper utf8_str(str, QCS_UTF8, xsink);
+    if (!str) // !str is only true if an exception has been thrown in the conversion
+       return 0;
+    printf("%s\n", utf8_str->getBuffer());
+    @endcode
  */
 class TempEncodingHelper {
    private:

@@ -216,11 +216,10 @@ extern QoreStringNode *NullString;
 
 //! this class is used to safely manage calls to AbstractQoreNode::getStringRepresentation() when a simple QoreString value is needed, stack only, may not be dynamically allocated
 /** the QoreString value returned by this function is managed safely in an exception-safe way with this class
-    \Example
-    \code
+    @code
     QoreStringValueHelper str(n);
     printf("str='%s'\n", str->getBuffer());
-    \endcode
+    @endcode
  */
 class QoreStringValueHelper {
    private:
@@ -329,12 +328,11 @@ class QoreStringValueHelper {
 
 //! this class is used to safely manage calls to AbstractQoreNode::getStringRepresentation() when a QoreStringNode value is needed, stack only, may not be dynamically allocated
 /** the QoreStringNode value returned by this function is managed safely in an exception-safe way with this class
-    \Example
-    \code
+    @code
     QoreStringNodeValueHelper str(n);
     printf("str='%s'\n", str->getBuffer());
     return str.getReferencedValue();
-    \endcode
+    @endcode
  */
 class QoreStringNodeValueHelper {
    private:
@@ -417,14 +415,13 @@ extern QoreString NothingTypeString;
 
 //! safely manages the return values to AbstractQoreNode::getAsString(), stack only, cannot be dynamically allocated
 /**
-   \Example
-   \code
+   @code
    // FMT_NONE gives all information on a single line
    QoreNodeAsStringHelper str(n, FMT_NONE, xsink);
    if (*xsink)
       return 0;
     printf("str='%s'\n", str->getBuffer());
-   \endcode
+   @endcode
  */
 class QoreNodeAsStringHelper {
    private:

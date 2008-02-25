@@ -31,8 +31,7 @@
     retrieve the value of the local variable after the Qore-language code has been
     executed.  This allows values to be passed by reference to Qore-language code
     and then the value of the variable read back out and processed.
-    \Example
-    \code
+    @code
     // create an argument list
     ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
     // instantiate "val" as a reference as the only argument in the argument list
@@ -44,7 +43,7 @@
 
     // return the value of the reference after executing the method
     return lvh.getOutputValue();
-    \endcode
+    @endcode
  */ 
 class ReferenceArgumentHelper {
    private:

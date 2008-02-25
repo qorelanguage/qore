@@ -66,11 +66,10 @@ class ExceptionSink {
 
       //! returns true if at least one exception is present or thread_exit has been triggered
       /** Intended as a alternative to isEvent()
-	  \Example
-	  \code
+	  @code
 	  ExceptionSink xsink;
 	  if (xsink) { .. }
-	  \endcode
+	  @endcode
       */
       DLLEXPORT operator bool () const;
 

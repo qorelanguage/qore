@@ -26,7 +26,7 @@
 
 #include <qore/AbstractQoreNode.h>
 
-//! this class implements Qore's 64-bit integer data type, reference-counted, dynamically-allocated only
+//! base class for Qore's 2 boolean classes: QoreBoolTrueNode and QoreBoolFalseNode
 class QoreBoolNode : public UniqueValueQoreNode
 {
    private:
@@ -45,6 +45,7 @@ class QoreBoolNode : public UniqueValueQoreNode
    protected:
       bool b;
 
+      //! the constructor can only be called by a subclass
       DLLLOCAL QoreBoolNode(bool n_b);
 
    public:
@@ -91,21 +92,31 @@ class QoreBoolNode : public UniqueValueQoreNode
       }
 };
 
+//! Qore's boolean "true" node, unique, not dynamically-allocated, not reference-counted
+/** there can only be one of these in the entire Qore library
+ */
 class QoreBoolTrueNode : public QoreBoolNode
 {
    public:
-      DLLEXPORT QoreBoolTrueNode();
+      DLLLOCAL QoreBoolTrueNode();
 };
 
+//! Qore's boolean "false" node, unique, not dynamically-allocated, not reference-counted
+/** there can only be one of these in the entire Qore library
+ */
 class QoreBoolFalseNode : public QoreBoolNode
 {
    public:
-      DLLEXPORT QoreBoolFalseNode();
+      DLLLOCAL QoreBoolFalseNode();
 };
 
+//! Qore's boolean false value
 DLLEXPORT extern QoreBoolFalseNode False;
+
+//! Qore's boolean true value
 DLLEXPORT extern QoreBoolTrueNode True;
 
+//! a little inline helper function for getting a boolean node
 static inline QoreBoolNode *get_bool_node(bool v)
 {
    return v ? (QoreBoolNode *)&True : (QoreBoolNode *)&False;
