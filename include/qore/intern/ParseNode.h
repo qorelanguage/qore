@@ -24,7 +24,7 @@
 
 #define _QORE_PARSENODE_H
 
-class ParseNode : public UniqueQoreNode
+class ParseNode : public SimpleQoreNode
 {
    private:
       // not implemented
@@ -33,10 +33,10 @@ class ParseNode : public UniqueQoreNode
    protected:
 
    public:
-      DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : UniqueQoreNode(t, false, n_needs_eval)
+      DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval)
       {
       }
-      DLLLOCAL ParseNode(const ParseNode &) : UniqueQoreNode(type, false, needs_eval_flag)
+      DLLLOCAL ParseNode(const ParseNode &) : SimpleQoreNode(type, false, needs_eval_flag)
       {
       }
       // parse types should never be copied

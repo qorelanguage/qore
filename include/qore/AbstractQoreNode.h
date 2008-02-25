@@ -370,11 +370,6 @@ class UniqueQoreNode : public AbstractQoreNode
       DLLLOCAL UniqueQoreNode(const UniqueQoreNode &) : AbstractQoreNode(type, value, needs_eval_flag, true)
       {
       }
-
-      DLLLOCAL void deref()
-      {
-	 delete this;
-      }
 };
 
 class SimpleValueQoreNode : public SimpleQoreNode

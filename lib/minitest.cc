@@ -68,7 +68,7 @@ void run_Qore_test(QoreString& str, const char* file, int line, const char* deta
     assert(false);
   }
 
-  if (!b->b) {
+  if (!b->getValue()) {
     printf("Qore test program failed by returning 'False',\nfile %s, line %d.\n", file, line);
     if (details && details[0]) {
       printf("Details: %s\n", details);

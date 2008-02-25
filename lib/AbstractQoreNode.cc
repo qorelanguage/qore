@@ -97,10 +97,14 @@ void AbstractQoreNode::deref(ExceptionSink *xsink)
 #endif
    assert(references > 0);
 
-   if (!there_can_be_only_one && ROdereference())
+   if (there_can_be_only_one) {
+      assert(is_unique());
+      return;
+   }
+      
+   if (ROdereference())
    {
-      if (derefImpl(xsink))
-	 // now delete this QoreNode
+      if (type < NUM_SIMPLE_TYPES || derefImpl(xsink))
 	 delete this;
    }
 

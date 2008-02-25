@@ -50,7 +50,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
    }
    
    if (ntype == NT_BOOLEAN) {
-      s->sprintf("val=%s", reinterpret_cast<const QoreBoolNode *>(n)->b ? "True" : "False");
+      s->sprintf("val=%s", reinterpret_cast<const QoreBoolNode *>(n)->getValue() ? "True" : "False");
       return;
    }
 
