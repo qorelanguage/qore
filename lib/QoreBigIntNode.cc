@@ -22,11 +22,11 @@
 
 #include <qore/Qore.h>
 
-QoreBigIntNode::QoreBigIntNode() : SimpleQoreNode(NT_INT), val(0)
+QoreBigIntNode::QoreBigIntNode() : SimpleValueQoreNode(NT_INT), val(0)
 {
 }
 
-QoreBigIntNode::QoreBigIntNode(int64 v) : SimpleQoreNode(NT_INT), val(v)
+QoreBigIntNode::QoreBigIntNode(int64 v) : SimpleValueQoreNode(NT_INT), val(v)
 {
 }
 
@@ -118,12 +118,6 @@ bool QoreBigIntNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsi
       return false;
 
    return i->val == val;
-}
-
-// returns the data type
-const QoreType *QoreBigIntNode::getType() const
-{
-   return NT_INT;
 }
 
 // returns the type name as a c string

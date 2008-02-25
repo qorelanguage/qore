@@ -65,6 +65,36 @@ class QoreObject : public AbstractQoreNode
        */
       DLLEXPORT virtual bool derefImpl(class ExceptionSink *xsink);
 
+      //! should never be called, does nothing
+      /** in debugging builds calls to this function will abort
+       */
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+
+      //! should never be called, does nothing
+      /** in debugging builds calls to this function will abort
+       */
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+
+      //! should never be called, does nothing
+      /** in debugging builds calls to this function will abort
+       */
+      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+
+      //! should never be called, does nothing
+      /** in debugging builds calls to this function will abort
+       */
+      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+
+      //! should never be called, does nothing
+      /** in debugging builds calls to this function will abort
+       */
+      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+
+      //! should never be called, does nothing
+      /** in debugging builds calls to this function will abort
+       */
+      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+
       DLLLOCAL virtual ~QoreObject();
 
    public:
@@ -111,14 +141,11 @@ class QoreObject : public AbstractQoreNode
        */
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      //! returns the data type
-      DLLEXPORT virtual const QoreType *getType() const;
-
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
       //! returns false
-      DLLEXPORT virtual bool is_value() const;
+      //DLLEXPORT virtual bool is_value() const;
 
       DLLLOCAL static const char *getStaticTypeName()
       {

@@ -26,7 +26,7 @@
 static bool null_flag = 0;
 #endif
 
-QoreNullNode::QoreNullNode() : UniqueQoreNode(NT_NULL)
+QoreNullNode::QoreNullNode() : UniqueValueQoreNode(NT_NULL)
 {
 #ifdef DEBUG
    assert(!null_flag);
@@ -36,6 +36,12 @@ QoreNullNode::QoreNullNode() : UniqueQoreNode(NT_NULL)
 
 QoreNullNode::~QoreNullNode()
 {
+}
+
+AbstractQoreNode *QoreNullNode::evalImpl(class ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -72,12 +78,6 @@ bool QoreNullNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink
 bool QoreNullNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    return dynamic_cast<const QoreNullNode *>(v);
-}
-
-// returns the data type
-const QoreType *QoreNullNode::getType() const
-{
-   return NT_NULL;
 }
 
 // returns the type name as a c string

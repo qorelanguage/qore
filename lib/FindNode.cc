@@ -59,12 +59,6 @@ QoreString *FindNode::getAsString(bool &del, int foff, ExceptionSink *xsink) con
    return rv;
 }
 
-// returns the data type
-const QoreType *FindNode::getType() const
-{
-   return NT_FIND;
-}
-
 // returns the type name as a c string
 const char *FindNode::getTypeName() const
 {
@@ -72,7 +66,7 @@ const char *FindNode::getTypeName() const
 }
 
 // eval(): return value requires a deref(xsink)
-AbstractQoreNode *FindNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *FindNode::evalImpl(ExceptionSink *xsink) const
 {
    ReferenceHolder<AbstractQoreNode> rv(xsink);
    ReferenceHolder<Context> context(new Context(0, xsink, find_exp), xsink);
@@ -110,4 +104,35 @@ AbstractQoreNode *FindNode::eval(ExceptionSink *xsink) const
    }
 
    return rv.release();
+}
+
+// evalImpl(): return value requires a deref(xsink) if not 0
+AbstractQoreNode *FindNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
+{
+   needs_deref = true;
+   return FindNode::evalImpl(xsink);
+}
+
+int64 FindNode::bigIntEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(FindNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsBigInt() : 0;
+}
+
+int FindNode::integerEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(FindNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsInt() : 0;
+}
+
+bool FindNode::boolEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(FindNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsBool() : 0;
+}
+
+double FindNode::floatEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(FindNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsFloat() : 0;
 }

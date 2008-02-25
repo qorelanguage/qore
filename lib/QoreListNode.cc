@@ -76,15 +76,14 @@ struct qore_list_private {
       AbstractQoreNode **entry;
       int length;
       int allocated;
-      // FIXME: combine needs_eval, finalized, and vlist into a single char attribute
-      bool needs_eval, finalized, vlist;
+      // FIXME: combine finalized and vlist into a single char attribute
+      bool finalized, vlist;
 
-      DLLLOCAL qore_list_private(bool n_needs_eval)
+      DLLLOCAL qore_list_private()
       {
 	 entry = 0;
 	 length = 0;
 	 allocated = 0;
-	 needs_eval = n_needs_eval;
 	 finalized = false;
 	 vlist = false;
       }
@@ -99,7 +98,6 @@ struct qore_list_private {
       {
 	 entry = 0;
 	 length = 0;
-	 needs_eval = false;
       }
 };
 
@@ -126,11 +124,11 @@ void QoreListNode::check_offset(int &offset, int &len)
    }
 }
 
-QoreListNode::QoreListNode() : AbstractQoreNode(NT_LIST), priv(new qore_list_private(false))
+QoreListNode::QoreListNode() : AbstractQoreNode(NT_LIST, true, false), priv(new qore_list_private())
 {
 }
 
-QoreListNode::QoreListNode(bool i) : AbstractQoreNode(NT_LIST), priv(new qore_list_private(i))
+QoreListNode::QoreListNode(bool i) : AbstractQoreNode(NT_LIST, !i, i), priv(new qore_list_private())
 {
 }
 
@@ -139,24 +137,10 @@ QoreListNode::~QoreListNode()
    delete priv;
 }
 
-// default implementation returns false
-bool QoreListNode::needs_eval() const
-{
-   return priv->needs_eval;
-}
-
 AbstractQoreNode *QoreListNode::realCopy() const
 {
    return copy();
 }
-
-// performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
-// the "val" passed
-/*
-DLLLOCAL virtual int compare(const AbstractQoreNode *val) const
-{
-}
-*/
 
 bool QoreListNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
@@ -186,30 +170,18 @@ bool QoreListNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink
    return true;
 }
 
-// returns the data type
-const QoreType *QoreListNode::getType() const
-{
-   return NT_LIST;
-}
-
 // returns the type name as a c string
 const char *QoreListNode::getTypeName() const
 {
    return getStaticTypeName();
 }
 
-// eval(): return value requires a deref(xsink) if needs_deref is true
-// default implementation = needs_deref = false, returns "this"
-// note: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
-AbstractQoreNode *QoreListNode::eval(bool &needs_deref, ExceptionSink *xsink) const
-{
-   return evalList(needs_deref, xsink);
-}
-
+/*
 bool QoreListNode::is_value() const
 {
    return !priv->needs_eval;
 }
+*/
 
 const AbstractQoreNode *QoreListNode::retrieve_entry(int num) const
 {
@@ -365,18 +337,18 @@ AbstractQoreNode *QoreListNode::pop()
    return rv;
 }
 
-AbstractQoreNode *QoreListNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *QoreListNode::evalImpl(ExceptionSink *xsink) const
 {
-   return evalList(xsink);
+   return eval_intern(xsink);
 }
 
-QoreListNode *QoreListNode::evalList(ExceptionSink *xsink) const
+AbstractQoreNode *QoreListNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
 {
-   if (!priv->needs_eval) {
-      ref();
-      return const_cast<QoreListNode *>(this);
-   }
+   return evalList(needs_deref, xsink);
+}
 
+QoreListNode *QoreListNode::eval_intern(ExceptionSink *xsink) const
+{
    ReferenceHolder<QoreListNode> nl(new QoreListNode(), xsink);
    for (int i = 0; i < priv->length; i++)
    {
@@ -387,18 +359,44 @@ QoreListNode *QoreListNode::evalList(ExceptionSink *xsink) const
    return nl.release();
 }
 
+QoreListNode *QoreListNode::evalList(ExceptionSink *xsink) const
+{
+   if (value) {
+      ref();
+      return const_cast<QoreListNode *>(this);
+   }
+
+   return eval_intern(xsink);
+}
+
 QoreListNode *QoreListNode::evalList(bool &needs_deref, ExceptionSink *xsink) const
 {
-   if (!priv->needs_eval) {
+   if (value) {
       needs_deref = false;
       return const_cast<QoreListNode *>(this);
    }
-   QoreListNode *rv = evalList(xsink);
-   if (rv)
-      needs_deref = true;
-   else
-      needs_deref = false;
-   return rv;
+   needs_deref = true;
+   return eval_intern(xsink);
+}
+
+int64 QoreListNode::bigIntEvalImpl(ExceptionSink *xsink) const
+{
+   return 0;
+}
+
+int QoreListNode::integerEvalImpl(ExceptionSink *xsink) const
+{
+   return 0;
+}
+
+bool QoreListNode::boolEvalImpl(ExceptionSink *xsink) const
+{
+   return false;
+}
+
+double QoreListNode::floatEvalImpl(ExceptionSink *xsink) const
+{
+   return 0.0;
 }
 
 QoreListNode *QoreListNode::copy() const
@@ -809,7 +807,8 @@ int QoreListNode::size() const
 
 void QoreListNode::clearNeedsEval()
 {
-   priv->needs_eval = false;
+   value = true;
+   needs_eval_flag = false;
 }
 
 AbstractQoreNode *QoreListNode::min() const

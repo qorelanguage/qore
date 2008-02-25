@@ -25,7 +25,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_date_private.h>
 
-DateTimeNode::DateTimeNode(bool r) : SimpleQoreNode(NT_DATE), DateTime(r)
+DateTimeNode::DateTimeNode(bool r) : SimpleValueQoreNode(NT_DATE), DateTime(r)
 {
 }
 
@@ -33,31 +33,31 @@ DateTimeNode::~DateTimeNode()
 {
 }
 
-DateTimeNode::DateTimeNode(int y, int mo, int d, int h, int mi, int s, short ms, bool r) : SimpleQoreNode(NT_DATE), DateTime(y, mo, d, h, mi, s, ms, r)
+DateTimeNode::DateTimeNode(int y, int mo, int d, int h, int mi, int s, short ms, bool r) : SimpleValueQoreNode(NT_DATE), DateTime(y, mo, d, h, mi, s, ms, r)
 {
 }
 
-DateTimeNode::DateTimeNode(int64 seconds) : SimpleQoreNode(NT_DATE), DateTime(seconds)
+DateTimeNode::DateTimeNode(int64 seconds) : SimpleValueQoreNode(NT_DATE), DateTime(seconds)
 {
 }
 
-DateTimeNode::DateTimeNode(int64 seconds, int ms) : SimpleQoreNode(NT_DATE), DateTime(seconds, ms)
+DateTimeNode::DateTimeNode(int64 seconds, int ms) : SimpleValueQoreNode(NT_DATE), DateTime(seconds, ms)
 {
 }
 
-DateTimeNode::DateTimeNode(const char *date) : SimpleQoreNode(NT_DATE), DateTime(date)
+DateTimeNode::DateTimeNode(const char *date) : SimpleValueQoreNode(NT_DATE), DateTime(date)
 {
 }
 
-DateTimeNode::DateTimeNode(struct tm *tms) : SimpleQoreNode(NT_DATE), DateTime(tms)
+DateTimeNode::DateTimeNode(struct tm *tms) : SimpleValueQoreNode(NT_DATE), DateTime(tms)
 {
 }
 
-DateTimeNode::DateTimeNode(const DateTime &dt) : SimpleQoreNode(NT_DATE), DateTime(dt)
+DateTimeNode::DateTimeNode(const DateTime &dt) : SimpleValueQoreNode(NT_DATE), DateTime(dt)
 {
 }
 
-DateTimeNode::DateTimeNode(const DateTimeNode &dt) : SimpleQoreNode(NT_DATE), DateTime(dt)
+DateTimeNode::DateTimeNode(const DateTimeNode &dt) : SimpleValueQoreNode(NT_DATE), DateTime(dt)
 {
 }
 
@@ -171,12 +171,6 @@ bool DateTimeNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink
       return false;
 
    return isEqual(date);
-}
-
-// returns the data type
-const QoreType *DateTimeNode::getType() const
-{
-   return NT_DATE;
 }
 
 const char *DateTimeNode::getTypeName() const

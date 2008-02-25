@@ -129,11 +129,11 @@ class KeyList
 
 };
 
-QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p) : AbstractQoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, new QoreHashNode()))
+QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p) : AbstractQoreNode(NT_OBJECT, false, false), priv(new qore_object_private(oc, p, new QoreHashNode()))
 {
 }
 
-QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, class QoreHashNode *h) : AbstractQoreNode(NT_OBJECT), priv(new qore_object_private(oc, p, h))
+QoreObject::QoreObject(const QoreClass *oc, QoreProgram *p, class QoreHashNode *h) : AbstractQoreNode(NT_OBJECT, false, false), priv(new qore_object_private(oc, p, h))
 {
 }
 
@@ -926,20 +926,52 @@ bool QoreObject::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) 
    return !compareHard(o, xsink);
 }
 
-// returns the data type
-const QoreType *QoreObject::getType() const
-{
-   return NT_OBJECT;
-}
-
 // returns the type name as a c string
 const char *QoreObject::getTypeName() const
 {
    return getStaticTypeName();
 }
 
+/*
 bool QoreObject::is_value() const
 {
    return false;
 }
 
+*/
+
+AbstractQoreNode *QoreObject::evalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+AbstractQoreNode *QoreObject::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+int64 QoreObject::bigIntEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+int QoreObject::integerEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+bool QoreObject::boolEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return false;
+}
+
+double QoreObject::floatEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0.0;
+}

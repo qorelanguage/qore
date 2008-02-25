@@ -28,7 +28,7 @@
 
 DLLLOCAL extern QoreType *NT_BRUSHSTYLE;
 
-class BrushStyleNode : public SimpleQoreNode
+class BrushStyleNode : public SimpleValueQoreNode
 {
    private:
       Qt::BrushStyle val;
@@ -39,7 +39,7 @@ class BrushStyleNode : public SimpleQoreNode
       DLLLOCAL virtual double getAsFloatImpl() const;
 
    public:
-      DLLLOCAL BrushStyleNode(Qt::BrushStyle v) : SimpleQoreNode(NT_BRUSHSTYLE), val(v)
+      DLLLOCAL BrushStyleNode(Qt::BrushStyle v) : SimpleValueQoreNode(NT_BRUSHSTYLE), val(v)
       {
       }
       DLLLOCAL ~BrushStyleNode()

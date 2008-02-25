@@ -51,12 +51,6 @@ QoreString *SelfVarrefNode::getAsString(bool &del, int foff, ExceptionSink *xsin
    return rv;
 }
 
-// returns the data type
-const QoreType *SelfVarrefNode::getType() const
-{
-   return NT_SELF_VARREF;
-}
-
 // returns the type name as a c string
 const char *SelfVarrefNode::getTypeName() const
 {
@@ -64,10 +58,41 @@ const char *SelfVarrefNode::getTypeName() const
 }
 
 // eval(): return value requires a deref(xsink)
-AbstractQoreNode *SelfVarrefNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *SelfVarrefNode::evalImpl(ExceptionSink *xsink) const
 {
    assert(getStackObject());
    return getStackObject()->getReferencedMemberNoMethod(str, xsink);
+}
+
+// evalImpl(): return value requires a deref(xsink) if not 0
+AbstractQoreNode *SelfVarrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
+{
+   needs_deref = true;
+   return SelfVarrefNode::evalImpl(xsink);
+}
+
+int64 SelfVarrefNode::bigIntEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(SelfVarrefNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsBigInt() : 0;
+}
+
+int SelfVarrefNode::integerEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(SelfVarrefNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsInt() : 0;
+}
+
+bool SelfVarrefNode::boolEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(SelfVarrefNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsBool() : 0;
+}
+
+double SelfVarrefNode::floatEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(SelfVarrefNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsFloat() : 0;
 }
 
 char *SelfVarrefNode::takeString()

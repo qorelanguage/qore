@@ -34,7 +34,7 @@
     @see QoreString
     @see QoreEncoding
  */
-class QoreStringNode : public SimpleQoreNode, public QoreString
+class QoreStringNode : public SimpleValueQoreNode, public QoreString
 {
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -162,9 +162,6 @@ class QoreStringNode : public SimpleQoreNode, public QoreString
 	  @param xsink is not used in this implementation of the function
        */
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
-
-      //! returns the data type
-      DLLEXPORT virtual const QoreType *getType() const;
 
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;

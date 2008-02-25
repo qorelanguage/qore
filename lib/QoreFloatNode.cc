@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-QoreFloatNode::QoreFloatNode(double n_f) : SimpleQoreNode(NT_FLOAT), f(n_f)
+QoreFloatNode::QoreFloatNode(double n_f) : SimpleValueQoreNode(NT_FLOAT), f(n_f)
 {
 }
 
@@ -115,12 +115,6 @@ bool QoreFloatNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsin
       return false;
 
    return fn->f == f;
-}
-
-// returns the data type
-const QoreType *QoreFloatNode::getType() const
-{
-   return NT_FLOAT;
 }
 
 // returns the type name as a c string

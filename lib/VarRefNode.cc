@@ -56,12 +56,6 @@ QoreString *VarRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) c
    return rv;
 }
 
-// returns the data type
-const QoreType *VarRefNode::getType() const
-{
-   return NT_VARREF;
-}
-
 // returns the type name as a c string
 const char *VarRefNode::getTypeName() const
 {
@@ -103,7 +97,7 @@ int VarRefNode::resolveExisting()
    return !ref.var;
 }
 
-AbstractQoreNode *VarRefNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL)
    {
@@ -114,7 +108,7 @@ AbstractQoreNode *VarRefNode::eval(ExceptionSink *xsink) const
    return ref.var->eval(xsink);
 }
 
-AbstractQoreNode *VarRefNode::eval(bool &needs_deref, ExceptionSink *xsink) const
+AbstractQoreNode *VarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL)
       return find_lvar(ref.id)->eval(needs_deref, xsink);
@@ -122,38 +116,38 @@ AbstractQoreNode *VarRefNode::eval(bool &needs_deref, ExceptionSink *xsink) cons
    return ref.var->eval(xsink);
 }
 
-int64 VarRefNode::bigIntEval(class ExceptionSink *xsink) const
+int64 VarRefNode::bigIntEvalImpl(ExceptionSink *xsink) const
 {
-   QoreNodeEvalOptionalRefHolder rv(this, xsink);
+   VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsBigInt() : 0;
 }
 
-int VarRefNode::integerEval(class ExceptionSink *xsink) const
+int VarRefNode::integerEvalImpl(ExceptionSink *xsink) const
 {
-   QoreNodeEvalOptionalRefHolder rv(this, xsink);
+   VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsInt() : 0;
 }
 
-bool VarRefNode::boolEval(class ExceptionSink *xsink) const
+bool VarRefNode::boolEvalImpl(ExceptionSink *xsink) const
 {
-   QoreNodeEvalOptionalRefHolder rv(this, xsink);
+   VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsBool() : 0;
 }
 
-double VarRefNode::floatEval(class ExceptionSink *xsink) const
+double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const
 {
-   QoreNodeEvalOptionalRefHolder rv(this, xsink);
+   VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode **VarRefNode::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink) const
+AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL)
       return find_lvar(ref.id)->getValuePtr(vl, xsink);
    return ref.var->getValuePtr(vl, xsink);
 }
 
-AbstractQoreNode *VarRefNode::getValue(class AutoVLock *vl, ExceptionSink *xsink) const
+AbstractQoreNode *VarRefNode::getValue(AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL)
       return find_lvar(ref.id)->getValue(vl, xsink);

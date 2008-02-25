@@ -217,7 +217,7 @@ static void addNSNode(class QoreNamespace *ns, struct NSNode *n)
 
 static QoreListNode *make_list(class AbstractQoreNode *a1, class AbstractQoreNode *a2)
 {
-   QoreListNode *l = new QoreListNode(1);
+   QoreListNode *l = new QoreListNode(true);
    l->push(a1);
    l->push(a2);
    return l;
@@ -1422,7 +1422,7 @@ list:
 hash:
 	hash_element
 	{
-	   $$ = new QoreHashNode(1);
+	   $$ = new QoreHashNode(true);
 	   $$->setKeyValue($1->key, $1->value, NULL);
 	   delete $1;
 	}
@@ -2067,7 +2067,7 @@ scalar:
         | INTEGER     { $$ = new QoreBigIntNode($1); }
         | string      { $$ = $1; }
         | DATETIME    { $$ = $1; }
-        | TOK_NULL    { $$ = new QoreNullNode(); }
+        | TOK_NULL    { $$ = null(); }
         | TOK_NOTHING { $$ = nothing(); }
 	;
 

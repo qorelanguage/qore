@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-QoreBoolNode::QoreBoolNode(bool n_b) : SimpleQoreNode(NT_BOOLEAN), b(n_b)
+QoreBoolNode::QoreBoolNode(bool n_b) : SimpleValueQoreNode(NT_BOOLEAN), b(n_b)
 {
 }
 
@@ -116,12 +116,6 @@ bool QoreBoolNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink
       return false;
 
    return b == bn->b;
-}
-
-// returns the data type
-const QoreType *QoreBoolNode::getType() const
-{
-   return NT_BOOLEAN;
 }
 
 // returns the type name as a c string

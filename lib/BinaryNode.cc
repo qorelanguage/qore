@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-BinaryNode::BinaryNode(void *p, unsigned long size) : SimpleQoreNode(NT_BINARY)
+BinaryNode::BinaryNode(void *p, unsigned long size) : SimpleValueQoreNode(NT_BINARY)
 {
    ptr = p;
    len = size;
@@ -130,12 +130,6 @@ bool BinaryNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) 
 bool BinaryNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    return is_equal_soft(v, xsink);
-}
-
-// returns the data type
-const QoreType *BinaryNode::getType() const
-{
-   return NT_BINARY;
 }
 
 // returns the type name as a c string

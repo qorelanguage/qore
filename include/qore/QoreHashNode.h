@@ -59,7 +59,6 @@ class QoreHashNode : public AbstractQoreNode
       class HashMember *tail;
       int len;
       hm_hm_t hm;
-      bool needs_eval_flag;
 
       //! dereferences all elements of the hash
       /** The ExceptionSink argument is needed for those types that could throw
@@ -69,8 +68,35 @@ class QoreHashNode : public AbstractQoreNode
 	  @return true if the object can be deleted, false if not (externally-managed)
        */
       DLLEXPORT virtual bool derefImpl(class ExceptionSink *xsink);
+
+      //! evaluates the object and returns a value (or 0)
+      /** return value requires a deref(xsink)
+	  if the object requires evaluation and there is an exception, 0 will be returned
+      */
+      DLLEXPORT virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
+
+      //! optionally evaluates the argument
+      /** return value requires a deref(xsink) if needs_deref is true
+	  @see AbstractQoreNode::eval()
+      */
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+
+      //! always returns 0
+      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+
+      //! always returns 0
+      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+
+      //! always returns false
+      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+
+      //! always returns 0.0
+      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
  
       //! deletes the object, cannot be called directly (use deref(ExceptionSink *) instead)
+      /** @see AbstractQoreNode::deref()
+	  @see QoreHashNode::derefImpl()
+       */
       DLLEXPORT virtual ~QoreHashNode();
 
    public:
@@ -96,10 +122,10 @@ class QoreHashNode : public AbstractQoreNode
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       //! returns true if the hash contains parse expressions and therefore needs evaluation to return a value, false if not
-      DLLEXPORT virtual bool needs_eval() const;
+      //DLLEXPORT virtual bool needs_eval() const;
 
       //! performs a deep copy of the hash and returns the new hash
-      DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
+      DLLEXPORT virtual AbstractQoreNode *realCopy() const;
 
       //! tests for equality ("deep compare" including all contained values) with possible type conversion (soft compare)
       /**
@@ -115,29 +141,11 @@ class QoreHashNode : public AbstractQoreNode
        */
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      //! returns the data type
-      DLLEXPORT virtual const QoreType *getType() const;
-
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      //! evaluates the object and returns a value (or 0)
-      /** return value requires a deref(xsink)
-	  if the object does not require evaluation then "refSelf()" is used to 
-	  return the same object with an incremented reference count
-	  NOTE: if the object requires evaluation and there is an exception, 0 will be returned
-      */
-      DLLEXPORT virtual class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
-
-      //! optionally evaluates the argument
-      /** return value requires a deref(xsink) if needs_deref is true
-	  NOTE: if the object requires evaluation and there is an exception, 0 will be returned
-	  NOTE: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
-      */
-      DLLEXPORT virtual class AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
-
       //! returns true if the hash does not contain any parse expressions, otherwise returns false
-      DLLEXPORT virtual bool is_value() const;
+      //DLLEXPORT virtual bool is_value() const;
 
       DLLLOCAL static const char *getStaticTypeName()
       {
@@ -210,8 +218,8 @@ class QoreHashNode : public AbstractQoreNode
       //! appends all key-value pairs of "h" to this hash
       DLLEXPORT void merge(const class QoreHashNode *h, class ExceptionSink *xsink);
 
-      DLLEXPORT void setKeyValue(const class QoreString *key, class AbstractQoreNode *value, class ExceptionSink *xsink);
-      DLLEXPORT void setKeyValue(const char *key, class AbstractQoreNode *value, class ExceptionSink *xsink);
+      DLLEXPORT void setKeyValue(const class QoreString *key, AbstractQoreNode *value, class ExceptionSink *xsink);
+      DLLEXPORT void setKeyValue(const char *key, AbstractQoreNode *value, class ExceptionSink *xsink);
       DLLEXPORT void deleteKey(const class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT void deleteKey(const char *key, class ExceptionSink *xsink);
       // "takes" the value of the key from the hash and removes the key from the hash and returns the value
@@ -226,6 +234,8 @@ class QoreHashNode : public AbstractQoreNode
 
       DLLLOCAL QoreHashNode(bool ne);
       DLLLOCAL void clear(ExceptionSink *xsink);
+
+      //! sets "needs_eval" to false and "value" to true
       DLLLOCAL void clearNeedsEval();
 
       DLLLOCAL AbstractQoreNode *evalKeyValue(const QoreString *key, class ExceptionSink *xsink) const;
@@ -283,10 +293,10 @@ class HashIterator
       DLLEXPORT class QoreString *getKeyString() const;
 
       //! returns the value of the current key
-      DLLEXPORT class AbstractQoreNode *getValue() const;
+      DLLEXPORT AbstractQoreNode *getValue() const;
 
       //! deletes the key from the hash and returns the value, caller owns the reference
-      DLLEXPORT class AbstractQoreNode *takeValueAndDelete();
+      DLLEXPORT AbstractQoreNode *takeValueAndDelete();
 
       //! deletes the key from the hash and dereferences the value
       /** the pointer is moved to the previous element (or before the beginning) 
@@ -307,7 +317,7 @@ class HashIterator
       //! returns true if on the last key of the hash
       DLLEXPORT bool last() const;
 
-      //DLLEXPORT void setValue(class AbstractQoreNode *val, class ExceptionSink *xsink);
+      //DLLEXPORT void setValue(AbstractQoreNode *val, class ExceptionSink *xsink);
 };
 
 //! constant iterator class for QoreHashNode, to be only created on the stack

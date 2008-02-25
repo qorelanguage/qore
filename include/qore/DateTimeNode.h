@@ -30,7 +30,7 @@
 #include <qore/DateTime.h>
 
 //! Qore's parse tree/value type for date-time values, reference-counted, dynamically-allocated only
-class DateTimeNode : public SimpleQoreNode, public DateTime
+class DateTimeNode : public SimpleValueQoreNode, public DateTime
 {
    private:
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -175,9 +175,6 @@ class DateTimeNode : public SimpleQoreNode, public DateTime
        */
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
-
-      //! returns the data type
-      DLLEXPORT virtual const QoreType *getType() const;
 
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;

@@ -26,7 +26,7 @@
 
 #include <qore/AbstractQoreNode.h>
 
-class ReferenceNode : public SimpleQoreNode
+class ReferenceNode : public SimpleValueQoreNode
 {
    protected:
       DLLEXPORT virtual ~ReferenceNode();
@@ -51,13 +51,8 @@ class ReferenceNode : public SimpleQoreNode
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      // returns the data type
-      DLLEXPORT virtual const QoreType *getType() const;
       // returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
-
-      // returns true if the node represents a value (default implementation)
-      DLLEXPORT virtual bool is_value() const;
 };
 
 #endif

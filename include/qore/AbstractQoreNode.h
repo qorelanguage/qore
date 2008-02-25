@@ -37,6 +37,8 @@
 
 class QoreString;
 
+// FIXME: include an "is_scalar" bit to avoid calling bitIntEvalImpl(), etc when the value type is not a scalar
+
 //! The base class for all value and parse types in Qore expression trees
 /**
    Defines the interface for all value and parse types in Qore expression trees.  Default implementations are given for most virtual functions.
@@ -71,6 +73,46 @@ class AbstractQoreNode : public QoreReferenceCounter
        */
       DLLEXPORT virtual double getAsFloatImpl() const { return 0.0; }
 
+      //! evaluates the value and returns the result
+      /** if a qore-language exception occurs, then the result returned must be 0.
+	  the result of evaluation can also be 0 (equivalent to NOTHING) as well
+	  without an exception.
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return the result of the evaluation (can be 0)
+	  @see AbstractQoreNode::eval()
+       */
+      DLLEXPORT virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const = 0;
+
+      //! optionally evaluates the argument
+      /** return value requires a deref(xsink) if needs_deref is true
+	  @see AbstractQoreNode::eval()
+      */
+      DLLEXPORT virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const = 0;
+
+      //! evaluates the object and returns a 64-bit integer value
+      /** only called if needs_eval returns true
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT virtual int64 bigIntEvalImpl(class ExceptionSink *xsink) const = 0;
+
+      //! evaluates the object and returns an integer value
+      /** only called if needs_eval returns true
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT virtual int integerEvalImpl(class ExceptionSink *xsink) const = 0;
+
+      //! evaluates the object and returns a boolean value
+      /** only called if needs_eval returns true
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT virtual bool boolEvalImpl(class ExceptionSink *xsink) const = 0;
+
+      //! evaluates the object and returns a floating-point value
+      /** only called if needs_eval returns true
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+       */
+      DLLEXPORT virtual double floatEvalImpl(class ExceptionSink *xsink) const = 0;
+
       //! decrements the reference count
       /** deletes the object when the reference count = 0.  
 	  The ExceptionSink argument is needed for those types that could throw an exception when they are deleted (ex: QoreObject)
@@ -85,6 +127,12 @@ class AbstractQoreNode : public QoreReferenceCounter
 	 instead of using a virtual method to return a default type code for each implemented type, it's stored as an attribute of the base class.  This makes it possible to avoid making virtual function calls as a performance optimization in many cases, also it allows very fast type determination without makiing either a virtual function call or using dynamic_cast<> at the epense of more memory usage
        */
       const QoreType *type;
+
+      //! this is true for values, if false then either the type needs evaluation to produce a value or is a parse expression
+      bool value;
+
+      //! if this is true then the type can be evaluated
+      bool needs_eval_flag;
 
       //! if this is set to true, then reference counting is turned off for objects of this class
       bool there_can_be_only_one;
@@ -101,7 +149,7 @@ class AbstractQoreNode : public QoreReferenceCounter
 	  @param t the Qore type code identifying this class in the Qore type system
 	  @param n_there_can_be_only_one whereas this type is normally reference counted, if this is set to true, then referencing counting is turned off for this type.  This can only be turned on when the type represents a single value.
        */
-      DLLEXPORT AbstractQoreNode(const QoreType *t, bool n_there_can_be_only_one = false);
+      DLLEXPORT AbstractQoreNode(const QoreType *t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false);
 
       //! returns the boolean value of the object
       /**
@@ -176,7 +224,10 @@ class AbstractQoreNode : public QoreReferenceCounter
       //! returns true if the object needs evaluation to return a value, false if not
       /** default implementation returns false
        */
-      DLLEXPORT virtual bool needs_eval() const;
+      DLLLOCAL bool needs_eval() const
+      {
+	 return needs_eval_flag;
+      }
 
       //! returns a copy of the object, the caller owns the reference count
       DLLEXPORT virtual AbstractQoreNode *realCopy() const = 0;
@@ -202,50 +253,65 @@ class AbstractQoreNode : public QoreReferenceCounter
       }
 
       //! returns the type name as a c string
-      DLLEXPORT virtual const char *getTypeName() const;
+      DLLEXPORT virtual const char *getTypeName() const = 0;
 
       //! evaluates the object and returns a value (or 0)
-      /** return value requires a deref(xsink)
-	  default implementation = returns "refSelf()"
+      /** return value requires a deref(xsink) (if not 0).  If needs_eval() returns false,
+	  then this function just returns refSelf().  Otherwise evalImpl() is returned.
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return the result of the evaluation, if non-0, must be dereferenced manually
+	  \Example
+	  \code
+	  ReferenceHolder<AbstractQoreNode> value(n->eval(xsink));
+	  if (!value) // note that if a qore-language exception occured, then value = 0
+	     return 0;
+	  ...
+	  return value.release();
+	  \endcode
+	  @see ReferenceHolder
       */
-      DLLEXPORT virtual AbstractQoreNode *eval(class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *eval(class ExceptionSink *xsink) const;
 
       //! optionally evaluates the argument
       /** return value requires a deref(xsink) if needs_deref is true
-	  default implementation = needs_deref = false, returns "this"
+	  if needs_eval() is true, needs_deref = true, returns evalImpl()
+	  otherwise needs_deref = false returns "this"
 	  NOTE: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
 	  @param needs_deref this is an output parameter, if needs_deref is true then the value returned must be dereferenced
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @see QoreNodeEvalOptionalRefHolder
       */
-      DLLEXPORT virtual AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
 
       //! evaluates the object and returns a 64-bit integer value
-      /** default implementation is getAsBigInt()
+      /** if needs_eval() returns true, then returns bigIntEvalImpl() otherwise returns getAsBigInt()
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT virtual int64 bigIntEval(class ExceptionSink *xsink) const;
+      DLLEXPORT int64 bigIntEval(class ExceptionSink *xsink) const;
 
       //! evaluates the object and returns an integer value
-      /** default implementation is getAsInt()
+      /** if needs_eval() returns true, then returns integerEvalImpl() otherwise returns getAsInteger()
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT virtual int integerEval(class ExceptionSink *xsink) const;
+      DLLEXPORT int integerEval(class ExceptionSink *xsink) const;
 
       //! evaluates the object and returns a boolean value
-      /** default implementation is getAsBool()
+      /** if needs_eval() returns true, then returns boolEvalImpl() otherwise returns getAsBool()
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT virtual bool boolEval(class ExceptionSink *xsink) const;
+      DLLEXPORT bool boolEval(class ExceptionSink *xsink) const;
 
       //! evaluates the object and returns a floating-point value
-      /** default implementation is getAsFloat()
+      /** if needs_eval() returns true, then returns floatEvalImpl() otherwise returns getAsFloat()
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT virtual double floatEval(class ExceptionSink *xsink) const;
+      DLLEXPORT double floatEval(class ExceptionSink *xsink) const;
 
-      //! returns true if the node represents a value (default implementation)
-      DLLEXPORT virtual bool is_value() const;
+      //! returns true if the node represents a value
+      DLLLOCAL bool is_value() const
+      {
+	 return value;
+      }
 
       //! decrements the reference count and calls derefImpl() if there_can_be_only_one is false, otherwise does nothing
       /** if there_can_be_only_one is false, calls derefImpl() and deletes the object when the reference count = 0.  
@@ -272,11 +338,13 @@ class SimpleQoreNode : public AbstractQoreNode
       DLLLOCAL SimpleQoreNode& operator=(const SimpleQoreNode&);
 
    public:
-      //! constructor takes the type argument
-      DLLEXPORT SimpleQoreNode(const QoreType *t);
+      //! constructor takes the type and value arguments
+      DLLLOCAL SimpleQoreNode(const QoreType *t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false) : AbstractQoreNode(t, n_value, n_needs_eval, n_there_can_be_only_one)
+      {
+      }
 
       //! copy constructor
-      DLLEXPORT SimpleQoreNode(const SimpleQoreNode &) : AbstractQoreNode(type)
+      DLLEXPORT SimpleQoreNode(const SimpleQoreNode &) : AbstractQoreNode(type, value, needs_eval_flag, there_can_be_only_one)
       {
       }
 
@@ -296,16 +364,12 @@ class UniqueQoreNode : public AbstractQoreNode
 
    public:
       //! constructor takes the type argument
-      DLLLOCAL UniqueQoreNode(const QoreType *t) : AbstractQoreNode(t, true)
+      DLLLOCAL UniqueQoreNode(const QoreType *t, bool value, bool needs_eval) : AbstractQoreNode(t, value, needs_eval, true)
       {
       }
 
-      DLLLOCAL virtual ~UniqueQoreNode()
-      {
-      }
-      
       //! copy constructor
-      DLLLOCAL UniqueQoreNode(const UniqueQoreNode &) : AbstractQoreNode(type, true)
+      DLLLOCAL UniqueQoreNode(const UniqueQoreNode &) : AbstractQoreNode(type, value, needs_eval_flag, true)
       {
       }
 
@@ -313,6 +377,42 @@ class UniqueQoreNode : public AbstractQoreNode
       {
 	 delete this;
       }
+};
+
+class SimpleValueQoreNode : public SimpleQoreNode
+{
+   private:
+
+   protected:
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+
+   public:
+      DLLLOCAL SimpleValueQoreNode(const QoreType *t, bool n_there_can_be_only_one = false) : SimpleQoreNode(t, true, false, n_there_can_be_only_one)
+      {
+      }
+};
+
+class UniqueValueQoreNode : public UniqueQoreNode
+{
+   protected:
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+
+   public:
+      //! constructor takes the type argument
+      DLLLOCAL UniqueValueQoreNode(const QoreType *t) : UniqueQoreNode(t, true, false)
+      {
+      }
+
 };
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value

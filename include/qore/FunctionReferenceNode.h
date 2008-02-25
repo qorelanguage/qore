@@ -46,17 +46,18 @@ class AbstractFunctionReferenceNode : public AbstractQoreNode
       DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
    protected:
-      DLLLOCAL AbstractFunctionReferenceNode(bool n_there_can_be_only_one);
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+
+      DLLLOCAL AbstractFunctionReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one);
 
    public:
-      DLLLOCAL AbstractFunctionReferenceNode();
+      DLLLOCAL AbstractFunctionReferenceNode(bool n_needs_eval = false);
       DLLLOCAL virtual ~AbstractFunctionReferenceNode();
-
-      //! returns true
-      DLLLOCAL virtual bool needs_eval() const;
-
-      //! returns false
-      DLLLOCAL virtual bool is_value() const;
 
       //! concatenate the verbose string representation of the value to an existing QoreString
       /** used for %n and %N printf formatting
@@ -77,16 +78,8 @@ class AbstractFunctionReferenceNode : public AbstractQoreNode
       */
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      //! returns the data type
-      DLLLOCAL virtual const QoreType *getType() const;
-
       //! returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
-
-      DLLLOCAL virtual int64 bigIntEval(ExceptionSink *xsink) const;
-      DLLLOCAL virtual int integerEval(ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool boolEval(ExceptionSink *xsink) const;
-      DLLLOCAL virtual double floatEval(ExceptionSink *xsink) const;
 
       DLLLOCAL static const char *getStaticTypeName()
       {
@@ -98,6 +91,10 @@ class AbstractFunctionReferenceNode : public AbstractQoreNode
 class ResolvedFunctionReferenceNode : public AbstractFunctionReferenceNode
 {
    public:
+      DLLLOCAL ResolvedFunctionReferenceNode(bool n_needs_eval = false) : AbstractFunctionReferenceNode(n_needs_eval)
+      {
+      }
+
       DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const = 0;
       DLLLOCAL virtual QoreProgram *getProgram() const
       {
@@ -140,10 +137,26 @@ class StaticUserFunctionReferenceNode : public ResolvedFunctionReferenceNode
       UserFunction *uf;
       QoreProgram *pgm;
 
+   protected:
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+
+      //! optionally evaluates the argument
+      /** return value requires a deref(xsink) if needs_deref is true
+	  @see AbstractQoreNode::eval()
+      */
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const;
+
+      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+
    public:
       DLLLOCAL StaticUserFunctionReferenceNode(class UserFunction *n_uf, class QoreProgram *n_pgm);
-      DLLLOCAL virtual AbstractQoreNode *eval(ExceptionSink *xsink) const;
       DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
+
+      //! returns true
+      //DLLLOCAL virtual bool needs_eval() const;
 };
 
 //! a call reference to a builtin function

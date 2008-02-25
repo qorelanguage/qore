@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-ReferenceNode::ReferenceNode(AbstractQoreNode *exp) : SimpleQoreNode(NT_REFERENCE), lvexp(exp)
+ReferenceNode::ReferenceNode(AbstractQoreNode *exp) : SimpleValueQoreNode(NT_REFERENCE), lvexp(exp)
 {
 }
 
@@ -70,21 +70,9 @@ bool ReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsin
    return false;
 }
 
-// returns the data type
-const QoreType *ReferenceNode::getType() const
-{
-   return NT_REFERENCE;
-}
-
 // returns the type name as a c string
 const char *ReferenceNode::getTypeName() const
 {
    return "reference to lvalue";
-}
-
-// returns true if the node represents a value (default implementation)
-bool ReferenceNode::is_value() const
-{
-   return false;
 }
 

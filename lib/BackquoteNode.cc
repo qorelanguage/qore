@@ -51,12 +51,6 @@ QoreString *BackquoteNode::getAsString(bool &del, int foff, ExceptionSink *xsink
    return rv;
 }
 
-// returns the data type
-const QoreType *BackquoteNode::getType() const
-{
-   return NT_BACKQUOTE;
-}
-
 // returns the type name as a c string
 const char *BackquoteNode::getTypeName() const
 {
@@ -64,9 +58,40 @@ const char *BackquoteNode::getTypeName() const
 }
 
 // eval(): return value requires a deref(xsink)
-AbstractQoreNode *BackquoteNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *BackquoteNode::evalImpl(ExceptionSink *xsink) const
 {
    return backquoteEval(str, xsink);
+}
+
+// eval(): return value requires a deref(xsink)
+AbstractQoreNode *BackquoteNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
+{
+   needs_deref = true;
+   return backquoteEval(str, xsink);
+}
+
+int64 BackquoteNode::bigIntEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, xsink), xsink);
+   return rv ? rv->getAsBigInt() : 0;
+}
+
+int BackquoteNode::integerEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, xsink), xsink);
+   return rv ? rv->getAsInt() : 0;
+}
+
+bool BackquoteNode::boolEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, xsink), xsink);
+   return rv ? rv->getAsBool() : 0;
+}
+
+double BackquoteNode::floatEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, xsink), xsink);
+   return rv ? rv->getAsFloat() : 0;
 }
 
 #ifndef READ_BLOCK

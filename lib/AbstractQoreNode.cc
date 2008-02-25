@@ -33,7 +33,7 @@
 
 #endif
 
-AbstractQoreNode::AbstractQoreNode(const QoreType *t, bool n_there_can_be_only_one) : type(t), there_can_be_only_one(n_there_can_be_only_one)
+AbstractQoreNode::AbstractQoreNode(const QoreType *t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one)
 {
 #if TRACK_REFS
    printd(5, "AbstractQoreNode::ref() %08p type=%08p (0->1)\n", this, type);
@@ -107,50 +107,74 @@ void AbstractQoreNode::deref(ExceptionSink *xsink)
    //traceout("AbstractQoreNode::deref()");
 }
 
-bool AbstractQoreNode::needs_eval() const
-{
-   return false;
-}
-
-bool AbstractQoreNode::is_value() const
-{
-   return true;
-}
-
-/*
-  AbstractQoreNode::eval(): return value requires a dereference
- */
+// AbstractQoreNode::eval(): return value requires a dereference
 AbstractQoreNode *AbstractQoreNode::eval(ExceptionSink *xsink) const
 {
-   return refSelf();
+   if (!needs_eval())
+      return refSelf();
+   return evalImpl(xsink);
 }
 
-/*
- AbstractQoreNode::eval(): return value requires a dereference if needs_deref is true
- */
+// AbstractQoreNode::eval(): return value requires a dereference if needs_deref is true
 AbstractQoreNode *AbstractQoreNode::eval(bool &needs_deref, ExceptionSink *xsink) const
 {
-   needs_deref = false;
-   return const_cast<AbstractQoreNode *>(this);
+   if (!needs_eval()) {
+      needs_deref = false;
+      return const_cast<AbstractQoreNode *>(this);
+   }
+
+   return evalImpl(needs_deref, xsink);
+}
+
+int64 AbstractQoreNode::bigIntEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
+   return rv ? rv->getAsBigInt() : 0;
+}
+
+int AbstractQoreNode::integerEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
+   return rv ? rv->getAsInt() : 0;
+}
+
+bool AbstractQoreNode::boolEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
+   return rv ? rv->getAsBool() : 0;
+}
+
+double AbstractQoreNode::floatEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
+   return rv ? rv->getAsFloat() : 0;
 }
 
 int64 AbstractQoreNode::bigIntEval(ExceptionSink *xsink) const
 {
+   if (needs_eval())
+      return bigIntEvalImpl(xsink);
    return getAsBigInt();
 }
 
 int AbstractQoreNode::integerEval(ExceptionSink *xsink) const
 {
+   if (needs_eval())
+      return integerEvalImpl(xsink);
    return getAsInt();
 }
 
 bool AbstractQoreNode::boolEval(ExceptionSink *xsink) const
 {
+   if (needs_eval())
+      return boolEvalImpl(xsink);
    return getAsBool();
 }
 
 double AbstractQoreNode::floatEval(ExceptionSink *xsink) const
 {
+   if (needs_eval())
+      return floatEvalImpl(xsink);
    return getAsFloat();
 }
 
@@ -407,16 +431,6 @@ void AbstractQoreNode::getDateTimeRepresentation(DateTime &dt) const
    dt.setDate(0LL);
 }
 
-const char *AbstractQoreNode::getTypeName() const
-{
-   assert(false);
-   return 0;
-}
-
-SimpleQoreNode::SimpleQoreNode(const QoreType *t) : AbstractQoreNode(t)
-{
-}
-
 void SimpleQoreNode::deref()
 {
    if (there_can_be_only_one) {
@@ -426,4 +440,76 @@ void SimpleQoreNode::deref()
 
    if (ROdereference())
       delete this;   
+}
+
+AbstractQoreNode *SimpleValueQoreNode::evalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+AbstractQoreNode *SimpleValueQoreNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+int64 SimpleValueQoreNode::bigIntEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+int SimpleValueQoreNode::integerEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+bool SimpleValueQoreNode::boolEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return false;
+}
+
+double SimpleValueQoreNode::floatEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0.0;
+}
+
+AbstractQoreNode *UniqueValueQoreNode::evalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+AbstractQoreNode *UniqueValueQoreNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+int64 UniqueValueQoreNode::bigIntEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+int UniqueValueQoreNode::integerEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
+}
+
+bool UniqueValueQoreNode::boolEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return false;
+}
+
+double UniqueValueQoreNode::floatEvalImpl(ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0.0;
 }

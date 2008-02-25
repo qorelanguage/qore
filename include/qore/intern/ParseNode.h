@@ -30,11 +30,13 @@ class ParseNode : public UniqueQoreNode
       // not implemented
       DLLLOCAL ParseNode& operator=(const ParseNode&);
 
+   protected:
+
    public:
-      DLLLOCAL ParseNode(const QoreType *t) : UniqueQoreNode(t)
+      DLLLOCAL ParseNode(const QoreType *t, bool n_needs_eval = true) : UniqueQoreNode(t, false, n_needs_eval)
       {
       }
-      DLLLOCAL ParseNode(const ParseNode &) : UniqueQoreNode(type)
+      DLLLOCAL ParseNode(const ParseNode &) : UniqueQoreNode(type, false, needs_eval_flag)
       {
       }
       // parse types should never be copied
@@ -53,45 +55,6 @@ class ParseNode : public UniqueQoreNode
 	 assert(false);
 	 return false;
       }
-      DLLLOCAL virtual bool needs_eval() const
-      {
-	 return true;
-      }
-      DLLLOCAL virtual bool is_value() const
-      {
-	 return false;
-      }
-      DLLLOCAL virtual AbstractQoreNode *eval(class ExceptionSink *xsink) const = 0;
-      DLLLOCAL virtual AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const
-      {
-	 ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-	 if (!rv || *xsink) {
-	    needs_deref = 0;
-	    return 0;
-	 }
-	 needs_deref = true;
-	 return rv.release();
-      }
-      DLLLOCAL virtual int64 bigIntEval(class ExceptionSink *xsink) const
-      {
-	 ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-	 return rv ? rv->getAsBigInt() : 0;
-      }
-      DLLLOCAL virtual int integerEval(class ExceptionSink *xsink) const
-      {
-	 ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-	 return rv ? rv->getAsInt() : 0;
-      }
-      DLLLOCAL virtual bool boolEval(class ExceptionSink *xsink) const
-      {
-	 ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-	 return rv ? rv->getAsBool() : 0;
-      }
-      DLLLOCAL virtual double floatEval(class ExceptionSink *xsink) const
-      {
-	 ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-	 return rv ? rv->getAsFloat() : 0;
-      }
 };
 
 // these objects will never be copied or referenced therefore they can have 
@@ -102,59 +65,45 @@ class ParseNoEvalNode : public ParseNode
       // not implemented
       DLLLOCAL ParseNoEvalNode& operator=(const ParseNoEvalNode&);
 
-   public:
-      DLLLOCAL ParseNoEvalNode(const QoreType *t) : ParseNode(t)
-      {
-      }
-      DLLLOCAL ParseNoEvalNode(const ParseNode &) : ParseNode(type)
-      {
-      }
-      DLLLOCAL virtual bool needs_eval() const
-      {
-	 return false;
-      }
-      DLLLOCAL virtual AbstractQoreNode *eval(class ExceptionSink *xsink) const
+   protected:
+      DLLLOCAL virtual int64 bigIntEvalImpl(class ExceptionSink *xsink) const
       {
 	 assert(false);
 	 return 0;
       }
-      DLLLOCAL virtual AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const
+      DLLLOCAL virtual int integerEvalImpl(class ExceptionSink *xsink) const
       {
 	 assert(false);
 	 return 0;
       }
-      DLLLOCAL virtual int64 bigIntEval(class ExceptionSink *xsink) const
-      {
-	 assert(false);
-	 return 0;
-      }
-      DLLLOCAL virtual int integerEval(class ExceptionSink *xsink) const
-      {
-	 assert(false);
-	 return 0;
-      }
-      DLLLOCAL virtual bool boolEval(class ExceptionSink *xsink) const
+      DLLLOCAL virtual bool boolEvalImpl(class ExceptionSink *xsink) const
       {
 	 assert(false);
 	 return false;
       }
-      DLLLOCAL virtual double floatEval(class ExceptionSink *xsink) const
+      DLLLOCAL virtual double floatEvalImpl(class ExceptionSink *xsink) const
       {
 	 assert(false);
 	 return 0.0;
       }
-/*
-      DLLLOCAL virtual void deref()
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const
       {
-	 assert(is_unique());
-	 delete this;
+	 assert(false);
+	 return 0;
       }
-      DLLLOCAL virtual void deref(class ExceptionSink *xsink)
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const
       {
-	 assert(is_unique());
-	 delete this;
+	 assert(false);
+	 return 0;
       }
-*/
+
+   public:
+      DLLLOCAL ParseNoEvalNode(const QoreType *t) : ParseNode(t, false)
+      {
+      }
+      DLLLOCAL ParseNoEvalNode(const ParseNode &) : ParseNode(type, false)
+      {
+      }
 };
 
 #endif

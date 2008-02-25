@@ -27,7 +27,7 @@
 #include <qore/AbstractQoreNode.h>
 
 //! this class implements Qore's 64-bit integer data type, reference-counted, dynamically-allocated only
-class QoreBoolNode : public SimpleQoreNode
+class QoreBoolNode : public SimpleValueQoreNode
 {
    private:
       //! returns the value as a boolean
@@ -79,8 +79,6 @@ class QoreBoolNode : public SimpleQoreNode
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      // returns the data type
-      DLLEXPORT virtual const QoreType *getType() const;
       // returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 

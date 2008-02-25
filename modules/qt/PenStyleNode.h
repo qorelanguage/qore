@@ -28,7 +28,7 @@
 
 DLLLOCAL extern QoreType *NT_PENSTYLE;
 
-class PenStyleNode : public SimpleQoreNode
+class PenStyleNode : public SimpleValueQoreNode
 {
    private:
       Qt::PenStyle val;
@@ -39,7 +39,7 @@ class PenStyleNode : public SimpleQoreNode
       DLLLOCAL virtual double getAsFloatImpl() const;
 
    public:
-      DLLLOCAL PenStyleNode(Qt::PenStyle v) : SimpleQoreNode(NT_PENSTYLE), val(v)
+      DLLLOCAL PenStyleNode(Qt::PenStyle v) : SimpleValueQoreNode(NT_PENSTYLE), val(v)
       {
       }
       DLLLOCAL ~PenStyleNode()

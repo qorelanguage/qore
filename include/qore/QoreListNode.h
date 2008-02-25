@@ -60,9 +60,13 @@ class QoreListNode : public AbstractQoreNode
       //! mergesort sorts the list in-place (stable)
       DLLLOCAL int mergesort(const class ResolvedFunctionReferenceNode *fr, bool ascending, class ExceptionSink *xsink);
 
+      //! does an unconditional evaluation of the list and returns the new list, 0 if there is a qore-language exception
+      DLLLOCAL QoreListNode *eval_intern(class ExceptionSink *xsink) const;
+
       //! the destructor is protected so it cannot be called directly
-      /**
-	 use the deref(ExceptionSink) function to release the reference count
+      /** use the deref(ExceptionSink) function to release the reference count
+	  @see AbstractQoreNode::deref()
+	  @see QoreListNode::derefImpl()
        */
       DLLEXPORT virtual ~QoreListNode();
 
@@ -74,6 +78,31 @@ class QoreListNode : public AbstractQoreNode
 	  @return true if the object can be deleted, false if not (externally-managed)
        */
       DLLEXPORT virtual bool derefImpl(class ExceptionSink *xsink);
+
+      //! evaluates the list and returns a value (or 0)
+      /** return value requires a deref(xsink)
+	  NOTE: if there is an exception, 0 will be returned
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+      */
+      DLLEXPORT virtual class AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
+
+      //! optionally evaluates the argument
+      /** return value requires a deref(xsink) if needs_deref is true
+	  @see AbstractQoreNode::eval()
+      */
+      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+
+      //! always returns 0
+      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+
+      //! always returns 0
+      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+
+      //! always returns false
+      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+
+      //! always returns 0.0
+      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
    public:
       DLLEXPORT QoreListNode();
@@ -98,7 +127,7 @@ class QoreListNode : public AbstractQoreNode
       DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       //! returns true if the list contains parse expressions and therefore needs evaluation to return a value, false if not
-      DLLEXPORT virtual bool needs_eval() const;
+      //DLLEXPORT virtual bool needs_eval() const;
 
       //! performs a deep copy of the list and returns the new list
       DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
@@ -117,33 +146,11 @@ class QoreListNode : public AbstractQoreNode
        */
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      //! returns the data type
-      DLLEXPORT virtual const QoreType *getType() const;
-
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      //! evaluates the list and returns a value (or 0)
-      /** return value requires a deref(xsink)
-	  if the list does not require evaluation then "refSelf()" is used to 
-	  return the same object with an incremented reference count
-	  NOTE: if the object requires evaluation and there is an exception, 0 will be returned
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-      */
-      DLLEXPORT virtual class AbstractQoreNode *eval(class ExceptionSink *xsink) const;
-
-      //! optionally evaluates the list
-      /** return value requires a deref(xsink) if needs_deref is true
-	  NOTE: if the list requires evaluation and there is an exception, 0 will be returned
-	  NOTE: do not use this function directly, use the QoreNodeEvalOptionalRefHolder class instead
-	  @param needs_deref this is an output parameter, if needs_deref is true then the value returned must be dereferenced
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-	  @see QoreNodeEvalOptionalRefHolder
-      */
-      DLLEXPORT virtual class AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink) const;
-
       //! returns true if the list does not contain any parse expressions, otherwise returns false
-      DLLEXPORT virtual bool is_value() const;
+      //DLLEXPORT virtual bool is_value() const;
 
       DLLLOCAL static const char *getStaticTypeName()
       {

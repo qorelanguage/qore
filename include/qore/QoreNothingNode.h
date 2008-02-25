@@ -26,34 +26,62 @@
 
 #include <qore/AbstractQoreNode.h>
 
-class QoreNothingNode : public UniqueQoreNode
+//! Qore's SQL "NOTHING" parse tree/value type, not-referenced counted, not dynamically allocated
+/** there will only be one single QoreNothingNode object instantiated and used
+    everywhere in the Qore library.
+    This value can be represented in Qore code as the keyword NOTHING
+    NOTE: NULL is not equal to NOTHING
+    @see QoreNullNode
+ */
+class QoreNothingNode : public UniqueValueQoreNode
 {
    protected:
+      //! this function is never called for this type
+      /** @see AbstractQoreNode::evalImpl()
+       */
+      DLLLOCAL AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
 
    public:
       DLLEXPORT QoreNothingNode();
+
       DLLEXPORT virtual ~QoreNothingNode();
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
+      //! concatenate <NOTHING> to an existing QoreString
+      /** used for %n and %N printf formatting
+	  @param str the string representation of the type will be concatenated to this QoreString reference
+	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return -1 for exception raised, 0 = OK
+      */
       DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+
+      //! returns a QoreString with the text: <NOTHING>
+      /** used for %n and %N printf formatting
+	  @param del is always set to true for this implementation of the function, meaning that the returned QoreString pointer should be deleted
+	  @param foff for multi-line formatting offset, -1 = no line breaks (ignored by this version of the function)
+	  @param xsink ignored by this version of the function
+	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+	  @see QoreNodeAsStringHelper
+      */
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
       DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
 
-      // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
-      // the "val" passed
-      //DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
-      // the type passed must always be equal to the current type
+      //! tests for equality with possible type conversion (soft compare)
+      /** since no type can be implicitly converted to NOTHING, this comparison is the same as is_equal_hard() for QoreNothingNode
+	  @param v the value to compare
+	  @param xsink ignored for this version of the function
+       */
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
+      //! tests for equality without type conversions (hard compare)
+      /**
+	 @param v the value to compare
+	  @param xsink ignored for this version of the function
+       */
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      // returns the data type
-      DLLEXPORT virtual const QoreType *getType() const;
-      // returns the type name as a c string
+      //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
       DLLLOCAL static const char *getStaticTypeName()

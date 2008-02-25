@@ -24,7 +24,7 @@
 
 #define _QORE_QOREFLOATNODE_H
 
-class QoreFloatNode : public SimpleQoreNode
+class QoreFloatNode : public SimpleValueQoreNode
 {
    private:
       DLLLOCAL virtual bool getAsBoolImpl() const;
@@ -44,6 +44,7 @@ class QoreFloatNode : public SimpleQoreNode
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
       DLLEXPORT virtual QoreString *getStringRepresentation(bool &del) const;
+
       // concatenate string representation to a QoreString (no action for complex types = default implementation)
       DLLEXPORT virtual void getStringRepresentation(QoreString &str) const;
 
@@ -57,6 +58,7 @@ class QoreFloatNode : public SimpleQoreNode
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
       // returns -1 for exception raised, 0 = OK
       DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
@@ -69,8 +71,6 @@ class QoreFloatNode : public SimpleQoreNode
       DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
       DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      // returns the data type
-      DLLEXPORT virtual const QoreType *getType() const;
       // returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 

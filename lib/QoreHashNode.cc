@@ -45,17 +45,15 @@ class HashMember {
       class HashMember *prev;
 };
 
-QoreHashNode::QoreHashNode(bool ne) : AbstractQoreNode(NT_HASH)
-{ 
-   needs_eval_flag = ne; 
+QoreHashNode::QoreHashNode(bool ne) : AbstractQoreNode(NT_HASH, !ne, ne)
+{
    member_list = NULL; 
    tail = NULL; 
    len = 0;
 }
 
-QoreHashNode::QoreHashNode() : AbstractQoreNode(NT_HASH)
+QoreHashNode::QoreHashNode() : AbstractQoreNode(NT_HASH, true, false)
 { 
-   needs_eval_flag = false; 
    member_list = NULL; 
    tail = NULL; 
    len = 0;
@@ -91,12 +89,6 @@ bool QoreHashNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink
       return false;
 
    return !compareHard(reinterpret_cast<const QoreHashNode *>(v), xsink);
-}
-
-// returns the data type
-const QoreType *QoreHashNode::getType() const
-{
-   return NT_HASH;
 }
 
 const char *QoreHashNode::getTypeName() const
@@ -326,11 +318,8 @@ QoreHashNode *QoreHashNode::hashRefSelf() const
 }
 
 // returns a hash with the same order
-AbstractQoreNode *QoreHashNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *QoreHashNode::evalImpl(ExceptionSink *xsink) const
 {
-   if (!needs_eval_flag)
-      return hashRefSelf();
-
    QoreHashNodeHolder h(new QoreHashNode(), xsink);
 
    HashMember *where = member_list;
@@ -344,25 +333,36 @@ AbstractQoreNode *QoreHashNode::eval(ExceptionSink *xsink) const
    return h.release();
 }
 
-AbstractQoreNode *QoreHashNode::eval(bool &needs_deref, ExceptionSink *xsink) const
+// returns a hash with the same order
+AbstractQoreNode *QoreHashNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
 {
-   if (!needs_eval_flag) {
+   if (value) {
       needs_deref = false;
       return const_cast<QoreHashNode *>(this);
    }
 
    needs_deref = true;
-   AbstractQoreNode *rv = eval(xsink);
-   if (rv)
-      return rv;
+   return QoreHashNode::evalImpl(xsink);
+}
 
-   needs_deref = false;
+int64 QoreHashNode::bigIntEvalImpl(ExceptionSink *xsink) const
+{
    return 0;
 }
 
-bool QoreHashNode::is_value() const
+int QoreHashNode::integerEvalImpl(ExceptionSink *xsink) const
 {
-   return !needs_eval_flag;
+   return 0;
+}
+
+bool QoreHashNode::boolEvalImpl(ExceptionSink *xsink) const
+{
+   return false;
+}
+
+double QoreHashNode::floatEvalImpl(ExceptionSink *xsink) const
+{
+   return 0.0;
 }
 
 AbstractQoreNode *QoreHashNode::getFirstKeyValue() const
@@ -617,13 +617,9 @@ int QoreHashNode::size() const
    return len; 
 }
 
-bool QoreHashNode::needs_eval() const
-{
-   return needs_eval_flag;
-}
-
 void QoreHashNode::clearNeedsEval()
 {
+   value = true;
    needs_eval_flag = false;
 }
 

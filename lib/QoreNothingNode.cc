@@ -26,7 +26,7 @@
 static bool nothing_flag = 0;
 #endif
 
-QoreNothingNode::QoreNothingNode() : UniqueQoreNode(NT_NOTHING)
+QoreNothingNode::QoreNothingNode() : UniqueValueQoreNode(NT_NOTHING)
 {
 #ifdef DEBUG
    assert(!nothing_flag);
@@ -37,6 +37,12 @@ QoreNothingNode::QoreNothingNode() : UniqueQoreNode(NT_NOTHING)
 QoreNothingNode::~QoreNothingNode()
 {
    //printd(0, "QoreNothingNode::~QoreNothingNode() called this=%08p\n", this);
+}
+
+AbstractQoreNode *QoreNothingNode::evalImpl(class ExceptionSink *xsink) const
+{
+   assert(false);
+   return 0;
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -73,12 +79,6 @@ bool QoreNothingNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xs
 bool QoreNothingNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
 {
    return is_nothing(v);
-}
-
-// returns the data type
-const QoreType *QoreNothingNode::getType() const
-{
-   return NT_NOTHING;
 }
 
 // returns the type name as a c string

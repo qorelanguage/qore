@@ -25,7 +25,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_string_private.h>
 
-QoreStringNode::QoreStringNode() : SimpleQoreNode(NT_STRING)
+QoreStringNode::QoreStringNode() : SimpleValueQoreNode(NT_STRING)
 {
 }
 
@@ -33,14 +33,14 @@ QoreStringNode::~QoreStringNode()
 {
 }
 
-QoreStringNode::QoreStringNode(const char *str, const class QoreEncoding *enc) : SimpleQoreNode(NT_STRING), QoreString(str, enc)
+QoreStringNode::QoreStringNode(const char *str, const class QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc)
 {
 }
 
 // FIXME: remove this function
 // takes ownership of str
 /*
-QoreStringNode::QoreStringNode(QoreString *str) : SimpleQoreNode(NT_STRING), QoreString(str->priv)
+QoreStringNode::QoreStringNode(QoreString *str) : SimpleValueQoreNode(NT_STRING), QoreString(str->priv)
 {
    str->priv = 0;
    delete str;
@@ -48,37 +48,37 @@ QoreStringNode::QoreStringNode(QoreString *str) : SimpleQoreNode(NT_STRING), Qor
 */
 
 // copies str
-QoreStringNode::QoreStringNode(const QoreString &str) : SimpleQoreNode(NT_STRING), QoreString(str)
+QoreStringNode::QoreStringNode(const QoreString &str) : SimpleValueQoreNode(NT_STRING), QoreString(str)
 {
 }
 
 // copies str
-QoreStringNode::QoreStringNode(const QoreStringNode &str) : SimpleQoreNode(NT_STRING), QoreString(str)
+QoreStringNode::QoreStringNode(const QoreStringNode &str) : SimpleValueQoreNode(NT_STRING), QoreString(str)
 {
 }
 
 // copies str
-QoreStringNode::QoreStringNode(const std::string &str, const class QoreEncoding *enc) : SimpleQoreNode(NT_STRING), QoreString(str, enc)
+QoreStringNode::QoreStringNode(const std::string &str, const class QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc)
 {
 }
 
-QoreStringNode::QoreStringNode(char c) : SimpleQoreNode(NT_STRING), QoreString(c)
+QoreStringNode::QoreStringNode(char c) : SimpleValueQoreNode(NT_STRING), QoreString(c)
 {
 }
 
-QoreStringNode::QoreStringNode(const class BinaryNode *b) : SimpleQoreNode(NT_STRING), QoreString(b)
+QoreStringNode::QoreStringNode(const class BinaryNode *b) : SimpleValueQoreNode(NT_STRING), QoreString(b)
 {
 }
 
-QoreStringNode::QoreStringNode(struct qore_string_private *p) : SimpleQoreNode(NT_STRING), QoreString(p)
+QoreStringNode::QoreStringNode(struct qore_string_private *p) : SimpleValueQoreNode(NT_STRING), QoreString(p)
 {
 }
 
-QoreStringNode::QoreStringNode(char *nbuf, int nlen, int nallocated, const class QoreEncoding *enc) : SimpleQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc)
+QoreStringNode::QoreStringNode(char *nbuf, int nlen, int nallocated, const class QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc)
 {
 }
 
-QoreStringNode::QoreStringNode(const char *str, int len, const class QoreEncoding *new_qorecharset) : SimpleQoreNode(NT_STRING), QoreString(str, len, new_qorecharset)
+QoreStringNode::QoreStringNode(const char *str, int len, const class QoreEncoding *new_qorecharset) : SimpleValueQoreNode(NT_STRING), QoreString(str, len, new_qorecharset)
 {
 }
 
@@ -151,7 +151,7 @@ QoreStringNode *QoreStringNode::convertEncoding(const class QoreEncoding *nccs, 
 }
 
 // DLLLOCAL constructor
-QoreStringNode::QoreStringNode(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink) : SimpleQoreNode(NT_DATE), QoreString(to)
+QoreStringNode::QoreStringNode(const char *str, const class QoreEncoding *from, const class QoreEncoding *to, ExceptionSink *xsink) : SimpleValueQoreNode(NT_DATE), QoreString(to)
 {
    convert_encoding_intern(str, ::strlen(str), from, *this, to, xsink);
 }
@@ -294,12 +294,6 @@ bool QoreStringNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsi
       return false;
 
    return !compare(str);
-}
-
-// returns the data type
-const QoreType *QoreStringNode::getType() const
-{
-   return NT_STRING;
 }
 
 const char *QoreStringNode::getTypeName() const

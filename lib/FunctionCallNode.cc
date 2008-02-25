@@ -185,12 +185,6 @@ QoreString *FunctionCallNode::getAsString(bool &del, int foff, ExceptionSink *xs
    return rv;
 }
 
-// returns the data type
-const QoreType *FunctionCallNode::getType() const
-{
-   return NT_FUNCTION_CALL;
-}
-
 // returns the type name as a c string
 const char *FunctionCallNode::getTypeName() const
 {
@@ -198,7 +192,7 @@ const char *FunctionCallNode::getTypeName() const
 }
 
 // eval(): return value requires a deref(xsink)
-AbstractQoreNode *FunctionCallNode::eval(ExceptionSink *xsink) const
+AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const
 {
    switch (ftype)
    {
@@ -216,3 +210,33 @@ AbstractQoreNode *FunctionCallNode::eval(ExceptionSink *xsink) const
    return NULL;
 }
 
+// evalImpl(): return value requires a deref(xsink) if not 0
+AbstractQoreNode *FunctionCallNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
+{
+   needs_deref = true;
+   return FunctionCallNode::evalImpl(xsink);
+}
+
+int64 FunctionCallNode::bigIntEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(FunctionCallNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsBigInt() : 0;
+}
+
+int FunctionCallNode::integerEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(FunctionCallNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsInt() : 0;
+}
+
+bool FunctionCallNode::boolEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(FunctionCallNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsBool() : 0;
+}
+
+double FunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const
+{
+   ReferenceHolder<AbstractQoreNode> rv(FunctionCallNode::evalImpl(xsink), xsink);
+   return rv ? rv->getAsFloat() : 0;
+}
