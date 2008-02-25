@@ -343,7 +343,7 @@ lass '%s'", pcd->getFullName().c_str(), cn);
 */
 
    if (ntype == NT_BOOLEAN) {
-      return new MBool(reinterpret_cast<const QoreBoolNode *>(v)->b);
+      return new MBool(reinterpret_cast<const QoreBoolNode *>(v)->getValue());
    }
 
    if (ntype == NT_STRING) {
