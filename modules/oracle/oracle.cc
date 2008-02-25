@@ -827,7 +827,7 @@ void OraBindNode::bindValue(class Datasource *ds, OCIStmt *stmthp, int pos, clas
 
    if (ntype == NT_BOOLEAN)
    {
-      buf.i4 = reinterpret_cast<const QoreBoolNode *>(data.v.value)->b;
+      buf.i4 = reinterpret_cast<const QoreBoolNode *>(data.v.value)->getValue();
       ora_checkerr(d_ora->errhp, OCIBindByPos(stmthp, &bndp, d_ora->errhp, pos, &buf.i4, sizeof(int), SQLT_INT, (dvoid *)NULL, (ub2 *)NULL, (ub2 *)NULL, (ub4)0, (ub4 *)NULL, OCI_DEFAULT), "OraBindNode::bindValue()", ds, xsink);
       return;
    }
