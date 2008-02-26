@@ -27,6 +27,7 @@
 #include <qore/common.h>
 #include <qore/ReferenceHolder.h>
 #include <qore/AbstractQoreNode.h>
+#include <qore/QoreNodeEvalOptionalRefHolder.h>
 #include <qore/QoreListNode.h>
 #include <qore/QoreProgram.h>
 #include <qore/ModuleManager.h>
@@ -71,6 +72,7 @@
 #ifdef _QORE_LIB_INTERN
 #include <qore/intern/ParseNode.h>
 #include <qore/intern/FunctionReferenceCallNode.h>
+#include <qore/intern/FunctionReferenceNode.h>
 #include <qore/intern/Function.h>
 #include <qore/intern/AbstractStatement.h>
 #include <qore/intern/QoreLibIntern.h>

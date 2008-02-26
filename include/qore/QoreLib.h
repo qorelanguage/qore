@@ -142,4 +142,47 @@ static inline char *strtoupper(char *str)
    return str;
 }
 
+//! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
+DLLEXPORT int getSecZeroInt(const AbstractQoreNode *a);
+
+//! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
+DLLEXPORT int64 getSecZeroBigInt(const AbstractQoreNode *a);
+
+//! for getting an integer number of seconds, with -1 as the default, from either a relative time value or an integer value
+DLLEXPORT int getSecMinusOneInt(const AbstractQoreNode *a);
+
+//! for getting an integer number of seconds, with -1 as the default, from either a relative time value or an integer value
+DLLEXPORT int64 getSecMinusOneBigInt(const AbstractQoreNode *a);
+
+//! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
+DLLEXPORT int getMsZeroInt(const AbstractQoreNode *a);
+
+//! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
+DLLEXPORT int64 getMsZeroBigInt(const AbstractQoreNode *a);
+
+//! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
+DLLEXPORT int getMsMinusOneInt(const AbstractQoreNode *a);
+
+//! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
+DLLEXPORT int64 getMsMinusOneBigInt(const AbstractQoreNode *a);
+
+//! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
+DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode *a);
+
+//! to check if an AbstractQoreNode object is NOTHING
+static inline bool is_nothing(const AbstractQoreNode *n)
+{
+   if (!n || n->getType() == NT_NOTHING)
+      return true;
+   
+   return false;
+}
+
+//! to deref an AbstractQoreNode (when the pointer may be 0)
+static inline void discard(AbstractQoreNode *n, ExceptionSink *xsink)
+{
+   if (n)
+      n->deref(xsink);
+}
+
 #endif // _QORE_QORELIB_H

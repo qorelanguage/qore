@@ -652,35 +652,35 @@ class QoreStringNode *ncurses_module_init()
 
    init_namespace();
 
-   builtinFunctions.add("initscr",          f_initscr);
-   builtinFunctions.add("printw",           f_printw);
-   builtinFunctions.add("refresh",          f_refresh);
-   builtinFunctions.add("doupdate",         f_doupdate);
-   builtinFunctions.add("getch",            f_getch);
-   builtinFunctions.add("endwin",           f_endwin);
-   builtinFunctions.add("cbreak",           f_cbreak);
-   builtinFunctions.add("nocbreak",         f_nocbreak);
-   builtinFunctions.add("echo",             f_echo);
-   builtinFunctions.add("noecho",           f_noecho);
-   builtinFunctions.add("raw",              f_raw);
-   builtinFunctions.add("noraw",            f_noraw);
-   builtinFunctions.add("noqiflush",        f_noqiflush);
-   builtinFunctions.add("qiflush",          f_qiflush);
-   builtinFunctions.add("halfdelay",        f_halfdelay);
-   builtinFunctions.add("curs_set",         f_curs_set);
-   builtinFunctions.add("def_prog_mode",    f_def_prog_mode);
-   builtinFunctions.add("reset_prog_mode",  f_reset_prog_mode);
-   builtinFunctions.add("def_shell_mode",   f_def_shell_mode);
-   builtinFunctions.add("reset_shell_mode", f_reset_shell_mode);
-   builtinFunctions.add("beep",             f_beep);
-   builtinFunctions.add("flash",            f_flash);
-   builtinFunctions.add("has_colors",       f_has_colors);
-   builtinFunctions.add("get_color_pair",   f_get_color_pair);
-   builtinFunctions.add("num_colors",       f_num_colors);
-   builtinFunctions.add("nl",               f_nl);
-   builtinFunctions.add("nonl",             f_nonl);
-   builtinFunctions.add("getLines",         f_getLines);
-   builtinFunctions.add("getColumns",       f_getColumns);
+   builtinFunctions.add("initscr",          f_initscr, QDOM_TERMINAL_IO);
+   builtinFunctions.add("printw",           f_printw, QDOM_TERMINAL_IO);
+   builtinFunctions.add("refresh",          f_refresh, QDOM_TERMINAL_IO);
+   builtinFunctions.add("doupdate",         f_doupdate, QDOM_TERMINAL_IO);
+   builtinFunctions.add("getch",            f_getch, QDOM_TERMINAL_IO);
+   builtinFunctions.add("endwin",           f_endwin, QDOM_TERMINAL_IO);
+   builtinFunctions.add("cbreak",           f_cbreak, QDOM_TERMINAL_IO);
+   builtinFunctions.add("nocbreak",         f_nocbreak, QDOM_TERMINAL_IO);
+   builtinFunctions.add("echo",             f_echo, QDOM_TERMINAL_IO);
+   builtinFunctions.add("noecho",           f_noecho, QDOM_TERMINAL_IO);
+   builtinFunctions.add("raw",              f_raw, QDOM_TERMINAL_IO);
+   builtinFunctions.add("noraw",            f_noraw, QDOM_TERMINAL_IO);
+   builtinFunctions.add("noqiflush",        f_noqiflush, QDOM_TERMINAL_IO);
+   builtinFunctions.add("qiflush",          f_qiflush, QDOM_TERMINAL_IO);
+   builtinFunctions.add("halfdelay",        f_halfdelay, QDOM_TERMINAL_IO);
+   builtinFunctions.add("curs_set",         f_curs_set, QDOM_TERMINAL_IO);
+   builtinFunctions.add("def_prog_mode",    f_def_prog_mode, QDOM_TERMINAL_IO);
+   builtinFunctions.add("reset_prog_mode",  f_reset_prog_mode, QDOM_TERMINAL_IO);
+   builtinFunctions.add("def_shell_mode",   f_def_shell_mode, QDOM_TERMINAL_IO);
+   builtinFunctions.add("reset_shell_mode", f_reset_shell_mode, QDOM_TERMINAL_IO);
+   builtinFunctions.add("beep",             f_beep, QDOM_TERMINAL_IO);
+   builtinFunctions.add("flash",            f_flash, QDOM_TERMINAL_IO);
+   builtinFunctions.add("has_colors",       f_has_colors, QDOM_TERMINAL_IO);
+   builtinFunctions.add("get_color_pair",   f_get_color_pair, QDOM_TERMINAL_IO);
+   builtinFunctions.add("num_colors",       f_num_colors, QDOM_TERMINAL_IO);
+   builtinFunctions.add("nl",               f_nl, QDOM_TERMINAL_IO);
+   builtinFunctions.add("nonl",             f_nonl, QDOM_TERMINAL_IO);
+   builtinFunctions.add("getLines",         f_getLines, QDOM_TERMINAL_IO);
+   builtinFunctions.add("getColumns",       f_getColumns, QDOM_TERMINAL_IO);
 
    // alternate character set functions
    builtinFunctions.add("ACS_ULCORNER", f_ACS_ULCORNER);
@@ -710,8 +710,8 @@ class QoreStringNode *ncurses_module_init()
    builtinFunctions.add("ACS_BLOCK", f_ACS_BLOCK);
 
 #ifdef NCURSES_MOUSE_VERSION
-   builtinFunctions.add("mousemask", f_mousemask);
-   builtinFunctions.add("getmouse",  f_getmouse);
+   builtinFunctions.add("mousemask", f_mousemask, QDOM_TERMINAL_IO);
+   builtinFunctions.add("getmouse",  f_getmouse, QDOM_TERMINAL_IO);
 #endif // NCURSES_MOUSE_VERSION
 
    traceout("ncurses_module_init()");

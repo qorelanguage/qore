@@ -140,9 +140,12 @@ typedef std::set<char *, ltstr> strset_t;
 typedef long long int64;
 typedef const char *lvh_t;
 
+#include <stdarg.h>
+
 typedef class AbstractQoreNode *(*q_func_t)(const class QoreListNode *args, class ExceptionSink *);
 typedef class AbstractQoreNode *(*q_method_t)(class QoreObject *, void *, const class QoreListNode *args, class ExceptionSink *);
 typedef void (*q_constructor_t)(class QoreObject *, const class QoreListNode *args, class ExceptionSink *);
+typedef void (*q_system_constructor_t)(class QoreObject *, int code, va_list args);
 typedef void (*q_destructor_t)(class QoreObject *, void *, class ExceptionSink *);
 typedef void (*q_copy_t)(class QoreObject *, class QoreObject *, void *, class ExceptionSink *);
 

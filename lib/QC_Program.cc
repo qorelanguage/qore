@@ -28,12 +28,12 @@ int CID_PROGRAM;
 static void PROGRAM_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    const AbstractQoreNode *p0;
-   int parse_opt;
+   qore_restrictions_t parse_opt;
 
    if ((p0 = get_param(params, 0)))
-      parse_opt = p0->getAsInt();
+      parse_opt = (qore_restrictions_t)p0->getAsInt();
    else
-      parse_opt = 0;
+      parse_opt = PO_DEFAULT;
 
    self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), parse_opt));
 }
@@ -241,12 +241,13 @@ static AbstractQoreNode *PROGRAM_getUserFunctionList(QoreObject *self, QoreProgr
 
 static class QoreClass *PROGRAM_setParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
-   int opt;
    const AbstractQoreNode *p0 = get_param(params, 0);
+
+   qore_restrictions_t opt;
    if (p0)
-      opt = p0->getAsInt();
+      opt = (qore_restrictions_t)p0->getAsInt();
    else
-      opt = 0;
+      opt = PO_DEFAULT;
 
    p->setParseOptions(opt, xsink);
    return NULL;
@@ -254,12 +255,13 @@ static class QoreClass *PROGRAM_setParseOptions(QoreObject *self, QoreProgram *p
 
 static class QoreClass *PROGRAM_disableParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink)
 {
-   int opt;
    const AbstractQoreNode *p0 = get_param(params, 0);
+
+   qore_restrictions_t opt;
    if (p0)
-      opt = p0->getAsInt();
+      opt = (qore_restrictions_t)p0->getAsInt();
    else
-      opt = 0;
+      opt = PO_DEFAULT;
 
    p->disableParseOptions(opt, xsink);
    return NULL;

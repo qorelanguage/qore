@@ -419,7 +419,7 @@ class QoreClass *initPanelClass()
 {
    tracein("initPanelClass()");
 
-   class QoreClass *QC_PANEL = new QoreClass("Panel");
+   class QoreClass *QC_PANEL = new QoreClass("Panel", QDOM_TERMINAL_IO);
    CID_PANEL = QC_PANEL->getID();
    QC_PANEL->setConstructor(PC_constructor);
    QC_PANEL->setCopy((q_copy_t)PC_copy);

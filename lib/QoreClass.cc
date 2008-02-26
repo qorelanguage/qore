@@ -45,10 +45,10 @@ struct qore_qc_private {
          methodID;                 // for subclasses of builtin classes that will not have their own private data,
                                    //   instead they will get the private data from this class
       bool sys, initialized;       // system class?, is initialized?
-      int domain;                  // capabilities of builtin class to use in the context of parse restrictions
+      qore_domain_t domain;             // capabilities of builtin class to use in the context of parse restrictions
       class QoreReferenceCounter nref;  // namespace references
 
-      DLLLOCAL qore_qc_private(const char *nme, int dom = 0)
+      DLLLOCAL qore_qc_private(const char *nme, qore_domain_t dom = QDOM_DEFAULT)
       {
 	 initialized = false;
 	 domain = dom;
@@ -110,6 +110,7 @@ struct qore_qc_private {
 	 }
       }
 
+      // checks for all special methods except constructor & destructor
       DLLLOCAL void checkSpecialIntern(const QoreMethod *m)
       {
 	 // set quick pointers
@@ -119,6 +120,7 @@ struct qore_qc_private {
 	    memberGate = m;
       }
 
+      // checks for all special methods
       DLLLOCAL void checkSpecial(const QoreMethod *m)
       {
 	 // set quick pointers
@@ -422,7 +424,7 @@ inline const QoreMethod *BCList::findParseMethod(const char *name)
 }
 
 // only called at run-time
-inline const QoreMethod *BCList::findMethod(const char *name, bool *priv) const
+inline const QoreMethod *BCList::findMethod(const char *name, bool &priv) const
 {
    for (bclist_t::const_iterator i = begin(); i != end(); i++)
    {
@@ -431,8 +433,8 @@ inline const QoreMethod *BCList::findMethod(const char *name, bool *priv) const
 	 const QoreMethod *m;
 	 if ((m = (*i)->sclass->findMethod(name, priv)))
 	 {
-	    if (!*priv && (*i)->priv)
-	       (*priv) = (*i)->priv;
+	    if ((*i)->priv)
+	       priv = true;
 	    return m;
 	 }
       }
@@ -504,19 +506,6 @@ void BCList::execConstructorsWithArgs(QoreObject *o, class BCEAList *bceal, Exce
    execConstructors(o, bceal, xsink);
 }
 
-inline void BCList::execSystemConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const
-{
-   for (bclist_t::const_iterator i = begin(); i != end(); ++i)
-   {
-      printd(5, "BCList::execSystemConstructors() %s::constructor() o=%08p virt=%s (for subclass %s)\n", (*i)->sclass->getName(), o, (*i)->is_virtual ? "true" : "false", o->getClass()->getName()); 
-      if ((*i)->is_virtual)
-	 continue;
-      (*i)->sclass->execSubclassSystemConstructor(o, bceal, xsink);
-      if (xsink->isEvent())
-	 break;
-   }
-}
-
 BCAList::BCAList(class BCANode *n)
 {
    push_back(n);
@@ -543,16 +532,6 @@ BCSMList *QoreClass::getBCSMList() const
    return priv->scl ? &priv->scl->sml : 0;
 }
 
-inline void QoreClass::checkSpecialIntern(const QoreMethod *m)
-{
-   priv->checkSpecialIntern(m);
-}
-
-inline void QoreClass::checkSpecial(const QoreMethod *m)
-{
-   priv->checkSpecial(m);
-}
-
 const QoreMethod *QoreClass::findLocalMethod(const char *nme) const
 {
    hm_method_t::const_iterator i = priv->hm.find(nme);
@@ -574,8 +553,10 @@ const QoreMethod *QoreClass::findMethod(const char *nme) const
    return w;
 }
 
-const QoreMethod *QoreClass::findMethod(const char *nme, bool *priv_flag) const
+const QoreMethod *QoreClass::findMethod(const char *nme, bool &priv_flag) const
 {
+   priv_flag = false;
+
    const QoreMethod *w;
    if (!(w = findLocalMethod(nme)))
    {
@@ -663,7 +644,7 @@ bool QoreClass::hasMemberGate() const
    return priv->memberGate != NULL;
 }
 
-int QoreClass::getDomain() const
+qore_domain_t QoreClass::getDomain() const
 {
    return priv->domain;
 }
@@ -717,7 +698,7 @@ void QoreClass::addBuiltinVirtualBaseClass(class QoreClass *qc)
    priv->scl->push_back(new BCNode(qc, 0, true));   
 }
 
-void QoreClass::setSystemConstructor(q_constructor_t m)
+void QoreClass::setSystemConstructor(q_system_constructor_t m)
 {
    priv->sys = true;
    priv->system_constructor = new QoreMethod(this, new BuiltinMethod(this, m));
@@ -765,6 +746,16 @@ int QoreMethod::getType() const
    return priv->type;
 }
 
+bool QoreMethod::isUser() const
+{
+   return priv->type == CT_USER;
+}
+
+bool QoreMethod::isBuiltin() const
+{
+   return priv->type == CT_BUILTIN;
+}
+
 bool QoreMethod::isPrivate() const
 { 
    return priv->priv_flag; 
@@ -800,10 +791,10 @@ bool QoreMethod::inMethod(const QoreObject *self) const
    return ::inMethod(priv->func.builtin->getName(), self);
 }
 
-void QoreMethod::evalSystemConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
+void QoreMethod::evalSystemConstructor(QoreObject *self, int code, va_list args) const
 {
    // type must be OTF_BUILTIN
-   priv->func.builtin->evalSystemConstructor(self, args, bcl, bceal, xsink);
+   priv->func.builtin->evalSystemConstructor(self, code, args);
 }
 
 void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) const
@@ -977,7 +968,7 @@ inline class QoreClass *BCSMList::getClass(int cid) const
    return NULL;
 }
 
-QoreClass::QoreClass(const char *nme, int dom)
+QoreClass::QoreClass(const char *nme, qore_domain_t dom)
 {
    priv = new qore_qc_private(nme, dom);
 
@@ -1165,12 +1156,13 @@ class QoreClass *QoreClass::copyAndDeref()
 inline void QoreClass::insertMethod(QoreMethod *m)
 {
    //printd(5, "QoreClass::insertMethod() %s::%s() size=%d\n", priv->name, m->getName(), numMethods());
+   assert(!priv->hm[m->getName()]);
    priv->hm[m->getName()] = m;
 }      
 
-inline void QoreClass::addDomain(int dom)
+inline void QoreClass::addDomain(qore_domain_t dom)
 {
-   priv->domain |= dom;
+   priv->domain = (qore_domain_t)(priv->domain | dom);
 }
 
 AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const
@@ -1186,8 +1178,8 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       return execCopy(self, xsink);
    }
 
-   bool priv_flag = false;
-   if (!(w = findMethod(nme, &priv_flag)))
+   bool priv_flag;
+   if (!(w = findMethod(nme, priv_flag)))
    {
       if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
 	 return evalMethodGate(self, nme, args, xsink);
@@ -1306,33 +1298,21 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
    return o;
 }
 
-QoreObject *QoreClass::execSystemConstructor(const QoreListNode *args, ExceptionSink *xsink) const
+QoreObject *QoreClass::execSystemConstructor(int code, ...) const
 {
+   assert(priv->system_constructor);
+
+   va_list args;
+
    // create new object
    QoreObject *o = new QoreObject(this, NULL);
-   class BCEAList *bceal;
-   if (priv->scl)
-      bceal = new BCEAList();
-   else
-      bceal = NULL;
 
-   printd(5, "QoreClass::execSystemConstructor() %s::constructor() o=%08p\n", priv->name, o);
+   va_start(args, code);
+   // no lock is sent with constructor, because no variable has been assigned yet
+   priv->system_constructor->evalSystemConstructor(o, code, args);
+   va_end(args);
 
-   if (!priv->constructor)
-   {
-      if (priv->scl) // execute superconstructors if any
-	 priv->scl->execSystemConstructors(o, bceal, xsink);
-   }
-   else // no lock is sent with constructor, because no variable has been assigned yet
-      priv->system_constructor->evalSystemConstructor(o, args, priv->scl, bceal, xsink);
-
-   if (bceal)
-      bceal->deref(xsink);
-
-   // should never happen!
-   assert(!xsink->isEvent());
-
-   printd(5, "QoreClass::execSystemConstructor() %s::constructor() returning %08p\n", priv->name, o);
+   printd(5, "QoreClass::execSystemConstructor() %s::execSystemConstructor() returning %08p\n", priv->name, o);
    return o;
 }
 
@@ -1349,22 +1329,6 @@ inline void QoreClass::execSubclassConstructor(QoreObject *self, class BCEAList 
       QoreListNode *args = bceal->findArgs(this, &already_executed);
       if (!already_executed)
 	 priv->constructor->evalConstructor(self, args, priv->scl, bceal, xsink);
-   }
-}
-
-inline void QoreClass::execSubclassSystemConstructor(QoreObject *self, class BCEAList *bceal, ExceptionSink *xsink) const
-{
-   if (!priv->constructor)
-   {
-      if (priv->scl) // execute superconstructors if any
-	 priv->scl->execSystemConstructors(self, bceal, xsink);
-   }
-   else // no lock is sent with constructor, because no variable has been assigned yet
-   {
-      bool already_executed;
-      QoreListNode *args = bceal->findArgs(this, &already_executed);
-      if (!already_executed)
-	 priv->system_constructor->evalSystemConstructor(self, args, priv->scl, bceal, xsink);
    }
 }
 
@@ -1643,7 +1607,7 @@ void QoreClass::addMethod(const char *nme, q_method_t m, bool priv_flag)
    QoreMethod *o = new QoreMethod(this, b, priv_flag);
    insertMethod(o);
    // check for special methods (except constructor and destructor)
-   checkSpecialIntern(o);
+   priv->checkSpecialIntern(o);
 }
 
 // sets a builtin function as constructor - no duplicate checking is made
@@ -1728,7 +1692,7 @@ void QoreClass::parseCommit()
       QoreMethod *m = i->second;
       priv->hm_pending.erase(i);
       insertMethod(m);
-      checkSpecial(m);
+      priv->checkSpecial(m);
    }
 
    // add all pending private members

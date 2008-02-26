@@ -1,7 +1,6 @@
 see docs/roadmap.html
 
 * have QoreStringNode::getAsString() return a standard empty string ("") when possible (also should not be reference counted)
-* find out why ref_rv is set to true for op_background even when the result is not used
 * remove QoreNothingNode and use 0 everywhere instead
 * implement function class hierarchies for returning different types (bool, int64, double, node)
 * change get/test_*params() to return const values

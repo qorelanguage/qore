@@ -116,8 +116,7 @@ void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherli
       hm_qn_t::iterator j = otherlist->hm.find(i->first);
       if (j != otherlist->hm.end())
       {
-	 parse_error("constant \"%s\" has already been defined in namespace \"%s\"",
-		     i->first, nsname);
+	 parse_error("constant \"%s\" has already been defined in namespace \"%s\"", i->first, nsname);
 	 n->remove(i);
       }
       else
@@ -125,8 +124,7 @@ void ConstantList::assimilate(class ConstantList *n, class ConstantList *otherli
 	 j = hm.find(i->first);
 	 if (j != hm.end())
 	 {
-	    parse_error("constant \"%s\" is already pending for namespace \"%s\"",
-			i->first, nsname);
+	    parse_error("constant \"%s\" is already pending for namespace \"%s\"", i->first, nsname);
 	    n->remove(i);
 	 }
 	 else
@@ -156,9 +154,9 @@ void ConstantList::parseInit()
 QoreHashNode *ConstantList::getInfo()
 {
    QoreHashNode *h = new QoreHashNode();
-   
+
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
       h->setKeyValue(i->first, i->second->refSelf(), NULL);
-   
+
    return h;
 }

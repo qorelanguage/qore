@@ -253,6 +253,14 @@ BuiltinFunction::BuiltinFunction(q_constructor_t m, int typ)
    next = NULL;
 }
 
+BuiltinFunction::BuiltinFunction(q_system_constructor_t m, int typ)
+{
+   type = typ;
+   name = "constructor";
+   code.system_constructor = m;
+   next = NULL;
+}
+
 BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ)
 {
    type = typ;
@@ -298,12 +306,9 @@ void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args
    traceout("BuiltinFunction::evalConstructor()");
 }
 
-void BuiltinFunction::evalSystemConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, ExceptionSink *xsink) const
+void BuiltinFunction::evalSystemConstructor(QoreObject *self, int val, va_list args) const
 {
-   if (bcl)
-      bcl->execConstructorsWithArgs(self, bceal, xsink);
-   
-   code.constructor(self, args, xsink);
+   code.system_constructor(self, val, args);
 }
 
 AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const

@@ -44,8 +44,7 @@
 // these data structures are all private to the library
 // FIXME: messy implementation - clean up!
 
-class AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_self_ref, class ExceptionSink *xsink);
-
+AbstractQoreNode *doPartialEval(class AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink);
 
 // object definitions and interfaces
 class BuiltinFunction
@@ -60,6 +59,7 @@ class BuiltinFunction
 	    q_func_t func;
 	    q_method_t method;
 	    q_constructor_t constructor;
+	    q_system_constructor_t system_constructor;
 	    q_destructor_t destructor;
 	    q_copy_t copy;
       } code;
@@ -67,13 +67,14 @@ class BuiltinFunction
       DLLLOCAL BuiltinFunction(const char *nme, q_func_t f, int typ);
       DLLLOCAL BuiltinFunction(const char *nme, q_method_t m, int typ);
       DLLLOCAL BuiltinFunction(q_constructor_t m, int typ);
+      DLLLOCAL BuiltinFunction(q_system_constructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_destructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_copy_t m, int typ);
       DLLLOCAL class AbstractQoreNode *evalMethod(class QoreObject *self, void *private_data, const class QoreListNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL void evalConstructor(class QoreObject *self, const class QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const;
       DLLLOCAL void evalDestructor(class QoreObject *self, void *private_data, const char *class_name, class ExceptionSink *xsink) const;
       DLLLOCAL void evalCopy(class QoreObject *self, class QoreObject *old, void *private_data, const char *class_name, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalSystemConstructor(class QoreObject *self, const class QoreListNode *args, class BCList *bcl, class BCEAList *bceal, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalSystemConstructor(class QoreObject *self, int code, va_list args) const;
       DLLLOCAL void evalSystemDestructor(class QoreObject *self, void *private_data, class ExceptionSink *xsink) const;
       DLLLOCAL class AbstractQoreNode *evalWithArgs(class QoreObject *self, const class QoreListNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL class AbstractQoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;

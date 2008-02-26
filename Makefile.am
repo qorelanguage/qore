@@ -38,6 +38,7 @@ noinst_HEADERS = \
 	include/qore/support.h \
 	include/qore/ExceptionSink.h \
 	include/qore/AbstractQoreNode.h \
+	include/qore/QoreNodeEvalOptionalRefHolder.h \
 	include/qore/QoreStringNode.h \
 	include/qore/DateTimeNode.h \
 	include/qore/QoreHashNode.h \
@@ -155,6 +156,7 @@ noinst_HEADERS = \
 	include/qore/intern/AbstractSmartLock.h \
 	include/qore/intern/VLock.h \
 	include/qore/intern/AutoNamespaceList.h \
+	include/qore/intern/FunctionReferenceNode.h \
 	include/qore/intern/FunctionReferenceCallNode.h \
 	include/qore/intern/ParseNode.h \
 	include/qore/intern/ql_string.h \

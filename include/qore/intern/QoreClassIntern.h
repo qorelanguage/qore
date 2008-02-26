@@ -147,11 +147,10 @@ class BCList : public QoreReferenceCounter, public bclist_t
       DLLLOCAL inline const QoreMethod *resolveSelfMethod(const char *name);
       DLLLOCAL inline const QoreMethod *findParseMethod(const char *name);
       DLLLOCAL inline const QoreMethod *findMethod(const char *name) const;
-      DLLLOCAL inline const QoreMethod *findMethod(const char *name, bool *p) const;
+      DLLLOCAL inline const QoreMethod *findMethod(const char *name, bool &p) const;
       DLLLOCAL inline bool match(class BCANode *bca);
       DLLLOCAL inline void execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL void execConstructorsWithArgs(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
-      DLLLOCAL inline void execSystemConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL inline bool isPrivateMember(const char *str) const;
       DLLLOCAL inline void ref() const;
       DLLLOCAL void deref();

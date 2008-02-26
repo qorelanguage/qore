@@ -25,10 +25,12 @@
 
 int CID_FILE;
 
-static void FILE_system_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
+static void FILE_system_constructor(QoreObject *self, int fd, va_list args)
 {
-   //printd(5, "FILE_constructor() self=%08p, params=%08p\n", self, params);
-   self->setPrivate(CID_FILE, new File(QCS_DEFAULT));
+   //printd(5, "FILE_system_constructor() self=%08p, descriptor=%d\n", self, fd);
+   File *f = new File(QCS_DEFAULT);
+   f->makeSpecial(fd);
+   self->setPrivate(CID_FILE, f);
 }
 
 static void FILE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

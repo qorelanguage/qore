@@ -1054,10 +1054,9 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
       xsink->raiseException("THREAD-CREATION-FAILURE", "could not create thread: %s", strerror(rc));
       return NULL;
    }
-   printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
-   if (ref_rv)
-      return new QoreBigIntNode(tid);
-   return NULL;
+   //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
+
+   return ref_rv ? new QoreBigIntNode(tid) : 0;
 }
 
 void init_qore_threads()

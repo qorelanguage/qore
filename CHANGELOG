@@ -1,3 +1,8 @@
+2008.02.26: David Nichols
+	* implemented PO_TERMINAL_IO restriction to prohibit terminal I/O
+	* started changing defines to enums and documenting them
+	* simplified system constructor execution for QoreClass
+
 2008.02.25: David Nichols
 	* more performance-related API changes
 	* split QoreBoolNode into QoreBoolTrueNode and QoreBoolFalseNode, made

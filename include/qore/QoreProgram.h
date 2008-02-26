@@ -27,6 +27,7 @@
 #define _QORE_QOREPROGRAM_H
 
 #include <qore/AbstractPrivateData.h>
+#include <qore/Restrictions.h>
 
 class AbstractFunctionReferenceNode;
 
@@ -117,32 +118,35 @@ class QoreProgram : public AbstractPrivateData
 	  @param ecn the name of the class to be executed as the program class
       */
       DLLEXPORT void setExecClass(const char *ecn = NULL);
-      DLLEXPORT void parseSetParseOptions(int po);
+      DLLEXPORT void parseSetParseOptions(qore_restrictions_t po);
       DLLEXPORT void waitForTermination();
       DLLEXPORT void waitForTerminationAndDeref(class ExceptionSink *xsink);
       DLLEXPORT class QoreNamespace *getQoreNS() const;
       DLLEXPORT class RootQoreNamespace *getRootNS() const;
+
       //! sets the warning mask
       /**
 	 @param code the new warning mask
 	 @return 0 for success, -1 for error
       */
       DLLEXPORT int setWarningMask(int wm);
+
       //! enables a warning by its code
       /**
 	 @param code the warning code to enable
 	 @return 0 for success, -1 for error
       */
       DLLEXPORT int enableWarning(int code);
+
       //! disables a warning by its code
       /**
 	 @param code the warning code to disable
 	 @return 0 for success, -1 for error
       */
       DLLEXPORT int disableWarning(int code);
-      DLLEXPORT int getParseOptions() const;
-      DLLEXPORT void setParseOptions(int po, class ExceptionSink *xsink);
-      DLLEXPORT void disableParseOptions(int po, class ExceptionSink *xsink);
+      DLLEXPORT qore_restrictions_t getParseOptions() const;
+      DLLEXPORT void setParseOptions(qore_restrictions_t po, class ExceptionSink *xsink);
+      DLLEXPORT void disableParseOptions(qore_restrictions_t po, class ExceptionSink *xsink);
       DLLEXPORT class QoreListNode *getUserFunctionList();
       DLLEXPORT bool checkWarning(int code) const;
       DLLEXPORT int getWarningMask() const;
@@ -150,7 +154,7 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT class QoreListNode *getFeatureList() const;
       DLLEXPORT class UserFunction *findUserFunction(const char *name);
       
-      DLLLOCAL QoreProgram(class QoreProgram *pgm, int po, bool ec = false, const char *ecn = NULL);
+      DLLLOCAL QoreProgram(class QoreProgram *pgm, qore_restrictions_t po, bool ec = false, const char *ecn = NULL);
 
       //! calls a function from a UserFunction pointer and returns the return value
       /** if the function does not exist, an exception is added to "xsink"

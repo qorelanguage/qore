@@ -99,12 +99,12 @@ static AbstractQoreNode *f_flush(const QoreListNode *params, ExceptionSink *xsin
 
 void init_io_functions()
 {
-   builtinFunctions.add("print", f_print);
+   builtinFunctions.add("print", f_print, QDOM_TERMINAL_IO);
    builtinFunctions.add("sprintf", f_sprintf);
-   builtinFunctions.add("printf", f_printf);
+   builtinFunctions.add("printf", f_printf, QDOM_TERMINAL_IO);
    builtinFunctions.add("f_sprintf", f_f_sprintf);
-   builtinFunctions.add("f_printf", f_f_printf);
-   builtinFunctions.add("vprintf", f_vprintf);
+   builtinFunctions.add("f_printf", f_f_printf, QDOM_TERMINAL_IO);
+   builtinFunctions.add("vprintf", f_vprintf, QDOM_TERMINAL_IO);
    builtinFunctions.add("vsprintf", f_vsprintf);
-   builtinFunctions.add("flush", f_flush);
+   builtinFunctions.add("flush", f_flush, QDOM_TERMINAL_IO);
 }

@@ -94,8 +94,8 @@ class QoreQtEventDispatcher {
       DLLLOCAL static const QoreMethod *findMethod(const QoreClass *qc, const char *n)
       {
 	 const QoreMethod *m = qc->findMethod(n);
-	 //printd(5, "findMethod() %s::%s: %s\n", qc->getName(), n, (m && m->getType() == CT_USER) ? "ok" : "x");
-	 return (m && m->getType() == CT_USER) ? m : 0;
+	 //printd(5, "findMethod() %s::%s: %s\n", qc->getName(), n, (m && m->isUser()) ? "ok" : "x");
+	 return (m && m->isUser()) ? m : 0;
       }
 
       DLLLOCAL static AbstractQoreNode *dispatch_event_intern(QoreObject *qore_obj, const QoreMethod *m, QoreClass *qclass, class AbstractPrivateData *data, class ExceptionSink *xsink)

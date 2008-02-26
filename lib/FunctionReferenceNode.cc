@@ -546,3 +546,12 @@ QoreProgram *ImportedFunctionReferenceNode::getProgram() const
 {
    return ifunc->pgm;
 }
+
+ResolvedFunctionReferenceNode::ResolvedFunctionReferenceNode(bool n_needs_eval) : AbstractFunctionReferenceNode(n_needs_eval)
+{
+}
+
+QoreProgram *ResolvedFunctionReferenceNode::getProgram() const
+{
+   return 0;
+}

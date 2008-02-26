@@ -37,6 +37,7 @@ public:
    
    DLLLOCAL inline BuiltinMethod(class QoreClass *c, const char *nme, q_method_t m) : BuiltinFunction(nme, m, QDOM_DEFAULT), myclass(c) {}
    DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
+   DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_system_constructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
    DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_destructor_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
    DLLLOCAL inline BuiltinMethod(class QoreClass *c, q_copy_t m) : BuiltinFunction(m, QDOM_DEFAULT), myclass(c) {}
    DLLLOCAL inline void deref();

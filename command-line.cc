@@ -25,7 +25,7 @@
 cl_mod_list_t cl_mod_list;
 
 // global parse_option
-int parse_options = 0;
+qore_restrictions_t parse_options = PO_DEFAULT;
 int warnings = 0;
 int qore_lib_options = QLO_NONE;
 
@@ -124,13 +124,13 @@ static void do_trace(char *arg)
 
 static void set_parse_option(char *arg)
 {
-   int code = ParseOptionMap::find_code(arg);
-   if (code == -1)
+   qore_restrictions_t code = ParseOptionMap::find_code(arg);
+   if (code == PO_INVALID)
    {
       printf("unknown parse option '%s', use -L or --list-parse-options\n", arg);
       exit(1);
    }
-   parse_options |= code;
+   parse_options = (qore_restrictions_t)(parse_options | code);
 }
 
 static void list_parse_options(char *arg)
@@ -186,92 +186,92 @@ static void list_warnings(char *arg)
 
 static void do_no_database(char *arg)
 {
-   parse_options |= PO_NO_DATABASE;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_DATABASE);
 }
 
 static void do_lock_warnings(char *arg)
 {
-   parse_options |= PO_LOCK_WARNINGS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_LOCK_WARNINGS);
 }
 
 static void do_no_global_vars(char *arg)
 {
-   parse_options |= PO_NO_GLOBAL_VARS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_GLOBAL_VARS);
 }
 
 static void do_no_subroutine_defs(char *arg)
 {
-   parse_options |= PO_NO_SUBROUTINE_DEFS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_SUBROUTINE_DEFS);
 }
 
 static void do_no_network(char *arg)
 {
-   parse_options |= PO_NO_NETWORK;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_NETWORK);
 }
 
 static void do_no_threads(char *arg)
 {
-   parse_options |= PO_NO_THREADS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_THREADS);
 }
 
 static void do_no_thread_control(char *arg)
 {
-   parse_options |= PO_NO_THREAD_CONTROL;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_THREAD_CONTROL);
 }
 
 static void do_no_thread_classes(char *arg)
 {
-   parse_options |= PO_NO_THREAD_CLASSES;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_THREAD_CLASSES);
 }
 
 static void do_no_top_level(char *arg)
 {
-   parse_options |= PO_NO_TOP_LEVEL_STATEMENTS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_TOP_LEVEL_STATEMENTS);
 }
 
 static void do_no_class_defs(char *arg)
 {
-   parse_options |= PO_NO_CLASS_DEFS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_CLASS_DEFS);
 }
 
 static void do_no_namespace_defs(char *arg)
 {
-   parse_options |= PO_NO_NAMESPACE_DEFS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_NAMESPACE_DEFS);
 }
 
 static void do_no_constant_defs(char *arg)
 {
-   parse_options |= PO_NO_CONSTANT_DEFS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_CONSTANT_DEFS);
 }
 
 static void do_no_filesystem(char *arg)
 {
-   parse_options |= PO_NO_FILESYSTEM;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_FILESYSTEM);
 }
 
 static void do_no_new(char *arg)
 {
-   parse_options |= PO_NO_NEW;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_NEW);
 }
 
 static void do_no_child_po_restrictions(char *arg)
 {
-   parse_options |= PO_NO_CHILD_PO_RESTRICTIONS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_CHILD_PO_RESTRICTIONS);
 }
 
 static void do_no_external_process(char *arg)
 {
-   parse_options |= PO_NO_EXTERNAL_PROCESS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_EXTERNAL_PROCESS);
 }
 
 static void do_no_process_control(char *arg)
 {
-   parse_options |= PO_NO_PROCESS_CONTROL;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_PROCESS_CONTROL);
 }
 
 static void do_require_our(char *arg)
 {
-   parse_options |= PO_REQUIRE_OUR;
+   parse_options = (qore_restrictions_t)(parse_options | PO_REQUIRE_OUR);
 }
 
 static void do_lock_options(char *arg)
@@ -332,7 +332,7 @@ static void do_exec_class(char *arg)
    //printf("do_exec_class(%s)\n", arg);
    exec_class = true;
    exec_class_name = arg;
-   parse_options |= PO_NO_TOP_LEVEL_STATEMENTS;
+   parse_options = (qore_restrictions_t)(parse_options | PO_NO_TOP_LEVEL_STATEMENTS);
 }
 
 #define ARG_NONE 0

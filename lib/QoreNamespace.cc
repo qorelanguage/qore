@@ -847,14 +847,7 @@ class QoreClass *QoreNamespaceList::parseFindScopedClass(class NamedScope *name,
 
 QoreObject *get_file_constant(class QoreClass *fc, int fd)
 {
-   ExceptionSink xsink;
-
-   QoreObject *rv = fc->execSystemConstructor(NULL, &xsink);
-   class File *f = (File *)rv->getReferencedPrivateData(CID_FILE, &xsink);
-   f->makeSpecial(fd);
-   f->deref();
-
-   return rv;
+   return fc->execSystemConstructor(fd);
 }
 
 // returns 0 for success, non-zero return value means error
@@ -1093,6 +1086,14 @@ AbstractQoreNode *RootQoreNamespace::findConstantValue(const char *cname, int le
    AbstractQoreNode *rv = rootFindConstantValue(cname);
    if (!rv)
       parse_error("constant '%s' cannot be resolved in any namespace", cname);
+   else {
+      // here we enforce PO_NO_TERMINAL_IO for stdin, stdout, and stderr constants
+      if (rv->getType() == NT_OBJECT && getProgram()->getParseOptions() & PO_NO_TERMINAL_IO) {
+	 QoreObject *o = reinterpret_cast<QoreObject *>(rv);
+	 if (o->isSystemObject() && o->validInstanceOf(CID_FILE))
+	    parseException("ILLEGAL-CONSTANT-ACCESS", "File I/O constants cannot be accessed with PO_NO_TERMINAL_IO");
+      }
+   }
    return rv;
 }
 
@@ -1636,9 +1637,9 @@ RootQoreNamespace::RootQoreNamespace(class QoreNamespace **QoreNS) : QoreNamespa
    qns->addConstant("False",         boolean_false());
 
    // add File object constants for stdin (0), stdout (1), stderr (2)
-   qns->addConstant("stdin",         get_file_constant(File, 0));
-   qns->addConstant("stdout",        get_file_constant(File, 1));
-   qns->addConstant("stderr",        get_file_constant(File, 2));
+   qns->addConstant("stdin",         File->execSystemConstructor(0));
+   qns->addConstant("stdout",        File->execSystemConstructor(1));
+   qns->addConstant("stderr",        File->execSystemConstructor(2));
 
    // add constants for exception types
    qns->addConstant("ET_System",     new QoreStringNode("System"));
