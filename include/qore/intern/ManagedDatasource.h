@@ -94,11 +94,11 @@ public:
    DLLLOCAL void setPendingDBName(const char *d);
    DLLLOCAL void setPendingDBEncoding(const char *c);
    DLLLOCAL void setPendingHostName(const char *h);
-   DLLLOCAL AbstractQoreNode *getPendingUsername();
-   DLLLOCAL AbstractQoreNode *getPendingPassword();
-   DLLLOCAL AbstractQoreNode *getPendingDBName();
-   DLLLOCAL AbstractQoreNode *getPendingDBEncoding();
-   DLLLOCAL AbstractQoreNode *getPendingHostName();
+   DLLLOCAL QoreStringNode *getPendingUsername();
+   DLLLOCAL QoreStringNode *getPendingPassword();
+   DLLLOCAL QoreStringNode *getPendingDBName();
+   DLLLOCAL QoreStringNode *getPendingDBEncoding();
+   DLLLOCAL QoreStringNode *getPendingHostName();
    DLLLOCAL void setTransactionLockTimeout(int t_ms);
    DLLLOCAL int getTransactionLockTimeout();
    DLLLOCAL void beginTransaction(class ExceptionSink *xsink);

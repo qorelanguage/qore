@@ -241,27 +241,27 @@ class Datasource
       //! returns the pending username for the next connection
       /** caller owns the AbstractQoreNode pointer's reference count returned
        */
-      DLLEXPORT AbstractQoreNode *getPendingUsername() const;
+      DLLEXPORT QoreStringNode *getPendingUsername() const;
 
       //! returns the pending password for the next connection
       /** caller owns the AbstractQoreNode pointer's reference count returned
        */
-      DLLEXPORT AbstractQoreNode *getPendingPassword() const;
+      DLLEXPORT QoreStringNode *getPendingPassword() const;
 
       //! returns the pending database (or schema) name for the next connection
       /** caller owns the AbstractQoreNode pointer's reference count returned
        */
-      DLLEXPORT AbstractQoreNode *getPendingDBName() const;
+      DLLEXPORT QoreStringNode *getPendingDBName() const;
 
       //! returns the pending database-specific character encoding name for the next connection
       /** caller owns the AbstractQoreNode pointer's reference count returned
        */
-      DLLEXPORT AbstractQoreNode *getPendingDBEncoding() const;
+      DLLEXPORT QoreStringNode *getPendingDBEncoding() const;
 
       //! returns the pending host name for the next connection
       /** caller owns the AbstractQoreNode pointer's reference count returned
        */
-      DLLEXPORT AbstractQoreNode *getPendingHostName() const;
+      DLLEXPORT QoreStringNode *getPendingHostName() const;
 
       /** sets the "in_transaction" flag to true if autocommit is not set
 	  throws an exception if autocommit is true

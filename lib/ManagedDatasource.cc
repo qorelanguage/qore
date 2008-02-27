@@ -485,31 +485,31 @@ void ManagedDatasource::setPendingHostName(const char *h)
    Datasource::setPendingHostName(h);
 }
 
-AbstractQoreNode *ManagedDatasource::getPendingUsername()
+QoreStringNode *ManagedDatasource::getPendingUsername()
 {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingUsername();
 }
 
-AbstractQoreNode *ManagedDatasource::getPendingPassword()
+QoreStringNode *ManagedDatasource::getPendingPassword()
 {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingPassword();
 }
 
-AbstractQoreNode *ManagedDatasource::getPendingDBName()
+QoreStringNode *ManagedDatasource::getPendingDBName()
 {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingDBName();
 }
 
-AbstractQoreNode *ManagedDatasource::getPendingDBEncoding()
+QoreStringNode *ManagedDatasource::getPendingDBEncoding()
 {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingDBEncoding();
 }
 
-AbstractQoreNode *ManagedDatasource::getPendingHostName()
+QoreStringNode *ManagedDatasource::getPendingHostName()
 {
    AutoLocker al(&ds_lock);
    return Datasource::getPendingHostName();

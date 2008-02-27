@@ -412,27 +412,27 @@ int DatasourcePool::getMax() const
    return max; 
 }
 
-AbstractQoreNode *DatasourcePool::getPendingUsername() const
+QoreStringNode *DatasourcePool::getPendingUsername() const
 {
    return pool[0]->getPendingUsername();
 }
 
-AbstractQoreNode *DatasourcePool::getPendingPassword() const
+QoreStringNode *DatasourcePool::getPendingPassword() const
 {
    return pool[0]->getPendingPassword();
 }
 
-AbstractQoreNode *DatasourcePool::getPendingDBName() const
+QoreStringNode *DatasourcePool::getPendingDBName() const
 {
    return pool[0]->getPendingDBName();
 }
 
-AbstractQoreNode *DatasourcePool::getPendingDBEncoding() const
+QoreStringNode *DatasourcePool::getPendingDBEncoding() const
 {
    return pool[0]->getPendingDBEncoding();
 }
 
-AbstractQoreNode *DatasourcePool::getPendingHostName() const
+QoreStringNode *DatasourcePool::getPendingHostName() const
 {
    return pool[0]->getPendingHostName();
 }

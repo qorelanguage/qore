@@ -64,7 +64,7 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
       void resetSQL();
 #endif
 
-      DLLLOCAL class Datasource *getDS(bool &new_ds, class ExceptionSink *xsink);
+      DLLLOCAL class Datasource *getDS(bool &new_ds, ExceptionSink *xsink);
       DLLLOCAL void freeDS();
       
    public:
@@ -73,35 +73,35 @@ class DatasourcePool : public AbstractThreadResource, public QoreCondition, publ
 #endif
 
       // min must be 1 or more, max must be greater than min
-      DLLLOCAL DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, class ExceptionSink *xsink);
+      DLLLOCAL DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, ExceptionSink *xsink);
       DLLLOCAL virtual ~DatasourcePool();
-      DLLLOCAL void destructor(class ExceptionSink *xsink);
-      DLLLOCAL virtual void cleanup(class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode *select(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode *selectRow(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode *selectRows(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
-      DLLLOCAL int beginTransaction(class ExceptionSink *xsink);
-      DLLLOCAL class AbstractQoreNode *exec(const QoreString *sql, const QoreListNode *args, class ExceptionSink *xsink);
-      DLLLOCAL int commit(class ExceptionSink *xsink);
-      DLLLOCAL int rollback(class ExceptionSink *xsink);
+      DLLLOCAL void destructor(ExceptionSink *xsink);
+      DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *select(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *selectRows(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
+      DLLLOCAL int beginTransaction(ExceptionSink *xsink);
+      DLLLOCAL AbstractQoreNode *exec(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
+      DLLLOCAL int commit(ExceptionSink *xsink);
+      DLLLOCAL int rollback(ExceptionSink *xsink);
       DLLLOCAL class QoreStringNode *toString();
       DLLLOCAL int getMin() const;
       DLLLOCAL int getMax() const;
-      DLLLOCAL class AbstractQoreNode *getPendingUsername() const;
-      DLLLOCAL class AbstractQoreNode *getPendingPassword() const;
-      DLLLOCAL class AbstractQoreNode *getPendingDBName() const;
-      DLLLOCAL class AbstractQoreNode *getPendingDBEncoding() const;
-      DLLLOCAL class AbstractQoreNode *getPendingHostName() const;
+      DLLLOCAL QoreStringNode *getPendingUsername() const;
+      DLLLOCAL QoreStringNode *getPendingPassword() const;
+      DLLLOCAL QoreStringNode *getPendingDBName() const;
+      DLLLOCAL QoreStringNode *getPendingDBEncoding() const;
+      DLLLOCAL QoreStringNode *getPendingHostName() const;
       DLLLOCAL const class QoreEncoding *getQoreEncoding() const;
       DLLLOCAL const char *getDriverName () const
       {
 	 return pool[0]->getDriverName();
       }
-      DLLLOCAL class AbstractQoreNode *getServerVersion(class ExceptionSink *xsink)
+      DLLLOCAL AbstractQoreNode *getServerVersion(ExceptionSink *xsink)
       {
 	 return pool[0]->getServerVersion(xsink);
       }
-      DLLLOCAL class AbstractQoreNode *getClientVersion(class ExceptionSink *xsink)
+      DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink)
       {
 	 return pool[0]->getClientVersion(xsink);
       }

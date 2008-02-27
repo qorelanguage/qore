@@ -359,27 +359,27 @@ void Datasource::setQoreEncoding(const QoreEncoding *enc)
    priv->qorecharset = enc;
 }
 
-AbstractQoreNode *Datasource::getPendingUsername() const
+QoreStringNode *Datasource::getPendingUsername() const
 {
    return priv->p_username.empty() ? NULL : new QoreStringNode(priv->p_username.c_str());
 }
 
-AbstractQoreNode *Datasource::getPendingPassword() const
+QoreStringNode *Datasource::getPendingPassword() const
 {
    return priv->p_password.empty() ? NULL : new QoreStringNode(priv->p_password.c_str());
 }
 
-AbstractQoreNode *Datasource::getPendingDBName() const
+QoreStringNode *Datasource::getPendingDBName() const
 {
    return priv->p_dbname.empty() ? NULL : new QoreStringNode(priv->p_dbname.c_str());
 }
 
-AbstractQoreNode *Datasource::getPendingDBEncoding() const
+QoreStringNode *Datasource::getPendingDBEncoding() const
 {
    return priv->p_db_encoding.empty() ? NULL : new QoreStringNode(priv->p_db_encoding.c_str());
 }
 
-AbstractQoreNode *Datasource::getPendingHostName() const
+QoreStringNode *Datasource::getPendingHostName() const
 {
    return priv->p_hostname.empty() ? NULL : new QoreStringNode(priv->p_hostname.c_str());
 }
