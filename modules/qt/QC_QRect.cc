@@ -805,8 +805,6 @@ class QoreClass *initQRectClass()
    QC_QRect->addMethod("topLeft",                     (q_method_t)QRECT_topLeft);
    QC_QRect->addMethod("topRight",                    (q_method_t)QRECT_topRight);
    QC_QRect->addMethod("translate",                   (q_method_t)QRECT_translate);
-   QC_QRect->addMethod("translate",                   (q_method_t)QRECT_translate);
-   QC_QRect->addMethod("translated",                  (q_method_t)QRECT_translated);
    QC_QRect->addMethod("translated",                  (q_method_t)QRECT_translated);
    QC_QRect->addMethod("united",                      (q_method_t)QRECT_united);
    QC_QRect->addMethod("width",                       (q_method_t)QRECT_width);

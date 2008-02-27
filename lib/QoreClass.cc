@@ -1156,7 +1156,12 @@ class QoreClass *QoreClass::copyAndDeref()
 inline void QoreClass::insertMethod(QoreMethod *m)
 {
    //printd(5, "QoreClass::insertMethod() %s::%s() size=%d\n", priv->name, m->getName(), numMethods());
-   assert(!priv->hm[m->getName()]);
+#ifdef DEBUG
+   if (priv->hm[m->getName()]) {
+      printd(0, "ERROR: '%s::%s()' inserted twice!\n", priv->name, m->getName());
+      assert(false);
+   }
+#endif
    priv->hm[m->getName()] = m;
 }      
 

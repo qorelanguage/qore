@@ -645,7 +645,6 @@ class QoreClass *initQColorClass()
    QC_QColor->addMethod("setRed",                      (q_method_t)QCOLOR_setRed);
    QC_QColor->addMethod("setRedF",                     (q_method_t)QCOLOR_setRedF);
    QC_QColor->addMethod("setRgb",                      (q_method_t)QCOLOR_setRgb);
-   QC_QColor->addMethod("setRgb",                      (q_method_t)QCOLOR_setRgb);
    QC_QColor->addMethod("setRgbF",                     (q_method_t)QCOLOR_setRgbF);
    QC_QColor->addMethod("setRgba",                     (q_method_t)QCOLOR_setRgba);
    //QC_QColor->addMethod("spec",                        (q_method_t)QCOLOR_spec);

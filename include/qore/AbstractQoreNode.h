@@ -394,32 +394,32 @@ class SimpleValueQoreNode : public SimpleQoreNode
       //! should never be called for value types
       /** in debugging builds of the library, calls to this function will abort 
        */
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+      DLLEXPORT virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
 
       //! should never be called for value types
       /** in debugging builds of the library, calls to this function will abort 
        */
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+      DLLEXPORT virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
       //! should never be called for value types
       /** in debugging builds of the library, calls to this function will abort 
        */
-      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+      DLLEXPORT virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
 
       //! should never be called for value types
       /** in debugging builds of the library, calls to this function will abort 
        */
-      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+      DLLEXPORT virtual int integerEvalImpl(ExceptionSink *xsink) const;
 
       //! should never be called for value types
       /** in debugging builds of the library, calls to this function will abort 
        */
-      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+      DLLEXPORT virtual bool boolEvalImpl(ExceptionSink *xsink) const;
 
       //! should never be called for value types
       /** in debugging builds of the library, calls to this function will abort 
        */
-      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+      DLLEXPORT virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
    public:
       //! creates the object by assigning the type code and setting the "value" flag, unsetting the "needs_eval" flag, and setting "there_can_be_only_one"

@@ -2621,9 +2621,6 @@ class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpa
    QC_QWidget->setConstructor(QWIDGET_constructor);
    QC_QWidget->setCopy((q_copy_t)QWIDGET_copy);
 
-   // add methods for slots
-   QC_QWidget->addMethod("show",              (q_method_t)QWIDGET_show);
-
    QC_QWidget->addMethod("acceptDrops",                  (q_method_t)QWIDGET_acceptDrops);
    QC_QWidget->addMethod("accessibleDescription",        (q_method_t)QWIDGET_accessibleDescription);
    QC_QWidget->addMethod("accessibleName",               (q_method_t)QWIDGET_accessibleName);
