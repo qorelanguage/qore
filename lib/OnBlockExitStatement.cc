@@ -40,7 +40,7 @@ int OnBlockExitStatement::execImpl(AbstractQoreNode **return_value, ExceptionSin
    return 0;
 }
 
-int OnBlockExitStatement::parseInitImpl(lvh_t oflag, int pflag)
+int OnBlockExitStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    if (code)
       code->parseInitImpl(oflag, pflag);

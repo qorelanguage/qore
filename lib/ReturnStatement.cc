@@ -42,7 +42,7 @@ int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
    return RC_RETURN;
 }
 
-int ReturnStatement::parseInitImpl(lvh_t oflag, int pflag)
+int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    return exp ? process_node(&exp, oflag, pflag) : 0;
 }

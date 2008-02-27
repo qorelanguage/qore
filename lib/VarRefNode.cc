@@ -64,7 +64,7 @@ const char *VarRefNode::getTypeName() const
 
 void VarRefNode::resolve()
 {
-   lvh_t id;
+   LocalVar *id;
    if ((id = find_local_var(name)))
    {
       type = VT_LOCAL;
@@ -73,7 +73,7 @@ void VarRefNode::resolve()
    }
    else
    {
-      ref.var = getProgram()->checkVar(name);
+      ref.var = getProgram()->checkGlobalVar(name);
       type = VT_GLOBAL;
       printd(5, "VarRefNode::resolve(): global var %s resolved (var=%08p)\n", name, ref.var);
    }
@@ -82,7 +82,7 @@ void VarRefNode::resolve()
 // returns 0 for OK, 1 for would be a new variable
 int VarRefNode::resolveExisting()
 {
-   lvh_t id;
+   LocalVar *id;
    if ((id = find_local_var(name)))
    {
       type = VT_LOCAL;
@@ -91,7 +91,7 @@ int VarRefNode::resolveExisting()
       return 0;
    }
    
-   ref.var = getProgram()->findVar(name);
+   ref.var = getProgram()->findGlobalVar(name);
    type = VT_GLOBAL;
    printd(5, "VarRefNode::resolveExisting(): global var %s resolved (var=%08p)\n", name, ref.var);
    return !ref.var;
@@ -102,7 +102,7 @@ AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const
    if (type == VT_LOCAL)
    {
       printd(5, "VarRefNode::eval() lvar %08p (%s)\n", ref.id, ref.id);
-      return find_lvar(ref.id)->eval(xsink);
+      return ref.id->eval(xsink);
    }
    printd(5, "VarRefNode::eval() global var=%08p\n", ref.var);
    return ref.var->eval(xsink);
@@ -111,7 +111,7 @@ AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const
 AbstractQoreNode *VarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL)
-      return find_lvar(ref.id)->eval(needs_deref, xsink);
+      return ref.id->eval(needs_deref, xsink);
    needs_deref = true;
    return ref.var->eval(xsink);
 }
@@ -143,21 +143,21 @@ double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const
 AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL)
-      return find_lvar(ref.id)->getValuePtr(vl, xsink);
+      return ref.id->getValuePtr(vl, xsink);
    return ref.var->getValuePtr(vl, xsink);
 }
 
 AbstractQoreNode *VarRefNode::getValue(AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (type == VT_LOCAL)
-      return find_lvar(ref.id)->getValue(vl, xsink);
+      return ref.id->getValue(vl, xsink);
    return ref.var->getValue(vl, xsink);
 }
 
 void VarRefNode::setValue(AbstractQoreNode *val, ExceptionSink *xsink)
 {
    if (type == VT_LOCAL)
-      find_lvar(ref.id)->setValue(val, xsink);
+      ref.id->setValue(val, xsink);
    else
       ref.var->setValue(val, xsink);
 }

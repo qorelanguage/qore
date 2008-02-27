@@ -33,7 +33,7 @@ class BreakStatement : public AbstractStatement
       {
 	 return RC_BREAK;
       }
-      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0)
+      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0)
       {
 	 return 0;
       }

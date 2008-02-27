@@ -1,3 +1,6 @@
+2008.02.27: David Nichols
+	* implemented new local variable handling for performance reasons
+
 2008.02.26: David Nichols
 	* implemented PO_TERMINAL_IO restriction to prohibit terminal I/O
 	* started changing defines to enums and documenting them

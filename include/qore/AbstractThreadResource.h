@@ -31,8 +31,9 @@
     call the object's "cleanup()" function if the resource is still allocated to the thread when the
     thread terminates.  For example, the Datasource transaction lock is implemented as a thread resource.
     If the used does not commit or rollback an open transaction before the thread terminates,
-    Datasource::cleanup() is run, which will throw an exception, rollback the transaction, and release the
-    transaction lock.  When a thread commits or rolls back a transaction, the thread resource is removed.
+    ManagedDatasource::cleanup() is run, which will throw an exception, rollback the transaction, and 
+    release the transaction lock.  When a thread commits or rolls back a transaction, the thread resource
+    is removed.
     Use the ThreadResourceList class to set and remove thread resources.
     @see ThreadResourceList
  */

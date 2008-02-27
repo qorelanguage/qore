@@ -39,39 +39,43 @@
 // parse context stack
 class CVNode 
 {
-public:
-   char *name;
-   class CVNode *next;
-   
-   DLLLOCAL CVNode(char *n) { name = n; }
+   public:
+      char *name;
+      CVNode *next;
+      
+      DLLLOCAL CVNode(char *n) { name = n; }
 };
 
 // parse variable stack
 class VNode {
-public:
-   char *name;
-   class VNode *next;
-   
-   DLLLOCAL VNode(char *nme) { name = nme; }
+   public:
+      LocalVar *lvar;
+      VNode *next;
+      
+      DLLLOCAL VNode(LocalVar *lv) : lvar(lv) { }
+      DLLLOCAL const char *getName() const { return lvar->getName(); }
 };
+
+typedef LocalVar *lvar_ptr_t;
 
 LVList::LVList(int num)
 {
    if (num) {
-      ids = new lvh_t[num];
+      lv = new lvar_ptr_t[num];
       // pop variables off stack and save in reverse order
       for (int i = num - 1; i >= 0; --i)
-	 ids[i] = pop_local_var();
+	 lv[i] = pop_local_var();
    }
    else
-      ids = 0;
+      lv = 0;
+
    num_lvars = num;
 }
 
 LVList::~LVList()
 {
-   if (ids)
-      delete [] ids;
+   if (lv)
+      delete [] lv;
 }
 
 AbstractQoreNode *StatementBlock::exec(ExceptionSink *xsink)
@@ -119,7 +123,7 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
    int rc = 0;
    // instantiate local variables
    for (int i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+      lvars->lv[i]->instantiate(0);
 
    assert(xsink);
 
@@ -153,7 +157,8 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 
    // delete all variables local to this block
    for (int i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
+      lvars->lv[i]->uninstantiate(xsink);
+
    traceout("StatementBlock::execImpl()");
    return rc;
 }
@@ -179,17 +184,21 @@ void pop_cvar()
    delete cvn;
 }
 
-lvh_t push_local_var(char *name)
+LocalVar *push_local_var(char *name)
 {
    class VNode *vnode;
 
+   QoreProgram *pgm = getProgram();
+
+   LocalVar *lv = pgm->createLocalVar(name);
+  
    // check stack for duplicate entries
-   if (getProgram()->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS))
+   if (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS))
    {
       vnode = getVStack();
       while (vnode)
       {
-	 if (!strcmp(vnode->name, name))
+	 if (!strcmp(vnode->getName(), name))
 	 {
 	    getProgram()->makeParseWarning(QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
 	    break;
@@ -199,39 +208,39 @@ lvh_t push_local_var(char *name)
    }
    
    //printd(5, "push_local_var(): pushing var %s\n", name);
-   vnode = new class VNode(name);
+   vnode = new class VNode(lv);
    vnode->next = getVStack();
    updateVStack(vnode);
-   return vnode->name;
+   return lv;
 }
 
-lvh_t pop_local_var()
+LocalVar *pop_local_var()
 {
    class VNode *vnode = getVStack();
-   lvh_t rc = vnode->name;
+   LocalVar *rc = vnode->lvar;
 
    assert(vnode);
-   printd(5, "pop_local_var(): popping var %s\n", vnode->name);
+   printd(5, "pop_local_var(): popping var %s\n", rc->getName());
    updateVStack(vnode->next);
    delete vnode;
    return rc;
 }
 
-lvh_t find_local_var(char *name)
+LocalVar *find_local_var(char *name)
 {
    class VNode *vnode = getVStack();
 
    while (vnode)
    {
-      if (!strcmp(vnode->name, name))
-	 return vnode->name;
+      if (!strcmp(vnode->getName(), name))
+	 return vnode->lvar;
       vnode = vnode->next;
    }
    return 0;
 }
 
 // checks for illegal $self assignments in an object context
-static inline void checkSelf(AbstractQoreNode *n, lvh_t selfid)
+static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid)
 {
    // if it's a variable reference
    qore_type_t ntype = n->getType();
@@ -286,7 +295,7 @@ static inline int getBaseLVType(AbstractQoreNode *n)
    }
 }
 
-int process_list_node_intern(QoreListNode *l, lvh_t oflag, int pflag)
+int process_list_node_intern(QoreListNode *l, LocalVar *oflag, int pflag)
 {
    int lvids = 0;
 
@@ -297,7 +306,7 @@ int process_list_node_intern(QoreListNode *l, lvh_t oflag, int pflag)
 }
 
 // this function will put variables on the local stack but will not pop them
-int process_list_node(QoreListNode **node, lvh_t oflag, int pflag)
+int process_list_node(QoreListNode **node, LocalVar *oflag, int pflag)
 {
    if (!(*node))
       return 0;
@@ -307,7 +316,7 @@ int process_list_node(QoreListNode **node, lvh_t oflag, int pflag)
 }
 
 // this function will put variables on the local stack but will not pop them
-int process_node(AbstractQoreNode **node, lvh_t oflag, int pflag)
+int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 {
    int lvids = 0, i;
    int current_pflag = pflag;
@@ -355,7 +364,7 @@ int process_node(AbstractQoreNode **node, lvh_t oflag, int pflag)
 	 //printd(5, "process_node(): local var %s declared (id=%08p)\n", v->name, v->ref.id);
       }
       else if (v->type == VT_GLOBAL)
-	 v->ref.var = getProgram()->createVar(v->name);
+	 v->ref.var = getProgram()->createGlobalVar(v->name);
       else // otherwise reference must be resolved
 	 v->resolve();
 
@@ -577,7 +586,7 @@ int process_node(AbstractQoreNode **node, lvh_t oflag, int pflag)
    return lvids;
 }
 
-int StatementBlock::parseInitImpl(lvh_t oflag, int pflag)
+int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
 
@@ -608,9 +617,9 @@ void StatementBlock::parseInit(class Paramlist *params)
 {
    tracein("StatementBlock::parseInit()");
    if (params->num_params)
-      params->ids = new lvh_t[params->num_params];
+      params->lv = new lvar_ptr_t[params->num_params];
    else
-      params->ids = NULL;
+      params->lv = NULL;
 
    // push $argv var on stack and save id
    params->argvid = push_local_var("argv");
@@ -619,14 +628,14 @@ void StatementBlock::parseInit(class Paramlist *params)
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++)
    {
-      params->ids[i] = push_local_var(params->names[i]);
+      params->lv[i] = push_local_var(params->names[i]);
       printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", 
-	     params->names[i], params->ids[i]);
+	     params->names[i], params->lv[i]);
    }
 
    // initialize code block
    if (this)
-      parseInitImpl((lvh_t)NULL);
+      parseInitImpl(0);
 
    // pop local param vars from stack
    for (int i = 0; i < params->num_params; i++)
@@ -643,14 +652,14 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
 {
    tracein("StatementBlock::parseInit()");
    if (params->num_params)
-      params->ids = new lvh_t[params->num_params];
+      params->lv = new lvar_ptr_t[params->num_params];
    else
-      params->ids = NULL;
+      params->lv = NULL;
 
    // this is a constructor method, push local $self variable
    params->selfid = push_local_var("self");
    // set oflag to selfid
-   lvh_t oflag = params->selfid;
+   LocalVar *oflag = params->selfid;
 
    // push $argv var on stack and save id
    params->argvid = push_local_var("argv");
@@ -659,9 +668,9 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
    // init param ids and push local param vars on stack
    for (int i = 0; i < params->num_params; i++)
    {
-      params->ids[i] = push_local_var(params->names[i]);
+      params->lv[i] = push_local_var(params->names[i]);
       printd(3, "StatementBlock::parseInit() reg. local var %s (id=%08p)\n", 
-	     params->names[i], params->ids[i]);
+	     params->names[i], params->lv[i]);
    }
 
    // initialize base constructor arguments

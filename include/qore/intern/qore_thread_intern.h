@@ -61,11 +61,6 @@ DLLLOCAL void catchSaveException(class QoreException *e);
 DLLLOCAL class QoreException *catchGetException();
 DLLLOCAL class VLock *getVLock();
 
-DLLLOCAL class LVar *thread_instantiate_lvar(lvh_t id, AbstractQoreNode *value);
-DLLLOCAL class LVar *thread_instantiate_lvar(lvh_t id, AbstractQoreNode *ve, QoreObject *o);
-DLLLOCAL void thread_uninstantiate_lvar(class ExceptionSink *xsink);
-DLLLOCAL class LVar *thread_find_lvar(lvh_t id);
-
 #ifdef DEBUG
 DLLLOCAL void pushCall(class CallNode *cn);
 DLLLOCAL void popCall(class ExceptionSink *xsink);
@@ -135,10 +130,10 @@ class ProgramContextHelper {
 
 class ArgvContextHelper {
    private:
-      lvh_t old_argvid;
+      LocalVar *old_argvid;
    
    public:
-      DLLLOCAL ArgvContextHelper(lvh_t argvid);
+      DLLLOCAL ArgvContextHelper(LocalVar *argvid);
       DLLLOCAL ~ArgvContextHelper();
 };
 
@@ -170,5 +165,7 @@ DLLLOCAL class QoreNamespace *get_thread_ns();
 DLLLOCAL void delete_qore_threads();
 DLLLOCAL class QoreListNode *get_thread_list();
 DLLLOCAL class QoreHashNode *getAllCallStacks();
+DLLLOCAL class LocalVarValue *thread_instantiate_lvar();
+DLLLOCAL void thread_uninstantiate_lvar();
 
 #endif

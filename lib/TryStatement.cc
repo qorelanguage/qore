@@ -70,13 +70,13 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
 	 catchSaveException(except);
 	 
 	 if (param)	 // instantiate exception information parameter
-	    instantiateLVar(id, except->makeExceptionObject());
+	    id->instantiate(except->makeExceptionObject());
 	 
 	 rc = catch_block->execImpl(&trv, xsink);
 	 
 	 // uninstantiate extra args
 	 if (param)
-	    uninstantiateLVar(xsink);
+	    id->uninstantiate(xsink);
       }
       else
 	 rc = 0;
@@ -100,7 +100,7 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
    return rc;
 }
 
-int TryStatement::parseInitImpl(lvh_t oflag, int pflag)
+int TryStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    if (try_block)
       try_block->parseInitImpl(oflag, pflag);

@@ -71,7 +71,7 @@ class AbstractParseObjectMethodReferenceNode : public ParseNode
 	 return "object method reference";
       }
 
-      DLLLOCAL virtual int parseInit(lvh_t oflag, int pflag) = 0;
+      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag) = 0;
 };
 
 class ParseObjectMethodReferenceNode : public AbstractParseObjectMethodReferenceNode
@@ -99,7 +99,7 @@ class ParseObjectMethodReferenceNode : public AbstractParseObjectMethodReference
    
    public:
       DLLLOCAL ParseObjectMethodReferenceNode(AbstractQoreNode *n_exp, char *n_method);
-      DLLLOCAL virtual int parseInit(lvh_t oflag, int pflag);
+      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag);
 };
 
 class ParseSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode
@@ -126,7 +126,7 @@ class ParseSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNo
 
    public:
       DLLLOCAL ParseSelfMethodReferenceNode(char *n_method);
-      DLLLOCAL virtual int parseInit(lvh_t oflag, int pflag);
+      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag);
 };
 
 class ParseScopedSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode
@@ -154,7 +154,7 @@ class ParseScopedSelfMethodReferenceNode : public AbstractParseObjectMethodRefer
 
    public:
       DLLLOCAL ParseScopedSelfMethodReferenceNode(NamedScope *n_nscope);
-      DLLLOCAL virtual int parseInit(lvh_t oflag, int pflag);
+      DLLLOCAL virtual int parseInit(LocalVar *oflag, int pflag);
 };
 
 #endif

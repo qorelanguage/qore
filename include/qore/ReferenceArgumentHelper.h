@@ -58,11 +58,10 @@ class ReferenceArgumentHelper {
    public:
       //! creates the fake local variable with name "name", assigns value "val" to it, and creates a reference to the local variable
       /**
-	 @param name the name of the local variable, any arbitrary name is OK, must be unique within the argument list to be populated
 	 @param val the value to assign to the local variable
 	 @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
        */
-      DLLEXPORT ReferenceArgumentHelper(const char *name, AbstractQoreNode *val, ExceptionSink *xsink);
+      DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode *val, ExceptionSink *xsink);
 
       //! frees all memory still managed by the object
       DLLEXPORT ~ReferenceArgumentHelper();

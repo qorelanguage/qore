@@ -226,7 +226,7 @@ static AbstractQoreNode *PROGRAM_importGlobalVariable(QoreObject *self, QoreProg
    else
       readonly = false;
       
-   class Var *var = getProgram()->findVar(p0->getBuffer());
+   class Var *var = getProgram()->findGlobalVar(p0->getBuffer());
    if (var)
       p->importGlobalVariable(var, xsink, readonly);
    else

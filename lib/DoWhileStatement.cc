@@ -26,12 +26,10 @@
 
 int DoWhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   int i, rc = 0;
+   int rc = 0;
    
-   tracein("WhileStatement::execDoWhile()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
    do
    {
@@ -46,16 +44,12 @@ int DoWhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
 	 rc = 0;
    } while (cond->boolEval(xsink) && !xsink->isEvent());
    
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("DoWhileStatement::execImpl()");
    return rc;
 }
 
 /* do ... while statements can have variables local to the statement
  * however, it doesn't do much good :-) */
-int DoWhileStatement::parseInitImpl(lvh_t oflag, int pflag)
+int DoWhileStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
    

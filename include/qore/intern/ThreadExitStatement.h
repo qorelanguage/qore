@@ -34,7 +34,7 @@ class ThreadExitStatement : public AbstractStatement
 	 xsink->raiseThreadExit();
 	 return 0;
       }
-      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0)
+      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0)
       {
 	 return 0;
       }

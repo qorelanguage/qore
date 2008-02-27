@@ -82,6 +82,7 @@ noinst_HEADERS = \
 	include/qore/intern/inline_printf.h \
 	include/qore/intern/VRMutex.h \
 	include/qore/intern/Variable.h \
+	include/qore/intern/LocalVar.h \
 	include/qore/intern/ModuleInfo.h \
 	include/qore/intern/UserFunctionList.h \
 	include/qore/intern/TypeConstants.h \

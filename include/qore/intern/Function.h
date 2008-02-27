@@ -82,13 +82,15 @@ class BuiltinFunction
       DLLLOCAL const char *getName() const { return name; }
 };
 
+class LocalVar;
+
 class Paramlist {
    public:
       int num_params;
       char **names;
-      lvh_t *ids;
-      lvh_t argvid;
-      lvh_t selfid;
+      LocalVar **lv;
+      LocalVar *argvid;
+      LocalVar *selfid;
 
       DLLLOCAL Paramlist(class AbstractQoreNode *params);
       DLLLOCAL ~Paramlist();

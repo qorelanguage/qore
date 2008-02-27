@@ -25,24 +25,23 @@
 #include "ReferenceArgumentHelper.h"
 
 struct lvih_intern {
-      LVar *lv;
+      LocalVar lv;
       ExceptionSink *xsink;
       ReferenceNode *ref;
 
-      DLLLOCAL lvih_intern(const char *name, AbstractQoreNode *val, ExceptionSink *xs) : xsink(xs)
+      DLLLOCAL lvih_intern(AbstractQoreNode *val, ExceptionSink *xs) : lv("ref_arg_helper"), xsink(xs)
       {
-	 char *new_name = strdup(name);
-	 printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating '%s' %08p (val=%08p type='%s') \n", new_name, new_name, val, val ? val->getTypeName() : "n/a");
-	 lv = instantiateLVar(new_name, val);
-	 VarRefNode *vr = new VarRefNode(new_name, VT_LOCAL);
-	 vr->ref.id = new_name;
+	 printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating %08p (val=%08p type='%s') \n", &lv, val, val ? val->getTypeName() : "n/a");
+	 lv.instantiate(val);
+	 VarRefNode *vr = new VarRefNode("ref_arg_helper", VT_LOCAL);
+	 vr->ref.id = &lv;
 	 ref = new ReferenceNode(vr);
       }
 
       DLLLOCAL ~lvih_intern()
       {
 	 ref->deref();
-	 uninstantiateLVar(xsink);
+	 lv.uninstantiate(xsink);
       }
 
       DLLLOCAL AbstractQoreNode *getOutputValue()
@@ -71,7 +70,7 @@ struct lvih_intern {
       }
 };
 
-ReferenceArgumentHelper::ReferenceArgumentHelper(const char *name, AbstractQoreNode *val, ExceptionSink *xsink) : priv(new lvih_intern(name, val, xsink))
+ReferenceArgumentHelper::ReferenceArgumentHelper(AbstractQoreNode *val, ExceptionSink *xsink) : priv(new lvih_intern(val, xsink))
 {
 }
 

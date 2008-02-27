@@ -30,6 +30,7 @@
 #include <qore/intern/UserFunctionList.h>
 #include <qore/intern/GlobalVariableList.h>
 #include <qore/intern/ImportedFunctionList.h>
+#include <qore/intern/LocalVar.h>
 
 #include <string>
 #include <set>
@@ -69,10 +70,27 @@ class SBNode {
       DLLLOCAL void reset();
 };
 
+// local variable container
+typedef safe_dslist<LocalVar *> local_var_list_t;
+class LocalVariableList : public local_var_list_t
+{
+   public:
+      DLLLOCAL LocalVariableList()
+      {
+      }
+
+      DLLLOCAL ~LocalVariableList()
+      {
+	 for (local_var_list_t::iterator i = begin(), e = end(); i != e; ++i)
+	    delete *i;
+      }
+};
+
 struct qore_program_private {
       UserFunctionList user_func_list;
       ImportedFunctionList imported_func_list;
       GlobalVariableList global_var_list;
+      LocalVariableList local_var_list;
 
       // for the thread counter
       QoreCounter tcount;
@@ -336,12 +354,12 @@ void QoreProgram::del(ExceptionSink *xsink)
    }
 }
 
-class Var *QoreProgram::findVar(const char *name)
+class Var *QoreProgram::findGlobalVar(const char *name)
 {
    return priv->global_var_list.findVar(name);
 }
 
-class Var *QoreProgram::checkVar(const char *name)
+class Var *QoreProgram::checkGlobalVar(const char *name)
 {
    int new_var = 0;
    class Var *rv = priv->global_var_list.checkVar(name, &new_var);
@@ -360,7 +378,7 @@ class Var *QoreProgram::checkVar(const char *name)
    return rv;
 }
 
-class Var *QoreProgram::createVar(const char *name)
+Var *QoreProgram::createGlobalVar(const char *name)
 {
    int new_var = 0;
    class Var *rv = priv->global_var_list.checkVar(name, &new_var);
@@ -371,6 +389,13 @@ class Var *QoreProgram::createVar(const char *name)
    printd(5, "QoreProgram::createVar() global var '%s' processed, new_var=%d (val=%08p)\n", name, new_var, rv);
 
    return rv;
+}
+
+LocalVar *QoreProgram::createLocalVar(const char *name)
+{
+   LocalVar *lv = new LocalVar(name);
+   priv->local_var_list.push_back(lv);
+   return lv;
 }
 
 // if this global variable definition is illegal, then
@@ -1017,7 +1042,7 @@ void QoreProgram::internParseCommit()
 
       // initialize new statements second (for $our declarations)
       if (priv->sb_tail->statements)
-	 priv->sb_tail->statements->parseInitImpl((lvh_t)0);
+	 priv->sb_tail->statements->parseInitImpl(0);
 
       printd(5, "QoreProgram::internParseCommit() this=%08p priv->RootNS=%08p\n", this, priv->RootNS);
       // initialize new objects, etc in namespaces

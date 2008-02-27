@@ -32,7 +32,7 @@ class ReturnStatement : public AbstractStatement
       class AbstractQoreNode *exp;
 
       DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
+      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
    public:
       DLLLOCAL ReturnStatement(int start_line, int end_line, class AbstractQoreNode *v = NULL);

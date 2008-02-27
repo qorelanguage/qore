@@ -46,12 +46,10 @@ IfStatement::~IfStatement()
 // only executed by Statement::exec()
 int IfStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   int i, rc = 0;
+   int rc = 0;
    
-   tracein("IfStatement::exec()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
    if (cond->boolEval(xsink))
    {
@@ -61,14 +59,10 @@ int IfStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
    else if (else_code)
       rc = else_code->execImpl(return_value, xsink);
    
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("IfStatement::exec()");
    return rc;
 }
 
-int IfStatement::parseInitImpl(lvh_t oflag, int pflag)
+int IfStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
    

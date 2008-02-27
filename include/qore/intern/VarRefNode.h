@@ -49,7 +49,7 @@ class VarRefNode : public ParseNode
       char *name;
       int type;
       union var_u {
-	    lvh_t id;          // for local variables
+	    class LocalVar *id;          // for local variables
 	    class Var *var;    // for global variables
       } ref;
 
@@ -60,6 +60,7 @@ class VarRefNode : public ParseNode
       // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
       // returns -1 for exception raised, 0 = OK
       DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+
       // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
       DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
@@ -67,6 +68,7 @@ class VarRefNode : public ParseNode
       DLLLOCAL virtual const char *getTypeName() const;
 
       DLLLOCAL void resolve();
+
       // returns -1 if the variable did not already exist
       DLLLOCAL int resolveExisting();
 

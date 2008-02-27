@@ -34,10 +34,28 @@
 class LVList {
    public:
       int num_lvars;
-      lvh_t *ids;
+      LocalVar **lv;
       
       DLLLOCAL LVList(int num);
       DLLLOCAL ~LVList();
+};
+
+class LVListInstantiator {
+      LVList *l;
+      ExceptionSink *xsink;
+
+   public:
+      DLLLOCAL LVListInstantiator(LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs)
+      {
+	 for (int i = 0; i < l->num_lvars; ++i)
+	    l->lv[i]->instantiate(0);
+      }
+      
+      DLLLOCAL ~LVListInstantiator()
+      {
+	 for (int i = 0; i < l->num_lvars; ++i)
+	    l->lv[i]->uninstantiate(xsink);
+      }
 };
 
 class StatementBlock : public AbstractStatement
@@ -53,7 +71,7 @@ class StatementBlock : public AbstractStatement
       DLLLOCAL StatementBlock(AbstractStatement *s);
       DLLLOCAL virtual ~StatementBlock();
       DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
+      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
 
       DLLLOCAL void addStatement(AbstractStatement *s);
       DLLLOCAL class AbstractQoreNode *exec(ExceptionSink *xsink);

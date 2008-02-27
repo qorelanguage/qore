@@ -36,14 +36,14 @@
 
 // all definitions in this file are private to the library and subject to change
 
-DLLLOCAL int process_node(AbstractQoreNode **node, lvh_t oflag, int pflag);
-DLLLOCAL int process_list_node(QoreListNode **node, lvh_t oflag, int pflag);
+DLLLOCAL int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag);
+DLLLOCAL int process_list_node(QoreListNode **node, LocalVar *oflag, int pflag);
 
 class AbstractStatement
 {
    private:
       DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink) = 0;
-      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0) = 0;   
+      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) = 0;   
 
    public:
       int LineNumber;
@@ -56,7 +56,7 @@ class AbstractStatement
       {
       }
       DLLLOCAL int exec(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL int parseInit(lvh_t oflag, int pflag = 0);
+      DLLLOCAL int parseInit(LocalVar *oflag, int pflag = 0);
       // statement should return true if it ends a block (break, continue, return, throw, etc)
       // meaning that any subsequent statements will be unconditionally skipped
       DLLLOCAL virtual bool endsBlock() const
@@ -72,8 +72,8 @@ class AbstractStatement
 
 DLLLOCAL void push_cvar(char *name);
 DLLLOCAL void pop_cvar();
-DLLLOCAL lvh_t pop_local_var();
-DLLLOCAL lvh_t push_local_var(char *name);
-DLLLOCAL lvh_t find_local_var(char *name);
+DLLLOCAL LocalVar *pop_local_var();
+DLLLOCAL LocalVar *push_local_var(char *name);
+DLLLOCAL LocalVar *find_local_var(char *name);
 
 #endif // _QORE_ABSTRACTSTATEMENT_H

@@ -47,12 +47,10 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    if (is_ref)
       return execRef(return_value, xsink);
 
-   int i, rc = 0;
+   int rc = 0;
 
-   tracein("ForEachStatement::exec()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
 
    // get list evaluation (although may be a single node)
    AbstractQoreNode *tlist = list->eval(xsink);
@@ -133,21 +131,15 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    if (l_tlist)
       tlist->deref(xsink);
 
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("ForEachStatement::exec()");
    return rc;
 }
 
 int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   int i, rc = 0;
+   int rc = 0;
 
-   tracein("ForEachStatement::execRef()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
 
    // get list evaluation (although may be a single node)
    AbstractQoreNode *tlist, *vr;
@@ -295,15 +287,10 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    if (vr)
       vr->deref(xsink);
    
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-
-   traceout("ForEachStatement::execRef()");
    return rc;
 }
 
-int ForEachStatement::parseInitImpl(lvh_t oflag, int pflag)
+int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
    

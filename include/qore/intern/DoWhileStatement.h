@@ -32,7 +32,7 @@ class DoWhileStatement : public WhileStatement
 {
    private:
       DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
+      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
    public:
       DLLLOCAL DoWhileStatement(int start_line, int end_line, class AbstractQoreNode *c, class StatementBlock *cd) : WhileStatement(start_line, end_line, c, cd)

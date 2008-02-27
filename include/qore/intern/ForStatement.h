@@ -35,7 +35,7 @@ class ForStatement : public AbstractStatement
    class LVList *lvars;
 
    DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-   DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
 public:
    DLLLOCAL ForStatement(int start_line, int end_line, class AbstractQoreNode *a, class AbstractQoreNode *c, class AbstractQoreNode *i, class StatementBlock *cd);

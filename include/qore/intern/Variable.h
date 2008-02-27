@@ -43,34 +43,6 @@
 #define QORE_THREAD_STACK_BLOCK 128
 #endif
 
-// structure for local variables
-class LVar {
-   private:
-      AbstractQoreNode *value;
-      AbstractQoreNode *vexp;  // partially evaluated lvalue expression for references
-      QoreObject *obj;     // for references to object members
-      mutable lvh_t id;
-
-      DLLLOCAL AbstractQoreNode *evalReference(class ExceptionSink *xsink);
-
-   public:
-
-      DLLLOCAL void set(lvh_t nid, class AbstractQoreNode *nvalue);
-      DLLLOCAL void set(lvh_t nid, class AbstractQoreNode *ve, class QoreObject *o);
-      
-      DLLLOCAL AbstractQoreNode **getValuePtr(class AutoVLock *vl, class ExceptionSink *xsink) const;
-      DLLLOCAL AbstractQoreNode *getValue(class AutoVLock *vl, class ExceptionSink *xsink);
-      DLLLOCAL void setValue(class AbstractQoreNode *val, class ExceptionSink *xsink);
-      DLLLOCAL AbstractQoreNode *eval(class ExceptionSink *xsink);
-      DLLLOCAL AbstractQoreNode *eval(bool &needs_deref, class ExceptionSink *xsink);
-      DLLLOCAL bool checkRecursiveReference(lvh_t nid);
-      DLLLOCAL void deref(class ExceptionSink *xsink);
-      DLLLOCAL lvh_t get_id() const
-      {
-	 return id;
-      }
-};
-
 union VarValue {
       // for value
       struct {
@@ -88,7 +60,7 @@ union VarValue {
 class Var : public QoreReferenceCounter
 {
    private:
-      int type;
+      unsigned char type;
       // holds the value of the variable or a pointer to the imported variable
       union VarValue v;
       mutable class VRMutex gate;
@@ -115,10 +87,6 @@ DLLLOCAL AbstractQoreNode *getNoEvalVarValue(class AbstractQoreNode *n, class Au
 DLLLOCAL AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, class ExceptionSink *xsink, class AutoVLock *vl, ReferenceHolder<AbstractQoreNode> &pt);
 DLLLOCAL void delete_var_node(class AbstractQoreNode *node, class ExceptionSink *xsink);
 DLLLOCAL void delete_global_variables();
-DLLLOCAL class LVar *instantiateLVar(lvh_t id, class AbstractQoreNode *value);
-DLLLOCAL class LVar *instantiateLVar(lvh_t id, class AbstractQoreNode *ve, class QoreObject *o);
-DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
-DLLLOCAL class LVar *find_lvar(lvh_t id);
 
 DLLLOCAL extern class QoreHashNode *ENV;
 

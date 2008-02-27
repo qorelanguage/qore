@@ -44,6 +44,8 @@ DLLEXPORT extern const char *qore_warnings[];
 DLLEXPORT int get_warning_code(const char *str);
 DLLEXPORT extern unsigned qore_num_warnings;
 
+class LocalVar;
+
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
     This class implements two-layered reference counting to address problems with circular references.
@@ -62,7 +64,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void deleteSBList();
       DLLLOCAL void internParseCommit();
       DLLLOCAL void initGlobalVars();
-      DLLLOCAL void importUserFunction(class QoreProgram *p, class UserFunction *uf, class ExceptionSink *xsink);
+      DLLLOCAL void importUserFunction(QoreProgram *p, class UserFunction *uf, class ExceptionSink *xsink);
       DLLLOCAL void internParseRollback();
       DLLLOCAL int internParsePending(const char *code, const char *label);
       DLLLOCAL void del(class ExceptionSink *xsink);
@@ -82,18 +84,29 @@ class QoreProgram : public AbstractPrivateData
    public:
       //! creates the object
       DLLEXPORT QoreProgram();
+
       //! calls a function from the function name and returns the return value
       /** if the function does not exist, an exception is added to "xsink"
        */
       DLLEXPORT AbstractQoreNode *callFunction(const char *name, const class QoreListNode *args, class ExceptionSink *xsink);
 
-      //! runs the program (instantiates the program class if a program class has been set
-      /**
-	 @see setExecClass()
+      //! runs the program (instantiates the program class if a program class has been set) and returns the return value (if any)
+      /** @note if the program is run as a class it's not possible to return a value
+	  @see QoreProgram::setExecClass()
        */
       DLLEXPORT AbstractQoreNode *run(class ExceptionSink *xsink);
+
+      //! tuns the top level code and returns any return value
       DLLEXPORT AbstractQoreNode *runTopLevel(class ExceptionSink *xsink);
+
+      //! parses the given filename and runs the file
+      /** any errors opening the file are added as Qore-language exceptions
+	  the default exception handler is run on any Qore-language exceptions
+	  raised during opening, parsing, and executing the file.
+	  @param filename the filename to run
+       */
       DLLEXPORT void parseFileAndRun(const char *filename);
+
       DLLEXPORT void parseAndRun(FILE *, const char *name);
       DLLEXPORT void parseAndRun(const char *str, const char *name);
       DLLEXPORT void runClass(const char *classname, class ExceptionSink *xsink);
@@ -154,21 +167,23 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT class QoreListNode *getFeatureList() const;
       DLLEXPORT class UserFunction *findUserFunction(const char *name);
       
-      DLLLOCAL QoreProgram(class QoreProgram *pgm, qore_restrictions_t po, bool ec = false, const char *ecn = NULL);
+      DLLLOCAL QoreProgram(QoreProgram *pgm, qore_restrictions_t po, bool ec = false, const char *ecn = NULL);
 
       //! calls a function from a UserFunction pointer and returns the return value
       /** if the function does not exist, an exception is added to "xsink"
        */
       DLLLOCAL AbstractQoreNode *callFunction(class UserFunction *func, const class QoreListNode *args, class ExceptionSink *xsink);
 
+      DLLLOCAL LocalVar *createLocalVar(const char *name);
+
       DLLLOCAL void registerUserFunction(class UserFunction *u);
       DLLLOCAL void resolveFunction(class FunctionCallNode *f);      
       DLLLOCAL AbstractFunctionReferenceNode *resolveFunctionReference(class UnresolvedFunctionReferenceNode *fr);      
       DLLLOCAL void addGlobalVarDef(const char *name);
       DLLLOCAL void addStatement(class AbstractStatement *s);
-      DLLLOCAL class Var *findVar(const char *name);
-      DLLLOCAL class Var *checkVar(const char *name);
-      DLLLOCAL class Var *createVar(const char *name);
+      DLLLOCAL class Var *findGlobalVar(const char *name);
+      DLLLOCAL class Var *checkGlobalVar(const char *name);
+      DLLLOCAL class Var *createGlobalVar(const char *name);
       DLLLOCAL void importGlobalVariable(class Var *var, class ExceptionSink *xsink, bool readonly);
       DLLLOCAL void makeParseException(const char *err, class QoreStringNode *desc);
       DLLLOCAL void makeParseException(int sline, int eline, class QoreStringNode *desc);
@@ -177,7 +192,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void makeParseWarning(int code, const char *warn, const char *fmt, ...);
       DLLLOCAL void addParseWarning(int code, class ExceptionSink *xsink);
       DLLLOCAL void cannotProvideFeature(class QoreStringNode *desc);
-      DLLLOCAL void exportUserFunction(const char *name, class QoreProgram *p, class ExceptionSink *xsink);
+      DLLLOCAL void exportUserFunction(const char *name, QoreProgram *p, class ExceptionSink *xsink);
       DLLLOCAL void endThread(class ExceptionSink *xsink);
       DLLLOCAL void startThread();
       DLLLOCAL class QoreHashNode *getThreadData();

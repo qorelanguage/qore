@@ -33,7 +33,7 @@ WhileStatement::WhileStatement(int start_line, int end_line, AbstractQoreNode *c
 
 WhileStatement::~WhileStatement()
 {
-   cond->deref(NULL);
+   cond->deref(0);
    if (code)
       delete code;
    if (lvars)
@@ -42,12 +42,10 @@ WhileStatement::~WhileStatement()
 
 int WhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   int i, rc = 0;
+   int rc = 0;
    
-   tracein("WhileStatement::execWhileImpl()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
    while (cond->boolEval(xsink) && !xsink->isEvent())
    {
@@ -61,14 +59,11 @@ int WhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
       else if (rc == RC_CONTINUE)
 	 rc = 0;
    }
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   traceout("WhileStatement::execWhile()");
+
    return rc;
 }
 
-int WhileStatement::parseInitImpl(lvh_t oflag, int pflag)
+int WhileStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
    

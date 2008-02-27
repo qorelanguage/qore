@@ -49,12 +49,10 @@ ForStatement::~ForStatement()
 
 int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   int i, rc = 0;
+   int rc = 0;
    
-   tracein("ForStatement::execImpl()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
    // evaluate assignment expression and discard results if any
    if (assignment)
@@ -84,15 +82,10 @@ int ForStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
 	 discard(iterator->eval(xsink), xsink);
    }
    
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-
-   traceout("ForStatement::execImpl()");
    return rc;
 }
 
-int ForStatement::parseInitImpl(lvh_t oflag, int pflag)
+int ForStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
    

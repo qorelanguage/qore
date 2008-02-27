@@ -101,12 +101,10 @@ void SwitchStatement::addCase(class CaseNode *c)
 
 int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   int i, rc = 0;
+   int rc = 0;
    
-   tracein("SwitchStatement::execImpl()");
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
    AbstractQoreNode *se = sexp->eval(xsink);
    if (!xsink->isEvent())
@@ -136,15 +134,10 @@ int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
    if (se)
       se->deref(xsink);
    
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   
-   traceout("SwitchStatement::execImpl()");
    return rc;
 }
 
-int SwitchStatement::parseInitImpl(lvh_t oflag, int pflag)
+int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    int lvids = 0;
    

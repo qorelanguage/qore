@@ -33,7 +33,7 @@ class OnBlockExitStatement : public AbstractStatement
       enum obe_type_e type;
 
       DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
+      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
 
    public:
       DLLLOCAL OnBlockExitStatement(int start_line, int end_line, class StatementBlock *n_code, enum obe_type_e type = OBE_Unconditional);

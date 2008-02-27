@@ -138,7 +138,6 @@ class ltchar
 typedef std::set<char *, ltstr> strset_t;
 
 typedef long long int64;
-typedef const char *lvh_t;
 
 #include <stdarg.h>
 

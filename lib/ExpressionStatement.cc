@@ -52,7 +52,7 @@ int ExpressionStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink
    return 0;
 }
 
-int ExpressionStatement::parseInitImpl(lvh_t oflag, int pflag)
+int ExpressionStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    //printd(5, "ES::pII() exp=%08p (%s)\n", exp, exp->getTypeName());
    return process_node(&exp, oflag, pflag);

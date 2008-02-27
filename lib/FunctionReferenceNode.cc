@@ -109,7 +109,7 @@ double FunctionReferenceCallNode::floatEvalImpl(ExceptionSink *xsink) const
    return rv ? rv->getAsFloat() : 0;
 }
 
-int FunctionReferenceCallNode::parseInit(lvh_t oflag, int pflag)
+int FunctionReferenceCallNode::parseInit(LocalVar *oflag, int pflag)
 {
    int lvids = process_node(&exp, oflag, pflag);
    lvids += process_list_node(&args, oflag, pflag);
@@ -264,7 +264,7 @@ double ParseObjectMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) const
    return 0.0;
 }
 
-int ParseObjectMethodReferenceNode::parseInit(lvh_t oflag, int pflag)
+int ParseObjectMethodReferenceNode::parseInit(LocalVar *oflag, int pflag)
 {
    return process_node(&exp, oflag, pflag);
 }
@@ -312,7 +312,7 @@ double ParseSelfMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) const
    return 0.0;
 }
 
-int ParseSelfMethodReferenceNode::parseInit(lvh_t oflag, int pflag)
+int ParseSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag)
 {
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);
@@ -361,7 +361,7 @@ double ParseScopedSelfMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) c
    return 0.0;
 }
 
-int ParseScopedSelfMethodReferenceNode::parseInit(lvh_t oflag, int pflag)
+int ParseScopedSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag)
 {
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);

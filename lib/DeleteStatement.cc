@@ -41,7 +41,7 @@ int DeleteStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
    return 0;
 }
 
-int DeleteStatement::parseInitImpl(lvh_t oflag, int pflag)
+int DeleteStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    return process_node(&var, oflag, pflag);
 }

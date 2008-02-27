@@ -52,7 +52,7 @@ class SwitchStatement : public AbstractStatement
       class AbstractQoreNode *sexp;
       class CaseNode *deflt;
 
-      DLLLOCAL virtual int parseInitImpl(lvh_t oflag, int pflag = 0);
+      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
       DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
 
    public:

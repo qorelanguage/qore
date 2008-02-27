@@ -62,7 +62,7 @@ class FunctionReferenceCallNode : public ParseNode
       //! returns the type name as a c string
       DLLLOCAL virtual const char *getTypeName() const;
 
-      DLLLOCAL int parseInit(lvh_t oflag, int pflag);
+      DLLLOCAL int parseInit(LocalVar *oflag, int pflag);
 };
 
 #endif

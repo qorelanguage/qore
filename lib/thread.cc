@@ -117,94 +117,76 @@ class ProgramLocation {
       }
 };
 
-struct ThreadVariableBlock {
-   class LVar lvar[QORE_THREAD_STACK_BLOCK];
-   int pos;
-   struct ThreadVariableBlock *prev, *next;
+#ifndef QORE_THREAD_STACK_BLOCK
+#define QORE_THREAD_STACK_BLOCK 256
+#endif
 
-   DLLLOCAL ThreadVariableBlock(struct ThreadVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0)
-   {
-   }
-   DLLLOCAL ~ThreadVariableBlock()
-   {
-   }
+struct ThreadVariableBlock {
+      LocalVarValue lvar[QORE_THREAD_STACK_BLOCK];
+      int pos;
+      ThreadVariableBlock *prev, *next;
+
+      DLLLOCAL ThreadVariableBlock(struct ThreadVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0)
+      {
+      }
+      DLLLOCAL ~ThreadVariableBlock()
+      {
+      }
 };
 
-class ThreadVariableStack {
-private:
-   ThreadVariableBlock *curr;
-
-public:
-   DLLLOCAL ThreadVariableStack()
-   {
-      curr = new ThreadVariableBlock;
-      //printf("this=%08p: first curr=%08p\n", this, curr);
-   }
-   DLLLOCAL ~ThreadVariableStack()
-   {
-      assert(!curr->prev);
-      assert(!curr->pos);
-      //printf("this=%08p: del curr=%08p\n", this, curr);
-      if (curr->next)
-	 delete curr->next;
-      delete curr;
-   }
-   DLLLOCAL class LVar *instantiate()
-   {
-      if (curr->pos == QORE_THREAD_STACK_BLOCK)
+class ThreadLocalVariableData {
+   private:
+      ThreadVariableBlock *curr;
+      
+   public:
+      DLLLOCAL ThreadLocalVariableData()
       {
-	 if (curr->next)
-	    curr = curr->next;
-	 else
-	 {
-	    curr->next = new ThreadVariableBlock(curr);
-	    //printf("this=%08p: add curr=%08p, curr->next=%08p\n", this, curr, curr->next);
-	    curr = curr->next;
-	 }
+	 curr = new ThreadVariableBlock;
+	 //printf("this=%08p: first curr=%08p\n", this, curr);
       }
-      return &curr->lvar[curr->pos++];
-   }
-   DLLLOCAL void uninstantiate(ExceptionSink *xsink)
-   {
-      if (!curr->pos)
+      DLLLOCAL ~ThreadLocalVariableData()
       {
+	 assert(!curr->prev);
+	 assert(!curr->pos);
+	 //printf("this=%08p: del curr=%08p\n", this, curr);
 	 if (curr->next)
-	 {
-	    //printf("this %08p: del curr=%08p, curr->next=%08p\n", this, curr, curr->next);
 	    delete curr->next;
-	    curr->next = 0;
-	 }
-	 curr = curr->prev;
+	 delete curr;
       }
-      --curr->pos;
-      printd(5, "uninstantiating lvar \"%s\"\n", curr->lvar[curr->pos].get_id());
-      curr->lvar[curr->pos].deref(xsink);
-   }
-   DLLLOCAL class LVar *find(lvh_t id)
-   {
-      class ThreadVariableBlock *w = curr;
-      while (true)
+      DLLLOCAL LocalVarValue *instantiate()
       {
-	 int p = w->pos;
-	 while (p)
+	 if (curr->pos == QORE_THREAD_STACK_BLOCK)
 	 {
-	    if (w->lvar[--p].get_id() == id)
-	       return &w->lvar[p];
+	    if (curr->next)
+	       curr = curr->next;
+	    else
+	    {
+	       curr->next = new ThreadVariableBlock(curr);
+	       //printf("this=%08p: add curr=%08p, curr->next=%08p\n", this, curr, curr->next);
+	       curr = curr->next;
+	    }
 	 }
-	 w = w->prev;
-	 assert(w);
+	 return &curr->lvar[curr->pos++];
       }
-      // to avoid a warning
-      return 0;
-   }      
+      DLLLOCAL void uninstantiate()
+      {
+	 if (!curr->pos)
+	 {
+	    if (curr->next)
+	    {
+	       //printf("this %08p: del curr=%08p, curr->next=%08p\n", this, curr, curr->next);
+	       delete curr->next;
+	       curr->next = 0;
+	    }
+	    curr = curr->prev;
+	 }
+	 --curr->pos;
+      }
 };
 
 // this structure holds all thread-specific data
 class ThreadData 
 {
-   private:
-      class ThreadVariableStack lvstack;
-
    public:
       int tid;
       class VLock vlock;     // for deadlock detection
@@ -228,30 +210,13 @@ class ThreadData
       // current program context
       QoreProgram *current_pgm;
       // current argvid
-      lvh_t current_argvid;
+      LocalVar *current_argvid;
+
+      // local variable data slots
+      ThreadLocalVariableData lvstack;
 
       DLLLOCAL ThreadData(int ptid, QoreProgram *p);
       DLLLOCAL ~ThreadData();
-      DLLLOCAL LVar *instantiate_lvar(lvh_t id, AbstractQoreNode *value)
-      {
-	 LVar *v = lvstack.instantiate();
-	 v->set(id, value);
-	 return v;
-      }
-      DLLLOCAL LVar *instantiate_lvar(lvh_t id, AbstractQoreNode *ve, QoreObject *o)
-      {
-	 LVar *v = lvstack.instantiate();
-	 v->set(id, ve, o);
-	 return v;
-      }
-      DLLLOCAL void uninstantiate_lvar(ExceptionSink *xsink)
-      {
-	 lvstack.uninstantiate(xsink);
-      }
-      DLLLOCAL class LVar *find_lvar(lvh_t id)
-      {
-	 return lvstack.find(id);
-      }
 };
 
 void ThreadEntry::cleanup()
@@ -486,6 +451,18 @@ ThreadData::~ThreadData()
    assert(on_block_exit_list.empty());
 }
 
+LocalVarValue *thread_instantiate_lvar()
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   return td->lvstack.instantiate();
+}
+
+void thread_uninstantiate_lvar()
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   td->lvstack.uninstantiate();
+}
+
 void set_thread_resource(class AbstractThreadResource *atr)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
@@ -585,28 +562,6 @@ class VLock *getVLock()
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
    return &td->vlock;
-}
-
-class LVar *thread_instantiate_lvar(lvh_t id, AbstractQoreNode *value)
-{
-   printd(3, "instantiating lvar '%s' by value (val=%08p)\n", id, value);
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->instantiate_lvar(id, value);
-}
-
-class LVar *thread_instantiate_lvar(lvh_t id, AbstractQoreNode *ve, QoreObject *o)
-{
-   printd(3, "instantiating lvar %08p '%s' by reference (ve=%08p, o=%08p)\n", id, id, ve, o);
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->instantiate_lvar(id, ve, o);
-}
-
-void thread_uninstantiate_lvar(ExceptionSink *xsink)
-{
-   ((ThreadData *)pthread_getspecific(thread_data_key))->uninstantiate_lvar(xsink);
-}
-
-class LVar *thread_find_lvar(lvh_t id)
-{
-   return ((ThreadData *)pthread_getspecific(thread_data_key))->find_lvar(id);
 }
 
 Context *get_context_stack()
@@ -710,7 +665,7 @@ CodeContextHelper::~CodeContextHelper()
    td->current_obj = old_obj;
 }
 
-ArgvContextHelper::ArgvContextHelper(lvh_t argvid)
+ArgvContextHelper::ArgvContextHelper(LocalVar *argvid)
 {
    ThreadData *td  = (ThreadData *)pthread_getspecific(thread_data_key);
    old_argvid = td->current_argvid;

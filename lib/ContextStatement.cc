@@ -126,16 +126,13 @@ ContextStatement::~ContextStatement()
 // FIXME: local vars should only be instantiated if there is a non-null context
 int ContextStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   tracein("ContextStatement::exec()");
    int rc = 0;
-   int i;
    class Context *context;
    AbstractQoreNode *sort = sort_ascending ? sort_ascending : sort_descending;
    int sort_type = sort_ascending ? CM_SORT_ASCENDING : (sort_descending ? CM_SORT_DESCENDING : -1);
       
    // instantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      instantiateLVar(lvars->ids[i], NULL);
+   LVListInstantiator lvi(lvars, xsink);
    
    // create the context
    context = new Context(name, xsink, exp, where_exp, sort_type, sort, NULL);
@@ -159,15 +156,10 @@ int ContextStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    // destroy the context
    context->deref(xsink);
 
-   // uninstantiate local variables
-   for (i = 0; i < lvars->num_lvars; i++)
-      uninstantiateLVar(xsink);
-   
-   traceout("ContextStatement::exec()");
    return rc;   
 }
 
-int ContextStatement::parseInitImpl(lvh_t oflag, int pflag)
+int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag)
 {
    tracein("ContextStatement::parseInitImpl()");
    

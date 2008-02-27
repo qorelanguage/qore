@@ -77,6 +77,7 @@
 #include <qore/intern/AbstractStatement.h>
 #include <qore/intern/QoreLibIntern.h>
 #include <qore/intern/Variable.h>
+#include <qore/intern/LocalVar.h>
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/ScopedObjectCallNode.h>
 #include <qore/intern/ConstantNode.h>

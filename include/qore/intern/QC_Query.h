@@ -151,7 +151,7 @@ class QueryList : public QoreThreadLock
 class KeyNode {
    public:
       char *column;
-      VarRef *var;
+      LocalVar *var;
       char *vcolumn;
 };
 
@@ -171,7 +171,7 @@ class Query : public QoreReferenceCounter
       inline void setStatic() { options &= !QO_DYNAMIC; options |= QO_STATIC; }
       inline void setDynamic() { options &= !QO_STATIC; options |= QO_DYNAMIC; }
       inline void check_alloc();
-      inline void new_key(char *col, VarRef *ref, char *rcol);
+      inline void new_key(char *col, LocalVar *ref, char *rcol);
       inline void delete_keys();
 
    public:
@@ -233,7 +233,7 @@ class QPartNode
       class AbstractQoreNode *getVarValue(class ExceptionSink *xsink);
       class AbstractQoreNode **getVarValuePtr(class VLock *vl);
    public:
-      class VarRef *vref;
+      class LocalVar *vref;
       char *str;
       char *field;
       class AbstractQoreNode *deflt;
@@ -719,7 +719,7 @@ inline void Query::check_alloc()
    }
 }
 
-inline void Query::new_key(char *col, VarRef *ref, char *rcol)
+inline void Query::new_key(char *col, LocalVar *ref, char *rcol)
 {
    check_alloc();
    keys[num_keys].column  = strdup(col);
@@ -732,7 +732,7 @@ inline void Query::key(char *field, char *var, char *vfield, ExceptionSink *xsin
 {
    QoreString str('$');
    str.concat(var);
-   VarRef *vr = getVarRefByName(str.getBuffer());
+   LocalVar *vr = getVarRefByName(str.getBuffer());
    if (!vr)
    {
       xsink->raiseException("QUERY-KEY-PARAMETER-EXCEPTION", "object \"%s\" does not exist", str.getBuffer());

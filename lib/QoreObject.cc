@@ -230,17 +230,6 @@ void QoreObject::evalCopyMethodWithPrivateData(class BuiltinMethod *meth, QoreOb
       xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::copy() (base class of '%s') cannot be executed because the object has already been deleted", meth->myclass->getName(), priv->myclass->getName());
 }
 
-void QoreObject::instantiateLVar(lvh_t id)
-{
-   ref();
-   ::instantiateLVar(id, this);
-}
-
-void QoreObject::uninstantiateLVar(ExceptionSink *xsink)
-{
-   ::uninstantiateLVar(xsink);
-}
-
 void QoreObject::ref() const
 {
    printd(5, "QoreObject::ref(this=%08p) class=%s, %d->%d\n", this, priv->myclass->getName(), references, references + 1);

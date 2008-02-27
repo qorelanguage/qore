@@ -265,13 +265,6 @@ class QoreObject : public AbstractQoreNode
        */
       DLLLOCAL AbstractQoreNode *evalMember(const QoreString *member, class ExceptionSink *xsink);
 
-      DLLLOCAL void instantiateLVar(lvh_t id);
-
-      /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-       */
-      DLLLOCAL void uninstantiateLVar(class ExceptionSink *xsink);
-
       /**
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
