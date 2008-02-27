@@ -183,6 +183,144 @@ struct qore_program_private {
 	 return l;
       }
 
+      void internParseRollback()
+      {
+	 // delete pending user functions
+	 user_func_list.parseRollback();
+	 
+	 // delete pending changes to namespaces
+	 RootNS->parseRollback();
+	 
+	 // delete pending statements 
+	 sb_tail->reset();
+      }
+
+      // call must push the current program on the stack and pop it afterwards
+      int internParsePending(const char *code, const char *label)
+      {
+	 printd(5, "QoreProgram::internParsePending(code=%08p, label=%s)\n", code, label);
+	 
+	 if (!(*code))
+	    return 0;
+	 
+	 // insert name for buffer in case of errors
+	 QoreString s;
+	 s.sprintf("<run-time-loaded: %s>", label);
+	 
+	 // save this file name for storage in the parse tree and deletion
+	 // when the QoreProgram object is deleted
+	 char *sname = strdup(s.getBuffer());
+	 fileList.push_back(sname);
+	 beginParsing(sname);
+	 
+	 // no need to save buffer, because it's deleted automatically in lexer
+	 
+	 printd(5, "QoreProgram::internParsePending() parsing tag=%s (%08p): '%s'\n", label, label, code);
+	 
+	 yyscan_t lexer;
+	 yylex_init(&lexer);
+	 yy_scan_string(code, lexer);
+	 yyset_lineno(1, lexer);
+	 // yyparse() will call endParsing() and restore old pgm position
+	 yyparse(lexer);
+	 
+	 printd(5, "QoreProgram::internParsePending() returned from yyparse()\n");
+	 int rc = 0;
+	 if (parseSink->isException())
+	 {
+	    rc = -1;
+	    printd(5, "QoreProgram::internParsePending() parse exception: calling parseRollback()\n");
+	    internParseRollback();
+	    requires_exception = false;
+	 }
+	 
+	 printd(5, "QoreProgram::internParsePending() about to call yylex_destroy()\n");
+	 yylex_destroy(lexer);
+	 printd(5, "QoreProgram::internParsePending() returned from yylex_destroy()\n");
+	 return rc;
+      }
+
+      void parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm)
+      {
+	 // grab program-level parse lock
+	 plock.lock();
+	 warnSink = wS;
+	 warn_mask = wm;
+	 
+	 parseSink = xsink;
+	 internParsePending(code, label);
+	 warnSink = NULL;
+#ifdef DEBUG
+	 parseSink = NULL;
+#endif
+	 // release program-level parse lock
+	 plock.unlock();
+      }
+
+      // caller must have grabbed the lock and put the current program on the program stack
+      void internParseCommit()
+      {
+	 tracein("QoreProgram::internParseCommit()");
+	 printd(5, "QoreProgram::internParseCommit() this=%08p isEvent=%d\n", this, parseSink->isEvent());
+	 // if the first stage of parsing has already failed, 
+	 // then don't go forward
+	 if (!parseSink->isEvent())
+	 {
+	    // initialize constants first
+	    RootNS->parseInitConstants();
+	    
+	    // initialize new statements second (for $our declarations)
+	    if (sb_tail->statements)
+	       sb_tail->statements->parseInitImpl(0);
+	    
+	    printd(5, "QoreProgram::internParseCommit() this=%08p priv->RootNS=%08p\n", this, RootNS);
+	    // initialize new objects, etc in namespaces
+	    RootNS->parseInit();
+	    
+	    // initialize new user functions
+	    user_func_list.parseInit();
+	 }
+	 
+	 // if a parse exception has occurred, then back out all new
+	 // changes to the QoreProgram atomically
+	 if (parseSink->isEvent())
+	 {
+	    internParseRollback();
+	    requires_exception = false;
+	 }
+	 else // otherwise commit them
+	 {
+	    // merge pending user functions
+	    user_func_list.parseCommit();
+	    
+	    // merge pending namespace additions
+	    RootNS->parseCommit();
+	    
+	    // commit pending statements
+	    nextSB();
+	 }
+	 traceout("QoreProgram::internParseCommit()");
+      }
+
+      void parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm)
+      {
+	 // grab program-level parse lock
+	 plock.lock();
+	 warnSink = wS;
+	 warn_mask = wm;
+	 parseSink = xsink;
+	 
+	 // finalize parsing, back out or commit all changes
+	 internParseCommit();
+	 
+#ifdef DEBUG
+	 parseSink = NULL;
+#endif   
+	 warnSink = NULL;
+	 // release program-level parse lock
+	 plock.unlock();
+      }
+
 };
 
 // note the number and order of the warnings has to correspond to those in QoreProgram.h
@@ -339,7 +477,7 @@ void QoreProgram::del(ExceptionSink *xsink)
    priv->user_func_list.del();
 
    // method call can be repeated
-   deleteSBList();
+   priv->deleteSBList();
 
    delete priv->RootNS;
    priv->RootNS = 0;
@@ -527,11 +665,6 @@ void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, Exception
    }
 }
 
-void QoreProgram::deleteSBList()
-{
-   priv->deleteSBList();
-}
-
 // called during parsing (priv->plock already grabbed)
 void QoreProgram::registerUserFunction(UserFunction *u)
 {
@@ -540,23 +673,6 @@ void QoreProgram::registerUserFunction(UserFunction *u)
       parse_error("function \"%s\" has already been imported into this program", u->getName());
    else
       priv->user_func_list.add(u);
-}
-
-void QoreProgram::internParseRollback()
-{
-   // delete pending user functions
-   priv->user_func_list.parseRollback();
-   
-   // delete pending changes to namespaces
-   priv->RootNS->parseRollback();
-   
-   // delete pending statements 
-   priv->sb_tail->reset();
-}
-
-void QoreProgram::nextSB()
-{
-   priv->nextSB();
 }
 
 void QoreProgram::importGlobalVariable(class Var *var, ExceptionSink *xsink, bool readonly)
@@ -732,19 +848,7 @@ void QoreProgram::parsePending(const char *code, const char *label, ExceptionSin
 
    ProgramContextHelper pch(this);
 
-   // grab program-level parse lock
-   priv->plock.lock();
-   priv->warnSink = wS;
-   priv->warn_mask = wm;
-
-   priv->parseSink = xsink;
-   internParsePending(code, label);
-   priv->warnSink = NULL;
-#ifdef DEBUG
-   priv->parseSink = NULL;
-#endif
-   // release program-level parse lock
-   priv->plock.unlock();
+   priv->parsePending(code, label, xsink, wS, wm);
 }
 
 void QoreProgram::startThread()
@@ -909,7 +1013,7 @@ void QoreProgram::parse(FILE *fp, const char *name, ExceptionSink *xsink, Except
    yyparse(lexer);
 
    // finalize parsing, back out or commit all changes
-   internParseCommit();
+   priv->internParseCommit();
 
 #ifdef DEBUG
    priv->parseSink = NULL;
@@ -953,8 +1057,8 @@ void QoreProgram::parse(const char *code, const char *label, ExceptionSink *xsin
    priv->parseSink = xsink;
    
    // parse text given
-   if (!internParsePending(code, label))
-      internParseCommit();   // finalize parsing, back out or commit all changes
+   if (!priv->internParsePending(code, label))
+      priv->internParseCommit();   // finalize parsing, back out or commit all changes
 
 #ifdef DEBUG
    priv->parseSink = NULL;
@@ -983,96 +1087,6 @@ void QoreProgram::parseFile(const char *filename, ExceptionSink *xsink, Exceptio
    traceout("QoreProgram::parseFile()");
 }
 
-// call must push the current program on the stack and pop it afterwards
-int QoreProgram::internParsePending(const char *code, const char *label)
-{
-   printd(5, "QoreProgram::internParsePending(code=%08p, label=%s)\n", code, label);
-
-   if (!(*code))
-      return 0;
-
-   // insert name for buffer in case of errors
-   QoreString s;
-   s.sprintf("<run-time-loaded: %s>", label);
-
-   // save this file name for storage in the parse tree and deletion
-   // when the QoreProgram object is deleted
-   char *sname = strdup(s.getBuffer());
-   priv->fileList.push_back(sname);
-   beginParsing(sname);
-
-   // no need to save buffer, because it's deleted automatically in lexer
-
-   printd(5, "QoreProgram::internParsePending() parsing tag=%s (%08p): '%s'\n", label, label, code);
-
-   yyscan_t lexer;
-   yylex_init(&lexer);
-   yy_scan_string(code, lexer);
-   yyset_lineno(1, lexer);
-   // yyparse() will call endParsing() and restore old pgm position
-   yyparse(lexer);
-
-   printd(5, "QoreProgram::internParsePending() returned from yyparse()\n");
-   int rc = 0;
-   if (priv->parseSink->isException())
-   {
-      rc = -1;
-      printd(5, "QoreProgram::internParsePending() parse exception: calling parseRollback()\n");
-      internParseRollback();
-      priv->requires_exception = false;
-   }
-
-   printd(5, "QoreProgram::internParsePending() about to call yylex_destroy()\n");
-   yylex_destroy(lexer);
-   printd(5, "QoreProgram::internParsePending() returned from yylex_destroy()\n");
-   return rc;
-}
-
-// caller must have grabbed the lock and put the current program on the program stack
-void QoreProgram::internParseCommit()
-{
-   tracein("QoreProgram::internParseCommit()");
-   printd(5, "QoreProgram::internParseCommit() this=%08p isEvent=%d\n", this, priv->parseSink->isEvent());
-   // if the first stage of parsing has already failed, 
-   // then don't go forward
-   if (!priv->parseSink->isEvent())
-   {
-      // initialize constants first
-      priv->RootNS->parseInitConstants();
-
-      // initialize new statements second (for $our declarations)
-      if (priv->sb_tail->statements)
-	 priv->sb_tail->statements->parseInitImpl(0);
-
-      printd(5, "QoreProgram::internParseCommit() this=%08p priv->RootNS=%08p\n", this, priv->RootNS);
-      // initialize new objects, etc in namespaces
-      priv->RootNS->parseInit();
-
-      // initialize new user functions
-      priv->user_func_list.parseInit();
-   }
-
-   // if a parse exception has occurred, then back out all new
-   // changes to the QoreProgram atomically
-   if (priv->parseSink->isEvent())
-   {
-      internParseRollback();
-      priv->requires_exception = false;
-   }
-   else // otherwise commit them
-   {
-      // merge pending user functions
-      priv->user_func_list.parseCommit();
-
-      // merge pending namespace additions
-      priv->RootNS->parseCommit();
-
-      // commit pending statements
-      nextSB();
-   }
-   traceout("QoreProgram::internParseCommit()");
-}
-
 void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink *xsink, ExceptionSink *wS, int wm)
 {
    if (!str->strlen())
@@ -1088,7 +1102,9 @@ void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, Ex
    if (*xsink)
       return;
 
-   parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
+   ProgramContextHelper pch(this);
+
+   priv->parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm);
 }
 
 AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink)
@@ -1195,23 +1211,8 @@ void QoreProgram::importUserFunction(QoreProgram *p, class UserFunction *u, Exce
 
 void QoreProgram::parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm)
 {
-   ProgramContextHelper pch(this);
-
-   // grab program-level parse lock
-   priv->plock.lock();
-   priv->warnSink = wS;
-   priv->warn_mask = wm;
-   priv->parseSink = xsink;
-   
-   // finalize parsing, back out or commit all changes
-   internParseCommit();
-
-#ifdef DEBUG
-   priv->parseSink = NULL;
-#endif   
-   priv->warnSink = NULL;
-   // release program-level parse lock
-   priv->plock.unlock();
+   ProgramContextHelper pch(this);	 
+   priv->parseCommit(xsink, wS, wm);
 }
 
 // this function cannot throw an exception because as long as the 
@@ -1224,7 +1225,7 @@ void QoreProgram::parseRollback()
    priv->plock.lock();
    
    // back out all pending changes
-   internParseRollback();
+   priv->internParseRollback();
 
    // release program-level parse lock
    priv->plock.unlock();   

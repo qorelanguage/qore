@@ -4,7 +4,8 @@ NOTE: for platform-specific notes and build instructions, please see the file BU
 
 qore 0.7.0 is a major release with major new features
 *) stable ABI and API, cleaned-up public header files, development packages
-*) complete reimplementation of the typing and operator subsystems
+*) complete reimplementation of the type and operator subsystems
+*) major performance and memory usage improvements
 *) qt module
 
 
