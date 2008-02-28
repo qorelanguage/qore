@@ -168,7 +168,7 @@ class ThreadLocalVariableData {
 	 }
 	 return &curr->lvar[curr->pos++];
       }
-      DLLLOCAL void uninstantiate()
+      DLLLOCAL void uninstantiate(ExceptionSink *xsink)
       {
 	 if (!curr->pos)
 	 {
@@ -180,8 +180,46 @@ class ThreadLocalVariableData {
 	    }
 	    curr = curr->prev;
 	 }
-	 --curr->pos;
+	 curr->lvar[--curr->pos].uninstantiate(xsink);
       }
+#ifndef HAVE_UNLIMITED_THREAD_KEYS
+      DLLLOCAL LocalVarValue *find_current(const char *id)
+      {
+	 class ThreadVariableBlock *w = curr;
+	 while (true)
+	 {
+	    int p = w->pos;
+	    while (p)
+	    {
+	       printd(0, "find_current(%08p %s) %08p %s w=%08p p=%d\n", id, id, w->lvar[p - 1].id, w->lvar[p - 1].id, w, p);
+	       if (w->lvar[--p].id == id)
+		  return &w->lvar[p];
+	    }
+	    w = w->prev;
+	    assert(w);
+	 }
+	 // to avoid a warning
+	 return 0;
+      }
+
+      DLLLOCAL LocalVarValue *find(const char *id)
+      {
+	 class ThreadVariableBlock *w = curr;
+	 while (true)
+	 {
+	    int p = w->pos;
+	    while (p)
+	    {
+	       if (w->lvar[--p].id == id && !w->lvar[p].skip)
+		  return &w->lvar[p];
+	    }
+	    w = w->prev;
+	    assert(w);
+	 }
+	 // to avoid a warning
+	 return 0;
+      }
+#endif
 };
 
 // this structure holds all thread-specific data
@@ -457,12 +495,23 @@ LocalVarValue *thread_instantiate_lvar()
    return td->lvstack.instantiate();
 }
 
-void thread_uninstantiate_lvar()
+void thread_uninstantiate_lvar(ExceptionSink *xsink)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
-   td->lvstack.uninstantiate();
+   td->lvstack.uninstantiate(xsink);
 }
 
+LocalVarValue *thread_find_lvar(const char *id)
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   return td->lvstack.find(id);
+}
+
+LocalVarValue *thread_find_current_lvar(const char *id)
+{
+   ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);
+   return td->lvstack.find_current(id);
+}
 void set_thread_resource(class AbstractThreadResource *atr)
 {
    ThreadData *td = (ThreadData *)pthread_getspecific(thread_data_key);

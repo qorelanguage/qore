@@ -207,7 +207,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_11, "ISO811");
 
    // there is no ISO-8859-12
-   QCS_ISO_8859_13 = addUnlocked(ISO885913_STR, NULL,   NULL,    NULL,     "Latin-7, Baltic rim character set");
+   QCS_ISO_8859_13 = addUnlocked(ISO885913_STR, NULL,   NULL,    NULL,     "latin-7, Baltic rim character set");
    addAlias(QCS_ISO_8859_13, "ISO885913");
    addAlias(QCS_ISO_8859_13, "ISO-8859-13");
    addAlias(QCS_ISO_8859_13, "ISO8859-13");
@@ -217,7 +217,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_13, "LATIN7");
    addAlias(QCS_ISO_8859_13, "LATIN-7");
 
-   QCS_ISO_8859_14 = addUnlocked(ISO885914_STR, NULL,   NULL,    NULL,     "Latin-8, Celtic character set");
+   QCS_ISO_8859_14 = addUnlocked(ISO885914_STR, NULL,   NULL,    NULL,     "latin-8, Celtic character set");
    addAlias(QCS_ISO_8859_14, "ISO885914");
    addAlias(QCS_ISO_8859_14, "ISO-8859-14");
    addAlias(QCS_ISO_8859_14, "ISO8859-14");
@@ -227,7 +227,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_14, "LATIN8");
    addAlias(QCS_ISO_8859_14, "LATIN-8");
 
-   QCS_ISO_8859_15 = addUnlocked(ISO885915_STR, NULL,   NULL,    NULL,     "Latin-9, Western European with euro symbol");
+   QCS_ISO_8859_15 = addUnlocked(ISO885915_STR, NULL,   NULL,    NULL,     "latin-9, Western European with euro symbol");
    addAlias(QCS_ISO_8859_15, "ISO885915");
    addAlias(QCS_ISO_8859_15, "ISO-8859-15");
    addAlias(QCS_ISO_8859_15, "ISO8859-15");
@@ -237,7 +237,7 @@ QoreEncodingManager::QoreEncodingManager()
    addAlias(QCS_ISO_8859_15, "LATIN9");
    addAlias(QCS_ISO_8859_15, "LATIN-9");
 
-   QCS_ISO_8859_16 = addUnlocked(ISO885916_STR, NULL,   NULL,    NULL,     "Latin-10, Southeast European character set");
+   QCS_ISO_8859_16 = addUnlocked(ISO885916_STR, NULL,   NULL,    NULL,     "latin-10, Southeast European character set");
    addAlias(QCS_ISO_8859_16, "ISO885916");
    addAlias(QCS_ISO_8859_16, "ISO-8859-16");
    addAlias(QCS_ISO_8859_16, "ISO8859-16");
