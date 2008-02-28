@@ -31,6 +31,8 @@
 
 //! Qore's string value type, reference counted, dynamically-allocated only
 /** for a version that can be used on the stack, use QoreString
+    Each QoreStringNode is tagged with a specific encoding implemented by
+    QoreEncoding.  Character encodings can be converted with QoreStringNode::convertEncoding()
     @see QoreString
     @see QoreEncoding
  */

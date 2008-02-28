@@ -30,8 +30,6 @@
 
 #include <string>
 
-extern const class QoreEncoding *QCS_DEFAULT;
-
 //! Qore's string type supported by the QoreEncoding class
 /** A QoreString is implemented by a char pointer, a byte length, and a QoreEncoding pointer.
     For the equivalent Qore parse tree/value type, see QoreStringNode

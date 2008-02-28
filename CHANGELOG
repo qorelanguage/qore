@@ -1,3 +1,8 @@
+2008.02.28: David Nichols
+	* unimplemented thread-key-based local variable lookups as there are
+	  only a very limited number of thread keys available on Linux and Mac
+	  :-(
+
 2008.02.27: David Nichols
 	* implemented new local variable handling for performance reasons
 

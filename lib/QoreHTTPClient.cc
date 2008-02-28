@@ -32,11 +32,29 @@
 #include <qore/intern/ql_misc.h>
 #include <qore/minitest.hpp>
 
+#include <string>
+#include <map>
+#include <set>
+
 #include <ctype.h>
+
+// ssl-enabled protocols are stored as negative numbers, non-ssl as positive
+#define make_protocol(a, b) ((a) * ((b) ? -1 : 1))
+#define get_port(a) ((a) * (((a) < 0) ? -1 : 1))
+#define get_ssl(a) ((a) * (((a) < 0) ? true : false))
 
 #ifdef DEBUG_TESTS
 #  include "tests/QoreHTTPClient_tests.cc"
 #endif
+
+// protocol map class to recognize user-defined protocols (mostly useful for derived classes)
+typedef std::map<std::string, int> prot_map_t;
+typedef std::set<const char *, ltcstrcase> ccharcase_set_t;
+typedef std::set<std::string, ltstrcase> strcase_set_t;
+typedef std::map<std::string, std::string> header_map_t;
+
+static ccharcase_set_t method_set;
+static strcase_set_t header_ignore;
 
 //! used for having a QoreHashNode on the stack
 /** this is not safe because the object could be misused (i.e. refSelf() called and reference used elsewhere)
@@ -69,9 +87,6 @@ class StackHash : public QoreHashNode
 	 derefImpl(xsink);
       }
 };
-
-DLLLOCAL ccharcase_set_t QoreHTTPClient::method_set;
-DLLLOCAL strcase_set_t QoreHTTPClient::header_ignore;
 
 struct qore_qtc_private {
       // are we using http 1.1 or 1.0?

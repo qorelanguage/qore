@@ -37,6 +37,17 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#define FTPDEBUG 5
+
+//! to set the FTP mode
+enum qore_ftp_mode {
+   FTP_MODE_UNKNOWN,
+   FTP_MODE_PORT,
+   FTP_MODE_PASV,
+   FTP_MODE_EPSV,
+   //FTP_MODE_LPSV,
+};
+
 class FtpResp
 {
    private:

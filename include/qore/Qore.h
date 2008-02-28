@@ -25,6 +25,7 @@
 #define _QORE_QORE_H
 
 #include <qore/common.h>
+#include <qore/QoreEncoding.h>
 #include <qore/ReferenceHolder.h>
 #include <qore/AbstractQoreNode.h>
 #include <qore/QoreNodeEvalOptionalRefHolder.h>
@@ -53,7 +54,6 @@
 #include <qore/QoreString.h>
 #include <qore/DateTime.h>
 #include <qore/QoreType.h>
-#include <qore/QoreEncoding.h>
 #include <qore/BuiltinFunctionList.h>
 #include <qore/qore_thread.h>
 #include <qore/QoreThreadLock.h>

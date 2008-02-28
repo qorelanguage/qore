@@ -35,8 +35,6 @@
 #define FMT_NONE   -1
 #define FMT_NORMAL 0
 
-class QoreString;
-
 //! The base class for all value and parse types in Qore expression trees
 /**
    Defines the interface for all value and parse types in Qore expression trees.  Default implementations are given for most virtual functions.
