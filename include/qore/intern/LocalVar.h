@@ -37,19 +37,33 @@ union lvar_u {
 };
 
 struct LocalVarValue {
-   public:
+      union lvar_u val;
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
+      LocalVarValue *prev;
+#else
+      const char *id;
+#endif
       bool is_ref : 1;
       bool skip : 1;
-      union lvar_u val;
-      LocalVarValue *prev;  // link to previous instantiation of this local variable
 
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
       DLLLOCAL void set(AbstractQoreNode *value)
       {
 	 is_ref = false;
 	 skip = false;
 	 val.value = value;
       }
+#else
+      DLLLOCAL void set(const char *n_id, AbstractQoreNode *value)
+      {
+	 is_ref = false;
+	 skip = false;
+	 id = n_id;
+	 val.value = value;
+      }
+#endif
 
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
       DLLLOCAL void set(AbstractQoreNode *vexp, QoreObject *obj)
       {
 	 is_ref = true;
@@ -58,6 +72,33 @@ struct LocalVarValue {
 	 val.ref.obj = obj;
 	 if (obj)
 	    obj->tRef();
+      }
+#else
+      DLLLOCAL void set(const char *n_id, AbstractQoreNode *vexp, QoreObject *obj)
+      {
+	 is_ref = true;
+	 skip = false;
+	 id = n_id;
+	 val.ref.vexp = vexp;
+	 val.ref.obj = obj;
+	 if (obj)
+	    obj->tRef();
+      }
+#endif
+
+      DLLLOCAL void uninstantiate(ExceptionSink *xsink)
+      {
+	 if (!is_ref) {
+	    //printd(5, "LocalVarValue::uninstantiate() this=%08p uninstantiating local variable '%s' val=%08p\n", this, id, val->val.value);
+	    discard(val.value, xsink);
+	    return;
+	 }
+	 else {
+	    //printd(5, "LocalVarValue::uninstantiate() this=%08p uninstantiating local variable '%s' reference expression vexp=%08p\n", this, id, val->val.ref.vexp);
+	    val.ref.vexp->deref(xsink);
+	    if (val.ref.obj)
+	       val.ref.obj->tDeref();
+	 }
       }
 };
 
@@ -82,81 +123,90 @@ class LocalVar {
 
       DLLLOCAL LocalVarValue *get_current_var() const
       {
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
 	 return (LocalVarValue *)pthread_getspecific(var_key);
+#else
+	 return thread_find_current_lvar(name.c_str());
+#endif
       }
 
       DLLLOCAL LocalVarValue *get_var() const
       {
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
 	 LocalVarValue *v = get_current_var();
 	 while (v->skip)
 	    v = v->prev;
 	 return v;
+#else
+	 return thread_find_lvar(name.c_str());
+#endif
       }
 
    public:
       DLLLOCAL LocalVar(const char *n_name)
       {
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
 	 pthread_key_create(&var_key, 0);
+#endif
 	 name = n_name;
       }
 
       DLLLOCAL ~LocalVar()
       {
-	 pthread_key_delete(var_key);
+	 //pthread_key_delete(var_key);
       }
 
       DLLLOCAL void instantiate(AbstractQoreNode *value)
       {
+	 //printd(5, "LocalVar::instantiate(%08p) this=%08p '%s'\n", value, this, name.c_str());
+
 	 LocalVarValue *val = thread_instantiate_lvar();
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
 	 val->prev = get_current_var();
 	 pthread_setspecific(var_key, val);
-
-	 //printd(5, "LocalVar::instantiate(%08p) this=%08p '%s'\n", value, this, name.c_str());
 	 val->set(value);
+#else
+	 val->set(name.c_str(), value);
+#endif
       }
 
       DLLLOCAL void instantiate_object(QoreObject *value)
       {
+	 //printd(5, "LocalVar::instantiate_object(%08p) this=%08p '%s'\n", value, this, name.c_str());
+
 	 LocalVarValue *val = thread_instantiate_lvar();
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
 	 val->prev = get_current_var();
 	 pthread_setspecific(var_key, val);
-
-	 //printd(5, "LocalVar::instantiate_object(%08p) this=%08p '%s'\n", value, this, name.c_str());
-	 value->ref();
 	 val->set(value);
+#else
+	 val->set(name.c_str(), value);
+#endif
+	 value->ref();
       }
 
       DLLLOCAL void instantiate(AbstractQoreNode *vexp, QoreObject *obj)
       {
+	 //printd(5, "LocalVar::instantiate(%08p, %08p) this=%08p '%s'\n", vexp, obj, this, name.c_str());
+
 	 LocalVarValue *val = thread_instantiate_lvar();
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
 	 val->prev = get_current_var();
 	 pthread_setspecific(var_key, val);
-
-	 //printd(5, "LocalVar::instantiate(%08p, %08p) this=%08p '%s'\n", vexp, obj, this, name.c_str());
 	 val->set(vexp, obj);
+#else
+	 val->set(name.c_str(), vexp, obj);
+#endif
       }
       
       DLLLOCAL void uninstantiate(ExceptionSink *xsink)
       {
+#ifdef HAVE_UNLIMITED_THREAD_KEYS
 	 LocalVarValue *val = get_current_var();
 	 assert(val);
 	 pthread_setspecific(var_key, val->prev);
-	 thread_uninstantiate_lvar();
-
-	 //printd(5, "LocalVar::uninstantiate() this=%08p stack=%08p uninstantiating local variable '%s' (type %d)\n", this, stack, name.c_str(), val->type);
-	 
-	 // if there is a reference expression, decrement the reference counter
-	 if (!val->is_ref) {
-	    //printd(5, "LocalVar::uninstantiate() this=%08p uninstantiating local variable '%s' val=%08p\n", this, name.c_str(), val->val.value);
-	    discard(val->val.value, xsink);
-	    return;
-	 }
-	 else {
-	    //printd(5, "LocalVar::uninstantiate() this=%08p uninstantiating local variable '%s' reference expression vexp=%08p\n", this, name.c_str(), val->val.ref.vexp);
-	    val->val.ref.vexp->deref(xsink);
-	    if (val->val.ref.obj)
-	       val->val.ref.obj->tDeref();
-	 }
+#endif
+	 thread_uninstantiate_lvar(xsink);
       }
 
       DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, ExceptionSink *xsink) const

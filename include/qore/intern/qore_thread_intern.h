@@ -91,6 +91,14 @@ DLLLOCAL block_list_t::iterator popBlock();
 // called by each "on_block_exit" statement to activate it's code for the block exit
 DLLLOCAL void advanceOnBlockExit();
 
+DLLLOCAL class LocalVarValue *thread_instantiate_lvar();
+DLLLOCAL void thread_uninstantiate_lvar(ExceptionSink *xsink);
+
+#ifndef HAVE_UNLIMITED_THREAD_KEYS
+DLLLOCAL class LocalVarValue *thread_find_lvar(const char *id);
+DLLLOCAL class LocalVarValue *thread_find_current_lvar(const char *id);
+#endif
+
 DLLLOCAL extern pthread_attr_t ta_default;
 
 // for object implementation
@@ -165,7 +173,5 @@ DLLLOCAL class QoreNamespace *get_thread_ns();
 DLLLOCAL void delete_qore_threads();
 DLLLOCAL class QoreListNode *get_thread_list();
 DLLLOCAL class QoreHashNode *getAllCallStacks();
-DLLLOCAL class LocalVarValue *thread_instantiate_lvar();
-DLLLOCAL void thread_uninstantiate_lvar();
 
 #endif
