@@ -41,7 +41,7 @@
 
 #include "qore-qt.h"
 
-int CID_QVARIANT;
+qore_classid_t CID_QVARIANT;
 class QoreClass *QC_QVariant = 0;
 
 ////QVariant ()

@@ -28,7 +28,7 @@
 #include "QC_QPixmap.h"
 #include "QC_QImage.h"
 
-int CID_QBRUSH;
+qore_classid_t CID_QBRUSH;
 QoreClass *QC_QBrush = 0;
 
 //QBrush ()

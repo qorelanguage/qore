@@ -24,7 +24,7 @@
 
 #include "QC_QStyleOptionSizeGrip.h"
 
-int CID_QSTYLEOPTIONSIZEGRIP;
+qore_classid_t CID_QSTYLEOPTIONSIZEGRIP;
 class QoreClass *QC_QStyleOptionSizeGrip = 0;
 
 //QStyleOptionSizeGrip ()

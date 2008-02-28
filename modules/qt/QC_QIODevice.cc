@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QIODEVICE;
+qore_classid_t CID_QIODEVICE;
 class QoreClass *QC_QIODevice = 0;
 
 //QIODevice ()

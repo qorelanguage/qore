@@ -26,7 +26,7 @@
 #include "QC_QFont.h"
 #include "QC_QWidget.h"
 
-int CID_QHBOXLAYOUT;
+qore_classid_t CID_QHBOXLAYOUT;
 
 static void QHBOXL_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

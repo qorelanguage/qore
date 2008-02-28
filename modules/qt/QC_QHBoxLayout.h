@@ -28,7 +28,7 @@
 
 #include <QHBoxLayout>
 
-DLLEXPORT extern int CID_QHBOXLAYOUT;
+DLLEXPORT extern qore_classid_t CID_QHBOXLAYOUT;
 
 DLLLOCAL class QoreClass *initQHBoxLayoutClass(class QoreClass *qboxlayout);
 

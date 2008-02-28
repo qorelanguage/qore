@@ -26,7 +26,7 @@
 
 #include <QByteArray>
 
-DLLLOCAL extern int CID_QBYTEARRAY;
+DLLLOCAL extern qore_classid_t CID_QBYTEARRAY;
 DLLLOCAL extern class QoreClass *QC_QByteArray;
 
 DLLLOCAL class QoreClass *initQByteArrayClass();

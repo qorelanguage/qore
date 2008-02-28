@@ -25,7 +25,7 @@
 #include "QC_QResizeEvent.h"
 #include "QC_QSize.h"
 
-int CID_QRESIZEEVENT;
+qore_classid_t CID_QRESIZEEVENT;
 
 class QoreClass *QC_QResizeEvent = 0;
 

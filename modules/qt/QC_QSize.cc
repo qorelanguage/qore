@@ -25,7 +25,7 @@
 #include "QC_QSize.h"
 #include "QC_QColor.h"
 
-int CID_QSIZE;
+qore_classid_t CID_QSIZE;
 class QoreClass *QC_QSize = 0;
 
 

@@ -28,7 +28,7 @@
 
 #include <QGridLayout>
 
-DLLEXPORT extern int CID_QGRIDLAYOUT;
+DLLEXPORT extern qore_classid_t CID_QGRIDLAYOUT;
 
 DLLLOCAL class QoreClass *initQGridLayoutClass(class QoreClass *qlayout);
 

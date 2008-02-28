@@ -26,7 +26,7 @@
 
 #include <QStyleOption>
 
-DLLLOCAL extern int CID_QSTYLEOPTION;
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTION;
 DLLLOCAL extern class QoreClass *QC_QStyleOption;
 
 DLLLOCAL class QoreClass *initQStyleOptionClass();

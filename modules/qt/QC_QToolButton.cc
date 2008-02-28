@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTOOLBUTTON;
+qore_classid_t CID_QTOOLBUTTON;
 class QoreClass *QC_QToolButton = 0;
 
 //QToolButton ( QWidget * parent = 0 )

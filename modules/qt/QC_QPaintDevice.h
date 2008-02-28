@@ -28,7 +28,7 @@
 
 #include <QPaintDevice>
 
-DLLLOCAL extern int CID_QPAINTDEVICE;
+DLLLOCAL extern qore_classid_t CID_QPAINTDEVICE;
 DLLLOCAL extern QoreClass *QC_QPaintDevice;
 
 DLLLOCAL class QoreClass *initQPaintDeviceClass();

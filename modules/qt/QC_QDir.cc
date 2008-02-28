@@ -26,7 +26,7 @@
 
 #include "qore-qt.h"
 
-int CID_QDIR;
+qore_classid_t CID_QDIR;
 class QoreClass *QC_QDir = 0;
 
 //QDir ( const QDir & dir )

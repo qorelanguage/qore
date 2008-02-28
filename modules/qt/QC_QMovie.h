@@ -28,7 +28,7 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QMOVIE;
+DLLLOCAL extern qore_classid_t CID_QMOVIE;
 DLLLOCAL extern class QoreClass *QC_QMovie;
 
 DLLLOCAL class QoreClass *initQMovieClass(QoreClass *);

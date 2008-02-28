@@ -26,7 +26,7 @@
 
 #include <QFontInfo>
 
-DLLLOCAL extern int CID_QFONTINFO;
+DLLLOCAL extern qore_classid_t CID_QFONTINFO;
 DLLLOCAL extern class QoreClass *QC_QFontInfo;
 
 DLLLOCAL class QoreClass *initQFontInfoClass();

@@ -33,7 +33,7 @@
 
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QWIDGET;
+DLLLOCAL extern qore_classid_t CID_QWIDGET;
 DLLLOCAL extern QoreClass *QC_QWidget;
 
 DLLLOCAL class QoreClass *initQWidgetClass(class QoreClass *qobject, class QoreClass *qpaintdevice);

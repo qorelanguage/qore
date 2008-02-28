@@ -188,12 +188,16 @@ class Datasource
 
       //! executes SQL throught the "select" function of the DBI driver and returns the result, makes an implicit connection if necessary
       /** this function is not "const" to allow for implicit connections (and reconnections)
+	  @param query_str the qurey to execute
+	  @param args query arguments for %s, %n, %d placeholders
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT class AbstractQoreNode *select(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
 
       //! executes SQL throught the "selectRows" function of the DBI driver and returns the result, makes an implicit connection if necessary
       /** this function is not "const" to allow for implicit connections (and reconnections)
+	  @param query_str the qurey to execute
+	  @param args query arguments for %s, %n, %d placeholders
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT class AbstractQoreNode *selectRows(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
@@ -202,6 +206,8 @@ class Datasource
       /** The "in_transaction" flag will be set to true if this method executes without
 	  throwing an exception and the object was not already in a transaction.
 	  this function is not "const" to allow for implicit connections (and reconnections)
+	  @param query_str the qurey to execute
+	  @param args query arguments for %s, %n, %d placeholders
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT class AbstractQoreNode *exec(const class QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);

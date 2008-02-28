@@ -28,7 +28,7 @@
 #include "QoreAbstractQComboBox.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QCOMBOBOX;
+DLLLOCAL extern qore_classid_t CID_QCOMBOBOX;
 DLLLOCAL extern class QoreClass *QC_QComboBox;
 
 DLLLOCAL class QoreClass *initQComboBoxClass(QoreClass *);

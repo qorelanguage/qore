@@ -30,7 +30,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTABLEVIEW;
+qore_classid_t CID_QTABLEVIEW;
 class QoreClass *QC_QTableView = 0;
 
 //QTableView ( QWidget * parent = 0 )

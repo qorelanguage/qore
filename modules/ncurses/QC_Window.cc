@@ -25,7 +25,7 @@
 #include "ncurses-module.h"
 #include "QC_Window.h"
 
-int CID_WINDOW;
+qore_classid_t CID_WINDOW;
 
 void WC_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

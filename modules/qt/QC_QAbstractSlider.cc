@@ -24,7 +24,7 @@
 
 #include "QC_QAbstractSlider.h"
 
-int CID_QABSTRACTSLIDER;
+qore_classid_t CID_QABSTRACTSLIDER;
 
 static void QABSTRACTSLIDER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

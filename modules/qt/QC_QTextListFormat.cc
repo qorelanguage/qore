@@ -24,7 +24,7 @@
 
 #include "QC_QTextListFormat.h"
 
-int CID_QTEXTLISTFORMAT;
+qore_classid_t CID_QTEXTLISTFORMAT;
 class QoreClass *QC_QTextListFormat = 0;
 
 //QTextListFormat ()

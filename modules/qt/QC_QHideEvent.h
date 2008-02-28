@@ -26,7 +26,7 @@
 
 #include <QHideEvent>
 
-DLLLOCAL extern int CID_QHIDEEVENT;
+DLLLOCAL extern qore_classid_t CID_QHIDEEVENT;
 DLLLOCAL extern class QoreClass *QC_QHideEvent;
 
 DLLLOCAL class QoreClass *initQHideEventClass(QoreClass *);

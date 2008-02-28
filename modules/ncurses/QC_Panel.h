@@ -31,7 +31,7 @@
 
 #include "QC_Window.h"
 
-extern int CID_PANEL;
+extern qore_classid_t CID_PANEL;
 class QoreClass *initPanelClass();
 
 class Panel : public Window {

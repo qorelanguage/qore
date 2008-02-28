@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QDIAL;
+qore_classid_t CID_QDIAL;
 class QoreClass *QC_QDial = 0;
 
 //QDial ( QWidget * parent = 0 )

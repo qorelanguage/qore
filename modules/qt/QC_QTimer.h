@@ -28,7 +28,7 @@
 
 #include <QTimer>
 
-DLLEXPORT extern int CID_QTIMER;
+DLLEXPORT extern qore_classid_t CID_QTIMER;
 
 DLLLOCAL class QoreClass *initQTimerClass(class QoreClass *qobject);
 DLLLOCAL void initQTimerStaticFunctions();

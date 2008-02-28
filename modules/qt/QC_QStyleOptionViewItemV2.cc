@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QSTYLEOPTIONVIEWITEMV2;
+qore_classid_t CID_QSTYLEOPTIONVIEWITEMV2;
 class QoreClass *QC_QStyleOptionViewItemV2 = 0;
 
 //QStyleOptionViewItemV2 ()

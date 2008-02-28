@@ -31,7 +31,7 @@
 
 #include "qore-qt.h"
 
-int CID_QMENUBAR;
+qore_classid_t CID_QMENUBAR;
 class QoreClass *QC_QMenuBar = 0;
 
 //QMenuBar ( QWidget * parent = 0 )

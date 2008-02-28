@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QDESKTOPWIDGET;
+qore_classid_t CID_QDESKTOPWIDGET;
 class QoreClass *QC_QDesktopWidget = 0;
 
 //QDesktopWidget ()

@@ -28,7 +28,7 @@
 
 DLLLOCAL class QoreClass *initSocketClass();
 
-DLLEXPORT extern int CID_SOCKET;
+DLLEXPORT extern qore_classid_t CID_SOCKET;
 
 #include <qore/QoreSocket.h>
 #include <qore/AbstractPrivateData.h>

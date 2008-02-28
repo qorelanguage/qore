@@ -26,7 +26,7 @@
 
 #include <QStyleOptionTabWidgetFrame>
 
-DLLLOCAL extern int CID_QSTYLEOPTIONTABWIDGETFRAME;
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONTABWIDGETFRAME;
 DLLLOCAL extern class QoreClass *QC_QStyleOptionTabWidgetFrame;
 
 DLLLOCAL class QoreClass *initQStyleOptionTabWidgetFrameClass(QoreClass *);

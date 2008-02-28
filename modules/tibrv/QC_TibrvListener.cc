@@ -26,7 +26,7 @@
 
 #include "QC_TibrvListener.h"
 
-int CID_TIBRVLISTENER;
+qore_classid_t CID_TIBRVLISTENER;
 
 // syntax: subject, [desc, service, network, daemon] 
 void TIBRVLISTENER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)

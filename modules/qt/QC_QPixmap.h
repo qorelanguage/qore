@@ -28,7 +28,7 @@
 
 #include <QPixmap>
 
-DLLLOCAL extern int CID_QPIXMAP;
+DLLLOCAL extern qore_classid_t CID_QPIXMAP;
 DLLLOCAL extern QoreClass *QC_QPixmap;
 
 DLLLOCAL class QoreClass *initQPixmapClass(class QoreClass *qpaintdevice);

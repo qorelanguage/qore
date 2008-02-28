@@ -24,7 +24,7 @@
 #include "QC_QFont.h"
 #include "qore-qt.h"
 
-int CID_QFONT;
+qore_classid_t CID_QFONT;
 QoreClass *QC_QFont = 0;
 
 static void QFONT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

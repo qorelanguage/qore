@@ -30,7 +30,7 @@
 
 #include "qore-qt.h"
 
-int CID_QWIZARD;
+qore_classid_t CID_QWIZARD;
 class QoreClass *QC_QWizard = 0;
 
 //QWizard ( QWidget * parent = 0, Qt::WindowFlags flags = 0 )

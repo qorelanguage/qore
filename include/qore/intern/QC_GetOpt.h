@@ -27,7 +27,7 @@
 #include <qore/intern/QoreGetOpt.h>
 #include <qore/AbstractPrivateData.h>
 
-DLLEXPORT extern int CID_GETOPT;
+DLLEXPORT extern qore_classid_t CID_GETOPT;
 
 DLLLOCAL class QoreClass *initGetOptClass();
 

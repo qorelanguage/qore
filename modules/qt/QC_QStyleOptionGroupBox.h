@@ -26,7 +26,7 @@
 
 #include <QStyleOptionGroupBox>
 
-DLLLOCAL extern int CID_QSTYLEOPTIONGROUPBOX;
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONGROUPBOX;
 DLLLOCAL extern class QoreClass *QC_QStyleOptionGroupBox;
 
 DLLLOCAL class QoreClass *initQStyleOptionGroupBoxClass(QoreClass *);

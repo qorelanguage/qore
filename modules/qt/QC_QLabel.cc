@@ -28,7 +28,7 @@
 #include "QC_QPixmap.h"
 #include "QC_QWidget.h"
 
-int CID_QLABEL;
+qore_classid_t CID_QLABEL;
 
 static void QLABEL_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

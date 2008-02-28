@@ -27,7 +27,7 @@
 
 #include <errno.h>
 
-int CID_CONDITION;
+qore_classid_t CID_CONDITION;
 
 static void CONDITION_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

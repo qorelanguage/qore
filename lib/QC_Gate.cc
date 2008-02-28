@@ -24,7 +24,7 @@
 #include <qore/intern/QC_Gate.h>
 
 // rmutex class is depcreated and will be removed in the next major release
-int CID_GATE, CID_RMUTEX;
+qore_classid_t CID_GATE, CID_RMUTEX;
 
 static void GATE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

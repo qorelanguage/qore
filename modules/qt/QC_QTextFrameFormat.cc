@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTEXTFRAMEFORMAT;
+qore_classid_t CID_QTEXTFRAMEFORMAT;
 class QoreClass *QC_QTextFrameFormat = 0;
 
 //QTextFrameFormat ()

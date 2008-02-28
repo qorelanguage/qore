@@ -86,7 +86,7 @@ class DateTimeNode : public SimpleValueQoreNode, public DateTime
 	 @param n_ms the milliseconds value
 	 @param n_relative the relative flag
        */
-      DLLEXPORT DateTimeNode(int y, int mo, int d, int h = 0, int mi = 0, int s = 0, short ms = 0, bool r = false);
+      DLLEXPORT DateTimeNode(int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, short n_ms = 0, bool n_relative = false);
 
       //! constructor for setting an absolute date based on the number of seconds from January 1, 1970
       /**
@@ -151,6 +151,8 @@ class DateTimeNode : public SimpleValueQoreNode, public DateTime
 	  the format for relative date/time values is: <time: x years, x months, ...>
 	  NOTE: do not use this function directly, use QoreStringValueHelper instead
 	  @param del output parameter: always set to true by this function, meaning that the caller owns the QoreString pointer returned (and must delete it manually)
+	  @param foff ignored for this implementation of the file
+	  @param xsink ignored for this implementation of the file
 	  @return a QoreString pointer, use the del output parameter to determine ownership of the pointer
 	  @see QoreStringValueHelper
        */
@@ -160,8 +162,8 @@ class DateTimeNode : public SimpleValueQoreNode, public DateTime
       /** the format for absolute date/time value is: YYYY-MM-DD HH:mm:SS
 	  the format for relative date/time values is: <time: x years, x months, ...>
 	  @param str the QoreString reference to concatenate the date/time value to
-	  @param foff for multi-line formatting offset, -1 = no line breaks
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @param foff ignored for this implementation of the file
+	  @param xsink ignored for this implementation of the file
 	  @see QoreNodeAsStringHelper
       */
       DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;

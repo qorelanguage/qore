@@ -24,7 +24,7 @@
 
 #include "QC_QStyleOptionComboBox.h"
 
-int CID_QSTYLEOPTIONCOMBOBOX;
+qore_classid_t CID_QSTYLEOPTIONCOMBOBOX;
 class QoreClass *QC_QStyleOptionComboBox = 0;
 
 //QStyleOptionComboBox ()

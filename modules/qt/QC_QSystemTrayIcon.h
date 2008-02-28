@@ -28,7 +28,7 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QSYSTEMTRAYICON;
+DLLLOCAL extern qore_classid_t CID_QSYSTEMTRAYICON;
 DLLLOCAL extern class QoreClass *QC_QSystemTrayIcon;
 
 DLLLOCAL QoreNamespace *initQSystemTrayIconNS(QoreClass *);

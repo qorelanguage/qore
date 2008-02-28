@@ -35,7 +35,7 @@
 #include "QC_QWidget.h"
 #include "QC_QSize.h"
 
-extern int CID_QWIDGET;
+extern qore_classid_t CID_QWIDGET;
 
 class QoreAbstractQAbstractItemDelegate : public QoreAbstractQObject
 {

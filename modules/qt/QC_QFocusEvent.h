@@ -26,7 +26,7 @@
 
 #include <QFocusEvent>
 
-DLLLOCAL extern int CID_QFOCUSEVENT;
+DLLLOCAL extern qore_classid_t CID_QFOCUSEVENT;
 DLLLOCAL extern class QoreClass *QC_QFocusEvent;
 
 DLLLOCAL class QoreClass *initQFocusEventClass(QoreClass *);

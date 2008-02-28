@@ -24,7 +24,7 @@
 
 #include "QC_QCleanlooksStyle.h"
 
-int CID_QCLEANLOOKSSTYLE;
+qore_classid_t CID_QCLEANLOOKSSTYLE;
 class QoreClass *QC_QCleanlooksStyle = 0;
 
 //QCleanlooksStyle ()

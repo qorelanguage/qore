@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QMAINWINDOW;
+qore_classid_t CID_QMAINWINDOW;
 class QoreClass *QC_QMainWindow = 0;
 
 //QMainWindow ( QWidget * parent = 0, Qt::WindowFlags flags = 0 )

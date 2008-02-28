@@ -28,7 +28,7 @@
 #include "QoreAbstractQHeaderView.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QHEADERVIEW;
+DLLLOCAL extern qore_classid_t CID_QHEADERVIEW;
 DLLLOCAL extern class QoreClass *QC_QHeaderView;
 
 DLLLOCAL class QoreClass *initQHeaderViewClass(QoreClass *);

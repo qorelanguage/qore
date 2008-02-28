@@ -26,7 +26,7 @@
 
 #include <QDir>
 
-DLLLOCAL extern int CID_QDIR;
+DLLLOCAL extern qore_classid_t CID_QDIR;
 DLLLOCAL extern class QoreClass *QC_QDir;
 
 DLLLOCAL class QoreClass *initQDirClass();

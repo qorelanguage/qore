@@ -26,7 +26,7 @@
 
 #include "QC_TibrvCmSender.h"
 
-int CID_TIBRVCMSENDER;
+qore_classid_t CID_TIBRVCMSENDER;
 
 // syntax: [cmName, requestOld, ledgerName, syncLedger, relayAgent, desc, service, network, daemon] 
 void TIBRVCMSENDER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)

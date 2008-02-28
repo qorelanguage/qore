@@ -30,7 +30,7 @@
 
 #include <QActionGroup>
 
-DLLLOCAL extern int CID_QACTIONGROUP;
+DLLLOCAL extern qore_classid_t CID_QACTIONGROUP;
 DLLLOCAL extern QoreClass *QC_QActionGroup;
 
 DLLLOCAL class QoreClass *initQActionGroupClass(class QoreClass *parent);

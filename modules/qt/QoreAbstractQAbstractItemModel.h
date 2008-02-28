@@ -26,7 +26,7 @@
 
 #include "QoreAbstractQObject.h"
 
-extern int CID_QWIDGET;
+extern qore_classid_t CID_QWIDGET;
 
 class QoreAbstractQAbstractItemModel : public QoreAbstractQObject
 {

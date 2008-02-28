@@ -26,7 +26,7 @@
 
 #include <QCloseEvent>
 
-DLLLOCAL extern int CID_QCLOSEEVENT;
+DLLLOCAL extern qore_classid_t CID_QCLOSEEVENT;
 DLLLOCAL extern class QoreClass *QC_QCloseEvent;
 
 DLLLOCAL class QoreClass *initQCloseEventClass(QoreClass *);

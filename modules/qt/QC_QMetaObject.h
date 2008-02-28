@@ -26,7 +26,7 @@
 
 #include <QMetaObject>
 
-DLLLOCAL extern int CID_QMETAOBJECT;
+DLLLOCAL extern qore_classid_t CID_QMETAOBJECT;
 DLLLOCAL extern class QoreClass *QC_QMetaObject;
 
 DLLLOCAL class QoreClass *initQMetaObjectClass();

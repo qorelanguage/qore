@@ -30,7 +30,7 @@
 
 #include <QLayout>
 
-DLLLOCAL extern int CID_QLAYOUT;
+DLLLOCAL extern qore_classid_t CID_QLAYOUT;
 DLLLOCAL extern QoreClass *QC_QLayout;
 
 DLLLOCAL class QoreClass *initQLayoutClass(class QoreClass *qobject);

@@ -26,7 +26,7 @@
 
 #include <QDate>
 
-DLLLOCAL extern int CID_QDATE;
+DLLLOCAL extern qore_classid_t CID_QDATE;
 DLLLOCAL extern QoreClass *QC_QDate;
 
 DLLLOCAL class QoreClass *initQDateClass();

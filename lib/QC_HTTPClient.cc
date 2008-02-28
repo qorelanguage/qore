@@ -30,7 +30,7 @@
 #  include "tests/QC_HTTPClient_tests.cc"
 #endif
 
-int CID_HTTPCLIENT;
+qore_classid_t CID_HTTPCLIENT;
 
 //-----------------------------------------------------------------------------
 static void HC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

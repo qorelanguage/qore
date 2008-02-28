@@ -26,7 +26,7 @@
 
 #include <QTextCharFormat>
 
-DLLLOCAL extern int CID_QTEXTCHARFORMAT;
+DLLLOCAL extern qore_classid_t CID_QTEXTCHARFORMAT;
 DLLLOCAL extern class QoreClass *QC_QTextCharFormat;
 
 DLLLOCAL class QoreClass *initQTextCharFormatClass(QoreClass *);

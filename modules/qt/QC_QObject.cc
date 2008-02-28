@@ -26,7 +26,7 @@
 #include "QC_QFont.h"
 #include "QC_QMetaObject.h"
 
-int CID_QOBJECT;
+qore_classid_t CID_QOBJECT;
 QoreClass *QC_QObject = 0;
 
 static void QOBJECT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

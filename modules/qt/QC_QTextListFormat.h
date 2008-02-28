@@ -26,7 +26,7 @@
 
 #include <QTextListFormat>
 
-DLLLOCAL extern int CID_QTEXTLISTFORMAT;
+DLLLOCAL extern qore_classid_t CID_QTEXTLISTFORMAT;
 DLLLOCAL extern class QoreClass *QC_QTextListFormat;
 
 DLLLOCAL class QoreClass *initQTextListFormatClass(QoreClass *);

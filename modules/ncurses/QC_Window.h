@@ -30,7 +30,7 @@
 
 extern class QoreThreadLock lUpdate, lGetch;
 
-extern int CID_Window;
+extern qore_classid_t CID_Window;
 class QoreClass *initWindowClass();
 
 class Window : public AbstractPrivateData, public QoreThreadLock {

@@ -27,7 +27,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_RWLock.h>
 
-DLLEXPORT extern int CID_AUTOWRITELOCK;
+DLLEXPORT extern qore_classid_t CID_AUTOWRITELOCK;
 
 DLLLOCAL class QoreClass *initAutoWriteLockClass();
 

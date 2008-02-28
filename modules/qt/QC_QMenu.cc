@@ -33,7 +33,7 @@
 
 #include "qore-qt.h"
 
-int CID_QMENU;
+qore_classid_t CID_QMENU;
 class QoreClass *QC_QMenu = 0;
 
 //QMenu ( QWidget * parent = 0 )

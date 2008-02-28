@@ -26,7 +26,7 @@
 
 #include <QMouseEvent>
 
-DLLLOCAL extern int CID_QMOUSEEVENT;
+DLLLOCAL extern qore_classid_t CID_QMOUSEEVENT;
 DLLLOCAL extern class QoreClass *QC_QMouseEvent;
 
 DLLLOCAL class QoreClass *initQMouseEventClass(class QoreClass *parent);

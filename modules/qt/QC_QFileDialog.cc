@@ -30,7 +30,7 @@
 
 #include "qore-qt.h"
 
-int CID_QFILEDIALOG;
+qore_classid_t CID_QFILEDIALOG;
 class QoreClass *QC_QFileDialog = 0;
 
 //QFileDialog ( QWidget * parent, Qt::WindowFlags flags )

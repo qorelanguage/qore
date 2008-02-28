@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QCOREAPPLICATION;
+qore_classid_t CID_QCOREAPPLICATION;
 class QoreClass *QC_QCoreApplication = 0;
 
 //QCoreApplication ( int & argc, char ** argv )

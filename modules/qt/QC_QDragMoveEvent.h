@@ -26,7 +26,7 @@
 
 #include <QDragMoveEvent>
 
-DLLLOCAL extern int CID_QDRAGMOVEEVENT;
+DLLLOCAL extern qore_classid_t CID_QDRAGMOVEEVENT;
 DLLLOCAL extern class QoreClass *QC_QDragMoveEvent;
 
 DLLLOCAL class QoreClass *initQDragMoveEventClass(QoreClass *);

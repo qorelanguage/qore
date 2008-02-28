@@ -27,7 +27,7 @@
 #include <qore/ReferenceHolder.h>
 #include <qore/intern/ql_json.h>
 
-int CID_JSONRPCCLIENT;
+qore_classid_t CID_JSONRPCCLIENT;
 
 static void JRC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

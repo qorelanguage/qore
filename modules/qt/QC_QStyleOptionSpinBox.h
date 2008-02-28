@@ -26,7 +26,7 @@
 
 #include <QStyleOptionSpinBox>
 
-DLLLOCAL extern int CID_QSTYLEOPTIONSPINBOX;
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONSPINBOX;
 DLLLOCAL extern class QoreClass *QC_QStyleOptionSpinBox;
 
 DLLLOCAL class QoreClass *initQStyleOptionSpinBoxClass(QoreClass *);

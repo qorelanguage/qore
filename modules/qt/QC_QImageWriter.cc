@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QIMAGEWRITER;
+qore_classid_t CID_QIMAGEWRITER;
 class QoreClass *QC_QImageWriter = 0;
 
 //QImageWriter ()

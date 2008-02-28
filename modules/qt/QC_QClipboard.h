@@ -28,7 +28,7 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QCLIPBOARD;
+DLLLOCAL extern qore_classid_t CID_QCLIPBOARD;
 DLLLOCAL extern class QoreClass *QC_QClipboard;
 
 DLLLOCAL class QoreClass *initQClipboardClass(QoreClass *);

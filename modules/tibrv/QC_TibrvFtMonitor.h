@@ -30,7 +30,7 @@
 
 #include "QoreTibrvFtMonitor.h"
 
-extern int CID_TIBRVFTMONITOR;
+extern qore_classid_t CID_TIBRVFTMONITOR;
 extern class QoreClass *initTibrvFtMonitorClass();
 
 #endif

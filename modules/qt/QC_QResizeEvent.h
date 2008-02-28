@@ -26,7 +26,7 @@
 
 #include <QResizeEvent>
 
-DLLLOCAL extern int CID_QRESIZEEVENT;
+DLLLOCAL extern qore_classid_t CID_QRESIZEEVENT;
 DLLLOCAL extern class QoreClass *QC_QResizeEvent;
 
 DLLLOCAL class QoreClass *initQResizeEventClass(class QoreClass *parent);

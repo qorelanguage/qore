@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QFONTDATABASE;
+qore_classid_t CID_QFONTDATABASE;
 class QoreClass *QC_QFontDatabase = 0;
 
 //QFontDatabase ()

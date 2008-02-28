@@ -24,7 +24,7 @@
 
 #include "QC_QStyleOptionTab.h"
 
-int CID_QSTYLEOPTIONTAB;
+qore_classid_t CID_QSTYLEOPTIONTAB;
 class QoreClass *QC_QStyleOptionTab = 0;
 
 //QStyleOptionTab ()

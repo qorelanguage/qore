@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QCONTEXTMENUEVENT;
+qore_classid_t CID_QCONTEXTMENUEVENT;
 class QoreClass *QC_QContextMenuEvent = 0;
 
 //QContextMenuEvent ( Reason reason, const QPoint & pos, const QPoint & globalPos )

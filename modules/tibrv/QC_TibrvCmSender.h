@@ -30,7 +30,7 @@
 
 #include "QoreTibrvCmSender.h"
 
-extern int CID_TIBRVCMSENDER;
+extern qore_classid_t CID_TIBRVCMSENDER;
 extern class QoreClass *initTibrvCmSenderClass();
 
 #endif

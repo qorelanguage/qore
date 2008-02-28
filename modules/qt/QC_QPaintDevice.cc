@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include "QC_QPaintDevice.h"
 
-DLLLOCAL int CID_QPAINTDEVICE;
+DLLLOCAL qore_classid_t CID_QPAINTDEVICE;
 DLLLOCAL QoreClass *QC_QPaintDevice = 0;
 
 static void QPAINTDEVICE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

@@ -24,7 +24,7 @@
 
 #include "QC_QStyleOptionComplex.h"
 
-int CID_QSTYLEOPTIONCOMPLEX;
+qore_classid_t CID_QSTYLEOPTIONCOMPLEX;
 class QoreClass *QC_QStyleOptionComplex = 0;
 
 //QStyleOptionComplex ( int version = QStyleOptionComplex::Version, int type = SO_Complex )

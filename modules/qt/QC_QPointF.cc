@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QPOINTF;
+qore_classid_t CID_QPOINTF;
 class QoreClass *QC_QPointF = 0;
 
 //QPointF ()

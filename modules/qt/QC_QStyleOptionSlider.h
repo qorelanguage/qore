@@ -26,7 +26,7 @@
 
 #include <QStyleOptionSlider>
 
-DLLLOCAL extern int CID_QSTYLEOPTIONSLIDER;
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONSLIDER;
 DLLLOCAL extern class QoreClass *QC_QStyleOptionSlider;
 
 DLLLOCAL class QoreClass *initQStyleOptionSliderClass(QoreClass *);

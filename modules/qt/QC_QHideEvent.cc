@@ -24,7 +24,7 @@
 
 #include "QC_QHideEvent.h"
 
-int CID_QHIDEEVENT;
+qore_classid_t CID_QHIDEEVENT;
 class QoreClass *QC_QHideEvent = 0;
 
 //QHideEvent ()

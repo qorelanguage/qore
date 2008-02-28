@@ -26,7 +26,7 @@
 
 #include <QIcon>
 
-DLLLOCAL extern int CID_QICON;
+DLLLOCAL extern qore_classid_t CID_QICON;
 DLLLOCAL extern QoreClass *QC_QIcon;
 
 DLLLOCAL class QoreClass *initQIconClass();

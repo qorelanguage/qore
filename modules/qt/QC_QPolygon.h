@@ -26,7 +26,7 @@
 
 #include <QPolygon>
 
-DLLLOCAL extern int CID_QPOLYGON;
+DLLLOCAL extern qore_classid_t CID_QPOLYGON;
 DLLLOCAL extern class QoreClass *QC_QPolygon;
 
 DLLLOCAL class QoreClass *initQPolygonClass();

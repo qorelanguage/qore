@@ -28,7 +28,7 @@
 #include <qore/intern/SmartMutex.h>
 #include <qore/safe_dslist>
 
-DLLEXPORT extern int CID_MUTEX;
+DLLEXPORT extern qore_classid_t CID_MUTEX;
 
 DLLLOCAL class QoreClass *initMutexClass();
 

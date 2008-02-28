@@ -24,7 +24,7 @@
 
 #include "QC_QStyleOptionGroupBox.h"
 
-int CID_QSTYLEOPTIONGROUPBOX;
+qore_classid_t CID_QSTYLEOPTIONGROUPBOX;
 class QoreClass *QC_QStyleOptionGroupBox = 0;
 
 //QStyleOptionGroupBox ()

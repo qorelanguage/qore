@@ -28,7 +28,7 @@
 #include "QoreAbstractQIODevice.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QIODEVICE;
+DLLLOCAL extern qore_classid_t CID_QIODEVICE;
 DLLLOCAL extern class QoreClass *QC_QIODevice;
 
 DLLLOCAL class QoreClass *initQIODeviceClass(QoreClass *);

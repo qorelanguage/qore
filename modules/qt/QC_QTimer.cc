@@ -27,7 +27,7 @@
 #include "QC_QWidget.h"
 #include "QC_QObject.h"
 
-int CID_QTIMER;
+qore_classid_t CID_QTIMER;
 
 // QTimer ( QObject * parent = 0 )
 static void QTIMER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

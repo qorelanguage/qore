@@ -29,7 +29,7 @@
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreFtpClient.h>
 
-DLLEXPORT extern int CID_FTPCLIENT;
+DLLEXPORT extern qore_classid_t CID_FTPCLIENT;
 
 DLLLOCAL class QoreClass *initFtpClientClass();
 

@@ -28,7 +28,7 @@
 #include "QoreAbstractQListView.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QLISTVIEW;
+DLLLOCAL extern qore_classid_t CID_QLISTVIEW;
 DLLLOCAL extern QoreClass *QC_QListView;
 DLLLOCAL QoreNamespace *initQListViewNS(QoreClass *);
 

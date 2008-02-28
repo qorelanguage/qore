@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QMOTIFSTYLE;
+qore_classid_t CID_QMOTIFSTYLE;
 QoreClass *QC_QMotifStyle = 0;
 
 //QMotifStyle ( bool useHighlightCols = false )

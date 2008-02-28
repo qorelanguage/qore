@@ -25,7 +25,7 @@
 #include "QC_QLayout.h"
 #include "QC_QRect.h"
 
-int CID_QLAYOUT;
+qore_classid_t CID_QLAYOUT;
 QoreClass *QC_QLayout = 0;
 
 static void QLAYOUT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

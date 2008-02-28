@@ -24,7 +24,7 @@
 
 #include "QC_QKeyEvent.h"
 
-int CID_QKEYEVENT;
+qore_classid_t CID_QKEYEVENT;
 
 class QoreClass *QC_QKeyEvent = 0;
 

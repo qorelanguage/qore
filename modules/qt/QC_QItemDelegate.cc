@@ -32,7 +32,7 @@
 
 #include "qore-qt.h"
 
-int CID_QITEMDELEGATE;
+qore_classid_t CID_QITEMDELEGATE;
 class QoreClass *QC_QItemDelegate = 0;
 
 //QItemDelegate ( QObject * parent = 0 )

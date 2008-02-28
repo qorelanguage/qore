@@ -26,7 +26,7 @@
 
 #include <QStyleOptionTitleBar>
 
-DLLLOCAL extern int CID_QSTYLEOPTIONTITLEBAR;
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONTITLEBAR;
 DLLLOCAL extern class QoreClass *QC_QStyleOptionTitleBar;
 
 DLLLOCAL class QoreClass *initQStyleOptionTitleBarClass(QoreClass *);

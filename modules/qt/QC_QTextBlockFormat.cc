@@ -24,7 +24,7 @@
 
 #include "QC_QTextBlockFormat.h"
 
-int CID_QTEXTBLOCKFORMAT;
+qore_classid_t CID_QTEXTBLOCKFORMAT;
 class QoreClass *QC_QTextBlockFormat = 0;
 
 //QTextBlockFormat ()

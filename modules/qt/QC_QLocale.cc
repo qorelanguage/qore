@@ -26,7 +26,7 @@
 
 #include "qore-qt.h"
 
-int CID_QLOCALE;
+qore_classid_t CID_QLOCALE;
 class QoreClass *QC_QLocale = 0;
 
 //QLocale ()

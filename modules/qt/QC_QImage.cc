@@ -31,7 +31,7 @@
 
 #include <QStringList>
 
-int CID_QIMAGE;
+qore_classid_t CID_QIMAGE;
 QoreClass *QC_QImage = 0;
 
 //QImage ( const QSize & size, Format format )

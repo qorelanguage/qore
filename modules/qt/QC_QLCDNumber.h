@@ -30,7 +30,7 @@
 
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QLCDNUMBER;
+DLLEXPORT extern qore_classid_t CID_QLCDNUMBER;
 
 DLLLOCAL class QoreClass *initQLCDNumberClass(class QoreClass *qframe);
 

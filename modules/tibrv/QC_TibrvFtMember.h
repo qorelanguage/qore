@@ -30,7 +30,7 @@
 
 #include "QoreTibrvFtMember.h"
 
-extern int CID_TIBRVFTMEMBER;
+extern qore_classid_t CID_TIBRVFTMEMBER;
 extern class QoreClass *initTibrvFtMemberClass();
 
 #endif

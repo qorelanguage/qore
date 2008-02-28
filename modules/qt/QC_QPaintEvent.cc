@@ -26,7 +26,7 @@
 #include "QC_QRegion.h"
 #include "QC_QRect.h"
 
-int CID_QPAINTEVENT;
+qore_classid_t CID_QPAINTEVENT;
 
 class QoreClass *QC_QPaintEvent = 0;
 

@@ -28,7 +28,7 @@
 #include "QoreAbstractQWindowsStyle.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QPLASTIQUESTYLE;
+DLLLOCAL extern qore_classid_t CID_QPLASTIQUESTYLE;
 DLLLOCAL extern class QoreClass *QC_QPlastiqueStyle;
 
 DLLLOCAL class QoreClass *initQPlastiqueStyleClass(QoreClass *);

@@ -28,7 +28,7 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QCALENDARWIDGET;
+DLLLOCAL extern qore_classid_t CID_QCALENDARWIDGET;
 DLLLOCAL extern class QoreClass *QC_QCalendarWidget;
 
 DLLLOCAL class QoreClass *initQCalendarWidgetClass(QoreClass *);

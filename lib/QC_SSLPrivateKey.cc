@@ -26,7 +26,7 @@
 #include <openssl/ssl.h>
 #include <openssl/pem.h>
 
-int CID_SSLPRIVATEKEY;
+qore_classid_t CID_SSLPRIVATEKEY;
 
 /*
 void createSSLPrivateKeyObject(QoreObject *self, EVP_PKEY *cert)

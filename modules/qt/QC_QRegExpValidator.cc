@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QREGEXPVALIDATOR;
+qore_classid_t CID_QREGEXPVALIDATOR;
 class QoreClass *QC_QRegExpValidator = 0;
 
 //QRegExpValidator ( QObject * parent )

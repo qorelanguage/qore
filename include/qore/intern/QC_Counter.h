@@ -27,7 +27,7 @@
 #include <qore/QoreCounter.h>
 #include <qore/AbstractPrivateData.h>
 
-extern int CID_COUNTER;
+extern qore_classid_t CID_COUNTER;
 
 class QoreClass *initCounterClass();
 

@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QSTACKEDWIDGET;
+qore_classid_t CID_QSTACKEDWIDGET;
 class QoreClass *QC_QStackedWidget = 0;
 
 //QStackedWidget ( QWidget * parent = 0 )

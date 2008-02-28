@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QPRINTDIALOG;
+qore_classid_t CID_QPRINTDIALOG;
 class QoreClass *QC_QPrintDialog = 0;
 
 //QPrintDialog ( QPrinter * printer, QWidget * parent = 0 )

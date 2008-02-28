@@ -163,7 +163,7 @@ class DateTime {
 
       //! sets an absolute date value from a string in the format YYYYMMDDHHmmSS
       /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
-	  @param date the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
+	  @param str the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
        */
       DLLEXPORT void setDate(const char *str);
 

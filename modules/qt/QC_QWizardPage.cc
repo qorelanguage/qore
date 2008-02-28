@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QWIZARDPAGE;
+qore_classid_t CID_QWIZARDPAGE;
 class QoreClass *QC_QWizardPage = 0;
 
 //QWizardPage ( QWidget * parent = 0 )

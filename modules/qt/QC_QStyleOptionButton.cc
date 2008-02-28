@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QSTYLEOPTIONBUTTON;
+qore_classid_t CID_QSTYLEOPTIONBUTTON;
 class QoreClass *QC_QStyleOptionButton = 0;
 
 //QStyleOptionButton ()

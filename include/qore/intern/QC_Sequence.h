@@ -28,7 +28,7 @@
 
 #include <qore/intern/Sequence.h>
 
-DLLEXPORT extern int CID_SEQUENCE;
+DLLEXPORT extern qore_classid_t CID_SEQUENCE;
 
 DLLLOCAL class QoreClass *initSequenceClass();
 

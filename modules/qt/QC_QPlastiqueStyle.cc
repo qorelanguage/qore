@@ -24,7 +24,7 @@
 
 #include "QC_QPlastiqueStyle.h"
 
-int CID_QPLASTIQUESTYLE;
+qore_classid_t CID_QPLASTIQUESTYLE;
 class QoreClass *QC_QPlastiqueStyle = 0;
 
 //QPlastiqueStyle ()

@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_AutoGate.h>
 
-int CID_AUTOGATE;
+qore_classid_t CID_AUTOGATE;
 
 static void AG_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

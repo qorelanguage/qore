@@ -26,7 +26,7 @@
 
 #include "QC_TibrvFtMonitor.h"
 
-int CID_TIBRVFTMONITOR;
+qore_classid_t CID_TIBRVFTMONITOR;
 
 // syntax: group name, lostInterval, [service, network, daemon, desc] 
 static void TIBRVFTMONITOR_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)

@@ -28,7 +28,7 @@
 #include "QoreAbstractQTextEdit.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QTEXTEDIT;
+DLLLOCAL extern qore_classid_t CID_QTEXTEDIT;
 DLLLOCAL extern class QoreClass *QC_QTextEdit;
 
 DLLLOCAL QoreNamespace *initQTextEditNS(QoreClass *);

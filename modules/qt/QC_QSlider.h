@@ -30,7 +30,7 @@
 
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QSLIDER;
+DLLEXPORT extern qore_classid_t CID_QSLIDER;
 
 DLLLOCAL class QoreClass *initQSliderClass(class QoreClass *qframe);
 

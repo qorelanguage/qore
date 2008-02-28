@@ -24,7 +24,7 @@
 #include "qore-qt.h"
 #include "QC_QColor.h"
 
-int CID_QCOLOR;
+qore_classid_t CID_QCOLOR;
 QoreClass *QC_QColor = 0;
 
 static void QCOLOR_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

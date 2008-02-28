@@ -26,7 +26,7 @@
 
 #include <QImageWriter>
 
-DLLLOCAL extern int CID_QIMAGEWRITER;
+DLLLOCAL extern qore_classid_t CID_QIMAGEWRITER;
 DLLLOCAL extern class QoreClass *QC_QImageWriter;
 
 DLLLOCAL class QoreClass *initQImageWriterClass();

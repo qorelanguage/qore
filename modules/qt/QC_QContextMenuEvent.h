@@ -26,7 +26,7 @@
 
 #include <QContextMenuEvent>
 
-DLLLOCAL extern int CID_QCONTEXTMENUEVENT;
+DLLLOCAL extern qore_classid_t CID_QCONTEXTMENUEVENT;
 DLLLOCAL extern class QoreClass *QC_QContextMenuEvent;
 
 DLLLOCAL class QoreClass *initQContextMenuEventClass(QoreClass *);

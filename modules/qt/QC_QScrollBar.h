@@ -28,7 +28,7 @@
 #include "QoreAbstractQScrollBar.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QSCROLLBAR;
+DLLLOCAL extern qore_classid_t CID_QSCROLLBAR;
 DLLLOCAL extern class QoreClass *QC_QScrollBar;
 
 DLLLOCAL class QoreClass *initQScrollBarClass(QoreClass *);

@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QABSTRACTBUTTON;
+qore_classid_t CID_QABSTRACTBUTTON;
 class QoreClass *QC_QAbstractButton = 0;
 
 //QAbstractButton ( QWidget * parent = 0 )

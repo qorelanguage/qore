@@ -31,7 +31,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTABLEWIDGETITEM;
+qore_classid_t CID_QTABLEWIDGETITEM;
 class QoreClass *QC_QTableWidgetItem = 0;
 
 //QTableWidgetItem ( int type = Type )

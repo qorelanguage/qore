@@ -30,7 +30,7 @@
 
 #include "qore-qt.h"
 
-int CID_QSYSTEMTRAYICON;
+qore_classid_t CID_QSYSTEMTRAYICON;
 class QoreClass *QC_QSystemTrayIcon = 0;
 
 //QSystemTrayIcon ( QObject * parent = 0 )

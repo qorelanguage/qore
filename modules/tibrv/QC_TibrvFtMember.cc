@@ -26,7 +26,7 @@
 
 #include "QC_TibrvFtMember.h"
 
-int CID_TIBRVFTMEMBER;
+qore_classid_t CID_TIBRVFTMEMBER;
 
 // syntax: subject, [desc, service, network, daemon] 
 static void TIBRVFTMEMBER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)

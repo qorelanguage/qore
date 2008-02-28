@@ -25,7 +25,7 @@
 
 #include <qore/intern/QC_DatasourcePool.h>
 
-int CID_DATASOURCEPOOL;
+qore_classid_t CID_DATASOURCEPOOL;
 
 #define DP_MIN 5
 #define DP_MAX 20

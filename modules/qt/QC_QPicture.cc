@@ -26,7 +26,7 @@
 #include "QC_QRect.h"
 #include "QC_QPainter.h"
 
-int CID_QPICTURE;
+qore_classid_t CID_QPICTURE;
 QoreClass *QC_QPicture = 0;
 
 static void QPICTURE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

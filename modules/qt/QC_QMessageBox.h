@@ -28,7 +28,7 @@
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QMESSAGEBOX;
+DLLLOCAL extern qore_classid_t CID_QMESSAGEBOX;
 DLLLOCAL extern class QoreClass *QC_QMessageBox;
 
 DLLLOCAL class QoreClass *initQMessageBoxClass(QoreClass *);

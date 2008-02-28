@@ -26,7 +26,7 @@
 
 #include <QPoint>
 
-DLLLOCAL extern int CID_QPOINT;
+DLLLOCAL extern qore_classid_t CID_QPOINT;
 DLLLOCAL extern class QoreClass *QC_QPoint;
 
 DLLLOCAL class QoreClass *initQPointClass();

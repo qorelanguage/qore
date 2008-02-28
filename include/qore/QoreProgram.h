@@ -178,7 +178,7 @@ class QoreProgram : public AbstractPrivateData
 	  @param name the name of the file being parsed and run
 	  @param classname the name of the class to instantiate
        */
-      DLLEXPORT void parseAndRunClass(FILE *, const char *name, const char *classname);
+      DLLEXPORT void parseAndRunClass(FILE *fp, const char *name, const char *classname);
 
       //! parses the given string and runs the code by instantiating the class given
       /** The default exception handler is run on any Qore-language exceptions
@@ -202,7 +202,7 @@ class QoreProgram : public AbstractPrivateData
 	  @param warn_sink if a warning is raised, the warning information will be added here
 	  @param warn_mask the warning mask to set (-1 sets all possible warnings)
        */
-      DLLEXPORT void parse(FILE *, const char *name, class ExceptionSink *xsink, class ExceptionSink *warn_sink = NULL, int warn_mask = -1);
+      DLLEXPORT void parse(FILE *fp, const char *name, class ExceptionSink *xsink, class ExceptionSink *warn_sink = NULL, int warn_mask = -1);
 
       //! parses code from the given string and commits changes to the QoreProgram
       /**
@@ -315,7 +315,7 @@ class QoreProgram : public AbstractPrivateData
 
       //! sets the warning mask
       /**
-	 @param code the new warning mask
+	 @param wm the new warning mask
 	 @return 0 for success, -1 for error
       */
       DLLEXPORT int setWarningMask(int wm);

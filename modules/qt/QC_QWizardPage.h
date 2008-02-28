@@ -28,7 +28,7 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QWIZARDPAGE;
+DLLLOCAL extern qore_classid_t CID_QWIZARDPAGE;
 DLLLOCAL extern class QoreClass *QC_QWizardPage;
 
 DLLLOCAL class QoreClass *initQWizardPageClass(QoreClass *);

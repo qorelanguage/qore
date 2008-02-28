@@ -25,7 +25,7 @@
 #include "QC_QBitmap.h"
 #include "QC_QPixmap.h"
 
-int CID_QBITMAP;
+qore_classid_t CID_QBITMAP;
 QoreClass *QC_QBitmap = 0;
 
 static void QBITMAP_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

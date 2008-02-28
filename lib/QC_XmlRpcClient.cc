@@ -27,7 +27,7 @@
 #include <qore/ReferenceHolder.h>
 #include <qore/intern/ql_xml.h>
 
-int CID_XMLRPCCLIENT;
+qore_classid_t CID_XMLRPCCLIENT;
 
 typedef ReferenceHolder<QoreHTTPClient> safe_httpclient_t;
 

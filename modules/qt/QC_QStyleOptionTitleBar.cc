@@ -24,7 +24,7 @@
 
 #include "QC_QStyleOptionTitleBar.h"
 
-int CID_QSTYLEOPTIONTITLEBAR;
+qore_classid_t CID_QSTYLEOPTIONTITLEBAR;
 class QoreClass *QC_QStyleOptionTitleBar = 0;
 
 //QStyleOptionTitleBar ()

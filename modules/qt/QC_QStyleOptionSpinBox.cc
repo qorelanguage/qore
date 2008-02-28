@@ -24,7 +24,7 @@
 
 #include "QC_QStyleOptionSpinBox.h"
 
-int CID_QSTYLEOPTIONSPINBOX;
+qore_classid_t CID_QSTYLEOPTIONSPINBOX;
 class QoreClass *QC_QStyleOptionSpinBox = 0;
 
 //QStyleOptionSpinBox ()

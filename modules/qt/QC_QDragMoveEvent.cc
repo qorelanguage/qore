@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QDRAGMOVEEVENT;
+qore_classid_t CID_QDRAGMOVEEVENT;
 class QoreClass *QC_QDragMoveEvent = 0;
 
 //QDragMoveEvent ( const QPoint & pos, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Type type = DragMove )

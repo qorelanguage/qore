@@ -26,7 +26,7 @@
 
 #include <QTimerEvent>
 
-DLLLOCAL extern int CID_QTIMEREVENT;
+DLLLOCAL extern qore_classid_t CID_QTIMEREVENT;
 DLLLOCAL extern class QoreClass *QC_QTimerEvent;
 
 DLLLOCAL class QoreClass *initQTimerEventClass(QoreClass *);

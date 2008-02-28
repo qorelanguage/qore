@@ -26,7 +26,7 @@
 #include "QC_QAbstractSlider.h"
 #include "QC_QWidget.h"
 
-int CID_QSLIDER;
+qore_classid_t CID_QSLIDER;
 
 static void QSLIDER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

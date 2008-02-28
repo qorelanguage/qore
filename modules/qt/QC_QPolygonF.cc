@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QPOLYGONF;
+qore_classid_t CID_QPOLYGONF;
 class QoreClass *QC_QPolygonF = 0;
 
 // returns 0 for OK, -1 for error

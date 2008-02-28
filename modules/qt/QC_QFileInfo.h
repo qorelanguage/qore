@@ -26,7 +26,7 @@
 
 #include <QFileInfo>
 
-DLLLOCAL extern int CID_QFILEINFO;
+DLLLOCAL extern qore_classid_t CID_QFILEINFO;
 DLLLOCAL extern class QoreClass *QC_QFileInfo;
 
 DLLLOCAL class QoreClass *initQFileInfoClass();

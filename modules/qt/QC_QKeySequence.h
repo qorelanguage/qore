@@ -26,7 +26,7 @@
 
 #include <QKeySequence>
 
-DLLLOCAL extern int CID_QKEYSEQUENCE;
+DLLLOCAL extern qore_classid_t CID_QKEYSEQUENCE;
 DLLLOCAL extern QoreClass *QC_QKeySequence;
 
 DLLLOCAL class QoreClass *initQKeySequenceClass();

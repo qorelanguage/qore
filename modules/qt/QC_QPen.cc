@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QPEN;
+qore_classid_t CID_QPEN;
 class QoreClass *QC_QPen = 0;
 
 //QPen ()

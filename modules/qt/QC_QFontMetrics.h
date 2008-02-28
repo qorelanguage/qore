@@ -26,7 +26,7 @@
 
 #include <QFontMetrics>
 
-DLLLOCAL extern int CID_QFONTMETRICS;
+DLLLOCAL extern qore_classid_t CID_QFONTMETRICS;
 DLLLOCAL extern class QoreClass *QC_QFontMetrics;
 
 DLLLOCAL class QoreClass *initQFontMetricsClass();

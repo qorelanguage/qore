@@ -48,7 +48,7 @@
 
 #include "qore-qt.h"
 
-DLLLOCAL int CID_QPAINTER;
+DLLLOCAL qore_classid_t CID_QPAINTER;
 DLLLOCAL QoreClass *QC_QPainter = 0;
 
 static void QPAINTER_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

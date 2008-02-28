@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QRADIOBUTTON;
+qore_classid_t CID_QRADIOBUTTON;
 class QoreClass *QC_QRadioButton = 0;
 
 //QRadioButton ( QWidget * parent = 0 )

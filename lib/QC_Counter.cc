@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Counter.h>
 
-int CID_COUNTER;
+qore_classid_t CID_COUNTER;
 
 static void COUNTER_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTRANSLATOR;
+qore_classid_t CID_QTRANSLATOR;
 class QoreClass *QC_QTranslator = 0;
 
 //QTranslator ( QObject * parent = 0 )

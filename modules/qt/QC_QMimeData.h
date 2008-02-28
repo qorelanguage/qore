@@ -28,7 +28,7 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QMIMEDATA;
+DLLLOCAL extern qore_classid_t CID_QMIMEDATA;
 DLLLOCAL extern class QoreClass *QC_QMimeData;
 
 DLLLOCAL class QoreClass *initQMimeDataClass(QoreClass *);

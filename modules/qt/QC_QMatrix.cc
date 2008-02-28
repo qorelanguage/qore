@@ -30,7 +30,7 @@
 
 #include "qore-qt.h"
 
-int CID_QMATRIX;
+qore_classid_t CID_QMATRIX;
 QoreClass *QC_QMatrix = 0;
 
 static void QMATRIX_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

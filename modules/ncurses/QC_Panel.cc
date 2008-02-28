@@ -26,7 +26,7 @@
 #include "ncurses-module.h"
 #include "QC_Panel.h"
 
-int CID_PANEL;
+qore_classid_t CID_PANEL;
 
 //class QoreThreadLock nc_panel_update_lock;
 

@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_AutoWriteLock.h>
 
-int CID_AUTOWRITELOCK;
+qore_classid_t CID_AUTOWRITELOCK;
 
 static void AWL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

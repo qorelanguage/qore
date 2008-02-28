@@ -36,7 +36,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTEXTFORMAT;
+qore_classid_t CID_QTEXTFORMAT;
 class QoreClass *QC_QTextFormat = 0;
 
 //QTextFormat ()

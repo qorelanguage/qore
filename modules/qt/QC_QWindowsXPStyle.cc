@@ -24,7 +24,7 @@
 
 #include "QC_QWindowsXPStyle.h"
 
-int CID_QWINDOWSXPSTYLE;
+qore_classid_t CID_QWINDOWSXPSTYLE;
 class QoreClass *QC_QWindowsXPStyle = 0;
 
 //QWindowsXPStyle ()

@@ -28,7 +28,7 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QPROGRESSBAR;
+DLLLOCAL extern qore_classid_t CID_QPROGRESSBAR;
 DLLLOCAL extern class QoreClass *QC_QProgressBar;
 
 DLLLOCAL class QoreClass *initQProgressBarClass(QoreClass *);

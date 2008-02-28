@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QMIMEDATA;
+qore_classid_t CID_QMIMEDATA;
 class QoreClass *QC_QMimeData = 0;
 
 //QMimeData ()

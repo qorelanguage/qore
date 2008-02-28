@@ -26,7 +26,7 @@
 
 #include <QTabletEvent>
 
-DLLLOCAL extern int CID_QTABLETEVENT;
+DLLLOCAL extern qore_classid_t CID_QTABLETEVENT;
 DLLLOCAL extern class QoreClass *QC_QTabletEvent;
 
 DLLLOCAL class QoreClass *initQTabletEventClass(QoreClass *);

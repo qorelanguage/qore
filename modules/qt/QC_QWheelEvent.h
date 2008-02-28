@@ -26,7 +26,7 @@
 
 #include <QWheelEvent>
 
-DLLLOCAL extern int CID_QWHEELEVENT;
+DLLLOCAL extern qore_classid_t CID_QWHEELEVENT;
 DLLLOCAL extern class QoreClass *QC_QWheelEvent;
 
 DLLLOCAL class QoreClass *initQWheelEventClass(QoreClass *);

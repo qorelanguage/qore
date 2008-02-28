@@ -23,7 +23,7 @@
 #ifndef _QORE_CLASS_JSONRPCCLIENT_H
 #define _QORE_CLASS_JSONRPCCLIENT_H
 
-DLLEXPORT extern int CID_JSONRPCCLIENT;
+DLLEXPORT extern qore_classid_t CID_JSONRPCCLIENT;
 DLLLOCAL class QoreClass *initJsonRpcClientClass(class QoreClass *http_client);
 
 #endif

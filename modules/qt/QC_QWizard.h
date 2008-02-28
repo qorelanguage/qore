@@ -28,7 +28,7 @@
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QWIZARD;
+DLLLOCAL extern qore_classid_t CID_QWIZARD;
 DLLLOCAL extern class QoreClass *QC_QWizard;
 
 DLLLOCAL QoreNamespace *initQWizardNS(QoreClass *);

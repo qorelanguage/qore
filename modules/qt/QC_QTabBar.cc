@@ -32,7 +32,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTABBAR;
+qore_classid_t CID_QTABBAR;
 class QoreClass *QC_QTabBar = 0;
 
 //QTabBar ( QWidget * parent = 0 )

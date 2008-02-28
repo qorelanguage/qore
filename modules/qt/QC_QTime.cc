@@ -25,7 +25,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTIME;
+qore_classid_t CID_QTIME;
 QoreClass *QC_QTime = 0;
 
 static void QTIME_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QSHORTCUT;
+qore_classid_t CID_QSHORTCUT;
 class QoreClass *QC_QShortcut = 0;
 
 void *static_void_args[] = { 0 };

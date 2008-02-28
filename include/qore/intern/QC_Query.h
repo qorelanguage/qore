@@ -25,7 +25,7 @@
 #define QP_QUERYREF       1
 #define QP_VARREF         2
 
-extern int CID_QUERY;
+extern qore_classid_t CID_QUERY;
 class QoreClass *initQueryQoreClass();
 
 class QueryNode {

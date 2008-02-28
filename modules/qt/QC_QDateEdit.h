@@ -28,7 +28,7 @@
 #include "QoreAbstractQDateTimeEdit.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QDATEEDIT;
+DLLLOCAL extern qore_classid_t CID_QDATEEDIT;
 DLLLOCAL extern class QoreClass *QC_QDateEdit;
 
 DLLLOCAL class QoreClass *initQDateEditClass(QoreClass *);

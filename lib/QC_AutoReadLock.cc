@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_AutoReadLock.h>
 
-int CID_AUTOREADLOCK;
+qore_classid_t CID_AUTOREADLOCK;
 
 static void ARL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

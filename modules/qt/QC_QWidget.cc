@@ -37,7 +37,7 @@
 #include "QC_QByteArray.h"
 #include "QC_QBitmap.h"
 
-int CID_QWIDGET;
+qore_classid_t CID_QWIDGET;
 QoreClass *QC_QWidget = 0;
 
 static void QWIDGET_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

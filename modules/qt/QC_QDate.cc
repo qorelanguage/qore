@@ -25,7 +25,7 @@
 
 #include "qore-qt.h"
 
-int CID_QDATE;
+qore_classid_t CID_QDATE;
 QoreClass *QC_QDate = 0;
 
 static void QDATE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

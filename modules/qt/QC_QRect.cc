@@ -27,7 +27,7 @@
 #include "QC_QPoint.h"
 #include "QC_QSize.h"
 
-int CID_QRECT;
+qore_classid_t CID_QRECT;
 class QoreClass *QC_QRect = 0;
 
 //QRect ()

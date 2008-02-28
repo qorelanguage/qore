@@ -31,7 +31,7 @@
 #include "QC_QRect.h"
 #include "QC_QSize.h"
 
-int CID_QMOVIE;
+qore_classid_t CID_QMOVIE;
 class QoreClass *QC_QMovie = 0;
 
 //QMovie ( QObject * parent = 0 )

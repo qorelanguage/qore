@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QSCROLLBAR;
+qore_classid_t CID_QSCROLLBAR;
 class QoreClass *QC_QScrollBar = 0;
 
 //QScrollBar ( QWidget * parent = 0 )

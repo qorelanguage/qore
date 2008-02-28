@@ -149,7 +149,7 @@ class QoreString {
       //! concatenates a QoreString up to character "len"
       /** An exception could be thrown if the string to concatenate requires character set encoding conversion and the conversion fails
 	  @param str the QoreString to concatenate
-	  @param len the number of characters to copy (not bytes)
+	  @param size the number of characters to copy (not bytes)
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT void concat(const QoreString *str, int size, class ExceptionSink *xsink);
@@ -293,11 +293,12 @@ class QoreString {
       //! returns a new string consisting of "length" characters from the current string starting with character position "offset"
       /** offset and length spoecify characters, not bytes
 	  @param offset the offset in characters from the beginning of the string (starting with 0)
+	  @param length the number of characters for the substring
 	  @return the new string
        */
       DLLEXPORT QoreString *substr(int offset, int length) const;
 
-      //! removes a single \n\r or \n from the end of the string and returns the number of characters removed
+      //! removes a single \\n\\r or \\n from the end of the string and returns the number of characters removed
       DLLEXPORT int chomp();
 
       //! returns the encoding for the string
@@ -386,12 +387,14 @@ class QoreString {
       //! return Unicode code point for character offset
       /** if the string is not in UTF-8 encoding (tagged with QCS_UTF8), a temporary string will be created in UTF-8 encoding
 	  @param offset the offset in characters (not bytes) in the string
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return the unicode code for the character
        */
       DLLEXPORT unsigned int getUnicodePoint(int offset, class ExceptionSink *xsink) const;
 
       // concatenates a qorestring without converting encodings - internal only
       DLLLOCAL void concat(const QoreString *);
+
       // private constructor
       DLLLOCAL QoreString(struct qore_string_private *p);
 };

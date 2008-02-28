@@ -28,7 +28,7 @@
 #include "QoreAbstractQAbstractItemModel.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QABSTRACTITEMMODEL;
+DLLLOCAL extern qore_classid_t CID_QABSTRACTITEMMODEL;
 DLLLOCAL extern class QoreClass *QC_QAbstractItemModel;
 
 DLLLOCAL class QoreClass *initQAbstractItemModelClass(QoreClass *);

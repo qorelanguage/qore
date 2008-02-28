@@ -25,7 +25,7 @@
 #include "QC_QLCDNumber.h"
 #include "QC_QWidget.h"
 
-int CID_QLCDNUMBER;
+qore_classid_t CID_QLCDNUMBER;
 
 //QLCDNumber ( QWidget * parent = 0 )
 //QLCDNumber ( uint numDigits, QWidget * parent = 0 )

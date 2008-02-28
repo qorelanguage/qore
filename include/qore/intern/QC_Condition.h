@@ -28,7 +28,7 @@
 #include <qore/QoreCondition.h>
 #include <qore/intern/SmartMutex.h>
 
-extern int CID_CONDITION;
+extern qore_classid_t CID_CONDITION;
 
 class QoreClass *initConditionClass();
 

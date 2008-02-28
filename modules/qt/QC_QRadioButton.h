@@ -28,7 +28,7 @@
 #include "QoreAbstractQRadioButton.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QRADIOBUTTON;
+DLLLOCAL extern qore_classid_t CID_QRADIOBUTTON;
 DLLLOCAL extern class QoreClass *QC_QRadioButton;
 
 DLLLOCAL class QoreClass *initQRadioButtonClass(QoreClass *);

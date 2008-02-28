@@ -26,7 +26,7 @@
 #include "QC_QRegion.h"
 #include "QC_QRect.h"
 
-int CID_QINPUTEVENT;
+qore_classid_t CID_QINPUTEVENT;
 
 class QoreClass *QC_QInputEvent = 0;
 

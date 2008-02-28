@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QPROGRESSBAR;
+qore_classid_t CID_QPROGRESSBAR;
 class QoreClass *QC_QProgressBar = 0;
 
 //QProgressBar ( QWidget * parent = 0 )

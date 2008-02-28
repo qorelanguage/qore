@@ -28,7 +28,7 @@
 #include "QoreAbstractQMenuBar.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QMENUBAR;
+DLLLOCAL extern qore_classid_t CID_QMENUBAR;
 DLLLOCAL extern class QoreClass *QC_QMenuBar;
 
 DLLLOCAL class QoreClass *initQMenuBarClass(QoreClass *);

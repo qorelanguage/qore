@@ -28,7 +28,7 @@
 #include "QoreAbstractQPushButton.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QPUSHBUTTON;
+DLLLOCAL extern qore_classid_t CID_QPUSHBUTTON;
 DLLLOCAL extern class QoreClass *QC_QPushButton;
 
 DLLLOCAL class QoreClass *initQPushButtonClass(QoreClass *);

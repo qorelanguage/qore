@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QSCROLLAREA;
+qore_classid_t CID_QSCROLLAREA;
 class QoreClass *QC_QScrollArea = 0;
 
 //QScrollArea ( QWidget * parent = 0 )

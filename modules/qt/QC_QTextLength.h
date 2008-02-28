@@ -26,7 +26,7 @@
 
 #include <QTextLength>
 
-DLLLOCAL extern int CID_QTEXTLENGTH;
+DLLLOCAL extern qore_classid_t CID_QTEXTLENGTH;
 DLLLOCAL extern class QoreClass *QC_QTextLength;
 
 DLLLOCAL class QoreClass *initQTextLengthClass();

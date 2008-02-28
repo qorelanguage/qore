@@ -26,7 +26,7 @@
 
 #include <QChar>
 
-DLLLOCAL extern int CID_QCHAR;
+DLLLOCAL extern qore_classid_t CID_QCHAR;
 DLLLOCAL extern class QoreClass *QC_QChar;
 
 DLLLOCAL class QoreClass *initQCharClass();

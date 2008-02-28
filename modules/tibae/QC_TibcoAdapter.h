@@ -24,6 +24,6 @@
 #define _QORE_TIBAE_QC_TIBCOADAPTER_H
 
 DLLLOCAL class QoreClass *initTibcoAdapterClass();
-DLLLOCAL extern int CID_TIBAE;
+DLLLOCAL extern qore_classid_t CID_TIBAE;
 
 #endif

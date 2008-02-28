@@ -26,7 +26,7 @@
 
 #include <QActionEvent>
 
-DLLLOCAL extern int CID_QACTIONEVENT;
+DLLLOCAL extern qore_classid_t CID_QACTIONEVENT;
 DLLLOCAL extern class QoreClass *QC_QActionEvent;
 
 DLLLOCAL class QoreClass *initQActionEventClass(QoreClass *);

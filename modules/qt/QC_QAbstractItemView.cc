@@ -31,7 +31,7 @@
 
 #include "qore-qt.h"
 
-int CID_QABSTRACTITEMVIEW;
+qore_classid_t CID_QABSTRACTITEMVIEW;
 class QoreClass *QC_QAbstractItemView = 0;
 
 //QAbstractItemView ( QWidget * parent = 0 )

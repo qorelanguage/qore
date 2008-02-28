@@ -26,7 +26,7 @@
 
 #include <QTextImageFormat>
 
-DLLLOCAL extern int CID_QTEXTIMAGEFORMAT;
+DLLLOCAL extern qore_classid_t CID_QTEXTIMAGEFORMAT;
 DLLLOCAL extern class QoreClass *QC_QTextImageFormat;
 
 DLLLOCAL class QoreClass *initQTextImageFormatClass(QoreClass *);

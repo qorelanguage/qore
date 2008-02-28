@@ -32,7 +32,7 @@
 #include "QC_QPoint.h"
 #include "QC_QImage.h"
 
-int CID_QPIXMAP;
+qore_classid_t CID_QPIXMAP;
 QoreClass *QC_QPixmap = 0;
 
 //QPixmap () 

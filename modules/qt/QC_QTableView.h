@@ -28,7 +28,7 @@
 #include "QoreAbstractQTableView.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QTABLEVIEW;
+DLLLOCAL extern qore_classid_t CID_QTABLEVIEW;
 DLLLOCAL extern class QoreClass *QC_QTableView;
 
 DLLLOCAL class QoreClass *initQTableViewClass(QoreClass *);

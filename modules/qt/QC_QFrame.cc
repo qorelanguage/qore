@@ -26,7 +26,7 @@
 #include "QC_QRect.h"
 #include "QC_QWidget.h"
 
-int CID_QFRAME;
+qore_classid_t CID_QFRAME;
 
 static void QFRAME_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

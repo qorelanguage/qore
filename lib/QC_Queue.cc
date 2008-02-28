@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Queue.h>
 
-int CID_QUEUE;
+qore_classid_t CID_QUEUE;
 
 static void QUEUE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

@@ -26,7 +26,7 @@
 
 #include <QPainter>
 
-DLLLOCAL extern int CID_QPAINTER;
+DLLLOCAL extern qore_classid_t CID_QPAINTER;
 DLLLOCAL extern QoreClass *QC_QPainter;
 
 DLLLOCAL class QoreClass *initQPainterClass();

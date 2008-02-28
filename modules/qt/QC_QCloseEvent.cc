@@ -24,7 +24,7 @@
 
 #include "QC_QCloseEvent.h"
 
-int CID_QCLOSEEVENT;
+qore_classid_t CID_QCLOSEEVENT;
 class QoreClass *QC_QCloseEvent = 0;
 
 //QCloseEvent ()

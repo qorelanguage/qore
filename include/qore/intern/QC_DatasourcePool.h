@@ -38,7 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern int CID_DATASOURCEPOOL;
+extern qore_classid_t CID_DATASOURCEPOOL;
 
 class QoreClass *initDatasourcePoolClass();
 

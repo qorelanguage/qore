@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QFONTCOMBOBOX;
+qore_classid_t CID_QFONTCOMBOBOX;
 class QoreClass *QC_QFontComboBox = 0;
 
 //QFontComboBox ( QWidget * parent = 0 )

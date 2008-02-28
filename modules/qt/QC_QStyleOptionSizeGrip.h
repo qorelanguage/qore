@@ -26,7 +26,7 @@
 
 #include <QStyleOptionSizeGrip>
 
-DLLLOCAL extern int CID_QSTYLEOPTIONSIZEGRIP;
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONSIZEGRIP;
 DLLLOCAL extern class QoreClass *QC_QStyleOptionSizeGrip;
 
 DLLLOCAL class QoreClass *initQStyleOptionSizeGripClass(QoreClass *);

@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QACTIONEVENT;
+qore_classid_t CID_QACTIONEVENT;
 class QoreClass *QC_QActionEvent = 0;
 
 //QActionEvent ( int type, QAction * action, QAction * before = 0 )

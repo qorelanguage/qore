@@ -28,7 +28,7 @@
 #include "QoreAbstractQGroupBox.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QGROUPBOX;
+DLLLOCAL extern qore_classid_t CID_QGROUPBOX;
 DLLLOCAL extern class QoreClass *QC_QGroupBox;
 
 DLLLOCAL class QoreClass *initQGroupBoxClass(QoreClass *);

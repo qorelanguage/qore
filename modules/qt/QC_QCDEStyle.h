@@ -28,7 +28,7 @@
 #include "QoreAbstractQMotifStyle.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QCDESTYLE;
+DLLLOCAL extern qore_classid_t CID_QCDESTYLE;
 DLLLOCAL extern class QoreClass *QC_QCDEStyle;
 
 DLLLOCAL class QoreClass *initQCDEStyleClass(QoreClass *);

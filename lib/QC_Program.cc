@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Program.h>
 
-int CID_PROGRAM;
+qore_classid_t CID_PROGRAM;
 
 static void PROGRAM_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

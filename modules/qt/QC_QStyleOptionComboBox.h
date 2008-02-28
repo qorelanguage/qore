@@ -26,7 +26,7 @@
 
 #include <QStyleOptionComboBox>
 
-DLLLOCAL extern int CID_QSTYLEOPTIONCOMBOBOX;
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONCOMBOBOX;
 DLLLOCAL extern class QoreClass *QC_QStyleOptionComboBox;
 
 DLLLOCAL class QoreClass *initQStyleOptionComboBoxClass(QoreClass *);

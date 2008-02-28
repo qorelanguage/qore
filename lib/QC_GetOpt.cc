@@ -25,7 +25,7 @@
 
 #include <string.h>
 
-int CID_GETOPT;
+qore_classid_t CID_GETOPT;
 
 static inline int process_type(const char *key, int &attributes, char *opt, qore_type_t &at, ExceptionSink *xsink)
 {

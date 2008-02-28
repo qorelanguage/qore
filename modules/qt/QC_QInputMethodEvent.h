@@ -26,7 +26,7 @@
 
 #include <QInputMethodEvent>
 
-DLLLOCAL extern int CID_QINPUTMETHODEVENT;
+DLLLOCAL extern qore_classid_t CID_QINPUTMETHODEVENT;
 DLLLOCAL extern class QoreClass *QC_QInputMethodEvent;
 
 DLLLOCAL class QoreClass *initQInputMethodEventClass(QoreClass *);

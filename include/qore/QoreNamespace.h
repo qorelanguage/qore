@@ -39,6 +39,7 @@
 
 class RootQoreNamespace;
 
+//! contains constants, classes, and subnamespaces in QoreProgram objects
 class QoreNamespace
 {
       friend class QoreNamespaceList;
@@ -58,13 +59,77 @@ class QoreNamespace
       DLLLOCAL QoreNamespace(const char *n, class QoreClassList *ocl, class ConstantList *cl, class QoreNamespaceList *nnsl);
       DLLLOCAL QoreNamespace(class QoreClassList *ocl, class ConstantList *cl, class QoreNamespaceList *nnsl);
 
-      // not implemented
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreNamespace(const QoreNamespace&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreNamespace& operator=(const QoreNamespace&);
 
    public:
+      //! creates a namespace with the given name
+      /** the name of a subnamespace must be unique in the parent namespace and must not have the same name as a class in the parent namespace either
+	  @param n the name of the namespace
+       */
       DLLEXPORT QoreNamespace(const char *n);
+
+      //! destroys the object and frees all associated memory
       DLLEXPORT ~QoreNamespace();
+
+      //! adds a constant definition to the namespace
+      /**
+	 @param name the name of the constant to add
+	 @param value the value of the constant
+       */
+      DLLEXPORT void addConstant(const char *name, class AbstractQoreNode *value);
+
+      //! adds a class to a namespace
+      /**
+	 @param oc the class to add to the namespace
+      */
+      DLLEXPORT void addSystemClass(class QoreClass *oc);
+
+      //! adds a subnamespace to the namespace
+      /**
+	 @param ns the subnamespace to add to the namespace
+       */
+      DLLEXPORT void addInitialNamespace(class QoreNamespace *ns);
+
+      //! returns a deep copy of the namespace
+      /** @param po parse options to use when copying the namespace
+       */
+      DLLEXPORT class QoreNamespace *copy(int po = 0) const;
+
+      // info
+      //! gets a hash of all classes in the namespace, the hash keys are the class names and the values are lists of strings giving the method names
+      /**
+	 @see QoreHashNode
+	 @see QoreListNode
+	 @return a hash of all classes in the namespace, the hash keys are the class names and the values are lists of strings giving the method names
+       */
+      DLLEXPORT class QoreHashNode *getClassInfo() const;
+
+      //! a hash of all constants in the namespace, the hash keys are the constant names and the values are the values of the constants
+      /**
+	 @see QoreHashNode
+	 @see QoreListNode
+	 @return a hash of all constants in the namespace, the hash keys are the constant names and the values are the values of the constants
+       */      
+      DLLEXPORT class QoreHashNode *getConstantInfo() const;
+
+      //! returns a hash giving information about the definitions in the namespace
+      /** the return value has the following keys: "constants", "classes", and "subnamespaces"
+	  having as values the result of calling QoreNamespace::getConstantInfo(), 
+	  QoreNamespace::getClassInfo(), and a hash of subnamespace names having as values
+	  the result of calling this function on each, respectively.
+	  @return a hash giving information about the definitions in the namespace
+      */
+      DLLEXPORT class QoreHashNode *getInfo() const;
+
+      //! returns the name of the namespace
+      /**
+	 @return the name of the namespace
+      */
+      DLLEXPORT const char *getName() const;
 
       // parse-only interfaces are not exported
       DLLLOCAL QoreNamespace();
@@ -77,16 +142,6 @@ class QoreNamespace
       DLLLOCAL void parseRollback();
       DLLLOCAL void parseCommit();
       DLLLOCAL void setName(const char *nme);
-
-      DLLEXPORT void addConstant(const char *name, class AbstractQoreNode *value);
-      DLLEXPORT void addSystemClass(class QoreClass *oc);
-      DLLEXPORT void addInitialNamespace(class QoreNamespace *ns);
-      DLLEXPORT class QoreNamespace *copy(int po = 0) const;
-      // info
-      DLLEXPORT class QoreHashNode *getClassInfo() const;
-      DLLEXPORT class QoreHashNode *getConstantInfo() const;
-      DLLEXPORT class QoreHashNode *getInfo() const;
-      DLLEXPORT const char *getName() const;
 };
 
 class RootQoreNamespace : public QoreNamespace
@@ -100,6 +155,10 @@ class RootQoreNamespace : public QoreNamespace
       DLLLOCAL RootQoreNamespace(class QoreClassList *ocl, class ConstantList *cl, class QoreNamespaceList *nnsl);
 
    public:
+      //! returns a pointer to the QoreNamespace for the "Qore" namespace
+      /**
+	 @return a pointer to the QoreNamespace for the "Qore" namespace
+       */
       DLLEXPORT class QoreNamespace *rootGetQoreNamespace() const;
 
       DLLLOCAL RootQoreNamespace(class QoreNamespace **QoreNS);

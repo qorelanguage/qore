@@ -28,7 +28,7 @@
 #include "QoreAbstractQCoreApplication.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QCOREAPPLICATION;
+DLLLOCAL extern qore_classid_t CID_QCOREAPPLICATION;
 DLLLOCAL extern QoreClass *QC_QCoreApplication;
 
 DLLLOCAL QoreClass *initQCoreApplicationClass(QoreClass *);

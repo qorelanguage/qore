@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QABSTRACTITEMMODEL;
+qore_classid_t CID_QABSTRACTITEMMODEL;
 class QoreClass *QC_QAbstractItemModel = 0;
 
 //QAbstractItemModel ( QObject * parent = 0 )

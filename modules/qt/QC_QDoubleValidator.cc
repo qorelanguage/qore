@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QDOUBLEVALIDATOR;
+qore_classid_t CID_QDOUBLEVALIDATOR;
 class QoreClass *QC_QDoubleValidator = 0;
 
 //QDoubleValidator ( QObject * parent )

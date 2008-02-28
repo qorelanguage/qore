@@ -30,7 +30,7 @@
 
 #include "qore-qt.h"
 
-int CID_QLISTWIDGET;
+qore_classid_t CID_QLISTWIDGET;
 class QoreClass *QC_QListWidget = 0;
 
 //QListWidget ( QWidget * parent = 0 )

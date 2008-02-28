@@ -42,7 +42,7 @@
 #include "QC_QWindowsXPStyle.h"
 #endif
 
-DLLLOCAL extern int CID_QSTYLE;
+DLLLOCAL extern qore_classid_t CID_QSTYLE;
 DLLLOCAL extern class QoreClass *QC_QStyle;
 
 DLLLOCAL class QoreNamespace *initQStyleNS(QoreClass *);

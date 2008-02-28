@@ -27,7 +27,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Gate.h>
 
-DLLEXPORT extern int CID_AUTOGATE;
+DLLEXPORT extern qore_classid_t CID_AUTOGATE;
 
 DLLLOCAL class QoreClass *initAutoGateClass();
 

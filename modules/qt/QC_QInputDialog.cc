@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QINPUTDIALOG;
+qore_classid_t CID_QINPUTDIALOG;
 class QoreClass *QC_QInputDialog = 0;
 
 //double getDouble ( QWidget * parent, const QString & title, const QString & label, double value = 0, double minValue = -2147483647, double maxValue = 2147483647, int decimals = 1, bool * ok = 0, Qt::WindowFlags f = 0 )

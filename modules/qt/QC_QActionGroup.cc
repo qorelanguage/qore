@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QACTIONGROUP;
+qore_classid_t CID_QACTIONGROUP;
 QoreClass *QC_QActionGroup = 0;
 
 static void QACTIONGROUP_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

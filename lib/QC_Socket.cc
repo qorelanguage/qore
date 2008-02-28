@@ -27,7 +27,7 @@
 #include <errno.h>
 #include <string.h>
 
-int CID_SOCKET;
+qore_classid_t CID_SOCKET;
 
 static inline AbstractQoreNode *doReadResult(int rc, int64 val, char *method_name, ExceptionSink *xsink)
 {

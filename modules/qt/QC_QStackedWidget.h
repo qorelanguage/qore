@@ -28,7 +28,7 @@
 #include "QoreAbstractQFrame.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QSTACKEDWIDGET;
+DLLLOCAL extern qore_classid_t CID_QSTACKEDWIDGET;
 DLLLOCAL extern QoreClass *QC_QStackedWidget;
 DLLLOCAL QoreClass *initQStackedWidgetClass(QoreClass *);
 

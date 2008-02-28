@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QHEADERVIEW;
+qore_classid_t CID_QHEADERVIEW;
 class QoreClass *QC_QHeaderView = 0;
 
 //QHeaderView ( Qt::Orientation orientation, QWidget * parent = 0 )

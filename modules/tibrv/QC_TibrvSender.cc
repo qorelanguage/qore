@@ -26,7 +26,7 @@
 
 #include "QC_TibrvSender.h"
 
-int CID_TIBRVSENDER;
+qore_classid_t CID_TIBRVSENDER;
 
 // syntax: [desc, service, network, daemon] 
 void TIBRVSENDER_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)

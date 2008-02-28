@@ -26,7 +26,7 @@
 
 #include <QUrl>
 
-DLLLOCAL extern int CID_QURL;
+DLLLOCAL extern qore_classid_t CID_QURL;
 DLLLOCAL extern class QoreClass *QC_QUrl;
 
 DLLLOCAL class QoreClass *initQUrlClass();

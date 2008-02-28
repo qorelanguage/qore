@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QMOUSEEVENT;
+qore_classid_t CID_QMOUSEEVENT;
 
 class QoreClass *QC_QMouseEvent = 0;
 

@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Sequence.h>
 
-int CID_SEQUENCE;
+qore_classid_t CID_SEQUENCE;
 
 static void SEQUENCE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

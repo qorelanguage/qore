@@ -33,7 +33,7 @@
 
 #include "qore-qt.h"
 
-int CID_QACTION;
+qore_classid_t CID_QACTION;
 class QoreClass *QC_QAction = 0;
 
 //QAction ( QObject * parent )

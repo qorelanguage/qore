@@ -26,7 +26,7 @@
 #include "QC_QRect.h"
 #include "QC_QColor.h"
 
-int CID_QRECTF;
+qore_classid_t CID_QRECTF;
 QoreClass *QC_QRectF = 0;
 
 static void QRECTF_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

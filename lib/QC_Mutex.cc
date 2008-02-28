@@ -24,7 +24,7 @@
 #include <qore/intern/QC_Mutex.h>
 #include <qore/intern/QC_Condition.h>
 
-int CID_MUTEX;
+qore_classid_t CID_MUTEX;
 
 static void MUTEX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

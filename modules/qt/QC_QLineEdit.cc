@@ -30,7 +30,7 @@
 
 #include "qore-qt.h"
 
-int CID_QLINEEDIT;
+qore_classid_t CID_QLINEEDIT;
 class QoreClass *QC_QLineEdit = 0;
 
 //QLineEdit ( QWidget * parent = 0 )

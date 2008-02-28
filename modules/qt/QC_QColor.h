@@ -26,7 +26,7 @@
 
 #include <QColor>
 
-DLLLOCAL extern int CID_QCOLOR;
+DLLLOCAL extern qore_classid_t CID_QCOLOR;
 DLLLOCAL extern QoreClass *QC_QColor;
 
 DLLLOCAL class QoreClass *initQColorClass();

@@ -24,7 +24,7 @@
 
 #define _QORE_CLASS_PROGRAM_H
 
-DLLEXPORT extern int CID_PROGRAM;
+DLLEXPORT extern qore_classid_t CID_PROGRAM;
 DLLLOCAL class QoreClass *initProgramClass();
 
 #include <qore/QoreProgram.h>

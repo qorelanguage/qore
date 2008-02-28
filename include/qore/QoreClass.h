@@ -27,29 +27,29 @@
 #include <stdarg.h>
 
 // all qore class IDs
-DLLEXPORT extern int CID_AUTOGATE;
-DLLEXPORT extern int CID_AUTOLOCK;
-DLLEXPORT extern int CID_AUTOREADLOCK;
-DLLEXPORT extern int CID_AUTOWRITELOCK;
-DLLEXPORT extern int CID_CONDITION;
-DLLEXPORT extern int CID_COUNTER;
-DLLEXPORT extern int CID_DATASOURCE;
-DLLEXPORT extern int CID_DATASOURCEPOOL;
-DLLEXPORT extern int CID_FILE;
-DLLEXPORT extern int CID_FTPCLIENT;
-DLLEXPORT extern int CID_GATE;
-DLLEXPORT extern int CID_GETOPT;
-DLLEXPORT extern int CID_HTTPCLIENT;
-DLLEXPORT extern int CID_JSONRPCCLIENT;
-DLLEXPORT extern int CID_MUTEX;
-DLLEXPORT extern int CID_PROGRAM;
-DLLEXPORT extern int CID_QUEUE;
-DLLEXPORT extern int CID_RWLOCK;
-DLLEXPORT extern int CID_SSLCERTIFICATE;
-DLLEXPORT extern int CID_SSLPRIVATEKEY;
-DLLEXPORT extern int CID_SEQUENCE;
-DLLEXPORT extern int CID_SOCKET;
-DLLEXPORT extern int CID_XMLRPCCLIENT;
+DLLEXPORT extern qore_classid_t CID_AUTOGATE;
+DLLEXPORT extern qore_classid_t CID_AUTOLOCK;
+DLLEXPORT extern qore_classid_t CID_AUTOREADLOCK;
+DLLEXPORT extern qore_classid_t CID_AUTOWRITELOCK;
+DLLEXPORT extern qore_classid_t CID_CONDITION;
+DLLEXPORT extern qore_classid_t CID_COUNTER;
+DLLEXPORT extern qore_classid_t CID_DATASOURCE;
+DLLEXPORT extern qore_classid_t CID_DATASOURCEPOOL;
+DLLEXPORT extern qore_classid_t CID_FILE;
+DLLEXPORT extern qore_classid_t CID_FTPCLIENT;
+DLLEXPORT extern qore_classid_t CID_GATE;
+DLLEXPORT extern qore_classid_t CID_GETOPT;
+DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
+DLLEXPORT extern qore_classid_t CID_JSONRPCCLIENT;
+DLLEXPORT extern qore_classid_t CID_MUTEX;
+DLLEXPORT extern qore_classid_t CID_PROGRAM;
+DLLEXPORT extern qore_classid_t CID_QUEUE;
+DLLEXPORT extern qore_classid_t CID_RWLOCK;
+DLLEXPORT extern qore_classid_t CID_SSLCERTIFICATE;
+DLLEXPORT extern qore_classid_t CID_SSLPRIVATEKEY;
+DLLEXPORT extern qore_classid_t CID_SEQUENCE;
+DLLEXPORT extern qore_classid_t CID_SOCKET;
+DLLEXPORT extern qore_classid_t CID_XMLRPCCLIENT;
 
 class BCList;
 class BCSMList;
@@ -146,7 +146,7 @@ class QoreClass{
       struct qore_qc_private *priv;
 
       // private constructor only called when the class is copied
-      DLLLOCAL QoreClass(int id, const char *nme);
+      DLLLOCAL QoreClass(qore_classid_t id, const char *nme);
       DLLLOCAL const class QoreMethod *parseFindMethod(const char *name);
       DLLLOCAL void insertMethod(class QoreMethod *o);
       DLLLOCAL AbstractQoreNode *evalMethodGate(class QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const;
@@ -299,7 +299,7 @@ class QoreClass{
 	  @param cid the class ID of the QoreClass to find
 	  @return a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy
        */
-      DLLEXPORT class QoreClass *getClass(int cid) const;
+      DLLEXPORT class QoreClass *getClass(qore_classid_t cid) const;
       
       //! returns the number of methods in this class
       DLLEXPORT int numMethods() const;
@@ -308,7 +308,7 @@ class QoreClass{
       DLLEXPORT bool hasCopy() const;
 
       //! returns the class ID of this class
-      DLLEXPORT int getID() const;
+      DLLEXPORT qore_classid_t getID() const;
 
       //! returns true if the class is a builtin class
       DLLEXPORT bool isSystem() const;
@@ -385,7 +385,7 @@ class QoreClass{
       DLLLOCAL void parseInit();
       DLLLOCAL void parseCommit();
       DLLLOCAL void parseRollback();
-      DLLLOCAL int getIDForMethod() const;
+      DLLLOCAL qore_classid_t getIDForMethod() const;
       DLLLOCAL void parseSetBaseClassList(BCList *bcl);
       // get base class list to add virtual class indexes for private data
       DLLLOCAL BCSMList *getBCSMList() const;

@@ -108,6 +108,7 @@ class QoreFtpClient : public QoreThreadLock
       //! changes the working directory on the remote host
       /** if there are any errors (if no connection has been previously established, it's an error),
 	  Qore-language exceptions are raised.
+	  @param dir the directory to change to
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */
@@ -122,6 +123,8 @@ class QoreFtpClient : public QoreThreadLock
 
       //! sends a file from the local filesystem to the remote server
       /** the connection must be already established before this function is called or an error will be raised.
+	  @param localpath the local path of the file to send
+	  @param remotename the name of the file on the remote server
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */
@@ -129,6 +132,8 @@ class QoreFtpClient : public QoreThreadLock
 
       //! gets a file from the remote server and saves it on the local filesystem
       /** the connection must be already established before this function is called or an error will be raised.
+	  @param remotename the name of the file on the remote server
+	  @param localpath the local path of the file
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */
@@ -136,6 +141,8 @@ class QoreFtpClient : public QoreThreadLock
 
       //! returns a string listing the directory contents on the remote host (caller owns the reference count returned)
       /** the connection must be already established before this function is called or an error will be raised.
+	  @param path the path to list
+	  @param long_list if true then a "long list" is made
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return a string giving the directory listing on the remote host (caller owns the reference count returned), 0 if an error occured
        */
@@ -143,6 +150,7 @@ class QoreFtpClient : public QoreThreadLock
 
       //! deletes the given file on the remote server
       /** the connection must be already established before this function is called or an error will be raised.
+	  @param file the filename to delete
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */

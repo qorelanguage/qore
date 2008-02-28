@@ -26,7 +26,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTEXTIMAGEFORMAT;
+qore_classid_t CID_QTEXTIMAGEFORMAT;
 class QoreClass *QC_QTextImageFormat = 0;
 
 //QTextImageFormat ()

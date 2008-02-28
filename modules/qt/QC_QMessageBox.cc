@@ -33,7 +33,7 @@
 
 #include "qore-qt.h"
 
-int CID_QMESSAGEBOX;
+qore_classid_t CID_QMESSAGEBOX;
 class QoreClass *QC_QMessageBox = 0;
 
 //QMessageBox ( QWidget * parent = 0 )

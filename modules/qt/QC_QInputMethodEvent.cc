@@ -24,7 +24,7 @@
 
 #include "QC_QInputMethodEvent.h"
 
-int CID_QINPUTMETHODEVENT;
+qore_classid_t CID_QINPUTMETHODEVENT;
 class QoreClass *QC_QInputMethodEvent = 0;
 
 //QInputMethodEvent ()

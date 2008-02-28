@@ -31,7 +31,7 @@
 
 #include "qore-qt.h"
 
-int CID_QABSTRACTITEMDELEGATE;
+qore_classid_t CID_QABSTRACTITEMDELEGATE;
 class QoreClass *QC_QAbstractItemDelegate = 0;
 
 //QAbstractItemDelegate ( QObject * parent = 0 )

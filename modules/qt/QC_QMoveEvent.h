@@ -26,7 +26,7 @@
 
 #include <QMoveEvent>
 
-DLLLOCAL extern int CID_QMOVEEVENT;
+DLLLOCAL extern qore_classid_t CID_QMOVEEVENT;
 DLLLOCAL extern class QoreClass *QC_QMoveEvent;
 
 DLLLOCAL class QoreClass *initQMoveEventClass(class QoreClass *parent);

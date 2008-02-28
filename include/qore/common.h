@@ -35,6 +35,8 @@
 
 typedef short qore_type_t;
 
+typedef unsigned qore_classid_t;
+
 // set of integers
 typedef std::set<int> int_set_t;
 

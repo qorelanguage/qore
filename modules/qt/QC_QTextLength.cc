@@ -24,7 +24,7 @@
 
 #include "QC_QTextLength.h"
 
-int CID_QTEXTLENGTH;
+qore_classid_t CID_QTEXTLENGTH;
 class QoreClass *QC_QTextLength = 0;
 
 //QTextLength ()

@@ -24,7 +24,7 @@
 
 #include "QC_QTextTableFormat.h"
 
-int CID_QTEXTTABLEFORMAT;
+qore_classid_t CID_QTEXTTABLEFORMAT;
 class QoreClass *QC_QTextTableFormat = 0;
 
 //QTextTableFormat ()

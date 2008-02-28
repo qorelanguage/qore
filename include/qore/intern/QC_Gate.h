@@ -28,7 +28,7 @@
 
 #include <qore/intern/VRMutex.h>
 
-DLLEXPORT extern int CID_GATE;
+DLLEXPORT extern qore_classid_t CID_GATE;
 
 DLLLOCAL class QoreClass *initGateClass();
 // rmutex class is deprecated and will be removed in the next major release

@@ -30,7 +30,7 @@
 
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QLABEL;
+DLLEXPORT extern qore_classid_t CID_QLABEL;
 
 DLLLOCAL class QoreClass *initQLabelClass(class QoreClass *qframe);
 

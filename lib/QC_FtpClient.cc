@@ -25,7 +25,7 @@
 
 #include <qore/intern/QC_FtpClient.h>
 
-int CID_FTPCLIENT;
+qore_classid_t CID_FTPCLIENT;
 
 static void FC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

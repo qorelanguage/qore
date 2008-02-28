@@ -26,7 +26,7 @@
 
 #include <QTextBlockFormat>
 
-DLLLOCAL extern int CID_QTEXTBLOCKFORMAT;
+DLLLOCAL extern qore_classid_t CID_QTEXTBLOCKFORMAT;
 DLLLOCAL extern class QoreClass *QC_QTextBlockFormat;
 
 DLLLOCAL class QoreClass *initQTextBlockFormatClass(QoreClass *);

@@ -30,7 +30,7 @@
 
 #include "qore-qt-events.h"
 
-DLLEXPORT extern int CID_QFRAME;
+DLLEXPORT extern qore_classid_t CID_QFRAME;
 
 DLLLOCAL class QoreClass *initQFrameClass(class QoreClass *parent);
 

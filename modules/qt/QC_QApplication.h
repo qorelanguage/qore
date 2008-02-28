@@ -28,7 +28,7 @@
 
 #include <QApplication>
 
-extern int CID_QAPPLICATION;
+extern qore_classid_t CID_QAPPLICATION;
 
 DLLLOCAL class QoreClass *initQApplicationClass(class QoreClass *parent);
 DLLLOCAL void initQApplicationStaticFunctions();

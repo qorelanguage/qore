@@ -26,7 +26,7 @@
 
 #include <QTime>
 
-DLLLOCAL extern int CID_QTIME;
+DLLLOCAL extern qore_classid_t CID_QTIME;
 DLLLOCAL extern QoreClass *QC_QTime;
 
 DLLLOCAL class QoreClass *initQTimeClass();

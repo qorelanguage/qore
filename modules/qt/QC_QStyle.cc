@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QSTYLE;
+qore_classid_t CID_QSTYLE;
 class QoreClass *QC_QStyle = 0;
 
 //QStyle ()

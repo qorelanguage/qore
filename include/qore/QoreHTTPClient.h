@@ -153,7 +153,7 @@ class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock
       DLLEXPORT class QoreStringNode *getURL();
 
       //! sets the proxy URL
-      /** @param url the URL to use for connection to the proxy
+      /** @param proxy the URL to use for connection to the proxy
 	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
 	  @return -1 if an exception was thrown, 0 for OK
        */
@@ -216,6 +216,7 @@ class QoreHTTPClient : public AbstractPrivateData, public QoreThreadLock
 	  @param headers a hash of headers to add to the message
 	  @param data optional data to send (may be 0)
 	  @param size the byte length of the data to send (if this is 0 then no data is sent)
+	  @param getbody if true then a body will be read even if there is no "Content-Length:" header
 	  @param xsink if an error occurs, the Qore-language exception information will be added here	  
 	  @return the entire response as a hash, caller owns the QoreHashNode reference returned (0 if there was an error)
        */

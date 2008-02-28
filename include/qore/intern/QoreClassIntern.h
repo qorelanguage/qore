@@ -86,7 +86,7 @@ class BCSMList : public class_list_t
       DLLLOCAL void add(class QoreClass *thisclass, class QoreClass *qc, bool is_virtual);
       DLLLOCAL void addBaseClassesToSubclass(class QoreClass *thisclass, class QoreClass *sc, bool is_virtual);
       DLLLOCAL bool isBaseClass(class QoreClass *qc) const;
-      DLLLOCAL class QoreClass *getClass(int cid) const;
+      DLLLOCAL class QoreClass *getClass(qore_classid_t cid) const;
       //DLLLOCAL void execConstructors(class QoreObject *o, class BCEAList *bceal, class ExceptionSink *xsink) const;
       DLLLOCAL void execDestructors(class QoreObject *o, class ExceptionSink *xsink) const;
       DLLLOCAL void execSystemDestructors(class QoreObject *o, class ExceptionSink *xsink) const;

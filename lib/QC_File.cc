@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_File.h>
 
-int CID_FILE;
+qore_classid_t CID_FILE;
 
 static void FILE_system_constructor(QoreObject *self, int fd, va_list args)
 {

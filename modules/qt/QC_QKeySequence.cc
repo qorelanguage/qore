@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include "QC_QKeySequence.h"
 
-int CID_QKEYSEQUENCE;
+qore_classid_t CID_QKEYSEQUENCE;
 QoreClass *QC_QKeySequence = 0;
 
 static void QKEYSEQUENCE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

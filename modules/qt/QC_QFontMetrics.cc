@@ -30,7 +30,7 @@
 #include "qore-qt.h"
 
 
-int CID_QFONTMETRICS;
+qore_classid_t CID_QFONTMETRICS;
 class QoreClass *QC_QFontMetrics = 0;
 
 //QFontMetrics ( const QFont & font )

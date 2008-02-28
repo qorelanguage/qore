@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QWHEELEVENT;
+qore_classid_t CID_QWHEELEVENT;
 class QoreClass *QC_QWheelEvent = 0;
 
 //QWheelEvent ( const QPoint & pos, int delta, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Qt::Orientation orient = Qt::Vertical )

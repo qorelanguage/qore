@@ -28,7 +28,7 @@
 #include "QoreAbstractQAbstractButton.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QABSTRACTBUTTON;
+DLLLOCAL extern qore_classid_t CID_QABSTRACTBUTTON;
 DLLLOCAL extern class QoreClass *QC_QAbstractButton;
 
 DLLLOCAL class QoreClass *initQAbstractButtonClass(QoreClass *);

@@ -26,7 +26,7 @@
 #include "QC_QFont.h"
 #include "QC_QWidget.h"
 
-int CID_QVBOXLAYOUT;
+qore_classid_t CID_QVBOXLAYOUT;
 
 static void QVBOXL_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

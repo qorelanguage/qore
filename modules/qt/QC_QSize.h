@@ -26,7 +26,7 @@
 
 #include <QSize>
 
-DLLLOCAL extern int CID_QSIZE;
+DLLLOCAL extern qore_classid_t CID_QSIZE;
 DLLLOCAL extern class QoreClass *QC_QSize;
 
 DLLLOCAL class QoreClass *initQSizeClass();

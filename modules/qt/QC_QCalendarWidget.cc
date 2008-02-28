@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QCALENDARWIDGET;
+qore_classid_t CID_QCALENDARWIDGET;
 class QoreClass *QC_QCalendarWidget = 0;
 
 //QCalendarWidget ( QWidget * parent = 0 )

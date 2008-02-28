@@ -26,7 +26,7 @@
 
 #include <QVariant>
 
-DLLLOCAL extern int CID_QVARIANT;
+DLLLOCAL extern qore_classid_t CID_QVARIANT;
 DLLLOCAL extern class QoreClass *QC_QVariant;
 
 DLLLOCAL class QoreClass *initQVariantClass();

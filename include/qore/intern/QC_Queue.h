@@ -26,7 +26,7 @@
 
 #include <qore/intern/QoreQueue.h>
 
-DLLEXPORT extern int CID_QUEUE;
+DLLEXPORT extern qore_classid_t CID_QUEUE;
 DLLLOCAL class QoreClass *initQueueClass();
 
 class Queue : public AbstractPrivateData, public QoreQueue

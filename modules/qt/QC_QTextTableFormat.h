@@ -26,7 +26,7 @@
 
 #include <QTextTableFormat>
 
-DLLLOCAL extern int CID_QTEXTTABLEFORMAT;
+DLLLOCAL extern qore_classid_t CID_QTEXTTABLEFORMAT;
 DLLLOCAL extern class QoreClass *QC_QTextTableFormat;
 
 DLLLOCAL class QoreClass *initQTextTableFormatClass(QoreClass *);

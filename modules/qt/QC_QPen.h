@@ -26,7 +26,7 @@
 
 #include <QPen>
 
-DLLLOCAL extern int CID_QPEN;
+DLLLOCAL extern qore_classid_t CID_QPEN;
 DLLLOCAL extern class QoreClass *QC_QPen;
 
 DLLLOCAL class QoreClass *initQPenClass();

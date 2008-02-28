@@ -391,6 +391,7 @@ class QoreListNode : public AbstractQoreNode
       DLLLOCAL void clear();
       //! this function is not exported in the qore library
       /**
+	 @param num the offset of the entry to evaluate (starting with 0)
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
       */
       DLLLOCAL AbstractQoreNode *eval_entry(int num, class ExceptionSink *xsink) const;

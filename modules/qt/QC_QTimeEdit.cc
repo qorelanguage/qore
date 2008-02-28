@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTIMEEDIT;
+qore_classid_t CID_QTIMEEDIT;
 class QoreClass *QC_QTimeEdit = 0;
 
 //QTimeEdit ( QWidget * parent = 0 )

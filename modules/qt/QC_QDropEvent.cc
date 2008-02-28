@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QDROPEVENT;
+qore_classid_t CID_QDROPEVENT;
 class QoreClass *QC_QDropEvent = 0;
 
 //QDropEvent ( const QPoint & pos, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, Type type = Drop )

@@ -25,7 +25,7 @@
 #include "QC_QGroupBox.h"
 #include "QC_QWidget.h"
 
-int CID_QGROUPBOX;
+qore_classid_t CID_QGROUPBOX;
 class QoreClass *QC_QGroupBox = 0;
 
 //QGroupBox ( QWidget * parent = 0 )

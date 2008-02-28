@@ -24,7 +24,7 @@
 
 #include "QC_QMetaObject.h"
 
-int CID_QMETAOBJECT;
+qore_classid_t CID_QMETAOBJECT;
 class QoreClass *QC_QMetaObject = 0;
 
 static void QMETAOBJECT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

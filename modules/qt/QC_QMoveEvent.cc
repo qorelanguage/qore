@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QMOVEEVENT;
+qore_classid_t CID_QMOVEEVENT;
 
 class QoreClass *QC_QMoveEvent = 0;
 

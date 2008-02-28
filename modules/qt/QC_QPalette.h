@@ -26,7 +26,7 @@
 
 #include <QPalette>
 
-extern int CID_QPALETTE;
+extern qore_classid_t CID_QPALETTE;
 extern QoreClass *QC_QPalette;
 
 DLLLOCAL QoreNamespace *initQPaletteNS();

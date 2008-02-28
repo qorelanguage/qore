@@ -22,7 +22,7 @@
 #ifndef QC_HTTP_CLIENT_H_
 #define QC_HTTP_CLIENT_H_
 
-DLLEXPORT extern int CID_HTTPCLIENT;
+DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
 DLLLOCAL class QoreClass *initHTTPClientClass();
 
 #endif

@@ -26,7 +26,7 @@
 
 #include <QMatrix>
 
-DLLLOCAL extern int CID_QMATRIX;
+DLLLOCAL extern qore_classid_t CID_QMATRIX;
 DLLLOCAL extern QoreClass *QC_QMatrix;
 
 DLLLOCAL class QoreClass *initQMatrixClass();

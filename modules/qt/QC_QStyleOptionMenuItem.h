@@ -26,7 +26,7 @@
 
 #include <QStyleOptionMenuItem>
 
-DLLLOCAL extern int CID_QSTYLEOPTIONMENUITEM;
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONMENUITEM;
 DLLLOCAL extern class QoreClass *QC_QStyleOptionMenuItem;
 
 DLLLOCAL class QoreClass *initQStyleOptionMenuItemClass(QoreClass *);

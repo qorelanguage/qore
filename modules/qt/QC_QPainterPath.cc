@@ -31,7 +31,7 @@
 
 #include "qore-qt.h"
 
-int CID_QPAINTERPATH;
+qore_classid_t CID_QPAINTERPATH;
 class QoreClass *QC_QPainterPath = 0;
 
 //QPainterPath ()

@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QDIALOGBUTTONBOX;
+qore_classid_t CID_QDIALOGBUTTONBOX;
 class QoreClass *QC_QDialogButtonBox = 0;
 
 //QDialogButtonBox ( QWidget * parent = 0 )

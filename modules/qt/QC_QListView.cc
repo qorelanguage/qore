@@ -31,7 +31,7 @@
 
 #include "qore-qt.h"
 
-int CID_QLISTVIEW;
+qore_classid_t CID_QLISTVIEW;
 class QoreClass *QC_QListView = 0;
 
 //QListView ( QWidget * parent = 0 )

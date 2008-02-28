@@ -34,7 +34,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTEXTEDIT;
+qore_classid_t CID_QTEXTEDIT;
 class QoreClass *QC_QTextEdit = 0;
 
 //QTextEdit ( QWidget * parent = 0 )

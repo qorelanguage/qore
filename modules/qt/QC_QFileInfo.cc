@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QFILEINFO;
+qore_classid_t CID_QFILEINFO;
 class QoreClass *QC_QFileInfo = 0;
 
 //QFileInfo ()

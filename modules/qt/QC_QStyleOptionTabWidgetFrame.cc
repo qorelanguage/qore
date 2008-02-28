@@ -24,7 +24,7 @@
 
 #include "QC_QStyleOptionTabWidgetFrame.h"
 
-int CID_QSTYLEOPTIONTABWIDGETFRAME;
+qore_classid_t CID_QSTYLEOPTIONTABWIDGETFRAME;
 class QoreClass *QC_QStyleOptionTabWidgetFrame = 0;
 
 //QStyleOptionTabWidgetFrame ()

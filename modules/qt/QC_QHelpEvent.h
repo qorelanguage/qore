@@ -26,7 +26,7 @@
 
 #include <QHelpEvent>
 
-DLLLOCAL extern int CID_QHELPEVENT;
+DLLLOCAL extern qore_classid_t CID_QHELPEVENT;
 DLLLOCAL extern class QoreClass *QC_QHelpEvent;
 
 DLLLOCAL class QoreClass *initQHelpEventClass(QoreClass *);

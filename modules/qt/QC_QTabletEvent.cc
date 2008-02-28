@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTABLETEVENT;
+qore_classid_t CID_QTABLETEVENT;
 class QoreClass *QC_QTabletEvent = 0;
 
 //QTabletEvent ( Type type, const QPoint & pos, const QPoint & globalPos, const QPointF & hiResGlobalPos, int device, int pointerType, qreal pressure, int xTilt, int yTilt, qreal tangentialPressure, qreal rotation, int z, Qt::KeyboardModifiers keyState, qint64 uniqueID )

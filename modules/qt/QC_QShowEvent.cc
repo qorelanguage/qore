@@ -24,7 +24,7 @@
 
 #include "QC_QShowEvent.h"
 
-int CID_QSHOWEVENT;
+qore_classid_t CID_QSHOWEVENT;
 class QoreClass *QC_QShowEvent = 0;
 
 //QShowEvent ()

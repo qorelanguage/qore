@@ -28,7 +28,7 @@
 
 #include <QImage>
 
-DLLLOCAL extern int CID_QIMAGE;
+DLLLOCAL extern qore_classid_t CID_QIMAGE;
 DLLLOCAL extern QoreClass *QC_QImage;
 
 DLLLOCAL class QoreClass *initQImageClass(class QoreClass *qpaintdevice);

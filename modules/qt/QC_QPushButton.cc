@@ -27,7 +27,7 @@
 #include "QC_QWidget.h"
 #include "QC_QMenu.h"
 
-int CID_QPUSHBUTTON;
+qore_classid_t CID_QPUSHBUTTON;
 class QoreClass *QC_QPushButton = 0;
 
 //QPushButton ( QWidget * parent = 0 )

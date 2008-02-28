@@ -28,7 +28,7 @@
 #include "QoreAbstractQDialog.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QPRINTDIALOG;
+DLLLOCAL extern qore_classid_t CID_QPRINTDIALOG;
 DLLLOCAL extern class QoreClass *QC_QPrintDialog;
 
 DLLLOCAL class QoreClass *initQPrintDialogClass(QoreClass *);

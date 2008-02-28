@@ -45,6 +45,7 @@
 class QoreObject : public AbstractQoreNode
 {
    private:
+      //! the private implementation of the class
       struct qore_object_private *priv;
 
       // must only be called when inside the gate
@@ -54,6 +55,7 @@ class QoreObject : public AbstractQoreNode
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreObject(const QoreObject&);
+
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreObject& operator=(const QoreObject&);
 
@@ -144,9 +146,7 @@ class QoreObject : public AbstractQoreNode
       //! returns the type name as a c string
       DLLEXPORT virtual const char *getTypeName() const;
 
-      //! returns false
-      //DLLEXPORT virtual bool is_value() const;
-
+      //! returns the type name as a c string
       DLLLOCAL static const char *getStaticTypeName()
       {
 	 return "object";
@@ -156,7 +156,7 @@ class QoreObject : public AbstractQoreNode
       /**
 	 @param cid the class ID to check
        */
-      DLLEXPORT bool validInstanceOf(int cid) const;
+      DLLEXPORT bool validInstanceOf(qore_classid_t cid) const;
 
       //! sets the value of the given member to the given value
       /** the value must be already referenced for the assignment to the object
@@ -194,19 +194,22 @@ class QoreObject : public AbstractQoreNode
 
       //! tests for equality ("deep compare" including all contained values) with possible type conversion of contained elements (soft compare)
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param obj the object to compare
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT bool compareSoft(const class QoreObject *obj, class ExceptionSink *xsink) const;
 
       //! tests for equality ("deep compare" including all contained values) with possible type conversion of contained elements (hard compare)
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param obj the object to compare
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT bool compareHard(const class QoreObject *obj, class ExceptionSink *xsink) const;
 
       //! returns the value of the given member with the reference count incremented, the caller owns the AbstractQoreNode (reference) returned
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param mem the name member to retrieve the value for
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT AbstractQoreNode *getReferencedMemberNoMethod(const char *mem, class ExceptionSink *xsink) const;
 
@@ -218,7 +221,8 @@ class QoreObject : public AbstractQoreNode
 
       //! copies all member data of the current object to the passed QoreHashNode
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param hash the hash to copy all data from
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT void mergeDataToHash(class QoreHashNode *hash, class ExceptionSink *xsink);
 
@@ -227,18 +231,20 @@ class QoreObject : public AbstractQoreNode
 	 @param key the class ID of the class to set the private data for
 	 @param pd the private data for the given class ID
        */
-      DLLEXPORT void setPrivate(int key, AbstractPrivateData *pd);
+      DLLEXPORT void setPrivate(qore_classid_t key, AbstractPrivateData *pd);
 
       //! returns the private data corresponding to the class ID passed with an incremented reference count, caller owns the reference
       /**
 	 @param key the class ID of the class to get the private data for
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT AbstractPrivateData *getReferencedPrivateData(int key, class ExceptionSink *xsink) const;
+      DLLEXPORT AbstractPrivateData *getReferencedPrivateData(qore_classid_t key, class ExceptionSink *xsink) const;
 
       //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param name the name of the method to evalute
+	 @param args the arguments for the method
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT AbstractQoreNode *evalMethod(const class QoreString *name, const class QoreListNode *args, class ExceptionSink *xsink);
 
@@ -248,42 +254,98 @@ class QoreObject : public AbstractQoreNode
        */
       DLLEXPORT void doDelete(class ExceptionSink *xsink);
 
-      DLLEXPORT const QoreClass *getClass(int cid) const;
+      //! returns a pointer to a QoreClass object if the class ID passed is a valid class in the hierarchy
+      /**
+	 @param cid the class ID passed
+	 @return a pointer to a QoreClass object if the class ID passed is a valid class in the hierarchy
+       */
+      DLLEXPORT const QoreClass *getClass(qore_classid_t cid) const;
+
+      //! returns a pointer to the QoreClass of this object
+      /**
+	 @return a pointer to the QoreClass of this object
+       */
       DLLEXPORT const QoreClass *getClass() const;
+
+      //! returns the name of the class
+      /**
+	 @return the name of the class
+       */
       DLLEXPORT const char *getClassName() const;
-      DLLEXPORT int getStatus() const;
-      DLLEXPORT int isValid() const;
+
+      //! returns true if the object is valid
+      /**
+	 @return true if the object is valid
+       */
+      DLLEXPORT bool isValid() const;
+
+      //! returns the QoreProgram object associated with this object
+      /** for system objects only (created with the system constructor) this will be 0
+	  @return the QoreProgram object associated with this object
+      */
       DLLEXPORT class QoreProgram *getProgram() const;
+
+      //! returns true if the object is a system object (created with the system constructor)
+      /**
+	 @return true if the object is a system object (created with the system constructor)
+      */
       DLLEXPORT bool isSystemObject() const;
+
+      //! increments the existence reference count
+      /** Will not prolong the scope of the object (use QoreObject::ref() to prolong the scope of the object).  
+	  To derecrement the count, call QoreObject::tDeref()
+	  @see QoreObject::tDeref()
+	  @see QoreObject::ref()
+       */
       DLLEXPORT void tRef() const;
+
+      //! decrements the existence reference count, when it reaches 0 the object will be deleted
+      /** To increment the existence reference count, call QoreObject::tRef()
+	  @see QoreObject::tRef()
+       */
       DLLEXPORT void tDeref();
+
+      //! increments the scope count of the object
+      /**  
+       */
       DLLEXPORT void ref() const;
+
+      DLLLOCAL int getStatus() const;
 
       //! returns the value of the member with an incremented reference count, or executes the memberGate() method and returns the value
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param member the name of the member to get the value for (or evaluate the memberGate() method against)
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLLOCAL AbstractQoreNode *evalMember(const QoreString *member, class ExceptionSink *xsink);
 
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param h the hash to merge
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLLOCAL void merge(const class QoreHashNode *h, class ExceptionSink *xsink);
-      DLLLOCAL class KeyNode *getReferencedPrivateDataNode(int key);
+
+      DLLLOCAL class KeyNode *getReferencedPrivateDataNode(qore_classid_t key);
 
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param key the class key to use
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL AbstractPrivateData *getAndClearPrivateData(int key, class ExceptionSink *xsink);
+      DLLLOCAL AbstractPrivateData *getAndClearPrivateData(qore_classid_t key, class ExceptionSink *xsink);
 
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param meth the name of the method to evalute
+	 @param args the arguments for the method
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreListNode *args, class ExceptionSink *xsink);
+
       // called on old to acquire private data, copy method called on self (new copy)
       DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class QoreObject *self, const char *class_name, class ExceptionSink *xsink);
+
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param str the string to concatenate to
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLLOCAL void addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink) const;
 
@@ -293,9 +355,10 @@ class QoreObject : public AbstractQoreNode
       DLLLOCAL void obliterate(class ExceptionSink *xsink);
 
       /**
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @param classID the ID of the class
+	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLLOCAL void defaultSystemDestructor(int classID, class ExceptionSink *xsink);
+      DLLLOCAL void defaultSystemDestructor(qore_classid_t classID, class ExceptionSink *xsink);
 
       //! returns the pointer to the value of the member
       /** if the member exists, the lock is held and added to the AutoVLock "vl", otherwise the lock is released

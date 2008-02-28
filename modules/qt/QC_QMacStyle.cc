@@ -24,7 +24,7 @@
 
 #include "QC_QMacStyle.h"
 
-int CID_QMACSTYLE;
+qore_classid_t CID_QMACSTYLE;
 class QoreClass *QC_QMacStyle = 0;
 
 //QMacStyle ()

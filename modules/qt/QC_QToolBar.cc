@@ -31,7 +31,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTOOLBAR;
+qore_classid_t CID_QTOOLBAR;
 class QoreClass *QC_QToolBar = 0;
 
 //QToolBar ( const QString & title, QWidget * parent = 0 )

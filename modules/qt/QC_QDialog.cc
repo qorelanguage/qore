@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QDIALOG;
+qore_classid_t CID_QDIALOG;
 class QoreClass *QC_QDialog = 0;
 
 //QDialog ( QWidget * parent = 0, Qt::WindowFlags f = 0 )

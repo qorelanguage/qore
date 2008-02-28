@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QMODELINDEX;
+qore_classid_t CID_QMODELINDEX;
 class QoreClass *QC_QModelIndex = 0;
 
 //QModelIndex ()

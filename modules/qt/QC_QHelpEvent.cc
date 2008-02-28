@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QHELPEVENT;
+qore_classid_t CID_QHELPEVENT;
 class QoreClass *QC_QHelpEvent = 0;
 
 //QHelpEvent ( Type type, const QPoint & pos, const QPoint & globalPos )

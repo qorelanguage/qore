@@ -26,7 +26,7 @@
 
 #include "qore-qt.h"
 
-int CID_QCHAR;
+qore_classid_t CID_QCHAR;
 class QoreClass *QC_QChar = 0;
 
 //QChar ()

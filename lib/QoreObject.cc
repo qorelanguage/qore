@@ -39,7 +39,7 @@
 // if the second part of the pair is true, then the data is virtual
 typedef std::pair<AbstractPrivateData *, bool> private_pair_t;
 // mapping from qore class ID to the object data
-typedef std::map<int, private_pair_t> keymap_t;
+typedef std::map<qore_classid_t, private_pair_t> keymap_t;
 
 struct qore_object_private {
       const QoreClass *myclass;
@@ -80,7 +80,7 @@ class KeyList
       keymap_t keymap;
 
    public:
-      DLLLOCAL AbstractPrivateData *getReferencedPrivateData(int key) const
+      DLLLOCAL AbstractPrivateData *getReferencedPrivateData(qore_classid_t key) const
       {
 	 keymap_t::const_iterator i = keymap.find(key);
 	 if (i == keymap.end())
@@ -104,7 +104,7 @@ class KeyList
 	       i->second.first->deref(xsink);
       }
 
-      DLLLOCAL AbstractPrivateData *getAndClearPtr(int key)
+      DLLLOCAL AbstractPrivateData *getAndClearPtr(qore_classid_t key)
       {
 	 keymap_t::iterator i = keymap.find(key);
 	 if (i == keymap.end())
@@ -116,12 +116,12 @@ class KeyList
 	 return rv;
       }
 
-      DLLLOCAL void insert(int key, AbstractPrivateData *pd)
+      DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData *pd)
       {
 	 keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
       }
 
-      DLLLOCAL void insertVirtual(int key, AbstractPrivateData *pd)
+      DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData *pd)
       {
 	 if (keymap.find(key) == keymap.end())
 	    keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
@@ -160,7 +160,7 @@ int QoreObject::getStatus() const
    return priv->status; 
 }
 
-int QoreObject::isValid() const 
+bool QoreObject::isValid() const 
 { 
    return priv->status == OS_OK; 
 }
@@ -236,7 +236,7 @@ void QoreObject::ref() const
    ROreference();   // increment destructor-relevant references
 }
 
-bool QoreObject::validInstanceOf(int cid) const
+bool QoreObject::validInstanceOf(qore_classid_t cid) const
 {
    if (priv->status == OS_DELETED)
       return 0;
@@ -249,7 +249,7 @@ AbstractQoreNode *QoreObject::evalMethod(const QoreString *name, const QoreListN
    return priv->myclass->evalMethod(this, name->getBuffer(), args, xsink);
 }
 
-const QoreClass *QoreObject::getClass(int cid) const
+const QoreClass *QoreObject::getClass(qore_classid_t cid) const
 {
    if (cid == priv->myclass->getID())
       return priv->myclass;
@@ -732,7 +732,7 @@ AbstractQoreNode **QoreObject::getExistingValuePtr(const char *mem, class AutoVL
    return rv;
 }
 
-AbstractPrivateData *QoreObject::getReferencedPrivateData(int key, ExceptionSink *xsink) const
+AbstractPrivateData *QoreObject::getReferencedPrivateData(qore_classid_t key, ExceptionSink *xsink) const
 { 
    AbstractPrivateData *rv = NULL;
 
@@ -745,8 +745,8 @@ AbstractPrivateData *QoreObject::getReferencedPrivateData(int key, ExceptionSink
    return rv;
 }
 
-AbstractPrivateData *QoreObject::getAndClearPrivateData(int key, ExceptionSink *xsink)
-{ 
+AbstractPrivateData *QoreObject::getAndClearPrivateData(qore_classid_t key, ExceptionSink *xsink)
+{
    AbstractPrivateData *rv = NULL;
    if (priv->g.enter(xsink) < 0)
       return NULL;
@@ -769,7 +769,7 @@ void QoreObject::addVirtualPrivateData(AbstractPrivateData *apd)
 }
 
 // called only during constructor execution, therefore no need for locking
-void QoreObject::setPrivate(int key, AbstractPrivateData *pd)
+void QoreObject::setPrivate(qore_classid_t key, AbstractPrivateData *pd)
 { 
    if (!priv->privateData)
       priv->privateData = new KeyList();
@@ -815,7 +815,7 @@ void QoreObject::cleanup(ExceptionSink *xsink, class QoreHashNode *td)
    td->deref(xsink);
 }
 
-void QoreObject::defaultSystemDestructor(int classID, ExceptionSink *xsink)
+void QoreObject::defaultSystemDestructor(qore_classid_t classID, ExceptionSink *xsink)
 {
    AbstractPrivateData *pd = getAndClearPrivateData(classID, xsink);
    printd(5, "QoreObject::defaultSystemDestructor() this=%08p class=%s private_data=%08p\n", this, priv->myclass->getName(), pd); 

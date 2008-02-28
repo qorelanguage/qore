@@ -26,7 +26,7 @@
 
 #include <QTableWidgetItem>
 
-DLLLOCAL extern int CID_QTABLEWIDGETITEM;
+DLLLOCAL extern qore_classid_t CID_QTABLEWIDGETITEM;
 DLLLOCAL extern class QoreClass *QC_QTableWidgetItem;
 
 DLLLOCAL class QoreClass *initQTableWidgetItemClass();

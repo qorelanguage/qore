@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-DLLLOCAL int CID_QDATETIME;
+DLLLOCAL qore_classid_t CID_QDATETIME;
 
 static void QDATETIME_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

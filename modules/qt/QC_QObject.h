@@ -28,7 +28,7 @@
 
 #include <QObject>
 
-DLLLOCAL extern int CID_QOBJECT;
+DLLLOCAL extern qore_classid_t CID_QOBJECT;
 DLLLOCAL extern QoreClass *QC_QObject;
 
 DLLLOCAL class QoreClass *initQObjectClass();

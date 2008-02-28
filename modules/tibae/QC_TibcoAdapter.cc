@@ -29,7 +29,7 @@
 
 #include <memory>
 
-int CID_TIBAE;
+qore_classid_t CID_TIBAE;
 
 // usage: new TibcoAdapter(session-name, properties, classlist, [, service, network, daemon])
 void TIBAE_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

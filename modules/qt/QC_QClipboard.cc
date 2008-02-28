@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QCLIPBOARD;
+qore_classid_t CID_QCLIPBOARD;
 class QoreClass *QC_QClipboard = 0;
 
 //QClipboard ()

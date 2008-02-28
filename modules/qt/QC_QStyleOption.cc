@@ -30,7 +30,7 @@
 
 #include "qore-qt.h"
 
-int CID_QSTYLEOPTION;
+qore_classid_t CID_QSTYLEOPTION;
 class QoreClass *QC_QStyleOption = 0;
 
 //QStyleOption ( int version = QStyleOption::Version, int type = SO_Default )

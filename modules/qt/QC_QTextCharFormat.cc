@@ -29,7 +29,7 @@
 
 #include "qore-qt.h"
 
-int CID_QTEXTCHARFORMAT;
+qore_classid_t CID_QTEXTCHARFORMAT;
 class QoreClass *QC_QTextCharFormat = 0;
 
 //QTextCharFormat ()

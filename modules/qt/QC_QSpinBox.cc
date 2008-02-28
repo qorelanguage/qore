@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QSPINBOX;
+qore_classid_t CID_QSPINBOX;
 class QoreClass *QC_QSpinBox = 0;
 
 //QSpinBox ( QWidget * parent = 0 )

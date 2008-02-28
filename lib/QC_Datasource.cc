@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Datasource.h>
 
-int CID_DATASOURCE;
+qore_classid_t CID_DATASOURCE;
 
 // usage: Datasource(db name, [username, password, dbname])
 static void DS_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

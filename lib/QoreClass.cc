@@ -41,7 +41,7 @@ struct qore_qc_private {
       strset_t pmm, pending_pmm;   // private member lists (sets)
 
       const QoreMethod *system_constructor, *constructor, *destructor, *copyMethod, *methodGate, *memberGate;
-      int classID,                 // class ID
+      qore_classid_t classID,     // class ID
          methodID;                 // for subclasses of builtin classes that will not have their own private data,
                                    //   instead they will get the private data from this class
       bool sys, initialized;       // system class?, is initialized?
@@ -624,12 +624,12 @@ bool QoreClass::hasCopy() const
    return priv->copyMethod ? true : false; 
 }
 
-int QoreClass::getID() const
+qore_classid_t QoreClass::getID() const
 { 
    return priv->classID; 
 }
 
-int QoreClass::getIDForMethod() const
+qore_classid_t QoreClass::getIDForMethod() const
 { 
    return priv->methodID;
 }
@@ -956,7 +956,7 @@ inline void BCSMList::execCopyMethods(QoreObject *self, QoreObject *old, Excepti
    }
 }
 
-inline class QoreClass *BCSMList::getClass(int cid) const
+inline class QoreClass *BCSMList::getClass(qore_classid_t cid) const
 {
    class_list_t::const_iterator i = begin();
    while (i != end())
@@ -984,7 +984,7 @@ QoreClass::QoreClass()
    printd(5, "QoreClass::QoreClass() creating unnamed class ID:%d (this=%08p)\n", priv->classID, this);
 }
 
-QoreClass::QoreClass(int id, const char *nme)
+QoreClass::QoreClass(qore_classid_t id, const char *nme)
 {
    priv = new qore_qc_private(nme);
 
@@ -1002,7 +1002,7 @@ BCAList *QoreClass::getBaseClassConstructorArgumentList() const
    return priv->bcal;
 }
 
-QoreClass *QoreClass::getClass(int cid) const
+QoreClass *QoreClass::getClass(qore_classid_t cid) const
 {
    if (cid == priv->classID)
       return (QoreClass *)this;
@@ -1112,10 +1112,10 @@ void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const
    }
 }
 
-class QoreClass *QoreClass::copyAndDeref()
+QoreClass *QoreClass::copyAndDeref()
 {
    tracein("QoreClass::copyAndDeref");
-   class QoreClass *noc = new QoreClass(priv->classID, priv->name);
+   QoreClass *noc = new QoreClass(priv->classID, priv->name);
    noc->priv->methodID = priv->methodID;
 
    printd(5, "QoreClass::copyAndDeref() name=%s (%08p) new name=%s (%08p)\n", priv->name, priv->name, noc->priv->name, noc->priv->name);
@@ -1438,7 +1438,7 @@ inline void QoreClass::execSubclassCopy(QoreObject *self, QoreObject *old, Excep
       priv->copyMethod->evalCopy(self, old, xsink);
 }
 
-void QoreClass::addBaseClassesToSubclass(class QoreClass *sc, bool is_virtual)
+void QoreClass::addBaseClassesToSubclass(QoreClass *sc, bool is_virtual)
 {      
    if (priv->scl)
    {
@@ -1513,7 +1513,7 @@ const QoreMethod *QoreClass::resolveSelfMethod(const char *nme)
 const QoreMethod *QoreClass::resolveSelfMethod(class NamedScope *nme)
 {
    // first find class
-   class QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(nme);
+   QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(nme);
    if (!qc)
       return NULL;
 

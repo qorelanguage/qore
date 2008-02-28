@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QWINDOWSSTYLE;
+qore_classid_t CID_QWINDOWSSTYLE;
 class QoreClass *QC_QWindowsStyle = 0;
 
 //QWindowsStyle ()

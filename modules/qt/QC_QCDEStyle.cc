@@ -24,7 +24,7 @@
 
 #include "QC_QCDEStyle.h"
 
-int CID_QCDESTYLE;
+qore_classid_t CID_QCDESTYLE;
 class QoreClass *QC_QCDEStyle = 0;
 
 //QCDEStyle ( bool useHighlightCols = false )

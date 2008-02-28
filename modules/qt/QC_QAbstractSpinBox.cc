@@ -24,7 +24,7 @@
 
 #include "QC_QAbstractSpinBox.h"
 
-int CID_QABSTRACTSPINBOX;
+qore_classid_t CID_QABSTRACTSPINBOX;
 class QoreClass *QC_QAbstractSpinBox = 0;
 
 //QAbstractSpinBox ( QWidget * parent = 0 )

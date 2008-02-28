@@ -28,7 +28,7 @@
 #include "QoreAbstractQWidget.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QFONTCOMBOBOX;
+DLLLOCAL extern qore_classid_t CID_QFONTCOMBOBOX;
 DLLLOCAL extern class QoreClass *QC_QFontComboBox;
 
 DLLLOCAL class QoreClass *initQFontComboBoxClass(QoreClass *);

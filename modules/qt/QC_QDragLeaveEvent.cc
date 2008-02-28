@@ -24,7 +24,7 @@
 
 #include "QC_QDragLeaveEvent.h"
 
-int CID_QDRAGLEAVEEVENT;
+qore_classid_t CID_QDRAGLEAVEEVENT;
 class QoreClass *QC_QDragLeaveEvent = 0;
 
 //QDragLeaveEvent ()

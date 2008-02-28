@@ -28,7 +28,7 @@
 #include "QoreAbstractQObject.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QTRANSLATOR;
+DLLLOCAL extern qore_classid_t CID_QTRANSLATOR;
 DLLLOCAL extern class QoreClass *QC_QTranslator;
 
 DLLLOCAL class QoreClass *initQTranslatorClass(QoreClass *);

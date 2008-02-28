@@ -26,7 +26,7 @@
 
 #include <QLineF>
 
-DLLLOCAL extern int CID_QLINEF;
+DLLLOCAL extern qore_classid_t CID_QLINEF;
 DLLLOCAL extern class QoreClass *QC_QLineF;
 
 DLLLOCAL class QoreClass *initQLineFClass();

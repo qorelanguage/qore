@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QURL;
+qore_classid_t CID_QURL;
 class QoreClass *QC_QUrl = 0;
 
 //QUrl ()

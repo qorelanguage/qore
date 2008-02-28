@@ -26,7 +26,7 @@
 
 #include <QStyleOptionToolButton>
 
-DLLLOCAL extern int CID_QSTYLEOPTIONTOOLBUTTON;
+DLLLOCAL extern qore_classid_t CID_QSTYLEOPTIONTOOLBUTTON;
 DLLLOCAL extern class QoreClass *QC_QStyleOptionToolButton;
 
 DLLLOCAL class QoreClass *initQStyleOptionToolButtonClass(QoreClass *);

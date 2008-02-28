@@ -27,7 +27,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Mutex.h>
 
-DLLEXPORT extern int CID_AUTOLOCK;
+DLLEXPORT extern qore_classid_t CID_AUTOLOCK;
 
 DLLLOCAL class QoreClass *initAutoLockClass();
 

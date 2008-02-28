@@ -26,7 +26,7 @@
 
 #include <QDropEvent>
 
-DLLLOCAL extern int CID_QDROPEVENT;
+DLLLOCAL extern qore_classid_t CID_QDROPEVENT;
 DLLLOCAL extern class QoreClass *QC_QDropEvent;
 
 DLLLOCAL class QoreClass *initQDropEventClass(QoreClass *);

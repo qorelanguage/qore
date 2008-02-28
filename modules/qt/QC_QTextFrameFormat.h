@@ -26,7 +26,7 @@
 
 #include <QTextFrameFormat>
 
-DLLLOCAL extern int CID_QTEXTFRAMEFORMAT;
+DLLLOCAL extern qore_classid_t CID_QTEXTFRAMEFORMAT;
 DLLLOCAL extern class QoreClass *QC_QTextFrameFormat;
 
 DLLLOCAL class QoreClass *initQTextFrameFormatClass(QoreClass *);

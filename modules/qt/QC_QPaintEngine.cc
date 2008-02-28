@@ -36,7 +36,7 @@
 
 #include "qore-qt.h"
 
-int CID_QPAINTENGINE;
+qore_classid_t CID_QPAINTENGINE;
 class QoreClass *QC_QPaintEngine = 0;
 
 //QPaintEngine ( PaintEngineFeatures caps = 0 )

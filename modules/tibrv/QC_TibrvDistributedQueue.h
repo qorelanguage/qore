@@ -30,7 +30,7 @@
 
 #include "QoreTibrvDistributedQueue.h"
 
-extern int CID_TIBRVDQ;
+extern qore_classid_t CID_TIBRVDQ;
 extern class QoreClass *initTibrvDistributedQueueClass();
 
 #endif

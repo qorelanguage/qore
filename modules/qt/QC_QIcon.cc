@@ -30,7 +30,7 @@
 
 #include "qore-qt.h"
 
-int CID_QICON;
+qore_classid_t CID_QICON;
 QoreClass *QC_QIcon = 0;
 
 static void QICON_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)

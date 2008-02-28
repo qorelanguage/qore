@@ -26,7 +26,7 @@
 
 #include "QC_TibrvDistributedQueue.h"
 
-int CID_TIBRVDQ;
+qore_classid_t CID_TIBRVDQ;
 
 // syntax: name, [desc, service, network, daemon] 
 void TIBRVDQ_constructor(class QoreObject *self, const QoreListNode *params, class ExceptionSink *xsink)

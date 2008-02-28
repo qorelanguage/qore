@@ -111,6 +111,7 @@ class QoreFile {
 
       //! writes string data to the file, character encoding is converted if necessary, and returns the number of bytes written
       /** Qore-language exceptions can be thrown if the file is not opened or if encoding conversion fails
+	  @param str the string to write to the file
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return returns the number of bytes written (-1 if an exception was thrown)
        */
@@ -118,6 +119,7 @@ class QoreFile {
 
       //! writes binary data to the file and returns the number of bytes written
       /** Qore-language exceptions can be thrown if the file is not opened
+	  @param b the binary data to write the file
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return returns the number of bytes written (-1 if an exception was thrown)
        */
@@ -125,6 +127,8 @@ class QoreFile {
 
       //! writes binary data to the file and returns the number of bytes written
       /** Qore-language exceptions can be thrown if the file is not opened
+	  @param data the data to write to the file
+	  @param len the length of data to write to the file
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return returns the number of bytes written (-1 if an exception was thrown)
        */
@@ -132,6 +136,7 @@ class QoreFile {
 
       //! writes 1-byte binary integer data to the file and returns the number of bytes written (normally 1)
       /** Qore-language exceptions can be thrown if the file is not opened
+	  @param i the 1-byte integer to write to the file
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return returns the number of bytes written (-1 if an exception was thrown)
        */
@@ -139,6 +144,7 @@ class QoreFile {
 
       //! writes 2-byte (16bit) binary integer data in MSB (Most Significant Byte first, big endian) format to the file and returns the number of bytes written (normally 2)
       /** Qore-language exceptions can be thrown if the file is not opened
+	  @param i the integer to write to the file
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return returns the number of bytes written (-1 if an exception was thrown)
 	  @see Qorefile::writei2LSB()
@@ -147,6 +153,7 @@ class QoreFile {
 
       //! writes 4-byte (32bit) binary integer data in MSB (Most Significant Byte first, big endian) format to the file and returns the number of bytes written (normally 4)
       /** Qore-language exceptions can be thrown if the file is not opened
+	  @param i the integer to write to the file
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return returns the number of bytes written (-1 if an exception was thrown)
 	  @see Qorefile::writei4LSB()
@@ -155,6 +162,7 @@ class QoreFile {
 
       //! writes 8-byte (64bit) binary integer data in MSB (Most Significant Byte first, big endian) format to the file and returns the number of bytes written (normally 8)
       /** Qore-language exceptions can be thrown if the file is not opened
+	  @param i the integer to write to the file
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return returns the number of bytes written (-1 if an exception was thrown)
 	  @see Qorefile::writei4LSB()
@@ -163,6 +171,7 @@ class QoreFile {
 
       //! writes 2-byte (16bit) binary integer data in LSB (Least Significant Byte first, little endian) format to the file and returns the number of bytes written (normally 2)
       /** Qore-language exceptions can be thrown if the file is not opened
+	  @param i the integer to write to the file
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return returns the number of bytes written (-1 if an exception was thrown)
 	  @see Qorefile::writei2()
@@ -171,6 +180,7 @@ class QoreFile {
 
       //! writes 4-byte (32bit) binary integer data in LSB (Least Significant Byte first, little endian)format to the file and returns the number of bytes written (normally 4)
       /** Qore-language exceptions can be thrown if the file is not opened
+	  @param i the integer to write to the file
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return returns the number of bytes written (-1 if an exception was thrown)
 	  @see Qorefile::writei4()
@@ -179,6 +189,7 @@ class QoreFile {
 
       //! writes 8-byte (64bit) binary integer data in LSB (Least Significant Byte first, little endian) format to the file and returns the number of bytes written (normally 8)
       /** Qore-language exceptions can be thrown if the file is not opened
+	  @param i the integer to write to the file
 	  @param xsink if an error occurs, the Qore-language exception info will be added here
 	  @return returns the number of bytes written (-1 if an exception was thrown)
 	  @see Qorefile::writei4()

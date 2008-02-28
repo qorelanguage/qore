@@ -26,7 +26,7 @@
 
 #include <QKeyEvent>
 
-DLLLOCAL extern int CID_QKEYEVENT;
+DLLLOCAL extern qore_classid_t CID_QKEYEVENT;
 DLLLOCAL extern class QoreClass *QC_QKeyEvent;
 
 DLLLOCAL class QoreClass *initQKeyEventClass(class QoreClass *parent);

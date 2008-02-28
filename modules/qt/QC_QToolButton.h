@@ -28,7 +28,7 @@
 #include "QoreAbstractQToolButton.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QTOOLBUTTON;
+DLLLOCAL extern qore_classid_t CID_QTOOLBUTTON;
 DLLLOCAL extern class QoreClass *QC_QToolButton;
 
 DLLLOCAL class QoreClass *initQToolButtonClass(QoreClass *);

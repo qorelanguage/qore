@@ -28,7 +28,7 @@
 
 #include <qore/intern/RWLock.h>
 
-DLLEXPORT extern int CID_RWLOCK;
+DLLEXPORT extern qore_classid_t CID_RWLOCK;
 DLLLOCAL class QoreClass *initRWLockClass();
 
 #endif // _QORE_CLASS_QORERWLOCK

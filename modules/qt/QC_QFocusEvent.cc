@@ -24,7 +24,7 @@
 
 #include "QC_QFocusEvent.h"
 
-int CID_QFOCUSEVENT;
+qore_classid_t CID_QFOCUSEVENT;
 class QoreClass *QC_QFocusEvent = 0;
 
 //QFocusEvent ( Type type, Qt::FocusReason reason = Qt::OtherFocusReason )

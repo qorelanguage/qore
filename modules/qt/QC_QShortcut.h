@@ -28,7 +28,7 @@
 
 #include <QShortcut>
 
-DLLLOCAL extern int CID_QSHORTCUT;
+DLLLOCAL extern qore_classid_t CID_QSHORTCUT;
 DLLLOCAL extern QoreClass *QC_QShortcut;
 
 DLLLOCAL class QoreClass *initQShortcutClass(class QoreClass *parent);

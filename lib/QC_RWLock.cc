@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_RWLock.h>
 
-int CID_RWLOCK;
+qore_classid_t CID_RWLOCK;
 
 static void RWLOCK_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

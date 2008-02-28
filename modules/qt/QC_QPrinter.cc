@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QPRINTER;
+qore_classid_t CID_QPRINTER;
 class QoreClass *QC_QPrinter = 0;
 
 //QPrinter ( PrinterMode mode = ScreenResolution )

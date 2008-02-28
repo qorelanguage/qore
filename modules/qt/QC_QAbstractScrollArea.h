@@ -28,7 +28,7 @@
 #include "QoreAbstractQAbstractScrollArea.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QABSTRACTSCROLLAREA;
+DLLLOCAL extern qore_classid_t CID_QABSTRACTSCROLLAREA;
 DLLLOCAL extern class QoreClass *QC_QAbstractScrollArea;
 
 DLLLOCAL class QoreClass *initQAbstractScrollAreaClass(QoreClass *);

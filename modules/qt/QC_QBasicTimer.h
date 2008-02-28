@@ -26,7 +26,7 @@
 
 #include <QBasicTimer>
 
-DLLLOCAL extern int CID_QBASICTIMER;
+DLLLOCAL extern qore_classid_t CID_QBASICTIMER;
 DLLLOCAL extern class QoreClass *QC_QBasicTimer;
 
 DLLLOCAL class QoreClass *initQBasicTimerClass();

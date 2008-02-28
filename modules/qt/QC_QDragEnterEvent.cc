@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QDRAGENTEREVENT;
+qore_classid_t CID_QDRAGENTEREVENT;
 class QoreClass *QC_QDragEnterEvent = 0;
 
 //QDragEnterEvent ( const QPoint & point, Qt::DropActions actions, const QMimeData * data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers )

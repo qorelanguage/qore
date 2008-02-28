@@ -24,7 +24,7 @@
 
 #include "QC_QTimerEvent.h"
 
-int CID_QTIMEREVENT;
+qore_classid_t CID_QTIMEREVENT;
 class QoreClass *QC_QTimerEvent = 0;
 
 //QTimerEvent ( int timerId )

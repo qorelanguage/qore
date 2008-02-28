@@ -27,7 +27,7 @@
 #include <QPrinter>
 #include "QoreAbstractQPaintDevice.h"
 
-DLLLOCAL extern int CID_QPRINTER;
+DLLLOCAL extern qore_classid_t CID_QPRINTER;
 DLLLOCAL extern class QoreClass *QC_QPrinter;
 
 DLLLOCAL class QoreClass *initQPrinterClass(QoreClass *);

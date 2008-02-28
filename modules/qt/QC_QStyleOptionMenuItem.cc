@@ -24,7 +24,7 @@
 
 #include "QC_QStyleOptionMenuItem.h"
 
-int CID_QSTYLEOPTIONMENUITEM;
+qore_classid_t CID_QSTYLEOPTIONMENUITEM;
 class QoreClass *QC_QStyleOptionMenuItem = 0;
 
 //QStyleOptionMenuItem ()

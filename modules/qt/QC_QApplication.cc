@@ -30,7 +30,7 @@
 #include "QC_QFont.h"
 #include "QC_QLocale.h"
 
-DLLLOCAL int CID_QAPPLICATION;
+DLLLOCAL qore_classid_t CID_QAPPLICATION;
 
 DLLLOCAL int static_argc    = 0;
 DLLLOCAL char **static_argv = 0;

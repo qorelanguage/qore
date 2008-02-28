@@ -31,7 +31,7 @@
 
 #include "qore-qt.h"
 
-int CID_QCOMBOBOX;
+qore_classid_t CID_QCOMBOBOX;
 class QoreClass *QC_QComboBox = 0;
 
 //QComboBox ( QWidget * parent = 0 )

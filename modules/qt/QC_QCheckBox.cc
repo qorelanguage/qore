@@ -27,7 +27,7 @@
 
 #include "qore-qt.h"
 
-int CID_QCHECKBOX;
+qore_classid_t CID_QCHECKBOX;
 class QoreClass *QC_QCheckBox = 0;
 
 //QCheckBox ( QWidget * parent = 0 )

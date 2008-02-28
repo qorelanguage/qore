@@ -28,7 +28,7 @@
 
 #include "qore-qt.h"
 
-int CID_QLINEF;
+qore_classid_t CID_QLINEF;
 class QoreClass *QC_QLineF = 0;
 
 //QLineF ()

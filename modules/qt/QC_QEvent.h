@@ -28,7 +28,7 @@
 
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QEVENT;
+DLLLOCAL extern qore_classid_t CID_QEVENT;
 DLLLOCAL extern class QoreClass *QC_QEvent;
 
 DLLLOCAL QoreNamespace *initQEventNS();

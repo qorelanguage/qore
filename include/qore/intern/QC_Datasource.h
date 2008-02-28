@@ -37,7 +37,7 @@
 #ifdef _QORE_LIB_INTERN
 #include <qore/intern/ManagedDatasource.h>
 
-extern int CID_DATASOURCE;
+extern qore_classid_t CID_DATASOURCE;
 
 DLLLOCAL class QoreClass *initDatasourceClass();
 

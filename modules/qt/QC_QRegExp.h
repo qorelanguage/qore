@@ -26,7 +26,7 @@
 
 #include <QRegExp>
 
-DLLLOCAL extern int CID_QREGEXP;
+DLLLOCAL extern qore_classid_t CID_QREGEXP;
 DLLLOCAL extern class QoreClass *QC_QRegExp;
 
 DLLLOCAL class QoreClass *initQRegExpClass();

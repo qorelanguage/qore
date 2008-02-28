@@ -28,7 +28,7 @@
 #include "QoreAbstractQCheckBox.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QCHECKBOX;
+DLLLOCAL extern qore_classid_t CID_QCHECKBOX;
 DLLLOCAL extern class QoreClass *QC_QCheckBox;
 
 DLLLOCAL class QoreClass *initQCheckBoxClass(QoreClass *);

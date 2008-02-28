@@ -28,7 +28,7 @@
 #include "QoreAbstractQAbstractSpinBox.h"
 #include "qore-qt-events.h"
 
-DLLLOCAL extern int CID_QSPINBOX;
+DLLLOCAL extern qore_classid_t CID_QSPINBOX;
 DLLLOCAL extern class QoreClass *QC_QSpinBox;
 
 DLLLOCAL class QoreClass *initQSpinBoxClass(QoreClass *);

@@ -27,7 +27,7 @@
 #include "QC_QWidget.h"
 #include "QC_QLayout.h"
 
-int CID_QGRIDLAYOUT;
+qore_classid_t CID_QGRIDLAYOUT;
 
 static void QGRIDLAYOUT_constructor(class QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {

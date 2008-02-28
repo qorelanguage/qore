@@ -24,7 +24,7 @@
 
 #include "QC_QStyleOptionSlider.h"
 
-int CID_QSTYLEOPTIONSLIDER;
+qore_classid_t CID_QSTYLEOPTIONSLIDER;
 class QoreClass *QC_QStyleOptionSlider = 0;
 
 //QStyleOptionSlider ()

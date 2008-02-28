@@ -26,7 +26,7 @@
 
 #include <QModelIndex>
 
-DLLLOCAL extern int CID_QMODELINDEX;
+DLLLOCAL extern qore_classid_t CID_QMODELINDEX;
 DLLLOCAL extern class QoreClass *QC_QModelIndex;
 
 DLLLOCAL class QoreClass *initQModelIndexClass();
