@@ -36,9 +36,9 @@
     
     objects have two levels of reference counts - one is for the existence of the c++ object (tRefs below)
     the other is for the scope of the object (the parent QoreReferenceCounter) - when this reaches 0 the
-    object will have its destructor run (if it hasn't already been deleted)
-    only when tRefs reaches 0, meaning that no more pointers are pointing to this object will the object
-    actually be deleted
+    object will have its destructor run (if it hasn't already been deleted).
+    Only when the tRef counter reaches 0, meaning that no more pointers are pointing to this object will the 
+    object actually be deleted.
 
     @see QoreClass
 */
@@ -319,6 +319,7 @@ class QoreObject : public AbstractQoreNode
        */
       DLLLOCAL AbstractQoreNode *evalMember(const QoreString *member, class ExceptionSink *xsink);
 
+      //! merges data from a hash as members of the object
       /**
 	 @param h the hash to merge
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -327,12 +328,14 @@ class QoreObject : public AbstractQoreNode
 
       DLLLOCAL class KeyNode *getReferencedPrivateDataNode(qore_classid_t key);
 
+      //! retrieves the private data pointer and clears it from the object's private data store, used when executing destructors
       /**
 	 @param key the class key to use
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLLOCAL AbstractPrivateData *getAndClearPrivateData(qore_classid_t key, class ExceptionSink *xsink);
 
+      //! called to evaluate a builtin method when private data is available
       /**
 	 @param meth the name of the method to evalute
 	 @param args the arguments for the method
@@ -340,20 +343,23 @@ class QoreObject : public AbstractQoreNode
        */
       DLLLOCAL AbstractQoreNode *evalBuiltinMethodWithPrivateData(class BuiltinMethod *meth, const class QoreListNode *args, class ExceptionSink *xsink);
 
-      // called on old to acquire private data, copy method called on self (new copy)
+      //! called on the old object (this) to acquire private data, copy method called on "self" (new copy)
       DLLLOCAL void evalCopyMethodWithPrivateData(class BuiltinMethod *meth, class QoreObject *self, const char *class_name, class ExceptionSink *xsink);
 
+      //! concatenates info about private data to a string
       /**
 	 @param str the string to concatenate to
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLLOCAL void addPrivateDataToString(class QoreString *str, class ExceptionSink *xsink) const;
 
+      //! destroys all members and dereferences all private data structures
       /**
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLLOCAL void obliterate(class ExceptionSink *xsink);
 
+      //! runs the destructor for system objects
       /**
 	 @param classID the ID of the class
 	 @param xsink if an error occurs, the Qore-language exception information will be added here

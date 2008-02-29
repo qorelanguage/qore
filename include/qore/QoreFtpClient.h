@@ -132,8 +132,8 @@ class QoreFtpClient : public QoreThreadLock
 
       //! gets a file from the remote server and saves it on the local filesystem
       /** the connection must be already established before this function is called or an error will be raised.
-	  @param remotename the name of the file on the remote server
-	  @param localpath the local path of the file
+	  @param remotepath the path of the file on the remote server
+	  @param localname the local name of the file
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return 0 for OK, non-zero for error (meaning that an exception has been raised)
        */

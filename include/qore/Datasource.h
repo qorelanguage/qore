@@ -312,7 +312,7 @@ class Datasource
 
       //! returns the DBIDriver pointer used for this object
       /**
-	 @param the DBIDriver pointer used for this object
+	 @return the DBIDriver pointer used for this object
        */
       DLLEXPORT const class DBIDriver *getDriver() const;
 };

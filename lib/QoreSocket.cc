@@ -1219,17 +1219,33 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc)
       return NULL;
    }
 
+   // perform first read with timeout
    char *buf = (char *)malloc(sizeof(char) * (DEFAULT_SOCKET_BUFSIZE + 1));
    *rc = recv(buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout);
-   if ((*rc) <= 0)
-   {
+   if ((*rc) <= 0) {
       free(buf);
-      return NULL;
+      return 0;
+   }
+   int rd = *rc;
+   // keep reading data until no more data is available without a timeout
+   if (isDataAvailable(0)) {
+      int tot = DEFAULT_SOCKET_BUFSIZE + 1;
+      do {
+	 if ((tot - rd) < DEFAULT_SOCKET_BUFSIZE) {
+	    tot += (DEFAULT_SOCKET_BUFSIZE + (tot >> 1));
+	    buf = (char *)realloc(buf, tot);
+	 }
+	 *rc = recv(buf + rd, tot - rd - 1, 0, 0);
+	 if ((*rc) <= 0) {
+	    free(buf);
+	    return 0;
+	 }
+	 rd += *rc;
+      } while (isDataAvailable(0));
    }
 
-   buf[*rc] = '\0';
-
-   return new QoreStringNode(buf, (*rc) - 1, (*rc), priv->charsetid);
+   buf[rd] = '\0';
+   return new QoreStringNode(buf, rd, rd + 1, priv->charsetid);
 }
 
 // receive data and write to file descriptor
@@ -2116,26 +2132,18 @@ int QoreSocket::send(const char *buf, int size)
       if (bs >= size)
 	 break;
    }
-   //printd(5, "QoreSocket::send() sent %d byte(s)\n", bs);
+   //printd(5, "QoreSocket::send() sent %d bytes (size=%d)\n", bs, size);
    return 0;
 }
 
 // converts to socket encoding if necessary
 int QoreSocket::send(const class QoreString *msg, ExceptionSink *xsink)
 {
-   const class QoreString *tstr;
-   if (msg->getEncoding() != priv->charsetid)
-   {
-      tstr = msg->convertEncoding(priv->charsetid, xsink);
-      if (xsink->isEvent())
-	 return -1;
-   }
-   else
-      tstr = msg;
-   int rc = send((const char *)tstr->getBuffer(), tstr->strlen());
-   if (tstr != msg)
-      delete tstr;
-   return rc;
+   TempEncodingHelper tstr(msg, priv->charsetid, xsink);
+   if (!tstr)
+      return -1;
+
+   return send((const char *)tstr->getBuffer(), tstr->strlen());
 }
 
 int QoreSocket::send(const class BinaryNode *b)

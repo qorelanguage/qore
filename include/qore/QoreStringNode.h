@@ -90,7 +90,7 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
       //! creates a new object; takes ownership of the char pointer passed, all parameters are mandatory
       /**
 	 @param nbuf the pointer for the character data
-	 @param nlen the length of the string in bytes (not including the trailing '\0')
+	 @param nlen the length of the string in bytes (not including the trailing '\\0')
 	 @param nallocated the number of bytes allocated for this buffer (if unknown, set to nlen + 1)
 	 @param enc the encoding for the string
       */
@@ -178,14 +178,15 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 
       //! returns a new string consisting of all the characters from the current string starting with character position "offset"
       /** offset is a character offset and not a byte offset
-	  @param offset the offset in characters from the beginning of the string (starting with 0)
+	  @param offset the offset in characters from the beginning of the string (starting with 0), can be negative
 	  @return the new string
        */
       DLLEXPORT QoreStringNode *substr(int offset) const;
 
       //! returns a new string consisting of "length" characters from the current string starting with character position "offset"
       /** offset and length spoecify characters, not bytes
-	  @param offset the offset in characters from the beginning of the string (starting with 0)
+	  @param offset the offset in characters from the beginning of the string (starting with 0), can be negative
+	  @param length the number of characters to take for the new substring, can be negative
 	  @return the new string
        */
       DLLEXPORT QoreStringNode *substr(int offset, int length) const;
