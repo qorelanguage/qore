@@ -243,6 +243,7 @@ class QoreSocket
       //! binds to a UNIX domain socket or INET interface:port using TCP and returns a status code
       /** If "name" has a ':' in it; it's assumed to be a address:port specification for binding to an INET socket, 
 	  otherwise "name" is assumed to be a file name for a UNIX domain socket.
+	  @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
 	  @note the socket will be closed and reopened if necessary
 	  @param name address:port or filename to bind to
 	  @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
@@ -570,39 +571,168 @@ class QoreSocket
        */
       DLLEXPORT class QoreStringNode *recv(int timeout, int *prc);
 
-      // receive and write data to a file descriptor
+      //! receive data on the socket and write it to a file descriptor
+      /** The socket must be connected before this call is made.
+	  @param fd the file descriptor to write to, must be already opened for writing
+	  @param size the number of bytes to read from the socket, -1 to read until the socket is closed
+	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+	  @return 0 for OK, not 0 for error
+	  @note the timeout value applies to each read from the socket
+       */
       DLLEXPORT int recv(int fd, int size, int timeout);
-      // send an HTTP message
+
+      //! send an HTTP request message on the socket
+      /** The socket must be connected before this call is made.
+	  @param method the method string to use in the header - no validity checking is made on this string
+	  @param path the path string to use in the header, if the path is empty then '/' is sent
+	  @param http_version should be either "1.0" or "1.1"
+	  @param headers a hash of headers to send (key: value)
+	  @param data optional message body to send (may be 0)
+	  @param size the length of the message body (may be 0)
+	  @return 0 for OK, not 0 for error
+       */
       DLLEXPORT int sendHTTPMessage(const char *method, const char *path, const char *http_version, const class QoreHashNode *headers, const void *data, int size);
-      // send an HTTP response
+
+      //! send an HTTP response message on the socket
+      /** The socket must be connected before this call is made.
+	  @param code the HTTP response code
+	  @param desc the text description for the response code
+	  @param http_version should be either "1.0" or "1.1"
+	  @param headers a hash of headers to send (key: value)
+	  @param data optional message body to send (may be 0)
+	  @param size the length of the message body (may be 0)
+	  @return 0 for OK, not 0 for error
+       */
       DLLEXPORT int sendHTTPResponse(int code, const char *desc, const char *http_version, const class QoreHashNode *headers, const void *data, int size);
-      // read and parse HTTP header (caller owns AbstractQoreNode reference returned)
+
+      //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
+      /** The socket must be connected before this call is made.
+	  @note does not read the message body; message body must be read manually
+	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+	  @param prc output parameter: 0 or -2: remote end closed the connection, -1: receive error, -3: timeout
+	  @return if 0 (and prc == 0), the socket was closed on the remote end without a response, if the type is NT_STRING, the response could not be parsed, if not 0, caller owns the reference count returned
+       */
       DLLEXPORT class AbstractQoreNode *readHTTPHeader(int timeout, int *prc);
-      // receive a binary message in HTTP chunked format (caller owns QoreHashNode returned)
+
+      //! receive a binary message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
+      /** The socket must be connected before this call is made.
+	  The message body is returned as a BinaryNode in the "body" key, any footers read after the body
+	  are returned as the other hash keys in the hash.
+	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
+	  @see BinaryNode
+       */
       DLLEXPORT class QoreHashNode *readHTTPChunkedBodyBinary(int timeout, class ExceptionSink *xsink);
-      // receive a string message in HTTP chunked format (caller owns QoreHashNode returned)
+
+      //! receive a string message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
+      /** The socket must be connected before this call is made.
+	  The message body is returned as a QoreStringNode in the "body" key, any footers read after the body
+	  are returned as the other hash keys in the hash.
+	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
+	  @see QoreStringNode
+       */
       DLLEXPORT class QoreHashNode *readHTTPChunkedBody(int timeout, class ExceptionSink *xsink);
-      // set send timeout in milliseconds
+
+      //! set send timeout in milliseconds
       DLLEXPORT int setSendTimeout(int ms);
-      // set recv timeout in milliseconds
+
+      //! set recv timeout in milliseconds
       DLLEXPORT int setRecvTimeout(int ms);
-      // get send timeout in milliseconds
+
+      //! get send timeout in milliseconds
       DLLEXPORT int getSendTimeout() const;
-      // get recv timeout in milliseconds
+
+      //! get recv timeout in milliseconds
       DLLEXPORT int getRecvTimeout() const;
+
+      //! returns true if data is available on the socket in the timeout period in milliseconds
+      /** The socket must be connected before this call is made.
+	  use a timeout of 0 to see if there is any data available on the socket
+	  @param timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+	  @return true if data is available within the timeout period
+       */
       DLLEXPORT bool isDataAvailable(int timeout = 0) const;
+
+      //! closes the socket
+      /** Deletes the socket file if it was a UNIX domain socket and was created with the QoreSocket::bind() call.
+	  Also implicitly calls QoreSocket::shutdownSSL() if an SSL connection is active.
+	  @return 0 if OK, not 0 on error
+       */
       DLLEXPORT int close();
+
+      //! calls shutdown on the socket
+      /** shuts down the socket for reading and writing, after this call further sends and receives are
+	  disallowed until the socket is reopened.
+	  @note QoreSocket::shutdown() should normally be called before calling this function.
+	  @return 0 if OK, not 0 on error
+	  @see QoreSocket::shutdown()
+       */
       DLLEXPORT int shutdown();
+
+      //! shuts down an active SSL connection
+      /** called implicitly by QoreSocket::close()
+	  @return 0 if OK, not 0 on error
+	  @see QoreSocket::close()
+       */
       DLLEXPORT int shutdownSSL(class ExceptionSink *xsink);
+
+      //! returns the file descriptor associated with this socket
+      /** @return the file descriptor associated with this socket
+       */
       DLLEXPORT int getSocket() const;
+
+      //! returns the character encoding associated with this socket
+      /** @return the character encoding associated with this socket
+       */
       DLLEXPORT const class QoreEncoding *getEncoding() const;
+
+      //! sets the character encoding for strings sent and received with this socket
+      /** @param id the character encoding for strings sent and received with this socket
+       */
       DLLEXPORT void setEncoding(const class QoreEncoding *id);
+
+      //! returns true if the socket is open
+      /** @return true if the socket is open
+       */
       DLLEXPORT bool isOpen() const;
+
+      //! returns the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
+      /** @return the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
+       */
       DLLEXPORT const char *getSSLCipherName() const;
+
+      //! returns the version string of the SSL Cipher for the currently-connected control connection, or 0 if there is none
+      /** @return the version string of the SSL Cipher for the currently-connected control connection, or 0 if there is none
+       */
       DLLEXPORT const char *getSSLCipherVersion() const;
+
+      //! returns true if an SSL connection is active
+      /** @return true if an SSL connection is active
+       */
       DLLEXPORT bool isSecure() const;
+
+      //! returns the peer certificate verification code if an SSL connection is in progress
       DLLEXPORT long verifyPeerCertificate() const;
+
+      //! negotiates an SSL connection from the client side
+      /** The socket must be connected before this call is made.
+	  @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
+	  @param pkey the private key to use for the connection, may be 0 if no private key should be used
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return 0 if OK, not 0 on error	  
+      */
       DLLEXPORT int upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
+
+      //! negotiates an SSL connection from the client side
+      /** The socket must be connected before this call is made.
+	  @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
+	  @param pkey the private key to use for the connection, may be 0 if no private key should be used
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
+	  @return 0 if OK, not 0 on error	  
+      */
       DLLEXPORT int upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, class ExceptionSink *xsink);
 
       DLLLOCAL static void doException(int rc, const char *meth, class ExceptionSink *xsink);
