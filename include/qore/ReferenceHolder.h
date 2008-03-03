@@ -28,7 +28,7 @@
 
 #include <stdlib.h>
 
-//! a templated class to manage a reference to an object that can throw a Qore-language exception when dereferenced
+//! a templated class to manage a reference count of an object that can throw a Qore-language exception when dereferenced
 /** the destructor will call deref(ExceptionSink *)
     @code
     ReferenceHolder<QoreQFont> holder(self->getReferencedPrivateData(CID_QFONT, xsink), xsink);

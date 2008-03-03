@@ -337,12 +337,12 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
       else
       {
 	 ReferenceNode *r = reinterpret_cast<ReferenceNode *>(*node);
-	 lvids = process_node(&(r->lvexp), oflag, pflag);
+	 lvids = process_node(r->getExpressionPtr(), oflag, pflag);
 	 // if a background expression is being parsed, then check that no references to local variables
 	 // or object members are being used
 	 if (pflag & PF_BACKGROUND)
 	 {
-	    int vtype = getBaseLVType(r->lvexp);
+	    int vtype = getBaseLVType(r->getExpression());
 
 	    if (vtype == VT_LOCAL)
 	       parse_error("the reference operator cannot be used with local variables in a background expression");

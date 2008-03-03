@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreLib.h>
-#include <qore/StringList.h>
 
 #include <string.h>
 

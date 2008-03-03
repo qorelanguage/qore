@@ -1,4 +1,4 @@
-/*
+#/*
   qore-mysql.h
 
   Qore Programming Language
@@ -148,7 +148,7 @@ class MyBindGroup {
       Datasource *ds;
       class MySQLConnection *mydata;
       int len;
-      class TempCharPtrStore phl;
+      cstr_vector_t phl;
       //bool locked;
 
       // returns -1 for error, 0 for OK

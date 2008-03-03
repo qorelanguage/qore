@@ -49,12 +49,14 @@ class QoreURL {
       DLLEXPORT QoreURL();
 
       //! parses the URL string passed
-      /** @param url the URL string to parse
+      /** you can check if the URL was valid by calling QoreURL::isValid() after this call
+	  @param url the URL string to parse
        */
       DLLEXPORT QoreURL(const char *url);
 
       //! parses the URL string passed
-      /** @param url the URL string to parse
+      /** you can check if the URL was valid by calling QoreURL::isValid() after this call
+	  @param url the URL string to parse
        */
       DLLEXPORT QoreURL(const class QoreString *url);
 
@@ -62,13 +64,15 @@ class QoreURL {
       DLLEXPORT ~QoreURL();
 
       //! parses the URL string passed
-      /** if a url was already parsed previously, all memory is freed before parsing the new string
+      /** If a url was already parsed previously, all memory is freed before parsing the new string.
+	  You can check if the URL was valid by calling QoreURL::isValid() after this call
 	  @param url the URL string to parse
        */
       DLLEXPORT int parse(const char *url);
 
       //! parses the URL string passed
-      /** if a url was already parsed previously, all memory is freed before parsing the new string
+      /** If a url was already parsed previously, all memory is freed before parsing the new string.
+	  You can check if the URL was valid by calling QoreURL::isValid() after this call
 	  @param url the URL string to parse
        */
       DLLEXPORT int parse(const class QoreString *url);
@@ -78,7 +82,7 @@ class QoreURL {
        */
       DLLEXPORT bool isValid() const;
 
-      //! returns a hash of the parameters parsed - destructive: zeros out all elements
+      //! returns a hash of the parameters parsed, destructive: zeros out all elements, caller owns the reference count returned
       /** hash keys are:
 	  - protocol
 	  - path
@@ -87,33 +91,34 @@ class QoreURL {
 	  - host
 	  - port
 	  .
-	  each key is either a QoreStringNode or 0 except for port which is a QoreBigInt
+	  each key is either a QoreStringNode or 0 except for port which is a QoreBigIntNode
+	  @note the caller must call QoreHashNode::deref() manually on the value returned if it's not 0 (or use the ReferenceHolder helper class)
 	  @return a hash of the parameters parsed
        */
-      DLLEXPORT class QoreHashNode *getHash();
+      DLLEXPORT QoreHashNode *getHash();
  
       //! returns the hostname of the URL
       /** @return the hostname of the URL
        */
-      DLLEXPORT const class QoreString *getHost() const;
+      DLLEXPORT const QoreString *getHost() const;
 
       //! returns the user name in the URL or 0 if none given
       /** @return the user name in the URL or 0 if none given
        */
-      DLLEXPORT const class QoreString *getUserName() const;
+      DLLEXPORT const QoreString *getUserName() const;
 
       //! returns the password in the URL or 0 if none given
       /** @return the password in the URL or 0 if none given
        */
-      DLLEXPORT const class QoreString *getPassword() const;
+      DLLEXPORT const QoreString *getPassword() const;
 
       //! returns the path component of the URL or 0 if none given
       /** @return the path component of the URL or 0 if none given
        */
-      DLLEXPORT const class QoreString *getPath() const;
+      DLLEXPORT const QoreString *getPath() const;
 
       //! returns the protocol component of the URL or 0 if none given
-      DLLEXPORT const class QoreString *getProtocol() const;
+      DLLEXPORT const QoreString *getProtocol() const;
 
       //! returns the port number given in the URL or 0 if none present
       /** @return the port number given in the URL or 0 if none present

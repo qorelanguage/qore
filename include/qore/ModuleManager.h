@@ -25,24 +25,21 @@
 #define _QORE_MODULEMANAGER_H
 
 #include <qore/common.h>
-#include <qore/StringList.h>
 #include <qore/QoreThreadLock.h>
-
-#include <stdio.h>
-#include <string.h>
-
-#include <map>
 
 #define QORE_MODULE_API_MAJOR 0
 #define QORE_MODULE_API_MINOR 4
 
+//! signature of the module constructor/initialization function
 typedef class QoreStringNode *(*qore_module_init_t)();
+
+//! signature of the module namespace change/delta function
 typedef void (*qore_module_ns_init_t)(class QoreNamespace *, class QoreNamespace *);
+
+//! signature of the module destructor function
 typedef void (*qore_module_delete_t)();
 
 class ModuleInfo;
-
-typedef std::map<const char *, ModuleInfo *, class ltstr> module_map_t;
 
 //! manages the loading of Qore modules from feature or path names.  Also manages adding module changes into QoreProgram objects.
 /** in the case that a QoreProgram object is created before a module is loaded externally 
@@ -56,9 +53,7 @@ class ModuleManager
 {
    private:
       DLLLOCAL static bool show_errors;
-      DLLLOCAL static class StringList autoDirList, moduleDirList;
       DLLLOCAL static class QoreThreadLock mutex;
-      DLLLOCAL static module_map_t map;
       
       DLLLOCAL static void add(ModuleInfo *m);
       DLLLOCAL static void addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
@@ -117,8 +112,10 @@ class ModuleManager
 
       //! creates the ModuleManager object
       DLLLOCAL ModuleManager();
+
       //! explicit initialization and autoloading
       DLLLOCAL static void init(bool se);      
+
       //! explicit cleanup
       DLLLOCAL static void cleanup();
 };

@@ -617,7 +617,7 @@ inline class AbstractQoreNode *MyBindGroup::getOutputHash(class ExceptionSink *x
 {
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 
-   TempCharPtrStore::iterator sli = phl.begin();
+   cstr_vector_t::iterator sli = phl.begin();
    while (sli != phl.end())
    {
       // prepare statement to retrieve values

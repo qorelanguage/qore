@@ -249,7 +249,7 @@ static AbstractQoreNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreLis
    if (p0->getType() == NT_REFERENCE)
    {
       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
-      AbstractQoreNode **vp = get_var_value_ptr(r->lvexp, &vl, xsink);
+      AbstractQoreNode **vp = get_var_value_ptr(r->getExpression(), &vl, xsink);
       if (*xsink)
 	 return 0;
       l = const_cast<QoreListNode *>(dynamic_cast<const QoreListNode *>(*vp));

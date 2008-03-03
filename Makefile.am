@@ -61,7 +61,6 @@ noinst_HEADERS = \
 	include/qore/FunctionReferenceNode.h \
 	include/qore/hash_map.h \
 	include/qore/QoreFtpClient.h \
-	include/qore/StringList.h \
 	include/qore/safe_dslist \
 	include/qore/qore_bitopts.h \
 	include/qore/QoreSSLBase.h \

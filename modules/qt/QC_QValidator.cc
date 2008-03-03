@@ -60,7 +60,7 @@ static AbstractQoreNode *QVALIDATOR_fixup(QoreObject *self, QoreAbstractQValidat
       return 0;
    }
    class AutoVLock vl;
-   class AbstractQoreNode **vp = get_var_value_ptr(p->lvexp, &vl, xsink);
+   class AbstractQoreNode **vp = get_var_value_ptr(p->getExpression(), &vl, xsink);
    if (*xsink)
       return 0;
 
@@ -116,7 +116,7 @@ static AbstractQoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQVali
    }
    
    class AutoVLock vl;
-   class AbstractQoreNode **vp0 = get_var_value_ptr(p0->lvexp, &vl, xsink);
+   class AbstractQoreNode **vp0 = get_var_value_ptr(p0->getExpression(), &vl, xsink);
    if (*xsink)
       return 0;
    
@@ -124,7 +124,7 @@ static AbstractQoreNode *QVALIDATOR_validate(QoreObject *self, QoreAbstractQVali
    if (get_qstring(*vp0, input, xsink))
       return 0;
    
-   class AbstractQoreNode **vp1 = get_var_value_ptr(p1->lvexp, &vl, xsink);
+   class AbstractQoreNode **vp1 = get_var_value_ptr(p1->getExpression(), &vl, xsink);
    if (*xsink)
       return 0;
 

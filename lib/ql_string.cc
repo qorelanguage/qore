@@ -566,7 +566,7 @@ static AbstractQoreNode *f_chomp(const QoreListNode *params, ExceptionSink *xsin
 
    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
    class AutoVLock vl;
-   QoreStringNode **vp = get_string_var_value_ptr(r->lvexp, &vl, xsink);
+   QoreStringNode **vp = get_string_var_value_ptr(r->getExpression(), &vl, xsink);
    if (*xsink || !(*vp))
       return 0;
    if (!(*vp)->is_unique())
@@ -603,7 +603,7 @@ static AbstractQoreNode *f_trim(const QoreListNode *params, ExceptionSink *xsink
    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p0);
 
    class AutoVLock vl;
-   QoreStringNode **vp = get_string_var_value_ptr(r->lvexp, &vl, xsink);
+   QoreStringNode **vp = get_string_var_value_ptr(r->getExpression(), &vl, xsink);
    if (*xsink || !(*vp))
       return 0;
    if (!(*vp)->is_unique())

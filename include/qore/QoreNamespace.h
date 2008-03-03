@@ -144,6 +144,10 @@ class QoreNamespace
       DLLLOCAL void setName(const char *nme);
 };
 
+//! the root namespace of a QoreProgram object
+/** is a specialization of QoreNamespace that provides functionality specific to the root namespace
+    @see QoreNamespace
+ */
 class RootQoreNamespace : public QoreNamespace
 {
    private:

@@ -146,7 +146,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    bool is_self_ref = false;
 
    ReferenceNode *r = reinterpret_cast<ReferenceNode *>(list);
-   vr = doPartialEval(r->lvexp, &is_self_ref, xsink);
+   vr = doPartialEval(r->getExpression(), &is_self_ref, xsink);
    if (!xsink->isEvent())
    {
       tlist = vr->eval(xsink);

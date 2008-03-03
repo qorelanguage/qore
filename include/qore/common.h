@@ -32,6 +32,7 @@
 #include <functional>
 #include <list>
 #include <set>
+#include <vector>
 
 typedef short qore_type_t;
 
@@ -134,6 +135,16 @@ class ltchar
       {
 	 return s1 < s2;
       }
+};
+
+//! non-thread-safe vector for storing "char *" that you want to delete
+class cstr_vector_t : public std::vector<char *>
+{
+  public:
+   DLLLOCAL ~cstr_vector_t()
+   {
+      std::for_each(begin(), end(), free_ptr<char>());
+   }
 };
 
 #include <set>

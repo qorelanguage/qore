@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003, 2004, 2005, 2006, 2007 David Nichols
+  Copyright (C) 2003 - 2008 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -26,17 +26,19 @@
 #include <qore/intern/ParserSupport.h>
 #include <qore/Restrictions.h>
 #include <qore/QoreCounter.h>
-#include <qore/StringList.h>
 #include <qore/intern/UserFunctionList.h>
 #include <qore/intern/GlobalVariableList.h>
 #include <qore/intern/ImportedFunctionList.h>
 #include <qore/intern/LocalVar.h>
 
+#include <errno.h>
+
 #include <string>
 #include <set>
-
-#include <errno.h>
 #include <typeinfo>
+#include <vector>
+#include <algorithm>
+#include <functional>
 
 extern QoreListNode *ARGV, *QORE_ARGV;
 extern class QoreHashNode *ENV;
@@ -95,7 +97,7 @@ struct qore_program_private {
       // for the thread counter
       QoreCounter tcount;
       // to save file names for later deleting
-      TempCharPtrStore fileList;
+      cstr_vector_t fileList;
       // features present in this Program object
       CharPtrList featureList;
       

@@ -27,6 +27,7 @@
 #include <openssl/ssl.h>
 #include <openssl/evp.h>
 
+//! provides access to a private key data structure for SSL connections
 class QoreSSLPrivateKey : public AbstractPrivateData
 {
    private:
@@ -59,7 +60,7 @@ class QoreSSLPrivateKey : public AbstractPrivateData
       // returns the length in bits
       DLLLOCAL int64 getBitLength() const;
 
-      // caller owns the QoreHashNode returned
+      // caller owns the QoreHashNode reference count returned
       DLLLOCAL class QoreHashNode *getInfo() const;
 };
 

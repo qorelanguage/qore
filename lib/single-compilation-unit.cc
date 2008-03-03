@@ -71,7 +71,6 @@
 #include "QoreGetOpt.cc"
 #include "QoreFtpClient.cc"
 #include "DBI.cc"
-#include "StringList.cc"
 #include "ConstantList.cc"
 #include "QoreClassList.cc"
 #include "thread.cc"

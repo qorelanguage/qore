@@ -69,7 +69,7 @@ static AbstractQoreNode *f_QInputDialog_getDouble(const QoreListNode *params, Ex
 
    if (pr) {
       class AutoVLock vl;
-      class AbstractQoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
+      class AbstractQoreNode **vp = get_var_value_ptr(pr->getExpression(), &vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -125,7 +125,7 @@ static AbstractQoreNode *f_QInputDialog_getInteger(const QoreListNode *params, E
 
    if (pr) {
       class AutoVLock vl;
-      class AbstractQoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
+      class AbstractQoreNode **vp = get_var_value_ptr(pr->getExpression(), &vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -190,7 +190,7 @@ static AbstractQoreNode *f_QInputDialog_getItem(const QoreListNode *params, Exce
 
    if (pr) {
       class AutoVLock vl;
-      class AbstractQoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
+      class AbstractQoreNode **vp = get_var_value_ptr(pr->getExpression(), &vl, xsink);
       if (*xsink)
 	 return 0;
 
@@ -241,7 +241,7 @@ static AbstractQoreNode *f_QInputDialog_getText(const QoreListNode *params, Exce
 
    if (pr) {
       class AutoVLock vl;
-      class AbstractQoreNode **vp = get_var_value_ptr(pr->lvexp, &vl, xsink);
+      class AbstractQoreNode **vp = get_var_value_ptr(pr->getExpression(), &vl, xsink);
       if (*xsink)
 	 return 0;
 

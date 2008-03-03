@@ -33,16 +33,21 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdio.h>
+
+#include <deque>
+#include <string>
+#include <map>
 
 #define AUTO_MODULE_DIR MODULE_DIR "/auto"
 
 class ModuleManager MM;
 
-class StringList ModuleManager::autoDirList;
-class StringList ModuleManager::moduleDirList;
+typedef std::map<const char *, ModuleInfo *, class ltstr> module_map_t;
+static module_map_t map;
+
 bool ModuleManager::show_errors = false;
 class QoreThreadLock ModuleManager::mutex;
-module_map_t ModuleManager::map;
 
 #ifdef QORE_MONOLITHIC
 // for non-shared builds of the qore library, initialize all optional components here
@@ -62,6 +67,45 @@ module_map_t ModuleManager::map;
 # include "../modules/ncurses/ncurses-module.h"
 # endif
 #endif
+
+typedef std::deque<std::string> strdeque_t;
+
+//! non-thread-safe list of strings of directory names
+/** a deque should require fewer memory allocations compared to a linked list
+ */
+class DirectoryList : public strdeque_t
+{
+   public:
+      DLLLOCAL void addDirList(const char *str);
+};
+
+static DirectoryList autoDirList, moduleDirList;
+
+void DirectoryList::addDirList(const char *str)
+{
+   if (!str)
+      return;
+
+   // duplicate string for invasive searches
+   QoreString plist(str);
+   str = (char *)plist.getBuffer();
+
+   // add each directory
+   while (char *p = (char *)strchr(str, ':'))
+   {
+      if (p != str)
+      {
+	 *p = '\0';
+	 // add string to list
+	 push_back(str);
+      }
+      str = p + 1;
+   }
+
+   // add last directory
+   if (*str)
+      push_back(str);
+}
 
 ModuleInfo::ModuleInfo(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, const char *d, const char *v, const char *a, const char *u, const void *p)
 {
@@ -86,11 +130,11 @@ ModuleInfo::ModuleInfo(const char *fn, qore_module_delete_t del)
    name = fn;
    api_major = QORE_MODULE_API_MAJOR;
    api_minor = QORE_MODULE_API_MINOR;
-   module_init = NULL;
-   module_ns_init = NULL;
+   module_init = 0;
+   module_ns_init = 0;
    module_delete = del;
    version = desc = author = url = "<builtin>";
-   dlptr = NULL;
+   dlptr = 0;
 }
 
 ModuleInfo::~ModuleInfo()
@@ -156,15 +200,15 @@ bool ModuleInfo::isBuiltin() const
 QoreHashNode *ModuleInfo::getHash() const
 {
    QoreHashNode *h = new QoreHashNode();
-   h->setKeyValue("filename", new QoreStringNode(filename), NULL);
-   h->setKeyValue("name", new QoreStringNode(name), NULL);
-   h->setKeyValue("desc", new QoreStringNode(desc), NULL);
-   h->setKeyValue("version", new QoreStringNode(version), NULL);
-   h->setKeyValue("author", new QoreStringNode(author), NULL);
-   h->setKeyValue("api_major", new QoreBigIntNode(api_major), NULL);
-   h->setKeyValue("api_minor", new QoreBigIntNode(api_minor), NULL);
+   h->setKeyValue("filename", new QoreStringNode(filename), 0);
+   h->setKeyValue("name", new QoreStringNode(name), 0);
+   h->setKeyValue("desc", new QoreStringNode(desc), 0);
+   h->setKeyValue("version", new QoreStringNode(version), 0);
+   h->setKeyValue("author", new QoreStringNode(author), 0);
+   h->setKeyValue("api_major", new QoreBigIntNode(api_major), 0);
+   h->setKeyValue("api_minor", new QoreBigIntNode(api_minor), 0);
    if (url)
-      h->setKeyValue("url", new QoreStringNode(url), NULL);
+      h->setKeyValue("url", new QoreStringNode(url), 0);
    return h;
 }
 
@@ -188,7 +232,7 @@ class ModuleInfo *ModuleManager::find(const char *name)
 {
    module_map_t::iterator i = map.find(name);
    if (i == map.end())
-      return NULL;
+      return 0;
 
    return i->second;
 }
@@ -271,7 +315,7 @@ void ModuleManager::init(bool se)
    // try to load all modules in each directory in the autoDirList
    QoreString gstr;
 
-   StringList::iterator w = autoDirList.begin();
+   DirectoryList::iterator w = autoDirList.begin();
    while (w != autoDirList.end())
    {
       // make new string for glob
@@ -280,7 +324,7 @@ void ModuleManager::init(bool se)
       gstr.concat("/*.qmod");
 
       glob_t globbuf;
-      if (!glob(gstr.getBuffer(), 0, NULL, &globbuf))
+      if (!glob(gstr.getBuffer(), 0, 0, &globbuf))
       {
 	 for (int i = 0; i < (int)globbuf.gl_pathc; i++)
 	 {
@@ -323,7 +367,7 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
 {
    // if the feature already exists in this program, then return
    if (pgm && !pgm->checkFeature(name))
-      return NULL;
+      return 0;
 
    // if the feature already exists, then load the namespace changes into this program and register the feature
    SafeLocker sl(&mutex); // make sure checking and loading are atomic
@@ -335,7 +379,7 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	 pgm->addFeature(mi->getName());
       }
-      return NULL;
+      return 0;
    }
 
    QoreStringNode *errstr;
@@ -343,7 +387,7 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
    // see if this is actually a path
    if (name[0] == '/')
    {
-      if ((errstr = loadModuleFromPath(name, NULL, &mi)))
+      if ((errstr = loadModuleFromPath(name, 0, &mi)))
 	 return errstr;
       
       sl.unlock();
@@ -352,14 +396,14 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
 	 mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	 pgm->addFeature(mi->getName());
       }
-      return NULL;
+      return 0;
    }
 
    // otherwise, try to find module in the module path
    class QoreString str;
    struct stat sb;
 
-   StringList::iterator w = moduleDirList.begin();
+   DirectoryList::iterator w = moduleDirList.begin();
    while (w != moduleDirList.end())
    {
       str.clear();
@@ -377,7 +421,7 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
 	    mi->ns_init(pgm->getRootNS(), pgm->getQoreNS());
 	    pgm->addFeature(mi->getName());
 	 }
-	 return NULL;
+	 return 0;
       }
       w++;
    }
@@ -390,11 +434,11 @@ QoreStringNode *ModuleManager::parseLoadModule(const char *name, QoreProgram *pg
 
 QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *feature, class ModuleInfo **mip)
 {
-   class ModuleInfo *mi = NULL;
+   class ModuleInfo *mi = 0;
    if (mip)
-      *mip = NULL;
+      *mip = 0;
 
-   QoreStringNode *str = NULL;
+   QoreStringNode *str = 0;
    void *ptr = dlopen(path, RTLD_LAZY|RTLD_GLOBAL);
    if (!ptr)
    {
@@ -558,7 +602,7 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
    printd(5, "ModuleManager::loadModuleFromPath(%s) registered '%s'\n", path, name);
    if (mip)
       *mip = mi;
-   return NULL;
+   return 0;
 }
 
 void ModuleManager::cleanup()
@@ -578,7 +622,7 @@ void ModuleManager::cleanup()
 
 QoreListNode *ModuleManager::getModuleList()
 {
-   QoreListNode *l = NULL;
+   QoreListNode *l = 0;
    AutoLocker al(&mutex);
    if (!map.empty())
    {

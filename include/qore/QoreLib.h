@@ -26,7 +26,6 @@
 
 #include <qore/common.h>
 #include <qore/QoreThreadLock.h>
-#include <qore/StringList.h>
 #include <qore/qore_bitopts.h>
 #include <qore/safe_dslist>
 

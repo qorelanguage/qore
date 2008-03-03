@@ -76,3 +76,8 @@ const char *ReferenceNode::getTypeName() const
    return "reference to lvalue";
 }
 
+
+AbstractQoreNode **ReferenceNode::getExpressionPtr()
+{
+   return &lvexp;
+}

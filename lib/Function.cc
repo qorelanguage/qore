@@ -476,7 +476,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	 if (n->getType() == NT_REFERENCE) {
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
 	    bool is_self_ref = false;
-	    n = doPartialEval(r->lvexp, &is_self_ref, xsink);
+	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
 	    //printd(5, "UserFunction::eval() ref self_ref=%d, self=%08p (%s) so=%08p (%s)\n", is_self_ref, self, self ? self->getClass()->name : "NULL", getStackObject(), getStackObject() ? getStackObject()->getClass()->name : "NULL");
 	    if (!*xsink)
 	       params->lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
@@ -676,7 +676,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	 if (n->getType() == NT_REFERENCE) {
 	    const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(n);
 	    bool is_self_ref = false;
-	    n = doPartialEval(r->lvexp, &is_self_ref, xsink);
+	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
 	    if (!xsink->isEvent())
 	       params->lv[i]->instantiate(n, is_self_ref ? getStackObject() : NULL);
 	 }
