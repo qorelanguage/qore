@@ -29,50 +29,66 @@
 #include <openssl/ssl.h>
 #include <openssl/pem.h>
 
-struct qore_sslcert_private;
-
+//! represents an X509 certificate, reference-counted, dynamically-allocated only
 class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
 {
    private:
-      struct qore_sslcert_private *priv; // private implementation
+      //! private implementation of the class
+      struct qore_sslcert_private *priv; 
 
       DLLLOCAL class AbstractQoreNode *doPurposeValue(int id, int ca) const;
 
-      // not implemented
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreSSLCertificate(const QoreSSLCertificate&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreSSLCertificate& operator=(const QoreSSLCertificate&);
 
    protected:
+      //! the destructor is protected to ensure that it's only dynamically allocated (use deref() to delete)
       DLLLOCAL virtual ~QoreSSLCertificate();
 
    public:
-      // caller owns the QoreStringNode reference returned
+      //! returns a string in PEM format representing the certificate; caller owns the QoreStringNode reference returned
+      /** @return a string in PEM format representing the certificate; caller owns the QoreStringNode reference returned
+       */
       DLLEXPORT class QoreStringNode *getPEM(class ExceptionSink *xsink) const;
 
       DLLLOCAL QoreSSLCertificate(X509 *c);
       DLLLOCAL QoreSSLCertificate(const char *fn, class ExceptionSink *xsink);
+
       // caller does NOT own the X509 pointer returned; "const" cannot be used because of the openssl API does not support it
       DLLLOCAL X509 *getData() const;
+
       // caller owns value returned
       DLLLOCAL class QoreHashNode *getSubjectHash() const;
+
       // caller owns value returned
       DLLLOCAL class QoreHashNode *getIssuerHash() const;
       DLLLOCAL int64 getSerialNumber() const;
       DLLLOCAL int64 getVersion() const;
+
       // caller owns value returned
       DLLLOCAL class QoreHashNode *getPurposeHash() const;
+
       // caller owns value returned
       DLLLOCAL class DateTimeNode *getNotBeforeDate() const;
+
       // caller owns value returned
       DLLLOCAL class DateTimeNode *getNotAfterDate() const;
+
       // caller owns value returned
       DLLLOCAL class QoreStringNode *getSignatureType() const;
+
       // caller owns value returned
       DLLLOCAL class BinaryNode *getSignature() const;
+
       // caller owns value returned
       DLLLOCAL class QoreStringNode *getPublicKeyAlgorithm() const;
+
       // caller owns value returned
       DLLLOCAL class BinaryNode *getPublicKey() const;
+
       // caller owns value returned
       DLLLOCAL class QoreHashNode *getInfo() const;
 };

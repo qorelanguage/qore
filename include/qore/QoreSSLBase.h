@@ -27,12 +27,13 @@
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
 
+//! offers static functions to help with translating openssl data structures to Qore data structures
 class QoreSSLBase
 {
-  public:
-   static class QoreHashNode *X509_NAME_to_hash(X509_NAME *n);
-   static class DateTimeNode *ASN1_TIME_to_DateTime(ASN1_STRING *t);
-   static class QoreStringNode *ASN1_OBJECT_to_QoreStringNode(ASN1_OBJECT *o);
+   public:
+      DLLEXPORT static class QoreHashNode *X509_NAME_to_hash(X509_NAME *n);
+      DLLEXPORT static class DateTimeNode *ASN1_TIME_to_DateTime(ASN1_STRING *t);
+      DLLEXPORT static class QoreStringNode *ASN1_OBJECT_to_QoreStringNode(ASN1_OBJECT *o);
 };
 
 #endif // _QORE_CLASS_SSLBASE_H

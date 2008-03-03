@@ -26,6 +26,11 @@
 
 #include <qore/AbstractQoreNode.h>
 
+//! parse type: reference to a lvalue expression
+/** This type could be passed to a builtin function.  To get and set the value of the reference, 
+    use the ReferenceArgumentHelper class
+    @see ReferenceArgumentHelper
+ */
 class ReferenceNode : public SimpleValueQoreNode
 {
    protected:
@@ -33,9 +38,11 @@ class ReferenceNode : public SimpleValueQoreNode
 
    public:
       // FIXME: make private and provide functions to access
-      AbstractQoreNode *lvexp; // lvalue expression for reference
+      //! lvalue expression for reference
+      AbstractQoreNode *lvexp;
 
-      DLLEXPORT ReferenceNode(AbstractQoreNode *exp);
+      //! 
+      DLLLOCAL ReferenceNode(AbstractQoreNode *exp);
 
       // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       // the ExceptionSink is only needed for QoreObject where a method may be executed

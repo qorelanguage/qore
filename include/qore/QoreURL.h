@@ -26,36 +26,125 @@
 
 #define _QORE_QOREURL_H
 
+//! helps with parsing URLs and provides access to URL components through Qore data structures
 class QoreURL {
    private:
+      //! private implementation of the class
       struct qore_url_private *priv;
 
       DLLLOCAL void zero();
       DLLLOCAL void reset();
       DLLLOCAL void parseIntern(const char *url);
 
-   public:      
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL QoreURL(const QoreURL&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+      DLLLOCAL QoreURL& operator=(const QoreURL&);
+
+   public:
+      //! creates an empty structure
+      /** @see QoreURL::parse()
+       */
       DLLEXPORT QoreURL();
+
+      //! parses the URL string passed
+      /** @param url the URL string to parse
+       */
       DLLEXPORT QoreURL(const char *url);
+
+      //! parses the URL string passed
+      /** @param url the URL string to parse
+       */
       DLLEXPORT QoreURL(const class QoreString *url);
+
+      //! frees all memory and destroys the structure
       DLLEXPORT ~QoreURL();
+
+      //! parses the URL string passed
+      /** if a url was already parsed previously, all memory is freed before parsing the new string
+	  @param url the URL string to parse
+       */
       DLLEXPORT int parse(const char *url);
+
+      //! parses the URL string passed
+      /** if a url was already parsed previously, all memory is freed before parsing the new string
+	  @param url the URL string to parse
+       */
       DLLEXPORT int parse(const class QoreString *url);
+
+      //! returns true if the URL string parsed is valid
+      /** @return true if the URL string parsed is valid
+       */
       DLLEXPORT bool isValid() const;
-      // returns a hash of the parameters parsed - destructive: zeros out all elements
+
+      //! returns a hash of the parameters parsed - destructive: zeros out all elements
+      /** hash keys are:
+	  - protocol
+	  - path
+	  - username
+	  - password
+	  - host
+	  - port
+	  .
+	  each key is either a QoreStringNode or 0 except for port which is a QoreBigInt
+	  @return a hash of the parameters parsed
+       */
       DLLEXPORT class QoreHashNode *getHash();
+ 
+      //! returns the hostname of the URL
+      /** @return the hostname of the URL
+       */
       DLLEXPORT const class QoreString *getHost() const;
+
+      //! returns the user name in the URL or 0 if none given
+      /** @return the user name in the URL or 0 if none given
+       */
       DLLEXPORT const class QoreString *getUserName() const;
+
+      //! returns the password in the URL or 0 if none given
+      /** @return the password in the URL or 0 if none given
+       */
       DLLEXPORT const class QoreString *getPassword() const;
+
+      //! returns the path component of the URL or 0 if none given
+      /** @return the path component of the URL or 0 if none given
+       */
       DLLEXPORT const class QoreString *getPath() const;
+
+      //! returns the protocol component of the URL or 0 if none given
       DLLEXPORT const class QoreString *getProtocol() const;
+
+      //! returns the port number given in the URL or 0 if none present
+      /** @return the port number given in the URL or 0 if none present
+       */
       DLLEXPORT int getPort() const;
       
       // the "take" methods return the char * pointers for the data
       // the caller owns the memory
+
+      //! returns a pointer to the path (0 if none present), caller owns the memory returned
+      /** if this function returns a non-zero pointer, the memory must be manually freed by the caller
+	  @return a pointer to the path (0 if none present), caller owns the memory returned
+       */
       DLLEXPORT char *take_path();
+
+      //! returns a pointer to the username in the URL (0 if none present), caller owns the memory returned
+      /** if this function returns a non-zero pointer, the memory must be manually freed by the caller
+	  @return a pointer to the username (0 if none present), caller owns the memory returned
+       */
       DLLEXPORT char *take_username();
+
+      //! returns a pointer to the password in the URL (0 if none present), caller owns the memory returned
+      /** if this function returns a non-zero pointer, the memory must be manually freed by the caller
+	  @return a pointer to the password (0 if none present), caller owns the memory returned
+       */
       DLLEXPORT char *take_password();
+
+      //! returns a pointer to the hostname in the URL (0 if none present), caller owns the memory returned
+      /** if this function returns a non-zero pointer, the memory must be manually freed by the caller
+	  @return a pointer to the hostname (0 if none present), caller owns the memory returned
+       */
       DLLEXPORT char *take_host();
 };
 

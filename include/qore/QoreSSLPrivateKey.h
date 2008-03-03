@@ -27,32 +27,38 @@
 #include <openssl/ssl.h>
 #include <openssl/evp.h>
 
-struct qore_sslpk_private;
-
 class QoreSSLPrivateKey : public AbstractPrivateData
 {
    private:
-      struct qore_sslpk_private *priv; // for private implementation
+      // the private implementation of the class
+      struct qore_sslpk_private *priv; 
 
-      // not implemented
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreSSLPrivateKey(const QoreSSLPrivateKey&);
+
+      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreSSLPrivateKey& operator=(const QoreSSLPrivateKey&);
 
    protected:
       DLLLOCAL virtual ~QoreSSLPrivateKey();
 
    public:
-      // caller owns the QoreString returned
+      //! returns a string in PEM format representing the private key, caller owns the QoreString reference count returned
+      /** @return a string in PEM format representing the private key, caller owns the QoreString reference count returned
+       */
       DLLEXPORT class QoreStringNode *getPEM(class ExceptionSink *xsink) const;
 
       DLLLOCAL QoreSSLPrivateKey(EVP_PKEY *p);
       DLLLOCAL QoreSSLPrivateKey(const char *fn, char *pp, class ExceptionSink *xsink);
+
       // caller does NOT own the EVP_PKEY returned; "const" cannot be used because of the openssl API does not support it
       DLLLOCAL EVP_PKEY *getData() const;
       DLLLOCAL const char *getType() const;
       DLLLOCAL int64 getVersion() const;
+
       // returns the length in bits
       DLLLOCAL int64 getBitLength() const;
+
       // caller owns the QoreHashNode returned
       DLLLOCAL class QoreHashNode *getInfo() const;
 };
