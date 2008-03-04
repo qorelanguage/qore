@@ -59,7 +59,7 @@ static void AL_copy(QoreObject *self, QoreObject *old, class QoreAutoLock *m, Ex
 static AbstractQoreNode *AL_lock(QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->lock(xsink);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *AL_trylock(QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
@@ -70,7 +70,7 @@ static AbstractQoreNode *AL_trylock(QoreObject *self, class QoreAutoLock *m, con
 static AbstractQoreNode *AL_unlock(QoreObject *self, class QoreAutoLock *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->unlock(xsink);
-   return NULL;
+   return 0;
 }
 
 class QoreClass *initAutoLockClass()

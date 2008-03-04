@@ -76,9 +76,9 @@ int SSLSocketHelper::setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *
 
 SSLSocketHelper::SSLSocketHelper()
 {
-   meth = NULL;
-   ctx = NULL;
-   ssl = NULL;
+   meth = 0;
+   ctx = 0;
+   ssl = 0;
 }
 
 SSLSocketHelper::~SSLSocketHelper()
@@ -254,14 +254,14 @@ void SocketSource::setHostName(QoreStringNode *host)
 QoreStringNode *SocketSource::takeAddress()
 {
    QoreStringNode *addr = priv->address;
-   priv->address = NULL;
+   priv->address = 0;
    return addr;
 }
 
 QoreStringNode *SocketSource::takeHostName()
 {
    QoreStringNode *host = priv->hostname;
-   priv->hostname = NULL;
+   priv->hostname = 0;
    return host;
 }
 
@@ -280,12 +280,12 @@ void SocketSource::setAll(QoreObject *o, ExceptionSink *xsink)
    if (priv->address)
    {
       o->setValue("source", priv->address, xsink);
-      priv->address = NULL;
+      priv->address = 0;
    }
    if (priv->hostname)
    {
       o->setValue("source_host", priv->hostname, xsink);
-      priv->hostname = NULL;
+      priv->hostname = 0;
    }
 }
 
@@ -301,7 +301,7 @@ struct qore_socket_private {
 	 del = false;
 	 //sendTimeout = recvTimeout = -1
 	 port = -1;
-	 ssl = NULL;
+	 ssl = 0;
       }
 
       DLLLOCAL ~qore_socket_private()
@@ -339,7 +339,7 @@ int QoreSocket::closeInternal()
       {
 	 priv->ssl->shutdown();
 	 delete priv->ssl;
-	 priv->ssl = NULL;
+	 priv->ssl = 0;
       }
       
       if (!priv->socketname.empty())
@@ -416,14 +416,14 @@ bool QoreSocket::isOpen() const
 const char *QoreSocket::getSSLCipherName() const
 {
    if (!priv->ssl)
-      return NULL;
+      return 0;
    return priv->ssl->getCipherName();
 }
 
 const char *QoreSocket::getSSLCipherVersion() const
 {
    if (!priv->ssl)
-      return NULL;
+      return 0;
    return priv->ssl->getCipherVersion();
 }
 
@@ -446,7 +446,7 @@ int QoreSocket::upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSi
    if ((rc = priv->ssl->setClient(priv->sock, cert, pkey, xsink)) || priv->ssl->connect(xsink))
    {
       delete priv->ssl;
-      priv->ssl = NULL;
+      priv->ssl = 0;
       return rc;
    }
    return 0;
@@ -458,7 +458,7 @@ int QoreSocket::upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSi
    if (priv->ssl->setServer(priv->sock, cert, pkey, xsink) || priv->ssl->accept(xsink))
    {
       delete priv->ssl;
-      priv->ssl = NULL;
+      priv->ssl = 0;
       return -1;
    }
    return 0;
@@ -1126,7 +1126,7 @@ int QoreSocket::send(int fd, int size)
 class BinaryNode *QoreSocket::recvBinary(int bufsize, int timeout, int *rc)
 {
    if (!priv->sock)
-      return NULL;
+      return 0;
 
    int bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
 
@@ -1168,7 +1168,7 @@ QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc)
    if (!priv->sock)
    {
       *rc = -3;
-      return NULL;
+      return 0;
    }
 
    int bs = bufsize > 0 && bufsize < DEFAULT_SOCKET_BUFSIZE ? bufsize : DEFAULT_SOCKET_BUFSIZE;
@@ -1189,7 +1189,7 @@ QoreStringNode *QoreSocket::recv(int bufsize, int timeout, int *rc)
 	 if (*rc || !br || (!*rc && bufsize > 0))
 	 {
 	    str->deref();
-	    str = NULL;
+	    str = 0;
 	 }
 	 break;
       }
@@ -1216,7 +1216,7 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc)
    if (!priv->sock)
    {
       *rc = -3;
-      return NULL;
+      return 0;
    }
 
    // perform first read with timeout
@@ -1453,7 +1453,7 @@ void QoreSocket::convertHeaderToHash(class QoreHashNode *h, char *p)
       while (t && isblank(*t))
 	 t++;
       strtolower(buf);
-      h->setKeyValue(buf, new QoreStringNode(t), NULL);
+      h->setKeyValue(buf, new QoreStringNode(t), 0);
    }
 }
 
@@ -1468,12 +1468,12 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    if (!priv->sock)
    {
       *rc = -2;
-      return NULL;
+      return 0;
    }
 
    QoreStringNodeHolder hdr(readHTTPData(timeout, rc));
    if (!hdr)
-      return NULL;
+      return 0;
 
    const char *buf = hdr->getBuffer();
    //printd(0, "HTTP header=%s", buf);
@@ -1501,11 +1501,11 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
    QoreHashNode *h = new QoreHashNode();
 
 #if 0
-   h->setKeyValue("dbg_hdr", new QoreStringNode(buf), NULL);
+   h->setKeyValue("dbg_hdr", new QoreStringNode(buf), 0);
 #endif
 
    // get version
-   h->setKeyValue("http_version", new QoreStringNode(t1 + 5, 3, priv->charsetid), NULL);
+   h->setKeyValue("http_version", new QoreStringNode(t1 + 5, 3, priv->charsetid), 0);
 
    // if we are getting a response
    if (t1 == buf)
@@ -1516,9 +1516,9 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
 	 t2++;
 	 if (isdigit(*(t2)))
 	 {
-	    h->setKeyValue("status_code", new QoreBigIntNode(atoi(t2)), NULL);
+	    h->setKeyValue("status_code", new QoreBigIntNode(atoi(t2)), 0);
 	    if (strlen(t2) > 4)
-	       h->setKeyValue("status_message", new QoreStringNode(t2 + 4), NULL);
+	       h->setKeyValue("status_message", new QoreStringNode(t2 + 4), 0);
 	 }
       }
    }
@@ -1528,7 +1528,7 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc)
       if (t2)
       {
 	 *t2 = '\0';
-	 h->setKeyValue("method", new QoreStringNode(buf), NULL);
+	 h->setKeyValue("method", new QoreStringNode(buf), 0);
 	 t2++;
 	 t1 = strchr(t2, ' ');
 	 if (t1)
@@ -1599,13 +1599,13 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
       char *p = (char *)strchr(str.getBuffer(), ';');
       if (p)
 	 *p = '\0';
-      long size = strtol(str.getBuffer(), NULL, 16);
+      long size = strtol(str.getBuffer(), 0, 16);
       if (size == 0)
 	 break;
       if (size < 0)
       {
 	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%d)", size);
-	 return NULL;
+	 return 0;
       }
       
       // prepare string for chunk
@@ -1620,7 +1620,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 	 if (rc <= 0)
 	 {
 	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
-	    return NULL;
+	    return 0;
 	 }
 	 br += rc;
 	 
@@ -1643,7 +1643,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 	 if (rc <= 0)
 	 {
 	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
-	    return NULL;
+	    return 0;
 	 }
 	 br += rc;
       }      
@@ -1657,7 +1657,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
    if (!hdr)
    {
       doException(rc, "readHTTPChunkedBodyBinary", xsink);
-      return NULL;
+      return 0;
    }
    QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("body", b.release(), xsink);
@@ -1689,7 +1689,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
 	 if (rc <= 0)
 	 {
 	    doException(rc, "readHTTPChunkedBody", xsink);
-	    return NULL;
+	    return 0;
 	 }
       
 	 if (!state && c == '\r')
@@ -1713,13 +1713,13 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
       char *p = (char *)strchr(str.getBuffer(), ';');
       if (p)
 	 *p = '\0';
-      long size = strtol(str.getBuffer(), NULL, 16);
+      long size = strtol(str.getBuffer(), 0, 16);
       if (size == 0)
 	 break;
       if (size < 0)
       {
 	 xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%d)", size);
-	 return NULL;
+	 return 0;
       }
       // ensure string is blanked for next read
       str.clear();
@@ -1736,7 +1736,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
 	 if (rc <= 0)
 	 {
 	    doException(rc, "readHTTPChunkedBody", xsink);
-	    return NULL;
+	    return 0;
 	 }
 	 br += rc;
 	 
@@ -1759,7 +1759,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
 	 if (rc <= 0)
 	 {
 	    doException(rc, "readHTTPChunkedBody", xsink);
-	    return NULL;
+	    return 0;
 	 }
 	 br += rc;
       }      
@@ -1770,7 +1770,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink)
    if (!hdr)
    {
       doException(rc, "readHTTPChunkedBody", xsink);
-      return NULL;
+      return 0;
    }
    QoreHashNode *h = new QoreHashNode();
    h->setKeyValue("body", buf.release(), xsink);
@@ -1795,7 +1795,7 @@ bool QoreSocket::isDataAvailable(int timeout) const
 
    FD_ZERO(&sfs);
    FD_SET(priv->sock, &sfs);
-   return select(priv->sock + 1, &sfs, NULL, NULL, &tv);
+   return select(priv->sock + 1, &sfs, 0, 0, &tv);
 
 #if 0
    struct pollfd pfd;
@@ -1838,7 +1838,7 @@ int QoreSocket::connect(const char *name, ExceptionSink *xsink)
       char *host = (char *)malloc(sizeof(char) * (p - name + 1));
       strncpy(host, name, p - name);
       host[p - name] = '\0';
-      int prt = strtol(p + 1, NULL, 10);
+      int prt = strtol(p + 1, 0, 10);
       int rc = connectINET(host, prt, xsink);
       free(host);
       return rc;
@@ -1861,7 +1861,7 @@ int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, Excepti
       char *host = (char *)malloc(sizeof(char) * (p - name + 1));
       strncpy(host, name, p - name);
       host[p - name] = '\0';
-      int prt = strtol(p + 1, NULL, 10);
+      int prt = strtol(p + 1, 0, 10);
       int rc = connectINETSSL(host, prt, cert, pkey, xsink);
       free(host);
       return rc;
@@ -2052,13 +2052,13 @@ QoreSocket *QoreSocket::accept(class SocketSource *source, ExceptionSink *xsink)
    if (!priv->sock)
    {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened and in listening state before Socket::accept() call");
-      return NULL;
+      return 0;
    }
    int rc = acceptInternal(source);
    if (rc < 0)
    {
       xsink->raiseException("SOCKET-ACCEPT-ERROR", "error in accept: ", strerror(errno));
-      return NULL;
+      return 0;
    }
 
    return new QoreSocket(rc, priv->type, priv->charsetid);
@@ -2070,12 +2070,12 @@ QoreSocket *QoreSocket::acceptSSL(class SocketSource *source, X509 *cert, EVP_PK
 {
    class QoreSocket *s = accept(source, xsink);
    if (!s)
-      return NULL;
+      return 0;
 
    if (s->upgradeServerToSSLIntern(cert, pkey, xsink))
    {
       delete s;
-      return NULL;
+      return 0;
    }
    
    return s;

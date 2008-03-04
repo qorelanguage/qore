@@ -28,7 +28,7 @@ WhileStatement::WhileStatement(int start_line, int end_line, AbstractQoreNode *c
 {
    cond = c;
    code = cd;
-   lvars = NULL;
+   lvars = 0;
 }
 
 WhileStatement::~WhileStatement()

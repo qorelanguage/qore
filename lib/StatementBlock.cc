@@ -80,7 +80,7 @@ LVList::~LVList()
 
 AbstractQoreNode *StatementBlock::exec(ExceptionSink *xsink)
 {
-   AbstractQoreNode *return_value = NULL;
+   AbstractQoreNode *return_value = 0;
    execImpl(&return_value, xsink);
    return return_value;
 }
@@ -499,7 +499,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 	    parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", c->oc->getName());
       }
       delete c->name;
-      c->name = NULL;
+      c->name = 0;
       if (c->args)
 	 lvids += process_list_node(&(c->args), oflag, pflag);
       
@@ -556,7 +556,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 
    if (ntype == NT_FIND) {
       FindNode *f = reinterpret_cast<FindNode *>(*node);
-      push_cvar(NULL);
+      push_cvar(0);
       lvids += process_node(&(f->find_exp), oflag, pflag);
       lvids += process_node(&(f->where),    oflag, pflag);
       lvids += process_node(&(f->exp),      oflag, pflag);
@@ -593,7 +593,7 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag)
    tracein("StatementBlock::parseInit()");
    printd(4, "StatementBlock::parseInit(b=%08p, oflag=%d)\n", this, oflag);
 
-   class AbstractStatement *ret = NULL;
+   class AbstractStatement *ret = 0;
    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(), l = statement_list.last(); i != e; ++i)
    {
       lvids += (*i)->parseInit(oflag, pflag);
@@ -619,7 +619,7 @@ void StatementBlock::parseInit(class Paramlist *params)
    if (params->num_params)
       params->lv = new lvar_ptr_t[params->num_params];
    else
-      params->lv = NULL;
+      params->lv = 0;
 
    // push $argv var on stack and save id
    params->argvid = push_local_var("argv");
@@ -654,7 +654,7 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
    if (params->num_params)
       params->lv = new lvar_ptr_t[params->num_params];
    else
-      params->lv = NULL;
+      params->lv = 0;
 
    // this is a constructor method, push local $self variable
    params->selfid = push_local_var("self");

@@ -48,7 +48,7 @@ class QoreThreadLock {
       //! creates the lock
       DLLEXPORT QoreThreadLock()
       {
-	 pthread_mutex_init(&ptm_lock, NULL);
+	 pthread_mutex_init(&ptm_lock, 0);
       }
 
       //! destroys the lock

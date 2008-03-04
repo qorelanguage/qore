@@ -96,7 +96,7 @@ void BuiltinFunctionList::clear()
 
 const BuiltinFunction *BuiltinFunctionList::find(const char *name)
 {
-   const BuiltinFunction *rv = NULL;
+   const BuiltinFunction *rv = 0;
    if (init_done)
       mutex.lock();
    hm_bf_t::iterator i = hm.find(name);

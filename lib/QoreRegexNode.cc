@@ -36,7 +36,7 @@ QoreRegexNode::QoreRegexNode(class QoreString *s) : ParseNoEvalNode(NT_REGEX)
 QoreRegexNode::QoreRegexNode(const QoreString *s, int opts, ExceptionSink *xsink) : ParseNoEvalNode(NT_REGEX)
 {
    init();
-   str = NULL;
+   str = 0;
    
    if (check_re_options(opts))
       xsink->raiseException("REGEX-OPTION-ERROR", "%d contains invalid option bits", opts);
@@ -100,7 +100,7 @@ void QoreRegexNode::parseRT(const QoreString *pattern, ExceptionSink *xsink)
    if (*xsink)
       return;
    
-   p = pcre_compile(t->getBuffer(), options, &err, &eo, NULL);
+   p = pcre_compile(t->getBuffer(), options, &err, &eo, 0);
    if (err)
    {
       //printd(5, "QoreRegexNode::parse() error parsing '%s': %s", t->getBuffer(), (char *)err);
@@ -113,7 +113,7 @@ void QoreRegexNode::parse()
    ExceptionSink xsink;
    parseRT(str, &xsink);
    delete str;
-   str = NULL;
+   str = 0;
    if (xsink.isEvent())
       getProgram()->addParseException(&xsink);
 }
@@ -129,7 +129,7 @@ bool QoreRegexNode::exec(const QoreString *target, ExceptionSink *xsink) const
    // memory, so, even though we don't need the results, we include the vector to avoid 
    // extraneous malloc()s
    int ovector[OVECCOUNT];
-   int rc = pcre_exec(p, NULL, t->getBuffer(), t->strlen(), 0, 0, ovector, OVECCOUNT);
+   int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), 0, 0, ovector, OVECCOUNT);
    //printd(0, "QoreRegexNode::exec(%s =~ /%s/ = %d\n", target->getBuffer(), str->getBuffer(), rc);   
    return rc >= 0;
 }
@@ -147,11 +147,11 @@ QoreListNode *QoreRegexNode::extractSubstrings(const QoreString *target, Excepti
    // memory, so, even though we don't need the results, we include the vector to avoid 
    // extraneous malloc()s
    int ovector[OVECCOUNT];
-   int rc = pcre_exec(p, NULL, t->getBuffer(), t->strlen(), 0, 0, ovector, OVECCOUNT);
+   int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), 0, 0, ovector, OVECCOUNT);
    //printd(0, "QoreRegexNode::exec(%s =~ /%s/ = %d\n", target->getBuffer(), str->getBuffer(), rc);
    
    if (rc < 1)
-      return NULL;
+      return 0;
    
    QoreListNode *l = new QoreListNode();
    
@@ -178,13 +178,13 @@ QoreListNode *QoreRegexNode::extractSubstrings(const QoreString *target, Excepti
 
 void QoreRegexNode::init()
 {
-   p = NULL;
+   p = 0;
    options = PCRE_UTF8;
 }
 
 QoreString *QoreRegexNode::getString() 
 {
    class QoreString *rs = str;
-   str = NULL;
+   str = 0;
    return rs;
 }

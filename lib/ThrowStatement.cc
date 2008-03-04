@@ -27,7 +27,7 @@ ThrowStatement::ThrowStatement(int start_line, int end_line, AbstractQoreNode *v
 {
    if (!v)
    {
-      args = NULL;
+      args = 0;
       return;
    }
    args = dynamic_cast<QoreListNode *>(v);
@@ -40,7 +40,7 @@ ThrowStatement::ThrowStatement(int start_line, int end_line, AbstractQoreNode *v
 ThrowStatement::~ThrowStatement()
 {
    if (args)
-      args->deref(NULL);
+      args->deref(0);
 }
 
 int ThrowStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)

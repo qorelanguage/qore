@@ -44,7 +44,7 @@ AbstractQoreNode *CONDITION_signal(QoreObject *self, class Condition *c, const Q
    if (c->signal())
       xsink->raiseException("CONDITION-SIGNAL-ERROR", strerror(errno)); 
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *CONDITION_broadcast(QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
@@ -52,7 +52,7 @@ static AbstractQoreNode *CONDITION_broadcast(QoreObject *self, class Condition *
    if (c->broadcast())
       xsink->raiseException("CONDITION-BROADCAST-ERROR", strerror(errno));
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *CONDITION_wait(QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
@@ -86,7 +86,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, class Condition *c, co
 static AbstractQoreNode *CONDITION_wait_count(QoreObject *self, class Condition *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreObject *p0 = test_object_param(params, 0);
-   SmartMutex *m = p0 ? (SmartMutex *)p0->getReferencedPrivateData(CID_MUTEX, xsink) : NULL;
+   SmartMutex *m = p0 ? (SmartMutex *)p0->getReferencedPrivateData(CID_MUTEX, xsink) : 0;
    if (!m)
    {
       if (!*xsink)

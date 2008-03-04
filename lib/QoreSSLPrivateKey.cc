@@ -54,7 +54,7 @@ QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, char *pp, ExceptionSink *xs
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "'%s': %s", fn, strerror(errno));
       return;
    }
-   PEM_read_PrivateKey(fp, &priv->pk, NULL, pp ? pp : (void *)"_none_");
+   PEM_read_PrivateKey(fp, &priv->pk, 0, pp ? pp : (void *)"_none_");
    fclose(fp);
    if (!priv->pk)
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing private key file '%s'", fn);
@@ -68,11 +68,11 @@ EVP_PKEY *QoreSSLPrivateKey::getData() const
 QoreStringNode *QoreSSLPrivateKey::getPEM(ExceptionSink *xsink) const
 {
    BIO *bp = BIO_new(BIO_s_mem());
-   if (!PEM_write_bio_PrivateKey(bp, priv->pk, NULL, NULL, 0, NULL, NULL))
+   if (!PEM_write_bio_PrivateKey(bp, priv->pk, 0, 0, 0, 0, 0))
    {
       BIO_free(bp);
       xsink->raiseException("SSLPRIVATEKEY-ERROR", "could not create PEM string from private key data");
-      return NULL;
+      return 0;
    }
    char *buf;
    long len = BIO_get_mem_data(bp, &buf);
@@ -159,8 +159,8 @@ int64 QoreSSLPrivateKey::getBitLength() const
 QoreHashNode *QoreSSLPrivateKey::getInfo() const
 {
    QoreHashNode *h = new QoreHashNode();
-   h->setKeyValue("type", new QoreStringNode(getType()), NULL);
-   h->setKeyValue("version", new QoreBigIntNode(getVersion()), NULL);
-   h->setKeyValue("bitLength", new QoreBigIntNode(getBitLength()), NULL);
+   h->setKeyValue("type", new QoreStringNode(getType()), 0);
+   h->setKeyValue("version", new QoreBigIntNode(getVersion()), 0);
+   h->setKeyValue("bitLength", new QoreBigIntNode(getBitLength()), 0);
    return h;
 }

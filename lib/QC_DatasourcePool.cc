@@ -46,7 +46,7 @@ static void DSP_constructor(QoreObject *self, const QoreListNode *params, Except
       return;
    }
 
-   const char *user = NULL, *pass = NULL, *db = NULL, *charset = NULL, *host = NULL;
+   const char *user = 0, *pass = 0, *db = 0, *charset = 0, *host = 0;
    int min, max;
    if ((pstr = test_string_param(params, 1)))
       user = pstr->getBuffer();
@@ -121,7 +121,7 @@ static AbstractQoreNode *DSP_exec(QoreObject *self, class DatasourcePool *ds, co
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
 
    ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->exec(p0, *args, xsink);
@@ -131,7 +131,7 @@ static AbstractQoreNode *DSP_vexec(QoreObject *self, class DatasourcePool *ds, c
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
    
    const QoreListNode *args = test_list_param(params, 1);
    return ds->exec(p0, args, xsink);
@@ -141,7 +141,7 @@ static AbstractQoreNode *DSP_select(QoreObject *self, class DatasourcePool *ds, 
 {
    const QoreStringNode *p = test_string_param(params, 0);
    if (!p)
-      return NULL;
+      return 0;
 
    ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->select(p, *args, xsink);
@@ -151,7 +151,7 @@ static AbstractQoreNode *DSP_selectRow(QoreObject *self, class DatasourcePool *d
 {
    const QoreStringNode *p = test_string_param(params, 0);
    if (!p)
-      return NULL;
+      return 0;
    
    ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->selectRow(p, *args, xsink);
@@ -161,7 +161,7 @@ static AbstractQoreNode *DSP_selectRows(QoreObject *self, class DatasourcePool *
 {
    const QoreStringNode *p = test_string_param(params, 0);
    if (!p)
-      return NULL;
+      return 0;
 
    ReferenceHolder<QoreListNode> args(params->size() > 1 ? params->copyListFrom(1) : 0, xsink);
    return ds->selectRows(p, *args, xsink);
@@ -171,7 +171,7 @@ static AbstractQoreNode *DSP_vselect(QoreObject *self, class DatasourcePool *ds,
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    const QoreListNode *args = test_list_param(params, 1);
    return ds->select(p0, args, xsink);
@@ -181,7 +181,7 @@ static AbstractQoreNode *DSP_vselectRow(QoreObject *self, class DatasourcePool *
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    const QoreListNode *args = test_list_param(params, 1);
    return ds->selectRow(p0, args, xsink);
@@ -191,7 +191,7 @@ static AbstractQoreNode *DSP_vselectRows(QoreObject *self, class DatasourcePool 
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    const QoreListNode *args = test_list_param(params, 1);
    return ds->selectRows(p0, args, xsink);
@@ -200,7 +200,7 @@ static AbstractQoreNode *DSP_vselectRows(QoreObject *self, class DatasourcePool 
 static AbstractQoreNode *DSP_beginTransaction(QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)
 {
    ds->beginTransaction(xsink);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *DSP_getUserName(QoreObject *self, class DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink)

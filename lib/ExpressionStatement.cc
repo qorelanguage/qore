@@ -41,7 +41,7 @@ ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQ
 
 ExpressionStatement::~ExpressionStatement()
 {
-   // this should never be NULL, but in case the implementation changes...
+   // this should never be 0, but in case the implementation changes...
    if (exp)
       exp->deref(0);
 }

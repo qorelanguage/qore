@@ -67,7 +67,7 @@ class UserFunction *UserFunctionList::find(const char *name)
       return i->second;
    
    //printd(5, "UserFunctionList::find(%s) returning %08p\n", name, w);
-   return NULL;
+   return 0;
 }
 
 QoreListNode *UserFunctionList::getList()

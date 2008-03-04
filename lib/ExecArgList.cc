@@ -56,7 +56,7 @@ ExecArgList::ExecArgList(const char *str)
 
    allocated = 0;
    len = 0;
-   arg = NULL;
+   arg = 0;
    char *start = (char *)tmp.getBuffer();
    char *p = start;
    int quote = 0;
@@ -87,7 +87,7 @@ ExecArgList::ExecArgList(const char *str)
    if (*start)
       addArg(getString(start, strlen(start)));
    // terminate list
-   addArg(NULL);
+   addArg(0);
 }
 
 ExecArgList::~ExecArgList()
@@ -105,7 +105,7 @@ char *ExecArgList::getFile()
 {
    if (len)
       return arg[0];
-   return NULL;
+   return 0;
 }
 
 char **ExecArgList::getArgs()

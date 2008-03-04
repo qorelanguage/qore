@@ -72,7 +72,7 @@ void ClassRefNode::resolve()
       if (qc)
 	 cid = qc->getID();
       delete cscope;
-      cscope = NULL;
+      cscope = 0;
    }
 }
 

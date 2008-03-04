@@ -36,7 +36,7 @@ class ThreadResourceNode
       DLLLOCAL void call(ExceptionSink *xsink);
 };
 
-ThreadResourceNode::ThreadResourceNode(AbstractThreadResource *a) : atr(a), prev(NULL)
+ThreadResourceNode::ThreadResourceNode(AbstractThreadResource *a) : atr(a), prev(0)
 {
 }
 
@@ -48,7 +48,7 @@ void ThreadResourceNode::call(ExceptionSink *xsink)
 
 ThreadResourceList::ThreadResourceList()
 {
-   head = NULL;
+   head = 0;
 }
 
 ThreadResourceList::~ThreadResourceList()
@@ -65,7 +65,7 @@ class ThreadResourceNode *ThreadResourceList::find(AbstractThreadResource *atr)
 	 return w;
       w = w->next;
    }
-   return NULL;
+   return 0;
 }
 
 /*
@@ -78,7 +78,7 @@ inline class ThreadResourceNode *ThreadResourceList::find(AbstractThreadResource
 	 return w;
       w = w->next;
    }
-   return NULL;
+   return 0;
 }
 */
 
@@ -138,7 +138,7 @@ void ThreadResourceList::purge(ExceptionSink *xsink)
       delete w;
       w = n;
    }
-   head = NULL;
+   head = 0;
    //printd(5, "TRL::purge() done\n");
 }
 

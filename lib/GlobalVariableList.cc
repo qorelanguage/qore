@@ -61,7 +61,7 @@ void GlobalVariableList::clear_all(ExceptionSink *xsink)
       if (!i->second->isImported())
       {
 	 printd(5, "GlobalVariableList::clear_all() clearing '%s' (%08p)\n", i->first, i->second);
-	 i->second->setValue(NULL, xsink);
+	 i->second->setValue(0, xsink);
       }
 #ifdef DEBUG
       else printd(5, "GlobalVariableList::clear_all() skipping imported var '%s' (%08p)\n", i->first, i->second);
@@ -105,7 +105,7 @@ class Var *GlobalVariableList::findVar(const char *name)
    map_var_t::iterator i = vmap.find(name);
    if (i != vmap.end())
       return i->second;
-   return NULL;
+   return 0;
 }
 
 // used for resolving unflagged global variables

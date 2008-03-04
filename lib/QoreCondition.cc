@@ -25,7 +25,7 @@
 
 QoreCondition::QoreCondition()
 {
-   pthread_cond_init(&c, NULL);
+   pthread_cond_init(&c, 0);
 }
 
 QoreCondition::~QoreCondition()
@@ -54,7 +54,7 @@ int QoreCondition::wait(pthread_mutex_t *m, int timeout_ms)
    struct timeval now;
    struct timespec tmout;
    
-   gettimeofday(&now, NULL);
+   gettimeofday(&now, 0);
    int secs = timeout_ms / 1000;
    timeout_ms -= secs * 1000;
    tmout.tv_sec = now.tv_sec + secs;

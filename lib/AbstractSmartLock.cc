@@ -62,7 +62,7 @@ void AbstractSmartLock::release_and_signal()
    
    if (tid >= 0)
       tid = Lock_Unlocked;
-   vl = NULL;
+   vl = 0;
    signalImpl();
 }
 

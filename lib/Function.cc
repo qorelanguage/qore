@@ -34,22 +34,22 @@ static inline void param_error()
 
 SelfFunctionCall::SelfFunctionCall(char *n) 
 { 
-   ns = NULL;
+   ns = 0;
    name = n; 
-   func = NULL; 
+   func = 0; 
 }
 
 SelfFunctionCall::SelfFunctionCall(class NamedScope *n) 
 { 
    ns = n;
-   name = NULL; 
-   func = NULL; 
+   name = 0; 
+   func = 0; 
 }
 
 SelfFunctionCall::SelfFunctionCall(const QoreMethod *f) 
 { 
-   ns = NULL;
-   name = NULL;
+   ns = 0;
+   name = 0;
    func = f; 
 }
 
@@ -99,11 +99,11 @@ void SelfFunctionCall::resolve()
    {
       // FIXME: warn if argument list passed (will be ignored)
 
-      // copy method calls will be recognized by func = NULL
+      // copy method calls will be recognized by func = 0
       if (!strcmp(name, "copy"))
       {
 	 free(name);
-	 name = NULL;
+	 name = 0;
 	 printd(5, "SelfFunctionCall:resolve() resolved to copy constructor\n");
 	 return;
       }
@@ -117,12 +117,12 @@ void SelfFunctionCall::resolve()
       if (name)
       {
 	 free(name);
-	 name = NULL;
+	 name = 0;
       }
       else if (ns)
       {
 	 delete ns;
-	 ns = NULL;
+	 ns = 0;
       }
    }
 }
@@ -137,7 +137,7 @@ AbstractQoreNode *ImportedFunctionCall::eval(const QoreListNode *args, Exception
    AbstractQoreNode *rv = pgm->callFunction(func, args, xsink);
 
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, NULL, func->getName(), o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, 0, func->getName(), o_fn, o_ln, o_eln);
    
    return rv;
 }
@@ -151,7 +151,7 @@ Paramlist::Paramlist(AbstractQoreNode *params)
    if (!params)
    {
       num_params = 0;
-      names = NULL;
+      names = 0;
       return;
    }
 
@@ -165,7 +165,7 @@ Paramlist::Paramlist(AbstractQoreNode *params)
    if (params->getType() != NT_LIST) {
       param_error();
       num_params = 0;
-      names = NULL;
+      names = 0;
       return;
    }
 
@@ -180,7 +180,7 @@ Paramlist::Paramlist(AbstractQoreNode *params)
 	 param_error();
 	 num_params = 0;
 	 delete [] names;
-	 names = NULL;
+	 names = 0;
 	 break;
       }
       else
@@ -205,7 +205,7 @@ UserFunction::UserFunction(char *nme, class Paramlist *parms, class StatementBlo
       gate = new VRMutex();
 # ifdef DEBUG
    else
-      gate = NULL;
+      gate = 0;
 # endif
    name = nme;
    params = parms;
@@ -234,7 +234,7 @@ BuiltinFunction::BuiltinFunction(const char *nme, q_func_t f, int typ)
    type = typ;
    name = nme;
    code.func = f;
-   next = NULL;
+   next = 0;
 }
 
 BuiltinFunction::BuiltinFunction(const char *nme, q_method_t m, int typ)
@@ -242,7 +242,7 @@ BuiltinFunction::BuiltinFunction(const char *nme, q_method_t m, int typ)
    type = typ;
    name = nme;
    code.method = m;
-   next = NULL;
+   next = 0;
 }
 
 BuiltinFunction::BuiltinFunction(q_constructor_t m, int typ)
@@ -250,7 +250,7 @@ BuiltinFunction::BuiltinFunction(q_constructor_t m, int typ)
    type = typ;
    name = "constructor";
    code.constructor = m;
-   next = NULL;
+   next = 0;
 }
 
 BuiltinFunction::BuiltinFunction(q_system_constructor_t m, int typ)
@@ -258,7 +258,7 @@ BuiltinFunction::BuiltinFunction(q_system_constructor_t m, int typ)
    type = typ;
    name = "constructor";
    code.system_constructor = m;
-   next = NULL;
+   next = 0;
 }
 
 BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ)
@@ -266,7 +266,7 @@ BuiltinFunction::BuiltinFunction(q_destructor_t m, int typ)
    type = typ;
    name = "destructor";
    code.destructor = m;
-   next = NULL;
+   next = 0;
 }
 
 BuiltinFunction::BuiltinFunction(q_copy_t m, int typ)
@@ -274,7 +274,7 @@ BuiltinFunction::BuiltinFunction(q_copy_t m, int typ)
    type = typ;
    name = "copy";
    code.copy = m;
-   next = NULL;
+   next = 0;
 }
 
 void BuiltinFunction::evalConstructor(QoreObject *self, const QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, ExceptionSink *xsink) const
@@ -334,7 +334,7 @@ AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreList
    }
    
    if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, self ? self->getClass()->getName() : NULL, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_BUILTIN, self ? self->getClass()->getName() : 0, name, o_fn, o_ln, o_eln);
 
    traceout("BuiltinFunction::evalWithArgs()");
    return rv;
@@ -428,7 +428,7 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
    //printd(5, "BuiltinFunction::eval(Node) after eval tmp args=%08p %s\n", *tmp, *tmp ? *tmp->getTypeName() : "(null)");
 
    {
-      CodeContextHelper cch(name, NULL, xsink);
+      CodeContextHelper cch(name, 0, xsink);
 #ifdef DEBUG
       // push call on call stack
       CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
@@ -439,13 +439,13 @@ AbstractQoreNode *BuiltinFunction::eval(const QoreListNode *args, ExceptionSink 
       if (!newsink.isEvent())
 	 rv = code.func(*tmp, xsink);
       else
-	 rv = NULL;
+	 rv = 0;
 
       xsink->assimilate(&newsink);
    }
 
    if (xsink->isException())
-      xsink->addStackInfo(CT_BUILTIN, NULL, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_BUILTIN, 0, name, o_fn, o_ln, o_eln);
    
    traceout("BuiltinFunction::eval(Node)");
    return rv;
@@ -469,7 +469,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
    ReferenceHolder<QoreListNode> argv(xsink);
 
    for (int i = 0; i < num_params; i++) {
-      AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : NULL;
+      AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
       printd(4, "UserFunction::eval() eval %d: instantiating param lvar %s (id=%08p) (n=%08p %s)\n", i, params->lv[i], params->lv[i], n, n ? n->getTypeName() : "(null)");
       if (n)
       {
@@ -571,7 +571,7 @@ AbstractQoreNode *UserFunction::eval(const QoreListNode *args, QoreObject *self,
 	 params->lv[i]->uninstantiate(xsink);
    }
    if (xsink->isException())
-      xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClass()->getName()) : NULL, name, o_fn, o_ln, o_eln);
+      xsink->addStackInfo(CT_USER, self ? (class_name ? class_name : self->getClass()->getName()) : 0, name, o_fn, o_ln, o_eln);
    
    return val;
 }
@@ -590,7 +590,7 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
    // instantiate local vars from param list
    for (int i = 0; i < params->num_params; i++)
    {
-      QoreObject *n = (i ? NULL : old);
+      QoreObject *n = (i ? 0 : old);
       printd(5, "UserFunction::evalCopy(): instantiating param lvar %d (%08p)\n", i, params->lv[i], n);
       params->lv[i]->instantiate(n ? n->refSelf() : 0);
    }
@@ -604,7 +604,7 @@ void UserFunction::evalCopy(QoreObject *old, QoreObject *self, const char *class
       argv->push(old);
    }
    else
-      argv = NULL;
+      argv = 0;
 
    if (statements)
    {
@@ -661,7 +661,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
    int o_ln, o_eln;
    get_pgm_counter(o_ln, o_eln);
    
-   AbstractQoreNode *val = NULL;
+   AbstractQoreNode *val = 0;
 
    int num_args = args ? args->size() : 0;
    // instantiate local vars from param list
@@ -669,7 +669,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 
    for (int i = 0; i < num_params; i++)
    {
-      AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : NULL;
+      AbstractQoreNode *n = args ? const_cast<AbstractQoreNode *>(args->retrieve_entry(i)) : 0;
       printd(4, "UserFunction::evalConstructor() eval %d: instantiating param lvar %d (%08p)\n", i, params->lv[i], n);
       if (n)
       {
@@ -678,7 +678,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
 	    if (!xsink->isEvent())
-	       params->lv[i]->instantiate(n, is_self_ref ? getStackObject() : NULL);
+	       params->lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
 	 }
 	 else
 	 {
@@ -696,7 +696,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 	    for (int j = i; j; j--)
 	       params->lv[j - 1]->uninstantiate(xsink);
 	    traceout("UserFunction::evalConstructor()");
-	    return NULL;
+	    return 0;
 	 }
       }
       else
@@ -790,7 +790,7 @@ AbstractQoreNode *UserFunction::evalConstructor(const QoreListNode *args, QoreOb
 // this will only be called with lvalue expressions
 AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, ExceptionSink *xsink)
 {
-   AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = 0;
    qore_type_t ntype = n->getType();
    if (ntype == NT_TREE)
    {

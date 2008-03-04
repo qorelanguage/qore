@@ -55,7 +55,7 @@ struct qore_ds_private {
 	 dsl = ndsl;
 	 isopen = false;
 	 in_transaction = false;
-	 private_data = NULL;
+	 private_data = 0;
 	 autocommit = false;
 	 qorecharset = QCS_DEFAULT;
       }
@@ -170,7 +170,7 @@ AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const Qore
 AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
 {
    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
-      return NULL;
+      return 0;
 
    AbstractQoreNode *rv = priv->dsl->execSQL(this, query_str, args, xsink);
    //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
@@ -311,32 +311,32 @@ void Datasource::setPendingHostName(const char *h)
 
 const char *Datasource::getUsername() const
 {
-   return priv->username.empty() ? NULL : priv->username.c_str();
+   return priv->username.empty() ? 0 : priv->username.c_str();
 }
 
 const char *Datasource::getPassword() const
 {
-   return priv->password.empty() ? NULL : priv->password.c_str();
+   return priv->password.empty() ? 0 : priv->password.c_str();
 }
 
 const char *Datasource::getDBName() const
 {
-   return priv->dbname.empty() ? NULL : priv->dbname.c_str();
+   return priv->dbname.empty() ? 0 : priv->dbname.c_str();
 }
 
 const char *Datasource::getDBEncoding() const
 {
-   return priv->db_encoding.empty() ? NULL : priv->db_encoding.c_str();
+   return priv->db_encoding.empty() ? 0 : priv->db_encoding.c_str();
 }
 
 const char *Datasource::getOSEncoding() const
 {
-   return priv->qorecharset ? priv->qorecharset->getCode() : NULL;
+   return priv->qorecharset ? priv->qorecharset->getCode() : 0;
 }
 
 const char *Datasource::getHostName() const
 {
-   return priv->hostname.empty() ? NULL : priv->hostname.c_str();
+   return priv->hostname.empty() ? 0 : priv->hostname.c_str();
 }
 
 const QoreEncoding *Datasource::getQoreEncoding() const
@@ -361,27 +361,27 @@ void Datasource::setQoreEncoding(const QoreEncoding *enc)
 
 QoreStringNode *Datasource::getPendingUsername() const
 {
-   return priv->p_username.empty() ? NULL : new QoreStringNode(priv->p_username.c_str());
+   return priv->p_username.empty() ? 0 : new QoreStringNode(priv->p_username.c_str());
 }
 
 QoreStringNode *Datasource::getPendingPassword() const
 {
-   return priv->p_password.empty() ? NULL : new QoreStringNode(priv->p_password.c_str());
+   return priv->p_password.empty() ? 0 : new QoreStringNode(priv->p_password.c_str());
 }
 
 QoreStringNode *Datasource::getPendingDBName() const
 {
-   return priv->p_dbname.empty() ? NULL : new QoreStringNode(priv->p_dbname.c_str());
+   return priv->p_dbname.empty() ? 0 : new QoreStringNode(priv->p_dbname.c_str());
 }
 
 QoreStringNode *Datasource::getPendingDBEncoding() const
 {
-   return priv->p_db_encoding.empty() ? NULL : new QoreStringNode(priv->p_db_encoding.c_str());
+   return priv->p_db_encoding.empty() ? 0 : new QoreStringNode(priv->p_db_encoding.c_str());
 }
 
 QoreStringNode *Datasource::getPendingHostName() const
 {
-   return priv->p_hostname.empty() ? NULL : new QoreStringNode(priv->p_hostname.c_str());
+   return priv->p_hostname.empty() ? 0 : new QoreStringNode(priv->p_hostname.c_str());
 }
 
 const char *Datasource::getDriverName() const

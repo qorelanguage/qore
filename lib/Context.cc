@@ -60,7 +60,7 @@ Context::~Context()
 	 for (i = 0; i < max_group_pos; i++)
 	 {
 	    printd(5, "%d/%d: ", i, max_group_pos);
-	    group_values[i].node->deref(NULL);
+	    group_values[i].node->deref(0);
 	    printd(5, "row_list=%08p (num_rows=%d, allocated=%d): ",
 		   group_values[i].row_list,
 		   group_values[i].num_rows,
@@ -121,14 +121,14 @@ AbstractQoreNode *evalContextRow(ExceptionSink *xsink)
 AbstractQoreNode *Context::evalValue(char *field, ExceptionSink *xsink)
 {
    if (!value)
-      return NULL;
+      return 0;
 
    bool exists;
    AbstractQoreNode *v = value->getReferencedKeyValue(field, exists);
    if (!exists)
    {
       xsink->raiseException("CONTEXT-EXCEPTION", "\"%s\" is not a valid key for this context", field);
-      return NULL;
+      return 0;
    }
    ReferenceHolder<AbstractQoreNode> val(v, xsink);
    QoreListNode *l = dynamic_cast<QoreListNode *>(v);
@@ -233,7 +233,7 @@ void Context::Sort(AbstractQoreNode *snode, int sort_type)
 	 return;
       }
       printd(5, "Context::Sort() eval(): max=%d list[%d].node = %08p (refs=%d) pos=%d\n",
-	     max_pos, pos, list[pos].node ? list[pos].node : NULL,
+	     max_pos, pos, list[pos].node ? list[pos].node : 0,
 	     list[pos].node ? list[pos].node->reference_count() : 0,
 	     row_list[pos]);
       list[pos].pos = row_list[pos];
@@ -254,7 +254,7 @@ void Context::Sort(AbstractQoreNode *snode, int sort_type)
    {
       row_list[pos] = list[i].pos;
       printd(5, "Context::Sort() deref(): max=%d list[%d].node = %08p (refs=%d)\n",
-	     max_pos, i, list[i].node ? list[pos].node : NULL, 
+	     max_pos, i, list[i].node ? list[pos].node : 0, 
 	     list[pos].node ? list[i].node->reference_count() : 0);
       discard(list[i].node, sort_xsink);
       i += sense;
@@ -265,7 +265,7 @@ void Context::Sort(AbstractQoreNode *snode, int sort_type)
 }
 
 /*
- * if exp == NULL, then it is a subcontext.  Calling with exp == NULL 
+ * if exp == 0, then it is a subcontext.  Calling with exp == 0 
  * should only be possible if there is a parent context, so no checks are
  * needed to see if there really is a parent context.
  * The code in summary contexts is only executed once for each discrete value,
@@ -282,14 +282,14 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
 {
    int allocated = 0;
    //int sense, lcolumn = -1, fcolumn = -1
-   //class Key *key = NULL;
+   //class Key *key = 0;
 
    tracein("Context::Context()");
    //e = ex;
    group_pos = max_group_pos = max_pos = pos = master_max_pos = 0;
-   row_list = NULL;
-   master_row_list = NULL;
-   group_values = NULL;
+   row_list = 0;
+   master_row_list = 0;
+   group_values = 0;
 
    sub = !exp;
    // set up initial row list and parameters
@@ -299,7 +299,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
       next = get_context_stack();
       update_context_stack(this);
 
-      name = next->name ? strdup(next->name) : NULL;
+      name = next->name ? strdup(next->name) : 0;
       value = next->value;
       max_pos = next->max_pos;
       if (max_pos)
@@ -316,7 +316,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
    }
    else // copy object (query) list
    {
-      name = nme ? strdup(nme) : NULL;
+      name = nme ? strdup(nme) : 0;
       ReferenceHolder<AbstractQoreNode> rv(exp->eval(xsink), xsink);
 
       // push context on stack
@@ -357,7 +357,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
    // check for nested contexts
 /*
    if (!ignore_key && next && !sub &&
-       (key = find_key(query, NULL, next->query, NULL, &sense)))
+       (key = find_key(query, 0, next->query, 0, &sense)))
    {
       key->check(xsink);
       if (xsink->isEvent()) return;
@@ -449,13 +449,13 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
 	 else
 	 {
 	    free(row_list);
-	    row_list = NULL;
+	    row_list = 0;
 	 }
       }
       if (master_row_list)
       {
 	 free(master_row_list);
-	 master_row_list = NULL;
+	 master_row_list = 0;
       }
    }
 

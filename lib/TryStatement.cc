@@ -46,7 +46,7 @@ TryStatement::~TryStatement()
 
 int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
 {
-   AbstractQoreNode *trv = NULL;
+   AbstractQoreNode *trv = 0;
    
    tracein("TryStatement::execImpl()");
    int rc = 0;
@@ -112,7 +112,7 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag)
       printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%08p)\n", param, id);
    }
    else
-      id = NULL;
+      id = 0;
    
    // initialize code block
    if (catch_block)

@@ -46,13 +46,13 @@ static void COUNTER_copy(QoreObject *self, QoreObject *old, class Counter *c, Ex
 static AbstractQoreNode *COUNTER_inc(QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    c->inc();
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *COUNTER_dec(QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
 {
    c->dec(xsink);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *COUNTER_waitForZero(QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)
@@ -66,7 +66,7 @@ static AbstractQoreNode *COUNTER_waitForZero(QoreObject *self, class Counter *c,
    int rc = c->waitForZero(xsink, timeout_ms);
    if (!*xsink)
       return new QoreBigIntNode(rc);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *COUNTER_getCount(QoreObject *self, class Counter *c, const QoreListNode *params, ExceptionSink *xsink)

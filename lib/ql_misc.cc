@@ -35,7 +35,7 @@ class qore_gz_header : public gz_header
       DLLLOCAL qore_gz_header(bool n_text, char *n_name, char *n_comment)
       {
 	 text = n_text;
-	 time = ::time(NULL);
+	 time = ::time(0);
 	 xflags = 0;
 	 os = 3; // always set to UNIX
 	 extra = Z_NULL;
@@ -81,7 +81,7 @@ static AbstractQoreNode *f_call_function_args(const QoreListNode *params, Except
    if (p0_type != NT_FUNCREF && p0_type != NT_STRING) {
       xsink->raiseException("CALL-FUNCTION-ARGS-PARAMETER-ERROR",
 			    "invalid argument passed to call_function_args(), first argument must be either function name or call reference");
-      return NULL;
+      return 0;
    }
    
    const AbstractQoreNode *p1 = get_param(params, 1);
@@ -134,20 +134,20 @@ static AbstractQoreNode *f_functionType(const QoreListNode *params, ExceptionSin
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
 
    if (getProgram()->existsFunction(p0->getBuffer()))
       return new QoreStringNode("user");
    if (builtinFunctions.find(p0->getBuffer()))
       return new QoreStringNode("builtin");
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *f_html_encode(const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
 
    QoreStringNode *ns = new QoreStringNode(p0->getEncoding());
    ns->concatAndHTMLEncode(p0->getBuffer());
@@ -158,7 +158,7 @@ static AbstractQoreNode *f_html_decode(const QoreListNode *params, ExceptionSink
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
 
    QoreStringNode *ns = new QoreStringNode(p0->getEncoding());
    ns->concatAndHTMLDecode(p0);
@@ -188,7 +188,7 @@ static AbstractQoreNode *f_getClassName(const QoreListNode *params, ExceptionSin
 {
    QoreObject *p0 = test_object_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    return new QoreStringNode(p0->getClass()->getName());
 }
@@ -197,20 +197,20 @@ static AbstractQoreNode *f_parseURL(const QoreListNode *params, ExceptionSink *x
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    QoreURL url(p0);
    if (url.isValid())
       return url.getHash();
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *f_backquote(const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    return backquoteEval(p0->getBuffer(), xsink);
 }
@@ -240,7 +240,7 @@ static AbstractQoreNode *f_parseBase64String(const QoreListNode *params, Excepti
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    return p0->parseBase64(xsink);
 }
@@ -249,7 +249,7 @@ static AbstractQoreNode *f_parseBase64StringToString(const QoreListNode *params,
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    return p0->parseBase64ToString(xsink);
 }
@@ -268,7 +268,7 @@ static AbstractQoreNode *f_hash_values(const QoreListNode *params, ExceptionSink
 {
    const QoreHashNode *p0 = test_hash_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    QoreListNode *l = new QoreListNode();
    ConstHashIterator hi(p0);
@@ -340,7 +340,7 @@ BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, Exceptio
    if (rc != Z_OK)
    {
       do_zlib_exception(rc, "deflateInit", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_deflate_end, &c_stream, xsink);
@@ -361,7 +361,7 @@ BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, Exceptio
       {
          free(buf);
          do_zlib_exception(rc, "deflate", xsink);
-	 return NULL;
+	 return 0;
       }
       
       if (!c_stream.avail_out)
@@ -385,7 +385,7 @@ BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, Exceptio
       {
          free(buf);
          do_zlib_exception(rc, "deflate", xsink);
-	 return NULL;
+	 return 0;
       }
       // resize buffer
       int new_space = 2; //((len / 3) + 100);
@@ -412,7 +412,7 @@ QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *
    if (rc != Z_OK)
    {
       do_zlib_exception(rc, "inflateInit", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
@@ -445,7 +445,7 @@ QoreStringNode *qore_inflate_to_string(const BinaryNode *b, const QoreEncoding *
       {
 	 free(buf);
 	 do_zlib_exception(rc, "inflate", xsink);
-	 return NULL;
+	 return 0;
       }
    }
 
@@ -471,7 +471,7 @@ BinaryNode *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink)
    if (rc != Z_OK)
    {
       do_zlib_exception(rc, "inflateInit", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
@@ -504,7 +504,7 @@ BinaryNode *qore_inflate_to_binary(const BinaryNode *b, ExceptionSink *xsink)
       {
 	 free(buf);
 	 do_zlib_exception(rc, "inflate", xsink);
-	 return NULL;
+	 return 0;
       }
    }
    
@@ -524,7 +524,7 @@ BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSi
    if (rc != Z_OK)
    {
       do_zlib_exception(rc, "deflateInit2", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_deflate_end, &c_stream, xsink);
@@ -543,7 +543,7 @@ BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSi
       {
 	 free(buf);
 	 do_zlib_exception(rc, "deflate", xsink);
-	 return NULL;
+	 return 0;
       }
 
       if (!c_stream.avail_out)
@@ -568,7 +568,7 @@ BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSi
       {
 	 free(buf);
 	 do_zlib_exception(rc, "deflate", xsink);
-	 return NULL;
+	 return 0;
       }
       // resize buffer
       int new_space = 2; //((len / 3) + 100);
@@ -598,7 +598,7 @@ QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding 
    if (rc != Z_OK)
    {
       do_zlib_exception(rc, "inflateInit2", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
@@ -629,7 +629,7 @@ QoreStringNode *qore_gunzip_to_string(const BinaryNode *bin, const QoreEncoding 
       {
 	 free(buf);
 	 do_zlib_exception(rc, "inflate", xsink);
-	 return NULL;
+	 return 0;
       }
    }
 
@@ -658,7 +658,7 @@ BinaryNode *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink)
    if (rc != Z_OK)
    {
       do_zlib_exception(rc, "inflateInit2", xsink);
-      return NULL;
+      return 0;
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
@@ -689,7 +689,7 @@ BinaryNode *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink)
       {
 	 free(buf);
 	 do_zlib_exception(rc, "inflate", xsink);
-	 return NULL;
+	 return 0;
       }
    }
    
@@ -701,7 +701,7 @@ static AbstractQoreNode *f_compress(const QoreListNode *params, ExceptionSink *x
    // need a string or binary argument
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (is_nothing(p0))
-      return NULL;
+      return 0;
 
    const AbstractQoreNode *p1 = get_param(params, 1);
    int level = p1 ? p1->getAsInt() : Z_DEFAULT_COMPRESSION;
@@ -709,7 +709,7 @@ static AbstractQoreNode *f_compress(const QoreListNode *params, ExceptionSink *x
    if (!level || level > 9)
    {
       xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
-      return NULL;
+      return 0;
    }
 
    const void *ptr;
@@ -741,7 +741,7 @@ static AbstractQoreNode *f_uncompress_to_string(const QoreListNode *params, Exce
    // need binary argument
    const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    const QoreEncoding *ccsid;
    const QoreStringNode *p1 = test_string_param(params, 1);
@@ -756,7 +756,7 @@ static AbstractQoreNode *f_uncompress_to_binary(const QoreListNode *params, Exce
    // need binary argument
    const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    return qore_inflate_to_binary(p0, xsink);
 }
@@ -766,7 +766,7 @@ static AbstractQoreNode *f_gzip(const QoreListNode *params, ExceptionSink *xsink
    // need a string or binary argument
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    const AbstractQoreNode *p1 = get_param(params, 1);
    int level = p1 ? p1->getAsInt() : Z_DEFAULT_COMPRESSION;
@@ -774,7 +774,7 @@ static AbstractQoreNode *f_gzip(const QoreListNode *params, ExceptionSink *xsink
    if (!level || level > 9)
    {
       xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 (value passed: %d)", level);
-      return NULL;
+      return 0;
    }
 
    const void *ptr;
@@ -821,7 +821,7 @@ static AbstractQoreNode *f_gunzip_to_binary(const QoreListNode *params, Exceptio
    // need binary argument
    const BinaryNode *p0 = test_binary_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    return qore_gunzip_to_binary(p0, xsink);
 }
@@ -831,7 +831,7 @@ static AbstractQoreNode *f_getByte(const QoreListNode *params, ExceptionSink *xs
    // need binary argument
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    unsigned char *ptr;
    int size;
    if (p0->getType() == NT_BINARY)
@@ -847,12 +847,12 @@ static AbstractQoreNode *f_getByte(const QoreListNode *params, ExceptionSink *xs
       size = str->strlen();
    }
    else
-      return NULL;
+      return 0;
 
    const AbstractQoreNode *p1 = get_param(params, 1);
    int offset = p1 ? p1->getAsInt() : 0;
    if (!ptr || offset >= size || offset < 0)
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(ptr[offset]);  
 }
@@ -862,7 +862,7 @@ static AbstractQoreNode *f_splice(const QoreListNode *params, ExceptionSink *xsi
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    const AbstractQoreNode *p1, *p2;
    p1 = get_param(params, 1);
@@ -912,7 +912,7 @@ static AbstractQoreNode *f_makeHexString(const QoreListNode *params, ExceptionSi
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0 || (p0->getType() != NT_BINARY && p0->getType() != NT_STRING))
-      return NULL;
+      return 0;
 
    QoreStringNode *str = new QoreStringNode();
    if (p0->getType() == NT_STRING)
@@ -926,7 +926,7 @@ static AbstractQoreNode *f_parseHexString(const QoreListNode *params, ExceptionS
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    return p0->parseHex(xsink);
 }
@@ -936,7 +936,7 @@ static AbstractQoreNode *f_hextoint(const QoreListNode *params, ExceptionSink *x
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    if (!p0->strlen())
       return zero();
@@ -952,7 +952,7 @@ static AbstractQoreNode *f_hextoint(const QoreListNode *params, ExceptionSink *x
    {
       int n = get_nibble(*p, xsink);
       if (xsink->isException())
-	 return NULL;
+	 return 0;
       if (!pow)
       {
 	 rc = n;
@@ -972,22 +972,22 @@ static AbstractQoreNode *f_strtoint(const QoreListNode *params, ExceptionSink *x
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    const AbstractQoreNode *p1 = get_param(params, 1);
    int base = p1 ? p1->getAsInt() : 10;
 
-   return new QoreBigIntNode(strtoll(p0->getBuffer(), NULL, base));
+   return new QoreBigIntNode(strtoll(p0->getBuffer(), 0, base));
 }
 
 static AbstractQoreNode *f_load_module(const QoreListNode *params, ExceptionSink *xsink)
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    MM.runTimeLoadModule(p0->getBuffer(), xsink);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, ExceptionSink *xsink)
@@ -1016,10 +1016,10 @@ static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, Exc
    if (!signal || signal > QORE_SIGNAL_MAX)
    {
       xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
-      return NULL;
+      return 0;
    }
    QoreSignalManager::removeHandler(signal, xsink);
-   return NULL;
+   return 0;
 }
 
 // returns a string with percent-encodings substituted for characters

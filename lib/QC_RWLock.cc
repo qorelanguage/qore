@@ -55,7 +55,7 @@ static AbstractQoreNode *RWLOCK_readLock(QoreObject *self, class RWLock *rwl, co
       rc = rwl->readLock(xsink);
 
    if (*xsink)
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -63,7 +63,7 @@ static AbstractQoreNode *RWLOCK_readLock(QoreObject *self, class RWLock *rwl, co
 static AbstractQoreNode *RWLOCK_readUnlock(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
 {
    rwl->readUnlock(xsink);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *RWLOCK_writeLock(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
@@ -80,7 +80,7 @@ static AbstractQoreNode *RWLOCK_writeLock(QoreObject *self, class RWLock *rwl, c
       rc = rwl->grab(xsink);
 
    if (*xsink)
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -88,7 +88,7 @@ static AbstractQoreNode *RWLOCK_writeLock(QoreObject *self, class RWLock *rwl, c
 static AbstractQoreNode *RWLOCK_writeUnlock(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)
 {
    rwl->release(xsink);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *RWLOCK_tryReadLock(QoreObject *self, class RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink)

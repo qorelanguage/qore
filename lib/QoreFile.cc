@@ -196,7 +196,7 @@ QoreStringNode *QoreFile::readLine(ExceptionSink *xsink)
    if (!priv->is_open)
    {
       xsink->raiseException("FILE-READLINE-ERROR", "file has not been opened");
-      return NULL;
+      return 0;
    }
    
    int ch;
@@ -234,11 +234,11 @@ int QoreFile::getPos()
 QoreStringNode *QoreFile::getchar()
 {
    if (!priv->is_open)
-      return NULL;
+      return 0;
    
    int c = readChar();
    if (c < 0)
-      return NULL;
+      return 0;
    QoreStringNode *str = new QoreStringNode(priv->charset);
    str->concat((char)c);
    return str;
@@ -290,14 +290,14 @@ int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink)
 QoreStringNode *QoreFile::read(int size, ExceptionSink *xsink)
 {
    if (!size)
-      return NULL;
+      return 0;
    
    if (check_read_open(xsink))
-      return NULL;
+      return 0;
    
    char *buf = readBlock(size);
    if (!buf)
-      return NULL;
+      return 0;
 
    QoreStringNode *str = new QoreStringNode(buf, size, size, priv->charset);
    str->terminate(buf[size - 1] ? size : size - 1);
@@ -307,14 +307,14 @@ QoreStringNode *QoreFile::read(int size, ExceptionSink *xsink)
 class BinaryNode *QoreFile::readBinary(int size, ExceptionSink *xsink)
 {
    if (!size)
-      return NULL;
+      return 0;
    
    if (check_read_open(xsink))
-      return NULL;
+      return 0;
    
    char *buf = readBlock(size);
    if (!buf)
-      return NULL;
+      return 0;
    
    return new BinaryNode(buf, size);
 }
@@ -538,7 +538,7 @@ char *QoreFile::readBlock(int &size)
    int bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
    int br = 0;
    char *buf = (char *)malloc(sizeof(char) * bs);
-   char *bbuf = NULL;
+   char *bbuf = 0;
 
    while (true)
    {
@@ -564,7 +564,7 @@ char *QoreFile::readBlock(int &size)
    {
       if (bbuf)
 	 free(bbuf);
-      return NULL;
+      return 0;
    }
    size = br;
    return bbuf;

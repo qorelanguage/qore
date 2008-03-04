@@ -29,7 +29,7 @@
 void ConstantList::remove(hm_qn_t::iterator i)
 {
    if (i->second)
-      i->second->deref(NULL);
+      i->second->deref(0);
    
    const char *c = i->first;
    hm.erase(i);
@@ -63,7 +63,7 @@ void ConstantList::add(const char *name, AbstractQoreNode *value)
    if (hm.find(name) != hm.end())
    {
       parse_error("constant \"%s\" has already been defined", name);
-      value->deref(NULL);
+      value->deref(0);
       return;
    }
    
@@ -76,7 +76,7 @@ AbstractQoreNode *ConstantList::find(const char *name)
    if (i != hm.end())
       return i->second;
    
-   return NULL;
+   return 0;
 }
 
 class ConstantList *ConstantList::copy()
@@ -156,7 +156,7 @@ QoreHashNode *ConstantList::getInfo()
    QoreHashNode *h = new QoreHashNode();
 
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++)
-      h->setKeyValue(i->first, i->second->refSelf(), NULL);
+      h->setKeyValue(i->first, i->second->refSelf(), 0);
 
    return h;
 }

@@ -44,7 +44,7 @@ static void QUEUE_copy(QoreObject *self, QoreObject *old, class Queue *tq, Excep
 static AbstractQoreNode *QUEUE_push(QoreObject *self, class Queue *tq, const QoreListNode *params, ExceptionSink *xsink)
 {
    tq->push(get_param(params, 0));
-   return NULL;
+   return 0;
 }
 
 // can't use shift because it's a reserved word

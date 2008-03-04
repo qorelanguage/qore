@@ -36,10 +36,10 @@ DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pa
 {
    //assert(mn > 0);
    //assert(mx > min);   
-   //assert(db != NULL && db[0]);
+   //assert(db != 0 && db[0]);
 
 #ifdef DEBUG
-   pthread_key_create(&thread_local_storage, NULL);
+   pthread_key_create(&thread_local_storage, 0);
 #endif
 
    wait_count = 0;
@@ -122,14 +122,14 @@ void DatasourcePool::resetSQL()
    if (str)
    {
       delete str;
-      pthread_setspecific(thread_local_storage, NULL);
+      pthread_setspecific(thread_local_storage, 0);
    }
 }
 
 class QoreString *DatasourcePool::getAndResetSQL()
 {
    class QoreString *str = (QoreString *)pthread_getspecific(thread_local_storage);
-   pthread_setspecific(thread_local_storage, NULL);
+   pthread_setspecific(thread_local_storage, 0);
    return str;
 }
 #endif
@@ -193,7 +193,7 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink)
 	    if (ds->open(xsink))
 	    {
 	       delete ds;
-	       return NULL;
+	       return 0;
 	    }
 
 	    tmap[tid] = cmax;
@@ -223,11 +223,11 @@ class Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink)
 AbstractQoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
 {
    bool new_ds = false;
-   AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = 0;
    class Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
-      return NULL;
+      return 0;
 
    rv = ds->select(sql, args, xsink);
 
@@ -250,7 +250,7 @@ AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreLis
    class Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
-      return NULL;
+      return 0;
 
    rv = ds->selectRows(sql, args, xsink);
    //printd(5, "DatasourcePool::selectRow() ds=%08p, trans=%d, xsink=%d, new_ds=%d\n", ds, ds->isInTransaction(), xsink->isException(), new_ds);
@@ -282,7 +282,7 @@ AbstractQoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreLi
    class Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
-      return NULL;
+      return 0;
 
    rv = ds->selectRows(sql, args, xsink);
    if (new_ds)
@@ -320,7 +320,7 @@ AbstractQoreNode *DatasourcePool::exec(const QoreString *sql, const QoreListNode
    class Datasource *ds = getDS(new_ds, xsink);
 
    if (!ds)
-      return NULL;
+      return 0;
    
 #ifdef DEBUG
    addSQL("exec", sql);

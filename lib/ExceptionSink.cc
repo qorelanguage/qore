@@ -120,7 +120,7 @@ void ExceptionSink::overrideLocation(int sline, int eline, const char *file)
       w->end_line = eline;
       if (w->file)
 	 free(w->file);
-      w->file = file ? strdup(file) : NULL;
+      w->file = file ? strdup(file) : 0;
       w = w->next;
    }
 }
@@ -128,7 +128,7 @@ void ExceptionSink::overrideLocation(int sline, int eline, const char *file)
 class QoreException *ExceptionSink::catchException()
 {
    class QoreException *e = priv->head;
-   priv->head = priv->tail = NULL;
+   priv->head = priv->tail = 0;
    return e;
 }
 
@@ -159,14 +159,14 @@ void ExceptionSink::clearIntern()
    if (priv->head)
    {
       priv->head->del(&xs);
-      priv->head = priv->tail = NULL;
+      priv->head = priv->tail = 0;
    }
 }
 
 void ExceptionSink::clear()
 {
    clearIntern();
-   priv->head = priv->tail = NULL;
+   priv->head = priv->tail = 0;
    priv->thread_exit = false;
 }
 
@@ -196,15 +196,15 @@ AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt
    }
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
    insert(new QoreException(err, desc));
-   return NULL;
+   return 0;
 }
 
-// returns NULL, takes ownership of the "desc" argument
+// returns 0, takes ownership of the "desc" argument
 AbstractQoreNode *ExceptionSink::raiseException(const char *err, QoreStringNode *desc)
 {
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
    insert(new QoreException(err, desc));
-   return NULL;
+   return 0;
 }
 
 AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...)
@@ -225,7 +225,7 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQore
    QoreException* exc = new QoreException(err, desc);
    exc->arg = arg;
    insert(exc);
-   return NULL;
+   return 0;
 }
 
 void ExceptionSink::raiseException(QoreException *e)
@@ -258,7 +258,7 @@ void ExceptionSink::assimilate(ExceptionSink *xs)
 	 priv->head = xs->priv->head;
       priv->tail = xs->priv->tail;
    }
-   xs->priv->head = xs->priv->tail = NULL;
+   xs->priv->head = xs->priv->tail = 0;
 }
 
 void ExceptionSink::outOfMemory()
@@ -272,7 +272,7 @@ void ExceptionSink::outOfMemory()
    // set line and file in exception
    get_pgm_counter(ex->start_line, ex->end_line);
    const char *f = get_pgm_file();
-   ex->file = f ? strdup(f) : NULL;
+   ex->file = f ? strdup(f) : 0;
    // there is no callstack in an out-of-memory exception
    // add exception to list
    insert(ex);

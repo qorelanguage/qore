@@ -29,12 +29,12 @@ IfStatement::IfStatement(int start_line, int end_line, AbstractQoreNode *c, clas
    cond = c;
    if_code = i;
    else_code = e;
-   lvars = NULL;
+   lvars = 0;
 }
 
 IfStatement::~IfStatement()
 {
-   cond->deref(NULL);
+   cond->deref(0);
    if (if_code)
       delete if_code;
    if (else_code)

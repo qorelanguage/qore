@@ -30,9 +30,9 @@ ReturnStatement::ReturnStatement(int start_line, int end_line, AbstractQoreNode 
 
 ReturnStatement::~ReturnStatement()
 {
-   // this should never be NULL, but in case the implementation changes...
+   // this should never be 0, but in case the implementation changes...
    if (exp)
-      exp->deref(NULL);
+      exp->deref(0);
 }
 
 int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)

@@ -299,7 +299,7 @@ class QoreClass{
 	  @param cid the class ID of the QoreClass to find
 	  @return a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy
        */
-      DLLEXPORT class QoreClass *getClass(qore_classid_t cid) const;
+      DLLEXPORT QoreClass *getClass(qore_classid_t cid) const;
       
       //! returns the number of methods in this class
       DLLEXPORT int numMethods() const;
@@ -337,7 +337,7 @@ class QoreClass{
 	  @param qc the base class to add
 	  @param xargs the argument expression for the base class constructor call
       */
-      DLLEXPORT void addBuiltinBaseClass(class QoreClass *qc, class QoreListNode *xargs = NULL);
+      DLLEXPORT void addBuiltinBaseClass(QoreClass *qc, class QoreListNode *xargs = 0);
 
       //! make a builtin class a child of another builtin class and ensures that the given class' private data will be used in all class methods
       /** In the case this function is used, this objects of class cannot have
@@ -346,7 +346,7 @@ class QoreClass{
 	  @param qc the base class to add
 	  @param xargs the argument expression for the base class constructor call
       */
-      DLLEXPORT void addDefaultBuiltinBaseClass(class QoreClass *qc, class QoreListNode *xargs = NULL);
+      DLLEXPORT void addDefaultBuiltinBaseClass(QoreClass *qc, class QoreListNode *xargs = 0);
 
       //! sets "virtual" base class for a class, meaning that the base class data is appropriate for use in the subclass builtin methods
       /** this method adds a base class placeholder for a subclass - where the subclass' private data 
@@ -355,7 +355,7 @@ class QoreClass{
 	  class methods will be passed a pointer to the subclass' data
 	  @param qc the base class to add
       */
-      DLLEXPORT void addBuiltinVirtualBaseClass(class QoreClass *qc);
+      DLLEXPORT void addBuiltinVirtualBaseClass(QoreClass *qc);
 
       DLLLOCAL QoreClass();
       DLLLOCAL void addMethod(class QoreMethod *f);
@@ -369,7 +369,7 @@ class QoreClass{
       DLLLOCAL const QoreMethod *resolveSelfMethod(class NamedScope *nme);
       DLLLOCAL void addDomain(qore_domain_t dom);
       DLLLOCAL QoreClass *copyAndDeref();
-      DLLLOCAL void addBaseClassesToSubclass(class QoreClass *sc, bool is_virtual);
+      DLLLOCAL void addBaseClassesToSubclass(QoreClass *sc, bool is_virtual);
       // used when parsing
       DLLLOCAL const QoreMethod *findParseMethod(const char *nme);
       // returns 0 for success, -1 for error

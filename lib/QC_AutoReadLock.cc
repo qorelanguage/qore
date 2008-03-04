@@ -28,7 +28,7 @@ qore_classid_t CID_AUTOREADLOCK;
 static void ARL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p = test_object_param(params, 0);
-   RWLock *rwl = p ? (RWLock *)p->getReferencedPrivateData(CID_RWLOCK, xsink) : NULL;
+   RWLock *rwl = p ? (RWLock *)p->getReferencedPrivateData(CID_RWLOCK, xsink) : 0;
    if (*xsink)
       return;
 

@@ -30,17 +30,17 @@ ForStatement::ForStatement(int start_line, int end_line, AbstractQoreNode *a, Ab
    cond = c;
    iterator = i;
    code = cd;
-   lvars = NULL;
+   lvars = 0;
 }
 
 ForStatement::~ForStatement()
 {
    if (assignment)
-      assignment->deref(NULL);
+      assignment->deref(0);
    if (cond)
-      cond->deref(NULL);
+      cond->deref(0);
    if (iterator)
-      iterator->deref(NULL);
+      iterator->deref(0);
    if (code)
       delete code;
    if (lvars)

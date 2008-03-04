@@ -51,7 +51,7 @@ static AbstractQoreNode *FC_connect(QoreObject *self, class QoreFtpClientClass *
    int rc = f->connect(xsink);
 
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -61,7 +61,7 @@ static AbstractQoreNode *FC_disconnect(QoreObject *self, class QoreFtpClientClas
    int rc = f->disconnect();
 
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -73,7 +73,7 @@ static AbstractQoreNode *FC_list(QoreObject *self, class QoreFtpClientClass *f, 
    if (p0)
       path = p0->getBuffer();
    else
-      path = NULL;
+      path = 0;
 
    return f->list(path, true, xsink);
 }
@@ -85,7 +85,7 @@ static AbstractQoreNode *FC_nlst(QoreObject *self, class QoreFtpClientClass *f, 
    if (p0)
       path = p0->getBuffer();
    else
-      path = NULL;
+      path = 0;
 
    return f->list(path, false, xsink);
 }
@@ -101,7 +101,7 @@ static AbstractQoreNode *FC_cwd(QoreObject *self, class QoreFtpClientClass *f, c
    if (!p0 || !p0->strlen())
    {
       xsink->raiseException("FTPCLIENT-CWD-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::cwd()");
-      return NULL;
+      return 0;
    }
 
    int rc = f->cwd(p0->getBuffer(), xsink);
@@ -117,18 +117,18 @@ static AbstractQoreNode *FC_put(QoreObject *self, class QoreFtpClientClass *f, c
    if (!p0 || !p0->strlen())
    {
       xsink->raiseException("FTPCLIENT-PUT-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::put()");
-      return NULL;
+      return 0;
    }
    const char *rn;
    const QoreStringNode *p1 = test_string_param(params, 1);
    if (p1)
       rn = p1->getBuffer();
    else
-      rn = NULL;
+      rn = 0;
 
    int rc = f->put(p0->getBuffer(), rn, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -139,18 +139,18 @@ static AbstractQoreNode *FC_get(QoreObject *self, class QoreFtpClientClass *f, c
    if (!p0 || !p0->strlen())
    {
       xsink->raiseException("FTPCLIENT-GET-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::get()");
-      return NULL;
+      return 0;
    }
    const char *ln;
    const QoreStringNode *p1 = test_string_param(params, 1);
    if (p1)
       ln = p1->getBuffer();
    else
-      ln = NULL;
+      ln = 0;
 
    int rc = f->get(p0->getBuffer(), ln, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -161,12 +161,12 @@ static AbstractQoreNode *FC_del(QoreObject *self, class QoreFtpClientClass *f, c
    if (!p0 || !p0->strlen())
    {
       xsink->raiseException("FTPCLIENT-DEL-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::del()");
-      return NULL;
+      return 0;
    }
 
    int rc = f->del(p0->getBuffer(), xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -177,11 +177,11 @@ static AbstractQoreNode *FC_setUserName(QoreObject *self, class QoreFtpClientCla
    if (!p0)
    {
       xsink->raiseException("FTPCLIENT-SETUSERNAME-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::setUserName()");
-      return NULL;
+      return 0;
    }
 
    f->setUserName(p0->getBuffer());
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_setPassword(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -190,11 +190,11 @@ static AbstractQoreNode *FC_setPassword(QoreObject *self, class QoreFtpClientCla
    if (!p0)
    {
       xsink->raiseException("FTPCLIENT-SETPASSWORD-PARAMETER-ERROR", "expecting path(string) as first parameter of FtpClient::setPassword()");
-      return NULL;
+      return 0;
    }
 
    f->setPassword(p0->getBuffer());
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_setHostName(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -203,11 +203,11 @@ static AbstractQoreNode *FC_setHostName(QoreObject *self, class QoreFtpClientCla
    if (!p0)
    {
       xsink->raiseException("FTPCLIENT-SETHOSTNAME-PARAMETER-ERROR", "expecting name(string) as first parameter of FtpClient::setHostName()");
-      return NULL;
+      return 0;
    }
 
    f->setHostName(p0->getBuffer());
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_setPort(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -221,11 +221,11 @@ static AbstractQoreNode *FC_setPort(QoreObject *self, class QoreFtpClientClass *
    if (!port)
    {
       xsink->raiseException("FTPCLIENT-SETPORT-PARAMETER-ERROR", "expecting non-zero port(int) as first parameter of FtpClient::setPort()");
-      return NULL;
+      return 0;
    }
 
    f->setPort(port);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_setURL(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -234,11 +234,11 @@ static AbstractQoreNode *FC_setURL(QoreObject *self, class QoreFtpClientClass *f
    if (!p0)
    {
       xsink->raiseException("FTPCLIENT-SETURL-PARAMETER-ERROR", "expecting url(string) as first parameter of FtpClient::setURL()");
-      return NULL;
+      return 0;
    }
 
    f->setURL(p0, xsink);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_getUserName(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -247,7 +247,7 @@ static AbstractQoreNode *FC_getUserName(QoreObject *self, class QoreFtpClientCla
    if (u)
       return new QoreStringNode(u); 
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_getPassword(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -256,7 +256,7 @@ static AbstractQoreNode *FC_getPassword(QoreObject *self, class QoreFtpClientCla
    if (p)
       return new QoreStringNode(p); 
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_getHostName(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -265,7 +265,7 @@ static AbstractQoreNode *FC_getHostName(QoreObject *self, class QoreFtpClientCla
    if (h)
       return new QoreStringNode(h); 
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_getPort(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -283,7 +283,7 @@ static AbstractQoreNode *FC_setSecure(QoreObject *self, class QoreFtpClientClass
    if (f->setSecure())
       xsink->raiseException("SET-SECURE-ERROR", "this method cannot be called while the control connection is established");
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_setInsecure(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -291,7 +291,7 @@ static AbstractQoreNode *FC_setInsecure(QoreObject *self, class QoreFtpClientCla
    if (f->setInsecure())
       xsink->raiseException("SET-INSECURE-ERROR", "this method cannot be called while the control connection is established");
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_setInsecureData(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -299,7 +299,7 @@ static AbstractQoreNode *FC_setInsecureData(QoreObject *self, class QoreFtpClien
    if (f->setInsecureData())
       xsink->raiseException("SET-INSECUREDATA-ERROR", "this method cannot be called while the control connection is established");
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_isSecure(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -318,7 +318,7 @@ static AbstractQoreNode *FC_getSSLCipherName(QoreObject *self, class QoreFtpClie
    if (str)
       return new QoreStringNode(str);
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_getSSLCipherVersion(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -327,37 +327,37 @@ static AbstractQoreNode *FC_getSSLCipherVersion(QoreObject *self, class QoreFtpC
    if (str)
       return new QoreStringNode(str);
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_verifyPeerCertificate(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *c = getSSLCVCode(f->verifyPeerCertificate());
-   return c ? new QoreStringNode(c) : NULL;
+   return c ? new QoreStringNode(c) : 0;
 }
 
 static AbstractQoreNode *FC_setModeAuto(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
 {
    f->setModeAuto();
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_setModeEPSV(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
 {
    f->setModeEPSV();
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_setModePASV(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
 {
    f->setModePASV();
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FC_setModePORT(QoreObject *self, class QoreFtpClientClass *f, const QoreListNode *params, ExceptionSink *xsink)
 {
    f->setModePORT();
-   return NULL;
+   return 0;
 }
 
 class QoreClass *initFtpClientClass()

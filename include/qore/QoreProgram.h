@@ -202,7 +202,7 @@ class QoreProgram : public AbstractPrivateData
 	  @param warn_sink if a warning is raised, the warning information will be added here
 	  @param warn_mask the warning mask to set (-1 sets all possible warnings)
        */
-      DLLEXPORT void parse(FILE *fp, const char *name, class ExceptionSink *xsink, class ExceptionSink *warn_sink = NULL, int warn_mask = -1);
+      DLLEXPORT void parse(FILE *fp, const char *name, class ExceptionSink *xsink, class ExceptionSink *warn_sink = 0, int warn_mask = -1);
 
       //! parses code from the given string and commits changes to the QoreProgram
       /**
@@ -213,7 +213,7 @@ class QoreProgram : public AbstractPrivateData
 	  @param warn_sink if a warning is raised, the warning information will be added here
 	  @param warn_mask the warning mask to set (-1 sets all possible warnings)
        */
-      DLLEXPORT void parse(const class QoreString *str, const class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *warn_sink = NULL, int warn_mask = -1);
+      DLLEXPORT void parse(const class QoreString *str, const class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *warn_sink = 0, int warn_mask = -1);
 
       //! parses code from the given string and commits changes to the QoreProgram
       /**
@@ -224,7 +224,7 @@ class QoreProgram : public AbstractPrivateData
 	  @param warn_sink if a warning is raised, the warning information will be added here
 	  @param warn_mask the warning mask to set (-1 sets all possible warnings)
        */
-      DLLEXPORT void parse(const char *str, const char *lstr, class ExceptionSink *xsink, class ExceptionSink *warn_sink = NULL, int warn_mask = -1);
+      DLLEXPORT void parse(const char *str, const char *lstr, class ExceptionSink *xsink, class ExceptionSink *warn_sink = 0, int warn_mask = -1);
 
       //! parses code from the file given and commits changes to the QoreProgram
       /** 
@@ -234,7 +234,7 @@ class QoreProgram : public AbstractPrivateData
 	  @param warn_sink if a warning is raised, the warning information will be added here
 	  @param warn_mask the warning mask to set (-1 sets all possible warnings)
        */
-      DLLEXPORT void parseFile(const char *filename, class ExceptionSink *xsink, class ExceptionSink *warn_sink = NULL, int warn_mask = -1);
+      DLLEXPORT void parseFile(const char *filename, class ExceptionSink *xsink, class ExceptionSink *warn_sink = 0, int warn_mask = -1);
 
       //! parses code from the given string but does not commit changes to the QoreProgram
       /**
@@ -246,7 +246,7 @@ class QoreProgram : public AbstractPrivateData
 	  @see QoreProgram::parseCommit()
 	  @see QoreProgram::parseRollback()
        */
-      DLLEXPORT void parsePending(const char *code, const char *label, class ExceptionSink *xsink, class ExceptionSink *warn_sink = NULL, int warn_mask = -1);
+      DLLEXPORT void parsePending(const char *code, const char *label, class ExceptionSink *xsink, class ExceptionSink *warn_sink = 0, int warn_mask = -1);
 
       //! parses code from the given string but does not commit changes to the QoreProgram
       /**
@@ -258,14 +258,14 @@ class QoreProgram : public AbstractPrivateData
 	  @see QoreProgram::parseCommit()
 	  @see QoreProgram::parseRollback()
        */
-      DLLEXPORT void parsePending(const class QoreString *str, const class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *warn_sink = NULL, int warn_mask = -1);
+      DLLEXPORT void parsePending(const class QoreString *str, const class QoreString *lstr, class ExceptionSink *xsink, class ExceptionSink *warn_sink = 0, int warn_mask = -1);
 
       //! commits pending changes to the program
       /**
 	  @see QoreProgram::parsePending()
 	  @see QoreProgram::parseRollback()
        */
-      DLLEXPORT void parseCommit(class ExceptionSink *xsink, class ExceptionSink *warn_sink = NULL, int warn_mask = -1);
+      DLLEXPORT void parseCommit(class ExceptionSink *xsink, class ExceptionSink *warn_sink = 0, int warn_mask = -1);
 
       //! rolls back changes to the program object that were added with QoreProgram::parsePending()
       /**
@@ -293,7 +293,7 @@ class QoreProgram : public AbstractPrivateData
 	  @param ecn the name of the class to be executed as the program class
 	  @see QoreProgram::parseSetParseOptions()
       */
-      DLLEXPORT void setExecClass(const char *ecn = NULL);
+      DLLEXPORT void setExecClass(const char *ecn = 0);
 
       //! adds the parse options given to the parse option mask
       DLLEXPORT void parseSetParseOptions(qore_restrictions_t po);
@@ -372,7 +372,7 @@ class QoreProgram : public AbstractPrivateData
       //! returns a pointed to the given user function if it exists (otherwise returns 0)
       DLLLOCAL class UserFunction *findUserFunction(const char *name);
       
-      DLLLOCAL QoreProgram(QoreProgram *pgm, qore_restrictions_t po, bool ec = false, const char *ecn = NULL);
+      DLLLOCAL QoreProgram(QoreProgram *pgm, qore_restrictions_t po, bool ec = false, const char *ecn = 0);
 
       //! calls a function from a UserFunction pointer and returns the return value
       /** if the function does not exist, an exception is added to "xsink"

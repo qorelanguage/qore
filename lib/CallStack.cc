@@ -61,22 +61,22 @@ QoreHashNode *CallNode::getInfo() const
    }
    str->concat(func);
 
-   h->setKeyValue("function", str, NULL);
-   h->setKeyValue("line",     new QoreBigIntNode(start_line), NULL);
-   h->setKeyValue("endline",  new QoreBigIntNode(end_line), NULL);
-   h->setKeyValue("file",     new QoreStringNode(file_name), NULL);
-   h->setKeyValue("typecode", new QoreBigIntNode(type), NULL);
+   h->setKeyValue("function", str, 0);
+   h->setKeyValue("line",     new QoreBigIntNode(start_line), 0);
+   h->setKeyValue("endline",  new QoreBigIntNode(end_line), 0);
+   h->setKeyValue("file",     new QoreStringNode(file_name), 0);
+   h->setKeyValue("typecode", new QoreBigIntNode(type), 0);
    // CT_RETHROW is only aded manually
    switch (type)
    {
       case CT_USER:
-	 h->setKeyValue("type",  new QoreStringNode("user"), NULL);
+	 h->setKeyValue("type",  new QoreStringNode("user"), 0);
 	 break;
       case CT_BUILTIN:
-	 h->setKeyValue("type",  new QoreStringNode("builtin"), NULL);
+	 h->setKeyValue("type",  new QoreStringNode("builtin"), 0);
 	 break;
       case CT_NEWTHREAD:
-	 h->setKeyValue("type",  new QoreStringNode("new-thread"), NULL);
+	 h->setKeyValue("type",  new QoreStringNode("new-thread"), 0);
 	 break;
    }
    return h;
@@ -84,7 +84,7 @@ QoreHashNode *CallNode::getInfo() const
 
 CallStack::CallStack()
 {
-   tail = NULL;
+   tail = 0;
 }
 
 CallStack::~CallStack()
@@ -100,7 +100,7 @@ CallStack::~CallStack()
 void CallStack::push(CallNode *c)
 {
    tracein("CallStack::push()");
-   c->next = NULL;
+   c->next = 0;
    c->prev = tail;
    if (tail)
       tail->next = c;
@@ -114,7 +114,7 @@ void CallStack::pop(ExceptionSink *xsink)
    CallNode *c = tail;
    tail = tail->prev;
    if (tail)
-      tail->next = NULL;
+      tail->next = 0;
    c->objectDeref(xsink);
    traceout("CallStack::pop()");
 }
@@ -143,7 +143,7 @@ void CallStack::substituteObjectIfEqual(QoreObject *o)
 QoreObject *CallStack::getStackObject() const
 {
    if (!tail)
-      return NULL;
+      return 0;
    return tail->obj;
 }
 

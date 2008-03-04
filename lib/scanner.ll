@@ -221,7 +221,7 @@ static inline char *trim(char *str)
    if (!n[0])
    {
       free(n);
-      n = NULL;
+      n = 0;
    }
    return n;
 }
@@ -624,17 +624,17 @@ PT{D2}:{D2}:{D2}(\.{MS})?               yylval->datetime = makeRelativeTime(yyte
 P{D2}:{D2}:{D2}(\.{MS})?                yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
-{DIGIT}+"."{DIGIT}+			yylval->decimal = strtod(yytext, NULL); return QFLOAT;
-0[0-7]+				        yylval->integer = strtoll(yytext+1, NULL, 8); return INTEGER;
-{DIGIT}+				yylval->integer = strtoll(yytext, NULL, 10); return INTEGER;
-{DIGIT}+Y                               yylval->datetime = makeYears(strtol(yytext, NULL, 10));   return DATETIME;
-{DIGIT}+M                               yylval->datetime = makeMonths(strtol(yytext, NULL, 10));  return DATETIME;
-{DIGIT}+D                               yylval->datetime = makeDays(strtol(yytext, NULL, 10));    return DATETIME;
-{DIGIT}+h                               yylval->datetime = makeHours(strtol(yytext, NULL, 10));   return DATETIME;
-{DIGIT}+ms                              yylval->datetime = makeMilliseconds(strtol(yytext, NULL, 10)); return DATETIME;
-{DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, NULL, 10)); return DATETIME;
-{DIGIT}+s                               yylval->datetime = makeSeconds(strtol(yytext, NULL, 10)); return DATETIME;
-{HEX_CONST}				yylval->integer = strtoll(yytext, NULL, 16); return INTEGER;
+{DIGIT}+"."{DIGIT}+			yylval->decimal = strtod(yytext, 0); return QFLOAT;
+0[0-7]+				        yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER;
+{DIGIT}+				yylval->integer = strtoll(yytext, 0, 10); return INTEGER;
+{DIGIT}+Y                               yylval->datetime = makeYears(strtol(yytext, 0, 10));   return DATETIME;
+{DIGIT}+M                               yylval->datetime = makeMonths(strtol(yytext, 0, 10));  return DATETIME;
+{DIGIT}+D                               yylval->datetime = makeDays(strtol(yytext, 0, 10));    return DATETIME;
+{DIGIT}+h                               yylval->datetime = makeHours(strtol(yytext, 0, 10));   return DATETIME;
+{DIGIT}+ms                              yylval->datetime = makeMilliseconds(strtol(yytext, 0, 10)); return DATETIME;
+{DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, 0, 10)); return DATETIME;
+{DIGIT}+s                               yylval->datetime = makeSeconds(strtol(yytext, 0, 10)); return DATETIME;
+{HEX_CONST}				yylval->integer = strtoll(yytext, 0, 16); return INTEGER;
 {BINARY}                                yylval->binary = parseHex(yytext + 1, strlen(yytext + 1) - 1); return BINARY;
 \$\.{WORD}                              yylval->string = strdup(yytext + 2); return SELF_REF;
 \${WORD}				yylval->string = strdup(yytext + 1); return VAR_REF;

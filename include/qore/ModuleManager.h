@@ -58,7 +58,7 @@ class ModuleManager
       DLLLOCAL static void add(ModuleInfo *m);
       DLLLOCAL static void addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
       DLLLOCAL static ModuleInfo *add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
-      DLLLOCAL static class QoreStringNode *loadModuleFromPath(const char *path, const char *feature = NULL, ModuleInfo **mi = NULL);
+      DLLLOCAL static class QoreStringNode *loadModuleFromPath(const char *path, const char *feature = 0, ModuleInfo **mi = 0);
       DLLLOCAL static ModuleInfo *find(const char *name);
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -95,12 +95,12 @@ class ModuleManager
       //! retuns a list of module information hashes, caller owns the list reference returned
       DLLEXPORT static class QoreListNode *getModuleList();
 
-      //! loads the named module at parse time, returns a non-NULL QoreStringNode if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
+      //! loads the named module at parse time, returns a non-0 QoreStringNode if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
       /** if the feature is already loaded, then the function returns immediately without raising an error
 	  @param name can be either a feature name or the full path to the module file
 	  @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
        */
-      DLLEXPORT static class QoreStringNode *parseLoadModule(const char *name, class QoreProgram *pgm = NULL);
+      DLLEXPORT static class QoreStringNode *parseLoadModule(const char *name, class QoreProgram *pgm = 0);
 
       //! loads the named module at run time, returns -1 if an exception was raised, 0 for OK
       /** if the feature is already loaded, then the function returns immediately without raising an error

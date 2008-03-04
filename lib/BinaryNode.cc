@@ -86,7 +86,7 @@ void BinaryNode::append(const BinaryNode *b)
 void *BinaryNode::giveBuffer()
 {
    void *p = ptr;
-   ptr = NULL;
+   ptr = 0;
    len = 0;
    return p;
 }

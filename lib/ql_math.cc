@@ -32,7 +32,7 @@ static AbstractQoreNode *f_round(const QoreListNode *params, ExceptionSink *xsin
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(round(p0->getAsFloat()));
 }
@@ -42,7 +42,7 @@ static AbstractQoreNode *f_ceil(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(ceil(p0->getAsFloat()));
 }
@@ -52,7 +52,7 @@ static AbstractQoreNode *f_floor(const QoreListNode *params, ExceptionSink *xsin
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(floor(p0->getAsFloat()));
 }
@@ -62,22 +62,22 @@ static AbstractQoreNode *f_pow(const QoreListNode *params, ExceptionSink *xsink)
    const AbstractQoreNode *p0, *p1;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    if (!(p1 = get_param(params, 1)))
-      return NULL;
+      return 0;
 
    double y = p1->getAsFloat();
    if (y < 0)  
    {
       xsink->raiseException("DIVISION-BY-ZERO", "pow(x, y) y must be a non-negative value");
-      return NULL;
+      return 0;
    }
    double x = p0->getAsFloat();
    if (x < 0 && y != ceil(y))
    {
       xsink->raiseException("INVALID-POW-ARGUMENTS", "pow(x, y) x cannot be negative when y is not an integer value");
-      return NULL;
+      return 0;
    }
 
    return new QoreFloatNode(pow(x, y));
@@ -88,7 +88,7 @@ static AbstractQoreNode *f_abs(const QoreListNode *params, ExceptionSink *xsink)
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    {
       const QoreBigIntNode *b = dynamic_cast<const QoreBigIntNode *>(p0);
@@ -104,10 +104,10 @@ static AbstractQoreNode *f_hypot(const QoreListNode *params, ExceptionSink *xsin
    const AbstractQoreNode *p0, *p1;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    if (!(p1 = get_param(params, 1)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(hypot(p0->getAsFloat(), p1->getAsFloat()));
 }
@@ -117,7 +117,7 @@ static AbstractQoreNode *f_sqrt(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(sqrt(p0->getAsFloat()));
 }
@@ -127,7 +127,7 @@ static AbstractQoreNode *f_cbrt(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(cbrt(p0->getAsFloat()));
 }
@@ -137,7 +137,7 @@ static AbstractQoreNode *f_sin(const QoreListNode *params, ExceptionSink *xsink)
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(sin(p0->getAsFloat()));
 }
@@ -147,7 +147,7 @@ static AbstractQoreNode *f_cos(const QoreListNode *params, ExceptionSink *xsink)
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(cos(p0->getAsFloat()));
 }
@@ -157,7 +157,7 @@ static AbstractQoreNode *f_tan(const QoreListNode *params, ExceptionSink *xsink)
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(tan(p0->getAsFloat()));
 }
@@ -167,7 +167,7 @@ static AbstractQoreNode *f_asin(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(asin(p0->getAsFloat()));
 }
@@ -177,7 +177,7 @@ static AbstractQoreNode *f_acos(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(acos(p0->getAsFloat()));
 }
@@ -187,7 +187,7 @@ static AbstractQoreNode *f_atan(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(atan(p0->getAsFloat()));
 }
@@ -197,7 +197,7 @@ static AbstractQoreNode *f_sinh(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(sinh(p0->getAsFloat()));
 }
@@ -207,7 +207,7 @@ static AbstractQoreNode *f_cosh(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(cosh(p0->getAsFloat()));
 }
@@ -217,7 +217,7 @@ static AbstractQoreNode *f_tanh(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(tanh(p0->getAsFloat()));
 }
@@ -227,7 +227,7 @@ static AbstractQoreNode *f_nlog(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(log(p0->getAsFloat()));
 }
@@ -237,7 +237,7 @@ static AbstractQoreNode *f_log10(const QoreListNode *params, ExceptionSink *xsin
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(log10(p0->getAsFloat()));
 }
@@ -248,7 +248,7 @@ static AbstractQoreNode *f_log2(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(log2(p0->getAsFloat()));
 }
@@ -259,7 +259,7 @@ static AbstractQoreNode *f_log1p(const QoreListNode *params, ExceptionSink *xsin
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(log1p(p0->getAsFloat()));
 }
@@ -269,7 +269,7 @@ static AbstractQoreNode *f_logb(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(logb(p0->getAsFloat()));
 }
@@ -280,7 +280,7 @@ static AbstractQoreNode *f_exp(const QoreListNode *params, ExceptionSink *xsink)
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(exp(p0->getAsFloat()));
 }
@@ -290,7 +290,7 @@ static AbstractQoreNode *f_exp2(const QoreListNode *params, ExceptionSink *xsink
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
 #ifdef HAVE_EXP2
    return new QoreFloatNode(exp2(p0->getAsFloat()));
@@ -304,7 +304,7 @@ static AbstractQoreNode *f_expm1(const QoreListNode *params, ExceptionSink *xsin
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    return new QoreFloatNode(expm1(p0->getAsFloat()));
 }
@@ -319,11 +319,11 @@ static AbstractQoreNode *f_format_number(const QoreListNode *params, ExceptionSi
    char thousands_sep, decimal_sep = '.', chr[40], str[40], dec[20];
 
    if (!(p0 = test_string_param(params, 0)) || !(p1 = get_param(params, 1)))
-      return NULL;
+      return 0;
 
    len = p0->strlen();
    if ((len != 1) && (len != 3))
-      return NULL;
+      return 0;
 
    thousands_sep = p0->getBuffer()[0];
    if (len == 3)

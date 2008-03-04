@@ -27,8 +27,8 @@
 
 void mySocket::init()
 {
-   cert = NULL;
-   pk = NULL;
+   cert = 0;
+   pk = 0;
 }
 
 mySocket::mySocket(class QoreSocket *s)
@@ -106,7 +106,7 @@ class mySocket *mySocket::accept(class SocketSource *source, ExceptionSink *xsin
    sl.unlock();
    if (s)
       return new mySocket(s);
-   return NULL;
+   return 0;
 }
 
 int mySocket::listen()
@@ -420,8 +420,8 @@ int mySocket::connectINETSSL(const char *host, int port, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectINETSSL(host, port, 
-				 cert ? cert->getData() : NULL,
-				 pk ? pk->getData() : NULL,
+				 cert ? cert->getData() : 0,
+				 pk ? pk->getData() : 0,
 				 xsink);
 }
 
@@ -429,8 +429,8 @@ int mySocket::connectUNIXSSL(const char *p, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectUNIXSSL(p, 
-				 cert ? cert->getData() : NULL,
-				 pk ? pk->getData() : NULL,
+				 cert ? cert->getData() : 0,
+				 pk ? pk->getData() : 0,
 				 xsink);
 }
 
@@ -438,8 +438,8 @@ int mySocket::connectSSL(const char *name, ExceptionSink *xsink)
 {
    SafeLocker sl(this);
    return socket->connectSSL(name, 
-			     cert ? cert->getData() : NULL,
-			     pk ? pk->getData() : NULL,
+			     cert ? cert->getData() : 0,
+			     pk ? pk->getData() : 0,
 			     xsink);
 }
 
@@ -447,12 +447,12 @@ class mySocket *mySocket::acceptSSL(class SocketSource *source, ExceptionSink *x
 {
    SafeLocker sl(this);
    QoreSocket *s = socket->acceptSSL(source,
-				     cert ? cert->getData() : NULL, 
-				     pk ? pk->getData() : NULL, xsink);
+				     cert ? cert->getData() : 0, 
+				     pk ? pk->getData() : 0, xsink);
    sl.unlock();
    if (s)
       return new mySocket(s);
-   return NULL;
+   return 0;
 }
 
 // c must be already referenced before this call

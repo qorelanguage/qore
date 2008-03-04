@@ -227,7 +227,7 @@ AbstractQoreNode *ManagedDatasource::select(const QoreString *query_str, const Q
       endDBAction();
    }
    else
-      rv = NULL;
+      rv = 0;
    
    return rv;
 }
@@ -252,7 +252,7 @@ AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, const Qore
       }
    }
    else
-      rv = NULL;
+      rv = 0;
    
    return rv;
 }
@@ -268,14 +268,14 @@ AbstractQoreNode *ManagedDatasource::selectRows(const QoreString *query_str, con
       endDBAction();
    }
    else
-      rv = NULL;
+      rv = 0;
    
    return rv;
 }
 
 AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink)
 {
-   AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = 0;
 
    if (!startDBAction(xsink, true))
    {
@@ -526,7 +526,7 @@ AbstractQoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink)
       endDBAction();
    }
    else
-      rv = NULL;
+      rv = 0;
    
    return rv;
 }
@@ -542,7 +542,7 @@ AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink)
       endDBAction();
    }
    else
-      rv = NULL;
+      rv = 0;
    
    return rv;
 }

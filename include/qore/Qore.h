@@ -120,7 +120,7 @@ DLLEXPORT extern char qore_target_arch[];
 #define QLO_NONE                       0
 #define QLO_DISABLE_SIGNAL_HANDLING    1
 
-DLLEXPORT void qore_init(char *def_charset = NULL, bool show_module_errors = false, int init_options = QLO_NONE);
+DLLEXPORT void qore_init(char *def_charset = 0, bool show_module_errors = false, int init_options = QLO_NONE);
 DLLEXPORT void qore_cleanup();
 
 #endif  // _QORE_QORE_H

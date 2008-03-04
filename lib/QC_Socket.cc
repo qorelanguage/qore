@@ -62,11 +62,11 @@ static AbstractQoreNode *SOCKET_connect(QoreObject *self, class mySocket *s, con
    {
       xsink->raiseException("SOCKET-CONNECT-PARAMETER-ERROR",
 			    "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connect() call");
-      return NULL;
+      return 0;
    }
 
    s->connect(p0->getBuffer(), xsink);
-   return NULL;
+   return 0;
 }
 
 // currently hardcoded to SOCK_STREAM
@@ -83,11 +83,11 @@ static AbstractQoreNode *SOCKET_connectSSL(QoreObject *self, class mySocket *s, 
    {
       xsink->raiseException("SOCKET-CONNECTSSL-PARAMETER-ERROR",
 			    "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connectSSL() call");
-      return NULL;
+      return 0;
    }
 
    s->connectSSL(p0->getBuffer(), xsink);
-   return NULL;
+   return 0;
 }
 
 // currently hardcoded to SOCK_STREAM
@@ -107,7 +107,7 @@ static AbstractQoreNode *SOCKET_bind(QoreObject *self, class mySocket *s, const 
    if (!p0 || (p0_type != NT_STRING && p0_type != NT_INT))
    {
       xsink->raiseException("SOCKET-BIND-PARAMETER-ERROR", "no parameter passed to Socket::bind() call, expecing string for UNIX socket ('path/file') or int for INET socket (port number)");
-      return NULL;
+      return 0;
    }
    bool rua;
    if ((p1 = get_param(params, 1)))
@@ -130,7 +130,7 @@ static AbstractQoreNode *SOCKET_accept(QoreObject *self, class mySocket *s, cons
    class SocketSource source;
    mySocket *n = s->accept(&source, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // ensure that a socket object is returned (and not a subclass)
    QoreObject *ns = new QoreObject(self->getClass(CID_SOCKET), getProgram());
@@ -149,7 +149,7 @@ static AbstractQoreNode *SOCKET_acceptSSL(QoreObject *self, class mySocket *s, c
    class SocketSource source;
    mySocket *n = s->acceptSSL(&source, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // ensure that a socket object is returned (and not a subclass)
    QoreObject *ns = new QoreObject(self->getClass(CID_SOCKET), getProgram());
@@ -166,7 +166,7 @@ static AbstractQoreNode *SOCKET_listen(QoreObject *self, class mySocket *s, cons
    if (rc == -2)
    {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::listen() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(rc);
@@ -178,7 +178,7 @@ static AbstractQoreNode *SOCKET_send(QoreObject *self, class mySocket *s, const 
    if (!p0 || (p0->getType() != NT_STRING && p0->getType() != NT_BINARY))
    {
       xsink->raiseException("SOCKET-SEND-PARAMETER-ERROR", "expecting string or binary data as first parameter of Socket::send() call");
-      return NULL;
+      return 0;
    }
 
    int rc;
@@ -191,7 +191,7 @@ static AbstractQoreNode *SOCKET_send(QoreObject *self, class mySocket *s, const 
    if (rc == -2)
    {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::send() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(rc);
@@ -203,7 +203,7 @@ static AbstractQoreNode *SOCKET_sendBinary(QoreObject *self, class mySocket *s, 
    if (!p0 || (p0->getType() != NT_STRING && p0->getType() != NT_BINARY))
    {
       xsink->raiseException("SOCKET-SEND-BINARY-PARAMETER-ERROR", "expecting string or binary data as first parameter of Socket::sendBinary() call");
-      return NULL;
+      return 0;
    }
 
    int rc = 0;
@@ -219,7 +219,7 @@ static AbstractQoreNode *SOCKET_sendBinary(QoreObject *self, class mySocket *s, 
    if (rc == -2)
    {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendBinary() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(rc);
@@ -239,7 +239,7 @@ static AbstractQoreNode *SOCKET_sendi1(QoreObject *self, class mySocket *s, cons
    if (rc == -2)
    {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi1() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(rc);
@@ -279,7 +279,7 @@ static AbstractQoreNode *SOCKET_sendi4(QoreObject *self, class mySocket *s, cons
    if (rc == -2)
    {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi4() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(rc);
@@ -299,7 +299,7 @@ static AbstractQoreNode *SOCKET_sendi8(QoreObject *self, class mySocket *s, cons
    if (rc == -2)
    {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi8() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(rc);
@@ -319,7 +319,7 @@ static AbstractQoreNode *SOCKET_sendi2LSB(QoreObject *self, class mySocket *s, c
    if (rc == -2)
    {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi2LSB() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(rc);
@@ -339,7 +339,7 @@ static AbstractQoreNode *SOCKET_sendi4LSB(QoreObject *self, class mySocket *s, c
    if (rc == -2)
    {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi4LSB() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(rc);
@@ -359,7 +359,7 @@ static AbstractQoreNode *SOCKET_sendi8LSB(QoreObject *self, class mySocket *s, c
    if (rc == -2)
    {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::sendi8LSB() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(rc);
@@ -515,7 +515,7 @@ static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, class mySocket *s, 
    if (!bs)
    {
       xsink->raiseException("SOCKET-RECVBINARY-PARAMETER-ERROR", "missing positive buffer size parameter");
-      return NULL;
+      return 0;
    }
 
    // get timeout
@@ -528,7 +528,7 @@ static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, class mySocket *s, 
       return b;
 
    QoreSocket::doException(rc, "recvBinary", xsink);
-   return NULL;
+   return 0;
 }
 
 // params: method, path, http_version, hash (http headers), data
@@ -538,28 +538,28 @@ static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, class mySocket
    if (!p0)
    {
       xsink->raiseException("SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR", "expecting method (string) as first parameter of Socket::sendHTTPMessage() call");
-      return NULL;
+      return 0;
    }
 
    const QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
    {
       xsink->raiseException("SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR", "expecting path (string) as second parameter of Socket::sendHTTPMessage() call");
-      return NULL;
+      return 0;
    }
 
    const QoreStringNode *p2 = test_string_param(params, 2);
    if (!p2)
    {
       xsink->raiseException("SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR", "expecting HTTP version (string) as third parameter of Socket::sendHTTPMessage() call");
-      return NULL;
+      return 0;
    }
 
    const QoreHashNode *headers = test_hash_param(params, 3);
    if (!headers)
    {
       xsink->raiseException("SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR", "expecting HTTP headers (hash) as fourth parameter of Socket::sendHTTPMessage() call");
-      return NULL;
+      return 0;
    }
 
    const char *method, *path, *http_version;
@@ -569,7 +569,7 @@ static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, class mySocket
 
    // see if there is data to send as well
    const AbstractQoreNode *p4 = get_param(params, 4);
-   const void *ptr = NULL;
+   const void *ptr = 0;
    int size = 0;
 
    if (p4)
@@ -592,7 +592,7 @@ static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, class mySocket
    else if (rc)
       xsink->raiseException("SOCKET-SEND-ERROR", "send failed with error code %d: %s", rc, strerror(errno));
 
-   return NULL;
+   return 0;
 }
 
 // params: status_code, status_desc, http_version, hash (http headers), data
@@ -608,28 +608,28 @@ static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, class mySocke
    if (status_code < 100 || status_code >= 600) 
    {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR", "expecting valid HTTP status code (integer) as first parameter of Socket::sendHTTPResponse() call");
-      return NULL;
+      return 0;
    }
 
    const QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
    {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR", "expecting status description (string) as second parameter of Socket::sendHTTPResponse() call");
-      return NULL;
+      return 0;
    }
 
    const QoreStringNode *p2 = test_string_param(params, 2);
    if (!p2)
    {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR", "expecting HTTP version (string) as third parameter of Socket::sendHTTPResponse() call");
-      return NULL;
+      return 0;
    }
 
    const QoreHashNode *headers = test_hash_param(params, 3);
    if (!headers)
    {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR", "expecting HTTP headers (hash) as fourth parameter of Socket::sendHTTPResponse() call");
-      return NULL;
+      return 0;
    }
 
    const char *status_desc, *http_version;
@@ -638,7 +638,7 @@ static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, class mySocke
 
    // see if there is data to send as well
    const AbstractQoreNode *p4 = get_param(params, 4);
-   const void *ptr = NULL;
+   const void *ptr = 0;
    int size = 0;
 
    if (p4)
@@ -661,7 +661,7 @@ static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, class mySocke
    else if (rc)
       xsink->raiseException("SOCKET-SEND-ERROR", "send failed with error code %d: %s", rc, strerror(errno));
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *SOCKET_readHTTPHeader(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
@@ -726,7 +726,7 @@ static AbstractQoreNode *SOCKET_setSendTimeout(QoreObject *self, class mySocket 
    if (!(p0 = get_param(params, 0)))
    {
       xsink->raiseException("SOCKET-SET-SEND-TIMEOUT-PARAMETER-ERROR", "expecting milliseconds(int) as parameter of Socket::setSendTimeout() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(s->setSendTimeout(p0->getAsInt()));
@@ -739,7 +739,7 @@ static AbstractQoreNode *SOCKET_setRecvTimeout(QoreObject *self, class mySocket 
    if (!(p0 = get_param(params, 0)))
    {
       xsink->raiseException("SOCKET-SET-SEND-TIMEOUT-PARAMETER-ERROR", "expecting milliseconds(int) as parameter of Socket::setRecvTimeout() call");
-      return NULL;
+      return 0;
    }
 
    return new QoreBigIntNode(s->setRecvTimeout(p0->getAsInt()));
@@ -762,11 +762,11 @@ static AbstractQoreNode *SOCKET_setCharset(QoreObject *self, class mySocket *s, 
    if (!(p0 = test_string_param(params, 0)))
    {
       xsink->raiseException("SOCKET-SET-CHARSET-PARAMETER-ERROR", "expecting charset name (string) as parameter of Socket::setCharset() call");
-      return NULL;
+      return 0;
    }
 
    s->setEncoding(QEM.findCreate(p0));
-   return NULL; 
+   return 0; 
 }
 
 static AbstractQoreNode *SOCKET_getCharset(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
@@ -791,7 +791,7 @@ static AbstractQoreNode *SOCKET_getSSLCipherName(QoreObject *self, class mySocke
    if (str)
       return new QoreStringNode(str);
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *SOCKET_getSSLCipherVersion(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
@@ -800,7 +800,7 @@ static AbstractQoreNode *SOCKET_getSSLCipherVersion(QoreObject *self, class mySo
    if (str)
       return new QoreStringNode(str);
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *SOCKET_isSecure(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
@@ -811,7 +811,7 @@ static AbstractQoreNode *SOCKET_isSecure(QoreObject *self, class mySocket *s, co
 static AbstractQoreNode *SOCKET_verifyPeerCertificate(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
 {
    const char *c = getSSLCVCode(s->verifyPeerCertificate());
-   return c ? new QoreStringNode(c) : NULL;
+   return c ? new QoreStringNode(c) : 0;
 }
 
 static AbstractQoreNode *SOCKET_setCertificate(QoreObject *self, class mySocket *s, const QoreListNode *params, ExceptionSink *xsink)
@@ -828,7 +828,7 @@ static AbstractQoreNode *SOCKET_setCertificate(QoreObject *self, class mySocket 
       if (xsink->isEvent())
       {
 	 cert->deref();
-	 return NULL;
+	 return 0;
       }
    }
    else {
@@ -856,7 +856,7 @@ static AbstractQoreNode *SOCKET_setPrivateKey(QoreObject *self, class mySocket *
    if (p0_type == NT_STRING) {
       // get passphrase if present
       const QoreStringNode *p1 = test_string_param(params, 1);
-      const char *pp = p1 ? p1->getBuffer() : NULL;
+      const char *pp = p1 ? p1->getBuffer() : 0;
       // Try and create object
       pk = new QoreSSLPrivateKey(reinterpret_cast<const QoreStringNode *>(p0)->getBuffer(), (char *)pp, xsink);
       if (xsink->isEvent())

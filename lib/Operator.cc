@@ -571,7 +571,7 @@ static AbstractQoreNode *op_question_mark(const AbstractQoreNode *left, const Ab
    assert(list && list->getType() == NT_LIST);
    bool b = left->boolEval(xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    const QoreListNode *l = reinterpret_cast<const QoreListNode *>(list);
 
@@ -592,14 +592,14 @@ static AbstractQoreNode *op_regex_subst(const AbstractQoreNode *left, const Abst
 
    // if it's not a string, then do nothing
    if (!(*v) || (*v)->getType() != NT_STRING)
-      return NULL;
+      return 0;
 
    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
    assert(right && right->getType() == NT_REGEX_SUBST);
    const RegexSubstNode *rs = reinterpret_cast<const RegexSubstNode *>(right);
    QoreStringNode *nv = rs->exec((*vs), xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // assign new value to lvalue
    (*vs)->deref();
@@ -621,13 +621,13 @@ static AbstractQoreNode *op_regex_trans(const AbstractQoreNode *left, const Abst
 
    // if it's not a string, then do nothing
    if (!(*v) || (*v)->getType() != NT_STRING)
-      return NULL;
+      return 0;
 
    assert(right && right->getType() == NT_REGEX_TRANS);
    QoreStringNode **vs = reinterpret_cast<QoreStringNode **>(v);
    QoreStringNode *nv = reinterpret_cast<const RegexTransNode *>(right)->exec((*vs), xsink);
    if (*xsink)
-      return NULL;
+      return 0;
 
    // assign new value to lvalue
    (*vs)->deref();
@@ -641,7 +641,7 @@ static AbstractQoreNode *op_list_ref(const AbstractQoreNode *left, const Abstrac
 {
    QoreNodeEvalOptionalRefHolder lp(left, xsink);
 
-   // return NULL if left side is not a list or string (or exception)
+   // return 0 if left side is not a list or string (or exception)
    if (!lp || *xsink || (lp->getType() != NT_LIST && lp->getType() != NT_STRING))
       return 0;
 
@@ -780,7 +780,7 @@ static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const Abstr
    if (ref_rv && (*v))
       return (*v)->refSelf();
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink)
@@ -817,7 +817,7 @@ static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, cons
       discard(*v, xsink);
       if (*xsink)
       {
-	 *v = NULL;
+	 *v = 0;
 	 return 0;
       }
 
@@ -1101,7 +1101,7 @@ static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const Abstr
    //tracein("op_and_equals()");
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
-      return NULL;
+      return 0;
 
    // get ptr to current value
    class AutoVLock vl;
@@ -1138,7 +1138,7 @@ static AbstractQoreNode *op_or_equals(const AbstractQoreNode *left, const Abstra
 {
    int64 val = right->bigIntEval(xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // get ptr to current value
    class AutoVLock vl;
@@ -1173,7 +1173,7 @@ static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const Ab
 {
    int64 val = right->bigIntEval(xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // get ptr to current value
    class AutoVLock vl;
@@ -1369,7 +1369,7 @@ static AbstractQoreNode *op_xor_equals(const AbstractQoreNode *left, const Abstr
 {
    int64 val = right->bigIntEval(xsink);
    if (*xsink)
-      return NULL;
+      return 0;
 
    // get ptr to current value
    class AutoVLock vl;
@@ -1406,7 +1406,7 @@ static AbstractQoreNode *op_shift_left_equals(const AbstractQoreNode *left, cons
 {
    int64 val = right->bigIntEval(xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // get ptr to current value
    class AutoVLock vl;
@@ -1444,7 +1444,7 @@ static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, con
 
    int64 val = right->bigIntEval(xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // get ptr to current value
    class AutoVLock vl;
@@ -1476,7 +1476,7 @@ static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, con
    return ref_rv ? (*v)->refSelf() : 0;
 
    //traceout("op_shift_right_equals()");
-   return NULL;
+   return 0;
 }
 
 // this is the default (highest-priority) function for the + operator, so any type could be sent here on either side
@@ -1764,7 +1764,7 @@ static AbstractQoreNode *op_unshift(const AbstractQoreNode *left, const Abstract
    if (ref_rv)
       return (*val)->refSelf();
 
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *op_shift(const AbstractQoreNode *left, const AbstractQoreNode *x, bool ref_rv, ExceptionSink *xsink)
@@ -1894,7 +1894,7 @@ static AbstractQoreNode *op_splice(const AbstractQoreNode *left, const AbstractQ
    if (!(*val) || ((*val)->getType() != NT_LIST && (*val)->getType() != NT_STRING))
    {
       xsink->raiseException("SPLICE-ERROR", "first argument to splice is not a list or a string");
-      return NULL;
+      return 0;
    }
    
    // evaluate list
@@ -3288,7 +3288,7 @@ AbstractQoreNode *BigIntOperatorFunction::eval(const AbstractQoreNode *left, con
    if (args == 1) {
       int64 rv = op_func(left, right, xsink);
       if (!ref_rv || xsink->isException())
-	 return NULL;
+	 return 0;
       return new QoreBigIntNode(rv);
    }
 
@@ -3303,7 +3303,7 @@ AbstractQoreNode *BigIntOperatorFunction::eval(const AbstractQoreNode *left, con
 
    int64 rv = op_func(left, right, xsink);
    if (!ref_rv || xsink->isException())
-      return NULL;
+      return 0;
    return new QoreBigIntNode(rv);
 }
 
@@ -3400,7 +3400,7 @@ AbstractQoreNode *FloatOperatorFunction::eval(const AbstractQoreNode *left, cons
    if (args == 1) {
       double rv = op_func(left, right, xsink);
       if (!ref_rv || xsink->isException())
-	 return NULL;
+	 return 0;
       return new QoreFloatNode(rv);
    }
 
@@ -3414,7 +3414,7 @@ AbstractQoreNode *FloatOperatorFunction::eval(const AbstractQoreNode *left, cons
 
    double rv = op_func(left, right, xsink);
    if (!ref_rv || xsink->isException())
-      return NULL;
+      return 0;
    return new QoreFloatNode(rv);
 }
 
@@ -3505,7 +3505,7 @@ Operator::Operator(int arg, char *n, char *desc, int n_evalArgs, bool n_effect, 
    name = n;
    description = desc;
    evalArgs = n_evalArgs;
-   opMatrix = NULL;
+   opMatrix = 0;
    effect = n_effect;
    lvalue = n_lvalue;
 }
@@ -3657,7 +3657,7 @@ bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNo
 	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
 
-	 return functions[t]->bool_eval(*nleft, NULL, 1, xsink);
+	 return functions[t]->bool_eval(*nleft, 0, 1, xsink);
       }
 
       QoreNodeEvalOptionalRefHolder nright(right_side, xsink);
@@ -3701,7 +3701,7 @@ int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode
 	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
 
-	 return functions[t]->bigint_eval(*nleft, NULL, 1, xsink);
+	 return functions[t]->bigint_eval(*nleft, 0, 1, xsink);
       }
 
       QoreNodeEvalOptionalRefHolder nright(right, xsink);
@@ -3745,7 +3745,7 @@ double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode
 	 if ((t = get_function(nleft, xsink)) == -1)
 	    return 0;
 
-	 return functions[t]->float_eval(*nleft, NULL, 1, xsink);
+	 return functions[t]->float_eval(*nleft, 0, 1, xsink);
       }
 
       QoreNodeEvalOptionalRefHolder nright(right, xsink);

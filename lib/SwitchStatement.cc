@@ -35,13 +35,13 @@ CaseNode::CaseNode(AbstractQoreNode *v, class StatementBlock *c)
 {
    val = v;
    code = c;
-   next = NULL;
+   next = 0;
 }
 
 CaseNode::~CaseNode()
 {
    if (val)
-      val->deref(NULL);
+      val->deref(0);
    if (code)
       delete code;
 }
@@ -74,7 +74,7 @@ SwitchStatement::~SwitchStatement()
       head = w;
    }
    if (sexp)
-      sexp->deref(NULL);
+      sexp->deref(0);
    if (lvars)
       delete lvars;
 }

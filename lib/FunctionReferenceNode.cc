@@ -215,7 +215,7 @@ ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(AbstractQoreNode 
 ParseObjectMethodReferenceNode::~ParseObjectMethodReferenceNode()
 {
    if (exp)
-      exp->deref(NULL);
+      exp->deref(0);
    if (method)
       free(method);
 }

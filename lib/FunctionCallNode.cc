@@ -128,8 +128,8 @@ void FunctionCallNode::parseMakeMethod()
 AbstractQoreNode *FunctionCallNode::parseMakeNewObject()
 {
    ScopedObjectCallNode *rv = new ScopedObjectCallNode(new NamedScope(f.c_str), args);
-   f.c_str = NULL;
-   args = NULL;
+   f.c_str = 0;
+   args = 0;
    return rv;
 }
 
@@ -197,7 +197,7 @@ AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const
    switch (ftype)
    {
       case FC_USER:
-	 return f.ufunc->eval(args, NULL, xsink);
+	 return f.ufunc->eval(args, 0, xsink);
       case FC_BUILTIN:
 	 return f.bfunc->eval(args, xsink);
       case FC_SELF:
@@ -207,7 +207,7 @@ AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const
    }
 
    assert(false);
-   return NULL;
+   return 0;
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0

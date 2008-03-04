@@ -344,7 +344,7 @@ static inline AbstractQoreNode *crlr_hash_copy(const QoreHashNode *n, ExceptionS
 static inline AbstractQoreNode *crlr_tree_copy(const QoreTreeNode *n, ExceptionSink *xsink)
 {
    return new QoreTreeNode(copy_and_resolve_lvar_refs(n->left, xsink), n->op,
-			   n->right ? copy_and_resolve_lvar_refs(n->right, xsink) : NULL);
+			   n->right ? copy_and_resolve_lvar_refs(n->right, xsink) : 0);
 }
 
 static inline AbstractQoreNode *crlr_fcall_copy(const FunctionCallNode *n, ExceptionSink *xsink)

@@ -155,7 +155,7 @@ static void GETOPT_constructor(QoreObject *self, const QoreListNode *params, Exc
       }
       
       qore_type_t at = -1;
-      char *long_opt = NULL, short_opt = '\0';
+      char *long_opt = 0, short_opt = '\0';
       int attributes = QGO_OPT_NONE;
 
       // reset buffer
@@ -242,7 +242,7 @@ static AbstractQoreNode *GETOPT_parse(QoreObject *self, GetOpt *g, const QoreLis
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    QoreListNode *l;
    class AutoVLock vl;

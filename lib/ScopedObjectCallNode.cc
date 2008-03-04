@@ -33,7 +33,7 @@ ScopedObjectCallNode::~ScopedObjectCallNode()
    if (name)
       delete name; 
    if (args)
-      args->deref(NULL);
+      args->deref(0);
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks

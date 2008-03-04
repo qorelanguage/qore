@@ -34,11 +34,11 @@
 static AbstractQoreNode *f_print(const QoreListNode *params, ExceptionSink *xsink)
 {
    if (!params)
-      return NULL;
+      return 0;
 
    for (unsigned i = 0; i < params->size(); i++)
       print_node(stdout, get_param(params, i));
-   return NULL;
+   return 0;
 }
 
 /* f_f_sprintf (f_sprintf) (field sprintf)
@@ -92,7 +92,7 @@ static AbstractQoreNode *f_vprintf(const QoreListNode *params, ExceptionSink *xs
 static AbstractQoreNode *f_flush(const QoreListNode *params, ExceptionSink *xsink)
 {
    fflush(stdout);
-   return NULL;
+   return 0;
 }
 
 void init_io_functions()

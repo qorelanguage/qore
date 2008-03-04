@@ -63,16 +63,16 @@ static AbstractQoreNode *XRC_callArgs(QoreObject *self, QoreHTTPClient *client, 
 {
    client->connect(xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // create the outgoing message in XML-RPC call format
    QoreStringNodeHolder msg(makeXMLRPCCallStringArgs(client->getEncoding(), params, xsink));
    if (!msg)
-      return NULL;
+      return 0;
    // send the message to the server and get the response as an XML string
-   ReferenceHolder<AbstractQoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> ans(client->post(0, 0, msg->getBuffer(), msg->strlen(), xsink), xsink);
    if (!ans)
-      return NULL;
+      return 0;
    
    QoreStringNode *str = dynamic_cast<QoreStringNode *>(*ans);
    if (!str) {
@@ -88,16 +88,16 @@ static AbstractQoreNode *XRC_call(QoreObject *self, QoreHTTPClient *client, cons
 {
    client->connect(xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // create the outgoing message in XML-RPC call format
    QoreStringNodeHolder msg(makeXMLRPCCallString(client->getEncoding(), params, xsink));
    if (!msg)
-      return NULL;
+      return 0;
    // send the message to the server and get the response as an XML string
-   ReferenceHolder<AbstractQoreNode> ans(client->post(NULL, NULL, msg->getBuffer(), msg->strlen(), xsink), xsink);
+   ReferenceHolder<AbstractQoreNode> ans(client->post(0, 0, msg->getBuffer(), msg->strlen(), xsink), xsink);
    if (!ans)
-      return NULL;
+      return 0;
 
    QoreStringNode *str = dynamic_cast<QoreStringNode *>(*ans);
    if (!str) {

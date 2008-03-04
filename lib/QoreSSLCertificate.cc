@@ -54,7 +54,7 @@ QoreSSLCertificate::QoreSSLCertificate(const char *fn, ExceptionSink *xsink) : p
       return;
    }
    
-   PEM_read_X509(fp, &priv->cert, NULL, NULL);
+   PEM_read_X509(fp, &priv->cert, 0, 0);
    fclose(fp);
    if (!priv->cert)
       xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "error parsing certificate file '%s'", fn);
@@ -84,7 +84,7 @@ QoreStringNode *QoreSSLCertificate::getPEM(ExceptionSink *xsink) const
    {
       BIO_free(bp);
       xsink->raiseException("X509-ERROR", "could not create PEM string from X509 certificate data");
-      return NULL;
+      return 0;
    }
    char *buf;
    long len = BIO_get_mem_data(bp, &buf);
@@ -134,7 +134,7 @@ class BinaryNode *QoreSSLCertificate::getSignature() const
    int len = priv->cert->signature->length;
    char *buf = (char *)malloc(len);
    if (!buf)
-      return NULL;
+      return 0;
    memcpy(buf, priv->cert->signature->data, len);
    return new BinaryNode(buf, len);
 }
@@ -149,7 +149,7 @@ class BinaryNode *QoreSSLCertificate::getPublicKey() const
    int len = priv->cert->cert_info->key->public_key->length;
    char *buf = (char *)malloc(len);
    if (!buf)
-      return NULL;
+      return 0;
    memcpy(buf, priv->cert->cert_info->key->public_key->data, len);
    return new BinaryNode(buf, len);
 }
@@ -208,9 +208,9 @@ QoreHashNode *QoreSSLCertificate::getPurposeHash() const
       }
       
       // get non-CA value
-      h->setKeyValue(name, doPurposeValue(id, 0), NULL);
+      h->setKeyValue(name, doPurposeValue(id, 0), 0);
       // get CA value
-      h->setKeyValue(nameca, doPurposeValue(id, 1), NULL);
+      h->setKeyValue(nameca, doPurposeValue(id, 1), 0);
    }
    return h;
 }
@@ -219,25 +219,25 @@ QoreHashNode *QoreSSLCertificate::getInfo() const
 {
    QoreHashNode *h = new QoreHashNode();
    // get version
-   h->setKeyValue("version", new QoreBigIntNode(getVersion()), NULL);
+   h->setKeyValue("version", new QoreBigIntNode(getVersion()), 0);
    // get serial number
-   h->setKeyValue("serialNumber", new QoreBigIntNode(getSerialNumber()), NULL);
+   h->setKeyValue("serialNumber", new QoreBigIntNode(getSerialNumber()), 0);
    // do subject
-   h->setKeyValue("subject", getSubjectHash(), NULL);
+   h->setKeyValue("subject", getSubjectHash(), 0);
    // do issuer
-   h->setKeyValue("issuer", getIssuerHash(), NULL);
+   h->setKeyValue("issuer", getIssuerHash(), 0);
    // get purposes
-   h->setKeyValue("purposes", getPurposeHash(), NULL);
+   h->setKeyValue("purposes", getPurposeHash(), 0);
    // get not before date
-   h->setKeyValue("notBefore", getNotBeforeDate(), NULL);
+   h->setKeyValue("notBefore", getNotBeforeDate(), 0);
    // get not after date
-   h->setKeyValue("notAfter", getNotAfterDate(), NULL);
+   h->setKeyValue("notAfter", getNotAfterDate(), 0);
    // get signature type
-   h->setKeyValue("signatureType", getSignatureType(), NULL);
+   h->setKeyValue("signatureType", getSignatureType(), 0);
    // get signature
-   //h->setKeyValue("signature", getSignature(), NULL);
+   //h->setKeyValue("signature", getSignature(), 0);
    // get public key
-   //h->setKeyValue("publicKey", getPublicKey(), NULL);
+   //h->setKeyValue("publicKey", getPublicKey(), 0);
    
    return h;
 }

@@ -55,7 +55,7 @@ static AbstractQoreNode *MUTEX_lock(QoreObject *self, class SmartMutex *m, const
    }
    else
       m->grab(xsink);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *MUTEX_trylock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
@@ -66,7 +66,7 @@ static AbstractQoreNode *MUTEX_trylock(QoreObject *self, class SmartMutex *m, co
 static AbstractQoreNode *MUTEX_unlock(QoreObject *self, class SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
 {
    m->release(xsink);
-   return NULL;
+   return 0;
 }
 
 class QoreClass *initMutexClass()

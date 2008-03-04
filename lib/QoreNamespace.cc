@@ -155,7 +155,7 @@ class QoreNamespace *QoreNamespace::resolveNameScope(class NamedScope *nscope) c
       {
 	 parse_error("namespace '%s' cannot be resolved while evaluating '%s' in constant declaration",
 		     nscope->strlist[i], nscope->ostr);
-	 return NULL;
+	 return 0;
       }
    return (QoreNamespace *)sns;
 }
@@ -167,7 +167,7 @@ AbstractQoreNode *QoreNamespace::getConstantValue(const char *cname) const
    if (!rv)
       rv = priv->pendConstant->find(cname);
 
-   return rv ? rv : NULL;
+   return rv ? rv : 0;
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
@@ -175,14 +175,14 @@ void QoreNamespace::addConstant(class NamedScope *nscope, AbstractQoreNode *valu
 {
    class QoreNamespace *sns = resolveNameScope(nscope);
    if (!sns)
-      value->deref(NULL);
+      value->deref(0);
    else
    {
       const char *cname = nscope->strlist[nscope->elements - 1];
       if (sns->priv->constant->find(cname))
       {
 	 parse_error("constant '%s' has already been defined", cname);
-	 value->deref(NULL);
+	 value->deref(0);
       }
       else 
 	 sns->priv->pendConstant->add(cname, value);
@@ -301,7 +301,7 @@ void QoreNamespace::parseRollback()
 
 QoreNamespaceList::QoreNamespaceList()
 {
-   head = tail = NULL;
+   head = tail = 0;
 }
 
 void QoreNamespaceList::deleteAll()
@@ -330,13 +330,13 @@ void QoreNamespaceList::assimilate(class QoreNamespaceList *n)
       tail = n->tail;
    
    // "zero" target list
-   n->head = n->tail = NULL;
+   n->head = n->tail = 0;
 }
 
 void QoreNamespaceList::reset()
 {
    deleteAll();
-   head = tail = NULL;
+   head = tail = 0;
 }
 
 void QoreNamespaceList::add(class QoreNamespace *ns)
@@ -513,7 +513,7 @@ class QoreNamespace *QoreNamespaceList::parseResolveNamespace(class NamedScope *
 {
    tracein("QoreNamespaceList::parseResolveNamespace()");
 
-   class QoreNamespace *w = head, *ns = NULL;
+   class QoreNamespace *w = head, *ns = 0;
 
    // search first level of all sub namespaces
    while (w)
@@ -548,7 +548,7 @@ AbstractQoreNode *QoreNamespaceList::parseFindConstantValue(const char *cname)
 {
    tracein("QoreNamespaceList::parseFindConstantValue()");
    
-   AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = 0;
    class QoreNamespace *w = head;
    // see if a match can be found at the first level
    while (w)
@@ -589,7 +589,7 @@ static void showNSL(class QoreNamespaceList *nsl)
 // note: is only called with a namespace specifier
 AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(class NamedScope *name, int *matched)
 {
-   AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = 0;
 
    tracein("QoreNamespaceList::parseFindScopedConstantValue()");
    printd(5, "QoreNamespaceList::parseFindScopedConstantValue(this=%08p) target: %s\n", this, name->ostr);
@@ -637,7 +637,7 @@ class QoreClass *parseFindOTInNSL(class QoreNamespaceList *nsl, const char *otna
 	 return ot;
 
    parse_error("reference to undefined object type '%s'", otname);
-   return NULL;
+   return 0;
 }
 */
 
@@ -646,7 +646,7 @@ class QoreClass *parseFindOTInNSL(class QoreNamespaceList *nsl, const char *otna
 // note: is only called with a namespace specifier
 class QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(class NamedScope *name, int *matched) const
 {
-   QoreClass *oc = NULL;
+   QoreClass *oc = 0;
 
    // see if a complete match can be found at the first level
    QoreNamespace *w = head;
@@ -679,7 +679,7 @@ class QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(class NamedSc
 /*
 class QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(class NamedScope *name, int *matched, class QoreClassList **plist, bool *is_pending)
 {
-   QoreClass *oc = NULL;
+   QoreClass *oc = 0;
 
    // see if a complete match can be found at the first level
    QoreNamespace *w = head;
@@ -710,7 +710,7 @@ class QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(class NamedSc
 /*
 class QoreClass *QoreNamespaceList::parseFindClass(const char *ocname, class QoreClassList **plist, bool *is_pending)
 {
-   class QoreClass *oc = NULL;
+   class QoreClass *oc = 0;
 
    // see if a match can be found at the first level
    QoreNamespace *w = head;
@@ -750,7 +750,7 @@ class QoreClass *QoreNamespaceList::parseFindClass(const char *ocname, class Qor
 
 class QoreClass *QoreNamespaceList::parseFindClass(const char *ocname)
 {
-   class QoreClass *oc = NULL;
+   class QoreClass *oc = 0;
 
    // see if a match can be found at the first level
    QoreNamespace *w = head;
@@ -783,7 +783,7 @@ class QoreClass *QoreNamespaceList::parseFindClass(const char *ocname)
 
 class QoreClass *QoreNamespaceList::parseFindChangeClass(const char *ocname)
 {
-   class QoreClass *oc = NULL;
+   class QoreClass *oc = 0;
 
    // see if a match can be found at the first level
    QoreNamespace *w = head;
@@ -819,7 +819,7 @@ class QoreClass *QoreNamespaceList::parseFindChangeClass(const char *ocname)
 // note: is only called with a namespace specifier
 class QoreClass *QoreNamespaceList::parseFindScopedClass(class NamedScope *name, int *matched)
 {
-   class QoreClass *oc = NULL;
+   class QoreClass *oc = 0;
 
    // see if a complete match can be found at the first level
    QoreNamespace *w = head;
@@ -1081,7 +1081,7 @@ AbstractQoreNode *RootQoreNamespace::findConstantValue(const char *cname, int le
    if (level >= MAX_RECURSION_DEPTH)
    {
       parse_error("recursive constant definitions too deep resolving '%s'", cname);
-      return NULL;
+      return 0;
    }
 
    AbstractQoreNode *rv = rootFindConstantValue(cname);
@@ -1105,7 +1105,7 @@ AbstractQoreNode *RootQoreNamespace::findConstantValue(class NamedScope *scname,
    if (level >= MAX_RECURSION_DEPTH)
    {
       parse_error("recursive constant definitions too deep resolving '%s'", scname->ostr);
-      return NULL;
+      return 0;
    }
 
    AbstractQoreNode *rv;
@@ -1116,7 +1116,7 @@ AbstractQoreNode *RootQoreNamespace::findConstantValue(class NamedScope *scname,
       if (!rv)
       {
 	 parse_error("constant '%s' cannot be resolved in any namespace", scname->ostr);
-	 return NULL;
+	 return 0;
       }
    }
    else
@@ -1140,7 +1140,7 @@ AbstractQoreNode *RootQoreNamespace::findConstantValue(class NamedScope *scname,
 	    err.concat("'");
 	    parse_error(err.getBuffer());
 	 }
-	 return NULL;
+	 return 0;
       }
    }
    return rv;
@@ -1237,7 +1237,7 @@ class QoreNamespace *QoreNamespace::parseMatchNamespace(class NamedScope *nscope
       return (QoreNamespace *)ns;
    }
 
-   return NULL;
+   return 0;
 }
 
 /*
@@ -1249,9 +1249,9 @@ class QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope
    // if we need to follow the namespaces, then do so
    if (nscope->elements > 2)
    {
-      // if first namespace doesn't match, then return NULL
+      // if first namespace doesn't match, then return 0
       if (strcmp(nscope->strlist[0], name))
-	 return NULL;
+	 return 0;
 
       // mark first namespace as matched
       if (!(*matched))
@@ -1262,7 +1262,7 @@ class QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope
       {	 
 	 ns = ns->findNamespace(nscope->strlist[i]);
 	 if (!ns)
-	    return NULL;
+	    return 0;
 	 if (i >= (*matched))
 	    (*matched) = i + 1;
       }
@@ -1290,9 +1290,9 @@ class QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope
    // if we need to follow the namespaces, then do so
    if (nscope->elements > 2)
    {
-      // if first namespace doesn't match, then return NULL
+      // if first namespace doesn't match, then return 0
       if (strcmp(nscope->strlist[0], priv->name.c_str()))
-	 return NULL;
+	 return 0;
 
       // mark first namespace as matched
       if (!(*matched))
@@ -1303,7 +1303,7 @@ class QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope
       {	 
 	 ns = ns->findNamespace(nscope->strlist[i]);
 	 if (!ns)
-	    return NULL;
+	    return 0;
 	 if (i >= (*matched))
 	    (*matched) = i + 1;
       }
@@ -1319,7 +1319,7 @@ class QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(class NamedScope
 class QoreClass *QoreNamespace::parseMatchScopedClass(class NamedScope *nscope, int *matched) const
 {
    if (strcmp(nscope->strlist[0], priv->name.c_str()))
-      return NULL;
+      return 0;
 
    // mark first namespace as matched
    if (!(*matched))
@@ -1336,7 +1336,7 @@ class QoreClass *QoreNamespace::parseMatchScopedClass(class NamedScope *nscope, 
       {
 	 ns = ns->findNamespace(nscope->strlist[i]);
 	 if (!ns)
-	    return NULL;
+	    return 0;
 	 if (i >= (*matched))
 	    (*matched) = i + 1;
       }
@@ -1353,7 +1353,7 @@ AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(class NamedScope 
 	  nscope->getIdentifier(), priv->name.c_str(), getConstantValue(nscope->getIdentifier()));
 
    if (strcmp(nscope->strlist[0], priv->name.c_str()))
-      return NULL;
+      return 0;
 
    // mark first namespace as matched
    if (!(*matched))
@@ -1367,7 +1367,7 @@ AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(class NamedScope 
       {
 	 ns = ns->findNamespace(nscope->strlist[i]);
 	 if (!ns)
-	    return NULL;
+	    return 0;
 	 if (i >= (*matched))
 	    (*matched) = i + 1;
       }
@@ -1390,8 +1390,8 @@ QoreHashNode *QoreNamespace::getInfo() const
 {
    QoreHashNode *h = new QoreHashNode();
 
-   h->setKeyValue("constants", getConstantInfo(), NULL);
-   h->setKeyValue("classes", getClassInfo(), NULL);
+   h->setKeyValue("constants", getConstantInfo(), 0);
+   h->setKeyValue("classes", getClassInfo(), 0);
 
    if (priv->nsl->head)
    {
@@ -1400,11 +1400,11 @@ QoreHashNode *QoreNamespace::getInfo() const
       class QoreNamespace *w = priv->nsl->head;
       while (w)
       {
-	 nsh->setKeyValue(w->priv->name.c_str(), w->getInfo(), NULL);
+	 nsh->setKeyValue(w->priv->name.c_str(), w->getInfo(), 0);
 	 w = w->priv->next;
       }
 
-      h->setKeyValue("subnamespaces", nsh, NULL);
+      h->setKeyValue("subnamespaces", nsh, 0);
    }
 
    return h;
@@ -1456,7 +1456,7 @@ void RootQoreNamespace::rootAddConstant(class NamedScope *nscope, AbstractQoreNo
       sns->priv->pendConstant->add(nscope->strlist[nscope->elements - 1], value);
    }
    else
-      value->deref(NULL);
+      value->deref(0);
 }
 
 // public

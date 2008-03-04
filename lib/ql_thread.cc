@@ -47,7 +47,7 @@ AbstractQoreNode *f_save_thread_data(const QoreListNode *params, ExceptionSink *
 {
    const AbstractQoreNode *p0 = get_param(params, 0);
    if (!p0 || (p0->getType() != NT_HASH && p0->getType() != NT_STRING))
-      return NULL;
+      return 0;
 
    QoreHashNode *data = getProgram()->getThreadData();
    if (p0->getType() == NT_HASH)
@@ -59,7 +59,7 @@ AbstractQoreNode *f_save_thread_data(const QoreListNode *params, ExceptionSink *
       data->setKeyValue(reinterpret_cast<const QoreStringNode *>(p0), p1 ? p1->refSelf() : 0, xsink);
    }
 
-   return NULL;
+   return 0;
 }
 
 AbstractQoreNode *f_delete_thread_data(const QoreListNode *params, ExceptionSink *xsink)
@@ -82,7 +82,7 @@ AbstractQoreNode *f_delete_thread_data(const QoreListNode *params, ExceptionSink
 	 }
       }
    }
-   return NULL;
+   return 0;
 }
 
 AbstractQoreNode *f_delete_all_thread_data(const QoreListNode *params, ExceptionSink *xsink)
@@ -96,7 +96,7 @@ AbstractQoreNode *f_get_thread_data(const QoreListNode *params, ExceptionSink *x
    const QoreStringNode *p0;
 
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
    QoreHashNode *data = getProgram()->getThreadData();
    AbstractQoreNode *v = data->getKeyValue(p0->getBuffer());
    return v ? v->refSelf() : 0;
@@ -119,7 +119,7 @@ AbstractQoreNode *f_getAllThreadCallStacks(const QoreListNode *params, Exception
 AbstractQoreNode *f_throwThreadResourceExceptions(const QoreListNode *params, ExceptionSink *xsink)
 {
    purge_thread_resources(xsink);
-   return NULL;
+   return 0;
 }
 
 void init_thread_functions()

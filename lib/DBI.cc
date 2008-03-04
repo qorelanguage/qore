@@ -70,18 +70,18 @@ class DBIDriverFunctions {
       
       DLLLOCAL DBIDriverFunctions()
       {
-	 open = NULL;
-	 close = NULL;
-	 select = NULL;
-	 selectRows = NULL;
-	 execSQL = NULL;
-	 commit = NULL;
-	 rollback = NULL;
-	 begin_transaction = NULL;
-	 auto_commit = NULL;
-	 abort_transaction_start = NULL;
-	 get_server_version = NULL;
-	 get_client_version = NULL;
+	 open = 0;
+	 close = 0;
+	 select = 0;
+	 selectRows = 0;
+	 execSQL = 0;
+	 commit = 0;
+	 rollback = 0;
+	 begin_transaction = 0;
+	 auto_commit = 0;
+	 abort_transaction_start = 0;
+	 get_server_version = 0;
+	 get_client_version = 0;
       }
 };
 
@@ -438,7 +438,7 @@ int DBI_concat_string(class QoreString *str, const AbstractQoreNode *v, Exceptio
 QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
 {
    if (!ds || !ds[0])
-      return NULL;
+      return 0;
 
    // use a QoreString to create a temporary buffer
    QoreString tmp(ds);
@@ -449,7 +449,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
    if (p)
    {
       *p = '\0';
-      h->setKeyValue("type", new QoreStringNode(str), NULL);
+      h->setKeyValue("type", new QoreStringNode(str), 0);
       str = p + 1;
    }
 
@@ -458,7 +458,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
    if (p)
    {
       *p = '\0';
-      h->setKeyValue("user", new QoreStringNode(str), NULL);
+      h->setKeyValue("user", new QoreStringNode(str), 0);
       str = p + 1;
       has_pass = true;
    }
@@ -474,9 +474,9 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
    if (p != str)
    {
       if (has_pass)
-	 h->setKeyValue("pass", new QoreStringNode(str), NULL);
+	 h->setKeyValue("pass", new QoreStringNode(str), 0);
       else
-	 h->setKeyValue("user", new QoreStringNode(str), NULL);
+	 h->setKeyValue("user", new QoreStringNode(str), 0);
    }
    str = p + 1;
 
@@ -493,7 +493,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
       *p = '\0';  // terminate for db
       *end = '\0';  // terminate charset
       p++;
-      h->setKeyValue("charset", new QoreStringNode(p), NULL);
+      h->setKeyValue("charset", new QoreStringNode(p), 0);
       str = end + 1;
    }
    
@@ -507,10 +507,10 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
 	 xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing hostname string after '%' delimeter in '%s'", ds);
 	 return 0;
       }
-      h->setKeyValue("host", new QoreStringNode(p), NULL);
+      h->setKeyValue("host", new QoreStringNode(p), 0);
    }
 
-   h->setKeyValue("db", new QoreStringNode(db), NULL);
+   h->setKeyValue("db", new QoreStringNode(db), 0);
    return h.release();
 }
 
@@ -519,7 +519,7 @@ AbstractQoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *x
    const QoreStringNode *p0;
 
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
 
    return parseDatasource(p0->getBuffer(), xsink);
 }
@@ -534,11 +534,11 @@ AbstractQoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, Excep
    const QoreStringNode *p0;
 
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
 
    DBIDriver *dd = DBI.find(p0->getBuffer());
    if (!dd)
-      return NULL;
+      return 0;
 
    return dd->getCapList();
 }
@@ -548,11 +548,11 @@ AbstractQoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, Excepti
    const QoreStringNode *p0;
 
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
 
    DBIDriver *dd = DBI.find(p0->getBuffer());
    if (!dd)
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(dd->getCaps());
 }

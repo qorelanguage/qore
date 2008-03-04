@@ -37,8 +37,8 @@ int qore_target_bits       = TARGET_BITS;
 char qore_target_os[]      = TARGET_OS;
 char qore_target_arch[]    = TARGET_ARCH;
 
-DLLLOCAL QoreListNode *ARGV = NULL;
-DLLLOCAL QoreListNode *QORE_ARGV = NULL;
+DLLLOCAL QoreListNode *ARGV = 0;
+DLLLOCAL QoreListNode *QORE_ARGV = 0;
 
 #ifndef HAVE_LOCALTIME_R
 DLLLOCAL class QoreThreadLock lck_localtime;
@@ -326,7 +326,7 @@ QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, Ex
    {
       int taken = 1;
       bool havearg = false;
-      const AbstractQoreNode *arg = NULL;
+      const AbstractQoreNode *arg = 0;
 
       if ((fmt->getBuffer()[i] == '%'))
       {
@@ -380,14 +380,14 @@ class BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
       if (xsink->isEvent())
       {
          free(binbuf);
-         return NULL;
+         return 0;
       }
       // get second 6 bits
       char c = getBase64Value(buf[pos + 1], xsink);
       if (xsink->isEvent())
       {
          free(binbuf);
-         return NULL;
+         return 0;
       }
       // do first byte (1st char=upper 6 bits, 2nd char=lower 2)
       binbuf[blen++] = (b << 2) | (c >> 4);
@@ -404,7 +404,7 @@ class BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
       if (xsink->isEvent())
       {
          free(binbuf);
-         return NULL;
+         return 0;
       }
       // do second byte (2nd char=upper 4 bits, 3rd char=lower 4 bits)
       binbuf[blen++] = b | (c >> 2);
@@ -421,7 +421,7 @@ class BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink)
       if (xsink->isEvent())
       {
          free(binbuf);
-         return NULL;
+         return 0;
       }
 
       binbuf[blen++] = b | c;
@@ -451,7 +451,7 @@ class BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink)
    if ((len / 2) * 2 != len)
    {
       xsink->raiseException("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
-      return NULL;
+      return 0;
    }
 
    char *binbuf = (char *)malloc(sizeof(char) * (len / 2));
@@ -464,14 +464,14 @@ class BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink)
       if (b < 0)
       {
 	 free(binbuf);
-	 return NULL;
+	 return 0;
       }
       buf++;
       int l = get_nibble(*buf, xsink);
       if (l < 0)
       {
 	 free(binbuf);
-	 return NULL;
+	 return 0;
       }
       buf++;
       binbuf[blen++] = b << 4 | l;
@@ -509,7 +509,7 @@ class BinaryNode *parseHex(const char *buf, int len)
       if (b < 0)
       {
 	 free(binbuf);
-	 return NULL;
+	 return 0;
       }
       buf++;
 #if 0
@@ -518,7 +518,7 @@ class BinaryNode *parseHex(const char *buf, int len)
       {
 	 free(binbuf);
 	 parseError("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
-	 return NULL;
+	 return 0;
       }
 #endif
 
@@ -526,7 +526,7 @@ class BinaryNode *parseHex(const char *buf, int len)
       if (l < 0)
       {
 	 free(binbuf);
-	 return NULL;
+	 return 0;
       }
       buf++;
       binbuf[blen++] = b << 4 | l;
@@ -583,7 +583,7 @@ void initENV(char *env[])
       {
 	 char save = *p;
 	 *p = '\0';
-	 ENV->setKeyValue(env[i], new QoreStringNode(p + 1), NULL);
+	 ENV->setKeyValue(env[i], new QoreStringNode(p + 1), 0);
 	 //printd(5, "creating $ENV{\"%s\"} = \"%s\"\n", env[i], p + 1);
 	 *p = save;
       }

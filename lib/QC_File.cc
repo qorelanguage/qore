@@ -62,7 +62,7 @@ static AbstractQoreNode *FILE_open(QoreObject *self, class File *f, const QoreLi
    if (!p0)
    {
       xsink->raiseException("FILE-OPEN-PARAMETER-ERROR", "expecting string filename as first argument of File::open()");
-      return NULL;
+      return 0;
    }
 
    int flags, mode;
@@ -99,7 +99,7 @@ static AbstractQoreNode *FILE_open2(QoreObject *self, class File *f, const QoreL
    if (!p0)
    {
       xsink->raiseException("FILE-OPEN2-PARAMETER-ERROR", "expecting string filename as first argument of File::open2()");
-      return NULL;
+      return 0;
    }
    
    const AbstractQoreNode *p = get_param(params, 1);
@@ -146,7 +146,7 @@ static AbstractQoreNode *FILE_read(QoreObject *self, class File *f, const QoreLi
    if (!size)
    {
       xsink->raiseException("FILE-READ-PARAMETER-ERROR", "expecting size as first parameter of File::read()");
-      return NULL;
+      return 0;
    }
 
    return f->read(size, xsink);
@@ -156,7 +156,7 @@ static AbstractQoreNode *FILE_readu1(QoreObject *self, class File *f, const Qore
 {
    unsigned char c;
    if (f->readu1(&c, xsink))
-      return NULL;
+      return 0;
    return new QoreBigIntNode(c);
 }
 
@@ -164,7 +164,7 @@ static AbstractQoreNode *FILE_readu2(QoreObject *self, class File *f, const Qore
 {
    unsigned short s;
    if (f->readu2(&s, xsink))
-      return NULL;
+      return 0;
    return new QoreBigIntNode(s);
 }
 
@@ -172,7 +172,7 @@ static AbstractQoreNode *FILE_readu4(QoreObject *self, class File *f, const Qore
 {
    unsigned int i;
    if (f->readu4(&i, xsink))
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(i);
 }
@@ -181,7 +181,7 @@ static AbstractQoreNode *FILE_readu2LSB(QoreObject *self, class File *f, const Q
 {
    unsigned short s;
    if (f->readu2LSB(&s, xsink))
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(s);
 }
@@ -190,7 +190,7 @@ static AbstractQoreNode *FILE_readu4LSB(QoreObject *self, class File *f, const Q
 {
    unsigned int i;
    if (f->readu4LSB(&i, xsink))
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(i);
 }
@@ -199,7 +199,7 @@ static AbstractQoreNode *FILE_readi1(QoreObject *self, class File *f, const Qore
 {
    char c;
    if (f->readi1(&c, xsink))
-      return NULL;
+      return 0;
    return new QoreBigIntNode(c);
 }
 
@@ -207,7 +207,7 @@ static AbstractQoreNode *FILE_readi2(QoreObject *self, class File *f, const Qore
 {
    short s;
    if (f->readi2(&s, xsink))
-      return NULL;
+      return 0;
    return new QoreBigIntNode(s);
 }
 
@@ -215,7 +215,7 @@ static AbstractQoreNode *FILE_readi4(QoreObject *self, class File *f, const Qore
 {
    int i;
    if (f->readi4(&i, xsink))
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(i);
 }
@@ -224,7 +224,7 @@ static AbstractQoreNode *FILE_readi8(QoreObject *self, class File *f, const Qore
 {
    int64 i;
    if (f->readi8(&i, xsink))
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(i);
 }
@@ -233,7 +233,7 @@ static AbstractQoreNode *FILE_readi2LSB(QoreObject *self, class File *f, const Q
 {
    short s;
    if (f->readi2LSB(&s, xsink))
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(s);
 }
@@ -242,7 +242,7 @@ static AbstractQoreNode *FILE_readi4LSB(QoreObject *self, class File *f, const Q
 {
    int i;
    if (f->readi4LSB(&i, xsink))
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(i);
 }
@@ -251,7 +251,7 @@ static AbstractQoreNode *FILE_readi8LSB(QoreObject *self, class File *f, const Q
 {
    int64 i;
    if (f->readi8LSB(&i, xsink))
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(i);
 }
@@ -264,7 +264,7 @@ static AbstractQoreNode *FILE_readBinary(QoreObject *self, class File *f, const 
    if (!size)
    {
       xsink->raiseException("FILE-READ-BINARY-PARAMETER-ERROR", "expecting size as first parameter of File::readBinary()");
-      return NULL;
+      return 0;
    }
 
    return f->readBinary(size, xsink);
@@ -276,7 +276,7 @@ static AbstractQoreNode *FILE_write(QoreObject *self, class File *f, const QoreL
    if (!p0 || (p0->getType() != NT_STRING && p0->getType() != NT_BINARY))
    {
       xsink->raiseException("FILE-WRITE-PARAMETER-ERROR", "expecting string or binary object to write as first parameter of File::write()");
-      return NULL;
+      return 0;
    }
 
    int rc;
@@ -285,7 +285,7 @@ static AbstractQoreNode *FILE_write(QoreObject *self, class File *f, const QoreL
    else
       rc = f->write(reinterpret_cast<const BinaryNode *>(p0), xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -301,7 +301,7 @@ static AbstractQoreNode *FILE_writei1(QoreObject *self, class File *f, const Qor
 
    int rc = f->writei1(c, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -317,7 +317,7 @@ static AbstractQoreNode *FILE_writei2(QoreObject *self, class File *f, const Qor
 
    int rc = f->writei2(s, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -333,7 +333,7 @@ static AbstractQoreNode *FILE_writei4(QoreObject *self, class File *f, const Qor
 
    int rc = f->writei4(i, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -349,7 +349,7 @@ static AbstractQoreNode *FILE_writei8(QoreObject *self, class File *f, const Qor
    
    int rc = f->writei8(i, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(rc);
 }
@@ -364,7 +364,7 @@ static AbstractQoreNode *FILE_writei2LSB(QoreObject *self, class File *f, const 
 
    int rc = f->writei2LSB(s, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -380,7 +380,7 @@ static AbstractQoreNode *FILE_writei4LSB(QoreObject *self, class File *f, const 
 
    int rc = f->writei4LSB(i, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    return new QoreBigIntNode(rc);
 }
@@ -396,7 +396,7 @@ static AbstractQoreNode *FILE_writei8LSB(QoreObject *self, class File *f, const 
    
    int rc = f->writei8LSB(i, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(rc);
 }
@@ -460,7 +460,7 @@ static AbstractQoreNode *FILE_setCharset(QoreObject *self, class File *f, const 
       charset = QCS_DEFAULT;
 
    f->setEncoding(charset);
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FILE_getCharset(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
@@ -484,13 +484,13 @@ static AbstractQoreNode *FILE_setPos(QoreObject *self, class File *f, const Qore
 static AbstractQoreNode *FILE_setPosFromEnd(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
 {
    //f->open();
-   return NULL;
+   return 0;
 }
 
 static AbstractQoreNode *FILE_setPosFromCurrent(QoreObject *self, class File *f, const QoreListNode *params, ExceptionSink *xsink)
 {
    //f->open();
-   return NULL;
+   return 0;
 }
 */
 

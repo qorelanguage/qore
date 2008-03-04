@@ -172,7 +172,7 @@ typedef void (*q_copy_t)(class QoreObject *, class QoreObject *, void *, class E
 #include <inttypes.h>
 static inline long long atoll(const char *str)
 {
-   return strtoimax(str, NULL, 10);
+   return strtoimax(str, 0, 10);
 }
 #else
 static inline long long atoll(const char *str)

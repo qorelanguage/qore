@@ -201,7 +201,7 @@ void RWLock::cleanupImpl()
       // delete entry from the thread lock list
       vl->pop(this);
       
-      vl = NULL;
+      vl = 0;
       // wake up sleeping thread(s)
       signalImpl();
    }

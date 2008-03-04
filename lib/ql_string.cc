@@ -32,7 +32,7 @@ static AbstractQoreNode *f_length(const QoreListNode *params, ExceptionSink *xsi
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    int l;
 
@@ -52,7 +52,7 @@ static AbstractQoreNode *f_strlen(const QoreListNode *params, ExceptionSink *xsi
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    QoreStringValueHelper temp(p0);
    return new QoreBigIntNode(temp->strlen());
@@ -328,7 +328,7 @@ static AbstractQoreNode *f_ord(const QoreListNode *params, ExceptionSink *xsink)
    const AbstractQoreNode *p0;
    
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
    
    QoreStringValueHelper str(p0);
 
@@ -349,7 +349,7 @@ static AbstractQoreNode *f_chr(const QoreListNode *params, ExceptionSink *xsink)
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
    
    return new QoreStringNode((char)p0->getAsInt());
 }
@@ -390,7 +390,7 @@ static AbstractQoreNode *f_get_encoding(const QoreListNode *params, ExceptionSin
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    return new QoreStringNode(p0->getEncoding()->getCode());
 }
 
@@ -400,7 +400,7 @@ static AbstractQoreNode *f_convert_encoding(const QoreListNode *params, Exceptio
    const QoreStringNode *p0, *p1;
    if (!(p0 = test_string_param(params, 0)) ||
        !(p1 = test_string_param(params, 1)))
-      return NULL;
+      return 0;
 
    return p0->convertEncoding(QEM.findCreate(p1), xsink);
 }
@@ -410,14 +410,14 @@ static AbstractQoreNode *f_regex(const QoreListNode *params, ExceptionSink *xsin
    const QoreStringNode *p0, *p1;
    if (!(p0 = test_string_param(params, 0)) ||
        !(p1 = test_string_param(params, 1)))
-       return NULL;
+       return 0;
    
    const AbstractQoreNode *p2 = get_param(params, 2);
    int options = p2 ? p2->getAsInt() : 0;
 
    QoreRegexNode qr(p1, options, xsink);
    if (*xsink)
-      return NULL;
+      return 0;
 
    return get_bool_node(qr.exec(p0, xsink));
 }
@@ -516,11 +516,11 @@ static AbstractQoreNode *f_join(const QoreListNode *params, ExceptionSink *xsink
 {
    const QoreStringNode *p0 = test_string_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    unsigned n = num_params(params);
    if (n < 2)
-      return NULL;
+      return 0;
 
    const QoreListNode *l = test_list_param(params, 1);
    if (n == 2 && l)

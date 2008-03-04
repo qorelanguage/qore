@@ -62,8 +62,8 @@ void QoreQueue::push(const AbstractQoreNode *n)
    if (!head)
    {
       head = new QoreQueueNode(v);
-      head->next = NULL; 
-      head->prev = NULL;
+      head->next = 0; 
+      head->prev = 0;
 
       tail = head;
    }
@@ -71,7 +71,7 @@ void QoreQueue::push(const AbstractQoreNode *n)
    {
       QoreQueueNode *qn = new QoreQueueNode(v);
       tail->next = qn;
-      qn->next = NULL; 
+      qn->next = 0; 
       qn->prev = tail;
 
       tail = qn;
@@ -96,8 +96,8 @@ void QoreQueue::insert(const AbstractQoreNode *n)
    if (!head)
    {
       head = new QoreQueueNode(v);
-      head->next = NULL; 
-      head->prev = NULL;
+      head->next = 0; 
+      head->prev = 0;
 
       tail = head;
    }
@@ -105,7 +105,7 @@ void QoreQueue::insert(const AbstractQoreNode *n)
    {
       QoreQueueNode *qn = new QoreQueueNode(v);
       qn->next = head;
-      qn->prev = NULL;
+      qn->prev = 0;
       head->prev = qn;
 
       head = qn;
@@ -137,12 +137,12 @@ AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *t
 	 printd(5, "QoreQueue::shift() timed out after %dms waiting on another thread to release the lock\n", timeout_ms);
 	 if (to)
 	    *to = true;
-	 return NULL;
+	 return 0;
       }
       if (len == Queue_Deleted)
       {
 	 xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
-	 return NULL;
+	 return 0;
       }
    }
    if (to)
@@ -151,15 +151,15 @@ AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *t
    QoreQueueNode *n = head;
    head = head->next;
    if (!head)
-      tail = NULL;
+      tail = 0;
    else
-      head->prev = NULL;
+      head->prev = 0;
    
    len--;
    sl.unlock();
    AbstractQoreNode *rv = n->node;
-   n->node = NULL;
-   n->del(NULL);
+   n->node = 0;
+   n->del(0);
    printd(5, "QoreQueue::shift() %08p\n", n);
    return rv;
 }
@@ -179,17 +179,17 @@ AbstractQoreNode *QoreQueue::pop(ExceptionSink *xsink, int timeout_ms, bool *to)
       --waiting;
       if (rc)
       {
-	 // lock has timed out, unlock and return NULL
+	 // lock has timed out, unlock and return 0
 	 sl.unlock();
 	 printd(5, "QoreQueue::pop() timed out after %dms waiting on another thread to release the lock\n", rc, timeout_ms);
 	 if (to) 
 	    *to = true;
-	 return NULL;
+	 return 0;
       }
       if (len == Queue_Deleted)
       {
 	 xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
-	 return NULL;
+	 return 0;
       }
    }
    if (to)
@@ -198,15 +198,15 @@ AbstractQoreNode *QoreQueue::pop(ExceptionSink *xsink, int timeout_ms, bool *to)
    QoreQueueNode *n = tail;
    tail = tail->prev;
    if (!tail)
-      head = NULL;
+      head = 0;
    else
-      tail->next = NULL;
+      tail->next = 0;
    
    len--;
    sl.unlock();
    AbstractQoreNode *rv = n->node;
-   n->node = NULL;
-   n->del(NULL);
+   n->node = 0;
+   n->del(0);
    printd(5, "QoreQueue::shift() %08p\n", n);
    return rv;
 }
@@ -229,7 +229,7 @@ void QoreQueue::destructor(ExceptionSink *xsink)
       head->del(xsink);
       head = w;
    }
-   head = NULL;
-   tail = NULL;
+   head = 0;
+   tail = 0;
    len = Queue_Deleted;
 }

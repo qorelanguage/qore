@@ -32,13 +32,13 @@ static AbstractQoreNode *check_stat(unsigned code, const QoreListNode *params, E
    const QoreStringNode *p0 = test_string_param(params, 0);
 
    if (!p0)
-      return NULL;
+      return 0;
 
    struct stat sbuf;
    int rc;
    
    if ((rc = stat(p0->getBuffer(), &sbuf)))
-      return NULL;
+      return 0;
 
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
 }
@@ -47,13 +47,13 @@ static AbstractQoreNode *check_lstat(unsigned code, const QoreListNode *params, 
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
    
    struct stat sbuf;
    int rc;
    
    if ((rc = lstat(p0->getBuffer(), &sbuf)))
-      return NULL;
+      return 0;
    
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
 }
@@ -92,13 +92,13 @@ static AbstractQoreNode *f_is_dev(const QoreListNode *params, ExceptionSink *xsi
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
    
    struct stat sbuf;
    int rc;
    
    if ((rc = lstat(p0->getBuffer(), &sbuf)))
-      return NULL;
+      return 0;
    
    return ((sbuf.st_mode & S_IFMT) == S_IFCHR)
 	   || ((sbuf.st_mode & S_IFMT) == S_IFBLK)
@@ -114,13 +114,13 @@ static AbstractQoreNode *f_is_readable(const QoreListNode *params, ExceptionSink
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
    
    struct stat sbuf;
    int rc;
    
    if ((rc = stat(p0->getBuffer(), &sbuf)))
-      return NULL;
+      return 0;
    
    if (sbuf.st_mode & S_IROTH 
        || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IRUSR)) 
@@ -134,14 +134,14 @@ static AbstractQoreNode *f_is_writeable(const QoreListNode *params, ExceptionSin
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
    
    tracein("f_stat()");
    struct stat sbuf;
    int rc;
    
    if ((rc = stat(p0->getBuffer(), &sbuf)))
-      return NULL;
+      return 0;
    
    if (sbuf.st_mode & S_IWOTH 
        || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IWUSR)) 
@@ -155,13 +155,13 @@ static AbstractQoreNode *f_is_executable(const QoreListNode *params, ExceptionSi
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
    
    struct stat sbuf;
    int rc;
    
    if ((rc = stat(p0->getBuffer(), &sbuf)))
-      return NULL;
+      return 0;
    
    if (sbuf.st_mode & S_IXOTH 
        || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IXUSR)) 

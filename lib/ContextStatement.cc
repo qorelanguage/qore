@@ -33,7 +33,7 @@ ContextMod::ContextMod(int t, AbstractQoreNode *n)
 ContextMod::~ContextMod()
 {
    if (c.exp)
-      c.exp->deref(NULL);
+      c.exp->deref(0);
 }
 
 ContextModList::ContextModList(ContextMod *cm)
@@ -64,8 +64,8 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, Abstra
    name = n;
    exp = expr;
    code = cd;
-   lvars = NULL;
-   where_exp = sort_ascending = sort_descending = NULL;
+   lvars = 0;
+   where_exp = sort_ascending = sort_descending = 0;
    if (mods)
    {
       for (cxtmod_list_t::iterator i = mods->begin(); i != mods->end(); i++)
@@ -76,7 +76,7 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, Abstra
 	       if (!where_exp)
 	       {
 		  where_exp = (*i)->c.exp;
-		  (*i)->c.exp = NULL;
+		  (*i)->c.exp = 0;
 	       }
 	       else
 		  parseException("CONTEXT-PARSE-ERROR", "multiple where conditions found for context statement!");
@@ -85,7 +85,7 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, Abstra
 	       if (!sort_ascending && !sort_descending)
 	       {
 		  sort_ascending = (*i)->c.exp;
-		  (*i)->c.exp = NULL;
+		  (*i)->c.exp = 0;
 	       }
 	       else
 		  parseException("CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
@@ -94,7 +94,7 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, Abstra
 	       if (!sort_descending && !sort_ascending)
 	       {
 		  sort_descending = (*i)->c.exp;
-		  (*i)->c.exp = NULL;
+		  (*i)->c.exp = 0;
 	       }
 	       else
 		  parseException("CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
@@ -110,17 +110,17 @@ ContextStatement::~ContextStatement()
    if (name)
       free(name);
    if (exp)
-      exp->deref(NULL);
+      exp->deref(0);
    if (code)
       delete code;
    if (lvars)
       delete lvars;
    if (where_exp)
-      where_exp->deref(NULL);
+      where_exp->deref(0);
    if (sort_ascending)
-      sort_ascending->deref(NULL);
+      sort_ascending->deref(0);
    if (sort_descending)
-      sort_descending->deref(NULL);
+      sort_descending->deref(0);
 }
 
 // FIXME: local vars should only be instantiated if there is a non-null context
@@ -135,7 +135,7 @@ int ContextStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    LVListInstantiator lvi(lvars, xsink);
    
    // create the context
-   context = new Context(name, xsink, exp, where_exp, sort_type, sort, NULL);
+   context = new Context(name, xsink, exp, where_exp, sort_type, sort, 0);
    
    // execute the statements
    if (code)

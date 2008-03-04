@@ -211,16 +211,38 @@ class QoreHashNode : public AbstractQoreNode
       //! appends all key-value pairs of "h" to this hash
       DLLEXPORT void merge(const class QoreHashNode *h, class ExceptionSink *xsink);
 
+      //! sets the value of "key" to "value"
+      /**
+       */
       DLLEXPORT void setKeyValue(const class QoreString *key, AbstractQoreNode *value, class ExceptionSink *xsink);
       DLLEXPORT void setKeyValue(const char *key, AbstractQoreNode *value, class ExceptionSink *xsink);
       DLLEXPORT void deleteKey(const class QoreString *key, class ExceptionSink *xsink);
       DLLEXPORT void deleteKey(const char *key, class ExceptionSink *xsink);
       // "takes" the value of the key from the hash and removes the key from the hash and returns the value
       DLLEXPORT AbstractQoreNode *takeKeyValue(const class QoreString *key, class ExceptionSink *xsink);
-      // "takes" the value of the key from the hash and removes the key from the hash and returns the value
+
+      //! "takes" the value of the key from the hash and removes the key from the hash and returns the value, caller owns the reference count returned
+      /** @param key the key of the value to return
+	  @return the value of the key, caller owns the reference count returned
+       */
       DLLEXPORT AbstractQoreNode *takeKeyValue(const char *key);
+
+      //! returns a QoreListNode of QoreStringNodes representing all keys in the hash, caller owns the reference count returned
+      /** to iterate through a hash, use HashIterator or ConstHashIterator
+	  @return a QoreListNode of QoreStringNodes representing all keys in the hash, caller owns the reference count returned
+       */
       DLLEXPORT class QoreListNode *getKeys() const;
+
+      //! does a deep "soft" compare of all hash elements (types may be converted for the comparison) and returns true if the hashes are equal
+      /** @note that if the hashes have a different number or names of keys then the comparison fails immediately
+	  @return true if the hashes have the same number and names of keys and all elements are equal (types may be converted for the comparison)
+       */
       DLLEXPORT bool compareSoft(const QoreHashNode *h, class ExceptionSink *xsink) const;
+
+      //! does a deep "hard" compare of all hash elements (no type conversions are performed) and returns true if the hashes are equal
+      /** @note that if the hashes have a different number of keys then the comparison fails immediately
+	  @return true if the hashes have the same number and values of keys and all elements are equal and of the same type (no type conversions are performed)
+       */
       DLLEXPORT bool compareHard(const QoreHashNode *h, class ExceptionSink *xsink) const;
 
       //! returns the number of members in the hash, executes in constant time

@@ -33,7 +33,7 @@ class BinaryNode : public SimpleValueQoreNode
 {
    private:
       void *ptr;
-      unsigned long len;
+      qore_size_t len;
 
       // not yet implemented
       DLLLOCAL BinaryNode(const BinaryNode&);
@@ -43,7 +43,11 @@ class BinaryNode : public SimpleValueQoreNode
       DLLEXPORT virtual ~BinaryNode();
 
    public:
-      DLLEXPORT BinaryNode(void *p = NULL, unsigned long size = 0);
+      //! creates the object
+      /** @param p a pointer to the memory, the BinaryNode object takes over ownership of this pointer
+	  @param size the byte length of the memory
+       */
+      DLLEXPORT BinaryNode(void *p = 0, qore_size_t size = 0);
 
       //! concatenate the verbose string representation of the value to an existing QoreString
       /** used for %n and %N printf formatting
@@ -92,7 +96,7 @@ class BinaryNode : public SimpleValueQoreNode
       DLLEXPORT int compare(const BinaryNode *obj) const;
 
       //! returns the number of bytes in the object
-      DLLEXPORT unsigned long size() const;
+      DLLEXPORT qore_size_t size() const;
 
       //! returns a copy of the object
       /**
@@ -104,7 +108,7 @@ class BinaryNode : public SimpleValueQoreNode
       DLLEXPORT const void *getPtr() const;
       
       //! resizes the object and appends a copy of the data passed to the object
-      DLLEXPORT void append(const void *nptr, unsigned long size);
+      DLLEXPORT void append(const void *nptr, qore_size_t size);
 
       //! resizes the object and appends a copy of the data passed to the object
       DLLEXPORT void append(const BinaryNode *b);

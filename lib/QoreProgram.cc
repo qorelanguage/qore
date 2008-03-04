@@ -67,7 +67,7 @@ class SBNode {
       class StatementBlock *statements;
       class SBNode *next;
    
-      DLLLOCAL SBNode() { next = NULL; statements = NULL; }
+      DLLLOCAL SBNode() { next = 0; statements = 0; }
       DLLLOCAL ~SBNode();
       DLLLOCAL void reset();
 };
@@ -120,24 +120,24 @@ struct qore_program_private {
       {
 	 printd(5, "QoreProgram::QoreProgram() (init()) this=%08p\n", this);
 #ifdef DEBUG
-	 parseSink = NULL;
+	 parseSink = 0;
 #endif
-	 warnSink = NULL;
+	 warnSink = 0;
 	 requires_exception = false;
-	 sb_head = sb_tail = NULL;
+	 sb_head = sb_tail = 0;
 	 nextSB();
 	 
 	 // initialize global vars
 	 class Var *var = global_var_list.newVar("ARGV");
 	 if (ARGV)
-	    var->setValue(ARGV->copy(), NULL);
+	    var->setValue(ARGV->copy(), 0);
 	 
 	 var = global_var_list.newVar("QORE_ARGV");
 	 if (QORE_ARGV)
-	    var->setValue(QORE_ARGV->copy(), NULL);
+	    var->setValue(QORE_ARGV->copy(), 0);
 	 
 	 var = global_var_list.newVar("ENV");
-	 var->setValue(ENV->copy(), NULL);
+	 var->setValue(ENV->copy(), 0);
       }
 
       DLLLOCAL ~qore_program_private()
@@ -251,9 +251,9 @@ struct qore_program_private {
 	 
 	 parseSink = xsink;
 	 internParsePending(code, label);
-	 warnSink = NULL;
+	 warnSink = 0;
 #ifdef DEBUG
-	 parseSink = NULL;
+	 parseSink = 0;
 #endif
 	 // release program-level parse lock
 	 plock.unlock();
@@ -316,9 +316,9 @@ struct qore_program_private {
 	 internParseCommit();
 	 
 #ifdef DEBUG
-	 parseSink = NULL;
+	 parseSink = 0;
 #endif   
-	 warnSink = NULL;
+	 warnSink = 0;
 	 // release program-level parse lock
 	 plock.unlock();
       }
@@ -397,7 +397,7 @@ QoreProgram::QoreProgram() : priv(new qore_program_private)
    priv->exec_class = false;
 
    // init thread local storage key
-   pthread_key_create(&priv->thread_local_storage, NULL);
+   pthread_key_create(&priv->thread_local_storage, 0);
 
    // save thread local storage hash
    startThread();
@@ -868,7 +868,7 @@ AbstractQoreNode *QoreProgram::run(ExceptionSink *xsink)
    if (!priv->exec_class_name.empty())
    {
       runClass(priv->exec_class_name.c_str(), xsink);
-      return NULL;
+      return 0;
    }
    return runTopLevel(xsink);
 }
@@ -1018,9 +1018,9 @@ void QoreProgram::parse(FILE *fp, const char *name, ExceptionSink *xsink, Except
    priv->internParseCommit();
 
 #ifdef DEBUG
-   priv->parseSink = NULL;
+   priv->parseSink = 0;
 #endif
-   priv->warnSink = NULL;
+   priv->warnSink = 0;
    // release program-level parse lock
    priv->plock.unlock();
 
@@ -1063,9 +1063,9 @@ void QoreProgram::parse(const char *code, const char *label, ExceptionSink *xsin
       priv->internParseCommit();   // finalize parsing, back out or commit all changes
 
 #ifdef DEBUG
-   priv->parseSink = NULL;
+   priv->parseSink = 0;
 #endif
-   priv->warnSink = NULL;
+   priv->warnSink = 0;
    // release program-level parse lock
    priv->plock.unlock();
 }
@@ -1113,7 +1113,7 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink)
 {
    priv->tcount.inc();
 
-   AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = 0;
    SBNode *w = priv->sb_head;
 
    {
@@ -1123,7 +1123,7 @@ AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink)
 	 if (w->statements)
 	    rv = w->statements->exec(xsink);
 	 else
-	    rv = NULL;
+	    rv = 0;
 	 w = w->next;
       } 
    }
@@ -1155,7 +1155,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
 	 if (bfc->getType() & priv->parse_options) 
 	 {
 	    xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin function '%s'", name);
-	    return NULL;
+	    return 0;
 	 }
 	 // we assign the args to NULL below so that the caller will delete
 	 fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args));
@@ -1163,7 +1163,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
       else
       {
 	 xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
-	 return NULL;
+	 return 0;
       }
    }
 
@@ -1174,7 +1174,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    }
 
    // let caller delete function arguments if necessary
-   fc->args = NULL;
+   fc->args = 0;
    fc->deref();
 
    return rv;
@@ -1192,7 +1192,7 @@ AbstractQoreNode *QoreProgram::callFunction(class UserFunction *ufc, const QoreL
    }
    
    // let caller delete function arguments if necessary
-   fc->args = NULL;
+   fc->args = 0;
    fc->deref();
 
    return rv;
@@ -1248,7 +1248,7 @@ void QoreProgram::runClass(const char *classname, ExceptionSink *xsink)
 
    {
       ProgramContextHelper pch(this);
-      discard(qc->execConstructor(NULL, xsink), xsink); 
+      discard(qc->execConstructor(0, xsink), xsink); 
    }
    
    priv->tcount.dec();

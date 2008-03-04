@@ -97,9 +97,9 @@ static class AbstractQoreNode *makeTree(class Operator *op, class AbstractQoreNo
 
       class AbstractQoreNode *n_node = op->eval(left, right, true, &xsink);
       //printd(5, "makeTree(): l=%08p (%s), r=%08p (%s), op=%s, returning %08p\n", left, left->getTypeName(), right, right ? right->getTypeName() : "n/a", op->getName(), n_node);
-      left->deref(NULL);
+      left->deref(0);
       if (right)
-	 right->deref(NULL);
+	 right->deref(0);
 
       if (xsink.isEvent())
 	 getProgram()->addParseException(&xsink);
@@ -429,7 +429,7 @@ static inline void tryAddMethod(int mod, char *n, AbstractQoreNode *params, BCAL
    {
       parse_error("base class constructor lists are only legal when defining ::constructor() methods");
       if (params)
-	 params->deref(NULL);
+	 params->deref(0);
       delete bcal;
       if (b)
 	 delete b;
@@ -469,11 +469,11 @@ struct MethodNode {
       DLLLOCAL inline void addAndDelete(class QoreClass *qc)
       {
 	 qc->addMethod(m);
-	 m = NULL;
+	 m = 0;
 	 if (bcal)
 	 {
 	    qc->parseAddBaseClassArgumentList(bcal);
-	    bcal = NULL;
+	    bcal = 0;
 	 }
 	 delete this;
       }
@@ -717,7 +717,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str)
  // destructor actions for elements that need deleting when parse errors occur
 %destructor { if ($$) delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition object_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list member_list base_constructor_list base_constructors class_attributes
 %destructor { if ($$) $$->deref(); } superclass_list inheritance_list string QUOTED_WORD DATETIME BINARY 
-%destructor { if ($$) $$->deref(NULL); } exp myexp scalar hash list
+%destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
 
 %%
@@ -856,7 +856,7 @@ block:
         { $$ = $2; }
         |
         '{' /* NOTHING */ '}'
-        { $$ = NULL; }
+        { $$ = 0; }
         ;
 
 statement_or_block:
@@ -880,7 +880,7 @@ statements:
 
 optname: 
 	/* empty */ 
-        { $$ = NULL; }
+        { $$ = 0; }
         | IDENTIFIER { $$ = $1; }
         ;
 
@@ -921,7 +921,7 @@ statement:
 	}
         | TOK_SUB_CONTEXT context_mods statement_or_block
         {
-	   $$ = new ContextStatement(@1.first_line, @3.last_line, NULL, NULL, $2, $3);
+	   $$ = new ContextStatement(@1.first_line, @3.last_line, 0, 0, $2, $3);
 	}
         | TOK_SUMMARIZE optname '(' exp ')' TOK_BY '(' exp ')' context_mods statement_or_block
         {
@@ -982,12 +982,12 @@ statement:
 	      parse_error("delete statement takes only variable references as arguments");
 	}
         | switch_statement { $$ = $1; }
-        | error ';'        { $$ = NULL; }
+        | error ';'        { $$ = 0; }
 	;
 
 context_mods:
 	// empty 
-        { $$ = NULL; }
+        { $$ = 0; }
         | 
 	context_mods context_mod
         { 
@@ -1047,7 +1047,7 @@ case_code:
         | TOK_CASE LOGICAL_GE exp ':' // nothing
         {
           if (needsEval($3)) parse_error("case expression with '>=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_GE);
+          $$ = new CaseNodeWithOperator($3, 0, OP_LOG_GE);
         }
 
         | TOK_CASE LOGICAL_LE exp ':' statements
@@ -1058,7 +1058,7 @@ case_code:
         | TOK_CASE LOGICAL_LE exp ':' // nothing
         {
          if (needsEval($3)) parse_error("case expression with '<=' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_LE);
+          $$ = new CaseNodeWithOperator($3, 0, OP_LOG_LE);
         }
 
         | TOK_CASE '<' exp ':' statements
@@ -1069,7 +1069,7 @@ case_code:
         | TOK_CASE '<' exp ':' // nothing
         {
           if (needsEval($3)) parse_error("case expression with '>' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_LT);
+          $$ = new CaseNodeWithOperator($3, 0, OP_LOG_LT);
         }
 
         | TOK_CASE '>' exp ':' statements
@@ -1080,7 +1080,7 @@ case_code:
         | TOK_CASE '>' exp ':' // nothing
         {
           if (needsEval($3)) parse_error("case expression with '<' needs run-time evaluation");
-          $$ = new CaseNodeWithOperator($3, NULL, OP_LOG_GT);
+          $$ = new CaseNodeWithOperator($3, 0, OP_LOG_GT);
         }
 
 	| TOK_CASE REGEX_MATCH REGEX ':' statements
@@ -1089,7 +1089,7 @@ case_code:
 	}
 	| TOK_CASE REGEX_MATCH REGEX ':' // nothing
 	{
-	   $$ = new CaseNodeRegex($3, NULL);
+	   $$ = new CaseNodeRegex($3, 0);
 	}
 
 	| TOK_CASE REGEX_NMATCH REGEX ':' statements
@@ -1098,7 +1098,7 @@ case_code:
 	}
 	| TOK_CASE REGEX_NMATCH REGEX ':' // nothing
 	{
-	   $$ = new CaseNodeNegRegex($3, NULL);
+	   $$ = new CaseNodeNegRegex($3, 0);
 	}
 
 	| TOK_CASE REGEX ':' statements
@@ -1107,7 +1107,7 @@ case_code:
 	}
 	| TOK_CASE REGEX ':' // nothing
 	{
-	   $$ = new CaseNodeRegex($2, NULL);
+	   $$ = new CaseNodeRegex($2, 0);
 	}
 
         | TOK_CASE exp ':' statements
@@ -1120,23 +1120,23 @@ case_code:
         {
 	   if (needsEval($2))
 	      parse_error("case expression needs run-time evaluation");
-	   $$ = new CaseNode($2, NULL);
+	   $$ = new CaseNode($2, 0);
 	}
 
         | TOK_DEFAULT ':' statements
         {
-	   $$ = new CaseNode(NULL, $3);
+	   $$ = new CaseNode(0, $3);
 	}
         | TOK_DEFAULT ':' // nothing
         {
-	   $$ = new CaseNode(NULL, NULL);
+	   $$ = new CaseNode(0, 0);
 	}
         ;
 
 try_statement:
         TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block
         {
-	   char *param = NULL;
+	   char *param = 0;
 	   if ($5)
 	   {
 	      if ($5->getType() == NT_VARREF) 
@@ -1149,11 +1149,11 @@ try_statement:
 	}
         ;
 
-myexp:     /* empty */          { $$ = NULL; }
+myexp:     /* empty */          { $$ = 0; }
         | exp                   { $$ = $1; }
         ;
 
-//finally:   /* empty */          { $$ = NULL; }
+//finally:   /* empty */          { $$ = 0; }
 //        | TOK_FINALLY statement { $$ = $2; }
 //        ;
 
@@ -1204,7 +1204,7 @@ inheritance_list:
 	   $$ = $2;
         }
         | // NOTHING
-        { $$ = NULL; }
+        { $$ = 0; }
         ;
 
 superclass_list:
@@ -1328,7 +1328,7 @@ base_constructor_list:
 	}
 	| // nothing
         {
-	   $$ = NULL;
+	   $$ = 0;
 	}
 	;
 
@@ -1423,12 +1423,12 @@ hash:
 	hash_element
 	{
 	   $$ = new QoreHashNode(true);
-	   $$->setKeyValue($1->key, $1->value, NULL);
+	   $$->setKeyValue($1->key, $1->value, 0);
 	   delete $1;
 	}
 	| hash ',' hash_element
 	{
-	   $1->setKeyValue($3->key, $3->value, NULL);
+	   $1->setKeyValue($3->key, $3->value, 0);
 	   delete $3;
 	   $$ = $1;
 	}
@@ -1637,9 +1637,9 @@ exp:    scalar
 	   //print_tree($1, 0);
 	}
         | TOK_EXISTS exp
-        { $$ = makeTree(OP_EXISTS, $2, NULL); }
+        { $$ = makeTree(OP_EXISTS, $2, 0); }
         | TOK_ELEMENTS exp
-        { $$ = makeTree(OP_ELEMENTS, $2, NULL); }
+        { $$ = makeTree(OP_ELEMENTS, $2, 0); }
         | exp TOK_INSTANCEOF IDENTIFIER
         {
 	   $$ = makeTree(OP_INSTANCEOF, $1, new ClassRefNode($3));
@@ -1649,13 +1649,13 @@ exp:    scalar
 	   $$ = makeTree(OP_INSTANCEOF, $1, new ClassRefNode($3));
 	}
         | TOK_KEYS exp
-        { $$ = makeTree(OP_KEYS, $2, NULL); }
+        { $$ = makeTree(OP_KEYS, $2, 0); }
         | TOK_UNSHIFT exp  // unshift list, element
         {
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->getTypeName());
-	      $$ = makeErrorTree(OP_UNSHIFT, $2, NULL);
+	      $$ = makeErrorTree(OP_UNSHIFT, $2, 0);
 	   }
 	   else {
 	      AbstractQoreNode *lv = l->shift();
@@ -1666,7 +1666,7 @@ exp:    scalar
 	      }
 	      else
 		 $$ = makeTree(OP_UNSHIFT, lv, l->shift());
-	      $2->deref(NULL);
+	      $2->deref(0);
 	   }
 	}
 	| TOK_SHIFT exp
@@ -1674,17 +1674,17 @@ exp:    scalar
 	   if (check_lvalue($2))
 	   {
 	      parse_error("argument to shift operator is not an lvalue");
-	      $$ = makeErrorTree(OP_SHIFT, $2, NULL); 
+	      $$ = makeErrorTree(OP_SHIFT, $2, 0); 
 	   }
 	   else
-	      $$ = makeTree(OP_SHIFT, $2, NULL); 
+	      $$ = makeTree(OP_SHIFT, $2, 0); 
 	}
         | TOK_PUSH exp  // push lvalue-list, element
         {
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->getTypeName());
-	      $$ = makeErrorTree(OP_PUSH, $2, NULL);
+	      $$ = makeErrorTree(OP_PUSH, $2, 0);
 	   }
 	   else
 	   {
@@ -1696,7 +1696,7 @@ exp:    scalar
 	      }
 	      else
 		 $$ = makeTree(OP_PUSH, lv, l->shift());
-	      $2->deref(NULL);
+	      $2->deref(0);
 	   }
 	}
 	| TOK_POP exp
@@ -1704,37 +1704,37 @@ exp:    scalar
 	   if (check_lvalue($2))
 	   {
 	      parse_error("argument to pop operator is not an lvalue");
-	      $$ = makeErrorTree(OP_POP, $2, NULL); 
+	      $$ = makeErrorTree(OP_POP, $2, 0); 
 	   }
 	   else
-	      $$ = makeTree(OP_POP, $2, NULL); 
+	      $$ = makeTree(OP_POP, $2, 0); 
 	}
 	| TOK_CHOMP exp
 	{
 	   if (check_lvalue($2))
 	   {
 	      parse_error("argument to chomp operator is not an lvalue (use the chomp() function instead)");
-	      $$ = makeErrorTree(OP_CHOMP, $2, NULL); 
+	      $$ = makeErrorTree(OP_CHOMP, $2, 0); 
 	   }
 	   else
-	      $$ = makeTree(OP_CHOMP, $2, NULL); 
+	      $$ = makeTree(OP_CHOMP, $2, 0); 
 	}
 	| TOK_TRIM exp
 	{
 	   if (check_lvalue($2))
 	   {
 	      parse_error("argument to trim operator is not an lvalue (use the trim() function instead)");
-	      $$ = makeErrorTree(OP_TRIM, $2, NULL); 
+	      $$ = makeErrorTree(OP_TRIM, $2, 0); 
 	   }
 	   else
-	      $$ = makeTree(OP_TRIM, $2, NULL); 
+	      $$ = makeTree(OP_TRIM, $2, 0); 
 	}
         | TOK_SPLICE exp  // splice lvalue-list, offset, [length, list]
         {
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() < 2 || l->size() > 4) {
 	      parse_error("invalid arguments to splice, expected: lvalue, offset exp [length exp, [list exp]] (%s)", $2->getTypeName());
-	      $$ = makeErrorTree(OP_SPLICE, $2, NULL);
+	      $$ = makeErrorTree(OP_SPLICE, $2, 0);
 	   }
 	   else
 	   {
@@ -1755,40 +1755,40 @@ exp:    scalar
 	   if (check_lvalue($2))
 	   {
 	      parse_error("pre-increment expression is not an lvalue");
-	      $$ = makeErrorTree(OP_PRE_INCREMENT, $2, NULL);
+	      $$ = makeErrorTree(OP_PRE_INCREMENT, $2, 0);
 	   }
 	   else
-	      $$ = makeTree(OP_PRE_INCREMENT, $2, NULL);
+	      $$ = makeTree(OP_PRE_INCREMENT, $2, 0);
         }
         | exp P_INCREMENT   // post-increment
         {
 	   if (check_lvalue($1))
 	   {
 	      parse_error("post-increment expression is not an lvalue");
-	      $$ = makeErrorTree(OP_POST_INCREMENT, $1, NULL);
+	      $$ = makeErrorTree(OP_POST_INCREMENT, $1, 0);
 	   }
 	   else
-	      $$ = makeTree(OP_POST_INCREMENT, $1, NULL);
+	      $$ = makeTree(OP_POST_INCREMENT, $1, 0);
         }
         | P_DECREMENT exp   // pre-decrement
         {
 	   if (check_lvalue($2))
 	   {
 	      parse_error("pre-decrement expression is not an lvalue");
-	      $$ = makeErrorTree(OP_PRE_DECREMENT, $2, NULL);
+	      $$ = makeErrorTree(OP_PRE_DECREMENT, $2, 0);
 	   }
 	   else
-	      $$ = makeTree(OP_PRE_DECREMENT, $2, NULL);
+	      $$ = makeTree(OP_PRE_DECREMENT, $2, 0);
         }
         | exp P_DECREMENT   // post-decrement
         {
 	   if (check_lvalue($1))
 	   {
 	      parse_error("post-decrement expression is not an lvalue");
-	      $$ = makeErrorTree(OP_POST_DECREMENT, $1, NULL);
+	      $$ = makeErrorTree(OP_POST_DECREMENT, $1, 0);
 	   }
 	   else
-	      $$ = makeTree(OP_POST_DECREMENT, $1, NULL);
+	      $$ = makeTree(OP_POST_DECREMENT, $1, 0);
         }
 	| exp '(' myexp ')'
         {
@@ -1925,9 +1925,9 @@ exp:    scalar
         | exp '%' exp		     { $$ = makeTree(OP_MODULA, $1, $3); }
 	| exp '/' exp		     { $$ = makeTree(OP_DIV, $1, $3); }
 	| exp '*' exp		     { $$ = makeTree(OP_MULT, $1, $3); }
-	| '-' exp %prec NEG	     { $$ = makeTree(OP_UNARY_MINUS, $2, NULL); }
-        | '~' exp		     { $$ = makeTree(OP_BIN_NOT, $2, NULL); }
-        | '!' exp                    { $$ = makeTree(OP_NOT, $2, NULL); }
+	| '-' exp %prec NEG	     { $$ = makeTree(OP_UNARY_MINUS, $2, 0); }
+        | '~' exp		     { $$ = makeTree(OP_BIN_NOT, $2, 0); }
+        | '!' exp                    { $$ = makeTree(OP_NOT, $2, 0); }
         | '\\' exp
         {
 	   qore_type_t t = $2 ? $2->getType() : 0;
@@ -2000,7 +2000,7 @@ exp:    scalar
 	   qore_type_t t = $2 ? $2->getType() : 0;
 	   if (t == NT_SCOPE_REF)
 	   { 
-	      $$ = makeTree(OP_NEW, $2, NULL); 
+	      $$ = makeTree(OP_NEW, $2, 0); 
 	      // see if new can be used
 	      if (checkParseOption(PO_NO_NEW))
 		 parse_error("illegal use of the \"new\" operator (conflicts with parse option NO_NEW)");
@@ -2013,7 +2013,7 @@ exp:    scalar
 	   else
 	   {
 	      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>($2);
-	      $$ = makeTree(OP_NEW, f->parseMakeNewObject(), NULL);
+	      $$ = makeTree(OP_NEW, f->parseMakeNewObject(), 0);
 	      f->deref();
 	      // see if new can be used
 	      if (checkParseOption(PO_NO_NEW))
@@ -2022,7 +2022,7 @@ exp:    scalar
 	}
 	| TOK_BACKGROUND exp	     
 	{
-	   $$ = makeTree(OP_BACKGROUND, $2, NULL);
+	   $$ = makeTree(OP_BACKGROUND, $2, 0);
 	   // check to see if the expression is legal
 	   if (checkParseOption(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"background\" operator (conflicts with parse option NO_THREAD_CONTROL)");

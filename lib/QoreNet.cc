@@ -229,14 +229,14 @@ char *q_gethostbyaddr(const char *addr, int len, int type)
    if (gethostbyaddr_r(addr, len, type, &he, buf, NET_BUFSIZE, &err))
       host = strdup(he.h_name);
    else
-      host = NULL;
+      host = 0;
 # else // assume glibc2-style gethostbyaddr_r
    struct hostent *p;
    
    if (!gethostbyaddr_r(addr, len, type, &he, buf, NET_BUFSIZE, &p, &err))
       host = strdup(he.h_name);
    else
-      host = NULL;
+      host = 0;
 # endif // HAVE_SOLARIS_STYLE_GETHOST
 #else  // else if !HAVE_GETHOSTBYADDR_R
    lck_gethostbyaddr.lock();
@@ -244,7 +244,7 @@ char *q_gethostbyaddr(const char *addr, int len, int type)
    if ((he = gethostbyaddr(addr, len, type)))
       host = strdup(he->h_name);
    else
-      host = NULL;
+      host = 0;
    lck_gethostbyaddr.unlock();
 #endif // HAVE_GETHOSTBYADDR_R
    return host;

@@ -29,13 +29,13 @@ ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNod
    var = v;
    list = l;
    code = cd;
-   lvars = NULL;
+   lvars = 0;
 }
 
 ForEachStatement::~ForEachStatement()
 {
-   var->deref(NULL);
-   list->deref(NULL);
+   var->deref(0);
+   list->deref(0);
    if (code)
       delete code;
    if (lvars)
@@ -57,7 +57,7 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    if (tlist && is_nothing(tlist))
    {
       tlist->deref(xsink);
-      tlist = NULL;
+      tlist = 0;
    }
    
    QoreListNode *l_tlist = tlist && tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(tlist) : 0;
@@ -89,7 +89,7 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
 	    (*n)->deref(xsink);
 	    if (xsink->isEvent())
 	    {
-	       (*n) = NULL;
+	       (*n) = 0;
 	       // unlock lock now
 	       vl.del();
 	       // dereference single value (because it won't be assigned
@@ -153,11 +153,11 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
       if (tlist && is_nothing(tlist))
       {
 	 tlist->deref(xsink);
-	 tlist = NULL;
+	 tlist = 0;
       }
    }
    else
-      tlist = NULL;
+      tlist = 0;
 
    QoreListNode *l_tlist = tlist && tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(tlist) : 0;
 
@@ -166,7 +166,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    // execute "foreach" body
    if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
    {
-      AbstractQoreNode *ln = NULL;
+      AbstractQoreNode *ln = 0;
       unsigned i = 0;
 
       if (l_tlist)
@@ -193,7 +193,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
 	    (*n)->deref(xsink);
 	    if (xsink->isEvent())
 	    {
-	       (*n) = NULL;
+	       (*n) = 0;
 	       // unlock lock now
 	       vl.del();
 	       // dereference single value (because it won't be assigned
@@ -232,11 +232,11 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
 	    if (*n)
 	       nv = (*n)->eval(xsink);
 	    else
-	       nv = NULL;
+	       nv = 0;
 
 	    // assign new value to referenced variable
 	    if (l_tlist)
-	       (reinterpret_cast<QoreListNode *>(ln))->set_entry(i, nv, NULL);
+	       (reinterpret_cast<QoreListNode *>(ln))->set_entry(i, nv, 0);
 	    else
 	       ln = nv;
 

@@ -326,7 +326,7 @@ void QoreString::takeAndTerminate(char *str, qore_size_t size)
 char *QoreString::giveBuffer()
 {
    char *rv = priv->buf;
-   priv->buf = NULL;
+   priv->buf = 0;
    priv->len = 0;
    priv->allocated = 0;
    // reset character set, just in case the string will be reused
@@ -760,9 +760,9 @@ void QoreString::concatAndHTMLDecode(const QoreString *str)
 	    {
 	       unsigned code;
 	       if (*s == 'x')
-		  code = strtoul(s + 1, NULL, 16);
+		  code = strtoul(s + 1, 0, 16);
 	       else
-		  code = strtoul(s, NULL, 10);
+		  code = strtoul(s, 0, 10);
 	       
 	       if (!concatUnicode(code))
 	       {
@@ -1412,7 +1412,7 @@ class QoreString *QoreString::parseBase64ToString(ExceptionSink *xsink) const
 {
    SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
    if (!b)
-      return NULL;
+      return 0;
 
    qore_string_private *p = new qore_string_private;
    p->len = b->size() - 1;

@@ -60,7 +60,7 @@ NamedScope::NamedScope(char *str)
 {
    allocated = 0;
    elements  = 0;
-   strlist = NULL;
+   strlist = 0;
    ostr = str;
    
    while (char *p = strstr(str, "::"))

@@ -30,9 +30,9 @@ DeleteStatement::DeleteStatement(int start_line, int end_line, AbstractQoreNode 
 
 DeleteStatement::~DeleteStatement()
 {
-   // this should never be NULL, but in case the implementation changes...
+   // this should never be 0, but in case the implementation changes...
    if (var)
-      var->deref(NULL);
+      var->deref(0);
 }
 
 int DeleteStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)

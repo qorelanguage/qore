@@ -31,7 +31,7 @@
 
 void RegexSubstNode::init()
 {
-   p = NULL;
+   p = 0;
    global = false;
    options = PCRE_UTF8;
 }
@@ -54,8 +54,8 @@ RegexSubstNode::RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *
    else
       options |= opts;
    
-   newstr = NULL;
-   str = NULL;
+   newstr = 0;
+   str = 0;
    parseRT(pstr, xsink);
 }
 
@@ -121,7 +121,7 @@ void RegexSubstNode::parseRT(const QoreString *pstr, ExceptionSink *xsink)
    
    const char *err;
    int eo;
-   p = pcre_compile(t->getBuffer(), options, &err, &eo, NULL);
+   p = pcre_compile(t->getBuffer(), options, &err, &eo, 0);
    if (err)
       xsink->raiseException("REGEX-COMPILATION-ERROR", (char *)err);
 }
@@ -137,7 +137,7 @@ void RegexSubstNode::parse()
    //printd(5, "RegexSubstNode::parse() this=%08p: pstr=%s, newstr=%s, global=%s\n", this, pstr->getBuffer(), newstr->getBuffer(), global ? "true" : "false"); 
    
    delete str;
-   str = NULL;
+   str = 0;
 }
 
 // static function
@@ -178,7 +178,7 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
    {
       int ovector[SUBST_OVECSIZE];
       int offset = ptr - t->getBuffer();
-      int rc = pcre_exec(p, NULL, t->getBuffer(), t->strlen(), offset, 0, ovector, SUBST_OVECSIZE);
+      int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, SUBST_OVECSIZE);
       if (rc < 0)
 	 break;
       

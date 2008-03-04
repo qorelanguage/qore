@@ -45,7 +45,7 @@ struct qore_timespec_t
 static inline void qore_gettime(qore_timespec_t *tp)
 {
    struct timeval tv;
-   gettimeofday(&tv, NULL);
+   gettimeofday(&tv, 0);
    tp->tv_sec = tv.tv_sec;
    tp->tv_nsec = tv.tv_usec * 1000;
 }
@@ -55,7 +55,7 @@ static AbstractQoreNode *f_now(const QoreListNode *params, ExceptionSink *xsink)
 {
    time_t ct;
 
-   ct = time(NULL);
+   ct = time(0);
    //printf("f_now() %d\n", ct);
    struct tm tms;
    return new DateTimeNode(q_localtime(&ct, &tms));
@@ -68,7 +68,7 @@ static AbstractQoreNode *f_format_date(const QoreListNode *params, ExceptionSink
 
    if (!(p0 = test_string_param(params, 0)) ||
        !(p1 = get_param(params, 1)))
-      return NULL;
+      return 0;
    
    DateTimeValueHelper temp(p1);
    QoreStringNode *rv = new QoreStringNode();
@@ -84,7 +84,7 @@ static AbstractQoreNode *f_localtime(const QoreListNode *params, ExceptionSink *
 
    // if no parameters are passed, then return the current local time (like now())
    if (!num_params(params)) 
-      return NULL;
+      return 0;
    else
    {
       const AbstractQoreNode *p0 = get_param(params, 0);
@@ -100,7 +100,7 @@ static AbstractQoreNode *f_gmtime(const QoreListNode *params, ExceptionSink *xsi
    time_t t;
    // if no parameters are passed, then return the current GMT time
    if (!num_params(params))
-      t = time(NULL);
+      t = time(0);
    else
    {
       const AbstractQoreNode *p0 = get_param(params, 0);
@@ -115,7 +115,7 @@ static AbstractQoreNode *f_mktime(const QoreListNode *params, ExceptionSink *xsi
 {
    const AbstractQoreNode *p0;
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    DateTimeValueHelper temp(p0);
    struct tm nt;
@@ -132,7 +132,7 @@ static AbstractQoreNode *f_timegm(const QoreListNode *params, ExceptionSink *xsi
 {
    const AbstractQoreNode *p0;
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    DateTimeValueHelper temp(p0);
    struct tm nt;
@@ -208,7 +208,7 @@ static AbstractQoreNode *f_get_years(const QoreListNode *params, ExceptionSink *
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(p0->getYear());
 }
@@ -218,7 +218,7 @@ static AbstractQoreNode *f_get_months(const QoreListNode *params, ExceptionSink 
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(p0->getMonth());
 }
@@ -228,7 +228,7 @@ static AbstractQoreNode *f_get_days(const QoreListNode *params, ExceptionSink *x
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(p0->getDay());
 }
@@ -238,7 +238,7 @@ static AbstractQoreNode *f_get_hours(const QoreListNode *params, ExceptionSink *
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(p0->getHour());
 }
@@ -248,7 +248,7 @@ static AbstractQoreNode *f_get_minutes(const QoreListNode *params, ExceptionSink
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(p0->getMinute());
 }
@@ -258,7 +258,7 @@ static AbstractQoreNode *f_get_seconds(const QoreListNode *params, ExceptionSink
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(p0->getSecond());
 }
@@ -268,7 +268,7 @@ static AbstractQoreNode *f_get_milliseconds(const QoreListNode *params, Exceptio
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(p0->getMillisecond());
 }
@@ -278,7 +278,7 @@ static AbstractQoreNode *f_get_midnight(const QoreListNode *params, ExceptionSin
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    class DateTimeNode *dt = new DateTimeNode(*p0);
    dt->setTime(0, 0, 0);
@@ -290,7 +290,7 @@ static AbstractQoreNode *f_getDayNumber(const QoreListNode *params, ExceptionSin
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    return new QoreBigIntNode(p0->getDayNumber());
 }
@@ -300,7 +300,7 @@ static AbstractQoreNode *f_getDayOfWeek(const QoreListNode *params, ExceptionSin
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    int d = p0->getDayOfWeek();
    return new QoreBigIntNode(d);
@@ -311,7 +311,7 @@ static AbstractQoreNode *f_getISODayOfWeek(const QoreListNode *params, Exception
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    int d = p0->getDayOfWeek();
    return new QoreBigIntNode((!d ? 7 : d));
@@ -322,14 +322,14 @@ static AbstractQoreNode *f_getISOWeekHash(const QoreListNode *params, ExceptionS
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
 
    int year, week, day;
    p0->getISOWeek(year, week, day);
    QoreHashNode *h = new QoreHashNode();
-   h->setKeyValue("year", new QoreBigIntNode(year), NULL);
-   h->setKeyValue("week", new QoreBigIntNode(week), NULL);
-   h->setKeyValue("day", new QoreBigIntNode(day), NULL);
+   h->setKeyValue("year", new QoreBigIntNode(year), 0);
+   h->setKeyValue("week", new QoreBigIntNode(week), 0);
+   h->setKeyValue("day", new QoreBigIntNode(day), 0);
    
    return h;
 }
@@ -339,7 +339,7 @@ static AbstractQoreNode *f_getISOWeekString(const QoreListNode *params, Exceptio
 {
    const DateTimeNode *p0 = test_date_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    int year, week, day;
    p0->getISOWeek(year, week, day);
@@ -377,7 +377,7 @@ static AbstractQoreNode *f_getDateFromISOWeek(const QoreListNode *params, Except
  */
 static AbstractQoreNode *f_clock_getmillis(const QoreListNode *params, ExceptionSink *xsink) {
    struct timeval tv;
-   gettimeofday(&tv, NULL);
+   gettimeofday(&tv, 0);
 
    return new QoreBigIntNode(((int64)tv.tv_sec*(int64)1000 + tv.tv_usec/1000));
 }
@@ -400,7 +400,7 @@ static AbstractQoreNode *f_clock_getnanos(const QoreListNode *params, ExceptionS
 static AbstractQoreNode *f_clock_getmicros(const QoreListNode *params, ExceptionSink *xsink) 
 {
    struct timeval tv;
-   gettimeofday(&tv, NULL);
+   gettimeofday(&tv, 0);
 
    return new QoreBigIntNode(((int64)tv.tv_sec * (int64)1000000 + tv.tv_usec));
 }

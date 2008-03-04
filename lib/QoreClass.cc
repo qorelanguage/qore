@@ -220,7 +220,7 @@ QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced)
       if (i->second->execed)
       {
 	 *aexeced = true;
-	 return NULL;
+	 return 0;
       }
       *aexeced = false;
       i->second->execed = true;
@@ -229,7 +229,7 @@ QoreListNode *BCEAList::findArgs(const QoreClass *qc, bool *aexeced)
 
    insert(std::make_pair(qc, new BCEANode()));
    *aexeced = false;
-   return NULL;
+   return 0;
 }
 
 inline int BCEAList::add(class QoreClass *qc, QoreListNode *arg, ExceptionSink *xsink)
@@ -240,7 +240,7 @@ inline int BCEAList::add(class QoreClass *qc, QoreListNode *arg, ExceptionSink *
       return 0;
 
    // evaluate and save arguments
-   insert(std::make_pair(qc, new BCEANode(arg ? arg->evalList(xsink) : NULL)));
+   insert(std::make_pair(qc, new BCEANode(arg ? arg->evalList(xsink) : 0)));
    if (xsink->isEvent())
       return -1;
    return 0;
@@ -268,7 +268,7 @@ BCANode::~BCANode()
    if (name)
       free(name);
    if (argexp)
-      argexp->deref(NULL);
+      argexp->deref(0);
 }
 
 inline void BCANode::resolve()
@@ -278,14 +278,14 @@ inline void BCANode::resolve()
       sclass = getRootNS()->parseFindScopedClass(ns);
       printd(5, "BCANode::resolve() this=%08p resolved named scoped %s -> %08p\n", this, ns->ostr, sclass);
       delete ns;
-      ns = NULL;
+      ns = 0;
    }
    else
    {
       sclass = getRootNS()->parseFindClass(name);
       printd(5, "BCANode::resolve() this=%08p resolved %s -> %08p\n", this, name, sclass);
       free(name);
-      name = NULL;
+      name = 0;
    }   
 }
 
@@ -295,7 +295,7 @@ BCNode::~BCNode()
    if (cstr)
       free(cstr);
    if (args)
-      args->deref(NULL);
+      args->deref(0);
 }
 
 BCList::BCList(class BCNode *n) : init(false)
@@ -345,14 +345,14 @@ inline void BCList::parseInit(class QoreClass *cls, class BCAList *bcal)
 	    (*i)->sclass = getRootNS()->parseFindScopedClass((*i)->cname);
 	    printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cname->ostr, (*i)->sclass);
 	    delete (*i)->cname;
-	    (*i)->cname = NULL;
+	    (*i)->cname = 0;
 	 }
 	 else
 	 {
 	    (*i)->sclass = getRootNS()->parseFindClass((*i)->cstr);
 	    printd(5, "BCList::parseInit() %s inheriting %s (%08p)\n", cls->getName(), (*i)->cstr, (*i)->sclass);
 	    free((*i)->cstr);
-	    (*i)->cstr = NULL;
+	    (*i)->cstr = 0;
 	 }
       // recursively add base classes to special method list
       if ((*i)->sclass)
@@ -403,7 +403,7 @@ inline const QoreMethod *BCList::findMethod(const char *name) const
 	    return m;
       }
    }
-   return NULL;
+   return 0;
 }
 
 // called at parse time
@@ -420,7 +420,7 @@ inline const QoreMethod *BCList::findParseMethod(const char *name)
 	    return m;
       }
    }
-   return NULL;
+   return 0;
 }
 
 // only called at run-time
@@ -439,7 +439,7 @@ inline const QoreMethod *BCList::findMethod(const char *name, bool &priv) const
 	 }
       }
    }
-   return NULL;
+   return 0;
 }
 
 inline bool BCList::match(class BCANode *bca)
@@ -449,7 +449,7 @@ inline bool BCList::match(class BCANode *bca)
       if (bca->sclass == (*i)->sclass)
       {
 	 (*i)->args = bca->argexp;
-	 bca->argexp = NULL;
+	 bca->argexp = 0;
 	 (*i)->hasargs = true;
 	 return true;
       }
@@ -478,7 +478,7 @@ inline const QoreMethod *BCList::resolveSelfMethod(const char *name)
 	    return m;
       }
    }
-   return NULL;
+   return 0;
 }
 
 inline void BCList::execConstructors(QoreObject *o, class BCEAList *bceal, ExceptionSink *xsink) const
@@ -538,7 +538,7 @@ const QoreMethod *QoreClass::findLocalMethod(const char *nme) const
    if (i != priv->hm.end())
       return i->second;
 
-   return NULL;
+   return 0;
 }
 
 const QoreMethod *QoreClass::findMethod(const char *nme) const
@@ -641,7 +641,7 @@ bool QoreClass::isSystem() const
 
 bool QoreClass::hasMemberGate() const
 {
-   return priv->memberGate != NULL;
+   return priv->memberGate != 0;
 }
 
 qore_domain_t QoreClass::getDomain() const
@@ -670,7 +670,7 @@ const QoreMethod *QoreClass::parseFindMethod(const char *nme)
    if (i != priv->hm_pending.end())
       return i->second;
 
-   return NULL;
+   return 0;
 }
 
 void QoreClass::addBuiltinBaseClass(QoreClass *qc, QoreListNode *xargs)
@@ -810,7 +810,7 @@ void QoreMethod::evalSystemDestructor(QoreObject *self, ExceptionSink *xsink) co
 void QoreMethod::parseInit()
 {
    // must be called even if func.userFunc->statements is NULL
-   priv->func.userFunc->statements->parseInit(priv->func.userFunc->params, NULL);
+   priv->func.userFunc->statements->parseInit(priv->func.userFunc->params, 0);
 }
 
 void QoreMethod::parseInitConstructor(class BCList *bcl)
@@ -841,7 +841,7 @@ static inline const QoreClass *getStackClass()
    QoreObject *obj = getStackObject();
    if (obj)
       return obj->getClass();
-   return NULL;
+   return 0;
 }
 
 void QoreClass::addPrivateMember(char *nme)
@@ -965,7 +965,7 @@ inline class QoreClass *BCSMList::getClass(qore_classid_t cid) const
 	 return (*i).first;
       i++;
    }
-   return NULL;
+   return 0;
 }
 
 QoreClass::QoreClass(const char *nme, qore_domain_t dom)
@@ -1006,12 +1006,12 @@ QoreClass *QoreClass::getClass(qore_classid_t cid) const
 {
    if (cid == priv->classID)
       return (QoreClass *)this;
-   return priv->scl ? priv->scl->sml.getClass(cid) : NULL;
+   return priv->scl ? priv->scl->sml.getClass(cid) : 0;
 }
 
 AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const
 {
-   AbstractQoreNode *rv = NULL;
+   AbstractQoreNode *rv = 0;
 
    tracein("QoreMethod::eval()");
 #ifdef DEBUG
@@ -1096,7 +1096,7 @@ void QoreMethod::evalDestructor(QoreObject *self, ExceptionSink *xsink) const
    ProgramContextHelper pch(self->getProgram());
 
    if (priv->type == OTF_USER)
-      priv->func.userFunc->eval(NULL, self, xsink, priv->parent_class->getName());
+      priv->func.userFunc->eval(0, self, xsink, priv->parent_class->getName());
    else // builtin function
    {
       AbstractPrivateData *ptr = self->getAndClearPrivateData(priv->parent_class->getID(), xsink);
@@ -1191,14 +1191,14 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       // otherwise return an exception
       xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined", priv->name, nme);
       traceout("QoreClass::evalMethod()");
-      return NULL;
+      return 0;
    }
    // check for illegal explicit call
    if (w == priv->constructor || w == priv->destructor)
    {
       xsink->raiseException("ILLEGAL-EXPLICIT-METHOD-CALL", "explicit calls to ::%s() methods are not allowed", nme);
       traceout("QoreClass::evalMethod()");
-      return NULL;      
+      return 0;      
    }
 
    if (external)
@@ -1206,13 +1206,13 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       {
 	 xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s() is private and cannot be accessed externally", priv->name, nme);
 	 traceout("QoreClass::evalMethod()");
-	 return NULL;
+	 return 0;
       }
       else if (priv_flag)
       {
 	 xsink->raiseException("BASE-CLASS-IS-PRIVATE", "%s() is a method of a privately-inherited class of %s", nme, priv->name);
 	 traceout("QoreClass::evalMethod()");
-	 return NULL;
+	 return 0;
       }
    traceout("QoreClass::evalMethod()");
    return w->eval(self, args, xsink);
@@ -1275,7 +1275,7 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
    if (priv->scl)
       bceal = new BCEAList();
    else
-      bceal = NULL;
+      bceal = 0;
 
    printd(5, "QoreClass::execConstructor() %s::constructor() o=%08p\n", priv->name, o);
 
@@ -1296,7 +1296,7 @@ QoreObject *QoreClass::execConstructor(const QoreListNode *args, ExceptionSink *
       // which will clear out all the private data by running their dereference methods which should generally be OK
       o->obliterate(xsink);
       printd(5, "QoreClass::execConstructor() %s::constructor() o=%08p, exception in constructor, dereferencing object and returning NULL\n", priv->name, o);
-      return NULL;
+      return 0;
    }
 
    printd(5, "QoreClass::execConstructor() %s::constructor() returning o=%08p\n", priv->name, o);
@@ -1310,7 +1310,7 @@ QoreObject *QoreClass::execSystemConstructor(int code, ...) const
    va_list args;
 
    // create new object
-   QoreObject *o = new QoreObject(this, NULL);
+   QoreObject *o = new QoreObject(this, 0);
 
    va_start(args, code);
    // no lock is sent with constructor, because no variable has been assigned yet
@@ -1401,10 +1401,10 @@ QoreObject *QoreClass::execCopy(QoreObject *old, ExceptionSink *xsink) const
 {
    class QoreHashNode *h = old->copyData(xsink);
    if (*xsink)
-      return NULL;
+      return 0;
 
    // save current program location in case there's an exception
-   const char *o_fn = NULL;
+   const char *o_fn = 0;
    int o_ln = 0, o_eln = 0;
 
    ReferenceHolder<QoreObject> self(new QoreObject(this, getProgram(), h), xsink);
@@ -1502,7 +1502,7 @@ const QoreMethod *QoreClass::resolveSelfMethod(const char *nme)
    if (err)
    {
       parse_error("explicit calls to ::%s() methods are not allowed", nme);
-      m = NULL;
+      m = 0;
    }
    else if (!m)
       parse_error("no method %s::%s() has been defined", priv->name ? priv->name : "<pending>", nme);
@@ -1515,13 +1515,13 @@ const QoreMethod *QoreClass::resolveSelfMethod(class NamedScope *nme)
    // first find class
    QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(nme);
    if (!qc)
-      return NULL;
+      return 0;
 
    // see if class is base class of this class
    if (qc != this && !priv->scl->sml.isBaseClass(qc))
    {
       parse_error("'%s' is not a base class of '%s'", qc->getName(), priv->name ? priv->name : "<pending>");
-      return NULL;
+      return 0;
    }
 
    const char *nstr = nme->getIdentifier();
@@ -1547,7 +1547,7 @@ const QoreMethod *QoreClass::resolveSelfMethod(class NamedScope *nme)
    if (err)
    {
       parse_error("explicit calls to ::%s() methods are not allowed", nstr);
-      m = NULL;
+      m = 0;
    }
    else if (!m)
       parse_error("no method %s::%s() has been defined", qc->getName(), nstr);
@@ -1682,7 +1682,7 @@ void QoreClass::parseInit()
 	 parse_error("base constructor arguments given for a class that has no parent classes");
       }
       delete priv->bcal;
-      priv->bcal = NULL;
+      priv->bcal = 0;
    }
 }
 

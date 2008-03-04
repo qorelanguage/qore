@@ -39,7 +39,7 @@ QoreHashNode *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n)
       OBJ_obj2txt(key, OBJ_BUF_LEN, ko, 0);
       ASN1_STRING *val = X509_NAME_ENTRY_get_data(e);
       //printd(5, "do_X509_name() %s=%s\n", key, ASN1_STRING_data(val));
-      h->setKeyValue(key, new QoreStringNode((const char *)ASN1_STRING_data(val)), NULL);
+      h->setKeyValue(key, new QoreStringNode((const char *)ASN1_STRING_data(val)), 0);
    }
    return h;
 }

@@ -102,7 +102,7 @@ public:
    DLLLOCAL ~tid_node();
 };
 
-static tid_node *tid_head = NULL, *tid_tail = NULL;
+static tid_node *tid_head = 0, *tid_tail = 0;
  
 class ProgramLocation {
    public:
@@ -110,7 +110,7 @@ class ProgramLocation {
       void *parseState;
       class ProgramLocation *next;
       
-      DLLLOCAL ProgramLocation(const char *fname, void *ps = NULL) 
+      DLLLOCAL ProgramLocation(const char *fname, void *ps = 0) 
       { 
 	 file       = fname; 
 	 parseState = ps;
@@ -278,7 +278,7 @@ public:
    class ThreadCleanupNode *next;
 };
 
-DLLLOCAL ThreadCleanupNode *ThreadCleanupList::head = NULL;
+DLLLOCAL ThreadCleanupNode *ThreadCleanupList::head = 0;
 
 class ThreadParams {
    public:
@@ -298,7 +298,7 @@ class ThreadParams {
 tid_node::tid_node(int ntid)
 {
    tid = ntid;
-   next = NULL;
+   next = 0;
    prev = tid_tail;
    if (!tid_head)
       tid_head = this;
@@ -339,7 +339,7 @@ class BGThreadParams {
 	 get_pgm_counter(s_line, e_line);
 	 file = get_pgm_file();
 
-	 obj = NULL;
+	 obj = 0;
 	 // get and reference the current stack object, if any, for the new call stack
 	 callobj = getStackObject();
 
@@ -390,7 +390,7 @@ class BGThreadParams {
 	 if (callobj)
 	 {
 	    callobj->tDeref();
-	    callobj = NULL;
+	    callobj = 0;
 	 }
       }
       DLLLOCAL void derefObj(ExceptionSink *xsink)
@@ -398,14 +398,14 @@ class BGThreadParams {
 	 if (obj)
 	 {
 	    obj->deref(xsink);
-	    obj = NULL;
+	    obj = 0;
 	 }
       }
       DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink)
       {
 	 AbstractQoreNode *rv = fc->eval(xsink);
 	 fc->deref(xsink);
-	 fc = NULL;
+	 fc = 0;
 	 return rv;
       }
 };
@@ -414,7 +414,7 @@ ThreadCleanupList::ThreadCleanupList()
 {
    //printf("ThreadCleanupList::ThreadCleanupList() head=NULL\n");
 
-   head = NULL;
+   head = 0;
 }
 
 ThreadCleanupList::~ThreadCleanupList()
@@ -452,7 +452,7 @@ void ThreadCleanupList::push(qtdest_t func, void *arg)
 void ThreadCleanupList::pop(bool exec)
 {
    //printf("TCL::pop() this=%08p, &head=%08p, head=%08p\n", this, &head, head);
-   // NOTE: if exit() is called, then somehow head = NULL !!!
+   // NOTE: if exit() is called, then somehow head = 0 !!!
    // I can't explain it, but that's why the if statement is there... :-(
    if (head)
    {
@@ -466,18 +466,18 @@ void ThreadCleanupList::pop(bool exec)
 
 ThreadData::ThreadData(int ptid, QoreProgram *p) : tid(ptid), vlock(ptid), current_pgm(p)
 {
-   context_stack     = NULL;
+   context_stack     = 0;
    pgm_counter_start = 0;
    pgm_counter_end   = 0;
    parse_line_start  = 0;
    parse_line_end    = 0;
-   pgm_file          = NULL;
-   parse_file        = NULL;
-   plStack           = NULL;
-   parseState        = NULL;
-   vstack            = NULL;
-   cvarstack         = NULL;
-   parseClass        = NULL;
+   pgm_file          = 0;
+   parse_file        = 0;
+   plStack           = 0;
+   parseState        = 0;
+   vstack            = 0;
+   cvarstack         = 0;
+   parseClass        = 0;
    catchException    = 0;
    current_obj       = 0;
    current_code      = 0;
@@ -566,7 +566,7 @@ void beginParsing(char *file, void *ps)
       class ProgramLocation *pl = new ProgramLocation(td->parse_file, td->parseState);
       if (!td->plStack)
       {
-	 pl->next = NULL;
+	 pl->next = 0;
 	 td->plStack = pl;
       }
       else
@@ -595,8 +595,8 @@ void *endParsing()
    }
    else
    {
-      td->parse_file = NULL;
-      td->parseState = NULL;
+      td->parse_file = 0;
+      td->parseState = 0;
    }
    return rv;
 }
@@ -857,7 +857,7 @@ static void allocate_thread_entry(int tid)
 {
    thread_list[tid].ptid = (pthread_t)-1L;
 #ifdef DEBUG
-   thread_list[tid].callStack = NULL;
+   thread_list[tid].callStack = 0;
 #endif
 }
 
@@ -959,7 +959,7 @@ namespace {
       ExceptionSink xsink;
       AbstractQoreNode *rv;
       {
-	 CodeContextHelper cch(NULL, btp->callobj, &xsink);
+	 CodeContextHelper cch(0, btp->callobj, &xsink);
 #ifdef DEBUG
 	 // push this call on the thread stack
 	 CallStackHelper csh("background operator", CT_NEWTHREAD, btp->callobj, &xsink);
@@ -1000,15 +1000,15 @@ namespace {
 
       delete btp;
 
-      pthread_exit(NULL);
-      return NULL;
+      pthread_exit(0);
+      return 0;
    }
 }
 
 static AbstractQoreNode *op_background(const AbstractQoreNode *left, const AbstractQoreNode *ignored, bool ref_rv, ExceptionSink *xsink)
 {
    if (!left)
-      return NULL;
+      return 0;
 
    //printd(2, "op_background() before crlr left = %08p\n", left);
    AbstractQoreNode *nl = copy_and_resolve_lvar_refs(left, xsink);
@@ -1016,10 +1016,10 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
    if (xsink->isEvent())
    {
       if (nl) nl->deref(xsink);
-      return NULL;
+      return 0;
    }
    if (!nl)
-      return NULL;
+      return 0;
 
    // now we are ready to create the new thread
 
@@ -1033,7 +1033,7 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
    {
       if (nl) nl->deref(xsink);
       xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
-      return NULL;
+      return 0;
    }
 
    //printd(2, "creating BGThreadParams(%08p, %d)\n", nl, tid);
@@ -1042,7 +1042,7 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
    {
       if (nl) nl->deref(xsink);
       deregister_thread(tid);
-      return NULL;
+      return 0;
    }
    //printd(2, "tp = %08p\n", tp);
    // create thread
@@ -1056,7 +1056,7 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
 
       deregister_thread(tid);
       xsink->raiseException("THREAD-CREATION-FAILURE", "could not create thread: %s", strerror(rc));
-      return NULL;
+      return 0;
    }
    //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
 
@@ -1068,10 +1068,10 @@ void init_qore_threads()
    tracein("qore_init_threads()");
 
    // init thread data key
-   pthread_key_create(&thread_data_key, NULL); //thread_data_cleanup);
+   pthread_key_create(&thread_data_key, 0); //thread_data_cleanup);
 
    // setup parent thread data
-   register_thread(get_thread_entry(), pthread_self(), NULL);
+   register_thread(get_thread_entry(), pthread_self(), 0);
 
    // register "background" Operator.handler
    OP_BACKGROUND = oplist.add(new Operator(1, "background", "run in background thread", 0, true));
@@ -1170,10 +1170,10 @@ QoreHashNode *getAllCallStacks()
 	    // make hash entry
 	    str.clear();
 	    str.sprintf("%d", w->tid);
-	    h->setKeyValue(&str, l, NULL);
+	    h->setKeyValue(&str, l, 0);
 	 }
 	 else
-	    l->deref(NULL);
+	    l->deref(0);
       }
       w = w->next;
    }   

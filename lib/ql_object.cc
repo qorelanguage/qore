@@ -28,7 +28,7 @@ static AbstractQoreNode *f_getMethodList(const QoreListNode *params, ExceptionSi
 {
    QoreObject *p0 = test_object_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    return p0->getClass()->getMethodList();
 }
@@ -38,12 +38,12 @@ static AbstractQoreNode *f_callObjectMethod(const QoreListNode *params, Exceptio
    // get object
    QoreObject *p0 = test_object_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    // get method name
    const QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
-      return NULL;
+      return 0;
    
    ReferenceHolder<QoreListNode> args(xsink);
    
@@ -58,7 +58,7 @@ static AbstractQoreNode *f_callObjectMethod(const QoreListNode *params, Exceptio
    }
 
    // make sure method call is internal (allows access to private methods) if this function was called internally
-   CodeContextHelper cch(NULL, p0, xsink);
+   CodeContextHelper cch(0, p0, xsink);
    return p0->evalMethod(p1, *args, xsink);
 }
 
@@ -67,12 +67,12 @@ static AbstractQoreNode *f_callObjectMethodArgs(const QoreListNode *params, Exce
    // get object
    QoreObject *p0 = test_object_param(params, 0);
    if (!p0)
-      return NULL;
+      return 0;
    
    // get method name
    const QoreStringNode *p1 = test_string_param(params, 1);
    if (!p1)
-      return NULL;
+      return 0;
 
    ReferenceHolder<QoreListNode> args(xsink);
    const AbstractQoreNode *p2;
@@ -93,7 +93,7 @@ static AbstractQoreNode *f_callObjectMethodArgs(const QoreListNode *params, Exce
    // make sure method call is internal (allows access to private methods) if this function was called internally
    AbstractQoreNode *rv;
    {
-      CodeContextHelper cch(NULL, p0, xsink);
+      CodeContextHelper cch(0, p0, xsink);
       rv = p0->evalMethod(p1, *args, xsink);
 
       // remove value (and borrowed reference) from list if necessary

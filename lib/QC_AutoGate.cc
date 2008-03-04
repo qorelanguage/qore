@@ -28,7 +28,7 @@ qore_classid_t CID_AUTOGATE;
 static void AG_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
 {
    QoreObject *p = test_object_param(params, 0);
-   QoreGate *g = p ? (QoreGate *)p->getReferencedPrivateData(CID_GATE, xsink) : NULL;
+   QoreGate *g = p ? (QoreGate *)p->getReferencedPrivateData(CID_GATE, xsink) : 0;
    if (*xsink)
       return;
 

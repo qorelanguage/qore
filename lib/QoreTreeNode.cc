@@ -33,9 +33,9 @@ QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, class Operator *o, AbstractQoreN
 QoreTreeNode::~QoreTreeNode()
 {
    if (left)
-      left->deref(NULL);
+      left->deref(0);
    if (right)
-      right->deref(NULL);
+      right->deref(0);
 }
 
 void QoreTreeNode::ignoreReturnValue()

@@ -64,7 +64,7 @@ class ImportedFunctionNode *ImportedFunctionList::findNode(const char *name) con
    if (i != end())
       return i->second;
 
-   return NULL;
+   return 0;
 }
 
 class UserFunction *ImportedFunctionList::find(const char *name) const
@@ -75,5 +75,5 @@ class UserFunction *ImportedFunctionList::find(const char *name) const
    if (i != end())
       return i->second->func;
 
-   return NULL;
+   return 0;
 }

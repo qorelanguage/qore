@@ -850,7 +850,7 @@ int64 DateTime::getRelativeSeconds() const
 	 + (priv->year ? priv->year * 31536000ll : 0);
    
    // find the difference between localtime and now
-   time_t ct = time(NULL);
+   time_t ct = time(0);
    struct tm tms;
    DateTime od(q_localtime(&ct, &tms));
    int64 diff = od.getEpochSeconds() - getEpochSeconds();
@@ -867,7 +867,7 @@ int64 DateTime::getRelativeMilliseconds() const
 	 + (priv->year ? priv->year * 31536000000ll : 0);
    
    // find the difference between localtime and now
-   time_t ct = time(NULL);
+   time_t ct = time(0);
    struct tm tms;
    DateTime od(q_localtime(&ct, &tms));
    int64 diff = (od.getEpochSeconds() - getEpochSeconds()) * 1000 + od.priv->millisecond - priv->millisecond;
@@ -953,7 +953,7 @@ void DateTime::setDate(const struct tm *tms, short ms)
 void DateTime::setDate(const char *str)
 {
 #ifdef HAVE_STRTOLL
-   int64 date = strtoll(str, NULL, 10);
+   int64 date = strtoll(str, 0, 10);
 #else
    int64 date = atoll(str);
 #endif
@@ -975,7 +975,7 @@ void DateTime::setDate(const char *str)
 void DateTime::setRelativeDate(const char *str)
 {
 #ifdef HAVE_STRTOLL
-   int64 date = strtoll(str, NULL, 10);
+   int64 date = strtoll(str, 0, 10);
 #else
    int64 date = atoll(str);
 #endif

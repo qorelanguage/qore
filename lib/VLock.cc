@@ -94,7 +94,7 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int t
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
    }
    
-   waiting_on = NULL;
+   waiting_on = 0;
    
    return rc;
 }
@@ -124,7 +124,7 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, Except
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
    }
 
-   waiting_on = NULL;
+   waiting_on = 0;
    
    return rc;
 }
@@ -158,7 +158,7 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsin
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
    }
 
-   waiting_on = NULL;
+   waiting_on = 0;
 
    return rc;
 }
@@ -166,7 +166,7 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsin
 #ifdef DEBUG
 void VLock::show(class VLock *vl) const
 {
-   //printd(0, "VLock::show() this=%08p, vl=%08p vl->waiting_on=%08p (in this=%08p)\n", this, vl, vl ? vl->waiting_on : NULL, vl ? find(vl->waiting_on) : NULL);
+   //printd(0, "VLock::show() this=%08p, vl=%08p vl->waiting_on=%08p (in this=%08p)\n", this, vl, vl ? vl->waiting_on : 0, vl ? find(vl->waiting_on) : 0);
 }
 #endif
 
@@ -211,5 +211,5 @@ class AbstractSmartLock *VLock::find(class AbstractSmartLock *g) const
    for (abstract_lock_list_t::const_iterator i = begin(), e = end(); i != e; ++i)
       if (*i == g)
 	 return g;
-   return NULL;
+   return 0;
 }

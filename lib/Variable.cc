@@ -38,7 +38,7 @@ Var::Var(const char *nme, AbstractQoreNode *val)
    type = GV_VALUE;
    v.val.value = val;
    v.val.name = strdup(nme);
-   //next = NULL;
+   //next = 0;
 }
 
 Var::Var(class Var *ref, bool ro)
@@ -47,7 +47,7 @@ Var::Var(class Var *ref, bool ro)
    v.ivar.refptr = ref;
    v.ivar.readonly = ro;
    ref->ROreference();
-   //next = NULL;
+   //next = 0;
 }
 
 void Var::del(ExceptionSink *xsink)
@@ -66,7 +66,7 @@ void Var::del(ExceptionSink *xsink)
  
       free(v.val.name);
 #ifdef DEBUG
-      v.val.name = NULL;
+      v.val.name = 0;
 #endif
       if (v.val.value)
 	 v.val.value->deref(xsink);
@@ -100,7 +100,7 @@ AbstractQoreNode *Var::eval(ExceptionSink *xsink)
    AbstractQoreNode *rv;
 
    if (gate.enter(xsink) < 0)
-      return NULL;
+      return 0;
    if (type == GV_IMPORT)
       rv = v.ivar.refptr->eval(xsink);
    else
@@ -118,7 +118,7 @@ AbstractQoreNode *Var::eval(ExceptionSink *xsink)
 AbstractQoreNode **Var::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink) const
 {
    if (gate.enter(xsink) < 0)
-      return NULL;
+      return 0;
 
    if (type == GV_IMPORT)
    {
@@ -126,7 +126,7 @@ AbstractQoreNode **Var::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink) c
       {
 	 gate.exit();
 	 xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only variable $%s", v.ivar.refptr->getName());
-	 return NULL;
+	 return 0;
       }
       AbstractQoreNode **rv = v.ivar.refptr->getValuePtr(vl, xsink);
       gate.exit();
@@ -140,7 +140,7 @@ AbstractQoreNode **Var::getValuePtr(class AutoVLock *vl, ExceptionSink *xsink) c
 AbstractQoreNode *Var::getValue(class AutoVLock *vl, ExceptionSink *xsink)
 {
    if (gate.enter(xsink) < 0)
-      return NULL;
+      return 0;
 
    if (type == GV_IMPORT)
    {
@@ -209,17 +209,17 @@ static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, class AutoVL
    // first get index
    int ind = tree->right->integerEval(xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
    if (ind < 0)
    {
       xsink->raiseException("NEGATIVE-LIST-INDEX", "list index %d is invalid (index must evaluate to a non-negative integer)", ind);
-      return NULL;
+      return 0;
    }
 
    // now get left hand side
    AbstractQoreNode **val = get_var_value_ptr(tree->left, vlp, xsink);
    if (xsink->isEvent())
-      return NULL;
+      return 0;
 
    // if the variable's value is not already a list, then make it one
    // printd(0, "index=%d val=%08p (%s)\n", ind, *val, *val ? (*val)->getTypeName() : "(null)");
@@ -298,7 +298,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, class Auto
       return rv;
 
    if (*xsink)
-      return NULL;
+      return 0;
 
    (*val)->deref(xsink);
    h = new QoreHashNode();
@@ -360,14 +360,14 @@ AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, class AutoVLock *vl, Ex
    QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
    AbstractQoreNode *val = getNoEvalVarValue(tree->left, vl, xsink);
    if (!val)
-      return NULL;
+      return 0;
 
    // if it's a list reference
    if (tree->op == OP_LIST_REF)
    {
       if (val->getType() != NT_LIST)
 	 return 0;
-      // if it's not a list then return NULL
+      // if it's not a list then return 0
       QoreListNode *l = reinterpret_cast<QoreListNode *>(val);
       
       // otherwise return value
@@ -380,7 +380,7 @@ AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, class AutoVLock *vl, Ex
    }
       
    // it's an object reference
-   // if not an object or a hash, return NULL
+   // if not an object or a hash, return 0
    QoreHashNode *h = val->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(val) : 0;
    QoreObject *o;
    if (!h)
@@ -421,7 +421,7 @@ AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *
       // if it's a list reference
       if (tree->op == OP_LIST_REF)
       {
-	 // if it's not a list then return NULL
+	 // if it's not a list then return 0
 	 if (val->getType() != NT_LIST)
 	    return 0;
 
@@ -439,9 +439,9 @@ AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *
 	 else
 	    o = 0;
 
-	 // if not an object or a hash, return NULL
+	 // if not an object or a hash, return 0
 	 if (!o && !h)
-	    return NULL;
+	    return 0;
 	 
 	 // otherwise evaluate member
 	 QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
@@ -486,7 +486,7 @@ static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, Exce
 
    // if it's a list reference
    if (tree->op == OP_LIST_REF) {
-      if ((*val)->getType() != NT_LIST)  // if it's not a list then return NULL
+      if ((*val)->getType() != NT_LIST)  // if it's not a list then return 0
 	 return 0;
       // otherwise return value
       return reinterpret_cast<QoreListNode *>(*val)->getExistingEntryPtr(tree->right->integerEval(xsink));
@@ -500,7 +500,7 @@ static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, Exce
       o = 0;
    
    // must be an object reference
-   // if not an object or a hash, return NULL
+   // if not an object or a hash, return 0
    if (!o && !h)
       return 0;
    
@@ -535,7 +535,7 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
 	       xsink->raiseException("SYSTEM-OBJECT-ERROR", "you cannot delete a system constant object");
 	    else
 	    {
-	       (*val) = NULL;
+	       (*val) = 0;
 	       vl.del();
 	       o->doDelete(xsink);
 	       o->deref(xsink);
@@ -544,7 +544,7 @@ void delete_var_node(AbstractQoreNode *lvalue, ExceptionSink *xsink)
 	 else
 	 {
 	    (*val)->deref(xsink);
-	    *val = NULL;
+	    *val = 0;
 	 }
       }
       return;

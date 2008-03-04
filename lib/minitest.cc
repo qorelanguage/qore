@@ -48,7 +48,7 @@ void run_Qore_test(QoreString& str, const char* file, int line, const char* deta
     assert(false);
   }
 
-  ReferenceHolder<AbstractQoreNode> rv(pgm->callFunction("test", NULL, &xsink), &xsink);
+  ReferenceHolder<AbstractQoreNode> rv(pgm->callFunction("test", 0, &xsink), &xsink);
   if (xsink.isEvent()) {
     printf("QoreException throwm when running Qore program,\nfile %s, line %d.\n", file, line);
     if (details && details[0]) {

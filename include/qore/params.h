@@ -35,9 +35,9 @@ static inline int num_params(const QoreListNode *n)
 
 static inline const AbstractQoreNode *get_param(const QoreListNode *n, qore_size_t i)
 {
-   if (!n) return NULL;
+   if (!n) return 0;
    const AbstractQoreNode *p = n->retrieve_entry(i);
-   return is_nothing(p) ? NULL : p;
+   return is_nothing(p) ? 0 : p;
 }
 
 static inline const BinaryNode *test_binary_param(const QoreListNode *n, qore_size_t i)
@@ -95,10 +95,10 @@ static inline const ReferenceNode *test_reference_param(const QoreListNode *n, q
 // is reponsible for releasing the lock (exiting the gate)
 static inline AbstractQoreNode *test_object_param(const QoreListNode *n, qore_classid_t cid, qore_size_t i, class RMutex **gp)
 {
-   if (!n) return NULL;
+   if (!n) return 0;
    AbstractQoreNode *p = n->retrieve_entry(i);
-   if (!p) return NULL;
-   return (p->type == NT_OBJECT && p->val.object->validInstanceOf(cid, gp)) ? p : NULL;
+   if (!p) return 0;
+   return (p->type == NT_OBJECT && p->val.object->validInstanceOf(cid, gp)) ? p : 0;
 }
 */
 

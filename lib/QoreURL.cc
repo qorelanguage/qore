@@ -43,7 +43,7 @@ struct qore_url_private {
 
       DLLLOCAL void zero()
       {
-	 protocol = path = username = password = host = NULL;
+	 protocol = path = username = password = host = 0;
 	 port = 0;
       }
       
@@ -211,51 +211,51 @@ QoreHashNode *QoreURL::getHash()
    QoreHashNode *h = new QoreHashNode();
    if (priv->protocol)
    {
-      h->setKeyValue("protocol", priv->protocol, NULL);
-      priv->protocol = NULL;
+      h->setKeyValue("protocol", priv->protocol, 0);
+      priv->protocol = 0;
    }
    if (priv->path)
    {
-      h->setKeyValue("path", priv->path, NULL);
-      priv->path = NULL;
+      h->setKeyValue("path", priv->path, 0);
+      priv->path = 0;
    }
    if (priv->username)
    {
-      h->setKeyValue("username", priv->username, NULL);
-      priv->username = NULL;
+      h->setKeyValue("username", priv->username, 0);
+      priv->username = 0;
    }
    if (priv->password)
    {
-      h->setKeyValue("password", priv->password, NULL);
-      priv->password = NULL;
+      h->setKeyValue("password", priv->password, 0);
+      priv->password = 0;
    }
    if (priv->host)
    {
-      h->setKeyValue("host", priv->host, NULL);
-      priv->host = NULL;
+      h->setKeyValue("host", priv->host, 0);
+      priv->host = 0;
    }
    if (priv->port)
-      h->setKeyValue("port", new QoreBigIntNode(priv->port), NULL);
+      h->setKeyValue("port", new QoreBigIntNode(priv->port), 0);
    
    return h;
 }
 
 char *QoreURL::take_path()
 {
-   return priv->path ? priv->path->giveBuffer() : NULL;
+   return priv->path ? priv->path->giveBuffer() : 0;
 }
 
 char *QoreURL::take_username()
 {
-   return priv->username ? priv->username->giveBuffer() : NULL;
+   return priv->username ? priv->username->giveBuffer() : 0;
 }
 
 char *QoreURL::take_password()
 {
-   return priv->password ? priv->password->giveBuffer() : NULL;
+   return priv->password ? priv->password->giveBuffer() : 0;
 }
 
 char *QoreURL::take_host()
 {
-   return priv->host ? priv->host->giveBuffer() : NULL;
+   return priv->host ? priv->host->giveBuffer() : 0;
 }

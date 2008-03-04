@@ -59,7 +59,7 @@ class QoreClass *QoreClassList::find(const char *name)
    hm_qc_t::iterator i = hm.find(name);
    if (i != hm.end())
       return i->second;
-   return NULL;
+   return 0;
 }
 
 class QoreClass *QoreClassList::findChange(const char *name)
@@ -79,7 +79,7 @@ class QoreClass *QoreClassList::findChange(const char *name)
 	 nc = i->second;
       return nc;
    }
-   return NULL;
+   return 0;
 }
 
 class QoreClassList *QoreClassList::copy(int po)

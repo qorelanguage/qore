@@ -31,12 +31,12 @@ static class QoreThreadLock lck_getpwuid;
 
 static inline void assign_value(QoreHashNode *h, char *key, char *val)
 {
-   h->setKeyValue(key, new QoreStringNode(val), NULL);
+   h->setKeyValue(key, new QoreStringNode(val), 0);
 }
 
 static inline void assign_value(QoreHashNode *h, char *key, int val)
 {
-   h->setKeyValue(key, new QoreBigIntNode(val), NULL);
+   h->setKeyValue(key, new QoreBigIntNode(val), 0);
 }
 
 static AbstractQoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *xsink)
@@ -44,7 +44,7 @@ static AbstractQoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *x
    const AbstractQoreNode *p0;
 
    if (!(p0 = get_param(params, 0)))
-      return NULL;
+      return 0;
 
    AutoLocker al(&lck_getpwuid);
    

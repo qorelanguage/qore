@@ -31,7 +31,7 @@ static AbstractQoreNode *f_getenv(const QoreListNode *params, ExceptionSink *xsi
    const QoreStringNode *p0;
 
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
    
    return SysEnv.getAsStringNode(p0->getBuffer());
 }
@@ -43,7 +43,7 @@ static AbstractQoreNode *f_setenv(const QoreListNode *params, ExceptionSink *xsi
    
    if (!(p0 = test_string_param(params, 0))
        || is_nothing((p1 = get_param(params, 1))))
-      return NULL;
+      return 0;
 
    QoreStringValueHelper t(p1);
    return new QoreBigIntNode(SysEnv.set(p0->getBuffer(), t->getBuffer()));
@@ -53,7 +53,7 @@ static AbstractQoreNode *f_unsetenv(const QoreListNode *params, ExceptionSink *x
 {
    const QoreStringNode *p0;
    if (!(p0 = test_string_param(params, 0)))
-      return NULL;
+      return 0;
    return new QoreBigIntNode(SysEnv.unset(p0->getBuffer()));
 }
 
