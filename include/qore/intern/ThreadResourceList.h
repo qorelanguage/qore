@@ -36,12 +36,12 @@ class ThreadResourceList {
       DLLLOCAL ThreadResourceList();
       DLLLOCAL ~ThreadResourceList();
    
-      DLLEXPORT void set(AbstractThreadResource *atr);
+      DLLLOCAL void set(AbstractThreadResource *atr);
       //returns 0 if not already set, -1 if already set
-      DLLEXPORT int setOnce(AbstractThreadResource *atr);
+      DLLLOCAL int setOnce(AbstractThreadResource *atr);
       // returns 0 if removed, -1 if not found
-      DLLEXPORT int remove(AbstractThreadResource *atr);
-      DLLEXPORT void purge(class ExceptionSink *xsink);
+      DLLLOCAL int remove(AbstractThreadResource *atr);
+      DLLLOCAL void purge(class ExceptionSink *xsink);
 };
 
 

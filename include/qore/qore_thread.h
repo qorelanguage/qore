@@ -28,27 +28,39 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#define CT_USER      0
-#define CT_BUILTIN   1
-#define CT_NEWTHREAD 2
-#define CT_RETHROW   3
-
-// pointer to a qore thread destructor function
+//! pointer to a qore thread destructor function
 typedef void (*qtdest_t)(void *);
-// pointer to a qore thread resource destructor function
+
+//! pointer to a qore thread resource destructor function
 typedef void (*qtrdest_t)(void *, class ExceptionSink *);
 
 DLLEXPORT extern class Operator *OP_BACKGROUND;
 
+//! returns the current TID number
 DLLEXPORT int gettid();
+
+//! returns the current QoreProgram
 DLLEXPORT class QoreProgram *getProgram();
 
-DLLEXPORT extern class ThreadCleanupList tclist;
-
-// for thread resource handling
+//! save a resource against a thread for thread resource handling
+/** @param atr a pointer to the thread resource to save
+ */
 DLLEXPORT void set_thread_resource(class AbstractThreadResource *atr);
+
+//! remove the resource from the thread resource list for the current thread
+/** @param atr a pointer to the thread resource to remove
+    @return 0 if successful (resource was found and removed), -1 if the resource was not found
+ */
 DLLEXPORT int remove_thread_resource(class AbstractThreadResource *atr);
 
+//! list of functions to be run when a thread ends; required for some external libraries that require explicit cleanup when a thread terminates
+/** this list is not locked and therefore the ThreadCleanupList::push() and 
+    ThreadCleanupList::pop() functions must only be called in module initialization
+    and module deletion.  However this list is implemented in such a way that thread
+    cleanup list execution may be safely called interally while push() is being
+    executed in a module initialization function, for example.
+    @note this is a global object and not an attribute of a thread
+ */
 class ThreadCleanupList {
    private:
       static class ThreadCleanupNode *head;
@@ -58,8 +70,19 @@ class ThreadCleanupList {
       DLLLOCAL ~ThreadCleanupList();
       DLLLOCAL void exec();
 
+      //! must only be called in the module initialization function
+      /** @param func the cleanup function to be run whenever a thread ends
+	  @param arg the argument to the function (can be 0)
+       */
       DLLEXPORT void push(qtdest_t func, void *arg);
-      DLLEXPORT void pop(int exec = 0);
+
+      //! must only be called in the module destructor/deletion function
+      /** @param exec if true the cleanup function will be executed immediately, if false it will not
+       */
+      DLLEXPORT void pop(bool exec = true);
 };
+
+//! the interface to the thread cleanup list
+DLLEXPORT extern ThreadCleanupList tclist;
 
 #endif  // ifndef _QORE_THREAD_H

@@ -23,7 +23,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ThreadResourceList.h>
+#include <qore/intern/ThreadResourceList.h>
 #ifdef DEBUG
 #include <qore/intern/CallStack.h>
 #endif
@@ -449,7 +449,7 @@ void ThreadCleanupList::push(qtdest_t func, void *arg)
    //printf("TCL::push() this=%08p, &head=%08p, head=%08p, head->next=%08p\n", this, &head, head, head->next);
 }
 
-void ThreadCleanupList::pop(int exec)
+void ThreadCleanupList::pop(bool exec)
 {
    //printf("TCL::pop() this=%08p, &head=%08p, head=%08p\n", this, &head, head);
    // NOTE: if exit() is called, then somehow head = NULL !!!

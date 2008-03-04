@@ -25,7 +25,7 @@
 #define _QORE_SYSTEMENVIRONMENT_H
 
 //! class used to safely manipulate the system environment
-/** On some platforms (HP-UX for example), the system environment cannot be access
+/** On some platforms (HP-UX for example), the system environment cannot be accessed
     safely from multiple threads without a lock.  This class guarantees thread-safe
     access to the environment on all systems (as long as all accesses are made through
     this class).  There is only one of the objects; the constructor and destructor are

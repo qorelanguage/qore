@@ -23,7 +23,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/ThreadResourceList.h>
+#include <qore/intern/ThreadResourceList.h>
 #include <qore/AbstractThreadResource.h>
 
 class ThreadResourceNode

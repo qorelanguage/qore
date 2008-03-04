@@ -31,6 +31,13 @@
 #define MAX_QORE_THREADS 0x1000
 #endif
 
+enum qore_call_t {
+   CT_USER       = 0,
+   CT_BUILTIN    = 1,
+   CT_NEWTHREAD  = 2,
+   CT_RETHROW    = 3
+};
+
 DLLLOCAL void purge_thread_resources(class ExceptionSink *xsink);
 DLLLOCAL void beginParsing(char *file, void *ps = NULL);
 DLLLOCAL void *endParsing();

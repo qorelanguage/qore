@@ -34,8 +34,9 @@
     ManagedDatasource::cleanup() is run, which will throw an exception, rollback the transaction, and 
     release the transaction lock.  When a thread commits or rolls back a transaction, the thread resource
     is removed.
-    Use the ThreadResourceList class to set and remove thread resources.
-    @see ThreadResourceList
+    Use the set_thread_resource() to set and remove_thread_resource() to remove thread resources.
+    @see set_thread_resource()
+    @see remove_thread_resource()
  */
 class AbstractThreadResource : public AbstractPrivateData
 {

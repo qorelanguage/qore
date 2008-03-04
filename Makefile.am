@@ -13,7 +13,6 @@ noinst_HEADERS = \
 	include/qore/ReferenceArgumentHelper.h \
 	include/qore/types/Number.h \
 	include/qore/qore_thread.h \
-	include/qore/ThreadResourceList.h \
 	include/qore/AbstractThreadResource.h \
 	include/qore/QoreProgram.h \
 	include/qore/QoreReferenceCounter.h \
@@ -76,6 +75,7 @@ noinst_HEADERS = \
 	include/qore/QoreSSLPrivateKey.h \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
+	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \
 	include/qore/intern/qore_thread_intern.h \
 	include/qore/intern/inline_printf.h \
