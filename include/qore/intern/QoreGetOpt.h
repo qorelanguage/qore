@@ -65,12 +65,12 @@ class QoreGetOpt {
       getopt_node_list_t node_list;
       
       DLLLOCAL static class AbstractQoreNode *parseDate(const char *val);
-      DLLLOCAL void processLongArg(const char *arg, class QoreListNode *l, class QoreHashNode *h, int &i, bool modify);
-      DLLLOCAL int processShortArg(const char *arg, class QoreListNode *l, class QoreHashNode *h, int &i, int &j, bool modify);
+      DLLLOCAL void processLongArg(const char *arg, class QoreListNode *l, class QoreHashNode *h, unsigned &i, bool modify);
+      DLLLOCAL int processShortArg(const char *arg, class QoreListNode *l, class QoreHashNode *h, unsigned &i, int &j, bool modify);
       DLLLOCAL QoreGetOptNode *find(const char *opt) const;
       DLLLOCAL class QoreGetOptNode *find(char opt) const;
       DLLLOCAL void doOption(class QoreGetOptNode *n, class QoreHashNode *h, const char *val);
-      DLLLOCAL char *getNextArgument(class QoreListNode *l, class QoreHashNode *h, int &i, const char *lopt, char sopt);
+      DLLLOCAL char *getNextArgument(class QoreListNode *l, class QoreHashNode *h, unsigned &i, const char *lopt, char sopt);
 
    public:
       DLLLOCAL QoreGetOpt();

@@ -78,10 +78,9 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);
       s->sprintf("elements=%d\n", l->size());
       ConstListIterator li(l);
-      int i = 0;
       while (li.next()) {
 	 strindent(s, indent);
-	 s->sprintf("list element %d/%d: ", i++, l->size());
+	 s->sprintf("list element %d/%d: ", li.index(), l->size());
 	 dni(s, li.getValue(), indent + 3, xsink);
 	 if (!li.last())
 	    s->concat('\n');
@@ -99,8 +98,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
 	 ReferenceHolder<QoreListNode> l(o->getMemberList(xsink), xsink);
 	 if (l)
 	 {
-	    for (int i = 0; i < l->size(); i++)
-	    {
+	    for (unsigned i = 0; i < l->size(); i++) {
 	       strindent(s, indent);
 	       QoreStringNode *entry = reinterpret_cast<QoreStringNode *>(l->retrieve_entry(i));
 	       s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());

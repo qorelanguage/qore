@@ -34,14 +34,15 @@
 #define MIN_SPRINTF_BUFSIZE 120
 
 struct qore_string_private {
-      int len;
-      unsigned allocated;
+      qore_size_t len;
+      qore_size_t allocated;
       char *buf;
       const QoreEncoding *charset;
 
       DLLLOCAL qore_string_private()
       {
       }
+
       DLLLOCAL qore_string_private(const qore_string_private &p)
       {
 	 allocated = p.len + STR_CLASS_EXTRA;
@@ -52,46 +53,53 @@ struct qore_string_private {
 	 buf[len] = '\0';
 	 charset = p.charset;
       }
+
       DLLLOCAL ~qore_string_private()
       {
 	 if (buf)
 	    free(buf);
       }
 
-      DLLLOCAL void check_char(unsigned i)
+      DLLLOCAL void check_char(qore_size_t i)
       {
 	 if (i >= allocated)
 	 {
-	    int d = i >> 2;
+	    qore_size_t d = i >> 2;
 	    allocated = i + (d < STR_CLASS_BLOCK ? STR_CLASS_BLOCK : d);
 	    //allocated = i + STR_CLASS_BLOCK;
 	    allocated = (allocated / 16 + 1) * 16; // use complete cache line
 	    buf = (char *)realloc(buf, allocated * sizeof(char));
 	 }
       }
-      DLLLOCAL void check_offset(int &offset)
+
+      DLLLOCAL qore_size_t check_offset(qore_offset_t offset)
       {
 	 if (offset < 0)
 	 {
 	    offset = len + offset;
-	    if (offset < 0)
-	       offset = 0;
+	    return offset < 0 ? 0 : offset;
 	 }
-	 else if (offset > len)
-	    offset = len;
+
+	 if ((qore_size_t)offset > len)
+	    return len;
+
+	 return offset;
       }
 
-      DLLLOCAL void check_offset(int &offset, int &num)
+      DLLLOCAL void check_offset(qore_offset_t offset, qore_offset_t num, qore_size_t &n_offset, qore_size_t &n_num)
       {
-	 check_offset(offset);
+	 n_offset = check_offset(offset);
 	 if (num < 0)
 	 {
-	    num = len + num - offset;
+	    num = len + num - n_offset;
 	    if (num < 0)
-	       num = 0;
+	       n_num = 0;
+	    else
+	       n_num = num;
+	    return;
 	 }
+	 n_num = num;
       }
-
 };
 
 #endif

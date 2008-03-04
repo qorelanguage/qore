@@ -43,11 +43,6 @@ class QoreHashNode : public AbstractQoreNode
       friend class ConstHashIterator;
 
    private:
-      DLLLOCAL class AbstractQoreNode **newKeyValue(const char *key, class AbstractQoreNode *value);
-      // does not touch the AbstractQoreNode value
-      DLLLOCAL void internDeleteKey(class HashMember *m);
-      DLLLOCAL void assimilate_intern(QoreHashNode *h, class ExceptionSink *xsink);
-
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL QoreHashNode(const QoreHashNode&);
       
@@ -55,10 +50,8 @@ class QoreHashNode : public AbstractQoreNode
       DLLLOCAL QoreHashNode& operator=(const QoreHashNode&);
 
   protected:
-      class HashMember *member_list;
-      class HashMember *tail;
-      int len;
-      hm_hm_t hm;
+      //! private implementation of the class
+      struct qore_hash_private *priv;
 
       //! dereferences all elements of the hash
       /** The ExceptionSink argument is needed for those types that could throw
@@ -230,7 +223,10 @@ class QoreHashNode : public AbstractQoreNode
       DLLEXPORT bool compareSoft(const QoreHashNode *h, class ExceptionSink *xsink) const;
       DLLEXPORT bool compareHard(const QoreHashNode *h, class ExceptionSink *xsink) const;
 
-      DLLEXPORT int size() const;
+      //! returns the number of members in the hash, executes in constant time
+      /** return the number of members in the hash
+       */
+      DLLEXPORT qore_size_t size() const;
 
       DLLLOCAL QoreHashNode(bool ne);
       DLLLOCAL void clear(ExceptionSink *xsink);
@@ -258,6 +254,15 @@ class QoreHashNode : public AbstractQoreNode
 typedef ReferenceHolder<QoreHashNode> QoreHashNodeHolder;
 
 //! iterator class for QoreHashNode, to be only created on the stack
+/**
+   @code
+   HashIterator hi(h);
+   while (hi.next()) {
+      QoreStringValueHelper str(hi.getValue());
+      printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
+   }
+   @endcode
+ */
 class HashIterator
 {
    private:
@@ -321,6 +326,15 @@ class HashIterator
 };
 
 //! constant iterator class for QoreHashNode, to be only created on the stack
+/**
+   @code
+   ConstHashIterator hi(h);
+   while (hi.next()) {
+      QoreStringValueHelper str(hi.getValue());
+      printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
+   }
+   @endcode
+*/
 class ConstHashIterator
 {
    private:

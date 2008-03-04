@@ -240,7 +240,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHashNode *h, const 
    (*cv) = v;
 }
 
-char *QoreGetOpt::getNextArgument(QoreListNode *l, class QoreHashNode *h, int &i, const char *lopt, char sopt)
+char *QoreGetOpt::getNextArgument(QoreListNode *l, class QoreHashNode *h, unsigned &i, const char *lopt, char sopt)
 {
    if (i < (l->size() - 1))
    {
@@ -258,7 +258,7 @@ char *QoreGetOpt::getNextArgument(QoreListNode *l, class QoreHashNode *h, int &i
    return NULL;
 }
 
-void QoreGetOpt::processLongArg(const char *arg, QoreListNode *l, class QoreHashNode *h, int &i, bool modify)
+void QoreGetOpt::processLongArg(const char *arg, QoreListNode *l, class QoreHashNode *h, unsigned &i, bool modify)
 {
    const char *opt;
    char *val;
@@ -304,7 +304,7 @@ void QoreGetOpt::processLongArg(const char *arg, QoreListNode *l, class QoreHash
       l->pop_entry(--i, NULL);
 }
 
-int QoreGetOpt::processShortArg(const char *arg, QoreListNode *l, class QoreHashNode *h, int &i, int &j, bool modify)
+int QoreGetOpt::processShortArg(const char *arg, QoreListNode *l, class QoreHashNode *h, unsigned &i, int &j, bool modify)
 {
    char opt = (arg + j)[0];
    // find option
@@ -346,7 +346,7 @@ int QoreGetOpt::processShortArg(const char *arg, QoreListNode *l, class QoreHash
 QoreHashNode *QoreGetOpt::parse(QoreListNode *l, bool modify, ExceptionSink *xsink)
 {
    QoreHashNode *h = new QoreHashNode();
-   for (int i = 0; i < l->size(); i++)
+   for (unsigned i = 0; i < l->size(); i++)
    {
       //printf("QoreGetOpt::parse() %d/%d\n", i, l->size());
       AbstractQoreNode *n = l->retrieve_entry(i);

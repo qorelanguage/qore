@@ -149,13 +149,13 @@ QoreStringNode *RegexTransNode::exec(const QoreString *str, ExceptionSink *xsink
       return 0;
 
    QoreStringNode *ns = new QoreStringNode();
-   for (int i = 0; i < tstr->strlen(); i++)
+   for (qore_size_t i = 0; i < tstr->strlen(); i++)
    {
       char c = tstr->getBuffer()[i];
       const char *p = strchr(source->getBuffer(), c);
       if (p)
       {
-	 int pos = p - source->getBuffer();
+	 qore_size_t pos = p - source->getBuffer();
 	 if (target->strlen() <= pos)
 	    pos = target->strlen() - 1;
 	 if (pos >= 0)

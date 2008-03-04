@@ -35,13 +35,13 @@
 #include <string>
 
 //! for multi-byte character set encodings: gives the length of the string in characters
-typedef int (*mbcs_length_t)(const char *);
+typedef qore_size_t (*mbcs_length_t)(const char *str);
 
 //! for multi-byte character set encodings: gives the number of bytes for the number of chars
-typedef int (*mbcs_end_t)(const char *, int);
+typedef qore_size_t (*mbcs_end_t)(const char *str, size_t num_chars);
 
 //! for multi-byte character set encodings: gives the character position of the ptr
-typedef int (*mbcs_pos_t)(const char *, const char *);
+typedef qore_size_t (*mbcs_pos_t)(const char *str, const char *ptr);
 
 //! defines string encoding functions in Qore
 /** for performance reasons this is not a class hierarchy with virtual methods;
@@ -75,15 +75,15 @@ public:
       {
       }
 
-      DLLLOCAL int getLength(const char *p) const
+      DLLLOCAL qore_size_t getLength(const char *p) const
       {
 	 return flength ? flength(p) : strlen(p);
       }
-      DLLLOCAL int getByteLen(const char *p, int c) const
+      DLLLOCAL qore_size_t getByteLen(const char *p, qore_size_t c) const
       {
 	 return fend ? fend(p, c) : c;
       }
-      DLLLOCAL int getCharPos(const char *p, const char *e) const
+      DLLLOCAL qore_size_t getCharPos(const char *p, const char *e) const
       {
 	 return fpos ? fpos(p, e) : e - p;
       }

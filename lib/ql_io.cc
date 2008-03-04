@@ -33,12 +33,10 @@
 
 static AbstractQoreNode *f_print(const QoreListNode *params, ExceptionSink *xsink)
 {
-   int i;
-
    if (!params)
       return NULL;
 
-   for (i = 0; i < params->size(); i++)
+   for (unsigned i = 0; i < params->size(); i++)
       print_node(stdout, get_param(params, i));
    return NULL;
 }

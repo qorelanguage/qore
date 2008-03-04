@@ -36,6 +36,12 @@
 
 typedef short qore_type_t;
 
+//! used for sizes (same range as a pointer)
+typedef unsigned long qore_size_t;
+
+//! used for offsets that could be negative
+typedef long qore_offset_t;
+
 typedef unsigned qore_classid_t;
 
 // set of integers

@@ -33,57 +33,57 @@ static inline int num_params(const QoreListNode *n)
    return n->size();
 }
 
-static inline const AbstractQoreNode *get_param(const QoreListNode *n, int i)
+static inline const AbstractQoreNode *get_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return NULL;
    const AbstractQoreNode *p = n->retrieve_entry(i);
    return is_nothing(p) ? NULL : p;
 }
 
-static inline const BinaryNode *test_binary_param(const QoreListNode *n, int i)
+static inline const BinaryNode *test_binary_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
    return dynamic_cast<const BinaryNode *>(n->retrieve_entry(i));
 }
 
-static inline const QoreStringNode *test_string_param(const QoreListNode *n, int i)
+static inline const QoreStringNode *test_string_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
    return dynamic_cast<const QoreStringNode *>(n->retrieve_entry(i));
 }
 
 // QoreObjects are returned not as "const" because they are unique and can always be manipulated
-static inline QoreObject *test_object_param(const QoreListNode *n, int i)
+static inline QoreObject *test_object_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
    return dynamic_cast<QoreObject *>(const_cast<AbstractQoreNode *>(n->retrieve_entry(i)));
 }
 
-static inline const DateTimeNode *test_date_param(const QoreListNode *n, int i)
+static inline const DateTimeNode *test_date_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
    return dynamic_cast<const DateTimeNode *>(n->retrieve_entry(i));
 }
 
-static inline const QoreHashNode *test_hash_param(const QoreListNode *n, int i)
+static inline const QoreHashNode *test_hash_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
    return dynamic_cast<const QoreHashNode *>(n->retrieve_entry(i));
 }
 
-static inline const QoreListNode *test_list_param(const QoreListNode *n, int i)
+static inline const QoreListNode *test_list_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
    return dynamic_cast<const QoreListNode *>(n->retrieve_entry(i));
 }
 
-static inline const ResolvedFunctionReferenceNode *test_funcref_param(const QoreListNode *n, int i)
+static inline const ResolvedFunctionReferenceNode *test_funcref_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
    return dynamic_cast<const ResolvedFunctionReferenceNode *>(n->retrieve_entry(i));
 }
 
-static inline const ReferenceNode *test_reference_param(const QoreListNode *n, int i)
+static inline const ReferenceNode *test_reference_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
    return dynamic_cast<const ReferenceNode *>(n->retrieve_entry(i));
@@ -93,7 +93,7 @@ static inline const ReferenceNode *test_reference_param(const QoreListNode *n, i
 // this will return only valid objects of the passed class ID
 // if an object is returned it will be locked and the caller
 // is reponsible for releasing the lock (exiting the gate)
-static inline AbstractQoreNode *test_object_param(const QoreListNode *n, int cid, int i, class RMutex **gp)
+static inline AbstractQoreNode *test_object_param(const QoreListNode *n, qore_classid_t cid, qore_size_t i, class RMutex **gp)
 {
    if (!n) return NULL;
    AbstractQoreNode *p = n->retrieve_entry(i);
@@ -102,7 +102,7 @@ static inline AbstractQoreNode *test_object_param(const QoreListNode *n, int cid
 }
 */
 
-static inline bool test_nothing_param(const QoreListNode *n, int i)
+static inline bool test_nothing_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return true;
    return is_nothing(n->retrieve_entry(i));

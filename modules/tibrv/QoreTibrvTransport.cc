@@ -83,7 +83,7 @@ int QoreTibrvTransport::valueToField(const char *key, const AbstractQoreNode *v,
 
    if (vtype == NT_LIST) {
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(v);
-      for (int i = 0; i < l->size(); i++)
+      for (qore_size_t i = 0; i < l->size(); i++)
 	 if (valueToField(key, l->retrieve_entry(i), msg, xsink))
 	    return -1;
       return 0;

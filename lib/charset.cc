@@ -34,9 +34,9 @@ const QoreEncoding *QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8, *QCS_ISO_8859_1,
    *QCS_ISO_8859_10, *QCS_ISO_8859_11, *QCS_ISO_8859_13, *QCS_ISO_8859_14,
    *QCS_ISO_8859_15, *QCS_ISO_8859_16, *QCS_KOI8_R, *QCS_KOI8_U, *QCS_KOI7;
 
-static int utf8cl(const char *p);
-static int utf8end(const char *p, int l);
-static int utf8cpos(const char *p, const char *e);
+static qore_size_t utf8cl(const char *p);
+static qore_size_t utf8end(const char *p, qore_size_t l);
+static qore_size_t utf8cpos(const char *p, const char *e);
 
 encoding_map_t QoreEncodingManager::emap;
 const_encoding_map_t QoreEncodingManager::amap;
@@ -352,7 +352,7 @@ const QoreEncoding *QoreEncodingManager::findCreate(const QoreString *str)
    return findCreate(str->getBuffer());
 }
 
-static inline int utf8clen(const char *p)
+static inline unsigned utf8clen(const char *p)
 {
    // see if a multi-byte char is starting
    if ((*p & 0xc0) == 0xc0)
@@ -379,9 +379,9 @@ static inline int utf8clen(const char *p)
    return 1;
 }
 
-static int utf8cl(const char *p)
+static qore_size_t utf8cl(const char *p)
 {
-   int i = 0;
+   qore_size_t i = 0;
    while (*p)
    {
       p += utf8clen(p);
@@ -391,12 +391,12 @@ static int utf8cl(const char *p)
    return i;
 }
 
-static int utf8end(const char *p, int l)
+static qore_size_t utf8end(const char *p, qore_size_t l)
 {
-   int b = 0;
+   qore_size_t b = 0;
    while (*p && l)
    {
-      int bl = utf8clen(p);
+      unsigned bl = utf8clen(p);
       b += bl;
       p += bl;
       l--;
@@ -404,9 +404,9 @@ static int utf8end(const char *p, int l)
    return b;
 }
 
-static int utf8cpos(const char *p, const char *end)
+static qore_size_t utf8cpos(const char *p, const char *end)
 {
-   int i = 0;
+   qore_size_t i = 0;
    while (p < end)
    {
       p += utf8clen(p);

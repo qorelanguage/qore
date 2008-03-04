@@ -70,7 +70,7 @@ AbstractQoreNode *f_delete_thread_data(const QoreListNode *params, ExceptionSink
       QoreHashNode *data = getProgram()->getThreadData();
       
       // iterate through arguments and delete each key
-      for (int i = 0; i < params->size(); i++)
+      for (unsigned i = 0; i < params->size(); i++)
       {
 	 const AbstractQoreNode *p = get_param(params, i);
 	 if (p)

@@ -322,7 +322,7 @@ static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink 
 
    // otherwise process each list element
    QoreListNode *l = new QoreListNode(true);
-   for (int i = 0; i < n->size(); i++)
+   for (unsigned i = 0; i < n->size(); i++)
       l->push(copy_and_resolve_lvar_refs(n->retrieve_entry(i), xsink));
    return l;
 }

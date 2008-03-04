@@ -496,7 +496,8 @@ static int parseInitConstantHash(QoreHashNode *h, int level)
 	    (*value)->ref();
 	    // not possible to have an exception here
 	    // adds to end of hash key list so it won't invalidate up our iterator
-	    h->setKeyValue(*str, *value, NULL);
+	    // the string must be in QCS_DEFAULT
+	    h->setKeyValue(str->getBuffer(), *value, 0);
 	    // or here
 	    hi.deleteKey(0);
 	 }
@@ -1001,7 +1002,7 @@ int RootQoreNamespace::parseInitConstantValue(AbstractQoreNode **val, int level)
    qore_type_t vtype = (*val)->getType();
    if (vtype == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(*val);
-      for (int i = 0; i < l->size(); i++)
+      for (unsigned i = 0; i < l->size(); i++)
       {
 	 if (parseInitConstantValue(l->get_entry_ptr(i), level + 1))
 	    return -1;

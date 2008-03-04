@@ -112,7 +112,7 @@ void showCallStack()
    if (callStack && callStack->size())
    {
       printe("call stack:\n");
-      for (int i = 0; i < callStack->size(); i++)
+      for (unsigned i = 0; i < callStack->size(); i++)
       {
          QoreHashNode *h = reinterpret_cast<QoreHashNode *>(callStack->retrieve_entry(i));
 	 QoreStringNode *func = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));

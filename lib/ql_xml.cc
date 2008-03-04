@@ -298,7 +298,7 @@ static void addXMLElement(const char *key, QoreString *str, const AbstractQoreNo
    if (ntype == NT_HASH) {
       const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(n);
       // inc = ignore node counter, see if special keys exists and increment counter even if they have no value
-      int inc = 0;
+      qore_size_t inc = 0;
       int vn = 0;
       bool exists;
       const AbstractQoreNode *value = h->getKeyValueExistence("^value^", exists);
@@ -460,7 +460,7 @@ static void makeXMLString(QoreString *str, const QoreHashNode *h, int indent, co
       }
 
       // process key name - remove ^# from end of key name if present
-      int l = keyStr->strlen() - 1;
+      qore_size_t l = keyStr->strlen() - 1;
       while (isdigit(key[l]))
 	 l--;
 
@@ -746,7 +746,7 @@ static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int
       {
 	 str->concat("<data>");
 	 if (format) str->concat('\n');
-	 for (int i = 0; i < l->size(); i++)
+	 for (unsigned i = 0; i < l->size(); i++)
 	    addXMLRPCValue(str, l->retrieve_entry(i), indent + 6, ccs, format, xsink);
 	 if (format)
             str->addch(' ', indent + 4);

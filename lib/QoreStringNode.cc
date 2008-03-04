@@ -37,16 +37,6 @@ QoreStringNode::QoreStringNode(const char *str, const class QoreEncoding *enc) :
 {
 }
 
-// FIXME: remove this function
-// takes ownership of str
-/*
-QoreStringNode::QoreStringNode(QoreString *str) : SimpleValueQoreNode(NT_STRING), QoreString(str->priv)
-{
-   str->priv = 0;
-   delete str;
-}
-*/
-
 // copies str
 QoreStringNode::QoreStringNode(const QoreString &str) : SimpleValueQoreNode(NT_STRING), QoreString(str)
 {
@@ -74,11 +64,11 @@ QoreStringNode::QoreStringNode(struct qore_string_private *p) : SimpleValueQoreN
 {
 }
 
-QoreStringNode::QoreStringNode(char *nbuf, int nlen, int nallocated, const class QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc)
+QoreStringNode::QoreStringNode(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const class QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc)
 {
 }
 
-QoreStringNode::QoreStringNode(const char *str, int len, const class QoreEncoding *new_qorecharset) : SimpleValueQoreNode(NT_STRING), QoreString(str, len, new_qorecharset)
+QoreStringNode::QoreStringNode(const char *str, qore_size_t len, const class QoreEncoding *new_qorecharset) : SimpleValueQoreNode(NT_STRING), QoreString(str, len, new_qorecharset)
 {
 }
 
@@ -177,7 +167,7 @@ QoreStringNode *QoreStringNode::copy() const
    return new QoreStringNode(*this);
 }
 
-QoreStringNode *QoreStringNode::substr(int offset) const
+QoreStringNode *QoreStringNode::substr(qore_offset_t offset) const
 {
    QoreStringNode *str = new QoreStringNode(priv->charset);
 
@@ -194,7 +184,7 @@ QoreStringNode *QoreStringNode::substr(int offset) const
    return 0;
 }
 
-QoreStringNode *QoreStringNode::substr(int offset, int length) const
+QoreStringNode *QoreStringNode::substr(qore_offset_t offset, qore_offset_t length) const
 {
    QoreStringNode *str = new QoreStringNode(priv->charset);
 
@@ -243,20 +233,6 @@ QoreStringNode *QoreStringNode::parseBase64ToString(ExceptionSink *xsink) const
    p->allocated = p->len + 1;
    return new QoreStringNode(p);
 }
-
-/*
-// returns 0 if the value is not immediately returnable as a QoreString (without conversion)
-class QoreString *QoreStringNode::getQoreStringValue() const
-{
-   return this;
-}
-
-// returns 0 if the value is not immediately returnable as a const char * (without conversion)
-const char *QoreStringNode::getStringValue() const
-{
-   return getBuffer();
-}
-*/
 
 void QoreStringNode::getStringRepresentation(QoreString &str) const
 {

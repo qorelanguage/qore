@@ -349,7 +349,7 @@ static inline int check_vars(class AbstractQoreNode *n)
 {
    if (n && n->getType() == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
-      for (int i = 0; i < l->size(); i++)
+      for (unsigned i = 0; i < l->size(); i++)
 	 if (l->retrieve_entry(i)->getType() != NT_VARREF)
 	    return 1;
       return 0;
@@ -371,7 +371,7 @@ bool needsEval(class AbstractQoreNode *n)
 
    if (ntype == NT_LIST) {
       QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
-      for (int i = 0; i <l->size(); i++) {
+      for (unsigned i = 0; i <l->size(); i++) {
 	 if (needsEval(l->retrieve_entry(i)))
 	    return true;
       }
@@ -1462,7 +1462,7 @@ exp:    scalar
         | TOK_MY '(' list ')' 
         {
 	   $3->setVariableList();
-	   for (int i = 0; i < $3->size(); i++)
+	   for (unsigned i = 0; i < $3->size(); i++)
 	   {
 	      AbstractQoreNode *n = $3->retrieve_entry(i);
 	      if (!n || n->getType() != NT_VARREF)
@@ -1480,7 +1480,7 @@ exp:    scalar
         | TOK_OUR '(' list ')'
         { 
 	   $3->setVariableList();
-	   for (int i = 0; i < $3->size(); i++)
+	   for (unsigned i = 0; i < $3->size(); i++)
 	   {
 	      class AbstractQoreNode *n = $3->retrieve_entry(i);
 	      if (!n || n->getType() != NT_VARREF) 
@@ -1610,7 +1610,7 @@ exp:    scalar
 	   if ($1 && $1->getType() == NT_LIST) {
 	      QoreListNode *l = reinterpret_cast<QoreListNode *>($1);
 	      bool ok = true;
-	      for (int i = 0; i < l->size(); i++)
+	      for (unsigned i = 0; i < l->size(); i++)
 	      {
 		 AbstractQoreNode *n = l->retrieve_entry(i);
 		 if (check_lvalue(n))

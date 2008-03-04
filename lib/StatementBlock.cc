@@ -299,7 +299,7 @@ int process_list_node_intern(QoreListNode *l, LocalVar *oflag, int pflag)
 {
    int lvids = 0;
 
-   for (int i = 0; i < l->size(); i++)
+   for (unsigned i = 0; i < l->size(); i++)
       lvids += process_node(l->get_entry_ptr(i), oflag, pflag);
    
    return lvids;
@@ -318,7 +318,7 @@ int process_list_node(QoreListNode **node, LocalVar *oflag, int pflag)
 // this function will put variables on the local stack but will not pop them
 int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 {
-   int lvids = 0, i;
+   int lvids = 0;
    int current_pflag = pflag;
    pflag &= ~PF_REFERENCE_OK;  // unset "reference ok" for next call
 
@@ -471,7 +471,7 @@ int process_node(AbstractQoreNode **node, LocalVar *oflag, int pflag)
 	 getProgram()->resolveFunction(f);
       
       if (f->args)
-	 for (i = 0; i < f->args->size(); i++)
+	 for (unsigned i = 0; i < f->args->size(); i++)
 	 {
 	    AbstractQoreNode **n = f->args->get_entry_ptr(i);
 	    if ((*n)->getType() == NT_REFERENCE)
@@ -682,7 +682,7 @@ void StatementBlock::parseInit(class Paramlist *params, class BCList *bcl)
 	 if ((*i)->args)
 	 {
 	    QoreListNode *l = (*i)->args;
-	    for (int j = 0; j < l->size(); j++)
+	    for (unsigned j = 0; j < l->size(); j++)
 	    {
 	       AbstractQoreNode **n = l->get_entry_ptr(j);
 	       tlvids += process_node(n, oflag, PF_REFERENCE_OK);

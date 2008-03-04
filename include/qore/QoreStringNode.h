@@ -94,10 +94,10 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 	 @param nallocated the number of bytes allocated for this buffer (if unknown, set to nlen + 1)
 	 @param enc the encoding for the string
       */
-      DLLEXPORT QoreStringNode(char *nbuf, int nlen, int nallocated, const class QoreEncoding *enc);
+      DLLEXPORT QoreStringNode(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const class QoreEncoding *enc);
 
       // copies str
-      DLLEXPORT QoreStringNode(const char *str, int len, const class QoreEncoding *new_qorecharset = QCS_DEFAULT);
+      DLLEXPORT QoreStringNode(const char *str, qore_size_t len, const class QoreEncoding *new_qorecharset = QCS_DEFAULT);
 
       // creates a string from a single character
       DLLEXPORT QoreStringNode(char c);
@@ -105,21 +105,21 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
       //! concatenates the string data in double quotes to an existing QoreString
       /** used for %n and %N printf formatting.  An exception may be thrown if there is an encoding conversion error
 	  @param str the string representation of the type will be concatenated to this QoreString reference
-	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param format_offset for multi-line formatting offset, -1 = no line breaks
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  @return -1 for exception raised, 0 = OK
       */
-      DLLEXPORT int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+      DLLEXPORT int getAsString(QoreString &str, int format_offset, class ExceptionSink *xsink) const;
 
       //! returns a QoreString giving the string data in double quotes
       /** used for %n and %N printf formatting
 	  @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
-	  @param foff for multi-line formatting offset, -1 = no line breaks
+	  @param format_offset for multi-line formatting offset, -1 = no line breaks
 	  @param xsink if an error occurs, the Qore-language exception information will be added here
 	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
 	  @see QoreNodeAsStringHelper
       */
-      DLLEXPORT QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+      DLLEXPORT QoreString *getAsString(bool &del, int format_offset, class ExceptionSink *xsink) const;
 
       //! returns the current string and sets del to false
       /** NOTE: do not call this function directly, use QoreStringValueHelper instead
@@ -181,7 +181,7 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 	  @param offset the offset in characters from the beginning of the string (starting with 0), can be negative
 	  @return the new string
        */
-      DLLEXPORT QoreStringNode *substr(int offset) const;
+      DLLEXPORT QoreStringNode *substr(qore_offset_t offset) const;
 
       //! returns a new string consisting of "length" characters from the current string starting with character position "offset"
       /** offset and length spoecify characters, not bytes
@@ -189,7 +189,7 @@ class QoreStringNode : public SimpleValueQoreNode, public QoreString
 	  @param length the number of characters to take for the new substring, can be negative
 	  @return the new string
        */
-      DLLEXPORT QoreStringNode *substr(int offset, int length) const;
+      DLLEXPORT QoreStringNode *substr(qore_offset_t offset, qore_offset_t length) const;
 
       //! return a QoreStringNode with the characters reversed
       DLLEXPORT QoreStringNode *reverse() const;
@@ -442,10 +442,10 @@ class QoreNodeAsStringHelper {
 
    public:
       //! makes the call to AbstractQoreNode::getAsString() and manages the return values
-      DLLLOCAL QoreNodeAsStringHelper(const AbstractQoreNode *n, int offset, ExceptionSink *xsink)
+      DLLLOCAL QoreNodeAsStringHelper(const AbstractQoreNode *n, int format_offset, ExceptionSink *xsink)
       {
 	 if (n)
-	    str = n->getAsString(del, offset, xsink);
+	    str = n->getAsString(del, format_offset, xsink);
 	 else {
 	    str = &NothingTypeString;
 	    del = false;

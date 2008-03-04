@@ -134,7 +134,7 @@ class SystemEnvironment {
 DLLEXPORT extern SystemEnvironment SysEnv;
 
 //! class allowing for multiple updates to the system environment within a single lock in a thread-safe way, can be used on the stack
-/** some systems (notable HP-UX) require a lock to access the environment in a multi-threaded environment.
+/** some systems (HP-UX, for examplex) require a lock to access the environment in a multi-threaded environment.
     This class allows for multiple updates to be done within the scope of the lock
     @see SystemEnvironment
  */

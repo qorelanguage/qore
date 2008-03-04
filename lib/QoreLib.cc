@@ -281,7 +281,7 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 
 QoreStringNode *q_sprintf(const QoreListNode *params, int field, int offset, ExceptionSink *xsink)
 {
-   int i, j, l;
+   unsigned i, j, l;
    const QoreStringNode *p;
 
    if (!(p = test_string_param(params, offset)))
@@ -320,9 +320,9 @@ QoreStringNode *q_vsprintf(const QoreListNode *params, int field, int offset, Ex
    const QoreListNode *arg_list = dynamic_cast<const QoreListNode *>(args);
 
    QoreStringNode *buf = new QoreStringNode(fmt->getEncoding());
-   int j = 0;
-   int l = fmt->strlen();
-   for (int i = 0; i < l; i++)
+   unsigned j = 0;
+   unsigned l = fmt->strlen();
+   for (unsigned i = 0; i < l; i++)
    {
       int taken = 1;
       bool havearg = false;

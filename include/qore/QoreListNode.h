@@ -16,7 +16,7 @@
   Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
+  License aqore_offset_t with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -48,16 +48,20 @@ class QoreListNode : public AbstractQoreNode
        */
       struct qore_list_private *priv;
 
-      DLLLOCAL void resize(int num);
-      DLLLOCAL void splice_intern(int offset, int length, class ExceptionSink *xsink);
-      DLLLOCAL void splice_intern(int offset, int length, const AbstractQoreNode *l, class ExceptionSink *xsink);
-      DLLLOCAL void check_offset(int &offset);
-      DLLLOCAL void check_offset(int &offset, int &len);
+      DLLLOCAL void resize(qore_size_t num);
+      DLLLOCAL void splice_intern(qore_size_t offset, qore_size_t length, class ExceptionSink *xsink);
+      DLLLOCAL void splice_intern(qore_size_t offset, qore_size_t length, const AbstractQoreNode *l, class ExceptionSink *xsink);
+      DLLLOCAL qore_size_t check_offset(qore_offset_t offset);
+      DLLLOCAL void check_offset(qore_offset_t offset, qore_offset_t len, qore_size_t &n_offset, qore_size_t &n_len);
 
       //! qsort sorts the list in-place (unstable)
-      DLLLOCAL int qsort(const class ResolvedFunctionReferenceNode *fr, int left, int right, bool ascending, class ExceptionSink *xsink);
+      /** @return 0 for OK, -1 for exception raised
+       */
+      DLLLOCAL int qsort(const class ResolvedFunctionReferenceNode *fr, qore_size_t left, qore_size_t right, bool ascending, class ExceptionSink *xsink);
 
       //! mergesort sorts the list in-place (stable)
+      /** @return 0 for OK, -1 for exception raised
+       */
       DLLLOCAL int mergesort(const class ResolvedFunctionReferenceNode *fr, bool ascending, class ExceptionSink *xsink);
 
       //! does an unconditional evaluation of the list and returns the new list, 0 if there is a qore-language exception
@@ -162,37 +166,37 @@ class QoreListNode : public AbstractQoreNode
 	  @param index the index of the element (first element is index 0)
 	  @return the value of the element at "index", not referenced for the caller
        */
-      DLLEXPORT AbstractQoreNode *retrieve_entry(int index);
+      DLLEXPORT AbstractQoreNode *retrieve_entry(qore_size_t index);
 
       //! returns the element at "index" (first element is index 0)
       /** the value is not referenced for the caller
 	  @param index the index of the element (first element is index 0)
 	  @return the value of the element at "index", not referenced for the caller
        */
-      DLLEXPORT const AbstractQoreNode *retrieve_entry(int index) const;
+      DLLEXPORT const AbstractQoreNode *retrieve_entry(qore_size_t index) const;
 
       //! returns the element at "index" (first element is index 0), the caller owns the reference
       /**
 	 @param index the index of the element (first element is index 0)
 	 @return the value of the element at "index" with an incremented reference count for the caller
        */
-      DLLEXPORT AbstractQoreNode *get_referenced_entry(int index) const;
+      DLLEXPORT AbstractQoreNode *get_referenced_entry(qore_size_t index) const;
 
       //! returns the value of element at "index" as an integer (first element is index 0)
       /**
 	 @param index the index of the element (first element is index 0)
        */
-      DLLEXPORT int getEntryAsInt(int index) const;
+      DLLEXPORT int getEntryAsInt(qore_size_t index) const;
 
       /**
 	 @param index the index of the element (first element is index 0)
        */
-      DLLEXPORT AbstractQoreNode **get_entry_ptr(int index);
+      DLLEXPORT AbstractQoreNode **get_entry_ptr(qore_size_t index);
 
       /**
 	 @param index the index of the element (first element is index 0)
        */
-      DLLEXPORT AbstractQoreNode **getExistingEntryPtr(int index);
+      DLLEXPORT AbstractQoreNode **getExistingEntryPtr(qore_size_t index);
 
       //! sets the value of a list element
       /**
@@ -202,7 +206,7 @@ class QoreListNode : public AbstractQoreNode
 	 @param val the value to set, must be already referenced for the assignment (or 0)
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void set_entry(int index, AbstractQoreNode *val, class ExceptionSink *xsink);
+      DLLEXPORT void set_entry(qore_size_t index, AbstractQoreNode *val, class ExceptionSink *xsink);
 
       DLLEXPORT void push(class AbstractQoreNode *val);
       DLLEXPORT void insert(class AbstractQoreNode *val);
@@ -224,14 +228,15 @@ class QoreListNode : public AbstractQoreNode
       /**
 	 @param index the index of the element (first element is index 0)
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
+	 @return -1 if the index was invalid, 0 if the index was valid
        */
-      DLLEXPORT int delete_entry(int index, class ExceptionSink *xsink);
+      DLLEXPORT int delete_entry(qore_size_t index, class ExceptionSink *xsink);
 
       /**
 	 @param index the index of the element (first element is index 0)
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void pop_entry(int index, class ExceptionSink *xsink);
+      DLLEXPORT void pop_entry(qore_size_t index, class ExceptionSink *xsink);
 
       //! evaluates the list and returns a value (or 0)
       /** return value requires a deref(xsink)
@@ -257,9 +262,9 @@ class QoreListNode : public AbstractQoreNode
 
       //! performs a deep copy of the list starting from element "offset" and returns the new list
       /** therefore element 0 of the new list is element "offset" in the source list
-	  @param offset the index of the element (first element is offset 0)
+	  @param index the index of the element (first element is index 0)
        */
-      DLLEXPORT QoreListNode *copyListFrom(int offset) const;
+      DLLEXPORT QoreListNode *copyListFrom(qore_size_t index) const;
 
       //! returns a new list based on quicksorting the source list ("this")
       /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
@@ -341,32 +346,32 @@ class QoreListNode : public AbstractQoreNode
 
       //! truncates the list at position "offset" (first element is offset 0)
       /**
-	 @param offset the index of the element (first element is offset 0)
+	 @param offset the index of the element (first element is offset 0, negative offsets are offsets from the end of the list)
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
       */
-      DLLEXPORT void splice(int offset, class ExceptionSink *xsink);
+      DLLEXPORT void splice(qore_offset_t offset, class ExceptionSink *xsink);
 
       //! removes "length" elements at position "offset" (first element is offset 0)
       /**
-	 @param offset the index of the element (first element is offset 0)
-	 @param length the number of elements to remove
+	 @param offset the index of the element (first element is offset 0, negative offsets are offsets from the end of the list)
+	 @param length the number of elements to remove (negative numbers mean all except that many elements from the end)
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void splice(int offset, int length, class ExceptionSink *xsink);
+      DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, class ExceptionSink *xsink);
 
       //! adds a single value or a list of values ("l") to list possition "offset", while removing "length" elements
       /** the "l" AbstractQoreNode (or each element if it is a QoreListNode) will be referenced for the assignment in the QoreListNode
        */
       /**
-	 @param offset the index of the element (first element is offset 0)
-	 @param length the number of elements to remove
+	 @param offset the index of the element (first element is offset 0, negative offsets are offsets from the end of the list)
+	 @param length the number of elements to remove (negative numbers mean all except that many elements from the end)
 	 @param l the value or list of values to insert
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void splice(int offset, int length, const AbstractQoreNode *l, class ExceptionSink *xsink);
+      DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const AbstractQoreNode *l, class ExceptionSink *xsink);
 
       //! returns the number of elements in the list
-      DLLEXPORT int size() const;
+      DLLEXPORT qore_size_t size() const;
 
       //! returns a list with the order of the elements reversed
       DLLEXPORT QoreListNode *reverse() const;
@@ -377,24 +382,31 @@ class QoreListNode : public AbstractQoreNode
       // needed only while parsing
       //! this function is not exported in the qore library
       DLLLOCAL QoreListNode(bool i);
+
       //! this function is not exported in the qore library
       DLLLOCAL bool isFinalized() const;
+
       //! this function is not exported in the qore library
       DLLLOCAL void setFinalized();
+
       //! this function is not exported in the qore library
       DLLLOCAL bool isVariableList() const;
+
       //! this function is not exported in the qore library
       DLLLOCAL void setVariableList();
+
       //! this function is not exported in the qore library
       DLLLOCAL void clearNeedsEval();
+
       //! this function is not exported in the qore library
       DLLLOCAL void clear();
+
       //! this function is not exported in the qore library
       /**
 	 @param num the offset of the entry to evaluate (starting with 0)
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
       */
-      DLLLOCAL AbstractQoreNode *eval_entry(int num, class ExceptionSink *xsink) const;
+      DLLLOCAL AbstractQoreNode *eval_entry(qore_size_t num, class ExceptionSink *xsink) const;
 };
 
 #include <qore/ReferenceHolder.h>
@@ -406,11 +418,20 @@ class QoreListNode : public AbstractQoreNode
 typedef ReferenceHolder<QoreListNode> QoreListNodeHolder;
 
 //! For use on the stack only: iterates through a the elements of a QoreListNode
+/**
+   @code
+   ListIterator li(l);
+   while (li.next()) {
+      QoreStringValueHelper str(li.getValue());
+      printf("%d: '%s'\n", li.index(), str->getBuffer());
+   }
+   @endcode
+*/
 class ListIterator
 {
    private:
       QoreListNode* l;
-      int pos;
+      qore_size_t pos;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL void *operator new(size_t); 
@@ -438,15 +459,28 @@ class ListIterator
 
       //! returns true when the iterator is pointing to the last element in the list
       DLLEXPORT bool last() const;
+
       //DLLEXPORT void setValue(class AbstractQoreNode *val, class ExceptionSink *xsink) const;
+
+      //! returns the current iterator position in the list
+      DLLLOCAL qore_size_t index() const { return pos; }
 };
 
 //! For use on the stack only: iterates through elements of a const QoreListNode
+/**
+   @code
+   ConstListIterator li(l);
+   while (li.next()) {
+      QoreStringValueHelper str(li.getValue());
+      printf("%d: '%s'\n", li.index(), str->getBuffer());
+   }
+   @endcode
+*/
 class ConstListIterator
 {
    private:
       const QoreListNode* l;
-      int pos;
+      qore_size_t pos;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL void *operator new(size_t); 
@@ -471,6 +505,9 @@ class ConstListIterator
 
       //! returns true when the iterator is pointing to the last element in the list
       DLLEXPORT bool last() const;
+
+      //! returns the current iterator position in the list
+      DLLLOCAL qore_size_t index() const { return pos; }
 };
 
 //! For use on the stack only: manages result of the optional evaluation of a QoreListNode

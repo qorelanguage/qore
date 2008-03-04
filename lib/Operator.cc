@@ -802,8 +802,7 @@ static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, cons
       return 0;
 
    // get values and save
-   int i;
-   for (i = 0; i < left->size(); i++)
+   for (unsigned i = 0; i < left->size(); i++)
    {
       const AbstractQoreNode *lv = left->retrieve_entry(i);
 

@@ -243,7 +243,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
       if (cs->size())
       {
 	 // find first non-rethrow element
-	 int i = 0;
+	 unsigned i = 0;
 	 
 	 QoreHashNode *h;
 	 while (true) {
@@ -341,7 +341,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e)
       if (cs->size())
       {
 	 printe("call stack:\n");
-	 for (int i = 0; i < cs->size(); i++)
+	 for (unsigned i = 0; i < cs->size(); i++)
 	 {
 	    int pos = cs->size() - i;
 	    QoreHashNode *h = reinterpret_cast<QoreHashNode *>(cs->retrieve_entry(i));

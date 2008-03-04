@@ -1,3 +1,8 @@
+2008.03.04: David Nichols
+	* make QoreHashNode implementation private
+	* more doxygen and API updates
+	* implemented qore_size_t and qore_offset_t types
+
 2008.02.28: David Nichols
 	* unimplemented thread-key-based local variable lookups as there are
 	  only a very limited number of thread keys available on Linux and Mac

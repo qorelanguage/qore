@@ -65,7 +65,7 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    // execute "foreach" body
    if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
    {
-      int i = 0;
+      unsigned i = 0;
 
       while (true)
       {
@@ -167,7 +167,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
    if (!xsink->isEvent() && tlist && (!l_tlist || l_tlist->size()))
    {
       AbstractQoreNode *ln = NULL;
-      int i = 0;
+      unsigned i = 0;
 
       if (l_tlist)
 	 ln = new QoreListNode();

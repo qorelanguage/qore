@@ -138,22 +138,22 @@ static AbstractQoreNode *f_index(const QoreListNode *params, ExceptionSink *xsin
    int ind;
    if (!hs->getEncoding()->isMultiByte())
    {
-      if (pos >= hs->strlen())
-	 ind = -1;
-      else
-      {
+      if (pos < 0) {
+	 pos = hs->strlen() + pos;
 	 if (pos < 0)
-	 {
-	    pos = hs->strlen() + pos;
-	    if (pos < 0)
-	       pos = 0;
-	 }
+	    pos = 0;
 	 ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
+      }
+      else {
+	 if ((qore_size_t)pos >= hs->strlen())
+	    ind = -1;
+	 else
+	    ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
       }
    }
    else // do multibyte index()
    {
-      int start;
+      qore_size_t start;
       if (pos < 0)
       {
 	 pos = hs->length() + pos;
@@ -205,20 +205,19 @@ static AbstractQoreNode *f_bindex(const QoreListNode *params, ExceptionSink *xsi
    int pos = p2 ? p2->getAsInt() : 0;
 
    int ind;
-   if (pos >= hs->strlen())
-      ind = -1;
-   else
-   {
+   if (pos < 0) {
+      pos = hs->strlen() + pos;
       if (pos < 0)
-      {
-	 pos = hs->strlen() + pos;
-	 if (pos < 0)
-	    pos = 0;
-      }
-
+	 pos = 0;
       ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
    }
-   
+   else {
+      if ((qore_size_t)pos >= hs->strlen())
+	 ind = -1;
+      else
+	 ind = index_intern(hs->getBuffer(), t1->getBuffer(), pos);
+   }
+
    return new QoreBigIntNode(ind);
 }
 
@@ -337,7 +336,7 @@ static AbstractQoreNode *f_ord(const QoreListNode *params, ExceptionSink *xsink)
       return 0;
 
    const AbstractQoreNode *p1 = get_param(params, 1);
-   int offset = p1 ? p1->getAsInt() : 0;
+   qore_size_t offset = p1 ? p1->getAsBigInt() : 0;
 
    if (offset >= str->strlen())
        return 0;
@@ -519,7 +518,7 @@ static AbstractQoreNode *f_join(const QoreListNode *params, ExceptionSink *xsink
    if (!p0)
       return NULL;
    
-   int n = num_params(params);
+   unsigned n = num_params(params);
    if (n < 2)
       return NULL;
 
@@ -534,8 +533,7 @@ static AbstractQoreNode *f_join(const QoreListNode *params, ExceptionSink *xsink
 
    QoreStringNode *str = new QoreStringNode();
 
-   for (int i = n; i < l->size(); i++)
-   {
+   for (unsigned i = n; i < l->size(); i++) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       if (p)
       {
