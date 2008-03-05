@@ -38,7 +38,7 @@
 typedef qore_size_t (*mbcs_length_t)(const char *str);
 
 //! for multi-byte character set encodings: gives the number of bytes for the number of chars
-typedef qore_size_t (*mbcs_end_t)(const char *str, size_t num_chars);
+typedef qore_size_t (*mbcs_end_t)(const char *str, qore_size_t num_chars);
 
 //! for multi-byte character set encodings: gives the character position of the ptr
 typedef qore_size_t (*mbcs_pos_t)(const char *str, const char *ptr);
