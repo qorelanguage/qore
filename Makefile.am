@@ -11,7 +11,6 @@ INCLUDES = -I$(top_srcdir)/include
 
 noinst_HEADERS = \
 	include/qore/ReferenceArgumentHelper.h \
-	include/qore/types/Number.h \
 	include/qore/qore_thread.h \
 	include/qore/AbstractThreadResource.h \
 	include/qore/QoreProgram.h \

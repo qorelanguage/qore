@@ -296,7 +296,7 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT void setExecClass(const char *ecn = 0);
 
       //! adds the parse options given to the parse option mask
-      DLLEXPORT void parseSetParseOptions(qore_restrictions_t po);
+      DLLEXPORT void parseSetParseOptions(int po);
 
       //! this call blocks until the program's last thread terminates
       DLLEXPORT void waitForTermination();
@@ -335,21 +335,21 @@ class QoreProgram : public AbstractPrivateData
       DLLEXPORT int disableWarning(int code);
 
       //! returns the parse options currently set for this program
-      DLLEXPORT qore_restrictions_t getParseOptions() const;
+      DLLEXPORT int getParseOptions() const;
 
       //! sets the parse options and adds Qore-language exception information if an error occurs
       /**
 	 @param po the parse options to add to the parse option mask
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void setParseOptions(qore_restrictions_t po, class ExceptionSink *xsink);
+      DLLEXPORT void setParseOptions(int po, class ExceptionSink *xsink);
 
       //! turns off the parse options given in the passed mask and adds Qore-language exception information if an error occurs
       /**
 	 @param po the parse options to subtract from the parse option mask
 	 @param xsink if an error occurs, the Qore-language exception information will be added here
        */
-      DLLEXPORT void disableParseOptions(qore_restrictions_t po, class ExceptionSink *xsink);
+      DLLEXPORT void disableParseOptions(int po, class ExceptionSink *xsink);
 
       //! returns a list of all user functions in this program
       /**
@@ -372,7 +372,7 @@ class QoreProgram : public AbstractPrivateData
       //! returns a pointed to the given user function if it exists (otherwise returns 0)
       DLLLOCAL class UserFunction *findUserFunction(const char *name);
       
-      DLLLOCAL QoreProgram(QoreProgram *pgm, qore_restrictions_t po, bool ec = false, const char *ecn = 0);
+      DLLLOCAL QoreProgram(QoreProgram *pgm, int po, bool ec = false, const char *ecn = 0);
 
       //! calls a function from a UserFunction pointer and returns the return value
       /** if the function does not exist, an exception is added to "xsink"

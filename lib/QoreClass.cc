@@ -45,10 +45,10 @@ struct qore_qc_private {
          methodID;                 // for subclasses of builtin classes that will not have their own private data,
                                    //   instead they will get the private data from this class
       bool sys, initialized;       // system class?, is initialized?
-      qore_domain_t domain;             // capabilities of builtin class to use in the context of parse restrictions
+      int domain;             // capabilities of builtin class to use in the context of parse restrictions
       class QoreReferenceCounter nref;  // namespace references
 
-      DLLLOCAL qore_qc_private(const char *nme, qore_domain_t dom = QDOM_DEFAULT)
+      DLLLOCAL qore_qc_private(const char *nme, int dom = QDOM_DEFAULT)
       {
 	 initialized = false;
 	 domain = dom;
@@ -644,7 +644,7 @@ bool QoreClass::hasMemberGate() const
    return priv->memberGate != 0;
 }
 
-qore_domain_t QoreClass::getDomain() const
+int QoreClass::getDomain() const
 {
    return priv->domain;
 }
@@ -968,7 +968,7 @@ inline class QoreClass *BCSMList::getClass(qore_classid_t cid) const
    return 0;
 }
 
-QoreClass::QoreClass(const char *nme, qore_domain_t dom)
+QoreClass::QoreClass(const char *nme, int dom)
 {
    priv = new qore_qc_private(nme, dom);
 
@@ -1165,9 +1165,9 @@ inline void QoreClass::insertMethod(QoreMethod *m)
    priv->hm[m->getName()] = m;
 }      
 
-inline void QoreClass::addDomain(qore_domain_t dom)
+inline void QoreClass::addDomain(int dom)
 {
-   priv->domain = (qore_domain_t)(priv->domain | dom);
+   priv->domain |= dom;
 }
 
 AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const

@@ -24,11 +24,48 @@
 
 #define _QORE_QORELIBINTERN_H
 
+#include <list>
+
 enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };
 
 typedef std::pair<enum obe_type_e, class StatementBlock *> qore_conditional_block_exit_statement_t;
 
 typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
+
+#include <qore/intern/ParseNode.h>
+#include <qore/intern/FunctionReferenceCallNode.h>
+#include <qore/intern/FunctionReferenceNode.h>
+#include <qore/intern/Function.h>
+#include <qore/intern/AbstractStatement.h>
+#include <qore/intern/Variable.h>
+#include <qore/intern/LocalVar.h>
+#include <qore/intern/NamedScope.h>
+#include <qore/intern/ScopedObjectCallNode.h>
+#include <qore/intern/ConstantNode.h>
+#include <qore/intern/ClassRefNode.h>
+#include <qore/intern/Context.h>
+#include <qore/intern/Operator.h>
+#include <qore/intern/QoreTreeNode.h>
+#include <qore/intern/BarewordNode.h>
+#include <qore/intern/SelfVarrefNode.h>
+#include <qore/intern/BackquoteNode.h>
+#include <qore/intern/ContextrefNode.h>
+#include <qore/intern/ContextRowNode.h>
+#include <qore/intern/ComplexContextrefNode.h>
+#include <qore/intern/FindNode.h>
+#include <qore/intern/VRMutex.h>
+#include <qore/intern/VLock.h>
+#include <qore/intern/QoreException.h>
+#include <qore/intern/qore_thread_intern.h>
+#include <qore/intern/StatementBlock.h>
+#include <qore/intern/VarRefNode.h>
+#include <qore/intern/FunctionCallNode.h>
+#include <qore/intern/RegexSubstNode.h>
+#include <qore/intern/QoreRegexNode.h>
+#include <qore/intern/RegexTransNode.h>
+#include <qore/intern/ObjectMethodReferenceNode.h>
+
+DLLLOCAL extern int qore_library_options;
 
 #ifndef HAVE_GETHOSTBYNAME_R
 DLLLOCAL extern QoreThreadLock lck_gethostbyname;

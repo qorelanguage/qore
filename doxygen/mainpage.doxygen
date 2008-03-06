@@ -1,0 +1,27 @@
+/** @mainpage Programming with the Qore Library
+
+    @section introduction Introduction to the Qore Library
+
+    The Qore library is designed to facilitate dynamic embedding of code in applications.  The Qore library is thread-safe, and Qore code taking advantage of Qore's threading facilities is highly scalable on SMP machines.
+
+    @section embedding Embedding Qore Code
+
+    All code using the qore library should include the header file Qore.h as follows:
+
+    @code
+    #include <qore/Qore.h>
+    @endcode
+
+    @subsection initializing_library Initializing the Library
+
+    The first step is to initialize the library.  To do this, call the function qore_init() as follows:
+
+    @code
+    qore_init();
+    @endcode
+ 
+    @section module_dev Qore Module development
+
+    To develop a Qore module, several functions are required.
+
+*/

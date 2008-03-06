@@ -166,7 +166,7 @@ class QoreClass{
 	  @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
 	  @see QoreProgram
        */
-      DLLEXPORT QoreClass(const char *n_name, qore_domain_t n_domain = QDOM_DEFAULT);
+      DLLEXPORT QoreClass(const char *n_name, int n_domain = QDOM_DEFAULT);
 
       //! deletes the object and frees all memory
       DLLEXPORT ~QoreClass();
@@ -317,7 +317,7 @@ class QoreClass{
       DLLEXPORT bool hasMemberGate() const;
 
       //! returns the functional domain of the class
-      DLLEXPORT qore_domain_t getDomain() const;
+      DLLEXPORT int getDomain() const;
 
       //! returns the class name
       DLLEXPORT const char *getName() const;
@@ -367,7 +367,7 @@ class QoreClass{
       DLLLOCAL void execSubclassCopy(class QoreObject *self, class QoreObject *old, ExceptionSink *xsink) const;
       DLLLOCAL const QoreMethod *resolveSelfMethod(const char *nme);
       DLLLOCAL const QoreMethod *resolveSelfMethod(class NamedScope *nme);
-      DLLLOCAL void addDomain(qore_domain_t dom);
+      DLLLOCAL void addDomain(int dom);
       DLLLOCAL QoreClass *copyAndDeref();
       DLLLOCAL void addBaseClassesToSubclass(QoreClass *sc, bool is_virtual);
       // used when parsing

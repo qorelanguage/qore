@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <strings.h>
 
-extern qore_restrictions_t parse_options;
+extern int parse_options;
 extern int warnings, qore_lib_options;
 extern char *def_charset;
 extern char *cl_pgm, *exec_class_name;

@@ -60,14 +60,14 @@ void ParseOptionMap::static_init()
    DO_MAP("no-terminal-io",           PO_NO_TERMINAL_IO);
 }
 
-qore_restrictions_t ParseOptionMap::find_code(const char *name)
+int ParseOptionMap::find_code(const char *name)
 {
    opt_map_t::iterator i = map.find(name);
    //printd(5, "find_code(%s) returning %08x\n", name, i == map.end() ? -1 : i->second);
-   return (i == map.end() ? PO_INVALID : i->second);
+   return (i == map.end() ? -1 : i->second);
 }
 
-const char *ParseOptionMap::find_name(qore_restrictions_t code)
+const char *ParseOptionMap::find_name(int code)
 {
    rev_opt_map_t::iterator i = rmap.find(code);
    return (i == rmap.end() ? 0 : i->second);

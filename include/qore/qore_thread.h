@@ -25,6 +25,10 @@
 #ifndef _QORE_QORE_THREAD_H
 #define _QORE_QORE_THREAD_H
 
+/** @file qore_thread.h
+    Provides definitions relative to threading in Qore.
+ */
+
 #include <stdio.h>
 #include <pthread.h>
 

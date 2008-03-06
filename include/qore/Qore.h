@@ -68,59 +68,46 @@
 #include <qore/ReferenceNode.h>
 #include <qore/params.h>
 
-// include private definitions if compiling the library
-#ifdef _QORE_LIB_INTERN
-#include <qore/intern/ParseNode.h>
-#include <qore/intern/FunctionReferenceCallNode.h>
-#include <qore/intern/FunctionReferenceNode.h>
-#include <qore/intern/Function.h>
-#include <qore/intern/AbstractStatement.h>
-#include <qore/intern/QoreLibIntern.h>
-#include <qore/intern/Variable.h>
-#include <qore/intern/LocalVar.h>
-#include <qore/intern/NamedScope.h>
-#include <qore/intern/ScopedObjectCallNode.h>
-#include <qore/intern/ConstantNode.h>
-#include <qore/intern/ClassRefNode.h>
-#include <qore/intern/Context.h>
-#include <qore/intern/Operator.h>
-#include <qore/intern/QoreTreeNode.h>
-#include <qore/intern/BarewordNode.h>
-#include <qore/intern/SelfVarrefNode.h>
-#include <qore/intern/BackquoteNode.h>
-#include <qore/intern/ContextrefNode.h>
-#include <qore/intern/ContextRowNode.h>
-#include <qore/intern/ComplexContextrefNode.h>
-#include <qore/intern/FindNode.h>
-#include <qore/intern/VRMutex.h>
-#include <qore/intern/VLock.h>
-#include <qore/intern/QoreException.h>
-#include <qore/intern/qore_thread_intern.h>
-#include <qore/intern/StatementBlock.h>
-#include <qore/intern/VarRefNode.h>
-#include <qore/intern/FunctionCallNode.h>
-#include <qore/intern/RegexSubstNode.h>
-#include <qore/intern/QoreRegexNode.h>
-#include <qore/intern/RegexTransNode.h>
-#include <qore/intern/ObjectMethodReferenceNode.h>
-
-DLLLOCAL extern int qore_library_options;
-#endif
-
+//! the complete version string of the qore library
 DLLEXPORT extern char qore_version_string[];
+
+//! the major version number of the qore library
 DLLEXPORT extern int qore_version_major;
+
+//! the minor version number of the qore library
 DLLEXPORT extern int qore_version_minor;
+
+//! the version number below the minor version number of the qore library
 DLLEXPORT extern int qore_version_sub;
+
+//! the build number of the qore library
 DLLEXPORT extern int qore_build_number;
+
+//! the build target machine word size in bits (32 or 64 normally)
 DLLEXPORT extern int qore_target_bits;
+
+//! the build target Operating System name
 DLLEXPORT extern char qore_target_os[];
+
+//! the build target machine architecture name
 DLLEXPORT extern char qore_target_arch[];
 
-// qore library initialization options
-#define QLO_NONE                       0
-#define QLO_DISABLE_SIGNAL_HANDLING    1
+#define QLO_NONE                    0       //!< no options (default)
+#define QLO_DISABLE_SIGNAL_HANDLING 1 << 0  //!< disable qore signal handling entirely
 
-DLLEXPORT void qore_init(char *def_charset = 0, bool show_module_errors = false, int init_options = QLO_NONE);
+//! initializes the Qore library
+/** @param default_encoding the default character encoding for the library, if 0 then the environment variables QORE_CHARSET and LANG will be processed, in that order, to determine the default character encoding.  If no character encoding can be determined from either of these environment variables, UTF-8 will be used as the default.
+    @param show_module_errors if true then any errors loading qore modules will be output to stdout
+    @param init_options a binary "or" sum of the qore library options 
+ */
+DLLEXPORT void qore_init(char *default_encoding = 0, bool show_module_errors = false, int init_options = QLO_NONE);
+
+//! frees all memory allocated by the library
 DLLEXPORT void qore_cleanup();
+
+// include private definitions if compiling the library
+#ifdef _QORE_LIB_INTERN
+#include <qore/intern/QoreLibIntern.h>
+#endif
 
 #endif  // _QORE_QORE_H

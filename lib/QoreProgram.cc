@@ -110,7 +110,7 @@ struct qore_program_private {
       RootQoreNamespace *RootNS;
       QoreNamespace *QoreNS;
 
-      qore_restrictions_t parse_options;
+      int parse_options;
       int warn_mask;
       bool po_locked, exec_class, base_object, requires_exception;
       std::string exec_class_name;
@@ -410,7 +410,7 @@ QoreProgram::QoreProgram() : priv(new qore_program_private)
    priv->RootNS = new RootQoreNamespace(&priv->QoreNS);
 }
 
-QoreProgram::QoreProgram(QoreProgram *pgm, qore_restrictions_t po, bool ec, const char *ecn) : priv(new qore_program_private)
+QoreProgram::QoreProgram(QoreProgram *pgm, int po, bool ec, const char *ecn) : priv(new qore_program_private)
 {
    // flag as derived object
    priv->base_object = false;
@@ -418,14 +418,13 @@ QoreProgram::QoreProgram(QoreProgram *pgm, qore_restrictions_t po, bool ec, cons
    // set parse options for child object
    priv->parse_options = po;
    // if children inherit restrictions, then set all child restrictions
-   if (!(pgm->priv->parse_options & PO_NO_CHILD_PO_RESTRICTIONS))
-   {
+   if (!(pgm->priv->parse_options & PO_NO_CHILD_PO_RESTRICTIONS)) {
       // lock child parse options
       priv->po_locked = true;
       // turn on all restrictions in the child that are set in the parent
-      priv->parse_options = (qore_restrictions_t)(priv->parse_options | pgm->priv->parse_options);
+      priv->parse_options |= pgm->priv->parse_options;
       // make sure all options that give more freedom and are off in the parent program are turned off in the child
-      priv->parse_options = (qore_restrictions_t)(priv->parse_options & (pgm->priv->parse_options | ~PO_POSITIVE_OPTIONS));
+      priv->parse_options &= (pgm->priv->parse_options | ~PO_POSITIVE_OPTIONS);
    }
    else
       priv->po_locked = false;
@@ -721,7 +720,7 @@ class RootQoreNamespace *QoreProgram::getRootNS() const
    return priv->RootNS; 
 }
 
-qore_restrictions_t QoreProgram::getParseOptions() const
+int QoreProgram::getParseOptions() const
 { 
    return priv->parse_options; 
 }
@@ -813,34 +812,34 @@ bool QoreProgram::existsFunction(const char *name)
    return priv->user_func_list.find(name);
 }
 
-void QoreProgram::parseSetParseOptions(qore_restrictions_t po)
+void QoreProgram::parseSetParseOptions(int po)
 {
    if (priv->po_locked)
    {
       parse_error("parse options have been locked on this program object");
       return;
    }
-   priv->parse_options = (qore_restrictions_t)(priv->parse_options | po);
+   priv->parse_options |= po;
 }
 
-void QoreProgram::setParseOptions(qore_restrictions_t po, ExceptionSink *xsink)
+void QoreProgram::setParseOptions(int po, ExceptionSink *xsink)
 {
    if (priv->po_locked)
    {
       xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
       return;
    }
-   priv->parse_options = (qore_restrictions_t)(priv->parse_options | po);
+   priv->parse_options |= po;
 }
 
-void QoreProgram::disableParseOptions(qore_restrictions_t po, ExceptionSink *xsink)
+void QoreProgram::disableParseOptions(int po, ExceptionSink *xsink)
 {
    if (priv->po_locked)
    {
       xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
       return;
    }
-   priv->parse_options = (qore_restrictions_t)(priv->parse_options & (~po));
+   priv->parse_options &= ~po;
 }
 
 void QoreProgram::parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm)
