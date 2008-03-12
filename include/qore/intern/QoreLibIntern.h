@@ -32,6 +32,9 @@ typedef std::pair<enum obe_type_e, class StatementBlock *> qore_conditional_bloc
 
 typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 
+#define NT_NONE  -1
+#define NT_ALL   -2
+
 #include <qore/intern/ParseNode.h>
 #include <qore/intern/FunctionReferenceCallNode.h>
 #include <qore/intern/FunctionReferenceNode.h>

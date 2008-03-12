@@ -28,21 +28,49 @@
     defines qore node type constants for all types implemented by the library
  */
 
-//! qore global system type constants
-/** @note value types must come first to support the operator matrix optimization
- */
-extern qore_type_t NT_NOTHING, NT_INT, NT_FLOAT, NT_STRING, NT_DATE,
-   NT_BOOLEAN, NT_NULL, NT_BINARY, NT_LIST, NT_HASH,
-   NT_OBJECT, NT_BACKQUOTE, NT_CONTEXTREF, NT_COMPLEXCONTEXTREF,
-   NT_VARREF, NT_TREE, NT_FIND, NT_FUNCTION_CALL, NT_SELF_VARREF,
-   NT_SCOPE_REF, NT_CONSTANT, NT_BAREWORD, NT_REFERENCE, NT_CONTEXT_ROW,
-   NT_REGEX_SUBST, NT_REGEX_TRANS, NT_REGEX, NT_CLASSREF,
-   NT_OBJMETHREF, NT_FUNCREF, NT_FUNCREFCALL;
+// qore global system type constants
+// value types must come first to support the operator matrix optimization
 
+
+const qore_type_t NT_NOTHING           = 0;  //!< type value for QoreNothingNode
+const qore_type_t NT_INT               = 1;  //!< type value for QoreBigIntNode
+const qore_type_t NT_FLOAT             = 2;  //!< type value for QoreFloatNode
+const qore_type_t NT_STRING            = 3;  //!< type value for QoreStringNode
+const qore_type_t NT_DATE              = 4;  //!< type value for DateTimeNode
+const qore_type_t NT_BOOLEAN           = 5;  //!< type value for QoreBoolNode
+const qore_type_t NT_NULL              = 6;  //!< type value for QoreNullNode
+const qore_type_t NT_BINARY            = 7;  //!< type value for BinaryNode
+const qore_type_t NT_LIST              = 8;  //!< type value for QoreListNode
+const qore_type_t NT_HASH              = 9;  //!< type value for QoreHashNode
+const qore_type_t NT_OBJECT            = 10; //!< type value for QoreObject
+const qore_type_t NT_BACKQUOTE         = 11; //!< type value for BackquoteNode
+const qore_type_t NT_CONTEXTREF        = 12; //!< type value for ContextrefNode
+const qore_type_t NT_COMPLEXCONTEXTREF = 13; //!< type value for ComplexContextrefNode
+const qore_type_t NT_VARREF            = 14; //!< type value for VarRefNode
+const qore_type_t NT_TREE              = 15; //!< type value for QoreTreeNode
+const qore_type_t NT_FIND              = 16; //!< type value for FindNode
+const qore_type_t NT_FUNCTION_CALL     = 17; //!< type value for FunctionCallNode
+const qore_type_t NT_SELF_VARREF       = 18; //!< type value for SelfVarrefNode
+const qore_type_t NT_SCOPE_REF         = 19; //!< type value for ScopedObjectCallNode
+const qore_type_t NT_CONSTANT          = 20; //!< type value for ConstantNode
+const qore_type_t NT_BAREWORD          = 21; //!< type value for BarewordNode
+const qore_type_t NT_REFERENCE         = 22; //!< type value for ReferenceNode
+const qore_type_t NT_CONTEXT_ROW       = 23; //!< type value for ContextRowNode
+const qore_type_t NT_REGEX_SUBST       = 24; //!< type value for RegexSubstNode
+const qore_type_t NT_REGEX_TRANS       = 25; //!< type value for RegexTransNode
+const qore_type_t NT_REGEX             = 26; //!< type value for QoreRegexNode
+const qore_type_t NT_CLASSREF          = 27; //!< type value for ClassRefNode
+const qore_type_t NT_OBJMETHREF        = 28; //!< type value for AbstractParseObjectMethodReferenceNode
+const qore_type_t NT_FUNCREF           = 29; //!< type value for AbstractFunctionReferenceNode
+const qore_type_t NT_FUNCREFCALL       = 30; //!< type value for FunctionReferenceCallNode
+
+//! number of types implemented in the Qore library
+#define QORE_NUM_TYPES 31
+
+//! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8
-#define NUM_VALUE_TYPES 11
 
-#define NT_NONE  -1
-#define NT_ALL   -2
+//! number of potential value types (including container types)
+#define NUM_VALUE_TYPES 11
 
 #endif

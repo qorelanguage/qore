@@ -77,7 +77,7 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL QoreProgram& operator=(const QoreProgram&);
       
    protected:
-      //! the destructor is private in order to prohibit the objkect from being allocated on the stack
+      //! the destructor is private in order to prohibit the object from being allocated on the stack
       /** the destructor is run when the reference count reaches 0 
        */
       DLLLOCAL virtual ~QoreProgram();
@@ -376,16 +376,16 @@ class QoreProgram : public AbstractPrivateData
       //! returns a list of features in the program object
       DLLEXPORT class QoreListNode *getFeatureList() const;
 
-      //! returns a pointed to the given user function if it exists (otherwise returns 0)
+      /// returns a pointed to the given user function if it exists (otherwise returns 0)
       DLLLOCAL class UserFunction *findUserFunction(const char *name);
       
       DLLLOCAL QoreProgram(QoreProgram *pgm, int po, bool ec = false, const char *ecn = 0);
 
-      //! calls a function from a UserFunction pointer and returns the return value
-      /** if the function does not exist, an exception is added to "xsink"
-	  @param func the name of the function to call
-	  @param args the argument to the function (can be 0)
-	  @param xsink if a Qore-language exception is raised, the error information is added here
+      /// calls a function from a UserFunction pointer and returns the return value
+      /* if the function does not exist, an exception is added to "xsink"
+	 @param func the name of the function to call
+	 @param args the argument to the function (can be 0)
+	 @param xsink if a Qore-language exception is raised, the error information is added here
        */
       DLLLOCAL AbstractQoreNode *callFunction(class UserFunction *func, const class QoreListNode *args, class ExceptionSink *xsink);
 

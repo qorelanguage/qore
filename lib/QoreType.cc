@@ -45,15 +45,6 @@ class QoreTypeManager
 
 static QoreTypeManager QTM;
 
-// system types
-qore_type_t NT_NOTHING, NT_INT, NT_FLOAT, NT_STRING, NT_DATE,
-   NT_BOOLEAN, NT_NULL, NT_BINARY, NT_LIST, NT_HASH,
-   NT_OBJECT, NT_BACKQUOTE, NT_CONTEXTREF, NT_COMPLEXCONTEXTREF,
-   NT_VARREF, NT_TREE, NT_FIND, NT_FUNCTION_CALL, NT_SELF_VARREF,
-   NT_SCOPE_REF, NT_CONSTANT, NT_BAREWORD, NT_REFERENCE, NT_CONTEXT_ROW,
-   NT_REGEX_SUBST, NT_REGEX_TRANS, NT_REGEX, NT_CLASSREF,
-   NT_OBJMETHREF, NT_FUNCREF, NT_FUNCREFCALL;
-
 // default value nodes for builtin types
 QoreNothingNode Nothing;
 QoreNullNode Null;
@@ -72,45 +63,6 @@ qore_type_t get_next_type_id()
 
 QoreTypeManager::QoreTypeManager()
 {
-   tracein("QoreTypeManager::QoreTypeManager()");
-   
-   // register system data types
-   // first, value types for operator matrix optimization
-   NT_NOTHING = get_next_type_id();
-   NT_INT     = get_next_type_id();
-   NT_FLOAT   = get_next_type_id();
-   NT_STRING  = get_next_type_id();
-   NT_DATE    = get_next_type_id();
-   NT_BOOLEAN = get_next_type_id();
-   NT_NULL    = get_next_type_id();
-   NT_BINARY  = get_next_type_id();
-   NT_LIST    = get_next_type_id();
-   NT_HASH    = get_next_type_id();
-   NT_OBJECT  = get_next_type_id();
-
-   // now parse types
-   NT_BACKQUOTE         = get_next_type_id();
-   NT_CONTEXTREF        = get_next_type_id();
-   NT_COMPLEXCONTEXTREF = get_next_type_id();
-   NT_VARREF            = get_next_type_id();
-   NT_TREE              = get_next_type_id();
-   NT_FIND              = get_next_type_id();
-   NT_FUNCTION_CALL     = get_next_type_id();
-   NT_SELF_VARREF       = get_next_type_id();
-   NT_SCOPE_REF         = get_next_type_id();
-   NT_CONSTANT          = get_next_type_id();
-   NT_BAREWORD          = get_next_type_id();
-   NT_REFERENCE         = get_next_type_id();
-   NT_CONTEXT_ROW       = get_next_type_id();
-   NT_REGEX_SUBST       = get_next_type_id();
-   NT_REGEX_TRANS       = get_next_type_id();
-   NT_REGEX             = get_next_type_id();
-   NT_CLASSREF          = get_next_type_id();
-   NT_OBJMETHREF        = get_next_type_id();
-   NT_FUNCREF           = get_next_type_id();
-   NT_FUNCREFCALL       = get_next_type_id();
-
-   traceout("QoreTypeManager::QoreTypeManager()");
 }
 
 QoreTypeManager::~QoreTypeManager()

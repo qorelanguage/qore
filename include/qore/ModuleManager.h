@@ -27,8 +27,12 @@
 #include <qore/common.h>
 #include <qore/QoreThreadLock.h>
 
-#define QORE_MODULE_API_MAJOR 0
-#define QORE_MODULE_API_MINOR 4
+/** @file ModuleManager.h
+    provides definitions required to load qore modules
+ */
+
+#define QORE_MODULE_API_MAJOR 0 //!< the major number of the Qore module API implemented
+#define QORE_MODULE_API_MINOR 4 //!< the minor number of the Qore module API implemented
 
 //! signature of the module constructor/initialization function
 typedef class QoreStringNode *(*qore_module_init_t)();

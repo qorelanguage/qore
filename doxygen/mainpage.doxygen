@@ -76,18 +76,18 @@
     To develop a Qore module, several functions and several global variables must be declared in the module with public visibility so the module can be initialized and used by the Qore library.
 
     The global variables are as follows:
-    - char qore_module_name[] - must give the name of the feature provided by the module.
-    - char qore_module_version[] - must give the version of the module
-    - char qore_module_description[] - a description of the module
-    - char qore_module_author[] - the author of the module
-    - char qore_module_url[] - a URL for the module
-    - int qore_module_api_major - must be assigned to QORE_MODULE_API_MAJOR
-    - int qore_module_api_minor - must be assigned to QORE_MODULE_API_MINOR
+    - char \a qore_module_name[] - must give the name of the feature provided by the module.
+    - char \a qore_module_version[] - must give the version of the module
+    - char \a qore_module_description[] - a description of the module
+    - char \a qore_module_author[] - the author of the module
+    - char \a qore_module_url[] - a URL for the module
+    - int \a qore_module_api_major - must be assigned to \ref QORE_MODULE_API_MAJOR
+    - int \a qore_module_api_minor - must be assigned to \ref QORE_MODULE_API_MINOR
 
     The functions are as follows:
-    - qore_module_init_t qore_module_init - the module initialization function
-    - qore_module_ns_init_t qore_module_ns_init - the module namespace delta functions
-    - qore_module_delete_t qore_module_delete - the module deletion function
+    - \ref qore_module_init_t \a qore_module_init - the module initialization function
+    - \ref qore_module_ns_init_t \a qore_module_ns_init - the module namespace delta functions
+    - \ref qore_module_delete_t \a qore_module_delete - the module deletion function
 
     @note All variables and all functions are required, even if the functions are empty.
 
@@ -106,7 +106,7 @@
     DLLEXPORT qore_module_delete_t qore_module_delete = ncurses_module_delete;
     @endcode
 
-    Note that the module name (or the module's feature name) as given by \a qore_module_name is used to uniquely identify the feature provided by the module.  Therefore if a module is loaded that provides feature "widget" and another module also claims to provided feature "widget", the second module can never be loaded in the Qore library.
+    Note that the module name (or the module's feature name) as given by \a qore_module_name is used to uniquely identify the feature provided by the module.  Therefore if a module is loaded that provides feature "widget" and another module also claims to provided feature "widget", the second module cannot be loaded in the Qore library after the first has been loaded due to the duplicate feature name.
 
     The \a qore_module_api_major and \a qore_module_api_minor variables are used to determine if the module corresponds to the API (and ABI) of the Qore library trying to load it.
 
@@ -193,7 +193,7 @@
     - test_reference_param() - returns a const ReferenceNode pointer or 0
     - test_nothing_param() - returns true if there is no value at the given position
 
-    Note that there are no functions for the integer (NT_INT) and floating-point (NT_FLOAT) types.  These values should be acquired as necessary using the AbstractQoreNode::getAsInt(), AbstractQoreNode::getAsBigInt(), and AbstractQoreNode::getAsFloat() functions.
+    Note that there are no functions for the integer (\ref NT_INT) and floating-point (\ref NT_FLOAT) types.  These values should be acquired as necessary using the AbstractQoreNode::getAsInt(), AbstractQoreNode::getAsBigInt(), and AbstractQoreNode::getAsFloat() functions to allow for transparent type conversion from other data types.
 
     Here are some examples:
 
@@ -215,7 +215,7 @@
     }
     @endcode
 
-    To use a string value, but accept conversion from other values, use the QoreStringValueHelper class.  This class is best for getting QoreString values or simply getting a "char *" for the converted value.  The QoreStringValueHelper class also provides a constructor that allows the target character encoding to be specified (there is an example in the class documentation).  If you need a QoreStringNode value, then use the QoreStringNodeValueHelper class instead.
+    To use a string value, but accept conversion from other data types, use the QoreStringValueHelper class.  This class is best for getting QoreString values or simply getting a "char *" for the converted value.  The QoreStringValueHelper class also provides a constructor that allows the target character encoding to be specified (there is an example in the class documentation).  If you need a QoreStringNode (\ref NT_STRING) value, then use the QoreStringNodeValueHelper class instead.
 
     Here is an example of interpreting a function argument as a string value using the QoreStringValueHelper class:
 
@@ -235,7 +235,7 @@
     }
     @endcode
 
-    To process arguments meant to be timeout values (or meant to specify a period of time) where an integer implies certain units (such as milliseconds or seconds) but also allow relative DateTimeNode values to be processed, use the following functions:
+    To process arguments meant to be timeout values (or meant to specify a period of time) where an integer implies certain units (such as milliseconds or seconds) but also allow relative DateTimeNode (\ref NT_DATE) values to be processed, use the following functions:
     - getSecZeroInt(const AbstractQoreNode *a)
     - getSecZeroBigInt(const AbstractQoreNode *a)
     - getSecMinusOneInt(const AbstractQoreNode *a)
