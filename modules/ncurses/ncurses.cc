@@ -636,14 +636,13 @@ static AbstractQoreNode *f_getmouse(const QoreListNode *params, class ExceptionS
 }
 #endif // NCURSES_MOUSE_VERSION
 
-static class QoreNamespace *NCNS;
+static class QoreNamespace NCNS("NCurses");
 
 static void init_namespace()
 {
-   NCNS = new QoreNamespace("NCurses");
-   NCNS->addSystemClass(initWindowClass());
-   NCNS->addSystemClass(initPanelClass());
-   init_constants(NCNS);
+   NCNS.addSystemClass(initWindowClass());
+   NCNS.addSystemClass(initPanelClass());
+   init_constants(&NCNS);
 }
 
 class QoreStringNode *ncurses_module_init()
@@ -720,13 +719,12 @@ class QoreStringNode *ncurses_module_init()
 
 void ncurses_module_ns_init(class QoreNamespace *rns, class QoreNamespace *qns)
 {
-   qns->addInitialNamespace(NCNS->copy());
+   qns->addInitialNamespace(NCNS.copy());
 }
 
 void ncurses_module_delete()
 {
    tracein("ncurses_module_delete()");
    q_nc_init.close();
-   delete NCNS;
    traceout("ncurses_module_delete()");
 }

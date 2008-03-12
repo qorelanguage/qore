@@ -26,6 +26,14 @@
 
 #include <qore/AbstractQoreNode.h>
 
+/** @file params.h
+    Contains inline functions for accessing function and class method arguments.
+ */
+
+//! returns the number of arguments passed to the function
+/** @param n a pointer to the argument list
+    @return the number of arguments passed to the function
+ */
 static inline int num_params(const QoreListNode *n)
 {
    if (!n)
@@ -33,6 +41,12 @@ static inline int num_params(const QoreListNode *n)
    return n->size();
 }
 
+//! returns the argument in the position given or 0 if there is none
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return the argument in the position given or 0 if there is none
+ */
 static inline const AbstractQoreNode *get_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
@@ -40,68 +54,124 @@ static inline const AbstractQoreNode *get_param(const QoreListNode *n, qore_size
    return is_nothing(p) ? 0 : p;
 }
 
+//! returns a const BinaryNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a BinaryNode
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return a const BinaryNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a BinaryNode
+ */
 static inline const BinaryNode *test_binary_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   return dynamic_cast<const BinaryNode *>(n->retrieve_entry(i));
+   AbstractQoreNode *p = n->retrieve_entry(i);
+   // the following is faster than a dynamic_cast
+   return p && p->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode *>(p) : 0;
 }
 
+//! returns a const QoreStringNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a QoreStringNode
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return a const QoreStringNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a QoreStringNode
+ */
 static inline const QoreStringNode *test_string_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   return dynamic_cast<const QoreStringNode *>(n->retrieve_entry(i));
+   AbstractQoreNode *p = n->retrieve_entry(i);
+   // the following is faster than a dynamic_cast
+   return p && p->getType() == NT_STRING ? reinterpret_cast<const QoreStringNode *>(p) : 0;
 }
 
-// QoreObjects are returned not as "const" because they are unique and can always be manipulated
+//! returns a QoreObject pointer for the argument position given or 0 if there is no argument there or if the argument is not a QoreObject
+/** QoreObjects are returned not as "const" because they are unique and can always be manipulated
+    @param n a pointer to the argument list
+    @param i the offset in the list to test (first element is offset 0)
+    @return a QoreObject pointer for the argument position given or 0 if there is no argument there or if the argument is not a QoreObject
+ */
 static inline QoreObject *test_object_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   return dynamic_cast<QoreObject *>(const_cast<AbstractQoreNode *>(n->retrieve_entry(i)));
+   AbstractQoreNode *p = n->retrieve_entry(i);
+   // the following is faster than a dynamic_cast
+   return p && p->getType() == NT_OBJECT ? const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(p)) : 0;
 }
 
+//! returns a DateTimeNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a DateTimeNode
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return a DateTimeNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a DateTimeNode
+ */
 static inline const DateTimeNode *test_date_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   return dynamic_cast<const DateTimeNode *>(n->retrieve_entry(i));
+   AbstractQoreNode *p = n->retrieve_entry(i);
+   // the following is faster than a dynamic_cast
+   return p && p->getType() == NT_DATE ? reinterpret_cast<const DateTimeNode *>(p) : 0;
 }
 
+//! returns a QoreHashNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a QoreHashNode
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return a QoreHashNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a QoreHashNode
+ */
 static inline const QoreHashNode *test_hash_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   return dynamic_cast<const QoreHashNode *>(n->retrieve_entry(i));
+   AbstractQoreNode *p = n->retrieve_entry(i);
+   // the following is faster than a dynamic_cast
+   return p && p->getType() == NT_HASH ? reinterpret_cast<const QoreHashNode *>(p) : 0;
 }
 
+//! returns a QoreListNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a QoreListNode
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return a QoreListNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a QoreListNode
+ */
 static inline const QoreListNode *test_list_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   return dynamic_cast<const QoreListNode *>(n->retrieve_entry(i));
+   AbstractQoreNode *p = n->retrieve_entry(i);
+   // the following is faster than a dynamic_cast
+   return p && p->getType() == NT_LIST ? reinterpret_cast<const QoreListNode *>(p) : 0;
 }
 
+//! returns a ResolvedFunctionReferenceNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a ResolvedFunctionReferenceNode
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return a ResolvedFunctionReferenceNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a ResolvedFunctionReferenceNode
+ */
 static inline const ResolvedFunctionReferenceNode *test_funcref_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   return dynamic_cast<const ResolvedFunctionReferenceNode *>(n->retrieve_entry(i));
+   AbstractQoreNode *p = n->retrieve_entry(i);
+   // the following is faster than a dynamic_cast
+   return p && p->getType() == NT_FUNCREF ? reinterpret_cast<const ResolvedFunctionReferenceNode *>(p) : 0;
 }
 
+//! returns a ReferenceNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a ReferenceNode
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return a ReferenceNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a ReferenceNode
+ */
 static inline const ReferenceNode *test_reference_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   return dynamic_cast<const ReferenceNode *>(n->retrieve_entry(i));
-}
-
-/*
-// this will return only valid objects of the passed class ID
-// if an object is returned it will be locked and the caller
-// is reponsible for releasing the lock (exiting the gate)
-static inline AbstractQoreNode *test_object_param(const QoreListNode *n, qore_classid_t cid, qore_size_t i, class RMutex **gp)
-{
-   if (!n) return 0;
    AbstractQoreNode *p = n->retrieve_entry(i);
-   if (!p) return 0;
-   return (p->type == NT_OBJECT && p->val.object->validInstanceOf(cid, gp)) ? p : 0;
+   // the following is faster than a dynamic_cast
+   return p && p->getType() == NT_REFERENCE ? reinterpret_cast<const ReferenceNode *>(p) : 0;
 }
-*/
 
+//! returns true if the arugment position given is NOTHING
+/**
+   @param n a pointer to the argument list
+   @param i the offset in the list to test (first element is offset 0)
+   @return true if the arugment position given is NOTHING
+ */
 static inline bool test_nothing_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return true;

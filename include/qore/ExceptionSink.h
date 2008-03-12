@@ -27,13 +27,15 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+class QoreException;
+
 //! container for holding Qore-language exception information and also for registering a "thread_exit" call
 class ExceptionSink {
    private:
       //! private implementation of the class
       struct qore_es_private *priv;
 
-      DLLLOCAL void insert(class QoreException *e);
+      DLLLOCAL void insert(QoreException *e);
       DLLLOCAL void clearIntern();
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -102,7 +104,7 @@ class ExceptionSink {
       DLLEXPORT void raiseThreadExit();
 
       //! assimilates all entries of the "xs" argument by appending them to the internal list and deletes the "xs" argument
-      DLLEXPORT void assimilate(class ExceptionSink *xs);
+      DLLEXPORT void assimilate(ExceptionSink *xs);
 
       //! intended to be used to handle out of memory errors FIXME: not yet fully implemented
       DLLEXPORT void outOfMemory();
@@ -110,30 +112,30 @@ class ExceptionSink {
       //! deletes the exception list immediately
       DLLEXPORT void clear();
 
-      DLLLOCAL void raiseException(class QoreException *e);
+      DLLLOCAL void raiseException(QoreException *e);
       DLLLOCAL void raiseException(const class QoreListNode *n);
-      DLLLOCAL class QoreException *catchException();
+      DLLLOCAL QoreException *catchException();
       DLLLOCAL void overrideLocation(int sline, int eline, const char *file);
-      DLLLOCAL void rethrow(class QoreException *old);
+      DLLLOCAL void rethrow(QoreException *old);
       DLLLOCAL void addStackInfo(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
       DLLLOCAL void addStackInfo(int type, const char *class_name, const char *code);
 
-      DLLLOCAL static void defaultExceptionHandler(class QoreException *e);
-      DLLLOCAL static void defaultWarningHandler(class QoreException *e);
+      DLLLOCAL static void defaultExceptionHandler(QoreException *e);
+      DLLLOCAL static void defaultWarningHandler(QoreException *e);
 };
 
 
-static inline void alreadyDeleted(class ExceptionSink *xsink, const char *cmeth)
+static inline void alreadyDeleted(ExceptionSink *xsink, const char *cmeth)
 {
    xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s() cannot be executed because the object has already been deleted", cmeth);
 }
 
-static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, const char *mem, const char *cname)
+static inline void makeAccessDeletedObjectException(ExceptionSink *xsink, const char *mem, const char *cname)
 {
    xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to access member '%s' of an already-deleted object of class '%s'", mem, cname);
 }
 
-static inline void makeAccessDeletedObjectException(class ExceptionSink *xsink, const char *cname)
+static inline void makeAccessDeletedObjectException(ExceptionSink *xsink, const char *cname)
 {
    xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to access an already-deleted object of class '%s'", cname);
 }

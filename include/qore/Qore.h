@@ -99,10 +99,14 @@ DLLEXPORT extern char qore_target_arch[];
 /** @param default_encoding the default character encoding for the library, if 0 then the environment variables QORE_CHARSET and LANG will be processed, in that order, to determine the default character encoding.  If no character encoding can be determined from either of these environment variables, UTF-8 will be used as the default.
     @param show_module_errors if true then any errors loading qore modules will be output to stdout
     @param init_options a binary "or" sum of the qore library options 
+    @note This function can only be called once and must be called before any other qore facilities are used.
  */
 DLLEXPORT void qore_init(char *default_encoding = 0, bool show_module_errors = false, int init_options = QLO_NONE);
 
 //! frees all memory allocated by the library
+/*
+    @note This function can only be called once and should be called when a program using the Qore library terminates.
+ */
 DLLEXPORT void qore_cleanup();
 
 // include private definitions if compiling the library

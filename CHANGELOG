@@ -1,3 +1,7 @@
+2008.03.11: David Nichols
+	* API and doxygen updates
+	* implemented QoreProgramHelper class
+
 2008.03.04: David Nichols
 	* make QoreHashNode implementation private
 	* more doxygen and API updates

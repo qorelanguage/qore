@@ -84,10 +84,10 @@ class QoreThreadLock {
 };
 
 //! provides a safe and exception-safe way to hold locks in Qore, only to be used on the stack, cannot be dynamically allocated
-/** ensures that locks are released by locking the lock when the
-    object is created and releasing it when the object is destroyed
-    for a similar object that allows for unlocking the lock earlier 
-    than the object's destruction, see SafeLocker
+/** Ensures that locks are released by locking the lock when the
+    object is created and releasing it when the object is destroyed.
+    For a similar object that allows for unlocking the lock earlier 
+    than the object's destruction, see SafeLocker.
     @see SafeLocker
 */
 class AutoLocker {

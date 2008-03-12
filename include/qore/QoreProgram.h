@@ -32,17 +32,21 @@
 class AbstractFunctionReferenceNode;
 
 // warnings - must correspond with the string order in QoreProgram.cc
+#define QP_WARN_NONE                     0
 #define QP_WARN_WARNING_MASK_UNCHANGED   (1 << 0)   //!< when the warning mask is attempted to be changed but it's locked
 #define QP_WARN_DUPLICATE_LOCAL_VARS     (1 << 1)   //!< duplicate local variable name
 #define QP_WARN_UNKNOWN_WARNING          (1 << 2)   //!< when an unknown warning is encountered
 #define QP_WARN_UNDECLARED_VAR           (1 << 3)   //!< when a variable is not declared
 #define QP_WARN_DUPLICATE_GLOBAL_VARS    (1 << 4)   //!< when a global variable is declared more than once
 #define QP_WARN_UNREACHABLE_CODE         (1 << 5)   //!< when unreachable code is encountered
+#define QP_WARN_ALL                      -1         //!< for all possible warnings
 
 //! list of strings of warning codes
 DLLEXPORT extern const char *qore_warnings[];
+
 //! number of warning codes
 DLLEXPORT extern unsigned qore_num_warnings;
+
 //! returns the warning code corresponding to the string passed (0 if no match was made)
 DLLEXPORT int get_warning_code(const char *str);
 
@@ -84,6 +88,9 @@ class QoreProgram : public AbstractPrivateData
 
       //! calls a function from the function name and returns the return value
       /** if the function does not exist, an exception is added to "xsink"
+	  @param name the name of the function to call
+	  @param args the argument to the function (can be 0)
+	  @param xsink if an error occurs, the Qore-language exception information will be added here
        */
       DLLEXPORT AbstractQoreNode *callFunction(const char *name, const class QoreListNode *args, class ExceptionSink *xsink);
 
@@ -376,6 +383,9 @@ class QoreProgram : public AbstractPrivateData
 
       //! calls a function from a UserFunction pointer and returns the return value
       /** if the function does not exist, an exception is added to "xsink"
+	  @param func the name of the function to call
+	  @param args the argument to the function (can be 0)
+	  @param xsink if a Qore-language exception is raised, the error information is added here
        */
       DLLLOCAL AbstractQoreNode *callFunction(class UserFunction *func, const class QoreListNode *args, class ExceptionSink *xsink);
 
@@ -406,17 +416,46 @@ class QoreProgram : public AbstractPrivateData
       DLLLOCAL void addFeature(const char *f);
       DLLLOCAL void addFile(char *f);
       DLLLOCAL class QoreListNode *getVarList();
+
       // increment atomic thread counter
       DLLLOCAL void tc_inc();
+
       // decrement atomic thread counter
       DLLLOCAL void tc_dec();
-      // for run-time module loading; the parse lock must be grabbed
-      // before loading new modules - note this should only be assigned
-      // to a AutoLock or SafeLocker object!
+
+      /* for run-time module loading; the parse lock must be grabbed
+	 before loading new modules - note this should only be assigned
+	 to a AutoLock or SafeLocker object!
+      */
       DLLLOCAL class QoreThreadLock *getParseLock();
       DLLLOCAL class QoreHashNode *clearThreadData(class ExceptionSink *xsink);
 };
 
-DLLLOCAL void addProgramConstants(class QoreNamespace *ns);
+//! safely manages QoreProgram objects
+class QoreProgramHelper {
+   private:
+      QoreProgram *pgm;
+      ExceptionSink &xsink;
+
+   public:
+      //! creates the QoreProgram object
+      DLLLOCAL QoreProgramHelper(ExceptionSink &xs) : pgm(new QoreProgram), xsink(xs)
+      {
+      }
+
+      //! waits until the QoreProgram object is done executing and then dereferences the object
+      /** QoreProgram objects are deleted when there reference count reaches 0.
+       */
+      DLLLOCAL ~QoreProgramHelper()
+      {
+	 pgm->waitForTerminationAndDeref(&xsink);
+      }
+
+      //! returns the QoreProgram object being managed
+      DLLLOCAL QoreProgram* operator->() { return pgm; }
+
+      //! returns the QoreProgram object being managed
+      DLLLOCAL QoreProgram* operator*() { return pgm; }    
+};
 
 #endif // _QORE_QOREPROGRAM_H

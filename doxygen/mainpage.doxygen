@@ -12,16 +12,183 @@
     #include <qore/Qore.h>
     @endcode
 
-    @subsection initializing_library Initializing the Library
+    @subsection initializing_and_closing_library Initializing and Closing the Qore Library
 
-    The first step is to initialize the library.  To do this, call the function qore_init() as follows:
+    The first step is to initialize the library.  To do this, call qore_init() as follows (note that this function can only be called once and must be called before any other functionality of the Qore library is used):
 
     @code
+    // qore_init() optionally takes several arguments as well
     qore_init();
     @endcode
- 
+
+    When your program terminates, you should call qore_cleanup() as follows:
+
+    @code
+    qore_cleanup();
+    @endcode
+
+    @subsection parsing_and_running Parsing and Running Qore Code
+    
+    First you should declare a variable of type ExceptionSink to capture and manage Qore exceptions (declare an additional variable if you want to capture and manage warnings when parsing Qore code):
+
+    @code
+    ExceptionSink xsink, wsink;
+    @endcode
+
+    Then you can use the QoreProgramHelper class to manage QoreProgram objects.  The QoreProgramHelper class contains a QoreProgram object and calls QoreProgram::waitForTerminationAndDeref() in the destructor.  The constructor takes a pointer to an ExceptionSink object, so make sure that the ExceptionSink object has at least as long a scope as the QoreProgramHelper object, as follows:
+
+    @code
+    ExceptionSink xsink, wsink;
+    {
+       // creates and manages a QoreProgram object
+       QoreProgramHelper pgm(&xsink);
+       // ... rest of code here
+    }
+    @endcode
+
+    Then the QoreProgramHelper object can be used like a QoreProgram object.  For example, to parse a file named "test.q" and run it, do the following:
+
+    @code
+    ExceptionSink xsink, wsink;
+    {
+       // creates and manages a QoreProgram object
+       QoreProgramHelper pgm(&xsink);
+
+       pgm->parseFile("test.q", &xsink, &wsink, QP_WARN_ALL);
+
+       // display any warnings immediately
+       wsink.handleWarnings();
+
+       // execute program if there were no parse exceptions
+       if (!xsink)
+          pgm->run(&xsink);
+    }
+    // display any exceptions on stdout
+    xsink.handleExceptions();
+    @endcode
+
+    There are many functions for parsing and running Qore code; see the QoreProgram class documentation for more information.
+
     @section module_dev Qore Module development
 
-    To develop a Qore module, several functions are required.
+    @subsection module_header Module Header Info
+
+    To develop a Qore module, several functions and several global variables must be declared in the module with public visibility so the module can be initialized and used by the Qore library.
+
+    The global variables are as follows:
+    - char qore_module_name[] - must give the name of the feature provided by the module.
+    - char qore_module_version[] - must give the version of the module
+    - char qore_module_description[] - a description of the module
+    - char qore_module_author[] - the author of the module
+    - char qore_module_url[] - a URL for the module
+    - int qore_module_api_major - must be assigned to QORE_MODULE_API_MAJOR
+    - int qore_module_api_minor - must be assigned to QORE_MODULE_API_MINOR
+
+    The functions are as follows:
+    - qore_module_init_t qore_module_init - the module initialization function
+    - qore_module_ns_init_t qore_module_ns_init - the module namespace delta functions
+    - qore_module_delete_t qore_module_delete - the module deletion function
+
+    @note All variables and all functions are required, even if the functions are empty.
+
+    Here is an example:
+    @code
+    DLLEXPORT char qore_module_name[] = "ncurses";
+    DLLEXPORT char qore_module_version[] = "0.1";
+    DLLEXPORT char qore_module_description[] = "ncurses class module";
+    DLLEXPORT char qore_module_author[] = "David Nichols";
+    DLLEXPORT char qore_module_url[] = "http://qore.sourceforge.net";
+    DLLEXPORT int qore_module_api_major = QORE_MODULE_API_MAJOR;
+    DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
+
+    DLLEXPORT qore_module_init_t qore_module_init = ncurses_module_init;
+    DLLEXPORT qore_module_ns_init_t qore_module_ns_init = ncurses_module_ns_init;
+    DLLEXPORT qore_module_delete_t qore_module_delete = ncurses_module_delete;
+    @endcode
+
+    Note that the module name (or the module's feature name) as given by qore_module_name is used to uniquely identify the feature provided by the module.  Therefore if a module is loaded that provides feature "widget" and another module also claims to provided feature "widget", the second module can never be loaded in the Qore library.
+
+    The qore_module_api_major and qore_module_api_minor variables are used to determine if the module corresponds to the API (and ABI) of the Qore library trying to load it.
+
+    @subsection module_functions Module Functions
+
+    The module initialization function qore_module_init() will be run when the module is loaded by the Qore library.  
+
+    If the module provides any namespaces, classes or constants, they will be added on demand to QoreProgram objects by calling the module's qore_module_ns_init() function.  In this case, the namespace additions should be initialized in the qore_module_init() function and copies should be provisioned in the qore_module_ns_init() function.  In particular classes should not be created more than once, because a Qore class gets a unique ID assigned when it is created, and this ID must be unique in the entire Qore library.
+
+    Here are example functions from the ncurses module:
+
+    @code
+    // this is the reference namespace for the ncurses module
+    static QoreNamespace NCNS("NCurses");
+
+    // this function is called when the module is loaded
+    QoreStringNode *ncurses_module_init()
+    {
+       // the NCurses reference namespace is set up here
+       NCNS.addSystemClass(initWindowClass());
+       NCNS.addSystemClass(initPanelClass());
+
+       init_constants(&NCNS); // here constants are added to the NCurses namespace
+    
+       builtinFunctions.add("initscr",          f_initscr, QDOM_TERMINAL_IO);
+       builtinFunctions.add("printw",           f_printw, QDOM_TERMINAL_IO);
+       builtinFunctions.add("refresh",          f_refresh, QDOM_TERMINAL_IO);
+       //... more builtin functions are added
+
+       return 0;
+    }
+
+    // this function is called when the Qore library needs to provision the NCurses namespace 
+    // to a new QoreProgram object (or to a QoreProgram object that existed before the module
+    // was loaded by another QoreProgram object and then later requests the feature "ncurses")
+    void ncurses_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
+    {
+       // add the NCurses namespace as a subnamespace to the Qore namespace
+       qns->addInitialNamespace(NCNS.copy());
+    }
+
+    // this function is called when the module is deleted (when the qore library is closed)
+    // it should free all resources allocated in the module's initilization function
+    void ncurses_module_delete()
+    {
+       // calls endwin() if necessary
+       q_nc_init.close();
+    }
+    @endcode
+
+    @section builtin_functions Qore Builtin Functions
+
+    To add a builtin function to the library, you have to call BuiltinFunctionList::add().  The BuiltinFunctionList class only contains static functions, but it can also be accessed through the global builtinFunctions object.
+
+    Builtin functions must have the following signature:
+
+    @code
+    AbstractQoreNode *f_functionname(const QoreListNode *params, ExceptionSink *xsink)
+    {
+    }
+    @endcode
+
+    Then the function can be added to the library's builtin function list with the following command:
+    @code
+    builtinFunctions.add("functionname", f_functionname);
+    @endcode
+
+    @subsection handling_arguments Handling Function Arguments
+
+    Use the inline functions in params.h to access function arguments.  These are:
+    - num_params() - returns the number of arguments passed to the function
+    - get_param() - returns the argument in the position given or 0 if there is none
+
+    The following inline functions provide arguments of a specific type:
+    - test_binary_param() - returns a const BinaryNode pointer or 0
+    - test_string_param() - returns a const QoreStringNode pointer or 0
+    - test_object_param() - returns a QoreObject pointer or 0
+    - test_date_param() - returns a const DateTimeNode pointer or 0
+    - test_hash_param() - returns a const QoreHashNode pointer or 0
+    - test_list_param() - returns a const QoreListNode pointer or 0
+    - test_funcref_param() - returns a const ResolvedFunctionReferenceNode pointer or 0
+    - test_reference_param() - returns a const ReferenceNode pointer or 0
+    - test_nothing_param() - returns true if there is no value at the given position
 
 */

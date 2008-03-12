@@ -113,4 +113,6 @@ DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 
 DLLLOCAL class AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);
 
+DLLLOCAL void addProgramConstants(class QoreNamespace *ns);
+
 #endif
