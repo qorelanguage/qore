@@ -36,6 +36,10 @@
 #include <stdio.h>
 #include <ctype.h>
 
+/** @file QoreLib.h
+    contains prototypes for various helper functions in the Qore library
+ */
+
 //! function to try and make a class name out of a file path, returns a new string that must be free()ed
 DLLEXPORT char *make_class_name(const char *fn);
 

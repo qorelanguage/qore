@@ -63,7 +63,7 @@ static inline const AbstractQoreNode *get_param(const QoreListNode *n, qore_size
 static inline const BinaryNode *test_binary_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   AbstractQoreNode *p = n->retrieve_entry(i);
+   const AbstractQoreNode *p = n->retrieve_entry(i);
    // the following is faster than a dynamic_cast
    return p && p->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode *>(p) : 0;
 }
@@ -77,7 +77,7 @@ static inline const BinaryNode *test_binary_param(const QoreListNode *n, qore_si
 static inline const QoreStringNode *test_string_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   AbstractQoreNode *p = n->retrieve_entry(i);
+   const AbstractQoreNode *p = n->retrieve_entry(i);
    // the following is faster than a dynamic_cast
    return p && p->getType() == NT_STRING ? reinterpret_cast<const QoreStringNode *>(p) : 0;
 }
@@ -91,7 +91,7 @@ static inline const QoreStringNode *test_string_param(const QoreListNode *n, qor
 static inline QoreObject *test_object_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   AbstractQoreNode *p = n->retrieve_entry(i);
+   const AbstractQoreNode *p = n->retrieve_entry(i);
    // the following is faster than a dynamic_cast
    return p && p->getType() == NT_OBJECT ? const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(p)) : 0;
 }
@@ -105,7 +105,7 @@ static inline QoreObject *test_object_param(const QoreListNode *n, qore_size_t i
 static inline const DateTimeNode *test_date_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   AbstractQoreNode *p = n->retrieve_entry(i);
+   const AbstractQoreNode *p = n->retrieve_entry(i);
    // the following is faster than a dynamic_cast
    return p && p->getType() == NT_DATE ? reinterpret_cast<const DateTimeNode *>(p) : 0;
 }
@@ -119,7 +119,7 @@ static inline const DateTimeNode *test_date_param(const QoreListNode *n, qore_si
 static inline const QoreHashNode *test_hash_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   AbstractQoreNode *p = n->retrieve_entry(i);
+   const AbstractQoreNode *p = n->retrieve_entry(i);
    // the following is faster than a dynamic_cast
    return p && p->getType() == NT_HASH ? reinterpret_cast<const QoreHashNode *>(p) : 0;
 }
@@ -133,7 +133,7 @@ static inline const QoreHashNode *test_hash_param(const QoreListNode *n, qore_si
 static inline const QoreListNode *test_list_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   AbstractQoreNode *p = n->retrieve_entry(i);
+   const AbstractQoreNode *p = n->retrieve_entry(i);
    // the following is faster than a dynamic_cast
    return p && p->getType() == NT_LIST ? reinterpret_cast<const QoreListNode *>(p) : 0;
 }
@@ -147,7 +147,7 @@ static inline const QoreListNode *test_list_param(const QoreListNode *n, qore_si
 static inline const ResolvedFunctionReferenceNode *test_funcref_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   AbstractQoreNode *p = n->retrieve_entry(i);
+   const AbstractQoreNode *p = n->retrieve_entry(i);
    // the following is faster than a dynamic_cast
    return p && p->getType() == NT_FUNCREF ? reinterpret_cast<const ResolvedFunctionReferenceNode *>(p) : 0;
 }
@@ -161,7 +161,7 @@ static inline const ResolvedFunctionReferenceNode *test_funcref_param(const Qore
 static inline const ReferenceNode *test_reference_param(const QoreListNode *n, qore_size_t i)
 {
    if (!n) return 0;
-   AbstractQoreNode *p = n->retrieve_entry(i);
+   const AbstractQoreNode *p = n->retrieve_entry(i);
    // the following is faster than a dynamic_cast
    return p && p->getType() == NT_REFERENCE ? reinterpret_cast<const ReferenceNode *>(p) : 0;
 }

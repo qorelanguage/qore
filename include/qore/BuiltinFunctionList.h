@@ -29,6 +29,10 @@
 #include <qore/Restrictions.h>
 #include <qore/QoreThreadLock.h>
 
+/** @file BuiltinFunctionList.h
+    defines the BuiltinFunctionList class for the Qore library
+ */
+
 DLLLOCAL void init_builtin_functions();
 
 //! the container that manages all builtin functions in the library
@@ -76,6 +80,6 @@ class BuiltinFunctionList
 };
 
 //! the global list of builtin functions in the qore library
-DLLEXPORT extern class BuiltinFunctionList builtinFunctions;
+DLLEXPORT extern BuiltinFunctionList builtinFunctions;
 
 #endif // _QORE_BUILTINFUNCTIONLIST_H

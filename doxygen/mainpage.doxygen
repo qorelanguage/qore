@@ -106,15 +106,15 @@
     DLLEXPORT qore_module_delete_t qore_module_delete = ncurses_module_delete;
     @endcode
 
-    Note that the module name (or the module's feature name) as given by qore_module_name is used to uniquely identify the feature provided by the module.  Therefore if a module is loaded that provides feature "widget" and another module also claims to provided feature "widget", the second module can never be loaded in the Qore library.
+    Note that the module name (or the module's feature name) as given by \a qore_module_name is used to uniquely identify the feature provided by the module.  Therefore if a module is loaded that provides feature "widget" and another module also claims to provided feature "widget", the second module can never be loaded in the Qore library.
 
-    The qore_module_api_major and qore_module_api_minor variables are used to determine if the module corresponds to the API (and ABI) of the Qore library trying to load it.
+    The \a qore_module_api_major and \a qore_module_api_minor variables are used to determine if the module corresponds to the API (and ABI) of the Qore library trying to load it.
 
     @subsection module_functions Module Functions
 
-    The module initialization function qore_module_init() will be run when the module is loaded by the Qore library.  
+    The module initialization function \a qore_module_init() will be run when the module is loaded by the Qore library.  If any errors occur when initializing the module, a description should be returned as a QoreString pointer (the library will own the pointer and delete it later).  If a non-zero pointer is returned by the \a qore_module_init() function, the feature will not be added to the Qore library and the module load will fail.
 
-    If the module provides any namespaces, classes or constants, they will be added on demand to QoreProgram objects by calling the module's qore_module_ns_init() function.  In this case, the namespace additions should be initialized in the qore_module_init() function and copies should be provisioned in the qore_module_ns_init() function.  In particular classes should not be created more than once, because a Qore class gets a unique ID assigned when it is created, and this ID must be unique in the entire Qore library.
+    If the module provides any namespaces, classes or constants, they will be added on demand to QoreProgram objects by calling the module's \a qore_module_ns_init() function.  In this case, the namespace additions should be initialized in the \a qore_module_init() function and copies should be provisioned in the \a qore_module_ns_init() function.  In particular classes should not be created more than once, because a Qore class gets a unique ID assigned when it is created, and this ID must be unique in the entire Qore library.
 
     Here are example functions from the ncurses module:
 
@@ -159,22 +159,24 @@
 
     @section builtin_functions Qore Builtin Functions
 
-    To add a builtin function to the library, you have to call BuiltinFunctionList::add().  The BuiltinFunctionList class only contains static functions, but it can also be accessed through the global builtinFunctions object.
+    To add a builtin function to the library, you have to call BuiltinFunctionList::add().  The BuiltinFunctionList class only contains static functions, but it can also be accessed through the global \a builtinFunctions object.
 
     Builtin functions must have the following signature:
 
     @code
-    AbstractQoreNode *f_functionname(const QoreListNode *params, ExceptionSink *xsink)
+    // "testfunction()" ignores all arguments and returns the string "testing"
+    AbstractQoreNode *f_testfunction(const QoreListNode *params, ExceptionSink *xsink)
     {
+       return new QoreStringNode("testing");
     }
     @endcode
 
     Then the function can be added to the library's builtin function list with the following command:
     @code
-    builtinFunctions.add("functionname", f_functionname);
+    builtinFunctions.add("testfunction", f_testfunction);
     @endcode
 
-    @subsection handling_arguments Handling Function Arguments
+    @subsection handling_function_arguments Handling Function Arguments
 
     Use the inline functions in params.h to access function arguments.  These are:
     - num_params() - returns the number of arguments passed to the function
@@ -190,5 +192,92 @@
     - test_funcref_param() - returns a const ResolvedFunctionReferenceNode pointer or 0
     - test_reference_param() - returns a const ReferenceNode pointer or 0
     - test_nothing_param() - returns true if there is no value at the given position
+
+    Note that there are no functions for the integer (NT_INT) and floating-point (NT_FLOAT) types.  These values should be acquired as necessary using the AbstractQoreNode::getAsInt(), AbstractQoreNode::getAsBigInt(), and AbstractQoreNode::getAsFloat() functions.
+
+    Here are some examples:
+
+    @code
+    AbstractQoreNode *f_testfunction(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       // get the first integer argument
+       const AbstractQoreNode *p = get_param(params, 0);
+       int64 i = p ? p->getAsBigInt() : 0;
+       
+       // get the second floating-point argument
+       p = get_param(params, 1);
+       double f = p ? p->getAsFloat() : 0.0;
+
+       int64 rc = do_something(i, f);
+
+       // returns an integer value
+       return new QoreBigIntNode(rc);
+    }
+    @endcode
+
+    To use a string value, but accept conversion from other values, use the QoreStringValueHelper class.  This class is best for getting QoreString values or simply getting a "char *" for the converted value.  The QoreStringValueHelper class also provides a constructor that allows the target character encoding to be specified (there is an example in the class documentation).  If you need a QoreStringNode value, then use the QoreStringNodeValueHelper class instead.
+
+    Here is an example of interpreting a function argument as a string value using the QoreStringValueHelper class:
+
+    @code
+    AbstractQoreNode *f_testfunction(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       // get a pointer to the first argument
+       const AbstractQoreNode *p = get_param(params, 0);
+       
+       // this will convert p to a string if necessary
+       QoreStringValueHelper str(p);
+
+       // call a function with the "const char *" to the string buffer of str
+       do_something(str->getBuffer());
+
+       return 0;
+    }
+    @endcode
+
+    To process arguments meant to be timeout values (or meant to specify a period of time) where an integer implies certain units (such as milliseconds or seconds) but also allow relative DateTimeNode values to be processed, use the following functions:
+    - getSecZeroInt(const AbstractQoreNode *a)
+    - getSecZeroBigInt(const AbstractQoreNode *a)
+    - getSecMinusOneInt(const AbstractQoreNode *a)
+    - getSecMinusOneBigInt(const AbstractQoreNode *a)
+    - getMsZeroInt(const AbstractQoreNode *a)
+    - getMsZeroBigInt(const AbstractQoreNode *a)
+    - getMsMinusOneInt(const AbstractQoreNode *a)
+    - getMsMinusOneBigInt(const AbstractQoreNode *a)
+    - getMicroSecZeroInt(const AbstractQoreNode *a)
+
+    Each of the above functions returns an integer, assuming a certain unit for non DateTimeNode values, and also returns a default value if no argument was present (either 0 or -1). 
+
+    @subsection function_return_value Function Return Value
+
+    Each Qore function should return a pointer to an AbstractQoreNode giving the return value of the function.  If the function does not return a value, then it should simply return 0 as follows:
+
+    @code
+    // "testfunction()" ignores all arguments and returns no value
+    AbstractQoreNode *f_testfunction(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       return 0;
+    }
+    @endcode
+
+    @subsection function_raising_exceptions Raising Exceptions in a Function
+
+    If your function raises an exception, then you must call ExceptionSink::raiseException() against the ExceptionSink argument to the function.  In this case, the function must return 0 as a return value.  The following is an example:
+
+    @code
+    static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       const AbstractQoreNode *p0 = get_param(params, 0);
+       int signal = p0 ? p0->getAsInt() : 0;
+       if (!signal || signal > QORE_SIGNAL_MAX)
+       {
+          xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
+	  return 0;
+       }
+       QoreSignalManager::removeHandler(signal, xsink);
+       return 0;
+    }
+    @endcode
+
 
 */

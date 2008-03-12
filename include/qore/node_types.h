@@ -24,9 +24,13 @@
 
 #define _QORE_NODE_TYPES_H
 
-// global system types
-// NOTE that value types must come first to support the operator
-// matrix optimization
+/** @file node_types.h
+    defines qore node type constants for all types implemented by the library
+ */
+
+//! qore global system type constants
+/** @note value types must come first to support the operator matrix optimization
+ */
 extern qore_type_t NT_NOTHING, NT_INT, NT_FLOAT, NT_STRING, NT_DATE,
    NT_BOOLEAN, NT_NULL, NT_BINARY, NT_LIST, NT_HASH,
    NT_OBJECT, NT_BACKQUOTE, NT_CONTEXTREF, NT_COMPLEXCONTEXTREF,
