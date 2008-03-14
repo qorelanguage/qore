@@ -26,6 +26,10 @@
 
 #include <qore/AbstractQoreNode.h>
 
+/** @file QoreNullNode.h
+    defines the QoreNullNode class
+*/
+
 //! Qore's SQL "NULL" parse tree/value type, not-referenced counted, not dynamically allocated
 /** there will only be one single QoreNullNode object instantiated and used
     everywhere in the Qore library.
@@ -88,13 +92,17 @@ class QoreNullNode : public UniqueValueQoreNode
       }
 };
 
+//! use this function to test for NULL
 static inline bool is_null(const AbstractQoreNode *n)
 {
-   return dynamic_cast<const QoreNullNode *>(n);
+   // this is faster than a dynamic_cast<const QoreNullNode *> operation
+   return n && n->type == NT_NULL;
 }
 
+//! the global and unique NULL value in Qore
 DLLEXPORT extern QoreNullNode Null;
 
+//! returns a pointer to Null
 static inline QoreNullNode *null()
 {
    return &Null;

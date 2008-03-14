@@ -38,8 +38,6 @@ typedef void (*qtdest_t)(void *);
 //! pointer to a qore thread resource destructor function
 typedef void (*qtrdest_t)(void *, class ExceptionSink *);
 
-DLLEXPORT extern class Operator *OP_BACKGROUND;
-
 //! returns the current TID number
 DLLEXPORT int gettid();
 

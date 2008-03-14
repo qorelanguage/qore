@@ -31,6 +31,8 @@
 #define MAX_QORE_THREADS 0x1000
 #endif
 
+DLLLOCAL extern class Operator *OP_BACKGROUND;
+
 enum qore_call_t {
    CT_USER       = 0,
    CT_BUILTIN    = 1,

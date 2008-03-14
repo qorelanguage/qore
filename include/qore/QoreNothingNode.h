@@ -26,6 +26,10 @@
 
 #include <qore/AbstractQoreNode.h>
 
+/** @file QoreNothingNode.h
+    defines the QoreNothingNode class
+*/
+
 //! Qore's SQL "NOTHING" parse tree/value type, not-referenced counted, not dynamically allocated
 /** there will only be one single QoreNothingNode object instantiated and used
     everywhere in the Qore library.
@@ -88,8 +92,10 @@ class QoreNothingNode : public UniqueValueQoreNode
       }
 };
 
+//! the global and unique NOTHING object in Qore
 DLLEXPORT extern QoreNothingNode Nothing;
 
+//! returns a pointer to Nothing
 static inline QoreNothingNode *nothing()
 {
    return &Nothing;

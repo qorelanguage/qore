@@ -25,15 +25,8 @@
 
 static AbstractQoreNode *f_boolean(const QoreListNode *params, ExceptionSink *xsink)
 {
-   const AbstractQoreNode *p0;
-
-   if (!(p0 = get_param(params, 0)))
-      return boolean_false();
-
-   if (p0->getAsInt())
-      return boolean_true();
-   else
-      return boolean_false();
+   const AbstractQoreNode *p = get_param(params, 0);
+   return get_bool_node(p ? p->getAsBool() : false);
 }
 
 static AbstractQoreNode *f_int(const QoreListNode *params, ExceptionSink *xsink)

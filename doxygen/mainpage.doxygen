@@ -4,6 +4,10 @@
 
     The Qore library is designed to facilitate dynamic embedding of code in applications.  The Qore library is thread-safe, and Qore code taking advantage of Qore's threading facilities is highly scalable on SMP machines.
 
+    Qore data is generally atomically referenced counted (with some exceptions for performance and memory usage reasons), and the library supports some constructors in order to reduce the number of atomic operations and avoid evaluations wherever possible.
+
+    @note The Qore library currently does not throw C++ exceptions; Qore-language exceptions are managed via the ExceptionSink class.
+
     @section embedding Embedding Qore Code
 
     All code using the qore library should include the header file Qore.h as follows:
@@ -76,18 +80,18 @@
     To develop a Qore module, several functions and several global variables must be declared in the module with public visibility so the module can be initialized and used by the Qore library.
 
     The global variables are as follows:
-    - char \a qore_module_name[] - must give the name of the feature provided by the module.
-    - char \a qore_module_version[] - must give the version of the module
-    - char \a qore_module_description[] - a description of the module
-    - char \a qore_module_author[] - the author of the module
-    - char \a qore_module_url[] - a URL for the module
-    - int \a qore_module_api_major - must be assigned to \ref QORE_MODULE_API_MAJOR
-    - int \a qore_module_api_minor - must be assigned to \ref QORE_MODULE_API_MINOR
+    - char \c qore_module_name[] - must give the name of the feature provided by the module.
+    - char \c qore_module_version[] - must give the version of the module
+    - char \c qore_module_description[] - a description of the module
+    - char \c qore_module_author[] - the author of the module
+    - char \c qore_module_url[] - a URL for the module
+    - int \c qore_module_api_major - must be assigned to \ref QORE_MODULE_API_MAJOR
+    - int \c qore_module_api_minor - must be assigned to \ref QORE_MODULE_API_MINOR
 
     The functions are as follows:
-    - \ref qore_module_init_t \a qore_module_init - the module initialization function
-    - \ref qore_module_ns_init_t \a qore_module_ns_init - the module namespace delta functions
-    - \ref qore_module_delete_t \a qore_module_delete - the module deletion function
+    - \ref qore_module_init_t \c qore_module_init - the module initialization function
+    - \ref qore_module_ns_init_t \c qore_module_ns_init - the module namespace delta functions
+    - \ref qore_module_delete_t \c qore_module_delete - the module deletion function
 
     @note All variables and all functions are required, even if the functions are empty.
 
@@ -106,15 +110,15 @@
     DLLEXPORT qore_module_delete_t qore_module_delete = ncurses_module_delete;
     @endcode
 
-    Note that the module name (or the module's feature name) as given by \a qore_module_name is used to uniquely identify the feature provided by the module.  Therefore if a module is loaded that provides feature "widget" and another module also claims to provided feature "widget", the second module cannot be loaded in the Qore library after the first has been loaded due to the duplicate feature name.
+    Note that the module name (or the module's feature name) as given by \c qore_module_name is used to uniquely identify the feature provided by the module.  Therefore if a module is loaded that provides feature "widget" and another module also claims to provided feature "widget", the second module cannot be loaded in the Qore library after the first has been loaded due to the duplicate feature name.
 
-    The \a qore_module_api_major and \a qore_module_api_minor variables are used to determine if the module corresponds to the API (and ABI) of the Qore library trying to load it.
+    The \c qore_module_api_major and \c qore_module_api_minor variables are used to determine if the module corresponds to the API (and ABI) of the Qore library trying to load it.
 
     @subsection module_functions Module Functions
 
-    The module initialization function \a qore_module_init() will be run when the module is loaded by the Qore library.  If any errors occur when initializing the module, a description should be returned as a QoreString pointer (the library will own the pointer and delete it later).  If a non-zero pointer is returned by the \a qore_module_init() function, the feature will not be added to the Qore library and the module load will fail.
+    The module initialization function \c qore_module_init() will be run when the module is loaded by the Qore library.  If any errors occur when initializing the module, a description should be returned as a QoreString pointer (the library will own the pointer and delete it later).  If a non-zero pointer is returned by the \c qore_module_init() function, the feature will not be added to the Qore library and the module load will fail.
 
-    If the module provides any namespaces, classes or constants, they will be added on demand to QoreProgram objects by calling the module's \a qore_module_ns_init() function.  In this case, the namespace additions should be initialized in the \a qore_module_init() function and copies should be provisioned in the \a qore_module_ns_init() function.  In particular classes should not be created more than once, because a Qore class gets a unique ID assigned when it is created, and this ID must be unique in the entire Qore library.
+    If the module provides any namespaces, classes or constants, they will be added on demand to QoreProgram objects by calling the module's \c qore_module_ns_init() function.  In this case, the namespace additions should be initialized in the \c qore_module_init() function and copies should be provisioned in the \c qore_module_ns_init() function.  In particular classes must not be created more than once, because a Qore class gets a unique ID assigned when it is created, and this ID must be unique in the entire Qore library.
 
     Here are example functions from the ncurses module:
 
@@ -159,7 +163,7 @@
 
     @section builtin_functions Qore Builtin Functions
 
-    To add a builtin function to the library, you have to call BuiltinFunctionList::add().  The BuiltinFunctionList class only contains static functions, but it can also be accessed through the global \a builtinFunctions object.
+    To add a builtin function to the library, you have to call BuiltinFunctionList::add().  The BuiltinFunctionList class only contains static functions, but it can also be accessed through the global \c builtinFunctions object.
 
     Builtin functions must have the following signature:
 
@@ -248,6 +252,31 @@
 
     Each of the above functions returns an integer, assuming a certain unit for non DateTimeNode values, and also returns a default value if no argument was present (either 0 or -1). 
 
+    The following is an example of using getMsZeroInt():
+
+    @code
+    static AbstractQoreNode *MUTEX_lock(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink)
+    {
+       // the the first argument
+       const AbstractQoreNode *p = get_param(params, 0);
+
+       // we only return a return value if we have a timeout, otherwise we save allocating a QoreBigIntNode
+       if (!is_nothing(p)) {
+          // get the timeout value in milliseconds from the argument
+          int timeout_ms = getMsZeroInt(p);
+	  // grab the lock with a timeout value
+	  int rc = m->grab(xsink, timeout_ms);
+	  // return the return code if there was no exception
+	  if (!*xsink)
+	     return new QoreBigIntNode(rc);
+       }
+       else // grab the lock unconditionally (without a timeout)
+          m->grab(xsink); 
+
+       return 0;
+    }
+    @endcode
+
     @subsection function_return_value Function Return Value
 
     Each Qore function should return a pointer to an AbstractQoreNode giving the return value of the function.  If the function does not return a value, then it should simply return 0 as follows:
@@ -260,22 +289,123 @@
     }
     @endcode
 
+    Otherwise, the pointer's reference count will be owned by the caller of builtin function, so returning a descendent of AbstractQoreNode created with the C++ new operator is OK, otherwise you have to make sure that the value returned by the builtin function is referenced for the return.  In other words, returning AbstractQoreNode descendents that have an incremented reference count is OK, but, for example, to return an argument of the function as the return value of the function, you have to increment the reference count manually -- the easiest way to do this is to call AbstractQoreNode::refSelf() on the value to be returned, as in the following example:
+
+    @code
+    static AbstractQoreNode *f_return_first_argument(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       const AbstractQoreNode *p = get_param(params, 0);
+       return p ? p->refSelf() : 0;
+    }
+    @endcode
+
+    See the section below on Handling Qore Data for more information.
+    
     @subsection function_raising_exceptions Raising Exceptions in a Function
 
-    If your function raises an exception, then you must call ExceptionSink::raiseException() against the ExceptionSink argument to the function.  In this case, the function must return 0 as a return value.  The following is an example:
+    If your function raises an exception, then you must call ExceptionSink::raiseException() against the ExceptionSink argument to the function.  In the case that your function raises a Qore-language exception, the function must \b always return 0 as a return value.  The following is an example:
 
     @code
     static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, ExceptionSink *xsink)
     {
        const AbstractQoreNode *p0 = get_param(params, 0);
        int signal = p0 ? p0->getAsInt() : 0;
-       if (!signal || signal > QORE_SIGNAL_MAX)
-       {
+       if (!signal || signal > QORE_SIGNAL_MAX) {
           xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
 	  return 0;
        }
        QoreSignalManager::removeHandler(signal, xsink);
        return 0;
+    }
+    @endcode
+
+    @section handling_data Handling Qore Data
+
+    All data value in Qore (and, in fact, all elements of Qore parse trees) are descended from AbstractQoreNode.
+
+    The following are the basic data types in Qore, implemented as C++ classes descended from AbstractQoreNode, and their type codes, accessed via AbstractQoreNode::getType():
+    - QoreBoolNode (\ref NT_BOOLEAN) for the boolean data type
+    - QoreBigIntNode (\ref NT_INT) for the 64-bit integer data type
+    - QoreFloatNode (\ref NT_FLOAT) for the double-precision floating-point type
+    - QoreStringNode (\ref NT_STRING) for the string data type
+    - DateTimeNode (\ref NT_DATE) for the date/time data type
+    - BinaryNode (\ref NT_BINARY) for the opaque binary data type
+    - QoreNothingNode (\ref NT_NOTHING) for a type signifying no value (also equivalent to 0!)
+    - QoreNullNode (\ref NT_NULL) for the SQL NULL data type
+    - QoreHashNode (\ref NT_HASH) for an associative array or hash data type
+    - QoreListNode (\ref NT_LIST) for a list or array data type
+    - QoreObject (\ref NT_OBJECT) for the data type representing the instantiation of a Qore class (QoreClass)
+
+    Additionally, the following classes are exposed in the library:
+    - ReferenceNode (\ref NT_REFERENCE)
+    - AbstractFunctionReferenceNode (\ref NT_FUNCREF)
+
+    @see node_types.h for a complete list of all type codes.
+
+    @subsection simple_value_types Simple Value Types: QoreBigIntNode, QoreFloatNode, QoreStringNode, DateTimeNode, BinaryNode
+
+    The QoreBigIntNode, QoreFloatNode, QoreStringNode, DateTimeNode, BinaryNode and classes are reference counted and can only be dynamically allocated.
+
+    They are all descendents of SimpleQoreNode, meaning that dereferencing their objects cannot cause a Qore-language exception to be thrown, therefore the SimpleRefHolder class can be used to manage temporary references to objects of these types.
+
+    For example:
+
+    @code
+    {
+       // here a QoreBigIntNode value is returned with an incremented reference count
+       SimpleRefHolder<QoreBigIntNode> qint(getQoreBigIntNode());
+       printf("the result is: %lld\n", qint->val);
+       // when qint goes out of scope, the reference count is decremented
+    }
+    @endcode
+
+    @subsection unique_value_types Unique Value Types: QoreBoolNode, QoreNullNode, QoreNothingNode
+
+    None of these classes can be directly instantiated with the new operator.  They are all represented by single objects managed directly by the Qore library.  Each of these classes represents a type that has only one value, therefore as a memory and performance optimization, reference counting is disabled for these objects.  Actually in the case of QoreBoolNode the subclasses QoreBoolTrueNode and QoreBoolFalseNode have actual instantiations.
+
+    For the QoreBoolNode class, you can use these objects by referring to the global \ref True and \ref False objects, or by calling get_bool_node() as follows in the example function:
+
+    @code
+    static AbstractQoreNode *f_convert_first_argument_to_bool(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       const AbstractQoreNode *p = get_param(params, 0);
+       return get_bool_node(p ? p->getAsBool() : false);
+    }
+    @endcode
+
+    Or, some even simpler functions:
+
+    @code
+    static AbstractQoreNode *f_return_true(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       return &True; // QoreBoolNode objects are not reference counted (reference counting operations are ignored)
+    }
+
+    static AbstractQoreNode *f_return_false(const QoreListNode *params, ExceptionSink *xsink)
+    {
+       return &False; // QoreBoolNode objects are not reference counted (reference counting operations are ignored)
+    }
+    @endcode
+
+    Similarly, for QoreNullNode there is the global \ref Null object or the inline function null() that returns a pointer to this object.
+
+    QoreNothingNode has the gobal \ref Nothing object and the inline function nothing() that returns a pointer to it as well.
+
+    @note that in Qore a C++ null pointer (0) is the same as \c NOTHING, therefore the inline function is_nothing() should always be used to test for \c NOTHING.
+
+    @subsection container_types Container Value Types: QoreHashNode, QoreListNode, QoreObject
+
+    The QoreHashNode, QoreListNode, and QoreObject classes define container types in Qore.  QoreObject objects in particular could throw an exception when dereferenced (if the object goes out of scope and its destructor is run, the destructor could throw an exception).  Because container types can hold any type, when they are deferenced it could cause a QoreObject to go out of scope, and therefore the possibility that a Qore-language exception could be thrown must be taken into consideration.  Therefore, to dereference these objects a pointer to an ExceptionSink object must be passed to AbstractQoreNode::deref().
+    
+    The ReferenceHolder class can be used to manage temporary reference counts as follows:
+
+    @code
+    {
+       // here a QoreHashNode value is returned with an incremented reference count
+       // note that xsink must be "ExceptionSink *"
+       ReferenceHolder<QoreHashNode> qhash(getQoreHashNode(), xsink);
+       printf("there are %ld elements in the hash\n", qhash->size());
+       // when qhash goes out of scope, the reference count is decremented
     }
     @endcode
 

@@ -26,6 +26,10 @@
 
 #include <qore/AbstractQoreNode.h>
 
+/** @file QoreBoolNode.h
+    contains definitions related to QoreBoolNode (Qore's boolean data type)
+*/
+
 //! base class for Qore's 2 boolean classes: QoreBoolTrueNode and QoreBoolFalseNode
 class QoreBoolNode : public UniqueValueQoreNode
 {

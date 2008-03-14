@@ -3544,7 +3544,7 @@ void Operator::init()
    if (!evalArgs || (functions.size() == 1))
       return;
    opMatrix = new int[NUM_VALUE_TYPES][NUM_VALUE_TYPES];
-   // create function lookup matrix
+   // create function lookup matrix for value types
    for (qore_type_t i = 0; i < NUM_VALUE_TYPES; i++)
       for (qore_type_t j = 0; j < NUM_VALUE_TYPES; j++)
 	 opMatrix[i][j] = findFunction(i, j);
@@ -4087,7 +4087,7 @@ void OperatorList::init()
    OP_TRIM->addFunction(NT_ALL, NT_NONE, op_trim);
 
    // initialize all operators
-   for (oplist_t::iterator i = begin(); i != end(); i++)
+   for (oplist_t::iterator i = begin(), e = end(); i != e; ++i)
       (*i)->init();
 
    traceout("OperatorList::init()");

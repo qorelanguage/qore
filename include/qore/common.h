@@ -24,6 +24,10 @@
 
 #define _QORE_COMMON_H
 
+/** @file common.h
+    provides type and other definitions for the Qore library
+ */
+
 #include <qore/config.h>
 
 #include <string.h>
@@ -34,6 +38,7 @@
 #include <set>
 #include <vector>
 
+//! used to identify unique Qore data and parse types (descendents of AbstractQoreNode)
 typedef short qore_type_t;
 
 //! used for sizes (same range as a pointer)
@@ -42,6 +47,7 @@ typedef unsigned long qore_size_t;
 //! used for offsets that could be negative
 typedef long qore_offset_t;
 
+//! used for the unique class ID for QoreClass objects
 typedef unsigned qore_classid_t;
 
 // set of integers
@@ -72,6 +78,11 @@ typedef std::set<int> int_set_t;
 #include <umem.h>
 #endif
 
+class AbstractQoreNode;
+class QoreListNode;
+class ExceptionSink;
+class QoreObject;
+
 //! functor template for calling free() on pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void>
 {
@@ -97,7 +108,7 @@ template <typename T> struct simple_deref
       {
 	 ptr->deref();
       }
-      void operator()(T *ptr, class ExceptionSink *xsink)
+      void operator()(T *ptr, ExceptionSink *xsink)
       {
 	 ptr->deref(xsink);
       }
@@ -160,12 +171,55 @@ typedef long long int64;
 
 #include <stdarg.h>
 
-typedef class AbstractQoreNode *(*q_func_t)(const class QoreListNode *args, class ExceptionSink *);
-typedef class AbstractQoreNode *(*q_method_t)(class QoreObject *, void *, const class QoreListNode *args, class ExceptionSink *);
-typedef void (*q_constructor_t)(class QoreObject *, const class QoreListNode *args, class ExceptionSink *);
-typedef void (*q_system_constructor_t)(class QoreObject *, int code, va_list args);
-typedef void (*q_destructor_t)(class QoreObject *, void *, class ExceptionSink *);
-typedef void (*q_copy_t)(class QoreObject *, class QoreObject *, void *, class ExceptionSink *);
+//! the type used for builtin function signatures
+/** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+    @return the return value of the function (can be 0)
+ */
+typedef AbstractQoreNode *(*q_func_t)(const QoreListNode *args, ExceptionSink *xsink);
+
+//! the type used for builtin QoreClass method signatures
+/** @param self the QoreObject that the function is being executed on
+    @param private_data the object's private data representing the state of the object
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+    @return the return value of the function (can be 0)
+ */
+typedef AbstractQoreNode *(*q_method_t)(QoreObject *self, void *private_data, const QoreListNode *args, ExceptionSink *xsink);
+
+//! the type used for builtin QoreClass constructor method signatures
+/** @param self the QoreObject that the function is being executed on
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+ */
+typedef void (*q_constructor_t)(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink);
+
+//! the type used for builtin QoreClass system constructor method signatures
+/** System constructors are called for objects that are created automatically by the library, normally to be assigned to constants.
+    System objects are treated specially by the Qore library as they are not associated with any QoreProgram object.
+    Additionally, system object constructors are not allowed to raise exceptions.
+    @param self the QoreObject that the function is being executed on
+    @param code this argument is necessary in order to be able to provide the va_list in the following argument due to the way QoreClass::execSystemConstructor() is called.  If not required by the constuctor, this argument can be ignored.
+    @param args a variable-length list of arguments to the system constructor
+ */
+typedef void (*q_system_constructor_t)(QoreObject *self, int code, va_list args);
+
+//! the type used for builtin QoreClass destructor signatures
+/** destructors are optional, but, if present, must call AbstractPrivateData::deref() on any private data (if present)
+    @param self the QoreObject that the function is being executed on
+    @param private_data the object's private data representing the state of the object
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+ */
+typedef void (*q_destructor_t)(QoreObject *self, void *private_data, ExceptionSink *xsink);
+
+//! the type used for builtin QoreClass copy signatures
+/** this function must set any private data against the new object by calling QoreObject::setPrivate() on \c self
+    @param self the QoreObject that the function is being executed on (the new copy of the object)
+    @param old the object being copied
+    @param private_data the object's private data representing the state of the object
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+ */
+typedef void (*q_copy_t)(QoreObject *self, QoreObject *old, void *private_data, ExceptionSink *xsink);
 
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
