@@ -70,12 +70,12 @@ class BuiltinFunction
       DLLLOCAL BuiltinFunction(q_system_constructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_destructor_t m, int typ);
       DLLLOCAL BuiltinFunction(q_copy_t m, int typ);
-      DLLLOCAL class AbstractQoreNode *evalMethod(class QoreObject *self, void *private_data, const class QoreListNode *args, class ExceptionSink *xsink) const;
+      DLLLOCAL class AbstractQoreNode *evalMethod(class QoreObject *self, AbstractPrivateData *private_data, const class QoreListNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL void evalConstructor(class QoreObject *self, const class QoreListNode *args, class BCList *bcl, class BCEAList *bceal, const char *class_name, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalDestructor(class QoreObject *self, void *private_data, const char *class_name, class ExceptionSink *xsink) const;
-      DLLLOCAL void evalCopy(class QoreObject *self, class QoreObject *old, void *private_data, const char *class_name, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalDestructor(class QoreObject *self, AbstractPrivateData *private_data, const char *class_name, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalCopy(class QoreObject *self, class QoreObject *old, AbstractPrivateData *private_data, const char *class_name, class ExceptionSink *xsink) const;
       DLLLOCAL void evalSystemConstructor(class QoreObject *self, int code, va_list args) const;
-      DLLLOCAL void evalSystemDestructor(class QoreObject *self, void *private_data, class ExceptionSink *xsink) const;
+      DLLLOCAL void evalSystemDestructor(class QoreObject *self, AbstractPrivateData *private_data, class ExceptionSink *xsink) const;
       DLLLOCAL class AbstractQoreNode *evalWithArgs(class QoreObject *self, const class QoreListNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL class AbstractQoreNode *eval(const class QoreListNode *args, class ExceptionSink *xsink) const;
       DLLLOCAL int getType() const { return type; }

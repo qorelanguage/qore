@@ -43,7 +43,7 @@ static void SOCKET_constructor(QoreObject *self, const QoreListNode *params, Exc
    self->setPrivate(CID_SOCKET, new mySocket());
 }
 
-static void SOCKET_copy(QoreObject *self, QoreObject *old, void *obj, ExceptionSink *xsink)
+static void SOCKET_copy(QoreObject *self, QoreObject *old, AbstractPrivateData *obj, ExceptionSink *xsink)
 {
    self->setPrivate(CID_SOCKET, new mySocket());
 }

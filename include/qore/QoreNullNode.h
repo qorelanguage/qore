@@ -96,7 +96,7 @@ class QoreNullNode : public UniqueValueQoreNode
 static inline bool is_null(const AbstractQoreNode *n)
 {
    // this is faster than a dynamic_cast<const QoreNullNode *> operation
-   return n && n->type == NT_NULL;
+   return n && n->getType() == NT_NULL;
 }
 
 //! the global and unique NULL value in Qore

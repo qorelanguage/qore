@@ -340,7 +340,7 @@ AbstractQoreNode *BuiltinFunction::evalWithArgs(QoreObject *self, const QoreList
    return rv;
 }
 
-AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, void *private_data, const QoreListNode *args, ExceptionSink *xsink) const
+AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const
 {
    printd(2, "BuiltinFunction::evalMethod() calling builtin function '%s' obj=%08p data=%08p\n", name, self, private_data);
    CodeContextHelper cch(name, self, xsink);
@@ -353,7 +353,7 @@ AbstractQoreNode *BuiltinFunction::evalMethod(QoreObject *self, void *private_da
    return code.method(self, private_data, args, xsink);
 }
 
-void BuiltinFunction::evalDestructor(QoreObject *self, void *private_data, const char *class_name, ExceptionSink *xsink) const
+void BuiltinFunction::evalDestructor(QoreObject *self, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalDestructor()");
    
@@ -378,7 +378,7 @@ void BuiltinFunction::evalDestructor(QoreObject *self, void *private_data, const
    traceout("BuiltinFunction::destructor()");
 }
 
-void BuiltinFunction::evalCopy(QoreObject *self, QoreObject *old, void *private_data, const char *class_name, ExceptionSink *xsink) const
+void BuiltinFunction::evalCopy(QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, const char *class_name, ExceptionSink *xsink) const
 {
    tracein("BuiltinFunction::evalCopy()");
    
@@ -403,7 +403,7 @@ void BuiltinFunction::evalCopy(QoreObject *self, QoreObject *old, void *private_
    traceout("BuiltinFunction::evalCopy()");
 }
 
-void BuiltinFunction::evalSystemDestructor(QoreObject *self, void *private_data, ExceptionSink *xsink) const
+void BuiltinFunction::evalSystemDestructor(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink) const
 {
    code.destructor(self, private_data, xsink);
 }

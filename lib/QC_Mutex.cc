@@ -37,7 +37,7 @@ static void MUTEX_destructor(QoreObject *self, class SmartMutex *m, ExceptionSin
    m->deref(xsink);
 }
 
-static void MUTEX_copy(QoreObject *self, QoreObject *old, class SmartMutex *m, ExceptionSink *xsink)
+static void MUTEX_copy(QoreObject *self, QoreObject *old, SmartMutex *m, ExceptionSink *xsink)
 {
    self->setPrivate(CID_MUTEX, new SmartMutex());
 }

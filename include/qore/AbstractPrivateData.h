@@ -45,14 +45,17 @@ class AbstractPrivateData : public QoreReferenceCounter
 	 ROreference();
       }
 
-      //! decrememnts the reference count of the object, the default implementation cannot throw a Qore-language exception
+      //! decrements the reference count of the object
+      /**
+	 @param xsink any Qore-language exception information is stored here
+       */
       DLLEXPORT virtual void deref(class ExceptionSink *xsink)
       {
 	 if (ROdereference())
 	    delete this;
       }
 
-      //! decrememnts the reference count of the object without the possibility of throwing a Qore-language exception
+      //! decrements the reference count of the object without the possibility of throwing a Qore-language exception
       DLLEXPORT virtual void deref()
       {
 	 if (ROdereference())

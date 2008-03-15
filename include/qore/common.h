@@ -82,6 +82,7 @@ class AbstractQoreNode;
 class QoreListNode;
 class ExceptionSink;
 class QoreObject;
+class AbstractPrivateData;
 
 //! functor template for calling free() on pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void>
@@ -185,7 +186,7 @@ typedef AbstractQoreNode *(*q_func_t)(const QoreListNode *args, ExceptionSink *x
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
     @return the return value of the function (can be 0)
  */
-typedef AbstractQoreNode *(*q_method_t)(QoreObject *self, void *private_data, const QoreListNode *args, ExceptionSink *xsink);
+typedef AbstractQoreNode *(*q_method_t)(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
 
 //! the type used for builtin QoreClass constructor method signatures
 /** @param self the QoreObject that the function is being executed on
@@ -210,7 +211,7 @@ typedef void (*q_system_constructor_t)(QoreObject *self, int code, va_list args)
     @param private_data the object's private data representing the state of the object
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
-typedef void (*q_destructor_t)(QoreObject *self, void *private_data, ExceptionSink *xsink);
+typedef void (*q_destructor_t)(QoreObject *self, AbstractPrivateData *private_data, ExceptionSink *xsink);
 
 //! the type used for builtin QoreClass copy signatures
 /** this function must set any private data against the new object by calling QoreObject::setPrivate() on \c self
@@ -219,7 +220,7 @@ typedef void (*q_destructor_t)(QoreObject *self, void *private_data, ExceptionSi
     @param private_data the object's private data representing the state of the object
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
  */
-typedef void (*q_copy_t)(QoreObject *self, QoreObject *old, void *private_data, ExceptionSink *xsink);
+typedef void (*q_copy_t)(QoreObject *self, QoreObject *old, AbstractPrivateData *private_data, ExceptionSink *xsink);
 
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
