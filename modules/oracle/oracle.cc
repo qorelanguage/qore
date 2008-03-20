@@ -1296,8 +1296,27 @@ static int oracle_close(class Datasource *ds)
    return 0;
 }
 
+#define VERSION_BUF_SIZE 512
+static AbstractQoreNode *oracle_get_server_version(Datasource *ds, ExceptionSink *xsink)
+{
+   // get private data structure for connection
+   OracleData *d_ora = (OracleData *)ds->getPrivateData();
+   
+   // buffer for version information
+   char version_buf[VERSION_BUF_SIZE + 1];
+   
+   // execute OCIServerVersion and check status code
+   ora_checkerr(d_ora->errhp, 
+   OCIServerVersion(d_ora->svchp, d_ora->errhp, (OraText *)version_buf, VERSION_BUF_SIZE, OCI_HTYPE_SVCCTX),
+   "oracle_get_server_version", ds, xsink);
+   if (*xsink)
+      return 0;
+   
+   return new QoreStringNode(version_buf);   
+}
+
 #ifdef HAVE_OCICLIENTVERSION
-static AbstractQoreNode *oracle_get_client_version(const Datasource *ds, ExceptionSink *xsink)
+static class AbstractQoreNode *oracle_get_client_version(const Datasource *ds, ExceptionSink *xsink)
 {
    sword major, minor, update, patch, port_update;
 
