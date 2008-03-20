@@ -2,7 +2,7 @@
 	* fixed some bugs in the mysql driver related to new API changes
 	* eliminated the "auto_commit" DBI method (commit will be executed
 	  automatically in the auto_commit context for drivers that do not have
-	  a begin_transaction method, meaning that the have implicit transaction
+	  a begin_transaction method, meaning that it has implicit transaction
 	  support
 
 2008.03.11: David Nichols
